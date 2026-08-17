@@ -5,6 +5,7 @@ import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/amount/amount_input_formatter.dart';
 import 'package:stackwallet/utilities/amount/amount_unit.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
 void main() {
@@ -310,6 +311,213 @@ void main() {
     );
     expect(insertedDecimal.text, "1,234");
     expect(insertedDecimal.selection.baseOffset, 2);
+  });
+
+  test("strict localized parsing validates grouping", () {
+    expect(
+      Amount.tryParseLocalizedNumber("1,000", locale: "en_US"),
+      Decimal.fromInt(1000),
+    );
+    expect(
+      Amount.tryParseLocalizedNumber("1.5", locale: "en_US"),
+      Decimal.parse("1.5"),
+    );
+    expect(
+      Amount.tryParseLocalizedNumber("1,5", locale: "de_DE"),
+      Decimal.parse("1.5"),
+    );
+    expect(
+      Amount.tryParseLocalizedNumber("1.5", locale: "de_DE"),
+      Decimal.parse("1.5"),
+    );
+
+    for (final malformed in ["1,5", "12,34", "0,001", "1,,000"]) {
+      expect(
+        Amount.tryParseLocalizedNumber(malformed, locale: "en_US"),
+        isNull,
+        reason: malformed,
+      );
+    }
+  });
+
+  test("ambiguous dot-grouped values are rejected", () {
+    // A single "." group with exactly three trailing digits reads as both a
+    // grouped integer (1123) and a dot-decimal amount (1.123). Reject.
+    for (final ambiguous in ["1.123", "1.000", "12.345", "999.999"]) {
+      expect(
+        Amount.tryParseLocalizedNumber(ambiguous, locale: "de_DE"),
+        isNull,
+        reason: ambiguous,
+      );
+    }
+
+    // Values with only one possible reading still parse.
+    expect(
+      Amount.tryParseLocalizedNumber("1.12", locale: "de_DE"),
+      Decimal.parse("1.12"),
+    );
+    expect(
+      Amount.tryParseLocalizedNumber("1.1234", locale: "de_DE"),
+      Decimal.parse("1.1234"),
+    );
+    expect(
+      Amount.tryParseLocalizedNumber("0.123", locale: "de_DE"),
+      Decimal.parse("0.123"),
+    );
+    expect(
+      Amount.tryParseLocalizedNumber("1234.123", locale: "de_DE"),
+      Decimal.parse("1234.123"),
+    );
+    expect(
+      Amount.tryParseLocalizedNumber("1.000.000", locale: "de_DE"),
+      Decimal.fromInt(1000000),
+    );
+    expect(
+      Amount.tryParseLocalizedNumber("1.000,5", locale: "de_DE"),
+      Decimal.parse("1000.5"),
+    );
+
+    // Locales with "." as the decimal separator are unaffected.
+    expect(
+      Amount.tryParseLocalizedNumber("1.123", locale: "en_US"),
+      Decimal.parse("1.123"),
+    );
+    expect(
+      Amount.tryParseLocalizedNumber("1,123", locale: "en_US"),
+      Decimal.fromInt(1123),
+    );
+  });
+
+  test("tryParseLocalizedNumber input class matrix", () {
+    // (input, expected for en_US, expected for de_DE); null means rejected.
+    final cases = <(String, String?, String?)>[
+      // Plain integers.
+      ("0", "0", "0"),
+      ("5", "5", "5"),
+      ("007", "7", "7"),
+      (
+        "1234567890123456789012345678901234567890",
+        "1234567890123456789012345678901234567890",
+        "1234567890123456789012345678901234567890",
+      ),
+      // Decimal-separator forms.
+      ("1.5", "1.5", "1.5"),
+      ("0.5", "0.5", "0.5"),
+      (".5", "0.5", "0.5"),
+      ("00.5", "0.5", "0.5"),
+      ("1.12345678", "1.12345678", "1.12345678"),
+      ("1,5", null, "1.5"),
+      (",5", null, "0.5"),
+      (",000", null, "0"),
+      ("0,5", null, "0.5"),
+      ("1,12345678", null, "1.12345678"),
+      ("0.000000000000000001", "0.000000000000000001", "0.000000000000000001"),
+      // Grouped values; note a 3-digit comma "decimal" is valid in de_DE.
+      ("1,000", "1000", "1"),
+      ("10,000", "10000", "10"),
+      ("100,000", "100000", "100"),
+      ("999,999", "999999", "999.999"),
+      ("1,234,567", "1234567", null),
+      ("1,000.5", "1000.5", null),
+      ("1,000,000.12345678", "1000000.12345678", null),
+      ("1.234.567", null, "1234567"),
+      ("1.000,5", null, "1000.5"),
+      ("1.000.000,12345678", null, "1000000.12345678"),
+      // Malformed grouping (en_US); most re-read as decimals in de_DE.
+      ("1,23", null, "1.23"),
+      ("12,3456", null, "12.3456"),
+      ("1234,567", null, "1234.567"),
+      ("0,001", null, "0.001"),
+      ("1,0000", null, "1"),
+      ("1,,000", null, null),
+      ("1,000,00", null, null),
+      // Ambiguous single dot group in de_DE; plain decimals in en_US.
+      ("1.123", "1.123", null),
+      ("1.000", "1", null),
+      ("12.345", "12.345", null),
+      ("999.999", "999.999", null),
+      // Unambiguous dot forms in de_DE.
+      ("1.12", "1.12", "1.12"),
+      ("1.1234", "1.1234", "1.1234"),
+      ("0.123", "0.123", "0.123"),
+      ("1000.123", "1000.123", "1000.123"),
+      ("1234.123", "1234.123", "1234.123"),
+      // Separator garbage.
+      ("1.2.3", null, null),
+      ("1..5", null, null),
+      (".", null, null),
+      ("..", null, null),
+      (",", null, null),
+      ("1.", null, null),
+      ("5.", null, null),
+      ("5,", null, null),
+      ("1,000.", null, null),
+      ("1.000.", null, null),
+      (".5.5", null, null),
+      // Signs and whitespace.
+      ("", null, null),
+      ("+5", null, null),
+      ("-5", null, null),
+      ("5-", null, null),
+      ("1-2", null, null),
+      (" 5", null, null),
+      ("5 ", null, null),
+      ("1 000", null, null),
+      ("\t5", null, null),
+      ("5\n", null, null),
+      ("5\r", null, null),
+      // Non-numeric and exotic digits.
+      ("abc", null, null),
+      ("1a", null, null),
+      ("a1", null, null),
+      ("1e5", null, null),
+      ("1E5", null, null),
+      ("0x10", null, null),
+      ("NaN", null, null),
+      ("Infinity", null, null),
+      ("١٢٣", null, null),
+      ("１２３", null, null),
+    ];
+
+    for (final (input, enExpected, deExpected) in cases) {
+      expect(
+        Amount.tryParseLocalizedNumber(input, locale: "en_US"),
+        enExpected == null ? isNull : Decimal.parse(enExpected),
+        reason: "en_US: '$input'",
+      );
+      expect(
+        Amount.tryParseLocalizedNumber(input, locale: "de_DE"),
+        deExpected == null ? isNull : Decimal.parse(deExpected),
+        reason: "de_DE: '$input'",
+      );
+    }
+  });
+
+  test("tryParseLocalizedNumber locale symbols and fallback defaults", () {
+    // fr_FR groups with a non-breaking space variant; build input from the
+    // actual symbol so the test survives intl data updates.
+    final frGroup = Util.getSymbolsFor(locale: "fr_FR")!.GROUP_SEP;
+    expect(
+      Amount.tryParseLocalizedNumber("1${frGroup}234,5", locale: "fr_FR"),
+      Decimal.parse("1234.5"),
+    );
+    expect(
+      Amount.tryParseLocalizedNumber("1234,5", locale: "fr_FR"),
+      Decimal.parse("1234.5"),
+    );
+    // A typed ASCII space is never a valid separator.
+    expect(Amount.tryParseLocalizedNumber("1 000", locale: "fr_FR"), isNull);
+
+    // Unknown locale falls back to "," grouping and "." decimals.
+    expect(
+      Amount.tryParseLocalizedNumber("1,000.5", locale: "zz_ZZ"),
+      Decimal.parse("1000.5"),
+    );
+    expect(
+      Amount.tryParseLocalizedNumber("1.5", locale: "zz_ZZ"),
+      Decimal.parse("1.5"),
+    );
+    expect(Amount.tryParseLocalizedNumber("1,5", locale: "zz_ZZ"), isNull);
   });
 
   test("formatter tolerates an invalid selection", () {

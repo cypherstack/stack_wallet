@@ -53,6 +53,50 @@ class Amount {
         .replaceFirst(decimalSeparator, ".");
   }
 
+  static Decimal? tryParseLocalizedNumber(
+    String value, {
+    required String locale,
+  }) {
+    if (value.isEmpty || value.contains(RegExp(r'[+\-\x09-\x0D ]'))) {
+      return null;
+    }
+
+    final symbols = Util.getSymbolsFor(locale: locale);
+    final groupSeparator = symbols?.GROUP_SEP ?? ",";
+    final decimalSeparator = symbols?.DECIMAL_SEP ?? ".";
+    final escapedGroup = RegExp.escape(groupSeparator);
+    final escapedDecimal = RegExp.escape(decimalSeparator);
+    final integerPattern =
+        r'(?:\d+|[1-9]\d{0,2}(?:' + escapedGroup + r'\d{3})+)';
+    final localizedPattern = RegExp(
+      '^(?:$integerPattern(?:$escapedDecimal\\d+)?|$escapedDecimal\\d+)\$',
+    );
+
+    // In locales that group digits with ".", a single-dot value with exactly
+    // three trailing digits ("1.123") is both a validly grouped integer and a
+    // plausible plain dot-decimal amount. Money input must not guess between
+    // readings that differ 1000x, so such values are rejected outright.
+    if (groupSeparator == "." &&
+        decimalSeparator != "." &&
+        !value.contains(decimalSeparator) &&
+        RegExp(r'^[1-9]\d{0,2}\.\d{3}$').hasMatch(value)) {
+      return null;
+    }
+
+    if (localizedPattern.hasMatch(value)) {
+      return Decimal.tryParse(normalizeLocalizedNumber(value, locale: locale));
+    }
+
+    if (groupSeparator == "." &&
+        decimalSeparator != "." &&
+        !value.contains(decimalSeparator) &&
+        RegExp(r'^(?:\d+(?:\.\d+)?|\.\d+)$').hasMatch(value)) {
+      return Decimal.tryParse(value);
+    }
+
+    return null;
+  }
+
   static Amount? tryParseFiatString(String value, {required String locale}) {
     if (value.isEmpty || value.contains(RegExp(r'[+\-\x09-\x0D ]'))) {
       return null;

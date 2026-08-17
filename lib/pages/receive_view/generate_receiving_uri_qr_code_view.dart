@@ -14,17 +14,19 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 // import 'package:document_file_save_plus/document_file_save_plus.dart';
-import 'package:decimal/decimal.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../notifications/show_flush_bar.dart';
+import '../../providers/global/locale_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/address_utils.dart';
+import '../../utilities/amount/amount.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/clipboard_interface.dart';
 import '../../utilities/constants.dart';
@@ -44,7 +46,7 @@ import '../../widgets/stack_dialog.dart';
 import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
 
-class GenerateUriQrCodeView extends StatefulWidget {
+class GenerateUriQrCodeView extends ConsumerStatefulWidget {
   const GenerateUriQrCodeView({
     super.key,
     required this.coin,
@@ -59,10 +61,11 @@ class GenerateUriQrCodeView extends StatefulWidget {
   final ClipboardInterface clipboard;
 
   @override
-  State<GenerateUriQrCodeView> createState() => _GenerateUriQrCodeViewState();
+  ConsumerState<GenerateUriQrCodeView> createState() =>
+      _GenerateUriQrCodeViewState();
 }
 
-class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
+class _GenerateUriQrCodeViewState extends ConsumerState<GenerateUriQrCodeView> {
   final _qrKey = GlobalKey();
 
   late TextEditingController amountController;
@@ -150,16 +153,8 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
     final amountString = amountController.text;
     final noteString = noteController.text;
 
-    // try "."
-    Decimal? amount = Decimal.tryParse(amountString);
-    if (amount == null) {
-      // try single instance of ","
-      final first = amountString.indexOf(",");
-      final last = amountString.lastIndexOf(",");
-      if (first == last) {
-        amount = Decimal.tryParse(amountString.replaceFirst(",", "."));
-      }
-    }
+    final locale = ref.read(localeServiceChangeNotifierProvider).locale;
+    final amount = Amount.tryParseLocalizedNumber(amountString, locale: locale);
 
     if (amountString.isNotEmpty && amount == null) {
       showFloatingFlushBar(
