@@ -40,6 +40,71 @@ void main() {
     expect(result.message, "eggs are good!");
   });
 
+  test("parse uri with malformed amount rejects the whole uri", () {
+    // Payment URI amounts are machine-format plain decimals (BIP21 style):
+    // no signs, no exponents, no grouping or locale separators, no units.
+    const malformed = [
+      "-5",
+      "%2B5", // literal "+5"; a raw "+" is query-encoding for a space
+      "1e3",
+      "1E3",
+      "1e-3",
+      "1.2.3",
+      "5%20BTC",
+      "1,220.0", // grouped
+      "1,5", // comma decimal
+      "1.220,00", // European format
+      "1%20220.0", // space grouped
+      "5.", // trailing separator
+      "5,",
+      ".",
+      "", // explicitly present but empty
+      "0x10",
+      "NaN",
+      "Infinity",
+      "abc",
+    ];
+    for (final amount in malformed) {
+      expect(
+        AddressUtils.parsePaymentUri("bitcoin:$firoAddress?amount=$amount"),
+        isNull,
+        reason: "amount=$amount",
+      );
+    }
+  });
+
+  test("parse uri with valid amount preserves it verbatim", () {
+    const valid = [
+      "5",
+      "007",
+      "1220.0",
+      "1.220",
+      "0.5",
+      ".5",
+      "0.00000001",
+      "123456789.123456789",
+    ];
+    for (final amount in valid) {
+      final result = AddressUtils.parsePaymentUri(
+        "bitcoin:$firoAddress?amount=$amount",
+      );
+      expect(result?.amount, amount, reason: "amount=$amount");
+    }
+
+    // Surrounding whitespace is trimmed, not rejected.
+    final padded = AddressUtils.parsePaymentUri(
+      "bitcoin:$firoAddress?amount=%201.5%20",
+    );
+    expect(padded?.amount, "1.5");
+
+    // A raw "+" in a query decodes to a space, so "+5" arrives as " 5" and
+    // trims to a valid "5". A literal plus sign (%2B5) is rejected above.
+    final plusAsSpace = AddressUtils.parsePaymentUri(
+      "bitcoin:$firoAddress?amount=+5",
+    );
+    expect(plusAsSpace?.amount, "5");
+  });
+
   test("parse query parameters exactly once", () {
     const uri = "bitcoin:$firoAddress?label=Save%25&amount=1.5";
     final result = AddressUtils.parsePaymentUri(uri);

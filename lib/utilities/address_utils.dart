@@ -76,6 +76,8 @@ class AddressUtils {
           result["tx_description"] = Uri.decodeComponent(u.fragment);
         }
       }
+    } on FormatException {
+      rethrow;
     } catch (e, s) {
       Logging.instance.d(
         "Exception caught in parseUri($uri): $e",
@@ -95,7 +97,11 @@ class AddressUtils {
         switch (lowerKey) {
           case 'amount':
           case 'tx_amount':
-            result['amount'] = _normalizeAmount(value);
+            final normalized = _normalizeAmount(value);
+            if (normalized == null) {
+              throw FormatException("Invalid payment URI amount: $value");
+            }
+            result['amount'] = normalized;
             break;
           case 'label':
           case 'recipient_name':
@@ -119,16 +125,9 @@ class AddressUtils {
     return result;
   }
 
-  /// Normalizes amount value to a standard format.
-  static String _normalizeAmount(String amount) {
-    // Remove any non-numeric characters except for '.'
-    final sanitized = amount.replaceAll(RegExp(r'[^\d.]'), '');
-    // Ensure only one decimal point
-    final parts = sanitized.split('.');
-    if (parts.length > 2) {
-      return '${parts[0]}.${parts.sublist(1).join()}';
-    }
-    return sanitized;
+  static String? _normalizeAmount(String amount) {
+    final trimmed = amount.trim();
+    return RegExp(r'^(\d+(\.\d+)?|\.\d+)$').hasMatch(trimmed) ? trimmed : null;
   }
 
   /// Centralized method to handle various cryptocurrency URIs and return a common object.
