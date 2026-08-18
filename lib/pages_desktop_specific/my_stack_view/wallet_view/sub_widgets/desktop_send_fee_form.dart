@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import '../../../../providers/providers.dart';
+import '../../../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../../../providers/ui/preview_tx_button_state_provider.dart';
 import '../../../../providers/wallet/desktop_fee_providers.dart';
 import '../../../../providers/wallet/public_private_balance_state_provider.dart';
@@ -39,7 +40,7 @@ class DesktopSendFeeForm extends ConsumerStatefulWidget {
   final String walletId;
   final bool isToken;
   final void Function(int) onCustomFeeSliderChanged;
-  final void Function(bool) onCustomFeeOptionChanged;
+  final VoidCallback onCustomFeeOptionChanged;
   final void Function(EthEIP1559Fee)? onCustomEip1559FeeOptionChanged;
 
   @override
@@ -57,15 +58,6 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
   late final CryptoCurrency cryptoCurrency;
 
   bool get isEth => cryptoCurrency is Ethereum;
-
-  bool _isCustomFeeValue = false;
-  bool get _isCustomFee => _isCustomFeeValue;
-  set _isCustomFee(bool newValue) {
-    if (_isCustomFeeValue != newValue) {
-      _isCustomFeeValue = newValue;
-      widget.onCustomFeeOptionChanged.call(_isCustomFeeValue);
-    }
-  }
 
   (FeeRateType, String?, String?)? feeSelectionResult;
 
@@ -104,6 +96,7 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
 
   @override
   Widget build(BuildContext context) {
+    final isCustomFee = ref.watch(feeRateTypeDesktopStateProvider).isCustom;
     final canEditFees =
         isEth ||
         cryptoCurrency is Solana ||
@@ -124,6 +117,7 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
               CustomTextButton(
                 text: "Edit",
                 onTap: () async {
+                  final wasCustomFee = isCustomFee;
                   feeSelectionResult =
                       await showDialog<(FeeRateType, String?, String?)?>(
                         context: context,
@@ -134,12 +128,9 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
                       );
 
                   if (feeSelectionResult != null) {
-                    if (_isCustomFee &&
-                        feeSelectionResult!.$1 != FeeRateType.custom) {
-                      _isCustomFee = false;
-                    } else if (!_isCustomFee &&
-                        feeSelectionResult!.$1 == FeeRateType.custom) {
-                      _isCustomFee = true;
+                    final selectedIsCustomFee = feeSelectionResult!.$1.isCustom;
+                    if (wasCustomFee != selectedIsCustomFee) {
+                      widget.onCustomFeeOptionChanged.call();
                     }
                   }
 
@@ -150,7 +141,7 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
           ),
           child: Text(
             "Transaction fee"
-            "${_isCustomFee ? "" : " (${isEth ? "max" : "estimated"})"}",
+            "${isCustomFee ? "" : " (${isEth ? "max" : "estimated"})"}",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
               color: Theme.of(
                 context,
@@ -160,7 +151,7 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
           ),
         ),
         const SizedBox(height: 10),
-        if (!_isCustomFee)
+        if (!isCustomFee)
           Padding(
             padding: const EdgeInsets.all(10),
             child: (feeSelectionResult?.$2 == null)
@@ -340,7 +331,7 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
                     ],
                   ),
           ),
-        if (_isCustomFee && isEth)
+        if (isCustomFee && isEth)
           EthFeeForm(
             minGasLimit: widget.isToken
                 ? kEthereumTokenMinGasLimit
@@ -348,7 +339,7 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
             stateChanged: (value) =>
                 widget.onCustomEip1559FeeOptionChanged?.call(value),
           ),
-        if (_isCustomFee && !isEth)
+        if (isCustomFee && !isEth)
           Padding(
             padding: const EdgeInsets.only(bottom: 12, top: 16),
             child: FeeSlider(

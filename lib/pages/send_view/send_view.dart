@@ -967,9 +967,10 @@ class _SendViewState extends ConsumerState<SendView> {
       final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
 
       Future<TxData> txDataFuture;
+      final feeRateType = ref.read(feeRateTypeMobileStateProvider);
+      final satsPerVByte = feeRateType.customSatsPerVByte(customFeeRate);
 
       if (isPaynymSend) {
-        final feeRate = ref.read(feeRateTypeMobileStateProvider);
         txDataFuture = (wallet as PaynymInterface).preparePaymentCodeSend(
           txData: TxData(
             paynymAccountLite: widget.accountLite!,
@@ -981,8 +982,8 @@ class _SendViewState extends ConsumerState<SendView> {
                 addressType: AddressType.unknown,
               ),
             ],
-            satsPerVByte: isCustomFee.value ? customFeeRate : null,
-            feeRateType: feeRate,
+            satsPerVByte: satsPerVByte,
+            feeRateType: feeRateType,
             utxos:
                 (wallet is CoinControlInterface &&
                     wallet is! SalviumWallet &&
@@ -1007,8 +1008,8 @@ class _SendViewState extends ConsumerState<SendView> {
                       isChange: false,
                     ),
                   ],
-                  feeRateType: ref.read(feeRateTypeMobileStateProvider),
-                  satsPerVByte: isCustomFee.value ? customFeeRate : null,
+                  feeRateType: feeRateType,
+                  satsPerVByte: satsPerVByte,
                   utxos: (coinControlEnabled && selectedUTXOs.isNotEmpty)
                       ? selectedUTXOs
                       : null,
@@ -1027,8 +1028,8 @@ class _SendViewState extends ConsumerState<SendView> {
                       )!,
                     ),
                   ],
-                  feeRateType: ref.read(feeRateTypeMobileStateProvider),
-                  satsPerVByte: isCustomFee.value ? customFeeRate : null,
+                  feeRateType: feeRateType,
+                  satsPerVByte: satsPerVByte,
                   utxos: (coinControlEnabled && selectedUTXOs.isNotEmpty)
                       ? selectedUTXOs
                       : null,
@@ -1080,8 +1081,8 @@ class _SendViewState extends ConsumerState<SendView> {
                 addressType: wallet.cryptoCurrency.getAddressType(_address!)!,
               ),
             ],
-            feeRateType: ref.read(feeRateTypeMobileStateProvider),
-            satsPerVByte: isCustomFee.value ? customFeeRate : null,
+            feeRateType: feeRateType,
+            satsPerVByte: satsPerVByte,
 
             // these will need to be mweb utxos
             // utxos:
@@ -1105,8 +1106,8 @@ class _SendViewState extends ConsumerState<SendView> {
               ),
             ],
             memo: memo,
-            feeRateType: ref.read(feeRateTypeMobileStateProvider),
-            satsPerVByte: isCustomFee.value ? customFeeRate : null,
+            feeRateType: feeRateType,
+            satsPerVByte: satsPerVByte,
             ethEIP1559Fee: ethFee,
             utxos:
                 (wallet is CoinControlInterface &&
@@ -1261,7 +1262,6 @@ class _SendViewState extends ConsumerState<SendView> {
 
   bool get isPaynymSend => widget.accountLite != null;
 
-  final isCustomFee = ValueNotifier(false);
   int customFeeRate = 1;
   EthEIP1559Fee? ethFee;
 
@@ -1281,22 +1281,20 @@ class _SendViewState extends ConsumerState<SendView> {
                     ref.watch(pSendAmount)?.decimal ??
                     Decimal.zero)
                 .toAmount(fractionDigits: coin.fractionDigits),
-        updateChosen: (String fee) {
-          if (fee == "custom") {
-            if (!isCustomFee.value) {
-              setState(() {
-                isCustomFee.value = true;
-              });
-            }
+        updateChosen: (feeRateType, fee) {
+          if (feeRateType.isCustom) {
             return;
           }
 
-          _setCurrentFee(fee, true);
+          if (fee != null) {
+            _setCurrentFee(fee, true);
+          }
           setState(() {
-            _calculateFeesFuture = Future(() => fee);
-            if (isCustomFee.value) {
-              isCustomFee.value = false;
+            if (fee != null) {
+              _calculateFeesFuture = Future(() => fee);
             }
+            customFeeRate = 1;
+            ethFee = null;
           });
         },
       ),
@@ -1317,12 +1315,6 @@ class _SendViewState extends ConsumerState<SendView> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.refresh(feeSheetSessionCacheProvider);
       ref.refresh(pIsExchangeAddress);
-    });
-    isCustomFee.addListener(() {
-      if (!isCustomFee.value) {
-        customFeeRate = 1;
-        ethFee = null;
-      }
     });
     hasFees = coin is! Epiccash && coin is! NanoCurrency && coin is! Tezos;
     _currentFee = 0.toAmountAsRaw(fractionDigits: coin.fractionDigits);
@@ -1433,13 +1425,13 @@ class _SendViewState extends ConsumerState<SendView> {
     _cryptoFocus.dispose();
     _baseFocus.dispose();
     _memoFocus.dispose();
-    isCustomFee.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
+    final isCustomFee = ref.watch(feeRateTypeMobileStateProvider).isCustom;
     final String locale = ref.watch(
       localeServiceChangeNotifierProvider.select((value) => value.locale),
     );
@@ -2683,7 +2675,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                               false,
                                                             );
                                                             return Text(
-                                                              isCustomFee.value
+                                                              isCustomFee
                                                                   ? ""
                                                                   : "~${snapshot.data!}",
                                                               style:
@@ -2722,7 +2714,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                   ),
                                 ],
                               ),
-                            if (isCustomFee.value && !isEth)
+                            if (isCustomFee && !isEth)
                               Padding(
                                 padding: const EdgeInsets.only(
                                   bottom: 12,
@@ -2735,9 +2727,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                   },
                                 ),
                               ),
-                            if (isCustomFee.value && isEth)
+                            if (isCustomFee && isEth)
                               const SizedBox(height: 12),
-                            if (isCustomFee.value && isEth)
+                            if (isCustomFee && isEth)
                               EthFeeForm(
                                 minGasLimit: kEthereumMinGasLimit,
                                 stateChanged: (fee) => ethFee = fee,

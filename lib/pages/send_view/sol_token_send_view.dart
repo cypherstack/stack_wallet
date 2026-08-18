@@ -1287,12 +1287,13 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
                                                             tokenWallet
                                                                 .tokenDecimals,
                                                       ),
-                                              updateChosen: (String fee) {
-                                                setState(() {
-                                                  _calculateFeesFuture = Future(
-                                                    () => fee,
-                                                  );
-                                                });
+                                              updateChosen: (_, fee) {
+                                                if (fee != null) {
+                                                  setState(() {
+                                                    _calculateFeesFuture =
+                                                        Future(() => fee);
+                                                  });
+                                                }
                                               },
                                             ),
                                       );

@@ -44,6 +44,7 @@ import '../../../../utilities/amount/amount_unit.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/constants.dart';
+import '../../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/prefs.dart';
 import '../../../../utilities/show_loading.dart';
@@ -140,7 +141,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
   bool get isPaynymSend => widget.accountLite != null;
 
-  bool isCustomFee = false;
   int customFeeRate = 1;
   EthEIP1559Fee? ethFee;
 
@@ -580,11 +580,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
       TxData txData;
       Future<TxData> txDataFuture;
+      final feeRateType = ref.read(feeRateTypeDesktopStateProvider);
+      final satsPerVByte = feeRateType.customSatsPerVByte(customFeeRate);
 
       if (isPaynymSend) {
         final paynymWallet = wallet as PaynymInterface;
-
-        final feeRate = ref.read(feeRateTypeDesktopStateProvider);
         txDataFuture = paynymWallet.preparePaymentCodeSend(
           txData: TxData(
             paynymAccountLite: widget.accountLite!,
@@ -596,8 +596,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 addressType: AddressType.unknown,
               ),
             ],
-            satsPerVByte: isCustomFee ? customFeeRate : null,
-            feeRateType: feeRate,
+            satsPerVByte: satsPerVByte,
+            feeRateType: feeRateType,
             utxos:
                 (wallet is CoinControlInterface &&
                     wallet is! SalviumWallet &&
@@ -621,8 +621,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       isChange: false,
                     ),
                   ],
-                  feeRateType: ref.read(feeRateTypeDesktopStateProvider),
-                  satsPerVByte: isCustomFee ? customFeeRate : null,
+                  feeRateType: feeRateType,
+                  satsPerVByte: satsPerVByte,
                   utxos:
                       (coinControlEnabled &&
                           ref.read(pDesktopUseUTXOs).isNotEmpty)
@@ -643,8 +643,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       )!,
                     ),
                   ],
-                  feeRateType: ref.read(feeRateTypeDesktopStateProvider),
-                  satsPerVByte: isCustomFee ? customFeeRate : null,
+                  feeRateType: feeRateType,
+                  satsPerVByte: satsPerVByte,
                   utxos:
                       (coinControlEnabled &&
                           ref.read(pDesktopUseUTXOs).isNotEmpty)
@@ -698,8 +698,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 addressType: wallet.cryptoCurrency.getAddressType(_address!)!,
               ),
             ],
-            feeRateType: ref.read(feeRateTypeDesktopStateProvider),
-            satsPerVByte: isCustomFee ? customFeeRate : null,
+            feeRateType: feeRateType,
+            satsPerVByte: satsPerVByte,
             // these will need to be mweb utxos
             // utxos:
             //     (wallet is CoinControlInterface &&
@@ -722,8 +722,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               ),
             ],
             memo: memo,
-            feeRateType: ref.read(feeRateTypeDesktopStateProvider),
-            satsPerVByte: isCustomFee ? customFeeRate : null,
+            feeRateType: feeRateType,
+            satsPerVByte: satsPerVByte,
             nonce: wallet.cryptoCurrency is Ethereum
                 ? int.tryParse(nonceController.text)
                 : null,
@@ -2127,8 +2127,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             walletId: walletId,
             isToken: false,
             onCustomFeeSliderChanged: (value) => customFeeRate = value,
-            onCustomFeeOptionChanged: (value) {
-              isCustomFee = value;
+            onCustomFeeOptionChanged: () {
               customFeeRate = 1;
               ethFee = null;
             },

@@ -58,7 +58,7 @@ class TransactionFeeSelectionSheet extends ConsumerStatefulWidget {
 
   final String walletId;
   final Amount amount;
-  final Function updateChosen;
+  final void Function(FeeRateType feeRateType, String? fee) updateChosen;
   final bool isToken;
 
   @override
@@ -79,6 +79,16 @@ class _TransactionFeeSelectionSheetState
     "Calculating..",
     "Calculating...",
   ];
+
+  void _selectFeeRate(FeeRateType feeRateType, CryptoCurrency coin) {
+    ref.read(feeRateTypeMobileStateProvider.state).state = feeRateType;
+    widget.updateChosen(
+      feeRateType,
+      feeRateType.isCustom ? null : getAmount(feeRateType, coin),
+    );
+
+    Navigator.of(context).pop();
+  }
 
   Amount _addFiroOpReturnFee({
     required Amount fee,
@@ -349,23 +359,7 @@ class _TransactionFeeSelectionSheetState
                     ),
                     const SizedBox(height: 16),
                     GestureDetector(
-                      onTap: () {
-                        final state = ref
-                            .read(feeRateTypeMobileStateProvider.state)
-                            .state;
-                        if (state != FeeRateType.fast) {
-                          ref.read(feeRateTypeMobileStateProvider.state).state =
-                              FeeRateType.fast;
-                        }
-                        final String? fee = getAmount(
-                          FeeRateType.fast,
-                          wallet.info.coin,
-                        );
-                        if (fee != null) {
-                          widget.updateChosen(fee);
-                        }
-                        Navigator.of(context).pop();
-                      },
+                      onTap: () => _selectFeeRate(FeeRateType.fast, coin),
                       child: Container(
                         color: Colors.transparent,
                         child: Row(
@@ -387,17 +381,8 @@ class _TransactionFeeSelectionSheetState
                                           feeRateTypeMobileStateProvider.state,
                                         )
                                         .state,
-                                    onChanged: (x) {
-                                      ref
-                                              .read(
-                                                feeRateTypeMobileStateProvider
-                                                    .state,
-                                              )
-                                              .state =
-                                          FeeRateType.fast;
-
-                                      Navigator.of(context).pop();
-                                    },
+                                    onChanged: (_) =>
+                                        _selectFeeRate(FeeRateType.fast, coin),
                                   ),
                                 ),
                               ],
@@ -486,23 +471,7 @@ class _TransactionFeeSelectionSheetState
                     ),
                     const SizedBox(height: 16),
                     GestureDetector(
-                      onTap: () {
-                        final state = ref
-                            .read(feeRateTypeMobileStateProvider.state)
-                            .state;
-                        if (state != FeeRateType.average) {
-                          ref.read(feeRateTypeMobileStateProvider.state).state =
-                              FeeRateType.average;
-                        }
-                        final String? fee = getAmount(
-                          FeeRateType.average,
-                          coin,
-                        );
-                        if (fee != null) {
-                          widget.updateChosen(fee);
-                        }
-                        Navigator.of(context).pop();
-                      },
+                      onTap: () => _selectFeeRate(FeeRateType.average, coin),
                       child: Container(
                         color: Colors.transparent,
                         child: Row(
@@ -523,16 +492,10 @@ class _TransactionFeeSelectionSheetState
                                           feeRateTypeMobileStateProvider.state,
                                         )
                                         .state,
-                                    onChanged: (x) {
-                                      ref
-                                              .read(
-                                                feeRateTypeMobileStateProvider
-                                                    .state,
-                                              )
-                                              .state =
-                                          FeeRateType.average;
-                                      Navigator.of(context).pop();
-                                    },
+                                    onChanged: (_) => _selectFeeRate(
+                                      FeeRateType.average,
+                                      coin,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -621,20 +584,7 @@ class _TransactionFeeSelectionSheetState
                     ),
                     const SizedBox(height: 16),
                     GestureDetector(
-                      onTap: () {
-                        final state = ref
-                            .read(feeRateTypeMobileStateProvider.state)
-                            .state;
-                        if (state != FeeRateType.slow) {
-                          ref.read(feeRateTypeMobileStateProvider.state).state =
-                              FeeRateType.slow;
-                        }
-                        final String? fee = getAmount(FeeRateType.slow, coin);
-                        if (fee != null) {
-                          widget.updateChosen(fee);
-                        }
-                        Navigator.of(context).pop();
-                      },
+                      onTap: () => _selectFeeRate(FeeRateType.slow, coin),
                       child: Container(
                         color: Colors.transparent,
                         child: Row(
@@ -655,16 +605,8 @@ class _TransactionFeeSelectionSheetState
                                           feeRateTypeMobileStateProvider.state,
                                         )
                                         .state,
-                                    onChanged: (x) {
-                                      ref
-                                              .read(
-                                                feeRateTypeMobileStateProvider
-                                                    .state,
-                                              )
-                                              .state =
-                                          FeeRateType.slow;
-                                      Navigator.of(context).pop();
-                                    },
+                                    onChanged: (_) =>
+                                        _selectFeeRate(FeeRateType.slow, coin),
                                   ),
                                 ),
                               ],
@@ -754,20 +696,7 @@ class _TransactionFeeSelectionSheetState
                     const SizedBox(height: 24),
                     if (wallet is ElectrumXInterface || coin is Ethereum)
                       GestureDetector(
-                        onTap: () {
-                          final state = ref
-                              .read(feeRateTypeMobileStateProvider.state)
-                              .state;
-                          if (state != FeeRateType.custom) {
-                            ref
-                                    .read(feeRateTypeMobileStateProvider.state)
-                                    .state =
-                                FeeRateType.custom;
-                          }
-                          widget.updateChosen("custom");
-
-                          Navigator.of(context).pop();
-                        },
+                        onTap: () => _selectFeeRate(FeeRateType.custom, coin),
                         child: Container(
                           color: Colors.transparent,
                           child: Row(
@@ -789,16 +718,10 @@ class _TransactionFeeSelectionSheetState
                                                 .state,
                                           )
                                           .state,
-                                      onChanged: (x) {
-                                        ref
-                                                .read(
-                                                  feeRateTypeMobileStateProvider
-                                                      .state,
-                                                )
-                                                .state =
-                                            FeeRateType.custom;
-                                        Navigator.of(context).pop();
-                                      },
+                                      onChanged: (_) => _selectFeeRate(
+                                        FeeRateType.custom,
+                                        coin,
+                                      ),
                                     ),
                                   ),
                                 ],

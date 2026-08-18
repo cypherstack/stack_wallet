@@ -118,8 +118,6 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
   late Future<String> _calculateFeesFuture;
   String cachedFees = "";
 
-  final isCustomFee = ValueNotifier(false);
-
   EthEIP1559Fee? ethFee;
 
   void _onTokenSendViewPasteAddressFieldButtonPressed() async {
@@ -586,9 +584,6 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
   @override
   void initState() {
     ref.refresh(feeSheetSessionCacheProvider);
-    isCustomFee.addListener(() {
-      if (!isCustomFee.value) ethFee = null;
-    });
 
     _calculateFeesFuture = calculateFees();
     _data = widget.autoFillData;
@@ -637,13 +632,13 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
     _addressFocusNode.dispose();
     _cryptoFocus.dispose();
     _baseFocus.dispose();
-    isCustomFee.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
+    final isCustomFee = ref.watch(feeRateTypeMobileStateProvider).isCustom;
     final String locale = ref.watch(
       localeServiceChangeNotifierProvider.select((value) => value.locale),
     );
@@ -1157,7 +1152,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                             ),
                             const SizedBox(height: 12),
                             Text(
-                              "Transaction fee ${isCustomFee.value ? "" : "(max)"}",
+                              "Transaction fee ${isCustomFee ? "" : "(max)"}",
                               style: STextStyles.smallMed12(context),
                               textAlign: TextAlign.left,
                             ),
@@ -1210,23 +1205,17 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                                             tokenContract
                                                                 .decimals,
                                                       ),
-                                              updateChosen: (String fee) {
-                                                if (fee == "custom") {
-                                                  if (!isCustomFee.value) {
-                                                    setState(() {
-                                                      isCustomFee.value = true;
-                                                    });
-                                                  }
+                                              updateChosen: (feeRateType, fee) {
+                                                if (feeRateType.isCustom) {
                                                   return;
                                                 }
 
                                                 setState(() {
-                                                  _calculateFeesFuture = Future(
-                                                    () => fee,
-                                                  );
-                                                  if (isCustomFee.value) {
-                                                    isCustomFee.value = false;
+                                                  if (fee != null) {
+                                                    _calculateFeesFuture =
+                                                        Future(() => fee);
                                                   }
+                                                  ethFee = null;
                                                 });
                                               },
                                             ),
@@ -1258,7 +1247,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                                         ConnectionState.done &&
                                                     snapshot.hasData) {
                                                   return Text(
-                                                    isCustomFee.value
+                                                    isCustomFee
                                                         ? ""
                                                         : "~${snapshot.data!}",
                                                     style:
@@ -1302,8 +1291,8 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                 ),
                               ],
                             ),
-                            if (isCustomFee.value) const SizedBox(height: 12),
-                            if (isCustomFee.value)
+                            if (isCustomFee) const SizedBox(height: 12),
+                            if (isCustomFee)
                               EthFeeForm(
                                 minGasLimit: kEthereumTokenMinGasLimit,
                                 stateChanged: (value) => ethFee = value,

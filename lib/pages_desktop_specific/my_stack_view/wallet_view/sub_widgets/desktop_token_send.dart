@@ -1038,7 +1038,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
           walletId: walletId,
           isToken: true,
           onCustomFeeSliderChanged: (value) => {},
-          onCustomFeeOptionChanged: (value) {
+          onCustomFeeOptionChanged: () {
             ethFee = null;
           },
           onCustomEip1559FeeOptionChanged: (value) => ethFee = value,
