@@ -20,6 +20,7 @@ import '../../../utilities/address_utils.dart';
 import '../../../utilities/barcode_scanner_interface.dart';
 import '../../../utilities/clipboard_interface.dart';
 import '../../../utilities/constants.dart';
+import '../../../utilities/extra_id_currency_support.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../widgets/background.dart';
@@ -61,11 +62,35 @@ class _Step2ViewState extends ConsumerState<Step2View> {
 
   late final TextEditingController _toController;
   late final TextEditingController _refundController;
+  late final TextEditingController _toMemoController;
+  late final TextEditingController _refundMemoController;
 
   late final FocusNode _toFocusNode;
   late final FocusNode _refundFocusNode;
+  late final FocusNode _toMemoFocusNode;
+  late final FocusNode _refundMemoFocusNode;
 
   bool enableNext = false;
+
+  bool get _showRecipientMemo =>
+      ref.read(efExchangeProvider).supportsExtraId &&
+      ExtraIdCurrencySupport.mayRequire(model.receiveTicker);
+
+  bool get _showRefundMemo =>
+      ref.read(efExchangeProvider).supportsExtraId &&
+      ExtraIdCurrencySupport.mayRequire(model.sendTicker);
+
+  void _setRecipientMemo(String? memo) {
+    final value = _showRecipientMemo ? (memo ?? "") : "";
+    _toMemoController.text = value;
+    model.extraId = value.isEmpty ? null : value;
+  }
+
+  void _setRefundMemo(String? memo) {
+    final value = _showRefundMemo ? (memo ?? "") : "";
+    _refundMemoController.text = value;
+    model.refundExtraId = value.isEmpty ? null : value;
+  }
 
   void _onRefundQrTapped() async {
     try {
@@ -81,6 +106,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
         // auto fill address
         _refundController.text = paymentData.address;
         model.refundAddress = _refundController.text;
+        _setRefundMemo(paymentData.memo);
 
         setState(() {
           enableNext =
@@ -90,6 +116,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
       } else {
         _refundController.text = qrResult.rawContent!;
         model.refundAddress = _refundController.text;
+        _setRefundMemo(null);
 
         setState(() {
           enableNext =
@@ -135,6 +162,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
         // auto fill address
         _toController.text = paymentData.address;
         model.recipientAddress = _toController.text;
+        _setRecipientMemo(paymentData.memo);
 
         setState(() {
           enableNext =
@@ -145,6 +173,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
       } else {
         _toController.text = qrResult.rawContent!;
         model.recipientAddress = _toController.text;
+        _setRecipientMemo(null);
 
         setState(() {
           enableNext =
@@ -184,9 +213,15 @@ class _Step2ViewState extends ConsumerState<Step2View> {
 
     _toController = TextEditingController();
     _refundController = TextEditingController();
+    _toMemoController = TextEditingController(text: model.extraId ?? "");
+    _refundMemoController = TextEditingController(
+      text: model.refundExtraId ?? "",
+    );
 
     _toFocusNode = FocusNode();
     _refundFocusNode = FocusNode();
+    _toMemoFocusNode = FocusNode();
+    _refundMemoFocusNode = FocusNode();
 
     final tuple = ref.read(exchangeSendFromWalletIdStateProvider.state).state;
     if (tuple != null) {
@@ -199,6 +234,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
             .then((value) {
               _toController.text = value!.value;
               model.recipientAddress = _toController.text;
+              _setRecipientMemo(null);
             });
       } else {
         if (model.sendTicker.toUpperCase() ==
@@ -210,6 +246,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
               .then((value) {
                 _refundController.text = value!.value;
                 model.refundAddress = _refundController.text;
+                _setRefundMemo(null);
               });
         }
       }
@@ -222,9 +259,13 @@ class _Step2ViewState extends ConsumerState<Step2View> {
   void dispose() {
     _toController.dispose();
     _refundController.dispose();
+    _toMemoController.dispose();
+    _refundMemoController.dispose();
 
     _toFocusNode.dispose();
     _refundFocusNode.dispose();
+    _toMemoFocusNode.dispose();
+    _refundMemoFocusNode.dispose();
 
     super.dispose();
   }
@@ -314,6 +355,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                     value.walletName;
                                                 model.recipientAddress =
                                                     value.address;
+                                                _setRecipientMemo(null);
 
                                                 setState(() {
                                                   enableNext =
@@ -402,6 +444,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                         _toController.text = "";
                                                         model.recipientAddress =
                                                             _toController.text;
+                                                        _setRecipientMemo(null);
 
                                                         setState(() {
                                                           enableNext =
@@ -436,8 +479,27 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                               .text!
                                                               .trim();
 
-                                                          _toController.text =
-                                                              content;
+                                                          final paymentData =
+                                                              AddressUtils.parsePaymentUri(
+                                                                content,
+                                                                logging: Logging
+                                                                    .instance,
+                                                              );
+                                                          if (paymentData !=
+                                                              null) {
+                                                            _toController.text =
+                                                                paymentData
+                                                                    .address;
+                                                            _setRecipientMemo(
+                                                              paymentData.memo,
+                                                            );
+                                                          } else {
+                                                            _toController.text =
+                                                                content;
+                                                            _setRecipientMemo(
+                                                              null,
+                                                            );
+                                                          }
                                                           model.recipientAddress =
                                                               _toController
                                                                   .text;
@@ -498,6 +560,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                             address;
                                                         model.recipientAddress =
                                                             _toController.text;
+                                                        _setRecipientMemo(null);
                                                         ref
                                                                 .read(
                                                                   exchangeFromAddressBookAddressStateProvider
@@ -543,6 +606,39 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                 style: STextStyles.label(context),
                               ),
                             ),
+                            if (_showRecipientMemo) const SizedBox(height: 16),
+                            if (_showRecipientMemo)
+                              Text(
+                                "Memo or destination tag",
+                                style: STextStyles.smallMed12(context),
+                              ),
+                            if (_showRecipientMemo) const SizedBox(height: 4),
+                            if (_showRecipientMemo)
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(
+                                  Constants.size.circularBorderRadius,
+                                ),
+                                child: TextField(
+                                  key: const Key(
+                                    "recipientExchangeStep2ViewMemoFieldKey",
+                                  ),
+                                  controller: _toMemoController,
+                                  focusNode: _toMemoFocusNode,
+                                  autocorrect: false,
+                                  enableSuggestions: false,
+                                  style: STextStyles.field(context),
+                                  onChanged: (value) {
+                                    model.extraId = value.isEmpty
+                                        ? null
+                                        : value;
+                                  },
+                                  decoration: standardInputDecoration(
+                                    "Enter memo or tag if required",
+                                    _toMemoFocusNode,
+                                    context,
+                                  ),
+                                ),
+                              ),
                             const SizedBox(height: 24),
                             if (supportsRefund)
                               Row(
@@ -583,6 +679,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                       value.walletName;
                                                   model.refundAddress =
                                                       value.address;
+                                                  _setRefundMemo(null);
                                                 }
                                                 setState(() {
                                                   enableNext =
@@ -675,6 +772,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                           model.refundAddress =
                                                               _refundController
                                                                   .text;
+                                                          _setRefundMemo(null);
 
                                                           setState(() {
                                                             enableNext =
@@ -708,9 +806,30 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                                 .text!
                                                                 .trim();
 
-                                                            _refundController
-                                                                    .text =
-                                                                content;
+                                                            final paymentData =
+                                                                AddressUtils.parsePaymentUri(
+                                                                  content,
+                                                                  logging: Logging
+                                                                      .instance,
+                                                                );
+                                                            if (paymentData !=
+                                                                null) {
+                                                              _refundController
+                                                                      .text =
+                                                                  paymentData
+                                                                      .address;
+                                                              _setRefundMemo(
+                                                                paymentData
+                                                                    .memo,
+                                                              );
+                                                            } else {
+                                                              _refundController
+                                                                      .text =
+                                                                  content;
+                                                              _setRefundMemo(
+                                                                null,
+                                                              );
+                                                            }
                                                             model.refundAddress =
                                                                 _refundController
                                                                     .text;
@@ -775,6 +894,9 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                               model.refundAddress =
                                                                   _refundController
                                                                       .text;
+                                                              _setRefundMemo(
+                                                                null,
+                                                              );
                                                             }
                                                             setState(() {
                                                               enableNext =
@@ -813,6 +935,41 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                 child: Text(
                                   "In case something goes wrong during the exchange, we might need a refund address so we can return your coins back to you.",
                                   style: STextStyles.label(context),
+                                ),
+                              ),
+                            if (supportsRefund && _showRefundMemo)
+                              const SizedBox(height: 16),
+                            if (supportsRefund && _showRefundMemo)
+                              Text(
+                                "Refund memo or destination tag",
+                                style: STextStyles.smallMed12(context),
+                              ),
+                            if (supportsRefund && _showRefundMemo)
+                              const SizedBox(height: 4),
+                            if (supportsRefund && _showRefundMemo)
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(
+                                  Constants.size.circularBorderRadius,
+                                ),
+                                child: TextField(
+                                  key: const Key(
+                                    "refundExchangeStep2ViewMemoFieldKey",
+                                  ),
+                                  controller: _refundMemoController,
+                                  focusNode: _refundMemoFocusNode,
+                                  autocorrect: false,
+                                  enableSuggestions: false,
+                                  style: STextStyles.field(context),
+                                  onChanged: (value) {
+                                    model.refundExtraId = value.isEmpty
+                                        ? null
+                                        : value;
+                                  },
+                                  decoration: standardInputDecoration(
+                                    "Enter memo or tag if required",
+                                    _refundMemoFocusNode,
+                                    context,
+                                  ),
                                 ),
                               ),
                             const SizedBox(height: 16),

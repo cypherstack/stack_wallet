@@ -167,6 +167,39 @@ void main() {
     expect((xelis?.address, xelis?.amount), ("xel:$address", "1.25"));
   });
 
+  test("parse payment URI memo and destination-tag aliases", () {
+    const aliases = {
+      "tx_payment_id": "payment-id",
+      "memo": "memo-value",
+      "dt": "12345",
+      "destination_tag": "destination-tag",
+    };
+
+    for (final entry in aliases.entries) {
+      final result = AddressUtils.parsePaymentUri(
+        "ripple:$firoAddress?${entry.key}=${entry.value}",
+      );
+      expect(result?.memo, entry.value, reason: entry.key);
+    }
+
+    final fallback = AddressUtils.parsePaymentUri(
+      "ripple:$firoAddress?memo=&dt=54321",
+    );
+    expect(fallback?.memo, "54321");
+
+    // Memo and amount combine.
+    final combined = AddressUtils.parsePaymentUri(
+      "ripple:$firoAddress?amount=1.5&dt=12345",
+    );
+    expect((combined?.amount, combined?.memo), ("1.5", "12345"));
+
+    // A malformed amount rejects the whole URI; the memo does not survive.
+    expect(
+      AddressUtils.parsePaymentUri("ripple:$firoAddress?amount=1,5&dt=12345"),
+      isNull,
+    );
+  });
+
   test("encode a list of (mnemonic) words/strings as a json object", () {
     final List<String> list = [
       "hello",

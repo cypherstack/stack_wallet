@@ -24,6 +24,9 @@ class AddressUtils {
     'recipient_name',
     'tx_description',
     'op_return', // For Rosen Bridge and other OP_RETURN protocols.
+    'memo', // Stellar SEP-0007.
+    'dt', // XRP destination tag.
+    'destination_tag',
     // TODO [prio=med]: Add more recognized params for other coins.
   };
 
@@ -382,6 +385,20 @@ class PaymentUriData {
   CryptoCurrency? get coin => AddressUtils._getCryptoCurrencyByScheme(
     scheme ?? "", // empty will just return null
   );
+
+  String? get memo {
+    for (final value in [
+      paymentId,
+      additionalParams["memo"],
+      additionalParams["dt"],
+      additionalParams["destination_tag"],
+    ]) {
+      if (value?.isNotEmpty == true) {
+        return value;
+      }
+    }
+    return null;
+  }
 
   PaymentUriData({
     required this.address,

@@ -48,4 +48,24 @@ void main() {
     model.trade = _Trade("not a number");
     expect(model.payInDecimal, isNull);
   });
+
+  test("stores destination and refund memo values", () {
+    final currency = _Currency();
+    final model = IncompleteExchangeModel(
+      sendCurrency: currency,
+      receiveCurrency: currency,
+      rateInfo: "",
+      sendAmount: Decimal.one,
+      receiveAmount: Decimal.one,
+      rateType: ExchangeRateType.estimated,
+      reversed: false,
+      walletInitiated: false,
+    );
+
+    model.extraId = "destination memo";
+    model.refundExtraId = "refund memo";
+
+    expect(model.extraId, "destination memo");
+    expect(model.refundExtraId, "refund memo");
+  });
 }

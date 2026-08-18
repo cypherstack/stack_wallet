@@ -59,6 +59,28 @@ class IncompleteExchangeModel extends ChangeNotifier {
     }
   }
 
+  String? _extraId;
+
+  String? get extraId => _extraId;
+
+  set extraId(String? extraId) {
+    if (_extraId != extraId) {
+      _extraId = extraId;
+      notifyListeners();
+    }
+  }
+
+  String? _refundExtraId;
+
+  String? get refundExtraId => _refundExtraId;
+
+  set refundExtraId(String? refundExtraId) {
+    if (_refundExtraId != refundExtraId) {
+      _refundExtraId = refundExtraId;
+      notifyListeners();
+    }
+  }
+
   Estimate? _estimate;
 
   Estimate? get estimate => _estimate;

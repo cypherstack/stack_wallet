@@ -160,6 +160,9 @@ class CypherGoatExchange extends Exchange {
   bool get supportsRefundAddress => false;
 
   @override
+  bool get supportsExtraId => false;
+
+  @override
   Future<ExchangeResponse<List<Currency>>> getAllCurrencies(
     bool fixedRate,
   ) async {
@@ -377,6 +380,12 @@ class CypherGoatExchange extends Exchange {
       if (estimate == null) {
         throw ExchangeException(
           "An estimate is required to create a CypherGoat trade",
+          ExchangeExceptionType.generic,
+        );
+      }
+      if (extraId?.isNotEmpty == true || refundExtraId.isNotEmpty) {
+        throw ExchangeException(
+          "CypherGoat does not support destination or refund memos",
           ExchangeExceptionType.generic,
         );
       }

@@ -17,8 +17,10 @@ import '../../../../app_config.dart';
 import '../../../../models/contact_address_entry.dart';
 import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/address_utils.dart';
 import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/constants.dart';
+import '../../../../utilities/extra_id_currency_support.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../widgets/custom_buttons/blue_text_button.dart';
@@ -53,9 +55,41 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
 
   late final TextEditingController _toController;
   late final TextEditingController _refundController;
+  late final TextEditingController _toMemoController;
+  late final TextEditingController _refundMemoController;
 
   late final FocusNode _toFocusNode;
   late final FocusNode _refundFocusNode;
+  late final FocusNode _toMemoFocusNode;
+  late final FocusNode _refundMemoFocusNode;
+
+  bool get _showRecipientMemo =>
+      ref.read(efExchangeProvider).supportsExtraId &&
+      ExtraIdCurrencySupport.mayRequire(
+        ref.read(desktopExchangeModelProvider)!.receiveTicker,
+      );
+
+  bool get _showRefundMemo =>
+      ref.read(efExchangeProvider).supportsExtraId &&
+      ExtraIdCurrencySupport.mayRequire(
+        ref.read(desktopExchangeModelProvider)!.sendTicker,
+      );
+
+  void _setRecipientMemo(String? memo) {
+    final value = _showRecipientMemo ? (memo ?? "") : "";
+    _toMemoController.text = value;
+    ref.read(desktopExchangeModelProvider)!.extraId = value.isEmpty
+        ? null
+        : value;
+  }
+
+  void _setRefundMemo(String? memo) {
+    final value = _showRefundMemo ? (memo ?? "") : "";
+    _refundMemoController.text = value;
+    ref.read(desktopExchangeModelProvider)!.refundExtraId = value.isEmpty
+        ? null
+        : value;
+  }
 
   void selectRecipientAddressFromStack() async {
     try {
@@ -79,6 +113,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
       if (info is Tuple2<String, String>) {
         _toController.text = info.item1;
         ref.read(desktopExchangeModelProvider)!.recipientAddress = info.item2;
+        _setRecipientMemo(null);
       }
     } catch (e, s) {
       Logging.instance.i("$e\n$s", error: e, stackTrace: s);
@@ -108,6 +143,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
       if (info is Tuple2<String, String>) {
         _refundController.text = info.item1;
         ref.read(desktopExchangeModelProvider)!.refundAddress = info.item2;
+        _setRefundMemo(null);
       }
     } catch (e, s) {
       Logging.instance.i("$e\n$s", error: e, stackTrace: s);
@@ -151,6 +187,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
     if (entry != null) {
       _toController.text = entry.address;
       ref.read(desktopExchangeModelProvider)!.recipientAddress = entry.address;
+      _setRecipientMemo(null);
       widget.enableNextChanged.call(_next());
     }
   }
@@ -191,6 +228,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
     if (entry != null) {
       _refundController.text = entry.address;
       ref.read(desktopExchangeModelProvider)!.refundAddress = entry.address;
+      _setRefundMemo(null);
       widget.enableNextChanged.call(_next());
     }
   }
@@ -211,9 +249,17 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
 
     _toController = TextEditingController();
     _refundController = TextEditingController();
+    _toMemoController = TextEditingController(
+      text: ref.read(desktopExchangeModelProvider)!.extraId ?? "",
+    );
+    _refundMemoController = TextEditingController(
+      text: ref.read(desktopExchangeModelProvider)!.refundExtraId ?? "",
+    );
 
     _toFocusNode = FocusNode();
     _refundFocusNode = FocusNode();
+    _toMemoFocusNode = FocusNode();
+    _refundMemoFocusNode = FocusNode();
 
     doesRefundAddress = ref.read(efExchangeProvider).supportsRefundAddress;
 
@@ -237,6 +283,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           ref.read(desktopExchangeModelProvider)!.recipientAddress =
               _toController.text;
+          _setRecipientMemo(null);
         });
       } else {
         if (doesRefundAddress &&
@@ -250,6 +297,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             ref.read(desktopExchangeModelProvider)!.refundAddress =
                 _refundController.text;
+            _setRefundMemo(null);
           });
         }
       }
@@ -262,9 +310,13 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
   void dispose() {
     _toController.dispose();
     _refundController.dispose();
+    _toMemoController.dispose();
+    _refundMemoController.dispose();
 
     _toFocusNode.dispose();
     _refundFocusNode.dispose();
+    _toMemoFocusNode.dispose();
+    _refundMemoFocusNode.dispose();
 
     super.dispose();
   }
@@ -370,6 +422,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
                                             .read(desktopExchangeModelProvider)!
                                             .recipientAddress =
                                         _toController.text;
+                                    _setRecipientMemo(null);
                                     widget.enableNextChanged.call(_next());
                                   },
                                   child: const XIcon(),
@@ -384,7 +437,19 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
                                     if (data?.text != null &&
                                         data!.text!.isNotEmpty) {
                                       final content = data.text!.trim();
-                                      _toController.text = content;
+                                      final paymentData =
+                                          AddressUtils.parsePaymentUri(
+                                            content,
+                                            logging: Logging.instance,
+                                          );
+                                      if (paymentData != null) {
+                                        _toController.text =
+                                            paymentData.address;
+                                        _setRecipientMemo(paymentData.memo);
+                                      } else {
+                                        _toController.text = content;
+                                        _setRecipientMemo(null);
+                                      }
                                       ref
                                           .read(desktopExchangeModelProvider)!
                                           .recipientAddress = _toController
@@ -416,6 +481,42 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
                 ),
           ),
         ),
+        if (_showRecipientMemo) const SizedBox(height: 10),
+        if (_showRecipientMemo)
+          Text(
+            "Memo or destination tag",
+            style: STextStyles.desktopTextExtraExtraSmall(context).copyWith(
+              color: Theme.of(
+                context,
+              ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+            ),
+          ),
+        if (_showRecipientMemo) const SizedBox(height: 10),
+        if (_showRecipientMemo)
+          ClipRRect(
+            borderRadius: BorderRadius.circular(
+              Constants.size.circularBorderRadius,
+            ),
+            child: TextField(
+              key: const Key("recipientExchangeStep2ViewMemoFieldKey"),
+              controller: _toMemoController,
+              focusNode: _toMemoFocusNode,
+              autocorrect: false,
+              enableSuggestions: false,
+              style: STextStyles.field(context),
+              onChanged: (value) {
+                ref.read(desktopExchangeModelProvider)!.extraId = value.isEmpty
+                    ? null
+                    : value;
+              },
+              decoration: standardInputDecoration(
+                "Enter the memo or tag required by the payout address, if any",
+                _toMemoFocusNode,
+                context,
+                desktopMed: true,
+              ),
+            ),
+          ),
         const SizedBox(height: 10),
         RoundedWhiteContainer(
           borderColor: Theme.of(context).extension<StackColors>()!.background,
@@ -510,6 +611,7 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
                                           .read(desktopExchangeModelProvider)!
                                           .refundAddress = _refundController
                                           .text;
+                                      _setRefundMemo(null);
 
                                       widget.enableNextChanged.call(_next());
                                     },
@@ -528,7 +630,19 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
                                           data!.text!.isNotEmpty) {
                                         final content = data.text!.trim();
 
-                                        _refundController.text = content;
+                                        final paymentData =
+                                            AddressUtils.parsePaymentUri(
+                                              content,
+                                              logging: Logging.instance,
+                                            );
+                                        if (paymentData != null) {
+                                          _refundController.text =
+                                              paymentData.address;
+                                          _setRefundMemo(paymentData.memo);
+                                        } else {
+                                          _refundController.text = content;
+                                          _setRefundMemo(null);
+                                        }
                                         ref
                                             .read(desktopExchangeModelProvider)!
                                             .refundAddress = _refundController
@@ -559,6 +673,41 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
                       ),
                     ),
                   ),
+            ),
+          ),
+        if (doesRefundAddress && _showRefundMemo) const SizedBox(height: 10),
+        if (doesRefundAddress && _showRefundMemo)
+          Text(
+            "Refund memo or destination tag",
+            style: STextStyles.desktopTextExtraExtraSmall(context).copyWith(
+              color: Theme.of(
+                context,
+              ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+            ),
+          ),
+        if (doesRefundAddress && _showRefundMemo) const SizedBox(height: 10),
+        if (doesRefundAddress && _showRefundMemo)
+          ClipRRect(
+            borderRadius: BorderRadius.circular(
+              Constants.size.circularBorderRadius,
+            ),
+            child: TextField(
+              key: const Key("refundExchangeStep2ViewMemoFieldKey"),
+              controller: _refundMemoController,
+              focusNode: _refundMemoFocusNode,
+              autocorrect: false,
+              enableSuggestions: false,
+              style: STextStyles.field(context),
+              onChanged: (value) {
+                ref.read(desktopExchangeModelProvider)!.refundExtraId =
+                    value.isEmpty ? null : value;
+              },
+              decoration: standardInputDecoration(
+                "Enter the memo or tag required by the refund address, if any",
+                _refundMemoFocusNode,
+                context,
+                desktopMed: true,
+              ),
             ),
           ),
         if (doesRefundAddress) const SizedBox(height: 10),
