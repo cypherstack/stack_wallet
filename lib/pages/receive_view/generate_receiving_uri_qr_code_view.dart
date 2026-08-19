@@ -16,8 +16,8 @@ import 'dart:ui' as ui;
 // import 'package:document_file_save_plus/document_file_save_plus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -139,9 +139,12 @@ class _GenerateUriQrCodeViewState extends ConsumerState<GenerateUriQrCodeView> {
         final file = await File("${tempDir.path}/qrcode.png").create();
         await file.writeAsBytes(pngBytes);
 
-        await Share.shareFiles([
-          "${tempDir.path}/qrcode.png",
-        ], text: "Receive URI QR Code");
+        await SharePlus.instance.share(
+          ShareParams(
+            files: [XFile("${tempDir.path}/qrcode.png")],
+            text: "Receive URI QR Code",
+          ),
+        );
       }
     } catch (e) {
       //todo: comeback to this

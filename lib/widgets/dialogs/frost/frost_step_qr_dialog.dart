@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:path_provider/path_provider.dart';
-
 import 'package:share_plus/share_plus.dart';
 
 import '../../../notifications/show_flush_bar.dart';
@@ -94,9 +93,11 @@ class _FrostStepQrDialogState extends State<FrostStepQrDialog> {
         final file = await File("${tempDir.path}/qrcode.png").create();
         await file.writeAsBytes(pngBytes);
 
-        await Share.shareFiles(
-          ["${tempDir.path}/qrcode.png"],
-          text: "Receive URI QR Code",
+        await SharePlus.instance.share(
+          ShareParams(
+            files: [XFile("${tempDir.path}/qrcode.png")],
+            text: "Receive URI QR Code",
+          ),
         );
       }
     } catch (e) {
@@ -124,21 +125,18 @@ class _FrostStepQrDialogState extends State<FrostStepQrDialog> {
                   Text(
                     widget.myName,
                     style: STextStyles.w600_16(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .customTextButtonEnabledText,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.customTextButtonEnabledText,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    widget.title,
-                    style: STextStyles.w600_12(context),
-                  ),
+                  Text(widget.title, style: STextStyles.w600_12(context)),
                   const SizedBox(height: 8),
                   RoundedContainer(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFieldDefaultBG,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldDefaultBG,
                     radiusMultiplier: 1,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -146,9 +144,7 @@ class _FrostStepQrDialogState extends State<FrostStepQrDialog> {
                         ConditionalParent(
                           condition: Util.isDesktop,
                           builder: (child) => ConstrainedBox(
-                            constraints: const BoxConstraints(
-                              maxWidth: 360,
-                            ),
+                            constraints: const BoxConstraints(maxWidth: 360),
                             child: child,
                           ),
                           child: Padding(
@@ -174,10 +170,7 @@ class _FrostStepQrDialogState extends State<FrostStepQrDialog> {
               ),
             ),
           ),
-          if (!Util.isDesktop)
-            const SizedBox(
-              height: 16,
-            ),
+          if (!Util.isDesktop) const SizedBox(height: 16),
           if (!Util.isDesktop)
             Row(
               children: [
@@ -190,9 +183,9 @@ class _FrostStepQrDialogState extends State<FrostStepQrDialog> {
                       Assets.svg.share,
                       width: 14,
                       height: 14,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .buttonTextSecondary,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.buttonTextSecondary,
                     ),
                     onPressed: () async {
                       await _capturePng(false);

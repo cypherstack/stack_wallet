@@ -58,8 +58,9 @@ class _AddressQrPopupState extends State<AddressQrPopup> {
       final RenderRepaintBoundary boundary =
           _qrKey.currentContext?.findRenderObject() as RenderRepaintBoundary;
       final ui.Image image = await boundary.toImage();
-      final ByteData? byteData =
-          await image.toByteData(format: ui.ImageByteFormat.png);
+      final ByteData? byteData = await image.toByteData(
+        format: ui.ImageByteFormat.png,
+      );
       final Uint8List pngBytes = byteData!.buffer.asUint8List();
 
       if (shouldSaveInsteadOfShare) {
@@ -67,7 +68,8 @@ class _AddressQrPopupState extends State<AddressQrPopup> {
           final dir = Directory("${Platform.environment['HOME']}");
           if (!dir.existsSync()) {
             throw Exception(
-              "Home dir not found while trying to open filepicker on QR image save",
+              "Home dir not found while trying to open filepicker on QR image"
+              " save",
             );
           }
           final path = await FilePicker.platform.saveFile(
@@ -107,9 +109,11 @@ class _AddressQrPopupState extends State<AddressQrPopup> {
         final file = await File("${tempDir.path}/qrcode.png").create();
         await file.writeAsBytes(pngBytes);
 
-        await Share.shareFiles(
-          ["${tempDir.path}/qrcode.png"],
-          text: "Receive URI QR Code",
+        await SharePlus.instance.share(
+          ShareParams(
+            files: [XFile("${tempDir.path}/qrcode.png")],
+            text: "Receive URI QR Code",
+          ),
         );
       }
     } catch (e) {
@@ -123,20 +127,10 @@ class _AddressQrPopupState extends State<AddressQrPopup> {
     return StackDialogBase(
       child: Column(
         children: [
-          Text(
-            "todo: custom label",
-            style: STextStyles.pageTitleH2(context),
-          ),
-          const SizedBox(
-            height: 8,
-          ),
-          Text(
-            widget.addressString,
-            style: STextStyles.itemSubtitle(context),
-          ),
-          const SizedBox(
-            height: 16,
-          ),
+          Text("Address", style: STextStyles.pageTitleH2(context)),
+          const SizedBox(height: 8),
+          Text(widget.addressString, style: STextStyles.itemSubtitle(context)),
+          const SizedBox(height: 16),
           Center(
             child: RepaintBoundary(
               key: _qrKey,
@@ -150,9 +144,7 @@ class _AddressQrPopupState extends State<AddressQrPopup> {
               ),
             ),
           ),
-          const SizedBox(
-            height: 16,
-          ),
+          const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
@@ -167,15 +159,13 @@ class _AddressQrPopupState extends State<AddressQrPopup> {
                     Assets.svg.share,
                     width: 20,
                     height: 20,
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .buttonTextSecondary,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.buttonTextSecondary,
                   ),
                 ),
               ),
-              const SizedBox(
-                width: 16,
-              ),
+              const SizedBox(width: 16),
               Expanded(
                 child: PrimaryButton(
                   width: 170,
@@ -187,9 +177,9 @@ class _AddressQrPopupState extends State<AddressQrPopup> {
                     Assets.svg.arrowDown,
                     width: 20,
                     height: 20,
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .buttonTextPrimary,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.buttonTextPrimary,
                   ),
                 ),
               ),

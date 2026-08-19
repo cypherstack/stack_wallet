@@ -252,10 +252,10 @@ packages:
     dependency: "direct main"
     description:
       name: camera_macos
-      sha256: a0e15729caf4e7c2831b9cd964e8c2e2ea985cd816e56316be03355de44aa743
+      sha256: "64e199368efb0dc12c5298819df98aada4fe2cc50a5d84997f7bf7d94edaa3f8"
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.9"
+    version: "0.1.1"
   camera_platform_interface:
     dependency: "direct main"
     description:
@@ -376,18 +376,18 @@ packages:
     dependency: "direct main"
     description:
       name: connectivity_plus
-      sha256: "77a180d6938f78ca7d2382d2240eb626c0f6a735d0bfdce227d8ffb80f95c48b"
+      sha256: "762c99f890ca8bf87f7337236f99edd42793843bc6c3631da294a76653a54bd0"
       url: "https://pub.dev"
     source: hosted
-    version: "4.0.2"
+    version: "7.3.1"
   connectivity_plus_platform_interface:
     dependency: transitive
     description:
       name: connectivity_plus_platform_interface
-      sha256: cf1d1c28f4416f8c654d7dc3cd638ec586076255d407cef3ddbdaf178272a71a
+      sha256: "3c09627c536d22fd24691a905cdd8b14520de69da52c7a97499c8be5284a32ed"
       url: "https://pub.dev"
     source: hosted
-    version: "1.2.4"
+    version: "2.1.0"
   convert:
     dependency: "direct main"
     description:
@@ -777,18 +777,18 @@ packages:
     dependency: "direct main"
     description:
       name: desktop_drop
-      sha256: d55a010fe46c8e8fcff4ea4b451a9ff84a162217bdb3b2a0aa1479776205e15d
+      sha256: aa1e797255bfbc76f9eb5aa4f61e5b68dbf69962ab1be6495816d2f251bc0d1f
       url: "https://pub.dev"
     source: hosted
-    version: "0.4.4"
+    version: "0.7.1"
   device_info_plus:
     dependency: "direct main"
     description:
       name: device_info_plus
-      sha256: a7fd703482b391a87d60b6061d04dfdeab07826b96f9abd8f5ed98068acc0074
+      sha256: b4fed1b2835da9d670d7bed7db79ae2a94b0f5ad6312268158a9b5479abbacdd
       url: "https://pub.dev"
     source: hosted
-    version: "10.1.2"
+    version: "12.4.0"
   device_info_plus_platform_interface:
     dependency: transitive
     description:
@@ -801,11 +801,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: ba7d7d87a3772e972adb1358a5ec9a111b514fce
-      resolved-ref: ba7d7d87a3772e972adb1358a5ec9a111b514fce
+      ref: "73c4ed946816c5ec032d13a44f8f510e2ced9886"
+      resolved-ref: "73c4ed946816c5ec032d13a44f8f510e2ced9886"
       url: "https://github.com/cypherstack/flutter-devicelocale"
     source: git
-    version: "0.8.1"
+    version: "0.9.0"
   digest_auth:
     dependency: "direct main"
     description:
@@ -1430,7 +1430,7 @@ packages:
     source: hosted
     version: "4.12.0"
   json_rpc_2:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
       name: json_rpc_2
       sha256: "82dfd37d3b2e5030ae4729e1d7f5538cbc45eb1c73d618b9272931facac3bec1"
@@ -2013,18 +2013,18 @@ packages:
     dependency: "direct main"
     description:
       name: share_plus
-      sha256: "3ef39599b00059db0990ca2e30fca0a29d8b37aae924d60063f8e0184cf20900"
+      sha256: "223873d106614442ea6f20db5a038685cc5b32a2fba81cdecaefbbae0523f7fa"
       url: "https://pub.dev"
     source: hosted
-    version: "7.2.2"
+    version: "12.0.2"
   share_plus_platform_interface:
     dependency: transitive
     description:
       name: share_plus_platform_interface
-      sha256: "251eb156a8b5fa9ce033747d73535bf53911071f8d3b6f4f0b578505ce0d4496"
+      sha256: "88023e53a13429bd65d8e85e11a9b484f49d4c190abbd96c7932b74d6927cc9a"
       url: "https://pub.dev"
     source: hosted
-    version: "3.4.0"
+    version: "6.1.0"
   shelf:
     dependency: transitive
     description:
@@ -2338,6 +2338,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.1"
+  universal_platform:
+    dependency: transitive
+    description:
+      name: universal_platform
+      sha256: "64e16458a0ea9b99260ceb5467a214c1f298d647c659af1bff6d3bf82536b1ec"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
   unorm_dart:
     dependency: "direct main"
     description:
@@ -2466,14 +2474,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "15.0.2"
-  wakelock_platform_interface:
-    dependency: transitive
-    description:
-      name: wakelock_platform_interface
-      sha256: "1f4aeb81fb592b863da83d2d0f7b8196067451e4df91046c26b54a403f9de621"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.3.0"
   wakelock_plus:
     dependency: "direct main"
     description:
@@ -2490,15 +2490,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.0"
-  wakelock_windows:
-    dependency: "direct overridden"
-    description:
-      path: wakelock_windows
-      ref: "2a9bca63a540771f241d688562351482b2cf234c"
-      resolved-ref: "2a9bca63a540771f241d688562351482b2cf234c"
-      url: "https://github.com/diegotori/wakelock"
-    source: git
-    version: "0.2.2"
   wallet:
     dependency: "direct main"
     description:
@@ -2572,7 +2563,7 @@ packages:
     source: hosted
     version: "1.2.1"
   win32:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
       name: win32
       sha256: d7cb55e04cd34096cd3a79b3330245f54cb96a370a1c27adb3c84b917de8b08e
@@ -2583,10 +2574,10 @@ packages:
     dependency: transitive
     description:
       name: win32_registry
-      sha256: "21ec76dfc731550fd3e2ce7a33a9ea90b828fdf19a5c3bcf556fa992cfa99852"
+      sha256: "6f1b564492d0147b330dd794fee8f512cec4977957f310f9951b5f9d83618dae"
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.5"
+    version: "2.1.0"
   window_size:
     dependency: "direct main"
     description:

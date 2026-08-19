@@ -173,20 +173,20 @@ dependencies:
   devicelocale:
     git:
       url: https://github.com/cypherstack/flutter-devicelocale
-      ref: ba7d7d87a3772e972adb1358a5ec9a111b514fce
-  device_info_plus: ^10.1.2
+      ref: 73c4ed946816c5ec032d13a44f8f510e2ced9886
+  device_info_plus: ^12.4.0
   keyboard_dismisser: ^3.0.0
   another_flushbar: ^1.10.28
   tuple: ^2.0.0
   flutter_riverpod: ^1.0.3
   qr_flutter: ^4.0.0
-  share_plus: ^7.0.2
+  share_plus: ^12.0.2
   emojis: ^0.9.9
   pointycastle: ^4.0.0
   package_info_plus: ^8.0.2
   lottie: ^3.3.2
   file_picker: ^10.3.3
-  connectivity_plus: ^4.0.1
+  connectivity_plus: ^7.3.1
   isar_community: 3.3.0-dev.2
   isar_community_flutter_libs: 3.3.0-dev.2
   dropdown_button2: ^2.1.3
@@ -200,7 +200,7 @@ dependencies:
       ref: bed60e43e4e509ea45bb097e6caee9f8293ddf98
   hex: ^0.2.0
   archive: ^4.0.2
-  desktop_drop: ^0.4.4
+  desktop_drop: ^0.7.1
   nanodart:
     git:
       url: https://github.com/cypherstack/nanodart
@@ -245,7 +245,7 @@ dependencies:
       url: https://github.com/cypherstack/packages.git
       path: packages/camera/camera_windows
   camera_platform_interface: ^2.8.0
-  camera_macos: ^0.0.8
+  camera_macos: ^0.1.1
   blockchain_utils: ^3.3.0
   on_chain: ^4.0.1
   cbor: ^6.3.3
@@ -308,11 +308,8 @@ dependency_overrides:
       url: https://github.com/cypherstack/logger
       ref: 3c0cba27868ebb5c7d65ebc30a8e6e5342186692
 
-  # required to make devicelocale work
+  # required to make web socket channel work (solana)
   web: ^0.5.0
-
-  # needed for dart 3.5+ (at least for now)
-  win32: ^5.5.4
 
   # coinlib_flutter requires this
   coinlib:
@@ -321,23 +318,11 @@ dependency_overrides:
       path: coinlib
       ref: f0e12dacb6d39e1cb340f0deae178d0fad1d6fd6
 
-  bip47:
-    git:
-      url: https://github.com/cypherstack/bip47.git
-      ref: bdc0c0788d1d6dfb04863a793955f848ba1624a8
-
   # bip47 pins a different bitcoindart commit; override to ours
   bitcoindart:
     git:
       url: https://github.com/cypherstack/bitcoindart.git
       ref: ea33b1f5d6a701791359a2e180f73866dc667732
-
-  # required for dart 3, at least until a fix is merged upstream
-  wakelock_windows:
-    git:
-      url: https://github.com/diegotori/wakelock
-      ref: 2a9bca63a540771f241d688562351482b2cf234c
-      path: wakelock_windows
 
   # required override for solana, etc
   bip39:
@@ -352,7 +337,6 @@ dependency_overrides:
   analyzer: ">=8.2.0 <8.4.0"
 
   # xelis override
-  json_rpc_2: ^4.0.0
   freezed: ^3.1.0
   freezed_annotation: ^3.1.0
 
