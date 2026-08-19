@@ -210,8 +210,9 @@ class ElectrumXClient {
 
   Future<bool> _allow() async {
     if (_prefs.wifiOnly) {
-      return (await Connectivity().checkConnectivity()) ==
-          ConnectivityResult.wifi;
+      return (await Connectivity().checkConnectivity()).contains(
+        ConnectivityResult.wifi,
+      );
     }
     return true;
   }
