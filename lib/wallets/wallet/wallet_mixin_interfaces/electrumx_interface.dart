@@ -41,6 +41,34 @@ import 'rbf_interface.dart';
 import 'sign_verify_interface.dart';
 import 'view_only_option_interface.dart';
 
+@visibleForTesting
+bool isMwebPegoutOutput(List<dynamic> outputs, int vout) {
+  if (vout <= 0) {
+    return false;
+  }
+
+  for (final output in outputs) {
+    if (output is! Map || output["n"] != 0) {
+      continue;
+    }
+
+    final scriptPubKey = output["scriptPubKey"];
+    if (scriptPubKey is! Map) {
+      return false;
+    }
+
+    if (scriptPubKey["type"] == "witness_mweb_hogaddr") {
+      return true;
+    }
+
+    final scriptHex = scriptPubKey["hex"];
+    return scriptHex is String &&
+        RegExp(r'^5820[0-9a-fA-F]{64}$').hasMatch(scriptHex);
+  }
+
+  return false;
+}
+
 mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     on Bip39HDWallet<T>
     implements ViewOnlyOptionInterface<T>, SignVerifyInterface {
@@ -1363,6 +1391,9 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     final vout = jsonUTXO["tx_pos"] as int;
 
     final outputs = txn["vout"] as List;
+    final mwebPegoutMaturity = cryptoCurrency.mwebPegoutMaturity;
+    final isMwebPegout =
+        mwebPegoutMaturity != null && isMwebPegoutOutput(outputs, vout);
 
     String? scriptPubKey;
     String? utxoOwnerAddress;
@@ -1400,6 +1431,11 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       blockHeight: jsonUTXO["height"] as int?,
       blockTime: txn["blocktime"] as int?,
       address: utxoOwnerAddress,
+      otherData: isMwebPegout
+          ? jsonEncode({
+              UTXOOtherDataKeys.mwebPegoutMaturity: mwebPegoutMaturity,
+            })
+          : null,
     );
 
     return utxo;

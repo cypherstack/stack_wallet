@@ -349,6 +349,7 @@ class MainDB {
               blockTime: utxo.blockTime,
               blockHeight: utxo.blockHeight,
               blockHash: utxo.blockHash,
+              otherData: utxo.otherData,
               // passing null keeps the stored value
               isBlocked: applyAutoBlock ? true : null,
               blockedReason: applyAutoBlock ? utxo.blockedReason : null,
