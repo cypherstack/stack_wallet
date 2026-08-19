@@ -105,6 +105,7 @@ class TxData {
   final TransactionV2? tempTx;
 
   final bool ignoreCachedBalanceChecks;
+  final bool subtractFeeFromAmount;
 
   // Namecoin Name related
   final NameOpState? opNameState;
@@ -150,6 +151,7 @@ class TxData {
     this.usedSparkCoins,
     this.tempTx,
     this.ignoreCachedBalanceChecks = false,
+    this.subtractFeeFromAmount = false,
     this.opNameState,
     this.sparkNameInfo,
     this.vExtraData,
@@ -298,6 +300,7 @@ class TxData {
     List<SparkCoin>? usedSparkCoins,
     TransactionV2? tempTx,
     bool? ignoreCachedBalanceChecks,
+    bool? subtractFeeFromAmount,
     NameOpState? opNameState,
     ({
       String additionalInfo,
@@ -346,6 +349,8 @@ class TxData {
       tempTx: tempTx ?? this.tempTx,
       ignoreCachedBalanceChecks:
           ignoreCachedBalanceChecks ?? this.ignoreCachedBalanceChecks,
+      subtractFeeFromAmount:
+          subtractFeeFromAmount ?? this.subtractFeeFromAmount,
       opNameState: opNameState ?? this.opNameState,
       sparkNameInfo: sparkNameInfo ?? this.sparkNameInfo,
       vExtraData: vExtraData ?? this.vExtraData,
@@ -390,6 +395,7 @@ class TxData {
       'otherData: $otherData, '
       'tempTx: $tempTx, '
       'ignoreCachedBalanceChecks: $ignoreCachedBalanceChecks, '
+      'subtractFeeFromAmount: $subtractFeeFromAmount, '
       'opNameState: $opNameState, '
       'sparkNameInfo: $sparkNameInfo, '
       'vExtraData: ${vExtraData?.toHex}, '
