@@ -303,7 +303,12 @@ void main(List<String> args) async {
         await DbVersionMigrator().migrate(
           dbVersion,
           secureStore: const SecureStorageWrapper(
-            store: FlutterSecureStorage(),
+            store: FlutterSecureStorage(
+              aOptions: AndroidOptions(
+                resetOnError: false,
+                migrateWithBackup: true,
+              ),
+            ),
             isDesktop: false,
           ),
         );

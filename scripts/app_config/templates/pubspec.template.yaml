@@ -115,8 +115,8 @@ dependencies:
   # Utility plugins
   http: ^1.6.0
   local_auth: ^2.3.0
-  permission_handler: ^12.0.0+1
-  flutter_local_notifications: ^17.2.2
+  permission_handler: ^13.0.1
+  flutter_local_notifications: ^22.3.0
   zxcvbn: ^1.0.0
   dart_numerics: ^0.0.6
 
@@ -152,7 +152,7 @@ dependencies:
       ref: 6a5d3d69e54c175ae44b44040fb2743c9b6405a6
 
   # Storage plugins
-  flutter_secure_storage: ^8.0.0
+  flutter_secure_storage: ^10.3.1
   hive_ce: ^2.13.2
   hive_ce_flutter: ^2.3.2
   path_provider: ^2.1.5

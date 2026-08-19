@@ -13,7 +13,7 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace "com.place.holder"
-    compileSdk flutter.compileSdkVersion
+    compileSdk 37
 //    ndkVersion flutter.ndkVersion
     ndkVersion = "28.2.13676358"
 
@@ -42,7 +42,7 @@ android {
         }
 
         dependencies {
-            coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+            coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
         }
 
         // No ndk.abiFilters here: AGP rejects it alongside the abi splits set
@@ -88,7 +88,7 @@ android {
     tasks.whenTaskAdded { task ->
         if (task.name == 'assembleDebug') {
             task.doFirst {
-                println "The compileSdkVersion is $flutter.compileSdkVersion"
+                println "The compileSdkVersion is $android.compileSdk"
                 println "The targetSdkVersion is $flutter.targetSdkVersion"
                 println "The ndkVersion is $ndkVersion"
             }

@@ -63,11 +63,14 @@ RUN mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools" \
  && sdkmanager \
       "platform-tools" \
       "build-tools;35.0.0" \
+      "build-tools;36.0.0" \
+      "build-tools;37.0.0" \
       "platforms;android-32" \
       "platforms;android-33" \
       "platforms;android-34" \
       "platforms;android-35" \
       "platforms;android-36" \
+      "platforms;android-37" \
       "ndk;28.0.13004108" \
       "ndk;28.2.13676358" \
       "cmake;3.22.1" \
@@ -148,11 +151,14 @@ RUN mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools" \
  && sdkmanager \
       "platform-tools" \
       "build-tools;35.0.0" \
+      "build-tools;36.0.0" \
+      "build-tools;37.0.0" \
       "platforms;android-32" \
       "platforms;android-33" \
       "platforms;android-34" \
       "platforms;android-35" \
       "platforms;android-36" \
+      "platforms;android-37" \
       "ndk;28.0.13004108" \
       "ndk;28.2.13676358" \
       "cmake;3.22.1" \
