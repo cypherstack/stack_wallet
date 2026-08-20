@@ -13,8 +13,17 @@ for (( i=0; i<=2; i++ )); do
 done
 
 # Configure macOS for Duo.
-sed -i '' "s/${APP_ID_PLACEHOLDER_CAMEL}/${NEW_APP_ID_CAMEL}/g" "${APP_PROJECT_ROOT_DIR}/${MAC_TF_0}"
-sed -i '' "s/${APP_NAME_PLACEHOLDER}/${NEW_NAME}/g" "${APP_PROJECT_ROOT_DIR}/${MAC_TF_0}"
-sed -i '' "s/${APP_NAME_PLACEHOLDER}/${NEW_NAME}/g" "${APP_PROJECT_ROOT_DIR}/${MAC_TF_1}"
-sed -i '' "s/${APP_NAME_PLACEHOLDER}/${NEW_NAME}/g" "${APP_PROJECT_ROOT_DIR}/${MAC_TF_2}"
-sed -i '' "s/${APP_ID_PLACEHOLDER_SNAKE}/${NEW_APP_ID_SNAKE}/g" "${APP_PROJECT_ROOT_DIR}/${MAC_TF_2}"
+sed -i.bak \
+  -e "s/${APP_ID_PLACEHOLDER_CAMEL}/${NEW_APP_ID_CAMEL}/g" \
+  -e "s/${APP_NAME_PLACEHOLDER}/${NEW_NAME}/g" \
+  "${APP_PROJECT_ROOT_DIR}/${MAC_TF_0}"
+rm -f "${APP_PROJECT_ROOT_DIR}/${MAC_TF_0}.bak"
+
+sed -i.bak "s/${APP_NAME_PLACEHOLDER}/${NEW_NAME}/g" "${APP_PROJECT_ROOT_DIR}/${MAC_TF_1}"
+rm -f "${APP_PROJECT_ROOT_DIR}/${MAC_TF_1}.bak"
+
+sed -i.bak \
+  -e "s/${APP_NAME_PLACEHOLDER}/${NEW_NAME}/g" \
+  -e "s/${APP_ID_PLACEHOLDER_SNAKE}/${NEW_APP_ID_SNAKE}/g" \
+  "${APP_PROJECT_ROOT_DIR}/${MAC_TF_2}"
+rm -f "${APP_PROJECT_ROOT_DIR}/${MAC_TF_2}.bak"

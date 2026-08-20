@@ -4,6 +4,7 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 
 import '../../app_config.dart';
 import '../../notifications/show_flush_bar.dart';
@@ -15,6 +16,7 @@ import '../../services/cakepay/src/models/order.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/assets.dart';
+import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
@@ -27,6 +29,7 @@ import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/qr.dart';
 import '../../widgets/refresh_control.dart';
 import '../../widgets/rounded_white_container.dart';
+import '../../widgets/stack_dialog.dart';
 import '../wallet_view/transaction_views/transaction_details_view.dart';
 import 'cakepay_send_from_view.dart';
 
@@ -173,19 +176,31 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
     final coin = _resolveCoin(option.ticker);
 
     if (option.address.trim().isEmpty) {
-      showFloatingFlushBar(
-        type: FlushBarType.warning,
-        message: "No payment address available for $label",
-        context: context,
+      unawaited(
+        showDialog<void>(
+          context: context,
+          useRootNavigator: Util.isDesktop,
+          builder: (context) => StackOkDialog(
+            title: "No payment address available for $label",
+            maxWidth: Util.isDesktop ? 500 : null,
+            desktopPopRootNavigator: Util.isDesktop,
+          ),
+        ),
       );
       return;
     }
 
     if (coin == null) {
-      showFloatingFlushBar(
-        type: FlushBarType.warning,
-        message: "No wallet support for $label",
-        context: context,
+      unawaited(
+        showDialog<void>(
+          context: context,
+          useRootNavigator: Util.isDesktop,
+          builder: (context) => StackOkDialog(
+            title: "No wallet support for $label",
+            maxWidth: Util.isDesktop ? 500 : null,
+            desktopPopRootNavigator: Util.isDesktop,
+          ),
+        ),
       );
       return;
     }
@@ -210,7 +225,13 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
         Decimal.parse(option.amountFrom.toString()),
         fractionDigits: coin.fractionDigits,
       );
-    } catch (_) {}
+    } catch (e, s) {
+      Logging.instance.e(
+        "Failed to parse CakePay order amount '${option.amountFrom}'",
+        error: e,
+        stackTrace: s,
+      );
+    }
 
     _navigateToSendFrom(
       coin: coin,
@@ -558,9 +579,10 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
             children: [
               Row(
                 children: [
-                  Icon(
-                    Icons.check_circle,
-                    size: 20,
+                  SvgPicture.asset(
+                    Assets.svg.checkCircle,
+                    width: 20,
+                    height: 20,
                     color: Theme.of(
                       context,
                     ).extension<StackColors>()!.accentColorGreen,
@@ -622,9 +644,10 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
         RoundedWhiteContainer(
           child: Row(
             children: [
-              Icon(
-                Icons.cancel,
-                size: 20,
+              SvgPicture.asset(
+                Assets.svg.circleX,
+                width: 20,
+                height: 20,
                 color: Theme.of(
                   context,
                 ).extension<StackColors>()!.textSubtitle1,

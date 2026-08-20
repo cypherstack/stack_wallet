@@ -14,8 +14,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../models/paymint/fee_object_model.dart';
 import '../../../providers/providers.dart';
 import '../../../providers/ui/fee_rate_type_state_provider.dart';
+import '../../../providers/ui/preview_tx_button_state_provider.dart';
 import '../../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../../themes/stack_colors.dart';
+import '../../../utilities/address_utils.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/amount/amount_formatter.dart';
 import '../../../utilities/constants.dart';
@@ -78,12 +80,54 @@ class _TransactionFeeSelectionSheetState
     "Calculating...",
   ];
 
+  Amount _addFiroOpReturnFee({
+    required Amount fee,
+    required BigInt feeRate,
+    required FiroWallet wallet,
+    required CryptoCurrency coin,
+  }) {
+    final opReturnData = ref.read(pOpReturnData);
+    if (opReturnData == null ||
+        opReturnData.isEmpty ||
+        ref.read(publicPrivateBalanceStateProvider) != BalanceType.public) {
+      return fee;
+    }
+
+    final extraOutputVSize = AddressUtils.opReturnOutputVSizeFromHex(
+      opReturnData,
+    );
+    final extraFee = wallet.estimateTxFee(
+      vSize: extraOutputVSize,
+      feeRatePerKB: feeRate,
+    );
+
+    return fee +
+        Amount(
+          rawValue: BigInt.from(extraFee),
+          fractionDigits: coin.fractionDigits,
+        );
+  }
+
   Future<Amount> feeFor({
     required Amount amount,
     required FeeRateType feeRateType,
     required BigInt feeRate,
     required CryptoCurrency coin,
   }) async {
+    if (!widget.isToken &&
+        coin is Firo &&
+        ref.read(publicPrivateBalanceStateProvider) == BalanceType.public &&
+        (ref.read(pOpReturnData)?.isNotEmpty ?? false)) {
+      final wallet = ref.read(pWallets).getWallet(walletId) as FiroWallet;
+      final fee = await wallet.estimateFeeFor(amount, feeRate);
+      return _addFiroOpReturnFee(
+        fee: fee,
+        feeRate: feeRate,
+        wallet: wallet,
+        coin: coin,
+      );
+    }
+
     switch (feeRateType) {
       case FeeRateType.fast:
         if (ref.read(feeSheetSessionCacheProvider).fast[amount] == null) {

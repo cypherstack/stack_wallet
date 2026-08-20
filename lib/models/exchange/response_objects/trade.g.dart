@@ -39,13 +39,14 @@ class TradeAdapter extends TypeAdapter<Trade> {
       refundExtraId: fields[19] as String,
       status: fields[20] as String,
       exchangeName: fields[21] as String,
+      other: fields[22] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Trade obj) {
     writer
-      ..writeByte(22)
+      ..writeByte(23)
       ..writeByte(0)
       ..write(obj.uuid)
       ..writeByte(1)
@@ -89,7 +90,9 @@ class TradeAdapter extends TypeAdapter<Trade> {
       ..writeByte(20)
       ..write(obj.status)
       ..writeByte(21)
-      ..write(obj.exchangeName);
+      ..write(obj.exchangeName)
+      ..writeByte(22)
+      ..write(obj.other);
   }
 
   @override

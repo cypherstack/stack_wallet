@@ -63,8 +63,14 @@ RUN mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools" \
  && sdkmanager \
       "platform-tools" \
       "build-tools;35.0.0" \
+      "platforms;android-32" \
+      "platforms;android-33" \
+      "platforms;android-34" \
       "platforms;android-35" \
+      "platforms;android-36" \
+      "ndk;28.0.13004108" \
       "ndk;28.2.13676358" \
+      "cmake;3.22.1" \
  && chmod -R a+rwX "$ANDROID_SDK_ROOT"
 
 ENV PATH=/usr/local/go/bin:$PATH
@@ -77,7 +83,7 @@ RUN curl -fsSL https://go.dev/dl/go1.24.13.linux-amd64.tar.gz -o /tmp/go.tar.gz 
 ENV FLUTTER_HOME=/opt/flutter \
     PATH=/opt/flutter/bin:/opt/flutter/bin/cache/dart-sdk/bin:$PATH
 
-RUN git clone --depth 1 --branch 3.38.1 https://github.com/flutter/flutter.git "$FLUTTER_HOME" \
+RUN git clone --depth 1 --branch 3.44.8 https://github.com/flutter/flutter.git "$FLUTTER_HOME" \
  && git config --global --add safe.directory '*' \
  && flutter config --no-analytics \
  && flutter precache --linux --android \
@@ -142,8 +148,14 @@ RUN mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools" \
  && sdkmanager \
       "platform-tools" \
       "build-tools;35.0.0" \
+      "platforms;android-32" \
+      "platforms;android-33" \
+      "platforms;android-34" \
       "platforms;android-35" \
+      "platforms;android-36" \
+      "ndk;28.0.13004108" \
       "ndk;28.2.13676358" \
+      "cmake;3.22.1" \
  && chmod -R a+rwX "$ANDROID_SDK_ROOT"
 
 ENV PATH=/usr/local/go/bin:$PATH
@@ -156,7 +168,7 @@ RUN curl -fsSL https://go.dev/dl/go1.24.13.linux-amd64.tar.gz -o /tmp/go.tar.gz 
 ENV FLUTTER_HOME=/opt/flutter \
     PATH=/opt/flutter/bin:/opt/flutter/bin/cache/dart-sdk/bin:$PATH
 
-RUN git clone --depth 1 --branch 3.38.1 https://github.com/flutter/flutter.git "$FLUTTER_HOME" \
+RUN git clone --depth 1 --branch 3.44.8 https://github.com/flutter/flutter.git "$FLUTTER_HOME" \
  && git config --global --add safe.directory '*' \
  && flutter config --no-analytics \
  && flutter precache --android \
@@ -188,7 +200,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ENV FLUTTER_HOME=/opt/flutter \
     PATH=/opt/flutter/bin:/opt/flutter/bin/cache/dart-sdk/bin:$PATH
 
-RUN git clone --depth 1 --branch 3.38.1 https://github.com/flutter/flutter.git "$FLUTTER_HOME" \
+RUN git clone --depth 1 --branch 3.44.8 https://github.com/flutter/flutter.git "$FLUTTER_HOME" \
  && git config --global --add safe.directory '*' \
  && flutter config --no-analytics \
  && flutter precache --linux \
