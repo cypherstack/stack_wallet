@@ -149,6 +149,7 @@ class _AdaptiveTextFieldState extends State<AdaptiveTextField> {
                   _focusNode,
                   context,
                 ).copyWith(
+                  alignLabelWithHint: (widget.minLines ?? 1) > 2 ? true : null,
                   hintText: widget.hintText,
                   suffixText:
                       (widget.suffixIcons?.isNotEmpty != true &&

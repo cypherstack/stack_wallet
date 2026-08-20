@@ -5,9 +5,9 @@ import 'package:decimal/decimal.dart';
 import 'package:ethereum_addresses/ethereum_addresses.dart';
 import 'package:http/http.dart';
 import 'package:isar_community/isar.dart';
+import 'package:wallet/wallet.dart' as eth_wallet;
 import 'package:web3dart/json_rpc.dart' show RPCError;
 import 'package:web3dart/web3dart.dart' as web3;
-import 'package:wallet/wallet.dart' as eth_wallet;
 
 import '../../../dto/ethereum/eth_tx_dto.dart';
 import '../../../models/balance.dart';
@@ -21,7 +21,6 @@ import '../../../services/ethereum/ethereum_api.dart';
 import '../../../services/event_bus/events/global/updated_in_background_event.dart';
 import '../../../services/event_bus/global_event_bus.dart';
 import '../../../utilities/amount/amount.dart';
-import '../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../utilities/eth_commons.dart';
 import '../../../utilities/logger.dart';
 import '../../crypto_currency/crypto_currency.dart';
@@ -218,7 +217,9 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
 
       final addressHex = (await getCurrentReceivingAddress())!.value;
       final address = eth_wallet.EthereumAddress.fromHex(addressHex);
-      final eth_wallet.EtherAmount ethBalance = await client.getBalance(address);
+      final eth_wallet.EtherAmount ethBalance = await client.getBalance(
+        address,
+      );
       final balance = Balance(
         total: Amount(
           rawValue: ethBalance.getInWei,
@@ -448,9 +449,9 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
     required TxData txData,
     required eth_wallet.EthereumAddress myWeb3Address,
   }) async {
-    if (txData.feeRateType == null) throw Exception("Missing fee rate type.");
-    if (txData.feeRateType == FeeRateType.custom &&
-        txData.ethEIP1559Fee == null) {
+    final feeRateType = txData.feeRateType;
+    if (feeRateType == null) throw Exception("Missing fee rate type.");
+    if (feeRateType == .custom && txData.ethEIP1559Fee == null) {
       throw Exception("Missing custom EIP-1559 values.");
     }
 
@@ -466,37 +467,25 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
         );
 
     final feeObject = await fees;
-    final baseFee = feeObject.suggestBaseFee;
-    BigInt maxBaseFee = baseFee;
-    BigInt priorityFee;
+    final BigInt baseFee = feeObject.suggestBaseFee;
 
-    switch (txData.feeRateType!) {
-      case FeeRateType.fast:
-        priorityFee = feeObject.fast - baseFee;
-        if (priorityFee.isNegative) priorityFee = BigInt.zero;
-        break;
+    // Presets get 2x headroom since base fee can rise 12.5% per block.
+    final BigInt maxBaseFee = feeRateType == .custom
+        ? txData.ethEIP1559Fee!.maxBaseFeeWei
+        : baseFee * BigInt.two;
 
-      case FeeRateType.average:
-        priorityFee = feeObject.medium - baseFee;
-        if (priorityFee.isNegative) priorityFee = BigInt.zero;
-        break;
-
-      case FeeRateType.slow:
-        priorityFee = feeObject.slow - baseFee;
-        if (priorityFee.isNegative) priorityFee = BigInt.zero;
-        break;
-
-      case FeeRateType.custom:
-        priorityFee = txData.ethEIP1559Fee!.priorityFeeWei;
-        maxBaseFee = txData.ethEIP1559Fee!.maxBaseFeeWei;
-        break;
-    }
+    final BigInt rawPriority = switch (feeRateType) {
+      .fast => feeObject.fast - baseFee,
+      .average => feeObject.medium - baseFee,
+      .slow => feeObject.slow - baseFee,
+      .custom => txData.ethEIP1559Fee!.priorityFeeWei,
+    };
+    final BigInt priorityFee = rawPriority.isNegative
+        ? BigInt.zero
+        : rawPriority;
 
     if (baseFee > maxBaseFee) {
-      throw Exception("Base cannot be greater than max base fee");
-    }
-    if (priorityFee > maxBaseFee) {
-      throw Exception("Priority fee cannot be greater than max base fee");
+      throw Exception("Max base fee is below the current network base fee.");
     }
 
     return (

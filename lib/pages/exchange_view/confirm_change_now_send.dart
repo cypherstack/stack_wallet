@@ -83,10 +83,24 @@ class _ConfirmChangeNowSendViewState
     final coin = wallet.info.coin;
 
     final sendProgressController = ProgressAndSuccessController();
+    var isSendingDialogOpen = false;
 
+    void closeSendingDialog() {
+      if (!context.mounted || !isSendingDialogOpen) {
+        return;
+      }
+      final rootNavigator = Navigator.of(context, rootNavigator: true);
+      if (rootNavigator.canPop()) {
+        rootNavigator.pop();
+      }
+      isSendingDialogOpen = false;
+    }
+
+    isSendingDialogOpen = true;
     unawaited(
       showDialog<void>(
         context: context,
+        useRootNavigator: true,
         useSafeArea: false,
         barrierDismissible: false,
         builder: (context) {
@@ -95,7 +109,7 @@ class _ConfirmChangeNowSendViewState
             controller: sendProgressController,
           );
         },
-      ),
+      ).whenComplete(() => isSendingDialogOpen = false),
     );
 
     final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
@@ -141,10 +155,8 @@ class _ConfirmChangeNowSendViewState
 
       // pop back to wallet
       if (context.mounted) {
+        closeSendingDialog();
         if (Util.isDesktop) {
-          // pop sending dialog
-          Navigator.of(context, rootNavigator: true).pop();
-
           // one day we'll do routing right
           Navigator.of(context, rootNavigator: true).pop();
           if (widget.fromDesktopStep4) {
@@ -162,7 +174,7 @@ class _ConfirmChangeNowSendViewState
       );
 
       // pop sending dialog
-      Navigator.of(context).pop();
+      closeSendingDialog();
 
       await showDialog<dynamic>(
         context: context,

@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import '../../../../providers/providers.dart';
+import '../../../../providers/ui/preview_tx_button_state_provider.dart';
 import '../../../../providers/wallet/desktop_fee_providers.dart';
 import '../../../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/address_utils.dart';
 import '../../../../utilities/amount/amount.dart';
 import '../../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../../utilities/eth_commons.dart';
@@ -66,6 +68,33 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
   }
 
   (FeeRateType, String?, String?)? feeSelectionResult;
+
+  Amount _addFiroOpReturnFee({
+    required Amount fee,
+    required BigInt feeRate,
+    required FiroWallet wallet,
+  }) {
+    final opReturnData = ref.read(pOpReturnData);
+    if (opReturnData == null ||
+        opReturnData.isEmpty ||
+        ref.read(publicPrivateBalanceStateProvider) != BalanceType.public) {
+      return fee;
+    }
+
+    final extraOutputVSize = AddressUtils.opReturnOutputVSizeFromHex(
+      opReturnData,
+    );
+    final extraFee = wallet.estimateTxFee(
+      vSize: extraOutputVSize,
+      feeRatePerKB: feeRate,
+    );
+
+    return fee +
+        Amount(
+          rawValue: BigInt.from(extraFee),
+          fractionDigits: cryptoCurrency.fractionDigits,
+        );
+  }
 
   @override
   void initState() {
@@ -156,6 +185,30 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
                                 required BigInt feeRate,
                                 required CryptoCurrency coin,
                               }) async {
+                                if (!widget.isToken &&
+                                    coin is Firo &&
+                                    ref.read(
+                                          publicPrivateBalanceStateProvider,
+                                        ) ==
+                                        BalanceType.public &&
+                                    (ref.read(pOpReturnData)?.isNotEmpty ??
+                                        false)) {
+                                  final wallet =
+                                      ref
+                                              .read(pWallets)
+                                              .getWallet(widget.walletId)
+                                          as FiroWallet;
+                                  final fee = await wallet.estimateFeeFor(
+                                    amount,
+                                    feeRate,
+                                  );
+                                  return _addFiroOpReturnFee(
+                                    fee: fee,
+                                    feeRate: feeRate,
+                                    wallet: wallet,
+                                  );
+                                }
+
                                 if (ref
                                         .read(
                                           widget.isToken
@@ -220,12 +273,16 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
                                       final fee = await tokenWallet
                                           .estimateFeeFor(amount, feeRate);
                                       ref
-                                              .read(tokenFeeSessionCacheProvider)
+                                              .read(
+                                                tokenFeeSessionCacheProvider,
+                                              )
                                               .average[amount] =
                                           fee;
                                     } catch (_) {
                                       // Token wallet not available.
-                                      debugPrint("Token fee estimation not available");
+                                      debugPrint(
+                                        "Token fee estimation not available",
+                                      );
                                     }
                                   }
                                 }

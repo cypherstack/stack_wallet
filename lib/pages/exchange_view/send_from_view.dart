@@ -293,7 +293,6 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
           ),
         );
       } else {
-        final firoWallet = wallet as FiroWallet;
         // otherwise do firo send based on balance selected
         if (shouldSendPublicFiroFunds) {
           txDataFuture = wallet.prepareSend(
@@ -303,21 +302,9 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
             ),
           );
         } else {
-          txDataFuture = firoWallet.prepareSendSpark(
-            txData: TxData(
-              recipients: recipient.addressType == .spark ? null : [recipient],
-              sparkRecipients: recipient.addressType == .spark
-                  ? [
-                      (
-                        address: recipient.address,
-                        amount: recipient.amount,
-                        memo: "",
-                        isChange: false,
-                      ),
-                    ]
-                  : null,
-              // feeRateType: FeeRateType.average,
-            ),
+          throw Exception(
+            "Sending private Firo funds to an exchange address is "
+            "temporarily unavailable.",
           );
         }
       }

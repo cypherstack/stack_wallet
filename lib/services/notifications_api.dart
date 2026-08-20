@@ -13,6 +13,7 @@ import 'dart:async';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../models/notification_model.dart';
+import '../utilities/logger.dart';
 import '../utilities/prefs.dart';
 import 'notifications_service.dart';
 
@@ -24,7 +25,8 @@ abstract final class NotificationApi {
   static Future<NotificationDetails> _notificationDetails() async {
     return const NotificationDetails(
       android: AndroidNotificationDetails(
-        'channel id', 'channel name',
+        'channel id',
+        'channel name',
         channelDescription: 'channel description',
         // importance: Importance.max,
         priority: Priority.high,
@@ -84,6 +86,23 @@ abstract final class NotificationApi {
   static late Prefs prefs;
   static late NotificationsService notificationsService;
 
+  static Future<int> _showOsNotification({
+    required String title,
+    required String body,
+    String? payload,
+  }) async {
+    await init();
+    final id = await prefs.incrementCurrentNotificationIndex();
+    await _notifications.show(
+      id,
+      title,
+      body,
+      await _notificationDetails(),
+      payload: payload,
+    );
+    return id;
+  }
+
   static Future<void> showNotification({
     required String title,
     required String body,
@@ -98,9 +117,11 @@ abstract final class NotificationApi {
     String? changeNowId,
     String? payload,
   }) async {
-    await init();
-    await prefs.incrementCurrentNotificationIndex();
-    final id = prefs.currentNotificationId;
+    final id = await _showOsNotification(
+      title: title,
+      body: body,
+      payload: payload,
+    );
 
     String confirms = "";
     if (txid != null &&
@@ -123,15 +144,21 @@ abstract final class NotificationApi {
       changeNowId: changeNowId,
     );
 
-    await Future.wait([
-      _notifications.show(
-        id,
-        title,
-        body,
-        await _notificationDetails(),
-        payload: payload,
-      ),
-      notificationsService.add(model, true),
-    ]);
+    await notificationsService.add(model, true);
+  }
+
+  static Future<void> showLocalOnly({
+    required String title,
+    required String body,
+  }) async {
+    try {
+      await _showOsNotification(title: title, body: body);
+    } catch (e, s) {
+      Logging.instance.w(
+        "NotificationApi.showLocalOnly failed",
+        error: e,
+        stackTrace: s,
+      );
+    }
   }
 }
