@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Stack Wallet
+Comment=Open-source non-custodial cryptocurrency wallet
+Exec=stack_wallet
+Icon=stack_wallet
+Type=Application
+Categories=Finance;

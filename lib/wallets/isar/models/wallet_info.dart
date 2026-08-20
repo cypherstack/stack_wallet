@@ -442,7 +442,8 @@ class WalletInfo implements IsarId {
   }) async {
     await updateOtherData(
       newEntries: {
-        WalletInfoKeys.solanaCustomTokenMintAddresses: newMintAddresses.toList(),
+        WalletInfoKeys.solanaCustomTokenMintAddresses: newMintAddresses
+            .toList(),
       },
       isar: isar,
     );
@@ -581,4 +582,6 @@ abstract class WalletInfoKeys {
   static const String solanaTokenMintAddresses = "solanaTokenMintAddressesKey";
   static const String solanaCustomTokenMintAddresses =
       "solanaCustomTokenMintAddressesKey";
+  static const String firoMasternodeCollateralDismissed =
+      "firoMasternodeCollateralDismissedKey";
 }

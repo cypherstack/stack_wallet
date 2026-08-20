@@ -5,10 +5,11 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i9;
 import 'dart:typed_data' as _i14;
-import 'dart:ui' as _i16;
+import 'dart:ui' as _i17;
 
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:stackwallet/db/isar/main_db.dart' as _i3;
+import 'package:stackwallet/models/epicbox_server_model.dart' as _i16;
 import 'package:stackwallet/models/isar/stack_theme.dart' as _i13;
 import 'package:stackwallet/models/node_model.dart' as _i15;
 import 'package:stackwallet/networking/http.dart' as _i6;
@@ -415,6 +416,64 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
           as _i9.Future<void>);
 
   @override
+  _i9.Future<void> updateDefaultEpicBoxes() =>
+      (super.noSuchMethod(
+            Invocation.method(#updateDefaultEpicBoxes, []),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
+          )
+          as _i9.Future<void>);
+
+  @override
+  _i9.Future<void> setPrimaryEpicBox({
+    required _i16.EpicBoxServerModel? epicBox,
+    bool? shouldNotifyListeners = false,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#setPrimaryEpicBox, [], {
+              #epicBox: epicBox,
+              #shouldNotifyListeners: shouldNotifyListeners,
+            }),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
+          )
+          as _i9.Future<void>);
+
+  @override
+  List<_i16.EpicBoxServerModel> getEpicBoxes() =>
+      (super.noSuchMethod(
+            Invocation.method(#getEpicBoxes, []),
+            returnValue: <_i16.EpicBoxServerModel>[],
+          )
+          as List<_i16.EpicBoxServerModel>);
+
+  @override
+  _i16.EpicBoxServerModel? getEpicBoxById({required String? id}) =>
+      (super.noSuchMethod(Invocation.method(#getEpicBoxById, [], {#id: id}))
+          as _i16.EpicBoxServerModel?);
+
+  @override
+  _i9.Future<void> addEpicBox(
+    _i16.EpicBoxServerModel? epicBox,
+    bool? shouldNotifyListeners,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#addEpicBox, [epicBox, shouldNotifyListeners]),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
+          )
+          as _i9.Future<void>);
+
+  @override
+  _i9.Future<void> deleteEpicBox(String? id, bool? shouldNotifyListeners) =>
+      (super.noSuchMethod(
+            Invocation.method(#deleteEpicBox, [id, shouldNotifyListeners]),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
+          )
+          as _i9.Future<void>);
+
+  @override
   _i9.Future<void> updateCommunityNodes() =>
       (super.noSuchMethod(
             Invocation.method(#updateCommunityNodes, []),
@@ -424,13 +483,13 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
           as _i9.Future<void>);
 
   @override
-  void addListener(_i16.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i17.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#addListener, [listener]),
     returnValueForMissingStub: null,
   );
 
   @override
-  void removeListener(_i16.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i17.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#removeListener, [listener]),
     returnValueForMissingStub: null,
   );

@@ -14,6 +14,7 @@ import '../../../models/input.dart';
 import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/isar/models/isar_models.dart';
+import '../../../models/isar/ordinal.dart';
 import '../../../services/event_bus/events/global/blocks_remaining_event.dart';
 import '../../../services/event_bus/events/global/refresh_percent_changed_event.dart';
 import '../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
@@ -648,6 +649,20 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
           cryptoCurrency.minCoinbaseConfirms,
         ),
       );
+
+      // Never peg ordinal UTXOs into MWEB.
+      spendableUtxos.removeWhere((e) {
+        final ord = mainDB.isar.ordinals
+            .where()
+            .filter()
+            .walletIdEqualTo(walletId)
+            .and()
+            .utxoTXIDEqualTo(e.txid)
+            .and()
+            .utxoVOUTEqualTo(e.vout)
+            .findFirstSync();
+        return ord != null;
+      });
 
       if (spendableUtxos.isEmpty) {
         throw Exception("No available UTXOs found to anonymize");

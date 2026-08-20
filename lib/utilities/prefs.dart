@@ -148,18 +148,25 @@ class Prefs extends ChangeNotifier {
 
   int get currentNotificationId => _currentNotificationId;
 
-  Future<void> incrementCurrentNotificationIndex() async {
+  /// Bumps the shared OS-notification id counter and returns the id it
+  /// allocated. The bump happens synchronously before the persist is awaited,
+  /// so concurrent callers each get a distinct id — use the returned value,
+  /// not a later read of [currentNotificationId], which by the time this
+  /// completes may already belong to another caller.
+  Future<int> incrementCurrentNotificationIndex() async {
     if (_currentNotificationId <= Constants.notificationsMax) {
       _currentNotificationId++;
     } else {
       _currentNotificationId = 0;
     }
+    final int id = _currentNotificationId;
     await DB.instance.put<dynamic>(
       boxName: DB.boxNamePrefs,
       key: "currentNotificationId",
       value: _currentNotificationId,
     );
     notifyListeners();
+    return id;
   }
 
   Future<int> _getCurrentNotificationIndex() async {
@@ -728,7 +735,7 @@ class Prefs extends ChangeNotifier {
   Future<DateTime?> _getLastAutoBackup() async {
     return await DB.instance.get<dynamic>(
           boxName: DB.boxNamePrefs,
-          key: "autoBackupFileUri",
+          key: "lastAutoBackup",
         )
         as DateTime?;
   }

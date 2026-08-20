@@ -12,8 +12,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app_config.dart';
+import '../../pages/shopinbit/shopinbit_settings_view.dart';
 import '../../route_generator.dart';
 import '../../themes/stack_colors.dart';
+import '../../utilities/constants.dart';
 import '../../utilities/text_styles.dart';
 import '../../widgets/desktop/desktop_app_bar.dart';
 import '../../widgets/desktop/desktop_scaffold.dart';
@@ -39,69 +41,68 @@ class DesktopSettingsView extends ConsumerStatefulWidget {
 }
 
 class _DesktopSettingsViewState extends ConsumerState<DesktopSettingsView> {
-  final List<Widget> contentViews = [
-    const Navigator(
-      key: Key("settingsBackupRestoreDesktopKey"),
-      onGenerateRoute: RouteGenerator.generateRoute,
-      initialRoute: BackupRestoreSettings.routeName,
-    ), //b+r
-    const Navigator(
-      key: Key("settingsSecurityDesktopKey"),
-      onGenerateRoute: RouteGenerator.generateRoute,
-      initialRoute: SecuritySettings.routeName,
-    ), //security
-    const Navigator(
-      key: Key("settingsCurrencyDesktopKey"),
-      onGenerateRoute: RouteGenerator.generateRoute,
-      initialRoute: CurrencySettings.routeName,
-    ), //currency
-    const Navigator(
-      key: Key("settingsLanguageDesktopKey"),
-      onGenerateRoute: RouteGenerator.generateRoute,
-      initialRoute: LanguageOptionSettings.routeName,
-    ),
-    const Navigator(
-      key: Key("settingsTorDesktopKey"),
-      onGenerateRoute: RouteGenerator.generateRoute,
-      initialRoute: TorSettings.routeName,
-    ), //tor
-    const Navigator(
-      key: Key("settingsNodesDesktopKey"),
-      onGenerateRoute: RouteGenerator.generateRoute,
-      initialRoute: NodesSettings.routeName,
-    ), //nodes
-    const Navigator(
-      key: Key("settingsSyncingPreferencesDesktopKey"),
-      onGenerateRoute: RouteGenerator.generateRoute,
-      initialRoute: SyncingPreferencesSettings.routeName,
-    ), //syncing prefs
-    if (AppConfig.hasFeature(AppFeature.themeSelection))
-      const Navigator(
-        key: Key("settingsAppearanceDesktopKey"),
-        onGenerateRoute: RouteGenerator.generateRoute,
-        initialRoute: AppearanceOptionSettings.routeName,
-      ), //appearance
-    const Navigator(
-      key: Key("settingsAdvancedDesktopKey"),
-      onGenerateRoute: RouteGenerator.generateRoute,
-      initialRoute: AdvancedSettings.routeName,
-    ), //advanced
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final List<Widget> contentViews = [
+      const Navigator(
+        key: Key("settingsBackupRestoreDesktopKey"),
+        onGenerateRoute: RouteGenerator.generateRoute,
+        initialRoute: BackupRestoreSettings.routeName,
+      ), //b+r
+      const Navigator(
+        key: Key("settingsSecurityDesktopKey"),
+        onGenerateRoute: RouteGenerator.generateRoute,
+        initialRoute: SecuritySettings.routeName,
+      ), //security
+      const Navigator(
+        key: Key("settingsCurrencyDesktopKey"),
+        onGenerateRoute: RouteGenerator.generateRoute,
+        initialRoute: CurrencySettings.routeName,
+      ), //currency
+      const Navigator(
+        key: Key("settingsLanguageDesktopKey"),
+        onGenerateRoute: RouteGenerator.generateRoute,
+        initialRoute: LanguageOptionSettings.routeName,
+      ),
+      const Navigator(
+        key: Key("settingsTorDesktopKey"),
+        onGenerateRoute: RouteGenerator.generateRoute,
+        initialRoute: TorSettings.routeName,
+      ), //tor
+      const Navigator(
+        key: Key("settingsNodesDesktopKey"),
+        onGenerateRoute: RouteGenerator.generateRoute,
+        initialRoute: NodesSettings.routeName,
+      ), //nodes
+      const Navigator(
+        key: Key("settingsSyncingPreferencesDesktopKey"),
+        onGenerateRoute: RouteGenerator.generateRoute,
+        initialRoute: SyncingPreferencesSettings.routeName,
+      ), //syncing prefs
+      if (AppConfig.hasFeature(AppFeature.themeSelection))
+        const Navigator(
+          key: Key("settingsAppearanceDesktopKey"),
+          onGenerateRoute: RouteGenerator.generateRoute,
+          initialRoute: AppearanceOptionSettings.routeName,
+        ), //appearance
+      const Navigator(
+        key: Key("settingsAdvancedDesktopKey"),
+        onGenerateRoute: RouteGenerator.generateRoute,
+        initialRoute: AdvancedSettings.routeName,
+      ), //advanced
+      if (Constants.enableExchange && AppConfig.hasFeature(.shopinBit))
+        const Navigator(
+          key: Key("settingsShopInBitDesktopKey"),
+          onGenerateRoute: RouteGenerator.generateRoute,
+          initialRoute: ShopInBitSettingsView.routeName,
+        ), //shopinbit
+    ];
     return DesktopScaffold(
       background: Theme.of(context).extension<StackColors>()!.background,
       appBar: const DesktopAppBar(
         isCompactHeight: true,
         leading: Row(
-          children: [
-            SizedBox(
-              width: 24,
-              height: 24,
-            ),
-            DesktopSettingsTitle(),
-          ],
+          children: [SizedBox(width: 24, height: 24), DesktopSettingsTitle()],
         ),
       ),
       body: Row(
@@ -110,14 +111,14 @@ class _DesktopSettingsViewState extends ConsumerState<DesktopSettingsView> {
             padding: EdgeInsets.all(15.0),
             child: Align(
               alignment: Alignment.topLeft,
-              child: SingleChildScrollView(
-                child: SettingsMenu(),
-              ),
+              child: SingleChildScrollView(child: SettingsMenu()),
             ),
           ),
           Expanded(
-            child: contentViews[
-                ref.watch(selectedSettingsMenuItemStateProvider.state).state],
+            child:
+                contentViews[ref
+                    .watch(selectedSettingsMenuItemStateProvider.state)
+                    .state],
           ),
         ],
       ),
@@ -130,9 +131,6 @@ class DesktopSettingsTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      "Settings",
-      style: STextStyles.desktopH3(context),
-    );
+    return Text("Settings", style: STextStyles.desktopH3(context));
   }
 }

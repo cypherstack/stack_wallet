@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -11,10 +12,13 @@ import '../../models/isar/models/blockchain_data/utxo.dart';
 import '../../models/isar/ordinal.dart';
 import '../../networking/http.dart';
 import '../../notifications/show_flush_bar.dart';
+import '../../pages/ordinals/widgets/dialogs.dart';
+import '../../pages/send_view/confirm_transaction_view.dart';
 import '../../pages/wallet_view/transaction_views/transaction_details_view.dart';
 import '../../providers/db/main_db_provider.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../services/tor_service.dart';
+import '../desktop_home_view.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
@@ -23,10 +27,14 @@ import '../../utilities/constants.dart';
 import '../../utilities/prefs.dart';
 import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_app_bar.dart';
+import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_scaffold.dart';
+import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/ordinal_image.dart';
 import '../../widgets/rounded_white_container.dart';
 
 class DesktopOrdinalDetailsView extends ConsumerStatefulWidget {
@@ -141,14 +149,7 @@ class _DesktopOrdinalDetailsViewState
                 borderRadius: BorderRadius.circular(
                   Constants.size.circularBorderRadius,
                 ),
-                child: Image.network(
-                  widget
-                      .ordinal
-                      .content, // Use the preview URL as the image source
-                  fit: BoxFit.cover,
-                  filterQuality:
-                      FilterQuality.none, // Set the filter mode to nearest
-                ),
+                child: OrdinalImage(url: widget.ordinal.content),
               ),
             ),
             const SizedBox(width: 16),
@@ -175,33 +176,140 @@ class _DesktopOrdinalDetailsViewState
                               ),
                             ),
                             const SizedBox(width: 16),
-                            // PrimaryButton(
-                            //   width: 150,
-                            //   label: "Send",
-                            //   icon: SvgPicture.asset(
-                            //     Assets.svg.send,
-                            //     width: 18,
-                            //     height: 18,
-                            //     color: Theme.of(context)
-                            //         .extension<StackColors>()!
-                            //         .buttonTextPrimary,
-                            //   ),
-                            //   buttonHeight: ButtonHeight.l,
-                            //   iconSpacing: 8,
-                            //   onPressed: () async {
-                            //     final response = await showDialog<String?>(
-                            //       context: context,
-                            //       builder: (_) =>
-                            //           const SendOrdinalUnfreezeDialog(),
-                            //     );
-                            //     if (response == "unfreeze") {
-                            //       // TODO: unfreeze and go to send ord screen
-                            //     }
-                            //   },
-                            // ),
-                            // const SizedBox(
-                            //   width: 16,
-                            // ),
+                            PrimaryButton(
+                              width: 150,
+                              label: "Send",
+                              icon: SvgPicture.asset(
+                                Assets.svg.send,
+                                width: 18,
+                                height: 18,
+                                color: Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.buttonTextPrimary,
+                              ),
+                              buttonHeight: ButtonHeight.l,
+                              iconSpacing: 8,
+                              onPressed: () async {
+                                final utxo = widget.ordinal.getUTXO(
+                                  ref.read(mainDBProvider),
+                                );
+                                if (utxo == null) {
+                                  unawaited(
+                                    showFloatingFlushBar(
+                                      type: FlushBarType.warning,
+                                      message: "Could not find ordinal UTXO",
+                                      context: context,
+                                    ),
+                                  );
+                                  return;
+                                }
+
+                                if (utxo.isBlocked) {
+                                  final unfreezeResponse =
+                                      await showDialog<String?>(
+                                        context: context,
+                                        builder: (_) =>
+                                            const SendOrdinalUnfreezeDialog(),
+                                      );
+                                  if (unfreezeResponse != "unfreeze") return;
+                                }
+
+                                if (!context.mounted) return;
+
+                                final address = await showDialog<String?>(
+                                  context: context,
+                                  builder: (_) => OrdinalRecipientAddressDialog(
+                                    inscriptionNumber:
+                                        widget.ordinal.inscriptionNumber,
+                                  ),
+                                );
+                                if (address == null || address.isEmpty) return;
+
+                                final wallet = ref
+                                    .read(pWallets)
+                                    .getWallet(widget.walletId);
+                                if (!wallet.cryptoCurrency.validateAddress(
+                                  address,
+                                )) {
+                                  if (context.mounted) {
+                                    unawaited(
+                                      showFloatingFlushBar(
+                                        type: FlushBarType.warning,
+                                        message: "Invalid address",
+                                        context: context,
+                                      ),
+                                    );
+                                  }
+                                  return;
+                                }
+
+                                if (!context.mounted) return;
+
+                                final OrdinalsInterface? ordinalsWallet =
+                                    wallet is OrdinalsInterface ? wallet : null;
+                                if (ordinalsWallet == null) {
+                                  unawaited(
+                                    showFloatingFlushBar(
+                                      type: FlushBarType.warning,
+                                      message:
+                                          "Wallet does not support ordinals",
+                                      context: context,
+                                    ),
+                                  );
+                                  return;
+                                }
+
+                                bool didError = false;
+                                final txData = await showLoading(
+                                  whileFuture: ordinalsWallet
+                                      .prepareOrdinalSend(
+                                        ordinalUtxo: utxo,
+                                        recipientAddress: address,
+                                      ),
+                                  context: context,
+                                  rootNavigator: true,
+                                  message: "Preparing transaction...",
+                                  onException: (e) {
+                                    didError = true;
+                                    String msg = e.toString();
+                                    while (msg.isNotEmpty &&
+                                        msg.startsWith("Exception:")) {
+                                      msg = msg.substring(10).trim();
+                                    }
+                                    if (context.mounted) {
+                                      showFloatingFlushBar(
+                                        type: FlushBarType.warning,
+                                        message: msg,
+                                        context: context,
+                                      );
+                                    }
+                                  },
+                                );
+
+                                if (didError ||
+                                    txData == null ||
+                                    !context.mounted) {
+                                  return;
+                                }
+
+                                await showDialog<void>(
+                                  context: context,
+                                  builder: (context) => DesktopDialog(
+                                    maxHeight:
+                                        MediaQuery.of(context).size.height - 64,
+                                    maxWidth: 580,
+                                    child: ConfirmTransactionView(
+                                      walletId: widget.walletId,
+                                      txData: txData,
+                                      routeOnSuccessName:
+                                          DesktopHomeView.routeName,
+                                      onSuccess: () {},
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                            const SizedBox(width: 16),
                             SecondaryButton(
                               width: 150,
                               label: "Download",

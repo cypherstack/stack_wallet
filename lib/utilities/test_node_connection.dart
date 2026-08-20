@@ -29,6 +29,31 @@ import 'test_mwcmqs_connection.dart';
 import 'test_stellar_node_connection.dart';
 import 'tor_plain_net_option_enum.dart';
 
+typedef TestNodeConnectionCallback =
+    Future<bool> Function({
+      required BuildContext context,
+      required NodeFormData nodeFormData,
+      required CryptoCurrency cryptoCurrency,
+      void Function(NodeFormData)? onSuccess,
+    });
+
+final testNodeConnectionProvider = Provider<TestNodeConnectionCallback>((ref) {
+  return ({
+    required BuildContext context,
+    required NodeFormData nodeFormData,
+    required CryptoCurrency cryptoCurrency,
+    void Function(NodeFormData)? onSuccess,
+  }) {
+    return testNodeConnection(
+      context: context,
+      nodeFormData: nodeFormData,
+      cryptoCurrency: cryptoCurrency,
+      read: ref.read,
+      onSuccess: onSuccess,
+    );
+  };
+});
+
 Future<bool> _xmrHelper(
   NodeFormData nodeFormData,
   BuildContext context,
@@ -93,12 +118,12 @@ Future<bool> testNodeConnection({
   required BuildContext context,
   required NodeFormData nodeFormData,
   required CryptoCurrency cryptoCurrency,
-  required WidgetRef ref,
+  required Reader read,
   void Function(NodeFormData)? onSuccess,
 }) async {
   final formData = nodeFormData;
 
-  if (ref.read(prefsChangeNotifierProvider).useTor) {
+  if (read(prefsChangeNotifierProvider).useTor) {
     if (formData.netOption! == TorPlainNetworkOption.clear) {
       Logging.instance.w(
         "This node is configured for non-TOR only but TOR is enabled",
@@ -147,8 +172,8 @@ Future<bool> testNodeConnection({
       try {
         final proxyInfo = !AppConfig.hasFeature(AppFeature.tor)
             ? null
-            : ref.read(prefsChangeNotifierProvider).useTor
-            ? ref.read(pTorService).getProxyInfo()
+            : read(prefsChangeNotifierProvider).useTor
+            ? read(pTorService).getProxyInfo()
             : null;
 
         final url = formData.host!;
@@ -200,8 +225,8 @@ Future<bool> testNodeConnection({
           host: formData.host!,
           port: formData.port!,
           useSSL: formData.useSSL!,
-          overridePrefs: ref.read(prefsChangeNotifierProvider),
-          overrideTorService: ref.read(pTorService),
+          overridePrefs: read(prefsChangeNotifierProvider),
+          overrideTorService: read(pTorService),
         );
       } catch (_) {
         testPassed = false;
@@ -236,8 +261,8 @@ Future<bool> testNodeConnection({
           body: jsonEncode({"action": "version"}),
           proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
               ? null
-              : ref.read(prefsChangeNotifierProvider).useTor
-              ? ref.read(pTorService).getProxyInfo()
+              : read(prefsChangeNotifierProvider).useTor
+              ? read(pTorService).getProxyInfo()
               : null,
         );
 
@@ -259,8 +284,8 @@ Future<bool> testNodeConnection({
           formData.host!,
           formData.port!,
           formData.useSSL ?? false,
-          ref.read(prefsChangeNotifierProvider),
-          ref.read(pTorService),
+          read(prefsChangeNotifierProvider),
+          read(pTorService),
         );
 
         final health = await rpcClient.getHealth();
@@ -275,7 +300,7 @@ Future<bool> testNodeConnection({
       try {
         final client = HttpClient();
         if (AppConfig.hasFeature(AppFeature.tor) &&
-            ref.read(prefsChangeNotifierProvider).useTor) {
+            read(prefsChangeNotifierProvider).useTor) {
           final proxyInfo = TorService.sharedInstance.getProxyInfo();
           final proxySettings = ProxySettings(proxyInfo.host, proxyInfo.port);
           SocksTCPClient.assignToHttpClient(client, [proxySettings]);

@@ -91,7 +91,7 @@ abstract class Util {
       final pretty = encoder.convert(json);
       result = pretty;
     } else {
-      result = dynamic.toString();
+      result = json.toString();
     }
 
     if (debugTitle != null) {

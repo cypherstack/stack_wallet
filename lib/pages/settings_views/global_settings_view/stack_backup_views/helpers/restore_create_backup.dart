@@ -11,8 +11,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
+import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:isar_community/isar.dart';
 import 'package:stack_wallet_backup/stack_wallet_backup.dart';
@@ -21,6 +21,7 @@ import 'package:uuid/uuid.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../../../../app_config.dart';
+import '../../../../../db/drift/shared_db/shared_database.dart';
 import '../../../../../db/hive/db.dart';
 import '../../../../../db/isar/main_db.dart';
 import '../../../../../models/exchange/change_now/exchange_transaction.dart';
@@ -34,7 +35,9 @@ import '../../../../../models/trade_wallet_lookup.dart';
 import '../../../../../models/wallet_restore_state.dart';
 import '../../../../../notifications/show_flush_bar.dart';
 import '../../../../../services/address_book_service.dart';
+import '../../../../../services/cakepay/cakepay_service.dart';
 import '../../../../../services/node_service.dart';
+import '../../../../../services/shopinbit/shopinbit_service.dart';
 import '../../../../../services/trade_notes_service.dart';
 import '../../../../../services/trade_sent_from_stack_service.dart';
 import '../../../../../services/trade_service.dart';
@@ -145,10 +148,11 @@ abstract class SWB {
   static bool _checkShouldCancel(
     PreRestoreState? revertToState,
     SecureStorageInterface secureStorageInterface,
+    ShopInBitService shopinbitService,
   ) {
     if (_shouldCancelRestore) {
       if (revertToState != null) {
-        _revert(revertToState, secureStorageInterface);
+        _revert(revertToState, secureStorageInterface, shopinbitService);
       } else {
         _cancelCompleter!.complete();
         _shouldCancelRestore = false;
@@ -235,6 +239,23 @@ abstract class SWB {
       } catch (e, s) {
         Logging.instance.e("", error: e, stackTrace: s);
       }
+
+      Logging.instance.i("SWB backing up cakepay orders");
+      final cakepayOrderIds = await CakePayService.instance.getOrderIds();
+      backupJson["cakepayOrderIds"] = cakepayOrderIds;
+
+      Logging.instance.i("SWB backing up shopin bit info");
+      final sharedDB = SharedDrift.get();
+      final shopinBitCustomerKeys =
+          await (sharedDB.select(sharedDB.shopInBitSettings)
+                ..orderBy([(t) => OrderingTerm.desc(t.lastUsedAt)]))
+              .map((row) => row.customerKey)
+              .get();
+
+      backupJson["shopinBit"] = {
+        if (shopinBitCustomerKeys.isNotEmpty)
+          "shopinBitCustomerKeys": shopinBitCustomerKeys,
+      };
 
       Logging.instance.d("SWB backing up prefs");
 
@@ -594,6 +615,7 @@ abstract class SWB {
     StackRestoringUIState? uiState,
     Map<String, String> oldToNewWalletIdMap,
     SecureStorageInterface secureStorageInterface,
+    ShopInBitService shopinbitService,
   ) async {
     final Map<String, dynamic> prefs =
         validJSON["prefs"] as Map<String, dynamic>;
@@ -608,6 +630,9 @@ abstract class SWB {
         validJSON["tradeNotes"] as Map<String, dynamic>?;
 
     uiState?.preferences = StackRestoringStatus.restoring;
+
+    Logging.instance.d("SWB restoring cakepay order ids and shop in bit info");
+    await _restoreCakepayAndShopinBitInfo(validJSON, shopinbitService);
 
     Logging.instance.d("SWB restoring prefs");
     await _restorePrefs(prefs);
@@ -673,6 +698,7 @@ abstract class SWB {
     String jsonBackup,
     StackRestoringUIState? uiState,
     SecureStorageInterface secureStorageInterface,
+    ShopInBitService shopinbitService,
   ) async {
     if (!Platform.isLinux) await WakelockPlus.enable();
 
@@ -712,7 +738,7 @@ abstract class SWB {
 
     // basic cancel check here
     // no reverting required yet as nothing has been written to store
-    if (_checkShouldCancel(null, secureStorageInterface)) {
+    if (_checkShouldCancel(null, secureStorageInterface, shopinbitService)) {
       return false;
     }
 
@@ -721,10 +747,15 @@ abstract class SWB {
       uiState,
       oldToNewWalletIdMap,
       secureStorageInterface,
+      shopinbitService,
     );
 
     // check if cancel was requested and restore previous state
-    if (_checkShouldCancel(preRestoreState, secureStorageInterface)) {
+    if (_checkShouldCancel(
+      preRestoreState,
+      secureStorageInterface,
+      shopinbitService,
+    )) {
       return false;
     }
 
@@ -741,7 +772,11 @@ abstract class SWB {
 
     for (final walletbackup in wallets) {
       // check if cancel was requested and restore previous state
-      if (_checkShouldCancel(preRestoreState, secureStorageInterface)) {
+      if (_checkShouldCancel(
+        preRestoreState,
+        secureStorageInterface,
+        shopinbitService,
+      )) {
         return false;
       }
 
@@ -797,13 +832,21 @@ abstract class SWB {
       // final failovers = nodeService.failoverNodesFor(coin: coin);
 
       // check if cancel was requested and restore previous state
-      if (_checkShouldCancel(preRestoreState, secureStorageInterface)) {
+      if (_checkShouldCancel(
+        preRestoreState,
+        secureStorageInterface,
+        shopinbitService,
+      )) {
         return false;
       }
 
       managers.add(Tuple2(walletbackup, info));
       // check if cancel was requested and restore previous state
-      if (_checkShouldCancel(preRestoreState, secureStorageInterface)) {
+      if (_checkShouldCancel(
+        preRestoreState,
+        secureStorageInterface,
+        shopinbitService,
+      )) {
         return false;
       }
 
@@ -816,7 +859,11 @@ abstract class SWB {
     }
 
     // check if cancel was requested and restore previous state
-    if (_checkShouldCancel(preRestoreState, secureStorageInterface)) {
+    if (_checkShouldCancel(
+      preRestoreState,
+      secureStorageInterface,
+      shopinbitService,
+    )) {
       return false;
     }
 
@@ -827,7 +874,11 @@ abstract class SWB {
     // start restoring wallets
     for (final tuple in managers) {
       // check if cancel was requested and restore previous state
-      if (_checkShouldCancel(preRestoreState, secureStorageInterface)) {
+      if (_checkShouldCancel(
+        preRestoreState,
+        secureStorageInterface,
+        shopinbitService,
+      )) {
         return false;
       }
       final bools = await _asyncRestore(
@@ -841,13 +892,21 @@ abstract class SWB {
     }
 
     // check if cancel was requested and restore previous state
-    if (_checkShouldCancel(preRestoreState, secureStorageInterface)) {
+    if (_checkShouldCancel(
+      preRestoreState,
+      secureStorageInterface,
+      shopinbitService,
+    )) {
       return false;
     }
 
     for (final Future<bool> status in restoreStatuses) {
       // check if cancel was requested and restore previous state
-      if (_checkShouldCancel(preRestoreState, secureStorageInterface)) {
+      if (_checkShouldCancel(
+        preRestoreState,
+        secureStorageInterface,
+        shopinbitService,
+      )) {
         return false;
       }
       await status;
@@ -855,7 +914,11 @@ abstract class SWB {
 
     if (!Platform.isLinux) await WakelockPlus.disable();
     // check if cancel was requested and restore previous state
-    if (_checkShouldCancel(preRestoreState, secureStorageInterface)) {
+    if (_checkShouldCancel(
+      preRestoreState,
+      secureStorageInterface,
+      shopinbitService,
+    )) {
       return false;
     }
 
@@ -873,6 +936,7 @@ abstract class SWB {
   static Future<void> _revert(
     PreRestoreState revertToState,
     SecureStorageInterface secureStorageInterface,
+    ShopInBitService shopinbitService,
   ) async {
     final Map<String, dynamic> prefs =
         revertToState.validJSON["prefs"] as Map<String, dynamic>;
@@ -885,6 +949,12 @@ abstract class SWB {
         revertToState.validJSON["tradeTxidLookupData"] as List?;
     final Map<String, dynamic>? tradeNotes =
         revertToState.validJSON["tradeNotes"] as Map<String, dynamic>?;
+
+    // cakepay and shopinbit
+    await _restoreCakepayAndShopinBitInfo(
+      revertToState.validJSON,
+      shopinbitService,
+    );
 
     // prefs
     await _restorePrefs(prefs);
@@ -1083,6 +1153,28 @@ abstract class SWB {
     _cancelCompleter!.complete();
     _shouldCancelRestore = false;
     Logging.instance.d("Revert SWB complete");
+  }
+
+  static Future<void> _restoreCakepayAndShopinBitInfo(
+    Map<String, dynamic> backupJson,
+    ShopInBitService shopinbitService,
+  ) async {
+    final cakepayOrderIds = (backupJson["cakepayOrderIds"] as List? ?? [])
+        .cast<String>();
+    for (final orderId in cakepayOrderIds) {
+      await CakePayService.instance.addOrderId(orderId);
+    }
+
+    final json = backupJson["shopinBit"] as Map? ?? {};
+
+    if (json.isEmpty) return;
+
+    final shopinBitCustomerKeys = json["shopinBitCustomerKeys"] as List?;
+    if (shopinBitCustomerKeys != null && shopinBitCustomerKeys.isNotEmpty) {
+      for (final key in shopinBitCustomerKeys.cast<String>()) {
+        await shopinbitService.recoverCustomerKey(key);
+      }
+    }
   }
 
   static Future<void> _restorePrefs(Map<String, dynamic> prefs) async {

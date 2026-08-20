@@ -5,8 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stackwallet/exceptions/exchange/exchange_exception.dart';
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction.dart';
-import 'package:stackwallet/models/exchange/change_now/exchange_transaction_status.dart';
+import 'package:stackwallet/models/exchange/change_now/cn_exchange_transaction.dart';
+import 'package:stackwallet/models/exchange/change_now/cn_exchange_transaction_status.dart';
 import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
 import 'package:stackwallet/networking/http.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_api.dart';
@@ -16,68 +16,119 @@ import 'change_now_test.mocks.dart';
 
 @GenerateMocks([HTTP])
 void main() {
-  group("getAvailableCurrencies", () {
-    test("getAvailableCurrencies succeeds without options", () async {
-      final client = MockHTTP();
+  const testApiKey = 'testAPIKEY';
 
+  Uri buildV2Uri(String path, [Map<String, String>? params]) {
+    return Uri.https('api.changenow.io', '/v2$path', params);
+  }
+
+  Map<String, String> changeNowHeaders([String apiKey = '']) {
+    return {'Content-Type': 'application/json', 'x-changenow-api-key': apiKey};
+  }
+
+  String buildCreateExchangeBody({
+    required String fromCurrency,
+    required String fromNetwork,
+    required String toCurrency,
+    required String toNetwork,
+    required String fromAmount,
+    required String toAmount,
+    required String flow,
+    required String type,
+    required String address,
+    String extraId = '',
+    String refundAddress = '',
+    String refundExtraId = '',
+    String userId = '',
+    String payload = '',
+    String contactEmail = '',
+    String rateId = '',
+  }) {
+    return jsonEncode({
+      'fromCurrency': fromCurrency,
+      'fromNetwork': fromNetwork,
+      'toCurrency': toCurrency,
+      'toNetwork': toNetwork,
+      'fromAmount': fromAmount,
+      'toAmount': toAmount,
+      'flow': flow,
+      'type': type,
+      'address': address,
+      'extraId': extraId,
+      'refundAddress': refundAddress,
+      'refundExtraId': refundExtraId,
+      'userId': userId,
+      'payload': payload,
+      'contactEmail': contactEmail,
+      'rateId': rateId,
+    });
+  }
+
+  group('getAvailableCurrencies', () {
+    test('getAvailableCurrencies succeeds without options', () async {
+      final client = MockHTTP();
       final instance = ChangeNowAPI(http: client);
 
       when(
         client.get(
-          url: Uri.parse("https://api.ChangeNow.io/v1/currencies"),
-          headers: {'Content-Type': 'application/json'},
+          url: buildV2Uri('/exchange/currencies', {'flow': 'standard'}),
+          headers: changeNowHeaders(testApiKey),
           proxyInfo: null,
         ),
       ).thenAnswer(
-        (realInvocation) async =>
+        (_) async =>
             Response(utf8.encode(jsonEncode(availableCurrenciesJSON)), 200),
       );
 
-      final result = await instance.getAvailableCurrencies();
+      final result = await instance.getAvailableCurrencies(apiKey: testApiKey);
 
       expect(result.exception, null);
       expect(result.value == null, false);
       expect(result.value!.length, 538);
     });
 
-    test("getAvailableCurrencies succeeds with active option", () async {
+    test('getAvailableCurrencies succeeds with active option', () async {
       final client = MockHTTP();
       final instance = ChangeNowAPI(http: client);
 
       when(
         client.get(
-          url: Uri.parse("https://api.ChangeNow.io/v1/currencies?active=true"),
-          headers: {'Content-Type': 'application/json'},
+          url: buildV2Uri('/exchange/currencies', {
+            'flow': 'standard',
+            'active': 'true',
+          }),
+          headers: changeNowHeaders(testApiKey),
           proxyInfo: null,
         ),
       ).thenAnswer(
-        (realInvocation) async => Response(
+        (_) async => Response(
           utf8.encode(jsonEncode(availableCurrenciesJSONActive)),
           200,
         ),
       );
 
-      final result = await instance.getAvailableCurrencies(active: true);
+      final result = await instance.getAvailableCurrencies(
+        active: true,
+        apiKey: testApiKey,
+      );
 
       expect(result.exception, null);
       expect(result.value == null, false);
       expect(result.value!.length, 531);
     });
 
-    test("getAvailableCurrencies succeeds with fixedRate option", () async {
+    test('getAvailableCurrencies succeeds with fixedRate option', () async {
       final client = MockHTTP();
       final instance = ChangeNowAPI(http: client);
 
       when(
         client.get(
-          url: Uri.parse(
-            "https://api.ChangeNow.io/v1/currencies?fixedRate=true",
-          ),
-          headers: {'Content-Type': 'application/json'},
+          url: buildV2Uri('/exchange/currencies', {'flow': 'fixed-rate'}),
+          headers: changeNowHeaders(testApiKey),
           proxyInfo: null,
         ),
       ).thenAnswer(
-        (realInvocation) async => Response(
+        (_) async => Response(
           utf8.encode(jsonEncode(availableCurrenciesJSONFixedRate)),
           200,
         ),
@@ -85,6 +136,7 @@ void main() {
 
       final result = await instance.getAvailableCurrencies(
         flow: CNFlow.fixedRate,
+        apiKey: testApiKey,
       );
 
       expect(result.exception, null);
@@ -93,21 +145,22 @@ void main() {
     });
 
     test(
-      "getAvailableCurrencies succeeds with fixedRate and active options",
+      'getAvailableCurrencies succeeds with fixedRate and active options',
       () async {
         final client = MockHTTP();
         final instance = ChangeNowAPI(http: client);
 
         when(
           client.get(
-            url: Uri.parse(
-              "https://api.ChangeNow.io/v1/currencies?fixedRate=true&active=true",
-            ),
-            headers: {'Content-Type': 'application/json'},
+            url: buildV2Uri('/exchange/currencies', {
+              'flow': 'fixed-rate',
+              'active': 'true',
+            }),
+            headers: changeNowHeaders(testApiKey),
             proxyInfo: null,
           ),
         ).thenAnswer(
-          (realInvocation) async => Response(
+          (_) async => Response(
             utf8.encode(jsonEncode(availableCurrenciesJSONActiveFixedRate)),
             200,
           ),
@@ -116,6 +169,7 @@ void main() {
         final result = await instance.getAvailableCurrencies(
           active: true,
           flow: CNFlow.fixedRate,
+          apiKey: testApiKey,
         );
 
         expect(result.exception, null);
@@ -125,25 +179,27 @@ void main() {
     );
 
     test(
-      "getAvailableCurrencies fails with ChangeNowExceptionType.serializeResponseError",
+      'getAvailableCurrencies fails with ChangeNowExceptionType.serializeResponseError',
       () async {
         final client = MockHTTP();
         final instance = ChangeNowAPI(http: client);
 
         when(
           client.get(
-            url: Uri.parse("https://api.ChangeNow.io/v1/currencies"),
-            headers: {'Content-Type': 'application/json'},
+            url: buildV2Uri('/exchange/currencies', {'flow': 'standard'}),
+            headers: changeNowHeaders(testApiKey),
             proxyInfo: null,
           ),
         ).thenAnswer(
-          (realInvocation) async => Response(
+          (_) async => Response(
             utf8.encode('{"some unexpected": "but valid json data"}'),
             200,
           ),
         );
 
-        final result = await instance.getAvailableCurrencies();
+        final result = await instance.getAvailableCurrencies(
+          apiKey: testApiKey,
+        );
 
         expect(
           result.exception!.type,
@@ -153,50 +209,48 @@ void main() {
       },
     );
 
-    test("getAvailableCurrencies fails for any other reason", () async {
+    test('getAvailableCurrencies fails for any other reason', () async {
       final client = MockHTTP();
       final instance = ChangeNowAPI(http: client);
 
       when(
         client.get(
-          url: Uri.parse("https://api.ChangeNow.io/v1/currencies"),
-          headers: {'Content-Type': 'application/json'},
+          url: buildV2Uri('/exchange/currencies', {'flow': 'standard'}),
+          headers: changeNowHeaders(testApiKey),
           proxyInfo: null,
         ),
-      ).thenAnswer((realInvocation) async => Response(utf8.encode(""), 400));
+      ).thenAnswer((_) async => Response(utf8.encode(''), 400));
 
-      final result = await instance.getAvailableCurrencies();
+      final result = await instance.getAvailableCurrencies(apiKey: testApiKey);
 
-      expect(
-        result.exception!.type,
-        ExchangeExceptionType.serializeResponseError,
-      );
+      expect(result.exception!.type, ExchangeExceptionType.generic);
       expect(result.value == null, true);
     });
   });
 
-  group("getMinimalExchangeAmount", () {
-    test("getMinimalExchangeAmount succeeds", () async {
+  group('getMinimalExchangeAmount', () {
+    test('getMinimalExchangeAmount succeeds', () async {
       final client = MockHTTP();
       final instance = ChangeNowAPI(http: client);
 
       when(
         client.get(
-          url: Uri.parse(
-            "https://api.ChangeNow.io/v1/min-amount/xmr_btc?api_key=testAPIKEY",
-          ),
-          headers: {'Content-Type': 'application/json'},
+          url: buildV2Uri('/exchange/min-amount', {
+            'fromCurrency': 'xmr',
+            'toCurrency': 'btc',
+            'flow': 'standard',
+          }),
+          headers: changeNowHeaders('testAPIKEY'),
           proxyInfo: null,
         ),
       ).thenAnswer(
-        (realInvocation) async =>
-            Response(utf8.encode('{"minAmount": 42}'), 200),
+        (_) async => Response(utf8.encode('{"minAmount": 42}'), 200),
       );
 
       final result = await instance.getMinimalExchangeAmount(
-        fromCurrency: "xmr",
-        toCurrency: "btc",
-        apiKey: "testAPIKEY",
+        fromCurrency: 'xmr',
+        toCurrency: 'btc',
+        apiKey: 'testAPIKEY',
       );
 
       expect(result.exception, null);
@@ -205,27 +259,27 @@ void main() {
     });
 
     test(
-      "getMinimalExchangeAmount fails with ChangeNowExceptionType.serializeResponseError",
+      'getMinimalExchangeAmount fails with ChangeNowExceptionType.serializeResponseError',
       () async {
         final client = MockHTTP();
         final instance = ChangeNowAPI(http: client);
 
         when(
           client.get(
-            url: Uri.parse(
-              "https://api.ChangeNow.io/v1/min-amount/xmr_btc?api_key=testAPIKEY",
-            ),
-            headers: {'Content-Type': 'application/json'},
+            url: buildV2Uri('/exchange/min-amount', {
+              'fromCurrency': 'xmr',
+              'toCurrency': 'btc',
+              'flow': 'standard',
+            }),
+            headers: changeNowHeaders('testAPIKEY'),
             proxyInfo: null,
           ),
-        ).thenAnswer(
-          (realInvocation) async => Response(utf8.encode('{"error": 42}'), 200),
-        );
+        ).thenAnswer((_) async => Response(utf8.encode('{"error": 42}'), 200));
 
         final result = await instance.getMinimalExchangeAmount(
-          fromCurrency: "xmr",
-          toCurrency: "btc",
-          apiKey: "testAPIKEY",
+          fromCurrency: 'xmr',
+          toCurrency: 'btc',
+          apiKey: 'testAPIKEY',
         );
 
         expect(
@@ -236,61 +290,78 @@ void main() {
       },
     );
 
-    test("getMinimalExchangeAmount fails for any other reason", () async {
+    test('getMinimalExchangeAmount fails for any other reason', () async {
       final client = MockHTTP();
       final instance = ChangeNowAPI(http: client);
 
       when(
         client.get(
-          url: Uri.parse(
-            "https://api.ChangeNow.io/v1/min-amount/xmr_btc?api_key=testAPIKEY",
-          ),
-          headers: {'Content-Type': 'application/json'},
+          url: buildV2Uri('/exchange/min-amount', {
+            'fromCurrency': 'xmr',
+            'toCurrency': 'btc',
+            'flow': 'standard',
+          }),
+          headers: changeNowHeaders('testAPIKEY'),
           proxyInfo: null,
         ),
-      ).thenAnswer((realInvocation) async => Response(utf8.encode(''), 400));
+      ).thenAnswer((_) async => Response(utf8.encode(''), 400));
 
       final result = await instance.getMinimalExchangeAmount(
-        fromCurrency: "xmr",
-        toCurrency: "btc",
-        apiKey: "testAPIKEY",
+        fromCurrency: 'xmr',
+        toCurrency: 'btc',
+        apiKey: 'testAPIKEY',
       );
 
-      expect(
-        result.exception!.type,
-        ExchangeExceptionType.serializeResponseError,
-      );
+      expect(result.exception!.type, ExchangeExceptionType.generic);
       expect(result.value == null, true);
     });
   });
 
-  group("getEstimatedExchangeAmount", () {
-    test("getEstimatedExchangeAmount succeeds", () async {
+  group('getEstimatedExchangeAmount', () {
+    test('getEstimatedExchangeAmount succeeds', () async {
       final client = MockHTTP();
       final instance = ChangeNowAPI(http: client);
 
       when(
         client.get(
-          url: Uri.parse(
-            "https://api.ChangeNow.io/v1/exchange-amount/42/xmr_btc?api_key=testAPIKEY",
-          ),
-          headers: {'Content-Type': 'application/json'},
+          url: buildV2Uri('/exchange/estimated-amount', {
+            'fromCurrency': 'xmr',
+            'toCurrency': 'btc',
+            'fromAmount': '42',
+            'flow': 'standard',
+            'type': 'direct',
+          }),
+          headers: changeNowHeaders('testAPIKEY'),
           proxyInfo: null,
         ),
       ).thenAnswer(
-        (realInvocation) async => Response(
+        (_) async => Response(
           utf8.encode(
-            '{"estimatedAmount": 58.4142873, "transactionSpeedForecast": "10-60", "warningMessage": null}',
+            jsonEncode({
+              'fromCurrency': 'xmr',
+              'fromNetwork': 'xmr',
+              'toCurrency': 'btc',
+              'toNetwork': 'btc',
+              'flow': 'standard',
+              'type': 'direct',
+              'validUntil': '2019-09-09T14:01:04.921Z',
+              'transactionSpeedForecast': '10-60',
+              'warningMessage': 'Rates may shift while the order is pending.',
+              'depositFee': '0',
+              'withdrawalFee': '0.0001',
+              'fromAmount': '42',
+              'toAmount': '58.4142873',
+            }),
           ),
           200,
         ),
       );
 
       final result = await instance.getEstimatedExchangeAmount(
-        fromCurrency: "xmr",
-        toCurrency: "btc",
+        fromCurrency: 'xmr',
+        toCurrency: 'btc',
         fromAmount: Decimal.fromInt(42),
-        apiKey: "testAPIKEY",
+        apiKey: 'testAPIKEY',
       );
 
       expect(result.exception, null);
@@ -299,28 +370,30 @@ void main() {
     });
 
     test(
-      "getEstimatedExchangeAmount fails with ChangeNowExceptionType.serializeResponseError",
+      'getEstimatedExchangeAmount fails with ChangeNowExceptionType.serializeResponseError',
       () async {
         final client = MockHTTP();
         final instance = ChangeNowAPI(http: client);
 
         when(
           client.get(
-            url: Uri.parse(
-              "https://api.ChangeNow.io/v1/exchange-amount/42/xmr_btc?api_key=testAPIKEY",
-            ),
-            headers: {'Content-Type': 'application/json'},
+            url: buildV2Uri('/exchange/estimated-amount', {
+              'fromCurrency': 'xmr',
+              'toCurrency': 'btc',
+              'fromAmount': '42',
+              'flow': 'standard',
+              'type': 'direct',
+            }),
+            headers: changeNowHeaders('testAPIKEY'),
             proxyInfo: null,
           ),
-        ).thenAnswer(
-          (realInvocation) async => Response(utf8.encode('{"error": 42}'), 200),
-        );
+        ).thenAnswer((_) async => Response(utf8.encode('{"error": 42}'), 200));
 
         final result = await instance.getEstimatedExchangeAmount(
-          fromCurrency: "xmr",
-          toCurrency: "btc",
+          fromCurrency: 'xmr',
+          toCurrency: 'btc',
           fromAmount: Decimal.fromInt(42),
-          apiKey: "testAPIKEY",
+          apiKey: 'testAPIKEY',
         );
 
         expect(
@@ -331,25 +404,29 @@ void main() {
       },
     );
 
-    test("getEstimatedExchangeAmount fails for any other reason", () async {
+    test('getEstimatedExchangeAmount fails for any other reason', () async {
       final client = MockHTTP();
       final instance = ChangeNowAPI(http: client);
 
       when(
         client.get(
-          url: Uri.parse(
-            "https://api.ChangeNow.io/v1/exchange-amount/42/xmr_btc?api_key=testAPIKEY",
-          ),
-          headers: {'Content-Type': 'application/json'},
+          url: buildV2Uri('/exchange/estimated-amount', {
+            'fromCurrency': 'xmr',
+            'toCurrency': 'btc',
+            'fromAmount': '42',
+            'flow': 'standard',
+            'type': 'direct',
+          }),
+          headers: changeNowHeaders('testAPIKEY'),
           proxyInfo: null,
         ),
-      ).thenAnswer((realInvocation) async => Response(utf8.encode(''), 400));
+      ).thenAnswer((_) async => Response(utf8.encode(''), 400));
 
       final result = await instance.getEstimatedExchangeAmount(
-        fromCurrency: "xmr",
-        toCurrency: "btc",
+        fromCurrency: 'xmr',
+        toCurrency: 'btc',
         fromAmount: Decimal.fromInt(42),
-        apiKey: "testAPIKEY",
+        apiKey: 'testAPIKEY',
       );
 
       expect(result.exception!.type, ExchangeExceptionType.generic);
@@ -357,113 +434,46 @@ void main() {
     });
   });
 
-  // group("getEstimatedFixedRateExchangeAmount", () {
-  //   test("getEstimatedFixedRateExchangeAmount succeeds", () async {
-  //     final client = MockHTTP();
-  //     ChangeNow.instance.client = client;
-  //
-  //     when(client.get(url:
-  //       Uri.parse(
-  //           "https://api.ChangeNow.io/v1/exchange-amount/fixed-rate/10/xmr_btc?api_key=testAPIKEY&useRateId=true"),
-  //       headers: {'Content-Type': 'application/json'},
-  //       proxyInfo: null,
-  //     )).thenAnswer((realInvocation) async =>
-  //         Response(utf8.encode(jsonEncode(estFixedRateExchangeAmountJSON )), 200));
-  //
-  //     final result =
-  //         await ChangeNow.instance.getEstimatedFixedRateExchangeAmount(
-  //       fromCurrency: "xmr",
-  //       toCurrency: "btc",
-  //       fromAmount: Decimal.fromInt(10),
-  //       apiKey: "testAPIKEY",
-  //     );
-  //
-  //     expect(result.exception, null);
-  //     expect(result.value == null, false);
-  //     expect(result.value.toString(),
-  //         'EstimatedExchangeAmount: {estimatedAmount: 0.07271053, transactionSpeedForecast: 10-60, warningMessage: null, rateId: 1t2W5KBPqhycSJVYpaNZzYWLfMr0kSFe, networkFee: 0.00002408}');
-  //   });
-  //
-  //   test(
-  //       "getEstimatedFixedRateExchangeAmount fails with ChangeNowExceptionType.serializeResponseError",
-  //       () async {
-  //     final client = MockHTTP();
-  //     ChangeNow.instance.client = client;
-  //
-  //     when(client.get(url:
-  //       Uri.parse(
-  //           "https://api.ChangeNow.io/v1/exchange-amount/fixed-rate/10/xmr_btc?api_key=testAPIKEY&useRateId=true"),
-  //       headers: {'Content-Type': 'application/json'},
-  //       proxyInfo: null,
-  //     )).thenAnswer((realInvocation) async => Response('{"error": 42}', 200));
-  //
-  //     final result =
-  //         await ChangeNow.instance.getEstimatedFixedRateExchangeAmount(
-  //       fromCurrency: "xmr",
-  //       toCurrency: "btc",
-  //       fromAmount: Decimal.fromInt(10),
-  //       apiKey: "testAPIKEY",
-  //     );
-  //
-  //     expect(result.exception!.type,
-  //         ChangeNowExceptionType.serializeResponseError);
-  //     expect(result.value == null, true);
-  //   });
-  //
-  //   test("getEstimatedFixedRateExchangeAmount fails for any other reason",
-  //       () async {
-  //     final client = MockHTTP();
-  //     ChangeNow.instance.client = client;
-  //
-  //     when(client.get(url:
-  //       Uri.parse(
-  //           "https://api.ChangeNow.io/v1/exchange-amount/fixed-rate/10/xmr_btc?api_key=testAPIKEY&useRateId=true"),
-  //       headers: {'Content-Type': 'application/json'},
-  //       proxyInfo: null,
-  //     )).thenAnswer((realInvocation) async => Response('', 400));
-  //
-  //     final result =
-  //         await ChangeNow.instance.getEstimatedFixedRateExchangeAmount(
-  //       fromCurrency: "xmr",
-  //       toCurrency: "btc",
-  //       fromAmount: Decimal.fromInt(10),
-  //       apiKey: "testAPIKEY",
-  //     );
-  //
-  //     expect(result.exception!.type, ChangeNowExceptionType.generic);
-  //     expect(result.value == null, true);
-  //   });
-  // });
-
-  group("createExchangeTransaction", () {
-    test("createExchangeTransaction succeeds", () async {
+  group('createExchangeTransaction standard flow', () {
+    test('createExchangeTransaction succeeds', () async {
       final client = MockHTTP();
       final instance = ChangeNowAPI(http: client);
 
       when(
         client.post(
-          url: Uri.parse("https://api.ChangeNow.io/v1/transactions/testAPIKEY"),
-          headers: {'Content-Type': 'application/json'},
+          url: buildV2Uri('/exchange'),
+          headers: changeNowHeaders('testAPIKEY'),
           proxyInfo: null,
-          body:
-              '{"from":"xmr","to":"btc","address":"bc1qu58svs9983e2vuyqh7gq7ratf8k5qehz5k0cn5","amount":"0.3","flow":"standard","extraId":"","userId":"","contactEmail":"","refundAddress":"888tNkZrPN6JsEgekjMnABU4TBzc2Dt29EPAvkRxbANsAnjyPbb3iQ1YBRk1UXcdRsiKc9dhwMVgN5S9cQUiyoogDavup3H","refundExtraId":""}',
+          body: buildCreateExchangeBody(
+            fromCurrency: 'xmr',
+            fromNetwork: 'xmr',
+            toCurrency: 'btc',
+            toNetwork: '',
+            fromAmount: '0.3',
+            toAmount: '',
+            flow: 'standard',
+            type: 'direct',
+            address: 'bc1qu58svs9983e2vuyqh7gq7ratf8k5qehz5k0cn5',
+            refundAddress:
+                '888tNkZrPN6JsEgekjMnABU4TBzc2Dt29EPAvkRxbANsAnjyPbb3iQ1YBRk1UXcdRsiKc9dhwMVgN5S9cQUiyoogDavup3H',
+          ),
           encoding: null,
         ),
       ).thenAnswer(
-        (realInvocation) async => Response(
+        (_) async => Response(
           utf8.encode(jsonEncode(createStandardTransactionResponse)),
           200,
         ),
       );
 
       final result = await instance.createExchangeTransaction(
-        fromCurrency: "xmr",
-        toCurrency: "btc",
-        address: "bc1qu58svs9983e2vuyqh7gq7ratf8k5qehz5k0cn5",
-        fromAmount: Decimal.parse("0.3"),
+        fromCurrency: 'xmr',
+        toCurrency: 'btc',
+        address: 'bc1qu58svs9983e2vuyqh7gq7ratf8k5qehz5k0cn5',
+        fromAmount: Decimal.parse('0.3'),
         refundAddress:
-            "888tNkZrPN6JsEgekjMnABU4TBzc2Dt29EPAvkRxbANsAnjyPbb3iQ1YBRk1UXcdRsiKc9dhwMVgN5S9cQUiyoogDavup3H",
-        apiKey: "testAPIKEY",
+            '888tNkZrPN6JsEgekjMnABU4TBzc2Dt29EPAvkRxbANsAnjyPbb3iQ1YBRk1UXcdRsiKc9dhwMVgN5S9cQUiyoogDavup3H',
+        apiKey: 'testAPIKEY',
         fromNetwork: 'xmr',
         toNetwork: '',
         rateId: '',
@@ -471,38 +481,45 @@ void main() {
 
       expect(result.exception, null);
       expect(result.value == null, false);
-      expect(result.value, isA<ExchangeTransaction>());
+      expect(result.value, isA<CNExchangeTransaction>());
     });
 
     test(
-      "createExchangeTransaction fails with ChangeNowExceptionType.serializeResponseError",
+      'createExchangeTransaction fails with ChangeNowExceptionType.serializeResponseError',
       () async {
         final client = MockHTTP();
         final instance = ChangeNowAPI(http: client);
 
         when(
           client.post(
-            url: Uri.parse(
-              "https://api.ChangeNow.io/v1/transactions/testAPIKEY",
-            ),
-            headers: {'Content-Type': 'application/json'},
+            url: buildV2Uri('/exchange'),
+            headers: changeNowHeaders('testAPIKEY'),
             proxyInfo: null,
-            body:
-                '{"from":"xmr","to":"btc","address":"bc1qu58svs9983e2vuyqh7gq7ratf8k5qehz5k0cn5","amount":"0.3","flow":"standard","extraId":"","userId":"","contactEmail":"","refundAddress":"888tNkZrPN6JsEgekjMnABU4TBzc2Dt29EPAvkRxbANsAnjyPbb3iQ1YBRk1UXcdRsiKc9dhwMVgN5S9cQUiyoogDavup3H","refundExtraId":""}',
+            body: buildCreateExchangeBody(
+              fromCurrency: 'xmr',
+              fromNetwork: 'xmr',
+              toCurrency: 'btc',
+              toNetwork: '',
+              fromAmount: '0.3',
+              toAmount: '',
+              flow: 'standard',
+              type: 'direct',
+              address: 'bc1qu58svs9983e2vuyqh7gq7ratf8k5qehz5k0cn5',
+              refundAddress:
+                  '888tNkZrPN6JsEgekjMnABU4TBzc2Dt29EPAvkRxbANsAnjyPbb3iQ1YBRk1UXcdRsiKc9dhwMVgN5S9cQUiyoogDavup3H',
+            ),
             encoding: null,
           ),
-        ).thenAnswer(
-          (realInvocation) async => Response(utf8.encode('{"error": 42}'), 200),
-        );
+        ).thenAnswer((_) async => Response(utf8.encode('{"error": 42}'), 200));
 
         final result = await instance.createExchangeTransaction(
-          fromCurrency: "xmr",
-          toCurrency: "btc",
-          address: "bc1qu58svs9983e2vuyqh7gq7ratf8k5qehz5k0cn5",
-          fromAmount: Decimal.parse("0.3"),
+          fromCurrency: 'xmr',
+          toCurrency: 'btc',
+          address: 'bc1qu58svs9983e2vuyqh7gq7ratf8k5qehz5k0cn5',
+          fromAmount: Decimal.parse('0.3'),
           refundAddress:
-              "888tNkZrPN6JsEgekjMnABU4TBzc2Dt29EPAvkRxbANsAnjyPbb3iQ1YBRk1UXcdRsiKc9dhwMVgN5S9cQUiyoogDavup3H",
-          apiKey: "testAPIKEY",
+              '888tNkZrPN6JsEgekjMnABU4TBzc2Dt29EPAvkRxbANsAnjyPbb3iQ1YBRk1UXcdRsiKc9dhwMVgN5S9cQUiyoogDavup3H',
+          apiKey: 'testAPIKEY',
           fromNetwork: 'xmr',
           toNetwork: '',
           rateId: '',
@@ -516,29 +533,40 @@ void main() {
       },
     );
 
-    test("createExchangeTransaction fails for any other reason", () async {
+    test('createExchangeTransaction fails for any other reason', () async {
       final client = MockHTTP();
       final instance = ChangeNowAPI(http: client);
 
       when(
         client.post(
-          url: Uri.parse("https://api.ChangeNow.io/v1/transactions/testAPIKEY"),
-          headers: {'Content-Type': 'application/json'},
+          url: buildV2Uri('/exchange'),
+          headers: changeNowHeaders('testAPIKEY'),
           proxyInfo: null,
-          body:
-              '{"from":"xmr","to":"btc","address":"bc1qu58svs9983e2vuyqh7gq7ratf8k5qehz5k0cn5","amount":"0.3","flow":"standard","extraId":"","userId":"","contactEmail":"","refundAddress":"888tNkZrPN6JsEgekjMnABU4TBzc2Dt29EPAvkRxbANsAnjyPbb3iQ1YBRk1UXcdRsiKc9dhwMVgN5S9cQUiyoogDavup3H","refundExtraId":""}',
+          body: buildCreateExchangeBody(
+            fromCurrency: 'xmr',
+            fromNetwork: 'xmr',
+            toCurrency: 'btc',
+            toNetwork: '',
+            fromAmount: '0.3',
+            toAmount: '',
+            flow: 'standard',
+            type: 'direct',
+            address: 'bc1qu58svs9983e2vuyqh7gq7ratf8k5qehz5k0cn5',
+            refundAddress:
+                '888tNkZrPN6JsEgekjMnABU4TBzc2Dt29EPAvkRxbANsAnjyPbb3iQ1YBRk1UXcdRsiKc9dhwMVgN5S9cQUiyoogDavup3H',
+          ),
           encoding: null,
         ),
-      ).thenAnswer((realInvocation) async => Response(utf8.encode(''), 400));
+      ).thenAnswer((_) async => Response(utf8.encode(''), 400));
 
       final result = await instance.createExchangeTransaction(
-        fromCurrency: "xmr",
-        toCurrency: "btc",
-        address: "bc1qu58svs9983e2vuyqh7gq7ratf8k5qehz5k0cn5",
-        fromAmount: Decimal.parse("0.3"),
+        fromCurrency: 'xmr',
+        toCurrency: 'btc',
+        address: 'bc1qu58svs9983e2vuyqh7gq7ratf8k5qehz5k0cn5',
+        fromAmount: Decimal.parse('0.3'),
         refundAddress:
-            "888tNkZrPN6JsEgekjMnABU4TBzc2Dt29EPAvkRxbANsAnjyPbb3iQ1YBRk1UXcdRsiKc9dhwMVgN5S9cQUiyoogDavup3H",
-        apiKey: "testAPIKEY",
+            '888tNkZrPN6JsEgekjMnABU4TBzc2Dt29EPAvkRxbANsAnjyPbb3iQ1YBRk1UXcdRsiKc9dhwMVgN5S9cQUiyoogDavup3H',
+        apiKey: 'testAPIKEY',
         fromNetwork: 'xmr',
         toNetwork: '',
         rateId: '',
@@ -549,43 +577,63 @@ void main() {
     });
   });
 
-  group("createExchangeTransaction", () {
-    test("createExchangeTransaction succeeds", () async {
+  group('createExchangeTransaction fixed-rate flow', () {
+    test('createExchangeTransaction succeeds', () async {
       final client = MockHTTP();
       final instance = ChangeNowAPI(http: client);
 
       when(
         client.post(
-          url: Uri.parse(
-            "https://api.ChangeNow.io/v1/transactions/fixed-rate/testAPIKEY",
-          ),
-          headers: {'Content-Type': 'application/json'},
+          url: buildV2Uri('/exchange'),
+          headers: changeNowHeaders('testAPIKEY'),
           proxyInfo: null,
-          body:
-              '{"from":"btc","to":"eth","address":"0x57f31ad4b64095347F87eDB1675566DAfF5EC886","flow":"fixed-rate","extraId":"","userId":"","contactEmail":"","refundAddress":"","refundExtraId":"","rateId":"","amount":"0.3"}',
+          body: buildCreateExchangeBody(
+            fromCurrency: 'btc',
+            fromNetwork: 'xmr',
+            toCurrency: 'eth',
+            toNetwork: '',
+            fromAmount: '0.3',
+            toAmount: '',
+            flow: 'fixed-rate',
+            type: 'direct',
+            address: '0x57f31ad4b64095347F87eDB1675566DAfF5EC886',
+          ),
           encoding: null,
         ),
       ).thenAnswer(
-        (realInvocation) async => Response(
+        (_) async => Response(
           utf8.encode(
-            '{"payinAddress": "33eFX2jfeWbXMSmRe9ewUUTrmSVSxZi5cj", "payoutAddress":'
-            ' "0x57f31ad4b64095347F87eDB1675566DAfF5EC886","payoutExtraId": "",'
-            ' "fromCurrency": "btc", "toCurrency": "eth", "refundAddress": "",'
-            '"refundExtraId": "","validUntil": "2019-09-09T14:01:04.921Z","id":'
-            ' "a5c73e2603f40d","amount": 62.9737711}',
+            jsonEncode({
+              'fromAmount': '0.3',
+              'toAmount': '62.9737711',
+              'flow': 'fixed-rate',
+              'type': 'direct',
+              'payinAddress': '33eFX2jfeWbXMSmRe9ewUUTrmSVSxZi5cj',
+              'payoutAddress': '0x57f31ad4b64095347F87eDB1675566DAfF5EC886',
+              'payoutExtraId': '',
+              'fromCurrency': 'btc',
+              'toCurrency': 'eth',
+              'refundAddress': '',
+              'refundExtraId': '',
+              'fromNetwork': 'xmr',
+              'toNetwork': '',
+              'validUntil': '2019-09-09T14:01:04.921Z',
+              'id': 'a5c73e2603f40d',
+            }),
           ),
           200,
         ),
       );
 
       final result = await instance.createExchangeTransaction(
-        fromCurrency: "btc",
-        toCurrency: "eth",
-        address: "0x57f31ad4b64095347F87eDB1675566DAfF5EC886",
-        fromAmount: Decimal.parse("0.3"),
-        refundAddress: "",
-        apiKey: "testAPIKEY",
+        fromCurrency: 'btc',
+        toCurrency: 'eth',
+        address: '0x57f31ad4b64095347F87eDB1675566DAfF5EC886',
+        fromAmount: Decimal.parse('0.3'),
+        refundAddress: '',
+        apiKey: 'testAPIKEY',
         rateId: '',
+        flow: CNFlow.fixedRate,
         type: CNExchangeType.direct,
         fromNetwork: 'xmr',
         toNetwork: '',
@@ -593,77 +641,98 @@ void main() {
 
       expect(result.exception, null);
       expect(result.value == null, false);
-      expect(result.value, isA<ExchangeTransaction>());
+      expect(result.value, isA<CNExchangeTransaction>());
     });
 
     test(
-      "createExchangeTransaction fails with ChangeNowExceptionType.serializeResponseError",
+      'createExchangeTransaction fails with ChangeNowExceptionType.serializeResponseError',
       () async {
         final client = MockHTTP();
         final instance = ChangeNowAPI(http: client);
 
         when(
           client.post(
-            url: Uri.parse(
-              "https://api.ChangeNow.io/v1/transactions/fixed-rate/testAPIKEY",
-            ),
-            headers: {'Content-Type': 'application/json'},
+            url: buildV2Uri('/exchange'),
+            headers: changeNowHeaders('testAPIKEY'),
             proxyInfo: null,
-            body:
-                '{"from":"btc","to":"eth","address":"0x57f31ad4b64095347F87eDB1675566DAfF5EC886","amount":"0.3","flow":"fixed-rate","extraId":"","userId":"","contactEmail":"","refundAddress":"","refundExtraId":"","rateId":""}',
+            body: buildCreateExchangeBody(
+              fromCurrency: 'btc',
+              fromNetwork: 'xmr',
+              toCurrency: 'eth',
+              toNetwork: '',
+              fromAmount: '0.3',
+              toAmount: '',
+              flow: 'fixed-rate',
+              type: 'direct',
+              address: '0x57f31ad4b64095347F87eDB1675566DAfF5EC886',
+            ),
             encoding: null,
           ),
         ).thenAnswer(
-          (realInvocation) async => Response(
-            utf8.encode('{"id": "a5c73e2603f40d","amount": 62.9737711}'),
+          (_) async => Response(
+            utf8.encode('{"id": "a5c73e2603f40d", "amount": 62.9737711}'),
             200,
           ),
         );
 
         final result = await instance.createExchangeTransaction(
-          fromCurrency: "btc",
-          toCurrency: "eth",
-          address: "0x57f31ad4b64095347F87eDB1675566DAfF5EC886",
-          fromAmount: Decimal.parse("0.3"),
-          refundAddress: "",
-          apiKey: "testAPIKEY",
+          fromCurrency: 'btc',
+          toCurrency: 'eth',
+          address: '0x57f31ad4b64095347F87eDB1675566DAfF5EC886',
+          fromAmount: Decimal.parse('0.3'),
+          refundAddress: '',
+          apiKey: 'testAPIKEY',
           rateId: '',
+          flow: CNFlow.fixedRate,
           type: CNExchangeType.direct,
           fromNetwork: 'xmr',
           toNetwork: '',
         );
 
-        expect(result.exception!.type, ExchangeExceptionType.generic);
+        expect(
+          result.exception!.type,
+          ExchangeExceptionType.serializeResponseError,
+        );
         expect(result.value == null, true);
       },
     );
 
-    test("createExchangeTransaction fails for any other reason", () async {
+    test('createExchangeTransaction fails for any other reason', () async {
       final client = MockHTTP();
       final instance = ChangeNowAPI(http: client);
 
       when(
         client.post(
-          url: Uri.parse(
-            "https://api.ChangeNow.io/v1/transactions/fixed-rate/testAPIKEY",
-          ),
-          headers: {'Content-Type': 'application/json'},
+          url: buildV2Uri('/exchange'),
+          headers: changeNowHeaders('testAPIKEY'),
           proxyInfo: null,
-          body:
-              '{"from": "btc","to": "eth","address": "0x57f31ad4b64095347F87eDB1675566DAfF5EC886", "amount": "1.12345","extraId": "", "userId": "","contactEmail": "","refundAddress": "", "refundExtraId": "", "rateId": "" }',
+          body: buildCreateExchangeBody(
+            fromCurrency: 'xmr',
+            fromNetwork: 'xmr',
+            toCurrency: 'btc',
+            toNetwork: '',
+            fromAmount: '0.3',
+            toAmount: '',
+            flow: 'fixed-rate',
+            type: 'direct',
+            address: 'bc1qu58svs9983e2vuyqh7gq7ratf8k5qehz5k0cn5',
+            refundAddress:
+                '888tNkZrPN6JsEgekjMnABU4TBzc2Dt29EPAvkRxbANsAnjyPbb3iQ1YBRk1UXcdRsiKc9dhwMVgN5S9cQUiyoogDavup3H',
+          ),
           encoding: null,
         ),
-      ).thenAnswer((realInvocation) async => Response(utf8.encode(''), 400));
+      ).thenAnswer((_) async => Response(utf8.encode(''), 400));
 
       final result = await instance.createExchangeTransaction(
-        fromCurrency: "xmr",
-        toCurrency: "btc",
-        address: "bc1qu58svs9983e2vuyqh7gq7ratf8k5qehz5k0cn5",
-        fromAmount: Decimal.parse("0.3"),
+        fromCurrency: 'xmr',
+        toCurrency: 'btc',
+        address: 'bc1qu58svs9983e2vuyqh7gq7ratf8k5qehz5k0cn5',
+        fromAmount: Decimal.parse('0.3'),
         refundAddress:
-            "888tNkZrPN6JsEgekjMnABU4TBzc2Dt29EPAvkRxbANsAnjyPbb3iQ1YBRk1UXcdRsiKc9dhwMVgN5S9cQUiyoogDavup3H",
-        apiKey: "testAPIKEY",
+            '888tNkZrPN6JsEgekjMnABU4TBzc2Dt29EPAvkRxbANsAnjyPbb3iQ1YBRk1UXcdRsiKc9dhwMVgN5S9cQUiyoogDavup3H',
+        apiKey: 'testAPIKEY',
         rateId: '',
+        flow: CNFlow.fixedRate,
         type: CNExchangeType.direct,
         fromNetwork: 'xmr',
         toNetwork: '',
@@ -674,64 +743,73 @@ void main() {
     });
   });
 
-  group("getTransactionStatus", () {
-    test("getTransactionStatus succeeds", () async {
+  group('getTransactionStatus', () {
+    test('getTransactionStatus succeeds', () async {
       final client = MockHTTP();
       final instance = ChangeNowAPI(http: client);
 
       when(
         client.get(
-          url: Uri.parse(
-            "https://api.ChangeNow.io/v1/transactions/47F87eDB1675566DAfF5EC886/testAPIKEY",
-          ),
-          headers: {'Content-Type': 'application/json'},
+          url: buildV2Uri('/exchange/by-id', {
+            'id': '47F87eDB1675566DAfF5EC886',
+          }),
+          headers: changeNowHeaders('testAPIKEY'),
           proxyInfo: null,
         ),
       ).thenAnswer(
-        (realInvocation) async => Response(
+        (_) async => Response(
           utf8.encode(
-            '{"status": "waiting", "payinAddress": "32Ge2ci26rj1sRGw2NjiQa9L7Xvxtgzhrj", '
-            '"payoutAddress": "0x57f31ad4b64095347F87eDB1675566DAfF5EC886", '
-            '"fromCurrency": "btc", "toCurrency": "eth", "id": "50727663e5d9a4", '
-            '"updatedAt": "2019-08-22T14:47:49.943Z", "expectedSendAmount": 1, '
-            '"expectedReceiveAmount": 52.31667, "createdAt": "2019-08-22T14:47:49.943Z",'
-            ' "isPartner": false}',
+            jsonEncode({
+              'status': 'waiting',
+              'id': '50727663e5d9a4',
+              'actionsAvailable': false,
+              'fromCurrency': 'btc',
+              'fromNetwork': 'btc',
+              'toCurrency': 'eth',
+              'toNetwork': 'eth',
+              'expectedAmountFrom': '1',
+              'expectedAmountTo': '52.31667',
+              'payinAddress': '32Ge2ci26rj1sRGw2NjiQa9L7Xvxtgzhrj',
+              'payoutAddress': '0x57f31ad4b64095347F87eDB1675566DAfF5EC886',
+              'createdAt': '2019-08-22T14:47:49.943Z',
+              'updatedAt': '2019-08-22T14:47:49.943Z',
+              'fromLegacyTicker': 'btc',
+              'toLegacyTicker': 'eth',
+            }),
           ),
           200,
         ),
       );
 
       final result = await instance.getTransactionStatus(
-        id: "47F87eDB1675566DAfF5EC886",
-        apiKey: "testAPIKEY",
+        id: '47F87eDB1675566DAfF5EC886',
+        apiKey: 'testAPIKEY',
       );
 
       expect(result.exception, null);
       expect(result.value == null, false);
-      expect(result.value, isA<ExchangeTransactionStatus>());
+      expect(result.value, isA<CNExchangeTransactionStatus>());
     });
 
     test(
-      "getTransactionStatus fails with ChangeNowExceptionType.serializeResponseError",
+      'getTransactionStatus fails with ChangeNowExceptionType.serializeResponseError',
       () async {
         final client = MockHTTP();
         final instance = ChangeNowAPI(http: client);
 
         when(
           client.get(
-            url: Uri.parse(
-              "https://api.ChangeNow.io/v1/transactions/47F87eDB1675566DAfF5EC886/testAPIKEY",
-            ),
-            headers: {'Content-Type': 'application/json'},
+            url: buildV2Uri('/exchange/by-id', {
+              'id': '47F87eDB1675566DAfF5EC886',
+            }),
+            headers: changeNowHeaders('testAPIKEY'),
             proxyInfo: null,
           ),
-        ).thenAnswer(
-          (realInvocation) async => Response(utf8.encode('{"error": 42}'), 200),
-        );
+        ).thenAnswer((_) async => Response(utf8.encode('{"error": 42}'), 200));
 
         final result = await instance.getTransactionStatus(
-          id: "47F87eDB1675566DAfF5EC886",
-          apiKey: "testAPIKEY",
+          id: '47F87eDB1675566DAfF5EC886',
+          apiKey: 'testAPIKEY',
         );
 
         expect(
@@ -742,29 +820,26 @@ void main() {
       },
     );
 
-    test("getTransactionStatus fails for any other reason", () async {
+    test('getTransactionStatus fails for any other reason', () async {
       final client = MockHTTP();
       final instance = ChangeNowAPI(http: client);
 
       when(
         client.get(
-          url: Uri.parse(
-            "https://api.ChangeNow.io/v1/transactions/47F87eDB1675566DAfF5EC886/testAPIKEY",
-          ),
-          headers: {'Content-Type': 'application/json'},
+          url: buildV2Uri('/exchange/by-id', {
+            'id': '47F87eDB1675566DAfF5EC886',
+          }),
+          headers: changeNowHeaders('testAPIKEY'),
           proxyInfo: null,
         ),
-      ).thenAnswer((realInvocation) async => Response(utf8.encode(''), 400));
+      ).thenAnswer((_) async => Response(utf8.encode(''), 400));
 
       final result = await instance.getTransactionStatus(
-        id: "47F87eDB1675566DAfF5EC886",
-        apiKey: "testAPIKEY",
+        id: '47F87eDB1675566DAfF5EC886',
+        apiKey: 'testAPIKEY',
       );
 
-      expect(
-        result.exception!.type,
-        ExchangeExceptionType.serializeResponseError,
-      );
+      expect(result.exception!.type, ExchangeExceptionType.generic);
       expect(result.value == null, true);
     });
   });

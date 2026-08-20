@@ -118,6 +118,11 @@ final class _LibMwcInterfaceImpl extends LibMwcInterface {
   }
 
   @override
+  Future<String> initLogs({required String config}) {
+    return mimblewimblecoin.Libmwc.initLogs(config: config);
+  }
+
+  @override
   Future<({int fee, bool strategyUseAll, int total})> getTransactionFees({
     required String wallet,
     required int amount,

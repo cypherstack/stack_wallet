@@ -1,312 +1,227 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/annotations.dart';
-// import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
+import 'package:mockito/mockito.dart';
+import 'package:stackwallet/models/isar/stack_theme.dart';
+import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
+import 'package:stackwallet/providers/global/duress_provider.dart';
+import 'package:stackwallet/providers/global/prefs_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_service.dart';
+import 'package:stackwallet/utilities/biometrics.dart';
+import 'package:stackwallet/widgets/custom_pin_put/pin_keyboard.dart';
 
-import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/services/wallets_service.dart';
+import '../sample_data/theme_json.dart';
+import '../widget_tests/custom_loading_overlay_test.mocks.dart';
+import '../widget_tests/node_options_sheet_test.mocks.dart';
+import '../widget_tests/support/platform_test_overrides.dart';
 
-@GenerateMocks(
-  [],
-  customMocks: [
-    MockSpec<WalletsService>(),
-    MockSpec<NodeService>(),
-  ],
-)
+class SpyBiometrics extends Biometrics {
+  SpyBiometrics({this.result = false});
+
+  final bool result;
+  int calls = 0;
+
+  @override
+  Future<bool> authenticate({
+    required String cancelButtonText,
+    required String localizedReason,
+    required String title,
+  }) async {
+    calls += 1;
+    return result;
+  }
+}
+
 void main() {
-  testWidgets("LockscreenView builds correctly", (tester) async {
-    // final navigator = mockingjay.MockNavigator();
-    // final walletsService = MockWalletsService();
-    // final nodeService = MockNodeService();
-    // final wallet =  MockManager();
-    // final secureStore = FakeSecureStorage();
-    //
-    // secureStore.write(key: "walletID", value: "1234");
-    //
-    // when(walletsService.getWalletId("My Firo Wallet"))
-    //     .thenAnswer((_) async => "walletID");
-    //
-    // await tester.pumpWidget(
-    //   MaterialApp(
-    //     home: mockingjay.MockNavigatorProvider(
-    //       navigator: navigator,
-    //       child: MultiProvider(
-    //         providers: [
-    //           ChangeNotifierProvider<WalletsService>(
-    //             create: (_) => walletsService,
-    //           ),
-    //           ChangeNotifierProvider<NodeService>(
-    //             create: (_) => nodeService,
-    //           ),
-    //           ChangeNotifierProvider<Manager>(
-    //             create: (_) => manager,
-    //           ),
-    //         ],
-    //         child: LockscreenView(
-    //           routeOnSuccess: "/mainview",
-    //           secureStore: secureStore,
-    //         ),
-    //       ),
-    //     ),
-    //   ),
-    // );
-    //
-    // await tester.pumpAndSettle();
-    //
-    // expect(find.byType(AppBarIconButton), findsOneWidget);
-    // expect(find.byType(SvgPicture), findsOneWidget);
-    //
-    // expect(find.text("My Firo Wallet"), findsOneWidget);
-    // expect(find.text("Enter PIN"), findsOneWidget);
-    //
-    // expect(find.byType(CustomPinPut), findsOneWidget);
+  ThemeData buildTheme() {
+    return ThemeData(
+      extensions: [
+        StackColors.fromStackColorTheme(
+          StackTheme.fromJson(json: lightThemeJsonMap),
+        ),
+      ],
+    );
+  }
+
+  void stubPrefs(MockPrefs prefs) {
+    when(prefs.isInitialized).thenReturn(true);
+    when(prefs.randomizePIN).thenReturn(false);
+    when(prefs.autoPin).thenReturn(false);
+    when(prefs.useBiometrics).thenReturn(false);
+    when(prefs.biometricsDuress).thenReturn(false);
+    when(prefs.lastUnlocked).thenReturn(0);
+  }
+
+  Future<ProviderContainer> pumpLockscreenView(
+    WidgetTester tester, {
+    required MockPrefs prefs,
+    required SpyBiometrics biometrics,
+    required List<Override> overrides,
+    required bool isDuress,
+    VoidCallback? onSuccess,
+  }) async {
+    final mockThemeService = MockThemeService();
+    final theme = StackTheme.fromJson(json: lightThemeJsonMap);
+
+    when(mockThemeService.getTheme(themeId: 'light')).thenReturn(theme);
+
+    final container = ProviderContainer(
+      overrides: [
+        pThemeService.overrideWithValue(mockThemeService),
+        prefsChangeNotifierProvider.overrideWithValue(prefs),
+        ...overrides,
+      ],
+    );
+
+    addTearDown(container.dispose);
+    container.read(pDuress.notifier).state = isDuress;
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          theme: buildTheme(),
+          routes: {
+            '/unlocked': (_) => const Scaffold(body: Text('unlocked route')),
+          },
+          home: LockscreenView(
+            routeOnSuccess: '/unlocked',
+            biometricsAuthenticationTitle: 'Unlock wallet',
+            biometricsLocalizedReason: 'Unlock Stack Wallet',
+            biometricsCancelButtonString: 'Cancel',
+            biometrics: biometrics,
+            onSuccess: onSuccess,
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+    return container;
+  }
+
+  Future<void> tapDigit(WidgetTester tester, String digit) async {
+    await tester.tap(
+      find.byWidgetPredicate(
+        (widget) => widget is NumberKey && widget.number == digit,
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 250));
+  }
+
+  Future<void> enterAndSubmitPin(WidgetTester tester, String pin) async {
+    for (final digit in pin.split('')) {
+      await tapDigit(tester, digit);
+    }
+
+    await tester.tap(find.byType(SubmitKey));
+    await tester.pump();
+  }
+
+  testWidgets('valid standard PIN unlocks through fake storage seam', (
+    tester,
+  ) async {
+    final prefs = MockPrefs();
+    final biometrics = SpyBiometrics();
+    final platformOverrides = await createPlatformTestOverrides(
+      secureStorageEntries: {kPinKey: '1234', kDuressPinKey: '9876'},
+    );
+    var onSuccessCalls = 0;
+
+    stubPrefs(prefs);
+
+    await pumpLockscreenView(
+      tester,
+      prefs: prefs,
+      biometrics: biometrics,
+      overrides: platformOverrides.overrides,
+      isDuress: false,
+      onSuccess: () => onSuccessCalls += 1,
+    );
+
+    expect(find.text('Enter PIN'), findsOneWidget);
+    expect(
+      platformOverrides.secureStorage.writtenKeys,
+      containsAll(<String>[kPinKey, kDuressPinKey]),
+    );
+
+    await enterAndSubmitPin(tester, '1234');
+    await tester.pumpAndSettle(const Duration(milliseconds: 200));
+
+    expect(platformOverrides.secureStorage.readKeys, <String>[kPinKey]);
+    expect(platformOverrides.secureStorage.reads, 1);
+    expect(onSuccessCalls, 1);
+    expect(biometrics.calls, 0);
+    expect(find.text('unlocked route'), findsOneWidget);
+
+    verify(prefs.lastUnlocked = any).called(1);
   });
 
-  testWidgets("enter valid pin", (tester) async {
-    // final navigator = mockingjay.MockNavigator();
-    // final walletsService = MockWalletsService();
-    // final nodeService = MockNodeService();
-    // final wallet =  MockManager();
-    // final secureStore = FakeSecureStorage();
-    //
-    // secureStore.write(key: "walletID_pin", value: "1234");
-    //
-    // when(walletsService.getWalletId("My Firo Wallet"))
-    //     .thenAnswer((_) async => "walletID");
-    //
-    // mockingjay
-    //     .when(() => navigator.pushReplacementNamed("/mainview"))
-    //     .thenAnswer((_) async => {});
-    //
-    // await tester.pumpWidget(
-    //   MaterialApp(
-    //     home: mockingjay.MockNavigatorProvider(
-    //       navigator: navigator,
-    //       child: MultiProvider(
-    //         providers: [
-    //           ChangeNotifierProvider<WalletsService>(
-    //             create: (_) => walletsService,
-    //           ),
-    //           ChangeNotifierProvider<NodeService>(
-    //             create: (_) => nodeService,
-    //           ),
-    //           ChangeNotifierProvider<Manager>(
-    //             create: (_) => manager,
-    //           ),
-    //         ],
-    //         child: LockscreenView(
-    //           routeOnSuccess: "/mainview",
-    //           secureStore: secureStore,
-    //         ),
-    //       ),
-    //     ),
-    //   ),
-    // );
-    //
-    // await tester.pumpAndSettle();
-    //
-    // await tester.tap(find.byWidgetPredicate(
-    //     (widget) => widget is NumberKey && widget.number == "1"));
-    // await tester.pump(const Duration(milliseconds: 200));
-    // await tester.tap(find.byWidgetPredicate(
-    //     (widget) => widget is NumberKey && widget.number == "2"));
-    // await tester.pump(const Duration(milliseconds: 200));
-    // await tester.tap(find.byWidgetPredicate(
-    //     (widget) => widget is NumberKey && widget.number == "3"));
-    // await tester.pump(const Duration(milliseconds: 200));
-    // await tester.tap(find.byWidgetPredicate(
-    //     (widget) => widget is NumberKey && widget.number == "4"));
-    // await tester.pump(const Duration(milliseconds: 500));
-    //
-    // expect(find.text("PIN code correct. Unlocking wallet..."), findsOneWidget);
-    //
-    // await tester.pump(const Duration(seconds: 2));
-    //
-    // mockingjay
-    //     .verify(() => navigator.pushReplacementNamed("/mainview"))
-    //     .called(1);
+  testWidgets('duress mode unlocks with the duress PIN only', (tester) async {
+    final prefs = MockPrefs();
+    final biometrics = SpyBiometrics();
+    final platformOverrides = await createPlatformTestOverrides(
+      secureStorageEntries: {kPinKey: '1234', kDuressPinKey: '9876'},
+    );
+    var onSuccessCalls = 0;
+
+    stubPrefs(prefs);
+
+    final container = await pumpLockscreenView(
+      tester,
+      prefs: prefs,
+      biometrics: biometrics,
+      overrides: platformOverrides.overrides,
+      isDuress: true,
+      onSuccess: () => onSuccessCalls += 1,
+    );
+
+    await enterAndSubmitPin(tester, '9876');
+    await tester.pumpAndSettle(const Duration(milliseconds: 200));
+
+    expect(platformOverrides.secureStorage.readKeys, <String>[kDuressPinKey]);
+    expect(platformOverrides.secureStorage.reads, 1);
+    expect(container.read(pDuress), isTrue);
+    expect(onSuccessCalls, 1);
+    expect(biometrics.calls, 0);
+    expect(find.text('unlocked route'), findsOneWidget);
+
+    verify(prefs.lastUnlocked = any).called(1);
   });
 
-  testWidgets("wallet initialization fails", (tester) async {
-    // final navigator = mockingjay.MockNavigator();
-    // final walletsService = MockWalletsService();
-    // final nodeService = MockNodeService();
-    // final wallet =  MockManager();
-    // final secureStore = FakeSecureStorage();
-    //
-    // secureStore.write(key: "walletID_pin", value: "1234");
-    //
-    // when(walletsService.getWalletId("My Firo Wallet"))
-    //     .thenAnswer((_) async => "walletID");
-    //
-    // mockingjay
-    //     .when(() => navigator.pushReplacementNamed("/mainview"))
-    //     .thenAnswer((_) async => {});
-    //
-    // await tester.pumpWidget(
-    //   MaterialApp(
-    //     home: mockingjay.MockNavigatorProvider(
-    //       navigator: navigator,
-    //       child: MultiProvider(
-    //         providers: [
-    //           ChangeNotifierProvider<WalletsService>(
-    //             create: (_) => walletsService,
-    //           ),
-    //           ChangeNotifierProvider<NodeService>(
-    //             create: (_) => nodeService,
-    //           ),
-    //           ChangeNotifierProvider<Manager>(
-    //             create: (_) => manager,
-    //           ),
-    //         ],
-    //         child: LockscreenView(
-    //           routeOnSuccess: "/mainview",
-    //           secureStore: secureStore,
-    //         ),
-    //       ),
-    //     ),
-    //   ),
-    // );
-    //
-    // await tester.pumpAndSettle();
-    //
-    // await tester.tap(find.byWidgetPredicate(
-    //     (widget) => widget is NumberKey && widget.number == "1"));
-    // await tester.pump(const Duration(milliseconds: 200));
-    // await tester.tap(find.byWidgetPredicate(
-    //     (widget) => widget is NumberKey && widget.number == "2"));
-    // await tester.pump(const Duration(milliseconds: 200));
-    // await tester.tap(find.byWidgetPredicate(
-    //     (widget) => widget is NumberKey && widget.number == "3"));
-    // await tester.pump(const Duration(milliseconds: 200));
-    // await tester.tap(find.byWidgetPredicate(
-    //     (widget) => widget is NumberKey && widget.number == "4"));
-    // await tester.pump(const Duration(milliseconds: 500));
-    //
-    // expect(find.text("PIN code correct. Unlocking wallet..."), findsOneWidget);
-    //
-    // await tester.pump(const Duration(seconds: 2));
-    //
-    // expect(
-    //     find.text(
-    //         "Failed to connect to network. Check your internet connection and make sure the Electrum X node you are connected to is not having any issues."),
-    //     findsOneWidget);
-    //
-    // await tester.tap(find.byKey(Key("campfireAlertOKButtonKey")));
-    // await tester.pump(const Duration(seconds: 2));
-    // await tester.pump(const Duration(seconds: 2));
-    //
-    // expect(
-    //     find.text(
-    //         "Failed to connect to network. Check your internet connection and make sure the Electrum X node you are connected to is not having any issues."),
-    //     findsNothing);
-    //
-    // mockingjay
-    //     .verify(() => navigator.pushReplacementNamed("/mainview"))
-    //     .called(1);
-  });
+  testWidgets('duress mode rejects the standard PIN without unlocking', (
+    tester,
+  ) async {
+    final prefs = MockPrefs();
+    final biometrics = SpyBiometrics();
+    final platformOverrides = await createPlatformTestOverrides(
+      secureStorageEntries: {kPinKey: '1234', kDuressPinKey: '9876'},
+    );
+    var onSuccessCalls = 0;
 
-  testWidgets("enter invalid pin", (tester) async {
-    // final navigator = mockingjay.MockNavigator();
-    // final walletsService = MockWalletsService();
-    // final nodeService = MockNodeService();
-    // final wallet =  MockManager();
-    // final secureStore = FakeSecureStorage();
-    //
-    // secureStore.write(key: "walletID_pin", value: "1234");
-    //
-    // when(walletsService.getWalletId("My Firo Wallet"))
-    //     .thenAnswer((_) async => "walletID");
-    //
-    // mockingjay
-    //     .when(() => navigator.pushReplacementNamed("/mainview"))
-    //     .thenAnswer((_) async => {});
+    stubPrefs(prefs);
 
-    // await tester.pumpWidget(
-    //   MaterialApp(
-    //     home: mockingjay.MockNavigatorProvider(
-    //       navigator: navigator,
-    //       child: MultiProvider(
-    //         providers: [
-    //           ChangeNotifierProvider<WalletsService>(
-    //             create: (_) => walletsService,
-    //           ),
-    //           ChangeNotifierProvider<NodeService>(
-    //             create: (_) => nodeService,
-    //           ),
-    //           ChangeNotifierProvider<Manager>(
-    //             create: (_) => manager,
-    //           ),
-    //         ],
-    //         child: LockscreenView(
-    //           routeOnSuccess: "/mainview",
-    //           secureStore: secureStore,
-    //         ),
-    //       ),
-    //     ),
-    //   ),
-    // );
+    final container = await pumpLockscreenView(
+      tester,
+      prefs: prefs,
+      biometrics: biometrics,
+      overrides: platformOverrides.overrides,
+      isDuress: true,
+      onSuccess: () => onSuccessCalls += 1,
+    );
 
-    // await tester.pumpAndSettle();
-    //
-    // await tester.tap(find.byWidgetPredicate(
-    //     (widget) => widget is NumberKey && widget.number == "1"));
-    // await tester.pump(const Duration(milliseconds: 200));
-    // await tester.tap(find.byWidgetPredicate(
-    //     (widget) => widget is NumberKey && widget.number == "1"));
-    // await tester.pump(const Duration(milliseconds: 200));
-    // await tester.tap(find.byWidgetPredicate(
-    //     (widget) => widget is NumberKey && widget.number == "3"));
-    // await tester.pump(const Duration(milliseconds: 200));
-    // await tester.tap(find.byWidgetPredicate(
-    //     (widget) => widget is NumberKey && widget.number == "4"));
-    // await tester.pump(const Duration(milliseconds: 500));
-    //
-    // expect(find.text("Incorrect PIN. Please try again"), findsOneWidget);
-    //
-    // await tester.pump(const Duration(seconds: 2));
-    //
-    // mockingjay.verifyNever(() => navigator.pushReplacementNamed("/mainview"));
-  });
+    await enterAndSubmitPin(tester, '1234');
+    await tester.pump(const Duration(milliseconds: 900));
 
-  testWidgets("tap back", (tester) async {
-    // final navigator = mockingjay.MockNavigator();
-    // final walletsService = MockWalletsService();
-    // final nodeService = MockNodeService();
-    // final wallet =  MockManager();
-    // final secureStore = FakeSecureStorage();
-    //
-    // mockingjay.when(() => navigator.pop()).thenAnswer((_) async => {});
+    expect(platformOverrides.secureStorage.readKeys, <String>[kDuressPinKey]);
+    expect(platformOverrides.secureStorage.reads, 1);
+    expect(container.read(pDuress), isTrue);
+    expect(onSuccessCalls, 0);
+    expect(biometrics.calls, 0);
+    expect(find.text('Enter PIN'), findsOneWidget);
+    expect(find.text('unlocked route'), findsNothing);
 
-    // await tester.pumpWidget(
-    //   MaterialApp(
-    //     home: mockingjay.MockNavigatorProvider(
-    //       navigator: navigator,
-    //       child: MultiProvider(
-    //         providers: [
-    //           ChangeNotifierProvider<WalletsService>(
-    //             create: (_) => walletsService,
-    //           ),
-    //           ChangeNotifierProvider<NodeService>(
-    //             create: (_) => nodeService,
-    //           ),
-    //           ChangeNotifierProvider<Manager>(
-    //             create: (_) => manager,
-    //           ),
-    //         ],
-    //         child: LockscreenView(
-    //           routeOnSuccess: "/mainview",
-    //           secureStore: secureStore,
-    //         ),
-    //       ),
-    //     ),
-    //   ),
-    // );
-
-    // await tester.pumpAndSettle();
-    //
-    // await tester.tap(find.byType(AppBarIconButton));
-    // await tester.pumpAndSettle();
-    //
-    // mockingjay.verify(() => navigator.pop()).called(1);
+    verifyNever(prefs.lastUnlocked = any);
   });
 }

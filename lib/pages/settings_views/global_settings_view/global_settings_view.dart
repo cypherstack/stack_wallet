@@ -16,12 +16,14 @@ import '../../../app_config.dart';
 import '../../../route_generator.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
+import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../address_book_views/address_book_view.dart';
 import '../../pinpad_views/lock_screen_view.dart';
+import '../../shopinbit/shopinbit_settings_view.dart';
 import '../sub_widgets/settings_list_button.dart';
 import 'about_view.dart';
 import 'advanced_views/advanced_settings_view.dart';
@@ -96,21 +98,19 @@ class GlobalSettingsView extends StatelessWidget {
                                       Navigator.push(
                                         context,
                                         RouteGenerator.getRoute(
-                                          shouldUseMaterialRoute:
-                                              RouteGenerator
-                                                  .useMaterialPageRoute,
-                                          builder:
-                                              (_) => const LockscreenView(
-                                                showBackButton: true,
-                                                routeOnSuccess:
-                                                    StackBackupView.routeName,
-                                                biometricsCancelButtonString:
-                                                    "CANCEL",
-                                                biometricsLocalizedReason:
-                                                    "Authenticate to access ${AppConfig.prefix} backup & restore settings",
-                                                biometricsAuthenticationTitle:
-                                                    "${AppConfig.prefix} backup",
-                                              ),
+                                          shouldUseMaterialRoute: RouteGenerator
+                                              .useMaterialPageRoute,
+                                          builder: (_) => const LockscreenView(
+                                            showBackButton: true,
+                                            routeOnSuccess:
+                                                StackBackupView.routeName,
+                                            biometricsCancelButtonString:
+                                                "CANCEL",
+                                            biometricsLocalizedReason:
+                                                "Authenticate to access ${AppConfig.prefix} backup & restore settings",
+                                            biometricsAuthenticationTitle:
+                                                "${AppConfig.prefix} backup",
+                                          ),
                                           settings: const RouteSettings(
                                             name: "/swblockscreen",
                                           ),
@@ -246,6 +246,25 @@ class GlobalSettingsView extends StatelessWidget {
                                       );
                                     },
                                   ),
+                                  if (Constants.enableExchange &&
+                                      AppConfig.hasFeature(
+                                        AppFeature.shopinBit,
+                                      ))
+                                    Column(
+                                      children: [
+                                        const SizedBox(height: 8),
+                                        SettingsListButton(
+                                          iconAssetName: Assets.svg.key,
+                                          iconSize: 16,
+                                          title: "ShopinBit",
+                                          onPressed: () {
+                                            Navigator.of(context).pushNamed(
+                                              ShopInBitSettingsView.routeName,
+                                            );
+                                          },
+                                        ),
+                                      ],
+                                    ),
                                   const SizedBox(height: 8),
                                   SettingsListButton(
                                     iconAssetName: Assets.svg.questionMessage,

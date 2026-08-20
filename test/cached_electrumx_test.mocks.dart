@@ -333,6 +333,22 @@ class MockElectrumXClient extends _i1.Mock implements _i6.ElectrumXClient {
           as _i9.Future<Map<String, dynamic>>);
 
   @override
+  _i9.Future<List<Map<String, dynamic>>> getBatchTransactions({
+    required List<String>? txHashes,
+    String? requestID,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#getBatchTransactions, [], {
+              #txHashes: txHashes,
+              #requestID: requestID,
+            }),
+            returnValue: _i9.Future<List<Map<String, dynamic>>>.value(
+              <Map<String, dynamic>>[],
+            ),
+          )
+          as _i9.Future<List<Map<String, dynamic>>>);
+
+  @override
   _i9.Future<Map<String, dynamic>> getLelantusAnonymitySet({
     String? groupId = '1',
     String? blockhash = '',
@@ -1133,13 +1149,12 @@ class MockPrefs extends _i1.Mock implements _i10.Prefs {
           as _i9.Future<void>);
 
   @override
-  _i9.Future<void> incrementCurrentNotificationIndex() =>
+  _i9.Future<int> incrementCurrentNotificationIndex() =>
       (super.noSuchMethod(
             Invocation.method(#incrementCurrentNotificationIndex, []),
-            returnValue: _i9.Future<void>.value(),
-            returnValueForMissingStub: _i9.Future<void>.value(),
+            returnValue: _i9.Future<int>.value(0),
           )
-          as _i9.Future<void>);
+          as _i9.Future<int>);
 
   @override
   _i9.Future<bool> isExternalCallsSet() =>

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -x -e
 
@@ -34,13 +34,10 @@ if [ ! -f "$PUBSPEC_FILE" ]; then
     exit 1
 fi
 
-if [[ "$(uname)" == 'Darwin' ]]; then
-  # macos specific sed
-  sed -i '' "s/PLACEHOLDER_V/$VERSION/g" "${PUBSPEC_FILE}"
-  sed -i '' "s/PLACEHOLDER_B/$BUILD_NUMBER/g" "${PUBSPEC_FILE}"
-else
-  sed -i "s/PLACEHOLDER_V/$VERSION/g" "${PUBSPEC_FILE}"
-  sed -i "s/PLACEHOLDER_B/$BUILD_NUMBER/g" "${PUBSPEC_FILE}"
-fi
+sed -i.bak \
+  -e "s/PLACEHOLDER_V/$VERSION/g" \
+  -e "s/PLACEHOLDER_B/$BUILD_NUMBER/g" \
+  "${PUBSPEC_FILE}"
+rm -f "${PUBSPEC_FILE}.bak"
 
 echo "Updated $PUBSPEC_FILE with version: $VERSION and build number: $BUILD_NUMBER"

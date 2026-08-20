@@ -169,7 +169,7 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
         await _eventSubscription?.cancel();
         _eventSubscription = null;
 
-        if (wallet != null) {
+        if (wallet != null && await libXelis.isOnline(wallet!)) {
           await libXelis.offlineMode(wallet!);
         }
         await super.exit();

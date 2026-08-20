@@ -28,7 +28,10 @@ import '../../providers/global/trades_service_provider.dart';
 import '../../providers/providers.dart';
 import '../../route_generator.dart';
 import '../../services/exchange/change_now/change_now_exchange.dart';
+import '../../services/exchange/cyphergoat/cyphergoat_exchange.dart';
 import '../../services/exchange/exchange.dart';
+import '../../services/exchange/exolix/exolix_exchange.dart';
+import '../../services/exchange/lets_exchange/lets_exchange_exchange.dart';
 import '../../services/exchange/nanswap/nanswap_exchange.dart';
 import '../../services/exchange/simpleswap/simpleswap_exchange.dart';
 import '../../services/exchange/trocador/trocador_exchange.dart';
@@ -119,17 +122,21 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
   String _fetchIconAssetForStatus(String statusString, IThemeAssets assets) {
     ChangeNowTransactionStatus? status;
     try {
-      if (statusString.toLowerCase().startsWith("waiting")) {
+      if (statusString.toLowerCase().startsWith("waiting") ||
+          statusString.toLowerCase() == "wait") {
         statusString = "Waiting";
       }
       status = changeNowTransactionStatusFromStringIgnoreCase(statusString);
     } on ArgumentError catch (_) {
       switch (statusString.toLowerCase()) {
+        case "confirmed": // exolix case
+        case "confirmation": // exolix case
         case "funds confirming":
         case "processing payment":
           return assets.txExchangePending;
 
         case "completed":
+        case "success": // exolix case
           return assets.txExchange;
 
         default:
@@ -168,6 +175,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
         sentFromStack ||
         !(trade.status == "New" ||
             trade.status == "new" ||
+            trade.status == "wait" ||
             trade.status == "Waiting" ||
             trade.status == "waiting" ||
             trade.status == "Refunded" ||
@@ -178,6 +186,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
             trade.status == "expired" ||
             trade.status == "Failed" ||
             trade.status == "failed" ||
+            trade.status == "overdue" ||
             trade.status.toLowerCase().startsWith("waiting"));
 
     //todo: check if print needed
@@ -202,6 +211,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
         (trade.status == "New" ||
             trade.status == "new" ||
             trade.status == "waiting" ||
+            trade.status == "wait" ||
             trade.status == "Waiting");
 
     return ConditionalParent(
@@ -1162,6 +1172,13 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                             url =
                                 "https://www.wizardswap.io/api/exchange/${trade.tradeId}";
                             break;
+                          case ExolixExchange.exchangeName:
+                            url =
+                                "https://exolix.com/transaction/${trade.tradeId}";
+                            break;
+                          case LetsExchangeExchange.exchangeName:
+                            url = "https://letsexchange.io/transaction-status";
+                            break;
 
                           default:
                             if (trade.exchangeName.startsWith(
@@ -1169,6 +1186,10 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                             )) {
                               url =
                                   "https://trocador.app/en/checkout/${trade.tradeId}";
+                            } else if (trade.exchangeName.startsWith(
+                              CypherGoatExchange.exchangeName,
+                            )) {
+                              url = trade.other ?? "error";
                             }
                         }
                         return ConditionalParent(

@@ -1,4 +1,10 @@
 #!/bin/bash
+
+if [ "${USE_SYSTEM_SECURE_STORAGE_DEPS:-0}" = "1" ]; then
+    echo "USE_SYSTEM_SECURE_STORAGE_DEPS is set; skipping build of jsoncpp and libsecret (using system packages)"
+    exit 0
+fi
+
 LINUX_DIRECTORY=$(pwd)
 JSONCPP_TAG=1.7.4
 LIBSECRET_TAG=0.21.4

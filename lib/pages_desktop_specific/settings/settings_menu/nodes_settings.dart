@@ -68,9 +68,7 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
   @override
   void initState() {
     _coins = _coins.toList();
-    _coins.removeWhere(
-      (e) => e is Firo && e.network.isTestNet,
-    );
+    _coins.removeWhere((e) => e is Firo && e.network.isTestNet);
 
     searchNodeController = TextEditingController();
     searchNodeFocusNode = FocusNode();
@@ -99,11 +97,7 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
 
     List<CryptoCurrency> coins = showTestNet
         ? _coins
-        : _coins
-            .where(
-              (e) => e.network == CryptoCurrencyNetwork.main,
-            )
-            .toList();
+        : _coins.where((e) => e.network == CryptoCurrencyNetwork.main).toList();
 
     coins = _search(filter, coins);
 
@@ -131,23 +125,17 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
                         width: 48,
                         height: 48,
                       ),
-                      const SizedBox(
-                        height: 16,
-                      ),
+                      const SizedBox(height: 16),
                       Text(
                         "Nodes",
                         style: STextStyles.desktopTextSmall(context),
                       ),
-                      const SizedBox(
-                        height: 16,
-                      ),
+                      const SizedBox(height: 16),
                       Text(
                         "Select a coin to see nodes",
                         style: STextStyles.desktopTextExtraExtraSmall(context),
                       ),
-                      const SizedBox(
-                        height: 20,
-                      ),
+                      const SizedBox(height: 20),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(
                           Constants.size.circularBorderRadius,
@@ -161,56 +149,58 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
                             setState(() => filter = newString);
                           },
                           style: STextStyles.field(context),
-                          decoration: standardInputDecoration(
-                            "Search",
-                            searchNodeFocusNode,
-                            context,
-                          ).copyWith(
-                            prefixIcon: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 16,
-                              ),
-                              child: SvgPicture.asset(
-                                Assets.svg.search,
-                                width: 16,
-                                height: 16,
-                              ),
-                            ),
-                            suffixIcon: searchNodeController.text.isNotEmpty
-                                ? Padding(
-                                    padding: const EdgeInsets.only(right: 0),
-                                    child: UnconstrainedBox(
-                                      child: Row(
-                                        children: [
-                                          TextFieldIconButton(
-                                            child: const XIcon(),
-                                            onTap: () async {
-                                              setState(() {
-                                                searchNodeController.text = "";
-                                                filter = "";
-                                              });
-                                            },
+                          decoration:
+                              standardInputDecoration(
+                                "Search",
+                                searchNodeFocusNode,
+                                context,
+                              ).copyWith(
+                                prefixIcon: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 16,
+                                  ),
+                                  child: SvgPicture.asset(
+                                    Assets.svg.search,
+                                    width: 16,
+                                    height: 16,
+                                  ),
+                                ),
+                                suffixIcon: searchNodeController.text.isNotEmpty
+                                    ? Padding(
+                                        padding: const EdgeInsets.only(
+                                          right: 0,
+                                        ),
+                                        child: UnconstrainedBox(
+                                          child: Row(
+                                            children: [
+                                              TextFieldIconButton(
+                                                child: const XIcon(),
+                                                onTap: () async {
+                                                  setState(() {
+                                                    searchNodeController.text =
+                                                        "";
+                                                    filter = "";
+                                                  });
+                                                },
+                                              ),
+                                            ],
                                           ),
-                                        ],
-                                      ),
-                                    ),
-                                  )
-                                : null,
-                          ),
+                                        ),
+                                      )
+                                    : null,
+                              ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(
-                    height: 20,
-                  ),
+                  const SizedBox(height: 20),
                   Flexible(
                     child: RoundedWhiteContainer(
                       padding: const EdgeInsets.all(0),
-                      borderColor: Theme.of(context)
-                          .extension<StackColors>()!
-                          .background,
+                      borderColor: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.background,
                       child: ListView.separated(
                         controller: nodeScrollController,
                         physics: const AlwaysScrollableScrollPhysics(),
@@ -221,8 +211,9 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
                           final coin = coins[index];
                           final count = ref
                               .watch(
-                                nodeServiceChangeNotifierProvider
-                                    .select((value) => value.getNodesFor(coin)),
+                                nodeServiceChangeNotifierProvider.select(
+                                  (value) => value.getNodesFor(coin),
+                                ),
                               )
                               .length;
 
@@ -261,10 +252,9 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
                                 );
                               },
                               child: Padding(
-                                padding: const EdgeInsets.all(
-                                  12.0,
-                                ),
+                                padding: const EdgeInsets.all(12.0),
                                 child: Row(
+                                  mainAxisAlignment: .spaceBetween,
                                   children: [
                                     Row(
                                       children: [
@@ -275,9 +265,7 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
                                           width: 24,
                                           height: 24,
                                         ),
-                                        const SizedBox(
-                                          width: 12,
-                                        ),
+                                        const SizedBox(width: 12),
                                         Column(
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
@@ -298,12 +286,7 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
                                         ),
                                       ],
                                     ),
-                                    Expanded(
-                                      child: SvgPicture.asset(
-                                        Assets.svg.chevronRight,
-                                        alignment: Alignment.centerRight,
-                                      ),
-                                    ),
+                                    SvgPicture.asset(Assets.svg.chevronRight),
                                   ],
                                 ),
                               ),
@@ -312,9 +295,9 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
                         },
                         separatorBuilder: (context, index) => Container(
                           height: 1,
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .background,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.background,
                         ),
                         itemCount: coins.length,
                       ),

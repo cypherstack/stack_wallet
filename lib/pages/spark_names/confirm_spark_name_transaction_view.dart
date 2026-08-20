@@ -116,7 +116,7 @@ class _ConfirmSparkNameTransactionViewState
         Future<void>.delayed(const Duration(seconds: 5)),
       ]);
 
-      txids.add(txData.txid!);
+      txids.addAll(txData.sparkSpends?.map((e) => e.txid!) ?? [txData.txid!]);
       ref.refresh(desktopUseUTXOs);
 
       // save note

@@ -97,12 +97,11 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
   }
 
   Future<void> attemptSave() async {
-    final canConnect = await testNodeConnection(
+    final canConnect = await ref.read(testNodeConnectionProvider)(
       context: context,
       onSuccess: _onTestSuccess,
       cryptoCurrency: coin,
       nodeFormData: ref.read(nodeFormDataProvider),
-      ref: ref,
     );
 
     bool? shouldSave;
@@ -260,6 +259,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           clearnetEnabled: plainEnabled,
           forceNoTor: forceNoTor,
           isPrimary: false,
+          nodeApiSecret: formData.apiSecret,
         );
 
         await ref
@@ -289,6 +289,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           clearnetEnabled: plainEnabled,
           forceNoTor: forceNoTor,
           isPrimary: formData.isPrimary ?? false,
+          nodeApiSecret: formData.apiSecret,
         );
 
         await ref
@@ -688,13 +689,13 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                     buttonHeight: isDesktop ? ButtonHeight.l : null,
                     onPressed: testConnectionEnabled
                         ? () async {
-                            final testPassed = await testNodeConnection(
-                              context: context,
-                              onSuccess: _onTestSuccess,
-                              cryptoCurrency: coin,
-                              nodeFormData: ref.read(nodeFormDataProvider),
-                              ref: ref,
-                            );
+                            final testPassed =
+                                await ref.read(testNodeConnectionProvider)(
+                                  context: context,
+                                  onSuccess: _onTestSuccess,
+                                  cryptoCurrency: coin,
+                                  nodeFormData: ref.read(nodeFormDataProvider),
+                                );
                             if (context.mounted) {
                               if (testPassed) {
                                 unawaited(
@@ -751,7 +752,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
 }
 
 class NodeFormData {
-  String? name, host, login, password;
+  String? name, host, login, password, apiSecret;
   int? port;
   bool? useSSL, isFailover, trusted, forceNoTor, isPrimary;
   TorPlainNetworkOption? netOption;
@@ -792,12 +793,14 @@ class _NodeFormState extends ConsumerState<NodeForm> {
   late final TextEditingController _portController;
   late final TextEditingController _passwordController;
   late final TextEditingController _usernameController;
+  late final TextEditingController _apiSecretController;
 
   final _nameFocusNode = FocusNode();
   final _passwordFocusNode = FocusNode();
   final _portFocusNode = FocusNode();
   final _hostFocusNode = FocusNode();
   final _usernameFocusNode = FocusNode();
+  final _apiSecretFocusNode = FocusNode();
 
   bool _useSSL = false;
   bool _isFailover = false;
@@ -859,6 +862,9 @@ class _NodeFormState extends ConsumerState<NodeForm> {
     ref.read(nodeFormDataProvider).password = _passwordController.text.isEmpty
         ? null
         : _passwordController.text;
+    ref.read(nodeFormDataProvider).apiSecret = _apiSecretController.text.isEmpty
+        ? null
+        : _apiSecretController.text;
     ref.read(nodeFormDataProvider).port = port;
     ref.read(nodeFormDataProvider).useSSL = _useSSL;
     ref.read(nodeFormDataProvider).isFailover = _isFailover;
@@ -877,6 +883,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
     _portController = TextEditingController();
     _passwordController = TextEditingController();
     _usernameController = TextEditingController();
+    _apiSecretController = TextEditingController();
 
     enableAuthFields = _checkShouldEnableAuthFields(widget.coin);
 
@@ -898,6 +905,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       _hostController.text = node.host;
       _portController.text = node.port.toString();
       _usernameController.text = node.loginName ?? "";
+      _apiSecretController.text = node.nodeApiSecret ?? "";
       _useSSL = node.useSSL;
       _isFailover = node.isFailover;
       _trusted = node.trusted ?? false;
@@ -941,12 +949,14 @@ class _NodeFormState extends ConsumerState<NodeForm> {
     _portController.dispose();
     _passwordController.dispose();
     _usernameController.dispose();
+    _apiSecretController.dispose();
 
     _nameFocusNode.dispose();
     _passwordFocusNode.dispose();
     _usernameFocusNode.dispose();
     _hostFocusNode.dispose();
     _portFocusNode.dispose();
+    _apiSecretFocusNode.dispose();
     super.dispose();
   }
 
@@ -1245,6 +1255,54 @@ class _NodeFormState extends ConsumerState<NodeForm> {
             ),
           ),
         if (enableAuthFields) const SizedBox(height: 8),
+        if (widget.coin is Mimblewimblecoin)
+          ClipRRect(
+            borderRadius: BorderRadius.circular(
+              Constants.size.circularBorderRadius,
+            ),
+            child: TextField(
+              autocorrect: Util.isDesktop ? false : true,
+              enableSuggestions: Util.isDesktop ? false : true,
+              controller: _apiSecretController,
+              readOnly: shouldBeReadOnly,
+              enabled: enableField(_apiSecretController),
+              obscureText: true,
+              focusNode: _apiSecretFocusNode,
+              style: STextStyles.field(context),
+              decoration:
+                  standardInputDecoration(
+                    "API secret (optional)",
+                    _apiSecretFocusNode,
+                    context,
+                  ).copyWith(
+                    suffixIcon:
+                        !shouldBeReadOnly &&
+                            _apiSecretController.text.isNotEmpty
+                        ? Padding(
+                            padding: const EdgeInsets.only(right: 0),
+                            child: UnconstrainedBox(
+                              child: Row(
+                                children: [
+                                  TextFieldIconButton(
+                                    child: const XIcon(),
+                                    onTap: () async {
+                                      _apiSecretController.text = "";
+                                      _updateState();
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        : null,
+                  ),
+              onChanged: (newValue) {
+                _updateState();
+                setState(() {});
+              },
+            ),
+          ),
+        if (widget.coin is Mimblewimblecoin) const SizedBox(height: 8),
         if (widget.coin is! CryptonoteCurrency)
           Row(
             children: [

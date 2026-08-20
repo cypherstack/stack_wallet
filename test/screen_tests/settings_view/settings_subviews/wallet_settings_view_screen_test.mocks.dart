@@ -101,6 +101,22 @@ class MockCachedElectrumXClient extends _i1.Mock
           as _i5.Future<Map<String, dynamic>>);
 
   @override
+  _i5.Future<List<Map<String, dynamic>>> getBatchTransactions({
+    required List<String>? txHashes,
+    required _i6.CryptoCurrency? cryptoCurrency,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#getBatchTransactions, [], {
+              #txHashes: txHashes,
+              #cryptoCurrency: cryptoCurrency,
+            }),
+            returnValue: _i5.Future<List<Map<String, dynamic>>>.value(
+              <Map<String, dynamic>>[],
+            ),
+          )
+          as _i5.Future<List<Map<String, dynamic>>>);
+
+  @override
   _i5.Future<void> clearSharedTransactionCache({
     required _i6.CryptoCurrency? cryptoCurrency,
   }) =>

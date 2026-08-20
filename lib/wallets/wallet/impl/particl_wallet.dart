@@ -73,34 +73,40 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
     String? blockedReason;
     String? utxoLabel;
 
+    // Only check the specific output this UTXO corresponds to, not all outputs.
+    final vout = jsonUTXO["tx_pos"] as int;
     final outputs = jsonTX["vout"] as List? ?? [];
 
-    for (final output in outputs) {
-      if (output is Map) {
-        if (output['ct_fee'] != null) {
-          // Blind output, ignore for now.
+    // Use Map<dynamic, dynamic>? because ElectrumX returns _Map<dynamic,dynamic>.
+    Map<dynamic, dynamic>? output;
+    for (final o in outputs) {
+      if (o is Map && o["n"] == vout) {
+        output = o;
+        break;
+      }
+    }
+
+    if (output != null) {
+      if (output['ct_fee'] != null) {
+        blocked = true;
+        blockedReason = "Blind output.";
+        utxoLabel = "Unsupported output type.";
+      } else if (output['rangeproof'] != null) {
+        blocked = true;
+        blockedReason = "Confidential output.";
+        utxoLabel = "Unsupported output type.";
+      } else if (output['data_hex'] != null) {
+        blocked = true;
+        blockedReason = "Data output.";
+        utxoLabel = "Unsupported output type.";
+      } else if (output['scriptPubKey'] != null) {
+        if (output['scriptPubKey']?['asm'] is String &&
+            (output['scriptPubKey']['asm'] as String).contains(
+              "OP_ISCOINSTAKE",
+            )) {
           blocked = true;
-          blockedReason = "Blind output.";
+          blockedReason = "Spending staking";
           utxoLabel = "Unsupported output type.";
-        } else if (output['rangeproof'] != null) {
-          // Private RingCT output, ignore for now.
-          blocked = true;
-          blockedReason = "Confidential output.";
-          utxoLabel = "Unsupported output type.";
-        } else if (output['data_hex'] != null) {
-          // Data output, ignore for now.
-          blocked = true;
-          blockedReason = "Data output.";
-          utxoLabel = "Unsupported output type.";
-        } else if (output['scriptPubKey'] != null) {
-          if (output['scriptPubKey']?['asm'] is String &&
-              (output['scriptPubKey']['asm'] as String).contains(
-                "OP_ISCOINSTAKE",
-              )) {
-            blocked = true;
-            blockedReason = "Spending staking";
-            utxoLabel = "Unsupported output type.";
-          }
         }
       }
     }
@@ -237,17 +243,12 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
           addresses.addAll(prevOut.addresses);
         }
 
-        InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
-          scriptSigHex: map["scriptSig"]?["hex"] as String?,
-          scriptSigAsm: map["scriptSig"]?["asm"] as String?,
-          sequence: map["sequence"] as int?,
+        InputV2 input = InputV2.fromElectrumxJson(
+          json: map,
           outpoint: outpoint,
-          valueStringSats: valueStringSats,
           addresses: addresses,
-          witness: map["witness"] as String?,
+          valueStringSats: valueStringSats,
           coinbase: coinbase,
-          innerRedeemScriptAsm: map["innerRedeemscriptAsm"] as String?,
-          // Need addresses before we can know if the wallet owns this input.
           walletOwns: false,
         );
 
@@ -454,7 +455,7 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
 
       tempInputs.add(
         InputV2.isarCantDoRequiredInDefaultConstructor(
-          scriptSigHex: txb.inputs.first.script?.toHex,
+          scriptSigHex: txb.inputs[i].script?.toHex,
           scriptSigAsm: null,
           sequence: 0xffffffff - 1,
           outpoint: OutpointV2.isarCantDoRequiredInDefaultConstructor(
@@ -511,6 +512,7 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
           ),
           witnessValue: insAndKeys[i].utxo.value,
           redeemScript: extraData[i].redeem,
+          isParticl: true,
           overridePrefix: cryptoCurrency.networkParams.bech32Hrp,
         );
       }
@@ -526,30 +528,8 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
     final builtTx = txb.build(cryptoCurrency.networkParams.bech32Hrp);
     final vSize = builtTx.virtualSize();
 
-    // Strip trailing 0x00 bytes from hex.
-    //
-    // This is done to match the previous particl_wallet implementation.
-    // TODO: [prio=low] Rework Particl tx construction so as to obviate this.
-    String hexString = builtTx.toHex(isParticl: true).toString();
-    if (hexString.length % 2 != 0) {
-      // Ensure the string has an even length.
-      Logging.instance.e(
-        "Hex string has odd length, which is unexpected.",
-        stackTrace: StackTrace.current,
-      );
-      throw Exception("Invalid hex string length.");
-    }
-    // int maxStrips = 3; // Strip up to 3 0x00s (match previous particl_wallet).
-    while (hexString.endsWith('00') && hexString.length > 2) {
-      hexString = hexString.substring(0, hexString.length - 2);
-      // maxStrips--;
-      // if (maxStrips <= 0) {
-      //   break;
-      // }
-    }
-
     return txData.copyWith(
-      raw: hexString,
+      raw: builtTx.toHex(isParticl: true),
       vSize: vSize,
       tempTx: null,
       //  builtTx.getId() requires an isParticl flag as well but the lib does not support that yet

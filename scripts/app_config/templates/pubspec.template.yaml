@@ -14,8 +14,8 @@ description: PLACEHOLDER
 version: PLACEHOLDER_V+PLACEHOLDER_B
 
 environment:
-  sdk: ">=3.10.0 <4.0.0"
-  flutter: ^3.38.1
+  sdk: ">=3.12.0 <4.0.0"
+  flutter: ^3.44.0
 
 dependencies:
   flutter:
@@ -30,21 +30,21 @@ dependencies:
 # %%END_ENABLE_FROST%%
 
 # %%ENABLE_XEL%%
-#  xelis_dart_sdk: 0.30.9
+#  xelis_dart_sdk: 0.35.1
 ##   git:
 ##     url: https://github.com/xelis-project/xelis-dart-sdk.git
 ##     ref: f1da98f8bad8b9ad3645661a23f9efb83e44b0c9
 #  xelis_flutter:
 #    git:
 #      url: https://github.com/xelis-project/xelis-flutter-ffi.git
-#      ref: v0.2.1
+#      ref: 3e5ac06c22956a9113a88a2d38ba82f8787be1c6
 # %%END_ENABLE_XEL%%
 
 # %%ENABLE_FIRO%%
 #  flutter_libsparkmobile:
 #    git:
 #      url: https://github.com/cypherstack/flutter_libsparkmobile.git
-#      ref: 4bd84c88e1b2a817a2604ec53030634cc3304bc7
+#      ref: 783bd00f0114b007f7ef97017cd10ad263ed452c
 # %%END_ENABLE_FIRO%%
 
 # %%ENABLE_EPIC%%
@@ -76,7 +76,7 @@ dependencies:
 
 # %%ENABLE_SAL%%
 #  cs_salvium: ^2.0.0
-#  cs_salvium_flutter_libs: ^2.0.1
+#  cs_salvium_flutter_libs: ^3.0.1
 # %%END_ENABLE_SAL%%
 
 # %%ENABLE_MWEBD%%
@@ -95,7 +95,7 @@ dependencies:
   bitcoindart:
     git:
       url: https://github.com/cypherstack/bitcoindart.git
-      ref: 7145be16bb88cffbd53326f7fa4570e414be09e4
+      ref: ea33b1f5d6a701791359a2e180f73866dc667732
 
   stack_wallet_backup:
     git:
@@ -105,7 +105,7 @@ dependencies:
   bip47:
     git:
       url: https://github.com/cypherstack/bip47.git
-      ref: a6e7941b98a43a613708b1a12564bc17e712cfc7
+      ref: bdc0c0788d1d6dfb04863a793955f848ba1624a8
 
   fusiondart:
     git:
@@ -113,7 +113,7 @@ dependencies:
       ref: 14427bcbbe1e754bce4a1b93cdb0a31ce56d792b
 
   # Utility plugins
-  http: ^1.5.0
+  http: ^1.6.0
   local_auth: ^2.3.0
   permission_handler: ^12.0.0+1
   flutter_local_notifications: ^17.2.2
@@ -169,6 +169,7 @@ dependencies:
   image: ^4.3.0
   wakelock_plus: ^1.2.8
   intl: ^0.19.0
+  html: ^0.15.6
   devicelocale:
     git:
       url: https://github.com/cypherstack/flutter-devicelocale
@@ -211,16 +212,16 @@ dependencies:
   tezart:
     git:
       url: https://github.com/cypherstack/tezart.git
-      ref: 210fe8bbb93a9e0bcbc8e99894c261f53097d5e2
+      ref: 84c563104f1a19c26e49bafccb7da404b210b666
   socks5_proxy: 1.0.3+dev.3
   convert: ^3.1.1
   flutter_hooks: ^0.20.3
   meta: ^1.9.1
   coinlib_flutter:
     git:
-      url: https://www.github.com/julian-CStack/coinlib
+      url: https://github.com/cypherstack/coinlib
       path: coinlib_flutter
-      ref: 5c59c7e7d120d9c981f23008fa03421d39fe8631
+      ref: f0e12dacb6d39e1cb340f0deae178d0fad1d6fd6
   electrum_adapter:
     git:
       url: https://github.com/cypherstack/electrum_adapter.git
@@ -316,14 +317,20 @@ dependency_overrides:
   # coinlib_flutter requires this
   coinlib:
     git:
-      url: https://www.github.com/julian-CStack/coinlib
+      url: https://github.com/cypherstack/coinlib
       path: coinlib
-      ref: 5c59c7e7d120d9c981f23008fa03421d39fe8631
+      ref: f0e12dacb6d39e1cb340f0deae178d0fad1d6fd6
 
   bip47:
     git:
       url: https://github.com/cypherstack/bip47.git
-      ref: 3ef6b94375d7b4d972b0bc0bd9597532381a88ec
+      ref: bdc0c0788d1d6dfb04863a793955f848ba1624a8
+
+  # bip47 pins a different bitcoindart commit; override to ours
+  bitcoindart:
+    git:
+      url: https://github.com/cypherstack/bitcoindart.git
+      ref: ea33b1f5d6a701791359a2e180f73866dc667732
 
   # required for dart 3, at least until a fix is merged upstream
   wakelock_windows:
@@ -341,7 +348,8 @@ dependency_overrides:
   # required to override solana's lower version
   decimal: ^3.2.4
 
-  analyzer: ^8.2.0
+  # pin analyzer below 8.4.0 to avoid source_gen 3.1.0 incompatibility (getInvocation() removed in 8.4.0+)
+  analyzer: ">=8.2.0 <8.4.0"
 
   # xelis override
   json_rpc_2: ^4.0.0

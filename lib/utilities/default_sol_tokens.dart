@@ -20,12 +20,12 @@ abstract class DefaultSolTokens {
           "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png",
     ),
     SolContract(
-      address: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenEst",
+      address: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
       name: "Tether",
       symbol: "USDT",
       decimals: 6,
       logoUri:
-          "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenEst/logo.svg",
+          "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB/logo.svg",
     ),
     SolContract(
       address: "MangoCzJ36AjZyKwVj3VnYU4GTonjfVEnJmvvWaxLac",
@@ -36,20 +36,20 @@ abstract class DefaultSolTokens {
           "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/MangoCzJ36AjZyKwVj3VnYU4GTonjfVEnJmvvWaxLac/logo.png",
     ),
     SolContract(
-      address: "SRMuApVgqbCmmp3uVrwpad5p4stLBUq3nSoSnqQQXmk",
+      address: "SRMuApVNdxXokk5GT7XD5cUUgXMBCoAz2LHeuAoKWRt",
       name: "Serum",
       symbol: "SRM",
       decimals: 6,
       logoUri:
-          "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/SRMuApVgqbCmmp3uVrwpad5p4stLBUq3nSoSnqQQXmk/logo.png",
+          "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/SRMuApVNdxXokk5GT7XD5cUUgXMBCoAz2LHeuAoKWRt/logo.png",
     ),
     SolContract(
-      address: "orca8TvxvggsCKvVPXSHXDvKgJ3bNroWusDawg461mpD",
+      address: "orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE",
       name: "Orca",
       symbol: "ORCA",
       decimals: 6,
       logoUri:
-          "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/orcaEKTdK7LKz57chYcSKdBI6qrE5dS1zG4FqHWGcKc/logo.svg",
+          "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE/logo.png",
     ),
   ];
 }

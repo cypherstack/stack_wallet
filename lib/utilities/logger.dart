@@ -123,6 +123,19 @@ class Logging {
     StackTrace? stackTrace,
     bool toFile = true, // false will print to console only
   }) {
+    if (Util.isTestEnv) {
+      // Persistent isolates may not work correctly during tests
+      // just print to console instead
+
+      // ignore: avoid_print
+      print(
+        "${level.name} [$time] ${_stringifyMessage(message)}"
+        ", ERROR: $error"
+        ", STRACE: $stackTrace",
+      );
+      return;
+    }
+
     if (Util.isTestEnv || Util.isArmLinux) {
       toFile = false;
     }

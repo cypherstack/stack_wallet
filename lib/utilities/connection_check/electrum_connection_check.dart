@@ -57,9 +57,9 @@ Future<bool> checkElectrumServer({
           ),
         );
 
-    await client.ping().timeout(
-      Duration(seconds: (proxyInfo == null ? 5 : 30)),
-    );
+    await client
+        .request('server.version')
+        .timeout(Duration(seconds: (proxyInfo == null ? 5 : 30)));
 
     return true;
   } catch (e, s) {

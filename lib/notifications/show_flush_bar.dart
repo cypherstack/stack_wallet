@@ -8,8 +8,9 @@
  *
  */
 
+import 'dart:async';
+
 import 'package:another_flushbar/flushbar.dart';
-import 'package:another_flushbar/flushbar_route.dart' as flushRoute;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -26,6 +27,9 @@ Future<dynamic> showFloatingFlushBar({
   required BuildContext context,
   Duration? duration = const Duration(milliseconds: 1500),
   FlushbarPosition flushbarPosition = FlushbarPosition.TOP,
+  @Deprecated(
+    'onTap is non-functional -- toasts are fully passive with IgnorePointer',
+  )
   VoidCallback? onTap,
 }) {
   Color bg;
@@ -45,34 +49,126 @@ Future<dynamic> showFloatingFlushBar({
       break;
   }
   final bar = Flushbar<dynamic>(
-    onTap: (_) {
-      onTap?.call();
-    },
+    onTap: null,
+    isDismissible: false,
     icon: iconAsset != null
-        ? SvgPicture.asset(
-            iconAsset,
-            height: 16,
-            width: 16,
-            color: fg,
-          )
+        ? SvgPicture.asset(iconAsset, height: 16, width: 16, color: fg)
         : null,
     message: message,
     messageColor: fg,
     flushbarPosition: flushbarPosition,
     backgroundColor: bg,
-    duration: duration,
+    duration: null,
     flushbarStyle: FlushbarStyle.FLOATING,
-    borderRadius: BorderRadius.circular(
-      Constants.size.circularBorderRadius,
-    ),
+    borderRadius: BorderRadius.circular(Constants.size.circularBorderRadius),
     margin: const EdgeInsets.all(20),
     maxWidth: 550,
   );
 
-  final _route = flushRoute.showFlushbar<dynamic>(
-    context: context,
-    flushbar: bar,
+  final completer = Completer<dynamic>();
+  final overlay = Overlay.of(context, rootOverlay: true);
+  late final OverlayEntry entry;
+  entry = OverlayEntry(
+    builder: (context) => _OverlayFlushbar(
+      animationDuration: const Duration(seconds: 1),
+      displayDuration: duration,
+      forwardCurve: Curves.easeOutCirc,
+      reverseCurve: Curves.easeOutCirc,
+      initialAlignment: const Alignment(-1.0, -2.0),
+      endAlignment: const Alignment(-1.0, -1.0),
+      onDismiss: () {
+        entry.remove();
+        if (!completer.isCompleted) {
+          completer.complete();
+        }
+      },
+      child: SafeArea(
+        child: Container(margin: const EdgeInsets.all(20), child: bar),
+      ),
+    ),
   );
+  overlay.insert(entry);
+  return completer.future;
+}
 
-  return Navigator.of(context, rootNavigator: true).push(_route);
+class _OverlayFlushbar extends StatefulWidget {
+  const _OverlayFlushbar({
+    required this.child,
+    required this.animationDuration,
+    required this.forwardCurve,
+    required this.reverseCurve,
+    required this.initialAlignment,
+    required this.endAlignment,
+    required this.onDismiss,
+    this.displayDuration,
+  });
+
+  final Widget child;
+  final Duration animationDuration;
+  final Duration? displayDuration;
+  final Curve forwardCurve;
+  final Curve reverseCurve;
+  final Alignment initialAlignment;
+  final Alignment endAlignment;
+  final VoidCallback onDismiss;
+
+  @override
+  State<_OverlayFlushbar> createState() => _OverlayFlushbarState();
+}
+
+class _OverlayFlushbarState extends State<_OverlayFlushbar>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<Alignment> _animation;
+  Timer? _timer;
+  bool _dismissed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: widget.animationDuration,
+      vsync: this,
+    );
+    _animation =
+        AlignmentTween(
+          begin: widget.initialAlignment,
+          end: widget.endAlignment,
+        ).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: widget.forwardCurve,
+            reverseCurve: widget.reverseCurve,
+          ),
+        );
+    _controller.forward();
+    if (widget.displayDuration != null) {
+      _timer = Timer(widget.displayDuration!, _dismiss);
+    }
+  }
+
+  void _dismiss() {
+    if (_dismissed) return;
+    _dismissed = true;
+    _controller.reverse().then((_) {
+      if (mounted) {
+        widget.onDismiss();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlignTransition(
+      alignment: _animation,
+      child: IgnorePointer(child: widget.child),
+    );
+  }
 }

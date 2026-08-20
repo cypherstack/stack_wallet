@@ -26,12 +26,10 @@ import '../../../../widgets/loading_indicator.dart';
 import '../../../../widgets/stack_text_field.dart';
 
 class DesktopAuthSend extends ConsumerStatefulWidget {
-  const DesktopAuthSend({
-    super.key,
-    required this.coin,
-  });
+  const DesktopAuthSend({super.key, required this.coin, this.tokenTicker});
 
   final CryptoCurrency coin;
+  final String? tokenTicker;
 
   @override
   ConsumerState<DesktopAuthSend> createState() => _DesktopAuthSendState();
@@ -59,12 +57,7 @@ class _DesktopAuthSendState extends ConsumerState<DesktopAuthSend> {
           builder: (context) => const Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              LoadingIndicator(
-                width: 200,
-                height: 200,
-              ),
-            ],
+            children: [LoadingIndicator(width: 200, height: 200)],
           ),
         ),
       );
@@ -77,15 +70,8 @@ class _DesktopAuthSendState extends ConsumerState<DesktopAuthSend> {
 
       if (mounted) {
         Navigator.of(context).pop();
-        Navigator.of(
-          context,
-          rootNavigator: true,
-        ).pop(passwordIsValid);
-        await Future<void>.delayed(
-          const Duration(
-            milliseconds: 100,
-          ),
-        );
+        Navigator.of(context, rootNavigator: true).pop(passwordIsValid);
+        await Future<void>.delayed(const Duration(milliseconds: 100));
       }
     } finally {
       _lock = false;
@@ -113,29 +99,17 @@ class _DesktopAuthSendState extends ConsumerState<DesktopAuthSend> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        SvgPicture.asset(
-          Assets.svg.keys,
-          width: 100,
-        ),
-        const SizedBox(
-          height: 56,
-        ),
+        SvgPicture.asset(Assets.svg.keys, width: 100),
+        const SizedBox(height: 56),
+        Text("Confirm transaction", style: STextStyles.desktopH3(context)),
+        const SizedBox(height: 16),
         Text(
-          "Confirm transaction",
-          style: STextStyles.desktopH3(context),
-        ),
-        const SizedBox(
-          height: 16,
-        ),
-        Text(
-          "Enter your wallet password to send ${widget.coin.ticker.toUpperCase()}",
+          "Enter your wallet password to send ${widget.tokenTicker?.toUpperCase() ?? widget.coin.ticker.toUpperCase()}",
           style: STextStyles.desktopTextMedium(context).copyWith(
             color: Theme.of(context).extension<StackColors>()!.textDark3,
           ),
         ),
-        const SizedBox(
-          height: 24,
-        ),
+        const SizedBox(height: 24),
         ClipRRect(
           borderRadius: BorderRadius.circular(
             Constants.size.circularBorderRadius,
@@ -144,9 +118,7 @@ class _DesktopAuthSendState extends ConsumerState<DesktopAuthSend> {
             key: const Key("desktopLoginPasswordFieldKey"),
             focusNode: passwordFocusNode,
             controller: passwordController,
-            style: STextStyles.desktopTextMedium(context).copyWith(
-              height: 2,
-            ),
+            style: STextStyles.desktopTextMedium(context).copyWith(height: 2),
             obscureText: hidePassword,
             enableSuggestions: false,
             autocorrect: false,
@@ -156,45 +128,44 @@ class _DesktopAuthSendState extends ConsumerState<DesktopAuthSend> {
                 _confirmPressed();
               }
             },
-            decoration: standardInputDecoration(
-              "Enter password",
-              passwordFocusNode,
-              context,
-            ).copyWith(
-              suffixIcon: UnconstrainedBox(
-                child: SizedBox(
-                  height: 70,
-                  child: Row(
-                    children: [
-                      const SizedBox(
-                        width: 24,
+            decoration:
+                standardInputDecoration(
+                  "Enter password",
+                  passwordFocusNode,
+                  context,
+                ).copyWith(
+                  suffixIcon: UnconstrainedBox(
+                    child: SizedBox(
+                      height: 70,
+                      child: Row(
+                        children: [
+                          const SizedBox(width: 24),
+                          GestureDetector(
+                            key: const Key(
+                              "restoreFromFilePasswordFieldShowPasswordButtonKey",
+                            ),
+                            onTap: () async {
+                              setState(() {
+                                hidePassword = !hidePassword;
+                              });
+                            },
+                            child: SvgPicture.asset(
+                              hidePassword
+                                  ? Assets.svg.eye
+                                  : Assets.svg.eyeSlash,
+                              color: Theme.of(
+                                context,
+                              ).extension<StackColors>()!.textDark3,
+                              width: 24,
+                              height: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                        ],
                       ),
-                      GestureDetector(
-                        key: const Key(
-                          "restoreFromFilePasswordFieldShowPasswordButtonKey",
-                        ),
-                        onTap: () async {
-                          setState(() {
-                            hidePassword = !hidePassword;
-                          });
-                        },
-                        child: SvgPicture.asset(
-                          hidePassword ? Assets.svg.eye : Assets.svg.eyeSlash,
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textDark3,
-                          width: 24,
-                          height: 24,
-                        ),
-                      ),
-                      const SizedBox(
-                        width: 12,
-                      ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
-            ),
             onChanged: (newValue) {
               setState(() {
                 _confirmEnabled = passwordController.text.isNotEmpty;
@@ -202,9 +173,7 @@ class _DesktopAuthSendState extends ConsumerState<DesktopAuthSend> {
             },
           ),
         ),
-        const SizedBox(
-          height: 48,
-        ),
+        const SizedBox(height: 48),
         Row(
           children: [
             Expanded(
@@ -214,9 +183,7 @@ class _DesktopAuthSendState extends ConsumerState<DesktopAuthSend> {
                 onPressed: Navigator.of(context).pop,
               ),
             ),
-            const SizedBox(
-              width: 16,
-            ),
+            const SizedBox(width: 16),
             Expanded(
               child: PrimaryButton(
                 enabled: _confirmEnabled,

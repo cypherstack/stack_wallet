@@ -1,8 +1,6 @@
 // TODO MWC
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hive_ce/hive.dart';
-import 'package:hive_test/hive_test.dart';
 import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/models/node_model.dart';
@@ -10,16 +8,26 @@ import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
+import '../hive/hive_ce_test_utils.dart';
+
 void main() {
   bool wasRegistered = false;
+  final expectedPrimaryDefaults = AppConfig.coins
+      .where((coin) => coin.identifier != 'firo')
+      .map((e) => e.defaultNode(isPrimary: true))
+      .toList(growable: false);
+  final expectedDefaultNodeCount =
+      expectedPrimaryDefaults.length +
+      (AppConfig.coins.any((e) => e.identifier == 'firo') ? 4 : 0);
+
   setUp(() async {
-    await setUpTestHive();
+    await setUpHiveCeTest();
     if (!wasRegistered) {
       wasRegistered = true;
-      Hive.registerAdapter(NodeModelAdapter());
+      DB.instance.hive.registerAdapter(NodeModelAdapter());
     }
-    await Hive.openBox<NodeModel>(DB.boxNameNodeModels);
-    // await Hive.openBox<NodeModel>(DB.boxNamePrimaryNodes);
+    await DB.instance.hive.openBox<NodeModel>(DB.boxNameNodeModels);
+    // await DB.instance.hive.openBox<NodeModel>(DB.boxNamePrimaryNodes);
   });
 
   group("Empty nodes DB tests", () {
@@ -115,10 +123,7 @@ void main() {
       final fakeStore = FakeSecureStorage();
       final service = NodeService(secureStorageInterface: fakeStore);
       await service.updateDefaults();
-      expect(
-        service.nodes.length,
-        AppConfig.coins.map((e) => e.defaultNode).length,
-      );
+      expect(service.nodes.length, expectedDefaultNodeCount);
       expect(fakeStore.interactions, 0);
     });
   });
@@ -177,10 +182,12 @@ void main() {
       final fakeStore = FakeSecureStorage();
       final service = NodeService(secureStorageInterface: fakeStore);
       expect(
-        service.getPrimaryNodeFor(
-          currency: Bitcoin(CryptoCurrencyNetwork.main),
-        ),
-        null,
+        service
+            .getPrimaryNodeFor(currency: Bitcoin(CryptoCurrencyNetwork.main))
+            ?.toString(),
+        Bitcoin(
+          CryptoCurrencyNetwork.main,
+        ).defaultNode(isPrimary: true).toString(),
       );
       await service.setPrimaryNodeFor(
         coin: Bitcoin(CryptoCurrencyNetwork.main),
@@ -190,7 +197,9 @@ void main() {
         service
             .getPrimaryNodeFor(currency: Bitcoin(CryptoCurrencyNetwork.main))
             .toString(),
-        Bitcoin(CryptoCurrencyNetwork.main).defaultNode.toString(),
+        Bitcoin(
+          CryptoCurrencyNetwork.main,
+        ).defaultNode(isPrimary: true).toString(),
       );
       expect(fakeStore.interactions, 0);
     });
@@ -206,13 +215,13 @@ void main() {
         coin: Monero(CryptoCurrencyNetwork.main),
         node: Monero(CryptoCurrencyNetwork.main).defaultNode(isPrimary: true),
       );
-      expect(
-        service.primaryNodes.toString(),
-        [
-          Bitcoin(CryptoCurrencyNetwork.main).defaultNode(isPrimary: true),
-          Monero(CryptoCurrencyNetwork.main).defaultNode(isPrimary: true),
-        ].toString(),
-      );
+      final primaryNodes = service.primaryNodes;
+      final expectedPrimaryNodes = [...expectedPrimaryDefaults]
+        ..sort((a, b) => a.id.compareTo(b.id));
+      primaryNodes.sort((a, b) => a.id.compareTo(b.id));
+
+      expect(primaryNodes.length, expectedPrimaryNodes.length);
+      expect(primaryNodes.toString(), expectedPrimaryNodes.toString());
       expect(fakeStore.interactions, 0);
     });
 
@@ -220,15 +229,18 @@ void main() {
       final fakeStore = FakeSecureStorage();
       final service = NodeService(secureStorageInterface: fakeStore);
       final nodes = service.nodes;
-      final defaults = AppConfig.coins
-          .map((e) => e.defaultNode(isPrimary: true))
-          .toList();
+      final defaultIds = expectedPrimaryDefaults.map((e) => e.id).toSet();
+      final extraFiroIds = service.nodes
+          .where((node) => node.id.startsWith('not_a_real_default_but_temp_'))
+          .map((node) => node.id)
+          .toSet();
 
-      nodes.sort((a, b) => a.id.compareTo(b.id));
-      defaults.sort((a, b) => a.id.compareTo(b.id));
-
-      expect(nodes.length, defaults.length);
-      expect(nodes.toString(), defaults.toString());
+      expect(nodes.length, expectedDefaultNodeCount);
+      expect(nodes.map((node) => node.id).toSet(), containsAll(defaultIds));
+      expect(
+        extraFiroIds.length,
+        AppConfig.coins.any((e) => e.identifier == 'firo') ? 4 : 0,
+      );
       expect(fakeStore.interactions, 0);
     });
 
@@ -236,21 +248,15 @@ void main() {
       final fakeStore = FakeSecureStorage();
       final service = NodeService(secureStorageInterface: fakeStore);
       await service.save(nodeA, null, true);
-      expect(
-        service.nodes.length,
-        AppConfig.coins.map((e) => e.defaultNode).length + 1,
-      );
-      expect(fakeStore.interactions, 0);
+      expect(service.nodes.length, expectedDefaultNodeCount + 1);
+      expect(fakeStore.interactions, 1);
     });
 
     test("add a node with a password", () async {
       final fakeStore = FakeSecureStorage();
       final service = NodeService(secureStorageInterface: fakeStore);
       await service.save(nodeA, "some password", true);
-      expect(
-        service.nodes.length,
-        AppConfig.coins.map((e) => e.defaultNode).length + 1,
-      );
+      expect(service.nodes.length, expectedDefaultNodeCount + 1);
       expect(fakeStore.interactions, 1);
       expect(fakeStore.writes, 1);
     });
@@ -309,10 +315,7 @@ void main() {
 
         await service.delete(nodeB.id, true);
 
-        expect(
-          service.nodes.length,
-          AppConfig.coins.map((e) => e.defaultNode).length + 2,
-        );
+        expect(service.nodes.length, expectedDefaultNodeCount + 2);
         expect(
           service.nodes.where((element) => element.id == nodeB.id).length,
           0,
@@ -341,6 +344,6 @@ void main() {
   });
 
   tearDown(() async {
-    await tearDownTestHive();
+    await tearDownHiveCeTest();
   });
 }

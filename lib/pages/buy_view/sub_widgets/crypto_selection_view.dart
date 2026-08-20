@@ -98,8 +98,9 @@ class _CryptoSelectionViewState extends ConsumerState<CryptoSelectionView> {
       builder: (child) {
         return Background(
           child: Scaffold(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(
+              context,
+            ).extension<StackColors>()!.background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () async {
@@ -109,7 +110,7 @@ class _CryptoSelectionViewState extends ConsumerState<CryptoSelectionView> {
                       const Duration(milliseconds: 50),
                     );
                   }
-                  if (mounted) {
+                  if (context.mounted) {
                     Navigator.of(context).pop();
                   }
                 },
@@ -145,45 +146,45 @@ class _CryptoSelectionViewState extends ConsumerState<CryptoSelectionView> {
               focusNode: _searchFocusNode,
               onChanged: filter,
               style: STextStyles.field(context),
-              decoration: standardInputDecoration(
-                "Search",
-                _searchFocusNode,
-                context,
-                desktopMed: isDesktop,
-              ).copyWith(
-                prefixIcon: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 16,
-                  ),
-                  child: SvgPicture.asset(
-                    Assets.svg.search,
-                    width: 16,
-                    height: 16,
-                  ),
-                ),
-                suffixIcon:
-                    _searchController.text.isNotEmpty
+              decoration:
+                  standardInputDecoration(
+                    "Search",
+                    _searchFocusNode,
+                    context,
+                    desktopMed: isDesktop,
+                  ).copyWith(
+                    prefixIcon: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 16,
+                      ),
+                      child: SvgPicture.asset(
+                        Assets.svg.search,
+                        width: 16,
+                        height: 16,
+                      ),
+                    ),
+                    suffixIcon: _searchController.text.isNotEmpty
                         ? Padding(
-                          padding: const EdgeInsets.only(right: 0),
-                          child: UnconstrainedBox(
-                            child: Row(
-                              children: [
-                                TextFieldIconButton(
-                                  child: const XIcon(),
-                                  onTap: () async {
-                                    setState(() {
-                                      _searchController.text = "";
-                                    });
-                                    filter("");
-                                  },
-                                ),
-                              ],
+                            padding: const EdgeInsets.only(right: 0),
+                            child: UnconstrainedBox(
+                              child: Row(
+                                children: [
+                                  TextFieldIconButton(
+                                    child: const XIcon(),
+                                    onTap: () async {
+                                      setState(() {
+                                        _searchController.text = "";
+                                      });
+                                      filter("");
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        )
+                          )
                         : null,
-              ),
+                  ),
             ),
           ),
           const SizedBox(height: 10),
@@ -226,14 +227,12 @@ class _CryptoSelectionViewState extends ConsumerState<CryptoSelectionView> {
                                   const SizedBox(height: 2),
                                   Text(
                                     _coins[index].ticker.toUpperCase(),
-                                    style: STextStyles.smallMed12(
-                                      context,
-                                    ).copyWith(
-                                      color:
-                                          Theme.of(context)
+                                    style: STextStyles.smallMed12(context)
+                                        .copyWith(
+                                          color: Theme.of(context)
                                               .extension<StackColors>()!
                                               .textSubtitle1,
-                                    ),
+                                        ),
                                   ),
                                 ],
                               ),
