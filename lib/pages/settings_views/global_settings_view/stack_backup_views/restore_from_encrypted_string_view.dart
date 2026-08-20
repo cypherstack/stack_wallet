@@ -47,9 +47,8 @@ class _RestoreFromEncryptedStringViewState
 
   bool hidePassword = true;
 
-  Future<bool> _onWillPop() async {
+  Future<void> _onPopInvoked() async {
     Navigator.of(context).pushReplacementNamed(HomeView.routeName);
-    return false;
   }
 
   @override
@@ -68,8 +67,14 @@ class _RestoreFromEncryptedStringViewState
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: _onWillPop,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) async {
+        if (didPop) {
+          return;
+        }
+        await _onPopInvoked();
+      },
       child: Background(
         child: Scaffold(
           backgroundColor: Theme.of(
@@ -83,7 +88,7 @@ class _RestoreFromEncryptedStringViewState
                   await Future<void>.delayed(const Duration(milliseconds: 75));
                 }
                 if (mounted) {
-                  _onWillPop();
+                  _onPopInvoked();
                 }
               },
             ),
@@ -183,14 +188,11 @@ class _RestoreFromEncryptedStringViewState
                                         );
                                       }
 
-                                      bool shouldPop = false;
                                       showDialog<dynamic>(
                                         barrierDismissible: false,
                                         context: context,
-                                        builder: (_) => WillPopScope(
-                                          onWillPop: () async {
-                                            return shouldPop;
-                                          },
+                                        builder: (_) => PopScope(
+                                          canPop: false,
                                           child: Column(
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.stretch,
@@ -239,7 +241,6 @@ class _RestoreFromEncryptedStringViewState
 
                                       if (mounted) {
                                         // pop LoadingIndicator
-                                        shouldPop = true;
                                         Navigator.of(context).pop();
 
                                         passwordController.text = "";

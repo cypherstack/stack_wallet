@@ -59,18 +59,12 @@ class BasicDialog extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    title,
-                    style: STextStyles.desktopH3(context),
-                  ),
+                  Text(title, style: STextStyles.desktopH3(context)),
                   const DesktopDialogCloseButton(),
                 ],
               ),
             ),
-            if (flex)
-              const Spacer(
-                flex: 2,
-              ),
+            if (flex) const Spacer(flex: 2),
             if (message != null)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -79,14 +73,9 @@ class BasicDialog extends StatelessWidget {
                   style: STextStyles.desktopTextSmall(context),
                 ),
               ),
-            if (flex)
-              const Spacer(
-                flex: 3,
-              ),
+            if (flex) const Spacer(flex: 3),
             if (leftButton != null || rightButton != null)
-              const SizedBox(
-                height: 32,
-              ),
+              const SizedBox(height: 32),
             if (leftButton != null || rightButton != null)
               Padding(
                 padding: const EdgeInsets.all(32),
@@ -95,9 +84,7 @@ class BasicDialog extends StatelessWidget {
                     leftButton != null
                         ? Expanded(child: leftButton!)
                         : const Spacer(),
-                    const SizedBox(
-                      width: 16,
-                    ),
+                    const SizedBox(width: 16),
                     rightButton != null
                         ? Expanded(child: rightButton!)
                         : const Spacer(),
@@ -108,10 +95,8 @@ class BasicDialog extends StatelessWidget {
         ),
       );
     } else {
-      return WillPopScope(
-        onWillPop: () async {
-          return canPopWithBackButton;
-        },
+      return PopScope(
+        canPop: canPopWithBackButton,
         child: StackDialog(
           title: title,
           leftButton: leftButton,

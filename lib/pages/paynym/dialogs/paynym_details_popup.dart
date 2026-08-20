@@ -63,25 +63,16 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
     final wallet = ref.read(pWallets).getWallet(widget.walletId);
     await Navigator.of(context).pushNamed(
       SendView.routeName,
-      arguments: Tuple3(
-        wallet.walletId,
-        wallet.info.coin,
-        widget.accountLite,
-      ),
+      arguments: Tuple3(wallet.walletId, wallet.info.coin, widget.accountLite),
     );
   }
 
   Future<void> _onConnectPressed() async {
-    bool canPop = false;
     unawaited(
       showDialog<void>(
         context: context,
-        builder: (context) => WillPopScope(
-          onWillPop: () async => canPop,
-          child: const LoadingIndicator(
-            width: 200,
-          ),
-        ),
+        builder: (context) =>
+            const PopScope(canPop: false, child: LoadingIndicator(width: 200)),
       ),
     );
 
@@ -90,7 +81,6 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
     final coin = ref.read(pWalletCoin(widget.walletId));
 
     if (await wallet.hasConnected(widget.accountLite.code)) {
-      canPop = true;
       Navigator.of(context).pop();
       // TODO show info popup
       return;
@@ -107,7 +97,6 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
       );
     } on InsufficientBalanceException catch (_) {
       if (mounted) {
-        canPop = true;
         Navigator.of(context).pop();
       }
       setState(() {
@@ -116,16 +105,13 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
       return;
     } catch (e) {
       if (mounted) {
-        canPop = true;
         Navigator.of(context).pop();
       }
 
       await showDialog<void>(
         context: context,
-        builder: (context) => StackOkDialog(
-          title: "Error",
-          message: e.toString(),
-        ),
+        builder: (context) =>
+            StackOkDialog(title: "Error", message: e.toString()),
       );
       return;
     }
@@ -133,7 +119,6 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
     if (mounted) {
       // We have enough balance and prepared tx should be good to go.
 
-      canPop = true;
       // close loading
       Navigator.of(context).pop();
 
@@ -196,9 +181,7 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                           paymentCodeString: widget.accountLite.code,
                           size: 36,
                         ),
-                        const SizedBox(
-                          width: 12,
-                        ),
+                        const SizedBox(width: 12),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -207,8 +190,9 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                               style: STextStyles.w600_14(context),
                             ),
                             FutureBuilder(
-                              future:
-                                  wallet.hasConnected(widget.accountLite.code),
+                              future: wallet.hasConnected(
+                                widget.accountLite.code,
+                              ),
                               builder: (context, AsyncSnapshot<bool> snapshot) {
                                 if (snapshot.connectionState ==
                                         ConnectionState.done &&
@@ -217,17 +201,15 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      const SizedBox(
-                                        height: 2,
-                                      ),
+                                      const SizedBox(height: 2),
                                       Text(
                                         "Connected",
                                         style: STextStyles.w500_12(context)
                                             .copyWith(
-                                          color: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .accentColorGreen,
-                                        ),
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .accentColorGreen,
+                                            ),
                                       ),
                                     ],
                                   );
@@ -253,9 +235,9 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                                 Assets.svg.circleArrowUpRight,
                                 width: 14,
                                 height: 14,
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .buttonTextPrimary,
+                                color: Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.buttonTextPrimary,
                               ),
                               iconSpacing: 8,
                               width: 100,
@@ -269,9 +251,9 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                                 Assets.svg.circlePlusFilled,
                                 width: 13,
                                 height: 13,
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .buttonTextPrimary,
+                                color: Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.buttonTextPrimary,
                               ),
                               iconSpacing: 8,
                               width: 128,
@@ -292,13 +274,11 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const SizedBox(
-                        height: 24,
-                      ),
+                      const SizedBox(height: 24),
                       RoundedContainer(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .warningBackground,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.warningBackground,
                         child: Text(
                           "Adding a PayNym to your contacts requires a one-time "
                           "transaction fee for creating the record on the "
@@ -306,9 +286,9 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                           "${ref.watch(pWalletCoin(widget.walletId)).ticker} "
                           "into your wallet and try again.",
                           style: STextStyles.infoSmall(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .warningForeground,
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.warningForeground,
                             fontSize: 12,
                           ),
                         ),
@@ -340,32 +320,26 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                       children: [
                         Text(
                           "PayNym address",
-                          style: STextStyles.infoSmall(context).copyWith(
-                            fontSize: 12,
-                          ),
+                          style: STextStyles.infoSmall(
+                            context,
+                          ).copyWith(fontSize: 12),
                         ),
-                        const SizedBox(
-                          height: 6,
-                        ),
+                        const SizedBox(height: 6),
                         Text(
                           widget.accountLite.code,
                           style: STextStyles.infoSmall(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textDark,
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textDark,
                             fontSize: 12,
                           ),
                         ),
-                        const SizedBox(
-                          height: 6,
-                        ),
+                        const SizedBox(height: 6),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(
-                  width: 20,
-                ),
+                const SizedBox(width: 20),
                 QR(
                   padding: const EdgeInsets.all(0),
                   size: 100,
@@ -375,11 +349,7 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.only(
-              left: 24,
-              right: 24,
-              bottom: 24,
-            ),
+            padding: const EdgeInsets.only(left: 24, right: 24, bottom: 24),
             child: Row(
               children: [
                 kDisableFollowing
@@ -391,9 +361,7 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                           style: PaynymFollowToggleButtonStyle.detailsPopup,
                         ),
                       ),
-                const SizedBox(
-                  width: 12,
-                ),
+                const SizedBox(width: 12),
                 Expanded(
                   child: SecondaryButton(
                     label: "Copy",
@@ -403,15 +371,13 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                       Assets.svg.copy,
                       width: 12,
                       height: 12,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .buttonTextSecondary,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.buttonTextSecondary,
                     ),
                     onPressed: () async {
                       await Clipboard.setData(
-                        ClipboardData(
-                          text: widget.accountLite.code,
-                        ),
+                        ClipboardData(text: widget.accountLite.code),
                       );
                       unawaited(
                         showFloatingFlushBar(

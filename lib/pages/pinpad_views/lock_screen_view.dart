@@ -191,8 +191,9 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
       await ref.read(prefsChangeNotifierProvider).init();
     }
 
-    final bool useBiometrics =
-        ref.read(prefsChangeNotifierProvider).useBiometrics;
+    final bool useBiometrics = ref
+        .read(prefsChangeNotifierProvider)
+        .useBiometrics;
 
     final title = widget.biometricsAuthenticationTitle;
     final localizedReason = widget.biometricsLocalizedReason;
@@ -423,22 +424,21 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
         extendBodyBehindAppBar: true,
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
-          leading:
-              widget.showBackButton
-                  ? AppBarBackButton(
-                    onPressed: () async {
-                      if (FocusScope.of(context).hasFocus) {
-                        FocusScope.of(context).unfocus();
-                        await Future<void>.delayed(
-                          const Duration(milliseconds: 70),
-                        );
-                      }
-                      if (mounted) {
-                        Navigator.of(context).pop();
-                      }
-                    },
-                  )
-                  : Container(),
+          leading: widget.showBackButton
+              ? AppBarBackButton(
+                  onPressed: () async {
+                    if (FocusScope.of(context).hasFocus) {
+                      FocusScope.of(context).unfocus();
+                      await Future<void>.delayed(
+                        const Duration(milliseconds: 70),
+                      );
+                    }
+                    if (mounted) {
+                      Navigator.of(context).pop();
+                    }
+                  },
+                )
+              : Container(),
           actions: [
             // check prefs and hide if user has biometrics toggle off?
             Column(
@@ -500,15 +500,15 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                         disabledBorder: InputBorder.none,
                         errorBorder: InputBorder.none,
                         focusedErrorBorder: InputBorder.none,
-                        fillColor:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.background,
+                        fillColor: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.background,
                         counterText: "",
                       ),
                       submittedFieldDecoration: _pinPutDecoration,
-                      isRandom:
-                          ref.read(prefsChangeNotifierProvider).randomizePIN,
+                      isRandom: ref
+                          .read(prefsChangeNotifierProvider)
+                          .randomizePIN,
                       onSubmit: (pin) {
                         if (!_autoPinCheckLock.isLocked) {
                           _onSubmitPin(pin);
@@ -528,11 +528,6 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
   Widget build(BuildContext context) {
     return widget.showBackButton
         ? _body
-        : WillPopScope(
-          onWillPop: () async {
-            return widget.showBackButton;
-          },
-          child: _body,
-        );
+        : PopScope(canPop: widget.showBackButton, child: _body);
   }
 }

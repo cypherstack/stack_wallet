@@ -63,24 +63,16 @@ class _RescanningDialogState extends State<RescanningDialog>
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        return false;
-      },
+    return PopScope(
+      canPop: false,
       child: ConditionalParent(
         condition: isDesktop,
-        builder: (child) => DesktopDialog(
-          maxHeight: 150,
-          maxWidth: 500,
-          child: child,
-        ),
+        builder: (child) =>
+            DesktopDialog(maxHeight: 150, maxWidth: 500, child: child),
         child: const StackDialog(
           title: "Rescanning blockchain",
           message: "This may take a while. Please do not exit this screen.",
-          icon: RotatingArrows(
-            width: 24,
-            height: 24,
-          ),
+          icon: RotatingArrows(width: 24, height: 24),
           // rightButton: TextButton(
           //   style: Theme.of(context).textButtonTheme.style?.copyWith(
           //     backgroundColor: MaterialStateProperty.all<Color>(
