@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../models/shopinbit/shopinbit_order_model.dart';
+import '../../db/drift/shared_db/shared_database.dart';
+import '../../models/shopinbit/shopinbit_enums.dart';
 import '../../providers/providers.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
@@ -13,6 +14,7 @@ import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/dialogs/nested_navigator_dialog/nested_navigator_dialog.dart';
 import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/rounded_container.dart';
 import '../exchange_view/sub_widgets/step_row.dart';
@@ -20,11 +22,11 @@ import 'shopinbit_step_3.dart';
 import 'shopinbit_step_4.dart';
 
 class ShopInBitStep2 extends ConsumerStatefulWidget {
-  const ShopInBitStep2({super.key, required this.model});
+  const ShopInBitStep2({super.key, this.isActuallyFirstStep = false});
 
   static const String routeName = "/shopInBitStep2";
 
-  final ShopInBitOrderModel model;
+  final bool isActuallyFirstStep;
 
   @override
   ConsumerState<ShopInBitStep2> createState() => _ShopInBitStep2State();
@@ -34,30 +36,31 @@ class _ShopInBitStep2State extends ConsumerState<ShopInBitStep2> {
   ShopInBitCategory? _selected;
 
   Future<void> _continue() async {
-    widget.model.category = _selected;
-    final skipGuidelines =
-        (await ref.read(pSharedDrift).shopinBitSettingsDao.getSettings())
-            .guidelinesAccepted;
+    final category = _selected!;
+
+    final settings = await ref
+        .read(pSharedDrift)
+        .shopInBitSettingsDao
+        .getCurrentSettings();
+
+    if (settings == null) {
+      throw Exception("Shopinbit settings should never be null here. Fixme");
+    }
+
     if (!mounted) return;
 
-    if (skipGuidelines) {
-      widget.model.guidelinesAccepted = true;
-      await Navigator.of(
-        context,
-      ).pushNamed(ShopInBitStep4.routeName, arguments: widget.model);
-    } else {
-      await Navigator.of(
-        context,
-      ).pushNamed(ShopInBitStep3.routeName, arguments: widget.model);
-    }
-  }
+    final skipGuidelines = settings.guidelinesAcceptedFor(category);
 
-  @override
-  void initState() {
-    super.initState();
-    // Reset category selection.
-    widget.model.category = null;
-    _selected = null;
+    if (skipGuidelines) {
+      await Navigator.of(
+        context,
+      ).pushNamed(ShopInBitStep4.routeName, arguments: category);
+    } else {
+      await Navigator.of(context).pushNamed(
+        ShopInBitStep3.routeName,
+        arguments: (category: category, customerKey: settings.customerKey),
+      );
+    }
   }
 
   @override
@@ -77,11 +80,23 @@ class _ShopInBitStep2State extends ConsumerState<ShopInBitStep2> {
                 children: [
                   Row(
                     children: [
-                      const AppBarBackButton(isCompact: true, iconSize: 23),
+                      widget.isActuallyFirstStep
+                          ? const SizedBox(width: 32)
+                          : const AppBarBackButton(
+                              isCompact: true,
+                              iconSize: 23,
+                            ),
                       Text("ShopinBit", style: STextStyles.desktopH3(context)),
                     ],
                   ),
-                  const DesktopDialogCloseButton(),
+                  DesktopDialogCloseButton(
+                    onPressedOverride: () =>
+                        NestedNavigatorDialog.of(context).close(
+                          args: widget.isActuallyFirstStep
+                              ? const .noWarning()
+                              : const .genericWarning(),
+                        ),
+                  ),
                 ],
               ),
               Flexible(

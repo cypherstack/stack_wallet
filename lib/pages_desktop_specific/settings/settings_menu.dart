@@ -13,9 +13,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../app_config.dart';
-import '../../providers/providers.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
+import '../../utilities/constants.dart';
 import 'settings_menu_item.dart';
 
 final selectedSettingsMenuItemStateProvider = StateProvider<int>((_) => 0);
@@ -32,10 +32,6 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    final familiarity = ref.watch(
-      prefsChangeNotifierProvider.select((v) => v.familiarity),
-    );
-
     final List<String> labels = [
       "Backup and restore",
       "Security",
@@ -46,7 +42,8 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
       "Syncing preferences",
       if (AppConfig.hasFeature(AppFeature.themeSelection)) "Appearance",
       "Advanced",
-      if (familiarity >= 6) "ShopinBit",
+      if (Constants.enableExchange && AppConfig.hasFeature(.shopinBit))
+        "ShopinBit",
     ];
 
     return Column(

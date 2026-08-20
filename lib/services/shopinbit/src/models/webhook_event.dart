@@ -1,16 +1,25 @@
+import '../../../../utilities/logger.dart';
+
 enum WebhookEventType {
   ticketStateChanged('ticket.state_changed'),
-  ticketMessageCreated('ticket.message_created');
+  ticketMessageCreated('ticket.message_created'),
+  // Sentinel for any webhook event_type the API sends that this client does
+  // not recognise. Callers MUST drop these events rather than dispatch them:
+  // coercing an unknown event onto a known handler is worse than ignoring it.
+  unknown('UNKNOWN');
 
   final String value;
   const WebhookEventType(this.value);
 
-  static WebhookEventType fromString(String value) {
-    return WebhookEventType.values.firstWhere(
-      (e) => e.value == value,
-      orElse: () =>
-          throw Exception("Unknown WebhookEventType string found: $value"),
+  static WebhookEventType fromString(String s) {
+    for (final e in WebhookEventType.values) {
+      if (e.value == s) return e;
+    }
+    Logging.instance.w(
+      "ShopInBit: unrecognised WebhookEventType '$s' from API: "
+      "mapping to WebhookEventType.unknown (event will be dropped)",
     );
+    return WebhookEventType.unknown;
   }
 }
 

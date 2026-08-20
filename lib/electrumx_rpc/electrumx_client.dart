@@ -117,6 +117,8 @@ class ElectrumXClient {
   final Mutex _torConnectingLock = Mutex();
   bool _requireMutex = false;
 
+  final _adapterMutex = Mutex();
+
   ElectrumXClient({
     required String host,
     required int port,
@@ -219,111 +221,115 @@ class ElectrumXClient {
   }
 
   Future<void> checkElectrumAdapter() async {
-    ({InternetAddress host, int port})? proxyInfo;
+    await _adapterMutex.protect(() async {
+      ({InternetAddress host, int port})? proxyInfo;
 
-    if (AppConfig.hasFeature(AppFeature.tor)) {
-      // If we're supposed to use Tor...
-      if (_prefs.useTor) {
-        // But Tor isn't running...
-        if (_torService.status != TorConnectionStatus.connected) {
-          // And the killswitch isn't set...
-          if (!_prefs.torKillSwitch) {
-            // Then we'll just proceed and connect to ElectrumX through
-            // clearnet at the bottom of this function.
-            Logging.instance.w(
-              "Tor preference set but Tor is not enabled, killswitch not set,"
-              " connecting to Electrum adapter through clearnet",
-            );
+      if (AppConfig.hasFeature(AppFeature.tor)) {
+        // If we're supposed to use Tor...
+        if (_prefs.useTor) {
+          // But Tor isn't running...
+          if (_torService.status != TorConnectionStatus.connected) {
+            // And the killswitch isn't set...
+            if (!_prefs.torKillSwitch) {
+              // Then we'll just proceed and connect to ElectrumX through
+              // clearnet at the bottom of this function.
+              Logging.instance.w(
+                "Tor preference set but Tor is not enabled, killswitch not set,"
+                " connecting to Electrum adapter through clearnet",
+              );
+            } else {
+              // ... But if the killswitch is set, then we throw an exception.
+              throw Exception(
+                "Tor preference and killswitch set but Tor is not enabled, "
+                "not connecting to Electrum adapter",
+              );
+              // TODO [prio=low]: Try to start Tor.
+            }
           } else {
-            // ... But if the killswitch is set, then we throw an exception.
-            throw Exception(
-              "Tor preference and killswitch set but Tor is not enabled, "
-              "not connecting to Electrum adapter",
+            // Get the proxy info from the TorService.
+            proxyInfo = _torService.getProxyInfo();
+          }
+
+          if (netType == TorPlainNetworkOption.clear) {
+            _electrumAdapterChannel = null;
+            await ClientManager.sharedInstance.remove(
+              cryptoCurrency: cryptoCurrency,
             );
-            // TODO [prio=low]: Try to start Tor.
           }
         } else {
-          // Get the proxy info from the TorService.
-          proxyInfo = _torService.getProxyInfo();
-        }
-
-        if (netType == TorPlainNetworkOption.clear) {
-          _electrumAdapterChannel = null;
-          await ClientManager.sharedInstance.remove(
-            cryptoCurrency: cryptoCurrency,
-          );
-        }
-      } else {
-        if (netType == TorPlainNetworkOption.tor) {
-          _electrumAdapterChannel = null;
-          await ClientManager.sharedInstance.remove(
-            cryptoCurrency: cryptoCurrency,
-          );
+          if (netType == TorPlainNetworkOption.tor) {
+            _electrumAdapterChannel = null;
+            await ClientManager.sharedInstance.remove(
+              cryptoCurrency: cryptoCurrency,
+            );
+          }
         }
       }
-    }
-    // If the current ElectrumAdapterClient is closed, create a new one.
-    if (getElectrumAdapter() != null && getElectrumAdapter()!.peer.isClosed) {
-      _electrumAdapterChannel = null;
-      await ClientManager.sharedInstance.remove(cryptoCurrency: cryptoCurrency);
-    }
-
-    final String useHost;
-    final int usePort;
-    final bool useUseSSL;
-
-    if (currentFailoverIndex == -1) {
-      useHost = host;
-      usePort = port;
-      useUseSSL = useSSL;
-    } else {
-      _electrumAdapterChannel = null;
-      await ClientManager.sharedInstance.remove(cryptoCurrency: cryptoCurrency);
-      useHost = _failovers[currentFailoverIndex].address;
-      usePort = _failovers[currentFailoverIndex].port;
-      useUseSSL = _failovers[currentFailoverIndex].useSSL;
-    }
-
-    _electrumAdapterChannel ??= await electrum_adapter.connect(
-      useHost,
-      port: usePort,
-      connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
-      aliveTimerDuration: connectionTimeoutForSpecialCaseJsonRPCClients,
-      acceptUnverified: false,
-      useSSL: useUseSSL,
-      proxyInfo: proxyInfo,
-    );
-
-    if (getElectrumAdapter() == null) {
-      final ElectrumClient newClient;
-      if (cryptoCurrency is Firo) {
-        newClient = FiroElectrumClient(
-          _electrumAdapterChannel!,
-          useHost,
-          usePort,
-          useUseSSL,
-          proxyInfo,
-        );
-      } else {
-        newClient = ElectrumClient(
-          _electrumAdapterChannel!,
-          useHost,
-          usePort,
-          useUseSSL,
-          proxyInfo,
+      // If the current ElectrumAdapterClient is closed, create a new one.
+      if (getElectrumAdapter() != null && getElectrumAdapter()!.peer.isClosed) {
+        _electrumAdapterChannel = null;
+        await ClientManager.sharedInstance.remove(
+          cryptoCurrency: cryptoCurrency,
         );
       }
 
-      await newClient.request('server.version');
+      final String useHost;
+      final int usePort;
+      final bool useUseSSL;
 
-      await ClientManager.sharedInstance.addClient(
-        newClient,
-        cryptoCurrency: cryptoCurrency,
-        netType: netType,
+      if (currentFailoverIndex == -1) {
+        useHost = host;
+        usePort = port;
+        useUseSSL = useSSL;
+      } else {
+        _electrumAdapterChannel = null;
+        await ClientManager.sharedInstance.remove(
+          cryptoCurrency: cryptoCurrency,
+        );
+        useHost = _failovers[currentFailoverIndex].address;
+        usePort = _failovers[currentFailoverIndex].port;
+        useUseSSL = _failovers[currentFailoverIndex].useSSL;
+      }
+
+      _electrumAdapterChannel ??= await electrum_adapter.connect(
+        useHost,
+        port: usePort,
+        connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
+        aliveTimerDuration: connectionTimeoutForSpecialCaseJsonRPCClients,
+        acceptUnverified: false,
+        useSSL: useUseSSL,
+        proxyInfo: proxyInfo,
       );
-    }
 
-    return;
+      if (getElectrumAdapter() == null) {
+        final ElectrumClient newClient;
+        if (cryptoCurrency is Firo) {
+          newClient = FiroElectrumClient(
+            _electrumAdapterChannel!,
+            useHost,
+            usePort,
+            useUseSSL,
+            proxyInfo,
+          );
+        } else {
+          newClient = ElectrumClient(
+            _electrumAdapterChannel!,
+            useHost,
+            usePort,
+            useUseSSL,
+            proxyInfo,
+          );
+        }
+
+        await newClient.request('server.version');
+
+        await ClientManager.sharedInstance.addClient(
+          newClient,
+          cryptoCurrency: cryptoCurrency,
+          netType: netType,
+        );
+      }
+    });
   }
 
   /// Send raw rpc command

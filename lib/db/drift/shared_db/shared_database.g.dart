@@ -165,36 +165,83 @@ class CakepayOrdersCompanion extends UpdateCompanion<CakepayOrder> {
   }
 }
 
-class $ShopinBitSettingsTable extends ShopinBitSettings
-    with TableInfo<$ShopinBitSettingsTable, ShopinBitSetting> {
+class $ShopInBitSettingsTable extends ShopInBitSettings
+    with TableInfo<$ShopInBitSettingsTable, ShopInBitSetting> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $ShopinBitSettingsTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  $ShopInBitSettingsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _customerKeyMeta = const VerificationMeta(
+    'customerKey',
+  );
   @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
-    'id',
+  late final GeneratedColumn<String> customerKey = GeneratedColumn<String>(
+    'customer_key',
     aliasedName,
     false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(0),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
   );
-  static const VerificationMeta _guidelinesAcceptedMeta =
-      const VerificationMeta('guidelinesAccepted');
+  static const VerificationMeta _privacyAcceptedMeta = const VerificationMeta(
+    'privacyAccepted',
+  );
   @override
-  late final GeneratedColumn<bool> guidelinesAccepted = GeneratedColumn<bool>(
-    'guidelines_accepted',
+  late final GeneratedColumn<bool> privacyAccepted = GeneratedColumn<bool>(
+    'privacy_accepted',
     aliasedName,
     false,
     type: DriftSqlType.bool,
     requiredDuringInsert: false,
     defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("guidelines_accepted" IN (0, 1))',
+      'CHECK ("privacy_accepted" IN (0, 1))',
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _conciergeGuidelinesAcceptedMeta =
+      const VerificationMeta('conciergeGuidelinesAccepted');
+  @override
+  late final GeneratedColumn<bool> conciergeGuidelinesAccepted =
+      GeneratedColumn<bool>(
+        'concierge_guidelines_accepted',
+        aliasedName,
+        false,
+        type: DriftSqlType.bool,
+        requiredDuringInsert: false,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("concierge_guidelines_accepted" IN (0, 1))',
+        ),
+        defaultValue: const Constant(false),
+      );
+  static const VerificationMeta _travelGuidelinesAcceptedMeta =
+      const VerificationMeta('travelGuidelinesAccepted');
+  @override
+  late final GeneratedColumn<bool> travelGuidelinesAccepted =
+      GeneratedColumn<bool>(
+        'travel_guidelines_accepted',
+        aliasedName,
+        false,
+        type: DriftSqlType.bool,
+        requiredDuringInsert: false,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("travel_guidelines_accepted" IN (0, 1))',
+        ),
+        defaultValue: const Constant(false),
+      );
+  static const VerificationMeta _carGuidelinesAcceptedMeta =
+      const VerificationMeta('carGuidelinesAccepted');
+  @override
+  late final GeneratedColumn<bool> carGuidelinesAccepted =
+      GeneratedColumn<bool>(
+        'car_guidelines_accepted',
+        aliasedName,
+        false,
+        type: DriftSqlType.bool,
+        requiredDuringInsert: false,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("car_guidelines_accepted" IN (0, 1))',
+        ),
+        defaultValue: const Constant(false),
+      );
   static const VerificationMeta _setupCompleteMeta = const VerificationMeta(
     'setupComplete',
   );
@@ -210,45 +257,97 @@ class $ShopinBitSettingsTable extends ShopinBitSettings
     ),
     defaultValue: const Constant(false),
   );
-  static const VerificationMeta _displayNameMeta = const VerificationMeta(
-    'displayName',
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
   );
   @override
-  late final GeneratedColumn<String> displayName = GeneratedColumn<String>(
-    'display_name',
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
     aliasedName,
-    true,
-    type: DriftSqlType.string,
+    false,
+    type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _lastUsedAtMeta = const VerificationMeta(
+    'lastUsedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastUsedAt = GeneratedColumn<DateTime>(
+    'last_used_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
   );
   @override
   List<GeneratedColumn> get $columns => [
-    id,
-    guidelinesAccepted,
+    customerKey,
+    privacyAccepted,
+    conciergeGuidelinesAccepted,
+    travelGuidelinesAccepted,
+    carGuidelinesAccepted,
     setupComplete,
-    displayName,
+    createdAt,
+    lastUsedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'shopin_bit_settings';
+  static const String $name = 'shop_in_bit_settings';
   @override
   VerificationContext validateIntegrity(
-    Insertable<ShopinBitSetting> instance, {
+    Insertable<ShopInBitSetting> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
-    if (data.containsKey('guidelines_accepted')) {
+    if (data.containsKey('customer_key')) {
       context.handle(
-        _guidelinesAcceptedMeta,
-        guidelinesAccepted.isAcceptableOrUnknown(
-          data['guidelines_accepted']!,
-          _guidelinesAcceptedMeta,
+        _customerKeyMeta,
+        customerKey.isAcceptableOrUnknown(
+          data['customer_key']!,
+          _customerKeyMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_customerKeyMeta);
+    }
+    if (data.containsKey('privacy_accepted')) {
+      context.handle(
+        _privacyAcceptedMeta,
+        privacyAccepted.isAcceptableOrUnknown(
+          data['privacy_accepted']!,
+          _privacyAcceptedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('concierge_guidelines_accepted')) {
+      context.handle(
+        _conciergeGuidelinesAcceptedMeta,
+        conciergeGuidelinesAccepted.isAcceptableOrUnknown(
+          data['concierge_guidelines_accepted']!,
+          _conciergeGuidelinesAcceptedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('travel_guidelines_accepted')) {
+      context.handle(
+        _travelGuidelinesAcceptedMeta,
+        travelGuidelinesAccepted.isAcceptableOrUnknown(
+          data['travel_guidelines_accepted']!,
+          _travelGuidelinesAcceptedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('car_guidelines_accepted')) {
+      context.handle(
+        _carGuidelinesAcceptedMeta,
+        carGuidelinesAccepted.isAcceptableOrUnknown(
+          data['car_guidelines_accepted']!,
+          _carGuidelinesAcceptedMeta,
         ),
       );
     }
@@ -261,12 +360,18 @@ class $ShopinBitSettingsTable extends ShopinBitSettings
         ),
       );
     }
-    if (data.containsKey('display_name')) {
+    if (data.containsKey('created_at')) {
       context.handle(
-        _displayNameMeta,
-        displayName.isAcceptableOrUnknown(
-          data['display_name']!,
-          _displayNameMeta,
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('last_used_at')) {
+      context.handle(
+        _lastUsedAtMeta,
+        lastUsedAt.isAcceptableOrUnknown(
+          data['last_used_at']!,
+          _lastUsedAtMeta,
         ),
       );
     }
@@ -274,214 +379,362 @@ class $ShopinBitSettingsTable extends ShopinBitSettings
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {id};
+  Set<GeneratedColumn> get $primaryKey => {customerKey};
   @override
-  ShopinBitSetting map(Map<String, dynamic> data, {String? tablePrefix}) {
+  ShopInBitSetting map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return ShopinBitSetting(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}id'],
+    return ShopInBitSetting(
+      customerKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}customer_key'],
       )!,
-      guidelinesAccepted: attachedDatabase.typeMapping.read(
+      privacyAccepted: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
-        data['${effectivePrefix}guidelines_accepted'],
+        data['${effectivePrefix}privacy_accepted'],
+      )!,
+      conciergeGuidelinesAccepted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}concierge_guidelines_accepted'],
+      )!,
+      travelGuidelinesAccepted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}travel_guidelines_accepted'],
+      )!,
+      carGuidelinesAccepted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}car_guidelines_accepted'],
       )!,
       setupComplete: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}setup_complete'],
       )!,
-      displayName: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}display_name'],
-      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      lastUsedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_used_at'],
+      )!,
     );
   }
 
   @override
-  $ShopinBitSettingsTable createAlias(String alias) {
-    return $ShopinBitSettingsTable(attachedDatabase, alias);
+  $ShopInBitSettingsTable createAlias(String alias) {
+    return $ShopInBitSettingsTable(attachedDatabase, alias);
   }
+
+  @override
+  bool get withoutRowId => true;
 }
 
-class ShopinBitSetting extends DataClass
-    implements Insertable<ShopinBitSetting> {
-  final int id;
-  final bool guidelinesAccepted;
+class ShopInBitSetting extends DataClass
+    implements Insertable<ShopInBitSetting> {
+  final String customerKey;
+  final bool privacyAccepted;
+  final bool conciergeGuidelinesAccepted;
+  final bool travelGuidelinesAccepted;
+  final bool carGuidelinesAccepted;
   final bool setupComplete;
-  final String? displayName;
-  const ShopinBitSetting({
-    required this.id,
-    required this.guidelinesAccepted,
+  final DateTime createdAt;
+  final DateTime lastUsedAt;
+  const ShopInBitSetting({
+    required this.customerKey,
+    required this.privacyAccepted,
+    required this.conciergeGuidelinesAccepted,
+    required this.travelGuidelinesAccepted,
+    required this.carGuidelinesAccepted,
     required this.setupComplete,
-    this.displayName,
+    required this.createdAt,
+    required this.lastUsedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    map['guidelines_accepted'] = Variable<bool>(guidelinesAccepted);
+    map['customer_key'] = Variable<String>(customerKey);
+    map['privacy_accepted'] = Variable<bool>(privacyAccepted);
+    map['concierge_guidelines_accepted'] = Variable<bool>(
+      conciergeGuidelinesAccepted,
+    );
+    map['travel_guidelines_accepted'] = Variable<bool>(
+      travelGuidelinesAccepted,
+    );
+    map['car_guidelines_accepted'] = Variable<bool>(carGuidelinesAccepted);
     map['setup_complete'] = Variable<bool>(setupComplete);
-    if (!nullToAbsent || displayName != null) {
-      map['display_name'] = Variable<String>(displayName);
-    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['last_used_at'] = Variable<DateTime>(lastUsedAt);
     return map;
   }
 
-  ShopinBitSettingsCompanion toCompanion(bool nullToAbsent) {
-    return ShopinBitSettingsCompanion(
-      id: Value(id),
-      guidelinesAccepted: Value(guidelinesAccepted),
+  ShopInBitSettingsCompanion toCompanion(bool nullToAbsent) {
+    return ShopInBitSettingsCompanion(
+      customerKey: Value(customerKey),
+      privacyAccepted: Value(privacyAccepted),
+      conciergeGuidelinesAccepted: Value(conciergeGuidelinesAccepted),
+      travelGuidelinesAccepted: Value(travelGuidelinesAccepted),
+      carGuidelinesAccepted: Value(carGuidelinesAccepted),
       setupComplete: Value(setupComplete),
-      displayName: displayName == null && nullToAbsent
-          ? const Value.absent()
-          : Value(displayName),
+      createdAt: Value(createdAt),
+      lastUsedAt: Value(lastUsedAt),
     );
   }
 
-  factory ShopinBitSetting.fromJson(
+  factory ShopInBitSetting.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return ShopinBitSetting(
-      id: serializer.fromJson<int>(json['id']),
-      guidelinesAccepted: serializer.fromJson<bool>(json['guidelinesAccepted']),
+    return ShopInBitSetting(
+      customerKey: serializer.fromJson<String>(json['customerKey']),
+      privacyAccepted: serializer.fromJson<bool>(json['privacyAccepted']),
+      conciergeGuidelinesAccepted: serializer.fromJson<bool>(
+        json['conciergeGuidelinesAccepted'],
+      ),
+      travelGuidelinesAccepted: serializer.fromJson<bool>(
+        json['travelGuidelinesAccepted'],
+      ),
+      carGuidelinesAccepted: serializer.fromJson<bool>(
+        json['carGuidelinesAccepted'],
+      ),
       setupComplete: serializer.fromJson<bool>(json['setupComplete']),
-      displayName: serializer.fromJson<String?>(json['displayName']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      lastUsedAt: serializer.fromJson<DateTime>(json['lastUsedAt']),
     );
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'guidelinesAccepted': serializer.toJson<bool>(guidelinesAccepted),
+      'customerKey': serializer.toJson<String>(customerKey),
+      'privacyAccepted': serializer.toJson<bool>(privacyAccepted),
+      'conciergeGuidelinesAccepted': serializer.toJson<bool>(
+        conciergeGuidelinesAccepted,
+      ),
+      'travelGuidelinesAccepted': serializer.toJson<bool>(
+        travelGuidelinesAccepted,
+      ),
+      'carGuidelinesAccepted': serializer.toJson<bool>(carGuidelinesAccepted),
       'setupComplete': serializer.toJson<bool>(setupComplete),
-      'displayName': serializer.toJson<String?>(displayName),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'lastUsedAt': serializer.toJson<DateTime>(lastUsedAt),
     };
   }
 
-  ShopinBitSetting copyWith({
-    int? id,
-    bool? guidelinesAccepted,
+  ShopInBitSetting copyWith({
+    String? customerKey,
+    bool? privacyAccepted,
+    bool? conciergeGuidelinesAccepted,
+    bool? travelGuidelinesAccepted,
+    bool? carGuidelinesAccepted,
     bool? setupComplete,
-    Value<String?> displayName = const Value.absent(),
-  }) => ShopinBitSetting(
-    id: id ?? this.id,
-    guidelinesAccepted: guidelinesAccepted ?? this.guidelinesAccepted,
+    DateTime? createdAt,
+    DateTime? lastUsedAt,
+  }) => ShopInBitSetting(
+    customerKey: customerKey ?? this.customerKey,
+    privacyAccepted: privacyAccepted ?? this.privacyAccepted,
+    conciergeGuidelinesAccepted:
+        conciergeGuidelinesAccepted ?? this.conciergeGuidelinesAccepted,
+    travelGuidelinesAccepted:
+        travelGuidelinesAccepted ?? this.travelGuidelinesAccepted,
+    carGuidelinesAccepted: carGuidelinesAccepted ?? this.carGuidelinesAccepted,
     setupComplete: setupComplete ?? this.setupComplete,
-    displayName: displayName.present ? displayName.value : this.displayName,
+    createdAt: createdAt ?? this.createdAt,
+    lastUsedAt: lastUsedAt ?? this.lastUsedAt,
   );
-  ShopinBitSetting copyWithCompanion(ShopinBitSettingsCompanion data) {
-    return ShopinBitSetting(
-      id: data.id.present ? data.id.value : this.id,
-      guidelinesAccepted: data.guidelinesAccepted.present
-          ? data.guidelinesAccepted.value
-          : this.guidelinesAccepted,
+  ShopInBitSetting copyWithCompanion(ShopInBitSettingsCompanion data) {
+    return ShopInBitSetting(
+      customerKey: data.customerKey.present
+          ? data.customerKey.value
+          : this.customerKey,
+      privacyAccepted: data.privacyAccepted.present
+          ? data.privacyAccepted.value
+          : this.privacyAccepted,
+      conciergeGuidelinesAccepted: data.conciergeGuidelinesAccepted.present
+          ? data.conciergeGuidelinesAccepted.value
+          : this.conciergeGuidelinesAccepted,
+      travelGuidelinesAccepted: data.travelGuidelinesAccepted.present
+          ? data.travelGuidelinesAccepted.value
+          : this.travelGuidelinesAccepted,
+      carGuidelinesAccepted: data.carGuidelinesAccepted.present
+          ? data.carGuidelinesAccepted.value
+          : this.carGuidelinesAccepted,
       setupComplete: data.setupComplete.present
           ? data.setupComplete.value
           : this.setupComplete,
-      displayName: data.displayName.present
-          ? data.displayName.value
-          : this.displayName,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      lastUsedAt: data.lastUsedAt.present
+          ? data.lastUsedAt.value
+          : this.lastUsedAt,
     );
   }
 
   @override
   String toString() {
-    return (StringBuffer('ShopinBitSetting(')
-          ..write('id: $id, ')
-          ..write('guidelinesAccepted: $guidelinesAccepted, ')
+    return (StringBuffer('ShopInBitSetting(')
+          ..write('customerKey: $customerKey, ')
+          ..write('privacyAccepted: $privacyAccepted, ')
+          ..write('conciergeGuidelinesAccepted: $conciergeGuidelinesAccepted, ')
+          ..write('travelGuidelinesAccepted: $travelGuidelinesAccepted, ')
+          ..write('carGuidelinesAccepted: $carGuidelinesAccepted, ')
           ..write('setupComplete: $setupComplete, ')
-          ..write('displayName: $displayName')
+          ..write('createdAt: $createdAt, ')
+          ..write('lastUsedAt: $lastUsedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, guidelinesAccepted, setupComplete, displayName);
+  int get hashCode => Object.hash(
+    customerKey,
+    privacyAccepted,
+    conciergeGuidelinesAccepted,
+    travelGuidelinesAccepted,
+    carGuidelinesAccepted,
+    setupComplete,
+    createdAt,
+    lastUsedAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is ShopinBitSetting &&
-          other.id == this.id &&
-          other.guidelinesAccepted == this.guidelinesAccepted &&
+      (other is ShopInBitSetting &&
+          other.customerKey == this.customerKey &&
+          other.privacyAccepted == this.privacyAccepted &&
+          other.conciergeGuidelinesAccepted ==
+              this.conciergeGuidelinesAccepted &&
+          other.travelGuidelinesAccepted == this.travelGuidelinesAccepted &&
+          other.carGuidelinesAccepted == this.carGuidelinesAccepted &&
           other.setupComplete == this.setupComplete &&
-          other.displayName == this.displayName);
+          other.createdAt == this.createdAt &&
+          other.lastUsedAt == this.lastUsedAt);
 }
 
-class ShopinBitSettingsCompanion extends UpdateCompanion<ShopinBitSetting> {
-  final Value<int> id;
-  final Value<bool> guidelinesAccepted;
+class ShopInBitSettingsCompanion extends UpdateCompanion<ShopInBitSetting> {
+  final Value<String> customerKey;
+  final Value<bool> privacyAccepted;
+  final Value<bool> conciergeGuidelinesAccepted;
+  final Value<bool> travelGuidelinesAccepted;
+  final Value<bool> carGuidelinesAccepted;
   final Value<bool> setupComplete;
-  final Value<String?> displayName;
-  const ShopinBitSettingsCompanion({
-    this.id = const Value.absent(),
-    this.guidelinesAccepted = const Value.absent(),
+  final Value<DateTime> createdAt;
+  final Value<DateTime> lastUsedAt;
+  const ShopInBitSettingsCompanion({
+    this.customerKey = const Value.absent(),
+    this.privacyAccepted = const Value.absent(),
+    this.conciergeGuidelinesAccepted = const Value.absent(),
+    this.travelGuidelinesAccepted = const Value.absent(),
+    this.carGuidelinesAccepted = const Value.absent(),
     this.setupComplete = const Value.absent(),
-    this.displayName = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.lastUsedAt = const Value.absent(),
   });
-  ShopinBitSettingsCompanion.insert({
-    this.id = const Value.absent(),
-    this.guidelinesAccepted = const Value.absent(),
+  ShopInBitSettingsCompanion.insert({
+    required String customerKey,
+    this.privacyAccepted = const Value.absent(),
+    this.conciergeGuidelinesAccepted = const Value.absent(),
+    this.travelGuidelinesAccepted = const Value.absent(),
+    this.carGuidelinesAccepted = const Value.absent(),
     this.setupComplete = const Value.absent(),
-    this.displayName = const Value.absent(),
-  });
-  static Insertable<ShopinBitSetting> custom({
-    Expression<int>? id,
-    Expression<bool>? guidelinesAccepted,
+    this.createdAt = const Value.absent(),
+    this.lastUsedAt = const Value.absent(),
+  }) : customerKey = Value(customerKey);
+  static Insertable<ShopInBitSetting> custom({
+    Expression<String>? customerKey,
+    Expression<bool>? privacyAccepted,
+    Expression<bool>? conciergeGuidelinesAccepted,
+    Expression<bool>? travelGuidelinesAccepted,
+    Expression<bool>? carGuidelinesAccepted,
     Expression<bool>? setupComplete,
-    Expression<String>? displayName,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? lastUsedAt,
   }) {
     return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (guidelinesAccepted != null) 'guidelines_accepted': guidelinesAccepted,
+      if (customerKey != null) 'customer_key': customerKey,
+      if (privacyAccepted != null) 'privacy_accepted': privacyAccepted,
+      if (conciergeGuidelinesAccepted != null)
+        'concierge_guidelines_accepted': conciergeGuidelinesAccepted,
+      if (travelGuidelinesAccepted != null)
+        'travel_guidelines_accepted': travelGuidelinesAccepted,
+      if (carGuidelinesAccepted != null)
+        'car_guidelines_accepted': carGuidelinesAccepted,
       if (setupComplete != null) 'setup_complete': setupComplete,
-      if (displayName != null) 'display_name': displayName,
+      if (createdAt != null) 'created_at': createdAt,
+      if (lastUsedAt != null) 'last_used_at': lastUsedAt,
     });
   }
 
-  ShopinBitSettingsCompanion copyWith({
-    Value<int>? id,
-    Value<bool>? guidelinesAccepted,
+  ShopInBitSettingsCompanion copyWith({
+    Value<String>? customerKey,
+    Value<bool>? privacyAccepted,
+    Value<bool>? conciergeGuidelinesAccepted,
+    Value<bool>? travelGuidelinesAccepted,
+    Value<bool>? carGuidelinesAccepted,
     Value<bool>? setupComplete,
-    Value<String?>? displayName,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? lastUsedAt,
   }) {
-    return ShopinBitSettingsCompanion(
-      id: id ?? this.id,
-      guidelinesAccepted: guidelinesAccepted ?? this.guidelinesAccepted,
+    return ShopInBitSettingsCompanion(
+      customerKey: customerKey ?? this.customerKey,
+      privacyAccepted: privacyAccepted ?? this.privacyAccepted,
+      conciergeGuidelinesAccepted:
+          conciergeGuidelinesAccepted ?? this.conciergeGuidelinesAccepted,
+      travelGuidelinesAccepted:
+          travelGuidelinesAccepted ?? this.travelGuidelinesAccepted,
+      carGuidelinesAccepted:
+          carGuidelinesAccepted ?? this.carGuidelinesAccepted,
       setupComplete: setupComplete ?? this.setupComplete,
-      displayName: displayName ?? this.displayName,
+      createdAt: createdAt ?? this.createdAt,
+      lastUsedAt: lastUsedAt ?? this.lastUsedAt,
     );
   }
 
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<int>(id.value);
+    if (customerKey.present) {
+      map['customer_key'] = Variable<String>(customerKey.value);
     }
-    if (guidelinesAccepted.present) {
-      map['guidelines_accepted'] = Variable<bool>(guidelinesAccepted.value);
+    if (privacyAccepted.present) {
+      map['privacy_accepted'] = Variable<bool>(privacyAccepted.value);
+    }
+    if (conciergeGuidelinesAccepted.present) {
+      map['concierge_guidelines_accepted'] = Variable<bool>(
+        conciergeGuidelinesAccepted.value,
+      );
+    }
+    if (travelGuidelinesAccepted.present) {
+      map['travel_guidelines_accepted'] = Variable<bool>(
+        travelGuidelinesAccepted.value,
+      );
+    }
+    if (carGuidelinesAccepted.present) {
+      map['car_guidelines_accepted'] = Variable<bool>(
+        carGuidelinesAccepted.value,
+      );
     }
     if (setupComplete.present) {
       map['setup_complete'] = Variable<bool>(setupComplete.value);
     }
-    if (displayName.present) {
-      map['display_name'] = Variable<String>(displayName.value);
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (lastUsedAt.present) {
+      map['last_used_at'] = Variable<DateTime>(lastUsedAt.value);
     }
     return map;
   }
 
   @override
   String toString() {
-    return (StringBuffer('ShopinBitSettingsCompanion(')
-          ..write('id: $id, ')
-          ..write('guidelinesAccepted: $guidelinesAccepted, ')
+    return (StringBuffer('ShopInBitSettingsCompanion(')
+          ..write('customerKey: $customerKey, ')
+          ..write('privacyAccepted: $privacyAccepted, ')
+          ..write('conciergeGuidelinesAccepted: $conciergeGuidelinesAccepted, ')
+          ..write('travelGuidelinesAccepted: $travelGuidelinesAccepted, ')
+          ..write('carGuidelinesAccepted: $carGuidelinesAccepted, ')
           ..write('setupComplete: $setupComplete, ')
-          ..write('displayName: $displayName')
+          ..write('createdAt: $createdAt, ')
+          ..write('lastUsedAt: $lastUsedAt')
           ..write(')'))
         .toString();
   }
@@ -493,51 +746,48 @@ class $ShopInBitTicketsTable extends ShopInBitTickets
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $ShopInBitTicketsTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _ticketIdMeta = const VerificationMeta(
-    'ticketId',
+  static const VerificationMeta _apiTicketIdMeta = const VerificationMeta(
+    'apiTicketId',
   );
   @override
-  late final GeneratedColumn<String> ticketId = GeneratedColumn<String>(
-    'ticket_id',
+  late final GeneratedColumn<int> apiTicketId = GeneratedColumn<int>(
+    'api_ticket_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _customerKeyMeta = const VerificationMeta(
+    'customerKey',
+  );
+  @override
+  late final GeneratedColumn<String> customerKey = GeneratedColumn<String>(
+    'customer_key',
     aliasedName,
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _displayNameMeta = const VerificationMeta(
-    'displayName',
+  static const VerificationMeta _ticketNumberMeta = const VerificationMeta(
+    'ticketNumber',
   );
   @override
-  late final GeneratedColumn<String> displayName = GeneratedColumn<String>(
-    'display_name',
+  late final GeneratedColumn<String> ticketNumber = GeneratedColumn<String>(
+    'ticket_number',
     aliasedName,
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
   @override
-  late final GeneratedColumnWithTypeConverter<ShopInBitCategory, int> category =
-      GeneratedColumn<int>(
-        'category',
-        aliasedName,
-        false,
-        type: DriftSqlType.int,
-        requiredDuringInsert: true,
-      ).withConverter<ShopInBitCategory>(
-        $ShopInBitTicketsTable.$convertercategory,
-      );
-  @override
-  late final GeneratedColumnWithTypeConverter<ShopInBitOrderStatus, int>
-  status =
-      GeneratedColumn<int>(
-        'status',
-        aliasedName,
-        false,
-        type: DriftSqlType.int,
-        requiredDuringInsert: true,
-      ).withConverter<ShopInBitOrderStatus>(
-        $ShopInBitTicketsTable.$converterstatus,
-      );
+  late final GeneratedColumnWithTypeConverter<ShopInBitCategory, String>
+  category = GeneratedColumn<String>(
+    'category',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  ).withConverter<ShopInBitCategory>($ShopInBitTicketsTable.$convertercategory);
   static const VerificationMeta _requestDescriptionMeta =
       const VerificationMeta('requestDescription');
   @override
@@ -555,6 +805,29 @@ class $ShopInBitTicketsTable extends ShopInBitTickets
   @override
   late final GeneratedColumn<String> deliveryCountry = GeneratedColumn<String>(
     'delivery_country',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<ShopInBitOrderStatus, String>
+  status =
+      GeneratedColumn<String>(
+        'status',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<ShopInBitOrderStatus>(
+        $ShopInBitTicketsTable.$converterstatus,
+      );
+  static const VerificationMeta _statusRawMeta = const VerificationMeta(
+    'statusRaw',
+  );
+  @override
+  late final GeneratedColumn<String> statusRaw = GeneratedColumn<String>(
+    'status_raw',
     aliasedName,
     false,
     type: DriftSqlType.string,
@@ -582,119 +855,39 @@ class $ShopInBitTicketsTable extends ShopInBitTickets
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _shippingNameMeta = const VerificationMeta(
-    'shippingName',
-  );
+  static const VerificationMeta _paymentInvoiceStatusMeta =
+      const VerificationMeta('paymentInvoiceStatus');
   @override
-  late final GeneratedColumn<String> shippingName = GeneratedColumn<String>(
-    'shipping_name',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _shippingStreetMeta = const VerificationMeta(
-    'shippingStreet',
-  );
-  @override
-  late final GeneratedColumn<String> shippingStreet = GeneratedColumn<String>(
-    'shipping_street',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _shippingCityMeta = const VerificationMeta(
-    'shippingCity',
-  );
-  @override
-  late final GeneratedColumn<String> shippingCity = GeneratedColumn<String>(
-    'shipping_city',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _shippingPostalCodeMeta =
-      const VerificationMeta('shippingPostalCode');
-  @override
-  late final GeneratedColumn<String> shippingPostalCode =
+  late final GeneratedColumn<String> paymentInvoiceStatus =
       GeneratedColumn<String>(
-        'shipping_postal_code',
+        'payment_invoice_status',
         aliasedName,
-        false,
+        true,
         type: DriftSqlType.string,
-        requiredDuringInsert: true,
+        requiredDuringInsert: false,
       );
-  static const VerificationMeta _shippingCountryMeta = const VerificationMeta(
-    'shippingCountry',
+  static const VerificationMeta _trackingLinkMeta = const VerificationMeta(
+    'trackingLink',
   );
   @override
-  late final GeneratedColumn<String> shippingCountry = GeneratedColumn<String>(
-    'shipping_country',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _paymentMethodMeta = const VerificationMeta(
-    'paymentMethod',
-  );
-  @override
-  late final GeneratedColumn<String> paymentMethod = GeneratedColumn<String>(
-    'payment_method',
+  late final GeneratedColumn<String> trackingLink = GeneratedColumn<String>(
+    'tracking_link',
     aliasedName,
     true,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
   @override
-  late final GeneratedColumnWithTypeConverter<
-    List<ShopInBitTicketMessage>,
-    String
-  >
-  messages =
+  late final GeneratedColumnWithTypeConverter<DateTime?, String>
+  lastAgentMessageAt =
       GeneratedColumn<String>(
-        'messages',
-        aliasedName,
-        false,
-        type: DriftSqlType.string,
-        requiredDuringInsert: true,
-      ).withConverter<List<ShopInBitTicketMessage>>(
-        $ShopInBitTicketsTable.$convertermessages,
-      );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _apiTicketIdMeta = const VerificationMeta(
-    'apiTicketId',
-  );
-  @override
-  late final GeneratedColumn<int> apiTicketId = GeneratedColumn<int>(
-    'api_ticket_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _carResearchInvoiceIdMeta =
-      const VerificationMeta('carResearchInvoiceId');
-  @override
-  late final GeneratedColumn<String> carResearchInvoiceId =
-      GeneratedColumn<String>(
-        'car_research_invoice_id',
+        'last_agent_message_at',
         aliasedName,
         true,
         type: DriftSqlType.string,
         requiredDuringInsert: false,
+      ).withConverter<DateTime?>(
+        $ShopInBitTicketsTable.$converterlastAgentMessageAtn,
       );
   static const VerificationMeta _feeTicketNumberMeta = const VerificationMeta(
     'feeTicketNumber',
@@ -707,80 +900,70 @@ class $ShopInBitTicketsTable extends ShopInBitTickets
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _needsCreateRequestMeta =
-      const VerificationMeta('needsCreateRequest');
   @override
-  late final GeneratedColumn<bool> needsCreateRequest = GeneratedColumn<bool>(
-    'needs_create_request',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("needs_create_request" IN (0, 1))',
-    ),
-  );
-  static const VerificationMeta _isPendingPaymentMeta = const VerificationMeta(
-    'isPendingPayment',
-  );
-  @override
-  late final GeneratedColumn<bool> isPendingPayment = GeneratedColumn<bool>(
-    'is_pending_payment',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("is_pending_payment" IN (0, 1))',
-    ),
-  );
-  static const VerificationMeta _carResearchExpiresAtMeta =
-      const VerificationMeta('carResearchExpiresAt');
-  @override
-  late final GeneratedColumn<DateTime> carResearchExpiresAt =
-      GeneratedColumn<DateTime>(
-        'car_research_expires_at',
-        aliasedName,
-        true,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-      );
-  static const VerificationMeta _carResearchPaymentLinksMeta =
-      const VerificationMeta('carResearchPaymentLinks');
-  @override
-  late final GeneratedColumn<String> carResearchPaymentLinks =
+  late final GeneratedColumnWithTypeConverter<List<TicketMessage>, String>
+  messages =
       GeneratedColumn<String>(
-        'car_research_payment_links',
+        'messages',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant("[]"),
+      ).withConverter<List<TicketMessage>>(
+        $ShopInBitTicketsTable.$convertermessages,
+      );
+  @override
+  late final GeneratedColumnWithTypeConverter<DateTime, String> createdAt =
+      GeneratedColumn<String>(
+        'created_at',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        clientDefault: () =>
+            ShopInBitTickets.dateConverter.toSql(DateTime.now()),
+      ).withConverter<DateTime>($ShopInBitTicketsTable.$convertercreatedAt);
+  @override
+  late final GeneratedColumnWithTypeConverter<DateTime, String> updatedAt =
+      GeneratedColumn<String>(
+        'updated_at',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        clientDefault: () =>
+            ShopInBitTickets.dateConverter.toSql(DateTime.now()),
+      ).withConverter<DateTime>($ShopInBitTicketsTable.$converterupdatedAt);
+  @override
+  late final GeneratedColumnWithTypeConverter<DateTime?, String> lastReadAt =
+      GeneratedColumn<String>(
+        'last_read_at',
         aliasedName,
         true,
         type: DriftSqlType.string,
         requiredDuringInsert: false,
-      );
+      ).withConverter<DateTime?>($ShopInBitTicketsTable.$converterlastReadAtn);
   @override
   List<GeneratedColumn> get $columns => [
-    ticketId,
-    displayName,
+    apiTicketId,
+    customerKey,
+    ticketNumber,
     category,
-    status,
     requestDescription,
     deliveryCountry,
+    status,
+    statusRaw,
     offerProductName,
     offerPrice,
-    shippingName,
-    shippingStreet,
-    shippingCity,
-    shippingPostalCode,
-    shippingCountry,
-    paymentMethod,
+    paymentInvoiceStatus,
+    trackingLink,
+    lastAgentMessageAt,
+    feeTicketNumber,
     messages,
     createdAt,
-    apiTicketId,
-    carResearchInvoiceId,
-    feeTicketNumber,
-    needsCreateRequest,
-    isPendingPayment,
-    carResearchExpiresAt,
-    carResearchPaymentLinks,
+    updatedAt,
+    lastReadAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -794,24 +977,38 @@ class $ShopInBitTicketsTable extends ShopInBitTickets
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
-    if (data.containsKey('ticket_id')) {
+    if (data.containsKey('api_ticket_id')) {
       context.handle(
-        _ticketIdMeta,
-        ticketId.isAcceptableOrUnknown(data['ticket_id']!, _ticketIdMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_ticketIdMeta);
-    }
-    if (data.containsKey('display_name')) {
-      context.handle(
-        _displayNameMeta,
-        displayName.isAcceptableOrUnknown(
-          data['display_name']!,
-          _displayNameMeta,
+        _apiTicketIdMeta,
+        apiTicketId.isAcceptableOrUnknown(
+          data['api_ticket_id']!,
+          _apiTicketIdMeta,
         ),
       );
     } else if (isInserting) {
-      context.missing(_displayNameMeta);
+      context.missing(_apiTicketIdMeta);
+    }
+    if (data.containsKey('customer_key')) {
+      context.handle(
+        _customerKeyMeta,
+        customerKey.isAcceptableOrUnknown(
+          data['customer_key']!,
+          _customerKeyMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_customerKeyMeta);
+    }
+    if (data.containsKey('ticket_number')) {
+      context.handle(
+        _ticketNumberMeta,
+        ticketNumber.isAcceptableOrUnknown(
+          data['ticket_number']!,
+          _ticketNumberMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_ticketNumberMeta);
     }
     if (data.containsKey('request_description')) {
       context.handle(
@@ -835,6 +1032,14 @@ class $ShopInBitTicketsTable extends ShopInBitTickets
     } else if (isInserting) {
       context.missing(_deliveryCountryMeta);
     }
+    if (data.containsKey('status_raw')) {
+      context.handle(
+        _statusRawMeta,
+        statusRaw.isAcceptableOrUnknown(data['status_raw']!, _statusRawMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_statusRawMeta);
+    }
     if (data.containsKey('offer_product_name')) {
       context.handle(
         _offerProductNameMeta,
@@ -850,95 +1055,21 @@ class $ShopInBitTicketsTable extends ShopInBitTickets
         offerPrice.isAcceptableOrUnknown(data['offer_price']!, _offerPriceMeta),
       );
     }
-    if (data.containsKey('shipping_name')) {
+    if (data.containsKey('payment_invoice_status')) {
       context.handle(
-        _shippingNameMeta,
-        shippingName.isAcceptableOrUnknown(
-          data['shipping_name']!,
-          _shippingNameMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_shippingNameMeta);
-    }
-    if (data.containsKey('shipping_street')) {
-      context.handle(
-        _shippingStreetMeta,
-        shippingStreet.isAcceptableOrUnknown(
-          data['shipping_street']!,
-          _shippingStreetMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_shippingStreetMeta);
-    }
-    if (data.containsKey('shipping_city')) {
-      context.handle(
-        _shippingCityMeta,
-        shippingCity.isAcceptableOrUnknown(
-          data['shipping_city']!,
-          _shippingCityMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_shippingCityMeta);
-    }
-    if (data.containsKey('shipping_postal_code')) {
-      context.handle(
-        _shippingPostalCodeMeta,
-        shippingPostalCode.isAcceptableOrUnknown(
-          data['shipping_postal_code']!,
-          _shippingPostalCodeMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_shippingPostalCodeMeta);
-    }
-    if (data.containsKey('shipping_country')) {
-      context.handle(
-        _shippingCountryMeta,
-        shippingCountry.isAcceptableOrUnknown(
-          data['shipping_country']!,
-          _shippingCountryMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_shippingCountryMeta);
-    }
-    if (data.containsKey('payment_method')) {
-      context.handle(
-        _paymentMethodMeta,
-        paymentMethod.isAcceptableOrUnknown(
-          data['payment_method']!,
-          _paymentMethodMeta,
+        _paymentInvoiceStatusMeta,
+        paymentInvoiceStatus.isAcceptableOrUnknown(
+          data['payment_invoice_status']!,
+          _paymentInvoiceStatusMeta,
         ),
       );
     }
-    if (data.containsKey('created_at')) {
+    if (data.containsKey('tracking_link')) {
       context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_createdAtMeta);
-    }
-    if (data.containsKey('api_ticket_id')) {
-      context.handle(
-        _apiTicketIdMeta,
-        apiTicketId.isAcceptableOrUnknown(
-          data['api_ticket_id']!,
-          _apiTicketIdMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_apiTicketIdMeta);
-    }
-    if (data.containsKey('car_research_invoice_id')) {
-      context.handle(
-        _carResearchInvoiceIdMeta,
-        carResearchInvoiceId.isAcceptableOrUnknown(
-          data['car_research_invoice_id']!,
-          _carResearchInvoiceIdMeta,
+        _trackingLinkMeta,
+        trackingLink.isAcceptableOrUnknown(
+          data['tracking_link']!,
+          _trackingLinkMeta,
         ),
       );
     }
@@ -951,73 +1082,31 @@ class $ShopInBitTicketsTable extends ShopInBitTickets
         ),
       );
     }
-    if (data.containsKey('needs_create_request')) {
-      context.handle(
-        _needsCreateRequestMeta,
-        needsCreateRequest.isAcceptableOrUnknown(
-          data['needs_create_request']!,
-          _needsCreateRequestMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_needsCreateRequestMeta);
-    }
-    if (data.containsKey('is_pending_payment')) {
-      context.handle(
-        _isPendingPaymentMeta,
-        isPendingPayment.isAcceptableOrUnknown(
-          data['is_pending_payment']!,
-          _isPendingPaymentMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_isPendingPaymentMeta);
-    }
-    if (data.containsKey('car_research_expires_at')) {
-      context.handle(
-        _carResearchExpiresAtMeta,
-        carResearchExpiresAt.isAcceptableOrUnknown(
-          data['car_research_expires_at']!,
-          _carResearchExpiresAtMeta,
-        ),
-      );
-    }
-    if (data.containsKey('car_research_payment_links')) {
-      context.handle(
-        _carResearchPaymentLinksMeta,
-        carResearchPaymentLinks.isAcceptableOrUnknown(
-          data['car_research_payment_links']!,
-          _carResearchPaymentLinksMeta,
-        ),
-      );
-    }
     return context;
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {ticketId};
+  Set<GeneratedColumn> get $primaryKey => {apiTicketId};
   @override
   ShopInBitTicket map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return ShopInBitTicket(
-      ticketId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}ticket_id'],
+      apiTicketId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}api_ticket_id'],
       )!,
-      displayName: attachedDatabase.typeMapping.read(
+      customerKey: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}display_name'],
+        data['${effectivePrefix}customer_key'],
+      )!,
+      ticketNumber: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}ticket_number'],
       )!,
       category: $ShopInBitTicketsTable.$convertercategory.fromSql(
         attachedDatabase.typeMapping.read(
-          DriftSqlType.int,
+          DriftSqlType.string,
           data['${effectivePrefix}category'],
-        )!,
-      ),
-      status: $ShopInBitTicketsTable.$converterstatus.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.int,
-          data['${effectivePrefix}status'],
         )!,
       ),
       requestDescription: attachedDatabase.typeMapping.read(
@@ -1028,6 +1117,16 @@ class $ShopInBitTicketsTable extends ShopInBitTickets
         DriftSqlType.string,
         data['${effectivePrefix}delivery_country'],
       )!,
+      status: $ShopInBitTicketsTable.$converterstatus.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}status'],
+        )!,
+      ),
+      statusRaw: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status_raw'],
+      )!,
       offerProductName: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}offer_product_name'],
@@ -1036,29 +1135,24 @@ class $ShopInBitTicketsTable extends ShopInBitTickets
         DriftSqlType.string,
         data['${effectivePrefix}offer_price'],
       ),
-      shippingName: attachedDatabase.typeMapping.read(
+      paymentInvoiceStatus: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}shipping_name'],
-      )!,
-      shippingStreet: attachedDatabase.typeMapping.read(
+        data['${effectivePrefix}payment_invoice_status'],
+      ),
+      trackingLink: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}shipping_street'],
-      )!,
-      shippingCity: attachedDatabase.typeMapping.read(
+        data['${effectivePrefix}tracking_link'],
+      ),
+      lastAgentMessageAt: $ShopInBitTicketsTable.$converterlastAgentMessageAtn
+          .fromSql(
+            attachedDatabase.typeMapping.read(
+              DriftSqlType.string,
+              data['${effectivePrefix}last_agent_message_at'],
+            ),
+          ),
+      feeTicketNumber: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}shipping_city'],
-      )!,
-      shippingPostalCode: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}shipping_postal_code'],
-      )!,
-      shippingCountry: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}shipping_country'],
-      )!,
-      paymentMethod: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}payment_method'],
+        data['${effectivePrefix}fee_ticket_number'],
       ),
       messages: $ShopInBitTicketsTable.$convertermessages.fromSql(
         attachedDatabase.typeMapping.read(
@@ -1066,37 +1160,23 @@ class $ShopInBitTicketsTable extends ShopInBitTickets
           data['${effectivePrefix}messages'],
         )!,
       ),
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
-      apiTicketId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}api_ticket_id'],
-      )!,
-      carResearchInvoiceId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}car_research_invoice_id'],
+      createdAt: $ShopInBitTicketsTable.$convertercreatedAt.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}created_at'],
+        )!,
       ),
-      feeTicketNumber: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}fee_ticket_number'],
+      updatedAt: $ShopInBitTicketsTable.$converterupdatedAt.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}updated_at'],
+        )!,
       ),
-      needsCreateRequest: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}needs_create_request'],
-      )!,
-      isPendingPayment: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}is_pending_payment'],
-      )!,
-      carResearchExpiresAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}car_research_expires_at'],
-      ),
-      carResearchPaymentLinks: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}car_research_payment_links'],
+      lastReadAt: $ShopInBitTicketsTable.$converterlastReadAtn.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}last_read_at'],
+        ),
       ),
     );
   }
@@ -1106,117 +1186,130 @@ class $ShopInBitTicketsTable extends ShopInBitTickets
     return $ShopInBitTicketsTable(attachedDatabase, alias);
   }
 
-  static JsonTypeConverter2<ShopInBitCategory, int, int> $convertercategory =
-      const EnumIndexConverter<ShopInBitCategory>(ShopInBitCategory.values);
-  static JsonTypeConverter2<ShopInBitOrderStatus, int, int> $converterstatus =
-      const EnumIndexConverter<ShopInBitOrderStatus>(
-        ShopInBitOrderStatus.values,
-      );
-  static JsonTypeConverter2<List<ShopInBitTicketMessage>, String, List<dynamic>>
-  $convertermessages = const ShopInBitTicketMessagesConverter();
+  static JsonTypeConverter2<ShopInBitCategory, String, String>
+  $convertercategory = const EnumNameConverter<ShopInBitCategory>(
+    ShopInBitCategory.values,
+  );
+  static JsonTypeConverter2<ShopInBitOrderStatus, String, String>
+  $converterstatus = const EnumNameConverter<ShopInBitOrderStatus>(
+    ShopInBitOrderStatus.values,
+  );
+  static TypeConverter<DateTime, String> $converterlastAgentMessageAt =
+      ShopInBitTickets.dateConverter;
+  static TypeConverter<DateTime?, String?> $converterlastAgentMessageAtn =
+      NullAwareTypeConverter.wrap($converterlastAgentMessageAt);
+  static TypeConverter<List<TicketMessage>, String> $convertermessages =
+      const MessagesConverter();
+  static TypeConverter<DateTime, String> $convertercreatedAt =
+      ShopInBitTickets.dateConverter;
+  static TypeConverter<DateTime, String> $converterupdatedAt =
+      ShopInBitTickets.dateConverter;
+  static TypeConverter<DateTime, String> $converterlastReadAt =
+      ShopInBitTickets.dateConverter;
+  static TypeConverter<DateTime?, String?> $converterlastReadAtn =
+      NullAwareTypeConverter.wrap($converterlastReadAt);
+  @override
+  bool get withoutRowId => true;
 }
 
 class ShopInBitTicket extends DataClass implements Insertable<ShopInBitTicket> {
-  final String ticketId;
-  final String displayName;
+  final int apiTicketId;
+  final String customerKey;
+  final String ticketNumber;
   final ShopInBitCategory category;
-  final ShopInBitOrderStatus status;
   final String requestDescription;
   final String deliveryCountry;
+  final ShopInBitOrderStatus status;
+  final String statusRaw;
   final String? offerProductName;
   final String? offerPrice;
-  final String shippingName;
-  final String shippingStreet;
-  final String shippingCity;
-  final String shippingPostalCode;
-  final String shippingCountry;
-  final String? paymentMethod;
-  final List<ShopInBitTicketMessage> messages;
-  final DateTime createdAt;
-  final int apiTicketId;
-  final String? carResearchInvoiceId;
+  final String? paymentInvoiceStatus;
+  final String? trackingLink;
+  final DateTime? lastAgentMessageAt;
   final String? feeTicketNumber;
-  final bool needsCreateRequest;
-  final bool isPendingPayment;
-  final DateTime? carResearchExpiresAt;
-  final String? carResearchPaymentLinks;
+  final List<TicketMessage> messages;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? lastReadAt;
   const ShopInBitTicket({
-    required this.ticketId,
-    required this.displayName,
+    required this.apiTicketId,
+    required this.customerKey,
+    required this.ticketNumber,
     required this.category,
-    required this.status,
     required this.requestDescription,
     required this.deliveryCountry,
+    required this.status,
+    required this.statusRaw,
     this.offerProductName,
     this.offerPrice,
-    required this.shippingName,
-    required this.shippingStreet,
-    required this.shippingCity,
-    required this.shippingPostalCode,
-    required this.shippingCountry,
-    this.paymentMethod,
+    this.paymentInvoiceStatus,
+    this.trackingLink,
+    this.lastAgentMessageAt,
+    this.feeTicketNumber,
     required this.messages,
     required this.createdAt,
-    required this.apiTicketId,
-    this.carResearchInvoiceId,
-    this.feeTicketNumber,
-    required this.needsCreateRequest,
-    required this.isPendingPayment,
-    this.carResearchExpiresAt,
-    this.carResearchPaymentLinks,
+    required this.updatedAt,
+    this.lastReadAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['ticket_id'] = Variable<String>(ticketId);
-    map['display_name'] = Variable<String>(displayName);
+    map['api_ticket_id'] = Variable<int>(apiTicketId);
+    map['customer_key'] = Variable<String>(customerKey);
+    map['ticket_number'] = Variable<String>(ticketNumber);
     {
-      map['category'] = Variable<int>(
+      map['category'] = Variable<String>(
         $ShopInBitTicketsTable.$convertercategory.toSql(category),
-      );
-    }
-    {
-      map['status'] = Variable<int>(
-        $ShopInBitTicketsTable.$converterstatus.toSql(status),
       );
     }
     map['request_description'] = Variable<String>(requestDescription);
     map['delivery_country'] = Variable<String>(deliveryCountry);
+    {
+      map['status'] = Variable<String>(
+        $ShopInBitTicketsTable.$converterstatus.toSql(status),
+      );
+    }
+    map['status_raw'] = Variable<String>(statusRaw);
     if (!nullToAbsent || offerProductName != null) {
       map['offer_product_name'] = Variable<String>(offerProductName);
     }
     if (!nullToAbsent || offerPrice != null) {
       map['offer_price'] = Variable<String>(offerPrice);
     }
-    map['shipping_name'] = Variable<String>(shippingName);
-    map['shipping_street'] = Variable<String>(shippingStreet);
-    map['shipping_city'] = Variable<String>(shippingCity);
-    map['shipping_postal_code'] = Variable<String>(shippingPostalCode);
-    map['shipping_country'] = Variable<String>(shippingCountry);
-    if (!nullToAbsent || paymentMethod != null) {
-      map['payment_method'] = Variable<String>(paymentMethod);
+    if (!nullToAbsent || paymentInvoiceStatus != null) {
+      map['payment_invoice_status'] = Variable<String>(paymentInvoiceStatus);
+    }
+    if (!nullToAbsent || trackingLink != null) {
+      map['tracking_link'] = Variable<String>(trackingLink);
+    }
+    if (!nullToAbsent || lastAgentMessageAt != null) {
+      map['last_agent_message_at'] = Variable<String>(
+        $ShopInBitTicketsTable.$converterlastAgentMessageAtn.toSql(
+          lastAgentMessageAt,
+        ),
+      );
+    }
+    if (!nullToAbsent || feeTicketNumber != null) {
+      map['fee_ticket_number'] = Variable<String>(feeTicketNumber);
     }
     {
       map['messages'] = Variable<String>(
         $ShopInBitTicketsTable.$convertermessages.toSql(messages),
       );
     }
-    map['created_at'] = Variable<DateTime>(createdAt);
-    map['api_ticket_id'] = Variable<int>(apiTicketId);
-    if (!nullToAbsent || carResearchInvoiceId != null) {
-      map['car_research_invoice_id'] = Variable<String>(carResearchInvoiceId);
+    {
+      map['created_at'] = Variable<String>(
+        $ShopInBitTicketsTable.$convertercreatedAt.toSql(createdAt),
+      );
     }
-    if (!nullToAbsent || feeTicketNumber != null) {
-      map['fee_ticket_number'] = Variable<String>(feeTicketNumber);
+    {
+      map['updated_at'] = Variable<String>(
+        $ShopInBitTicketsTable.$converterupdatedAt.toSql(updatedAt),
+      );
     }
-    map['needs_create_request'] = Variable<bool>(needsCreateRequest);
-    map['is_pending_payment'] = Variable<bool>(isPendingPayment);
-    if (!nullToAbsent || carResearchExpiresAt != null) {
-      map['car_research_expires_at'] = Variable<DateTime>(carResearchExpiresAt);
-    }
-    if (!nullToAbsent || carResearchPaymentLinks != null) {
-      map['car_research_payment_links'] = Variable<String>(
-        carResearchPaymentLinks,
+    if (!nullToAbsent || lastReadAt != null) {
+      map['last_read_at'] = Variable<String>(
+        $ShopInBitTicketsTable.$converterlastReadAtn.toSql(lastReadAt),
       );
     }
     return map;
@@ -1224,43 +1317,38 @@ class ShopInBitTicket extends DataClass implements Insertable<ShopInBitTicket> {
 
   ShopInBitTicketsCompanion toCompanion(bool nullToAbsent) {
     return ShopInBitTicketsCompanion(
-      ticketId: Value(ticketId),
-      displayName: Value(displayName),
+      apiTicketId: Value(apiTicketId),
+      customerKey: Value(customerKey),
+      ticketNumber: Value(ticketNumber),
       category: Value(category),
-      status: Value(status),
       requestDescription: Value(requestDescription),
       deliveryCountry: Value(deliveryCountry),
+      status: Value(status),
+      statusRaw: Value(statusRaw),
       offerProductName: offerProductName == null && nullToAbsent
           ? const Value.absent()
           : Value(offerProductName),
       offerPrice: offerPrice == null && nullToAbsent
           ? const Value.absent()
           : Value(offerPrice),
-      shippingName: Value(shippingName),
-      shippingStreet: Value(shippingStreet),
-      shippingCity: Value(shippingCity),
-      shippingPostalCode: Value(shippingPostalCode),
-      shippingCountry: Value(shippingCountry),
-      paymentMethod: paymentMethod == null && nullToAbsent
+      paymentInvoiceStatus: paymentInvoiceStatus == null && nullToAbsent
           ? const Value.absent()
-          : Value(paymentMethod),
-      messages: Value(messages),
-      createdAt: Value(createdAt),
-      apiTicketId: Value(apiTicketId),
-      carResearchInvoiceId: carResearchInvoiceId == null && nullToAbsent
+          : Value(paymentInvoiceStatus),
+      trackingLink: trackingLink == null && nullToAbsent
           ? const Value.absent()
-          : Value(carResearchInvoiceId),
+          : Value(trackingLink),
+      lastAgentMessageAt: lastAgentMessageAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastAgentMessageAt),
       feeTicketNumber: feeTicketNumber == null && nullToAbsent
           ? const Value.absent()
           : Value(feeTicketNumber),
-      needsCreateRequest: Value(needsCreateRequest),
-      isPendingPayment: Value(isPendingPayment),
-      carResearchExpiresAt: carResearchExpiresAt == null && nullToAbsent
+      messages: Value(messages),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      lastReadAt: lastReadAt == null && nullToAbsent
           ? const Value.absent()
-          : Value(carResearchExpiresAt),
-      carResearchPaymentLinks: carResearchPaymentLinks == null && nullToAbsent
-          ? const Value.absent()
-          : Value(carResearchPaymentLinks),
+          : Value(lastReadAt),
     );
   }
 
@@ -1270,520 +1358,396 @@ class ShopInBitTicket extends DataClass implements Insertable<ShopInBitTicket> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return ShopInBitTicket(
-      ticketId: serializer.fromJson<String>(json['ticketId']),
-      displayName: serializer.fromJson<String>(json['displayName']),
+      apiTicketId: serializer.fromJson<int>(json['apiTicketId']),
+      customerKey: serializer.fromJson<String>(json['customerKey']),
+      ticketNumber: serializer.fromJson<String>(json['ticketNumber']),
       category: $ShopInBitTicketsTable.$convertercategory.fromJson(
-        serializer.fromJson<int>(json['category']),
-      ),
-      status: $ShopInBitTicketsTable.$converterstatus.fromJson(
-        serializer.fromJson<int>(json['status']),
+        serializer.fromJson<String>(json['category']),
       ),
       requestDescription: serializer.fromJson<String>(
         json['requestDescription'],
       ),
       deliveryCountry: serializer.fromJson<String>(json['deliveryCountry']),
+      status: $ShopInBitTicketsTable.$converterstatus.fromJson(
+        serializer.fromJson<String>(json['status']),
+      ),
+      statusRaw: serializer.fromJson<String>(json['statusRaw']),
       offerProductName: serializer.fromJson<String?>(json['offerProductName']),
       offerPrice: serializer.fromJson<String?>(json['offerPrice']),
-      shippingName: serializer.fromJson<String>(json['shippingName']),
-      shippingStreet: serializer.fromJson<String>(json['shippingStreet']),
-      shippingCity: serializer.fromJson<String>(json['shippingCity']),
-      shippingPostalCode: serializer.fromJson<String>(
-        json['shippingPostalCode'],
+      paymentInvoiceStatus: serializer.fromJson<String?>(
+        json['paymentInvoiceStatus'],
       ),
-      shippingCountry: serializer.fromJson<String>(json['shippingCountry']),
-      paymentMethod: serializer.fromJson<String?>(json['paymentMethod']),
-      messages: $ShopInBitTicketsTable.$convertermessages.fromJson(
-        serializer.fromJson<List<dynamic>>(json['messages']),
-      ),
-      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
-      apiTicketId: serializer.fromJson<int>(json['apiTicketId']),
-      carResearchInvoiceId: serializer.fromJson<String?>(
-        json['carResearchInvoiceId'],
+      trackingLink: serializer.fromJson<String?>(json['trackingLink']),
+      lastAgentMessageAt: serializer.fromJson<DateTime?>(
+        json['lastAgentMessageAt'],
       ),
       feeTicketNumber: serializer.fromJson<String?>(json['feeTicketNumber']),
-      needsCreateRequest: serializer.fromJson<bool>(json['needsCreateRequest']),
-      isPendingPayment: serializer.fromJson<bool>(json['isPendingPayment']),
-      carResearchExpiresAt: serializer.fromJson<DateTime?>(
-        json['carResearchExpiresAt'],
-      ),
-      carResearchPaymentLinks: serializer.fromJson<String?>(
-        json['carResearchPaymentLinks'],
-      ),
+      messages: serializer.fromJson<List<TicketMessage>>(json['messages']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      lastReadAt: serializer.fromJson<DateTime?>(json['lastReadAt']),
     );
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'ticketId': serializer.toJson<String>(ticketId),
-      'displayName': serializer.toJson<String>(displayName),
-      'category': serializer.toJson<int>(
+      'apiTicketId': serializer.toJson<int>(apiTicketId),
+      'customerKey': serializer.toJson<String>(customerKey),
+      'ticketNumber': serializer.toJson<String>(ticketNumber),
+      'category': serializer.toJson<String>(
         $ShopInBitTicketsTable.$convertercategory.toJson(category),
-      ),
-      'status': serializer.toJson<int>(
-        $ShopInBitTicketsTable.$converterstatus.toJson(status),
       ),
       'requestDescription': serializer.toJson<String>(requestDescription),
       'deliveryCountry': serializer.toJson<String>(deliveryCountry),
+      'status': serializer.toJson<String>(
+        $ShopInBitTicketsTable.$converterstatus.toJson(status),
+      ),
+      'statusRaw': serializer.toJson<String>(statusRaw),
       'offerProductName': serializer.toJson<String?>(offerProductName),
       'offerPrice': serializer.toJson<String?>(offerPrice),
-      'shippingName': serializer.toJson<String>(shippingName),
-      'shippingStreet': serializer.toJson<String>(shippingStreet),
-      'shippingCity': serializer.toJson<String>(shippingCity),
-      'shippingPostalCode': serializer.toJson<String>(shippingPostalCode),
-      'shippingCountry': serializer.toJson<String>(shippingCountry),
-      'paymentMethod': serializer.toJson<String?>(paymentMethod),
-      'messages': serializer.toJson<List<dynamic>>(
-        $ShopInBitTicketsTable.$convertermessages.toJson(messages),
-      ),
-      'createdAt': serializer.toJson<DateTime>(createdAt),
-      'apiTicketId': serializer.toJson<int>(apiTicketId),
-      'carResearchInvoiceId': serializer.toJson<String?>(carResearchInvoiceId),
+      'paymentInvoiceStatus': serializer.toJson<String?>(paymentInvoiceStatus),
+      'trackingLink': serializer.toJson<String?>(trackingLink),
+      'lastAgentMessageAt': serializer.toJson<DateTime?>(lastAgentMessageAt),
       'feeTicketNumber': serializer.toJson<String?>(feeTicketNumber),
-      'needsCreateRequest': serializer.toJson<bool>(needsCreateRequest),
-      'isPendingPayment': serializer.toJson<bool>(isPendingPayment),
-      'carResearchExpiresAt': serializer.toJson<DateTime?>(
-        carResearchExpiresAt,
-      ),
-      'carResearchPaymentLinks': serializer.toJson<String?>(
-        carResearchPaymentLinks,
-      ),
+      'messages': serializer.toJson<List<TicketMessage>>(messages),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'lastReadAt': serializer.toJson<DateTime?>(lastReadAt),
     };
   }
 
   ShopInBitTicket copyWith({
-    String? ticketId,
-    String? displayName,
+    int? apiTicketId,
+    String? customerKey,
+    String? ticketNumber,
     ShopInBitCategory? category,
-    ShopInBitOrderStatus? status,
     String? requestDescription,
     String? deliveryCountry,
+    ShopInBitOrderStatus? status,
+    String? statusRaw,
     Value<String?> offerProductName = const Value.absent(),
     Value<String?> offerPrice = const Value.absent(),
-    String? shippingName,
-    String? shippingStreet,
-    String? shippingCity,
-    String? shippingPostalCode,
-    String? shippingCountry,
-    Value<String?> paymentMethod = const Value.absent(),
-    List<ShopInBitTicketMessage>? messages,
-    DateTime? createdAt,
-    int? apiTicketId,
-    Value<String?> carResearchInvoiceId = const Value.absent(),
+    Value<String?> paymentInvoiceStatus = const Value.absent(),
+    Value<String?> trackingLink = const Value.absent(),
+    Value<DateTime?> lastAgentMessageAt = const Value.absent(),
     Value<String?> feeTicketNumber = const Value.absent(),
-    bool? needsCreateRequest,
-    bool? isPendingPayment,
-    Value<DateTime?> carResearchExpiresAt = const Value.absent(),
-    Value<String?> carResearchPaymentLinks = const Value.absent(),
+    List<TicketMessage>? messages,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> lastReadAt = const Value.absent(),
   }) => ShopInBitTicket(
-    ticketId: ticketId ?? this.ticketId,
-    displayName: displayName ?? this.displayName,
+    apiTicketId: apiTicketId ?? this.apiTicketId,
+    customerKey: customerKey ?? this.customerKey,
+    ticketNumber: ticketNumber ?? this.ticketNumber,
     category: category ?? this.category,
-    status: status ?? this.status,
     requestDescription: requestDescription ?? this.requestDescription,
     deliveryCountry: deliveryCountry ?? this.deliveryCountry,
+    status: status ?? this.status,
+    statusRaw: statusRaw ?? this.statusRaw,
     offerProductName: offerProductName.present
         ? offerProductName.value
         : this.offerProductName,
     offerPrice: offerPrice.present ? offerPrice.value : this.offerPrice,
-    shippingName: shippingName ?? this.shippingName,
-    shippingStreet: shippingStreet ?? this.shippingStreet,
-    shippingCity: shippingCity ?? this.shippingCity,
-    shippingPostalCode: shippingPostalCode ?? this.shippingPostalCode,
-    shippingCountry: shippingCountry ?? this.shippingCountry,
-    paymentMethod: paymentMethod.present
-        ? paymentMethod.value
-        : this.paymentMethod,
-    messages: messages ?? this.messages,
-    createdAt: createdAt ?? this.createdAt,
-    apiTicketId: apiTicketId ?? this.apiTicketId,
-    carResearchInvoiceId: carResearchInvoiceId.present
-        ? carResearchInvoiceId.value
-        : this.carResearchInvoiceId,
+    paymentInvoiceStatus: paymentInvoiceStatus.present
+        ? paymentInvoiceStatus.value
+        : this.paymentInvoiceStatus,
+    trackingLink: trackingLink.present ? trackingLink.value : this.trackingLink,
+    lastAgentMessageAt: lastAgentMessageAt.present
+        ? lastAgentMessageAt.value
+        : this.lastAgentMessageAt,
     feeTicketNumber: feeTicketNumber.present
         ? feeTicketNumber.value
         : this.feeTicketNumber,
-    needsCreateRequest: needsCreateRequest ?? this.needsCreateRequest,
-    isPendingPayment: isPendingPayment ?? this.isPendingPayment,
-    carResearchExpiresAt: carResearchExpiresAt.present
-        ? carResearchExpiresAt.value
-        : this.carResearchExpiresAt,
-    carResearchPaymentLinks: carResearchPaymentLinks.present
-        ? carResearchPaymentLinks.value
-        : this.carResearchPaymentLinks,
+    messages: messages ?? this.messages,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    lastReadAt: lastReadAt.present ? lastReadAt.value : this.lastReadAt,
   );
   ShopInBitTicket copyWithCompanion(ShopInBitTicketsCompanion data) {
     return ShopInBitTicket(
-      ticketId: data.ticketId.present ? data.ticketId.value : this.ticketId,
-      displayName: data.displayName.present
-          ? data.displayName.value
-          : this.displayName,
+      apiTicketId: data.apiTicketId.present
+          ? data.apiTicketId.value
+          : this.apiTicketId,
+      customerKey: data.customerKey.present
+          ? data.customerKey.value
+          : this.customerKey,
+      ticketNumber: data.ticketNumber.present
+          ? data.ticketNumber.value
+          : this.ticketNumber,
       category: data.category.present ? data.category.value : this.category,
-      status: data.status.present ? data.status.value : this.status,
       requestDescription: data.requestDescription.present
           ? data.requestDescription.value
           : this.requestDescription,
       deliveryCountry: data.deliveryCountry.present
           ? data.deliveryCountry.value
           : this.deliveryCountry,
+      status: data.status.present ? data.status.value : this.status,
+      statusRaw: data.statusRaw.present ? data.statusRaw.value : this.statusRaw,
       offerProductName: data.offerProductName.present
           ? data.offerProductName.value
           : this.offerProductName,
       offerPrice: data.offerPrice.present
           ? data.offerPrice.value
           : this.offerPrice,
-      shippingName: data.shippingName.present
-          ? data.shippingName.value
-          : this.shippingName,
-      shippingStreet: data.shippingStreet.present
-          ? data.shippingStreet.value
-          : this.shippingStreet,
-      shippingCity: data.shippingCity.present
-          ? data.shippingCity.value
-          : this.shippingCity,
-      shippingPostalCode: data.shippingPostalCode.present
-          ? data.shippingPostalCode.value
-          : this.shippingPostalCode,
-      shippingCountry: data.shippingCountry.present
-          ? data.shippingCountry.value
-          : this.shippingCountry,
-      paymentMethod: data.paymentMethod.present
-          ? data.paymentMethod.value
-          : this.paymentMethod,
-      messages: data.messages.present ? data.messages.value : this.messages,
-      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-      apiTicketId: data.apiTicketId.present
-          ? data.apiTicketId.value
-          : this.apiTicketId,
-      carResearchInvoiceId: data.carResearchInvoiceId.present
-          ? data.carResearchInvoiceId.value
-          : this.carResearchInvoiceId,
+      paymentInvoiceStatus: data.paymentInvoiceStatus.present
+          ? data.paymentInvoiceStatus.value
+          : this.paymentInvoiceStatus,
+      trackingLink: data.trackingLink.present
+          ? data.trackingLink.value
+          : this.trackingLink,
+      lastAgentMessageAt: data.lastAgentMessageAt.present
+          ? data.lastAgentMessageAt.value
+          : this.lastAgentMessageAt,
       feeTicketNumber: data.feeTicketNumber.present
           ? data.feeTicketNumber.value
           : this.feeTicketNumber,
-      needsCreateRequest: data.needsCreateRequest.present
-          ? data.needsCreateRequest.value
-          : this.needsCreateRequest,
-      isPendingPayment: data.isPendingPayment.present
-          ? data.isPendingPayment.value
-          : this.isPendingPayment,
-      carResearchExpiresAt: data.carResearchExpiresAt.present
-          ? data.carResearchExpiresAt.value
-          : this.carResearchExpiresAt,
-      carResearchPaymentLinks: data.carResearchPaymentLinks.present
-          ? data.carResearchPaymentLinks.value
-          : this.carResearchPaymentLinks,
+      messages: data.messages.present ? data.messages.value : this.messages,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      lastReadAt: data.lastReadAt.present
+          ? data.lastReadAt.value
+          : this.lastReadAt,
     );
   }
 
   @override
   String toString() {
     return (StringBuffer('ShopInBitTicket(')
-          ..write('ticketId: $ticketId, ')
-          ..write('displayName: $displayName, ')
+          ..write('apiTicketId: $apiTicketId, ')
+          ..write('customerKey: $customerKey, ')
+          ..write('ticketNumber: $ticketNumber, ')
           ..write('category: $category, ')
-          ..write('status: $status, ')
           ..write('requestDescription: $requestDescription, ')
           ..write('deliveryCountry: $deliveryCountry, ')
+          ..write('status: $status, ')
+          ..write('statusRaw: $statusRaw, ')
           ..write('offerProductName: $offerProductName, ')
           ..write('offerPrice: $offerPrice, ')
-          ..write('shippingName: $shippingName, ')
-          ..write('shippingStreet: $shippingStreet, ')
-          ..write('shippingCity: $shippingCity, ')
-          ..write('shippingPostalCode: $shippingPostalCode, ')
-          ..write('shippingCountry: $shippingCountry, ')
-          ..write('paymentMethod: $paymentMethod, ')
+          ..write('paymentInvoiceStatus: $paymentInvoiceStatus, ')
+          ..write('trackingLink: $trackingLink, ')
+          ..write('lastAgentMessageAt: $lastAgentMessageAt, ')
+          ..write('feeTicketNumber: $feeTicketNumber, ')
           ..write('messages: $messages, ')
           ..write('createdAt: $createdAt, ')
-          ..write('apiTicketId: $apiTicketId, ')
-          ..write('carResearchInvoiceId: $carResearchInvoiceId, ')
-          ..write('feeTicketNumber: $feeTicketNumber, ')
-          ..write('needsCreateRequest: $needsCreateRequest, ')
-          ..write('isPendingPayment: $isPendingPayment, ')
-          ..write('carResearchExpiresAt: $carResearchExpiresAt, ')
-          ..write('carResearchPaymentLinks: $carResearchPaymentLinks')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('lastReadAt: $lastReadAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hashAll([
-    ticketId,
-    displayName,
+  int get hashCode => Object.hash(
+    apiTicketId,
+    customerKey,
+    ticketNumber,
     category,
-    status,
     requestDescription,
     deliveryCountry,
+    status,
+    statusRaw,
     offerProductName,
     offerPrice,
-    shippingName,
-    shippingStreet,
-    shippingCity,
-    shippingPostalCode,
-    shippingCountry,
-    paymentMethod,
+    paymentInvoiceStatus,
+    trackingLink,
+    lastAgentMessageAt,
+    feeTicketNumber,
     messages,
     createdAt,
-    apiTicketId,
-    carResearchInvoiceId,
-    feeTicketNumber,
-    needsCreateRequest,
-    isPendingPayment,
-    carResearchExpiresAt,
-    carResearchPaymentLinks,
-  ]);
+    updatedAt,
+    lastReadAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is ShopInBitTicket &&
-          other.ticketId == this.ticketId &&
-          other.displayName == this.displayName &&
+          other.apiTicketId == this.apiTicketId &&
+          other.customerKey == this.customerKey &&
+          other.ticketNumber == this.ticketNumber &&
           other.category == this.category &&
-          other.status == this.status &&
           other.requestDescription == this.requestDescription &&
           other.deliveryCountry == this.deliveryCountry &&
+          other.status == this.status &&
+          other.statusRaw == this.statusRaw &&
           other.offerProductName == this.offerProductName &&
           other.offerPrice == this.offerPrice &&
-          other.shippingName == this.shippingName &&
-          other.shippingStreet == this.shippingStreet &&
-          other.shippingCity == this.shippingCity &&
-          other.shippingPostalCode == this.shippingPostalCode &&
-          other.shippingCountry == this.shippingCountry &&
-          other.paymentMethod == this.paymentMethod &&
+          other.paymentInvoiceStatus == this.paymentInvoiceStatus &&
+          other.trackingLink == this.trackingLink &&
+          other.lastAgentMessageAt == this.lastAgentMessageAt &&
+          other.feeTicketNumber == this.feeTicketNumber &&
           other.messages == this.messages &&
           other.createdAt == this.createdAt &&
-          other.apiTicketId == this.apiTicketId &&
-          other.carResearchInvoiceId == this.carResearchInvoiceId &&
-          other.feeTicketNumber == this.feeTicketNumber &&
-          other.needsCreateRequest == this.needsCreateRequest &&
-          other.isPendingPayment == this.isPendingPayment &&
-          other.carResearchExpiresAt == this.carResearchExpiresAt &&
-          other.carResearchPaymentLinks == this.carResearchPaymentLinks);
+          other.updatedAt == this.updatedAt &&
+          other.lastReadAt == this.lastReadAt);
 }
 
 class ShopInBitTicketsCompanion extends UpdateCompanion<ShopInBitTicket> {
-  final Value<String> ticketId;
-  final Value<String> displayName;
+  final Value<int> apiTicketId;
+  final Value<String> customerKey;
+  final Value<String> ticketNumber;
   final Value<ShopInBitCategory> category;
-  final Value<ShopInBitOrderStatus> status;
   final Value<String> requestDescription;
   final Value<String> deliveryCountry;
+  final Value<ShopInBitOrderStatus> status;
+  final Value<String> statusRaw;
   final Value<String?> offerProductName;
   final Value<String?> offerPrice;
-  final Value<String> shippingName;
-  final Value<String> shippingStreet;
-  final Value<String> shippingCity;
-  final Value<String> shippingPostalCode;
-  final Value<String> shippingCountry;
-  final Value<String?> paymentMethod;
-  final Value<List<ShopInBitTicketMessage>> messages;
-  final Value<DateTime> createdAt;
-  final Value<int> apiTicketId;
-  final Value<String?> carResearchInvoiceId;
+  final Value<String?> paymentInvoiceStatus;
+  final Value<String?> trackingLink;
+  final Value<DateTime?> lastAgentMessageAt;
   final Value<String?> feeTicketNumber;
-  final Value<bool> needsCreateRequest;
-  final Value<bool> isPendingPayment;
-  final Value<DateTime?> carResearchExpiresAt;
-  final Value<String?> carResearchPaymentLinks;
-  final Value<int> rowid;
+  final Value<List<TicketMessage>> messages;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> lastReadAt;
   const ShopInBitTicketsCompanion({
-    this.ticketId = const Value.absent(),
-    this.displayName = const Value.absent(),
+    this.apiTicketId = const Value.absent(),
+    this.customerKey = const Value.absent(),
+    this.ticketNumber = const Value.absent(),
     this.category = const Value.absent(),
-    this.status = const Value.absent(),
     this.requestDescription = const Value.absent(),
     this.deliveryCountry = const Value.absent(),
+    this.status = const Value.absent(),
+    this.statusRaw = const Value.absent(),
     this.offerProductName = const Value.absent(),
     this.offerPrice = const Value.absent(),
-    this.shippingName = const Value.absent(),
-    this.shippingStreet = const Value.absent(),
-    this.shippingCity = const Value.absent(),
-    this.shippingPostalCode = const Value.absent(),
-    this.shippingCountry = const Value.absent(),
-    this.paymentMethod = const Value.absent(),
+    this.paymentInvoiceStatus = const Value.absent(),
+    this.trackingLink = const Value.absent(),
+    this.lastAgentMessageAt = const Value.absent(),
+    this.feeTicketNumber = const Value.absent(),
     this.messages = const Value.absent(),
     this.createdAt = const Value.absent(),
-    this.apiTicketId = const Value.absent(),
-    this.carResearchInvoiceId = const Value.absent(),
-    this.feeTicketNumber = const Value.absent(),
-    this.needsCreateRequest = const Value.absent(),
-    this.isPendingPayment = const Value.absent(),
-    this.carResearchExpiresAt = const Value.absent(),
-    this.carResearchPaymentLinks = const Value.absent(),
-    this.rowid = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.lastReadAt = const Value.absent(),
   });
   ShopInBitTicketsCompanion.insert({
-    required String ticketId,
-    required String displayName,
+    required int apiTicketId,
+    required String customerKey,
+    required String ticketNumber,
     required ShopInBitCategory category,
-    required ShopInBitOrderStatus status,
     required String requestDescription,
     required String deliveryCountry,
+    required ShopInBitOrderStatus status,
+    required String statusRaw,
     this.offerProductName = const Value.absent(),
     this.offerPrice = const Value.absent(),
-    required String shippingName,
-    required String shippingStreet,
-    required String shippingCity,
-    required String shippingPostalCode,
-    required String shippingCountry,
-    this.paymentMethod = const Value.absent(),
-    required List<ShopInBitTicketMessage> messages,
-    required DateTime createdAt,
-    required int apiTicketId,
-    this.carResearchInvoiceId = const Value.absent(),
+    this.paymentInvoiceStatus = const Value.absent(),
+    this.trackingLink = const Value.absent(),
+    this.lastAgentMessageAt = const Value.absent(),
     this.feeTicketNumber = const Value.absent(),
-    required bool needsCreateRequest,
-    required bool isPendingPayment,
-    this.carResearchExpiresAt = const Value.absent(),
-    this.carResearchPaymentLinks = const Value.absent(),
-    this.rowid = const Value.absent(),
-  }) : ticketId = Value(ticketId),
-       displayName = Value(displayName),
+    this.messages = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.lastReadAt = const Value.absent(),
+  }) : apiTicketId = Value(apiTicketId),
+       customerKey = Value(customerKey),
+       ticketNumber = Value(ticketNumber),
        category = Value(category),
-       status = Value(status),
        requestDescription = Value(requestDescription),
        deliveryCountry = Value(deliveryCountry),
-       shippingName = Value(shippingName),
-       shippingStreet = Value(shippingStreet),
-       shippingCity = Value(shippingCity),
-       shippingPostalCode = Value(shippingPostalCode),
-       shippingCountry = Value(shippingCountry),
-       messages = Value(messages),
-       createdAt = Value(createdAt),
-       apiTicketId = Value(apiTicketId),
-       needsCreateRequest = Value(needsCreateRequest),
-       isPendingPayment = Value(isPendingPayment);
+       status = Value(status),
+       statusRaw = Value(statusRaw);
   static Insertable<ShopInBitTicket> custom({
-    Expression<String>? ticketId,
-    Expression<String>? displayName,
-    Expression<int>? category,
-    Expression<int>? status,
+    Expression<int>? apiTicketId,
+    Expression<String>? customerKey,
+    Expression<String>? ticketNumber,
+    Expression<String>? category,
     Expression<String>? requestDescription,
     Expression<String>? deliveryCountry,
+    Expression<String>? status,
+    Expression<String>? statusRaw,
     Expression<String>? offerProductName,
     Expression<String>? offerPrice,
-    Expression<String>? shippingName,
-    Expression<String>? shippingStreet,
-    Expression<String>? shippingCity,
-    Expression<String>? shippingPostalCode,
-    Expression<String>? shippingCountry,
-    Expression<String>? paymentMethod,
-    Expression<String>? messages,
-    Expression<DateTime>? createdAt,
-    Expression<int>? apiTicketId,
-    Expression<String>? carResearchInvoiceId,
+    Expression<String>? paymentInvoiceStatus,
+    Expression<String>? trackingLink,
+    Expression<String>? lastAgentMessageAt,
     Expression<String>? feeTicketNumber,
-    Expression<bool>? needsCreateRequest,
-    Expression<bool>? isPendingPayment,
-    Expression<DateTime>? carResearchExpiresAt,
-    Expression<String>? carResearchPaymentLinks,
-    Expression<int>? rowid,
+    Expression<String>? messages,
+    Expression<String>? createdAt,
+    Expression<String>? updatedAt,
+    Expression<String>? lastReadAt,
   }) {
     return RawValuesInsertable({
-      if (ticketId != null) 'ticket_id': ticketId,
-      if (displayName != null) 'display_name': displayName,
+      if (apiTicketId != null) 'api_ticket_id': apiTicketId,
+      if (customerKey != null) 'customer_key': customerKey,
+      if (ticketNumber != null) 'ticket_number': ticketNumber,
       if (category != null) 'category': category,
-      if (status != null) 'status': status,
       if (requestDescription != null) 'request_description': requestDescription,
       if (deliveryCountry != null) 'delivery_country': deliveryCountry,
+      if (status != null) 'status': status,
+      if (statusRaw != null) 'status_raw': statusRaw,
       if (offerProductName != null) 'offer_product_name': offerProductName,
       if (offerPrice != null) 'offer_price': offerPrice,
-      if (shippingName != null) 'shipping_name': shippingName,
-      if (shippingStreet != null) 'shipping_street': shippingStreet,
-      if (shippingCity != null) 'shipping_city': shippingCity,
-      if (shippingPostalCode != null)
-        'shipping_postal_code': shippingPostalCode,
-      if (shippingCountry != null) 'shipping_country': shippingCountry,
-      if (paymentMethod != null) 'payment_method': paymentMethod,
+      if (paymentInvoiceStatus != null)
+        'payment_invoice_status': paymentInvoiceStatus,
+      if (trackingLink != null) 'tracking_link': trackingLink,
+      if (lastAgentMessageAt != null)
+        'last_agent_message_at': lastAgentMessageAt,
+      if (feeTicketNumber != null) 'fee_ticket_number': feeTicketNumber,
       if (messages != null) 'messages': messages,
       if (createdAt != null) 'created_at': createdAt,
-      if (apiTicketId != null) 'api_ticket_id': apiTicketId,
-      if (carResearchInvoiceId != null)
-        'car_research_invoice_id': carResearchInvoiceId,
-      if (feeTicketNumber != null) 'fee_ticket_number': feeTicketNumber,
-      if (needsCreateRequest != null)
-        'needs_create_request': needsCreateRequest,
-      if (isPendingPayment != null) 'is_pending_payment': isPendingPayment,
-      if (carResearchExpiresAt != null)
-        'car_research_expires_at': carResearchExpiresAt,
-      if (carResearchPaymentLinks != null)
-        'car_research_payment_links': carResearchPaymentLinks,
-      if (rowid != null) 'rowid': rowid,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (lastReadAt != null) 'last_read_at': lastReadAt,
     });
   }
 
   ShopInBitTicketsCompanion copyWith({
-    Value<String>? ticketId,
-    Value<String>? displayName,
+    Value<int>? apiTicketId,
+    Value<String>? customerKey,
+    Value<String>? ticketNumber,
     Value<ShopInBitCategory>? category,
-    Value<ShopInBitOrderStatus>? status,
     Value<String>? requestDescription,
     Value<String>? deliveryCountry,
+    Value<ShopInBitOrderStatus>? status,
+    Value<String>? statusRaw,
     Value<String?>? offerProductName,
     Value<String?>? offerPrice,
-    Value<String>? shippingName,
-    Value<String>? shippingStreet,
-    Value<String>? shippingCity,
-    Value<String>? shippingPostalCode,
-    Value<String>? shippingCountry,
-    Value<String?>? paymentMethod,
-    Value<List<ShopInBitTicketMessage>>? messages,
-    Value<DateTime>? createdAt,
-    Value<int>? apiTicketId,
-    Value<String?>? carResearchInvoiceId,
+    Value<String?>? paymentInvoiceStatus,
+    Value<String?>? trackingLink,
+    Value<DateTime?>? lastAgentMessageAt,
     Value<String?>? feeTicketNumber,
-    Value<bool>? needsCreateRequest,
-    Value<bool>? isPendingPayment,
-    Value<DateTime?>? carResearchExpiresAt,
-    Value<String?>? carResearchPaymentLinks,
-    Value<int>? rowid,
+    Value<List<TicketMessage>>? messages,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? lastReadAt,
   }) {
     return ShopInBitTicketsCompanion(
-      ticketId: ticketId ?? this.ticketId,
-      displayName: displayName ?? this.displayName,
+      apiTicketId: apiTicketId ?? this.apiTicketId,
+      customerKey: customerKey ?? this.customerKey,
+      ticketNumber: ticketNumber ?? this.ticketNumber,
       category: category ?? this.category,
-      status: status ?? this.status,
       requestDescription: requestDescription ?? this.requestDescription,
       deliveryCountry: deliveryCountry ?? this.deliveryCountry,
+      status: status ?? this.status,
+      statusRaw: statusRaw ?? this.statusRaw,
       offerProductName: offerProductName ?? this.offerProductName,
       offerPrice: offerPrice ?? this.offerPrice,
-      shippingName: shippingName ?? this.shippingName,
-      shippingStreet: shippingStreet ?? this.shippingStreet,
-      shippingCity: shippingCity ?? this.shippingCity,
-      shippingPostalCode: shippingPostalCode ?? this.shippingPostalCode,
-      shippingCountry: shippingCountry ?? this.shippingCountry,
-      paymentMethod: paymentMethod ?? this.paymentMethod,
+      paymentInvoiceStatus: paymentInvoiceStatus ?? this.paymentInvoiceStatus,
+      trackingLink: trackingLink ?? this.trackingLink,
+      lastAgentMessageAt: lastAgentMessageAt ?? this.lastAgentMessageAt,
+      feeTicketNumber: feeTicketNumber ?? this.feeTicketNumber,
       messages: messages ?? this.messages,
       createdAt: createdAt ?? this.createdAt,
-      apiTicketId: apiTicketId ?? this.apiTicketId,
-      carResearchInvoiceId: carResearchInvoiceId ?? this.carResearchInvoiceId,
-      feeTicketNumber: feeTicketNumber ?? this.feeTicketNumber,
-      needsCreateRequest: needsCreateRequest ?? this.needsCreateRequest,
-      isPendingPayment: isPendingPayment ?? this.isPendingPayment,
-      carResearchExpiresAt: carResearchExpiresAt ?? this.carResearchExpiresAt,
-      carResearchPaymentLinks:
-          carResearchPaymentLinks ?? this.carResearchPaymentLinks,
-      rowid: rowid ?? this.rowid,
+      updatedAt: updatedAt ?? this.updatedAt,
+      lastReadAt: lastReadAt ?? this.lastReadAt,
     );
   }
 
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    if (ticketId.present) {
-      map['ticket_id'] = Variable<String>(ticketId.value);
+    if (apiTicketId.present) {
+      map['api_ticket_id'] = Variable<int>(apiTicketId.value);
     }
-    if (displayName.present) {
-      map['display_name'] = Variable<String>(displayName.value);
+    if (customerKey.present) {
+      map['customer_key'] = Variable<String>(customerKey.value);
+    }
+    if (ticketNumber.present) {
+      map['ticket_number'] = Variable<String>(ticketNumber.value);
     }
     if (category.present) {
-      map['category'] = Variable<int>(
+      map['category'] = Variable<String>(
         $ShopInBitTicketsTable.$convertercategory.toSql(category.value),
-      );
-    }
-    if (status.present) {
-      map['status'] = Variable<int>(
-        $ShopInBitTicketsTable.$converterstatus.toSql(status.value),
       );
     }
     if (requestDescription.present) {
@@ -1792,29 +1756,37 @@ class ShopInBitTicketsCompanion extends UpdateCompanion<ShopInBitTicket> {
     if (deliveryCountry.present) {
       map['delivery_country'] = Variable<String>(deliveryCountry.value);
     }
+    if (status.present) {
+      map['status'] = Variable<String>(
+        $ShopInBitTicketsTable.$converterstatus.toSql(status.value),
+      );
+    }
+    if (statusRaw.present) {
+      map['status_raw'] = Variable<String>(statusRaw.value);
+    }
     if (offerProductName.present) {
       map['offer_product_name'] = Variable<String>(offerProductName.value);
     }
     if (offerPrice.present) {
       map['offer_price'] = Variable<String>(offerPrice.value);
     }
-    if (shippingName.present) {
-      map['shipping_name'] = Variable<String>(shippingName.value);
+    if (paymentInvoiceStatus.present) {
+      map['payment_invoice_status'] = Variable<String>(
+        paymentInvoiceStatus.value,
+      );
     }
-    if (shippingStreet.present) {
-      map['shipping_street'] = Variable<String>(shippingStreet.value);
+    if (trackingLink.present) {
+      map['tracking_link'] = Variable<String>(trackingLink.value);
     }
-    if (shippingCity.present) {
-      map['shipping_city'] = Variable<String>(shippingCity.value);
+    if (lastAgentMessageAt.present) {
+      map['last_agent_message_at'] = Variable<String>(
+        $ShopInBitTicketsTable.$converterlastAgentMessageAtn.toSql(
+          lastAgentMessageAt.value,
+        ),
+      );
     }
-    if (shippingPostalCode.present) {
-      map['shipping_postal_code'] = Variable<String>(shippingPostalCode.value);
-    }
-    if (shippingCountry.present) {
-      map['shipping_country'] = Variable<String>(shippingCountry.value);
-    }
-    if (paymentMethod.present) {
-      map['payment_method'] = Variable<String>(paymentMethod.value);
+    if (feeTicketNumber.present) {
+      map['fee_ticket_number'] = Variable<String>(feeTicketNumber.value);
     }
     if (messages.present) {
       map['messages'] = Variable<String>(
@@ -1822,37 +1794,19 @@ class ShopInBitTicketsCompanion extends UpdateCompanion<ShopInBitTicket> {
       );
     }
     if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
-    }
-    if (apiTicketId.present) {
-      map['api_ticket_id'] = Variable<int>(apiTicketId.value);
-    }
-    if (carResearchInvoiceId.present) {
-      map['car_research_invoice_id'] = Variable<String>(
-        carResearchInvoiceId.value,
+      map['created_at'] = Variable<String>(
+        $ShopInBitTicketsTable.$convertercreatedAt.toSql(createdAt.value),
       );
     }
-    if (feeTicketNumber.present) {
-      map['fee_ticket_number'] = Variable<String>(feeTicketNumber.value);
-    }
-    if (needsCreateRequest.present) {
-      map['needs_create_request'] = Variable<bool>(needsCreateRequest.value);
-    }
-    if (isPendingPayment.present) {
-      map['is_pending_payment'] = Variable<bool>(isPendingPayment.value);
-    }
-    if (carResearchExpiresAt.present) {
-      map['car_research_expires_at'] = Variable<DateTime>(
-        carResearchExpiresAt.value,
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<String>(
+        $ShopInBitTicketsTable.$converterupdatedAt.toSql(updatedAt.value),
       );
     }
-    if (carResearchPaymentLinks.present) {
-      map['car_research_payment_links'] = Variable<String>(
-        carResearchPaymentLinks.value,
+    if (lastReadAt.present) {
+      map['last_read_at'] = Variable<String>(
+        $ShopInBitTicketsTable.$converterlastReadAtn.toSql(lastReadAt.value),
       );
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
     }
     return map;
   }
@@ -1860,30 +1814,578 @@ class ShopInBitTicketsCompanion extends UpdateCompanion<ShopInBitTicket> {
   @override
   String toString() {
     return (StringBuffer('ShopInBitTicketsCompanion(')
-          ..write('ticketId: $ticketId, ')
-          ..write('displayName: $displayName, ')
+          ..write('apiTicketId: $apiTicketId, ')
+          ..write('customerKey: $customerKey, ')
+          ..write('ticketNumber: $ticketNumber, ')
           ..write('category: $category, ')
-          ..write('status: $status, ')
           ..write('requestDescription: $requestDescription, ')
           ..write('deliveryCountry: $deliveryCountry, ')
+          ..write('status: $status, ')
+          ..write('statusRaw: $statusRaw, ')
           ..write('offerProductName: $offerProductName, ')
           ..write('offerPrice: $offerPrice, ')
-          ..write('shippingName: $shippingName, ')
-          ..write('shippingStreet: $shippingStreet, ')
-          ..write('shippingCity: $shippingCity, ')
-          ..write('shippingPostalCode: $shippingPostalCode, ')
-          ..write('shippingCountry: $shippingCountry, ')
-          ..write('paymentMethod: $paymentMethod, ')
+          ..write('paymentInvoiceStatus: $paymentInvoiceStatus, ')
+          ..write('trackingLink: $trackingLink, ')
+          ..write('lastAgentMessageAt: $lastAgentMessageAt, ')
+          ..write('feeTicketNumber: $feeTicketNumber, ')
           ..write('messages: $messages, ')
           ..write('createdAt: $createdAt, ')
-          ..write('apiTicketId: $apiTicketId, ')
-          ..write('carResearchInvoiceId: $carResearchInvoiceId, ')
-          ..write('feeTicketNumber: $feeTicketNumber, ')
-          ..write('needsCreateRequest: $needsCreateRequest, ')
-          ..write('isPendingPayment: $isPendingPayment, ')
-          ..write('carResearchExpiresAt: $carResearchExpiresAt, ')
-          ..write('carResearchPaymentLinks: $carResearchPaymentLinks, ')
-          ..write('rowid: $rowid')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('lastReadAt: $lastReadAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AppNotificationsTable extends AppNotifications
+    with TableInfo<$AppNotificationsTable, AppNotification> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AppNotificationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<AppNotificationType, String>
+  type = GeneratedColumn<String>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  ).withConverter<AppNotificationType>($AppNotificationsTable.$convertertype);
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bodyMeta = const VerificationMeta('body');
+  @override
+  late final GeneratedColumn<String> body = GeneratedColumn<String>(
+    'body',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(""),
+  );
+  static const VerificationMeta _iconAssetMeta = const VerificationMeta(
+    'iconAsset',
+  );
+  @override
+  late final GeneratedColumn<String> iconAsset = GeneratedColumn<String>(
+    'icon_asset',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<DateTime, String> createdAt =
+      GeneratedColumn<String>(
+        'created_at',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        clientDefault: () =>
+            ShopInBitTickets.dateConverter.toSql(DateTime.now()),
+      ).withConverter<DateTime>($AppNotificationsTable.$convertercreatedAt);
+  static const VerificationMeta _readMeta = const VerificationMeta('read');
+  @override
+  late final GeneratedColumn<bool> read = GeneratedColumn<bool>(
+    'read',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("read" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _scopeIdMeta = const VerificationMeta(
+    'scopeId',
+  );
+  @override
+  late final GeneratedColumn<String> scopeId = GeneratedColumn<String>(
+    'scope_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _targetIdMeta = const VerificationMeta(
+    'targetId',
+  );
+  @override
+  late final GeneratedColumn<String> targetId = GeneratedColumn<String>(
+    'target_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    type,
+    title,
+    body,
+    iconAsset,
+    createdAt,
+    read,
+    scopeId,
+    targetId,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'app_notifications';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AppNotification> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('body')) {
+      context.handle(
+        _bodyMeta,
+        body.isAcceptableOrUnknown(data['body']!, _bodyMeta),
+      );
+    }
+    if (data.containsKey('icon_asset')) {
+      context.handle(
+        _iconAssetMeta,
+        iconAsset.isAcceptableOrUnknown(data['icon_asset']!, _iconAssetMeta),
+      );
+    }
+    if (data.containsKey('read')) {
+      context.handle(
+        _readMeta,
+        read.isAcceptableOrUnknown(data['read']!, _readMeta),
+      );
+    }
+    if (data.containsKey('scope_id')) {
+      context.handle(
+        _scopeIdMeta,
+        scopeId.isAcceptableOrUnknown(data['scope_id']!, _scopeIdMeta),
+      );
+    }
+    if (data.containsKey('target_id')) {
+      context.handle(
+        _targetIdMeta,
+        targetId.isAcceptableOrUnknown(data['target_id']!, _targetIdMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AppNotification map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AppNotification(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      type: $AppNotificationsTable.$convertertype.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}type'],
+        )!,
+      ),
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      body: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}body'],
+      )!,
+      iconAsset: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}icon_asset'],
+      ),
+      createdAt: $AppNotificationsTable.$convertercreatedAt.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}created_at'],
+        )!,
+      ),
+      read: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}read'],
+      )!,
+      scopeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scope_id'],
+      ),
+      targetId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}target_id'],
+      ),
+    );
+  }
+
+  @override
+  $AppNotificationsTable createAlias(String alias) {
+    return $AppNotificationsTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<AppNotificationType, String, String>
+  $convertertype = const EnumNameConverter<AppNotificationType>(
+    AppNotificationType.values,
+  );
+  static TypeConverter<DateTime, String> $convertercreatedAt =
+      ShopInBitTickets.dateConverter;
+}
+
+class AppNotification extends DataClass implements Insertable<AppNotification> {
+  final int id;
+  final AppNotificationType type;
+  final String title;
+  final String body;
+  final String? iconAsset;
+  final DateTime createdAt;
+  final bool read;
+  final String? scopeId;
+  final String? targetId;
+  const AppNotification({
+    required this.id,
+    required this.type,
+    required this.title,
+    required this.body,
+    this.iconAsset,
+    required this.createdAt,
+    required this.read,
+    this.scopeId,
+    this.targetId,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    {
+      map['type'] = Variable<String>(
+        $AppNotificationsTable.$convertertype.toSql(type),
+      );
+    }
+    map['title'] = Variable<String>(title);
+    map['body'] = Variable<String>(body);
+    if (!nullToAbsent || iconAsset != null) {
+      map['icon_asset'] = Variable<String>(iconAsset);
+    }
+    {
+      map['created_at'] = Variable<String>(
+        $AppNotificationsTable.$convertercreatedAt.toSql(createdAt),
+      );
+    }
+    map['read'] = Variable<bool>(read);
+    if (!nullToAbsent || scopeId != null) {
+      map['scope_id'] = Variable<String>(scopeId);
+    }
+    if (!nullToAbsent || targetId != null) {
+      map['target_id'] = Variable<String>(targetId);
+    }
+    return map;
+  }
+
+  AppNotificationsCompanion toCompanion(bool nullToAbsent) {
+    return AppNotificationsCompanion(
+      id: Value(id),
+      type: Value(type),
+      title: Value(title),
+      body: Value(body),
+      iconAsset: iconAsset == null && nullToAbsent
+          ? const Value.absent()
+          : Value(iconAsset),
+      createdAt: Value(createdAt),
+      read: Value(read),
+      scopeId: scopeId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(scopeId),
+      targetId: targetId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(targetId),
+    );
+  }
+
+  factory AppNotification.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AppNotification(
+      id: serializer.fromJson<int>(json['id']),
+      type: $AppNotificationsTable.$convertertype.fromJson(
+        serializer.fromJson<String>(json['type']),
+      ),
+      title: serializer.fromJson<String>(json['title']),
+      body: serializer.fromJson<String>(json['body']),
+      iconAsset: serializer.fromJson<String?>(json['iconAsset']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      read: serializer.fromJson<bool>(json['read']),
+      scopeId: serializer.fromJson<String?>(json['scopeId']),
+      targetId: serializer.fromJson<String?>(json['targetId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'type': serializer.toJson<String>(
+        $AppNotificationsTable.$convertertype.toJson(type),
+      ),
+      'title': serializer.toJson<String>(title),
+      'body': serializer.toJson<String>(body),
+      'iconAsset': serializer.toJson<String?>(iconAsset),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'read': serializer.toJson<bool>(read),
+      'scopeId': serializer.toJson<String?>(scopeId),
+      'targetId': serializer.toJson<String?>(targetId),
+    };
+  }
+
+  AppNotification copyWith({
+    int? id,
+    AppNotificationType? type,
+    String? title,
+    String? body,
+    Value<String?> iconAsset = const Value.absent(),
+    DateTime? createdAt,
+    bool? read,
+    Value<String?> scopeId = const Value.absent(),
+    Value<String?> targetId = const Value.absent(),
+  }) => AppNotification(
+    id: id ?? this.id,
+    type: type ?? this.type,
+    title: title ?? this.title,
+    body: body ?? this.body,
+    iconAsset: iconAsset.present ? iconAsset.value : this.iconAsset,
+    createdAt: createdAt ?? this.createdAt,
+    read: read ?? this.read,
+    scopeId: scopeId.present ? scopeId.value : this.scopeId,
+    targetId: targetId.present ? targetId.value : this.targetId,
+  );
+  AppNotification copyWithCompanion(AppNotificationsCompanion data) {
+    return AppNotification(
+      id: data.id.present ? data.id.value : this.id,
+      type: data.type.present ? data.type.value : this.type,
+      title: data.title.present ? data.title.value : this.title,
+      body: data.body.present ? data.body.value : this.body,
+      iconAsset: data.iconAsset.present ? data.iconAsset.value : this.iconAsset,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      read: data.read.present ? data.read.value : this.read,
+      scopeId: data.scopeId.present ? data.scopeId.value : this.scopeId,
+      targetId: data.targetId.present ? data.targetId.value : this.targetId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AppNotification(')
+          ..write('id: $id, ')
+          ..write('type: $type, ')
+          ..write('title: $title, ')
+          ..write('body: $body, ')
+          ..write('iconAsset: $iconAsset, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('read: $read, ')
+          ..write('scopeId: $scopeId, ')
+          ..write('targetId: $targetId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    type,
+    title,
+    body,
+    iconAsset,
+    createdAt,
+    read,
+    scopeId,
+    targetId,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AppNotification &&
+          other.id == this.id &&
+          other.type == this.type &&
+          other.title == this.title &&
+          other.body == this.body &&
+          other.iconAsset == this.iconAsset &&
+          other.createdAt == this.createdAt &&
+          other.read == this.read &&
+          other.scopeId == this.scopeId &&
+          other.targetId == this.targetId);
+}
+
+class AppNotificationsCompanion extends UpdateCompanion<AppNotification> {
+  final Value<int> id;
+  final Value<AppNotificationType> type;
+  final Value<String> title;
+  final Value<String> body;
+  final Value<String?> iconAsset;
+  final Value<DateTime> createdAt;
+  final Value<bool> read;
+  final Value<String?> scopeId;
+  final Value<String?> targetId;
+  const AppNotificationsCompanion({
+    this.id = const Value.absent(),
+    this.type = const Value.absent(),
+    this.title = const Value.absent(),
+    this.body = const Value.absent(),
+    this.iconAsset = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.read = const Value.absent(),
+    this.scopeId = const Value.absent(),
+    this.targetId = const Value.absent(),
+  });
+  AppNotificationsCompanion.insert({
+    this.id = const Value.absent(),
+    required AppNotificationType type,
+    required String title,
+    this.body = const Value.absent(),
+    this.iconAsset = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.read = const Value.absent(),
+    this.scopeId = const Value.absent(),
+    this.targetId = const Value.absent(),
+  }) : type = Value(type),
+       title = Value(title);
+  static Insertable<AppNotification> custom({
+    Expression<int>? id,
+    Expression<String>? type,
+    Expression<String>? title,
+    Expression<String>? body,
+    Expression<String>? iconAsset,
+    Expression<String>? createdAt,
+    Expression<bool>? read,
+    Expression<String>? scopeId,
+    Expression<String>? targetId,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (type != null) 'type': type,
+      if (title != null) 'title': title,
+      if (body != null) 'body': body,
+      if (iconAsset != null) 'icon_asset': iconAsset,
+      if (createdAt != null) 'created_at': createdAt,
+      if (read != null) 'read': read,
+      if (scopeId != null) 'scope_id': scopeId,
+      if (targetId != null) 'target_id': targetId,
+    });
+  }
+
+  AppNotificationsCompanion copyWith({
+    Value<int>? id,
+    Value<AppNotificationType>? type,
+    Value<String>? title,
+    Value<String>? body,
+    Value<String?>? iconAsset,
+    Value<DateTime>? createdAt,
+    Value<bool>? read,
+    Value<String?>? scopeId,
+    Value<String?>? targetId,
+  }) {
+    return AppNotificationsCompanion(
+      id: id ?? this.id,
+      type: type ?? this.type,
+      title: title ?? this.title,
+      body: body ?? this.body,
+      iconAsset: iconAsset ?? this.iconAsset,
+      createdAt: createdAt ?? this.createdAt,
+      read: read ?? this.read,
+      scopeId: scopeId ?? this.scopeId,
+      targetId: targetId ?? this.targetId,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(
+        $AppNotificationsTable.$convertertype.toSql(type.value),
+      );
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (body.present) {
+      map['body'] = Variable<String>(body.value);
+    }
+    if (iconAsset.present) {
+      map['icon_asset'] = Variable<String>(iconAsset.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<String>(
+        $AppNotificationsTable.$convertercreatedAt.toSql(createdAt.value),
+      );
+    }
+    if (read.present) {
+      map['read'] = Variable<bool>(read.value);
+    }
+    if (scopeId.present) {
+      map['scope_id'] = Variable<String>(scopeId.value);
+    }
+    if (targetId.present) {
+      map['target_id'] = Variable<String>(targetId.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AppNotificationsCompanion(')
+          ..write('id: $id, ')
+          ..write('type: $type, ')
+          ..write('title: $title, ')
+          ..write('body: $body, ')
+          ..write('iconAsset: $iconAsset, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('read: $read, ')
+          ..write('scopeId: $scopeId, ')
+          ..write('targetId: $targetId')
           ..write(')'))
         .toString();
   }
@@ -1893,12 +2395,29 @@ abstract class _$SharedDatabase extends GeneratedDatabase {
   _$SharedDatabase(QueryExecutor e) : super(e);
   $SharedDatabaseManager get managers => $SharedDatabaseManager(this);
   late final $CakepayOrdersTable cakepayOrders = $CakepayOrdersTable(this);
-  late final $ShopinBitSettingsTable shopinBitSettings =
-      $ShopinBitSettingsTable(this);
+  late final $ShopInBitSettingsTable shopInBitSettings =
+      $ShopInBitSettingsTable(this);
   late final $ShopInBitTicketsTable shopInBitTickets = $ShopInBitTicketsTable(
     this,
   );
-  late final ShopinBitSettingsDao shopinBitSettingsDao = ShopinBitSettingsDao(
+  late final $AppNotificationsTable appNotifications = $AppNotificationsTable(
+    this,
+  );
+  late final Index appNotificationsScope = Index(
+    'app_notifications_scope',
+    'CREATE INDEX app_notifications_scope ON app_notifications (type, scope_id, read)',
+  );
+  late final Index appNotificationsTarget = Index(
+    'app_notifications_target',
+    'CREATE INDEX app_notifications_target ON app_notifications (type, target_id)',
+  );
+  late final ShopInBitSettingsDao shopInBitSettingsDao = ShopInBitSettingsDao(
+    this as SharedDatabase,
+  );
+  late final ShopInBitTicketsDao shopInBitTicketsDao = ShopInBitTicketsDao(
+    this as SharedDatabase,
+  );
+  late final AppNotificationsDao appNotificationsDao = AppNotificationsDao(
     this as SharedDatabase,
   );
   @override
@@ -1907,8 +2426,11 @@ abstract class _$SharedDatabase extends GeneratedDatabase {
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     cakepayOrders,
-    shopinBitSettings,
+    shopInBitSettings,
     shopInBitTickets,
+    appNotifications,
+    appNotificationsScope,
+    appNotificationsTarget,
   ];
 }
 
@@ -2030,37 +2552,60 @@ typedef $$CakepayOrdersTableProcessedTableManager =
       CakepayOrder,
       PrefetchHooks Function()
     >;
-typedef $$ShopinBitSettingsTableCreateCompanionBuilder =
-    ShopinBitSettingsCompanion Function({
-      Value<int> id,
-      Value<bool> guidelinesAccepted,
+typedef $$ShopInBitSettingsTableCreateCompanionBuilder =
+    ShopInBitSettingsCompanion Function({
+      required String customerKey,
+      Value<bool> privacyAccepted,
+      Value<bool> conciergeGuidelinesAccepted,
+      Value<bool> travelGuidelinesAccepted,
+      Value<bool> carGuidelinesAccepted,
       Value<bool> setupComplete,
-      Value<String?> displayName,
+      Value<DateTime> createdAt,
+      Value<DateTime> lastUsedAt,
     });
-typedef $$ShopinBitSettingsTableUpdateCompanionBuilder =
-    ShopinBitSettingsCompanion Function({
-      Value<int> id,
-      Value<bool> guidelinesAccepted,
+typedef $$ShopInBitSettingsTableUpdateCompanionBuilder =
+    ShopInBitSettingsCompanion Function({
+      Value<String> customerKey,
+      Value<bool> privacyAccepted,
+      Value<bool> conciergeGuidelinesAccepted,
+      Value<bool> travelGuidelinesAccepted,
+      Value<bool> carGuidelinesAccepted,
       Value<bool> setupComplete,
-      Value<String?> displayName,
+      Value<DateTime> createdAt,
+      Value<DateTime> lastUsedAt,
     });
 
-class $$ShopinBitSettingsTableFilterComposer
-    extends Composer<_$SharedDatabase, $ShopinBitSettingsTable> {
-  $$ShopinBitSettingsTableFilterComposer({
+class $$ShopInBitSettingsTableFilterComposer
+    extends Composer<_$SharedDatabase, $ShopInBitSettingsTable> {
+  $$ShopInBitSettingsTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<int> get id => $composableBuilder(
-    column: $table.id,
+  ColumnFilters<String> get customerKey => $composableBuilder(
+    column: $table.customerKey,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<bool> get guidelinesAccepted => $composableBuilder(
-    column: $table.guidelinesAccepted,
+  ColumnFilters<bool> get privacyAccepted => $composableBuilder(
+    column: $table.privacyAccepted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get conciergeGuidelinesAccepted => $composableBuilder(
+    column: $table.conciergeGuidelinesAccepted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get travelGuidelinesAccepted => $composableBuilder(
+    column: $table.travelGuidelinesAccepted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get carGuidelinesAccepted => $composableBuilder(
+    column: $table.carGuidelinesAccepted,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2069,28 +2614,48 @@ class $$ShopinBitSettingsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get displayName => $composableBuilder(
-    column: $table.displayName,
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastUsedAt => $composableBuilder(
+    column: $table.lastUsedAt,
     builder: (column) => ColumnFilters(column),
   );
 }
 
-class $$ShopinBitSettingsTableOrderingComposer
-    extends Composer<_$SharedDatabase, $ShopinBitSettingsTable> {
-  $$ShopinBitSettingsTableOrderingComposer({
+class $$ShopInBitSettingsTableOrderingComposer
+    extends Composer<_$SharedDatabase, $ShopInBitSettingsTable> {
+  $$ShopInBitSettingsTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<int> get id => $composableBuilder(
-    column: $table.id,
+  ColumnOrderings<String> get customerKey => $composableBuilder(
+    column: $table.customerKey,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<bool> get guidelinesAccepted => $composableBuilder(
-    column: $table.guidelinesAccepted,
+  ColumnOrderings<bool> get privacyAccepted => $composableBuilder(
+    column: $table.privacyAccepted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get conciergeGuidelinesAccepted => $composableBuilder(
+    column: $table.conciergeGuidelinesAccepted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get travelGuidelinesAccepted => $composableBuilder(
+    column: $table.travelGuidelinesAccepted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get carGuidelinesAccepted => $composableBuilder(
+    column: $table.carGuidelinesAccepted,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -2099,26 +2664,48 @@ class $$ShopinBitSettingsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get displayName => $composableBuilder(
-    column: $table.displayName,
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastUsedAt => $composableBuilder(
+    column: $table.lastUsedAt,
     builder: (column) => ColumnOrderings(column),
   );
 }
 
-class $$ShopinBitSettingsTableAnnotationComposer
-    extends Composer<_$SharedDatabase, $ShopinBitSettingsTable> {
-  $$ShopinBitSettingsTableAnnotationComposer({
+class $$ShopInBitSettingsTableAnnotationComposer
+    extends Composer<_$SharedDatabase, $ShopInBitSettingsTable> {
+  $$ShopInBitSettingsTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<int> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
+  GeneratedColumn<String> get customerKey => $composableBuilder(
+    column: $table.customerKey,
+    builder: (column) => column,
+  );
 
-  GeneratedColumn<bool> get guidelinesAccepted => $composableBuilder(
-    column: $table.guidelinesAccepted,
+  GeneratedColumn<bool> get privacyAccepted => $composableBuilder(
+    column: $table.privacyAccepted,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get conciergeGuidelinesAccepted => $composableBuilder(
+    column: $table.conciergeGuidelinesAccepted,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get travelGuidelinesAccepted => $composableBuilder(
+    column: $table.travelGuidelinesAccepted,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get carGuidelinesAccepted => $composableBuilder(
+    column: $table.carGuidelinesAccepted,
     builder: (column) => column,
   );
 
@@ -2127,73 +2714,92 @@ class $$ShopinBitSettingsTableAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<String> get displayName => $composableBuilder(
-    column: $table.displayName,
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastUsedAt => $composableBuilder(
+    column: $table.lastUsedAt,
     builder: (column) => column,
   );
 }
 
-class $$ShopinBitSettingsTableTableManager
+class $$ShopInBitSettingsTableTableManager
     extends
         RootTableManager<
           _$SharedDatabase,
-          $ShopinBitSettingsTable,
-          ShopinBitSetting,
-          $$ShopinBitSettingsTableFilterComposer,
-          $$ShopinBitSettingsTableOrderingComposer,
-          $$ShopinBitSettingsTableAnnotationComposer,
-          $$ShopinBitSettingsTableCreateCompanionBuilder,
-          $$ShopinBitSettingsTableUpdateCompanionBuilder,
+          $ShopInBitSettingsTable,
+          ShopInBitSetting,
+          $$ShopInBitSettingsTableFilterComposer,
+          $$ShopInBitSettingsTableOrderingComposer,
+          $$ShopInBitSettingsTableAnnotationComposer,
+          $$ShopInBitSettingsTableCreateCompanionBuilder,
+          $$ShopInBitSettingsTableUpdateCompanionBuilder,
           (
-            ShopinBitSetting,
+            ShopInBitSetting,
             BaseReferences<
               _$SharedDatabase,
-              $ShopinBitSettingsTable,
-              ShopinBitSetting
+              $ShopInBitSettingsTable,
+              ShopInBitSetting
             >,
           ),
-          ShopinBitSetting,
+          ShopInBitSetting,
           PrefetchHooks Function()
         > {
-  $$ShopinBitSettingsTableTableManager(
+  $$ShopInBitSettingsTableTableManager(
     _$SharedDatabase db,
-    $ShopinBitSettingsTable table,
+    $ShopInBitSettingsTable table,
   ) : super(
         TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $$ShopinBitSettingsTableFilterComposer($db: db, $table: table),
+              $$ShopInBitSettingsTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $$ShopinBitSettingsTableOrderingComposer($db: db, $table: table),
+              $$ShopInBitSettingsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $$ShopinBitSettingsTableAnnotationComposer(
+              $$ShopInBitSettingsTableAnnotationComposer(
                 $db: db,
                 $table: table,
               ),
           updateCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
-                Value<bool> guidelinesAccepted = const Value.absent(),
+                Value<String> customerKey = const Value.absent(),
+                Value<bool> privacyAccepted = const Value.absent(),
+                Value<bool> conciergeGuidelinesAccepted = const Value.absent(),
+                Value<bool> travelGuidelinesAccepted = const Value.absent(),
+                Value<bool> carGuidelinesAccepted = const Value.absent(),
                 Value<bool> setupComplete = const Value.absent(),
-                Value<String?> displayName = const Value.absent(),
-              }) => ShopinBitSettingsCompanion(
-                id: id,
-                guidelinesAccepted: guidelinesAccepted,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> lastUsedAt = const Value.absent(),
+              }) => ShopInBitSettingsCompanion(
+                customerKey: customerKey,
+                privacyAccepted: privacyAccepted,
+                conciergeGuidelinesAccepted: conciergeGuidelinesAccepted,
+                travelGuidelinesAccepted: travelGuidelinesAccepted,
+                carGuidelinesAccepted: carGuidelinesAccepted,
                 setupComplete: setupComplete,
-                displayName: displayName,
+                createdAt: createdAt,
+                lastUsedAt: lastUsedAt,
               ),
           createCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
-                Value<bool> guidelinesAccepted = const Value.absent(),
+                required String customerKey,
+                Value<bool> privacyAccepted = const Value.absent(),
+                Value<bool> conciergeGuidelinesAccepted = const Value.absent(),
+                Value<bool> travelGuidelinesAccepted = const Value.absent(),
+                Value<bool> carGuidelinesAccepted = const Value.absent(),
                 Value<bool> setupComplete = const Value.absent(),
-                Value<String?> displayName = const Value.absent(),
-              }) => ShopinBitSettingsCompanion.insert(
-                id: id,
-                guidelinesAccepted: guidelinesAccepted,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> lastUsedAt = const Value.absent(),
+              }) => ShopInBitSettingsCompanion.insert(
+                customerKey: customerKey,
+                privacyAccepted: privacyAccepted,
+                conciergeGuidelinesAccepted: conciergeGuidelinesAccepted,
+                travelGuidelinesAccepted: travelGuidelinesAccepted,
+                carGuidelinesAccepted: carGuidelinesAccepted,
                 setupComplete: setupComplete,
-                displayName: displayName,
+                createdAt: createdAt,
+                lastUsedAt: lastUsedAt,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -2203,80 +2809,68 @@ class $$ShopinBitSettingsTableTableManager
       );
 }
 
-typedef $$ShopinBitSettingsTableProcessedTableManager =
+typedef $$ShopInBitSettingsTableProcessedTableManager =
     ProcessedTableManager<
       _$SharedDatabase,
-      $ShopinBitSettingsTable,
-      ShopinBitSetting,
-      $$ShopinBitSettingsTableFilterComposer,
-      $$ShopinBitSettingsTableOrderingComposer,
-      $$ShopinBitSettingsTableAnnotationComposer,
-      $$ShopinBitSettingsTableCreateCompanionBuilder,
-      $$ShopinBitSettingsTableUpdateCompanionBuilder,
+      $ShopInBitSettingsTable,
+      ShopInBitSetting,
+      $$ShopInBitSettingsTableFilterComposer,
+      $$ShopInBitSettingsTableOrderingComposer,
+      $$ShopInBitSettingsTableAnnotationComposer,
+      $$ShopInBitSettingsTableCreateCompanionBuilder,
+      $$ShopInBitSettingsTableUpdateCompanionBuilder,
       (
-        ShopinBitSetting,
+        ShopInBitSetting,
         BaseReferences<
           _$SharedDatabase,
-          $ShopinBitSettingsTable,
-          ShopinBitSetting
+          $ShopInBitSettingsTable,
+          ShopInBitSetting
         >,
       ),
-      ShopinBitSetting,
+      ShopInBitSetting,
       PrefetchHooks Function()
     >;
 typedef $$ShopInBitTicketsTableCreateCompanionBuilder =
     ShopInBitTicketsCompanion Function({
-      required String ticketId,
-      required String displayName,
+      required int apiTicketId,
+      required String customerKey,
+      required String ticketNumber,
       required ShopInBitCategory category,
-      required ShopInBitOrderStatus status,
       required String requestDescription,
       required String deliveryCountry,
+      required ShopInBitOrderStatus status,
+      required String statusRaw,
       Value<String?> offerProductName,
       Value<String?> offerPrice,
-      required String shippingName,
-      required String shippingStreet,
-      required String shippingCity,
-      required String shippingPostalCode,
-      required String shippingCountry,
-      Value<String?> paymentMethod,
-      required List<ShopInBitTicketMessage> messages,
-      required DateTime createdAt,
-      required int apiTicketId,
-      Value<String?> carResearchInvoiceId,
+      Value<String?> paymentInvoiceStatus,
+      Value<String?> trackingLink,
+      Value<DateTime?> lastAgentMessageAt,
       Value<String?> feeTicketNumber,
-      required bool needsCreateRequest,
-      required bool isPendingPayment,
-      Value<DateTime?> carResearchExpiresAt,
-      Value<String?> carResearchPaymentLinks,
-      Value<int> rowid,
+      Value<List<TicketMessage>> messages,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> lastReadAt,
     });
 typedef $$ShopInBitTicketsTableUpdateCompanionBuilder =
     ShopInBitTicketsCompanion Function({
-      Value<String> ticketId,
-      Value<String> displayName,
+      Value<int> apiTicketId,
+      Value<String> customerKey,
+      Value<String> ticketNumber,
       Value<ShopInBitCategory> category,
-      Value<ShopInBitOrderStatus> status,
       Value<String> requestDescription,
       Value<String> deliveryCountry,
+      Value<ShopInBitOrderStatus> status,
+      Value<String> statusRaw,
       Value<String?> offerProductName,
       Value<String?> offerPrice,
-      Value<String> shippingName,
-      Value<String> shippingStreet,
-      Value<String> shippingCity,
-      Value<String> shippingPostalCode,
-      Value<String> shippingCountry,
-      Value<String?> paymentMethod,
-      Value<List<ShopInBitTicketMessage>> messages,
-      Value<DateTime> createdAt,
-      Value<int> apiTicketId,
-      Value<String?> carResearchInvoiceId,
+      Value<String?> paymentInvoiceStatus,
+      Value<String?> trackingLink,
+      Value<DateTime?> lastAgentMessageAt,
       Value<String?> feeTicketNumber,
-      Value<bool> needsCreateRequest,
-      Value<bool> isPendingPayment,
-      Value<DateTime?> carResearchExpiresAt,
-      Value<String?> carResearchPaymentLinks,
-      Value<int> rowid,
+      Value<List<TicketMessage>> messages,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> lastReadAt,
     });
 
 class $$ShopInBitTicketsTableFilterComposer
@@ -2288,29 +2882,24 @@ class $$ShopInBitTicketsTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<String> get ticketId => $composableBuilder(
-    column: $table.ticketId,
+  ColumnFilters<int> get apiTicketId => $composableBuilder(
+    column: $table.apiTicketId,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get displayName => $composableBuilder(
-    column: $table.displayName,
+  ColumnFilters<String> get customerKey => $composableBuilder(
+    column: $table.customerKey,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnWithTypeConverterFilters<ShopInBitCategory, ShopInBitCategory, int>
+  ColumnFilters<String> get ticketNumber => $composableBuilder(
+    column: $table.ticketNumber,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<ShopInBitCategory, ShopInBitCategory, String>
   get category => $composableBuilder(
     column: $table.category,
-    builder: (column) => ColumnWithTypeConverterFilters(column),
-  );
-
-  ColumnWithTypeConverterFilters<
-    ShopInBitOrderStatus,
-    ShopInBitOrderStatus,
-    int
-  >
-  get status => $composableBuilder(
-    column: $table.status,
     builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
@@ -2324,6 +2913,21 @@ class $$ShopInBitTicketsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnWithTypeConverterFilters<
+    ShopInBitOrderStatus,
+    ShopInBitOrderStatus,
+    String
+  >
+  get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<String> get statusRaw => $composableBuilder(
+    column: $table.statusRaw,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get offerProductName => $composableBuilder(
     column: $table.offerProductName,
     builder: (column) => ColumnFilters(column),
@@ -2334,59 +2938,20 @@ class $$ShopInBitTicketsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get shippingName => $composableBuilder(
-    column: $table.shippingName,
+  ColumnFilters<String> get paymentInvoiceStatus => $composableBuilder(
+    column: $table.paymentInvoiceStatus,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get shippingStreet => $composableBuilder(
-    column: $table.shippingStreet,
+  ColumnFilters<String> get trackingLink => $composableBuilder(
+    column: $table.trackingLink,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get shippingCity => $composableBuilder(
-    column: $table.shippingCity,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get shippingPostalCode => $composableBuilder(
-    column: $table.shippingPostalCode,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get shippingCountry => $composableBuilder(
-    column: $table.shippingCountry,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get paymentMethod => $composableBuilder(
-    column: $table.paymentMethod,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnWithTypeConverterFilters<
-    List<ShopInBitTicketMessage>,
-    List<ShopInBitTicketMessage>,
-    String
-  >
-  get messages => $composableBuilder(
-    column: $table.messages,
+  ColumnWithTypeConverterFilters<DateTime?, DateTime, String>
+  get lastAgentMessageAt => $composableBuilder(
+    column: $table.lastAgentMessageAt,
     builder: (column) => ColumnWithTypeConverterFilters(column),
-  );
-
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get apiTicketId => $composableBuilder(
-    column: $table.apiTicketId,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get carResearchInvoiceId => $composableBuilder(
-    column: $table.carResearchInvoiceId,
-    builder: (column) => ColumnFilters(column),
   );
 
   ColumnFilters<String> get feeTicketNumber => $composableBuilder(
@@ -2394,25 +2959,33 @@ class $$ShopInBitTicketsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<bool> get needsCreateRequest => $composableBuilder(
-    column: $table.needsCreateRequest,
-    builder: (column) => ColumnFilters(column),
+  ColumnWithTypeConverterFilters<
+    List<TicketMessage>,
+    List<TicketMessage>,
+    String
+  >
+  get messages => $composableBuilder(
+    column: $table.messages,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
-  ColumnFilters<bool> get isPendingPayment => $composableBuilder(
-    column: $table.isPendingPayment,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<DateTime, DateTime, String> get createdAt =>
+      $composableBuilder(
+        column: $table.createdAt,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
-  ColumnFilters<DateTime> get carResearchExpiresAt => $composableBuilder(
-    column: $table.carResearchExpiresAt,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<DateTime, DateTime, String> get updatedAt =>
+      $composableBuilder(
+        column: $table.updatedAt,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
-  ColumnFilters<String> get carResearchPaymentLinks => $composableBuilder(
-    column: $table.carResearchPaymentLinks,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnWithTypeConverterFilters<DateTime?, DateTime, String> get lastReadAt =>
+      $composableBuilder(
+        column: $table.lastReadAt,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 }
 
 class $$ShopInBitTicketsTableOrderingComposer
@@ -2424,23 +2997,23 @@ class $$ShopInBitTicketsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<String> get ticketId => $composableBuilder(
-    column: $table.ticketId,
+  ColumnOrderings<int> get apiTicketId => $composableBuilder(
+    column: $table.apiTicketId,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get displayName => $composableBuilder(
-    column: $table.displayName,
+  ColumnOrderings<String> get customerKey => $composableBuilder(
+    column: $table.customerKey,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get category => $composableBuilder(
+  ColumnOrderings<String> get ticketNumber => $composableBuilder(
+    column: $table.ticketNumber,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get category => $composableBuilder(
     column: $table.category,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get status => $composableBuilder(
-    column: $table.status,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -2454,6 +3027,16 @@ class $$ShopInBitTicketsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get statusRaw => $composableBuilder(
+    column: $table.statusRaw,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get offerProductName => $composableBuilder(
     column: $table.offerProductName,
     builder: (column) => ColumnOrderings(column),
@@ -2464,53 +3047,18 @@ class $$ShopInBitTicketsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get shippingName => $composableBuilder(
-    column: $table.shippingName,
+  ColumnOrderings<String> get paymentInvoiceStatus => $composableBuilder(
+    column: $table.paymentInvoiceStatus,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get shippingStreet => $composableBuilder(
-    column: $table.shippingStreet,
+  ColumnOrderings<String> get trackingLink => $composableBuilder(
+    column: $table.trackingLink,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get shippingCity => $composableBuilder(
-    column: $table.shippingCity,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get shippingPostalCode => $composableBuilder(
-    column: $table.shippingPostalCode,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get shippingCountry => $composableBuilder(
-    column: $table.shippingCountry,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get paymentMethod => $composableBuilder(
-    column: $table.paymentMethod,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get messages => $composableBuilder(
-    column: $table.messages,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get apiTicketId => $composableBuilder(
-    column: $table.apiTicketId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get carResearchInvoiceId => $composableBuilder(
-    column: $table.carResearchInvoiceId,
+  ColumnOrderings<String> get lastAgentMessageAt => $composableBuilder(
+    column: $table.lastAgentMessageAt,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -2519,23 +3067,23 @@ class $$ShopInBitTicketsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<bool> get needsCreateRequest => $composableBuilder(
-    column: $table.needsCreateRequest,
+  ColumnOrderings<String> get messages => $composableBuilder(
+    column: $table.messages,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<bool> get isPendingPayment => $composableBuilder(
-    column: $table.isPendingPayment,
+  ColumnOrderings<String> get createdAt => $composableBuilder(
+    column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get carResearchExpiresAt => $composableBuilder(
-    column: $table.carResearchExpiresAt,
+  ColumnOrderings<String> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get carResearchPaymentLinks => $composableBuilder(
-    column: $table.carResearchPaymentLinks,
+  ColumnOrderings<String> get lastReadAt => $composableBuilder(
+    column: $table.lastReadAt,
     builder: (column) => ColumnOrderings(column),
   );
 }
@@ -2549,19 +3097,23 @@ class $$ShopInBitTicketsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<String> get ticketId =>
-      $composableBuilder(column: $table.ticketId, builder: (column) => column);
-
-  GeneratedColumn<String> get displayName => $composableBuilder(
-    column: $table.displayName,
+  GeneratedColumn<int> get apiTicketId => $composableBuilder(
+    column: $table.apiTicketId,
     builder: (column) => column,
   );
 
-  GeneratedColumnWithTypeConverter<ShopInBitCategory, int> get category =>
-      $composableBuilder(column: $table.category, builder: (column) => column);
+  GeneratedColumn<String> get customerKey => $composableBuilder(
+    column: $table.customerKey,
+    builder: (column) => column,
+  );
 
-  GeneratedColumnWithTypeConverter<ShopInBitOrderStatus, int> get status =>
-      $composableBuilder(column: $table.status, builder: (column) => column);
+  GeneratedColumn<String> get ticketNumber => $composableBuilder(
+    column: $table.ticketNumber,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<ShopInBitCategory, String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
 
   GeneratedColumn<String> get requestDescription => $composableBuilder(
     column: $table.requestDescription,
@@ -2573,6 +3125,12 @@ class $$ShopInBitTicketsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumnWithTypeConverter<ShopInBitOrderStatus, String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get statusRaw =>
+      $composableBuilder(column: $table.statusRaw, builder: (column) => column);
+
   GeneratedColumn<String> get offerProductName => $composableBuilder(
     column: $table.offerProductName,
     builder: (column) => column,
@@ -2583,77 +3141,41 @@ class $$ShopInBitTicketsTableAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<String> get shippingName => $composableBuilder(
-    column: $table.shippingName,
+  GeneratedColumn<String> get paymentInvoiceStatus => $composableBuilder(
+    column: $table.paymentInvoiceStatus,
     builder: (column) => column,
   );
 
-  GeneratedColumn<String> get shippingStreet => $composableBuilder(
-    column: $table.shippingStreet,
+  GeneratedColumn<String> get trackingLink => $composableBuilder(
+    column: $table.trackingLink,
     builder: (column) => column,
   );
 
-  GeneratedColumn<String> get shippingCity => $composableBuilder(
-    column: $table.shippingCity,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get shippingPostalCode => $composableBuilder(
-    column: $table.shippingPostalCode,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get shippingCountry => $composableBuilder(
-    column: $table.shippingCountry,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get paymentMethod => $composableBuilder(
-    column: $table.paymentMethod,
-    builder: (column) => column,
-  );
-
-  GeneratedColumnWithTypeConverter<List<ShopInBitTicketMessage>, String>
-  get messages =>
-      $composableBuilder(column: $table.messages, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get createdAt =>
-      $composableBuilder(column: $table.createdAt, builder: (column) => column);
-
-  GeneratedColumn<int> get apiTicketId => $composableBuilder(
-    column: $table.apiTicketId,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get carResearchInvoiceId => $composableBuilder(
-    column: $table.carResearchInvoiceId,
-    builder: (column) => column,
-  );
+  GeneratedColumnWithTypeConverter<DateTime?, String> get lastAgentMessageAt =>
+      $composableBuilder(
+        column: $table.lastAgentMessageAt,
+        builder: (column) => column,
+      );
 
   GeneratedColumn<String> get feeTicketNumber => $composableBuilder(
     column: $table.feeTicketNumber,
     builder: (column) => column,
   );
 
-  GeneratedColumn<bool> get needsCreateRequest => $composableBuilder(
-    column: $table.needsCreateRequest,
-    builder: (column) => column,
-  );
+  GeneratedColumnWithTypeConverter<List<TicketMessage>, String> get messages =>
+      $composableBuilder(column: $table.messages, builder: (column) => column);
 
-  GeneratedColumn<bool> get isPendingPayment => $composableBuilder(
-    column: $table.isPendingPayment,
-    builder: (column) => column,
-  );
+  GeneratedColumnWithTypeConverter<DateTime, String> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get carResearchExpiresAt => $composableBuilder(
-    column: $table.carResearchExpiresAt,
-    builder: (column) => column,
-  );
+  GeneratedColumnWithTypeConverter<DateTime, String> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
-  GeneratedColumn<String> get carResearchPaymentLinks => $composableBuilder(
-    column: $table.carResearchPaymentLinks,
-    builder: (column) => column,
-  );
+  GeneratedColumnWithTypeConverter<DateTime?, String> get lastReadAt =>
+      $composableBuilder(
+        column: $table.lastReadAt,
+        builder: (column) => column,
+      );
 }
 
 class $$ShopInBitTicketsTableTableManager
@@ -2693,108 +3215,83 @@ class $$ShopInBitTicketsTableTableManager
               $$ShopInBitTicketsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
-                Value<String> ticketId = const Value.absent(),
-                Value<String> displayName = const Value.absent(),
+                Value<int> apiTicketId = const Value.absent(),
+                Value<String> customerKey = const Value.absent(),
+                Value<String> ticketNumber = const Value.absent(),
                 Value<ShopInBitCategory> category = const Value.absent(),
-                Value<ShopInBitOrderStatus> status = const Value.absent(),
                 Value<String> requestDescription = const Value.absent(),
                 Value<String> deliveryCountry = const Value.absent(),
+                Value<ShopInBitOrderStatus> status = const Value.absent(),
+                Value<String> statusRaw = const Value.absent(),
                 Value<String?> offerProductName = const Value.absent(),
                 Value<String?> offerPrice = const Value.absent(),
-                Value<String> shippingName = const Value.absent(),
-                Value<String> shippingStreet = const Value.absent(),
-                Value<String> shippingCity = const Value.absent(),
-                Value<String> shippingPostalCode = const Value.absent(),
-                Value<String> shippingCountry = const Value.absent(),
-                Value<String?> paymentMethod = const Value.absent(),
-                Value<List<ShopInBitTicketMessage>> messages =
-                    const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<int> apiTicketId = const Value.absent(),
-                Value<String?> carResearchInvoiceId = const Value.absent(),
+                Value<String?> paymentInvoiceStatus = const Value.absent(),
+                Value<String?> trackingLink = const Value.absent(),
+                Value<DateTime?> lastAgentMessageAt = const Value.absent(),
                 Value<String?> feeTicketNumber = const Value.absent(),
-                Value<bool> needsCreateRequest = const Value.absent(),
-                Value<bool> isPendingPayment = const Value.absent(),
-                Value<DateTime?> carResearchExpiresAt = const Value.absent(),
-                Value<String?> carResearchPaymentLinks = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
+                Value<List<TicketMessage>> messages = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> lastReadAt = const Value.absent(),
               }) => ShopInBitTicketsCompanion(
-                ticketId: ticketId,
-                displayName: displayName,
+                apiTicketId: apiTicketId,
+                customerKey: customerKey,
+                ticketNumber: ticketNumber,
                 category: category,
-                status: status,
                 requestDescription: requestDescription,
                 deliveryCountry: deliveryCountry,
+                status: status,
+                statusRaw: statusRaw,
                 offerProductName: offerProductName,
                 offerPrice: offerPrice,
-                shippingName: shippingName,
-                shippingStreet: shippingStreet,
-                shippingCity: shippingCity,
-                shippingPostalCode: shippingPostalCode,
-                shippingCountry: shippingCountry,
-                paymentMethod: paymentMethod,
+                paymentInvoiceStatus: paymentInvoiceStatus,
+                trackingLink: trackingLink,
+                lastAgentMessageAt: lastAgentMessageAt,
+                feeTicketNumber: feeTicketNumber,
                 messages: messages,
                 createdAt: createdAt,
-                apiTicketId: apiTicketId,
-                carResearchInvoiceId: carResearchInvoiceId,
-                feeTicketNumber: feeTicketNumber,
-                needsCreateRequest: needsCreateRequest,
-                isPendingPayment: isPendingPayment,
-                carResearchExpiresAt: carResearchExpiresAt,
-                carResearchPaymentLinks: carResearchPaymentLinks,
-                rowid: rowid,
+                updatedAt: updatedAt,
+                lastReadAt: lastReadAt,
               ),
           createCompanionCallback:
               ({
-                required String ticketId,
-                required String displayName,
+                required int apiTicketId,
+                required String customerKey,
+                required String ticketNumber,
                 required ShopInBitCategory category,
-                required ShopInBitOrderStatus status,
                 required String requestDescription,
                 required String deliveryCountry,
+                required ShopInBitOrderStatus status,
+                required String statusRaw,
                 Value<String?> offerProductName = const Value.absent(),
                 Value<String?> offerPrice = const Value.absent(),
-                required String shippingName,
-                required String shippingStreet,
-                required String shippingCity,
-                required String shippingPostalCode,
-                required String shippingCountry,
-                Value<String?> paymentMethod = const Value.absent(),
-                required List<ShopInBitTicketMessage> messages,
-                required DateTime createdAt,
-                required int apiTicketId,
-                Value<String?> carResearchInvoiceId = const Value.absent(),
+                Value<String?> paymentInvoiceStatus = const Value.absent(),
+                Value<String?> trackingLink = const Value.absent(),
+                Value<DateTime?> lastAgentMessageAt = const Value.absent(),
                 Value<String?> feeTicketNumber = const Value.absent(),
-                required bool needsCreateRequest,
-                required bool isPendingPayment,
-                Value<DateTime?> carResearchExpiresAt = const Value.absent(),
-                Value<String?> carResearchPaymentLinks = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
+                Value<List<TicketMessage>> messages = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> lastReadAt = const Value.absent(),
               }) => ShopInBitTicketsCompanion.insert(
-                ticketId: ticketId,
-                displayName: displayName,
+                apiTicketId: apiTicketId,
+                customerKey: customerKey,
+                ticketNumber: ticketNumber,
                 category: category,
-                status: status,
                 requestDescription: requestDescription,
                 deliveryCountry: deliveryCountry,
+                status: status,
+                statusRaw: statusRaw,
                 offerProductName: offerProductName,
                 offerPrice: offerPrice,
-                shippingName: shippingName,
-                shippingStreet: shippingStreet,
-                shippingCity: shippingCity,
-                shippingPostalCode: shippingPostalCode,
-                shippingCountry: shippingCountry,
-                paymentMethod: paymentMethod,
+                paymentInvoiceStatus: paymentInvoiceStatus,
+                trackingLink: trackingLink,
+                lastAgentMessageAt: lastAgentMessageAt,
+                feeTicketNumber: feeTicketNumber,
                 messages: messages,
                 createdAt: createdAt,
-                apiTicketId: apiTicketId,
-                carResearchInvoiceId: carResearchInvoiceId,
-                feeTicketNumber: feeTicketNumber,
-                needsCreateRequest: needsCreateRequest,
-                isPendingPayment: isPendingPayment,
-                carResearchExpiresAt: carResearchExpiresAt,
-                carResearchPaymentLinks: carResearchPaymentLinks,
-                rowid: rowid,
+                updatedAt: updatedAt,
+                lastReadAt: lastReadAt,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -2825,30 +3322,350 @@ typedef $$ShopInBitTicketsTableProcessedTableManager =
       ShopInBitTicket,
       PrefetchHooks Function()
     >;
+typedef $$AppNotificationsTableCreateCompanionBuilder =
+    AppNotificationsCompanion Function({
+      Value<int> id,
+      required AppNotificationType type,
+      required String title,
+      Value<String> body,
+      Value<String?> iconAsset,
+      Value<DateTime> createdAt,
+      Value<bool> read,
+      Value<String?> scopeId,
+      Value<String?> targetId,
+    });
+typedef $$AppNotificationsTableUpdateCompanionBuilder =
+    AppNotificationsCompanion Function({
+      Value<int> id,
+      Value<AppNotificationType> type,
+      Value<String> title,
+      Value<String> body,
+      Value<String?> iconAsset,
+      Value<DateTime> createdAt,
+      Value<bool> read,
+      Value<String?> scopeId,
+      Value<String?> targetId,
+    });
+
+class $$AppNotificationsTableFilterComposer
+    extends Composer<_$SharedDatabase, $AppNotificationsTable> {
+  $$AppNotificationsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<
+    AppNotificationType,
+    AppNotificationType,
+    String
+  >
+  get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get iconAsset => $composableBuilder(
+    column: $table.iconAsset,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<DateTime, DateTime, String> get createdAt =>
+      $composableBuilder(
+        column: $table.createdAt,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<bool> get read => $composableBuilder(
+    column: $table.read,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get scopeId => $composableBuilder(
+    column: $table.scopeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get targetId => $composableBuilder(
+    column: $table.targetId,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$AppNotificationsTableOrderingComposer
+    extends Composer<_$SharedDatabase, $AppNotificationsTable> {
+  $$AppNotificationsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get iconAsset => $composableBuilder(
+    column: $table.iconAsset,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get read => $composableBuilder(
+    column: $table.read,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get scopeId => $composableBuilder(
+    column: $table.scopeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get targetId => $composableBuilder(
+    column: $table.targetId,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$AppNotificationsTableAnnotationComposer
+    extends Composer<_$SharedDatabase, $AppNotificationsTable> {
+  $$AppNotificationsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<AppNotificationType, String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get body =>
+      $composableBuilder(column: $table.body, builder: (column) => column);
+
+  GeneratedColumn<String> get iconAsset =>
+      $composableBuilder(column: $table.iconAsset, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<DateTime, String> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get read =>
+      $composableBuilder(column: $table.read, builder: (column) => column);
+
+  GeneratedColumn<String> get scopeId =>
+      $composableBuilder(column: $table.scopeId, builder: (column) => column);
+
+  GeneratedColumn<String> get targetId =>
+      $composableBuilder(column: $table.targetId, builder: (column) => column);
+}
+
+class $$AppNotificationsTableTableManager
+    extends
+        RootTableManager<
+          _$SharedDatabase,
+          $AppNotificationsTable,
+          AppNotification,
+          $$AppNotificationsTableFilterComposer,
+          $$AppNotificationsTableOrderingComposer,
+          $$AppNotificationsTableAnnotationComposer,
+          $$AppNotificationsTableCreateCompanionBuilder,
+          $$AppNotificationsTableUpdateCompanionBuilder,
+          (
+            AppNotification,
+            BaseReferences<
+              _$SharedDatabase,
+              $AppNotificationsTable,
+              AppNotification
+            >,
+          ),
+          AppNotification,
+          PrefetchHooks Function()
+        > {
+  $$AppNotificationsTableTableManager(
+    _$SharedDatabase db,
+    $AppNotificationsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AppNotificationsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AppNotificationsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AppNotificationsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<AppNotificationType> type = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String> body = const Value.absent(),
+                Value<String?> iconAsset = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<bool> read = const Value.absent(),
+                Value<String?> scopeId = const Value.absent(),
+                Value<String?> targetId = const Value.absent(),
+              }) => AppNotificationsCompanion(
+                id: id,
+                type: type,
+                title: title,
+                body: body,
+                iconAsset: iconAsset,
+                createdAt: createdAt,
+                read: read,
+                scopeId: scopeId,
+                targetId: targetId,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required AppNotificationType type,
+                required String title,
+                Value<String> body = const Value.absent(),
+                Value<String?> iconAsset = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<bool> read = const Value.absent(),
+                Value<String?> scopeId = const Value.absent(),
+                Value<String?> targetId = const Value.absent(),
+              }) => AppNotificationsCompanion.insert(
+                id: id,
+                type: type,
+                title: title,
+                body: body,
+                iconAsset: iconAsset,
+                createdAt: createdAt,
+                read: read,
+                scopeId: scopeId,
+                targetId: targetId,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$AppNotificationsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$SharedDatabase,
+      $AppNotificationsTable,
+      AppNotification,
+      $$AppNotificationsTableFilterComposer,
+      $$AppNotificationsTableOrderingComposer,
+      $$AppNotificationsTableAnnotationComposer,
+      $$AppNotificationsTableCreateCompanionBuilder,
+      $$AppNotificationsTableUpdateCompanionBuilder,
+      (
+        AppNotification,
+        BaseReferences<
+          _$SharedDatabase,
+          $AppNotificationsTable,
+          AppNotification
+        >,
+      ),
+      AppNotification,
+      PrefetchHooks Function()
+    >;
 
 class $SharedDatabaseManager {
   final _$SharedDatabase _db;
   $SharedDatabaseManager(this._db);
   $$CakepayOrdersTableTableManager get cakepayOrders =>
       $$CakepayOrdersTableTableManager(_db, _db.cakepayOrders);
-  $$ShopinBitSettingsTableTableManager get shopinBitSettings =>
-      $$ShopinBitSettingsTableTableManager(_db, _db.shopinBitSettings);
+  $$ShopInBitSettingsTableTableManager get shopInBitSettings =>
+      $$ShopInBitSettingsTableTableManager(_db, _db.shopInBitSettings);
   $$ShopInBitTicketsTableTableManager get shopInBitTickets =>
       $$ShopInBitTicketsTableTableManager(_db, _db.shopInBitTickets);
+  $$AppNotificationsTableTableManager get appNotifications =>
+      $$AppNotificationsTableTableManager(_db, _db.appNotifications);
 }
 
-mixin _$ShopinBitSettingsDaoMixin on DatabaseAccessor<SharedDatabase> {
-  $ShopinBitSettingsTable get shopinBitSettings =>
-      attachedDatabase.shopinBitSettings;
-  ShopinBitSettingsDaoManager get managers => ShopinBitSettingsDaoManager(this);
+mixin _$ShopInBitSettingsDaoMixin on DatabaseAccessor<SharedDatabase> {
+  $ShopInBitSettingsTable get shopInBitSettings =>
+      attachedDatabase.shopInBitSettings;
+  ShopInBitSettingsDaoManager get managers => ShopInBitSettingsDaoManager(this);
 }
 
-class ShopinBitSettingsDaoManager {
-  final _$ShopinBitSettingsDaoMixin _db;
-  ShopinBitSettingsDaoManager(this._db);
-  $$ShopinBitSettingsTableTableManager get shopinBitSettings =>
-      $$ShopinBitSettingsTableTableManager(
+class ShopInBitSettingsDaoManager {
+  final _$ShopInBitSettingsDaoMixin _db;
+  ShopInBitSettingsDaoManager(this._db);
+  $$ShopInBitSettingsTableTableManager get shopInBitSettings =>
+      $$ShopInBitSettingsTableTableManager(
         _db.attachedDatabase,
-        _db.shopinBitSettings,
+        _db.shopInBitSettings,
+      );
+}
+
+mixin _$ShopInBitTicketsDaoMixin on DatabaseAccessor<SharedDatabase> {
+  $ShopInBitTicketsTable get shopInBitTickets =>
+      attachedDatabase.shopInBitTickets;
+  ShopInBitTicketsDaoManager get managers => ShopInBitTicketsDaoManager(this);
+}
+
+class ShopInBitTicketsDaoManager {
+  final _$ShopInBitTicketsDaoMixin _db;
+  ShopInBitTicketsDaoManager(this._db);
+  $$ShopInBitTicketsTableTableManager get shopInBitTickets =>
+      $$ShopInBitTicketsTableTableManager(
+        _db.attachedDatabase,
+        _db.shopInBitTickets,
+      );
+}
+
+mixin _$AppNotificationsDaoMixin on DatabaseAccessor<SharedDatabase> {
+  $AppNotificationsTable get appNotifications =>
+      attachedDatabase.appNotifications;
+  AppNotificationsDaoManager get managers => AppNotificationsDaoManager(this);
+}
+
+class AppNotificationsDaoManager {
+  final _$AppNotificationsDaoMixin _db;
+  AppNotificationsDaoManager(this._db);
+  $$AppNotificationsTableTableManager get appNotifications =>
+      $$AppNotificationsTableTableManager(
+        _db.attachedDatabase,
+        _db.appNotifications,
       );
 }

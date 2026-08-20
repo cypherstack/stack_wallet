@@ -1,24 +1,20 @@
 import 'package:flutter/material.dart';
 
-import '../../../../models/shopinbit/shopinbit_order_model.dart';
-import '../../../../pages/shopinbit/shopinbit_step_1.dart';
+import '../../../../pages/shopinbit/shopinbit_step_2.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../widgets/desktop/primary_button.dart';
-import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/dialogs/s_dialog.dart';
 
 class DesktopShopinBitFirstRun extends StatelessWidget {
-  const DesktopShopinBitFirstRun({super.key, required this.model});
+  const DesktopShopinBitFirstRun({super.key});
 
   static const routeName = "/desktopShopinBitFirstRun";
-
-  final ShopInBitOrderModel model;
 
   @override
   Widget build(BuildContext context) {
     return SDialog(
       child: SizedBox(
-        width: 580,
+        width: 500,
         child: Padding(
           padding: const EdgeInsets.all(32),
           child: Column(
@@ -33,29 +29,24 @@ class DesktopShopinBitFirstRun extends StatelessWidget {
                     TextSpan(
                       text:
                           "Please note the following before proceeding:"
-                          "\n\n\u2022 Minimum order amount: 1,000 EUR"
-                          "\n\u2022 Service fee: 10% of the order total",
+                          "\n\n  \u2022 Minimum order amount: 1,000 EUR"
+                          "\n  \u2022 Service fee: 10% of the order total",
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 48),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  SecondaryButton(
-                    width: 220,
-                    buttonHeight: ButtonHeight.l,
-                    label: "Cancel",
-                    onPressed: Navigator.of(context).pop,
-                  ),
-                  PrimaryButton(
-                    width: 220,
-                    buttonHeight: ButtonHeight.l,
-                    label: "Continue",
-                    onPressed: () => Navigator.of(context).pushReplacementNamed(
-                      ShopInBitStep1.routeName,
-                      arguments: model,
+                  const Spacer(),
+                  Expanded(
+                    child: PrimaryButton(
+                      buttonHeight: ButtonHeight.l,
+                      label: "Continue",
+                      onPressed: () => Navigator.of(
+                        context,
+                      ).pushReplacementNamed(ShopInBitStep2.routeName),
                     ),
                   ),
                 ],

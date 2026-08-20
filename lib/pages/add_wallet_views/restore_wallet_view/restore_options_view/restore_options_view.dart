@@ -178,7 +178,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
     }
 
     if (mounted) {
-      final date = await showSWDatePicker(context);
+      final date = (await showSWDatePicker(context))?.first;
       if (date != null) {
         _restoreFromDate = date;
         _dateController.text = Format.formatDate(date);
@@ -187,7 +187,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
   }
 
   Future<void> chooseDesktopDate() async {
-    final date = await showSWDatePicker(context);
+    final date = (await showSWDatePicker(context))?.first;
     if (date != null) {
       _restoreFromDate = date;
       _dateController.text = Format.formatDate(date);

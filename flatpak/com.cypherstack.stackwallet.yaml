@@ -1,0 +1,36 @@
+app-id: com.cypherstack.stackwallet
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+command: stack_wallet
+
+finish-args:
+  - --share=network
+  - --share=ipc
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --device=dri
+  - --filesystem=~/.stackwallet
+  - --talk-name=org.freedesktop.secrets
+  - --talk-name=org.freedesktop.Notifications
+
+modules:
+  - name: stack_wallet
+    buildsystem: simple
+    build-commands:
+      # Install the pre-built Flutter bundle under /app/lib/stack_wallet/ so
+      # the binary's $ORIGIN/lib and $ORIGIN/data lookups resolve correctly.
+      - mkdir -p /app/lib/stack_wallet
+      - install -Dm755 bundle/stack_wallet /app/lib/stack_wallet/stack_wallet
+      - cp -r bundle/lib bundle/data /app/lib/stack_wallet/
+      # Wrapper script so the Flatpak command path resolves to the binary.
+      - install -Dm755 stack_wallet.sh /app/bin/stack_wallet
+      - install -Dm644 com.cypherstack.stackwallet.desktop
+          /app/share/applications/com.cypherstack.stackwallet.desktop
+      - install -Dm644 com.cypherstack.stackwallet.metainfo.xml
+          /app/share/metainfo/com.cypherstack.stackwallet.metainfo.xml
+      - install -Dm644 com.cypherstack.stackwallet.png
+          /app/share/icons/hicolor/512x512/apps/com.cypherstack.stackwallet.png
+    sources:
+      - type: dir
+        path: .

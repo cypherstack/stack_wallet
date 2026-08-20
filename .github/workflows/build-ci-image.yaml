@@ -40,6 +40,16 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Build and push android image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          target: android
+          push: true
+          tags: ${{ env.GHCR_IMAGE }}:android
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
       - name: Build and push test image
         uses: docker/build-push-action@v7
         with:

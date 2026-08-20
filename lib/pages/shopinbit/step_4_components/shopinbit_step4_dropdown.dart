@@ -38,54 +38,51 @@ class ShopInBitStep4Dropdown extends StatelessWidget {
           ).copyWith(color: stackColors.textFieldDefaultSearchIconLeft)
         : STextStyles.fieldLabel(context);
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(Constants.size.circularBorderRadius),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton2<String>(
-          value: value,
-          items: items
-              .map(
-                (item) => DropdownMenuItem<String>(
-                  value: item,
-                  child: Text(item, style: itemStyle),
-                ),
-              )
-              .toList(),
-          onChanged: onChanged,
-          hint: Text(hintText, style: hintStyle),
-          isExpanded: true,
-          buttonStyleData: ButtonStyleData(
-            decoration: BoxDecoration(
-              color: stackColors.textFieldDefaultBG,
-              borderRadius: BorderRadius.circular(
-                Constants.size.circularBorderRadius,
+    return DropdownButtonHideUnderline(
+      child: DropdownButton2<String>(
+        value: value,
+        items: items
+            .map(
+              (item) => DropdownMenuItem<String>(
+                value: item,
+                child: Text(item, style: itemStyle),
               ),
+            )
+            .toList(),
+        onChanged: onChanged,
+        hint: Text(hintText, style: hintStyle),
+        isExpanded: true,
+        buttonStyleData: ButtonStyleData(
+          decoration: BoxDecoration(
+            color: stackColors.textFieldDefaultBG,
+            borderRadius: BorderRadius.circular(
+              Constants.size.circularBorderRadius,
             ),
           ),
-          iconStyleData: IconStyleData(
-            icon: Padding(
-              padding: const EdgeInsets.only(right: 10),
-              child: SvgPicture.asset(
-                Assets.svg.chevronDown,
-                width: 12,
-                height: 6,
-                color: stackColors.textFieldActiveSearchIconRight,
-              ),
+        ),
+        iconStyleData: IconStyleData(
+          icon: Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: SvgPicture.asset(
+              Assets.svg.chevronDown,
+              width: 12,
+              height: 6,
+              color: stackColors.textFieldActiveSearchIconRight,
             ),
           ),
-          dropdownStyleData: DropdownStyleData(
-            offset: const Offset(0, 0),
-            elevation: 0,
-            decoration: BoxDecoration(
-              color: stackColors.textFieldDefaultBG,
-              borderRadius: BorderRadius.circular(
-                Constants.size.circularBorderRadius,
-              ),
+        ),
+        dropdownStyleData: DropdownStyleData(
+          offset: const Offset(0, -10),
+          elevation: 0,
+          decoration: BoxDecoration(
+            color: stackColors.textFieldDefaultBG,
+            borderRadius: BorderRadius.circular(
+              Constants.size.circularBorderRadius,
             ),
           ),
-          menuItemStyleData: const MenuItemStyleData(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          ),
+        ),
+        menuItemStyleData: const MenuItemStyleData(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         ),
       ),
     );

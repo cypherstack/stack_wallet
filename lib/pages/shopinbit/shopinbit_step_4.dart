@@ -1,25 +1,25 @@
 import "package:flutter/material.dart";
 
-import "../../models/shopinbit/shopinbit_order_model.dart";
+import "../../models/shopinbit/shopinbit_enums.dart";
 import "../../themes/stack_colors.dart";
 import "../../utilities/text_styles.dart";
 import "../../utilities/util.dart";
 import "../../widgets/background.dart";
 import "../../widgets/conditional_parent.dart";
 import "../../widgets/custom_buttons/app_bar_icon_button.dart";
-import "../../widgets/desktop/desktop_dialog.dart";
 import "../../widgets/desktop/desktop_dialog_close_button.dart";
+import "../../widgets/dialogs/nested_navigator_dialog/nested_navigator_dialog.dart";
+import "../../widgets/dialogs/s_dialog.dart";
 import "step_4_components/shopinbit_car_research_form.dart";
 import "step_4_components/shopinbit_concierge_form.dart";
-import "step_4_components/shopinbit_generic_form.dart";
 import "step_4_components/shopinbit_travel_form.dart";
 
 class ShopInBitStep4 extends StatelessWidget {
-  const ShopInBitStep4({super.key, required this.model});
+  const ShopInBitStep4({super.key, required this.category});
 
   static const String routeName = "/shopInBitStep4";
 
-  final ShopInBitOrderModel model;
+  final ShopInBitCategory category;
 
   @override
   Widget build(BuildContext context) {
@@ -29,11 +29,10 @@ class ShopInBitStep4 extends StatelessWidget {
       child: ConditionalParent(
         condition: !Util.isDesktop,
         builder: (child) => _ShopInBitStep4MobileShell(content: child),
-        child: switch (model.category) {
-          ShopInBitCategory.concierge => ShopInBitConciergeForm(model: model),
-          ShopInBitCategory.car => ShopInBitCarResearchForm(model: model),
-          ShopInBitCategory.travel => ShopInBitTravelForm(model: model),
-          null => ShopInBitGenericForm(model: model),
+        child: switch (category) {
+          ShopInBitCategory.concierge => const ShopInBitConciergeForm(),
+          ShopInBitCategory.car => const ShopInBitCarResearchForm(),
+          ShopInBitCategory.travel => const ShopInBitTravelForm(),
         },
       ),
     );
@@ -47,30 +46,35 @@ class _ShopInBitStep4DesktopShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DesktopDialog(
-      maxWidth: 580,
-      maxHeight: 750,
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  const AppBarBackButton(isCompact: true, iconSize: 23),
-                  Text("ShopinBit", style: STextStyles.desktopH3(context)),
-                ],
-              ),
-              const DesktopDialogCloseButton(),
-            ],
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-              child: SingleChildScrollView(child: content),
+    return SDialog(
+      child: SizedBox(
+        width: 580,
+        child: Column(
+          mainAxisSize: .min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    const AppBarBackButton(isCompact: true, iconSize: 23),
+                    Text("ShopinBit", style: STextStyles.desktopH3(context)),
+                  ],
+                ),
+                DesktopDialogCloseButton(
+                  onPressedOverride: () =>
+                      NestedNavigatorDialog.of(context).close(),
+                ),
+              ],
             ),
-          ),
-        ],
+            Flexible(
+              child: Padding(
+                padding: const .only(left: 32, right: 32, bottom: 32, top: 16),
+                child: content,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

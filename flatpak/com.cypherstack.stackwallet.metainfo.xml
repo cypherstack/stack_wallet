@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.cypherstack.stackwallet</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-only</project_license>
+  <name>Stack Wallet</name>
+  <summary>Open-source non-custodial cryptocurrency wallet</summary>
+  <description>
+    <p>
+      Stack Wallet is an open-source, non-custodial, privacy-focused
+      cryptocurrency wallet supporting multiple coins.
+    </p>
+  </description>
+  <url type="homepage">https://stackwallet.com</url>
+  <url type="bugtracker">https://github.com/cypherstack/stack_wallet/issues</url>
+  <content_rating type="oars-1.1"/>
+</component>

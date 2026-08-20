@@ -114,6 +114,7 @@ class _RestoreFromFileViewState extends ConsumerState<CreateBackupView> {
         subMessage: "This shouldn't take long",
         delay: const Duration(seconds: 1),
         onException: (e) => ex = e,
+        rootNavigator: Util.isDesktop,
       );
 
       if (mounted) {

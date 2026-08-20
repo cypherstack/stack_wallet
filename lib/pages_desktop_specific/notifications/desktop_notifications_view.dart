@@ -8,11 +8,15 @@
  *
  */
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../notifications/notification_card.dart';
-import '../../providers/providers.dart';
-import '../../providers/ui/unread_notifications_provider.dart';
+
+import '../../notifications/notification_feed_entry_card.dart';
+import '../../providers/global/shopin_bit_service_provider.dart';
+import '../../providers/ui/notification_feed_provider.dart';
+import '../../services/shopinbit/shopinbit_service.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
 import '../../widgets/desktop/desktop_app_bar.dart';
@@ -31,10 +35,25 @@ class DesktopNotificationsView extends ConsumerStatefulWidget {
 
 class _DesktopNotificationsViewState
     extends ConsumerState<DesktopNotificationsView> {
+  late final ShopInBitService _shopInBitService;
+
+  @override
+  void initState() {
+    super.initState();
+    _shopInBitService = ref.read(pShopinBitService);
+  }
+
+  @override
+  void dispose() {
+    // Viewing the (always-global) desktop list acknowledges ShopinBit
+    // notifications, clearing the bell/feed like the wallet ones.
+    unawaited(_shopInBitService.markAllNotificationsRead());
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final notifications =
-        ref.watch(notificationsProvider.select((value) => value.notifications));
+    final entries = ref.watch(pNotificationFeed(null));
 
     return DesktopScaffold(
       background: Theme.of(context).extension<StackColors>()!.background,
@@ -42,13 +61,10 @@ class _DesktopNotificationsViewState
         isCompactHeight: true,
         leading: Padding(
           padding: const EdgeInsets.only(left: 24),
-          child: Text(
-            "Notifications",
-            style: STextStyles.desktopH3(context),
-          ),
+          child: Text("Notifications", style: STextStyles.desktopH3(context)),
         ),
       ),
-      body: notifications.isEmpty
+      body: entries.isEmpty
           ? Column(
               children: [
                 Padding(
@@ -66,24 +82,14 @@ class _DesktopNotificationsViewState
             )
           : ListView.builder(
               primary: false,
-              itemCount: notifications.length,
+              itemCount: entries.length,
               itemBuilder: (context, index) {
-                final notification = notifications[index];
-                if (notification.read == false) {
-                  ref
-                      .read(unreadNotificationsStateProvider.state)
-                      .state
-                      .add(notification.id);
-                }
-
                 return Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,
                     vertical: 5,
                   ),
-                  child: NotificationCard(
-                    notification: notification,
-                  ),
+                  child: NotificationFeedEntryCard(entry: entries[index]),
                 );
               },
             ),

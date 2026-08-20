@@ -333,6 +333,14 @@ class MainDB {
 
         if (storedUtxo != null) {
           // update
+          // Preserve user-set flags, but allow a fresh auto-freeze (e.g. firo
+          // masternode collateral detected after registration) unless the
+          // user deliberately unfroze this utxo before. Never auto-unfreeze:
+          // a flaky network check must not unlock coins.
+          final applyAutoBlock =
+              utxo.isBlocked &&
+              !storedUtxo.isBlocked &&
+              !storedUtxo.userUnfroze;
           set.remove(utxo);
           set.add(
             storedUtxo.copyWith(
@@ -341,6 +349,12 @@ class MainDB {
               blockTime: utxo.blockTime,
               blockHeight: utxo.blockHeight,
               blockHash: utxo.blockHash,
+              // passing null keeps the stored value
+              isBlocked: applyAutoBlock ? true : null,
+              blockedReason: applyAutoBlock ? utxo.blockedReason : null,
+              name: applyAutoBlock && storedUtxo.name.isEmpty
+                  ? utxo.name
+                  : null,
             ),
           );
         } else {

@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Campfire
+Comment=Your privacy. Your wallet. Your Firo.
+Exec=campfire
+Icon=com.cypherstack.campfire
+Type=Application
+Categories=Finance;
