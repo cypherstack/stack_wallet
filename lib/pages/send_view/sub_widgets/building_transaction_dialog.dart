@@ -79,10 +79,8 @@ class _RestoringDialogState extends ConsumerState<BuildingTransactionDialog> {
         ],
       );
     } else {
-      return WillPopScope(
-        onWillPop: () async {
-          return false;
-        },
+      return PopScope(
+        canPop: false,
         child: assetPath.endsWith(".gif")
             ? StackDialogBase(
                 child: Column(

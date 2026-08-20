@@ -68,14 +68,17 @@ class _TokenViewState extends ConsumerState<TokenView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        if (didPop) {
+          return;
+        }
         final nav = Navigator.of(context);
         if (widget.popPrevious) {
           nav.pop();
         }
         nav.pop();
-        return false;
       },
       child: Background(
         child: Scaffold(

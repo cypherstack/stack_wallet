@@ -79,10 +79,8 @@ class ConfirmRecoveryDialog extends StatelessWidget {
         ),
       );
     } else {
-      return WillPopScope(
-        onWillPop: () async {
-          return true;
-        },
+      return PopScope(
+        canPop: true,
         child: StackDialog(
           title: "Are you ready?",
           message: "Restoring your wallet may take a while. Please do not exit this screen once the process is started.",

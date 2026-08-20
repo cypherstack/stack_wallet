@@ -23,11 +23,14 @@ class MnemonicWordCountSelectSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope<int>(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, int? result) {
+        if (didPop) {
+          return;
+        }
         final length = ref.read(mnemonicWordCountStateProvider.state).state;
         Navigator.of(context).pop(length);
-        return false;
       },
       child: Container(
         decoration: BoxDecoration(

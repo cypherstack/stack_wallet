@@ -85,10 +85,8 @@ class _FetchMonkeyDialogState extends State<FetchMonkeyDialog> {
         ),
       );
     } else {
-      return WillPopScope(
-        onWillPop: () async {
-          return false;
-        },
+      return PopScope(
+        canPop: false,
         child: StackDialog(
           title: "Fetching MonKey",
           message: "We are fetching your MonKey",

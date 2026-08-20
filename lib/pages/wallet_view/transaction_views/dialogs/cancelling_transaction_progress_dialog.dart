@@ -27,10 +27,8 @@ class _CancellingTransactionProgressDialogState
     extends State<CancellingTransactionProgressDialog> {
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        return false;
-      },
+    return PopScope(
+      canPop: false,
       child: ConditionalParent(
         condition: Util.isDesktop,
         builder: (child) => Row(

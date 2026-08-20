@@ -217,13 +217,12 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
     final wallet = ref.read(pWallets).getWallet(walletId);
 
     if (wallet is MultiAddressInterface) {
-      bool shouldPop = false;
       unawaited(
         showDialog(
           context: context,
           builder: (_) {
-            return WillPopScope(
-              onWillPop: () async => shouldPop,
+            return PopScope(
+              canPop: false,
               child: Container(
                 color: Theme.of(context)
                     .extension<StackColors>()!
@@ -282,8 +281,6 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
         address = null;
       }
 
-      shouldPop = true;
-
       if (mounted) {
         Navigator.of(context)
             .popUntil(ModalRoute.withName(ReceiveView.routeName));
@@ -299,13 +296,12 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
   Future<void> generateNewSparkAddress() async {
     final wallet = ref.read(pWallets).getWallet(walletId);
     if (wallet is SparkInterface) {
-      bool shouldPop = false;
       unawaited(
         showDialog(
           context: context,
           builder: (_) {
-            return WillPopScope(
-              onWillPop: () async => shouldPop,
+            return PopScope(
+              canPop: false,
               child: Container(
                 color: Theme.of(context)
                     .extension<StackColors>()!
@@ -322,8 +318,6 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
       );
 
       final address = await wallet.generateNextSparkAddress(saveToDB: true);
-
-      shouldPop = true;
 
       if (mounted) {
         Navigator.of(context, rootNavigator: true).pop();

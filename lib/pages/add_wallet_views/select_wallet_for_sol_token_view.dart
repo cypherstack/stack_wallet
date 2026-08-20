@@ -89,15 +89,17 @@ class _SelectWalletForSolTokenViewState
       }
     }
 
-    return WillPopScope(
-      onWillPop: () async {
-        ref
-                .read(
-                  newSolWalletTriggerTempUntilHiveCompletelyDeleted.notifier,
-                )
-                .state =
-            false;
-        return true;
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        if (didPop) {
+          ref
+                  .read(
+                    newSolWalletTriggerTempUntilHiveCompletelyDeleted.notifier,
+                  )
+                  .state =
+              false;
+        }
       },
       child: ConditionalParent(
         condition: !isDesktop,

@@ -46,8 +46,8 @@ class _FiroRescanRecoveryErrorViewState
     extends ConsumerState<FiroRescanRecoveryErrorView> {
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async => false,
+    return PopScope(
+      canPop: false,
       child: ConditionalParent(
         condition: Util.isDesktop,
         builder: (child) {

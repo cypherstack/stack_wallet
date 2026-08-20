@@ -89,10 +89,8 @@ class ConfirmFullRescanDialog extends StatelessWidget {
         ),
       );
     } else {
-      return WillPopScope(
-        onWillPop: () async {
-          return true;
-        },
+      return PopScope(
+        canPop: true,
         child: StackDialog(
           title: "Rescan blockchain",
           message: "Warning! It may take a while. If you exit before completion, you will have to redo the process.",

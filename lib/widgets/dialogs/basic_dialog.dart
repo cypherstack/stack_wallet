@@ -96,10 +96,8 @@ class BasicDialog extends StatelessWidget {
         ),
       );
     } else {
-      return WillPopScope(
-        onWillPop: () async {
-          return canPopWithBackButton;
-        },
+      return PopScope(
+        canPop: canPopWithBackButton,
         child: StackDialog(
           title: title,
           leftButton: leftButton,

@@ -51,10 +51,8 @@ class _RestoreFailedDialogState extends ConsumerState<RestoreFailedDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        return false;
-      },
+    return PopScope(
+      canPop: false,
       child: StackDialog(
         title: "Restore failed",
         message: errorMessage,

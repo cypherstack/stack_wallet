@@ -77,10 +77,8 @@ class _RestoringDialogState extends State<ClaimingPaynymDialog> {
         ),
       );
     } else {
-      return WillPopScope(
-        onWillPop: () async {
-          return false;
-        },
+      return PopScope(
+        canPop: false,
         child: StackDialog(
           title: "Claiming PayNym",
           message: "We are generating your PayNym",

@@ -33,11 +33,14 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope<BackupFrequencyType>(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, BackupFrequencyType? result) {
+        if (didPop) {
+          return;
+        }
         Navigator.of(context)
             .pop(ref.read(prefsChangeNotifierProvider).backupFrequencyType);
-        return false;
       },
       child: Container(
         decoration: BoxDecoration(

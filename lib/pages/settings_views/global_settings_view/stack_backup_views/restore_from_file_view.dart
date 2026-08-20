@@ -315,15 +315,12 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                               return;
                             }
 
-                            bool shouldPop = false;
                             unawaited(
                               showDialog<dynamic>(
                                 barrierDismissible: false,
                                 context: context,
-                                builder: (_) => WillPopScope(
-                                  onWillPop: () async {
-                                    return shouldPop;
-                                  },
+                                builder: (_) => PopScope(
+                                  canPop: false,
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.stretch,
@@ -369,7 +366,6 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
 
                             if (mounted) {
                               // pop LoadingIndicator
-                              shouldPop = true;
                               Navigator.of(context).pop();
 
                               passwordController.text = "";
@@ -430,15 +426,12 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                   return;
                                 }
 
-                                bool shouldPop = false;
                                 unawaited(
                                   showDialog<dynamic>(
                                     barrierDismissible: false,
                                     context: context,
-                                    builder: (_) => WillPopScope(
-                                      onWillPop: () async {
-                                        return shouldPop;
-                                      },
+                                    builder: (_) => PopScope(
+                                      canPop: false,
                                       child: Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.stretch,
@@ -487,7 +480,6 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
 
                                 if (context.mounted) {
                                   // pop LoadingIndicator
-                                  shouldPop = true;
                                   Navigator.of(
                                     context,
                                     rootNavigator: true,

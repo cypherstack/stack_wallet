@@ -27,10 +27,13 @@ class FusionRoundCountSelectSheet extends HookWidget {
   Widget build(BuildContext context) {
     final option = useState(currentOption);
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope<FusionOption>(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, FusionOption? result) {
+        if (didPop) {
+          return;
+        }
         Navigator.of(context).pop(option.value);
-        return false;
       },
       child: Container(
         decoration: BoxDecoration(

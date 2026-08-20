@@ -85,10 +85,8 @@ class _RestoringDialogState extends State<RestoringDialog> {
         ),
       );
     } else {
-      return WillPopScope(
-        onWillPop: () async {
-          return false;
-        },
+      return PopScope(
+        canPop: false,
         child: StackDialog(
           title: "Restoring wallet",
           message: "This may take a while. Please do not exit this screen.",
