@@ -42,6 +42,7 @@ import '../../wallet_view/transaction_views/transaction_details_view.dart'
     as tdv;
 import '../../wallet_view/transaction_views/tx_v2/transaction_v2_card.dart';
 import 'address_tag.dart';
+import 'address_tag_editor_dialog.dart';
 
 class AddressDetailsView extends ConsumerStatefulWidget {
   const AddressDetailsView({
@@ -318,7 +319,12 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                   ),
                 ),
                 const _Div(height: 12),
-                _Tags(tags: label!.tags),
+                _Tags(
+                  tags: label!.tags,
+                  onTagsChanged: (tags) => ref
+                      .read(mainDBProvider)
+                      .putAddressLabel(label!.copyWith(tags: tags)),
+                ),
                 if (address.derivationPath != null) const _Div(height: 12),
                 if (address.derivationPath != null)
                   DetailItem(
@@ -547,9 +553,10 @@ class _Div extends StatelessWidget {
 }
 
 class _Tags extends StatelessWidget {
-  const _Tags({super.key, required this.tags});
+  const _Tags({super.key, required this.tags, required this.onTagsChanged});
 
   final List<String>? tags;
+  final Future<void> Function(List<String>) onTagsChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -561,12 +568,16 @@ class _Tags extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text("Tags", style: STextStyles.itemSubtitle(context)),
-              Container(),
-              // SimpleEditButton(
-              //   onPressedOverride: () {
-              //     // TODO edit tags
-              //   },
-              // ),
+              SimpleEditButton(
+                onPressedOverride: () => showDialog<void>(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (_) => AddressTagEditorDialog(
+                    tags: tags ?? const [],
+                    onSave: onTagsChanged,
+                  ),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 8),
