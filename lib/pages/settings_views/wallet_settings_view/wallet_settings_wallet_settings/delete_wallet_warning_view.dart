@@ -12,11 +12,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app_config.dart';
+import '../../../../models/keys/key_data_interface.dart';
 import '../../../../models/keys/view_only_wallet_data.dart';
 import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
+import '../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../../widgets/background.dart';
@@ -100,8 +102,6 @@ class DeleteWalletWarningView extends ConsumerWidget {
                   onPressed: () async {
                     final wallet = ref.read(pWallets).getWallet(walletId);
 
-                    // TODO: [prio=med] take wallets that don't have a mnemonic into account
-
                     List<String>? mnemonic;
                     ({
                       String myName,
@@ -110,6 +110,7 @@ class DeleteWalletWarningView extends ConsumerWidget {
                       ({String config, String keys})? prevGen,
                     })?
                     frostWalletData;
+                    KeyDataInterface? keyData;
                     ViewOnlyWalletData? viewOnlyData;
 
                     if (wallet is BitcoinFrostWallet) {
@@ -136,12 +137,20 @@ class DeleteWalletWarningView extends ConsumerWidget {
                       if (wallet is ViewOnlyOptionInterface &&
                           wallet.isViewOnly) {
                         viewOnlyData = await wallet.getViewOnlyWalletData();
-                      } else if (wallet is MnemonicInterface) {
-                        try {
-                          mnemonic = await wallet.getMnemonicAsWords();
-                        } catch (_) {
-                          // Key-restored wallets may not have a mnemonic.
+                      } else if (wallet.info.isRestoredFromKeys) {
+                        if (wallet is! CryptonoteWallet) {
+                          throw StateError(
+                            "Unsupported key-restored wallet: "
+                            "${wallet.runtimeType}",
+                          );
                         }
+                        final keys = await wallet.getKeys();
+                        if (keys == null || keys.hasError) {
+                          throw StateError("Wallet keys are unavailable");
+                        }
+                        keyData = keys;
+                      } else if (wallet is MnemonicInterface) {
+                        mnemonic = await wallet.getMnemonicAsWords();
                       }
                     }
                     if (context.mounted) {
@@ -157,6 +166,7 @@ class DeleteWalletWarningView extends ConsumerWidget {
                             walletId: walletId,
                             mnemonicWords: mnemonic ?? [],
                             frostWalletData: frostWalletData,
+                            keyData: keyData,
                           ),
                         );
                       }

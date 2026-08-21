@@ -145,6 +145,10 @@ class WalletInfo implements IsarId {
       otherData[WalletInfoKeys.isViewOnlyKey] as bool? ?? false;
 
   @ignore
+  bool get isRestoredFromKeys =>
+      otherData[WalletInfoKeys.isRestoredFromKeysKey] as bool? ?? false;
+
+  @ignore
   ViewOnlyWalletType? get viewOnlyWalletType {
     final index = otherData[WalletInfoKeys.viewOnlyTypeIndexKey] as int?;
     if (index == null) return null;
