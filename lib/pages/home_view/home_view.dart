@@ -33,6 +33,7 @@ import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../widgets/animated_widgets/rotate_icon.dart';
 import '../../widgets/app_icon.dart';
+import '../../widgets/async_pop_scope.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/small_tor_icon.dart';
@@ -135,21 +136,27 @@ class _HomeViewState extends ConsumerState<HomeView> {
     const timeout = Duration(milliseconds: 1500);
     if (_cachedTime == null || now.difference(_cachedTime!) > timeout) {
       _cachedTime = now;
+      var timedOut = false;
       await showDialog<dynamic>(
         context: context,
         barrierDismissible: false,
-        builder: (_) => WillPopScope(
-          onWillPop: () async {
-            _exitEnabled = true;
-            return true;
+        builder: (_) => PopScope(
+          canPop: true,
+          onPopInvokedWithResult: (didPop, result) {
+            if (didPop && !timedOut) {
+              _exitEnabled = true;
+            }
           },
           child: const StackDialog(title: "Tap back again to exit"),
         ),
       ).timeout(
         timeout,
         onTimeout: () {
+          timedOut = true;
           _exitEnabled = false;
-          Navigator.of(context).pop();
+          if (mounted) {
+            Navigator.of(context).pop();
+          }
         },
       );
     }
@@ -298,8 +305,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
       },
     );
 
-    return WillPopScope(
-      onWillPop: _onWillPop,
+    return AsyncPopScope<void>(
+      onPopAttempt: _onWillPop,
       child: Background(
         child: Scaffold(
           backgroundColor: Colors.transparent,

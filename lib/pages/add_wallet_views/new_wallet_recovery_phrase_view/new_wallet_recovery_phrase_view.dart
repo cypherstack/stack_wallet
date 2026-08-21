@@ -30,6 +30,7 @@ import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/wallet/wallet.dart';
+import '../../../widgets/async_pop_scope.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
@@ -76,7 +77,7 @@ class _NewWalletRecoveryPhraseViewState
     super.initState();
   }
 
-  Future<bool> onWillPop() async {
+  Future<bool> _onWillPop() async {
     await delete();
     return true;
   }
@@ -104,8 +105,8 @@ class _NewWalletRecoveryPhraseViewState
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    return WillPopScope(
-      onWillPop: onWillPop,
+    return AsyncPopScope<void>(
+      onPopAttempt: _onWillPop,
       child: MasterScaffold(
         isDesktop: isDesktop,
         appBar: isDesktop
