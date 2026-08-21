@@ -87,14 +87,17 @@ class _RestoreViewOnlyWalletViewState
       }
 
       if (mounted) {
-        await showDialog<dynamic>(
+        final confirmed = await showDialog<bool>(
           context: context,
           useSafeArea: false,
           barrierDismissible: true,
           builder: (context) {
-            return ConfirmRecoveryDialog(onConfirm: _attemptRestore);
+            return const ConfirmRecoveryDialog();
           },
         );
+        if (confirmed == true) {
+          await _attemptRestore();
+        }
       }
     } finally {
       _buttonLock = false;

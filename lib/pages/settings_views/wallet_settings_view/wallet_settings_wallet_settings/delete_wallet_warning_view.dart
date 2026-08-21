@@ -12,15 +12,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app_config.dart';
-import '../../../../models/keys/key_data_interface.dart';
-import '../../../../models/keys/view_only_wallet_data.dart';
+import '../../../../models/keys/wallet_recovery_material.dart';
 import '../../../../providers/providers.dart';
+import '../../../../services/wallet_recovery_service.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/text_styles.dart';
-import '../../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
-import '../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/rounded_container.dart';
@@ -101,73 +97,19 @@ class DeleteWalletWarningView extends ConsumerWidget {
                       .getPrimaryEnabledButtonStyle(context),
                   onPressed: () async {
                     final wallet = ref.read(pWallets).getWallet(walletId);
-
-                    List<String>? mnemonic;
-                    ({
-                      String myName,
-                      String config,
-                      String keys,
-                      ({String config, String keys})? prevGen,
-                    })?
-                    frostWalletData;
-                    KeyDataInterface? keyData;
-                    ViewOnlyWalletData? viewOnlyData;
-
-                    if (wallet is BitcoinFrostWallet) {
-                      final futures = [
-                        wallet.getSerializedKeys(),
-                        wallet.getMultisigConfig(),
-                        wallet.getSerializedKeysPrevGen(),
-                        wallet.getMultisigConfigPrevGen(),
-                      ];
-
-                      final results = await Future.wait(futures);
-
-                      if (results.length == 4) {
-                        frostWalletData = (
-                          myName: wallet.frostInfo.myName,
-                          config: results[1]!,
-                          keys: results[0]!,
-                          prevGen: results[2] == null || results[3] == null
-                              ? null
-                              : (config: results[3]!, keys: results[2]!),
-                        );
-                      }
-                    } else {
-                      if (wallet is ViewOnlyOptionInterface &&
-                          wallet.isViewOnly) {
-                        viewOnlyData = await wallet.getViewOnlyWalletData();
-                      } else if (wallet.info.isRestoredFromKeys) {
-                        if (wallet is! CryptonoteWallet) {
-                          throw StateError(
-                            "Unsupported key-restored wallet: "
-                            "${wallet.runtimeType}",
-                          );
-                        }
-                        final keys = await wallet.getKeys();
-                        if (keys == null || keys.hasError) {
-                          throw StateError("Wallet keys are unavailable");
-                        }
-                        keyData = keys;
-                      } else if (wallet is MnemonicInterface) {
-                        mnemonic = await wallet.getMnemonicAsWords();
-                      }
-                    }
+                    final recoveryMaterial =
+                        await WalletRecoveryService.getMaterial(wallet);
                     if (context.mounted) {
-                      if (viewOnlyData != null) {
+                      if (recoveryMaterial
+                          case final ViewOnlyWalletRecoveryMaterial data) {
                         await Navigator.of(context).pushNamed(
                           DeleteViewOnlyWalletKeysView.routeName,
-                          arguments: (walletId: walletId, data: viewOnlyData),
+                          arguments: (walletId: walletId, data: data.keyData),
                         );
                       } else {
                         await Navigator.of(context).pushNamed(
                           DeleteWalletRecoveryPhraseView.routeName,
-                          arguments: (
-                            walletId: walletId,
-                            mnemonicWords: mnemonic ?? [],
-                            frostWalletData: frostWalletData,
-                            keyData: keyData,
-                          ),
+                          arguments: recoveryMaterial,
                         );
                       }
                     }

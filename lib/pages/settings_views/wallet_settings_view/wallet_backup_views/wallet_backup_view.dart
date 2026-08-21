@@ -18,6 +18,7 @@ import '../../../../app_config.dart';
 import '../../../../models/keys/cw_key_data.dart';
 import '../../../../models/keys/key_data_interface.dart';
 import '../../../../models/keys/view_only_wallet_data.dart';
+import '../../../../models/keys/wallet_recovery_material.dart';
 import '../../../../models/keys/xpriv_data.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../themes/stack_colors.dart';
@@ -46,26 +47,27 @@ import 'cn_wallet_keys.dart';
 import 'wallet_xprivs.dart';
 
 class WalletBackupView extends ConsumerWidget {
-  const WalletBackupView({
-    super.key,
-    required this.walletId,
-    required this.mnemonic,
-    this.frostWalletData,
-    this.keyData,
-  });
+  const WalletBackupView({super.key, required this.recoveryMaterial});
 
   static const String routeName = "/walletBackup";
 
-  final String walletId;
-  final List<String> mnemonic;
-  final ({
-    String myName,
-    String config,
-    String keys,
-    ({String config, String keys})? prevGen,
-  })?
-  frostWalletData;
-  final KeyDataInterface? keyData;
+  final WalletRecoveryMaterial recoveryMaterial;
+
+  String get walletId => recoveryMaterial.walletId;
+  List<String>? get mnemonic => switch (recoveryMaterial) {
+    final MnemonicWalletRecoveryMaterial data => data.words,
+    _ => null,
+  };
+  FrostWalletRecoveryData? get frostWalletData => switch (recoveryMaterial) {
+    final FrostWalletRecoveryMaterial data => data.data,
+    _ => null,
+  };
+  KeyDataInterface? get keyData => switch (recoveryMaterial) {
+    final MnemonicWalletRecoveryMaterial data => data.supplementalKeyData,
+    final PrivateKeyWalletRecoveryMaterial data => data.keyData,
+    final ViewOnlyWalletRecoveryMaterial data => data.keyData,
+    _ => null,
+  };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -84,7 +86,7 @@ class WalletBackupView extends ConsumerWidget {
           ),
           title: Text("Wallet backup", style: STextStyles.navBarTitle(context)),
           actions: [
-            if (keyData != null && mnemonic.isNotEmpty)
+            if (keyData != null && mnemonic != null)
               Padding(
                 padding: const EdgeInsets.all(10),
                 child: CustomTextButton(
@@ -116,8 +118,8 @@ class WalletBackupView extends ConsumerWidget {
                     frostWalletData: frostWalletData,
                     walletId: walletId,
                   )
-                : mnemonic.isNotEmpty
-                ? _Mnemonic(walletId: walletId, mnemonic: mnemonic)
+                : mnemonic != null
+                ? _Mnemonic(walletId: walletId, mnemonic: mnemonic!)
                 : keyData != null
                 ? _KeyData(walletId: walletId, keyData: keyData!)
                 : throw StateError("Wallet has no recovery data"),

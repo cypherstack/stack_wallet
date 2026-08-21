@@ -128,13 +128,9 @@ class Wallets {
       if (await directory.exists()) await directory.delete(recursive: true);
     }
 
-    await secureStorage.delete(key: Wallet.mnemonicKey(walletId: walletId));
-    await secureStorage.delete(
-      key: Wallet.mnemonicPassphraseKey(walletId: walletId),
-    );
-    await secureStorage.delete(key: Wallet.privateKeyKey(walletId: walletId));
-    await secureStorage.delete(
-      key: Wallet.getViewOnlyWalletDataSecStoreKey(walletId: walletId),
+    await Wallet.deleteSecureStorageData(
+      walletId: walletId,
+      secureStorage: secureStorage,
     );
 
     if (isFrostWallet) {

@@ -22,9 +22,7 @@ import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/stack_dialog.dart';
 
 class ConfirmRecoveryDialog extends StatelessWidget {
-  const ConfirmRecoveryDialog({super.key, required this.onConfirm});
-
-  final VoidCallback onConfirm;
+  const ConfirmRecoveryDialog({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -67,8 +65,7 @@ class ConfirmRecoveryDialog extends StatelessWidget {
                     child: PrimaryButton(
                       label: "Restore",
                       onPressed: () {
-                        Navigator.of(context).pop();
-                        onConfirm.call();
+                        Navigator.of(context).pop(true);
                       },
                     ),
                   ),
@@ -95,8 +92,7 @@ class ConfirmRecoveryDialog extends StatelessWidget {
           rightButton: PrimaryButton(
             label: "Restore",
             onPressed: () {
-              Navigator.of(context).pop();
-              onConfirm.call();
+              Navigator.of(context).pop(true);
             },
           ),
         ),

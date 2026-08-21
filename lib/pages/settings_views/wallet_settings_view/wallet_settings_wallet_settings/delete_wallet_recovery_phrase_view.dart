@@ -18,6 +18,7 @@ import 'package:flutter_svg/svg.dart';
 import '../../../../app_config.dart';
 import '../../../../models/keys/cw_key_data.dart';
 import '../../../../models/keys/key_data_interface.dart';
+import '../../../../models/keys/wallet_recovery_material.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/global/secure_store_provider.dart';
 import '../../../../providers/global/wallets_provider.dart';
@@ -44,25 +45,27 @@ import '../wallet_backup_views/cn_wallet_keys.dart';
 class DeleteWalletRecoveryPhraseView extends ConsumerStatefulWidget {
   const DeleteWalletRecoveryPhraseView({
     super.key,
-    required this.walletId,
-    required this.mnemonic,
-    this.frostWalletData,
-    this.keyData,
+    required this.recoveryMaterial,
     this.clipboardInterface = const ClipboardWrapper(),
   });
 
   static const routeName = "/deleteWalletRecoveryPhrase";
 
-  final String walletId;
-  final List<String> mnemonic;
-  final ({
-    String myName,
-    String config,
-    String keys,
-    ({String config, String keys})? prevGen,
-  })?
-  frostWalletData;
-  final KeyDataInterface? keyData;
+  final WalletRecoveryMaterial recoveryMaterial;
+
+  String get walletId => recoveryMaterial.walletId;
+  List<String>? get mnemonic => switch (recoveryMaterial) {
+    final MnemonicWalletRecoveryMaterial data => data.words,
+    _ => null,
+  };
+  FrostWalletRecoveryData? get frostWalletData => switch (recoveryMaterial) {
+    final FrostWalletRecoveryMaterial data => data.data,
+    _ => null,
+  };
+  KeyDataInterface? get keyData => switch (recoveryMaterial) {
+    final PrivateKeyWalletRecoveryMaterial data => data.keyData,
+    _ => null,
+  };
 
   final ClipboardInterface clipboardInterface;
 
@@ -73,7 +76,7 @@ class DeleteWalletRecoveryPhraseView extends ConsumerStatefulWidget {
 
 class _DeleteWalletRecoveryPhraseViewState
     extends ConsumerState<DeleteWalletRecoveryPhraseView> {
-  late List<String> _mnemonic;
+  late final List<String>? _mnemonic;
   late ClipboardInterface _clipboardInterface;
 
   bool _lock = false;
@@ -144,7 +147,7 @@ class _DeleteWalletRecoveryPhraseViewState
     final bool frost = widget.frostWalletData != null;
     final bool keyBased = widget.keyData is CWKeyData;
     final prevGen = widget.frostWalletData?.prevGen != null;
-    if (!frost && !keyBased && _mnemonic.isEmpty) {
+    if (!frost && !keyBased && _mnemonic == null) {
       throw StateError("Wallet has no recovery data");
     }
 
@@ -158,7 +161,7 @@ class _DeleteWalletRecoveryPhraseViewState
             },
           ),
           actions: [
-            if (_mnemonic.isNotEmpty)
+            if (_mnemonic != null)
               Padding(
                 padding: const EdgeInsets.all(10),
                 child: AspectRatio(
@@ -425,7 +428,7 @@ class _DeleteWalletRecoveryPhraseViewState
                       Expanded(
                         child: SingleChildScrollView(
                           child: MnemonicTable(
-                            words: _mnemonic,
+                            words: _mnemonic!,
                             isDesktop: false,
                           ),
                         ),

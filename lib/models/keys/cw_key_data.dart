@@ -3,10 +3,10 @@ import 'key_data_interface.dart';
 class CWKeyData with KeyDataInterface {
   CWKeyData({
     required this.walletId,
-    required String? privateSpendKey,
-    required String? privateViewKey,
-    required String? publicSpendKey,
-    required String? publicViewKey,
+    required String privateSpendKey,
+    required String privateViewKey,
+    required String publicSpendKey,
+    required String publicViewKey,
   }) : keys = List.unmodifiable([
          (label: "Public View Key", key: publicViewKey),
          (label: "Private View Key", key: privateViewKey),
@@ -18,6 +18,4 @@ class CWKeyData with KeyDataInterface {
   final String walletId;
 
   final List<({String label, String key})> keys;
-
-  bool get hasError => keys.any((entry) => entry.key == "ERROR");
 }
