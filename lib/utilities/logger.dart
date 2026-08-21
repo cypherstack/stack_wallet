@@ -8,34 +8,95 @@
  *
  */
 
-import 'dart:convert';
-import 'dart:core' as core;
-import 'dart:core';
 import 'dart:isolate';
-import 'dart:ui';
 
 import 'package:logger/logger.dart';
 
+import 'logger_dispatcher.dart';
 import 'util.dart';
 
 export 'enums/log_level_enum.dart';
 
 const _kLoggerPortName = "logger_port";
 
+typedef _LoggerIsolateConfig = ({
+  SendPort readyPort,
+  String logsPath,
+  Level level,
+  Level? debugConsoleLevel,
+});
+
+void _runLoggerIsolate(_LoggerIsolateConfig config) {
+  final receivePort = ReceivePort();
+  config.readyPort.send(receivePort.sendPort);
+
+  PrettyPrinter prettyPrinter(bool toFile) => PrettyPrinter(
+    printEmojis: false,
+    methodCount: 0,
+    dateTimeFormat: toFile ? DateTimeFormat.none : DateTimeFormat.dateAndTime,
+    colors: !toFile,
+    noBoxingByDefault: toFile,
+  );
+
+  final consoleLogger = Logger(
+    printer: PrefixPrinter(prettyPrinter(false)),
+    filter: ProductionFilter(),
+    level: config.debugConsoleLevel ?? config.level,
+  );
+
+  final fileLogger = Logger(
+    printer: PrefixPrinter(prettyPrinter(true)),
+    filter: ProductionFilter(),
+    level: config.level,
+    output: AdvancedFileOutput(
+      path: config.logsPath,
+      overrideExisting: false,
+      latestFileName: "latest.txt",
+      writeImmediately: [Level.error, Level.fatal, Level.warning],
+    ),
+  );
+
+  receivePort.listen((message) {
+    final loggerMessage = message as LoggerIsolateMessage;
+    final event = loggerMessage.$1;
+    consoleLogger.log(
+      event.level,
+      event.message,
+      stackTrace: event.stackTrace,
+      error: event.error,
+      time: event.time.toUtc(),
+    );
+    if (loggerMessage.$2) {
+      fileLogger.log(
+        event.level,
+        "${event.time.toUtc().toIso8601String()} ${event.message}",
+        stackTrace: event.stackTrace,
+        error: event.error,
+        time: event.time,
+      );
+    }
+  });
+}
+
 class Logging {
   Logging._();
   static final Logging _instance = Logging._();
   static Logging get instance => _instance;
 
-  late final String logsDirPath;
+  late String logsDirPath;
 
-  SendPort get _sendPort {
-    final port = IsolateNameServer.lookupPortByName(_kLoggerPortName);
-    if (port == null) {
-      throw Exception("Did you forget to call Logging.initialize()?");
-    }
-    return port;
-  }
+  late final LoggerPortRegistry _portRegistry = LoggerPortRegistry.named(
+    _kLoggerPortName,
+  );
+  late final LoggerDispatcher _dispatcher = LoggerDispatcher(
+    lookupSender: () =>
+        Util.isTestEnv ? _printTestMessage : _portRegistry.lookup()?.send,
+  );
+
+  Isolate? _loggerIsolate;
+  SendPort? _loggerPort;
+  ReceivePort? _loggerErrorPort;
+  ReceivePort? _loggerExitPort;
 
   Future<void> initialize(
     String logsPath, {
@@ -47,73 +108,62 @@ class Logging {
         "Logging.initialize() must be called on the main isolate.",
       );
     }
-    if (IsolateNameServer.lookupPortByName(_kLoggerPortName) != null) {
+    if (_loggerIsolate != null || _portRegistry.lookup() != null) {
       throw Exception("Logging was already initialized");
     }
 
-    logsDirPath = logsPath;
-
-    final receivePort = ReceivePort();
-    await Isolate.spawn((sendPort) {
-      final ReceivePort receivePort = ReceivePort();
-      sendPort.send(receivePort.sendPort);
-
-      PrettyPrinter prettyPrinter(bool toFile) => PrettyPrinter(
-        printEmojis: false,
-        methodCount: 0,
-        dateTimeFormat: toFile
-            ? DateTimeFormat.none
-            : DateTimeFormat.dateAndTime,
-        colors: !toFile,
-        noBoxingByDefault: toFile,
-      );
-
-      final consoleLogger = Logger(
-        printer: PrefixPrinter(prettyPrinter(false)),
-        filter: ProductionFilter(),
-        level: debugConsoleLevel ?? level,
-      );
-
-      final fileLogger = Logger(
-        printer: PrefixPrinter(prettyPrinter(true)),
-        filter: ProductionFilter(),
-        level: level,
-        output: AdvancedFileOutput(
-          path: logsDirPath,
-          overrideExisting: false,
-          latestFileName: "latest.txt",
-          writeImmediately: [Level.error, Level.fatal, Level.warning],
-        ),
-      );
-
-      receivePort.listen((message) {
-        final event = (message as (LogEvent, bool)).$1;
-        consoleLogger.log(
-          event.level,
-          event.message,
-          stackTrace: event.stackTrace,
-          error: event.error,
-          time: event.time.toUtc(),
-        );
-        if (message.$2) {
-          fileLogger.log(
-            event.level,
-            "${event.time.toUtc().toIso8601String()} ${event.message}",
-            stackTrace: event.stackTrace,
-            error: event.error,
-            time: event.time,
-          );
-        }
+    final readyPort = ReceivePort();
+    final errorPort = ReceivePort();
+    final exitPort = ReceivePort();
+    var workerExited = false;
+    _loggerErrorPort = errorPort..listen(_handleLoggerError);
+    _loggerExitPort = exitPort
+      ..listen((_) {
+        workerExited = true;
+        _handleLoggerExit();
       });
-    }, receivePort.sendPort);
-    final loggerPort = await receivePort.first as SendPort;
-    IsolateNameServer.registerPortWithName(loggerPort, _kLoggerPortName);
-  }
 
-  String _stringifyMessage(dynamic message) =>
-      !(message is Map || message is Iterable)
-      ? message.toString()
-      : JsonEncoder.withIndent('  ', (o) => o.toString()).convert(message);
+    Isolate? loggerIsolate;
+    try {
+      loggerIsolate = await Isolate.spawn(
+        _runLoggerIsolate,
+        (
+          readyPort: readyPort.sendPort,
+          logsPath: logsPath,
+          level: level,
+          debugConsoleLevel: debugConsoleLevel,
+        ),
+        onError: errorPort.sendPort,
+        onExit: exitPort.sendPort,
+        errorsAreFatal: true,
+        debugName: "logger",
+      );
+      _loggerIsolate = loggerIsolate;
+
+      final result = await readyPort.first.timeout(const Duration(seconds: 30));
+      if (result is! SendPort || workerExited) {
+        throw StateError("Logger isolate failed to start");
+      }
+      _loggerPort = result;
+      if (!_portRegistry.register(result)) {
+        _loggerPort = null;
+        throw StateError("Logger port registration failed");
+      }
+      logsDirPath = logsPath;
+    } catch (_) {
+      loggerIsolate?.kill(priority: Isolate.immediate);
+      _loggerIsolate = null;
+      final loggerPort = _loggerPort;
+      if (loggerPort != null) {
+        _portRegistry.removeIfCurrent(loggerPort);
+      }
+      _loggerPort = null;
+      _stopMonitoring();
+      rethrow;
+    } finally {
+      readyPort.close();
+    }
+  }
 
   void log(
     Level level,
@@ -123,36 +173,73 @@ class Logging {
     StackTrace? stackTrace,
     bool toFile = true, // false will print to console only
   }) {
-    if (Util.isTestEnv) {
-      // Persistent isolates may not work correctly during tests
-      // just print to console instead
-
-      // ignore: avoid_print
-      print(
-        "${level.name} [$time] ${_stringifyMessage(message)}"
-        ", ERROR: $error"
-        ", STRACE: $stackTrace",
-      );
-      return;
-    }
-
     if (Util.isTestEnv || Util.isArmLinux) {
       toFile = false;
     }
-    try {
-      _sendPort.send((
-        LogEvent(
-          level,
-          _stringifyMessage(message),
-          time: time,
-          error: error,
-          stackTrace: stackTrace,
-        ),
-        toFile,
-      ));
-    } catch (e, s) {
-      t("Isolates suck", error: e, stackTrace: s);
+    _dispatcher.log(
+      level,
+      message,
+      time: time,
+      error: error,
+      stackTrace: stackTrace,
+      toFile: toFile,
+    );
+  }
+
+  void _printTestMessage(Object? message) {
+    // Persistent isolates are unreliable under flutter test.
+    final event = (message! as LoggerIsolateMessage).$1;
+    // ignore: avoid_print
+    print(
+      "${event.level.name} [${event.time}] ${event.message}"
+      ", ERROR: ${event.error}"
+      ", STRACE: ${event.stackTrace}",
+    );
+  }
+
+  void _handleLoggerError(Object? message) {
+    final error = message is List && message.isNotEmpty
+        ? message.first ?? "Unknown logger isolate error"
+        : message ?? "Unknown logger isolate error";
+    final stackTrace = message is List && message.length > 1
+        ? StackTrace.fromString(message[1]?.toString() ?? "")
+        : StackTrace.current;
+    developerLoggerFallback(
+      LogEvent(
+        Level.error,
+        "Logger isolate failed",
+        error: error,
+        stackTrace: stackTrace,
+      ),
+      StateError("Logger isolate reported an error"),
+      stackTrace,
+    );
+  }
+
+  void _handleLoggerExit() {
+    final hadActiveWorker = _loggerIsolate != null;
+    final loggerPort = _loggerPort;
+    if (loggerPort != null) {
+      _portRegistry.removeIfCurrent(loggerPort);
     }
+    _loggerPort = null;
+    _loggerIsolate = null;
+    _stopMonitoring();
+
+    if (hadActiveWorker) {
+      developerLoggerFallback(
+        LogEvent(Level.error, "Logger isolate exited unexpectedly"),
+        StateError("Logger isolate exited"),
+        StackTrace.current,
+      );
+    }
+  }
+
+  void _stopMonitoring() {
+    _loggerErrorPort?.close();
+    _loggerExitPort?.close();
+    _loggerErrorPort = null;
+    _loggerExitPort = null;
   }
 
   void t(
