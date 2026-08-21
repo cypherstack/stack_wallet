@@ -17,6 +17,10 @@ void main() {
       (label: "Public Spend Key", key: "public-spend"),
       (label: "Private Spend Key", key: "private-spend"),
     ]);
+    expect(data.privateSpendKey, "private-spend");
+    expect(data.privateViewKey, "private-view");
+    expect(data.publicSpendKey, "public-spend");
+    expect(data.publicViewKey, "public-view");
     expect(
       () => data.keys.add((label: "key", key: "value")),
       throwsUnsupportedError,

@@ -1708,10 +1708,6 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
 
         await csMonero.startListeners(this.wallet!);
         csMonero.startAutoSaving(this.wallet!);
-
-        await secureStorageInterface.delete(
-          key: Wallet.keysRestoreDataKey(walletId: walletId),
-        );
       } catch (e, s) {
         Logging.instance.e(
           "Exception rethrown from _recoverFromKeys(): ",
