@@ -83,7 +83,8 @@ class Logging {
   static final Logging _instance = Logging._();
   static Logging get instance => _instance;
 
-  late String logsDirPath;
+  String? _logsDirPath;
+  String get logsDirPath => _logsDirPath!;
 
   late final LoggerPortRegistry _portRegistry = LoggerPortRegistry.named(
     _kLoggerPortName,
@@ -91,6 +92,8 @@ class Logging {
   late final LoggerDispatcher _dispatcher = LoggerDispatcher(
     lookupSender: () =>
         Util.isTestEnv ? _printTestMessage : _portRegistry.lookup()?.send,
+    fallback: (event, toFile, error, stackTrace) =>
+        _fallback(event, error, stackTrace, toFile: toFile),
   );
 
   Isolate? _loggerIsolate;
@@ -111,6 +114,7 @@ class Logging {
     if (_loggerIsolate != null || _portRegistry.lookup() != null) {
       throw Exception("Logging was already initialized");
     }
+    _logsDirPath = logsPath;
 
     final readyPort = ReceivePort();
     final errorPort = ReceivePort();
@@ -149,8 +153,7 @@ class Logging {
         _loggerPort = null;
         throw StateError("Logger port registration failed");
       }
-      logsDirPath = logsPath;
-    } catch (_) {
+    } catch (error, stackTrace) {
       loggerIsolate?.kill(priority: Isolate.immediate);
       _loggerIsolate = null;
       final loggerPort = _loggerPort;
@@ -159,6 +162,16 @@ class Logging {
       }
       _loggerPort = null;
       _stopMonitoring();
+      _fallback(
+        LogEvent(
+          Level.error,
+          "Logger initialization failed",
+          error: error,
+          stackTrace: stackTrace,
+        ),
+        StateError("Logger initialization failed"),
+        stackTrace,
+      );
       rethrow;
     } finally {
       readyPort.close();
@@ -204,7 +217,7 @@ class Logging {
     final stackTrace = message is List && message.length > 1
         ? StackTrace.fromString(message[1]?.toString() ?? "")
         : StackTrace.current;
-    developerLoggerFallback(
+    _fallback(
       LogEvent(
         Level.error,
         "Logger isolate failed",
@@ -227,12 +240,27 @@ class Logging {
     _stopMonitoring();
 
     if (hadActiveWorker) {
-      developerLoggerFallback(
+      _fallback(
         LogEvent(Level.error, "Logger isolate exited unexpectedly"),
         StateError("Logger isolate exited"),
         StackTrace.current,
       );
     }
+  }
+
+  void _fallback(
+    LogEvent event,
+    Object error,
+    StackTrace stackTrace, {
+    bool toFile = true,
+  }) {
+    emergencyLoggerFallback(
+      event,
+      toFile,
+      error,
+      stackTrace,
+      logsDirectoryPath: _logsDirPath,
+    );
   }
 
   void _stopMonitoring() {

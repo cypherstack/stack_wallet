@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'dart:isolate';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:logger/logger.dart';
+import 'package:path/path.dart' as path;
 import 'package:stackwallet/utilities/logger_dispatcher.dart';
 
 void main() {
@@ -12,7 +14,7 @@ void main() {
       final timestamp = DateTime.utc(2026, 8, 20);
       final dispatcher = LoggerDispatcher(
         lookupSender: () => receivePort.sendPort.send,
-        fallback: (_, _, _) => fail("fallback should not run"),
+        fallback: (_, _, _, _) => fail("fallback should not run"),
       );
 
       final didSend = dispatcher.log(
@@ -31,11 +33,11 @@ void main() {
     });
 
     test("uses the fallback when the logger isolate is unavailable", () {
-      final fallbackCalls = <(LogEvent, Object, StackTrace)>[];
+      final fallbackCalls = <(LogEvent, bool, Object, StackTrace)>[];
       final dispatcher = LoggerDispatcher(
         lookupSender: () => null,
-        fallback: (event, error, stackTrace) {
-          fallbackCalls.add((event, error, stackTrace));
+        fallback: (event, toFile, error, stackTrace) {
+          fallbackCalls.add((event, toFile, error, stackTrace));
         },
       );
 
@@ -44,17 +46,18 @@ void main() {
       expect(didSend, isFalse);
       expect(fallbackCalls, hasLength(1));
       expect(fallbackCalls.single.$1.message, "not ready");
-      expect(fallbackCalls.single.$2, isA<StateError>());
+      expect(fallbackCalls.single.$2, isTrue);
+      expect(fallbackCalls.single.$3, isA<StateError>());
     });
 
     test("uses the fallback when sending fails", () {
       final dispatchError = StateError("send failed");
-      final fallbackCalls = <(LogEvent, Object, StackTrace)>[];
+      final fallbackCalls = <(LogEvent, bool, Object, StackTrace)>[];
       final dispatcher = LoggerDispatcher(
         lookupSender: () =>
             (_) => throw dispatchError,
-        fallback: (event, error, stackTrace) {
-          fallbackCalls.add((event, error, stackTrace));
+        fallback: (event, toFile, error, stackTrace) {
+          fallbackCalls.add((event, toFile, error, stackTrace));
         },
       );
 
@@ -63,13 +66,13 @@ void main() {
       expect(didSend, isFalse);
       expect(fallbackCalls, hasLength(1));
       expect(fallbackCalls.single.$1.message, "important");
-      expect(fallbackCalls.single.$2, same(dispatchError));
+      expect(fallbackCalls.single.$3, same(dispatchError));
     });
 
     test("does not throw when the fallback itself fails", () {
       final dispatcher = LoggerDispatcher(
         lookupSender: () => null,
-        fallback: (_, _, _) => throw StateError("fallback failed"),
+        fallback: (_, _, _, _) => throw StateError("fallback failed"),
       );
 
       expect(() => dispatcher.log(Level.error, "important"), returnsNormally);
@@ -79,7 +82,7 @@ void main() {
       final sentMessages = <Object?>[];
       final dispatcher = LoggerDispatcher(
         lookupSender: () => sentMessages.add,
-        fallback: (_, _, _) => fail("fallback should not run"),
+        fallback: (_, _, _, _) => fail("fallback should not run"),
       );
 
       final didSend = dispatcher.log(Level.info, _UnprintableMessage());
@@ -90,7 +93,68 @@ void main() {
       expect(message.$1.message, contains("could not stringify"));
     });
 
-    test("the developer fallback tolerates unprintable details", () {
+    test("writes dispatch failures to the emergency log", () {
+      final directory = Directory.systemTemp.createTempSync(
+        "logger_dispatcher_test_",
+      );
+      addTearDown(() => directory.deleteSync(recursive: true));
+      final timestamp = DateTime.utc(2026, 8, 20, 12, 34, 56);
+      final event = LogEvent(
+        Level.error,
+        "wallet recovery failed",
+        time: timestamp,
+        error: StateError("original failure"),
+        stackTrace: StackTrace.fromString("original stack"),
+      );
+
+      emergencyLoggerFallback(
+        event,
+        true,
+        StateError("logger isolate unavailable"),
+        StackTrace.fromString("dispatch stack"),
+        logsDirectoryPath: directory.path,
+      );
+      emergencyLoggerFallback(
+        LogEvent(
+          Level.warning,
+          "subsequent failure",
+          time: timestamp.add(const Duration(seconds: 1)),
+        ),
+        true,
+        StateError("logger still unavailable"),
+        StackTrace.fromString("second dispatch stack"),
+        logsDirectoryPath: directory.path,
+      );
+
+      final contents = File(
+        emergencyLogPath(directory.path),
+      ).readAsStringSync();
+      expect(contents, contains(timestamp.toIso8601String()));
+      expect(contents, contains("[error] wallet recovery failed"));
+      expect(contents, contains("original failure"));
+      expect(contents, contains("logger isolate unavailable"));
+      expect(contents, contains("original stack"));
+      expect(contents, contains("dispatch stack"));
+      expect(contents, contains("subsequent failure"));
+      expect(contents, contains("logger still unavailable"));
+    });
+
+    test("does not persist console-only messages", () {
+      var writeCalls = 0;
+
+      emergencyLoggerFallback(
+        LogEvent(Level.info, "console only"),
+        false,
+        StateError("logger isolate unavailable"),
+        StackTrace.current,
+        logsDirectoryPath: "unused",
+        writeToFile: (_, _) => writeCalls++,
+      );
+
+      expect(writeCalls, isZero);
+    });
+
+    test("tolerates emergency file and formatting failures", () {
       final event = LogEvent(
         Level.error,
         _UnprintableMessage(),
@@ -98,12 +162,39 @@ void main() {
       );
 
       expect(
-        () => developerLoggerFallback(
+        () => emergencyLoggerFallback(
           event,
+          true,
           _UnprintableMessage(),
           StackTrace.current,
+          logsDirectoryPath: "unwritable",
+          writeToFile: (_, _) => throw StateError("write failed"),
         ),
         returnsNormally,
+      );
+    });
+
+    test("builds emergency log paths for every native platform", () {
+      final posix = path.Context(style: path.Style.posix);
+      final windows = path.Context(style: path.Style.windows);
+
+      for (final directory in [
+        "/home/stack/Documents/StackWallet_Logs/",
+        "/Users/stack/Documents/StackWallet_Logs/",
+        "/data/user/0/com.cypherstack.stackwallet/files/logs/",
+        "/var/mobile/Containers/Data/Application/id/Documents/logs/",
+      ]) {
+        expect(
+          emergencyLogPath(directory, context: posix),
+          "${directory}emergency.txt",
+        );
+      }
+      expect(
+        emergencyLogPath(
+          r"C:\Users\Stack\Documents\StackWallet_Logs\",
+          context: windows,
+        ),
+        r"C:\Users\Stack\Documents\StackWallet_Logs\emergency.txt",
       );
     });
   });

@@ -10,21 +10,32 @@
 
 import 'dart:convert';
 import 'dart:developer' as developer;
+import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:logger/logger.dart';
+import 'package:path/path.dart' as path;
 
 typedef LoggerIsolateMessage = (LogEvent, bool);
 typedef LoggerMessageSender = void Function(Object?);
 typedef LoggerMessageSenderLookup = LoggerMessageSender? Function();
 typedef LoggerFallback =
-    void Function(LogEvent event, Object error, StackTrace stackTrace);
+    void Function(
+      LogEvent event,
+      bool toFile,
+      Object error,
+      StackTrace stackTrace,
+    );
+typedef EmergencyLogWriter = void Function(String directoryPath, String text);
+
+// Keep the emergency writer independent of the isolate's latest.txt sink.
+const emergencyLogFileName = "emergency.txt";
 
 final class LoggerDispatcher {
   LoggerDispatcher({
     required LoggerMessageSenderLookup lookupSender,
-    LoggerFallback fallback = developerLoggerFallback,
+    LoggerFallback fallback = emergencyLoggerFallback,
   }) : _lookupSender = lookupSender,
        _fallback = fallback;
 
@@ -56,7 +67,7 @@ final class LoggerDispatcher {
       return true;
     } catch (dispatchError, dispatchStackTrace) {
       try {
-        _fallback(event, dispatchError, dispatchStackTrace);
+        _fallback(event, toFile, dispatchError, dispatchStackTrace);
       } catch (_) {
         // Logging must never break its caller.
       }
@@ -96,15 +107,36 @@ final class LoggerPortRegistry {
   }
 }
 
-void developerLoggerFallback(
+void emergencyLoggerFallback(
   LogEvent event,
+  bool toFile,
   Object dispatchError,
-  StackTrace dispatchStackTrace,
-) {
+  StackTrace dispatchStackTrace, {
+  String? logsDirectoryPath,
+  EmergencyLogWriter writeToFile = _writeEmergencyLog,
+}) {
+  Object? fileError;
+  StackTrace? fileStackTrace;
+
+  if (toFile && logsDirectoryPath != null) {
+    try {
+      writeToFile(
+        logsDirectoryPath,
+        _formatEmergencyLog(event, dispatchError, dispatchStackTrace),
+      );
+    } catch (error, stackTrace) {
+      fileError = error;
+      fileStackTrace = stackTrace;
+    }
+  }
+
   try {
     final originalError = event.error == null
         ? ""
         : "\nOriginal error: ${_safeToString(event.error)}";
+    final emergencyFileError = fileError == null
+        ? ""
+        : "\nEmergency file write failed: ${_safeToString(fileError)}";
     developer.log(
       _safeToString(event.message),
       name: "StackWallet.Logging",
@@ -112,12 +144,39 @@ void developerLoggerFallback(
       time: event.time,
       error:
           "Logger dispatch failed: ${_safeToString(dispatchError)}"
-          "$originalError",
-      stackTrace: event.stackTrace ?? dispatchStackTrace,
+          "$originalError"
+          "$emergencyFileError",
+      stackTrace: event.stackTrace ?? fileStackTrace ?? dispatchStackTrace,
     );
   } catch (_) {
     // The emergency path must remain independent of application logging.
   }
+}
+
+void _writeEmergencyLog(String directoryPath, String text) {
+  final file = File(emergencyLogPath(directoryPath));
+  file.parent.createSync(recursive: true);
+  file.writeAsStringSync(text, mode: FileMode.append, flush: true);
+}
+
+String emergencyLogPath(String directoryPath, {path.Context? context}) =>
+    (context ?? path.context).join(directoryPath, emergencyLogFileName);
+
+String _formatEmergencyLog(
+  LogEvent event,
+  Object dispatchError,
+  StackTrace dispatchStackTrace,
+) {
+  final lines = <String>[
+    "${event.time.toUtc().toIso8601String()} "
+        "[${event.level.name}] ${_safeToString(event.message)}",
+    "Logger dispatch failed: ${_safeToString(dispatchError)}",
+    if (event.error != null) "Original error: ${_safeToString(event.error)}",
+    if (event.stackTrace != null)
+      "Original stack trace: ${_safeToString(event.stackTrace)}",
+    "Dispatch stack trace: ${_safeToString(dispatchStackTrace)}",
+  ];
+  return "${lines.join("\n")}\n\n";
 }
 
 String _stringifyMessage(dynamic message) {
