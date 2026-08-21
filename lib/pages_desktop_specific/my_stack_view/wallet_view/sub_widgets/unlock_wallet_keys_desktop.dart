@@ -14,19 +14,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../../../models/keys/key_data_interface.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/desktop/storage_crypto_handler_provider.dart';
 import '../../../../providers/providers.dart';
+import '../../../../services/wallet_recovery_service.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
-import '../../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
-import '../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
@@ -80,67 +75,12 @@ class _UnlockWalletKeysDesktopState
       }
 
       final wallet = ref.read(pWallets).getWallet(widget.walletId);
-      ({
-        String myName,
-        String config,
-        String keys,
-        ({String config, String keys})? prevGen,
-      })?
-      frostWalletData;
-      List<String>? words;
-
-      if (wallet is! MnemonicInterface) {
-        if (wallet is BitcoinFrostWallet) {
-          final futures = [
-            wallet.getSerializedKeys(),
-            wallet.getMultisigConfig(),
-            wallet.getSerializedKeysPrevGen(),
-            wallet.getMultisigConfigPrevGen(),
-          ];
-
-          final results = await Future.wait(futures);
-          if (results.length == 4) {
-            frostWalletData = (
-              myName: wallet.frostInfo.myName,
-              config: results[1]!,
-              keys: results[0]!,
-              prevGen: results[2] == null || results[3] == null
-                  ? null
-                  : (config: results[3]!, keys: results[2]!),
-            );
-          }
-        } else {
-          throw Exception("FIXME ~= see todo in code");
-        }
-      } else if (!wallet.info.isRestoredFromKeys &&
-          !(wallet is ViewOnlyOptionInterface &&
-              (wallet as ViewOnlyOptionInterface).isViewOnly)) {
-        words = await wallet.getMnemonicAsWords();
-      }
-
-      KeyDataInterface? keyData;
-      if (wallet is ViewOnlyOptionInterface && wallet.isViewOnly) {
-        keyData = await wallet.getViewOnlyWalletData();
-      } else if (wallet is ExtendedKeysInterface) {
-        keyData = await wallet.getXPrivs();
-      } else if (wallet is CryptonoteWallet) {
-        final keys = await wallet.getKeys();
-        if (wallet.info.isRestoredFromKeys &&
-            (keys == null || keys.hasError)) {
-          throw StateError("Wallet keys are unavailable");
-        }
-        keyData = keys;
-      }
+      final recoveryMaterial = await WalletRecoveryService.getMaterial(wallet);
 
       if (mounted) {
         await Navigator.of(context).pushReplacementNamed(
           WalletKeysDesktopPopup.routeName,
-          arguments: (
-            mnemonic: words ?? [],
-            walletId: widget.walletId,
-            frostData: frostWalletData,
-            keyData: keyData,
-          ),
+          arguments: recoveryMaterial,
         );
       }
     } else {

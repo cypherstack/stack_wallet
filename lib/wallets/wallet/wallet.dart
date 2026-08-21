@@ -8,6 +8,7 @@ import '../../db/isar/main_db.dart';
 import '../../models/isar/models/blockchain_data/address.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
 import '../../models/isar/models/solana/sol_contract.dart';
+import '../../models/keys/cryptonote_key_restore_data.dart';
 import '../../models/keys/view_only_wallet_data.dart';
 import '../../models/node_model.dart';
 import '../../models/paymint/fee_object_model.dart';
@@ -153,7 +154,7 @@ abstract class Wallet<T extends CryptoCurrency> {
     String? mnemonicPassphrase,
     String? privateKey,
     ViewOnlyWalletData? viewOnlyData,
-    String? keysRestoreData,
+    CryptonoteKeyRestoreData? cryptonoteKeyRestoreData,
   }) async {
     // TODO: rework soon?
     if (walletInfo.isViewOnly && viewOnlyData == null) {
@@ -224,10 +225,10 @@ abstract class Wallet<T extends CryptoCurrency> {
       );
     }
 
-    if (keysRestoreData != null) {
+    if (cryptonoteKeyRestoreData != null) {
       await secureStorageInterface.write(
         key: keysRestoreDataKey(walletId: walletInfo.walletId),
-        value: keysRestoreData,
+        value: cryptonoteKeyRestoreData.toJsonEncodedString(),
       );
     }
 
@@ -332,6 +333,23 @@ abstract class Wallet<T extends CryptoCurrency> {
   // secure storage key
   static String keysRestoreDataKey({required String walletId}) =>
       "${walletId}_keysRestoreData";
+
+  static List<String> secureStorageKeys({required String walletId}) => [
+    mnemonicKey(walletId: walletId),
+    mnemonicPassphraseKey(walletId: walletId),
+    privateKeyKey(walletId: walletId),
+    getViewOnlyWalletDataSecStoreKey(walletId: walletId),
+    keysRestoreDataKey(walletId: walletId),
+  ];
+
+  static Future<void> deleteSecureStorageData({
+    required String walletId,
+    required SecureStorageInterface secureStorage,
+  }) async {
+    for (final key in secureStorageKeys(walletId: walletId)) {
+      await secureStorage.delete(key: key);
+    }
+  }
 
   //============================================================================
   // ========== Private ========================================================

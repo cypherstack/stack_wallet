@@ -13,16 +13,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stack_wallet_backup/secure_storage.dart';
 
 import '../../../../app_config.dart';
-import '../../../../models/keys/key_data_interface.dart';
+import '../../../../models/keys/wallet_recovery_material.dart';
 import '../../../../pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_view_only_wallet_keys_view.dart';
 import '../../../../providers/global/wallets_provider.dart';
 import '../../../../route_generator.dart';
+import '../../../../services/wallet_recovery_service.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/text_styles.dart';
-import '../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
@@ -113,10 +111,11 @@ class _DesktopAttentionDeleteWallet
                           final wallet = ref
                               .read(pWallets)
                               .getWallet(widget.walletId);
+                          final recoveryMaterial =
+                              await WalletRecoveryService.getMaterial(wallet);
 
-                          if (wallet is ViewOnlyOptionInterface &&
-                              wallet.isViewOnly) {
-                            final data = await wallet.getViewOnlyWalletData();
+                          if (recoveryMaterial
+                              case final ViewOnlyWalletRecoveryMaterial data) {
                             if (context.mounted) {
                               await Navigator.of(context).push(
                                 MaterialPageRoute<void>(
@@ -154,7 +153,7 @@ class _DesktopAttentionDeleteWallet
                                           padding: const EdgeInsets.all(32),
                                           child: DeleteViewOnlyWalletKeysView(
                                             walletId: widget.walletId,
-                                            data: data,
+                                            data: data.keyData,
                                           ),
                                         ),
                                       ],
@@ -163,34 +162,11 @@ class _DesktopAttentionDeleteWallet
                                 ),
                               );
                             }
-                          } else if (wallet is MnemonicInterface) {
-                            final List<String> words;
-                            KeyDataInterface? keyData;
-                            if (wallet.info.isRestoredFromKeys) {
-                              words = [];
-                              if (wallet is! CryptonoteWallet) {
-                                throw StateError(
-                                  "Unsupported key-restored wallet: "
-                                  "${wallet.runtimeType}",
-                                );
-                              }
-                              final keys = await wallet.getKeys();
-                              if (keys == null || keys.hasError) {
-                                throw StateError("Wallet keys are unavailable");
-                              }
-                              keyData = keys;
-                            } else {
-                              words = await wallet.getMnemonicAsWords();
-                            }
-
+                          } else {
                             if (context.mounted) {
                               await Navigator.of(context).pushNamed(
                                 DeleteWalletKeysPopup.routeName,
-                                arguments: (
-                                  walletId: widget.walletId,
-                                  words: words,
-                                  keyData: keyData,
-                                ),
+                                arguments: recoveryMaterial,
                               );
                             }
                           }

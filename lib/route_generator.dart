@@ -28,6 +28,7 @@ import 'models/isar/models/isar_models.dart';
 import 'models/isar/ordinal.dart';
 import 'models/keys/key_data_interface.dart';
 import 'models/keys/view_only_wallet_data.dart';
+import 'models/keys/wallet_recovery_material.dart';
 import 'models/paynym/paynym_account_lite.dart';
 import 'models/send_view_auto_fill_data.dart';
 import 'models/shopinbit/shopinbit_enums.dart';
@@ -1706,72 +1707,10 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case WalletBackupView.routeName:
-        if (args is ({String walletId, List<String> mnemonic})) {
+        if (args is WalletRecoveryMaterial) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => WalletBackupView(
-              walletId: args.walletId,
-              mnemonic: args.mnemonic,
-            ),
-            settings: RouteSettings(name: settings.name),
-          );
-        } else if (args
-            is ({
-              String walletId,
-              List<String> mnemonic,
-              ({
-                String myName,
-                String config,
-                String keys,
-                ({String config, String keys})? prevGen,
-              })?
-              frostWalletData,
-            })) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => WalletBackupView(
-              walletId: args.walletId,
-              mnemonic: args.mnemonic,
-              frostWalletData: args.frostWalletData,
-            ),
-            settings: RouteSettings(name: settings.name),
-          );
-        } else if (args
-            is ({
-              String walletId,
-              List<String> mnemonic,
-              KeyDataInterface? keyData,
-            })) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => WalletBackupView(
-              walletId: args.walletId,
-              mnemonic: args.mnemonic,
-              keyData: args.keyData,
-            ),
-            settings: RouteSettings(name: settings.name),
-          );
-        } else if (args
-            is ({
-              String walletId,
-              List<String> mnemonic,
-              KeyDataInterface? keyData,
-              ({
-                String myName,
-                String config,
-                String keys,
-                ({String config, String keys})? prevGen,
-              })?
-              frostWalletData,
-            })) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => WalletBackupView(
-              walletId: args.walletId,
-              mnemonic: args.mnemonic,
-              frostWalletData: args.frostWalletData,
-              keyData: args.keyData,
-            ),
+            builder: (_) => WalletBackupView(recoveryMaterial: args),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -2268,57 +2207,11 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case DeleteWalletRecoveryPhraseView.routeName:
-        if (args
-            is ({
-              String walletId,
-              List<String> mnemonicWords,
-              ({
-                String myName,
-                String config,
-                String keys,
-                ({String config, String keys})? prevGen,
-              })?
-              frostWalletData,
-              KeyDataInterface? keyData,
-            })) {
+        if (args is WalletRecoveryMaterial) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => DeleteWalletRecoveryPhraseView(
-              mnemonic: args.mnemonicWords,
-              walletId: args.walletId,
-              frostWalletData: args.frostWalletData,
-              keyData: args.keyData,
-            ),
-            settings: RouteSettings(name: settings.name),
-          );
-        } else if (args is ({String walletId, List<String> mnemonicWords})) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => DeleteWalletRecoveryPhraseView(
-              mnemonic: args.mnemonicWords,
-              walletId: args.walletId,
-            ),
-            settings: RouteSettings(name: settings.name),
-          );
-        } else if (args
-            is ({
-              String walletId,
-              List<String> mnemonicWords,
-              ({
-                String myName,
-                String config,
-                String keys,
-                ({String config, String keys})? prevGen,
-              })?
-              frostWalletData,
-            })) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => DeleteWalletRecoveryPhraseView(
-              mnemonic: args.mnemonicWords,
-              walletId: args.walletId,
-              frostWalletData: args.frostWalletData,
-            ),
+            builder: (_) =>
+                DeleteWalletRecoveryPhraseView(recoveryMaterial: args),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -2764,60 +2657,9 @@ class RouteGenerator {
         );
 
       case WalletKeysDesktopPopup.routeName:
-        if (args
-            is ({
-              List<String> mnemonic,
-              String walletId,
-              ({
-                String myName,
-                String config,
-                String keys,
-                ({String config, String keys})? prevGen,
-              })?
-              frostData,
-            })) {
+        if (args is WalletRecoveryMaterial) {
           return FadePageRoute(
-            WalletKeysDesktopPopup(
-              words: args.mnemonic,
-              walletId: args.walletId,
-              frostData: args.frostData,
-            ),
-            RouteSettings(name: settings.name),
-          );
-        } else if (args
-            is ({
-              List<String> mnemonic,
-              String walletId,
-              ({
-                String myName,
-                String config,
-                String keys,
-                ({String config, String keys})? prevGen,
-              })?
-              frostData,
-              KeyDataInterface? keyData,
-            })) {
-          return FadePageRoute(
-            WalletKeysDesktopPopup(
-              words: args.mnemonic,
-              walletId: args.walletId,
-              frostData: args.frostData,
-              keyData: args.keyData,
-            ),
-            RouteSettings(name: settings.name),
-          );
-        } else if (args
-            is ({
-              List<String> mnemonic,
-              String walletId,
-              KeyDataInterface? keyData,
-            })) {
-          return FadePageRoute(
-            WalletKeysDesktopPopup(
-              words: args.mnemonic,
-              walletId: args.walletId,
-              keyData: args.keyData,
-            ),
+            WalletKeysDesktopPopup(recoveryMaterial: args),
             RouteSettings(name: settings.name),
           );
         }
@@ -2878,34 +2720,11 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case DeleteWalletKeysPopup.routeName:
-        if (args
-            is ({
-              String walletId,
-              List<String> words,
-              KeyDataInterface? keyData,
-            })) {
+        if (args is WalletRecoveryMaterial) {
           return FadePageRoute(
-            DeleteWalletKeysPopup(
-              walletId: args.walletId,
-              words: args.words,
-              keyData: args.keyData,
-            ),
+            DeleteWalletKeysPopup(recoveryMaterial: args),
             RouteSettings(name: settings.name),
           );
-        } else if (args is Tuple2<String, List<String>>) {
-          return FadePageRoute(
-            DeleteWalletKeysPopup(walletId: args.item1, words: args.item2),
-            RouteSettings(name: settings.name),
-          );
-          // return getRoute(
-          //   shouldUseMaterialRoute: useMaterialPageRoute,
-          //   builder: (_) => WalletKeysDesktopPopup(
-          //     words: args,
-          //   ),
-          //   settings: RouteSettings(
-          //     name: settings.name,
-          //   ),
-          // );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 

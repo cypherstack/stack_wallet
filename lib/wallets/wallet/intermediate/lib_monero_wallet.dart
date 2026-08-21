@@ -12,6 +12,7 @@ import '../../../app_config.dart';
 import '../../../db/hive/db.dart';
 import '../../../models/balance.dart';
 import '../../../models/input.dart';
+import '../../../models/keys/cryptonote_key_restore_data.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../models/isar/models/blockchain_data/utxo.dart';
@@ -301,10 +302,10 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
   }
 
   @override
-  Future<CWKeyData?> getKeys() async {
+  Future<CWKeyData> getKeys() async {
     final oldInfo = getLibMoneroWalletInfo(walletId);
     if (wallet == null || (oldInfo != null && oldInfo.name != walletId)) {
-      return null;
+      throw StateError("Monero wallet is not loaded");
     }
     try {
       return CWKeyData(
@@ -316,13 +317,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
       );
     } catch (e, s) {
       Logging.instance.f("getKeys failed: ", error: e, stackTrace: s);
-      return CWKeyData(
-        walletId: walletId,
-        publicViewKey: "ERROR",
-        privateViewKey: "ERROR",
-        publicSpendKey: "ERROR",
-        privateSpendKey: "ERROR",
-      );
+      rethrow;
     }
   }
 
@@ -1564,10 +1559,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
 
   Future<void> _recoverFromKeys(String keysDataJson) async {
     await refreshMutex.protect(() async {
-      final data = jsonDecode(keysDataJson) as Map<String, dynamic>;
-      final address = data["address"] as String;
-      final viewKey = data["viewKey"] as String;
-      final spendKey = data["spendKey"] as String;
+      final data = CryptonoteKeyRestoreData.fromJsonEncodedString(keysDataJson);
 
       try {
         final height = max(info.restoreHeight, 0);
@@ -1589,9 +1581,9 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         final wallet = await getRestoredFromKeysWallet(
           path: path,
           password: password,
-          address: address,
-          privateViewKey: viewKey,
-          privateSpendKey: spendKey,
+          address: data.address,
+          privateViewKey: data.privateViewKey,
+          privateSpendKey: data.privateSpendKey,
           height: height,
         );
 
@@ -1601,23 +1593,6 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         this.wallet = wallet;
 
         _setListener();
-
-        // Try to recover the mnemonic from the restored wallet
-        try {
-          final seed = await csMonero.getSeed(wallet);
-          if (seed.isNotEmpty) {
-            await secureStorageInterface.write(
-              key: Wallet.mnemonicKey(walletId: walletId),
-              value: seed,
-            );
-            await secureStorageInterface.write(
-              key: Wallet.mnemonicPassphraseKey(walletId: walletId),
-              value: "",
-            );
-          }
-        } catch (_) {
-          // Not all key-restored wallets can recover the seed
-        }
 
         final newReceivingAddress =
             await getCurrentReceivingAddress() ??
@@ -1645,6 +1620,10 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
 
         await csMonero.startListeners(this.wallet!);
         csMonero.startAutoSaving(this.wallet!);
+
+        await secureStorageInterface.delete(
+          key: Wallet.keysRestoreDataKey(walletId: walletId),
+        );
       } catch (e, s) {
         Logging.instance.e(
           "Exception rethrown from _recoverFromKeys(): ",

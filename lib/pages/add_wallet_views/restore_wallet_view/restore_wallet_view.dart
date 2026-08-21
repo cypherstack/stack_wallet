@@ -671,14 +671,17 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
     await Future<void>.delayed(const Duration(milliseconds: 100));
 
     if (mounted) {
-      await showDialog<dynamic>(
+      final confirmed = await showDialog<bool>(
         context: context,
         useSafeArea: false,
         barrierDismissible: true,
         builder: (context) {
-          return ConfirmRecoveryDialog(onConfirm: attemptRestore);
+          return const ConfirmRecoveryDialog();
         },
       );
+      if (confirmed == true) {
+        await attemptRestore();
+      }
     }
   }
 
