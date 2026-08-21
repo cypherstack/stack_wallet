@@ -30,6 +30,7 @@ import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/wallet/wallet.dart';
+import '../../../widgets/async_pop_scope.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
@@ -76,7 +77,7 @@ class _NewWalletRecoveryPhraseViewState
     super.initState();
   }
 
-  Future<bool> onWillPop() async {
+  Future<bool> _onWillPop() async {
     await delete();
     return true;
   }
@@ -104,8 +105,8 @@ class _NewWalletRecoveryPhraseViewState
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    return WillPopScope(
-      onWillPop: onWillPop,
+    return AsyncPopScope<void>(
+      onPopAttempt: _onWillPop,
       child: MasterScaffold(
         isDesktop: isDesktop,
         appBar: isDesktop
@@ -158,17 +159,17 @@ class _NewWalletRecoveryPhraseViewState
                       child: AppBarIconButton(
                         semanticsLabel:
                             "Copy Button. Copies The Recovery Phrase To Clipboard.",
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .background,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.background,
                         shadows: const [],
                         icon: SvgPicture.asset(
                           Assets.svg.copy,
                           width: 24,
                           height: 24,
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .topNavIconPrimary,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.topNavIconPrimary,
                         ),
                         onPressed: () async {
                           await _copy();
@@ -182,8 +183,9 @@ class _NewWalletRecoveryPhraseViewState
           color: Theme.of(context).extension<StackColors>()!.background,
           width: isDesktop ? 600 : null,
           child: Padding(
-            padding:
-                isDesktop ? const EdgeInsets.all(0) : const EdgeInsets.all(16),
+            padding: isDesktop
+                ? const EdgeInsets.all(0)
+                : const EdgeInsets.all(16),
             child: ConditionalParent(
               condition: Util.isDesktop,
               builder: (child) => LayoutBuilder(
@@ -193,9 +195,7 @@ class _NewWalletRecoveryPhraseViewState
                       constraints: BoxConstraints(
                         minHeight: constraints.maxHeight,
                       ),
-                      child: IntrinsicHeight(
-                        child: child,
-                      ),
+                      child: IntrinsicHeight(child: child),
                     ),
                   );
                 },
@@ -203,25 +203,15 @@ class _NewWalletRecoveryPhraseViewState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  if (isDesktop)
-                    const Spacer(
-                      flex: 10,
-                    ),
-                  if (!isDesktop)
-                    const SizedBox(
-                      height: 4,
-                    ),
+                  if (isDesktop) const Spacer(flex: 10),
+                  if (!isDesktop) const SizedBox(height: 4),
                   if (!isDesktop)
                     Text(
                       ref.watch(pWalletName(_wallet.walletId)),
                       textAlign: TextAlign.center,
-                      style: STextStyles.label(context).copyWith(
-                        fontSize: 12,
-                      ),
+                      style: STextStyles.label(context).copyWith(fontSize: 12),
                     ),
-                  SizedBox(
-                    height: isDesktop ? 24 : 4,
-                  ),
+                  SizedBox(height: isDesktop ? 24 : 4),
                   Text(
                     "Recovery Phrase",
                     textAlign: TextAlign.center,
@@ -229,15 +219,13 @@ class _NewWalletRecoveryPhraseViewState
                         ? STextStyles.desktopH2(context)
                         : STextStyles.pageTitleH1(context),
                   ),
-                  const SizedBox(
-                    height: 16,
-                  ),
+                  const SizedBox(height: 16),
                   Container(
                     decoration: BoxDecoration(
                       color: isDesktop
-                          ? Theme.of(context)
-                              .extension<StackColors>()!
-                              .background
+                          ? Theme.of(
+                              context,
+                            ).extension<StackColors>()!.background
                           : Theme.of(context).extension<StackColors>()!.popupBG,
                       borderRadius: BorderRadius.circular(
                         Constants.size.circularBorderRadius,
@@ -253,16 +241,14 @@ class _NewWalletRecoveryPhraseViewState
                         style: isDesktop
                             ? STextStyles.desktopSubtitleH2(context)
                             : STextStyles.label(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .accentColorDark,
+                                color: Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.accentColorDark,
                               ),
                       ),
                     ),
                   ),
-                  SizedBox(
-                    height: isDesktop ? 21 : 8,
-                  ),
+                  SizedBox(height: isDesktop ? 21 : 8),
                   if (!isDesktop)
                     Expanded(
                       child: SingleChildScrollView(
@@ -273,13 +259,8 @@ class _NewWalletRecoveryPhraseViewState
                       ),
                     ),
                   if (isDesktop)
-                    MnemonicTable(
-                      words: _mnemonic,
-                      isDesktop: isDesktop,
-                    ),
-                  SizedBox(
-                    height: isDesktop ? 24 : 16,
-                  ),
+                    MnemonicTable(words: _mnemonic, isDesktop: isDesktop),
+                  SizedBox(height: isDesktop ? 24 : 16),
                   if (isDesktop)
                     SizedBox(
                       height: 70,
@@ -294,13 +275,11 @@ class _NewWalletRecoveryPhraseViewState
                               Assets.svg.copy,
                               width: 20,
                               height: 20,
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .buttonTextSecondary,
+                              color: Theme.of(
+                                context,
+                              ).extension<StackColors>()!.buttonTextSecondary,
                             ),
-                            const SizedBox(
-                              width: 10,
-                            ),
+                            const SizedBox(width: 10),
                             Text(
                               "Copy to clipboard",
                               style: STextStyles.desktopButtonSecondaryEnabled(
@@ -311,14 +290,9 @@ class _NewWalletRecoveryPhraseViewState
                         ),
                       ),
                     ),
-                  if (isDesktop)
-                    const SizedBox(
-                      height: 16,
-                    ),
+                  if (isDesktop) const SizedBox(height: 16),
                   ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: isDesktop ? 70 : 0,
-                    ),
+                    constraints: BoxConstraints(minHeight: isDesktop ? 70 : 0),
                     child: TextButton(
                       onPressed: () async {
                         final int next = Random().nextInt(_mnemonic.length);
@@ -348,10 +322,7 @@ class _NewWalletRecoveryPhraseViewState
                       ),
                     ),
                   ),
-                  if (isDesktop)
-                    const Spacer(
-                      flex: 15,
-                    ),
+                  if (isDesktop) const Spacer(flex: 15),
                 ],
               ),
             ),

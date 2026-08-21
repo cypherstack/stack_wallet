@@ -34,6 +34,7 @@ import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/models/tx_data.dart';
 import '../../../wallets/wallet/impl/firo_wallet.dart';
 import '../../../widgets/background.dart';
+import '../../../widgets/async_pop_scope.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/custom_buttons/simple_copy_button.dart';
 import '../../../widgets/desktop/primary_button.dart';
@@ -382,8 +383,8 @@ class _Step4ViewState extends ConsumerState<Step4View> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
+    return AsyncPopScope<void>(
+      onPopAttempt: () async {
         await _close();
         return false;
       },

@@ -43,6 +43,7 @@ import '../../../wallets/wallet/wallet.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
+import '../../../widgets/async_pop_scope.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../widgets/desktop/desktop_scaffold.dart';
@@ -458,7 +459,7 @@ class _VerifyRecoveryPhraseViewState
     return Tuple2(result, chosenWord);
   }
 
-  Future<bool> onWillPop() async {
+  Future<bool> _onWillPop() async {
     // await delete();
     Navigator.of(context).popUntil(
       ModalRoute.withName(
@@ -482,8 +483,8 @@ class _VerifyRecoveryPhraseViewState
         .watch(verifyMnemonicWordIndexStateProvider.state)
         .state;
 
-    return WillPopScope(
-      onWillPop: onWillPop,
+    return AsyncPopScope<void>(
+      onPopAttempt: _onWillPop,
       child: MasterScaffold(
         isDesktop: isDesktop,
         appBar: isDesktop

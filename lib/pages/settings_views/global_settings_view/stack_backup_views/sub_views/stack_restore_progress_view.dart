@@ -28,6 +28,7 @@ import '../../../../../utilities/enums/stack_restoring_status.dart';
 import '../../../../../utilities/logger.dart';
 import '../../../../../utilities/text_styles.dart';
 import '../../../../../utilities/util.dart';
+import '../../../../../widgets/async_pop_scope.dart';
 import '../../../../../widgets/conditional_parent.dart';
 import '../../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../../widgets/desktop/primary_button.dart';
@@ -65,15 +66,12 @@ class _StackRestoreProgressViewState
   bool isDesktop = Util.isDesktop;
 
   Future<void> _cancel() async {
-    bool shouldPop = false;
     unawaited(
       showDialog<void>(
         barrierDismissible: false,
         context: context,
-        builder: (_) => WillPopScope(
-          onWillPop: () async {
-            return shouldPop;
-          },
+        builder: (_) => PopScope(
+          canPop: false,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -100,7 +98,6 @@ class _StackRestoreProgressViewState
     );
 
     await SWB.cancelRestore();
-    shouldPop = true;
 
     int count = 0;
 
@@ -189,9 +186,8 @@ class _StackRestoreProgressViewState
     if (shouldCancel) {
       await _cancel();
       return true;
-    } else {
-      return false;
     }
+    return false;
   }
 
   Widget _getIconForState(StackRestoringStatus state) {
@@ -246,8 +242,8 @@ class _StackRestoreProgressViewState
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) {
-        return WillPopScope(
-          onWillPop: _onWillPop,
+        return AsyncPopScope<void>(
+          onPopAttempt: _onWillPop,
           child: Scaffold(
             backgroundColor: Theme.of(
               context,
