@@ -42,6 +42,7 @@ import '../../wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dar
 import '../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
+import '../../widgets/address_label_editor.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -788,6 +789,14 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                             ],
                           ),
                         ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    RoundedWhiteContainer(
+                      child: AddressLabelEditor(
+                        walletId: walletId,
+                        address: address,
+                        isDesktop: false,
                       ),
                     ),
                     const SizedBox(height: 12),

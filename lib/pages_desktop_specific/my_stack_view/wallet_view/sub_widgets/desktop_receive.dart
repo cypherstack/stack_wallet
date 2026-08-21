@@ -49,6 +49,7 @@ import '../../../../wallets/wallet/wallet_mixin_interfaces/multi_address_interfa
 import '../../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
+import '../../../../widgets/address_label_editor.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/custom_loading_overlay.dart';
@@ -762,6 +763,28 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
               ),
             ),
           ),
+
+        const SizedBox(height: 12),
+        Container(
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .backgroundAppBar,
+              width: 1,
+            ),
+            borderRadius: BorderRadius.circular(
+              Constants.size.circularBorderRadius,
+            ),
+          ),
+          child: RoundedWhiteContainer(
+            child: AddressLabelEditor(
+              walletId: walletId,
+              address: address,
+              isDesktop: true,
+            ),
+          ),
+        ),
 
         if (canGen) const SizedBox(height: 20),
 
