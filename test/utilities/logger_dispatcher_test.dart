@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
@@ -241,6 +242,68 @@ void main() {
 
       expect(didRemove, isFalse);
       expect(removeCalls, 0);
+    });
+  });
+
+  group("EmergencyLogThrottle", () {
+    test("coalesces repeated fallback writes", () async {
+      final writes = <LogEvent>[];
+      final throttle = EmergencyLogThrottle(
+        write: (event, _, _, _) => writes.add(event),
+        interval: const Duration(milliseconds: 10),
+      );
+
+      for (var i = 0; i < 100; i++) {
+        throttle.add(
+          LogEvent(Level.warning, "message $i"),
+          true,
+          StateError("unavailable"),
+          StackTrace.current,
+        );
+      }
+
+      expect(writes, hasLength(1));
+      await Future<void>.delayed(const Duration(milliseconds: 40));
+      expect(writes, hasLength(2));
+      expect(writes.last.message, contains("99 log messages coalesced"));
+      expect(writes.last.message, contains("message 99"));
+    });
+  });
+
+  group("emergency log files", () {
+    test("rotates and bounds emergency files", () {
+      final directory = Directory.systemTemp.createTempSync(
+        "logger_rotation_test_",
+      );
+      addTearDown(() => directory.deleteSync(recursive: true));
+
+      writeEmergencyLog(
+        directory.path,
+        "first-${List.filled(100, "x").join()}",
+        maxBytes: 64,
+      );
+      writeEmergencyLog(
+        directory.path,
+        "second-${List.filled(100, "🙂").join()}",
+        maxBytes: 64,
+      );
+
+      final current = File(emergencyLogPath(directory.path));
+      final previous = File(previousEmergencyLogPath(directory.path));
+      expect(current.lengthSync(), lessThanOrEqualTo(64));
+      expect(previous.lengthSync(), lessThanOrEqualTo(64));
+      expect(current.readAsStringSync(), startsWith("second-"));
+      expect(previous.readAsStringSync(), startsWith("first-"));
+      expect(
+        utf8.encode(current.readAsStringSync()),
+        hasLength(current.lengthSync()),
+      );
+
+      current.writeAsBytesSync(List.filled(256, 0x61));
+      writeEmergencyLog(directory.path, "third", maxBytes: 64);
+      expect(current.lengthSync(), lessThanOrEqualTo(64));
+      expect(current.readAsStringSync(), "third");
+      expect(previous.existsSync(), isFalse);
     });
   });
 }

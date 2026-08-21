@@ -8,6 +8,7 @@
  *
  */
 
+import 'dart:async';
 import 'dart:isolate';
 
 import 'package:logger/logger.dart';
@@ -89,17 +90,26 @@ class Logging {
   late final LoggerPortRegistry _portRegistry = LoggerPortRegistry.named(
     _kLoggerPortName,
   );
+  late final EmergencyLogThrottle _fallbackThrottle = EmergencyLogThrottle(
+    write: _writeFallback,
+  );
   late final LoggerDispatcher _dispatcher = LoggerDispatcher(
     lookupSender: () =>
         Util.isTestEnv ? _printTestMessage : _portRegistry.lookup()?.send,
-    fallback: (event, toFile, error, stackTrace) =>
-        _fallback(event, error, stackTrace, toFile: toFile),
+    fallback: _fallback,
   );
 
   Isolate? _loggerIsolate;
   SendPort? _loggerPort;
-  ReceivePort? _loggerErrorPort;
-  ReceivePort? _loggerExitPort;
+  ReceivePort? _loggerMonitorPort;
+  Level? _level;
+  Level? _debugConsoleLevel;
+  bool _initialized = false;
+  bool _workerFailureReported = false;
+  bool _restartInProgress = false;
+  int _restartAttempts = 0;
+
+  static const int _maxRestartAttempts = 3;
 
   Future<void> initialize(
     String logsPath, {
@@ -115,14 +125,38 @@ class Logging {
       throw Exception("Logging was already initialized");
     }
     _logsDirPath = logsPath;
+    _level = level;
+    _debugConsoleLevel = debugConsoleLevel;
 
+    try {
+      await _startWorker();
+      _initialized = true;
+    } catch (error, stackTrace) {
+      _criticalFallback(
+        LogEvent(
+          Level.error,
+          "Logger initialization failed",
+          error: error,
+          stackTrace: stackTrace,
+        ),
+        StateError("Logger initialization failed"),
+        stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  Future<void> _startWorker() async {
     final readyPort = ReceivePort();
-    final errorPort = ReceivePort();
-    final exitPort = ReceivePort();
+    final monitorPort = ReceivePort();
     var workerExited = false;
-    _loggerErrorPort = errorPort..listen(_handleLoggerError);
-    _loggerExitPort = exitPort
-      ..listen((_) {
+    _workerFailureReported = false;
+    _loggerMonitorPort = monitorPort
+      ..listen((message) {
+        if (message != null) {
+          _handleLoggerError(message);
+          return;
+        }
         workerExited = true;
         _handleLoggerExit();
       });
@@ -133,12 +167,12 @@ class Logging {
         _runLoggerIsolate,
         (
           readyPort: readyPort.sendPort,
-          logsPath: logsPath,
-          level: level,
-          debugConsoleLevel: debugConsoleLevel,
+          logsPath: logsDirPath,
+          level: _level!,
+          debugConsoleLevel: _debugConsoleLevel,
         ),
-        onError: errorPort.sendPort,
-        onExit: exitPort.sendPort,
+        onError: monitorPort.sendPort,
+        onExit: monitorPort.sendPort,
         errorsAreFatal: true,
         debugName: "logger",
       );
@@ -153,7 +187,7 @@ class Logging {
         _loggerPort = null;
         throw StateError("Logger port registration failed");
       }
-    } catch (error, stackTrace) {
+    } catch (_) {
       loggerIsolate?.kill(priority: Isolate.immediate);
       _loggerIsolate = null;
       final loggerPort = _loggerPort;
@@ -162,16 +196,6 @@ class Logging {
       }
       _loggerPort = null;
       _stopMonitoring();
-      _fallback(
-        LogEvent(
-          Level.error,
-          "Logger initialization failed",
-          error: error,
-          stackTrace: stackTrace,
-        ),
-        StateError("Logger initialization failed"),
-        stackTrace,
-      );
       rethrow;
     } finally {
       readyPort.close();
@@ -217,7 +241,8 @@ class Logging {
     final stackTrace = message is List && message.length > 1
         ? StackTrace.fromString(message[1]?.toString() ?? "")
         : StackTrace.current;
-    _fallback(
+    _workerFailureReported = true;
+    _criticalFallback(
       LogEvent(
         Level.error,
         "Logger isolate failed",
@@ -231,6 +256,7 @@ class Logging {
 
   void _handleLoggerExit() {
     final hadActiveWorker = _loggerIsolate != null;
+    final failureWasReported = _workerFailureReported;
     final loggerPort = _loggerPort;
     if (loggerPort != null) {
       _portRegistry.removeIfCurrent(loggerPort);
@@ -239,21 +265,82 @@ class Logging {
     _loggerIsolate = null;
     _stopMonitoring();
 
-    if (hadActiveWorker) {
-      _fallback(
+    if (hadActiveWorker && !failureWasReported) {
+      _workerFailureReported = true;
+      _criticalFallback(
         LogEvent(Level.error, "Logger isolate exited unexpectedly"),
         StateError("Logger isolate exited"),
         StackTrace.current,
       );
     }
+
+    if (hadActiveWorker &&
+        _initialized &&
+        !_restartInProgress &&
+        _restartAttempts < _maxRestartAttempts) {
+      _restartInProgress = true;
+      unawaited(_restartWorker());
+    }
   }
 
   void _fallback(
     LogEvent event,
+    bool toFile,
     Object error,
-    StackTrace stackTrace, {
-    bool toFile = true,
-  }) {
+    StackTrace stackTrace,
+  ) {
+    if (!toFile || _logsDirPath == null) {
+      _writeFallback(event, false, error, stackTrace);
+      return;
+    }
+    _fallbackThrottle.add(event, true, error, stackTrace);
+  }
+
+  Future<void> _restartWorker() async {
+    Object? lastError;
+    StackTrace? lastStackTrace;
+    try {
+      while (_restartAttempts < _maxRestartAttempts) {
+        _restartAttempts++;
+        await Future<void>.delayed(
+          Duration(milliseconds: 100 * _restartAttempts),
+        );
+        try {
+          await _startWorker();
+          return;
+        } catch (error, stackTrace) {
+          lastError = error;
+          lastStackTrace = stackTrace;
+        }
+      }
+
+      if (!_workerFailureReported) {
+        _criticalFallback(
+          LogEvent(
+            Level.error,
+            "Logger isolate restart failed",
+            error: lastError,
+            stackTrace: lastStackTrace,
+          ),
+          StateError("Logger isolate restart failed"),
+          lastStackTrace ?? StackTrace.current,
+        );
+      }
+    } finally {
+      _restartInProgress = false;
+    }
+  }
+
+  void _criticalFallback(LogEvent event, Object error, StackTrace stackTrace) {
+    _writeFallback(event, true, error, stackTrace);
+  }
+
+  void _writeFallback(
+    LogEvent event,
+    bool toFile,
+    Object error,
+    StackTrace stackTrace,
+  ) {
     emergencyLoggerFallback(
       event,
       toFile,
@@ -264,10 +351,8 @@ class Logging {
   }
 
   void _stopMonitoring() {
-    _loggerErrorPort?.close();
-    _loggerExitPort?.close();
-    _loggerErrorPort = null;
-    _loggerExitPort = null;
+    _loggerMonitorPort?.close();
+    _loggerMonitorPort = null;
   }
 
   void t(

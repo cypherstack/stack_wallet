@@ -8,6 +8,7 @@
  *
  */
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:io';
@@ -29,15 +30,17 @@ typedef LoggerFallback =
     );
 typedef EmergencyLogWriter = void Function(String directoryPath, String text);
 
-// Keep the emergency writer independent of the isolate's latest.txt sink.
 const emergencyLogFileName = "emergency.txt";
+const previousEmergencyLogFileName = "emergency.previous.txt";
+const maxEmergencyLogBytes = 1024 * 1024;
 
 final class LoggerDispatcher {
-  LoggerDispatcher({
+  factory LoggerDispatcher({
     required LoggerMessageSenderLookup lookupSender,
     LoggerFallback fallback = emergencyLoggerFallback,
-  }) : _lookupSender = lookupSender,
-       _fallback = fallback;
+  }) => LoggerDispatcher._(lookupSender, fallback);
+
+  LoggerDispatcher._(this._lookupSender, this._fallback);
 
   final LoggerMessageSenderLookup _lookupSender;
   final LoggerFallback _fallback;
@@ -77,13 +80,13 @@ final class LoggerDispatcher {
 }
 
 final class LoggerPortRegistry {
-  LoggerPortRegistry({
+  factory LoggerPortRegistry({
     required SendPort? Function() lookupPort,
     required bool Function(SendPort) registerPort,
     required bool Function() removePort,
-  }) : _lookupPort = lookupPort,
-       _registerPort = registerPort,
-       _removePort = removePort;
+  }) => LoggerPortRegistry._(lookupPort, registerPort, removePort);
+
+  LoggerPortRegistry._(this._lookupPort, this._registerPort, this._removePort);
 
   factory LoggerPortRegistry.named(String name) => LoggerPortRegistry(
     lookupPort: () => IsolateNameServer.lookupPortByName(name),
@@ -107,13 +110,85 @@ final class LoggerPortRegistry {
   }
 }
 
+final class EmergencyLogThrottle {
+  factory EmergencyLogThrottle({
+    required LoggerFallback write,
+    Duration interval = const Duration(seconds: 1),
+  }) => EmergencyLogThrottle._(write, interval);
+
+  EmergencyLogThrottle._(this._write, this.interval);
+
+  final LoggerFallback _write;
+  final Duration interval;
+
+  Timer? _timer;
+  int _coalescedCount = 0;
+  LogEvent? _lastEvent;
+  Object? _lastDispatchError;
+  StackTrace? _lastDispatchStackTrace;
+
+  void add(
+    LogEvent event,
+    bool toFile,
+    Object dispatchError,
+    StackTrace dispatchStackTrace,
+  ) {
+    if (!toFile || (_timer == null && _coalescedCount == 0)) {
+      _write(event, toFile, dispatchError, dispatchStackTrace);
+      if (toFile) {
+        _timer = Timer(interval, _flush);
+      }
+      return;
+    }
+
+    _coalescedCount++;
+    _lastEvent = event;
+    _lastDispatchError = dispatchError;
+    _lastDispatchStackTrace = dispatchStackTrace;
+  }
+
+  void _flush() {
+    _timer = null;
+    final lastEvent = _lastEvent;
+    final lastDispatchError = _lastDispatchError;
+    final lastDispatchStackTrace = _lastDispatchStackTrace;
+    final count = _coalescedCount;
+
+    _coalescedCount = 0;
+    _lastEvent = null;
+    _lastDispatchError = null;
+    _lastDispatchStackTrace = null;
+
+    if (lastEvent == null ||
+        lastDispatchError == null ||
+        lastDispatchStackTrace == null) {
+      return;
+    }
+
+    _write(
+      LogEvent(
+        lastEvent.level,
+        "$count log messages coalesced while the logger was unavailable. "
+        "Last message: ${lastEvent.message}",
+        time: lastEvent.time,
+        error: lastEvent.error,
+        stackTrace: lastEvent.stackTrace,
+      ),
+      true,
+      lastDispatchError,
+      lastDispatchStackTrace,
+    );
+    _timer = Timer(interval, _flush);
+  }
+}
+
 void emergencyLoggerFallback(
   LogEvent event,
   bool toFile,
   Object dispatchError,
   StackTrace dispatchStackTrace, {
   String? logsDirectoryPath,
-  EmergencyLogWriter writeToFile = _writeEmergencyLog,
+  EmergencyLogWriter writeToFile = writeEmergencyLog,
 }) {
   Object? fileError;
   StackTrace? fileStackTrace;
@@ -153,14 +228,74 @@ void emergencyLoggerFallback(
   }
 }
 
-void _writeEmergencyLog(String directoryPath, String text) {
+void writeEmergencyLog(
+  String directoryPath,
+  String text, {
+  int maxBytes = maxEmergencyLogBytes,
+}) {
   final file = File(emergencyLogPath(directoryPath));
   file.parent.createSync(recursive: true);
-  file.writeAsStringSync(text, mode: FileMode.append, flush: true);
+  final boundedText = _boundEmergencyText(text, maxBytes);
+  final incomingBytes = utf8.encode(boundedText).length;
+
+  if (file.existsSync() && file.lengthSync() + incomingBytes > maxBytes) {
+    final previousFile = File(previousEmergencyLogPath(directoryPath));
+    if (previousFile.existsSync()) {
+      previousFile.deleteSync();
+    }
+    if (file.lengthSync() <= maxBytes) {
+      file.renameSync(previousFile.path);
+    } else {
+      file.deleteSync();
+    }
+  }
+
+  file.writeAsStringSync(boundedText, mode: FileMode.append, flush: true);
 }
 
 String emergencyLogPath(String directoryPath, {path.Context? context}) =>
     (context ?? path.context).join(directoryPath, emergencyLogFileName);
+
+String previousEmergencyLogPath(
+  String directoryPath, {
+  path.Context? context,
+}) =>
+    (context ?? path.context).join(directoryPath, previousEmergencyLogFileName);
+
+String _boundEmergencyText(String text, int maxBytes) {
+  if (maxBytes <= 0) {
+    return "";
+  }
+
+  final bytes = utf8.encode(text);
+  if (bytes.length <= maxBytes) {
+    return text;
+  }
+
+  const marker = "\n<emergency log entry truncated>\n";
+  final markerBytes = utf8.encode(marker);
+  if (markerBytes.length >= maxBytes) {
+    return _prefixWithinUtf8Bytes(text, maxBytes);
+  }
+
+  final prefix = _prefixWithinUtf8Bytes(text, maxBytes - markerBytes.length);
+  return "$prefix$marker";
+}
+
+String _prefixWithinUtf8Bytes(String text, int maxBytes) {
+  final result = StringBuffer();
+  var length = 0;
+  for (final rune in text.runes) {
+    final character = String.fromCharCode(rune);
+    final characterLength = utf8.encode(character).length;
+    if (length + characterLength > maxBytes) {
+      break;
+    }
+    result.write(character);
+    length += characterLength;
+  }
+  return result.toString();
+}
 
 String _formatEmergencyLog(
   LogEvent event,
