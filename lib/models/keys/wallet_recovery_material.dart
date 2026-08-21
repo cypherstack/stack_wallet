@@ -1,3 +1,4 @@
+import 'cryptonote_key_restore_data.dart';
 import 'key_data_interface.dart';
 import 'view_only_wallet_data.dart';
 
@@ -33,9 +34,11 @@ final class PrivateKeyWalletRecoveryMaterial extends WalletRecoveryMaterial {
   const PrivateKeyWalletRecoveryMaterial({
     required super.walletId,
     required this.keyData,
+    this.cryptonoteKeyRestoreData,
   });
 
   final KeyDataInterface keyData;
+  final CryptonoteKeyRestoreData? cryptonoteKeyRestoreData;
 }
 
 final class ViewOnlyWalletRecoveryMaterial extends WalletRecoveryMaterial {

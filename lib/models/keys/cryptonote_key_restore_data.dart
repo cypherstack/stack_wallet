@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 class CryptonoteKeyRestoreData {
+  static const int currentVersion = 1;
+
   const CryptonoteKeyRestoreData({
     required this.address,
     required this.privateViewKey,
@@ -17,14 +19,34 @@ class CryptonoteKeyRestoreData {
       throw const FormatException("Invalid Cryptonote key restore data");
     }
 
+    final version = json["version"];
+    if (version != null && version != currentVersion) {
+      throw const FormatException(
+        "Unsupported Cryptonote key restore data version",
+      );
+    }
+
+    final address = json["address"];
+    final privateViewKey = json["privateViewKey"];
+    final privateSpendKey = json["privateSpendKey"];
+    if (address is! String ||
+        address.isEmpty ||
+        privateViewKey is! String ||
+        privateViewKey.isEmpty ||
+        privateSpendKey is! String ||
+        privateSpendKey.isEmpty) {
+      throw const FormatException("Invalid Cryptonote key restore data");
+    }
+
     return CryptonoteKeyRestoreData(
-      address: json["address"] as String,
-      privateViewKey: json["privateViewKey"] as String,
-      privateSpendKey: json["privateSpendKey"] as String,
+      address: address,
+      privateViewKey: privateViewKey,
+      privateSpendKey: privateSpendKey,
     );
   }
 
   String toJsonEncodedString() => jsonEncode({
+    "version": currentVersion,
     "address": address,
     "privateViewKey": privateViewKey,
     "privateSpendKey": privateSpendKey,

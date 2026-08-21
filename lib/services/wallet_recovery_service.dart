@@ -1,3 +1,5 @@
+import '../models/keys/cryptonote_key_restore_data.dart';
+import '../models/keys/cw_key_data.dart';
 import '../models/keys/key_data_interface.dart';
 import '../models/keys/wallet_recovery_material.dart';
 import '../wallets/isar/models/wallet_info.dart';
@@ -52,9 +54,14 @@ class WalletRecoveryService {
           "Unsupported private-key wallet: ${wallet.runtimeType}",
         );
       }
+      final keyData = await wallet.getKeys();
       return PrivateKeyWalletRecoveryMaterial(
         walletId: wallet.walletId,
-        keyData: await wallet.getKeys(),
+        keyData: keyData,
+        cryptonoteKeyRestoreData: await getCryptonoteKeyRestoreData(
+          wallet,
+          keyData: keyData,
+        ),
       );
     }
 
@@ -83,5 +90,32 @@ class WalletRecoveryService {
       words: words,
       supplementalKeyData: supplementalKeyData,
     );
+  }
+
+  static Future<CryptonoteKeyRestoreData> getCryptonoteKeyRestoreData(
+    CryptonoteWallet wallet, {
+    CWKeyData? keyData,
+  }) async {
+    final storageKey = Wallet.keysRestoreDataKey(walletId: wallet.walletId);
+    final stored = await wallet.secureStorageInterface.read(key: storageKey);
+    if (stored != null) {
+      return CryptonoteKeyRestoreData.fromJsonEncodedString(stored);
+    }
+
+    final keys = keyData ?? await wallet.getKeys();
+
+    final data = CryptonoteKeyRestoreData(
+      address: await wallet.internalGetAddress(
+        accountIndex: 0,
+        addressIndex: 0,
+      ),
+      privateViewKey: keys.privateViewKey,
+      privateSpendKey: keys.privateSpendKey,
+    );
+    await wallet.secureStorageInterface.write(
+      key: storageKey,
+      value: data.toJsonEncodedString(),
+    );
+    return data;
   }
 }

@@ -29,6 +29,7 @@ import '../../../../../models/exchange/response_objects/trade.dart';
 import '../../../../../models/isar/models/contact_entry.dart';
 import '../../../../../models/isar/models/transaction_note.dart';
 import '../../../../../models/keys/view_only_wallet_data.dart';
+import '../../../../../models/keys/wallet_backup_recovery_data.dart';
 import '../../../../../models/node_model.dart';
 import '../../../../../models/stack_restoring_ui_state.dart';
 import '../../../../../models/trade_wallet_lookup.dart';
@@ -42,6 +43,7 @@ import '../../../../../services/trade_notes_service.dart';
 import '../../../../../services/trade_sent_from_stack_service.dart';
 import '../../../../../services/trade_service.dart';
 import '../../../../../services/wallets.dart';
+import '../../../../../services/wallet_recovery_service.dart';
 import '../../../../../utilities/enums/backup_frequency_type.dart';
 import '../../../../../utilities/enums/stack_restoring_status.dart';
 import '../../../../../utilities/enums/sync_type_enum.dart';
@@ -50,6 +52,7 @@ import '../../../../../utilities/format.dart';
 import '../../../../../utilities/logger.dart';
 import '../../../../../utilities/prefs.dart';
 import '../../../../../utilities/util.dart';
+import '../../../../../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
 import '../../../../../wallets/crypto_currency/intermediate/frost_currency.dart';
 import '../../../../../wallets/isar/models/frost_wallet_info.dart';
 import '../../../../../wallets/isar/models/wallet_info.dart';
@@ -299,6 +302,16 @@ abstract class SWB {
         if (wallet is ViewOnlyOptionInterface && wallet.isViewOnly) {
           backupWallet['viewOnlyWalletDataKey'] =
               (await wallet.getViewOnlyWalletData()).toJsonEncodedString();
+        } else if (wallet.info.recoveryType == WalletRecoveryType.privateKeys) {
+          if (wallet is! CryptonoteWallet) {
+            throw UnsupportedError(
+              "Unsupported private-key wallet: ${wallet.runtimeType}",
+            );
+          }
+          writeCryptonoteKeyRestoreDataToBackup(
+            backupWallet,
+            await WalletRecoveryService.getCryptonoteKeyRestoreData(wallet),
+          );
         } else if (wallet is MnemonicInterface) {
           backupWallet['mnemonic'] = await wallet.getMnemonic();
           backupWallet['mnemonicPassphrase'] = await wallet
@@ -397,6 +410,14 @@ abstract class SWB {
     final walletbackup = tuple.item1;
 
     String? mnemonic, mnemonicPassphrase, privateKey;
+    final cryptonoteKeyRestoreData = readCryptonoteKeyRestoreDataFromBackup(
+      Map<String, dynamic>.from(walletbackup as Map),
+    );
+    if (cryptonoteKeyRestoreData != null && info.coin is! CryptonoteCurrency) {
+      throw const FormatException(
+        "Cryptonote recovery data belongs to a non-Cryptonote wallet",
+      );
+    }
 
     ViewOnlyWalletData? viewOnlyData;
     if (info.isViewOnly) {
@@ -476,6 +497,7 @@ abstract class SWB {
         mnemonicPassphrase: mnemonicPassphrase,
         privateKey: privateKey,
         viewOnlyData: viewOnlyData,
+        cryptonoteKeyRestoreData: cryptonoteKeyRestoreData,
       );
 
       switch (wallet) {
@@ -808,6 +830,12 @@ abstract class SWB {
           error: e,
           stackTrace: s,
         );
+      }
+
+      if (walletbackup[cryptonoteKeyRestoreDataBackupKey] != null) {
+        otherData ??= {};
+        otherData[WalletInfoKeys.recoveryTypeIndexKey] =
+            WalletRecoveryType.privateKeys.index;
       }
 
       final info = WalletInfo(
