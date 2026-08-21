@@ -39,26 +39,26 @@ Future<T?> showLoading<T>({
         !(whileFuture == null && whileFutureAlt == null),
   );
 
-  unawaited(
-    showDialog<void>(
-      context: context,
-      useRootNavigator: rootNavigator,
-      barrierDismissible: false,
-      builder: (_) => WillPopScope(
-        onWillPop: () async => false,
-        child: Container(
-          color: Theme.of(
-            context,
-          ).extension<StackColors>()!.overlay.withOpacity(opaqueBG ? 1.0 : 0.6),
-          child: CustomLoadingOverlay(
-            message: message,
-            subMessage: subMessage,
-            eventBus: null,
-          ),
+  final navigator = Navigator.of(context, rootNavigator: rootNavigator);
+  final route = DialogRoute<void>(
+    context: context,
+    themes: InheritedTheme.capture(from: context, to: navigator.context),
+    barrierDismissible: false,
+    builder: (_) => PopScope(
+      canPop: false,
+      child: Container(
+        color: Theme.of(context).extension<StackColors>()!.overlay.withValues(
+          alpha: opaqueBG ? 1.0 : 0.6,
+        ),
+        child: CustomLoadingOverlay(
+          message: message,
+          subMessage: subMessage,
+          eventBus: null,
         ),
       ),
     ),
   );
+  final dialogClosed = navigator.push(route);
 
   Exception? ex;
   T? result;
@@ -77,11 +77,17 @@ Future<T?> showLoading<T>({
     ex = e is Exception ? e : Exception(e.toString());
   }
 
-  if (context.mounted) {
-    Navigator.of(context, rootNavigator: rootNavigator).pop();
-    if (ex != null) {
-      onException?.call(ex);
+  if (navigator.mounted && route.isActive) {
+    if (route.isCurrent) {
+      navigator.pop();
+    } else {
+      navigator.removeRoute(route);
     }
+  }
+  await dialogClosed;
+
+  if (ex != null && context.mounted) {
+    onException?.call(ex);
   }
 
   return result;

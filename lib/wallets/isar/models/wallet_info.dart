@@ -187,60 +187,60 @@ class WalletInfo implements IsarId {
     required Balance newBalance,
     required Isar isar,
   }) async {
+    // try to get latest instance of this from db
+    final thisInfo = await isar.walletInfo.get(id) ?? this;
+
     final newEncoded = newBalance.toJsonIgnoreCoin();
-    // Read inside the tx so concurrent updates don't create a race condition.
-    await isar.writeTxn(() async {
-      final thisInfo = await isar.walletInfo
-          .where()
-          .walletIdEqualTo(walletId)
-          .findFirst();
-      if (thisInfo != null && thisInfo.cachedBalanceString != newEncoded) {
+
+    // only update if there were changes to the balance
+    if (thisInfo.cachedBalanceString != newEncoded) {
+      await isar.writeTxn(() async {
         await isar.walletInfo.delete(thisInfo.id);
         await isar.walletInfo.put(
           thisInfo.copyWith(cachedBalanceString: newEncoded),
         );
-      }
-    });
+      });
+    }
   }
 
   Future<void> updateBalanceSecondary({
     required Balance newBalance,
     required Isar isar,
   }) async {
+    // try to get latest instance of this from db
+    final thisInfo = await isar.walletInfo.get(id) ?? this;
+
     final newEncoded = newBalance.toJsonIgnoreCoin();
-    await isar.writeTxn(() async {
-      final thisInfo = await isar.walletInfo
-          .where()
-          .walletIdEqualTo(walletId)
-          .findFirst();
-      if (thisInfo != null &&
-          thisInfo.cachedBalanceSecondaryString != newEncoded) {
+
+    // only update if there were changes to the balance
+    if (thisInfo.cachedBalanceSecondaryString != newEncoded) {
+      await isar.writeTxn(() async {
         await isar.walletInfo.delete(thisInfo.id);
         await isar.walletInfo.put(
           thisInfo.copyWith(cachedBalanceSecondaryString: newEncoded),
         );
-      }
-    });
+      });
+    }
   }
 
   Future<void> updateBalanceTertiary({
     required Balance newBalance,
     required Isar isar,
   }) async {
+    // try to get latest instance of this from db
+    final thisInfo = await isar.walletInfo.get(id) ?? this;
+
     final newEncoded = newBalance.toJsonIgnoreCoin();
-    await isar.writeTxn(() async {
-      final thisInfo = await isar.walletInfo
-          .where()
-          .walletIdEqualTo(walletId)
-          .findFirst();
-      if (thisInfo != null &&
-          thisInfo.cachedBalanceTertiaryString != newEncoded) {
+
+    // only update if there were changes to the balance
+    if (thisInfo.cachedBalanceTertiaryString != newEncoded) {
+      await isar.writeTxn(() async {
         await isar.walletInfo.delete(thisInfo.id);
         await isar.walletInfo.put(
           thisInfo.copyWith(cachedBalanceTertiaryString: newEncoded),
         );
-      }
-    });
+      });
+    }
   }
 
   /// copies this with a new chain height and updates the db
@@ -248,18 +248,17 @@ class WalletInfo implements IsarId {
     required int newHeight,
     required Isar isar,
   }) async {
-    await isar.writeTxn(() async {
-      final thisInfo = await isar.walletInfo
-          .where()
-          .walletIdEqualTo(walletId)
-          .findFirst();
-      if (thisInfo != null && thisInfo.cachedChainHeight != newHeight) {
+    // try to get latest instance of this from db
+    final thisInfo = await isar.walletInfo.get(id) ?? this;
+    // only update if there were changes to the height
+    if (thisInfo.cachedChainHeight != newHeight) {
+      await isar.writeTxn(() async {
         await isar.walletInfo.delete(thisInfo.id);
         await isar.walletInfo.put(
           thisInfo.copyWith(cachedChainHeight: newHeight),
         );
-      }
-    });
+      });
+    }
   }
 
   /// update favourite wallet and its index it the ui list.
@@ -284,18 +283,18 @@ class WalletInfo implements IsarId {
       index = -1;
     }
 
-    await isar.writeTxn(() async {
-      final thisInfo = await isar.walletInfo
-          .where()
-          .walletIdEqualTo(walletId)
-          .findFirst();
-      if (thisInfo != null && thisInfo.favouriteOrderIndex != index) {
+    // try to get latest instance of this from db
+    final thisInfo = await isar.walletInfo.get(id) ?? this;
+
+    // only update if there were changes to the height
+    if (thisInfo.favouriteOrderIndex != index) {
+      await isar.writeTxn(() async {
         await isar.walletInfo.delete(thisInfo.id);
         await isar.walletInfo.put(
           thisInfo.copyWith(favouriteOrderIndex: index),
         );
-      }
-    });
+      });
+    }
   }
 
   /// copies this with a new name and updates the db
@@ -304,35 +303,35 @@ class WalletInfo implements IsarId {
     if (newName.isEmpty) {
       throw Exception("Empty wallet name not allowed!");
     }
-    await isar.writeTxn(() async {
-      final thisInfo = await isar.walletInfo
-          .where()
-          .walletIdEqualTo(walletId)
-          .findFirst();
-      if (thisInfo != null && thisInfo.name != newName) {
+
+    // try to get latest instance of this from db
+    final thisInfo = await isar.walletInfo.get(id) ?? this;
+
+    // only update if there were changes to the name
+    if (thisInfo.name != newName) {
+      await isar.writeTxn(() async {
         await isar.walletInfo.delete(thisInfo.id);
         await isar.walletInfo.put(thisInfo.copyWith(name: newName));
-      }
-    });
+      });
+    }
   }
 
-  /// copies this with a new receiving address and updates the db
+  /// copies this with a new name and updates the db
   Future<void> updateReceivingAddress({
     required String newAddress,
     required Isar isar,
   }) async {
-    await isar.writeTxn(() async {
-      final thisInfo = await isar.walletInfo
-          .where()
-          .walletIdEqualTo(walletId)
-          .findFirst();
-      if (thisInfo != null && thisInfo.cachedReceivingAddress != newAddress) {
+    // try to get latest instance of this from db
+    final thisInfo = await isar.walletInfo.get(id) ?? this;
+    // only update if there were changes to the name
+    if (thisInfo.cachedReceivingAddress != newAddress) {
+      await isar.writeTxn(() async {
         await isar.walletInfo.delete(thisInfo.id);
         await isar.walletInfo.put(
           thisInfo.copyWith(cachedReceivingAddress: newAddress),
         );
-      }
-    });
+      });
+    }
   }
 
   /// update [otherData] with the map entries in [newEntries]
@@ -340,24 +339,23 @@ class WalletInfo implements IsarId {
     required Map<String, dynamic> newEntries,
     required Isar isar,
   }) async {
-    await isar.writeTxn(() async {
-      final thisInfo = await isar.walletInfo
-          .where()
-          .walletIdEqualTo(walletId)
-          .findFirst();
-      if (thisInfo == null) return;
+    // try to get latest instance of this from db
+    final thisInfo = await isar.walletInfo.get(id) ?? this;
 
-      final newMap = Map<String, dynamic>.from(thisInfo.otherData)
-        ..addAll(newEntries);
-      final encodedNew = jsonEncode(newMap);
+    final Map<String, dynamic> newMap = {};
+    newMap.addAll(thisInfo.otherData);
+    newMap.addAll(newEntries);
+    final encodedNew = jsonEncode(newMap);
 
-      if (thisInfo.otherDataJsonString != encodedNew) {
+    // only update if there were changes
+    if (thisInfo.otherDataJsonString != encodedNew) {
+      await isar.writeTxn(() async {
         await isar.walletInfo.delete(thisInfo.id);
         await isar.walletInfo.put(
           thisInfo.copyWith(otherDataJsonString: encodedNew),
         );
-      }
-    });
+      });
+    }
   }
 
   /// Can be dangerous. Don't use unless you know the consequences
@@ -387,26 +385,28 @@ class WalletInfo implements IsarId {
     }
   }
 
-  /// copies this with a new restore height and updates the db
+  /// copies this with a new name and updates the db
   Future<void> updateRestoreHeight({
     required int newRestoreHeight,
     required Isar isar,
   }) async {
+    // don't allow empty names
     if (newRestoreHeight < 0) {
       throw Exception("Negative restore height not allowed!");
     }
-    await isar.writeTxn(() async {
-      final thisInfo = await isar.walletInfo
-          .where()
-          .walletIdEqualTo(walletId)
-          .findFirst();
-      if (thisInfo != null && thisInfo.restoreHeight != newRestoreHeight) {
+
+    // try to get latest instance of this from db
+    final thisInfo = await isar.walletInfo.get(id) ?? this;
+
+    // only update if there were changes to the name
+    if (thisInfo.restoreHeight != newRestoreHeight) {
+      await isar.writeTxn(() async {
         await isar.walletInfo.delete(thisInfo.id);
         await isar.walletInfo.put(
           thisInfo.copyWith(restoreHeight: newRestoreHeight),
         );
-      }
-    });
+      });
+    }
   }
 
   /// copies this with a new name and updates the db
