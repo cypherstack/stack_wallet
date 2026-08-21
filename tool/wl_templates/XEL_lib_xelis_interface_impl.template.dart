@@ -170,6 +170,8 @@ final class _LibXelisInterfaceImpl extends LibXelisInterface {
                 topoheight: tx.topoheight,
               ),
             );
+          case xelis_sdk.WalletEvent.newPendingTransaction:
+            continue;
           case xelis_sdk.WalletEvent.balanceChanged:
             final data = xelis_sdk.BalanceChangedEvent.fromJson(
               json['data'] as Map<String, dynamic>,

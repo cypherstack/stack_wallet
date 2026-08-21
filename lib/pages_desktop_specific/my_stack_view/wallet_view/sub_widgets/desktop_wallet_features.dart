@@ -507,7 +507,6 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
 
       if (!isViewOnly && wallet is FiroWallet)
         (WalletFeature.masternodes, Assets.svg.recycle, _onMasternodesPressed),
-
       if (showCoinControl)
         (
           WalletFeature.coinControl,

@@ -87,6 +87,7 @@ class TxData {
   final List<({String address, Amount amount, String memo, bool isChange})>?
   sparkRecipients;
   final List<TxData>? sparkMints;
+  final List<TxData>? sparkSpends;
   final List<SparkCoin>? usedSparkCoins;
   final ({
     String additionalInfo,
@@ -111,6 +112,9 @@ class TxData {
   final TxType type;
 
   final bool salviumStakeTx;
+
+  // Generic OP_RETURN data (hex string) - for Rosen Bridge and other protocols
+  final String? opReturnData;
 
   TxData({
     this.feeRateType,
@@ -142,6 +146,7 @@ class TxData {
     this.sparkRecipients,
     this.otherData,
     this.sparkMints,
+    this.sparkSpends,
     this.usedSparkCoins,
     this.tempTx,
     this.ignoreCachedBalanceChecks = false,
@@ -149,6 +154,7 @@ class TxData {
     this.sparkNameInfo,
     this.vExtraData,
     this.overrideVersion,
+    this.opReturnData,
     this.type = TxType.regular,
     this.salviumStakeTx = false,
   });
@@ -263,6 +269,7 @@ class TxData {
     String? noteOnChain,
     String? memo,
     String? otherData,
+    String? opReturnData,
     Set<BaseInput>? utxos,
     List<BaseInput>? usedUTXOs,
     List<TxRecipient>? recipients,
@@ -287,6 +294,7 @@ class TxData {
     List<({String address, Amount amount, String memo, bool isChange})>?
     sparkRecipients,
     List<TxData>? sparkMints,
+    List<TxData>? sparkSpends,
     List<SparkCoin>? usedSparkCoins,
     TransactionV2? tempTx,
     bool? ignoreCachedBalanceChecks,
@@ -333,6 +341,7 @@ class TxData {
       tezosOperationsList: tezosOperationsList ?? this.tezosOperationsList,
       sparkRecipients: sparkRecipients ?? this.sparkRecipients,
       sparkMints: sparkMints ?? this.sparkMints,
+      sparkSpends: sparkSpends ?? this.sparkSpends,
       usedSparkCoins: usedSparkCoins ?? this.usedSparkCoins,
       tempTx: tempTx ?? this.tempTx,
       ignoreCachedBalanceChecks:
@@ -341,6 +350,7 @@ class TxData {
       sparkNameInfo: sparkNameInfo ?? this.sparkNameInfo,
       vExtraData: vExtraData ?? this.vExtraData,
       overrideVersion: overrideVersion ?? this.overrideVersion,
+      opReturnData: opReturnData ?? this.opReturnData,
       type: type ?? this.type,
     );
   }
@@ -375,6 +385,7 @@ class TxData {
       'tezosOperationsList: $tezosOperationsList, '
       'sparkRecipients: $sparkRecipients, '
       'sparkMints: $sparkMints, '
+      'sparkSpends: $sparkSpends, '
       'usedSparkCoins: $usedSparkCoins, '
       'otherData: $otherData, '
       'tempTx: $tempTx, '
@@ -383,6 +394,7 @@ class TxData {
       'sparkNameInfo: $sparkNameInfo, '
       'vExtraData: ${vExtraData?.toHex}, '
       'overrideVersion: $overrideVersion, '
+      'opReturnData: $opReturnData, '
       'type: $type, '
       '}';
 }

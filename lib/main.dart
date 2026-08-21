@@ -260,7 +260,7 @@ void main(List<String> args) async {
           .logsStream(CryptoCurrencyNetwork.main)
           .then(
             (stream) =>
-                stream.listen((line) => print("[MWEBD: MAINNET]: $line")),
+                stream.listen((line) => debugPrint("[MWEBD: MAINNET]: $line")),
           ),
     );
     unawaited(
@@ -268,7 +268,7 @@ void main(List<String> args) async {
           .logsStream(CryptoCurrencyNetwork.test)
           .then(
             (stream) =>
-                stream.listen((line) => print("[MWEBD: TESTNET]: $line")),
+                stream.listen((line) => debugPrint("[MWEBD: TESTNET]: $line")),
           ),
     );
   }

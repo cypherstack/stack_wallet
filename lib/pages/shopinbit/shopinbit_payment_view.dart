@@ -1,44 +1,46 @@
 import 'dart:async';
-import 'dart:io';
 
-import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../app_config.dart';
-import '../../models/isar/models/ethereum/eth_contract.dart';
-import '../../models/shopinbit/shopinbit_order_model.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../providers/providers.dart';
-import '../../route_generator.dart';
+import '../../services/shopinbit/src/client.dart';
 import '../../services/shopinbit/src/models/payment.dart';
-import '../../themes/coin_icon_provider.dart';
 import '../../themes/stack_colors.dart';
-import '../../utilities/address_utils.dart';
-import '../../utilities/amount/amount.dart';
 import '../../utilities/assets.dart';
+import '../../utilities/logger.dart';
+import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
-import '../../wallets/crypto_currency/crypto_currency.dart';
-import '../../widgets/background.dart';
-import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
-import '../../widgets/loading_indicator.dart';
 import '../../widgets/rounded_white_container.dart';
-import 'shopinbit_send_from_view.dart';
+import '../../widgets/stack_dialog.dart';
+import '../home_view/home_view.dart';
+import 'shopinbit_payment_method_list.dart';
+import 'shopinbit_payment_shared.dart';
+import 'shopinbit_ticket_detail.dart';
+import 'shopinbit_tickets_view.dart';
 
 class ShopInBitPaymentView extends ConsumerStatefulWidget {
-  const ShopInBitPaymentView({super.key, required this.model});
+  const ShopInBitPaymentView({
+    super.key,
+    required this.apiTicketId,
+    required this.paymentInfo,
+  });
 
   static const String routeName = "/shopInBitPayment";
 
-  final ShopInBitOrderModel model;
+  final int apiTicketId;
+
+  // Caller loads this before pushing, so we always open with usable addresses.
+  final PaymentInfo paymentInfo;
 
   @override
   ConsumerState<ShopInBitPaymentView> createState() =>
@@ -46,9 +48,13 @@ class ShopInBitPaymentView extends ConsumerStatefulWidget {
 }
 
 class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
-  bool _loading = false;
   int _selectedMethod = 0;
   Timer? _pollTimer;
+  int _paymentRequestId = 0;
+
+  static const Duration _kBasePollInterval = Duration(seconds: 15);
+  static const Duration _kMaxPollInterval = Duration(seconds: 120);
+  Duration _pollInterval = _kBasePollInterval;
 
   PaymentInfo? _paymentInfo;
 
@@ -59,12 +65,15 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
   String get _currentAddress =>
       _selectedMethod < _addresses.length ? _addresses[_selectedMethod] : "";
 
-  String get _totalPrice =>
-      _paymentInfo?.customerPrice ?? widget.model.offerPrice ?? "0";
+  String get _totalPrice => _paymentInfo?.customerPrice ?? "0";
 
   String get _status => _paymentInfo?.status ?? 'ready_to_pay';
 
-  bool get _isExpiredOrInvalid => _status == 'expired' || _status == 'invalid';
+  bool get _isExpiredOrInvalid =>
+      const {'expired', 'invalid', 'underpaid_expired'}.contains(_status);
+
+  // Voucher/credit fully covers the amount: no wallet options, nothing to pay.
+  bool get _isNoPaymentRequired => _status == 'no_payment_required';
 
   bool get _isTerminal => const {
     'paid',
@@ -73,13 +82,27 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
     'payment_processing',
   }.contains(_status);
 
-  bool get _payNowEnabled => !_isExpiredOrInvalid && !_isTerminal;
+  bool get _payNowEnabled =>
+      !_isExpiredOrInvalid && !_isTerminal && !_isNoPaymentRequired;
+
+  String? _customerKeyCache;
+
+  Future<String> get _customerKey async {
+    _customerKeyCache ??=
+        (await ref
+                .read(pSharedDrift)
+                .shopInBitTicketsDao
+                .getByApiId(widget.apiTicketId))!
+            .customerKey;
+    return _customerKeyCache!;
+  }
 
   @override
   void initState() {
     super.initState();
-    if (widget.model.apiTicketId != 0) {
-      _loadPayment();
+    _applyPaymentInfo(widget.paymentInfo);
+    if (widget.apiTicketId != 0) {
+      _startPolling();
     }
   }
 
@@ -92,464 +115,260 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
   void _applyPaymentInfo(PaymentInfo info) {
     _paymentInfo = info;
     final links = info.paymentLinks;
-    if (links.isNotEmpty) {
+    if (!_isExpiredOrInvalid && links.isNotEmpty) {
       _methods = links.keys.map((k) => k.toUpperCase()).toList();
       _addresses = links.values.toList();
+      if (_selectedMethod >= _methods.length) {
+        _selectedMethod = 0;
+      }
+    } else {
+      _methods = [];
+      _addresses = [];
+      _selectedMethod = 0;
     }
   }
 
   void _startPolling() {
     _pollTimer?.cancel();
-    _pollTimer = Timer.periodic(
-      const Duration(seconds: 15),
-      (_) => _pollPayment(),
-    );
+    _paymentRequestId++;
+    _pollInterval = _kBasePollInterval;
+    _scheduleNextPoll();
+  }
+
+  void _scheduleNextPoll() {
+    _pollTimer?.cancel();
+    _pollTimer = Timer(_pollInterval, _pollPayment);
   }
 
   Future<void> _pollPayment() async {
+    final requestId = ++_paymentRequestId;
+    bool ok = false;
     try {
-      final resp = await ref
-          .read(pShopinBitService)
-          .client
-          .getPayment(widget.model.apiTicketId);
-      if (!resp.hasError && resp.value != null && mounted) {
-        setState(() => _applyPaymentInfo(resp.value!));
-        if (_isTerminal) {
-          _pollTimer?.cancel();
-        }
-      }
-    } catch (_) {}
-  }
+      final customerKey = await _customerKey;
+      if (!mounted || requestId != _paymentRequestId) return;
 
-  Future<void> _loadPayment() async {
-    setState(() => _loading = true);
-    try {
       final resp = await ref
           .read(pShopinBitService)
           .client
-          .getPayment(widget.model.apiTicketId);
+          .getPayment(widget.apiTicketId, customerKey: customerKey);
+      if (!mounted || requestId != _paymentRequestId) return;
+
       if (!resp.hasError && resp.value != null) {
-        _applyPaymentInfo(resp.value!);
+        ok = true;
+        setState(() => _applyPaymentInfo(resp.value!));
       }
-    } catch (_) {
-      // Fall back to local/dummy data
-    } finally {
-      if (mounted) {
-        setState(() => _loading = false);
-        _startPolling();
-      }
+    } catch (e, s) {
+      Logging.instance.w(
+        "ShopInBit payment poll failed",
+        error: e,
+        stackTrace: s,
+      );
     }
+    if (!mounted || requestId != _paymentRequestId) return;
+    if (_isTerminal || _isExpiredOrInvalid) {
+      _pollTimer?.cancel();
+      return;
+    }
+    // Back off on failure (e.g. a 429), reset to base on success, so a rate
+    // limit slows us down instead of getting hammered every 15s.
+    _pollInterval = ok
+        ? _kBasePollInterval
+        : ShopInBitClient.nextPollBackoff(_pollInterval, _kMaxPollInterval);
+    _scheduleNextPoll();
   }
 
   Future<void> _refreshInvoice() async {
-    setState(() => _loading = true);
-    try {
-      final resp = await ref
+    _pollTimer?.cancel();
+    final requestId = ++_paymentRequestId;
+
+    final customerKey = await _customerKey;
+    if (!mounted || requestId != _paymentRequestId) return;
+
+    final resp = await showLoading(
+      whileFuture: ref
           .read(pShopinBitService)
           .client
-          .getPayment(widget.model.apiTicketId, retry: true);
-      if (!resp.hasError && resp.value != null) {
-        _applyPaymentInfo(resp.value!);
-      }
-    } catch (_) {}
-    if (mounted) {
-      setState(() => _loading = false);
+          .putPayment(
+            widget.apiTicketId,
+            customerKey: customerKey,
+            retry: true,
+          ),
+      context: context,
+      message: "Refreshing invoice",
+      rootNavigator: true,
+    );
+    if (!mounted || requestId != _paymentRequestId) return;
+    if (resp != null && !resp.hasError && resp.value != null) {
+      setState(() => _applyPaymentInfo(resp.value!));
+    }
+    if (!_isExpiredOrInvalid) {
       _startPolling();
     }
   }
 
   Future<void> _checkForPayment() async {
     _pollTimer?.cancel();
-    setState(() => _loading = true);
-    try {
-      final resp = await ref
+    final requestId = ++_paymentRequestId;
+
+    final customerKey = await _customerKey;
+    if (!mounted || requestId != _paymentRequestId) return;
+
+    final resp = await showLoading(
+      whileFuture: ref
           .read(pShopinBitService)
           .client
-          .getPayment(widget.model.apiTicketId);
-      if (!resp.hasError && resp.value != null && mounted) {
-        setState(() => _applyPaymentInfo(resp.value!));
-        final status = resp.value!.status;
-        if (const {
-          'paid',
-          'paid_over',
-          'paid_late',
-          'payment_processing',
-        }.contains(status)) {
-          if (mounted) {
-            unawaited(
-              showFloatingFlushBar(
-                type: FlushBarType.success,
-                message: "Payment received!",
-                context: context,
-              ),
-            );
-          }
-        } else if (status == 'underpaid') {
-          if (mounted) {
-            unawaited(
-              showFloatingFlushBar(
-                type: FlushBarType.warning,
-                message: "Underpaid. Remaining: ${resp.value!.due ?? '?'} EUR.",
-                context: context,
-              ),
-            );
-          }
-        } else {
-          if (mounted) {
-            unawaited(
-              showFloatingFlushBar(
-                type: FlushBarType.info,
-                message: "No payment detected yet.",
-                context: context,
-              ),
-            );
-          }
-        }
-      } else if (mounted) {
+          .getPayment(widget.apiTicketId, customerKey: customerKey),
+      context: context,
+      message: "Checking for payment",
+      rootNavigator: true,
+    );
+    if (!mounted || requestId != _paymentRequestId) return;
+
+    if (resp != null && !resp.hasError && resp.value != null) {
+      setState(() => _applyPaymentInfo(resp.value!));
+      final status = resp.value!.status;
+      if (const {
+        'paid',
+        'paid_over',
+        'paid_late',
+        'payment_processing',
+      }.contains(status)) {
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.success,
+            message: "Payment received!",
+            context: context,
+          ),
+        );
+      } else if (status == 'underpaid') {
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.warning,
-            message: resp.exception?.message ?? "Failed to check payment.",
+            message:
+                "Additional payment is required. "
+                "Use one of the updated payment options.",
+            context: context,
+          ),
+        );
+      } else {
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.info,
+            message: "No payment detected yet.",
             context: context,
           ),
         );
       }
-    } catch (e) {
-      if (mounted) {
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.warning,
-            message: e.toString(),
-            context: context,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _loading = false);
-        if (!_isTerminal) {
-          _startPolling();
-        }
-      }
+    } else {
+      await showDialog<void>(
+        context: context,
+        useRootNavigator: Util.isDesktop,
+        builder: (context) => StackOkDialog(
+          title: "Failed to check payment",
+          maxWidth: Util.isDesktop ? 500 : null,
+          message: resp?.exception?.message,
+          desktopPopRootNavigator: Util.isDesktop,
+        ),
+      );
+      if (!mounted || requestId != _paymentRequestId) return;
+    }
+
+    if (!_isTerminal && !_isExpiredOrInvalid) {
+      _startPolling();
     }
   }
 
-  void _confirmPayment() {
+  Future<void> _confirmPayment() async {
     _pollTimer?.cancel();
+    _paymentRequestId++;
     final method = _methods[_selectedMethod];
     final ticker = method.toUpperCase();
 
-    final coin = AppConfig.getCryptoCurrencyForTicker(ticker);
+    final target = parseShopInBitPaymentTarget(
+      paymentUri: _currentAddress,
+      ticker: ticker,
+      coin: AppConfig.getCryptoCurrencyForTicker(ticker),
+    );
 
-    String address = "";
-    Amount? amount;
-    EthContract? tokenContract;
+    final navigated = await tryNavigateToShopInBitWalletSend(
+      ref: ref,
+      context: context,
+      ticker: ticker,
+      paymentUri: _currentAddress,
+      address: target.address,
+      amount: target.amount,
+      apiTicketId: widget.apiTicketId,
+    );
+    if (!mounted) return;
+    if (!_isTerminal) _startPolling();
+    if (navigated) return;
 
-    if (_currentAddress.isNotEmpty) {
-      final parsed = AddressUtils.parsePaymentUri(_currentAddress);
-
-      if (parsed?.address != null && parsed!.address.isNotEmpty) {
-        address = parsed.address;
-      } else {
-        final raw = _currentAddress;
-        final colonIdx = raw.indexOf(':');
-        if (colonIdx != -1) {
-          final afterScheme = raw.substring(colonIdx + 1);
-          final qIdx = afterScheme.indexOf('?');
-          address = qIdx != -1 ? afterScheme.substring(0, qIdx) : afterScheme;
-        } else {
-          address = raw;
-        }
-      }
-
-      String? amountStr = parsed?.amount;
-      if (amountStr == null || amountStr.isEmpty) {
-        final uri = Uri.tryParse(_currentAddress);
-        if (uri != null) {
-          amountStr = uri.queryParameters['amount'];
-        }
-      }
-      if (amountStr == null || amountStr.isEmpty) {
-        amountStr = _paymentInfo?.due;
-      }
-
-      final int fractionDigits;
-      if (coin != null) {
-        fractionDigits = coin.fractionDigits;
-      } else if (ticker == "USDT") {
-        fractionDigits = 6;
-      } else {
-        fractionDigits = 8;
-      }
-
-      if (amountStr != null && amountStr.isNotEmpty) {
-        try {
-          amount = Amount.fromDecimal(
-            Decimal.parse(amountStr),
-            fractionDigits: fractionDigits,
-          );
-        } catch (_) {}
-      }
-    }
-
-    if (coin != null && address.isNotEmpty) {
-      _navigateToSendFrom(coin: coin, amount: amount, address: address);
-      return;
-    }
-
-    if (ticker == "USDT" && address.isNotEmpty) {
-      const usdtAddress = "0xdac17f958d2ee523a2206206994597c13d831ec7";
-      tokenContract = ref.read(mainDBProvider).getEthContractSync(usdtAddress);
-      if (tokenContract != null) {
-        final ethCoin = AppConfig.getCryptoCurrencyForTicker("ETH");
-        if (ethCoin != null) {
-          _navigateToSendFrom(
-            coin: ethCoin,
-            amount: amount,
-            address: address,
-            tokenContract: tokenContract,
-          );
-          return;
-        }
-      }
-    }
-
-    widget.model.status = ShopInBitOrderStatus.paymentPending;
-    widget.model.paymentMethod = method;
-
-    if (Util.isDesktop) {
-      Navigator.of(context, rootNavigator: true).pop();
-    } else {
-      Navigator.of(context).popUntil((route) => route.isFirst);
-    }
+    // Couldn't launch the in-wallet send.
+    unawaited(
+      showFloatingFlushBar(
+        type: FlushBarType.warning,
+        message:
+            "Payment details for $ticker aren't ready yet. "
+            "Please wait a moment or refresh the invoice.",
+        context: context,
+      ),
+    );
   }
 
   void _popToTickets() {
     Navigator.of(context).pop();
   }
 
-  void _navigateToTickets() {
-    if (Util.isDesktop) {
-      Navigator.of(context, rootNavigator: true).pop();
-    } else {
-      Navigator.of(context).popUntil((route) => route.isFirst);
-    }
-  }
-
-  void _navigateToSendFrom({
-    required CryptoCurrency coin,
-    required Amount? amount,
-    required String address,
-    EthContract? tokenContract,
-  }) {
-    if (Util.isDesktop) {
-      Navigator.of(context, rootNavigator: true).pop();
+  bool get _canReturnToRequest => widget.apiTicketId != 0;
+  void _backToRequest() {
+    final navigator = Navigator.of(context);
+    bool landedOnRequest = false;
+    navigator.popUntil((route) {
+      final name = route.settings.name;
+      if (name == ShopInBitTicketDetail.routeName) {
+        landedOnRequest = true;
+        return true;
+      }
+      return route.isFirst ||
+          name == ShopInBitTicketsView.routeName ||
+          name == HomeView.routeName;
+    });
+    if (!landedOnRequest) {
       unawaited(
-        showDialog<void>(
-          context: context,
-          builder: (_) => ShopInBitSendFromView(
-            coin: coin,
-            amount: amount,
-            address: address,
-            model: widget.model,
-            shouldPopRoot: true,
-            tokenContract: tokenContract,
-          ),
-        ),
-      );
-    } else {
-      Navigator.of(context).push(
-        RouteGenerator.getRoute<dynamic>(
-          shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-          builder: (_) => ShopInBitSendFromView(
-            coin: coin,
-            amount: amount,
-            address: address,
-            model: widget.model,
-            tokenContract: tokenContract,
-          ),
-          settings: const RouteSettings(name: ShopInBitSendFromView.routeName),
+        navigator.pushNamed(
+          ShopInBitTicketDetail.routeName,
+          arguments: widget.apiTicketId,
         ),
       );
     }
   }
 
-  bool _hasWalletForTicker(String ticker) {
-    if (ticker == "USDT") {
-      const usdtAddress = "0xdac17f958d2ee523a2206206994597c13d831ec7";
-      return ref
-          .read(pWallets)
-          .wallets
-          .any(
-            (w) =>
-                w.info.coin is Ethereum &&
-                w.info.tokenContractAddresses.contains(usdtAddress),
-          );
-    } else {
-      final coin = AppConfig.getCryptoCurrencyForTicker(ticker);
-      if (coin != null) {
-        return ref.read(pWallets).wallets.any((e) => e.info.coin == coin);
+  void _goToMyRequests() {
+    final navigator = Navigator.of(context);
+    bool landedOnTickets = false;
+    navigator.popUntil((route) {
+      final name = route.settings.name;
+      if (name == ShopInBitTicketsView.routeName) {
+        landedOnTickets = true;
+        return true;
       }
+      return route.isFirst || name == HomeView.routeName;
+    });
+    if (!landedOnTickets) {
+      unawaited(navigator.pushNamed(ShopInBitTicketsView.routeName));
     }
-    return false;
-  }
-
-  String? _parseBip21Amount(String bip21Uri) {
-    final parsed = AddressUtils.parsePaymentUri(bip21Uri);
-    String? amountStr = parsed?.amount;
-    if (amountStr == null || amountStr.isEmpty) {
-      final uri = Uri.tryParse(bip21Uri);
-      if (uri != null) {
-        amountStr = uri.queryParameters['amount'];
-      }
-    }
-    return (amountStr != null && amountStr.isNotEmpty) ? amountStr : null;
   }
 
   void _onOwnedCoinTap(int methodIndex) {
     if (!_payNowEnabled) return;
+    if (_addresses[methodIndex].isEmpty) return;
     _selectedMethod = methodIndex;
-    _confirmPayment();
-  }
-
-  void _onUnownedCoinTap(int methodIndex) {
-    if (_isExpiredOrInvalid || _isTerminal) return;
-    final ticker = _methods[methodIndex].toUpperCase();
-    final address = _addresses[methodIndex];
-
-    showModalBottomSheet(
-      context: context,
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text("$ticker Payment", style: STextStyles.pageTitleH2(context)),
-            const SizedBox(height: 16),
-            GestureDetector(
-              onTap: () {
-                Clipboard.setData(ClipboardData(text: address));
-                showFloatingFlushBar(
-                  type: FlushBarType.info,
-                  message: "Copied to clipboard",
-                  iconAsset: Assets.svg.copy,
-                  context: context,
-                );
-              },
-              child: RoundedWhiteContainer(
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        address,
-                        style: STextStyles.itemSubtitle12(context),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Icon(
-                      Icons.copy,
-                      size: 14,
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorBlue,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            PrimaryButton(
-              label: "CHECK FOR PAYMENT",
-              onPressed: () {
-                Navigator.of(ctx).pop();
-                _checkForPayment();
-              },
-            ),
-          ],
-        ),
-      ),
-    );
+    unawaited(_confirmPayment());
   }
 
   @override
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
-
-    // Build coin rows from _methods/_addresses
-    final coinRows = <Widget>[];
-    for (int i = 0; i < _methods.length; i++) {
-      final ticker = _methods[i].toUpperCase();
-      final coin = AppConfig.getCryptoCurrencyForTicker(ticker);
-      final hasWallet = _hasWalletForTicker(ticker);
-      final amountStr = _addresses[i].isNotEmpty
-          ? _parseBip21Amount(_addresses[i])
-          : null;
-
-      if (i > 0) {
-        coinRows.add(const SizedBox(height: 8));
-      }
-
-      coinRows.add(
-        RoundedWhiteContainer(
-          child: Opacity(
-            opacity: hasWallet ? 1.0 : 0.5,
-            child: InkWell(
-              onTap: hasWallet
-                  ? () => _onOwnedCoinTap(i)
-                  : () => _onUnownedCoinTap(i),
-              child: Row(
-                children: [
-                  if (coin != null)
-                    SvgPicture.file(
-                      File(ref.watch(coinIconProvider(coin))),
-                      width: 24,
-                      height: 24,
-                    )
-                  else
-                    SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: Center(
-                        child: Text(
-                          ticker.substring(
-                            0,
-                            ticker.length > 2 ? 2 : ticker.length,
-                          ),
-                          style: STextStyles.itemSubtitle12(context),
-                        ),
-                      ),
-                    ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(ticker, style: STextStyles.titleBold12(context)),
-                        if (amountStr != null)
-                          Text(
-                            "$amountStr $ticker",
-                            style: STextStyles.itemSubtitle12(context),
-                          ),
-                      ],
-                    ),
-                  ),
-                  if (hasWallet)
-                    Text("PAY NOW", style: STextStyles.link2(context))
-                  else
-                    Icon(
-                      Icons.info_outline,
-                      size: 18,
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textSubtitle2,
-                    ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
-    }
 
     final content = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -597,9 +416,8 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    "Payment underpaid. Remaining: "
-                    "${_paymentInfo?.due ?? '?'} EUR. "
-                    "Please send the remaining amount.",
+                    "Additional payment is required. "
+                    "Please use one of the updated payment options.",
                     style:
                         (isDesktop
                                 ? STextStyles.desktopTextExtraExtraSmall(
@@ -635,7 +453,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        "Invoice expired.",
+                        "Invoice expired. Refresh it to continue payment.",
                         style:
                             (isDesktop
                                     ? STextStyles.desktopTextExtraExtraSmall(
@@ -695,13 +513,58 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
           ),
           SizedBox(height: isDesktop ? 16 : 12),
           PrimaryButton(
-            label: "View My Requests",
-            onPressed: _navigateToTickets,
+            label: _canReturnToRequest ? "Back to Request" : "View My Requests",
+            onPressed: _canReturnToRequest ? _backToRequest : _goToMyRequests,
+          ),
+        ],
+        if (_isNoPaymentRequired) ...[
+          SizedBox(height: isDesktop ? 16 : 8),
+          RoundedWhiteContainer(
+            child: Row(
+              children: [
+                SvgPicture.asset(
+                  Assets.svg.checkCircle,
+                  width: 20,
+                  height: 20,
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.accentColorGreen,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    "No payment required. Your order is fully covered.",
+                    style:
+                        (isDesktop
+                                ? STextStyles.desktopTextExtraExtraSmall(
+                                    context,
+                                  )
+                                : STextStyles.itemSubtitle12(context))
+                            .copyWith(
+                              color: Theme.of(
+                                context,
+                              ).extension<StackColors>()!.accentColorGreen,
+                            ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: isDesktop ? 16 : 12),
+          PrimaryButton(
+            label: _canReturnToRequest ? "Back to Request" : "View My Requests",
+            onPressed: _canReturnToRequest ? _backToRequest : _goToMyRequests,
           ),
         ],
         SizedBox(height: isDesktop ? 24 : 16),
-        // Coin list (replaces tab selector + QR + address + global button)
-        if (!_isExpiredOrInvalid) ...coinRows,
+        if (!_isExpiredOrInvalid && !_isNoPaymentRequired)
+          ShopInBitPaymentMethodList(
+            methods: _methods,
+            addresses: _addresses,
+            enabled: _payNowEnabled,
+            onPayFromWallet: _onOwnedCoinTap,
+            onCheckForPayment: (_) => unawaited(_checkForPayment()),
+          ),
       ],
     );
 
@@ -730,12 +593,7 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
                   horizontal: 32,
                   vertical: 8,
                 ),
-                child: Stack(
-                  children: [
-                    SingleChildScrollView(child: content),
-                    if (_loading) const LoadingIndicator(width: 24, height: 24),
-                  ],
-                ),
+                child: SingleChildScrollView(child: content),
               ),
             ),
           ],
@@ -743,46 +601,9 @@ class _ShopInBitPaymentViewState extends ConsumerState<ShopInBitPaymentView> {
       );
     }
 
-    return Background(
-      child: PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (bool didPop, dynamic result) {
-          if (!didPop) {
-            _popToTickets();
-          }
-        },
-        child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
-          appBar: AppBar(
-            leading: AppBarBackButton(onPressed: _popToTickets),
-            title: Text("ShopinBit", style: STextStyles.navBarTitle(context)),
-          ),
-          body: SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return Stack(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: SingleChildScrollView(
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            minHeight: constraints.maxHeight - 32,
-                          ),
-                          child: IntrinsicHeight(child: content),
-                        ),
-                      ),
-                    ),
-                    if (_loading) const LoadingIndicator(width: 24, height: 24),
-                  ],
-                );
-              },
-            ),
-          ),
-        ),
-      ),
+    return ShopInBitPaymentMobileScaffold(
+      onBack: _popToTickets,
+      child: content,
     );
   }
 }

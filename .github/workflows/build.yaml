@@ -19,6 +19,19 @@ on:
 
 jobs:
 
+  build-disclaimer:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Post tester disclaimer
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+          > [!CAUTION]
+          > **These are unverified, unsupported development builds — not official releases.**
+          > They have not undergone QA testing and may contain bugs or incomplete features.
+          > Download and use entirely at your own risk. Do not use with real funds.
+          > Official releases are published on the [Releases page](https://github.com/cypherstack/stack_wallet/releases).
+          EOF
+
   build-linux:
     runs-on: ubuntu-24.04
     permissions:
@@ -241,7 +254,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.38.1'
+          flutter-version: '3.44.8'
           channel: 'stable'
 
       - uses: actions/setup-go@v6
@@ -362,7 +375,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.38.1'
+          flutter-version: '3.44.8'
           channel: 'stable'
 
       - uses: actions/setup-go@v6
@@ -444,7 +457,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.38.1'
+          flutter-version: '3.44.8'
           channel: 'stable'
 
       - uses: actions/setup-go@v6
@@ -871,7 +884,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.38.1'
+          flutter-version: '3.44.8'
           channel: 'stable'
 
       - uses: actions/setup-go@v6
@@ -960,7 +973,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.38.1'
+          flutter-version: '3.44.8'
           channel: 'stable'
 
       - uses: actions/setup-go@v6
@@ -1035,7 +1048,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.38.1'
+          flutter-version: '3.44.8'
           channel: 'stable'
 
       - uses: actions/setup-go@v6
@@ -1329,7 +1342,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.38.1'
+          flutter-version: '3.44.8'
           channel: 'stable'
 
       - uses: actions/setup-go@v6
@@ -1795,7 +1808,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.38.1'
+          flutter-version: '3.44.8'
           channel: 'stable'
 
       - uses: actions/setup-go@v6
@@ -1872,7 +1885,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.38.1'
+          flutter-version: '3.44.8'
           channel: 'stable'
 
       - uses: actions/setup-go@v6

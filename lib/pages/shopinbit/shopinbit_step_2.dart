@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../models/shopinbit/shopinbit_order_model.dart';
+import '../../db/drift/shared_db/shared_database.dart';
+import '../../models/shopinbit/shopinbit_enums.dart';
 import '../../providers/providers.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
@@ -21,15 +22,10 @@ import 'shopinbit_step_3.dart';
 import 'shopinbit_step_4.dart';
 
 class ShopInBitStep2 extends ConsumerStatefulWidget {
-  const ShopInBitStep2({
-    super.key,
-    required this.model,
-    this.isActuallyFirstStep = false,
-  });
+  const ShopInBitStep2({super.key, this.isActuallyFirstStep = false});
 
   static const String routeName = "/shopInBitStep2";
 
-  final ShopInBitOrderModel model;
   final bool isActuallyFirstStep;
 
   @override
@@ -40,30 +36,31 @@ class _ShopInBitStep2State extends ConsumerState<ShopInBitStep2> {
   ShopInBitCategory? _selected;
 
   Future<void> _continue() async {
-    widget.model.category = _selected;
-    final skipGuidelines =
-        (await ref.read(pSharedDrift).shopinBitSettingsDao.getSettings())
-            .guidelinesAccepted;
+    final category = _selected!;
+
+    final settings = await ref
+        .read(pSharedDrift)
+        .shopInBitSettingsDao
+        .getCurrentSettings();
+
+    if (settings == null) {
+      throw Exception("Shopinbit settings should never be null here. Fixme");
+    }
+
     if (!mounted) return;
 
-    if (skipGuidelines) {
-      widget.model.guidelinesAccepted = true;
-      await Navigator.of(
-        context,
-      ).pushNamed(ShopInBitStep4.routeName, arguments: widget.model);
-    } else {
-      await Navigator.of(
-        context,
-      ).pushNamed(ShopInBitStep3.routeName, arguments: widget.model);
-    }
-  }
+    final skipGuidelines = settings.guidelinesAcceptedFor(category);
 
-  @override
-  void initState() {
-    super.initState();
-    // Reset category selection.
-    widget.model.category = null;
-    _selected = null;
+    if (skipGuidelines) {
+      await Navigator.of(
+        context,
+      ).pushNamed(ShopInBitStep4.routeName, arguments: category);
+    } else {
+      await Navigator.of(context).pushNamed(
+        ShopInBitStep3.routeName,
+        arguments: (category: category, customerKey: settings.customerKey),
+      );
+    }
   }
 
   @override
