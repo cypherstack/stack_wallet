@@ -16,6 +16,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../../../app_config.dart';
+import '../../../../models/keys/cw_key_data.dart';
+import '../../../../models/keys/key_data_interface.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/global/secure_store_provider.dart';
 import '../../../../providers/global/wallets_provider.dart';
@@ -37,6 +39,7 @@ import '../../../add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mn
 import '../../../home_view/home_view.dart';
 import '../../../wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart'
     as tdv;
+import '../wallet_backup_views/cn_wallet_keys.dart';
 
 class DeleteWalletRecoveryPhraseView extends ConsumerStatefulWidget {
   const DeleteWalletRecoveryPhraseView({
@@ -44,6 +47,7 @@ class DeleteWalletRecoveryPhraseView extends ConsumerStatefulWidget {
     required this.walletId,
     required this.mnemonic,
     this.frostWalletData,
+    this.keyData,
     this.clipboardInterface = const ClipboardWrapper(),
   });
 
@@ -58,6 +62,7 @@ class DeleteWalletRecoveryPhraseView extends ConsumerStatefulWidget {
     ({String config, String keys})? prevGen,
   })?
   frostWalletData;
+  final KeyDataInterface? keyData;
 
   final ClipboardInterface clipboardInterface;
 
@@ -140,7 +145,11 @@ class _DeleteWalletRecoveryPhraseViewState
     debugPrint("BUILD: $runtimeType");
 
     final bool frost = widget.frostWalletData != null;
+    final bool keyBased = widget.keyData is CWKeyData;
     final prevGen = widget.frostWalletData?.prevGen != null;
+    if (!frost && !keyBased && _mnemonic.isEmpty) {
+      throw StateError("Wallet has no recovery data");
+    }
 
     return Background(
       child: Scaffold(
@@ -152,7 +161,8 @@ class _DeleteWalletRecoveryPhraseViewState
             },
           ),
           actions: [
-            Padding(
+            if (_mnemonic.isNotEmpty)
+              Padding(
               padding: const EdgeInsets.all(10),
               child: AspectRatio(
                 aspectRatio: 1,
@@ -328,6 +338,66 @@ class _DeleteWalletRecoveryPhraseViewState
                                   PrimaryButton(
                                     label: "Continue",
                                     onPressed: _continuePressed,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    )
+                    : keyBased
+                    ? LayoutBuilder(
+                      builder: (builderContext, constraints) {
+                        return SingleChildScrollView(
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: constraints.maxHeight,
+                            ),
+                            child: IntrinsicHeight(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    ref.watch(pWalletName(widget.walletId)),
+                                    textAlign: TextAlign.center,
+                                    style: STextStyles.label(
+                                      context,
+                                    ).copyWith(fontSize: 12),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    "Wallet Keys",
+                                    textAlign: TextAlign.center,
+                                    style: STextStyles.pageTitleH1(context),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  RoundedWhiteContainer(
+                                    child: Text(
+                                      "Save these keys before deleting your "
+                                      "wallet. They are required to restore "
+                                      "access to your funds.",
+                                      style: STextStyles.label(context),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Expanded(
+                                    child: CNWalletKeys(
+                                      cwKeyData: widget.keyData as CWKeyData,
+                                      walletId: widget.walletId,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  TextButton(
+                                    style: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .getPrimaryEnabledButtonStyle(context),
+                                    onPressed: _continuePressed,
+                                    child: Text(
+                                      "Continue",
+                                      style: STextStyles.button(context),
+                                    ),
                                   ),
                                 ],
                               ),

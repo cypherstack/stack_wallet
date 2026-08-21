@@ -89,8 +89,6 @@ class _UnlockWalletKeysDesktopState
       frostWalletData;
       List<String>? words;
 
-      // TODO: [prio=low] handle wallets that don't have a mnemonic
-      // All wallets currently are mnemonic based
       if (wallet is! MnemonicInterface) {
         if (wallet is BitcoinFrostWallet) {
           final futures = [
@@ -114,17 +112,10 @@ class _UnlockWalletKeysDesktopState
         } else {
           throw Exception("FIXME ~= see todo in code");
         }
-      } else {
-        if (wallet is ViewOnlyOptionInterface &&
-            (wallet as ViewOnlyOptionInterface).isViewOnly) {
-          // TODO: is something needed here?
-        } else {
-          try {
-            words = await wallet.getMnemonicAsWords();
-          } catch (_) {
-            // Key-restored wallets may not have a mnemonic.
-          }
-        }
+      } else if (!wallet.info.isRestoredFromKeys &&
+          !(wallet is ViewOnlyOptionInterface &&
+              (wallet as ViewOnlyOptionInterface).isViewOnly)) {
+        words = await wallet.getMnemonicAsWords();
       }
 
       KeyDataInterface? keyData;
@@ -133,7 +124,12 @@ class _UnlockWalletKeysDesktopState
       } else if (wallet is ExtendedKeysInterface) {
         keyData = await wallet.getXPrivs();
       } else if (wallet is CryptonoteWallet) {
-        keyData = await wallet.getKeys();
+        final keys = await wallet.getKeys();
+        if (wallet.info.isRestoredFromKeys &&
+            (keys == null || keys.hasError)) {
+          throw StateError("Wallet keys are unavailable");
+        }
+        keyData = keys;
       }
 
       if (mounted) {

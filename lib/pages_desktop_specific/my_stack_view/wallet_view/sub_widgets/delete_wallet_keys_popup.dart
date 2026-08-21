@@ -14,8 +14,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../models/keys/cw_key_data.dart';
+import '../../../../models/keys/key_data_interface.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
+import '../../../../pages/settings_views/wallet_settings_view/wallet_backup_views/cn_wallet_keys.dart';
 import '../../../../providers/global/secure_store_provider.dart';
 import '../../../../providers/global/wallets_provider.dart';
 import '../../../../route_generator.dart';
@@ -35,11 +38,13 @@ class DeleteWalletKeysPopup extends ConsumerStatefulWidget {
     super.key,
     required this.walletId,
     required this.words,
+    this.keyData,
     this.clipboardInterface = const ClipboardWrapper(),
   });
 
   final String walletId;
   final List<String> words;
+  final KeyDataInterface? keyData;
   final ClipboardInterface clipboardInterface;
 
   static const String routeName = "/desktopDeleteWalletKeysPopup";
@@ -70,9 +75,13 @@ class _DeleteWalletKeysPopup extends ConsumerState<DeleteWalletKeysPopup> {
 
   @override
   Widget build(BuildContext context) {
+    if (_words.isEmpty && widget.keyData is! CWKeyData) {
+      throw StateError("Wallet has no recovery data");
+    }
+
     return DesktopDialog(
       maxWidth: 614,
-      maxHeight: double.infinity,
+      maxHeight: null,
       child: Column(
         children: [
           Row(
@@ -92,48 +101,75 @@ class _DeleteWalletKeysPopup extends ConsumerState<DeleteWalletKeysPopup> {
               ),
             ],
           ),
-          const SizedBox(height: 28),
-          Text(
-            "Recovery phrase",
-            style: STextStyles.desktopTextMedium(context),
-          ),
-          const SizedBox(height: 8),
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
-              child: Text(
-                _recoveryPhraseInfo,
-                style: STextStyles.desktopTextExtraExtraSmall(context),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: RawMaterialButton(
-              hoverColor: Colors.transparent,
-              onPressed: () async {
-                await _clipboardInterface.setData(
-                  ClipboardData(text: _words.join(" ")),
-                );
-                if (context.mounted) {
-                  unawaited(
-                    showFloatingFlushBar(
-                      type: FlushBarType.info,
-                      message: "Copied to clipboard",
-                      iconAsset: Assets.svg.copy,
-                      context: context,
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  if (_words.isNotEmpty) ...[
+                    const SizedBox(height: 28),
+                    Text(
+                      "Recovery phrase",
+                      style: STextStyles.desktopTextMedium(context),
                     ),
-                  );
-                }
-              },
-              child: MnemonicTable(
-                words: widget.words,
-                isDesktop: true,
-                itemBorderColor: Theme.of(
-                  context,
-                ).extension<StackColors>()!.buttonBackSecondary,
+                    const SizedBox(height: 8),
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 32),
+                        child: Text(
+                          _recoveryPhraseInfo,
+                          style: STextStyles.desktopTextExtraExtraSmall(
+                            context,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      child: RawMaterialButton(
+                        hoverColor: Colors.transparent,
+                        onPressed: () async {
+                          await _clipboardInterface.setData(
+                            ClipboardData(text: _words.join(" ")),
+                          );
+                          if (context.mounted) {
+                            unawaited(
+                              showFloatingFlushBar(
+                                type: FlushBarType.info,
+                                message: "Copied to clipboard",
+                                iconAsset: Assets.svg.copy,
+                                context: context,
+                              ),
+                            );
+                          }
+                        },
+                        child: MnemonicTable(
+                          words: widget.words,
+                          isDesktop: true,
+                          itemBorderColor: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.buttonBackSecondary,
+                        ),
+                      ),
+                    ),
+                  ] else ...[
+                    const SizedBox(height: 20),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      child: Text(
+                        "Save these keys before deleting your wallet. They are "
+                        "required to restore access to your funds.",
+                        style: STextStyles.desktopTextExtraExtraSmall(context),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    CNWalletKeys(
+                      cwKeyData: widget.keyData as CWKeyData,
+                      walletId: widget.walletId,
+                    ),
+                  ],
+                ],
               ),
             ),
           ),

@@ -18,4 +18,6 @@ class CWKeyData with KeyDataInterface {
   final String walletId;
 
   final List<({String label, String key})> keys;
+
+  bool get hasError => keys.any((entry) => entry.key == "ERROR");
 }

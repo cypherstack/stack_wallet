@@ -84,7 +84,7 @@ class WalletBackupView extends ConsumerWidget {
           ),
           title: Text("Wallet backup", style: STextStyles.navBarTitle(context)),
           actions: [
-            if (keyData != null)
+            if (keyData != null && mnemonic.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.all(10),
                 child: CustomTextButton(
@@ -94,7 +94,8 @@ class WalletBackupView extends ConsumerWidget {
                     final ViewOnlyWalletData _ => "keys",
                     _ =>
                       throw UnimplementedError(
-                        "Don't forget to add your KeyDataInterface here! ${keyData.runtimeType}",
+                        "Don't forget to add your KeyDataInterface here! "
+                        "${keyData.runtimeType}",
                       ),
                   },
                   onTap: () {
@@ -117,10 +118,59 @@ class WalletBackupView extends ConsumerWidget {
                       frostWalletData: frostWalletData,
                       walletId: walletId,
                     )
-                    : _Mnemonic(walletId: walletId, mnemonic: mnemonic),
+                    : mnemonic.isNotEmpty
+                    ? _Mnemonic(walletId: walletId, mnemonic: mnemonic)
+                    : keyData != null
+                    ? _KeyData(walletId: walletId, keyData: keyData!)
+                    : throw StateError("Wallet has no recovery data"),
           ),
         ),
       ),
+    );
+  }
+}
+
+class _KeyData extends StatelessWidget {
+  const _KeyData({required this.walletId, required this.keyData});
+
+  final String walletId;
+  final KeyDataInterface keyData;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder:
+          (context, constraints) => SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: IntrinsicHeight(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Expanded(
+                      child: switch (keyData) {
+                        final XPrivData e => WalletXPrivs(
+                          walletId: walletId,
+                          xprivData: e,
+                        ),
+                        final CWKeyData e => CNWalletKeys(
+                          walletId: walletId,
+                          cwKeyData: e,
+                        ),
+                        final ViewOnlyWalletData e =>
+                          ViewOnlyWalletDataWidget(data: e),
+                        _ => throw UnimplementedError(
+                          "Don't forget to add your KeyDataInterface here! "
+                          "${keyData.runtimeType}",
+                        ),
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              ),
+            ),
+          ),
     );
   }
 }
@@ -420,42 +470,7 @@ class MobileKeyDataView extends ConsumerWidget {
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: LayoutBuilder(
-              builder:
-                  (context, constraints) => SingleChildScrollView(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight,
-                      ),
-                      child: IntrinsicHeight(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Expanded(
-                              child: switch (keyData) {
-                                final XPrivData e => WalletXPrivs(
-                                  walletId: walletId,
-                                  xprivData: e,
-                                ),
-                                final CWKeyData e => CNWalletKeys(
-                                  walletId: walletId,
-                                  cwKeyData: e,
-                                ),
-                                final ViewOnlyWalletData e =>
-                                  ViewOnlyWalletDataWidget(data: e),
-                                _ =>
-                                  throw UnimplementedError(
-                                    "Don't forget to add your KeyDataInterface here!",
-                                  ),
-                              },
-                            ),
-                            const SizedBox(height: 16),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-            ),
+            child: _KeyData(walletId: walletId, keyData: keyData),
           ),
         ),
       ),

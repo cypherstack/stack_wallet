@@ -162,8 +162,6 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
   }
 
   Future<void> _walletBackupPressedHelper() async {
-    // TODO: [prio=med] take wallets that don't have a mnemonic into account
-
     final wallet = ref.read(pWallets).getWallet(widget.walletId);
 
     List<String>? mnemonic;
@@ -194,19 +192,11 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
               : (config: results[3]!, keys: results[2]!),
         );
       }
-    } else {
-      if (wallet is MnemonicInterface) {
-        if (wallet is ViewOnlyOptionInterface &&
-            (wallet as ViewOnlyOptionInterface).isViewOnly) {
-          // TODO: is something needed here?
-        } else {
-          try {
-            mnemonic = await wallet.getMnemonicAsWords();
-          } catch (_) {
-            // Key-restored wallets may not have a mnemonic.
-          }
-        }
-      }
+    } else if (wallet is MnemonicInterface &&
+        !wallet.info.isRestoredFromKeys &&
+        !(wallet is ViewOnlyOptionInterface &&
+            (wallet as ViewOnlyOptionInterface).isViewOnly)) {
+      mnemonic = await wallet.getMnemonicAsWords();
     }
 
     KeyDataInterface? keyData;
@@ -215,7 +205,12 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
     } else if (wallet is ExtendedKeysInterface) {
       keyData = await wallet.getXPrivs();
     } else if (wallet is CryptonoteWallet) {
-      keyData = await wallet.getKeys();
+      final keys = await wallet.getKeys();
+      if (wallet.info.isRestoredFromKeys &&
+          (keys == null || keys.hasError)) {
+        throw StateError("Wallet keys are unavailable");
+      }
+      keyData = keys;
     }
 
     if (mounted) {
@@ -237,7 +232,9 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
             settings: const RouteSettings(name: "/viewRecoveryDataLockscreen"),
           ),
         );
-      } else {
+      } else if (mnemonic != null ||
+          frostWalletData != null ||
+          keyData != null) {
         await Navigator.push(
           context,
           RouteGenerator.getRoute(
@@ -258,6 +255,8 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
             settings: const RouteSettings(name: "/viewRecoverPhraseLockscreen"),
           ),
         );
+      } else {
+        throw StateError("Wallet has no recovery data");
       }
     }
   }

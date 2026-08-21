@@ -2268,7 +2268,30 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case DeleteWalletRecoveryPhraseView.routeName:
-        if (args is ({String walletId, List<String> mnemonicWords})) {
+        if (args
+            is ({
+              String walletId,
+              List<String> mnemonicWords,
+              ({
+                String myName,
+                String config,
+                String keys,
+                ({String config, String keys})? prevGen,
+              })?
+              frostWalletData,
+              KeyDataInterface? keyData,
+            })) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => DeleteWalletRecoveryPhraseView(
+              mnemonic: args.mnemonicWords,
+              walletId: args.walletId,
+              frostWalletData: args.frostWalletData,
+              keyData: args.keyData,
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
+        } else if (args is ({String walletId, List<String> mnemonicWords})) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => DeleteWalletRecoveryPhraseView(
@@ -2855,7 +2878,21 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case DeleteWalletKeysPopup.routeName:
-        if (args is Tuple2<String, List<String>>) {
+        if (args
+            is ({
+              String walletId,
+              List<String> words,
+              KeyDataInterface? keyData,
+            })) {
+          return FadePageRoute(
+            DeleteWalletKeysPopup(
+              walletId: args.walletId,
+              words: args.words,
+              keyData: args.keyData,
+            ),
+            RouteSettings(name: settings.name),
+          );
+        } else if (args is Tuple2<String, List<String>>) {
           return FadePageRoute(
             DeleteWalletKeysPopup(walletId: args.item1, words: args.item2),
             RouteSettings(name: settings.name),
