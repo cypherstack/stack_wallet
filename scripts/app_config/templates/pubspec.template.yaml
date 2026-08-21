@@ -173,7 +173,7 @@ dependencies:
   devicelocale:
     git:
       url: https://github.com/cypherstack/flutter-devicelocale
-      ref: 73c4ed946816c5ec032d13a44f8f510e2ced9886
+      ref: ba7d7d87a3772e972adb1358a5ec9a111b514fce
   device_info_plus: ^10.1.2
   keyboard_dismisser: ^3.0.0
   another_flushbar: ^1.10.28
