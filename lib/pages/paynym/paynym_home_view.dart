@@ -45,10 +45,7 @@ import 'subwidgets/paynym_followers_list.dart';
 import 'subwidgets/paynym_following_list.dart';
 
 class PaynymHomeView extends ConsumerStatefulWidget {
-  const PaynymHomeView({
-    super.key,
-    required this.walletId,
-  });
+  const PaynymHomeView({super.key, required this.walletId});
 
   final String walletId;
 
@@ -86,23 +83,20 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
               leading: Row(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(
-                      left: 24,
-                      right: 20,
-                    ),
+                    padding: const EdgeInsets.only(left: 24, right: 20),
                     child: AppBarIconButton(
                       size: 32,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textFieldDefaultBG,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textFieldDefaultBG,
                       shadows: const [],
                       icon: SvgPicture.asset(
                         Assets.svg.arrowLeft,
                         width: 18,
                         height: 18,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .topNavIconPrimary,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.topNavIconPrimary,
                       ),
                       onPressed: Navigator.of(context).pop,
                     ),
@@ -113,13 +107,8 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                     height: 32,
                     color: Theme.of(context).extension<StackColors>()!.textDark,
                   ),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  Text(
-                    "PayNym",
-                    style: STextStyles.desktopH3(context),
-                  ),
+                  const SizedBox(width: 10),
+                  Text("PayNym", style: STextStyles.desktopH3(context)),
                 ],
               ),
               trailing: kDisableFollowing
@@ -146,12 +135,13 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                               );
                             },
                             child: RoundedContainer(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 24.0),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24.0,
+                              ),
                               color: _followButtonHoverState
-                                  ? Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .highlight
+                                  ? Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.highlight
                                   : Colors.transparent,
                               radiusMultiplier: 100,
                               child: Row(
@@ -160,28 +150,22 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                                     Assets.svg.plus,
                                     width: 16,
                                     height: 16,
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textDark,
+                                    color: Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.textDark,
                                   ),
-                                  const SizedBox(
-                                    width: 8,
-                                  ),
+                                  const SizedBox(width: 8),
                                   Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Text(
                                         "Follow",
-                                        style: STextStyles
-                                            .desktopButtonSecondaryEnabled(
-                                          context,
-                                        ).copyWith(
-                                          fontSize: 16,
-                                        ),
+                                        style:
+                                            STextStyles.desktopButtonSecondaryEnabled(
+                                              context,
+                                            ).copyWith(fontSize: 16),
                                       ),
-                                      const SizedBox(
-                                        height: 2,
-                                      ),
+                                      const SizedBox(height: 2),
                                     ],
                                   ),
                                 ],
@@ -215,9 +199,9 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                           Assets.svg.circlePlusFilled,
                           width: 20,
                           height: 20,
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .accentColorDark,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.accentColorDark,
                         ),
                         onPressed: () {
                           Navigator.of(context).pushNamed(
@@ -237,9 +221,9 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                         Assets.svg.circleQuestion,
                         width: 20,
                         height: 20,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.accentColorDark,
                       ),
                       onPressed: () {
                         // todo info ?
@@ -247,22 +231,18 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                     ),
                   ),
                 ),
-                const SizedBox(
-                  width: 4,
-                ),
+                const SizedBox(width: 4),
               ],
             ),
       body: ConditionalParent(
         condition: !isDesktop,
         builder: (child) => SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: child,
-          ),
+          child: Padding(padding: const EdgeInsets.all(16), child: child),
         ),
         child: Column(
-          crossAxisAlignment:
-              isDesktop ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+          crossAxisAlignment: isDesktop
+              ? CrossAxisAlignment.start
+              : CrossAxisAlignment.center,
           children: [
             if (!isDesktop)
               Column(
@@ -281,13 +261,10 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                         secretCount = 0;
                       }
 
-                      timer ??= Timer(
-                        const Duration(milliseconds: 1500),
-                        () {
-                          secretCount = 0;
-                          timer = null;
-                        },
-                      );
+                      timer ??= Timer(const Duration(milliseconds: 1500), () {
+                        secretCount = 0;
+                        timer = null;
+                      });
                     },
                     child: PayNymBot(
                       paymentCodeString: ref
@@ -297,9 +274,7 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                           .code,
                     ),
                   ),
-                  const SizedBox(
-                    height: 10,
-                  ),
+                  const SizedBox(height: 10),
                   Text(
                     ref
                         .watch(myPaynymAccountStateProvider.state)
@@ -307,9 +282,7 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                         .nymName,
                     style: STextStyles.desktopMenuItemSelected(context),
                   ),
-                  const SizedBox(
-                    height: 4,
-                  ),
+                  const SizedBox(height: 4),
                   Text(
                     Format.shorten(
                       ref
@@ -320,13 +293,9 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                       12,
                       5,
                     ),
-                    style: STextStyles.label(context).copyWith(
-                      fontSize: 14,
-                    ),
+                    style: STextStyles.label(context).copyWith(fontSize: 14),
                   ),
-                  const SizedBox(
-                    height: 11,
-                  ),
+                  const SizedBox(height: 11),
                   Row(
                     children: [
                       Expanded(
@@ -337,9 +306,9 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                           icon: CopyIcon(
                             width: 12,
                             height: 12,
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .buttonTextSecondary,
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.buttonTextSecondary,
                           ),
                           onPressed: () async {
                             await Clipboard.setData(
@@ -362,9 +331,7 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                           },
                         ),
                       ),
-                      const SizedBox(
-                        width: 13,
-                      ),
+                      const SizedBox(width: 13),
                       Expanded(
                         child: SecondaryButton(
                           label: "Share",
@@ -373,9 +340,9 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                           icon: ShareIcon(
                             width: 12,
                             height: 12,
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .buttonTextSecondary,
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.buttonTextSecondary,
                           ),
                           onPressed: () async {
                             Rect? sharePositionOrigin;
@@ -388,20 +355,19 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                               }
                             }
 
-                            await Share.share(
-                              ref
-                                  .read(myPaynymAccountStateProvider.state)
-                                  .state!
-                                  .nonSegwitPaymentCode
-                                  .code,
-                              sharePositionOrigin: sharePositionOrigin,
+                            await SharePlus.instance.share(
+                              ShareParams(
+                                text: ref
+                                    .read(myPaynymAccountStateProvider)!
+                                    .nonSegwitPaymentCode
+                                    .code,
+                                sharePositionOrigin: sharePositionOrigin,
+                              ),
                             );
                           },
                         ),
                       ),
-                      const SizedBox(
-                        width: 13,
-                      ),
+                      const SizedBox(width: 13),
                       Expanded(
                         child: SecondaryButton(
                           label: "Address",
@@ -410,9 +376,9 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                           icon: QrCodeIcon(
                             width: 12,
                             height: 12,
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .buttonTextSecondary,
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.buttonTextSecondary,
                           ),
                           onPressed: () {
                             showDialog<void>(
@@ -437,9 +403,7 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                   padding: const EdgeInsets.all(16),
                   child: Row(
                     children: [
-                      const SizedBox(
-                        width: 4,
-                      ),
+                      const SizedBox(width: 4),
                       GestureDetector(
                         onTap: () {
                           secretCount++;
@@ -469,9 +433,7 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                               .code,
                         ),
                       ),
-                      const SizedBox(
-                        width: 16,
-                      ),
+                      const SizedBox(width: 16),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -482,9 +444,7 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                                 .nymName,
                             style: STextStyles.desktopH3(context),
                           ),
-                          const SizedBox(
-                            height: 4,
-                          ),
+                          const SizedBox(height: 4),
                           Text(
                             Format.shorten(
                               ref
@@ -495,8 +455,9 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                               12,
                               5,
                             ),
-                            style:
-                                STextStyles.desktopTextExtraExtraSmall(context),
+                            style: STextStyles.desktopTextExtraExtraSmall(
+                              context,
+                            ),
                           ),
                         ],
                       ),
@@ -508,9 +469,9 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                         icon: CopyIcon(
                           width: 18,
                           height: 18,
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textDark,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.textDark,
                         ),
                         onPressed: () async {
                           await Clipboard.setData(
@@ -532,9 +493,7 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                           );
                         },
                       ),
-                      const SizedBox(
-                        width: 16,
-                      ),
+                      const SizedBox(width: 16),
                       SecondaryButton(
                         label: "Address",
                         width: 160,
@@ -542,9 +501,9 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                         icon: QrCodeIcon(
                           width: 18,
                           height: 18,
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textDark,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.textDark,
                         ),
                         onPressed: () {
                           showDialog<void>(
@@ -561,10 +520,7 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                   ),
                 ),
               ),
-            if (!isDesktop)
-              const SizedBox(
-                height: 24,
-              ),
+            if (!isDesktop) const SizedBox(height: 24),
             ConditionalParent(
               condition: isDesktop,
               builder: (child) => Padding(
@@ -579,9 +535,9 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                   onColor: Theme.of(context).extension<StackColors>()!.popupBG,
                   onText:
                       "Following (${ref.watch(myPaynymAccountStateProvider.state).state?.following.length ?? 0})",
-                  offColor: Theme.of(context)
-                      .extension<StackColors>()!
-                      .textFieldDefaultBG,
+                  offColor: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldDefaultBG,
                   offText:
                       "Followers (${ref.watch(myPaynymAccountStateProvider.state).state?.followers.length ?? 0})",
                   isOn: showFollowers,
@@ -599,9 +555,7 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                 ),
               ),
             ),
-            SizedBox(
-              height: isDesktop ? 20 : 16,
-            ),
+            SizedBox(height: isDesktop ? 20 : 16),
             Expanded(
               child: ConditionalParent(
                 condition: isDesktop,
@@ -610,13 +564,8 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(
-                        width: 490,
-                        child: child,
-                      ),
-                      const SizedBox(
-                        width: 24,
-                      ),
+                      SizedBox(width: 490, child: child),
+                      const SizedBox(width: 24),
                       if (ref
                               .watch(selectedPaynymDetailsItemProvider.state)
                               .state !=
@@ -645,24 +594,16 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                               .watch(selectedPaynymDetailsItemProvider.state)
                               .state !=
                           null)
-                        const SizedBox(
-                          width: 24,
-                        ),
+                        const SizedBox(width: 24),
                     ],
                   ),
                 ),
                 child: ConditionalParent(
                   condition: !isDesktop,
-                  builder: (child) => Container(
-                    child: child,
-                  ),
+                  builder: (child) => Container(child: child),
                   child: !showFollowers
-                      ? PaynymFollowingList(
-                          walletId: widget.walletId,
-                        )
-                      : PaynymFollowersList(
-                          walletId: widget.walletId,
-                        ),
+                      ? PaynymFollowingList(walletId: widget.walletId)
+                      : PaynymFollowersList(walletId: widget.walletId),
                 ),
               ),
             ),
