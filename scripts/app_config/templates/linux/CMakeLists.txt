@@ -68,6 +68,7 @@ endif()
 if(USE_SYSTEM_SECURE_STORAGE_DEPS)
   pkg_check_modules(JSONCPP REQUIRED IMPORTED_TARGET jsoncpp)
   pkg_check_modules(LIBSECRET REQUIRED IMPORTED_TARGET libsecret-1)
+  pkg_check_modules(FONTCONFIG REQUIRED IMPORTED_TARGET fontconfig)
   pkg_get_variable(JSONCPP_LIBDIR jsoncpp libdir)
   pkg_get_variable(LIBSECRET_LIBDIR libsecret-1 libdir)
 else()
@@ -105,7 +106,11 @@ target_link_libraries(${BINARY_NAME} PRIVATE -static-libgcc -static-libstdc++)
 target_link_libraries(${BINARY_NAME} PRIVATE flutter)
 target_link_libraries(${BINARY_NAME} PRIVATE PkgConfig::GTK)
 if(USE_SYSTEM_SECURE_STORAGE_DEPS)
-  target_link_libraries(${BINARY_NAME} PRIVATE PkgConfig::JSONCPP PkgConfig::LIBSECRET)
+  target_link_libraries(${BINARY_NAME} PRIVATE
+    PkgConfig::JSONCPP
+    PkgConfig::LIBSECRET
+    PkgConfig::FONTCONFIG
+  )
 else()
   target_link_libraries(${BINARY_NAME} PRIVATE jsoncpp)
   target_link_libraries(${BINARY_NAME} PRIVATE secret-1)
@@ -126,8 +131,34 @@ set_target_properties(${BINARY_NAME}
 
 # Generated plugin build rules, which manage building the plugins and adding
 # them to the application.
+find_package(OpenCV REQUIRED COMPONENTS core imgproc imgcodecs videoio)
 include(flutter/generated_plugins.cmake)
 
+# The pinned Clang treats nlohmann/json's legacy operators as deprecated.
+if(TARGET flutter_secure_storage_linux_plugin AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  target_compile_options(flutter_secure_storage_linux_plugin PRIVATE
+    -Wno-deprecated-literal-operator
+  )
+endif()
+
+# camera_linux omits its wrapper and OpenCV runtime from its bundle list.
+if(TARGET camera_linux AND TARGET opencv_wrapper)
+  set_target_properties(camera_linux opencv_wrapper PROPERTIES
+    BUILD_RPATH "$ORIGIN"
+    INSTALL_RPATH "$ORIGIN"
+  )
+  list(APPEND PLUGIN_BUNDLED_LIBRARIES
+    $<TARGET_FILE:opencv_wrapper>
+  )
+  foreach(opencv_component core imgproc imgcodecs videoio)
+    if(TARGET opencv_${opencv_component})
+      list(APPEND PLUGIN_BUNDLED_LIBRARIES
+        $<TARGET_FILE:opencv_${opencv_component}>
+        $<TARGET_SONAME_FILE:opencv_${opencv_component}>
+      )
+    endif()
+  endforeach()
+endif()
 
 # === Installation ===
 # By default, "installing" just makes a relocatable bundle in the build

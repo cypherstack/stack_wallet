@@ -86,9 +86,10 @@
 
             linux = pkgs.mkShell {
               buildInputs = with pkgs; [
-                clang cmake ninja pkg-config meson
-                libsecret jsoncpp rustup go
-                gtk3 glib pcre2 util-linux xz
+                clang cmake ninja pkg-config meson patchelf
+                stdenv.cc.cc.lib
+                libsecret jsoncpp opencv4 rustup go
+                gtk3 glib fontconfig libepoxy pcre2 util-linux xz
                 libx11 libxcursor libxrandr libxinerama
                 libxi libxext libxfixes libxrender
                 mesa libGL

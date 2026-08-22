@@ -35,7 +35,10 @@ Microsoft.Windows*
 /.android-sdk/
 /.flutter-sdk/
 /.flutter-sdk-windows/
-/.pub-cache-nix-windows/
+/.go-sdk-windows/
+/.rustup-nix/
+/.rustup-nix-windows/
+/.nix-build-state/
 android/app/.cxx
 android/build/
 

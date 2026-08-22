@@ -50,6 +50,7 @@ case "$platform" in
 esac
 
 export PROJECT_ROOT
+source "$PROJECT_ROOT/go_version.env"
 export NIX_FLAKE_DIR="${PROJECT_ROOT}/nix"
 NIX_FLAKE_REF="path:${NIX_FLAKE_DIR}"
 
@@ -93,12 +94,27 @@ export STACK_NIX_PLATFORM="$platform"
 export STACK_NIX_VERSION="$version"
 export STACK_NIX_BUILD_NUMBER="$build_number"
 export STACK_NIX_PROJECT_ROOT="$PROJECT_ROOT"
+export STACK_NIX_GO_VERSION="$GO_VERSION"
 export STACK_NIX_FLUTTER_ROOT="${PROJECT_ROOT}/.flutter-sdk/flutter"
 
 nix develop "$nix_shell" --command bash -c '
 set -euo pipefail
 export PATH="$STACK_NIX_FLUTTER_ROOT/bin:$PATH"
 export FLUTTER_ROOT="$STACK_NIX_FLUTTER_ROOT"
+export SOURCE_DATE_EPOCH=1
+export PERL_HASH_SEED=0
+export PERL_PERTURB_KEYS=0
+export CI=true
+export FLUTTER_SUPPRESS_ANALYTICS=true
+export DART_SUPPRESS_ANALYTICS=true
+export GOTOOLCHAIN=local
+export GOFLAGS="-modcacherw -trimpath -buildvcs=false"
+go version | grep -F "go version go$STACK_NIX_GO_VERSION "
+if [ "$STACK_NIX_PLATFORM" = linux ]; then
+    export CFLAGS="-Wdate-time -ffile-prefix-map=$STACK_NIX_PROJECT_ROOT=."
+    export CXXFLAGS="$CFLAGS"
+    export LDFLAGS="-Wl,--build-id=sha1"
+fi
 cd "$STACK_NIX_PROJECT_ROOT/scripts"
 printf "yes\n" | ./build_app.sh \
     -v "$STACK_NIX_VERSION" \

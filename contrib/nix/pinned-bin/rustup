@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+: "${STACK_NIX_REAL_RUSTUP:?STACK_NIX_REAL_RUSTUP is required}"
+: "${STACK_NIX_RUST_VERSION:?STACK_NIX_RUST_VERSION is required}"
+
+mapped=()
+for argument in "$@"; do
+  case "$argument" in
+    stable) mapped+=("$STACK_NIX_RUST_VERSION") ;;
+    *) mapped+=("$argument") ;;
+  esac
+done
+
+exec "$STACK_NIX_REAL_RUSTUP" "${mapped[@]}"

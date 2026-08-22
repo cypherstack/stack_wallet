@@ -32,6 +32,6 @@ for dirname in "default_themes" "icon" "lottie" "in_app_logo_icons" "svg"; do
     fi
     cmd.exe /c mklink /D "${LINK_NAME_WIN_PATH_VERSION}\\${dirname}" "${LINK_SOURCE_DIR_WIN_PATH_VERSION}"
   else
-    ln -s "${LINK_SOURCE_DIR}" "${ASSETS_DIR}/${dirname}"
+    ln -s "../asset_sources/${dirname}/${SELECT_ASSETS_DIR}" "${ASSETS_DIR}/${dirname}"
   fi
 done
