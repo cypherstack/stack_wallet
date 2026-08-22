@@ -9,7 +9,8 @@ APP_NAMED_IDS=("stack_wallet" "stack_duo" "campfire")
 
 # Function to display usage.
 usage() {
-    echo "Usage: $0 -v <version> -b <build_number> -p <platform> -a <app> [-d] [-i] [-f] [-s]"
+    echo "Usage: $0 -v <version> -b <build_number> -p <platform> -a <app> [-d] [-i] [-f] [-s] [-x]"
+    echo "  -x  Build with the pinned StageX environment."
     exit 1
 }
 
@@ -35,10 +36,11 @@ unset -v APP_NAMED_ID
 BUILD_CRYPTO_PLUGINS=0
 DOWNLOAD_CRYPTO_PLUGINS=0
 BUILD_ISAR_FROM_SOURCE=0
+BUILD_WITH_STAGEX=0
 USE_SYSTEM_SECURE_STORAGE_DEPS=0
 
 # Parse command-line arguments.
-while getopts "v:b:p:a:idfs" opt; do
+while getopts "v:b:p:a:idfsx" opt; do
     case "${opt}" in
         v) APP_VERSION_STRING="$OPTARG" ;;
         b) APP_BUILD_NUMBER="$OPTARG" ;;
@@ -48,6 +50,7 @@ while getopts "v:b:p:a:idfs" opt; do
         d) DOWNLOAD_CRYPTO_PLUGINS=1 ;;
         f) BUILD_ISAR_FROM_SOURCE=1 ;;
         s) USE_SYSTEM_SECURE_STORAGE_DEPS=1 ;;
+        x) BUILD_WITH_STAGEX=1 ;;
         *) usage ;;
     esac
 done
@@ -73,6 +76,20 @@ if [ -z "$APP_NAMED_ID" ]; then
 fi
 
 confirmDisclaimer
+
+if [ "$BUILD_WITH_STAGEX" -eq 1 ]; then
+    STAGEX_BUILD="${APP_PROJECT_ROOT_DIR}/contrib/stagex/stack-stagex-build"
+    if [ ! -x "$STAGEX_BUILD" ]; then
+        echo "StageX build driver not found at: $STAGEX_BUILD"
+        exit 1
+    fi
+    exec "$STAGEX_BUILD" \
+        --app "$APP_NAMED_ID" \
+        --platform "$APP_BUILD_PLATFORM" \
+        --version "$APP_VERSION_STRING" \
+        --build-number "$APP_BUILD_NUMBER"
+fi
+
 set -x
 
 source "${APP_PROJECT_ROOT_DIR}/scripts/app_config/templates/configure_template_files.sh"

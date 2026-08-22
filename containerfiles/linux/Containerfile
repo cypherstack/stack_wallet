@@ -1,0 +1,153 @@
+FROM stagex/core-ca-certificates@sha256:ea7076d1bb83693fa4766c9cbd8132e59ac0981799fd8b58961c245cd360b66d AS ca-certificates
+
+FROM debian:bookworm-slim@sha256:362e64223cc0da95422b3b13c045186fc0a81250e765d31c025fbddf257f6143
+COPY --from=ca-certificates /etc/ssl/certs/ /etc/ssl/certs/
+
+ENV CC=clang
+ENV CXX=clang++
+ENV SOURCE_DATE_EPOCH=1
+ENV PERL_HASH_SEED=0
+ENV PERL_PERTURB_KEYS=0
+ENV CFLAGS="-Wdate-time -ffile-prefix-map=/workspace=. -ffile-prefix-map=/tmp/opencv=."
+ENV CXXFLAGS="-Wdate-time -ffile-prefix-map=/workspace=. -ffile-prefix-map=/tmp/opencv=."
+ENV LDFLAGS="-Wl,--build-id=sha1"
+
+ARG DEBIAN_SNAPSHOT=20260803T000000Z
+RUN rm -f /etc/apt/sources.list.d/debian.sources \
+    && printf '%s\n' \
+      "deb [check-valid-until=no] https://snapshot.debian.org/archive/debian/${DEBIAN_SNAPSHOT} bookworm main" \
+      > /etc/apt/sources.list \
+    && apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      bash \
+      build-essential \
+      ca-certificates \
+      clang \
+      cmake \
+      curl \
+      git \
+      libgcrypt20-dev \
+      libgl1-mesa-dev \
+      libglib2.0-dev \
+      libgtk-3-dev \
+      liblzma-dev \
+      libsecret-1-dev \
+      libx11-dev \
+      libxcursor-dev \
+      libxext-dev \
+      libxfixes-dev \
+      libxi-dev \
+      libxinerama-dev \
+      libxrandr-dev \
+      libxrender-dev \
+      meson \
+      ninja-build \
+      pkg-config \
+      python3 \
+      unzip \
+      xz-utils \
+    && dpkg-query -W -f='${binary:Package}=${Version}\n' | LC_ALL=C sort \
+      > /usr/local/share/stack-stagex-linux-packages.lock \
+    && rm -rf /var/lib/apt/lists/*
+
+# camera_linux requires OpenCV's CMake package, but Debian's libopencv-dev
+# meta-package installs every module. Build only the four modules Stack uses.
+ARG OPENCV_VERSION=4.6.0
+ARG OPENCV_SHA256=1ec1cba65f9f20fe5a41fda1586e01c70ea0c9a6d7b67c9e13edf0cfe2239277
+RUN curl --fail --location --retry 5 --retry-all-errors \
+      --connect-timeout 30 \
+      --output /tmp/opencv.tar.gz \
+      "https://github.com/opencv/opencv/archive/refs/tags/${OPENCV_VERSION}.tar.gz" \
+    && echo "${OPENCV_SHA256}  /tmp/opencv.tar.gz" | sha256sum -c - \
+    && mkdir -p /tmp/opencv \
+    && tar -xzf /tmp/opencv.tar.gz -C /tmp/opencv --strip-components=1 \
+    && cmake -S /tmp/opencv -B /tmp/opencv/build -G Ninja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=/usr/local \
+      -DBUILD_LIST=core,imgproc,imgcodecs,videoio \
+      -DBUILD_SHARED_LIBS=ON \
+      -DBUILD_JPEG=ON \
+      -DBUILD_PNG=ON \
+      -DBUILD_ZLIB=ON \
+      -DBUILD_DOCS=OFF \
+      -DBUILD_EXAMPLES=OFF \
+      -DBUILD_JAVA=OFF \
+      -DBUILD_opencv_apps=OFF \
+      -DBUILD_opencv_python2=OFF \
+      -DBUILD_opencv_python3=OFF \
+      -DBUILD_opencv_python_bindings_generator=OFF \
+      -DBUILD_PERF_TESTS=OFF \
+      -DBUILD_TESTS=OFF \
+      -DBUILD_WITH_DEBUG_INFO=OFF \
+      -DCPU_BASELINE=SSE3 \
+      -DCPU_DISPATCH= \
+      -DENABLE_PRECOMPILED_HEADERS=OFF \
+      -DOPENCV_ENABLE_NONFREE=OFF \
+      -DOPENCV_GENERATE_PKGCONFIG=OFF \
+      -DOPENCV_SKIP_PYTHON_LOADER=ON \
+      -DVIDEOIO_ENABLE_PLUGINS=OFF \
+      -DWITH_1394=OFF \
+      -DWITH_ADE=OFF \
+      -DWITH_FFMPEG=OFF \
+      -DWITH_GSTREAMER=OFF \
+      -DWITH_GTK=OFF \
+      -DWITH_IPP=OFF \
+      -DWITH_ITT=OFF \
+      -DWITH_JASPER=OFF \
+      -DWITH_JPEG=ON \
+      -DWITH_LAPACK=OFF \
+      -DWITH_OPENCL=OFF \
+      -DWITH_OPENEXR=OFF \
+      -DWITH_PNG=ON \
+      -DWITH_PROTOBUF=OFF \
+      -DWITH_QUIRC=OFF \
+      -DWITH_TIFF=OFF \
+      -DWITH_V4L=ON \
+      -DWITH_WEBP=OFF \
+    && cmake --build /tmp/opencv/build --parallel "$(nproc)" \
+    && cmake --install /tmp/opencv/build \
+    && rm -rf /tmp/opencv /tmp/opencv.tar.gz
+
+ARG GO_VERSION=1.24.1
+ARG GO_SHA256=cb2396bae64183cdccf81a9a6df0aea3bce9511fc21469fb89a0c00470088073
+RUN curl --fail --location --retry 5 --retry-all-errors \
+      --connect-timeout 30 \
+      --output /tmp/go.tar.gz \
+      "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" \
+    && echo "${GO_SHA256}  /tmp/go.tar.gz" | sha256sum -c - \
+    && tar -xzf /tmp/go.tar.gz -C /usr/local \
+    && rm /tmp/go.tar.gz
+ENV PATH="/usr/local/go/bin:$PATH"
+ENV GOTOOLCHAIN=local
+ENV GOFLAGS="-modcacherw -trimpath -buildvcs=false"
+
+# Cargokit names the moving stable channel; bind it to Stack's exact toolchain.
+ENV RUSTUP_HOME=/opt/rustup
+ENV CARGO_HOME=/tmp/stagex-cargo
+ENV PATH="/usr/local/bin:/opt/cargo/bin:$PATH"
+RUN curl --fail --location --retry 5 --retry-all-errors \
+      --output /tmp/rustup-init \
+      "https://static.rust-lang.org/rustup/archive/1.28.2/x86_64-unknown-linux-gnu/rustup-init" \
+    && echo "20a06e644b0d9bd2fbdbfd52d42540bdde820ea7df86e92e533c073da0cdd43c  /tmp/rustup-init" | sha256sum -c - \
+    && chmod +x /tmp/rustup-init \
+    && CARGO_HOME=/opt/cargo /tmp/rustup-init -y --profile minimal --default-toolchain none \
+    && CARGO_HOME=/opt/cargo /opt/cargo/bin/rustup set auto-self-update disable \
+    && CARGO_HOME=/opt/cargo /opt/cargo/bin/rustup toolchain install 1.91.0 --profile minimal \
+    && chmod 1777 /opt/rustup/tmp \
+    && mkdir -p /usr/local/bin \
+    && printf '%s\n' \
+      '#!/usr/bin/env bash' \
+      'set -euo pipefail' \
+      'mapped=()' \
+      'for argument in "$@"; do' \
+      '  case "$argument" in stable) mapped+=(1.91.0) ;; *) mapped+=("$argument") ;; esac' \
+      'done' \
+      'exec /opt/cargo/bin/rustup "${mapped[@]}"' \
+      > /usr/local/bin/rustup \
+    && chmod +x /usr/local/bin/rustup \
+    && rm /tmp/rustup-init
+
+ENV PATH="/flutter/bin:$PATH"
+ENV FLUTTER_ROOT=/flutter
+
+WORKDIR /workspace

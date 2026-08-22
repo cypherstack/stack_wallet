@@ -1,0 +1,7 @@
+StageX package commit: e3c48ca84f9a04fb5faff6f3109a994e7dcbce80
+Upstream image project: https://codeberg.org/stagex/stagex.git
+Upstream image commit at pin time: 9bdf430d09ce2ba53932df0182faef00d4feecd1
+
+The checked-in build drivers and container definitions were derived from the
+StageX package at the exact package commit above. They are self-contained so a
+private or mutable package checkout is not a release-build input.

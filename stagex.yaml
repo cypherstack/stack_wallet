@@ -1,0 +1,100 @@
+# StageX build inputs for Stack Wallet.
+
+project:
+  name: stack_wallet
+
+flutter:
+  version: "3.44.8"
+  channel: stable
+  checksums:
+    linux_x64: "672089e001571a9fbb209a495c583580c0c6c73ef98999264ba07fa93ace332d"
+    macos_x64: "b2f765234217327a5859d046c9f3b167387b61da5408b5866ed448d905877c66"
+    macos_arm64: "c3d6fe95078f7001d947a31d42527de91d5bfe62e4cf444a1493a2e8f1fb199d"
+    windows_x64: "095c108a08e0377d8a6501fed65aeb288908a070ed3f135e525dc6431c7686e4"
+
+stagex:
+  upstream_commit: "9bdf430d09ce2ba53932df0182faef00d4feecd1"
+  debian_snapshot: "20260803T000000Z"
+  images:
+    debian-bookworm-slim:
+      ref: debian:bookworm-slim
+      digest: "sha256:362e64223cc0da95422b3b13c045186fc0a81250e765d31c025fbddf257f6143"
+    ca-certificates:
+      ref: stagex/core-ca-certificates
+      digest: "sha256:ea7076d1bb83693fa4766c9cbd8132e59ac0981799fd8b58961c245cd360b66d"
+
+toolchains:
+  go:
+    version: "1.24.1"
+    linux_x64_sha256: "cb2396bae64183cdccf81a9a6df0aea3bce9511fc21469fb89a0c00470088073"
+    darwin_x64_sha256: "addbfce2056744962e2d7436313ab93486660cf7a2e066d171b9d6f2da7c7abe"
+    darwin_arm64_sha256: "295581b5619acc92f5106e5bcb05c51869337eb19742fdfa6c8346c18e78ff88"
+    windows_x64_sha256: "95666b551453209a2b8869d29d177285ff9573af10f085d961d7ae5440f645ce"
+  rustup:
+    version: "1.28.2"
+    linux_x64_sha256: "20a06e644b0d9bd2fbdbfd52d42540bdde820ea7df86e92e533c073da0cdd43c"
+  rust:
+    version: "1.91.0"
+  jdk:
+    version: "17.0.14+7"
+    linux_x64_sha256: "a3af83983fb94dd7d11b13ba2dba0fb6819dc2caaf87e6937afd22ad4680ae9a"
+  opencv:
+    version: "4.6.0"
+    source_sha256: "1ec1cba65f9f20fe5a41fda1586e01c70ea0c9a6d7b67c9e13edf0cfe2239277"
+
+platforms:
+  linux:
+    containerfile: containerfiles/linux/Containerfile
+    build:
+      command: flutter build linux --release
+      output: build/linux/x64/release/bundle
+    env:
+      SOURCE_DATE_EPOCH: "1"
+      PERL_HASH_SEED: "0"
+      PERL_PERTURB_KEYS: "0"
+      CFLAGS: "-Wdate-time -ffile-prefix-map=/workspace=."
+      CXXFLAGS: "-Wdate-time -ffile-prefix-map=/workspace=."
+      LDFLAGS: "-Wl,--build-id=sha1"
+  android:
+    containerfile: containerfiles/android/Containerfile
+    build:
+      command: flutter build apk --release
+      output: build/app/outputs/flutter-apk/app-release.apk
+    sdk:
+      cmdline_tools_build: "14742923"
+      cmdline_tools_sha256: "04453066b540409d975c676d781da1477479dde3761310f1a7eb92a1dfb15af7"
+      platform_version: android-36
+      build_tools_version: "35.0.0"
+      ndk_version: "28.2.13676358"
+    env:
+      SOURCE_DATE_EPOCH: "1"
+      PERL_HASH_SEED: "0"
+      PERL_PERTURB_KEYS: "0"
+      STACK_ALLOW_UNSIGNED_ANDROID: "1"
+  macos:
+    host: macos
+    build:
+      command: flutter build macos --release
+      output: build/macos/Build/Products/Release/Stack Wallet.app
+    env:
+      SOURCE_DATE_EPOCH: "1"
+      PERL_HASH_SEED: "0"
+      PERL_PERTURB_KEYS: "0"
+  ios:
+    host: macos
+    build:
+      command: flutter build ios --release --no-codesign
+      output: build/ios/iphoneos/Runner.app
+    env:
+      SOURCE_DATE_EPOCH: "1"
+      PERL_HASH_SEED: "0"
+      PERL_PERTURB_KEYS: "0"
+  windows:
+    host: windows-wsl
+    build:
+      command: contrib/stagex/scripts/build-windows.sh
+      output: build/windows/x64/runner/Release
+    env:
+      SOURCE_DATE_EPOCH: "1"
+      PERL_HASH_SEED: "0"
+      PERL_PERTURB_KEYS: "0"

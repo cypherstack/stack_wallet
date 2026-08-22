@@ -13,13 +13,23 @@ APP_BUILD_PLATFORM=$1
 pushd "${APP_PROJECT_ROOT_DIR}"
 YAML_FILE="${APP_PROJECT_ROOT_DIR}/scripts/app_config/platforms/${APP_BUILD_PLATFORM}/flutter_launcher_icons.yaml"
 if [[ "${APP_BUILD_PLATFORM}" = 'windows' ]]; then
-  cmd.exe /c flutter pub get
   if command -v cygpath >/dev/null 2>&1; then
     WIN_PATH_VERSION=$(cygpath -w "${YAML_FILE}")
   else
     WIN_PATH_VERSION=$(wslpath -w "${YAML_FILE}")
   fi
-  cmd.exe /c dart run flutter_launcher_icons -f "${WIN_PATH_VERSION}"
+  if [[ -n "${WINDOWS_FLUTTER_EXE:-}" && -n "${WINDOWS_DART_EXE:-}" ]]; then
+    # shellcheck disable=SC2016 # PowerShell expands these expressions.
+    powershell.exe -NoLogo -NoProfile -NonInteractive -Command \
+      '& $env:WINDOWS_FLUTTER_EXE pub get; if ($LASTEXITCODE) { exit $LASTEXITCODE }'
+    # shellcheck disable=SC2016 # PowerShell expands these expressions.
+    powershell.exe -NoLogo -NoProfile -NonInteractive -Command \
+      '& $env:WINDOWS_DART_EXE run flutter_launcher_icons -f $args[0]; exit $LASTEXITCODE' \
+      "${WIN_PATH_VERSION}"
+  else
+    cmd.exe /c flutter pub get
+    cmd.exe /c dart run flutter_launcher_icons -f "${WIN_PATH_VERSION}"
+  fi
   # not needed in windows
 #  cmd.exe /c dart run flutter_native_splash:create
 else

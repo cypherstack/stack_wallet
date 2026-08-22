@@ -32,6 +32,17 @@ Microsoft.Windows*
 .pub-cache/
 .pub/
 /build/
+/.android-sdk/
+/.flutter-sdk/
+/.flutter-sdk-windows/
+/.go-sdk/
+/.go-sdk-windows/
+/.rustup-stagex/
+/.rustup-stagex-windows/
+/.stagex-build-state/
+/.stagex-pin-timestamp
+/attestations/
+/dist/
 android/app/.cxx
 android/build/
 

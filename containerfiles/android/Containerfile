@@ -1,0 +1,97 @@
+# Android builds use Debian as the base image (not StageX musl pallet).
+# Reason: JDK/Gradle are glibc-linked and cannot run under musl due to
+# VDSO and symbol versioning conflicts at the kernel interface level.
+# Android NDK provides its own cross-compiler, so StageX build tools
+# (clang/cmake) are not needed.
+
+FROM stagex/core-ca-certificates@sha256:ea7076d1bb83693fa4766c9cbd8132e59ac0981799fd8b58961c245cd360b66d AS ca-certificates
+
+FROM debian:bookworm-slim@sha256:362e64223cc0da95422b3b13c045186fc0a81250e765d31c025fbddf257f6143
+COPY --from=ca-certificates /etc/ssl/certs/ /etc/ssl/certs/
+
+ARG DEBIAN_SNAPSHOT=20260803T000000Z
+RUN rm -f /etc/apt/sources.list.d/debian.sources \
+    && printf '%s\n' \
+      "deb [check-valid-until=no] https://snapshot.debian.org/archive/debian/${DEBIAN_SNAPSHOT} bookworm main" \
+      > /etc/apt/sources.list \
+    && apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      bash \
+      build-essential \
+      ca-certificates \
+      curl \
+      git \
+      python3 \
+      unzip \
+    && dpkg-query -W -f='${binary:Package}=${Version}\n' | LC_ALL=C sort \
+      > /usr/local/share/stack-stagex-android-packages.lock \
+    && rm -rf /var/lib/apt/lists/*
+
+# Eclipse Temurin JDK 17 LTS (pinned by SHA-256)
+RUN mkdir -p /opt/java/openjdk \
+    && curl -fSL --retry 5 --retry-all-errors --connect-timeout 30 \
+      -o /tmp/jdk.tar.gz \
+      "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.14%2B7/OpenJDK17U-jdk_x64_linux_hotspot_17.0.14_7.tar.gz" \
+    && echo "a3af83983fb94dd7d11b13ba2dba0fb6819dc2caaf87e6937afd22ad4680ae9a  /tmp/jdk.tar.gz" | sha256sum -c - \
+    && tar -xzf /tmp/jdk.tar.gz -C /opt/java/openjdk --strip-components=1 \
+    && rm /tmp/jdk.tar.gz
+
+# flutter_mwebd builds its Android native library with Go.
+ARG GO_VERSION=1.24.1
+ARG GO_SHA256=cb2396bae64183cdccf81a9a6df0aea3bce9511fc21469fb89a0c00470088073
+RUN curl --fail --location --retry 5 --retry-all-errors \
+      --connect-timeout 30 \
+      --output /tmp/go.tar.gz \
+      "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" \
+    && echo "${GO_SHA256}  /tmp/go.tar.gz" | sha256sum -c - \
+    && tar -xzf /tmp/go.tar.gz -C /usr/local \
+    && rm /tmp/go.tar.gz
+ENV PATH="/usr/local/go/bin:$PATH"
+ENV GOTOOLCHAIN=local
+ENV GOFLAGS="-modcacherw -trimpath -buildvcs=false"
+ENV SOURCE_DATE_EPOCH=1
+ENV PERL_HASH_SEED=0
+ENV PERL_PERTURB_KEYS=0
+
+# Cargokit requires rustup and the Android Rust targets.
+ENV RUSTUP_HOME=/opt/rustup
+ENV CARGO_HOME=/tmp/stagex-cargo
+ENV PATH="/usr/local/bin:/opt/cargo/bin:$PATH"
+RUN curl --fail --location --retry 5 --retry-all-errors \
+      --output /tmp/rustup-init \
+      "https://static.rust-lang.org/rustup/archive/1.28.2/x86_64-unknown-linux-gnu/rustup-init" \
+    && echo "20a06e644b0d9bd2fbdbfd52d42540bdde820ea7df86e92e533c073da0cdd43c  /tmp/rustup-init" | sha256sum -c - \
+    && chmod +x /tmp/rustup-init \
+    && CARGO_HOME=/opt/cargo /tmp/rustup-init -y --profile minimal --default-toolchain none \
+    && CARGO_HOME=/opt/cargo /opt/cargo/bin/rustup set auto-self-update disable \
+    && CARGO_HOME=/opt/cargo /opt/cargo/bin/rustup toolchain install 1.91.0 --profile minimal \
+      --target armv7-linux-androideabi \
+      --target aarch64-linux-android \
+      --target x86_64-linux-android \
+    && chmod 1777 /opt/rustup/tmp \
+    && mkdir -p /usr/local/bin \
+    && printf '%s\n' \
+      '#!/usr/bin/env bash' \
+      'set -euo pipefail' \
+      'mapped=()' \
+      'for argument in "$@"; do' \
+      '  case "$argument" in stable) mapped+=(1.91.0) ;; *) mapped+=("$argument") ;; esac' \
+      'done' \
+      'exec /opt/cargo/bin/rustup "${mapped[@]}"' \
+      > /usr/local/bin/rustup \
+    && chmod +x /usr/local/bin/rustup \
+    && rm /tmp/rustup-init
+
+RUN mkdir -p /tmp/flutter-home/.android /tmp/gradle-home && chmod -R 777 /tmp/flutter-home /tmp/gradle-home
+ENV HOME=/tmp/flutter-home
+ENV GRADLE_USER_HOME=/tmp/gradle-home
+ENV JAVA_TOOL_OPTIONS="-Duser.home=/tmp/flutter-home"
+
+ENV JAVA_HOME=/opt/java/openjdk
+ENV PATH="$JAVA_HOME/bin:/flutter/bin:$PATH"
+ENV FLUTTER_ROOT="/flutter"
+ENV ANDROID_HOME=/android-sdk
+# Reproducibility: disable Gradle daemon and build cache
+ENV GRADLE_OPTS="-Dorg.gradle.daemon=false -Dorg.gradle.caching=false"
+
+WORKDIR /workspace

@@ -1,0 +1,16 @@
+# StageX local state and build outputs
+.git
+.dart_tool
+.stagex
+.flutter-sdk
+.flutter-sdk-windows
+.android-sdk
+.android-home
+.pub-cache-stagex-windows
+build
+attestations
+dist
+android/key.properties
+**/*.jks
+**/*.keystore
+lib/external_api_keys.dart

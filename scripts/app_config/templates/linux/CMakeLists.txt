@@ -126,8 +126,27 @@ set_target_properties(${BINARY_NAME}
 
 # Generated plugin build rules, which manage building the plugins and adding
 # them to the application.
+find_package(OpenCV REQUIRED COMPONENTS core imgproc imgcodecs videoio)
 include(flutter/generated_plugins.cmake)
 
+# camera_linux omits its wrapper and OpenCV runtime from its bundle list.
+if(TARGET camera_linux AND TARGET opencv_wrapper)
+  set_target_properties(camera_linux opencv_wrapper PROPERTIES
+    BUILD_RPATH "$ORIGIN"
+    INSTALL_RPATH "$ORIGIN"
+  )
+  list(APPEND PLUGIN_BUNDLED_LIBRARIES
+    $<TARGET_FILE:opencv_wrapper>
+  )
+  foreach(opencv_component core imgproc imgcodecs videoio)
+    if(TARGET opencv_${opencv_component})
+      list(APPEND PLUGIN_BUNDLED_LIBRARIES
+        $<TARGET_FILE:opencv_${opencv_component}>
+        $<TARGET_SONAME_FILE:opencv_${opencv_component}>
+      )
+    endif()
+  endforeach()
+endif()
 
 # === Installation ===
 # By default, "installing" just makes a relocatable bundle in the build
