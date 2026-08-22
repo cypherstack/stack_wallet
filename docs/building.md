@@ -286,22 +286,11 @@ if `xcodebuild` reports no available simulator destinations or
 "iOS <version> is not installed", install the matching simulator runtime
 with `xcodebuild -downloadPlatform iOS`.
 
-The simulator-enabled forks of `flutter_mwebd`,
-`cs_monero_flutter_libs_ios`, `cs_wownero_flutter_libs_ios`, and
-`flutter_libsparkmobile` are wired in with `dependency_overrides` in the
-(generated, untracked) `pubspec.yaml`, e.g. as sibling checkouts:
-
-```yaml
-dependency_overrides:
-  flutter_mwebd:
-    path: ../flutter_mwebd
-  cs_monero_flutter_libs_ios:
-    path: ../cs_monero/cs_monero_flutter_libs_ios
-  cs_wownero_flutter_libs_ios:
-    path: ../cs_wownero/cs_wownero_flutter_libs_ios
-  flutter_libsparkmobile:
-    path: ../flutter_libsparkmobile-ios-sim
-```
+The simulator-enabled `flutter_mwebd`, `cs_monero_flutter_libs_ios`, and
+`cs_wownero_flutter_libs_ios` changes are pinned to their review commits in
+the app-config template. Update those refs to their merged commits or package
+releases before readying this PR. `flutter_libsparkmobile` already ships its
+simulator slice and needs no local override.
 
 Then run against a booted simulator as usual (`flutter run`).
 

@@ -356,6 +356,29 @@ dependency_overrides:
   freezed: ^3.1.0
   freezed_annotation: ^3.1.0
 
+# %%ENABLE_XMR%%
+#  cs_monero_flutter_libs_ios:
+#    git:
+#      url: https://github.com/cypherstack/cs_monero
+#      path: cs_monero_flutter_libs_ios
+#      ref: d89ab9f9bc18fa610c8bd629ad8fbbfc7a0c6d5b
+# %%END_ENABLE_XMR%%
+
+# %%ENABLE_WOW%%
+#  cs_wownero_flutter_libs_ios:
+#    git:
+#      url: https://github.com/cypherstack/cs_wownero
+#      path: cs_wownero_flutter_libs_ios
+#      ref: 8cf5b879126dd8f11bde632ef8e7d2f088d95988
+# %%END_ENABLE_WOW%%
+
+# %%ENABLE_MWEBD%%
+#  flutter_mwebd:
+#    git:
+#      url: https://github.com/cypherstack/flutter_mwebd
+#      ref: 17dc80f56abd055c96b4e064b7bb6e06f1ef8233
+# %%END_ENABLE_MWEBD%%
+
 # %%ENABLE_ISAR%%
 #  isar_community:
 #    git:
