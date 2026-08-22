@@ -1,0 +1,137 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+
+app=""
+platform=""
+version=""
+build_number=""
+
+usage() {
+    echo "Usage: $0 --app APP --platform PLATFORM --version VERSION --build-number NUMBER" >&2
+    exit 64
+}
+
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        --app) app="${2:-}"; shift 2 ;;
+        --platform) platform="${2:-}"; shift 2 ;;
+        --version) version="${2:-}"; shift 2 ;;
+        --build-number) build_number="${2:-}"; shift 2 ;;
+        -h|--help) usage ;;
+        *) usage ;;
+    esac
+done
+
+[ -n "$app" ] && [ -n "$platform" ] &&
+    [ -n "$version" ] && [[ "$build_number" =~ ^[0-9]+$ ]] || usage
+
+case "$platform" in
+    linux|android|macos|ios|windows) ;;
+    *) echo "Unsupported Nix target: $platform" >&2; exit 64 ;;
+esac
+
+case "$platform" in
+    macos|ios)
+        [ "$(uname -s)" = Darwin ] || {
+            echo "$platform builds require a macOS host with Xcode." >&2
+            exit 69
+        }
+        ;;
+    windows)
+        grep -qi microsoft /proc/sys/kernel/osrelease 2>/dev/null || {
+            echo "Windows builds require WSL with PowerShell interop." >&2
+            exit 69
+        }
+        ;;
+esac
+
+export PROJECT_ROOT
+export NIX_FLAKE_DIR="${PROJECT_ROOT}/nix"
+NIX_FLAKE_REF="path:${NIX_FLAKE_DIR}"
+
+case "$platform" in
+    linux)
+        "${SCRIPT_DIR}/scripts/fetch-flutter-linux.sh"
+        nix_shell="${NIX_FLAKE_REF}#linux"
+        ;;
+    android)
+        case "$(uname -s)" in
+            Darwin) "${SCRIPT_DIR}/scripts/fetch-flutter.sh" ;;
+            Linux) "${SCRIPT_DIR}/scripts/fetch-flutter-linux.sh" ;;
+        esac
+        nix_shell="${NIX_FLAKE_REF}#android"
+        nix develop "${NIX_FLAKE_REF}#android" --command \
+            "${SCRIPT_DIR}/scripts/fetch-android-sdk.sh"
+        ;;
+    macos)
+        "${SCRIPT_DIR}/scripts/fetch-flutter.sh"
+        nix_shell="${NIX_FLAKE_REF}"
+        ;;
+    ios)
+        "${SCRIPT_DIR}/scripts/fetch-flutter.sh"
+        nix_shell="${NIX_FLAKE_REF}"
+        ;;
+    windows)
+        "${SCRIPT_DIR}/scripts/fetch-flutter-linux.sh"
+        powershell.exe -NoLogo -NoProfile -NonInteractive \
+            -ExecutionPolicy Bypass \
+            -File "$(wslpath -w "${SCRIPT_DIR}/scripts/fetch-flutter-windows.ps1")" \
+            -ProjectRoot "$(wslpath -w "$PROJECT_ROOT")" >/dev/null
+        export WINDOWS_FLUTTER_EXE="${PROJECT_ROOT}/.flutter-sdk-windows/flutter/bin/flutter.bat"
+        export WINDOWS_DART_EXE="${PROJECT_ROOT}/.flutter-sdk-windows/flutter/bin/dart.bat"
+        export WSLENV="${WSLENV:+${WSLENV}:}WINDOWS_FLUTTER_EXE/p:WINDOWS_DART_EXE/p"
+        nix_shell="${NIX_FLAKE_REF}#windows"
+        ;;
+esac
+
+export STACK_NIX_APP="$app"
+export STACK_NIX_PLATFORM="$platform"
+export STACK_NIX_VERSION="$version"
+export STACK_NIX_BUILD_NUMBER="$build_number"
+export STACK_NIX_PROJECT_ROOT="$PROJECT_ROOT"
+export STACK_NIX_FLUTTER_ROOT="${PROJECT_ROOT}/.flutter-sdk/flutter"
+
+nix develop "$nix_shell" --command bash -c '
+set -euo pipefail
+export PATH="$STACK_NIX_FLUTTER_ROOT/bin:$PATH"
+export FLUTTER_ROOT="$STACK_NIX_FLUTTER_ROOT"
+cd "$STACK_NIX_PROJECT_ROOT/scripts"
+printf "yes\n" | ./build_app.sh \
+    -v "$STACK_NIX_VERSION" \
+    -b "$STACK_NIX_BUILD_NUMBER" \
+    -p "$STACK_NIX_PLATFORM" \
+    -a "$STACK_NIX_APP" \
+    -d -s
+
+plugin_version() {
+    local plugin="$1"
+    local version
+    version="$(git -C "$plugin" describe --tags --exact-match HEAD 2>/dev/null || true)"
+    [[ "$version" =~ ^[A-Za-z0-9._+-]+$ ]] || version=dev
+    printf "%s" "$version"
+}
+
+epic_dir="$STACK_NIX_PROJECT_ROOT/crypto_plugins/flutter_libepiccash"
+mwc_dir="$STACK_NIX_PROJECT_ROOT/crypto_plugins/flutter_libmwc"
+mkdir -p "$epic_dir/lib" "$mwc_dir/lib"
+printf "String getPluginVersion() => \"%s\";\n" \
+    "$(plugin_version "$epic_dir")" > "$epic_dir/lib/git_versions.dart"
+printf "String getPluginVersion() => \"%s\";\n" \
+    "$(plugin_version "$mwc_dir")" > "$mwc_dir/lib/git_versions.dart"
+./prebuild.sh
+'
+
+case "$platform" in
+    linux) "${SCRIPT_DIR}/scripts/build-linux.sh" ;;
+    android) "${SCRIPT_DIR}/scripts/build-android.sh" ;;
+    macos) "${SCRIPT_DIR}/scripts/build-macos.sh" ;;
+    ios) "${SCRIPT_DIR}/scripts/build-ios.sh" ;;
+    windows)
+        nix develop "${NIX_FLAKE_REF}#windows" --command \
+            "${SCRIPT_DIR}/scripts/build-windows.sh"
+        ;;
+esac

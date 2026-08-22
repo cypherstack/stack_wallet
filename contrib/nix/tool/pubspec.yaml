@@ -1,0 +1,12 @@
+name: stack_wallet_nix_tool
+publish_to: none
+
+environment:
+  sdk: ^3.12.0
+
+dependencies:
+  nix:
+    git:
+      url: https://github.com/ManyMath/nix.git
+      ref: 87a0eb51612c307c583f75803d9cd1c3593875f9
+      path: packages/nix

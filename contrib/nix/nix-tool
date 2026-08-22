@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+TOOL_DIR="${SCRIPT_DIR}/tool"
+DART="${DART:-${PROJECT_ROOT}/.flutter-sdk/flutter/bin/dart}"
+
+if [ ! -x "$DART" ]; then
+    DART="$(command -v dart || true)"
+fi
+[ -n "$DART" ] || {
+    echo "Dart not found. Fetch the pinned Flutter SDK first." >&2
+    exit 69
+}
+
+(
+    cd "$TOOL_DIR"
+    "$DART" pub get --enforce-lockfile >/dev/null
+)
+
+cd "$PROJECT_ROOT"
+exec "$DART" --packages="${TOOL_DIR}/.dart_tool/package_config.json" \
+    "${TOOL_DIR}/bin/nix_tool.dart" "$@"

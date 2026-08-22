@@ -7,9 +7,16 @@ plugins {
 
 def keystoreProperties = new Properties()
 def keystorePropertiesFile = rootProject.file('key.properties')
+def allowUnsignedRelease = System.getenv('STACK_ALLOW_UNSIGNED_ANDROID') == '1'
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+    ['keyAlias', 'keyPassword', 'storeFile', 'storePassword'].each { property ->
+        if (!keystoreProperties[property]) {
+            throw new GradleException("Missing ${property} in android/key.properties")
+        }
+    }
 }
+def releaseSigningConfigured = keystorePropertiesFile.exists()
 
 android {
     namespace "com.place.holder"
@@ -61,16 +68,20 @@ android {
 
     signingConfigs {
         release {
-            keyAlias keystoreProperties['keyAlias']
-            keyPassword keystoreProperties['keyPassword']
-            storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
-            storePassword keystoreProperties['storePassword']
+            if (releaseSigningConfigured) {
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+            }
         }
     }
 
     buildTypes {
         release {
-            signingConfig signingConfigs.release
+            if (releaseSigningConfigured || !allowUnsignedRelease) {
+                signingConfig signingConfigs.release
+            }
             ndk {
                 debugSymbolLevel 'FULL'
             }

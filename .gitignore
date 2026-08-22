@@ -32,6 +32,10 @@ Microsoft.Windows*
 .pub-cache/
 .pub/
 /build/
+/.android-sdk/
+/.flutter-sdk/
+/.flutter-sdk-windows/
+/.pub-cache-nix-windows/
 android/app/.cxx
 android/build/
 
@@ -74,6 +78,7 @@ secp256k1.dll
 ## other generated project files
 
 pubspec.yaml
+!/contrib/nix/tool/pubspec.yaml
 
 /android/app/build.gradle
 /android/app/src/debug/AndroidManifest.xml

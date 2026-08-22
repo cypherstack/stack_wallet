@@ -1,0 +1,57 @@
+# nix.yaml: reproducible build configuration
+# Docs: https://pub.dev/packages/nix
+
+project:
+  name: stack_wallet
+
+flutter:
+  version: "3.44.8"
+  channel: stable
+  checksums:
+    macos_x64: "b2f765234217327a5859d046c9f3b167387b61da5408b5866ed448d905877c66"
+    macos_arm64: "c3d6fe95078f7001d947a31d42527de91d5bfe62e4cf444a1493a2e8f1fb199d"
+    linux_x64: "672089e001571a9fbb209a495c583580c0c6c73ef98999264ba07fa93ace332d"
+    linux_arm64: ""
+
+nix:
+  flake: nix
+
+platforms:
+  macos:
+    shell: default
+    build:
+      command: flutter build macos --release
+      output: build/macos/Build/Products/Release/
+  ios:
+    shell: default
+    build:
+      command: flutter build ios --release --no-codesign
+      output: build/ios/iphoneos/Runner.app
+  linux:
+    shell: linux
+    build:
+      command: flutter build linux --release
+      output: build/linux/x64/release/bundle/
+  android:
+    shell: android
+    sdk:
+      cmdline_tools_build: "14742923"
+      cmdline_tools_sha256_linux: "04453066b540409d975c676d781da1477479dde3761310f1a7eb92a1dfb15af7"
+      cmdline_tools_sha256_macos: "ed304c5ede3718541e4f978e4ae870a4d853db74af6c16d920588d48523b9dee"
+      platform_tools_version: "37.0.1"
+      platform_tools_sha256_linux: "d230f13842f60f782a8645f9c813f8f845bf36089ea7289f28c48f17979313f1"
+      platform_tools_sha256_macos: "ee39ad5967e95c2a07f04dbcbde96b1a0c916ba376096db5d2f498b7727a5d1d"
+      platform_tools_sha256_windows: "45f4d63113e895ebde0c90f194099a4676b6ac653bd28d54314a9e022bbc1a99"
+      platform_versions: [android-32, android-33, android-34, android-35, android-36]
+      build_tools_version: "35.0.0"
+      ndk_version: "28.2.13676358"
+      plugin_ndk_version: "28.0.13004108"
+      cmake_version: "3.22.1"
+    build:
+      command: flutter build apk --release
+      output: build/app/outputs/flutter-apk/app-release.apk
+  windows:
+    shell: windows
+    build:
+      command: contrib/nix/scripts/build-windows.sh
+      output: build/windows/x64/runner/Release/
