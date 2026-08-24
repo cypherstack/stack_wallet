@@ -82,19 +82,17 @@ class _DesktopWalletAddressesViewState
               const SizedBox(width: 32),
               AppBarIconButton(
                 size: 32,
-                color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultBG,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.textFieldDefaultBG,
                 shadows: const [],
                 icon: SvgPicture.asset(
                   Assets.svg.arrowLeft,
                   width: 18,
                   height: 18,
-                  color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()!.topNavIconPrimary,
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.topNavIconPrimary,
                 ),
                 onPressed: Navigator.of(context).pop,
               ),
@@ -135,10 +133,9 @@ class _DesktopWalletAddressesViewState
                                   "currentDesktopAddressDetails_key_${ref.watch(desktopSelectedAddressId.state).state}",
                                 ),
                                 walletId: widget.walletId,
-                                addressId:
-                                    ref
-                                        .watch(desktopSelectedAddressId.state)
-                                        .state!,
+                                addressId: ref
+                                    .watch(desktopSelectedAddressId.state)
+                                    .state!,
                               ),
                             ),
                           ),

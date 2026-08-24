@@ -82,24 +82,23 @@ class _WalletAddressesViewState extends ConsumerState<WalletAddressesView> {
           .findAll();
     }
 
-    final labels =
-        await MainDB.instance
-            .getAddressLabels(widget.walletId)
-            .filter()
-            .group(
-              (q) => q
-                  .valueContains(term, caseSensitive: false)
-                  .or()
-                  .addressStringContains(term, caseSensitive: false)
-                  .or()
-                  .group(
-                    (q) => q.tagsIsNotNull().and().tagsElementContains(
-                      term,
-                      caseSensitive: false,
-                    ),
-                  ),
-            )
-            .findAll();
+    final labels = await MainDB.instance
+        .getAddressLabels(widget.walletId)
+        .filter()
+        .group(
+          (q) => q
+              .valueContains(term, caseSensitive: false)
+              .or()
+              .addressStringContains(term, caseSensitive: false)
+              .or()
+              .group(
+                (q) => q.tagsIsNotNull().and().tagsElementContains(
+                  term,
+                  caseSensitive: false,
+                ),
+              ),
+        )
+        .findAll();
 
     if (labels.isEmpty) {
       return [];
@@ -163,30 +162,29 @@ class _WalletAddressesViewState extends ConsumerState<WalletAddressesView> {
 
     return ConditionalParent(
       condition: !isDesktop,
-      builder:
-          (child) => Background(
-            child: Scaffold(
-              backgroundColor:
-                  Theme.of(context).extension<StackColors>()!.background,
-              appBar: AppBar(
-                backgroundColor:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()!.backgroundAppBar,
-                leading: AppBarBackButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-                titleSpacing: 0,
-                title: Text(
-                  "Wallet addresses",
-                  style: STextStyles.navBarTitle(context),
-                ),
-              ),
-              body: Padding(padding: const EdgeInsets.all(16), child: child),
+      builder: (child) => Background(
+        child: Scaffold(
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.background,
+          appBar: AppBar(
+            backgroundColor: Theme.of(
+              context,
+            ).extension<StackColors>()!.backgroundAppBar,
+            leading: AppBarBackButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            titleSpacing: 0,
+            title: Text(
+              "Wallet addresses",
+              style: STextStyles.navBarTitle(context),
             ),
           ),
+          body: Padding(padding: const EdgeInsets.all(16), child: child),
+        ),
+      ),
       child: SafeArea(
         child: Column(
           children: [
@@ -268,21 +266,20 @@ class _WalletAddressesViewState extends ConsumerState<WalletAddressesView> {
                     return ListView.separated(
                       itemCount: snapshot.data!.length,
                       separatorBuilder: (_, __) => Container(height: 10),
-                      itemBuilder:
-                          (_, index) => AddressCard(
-                            walletId: widget.walletId,
-                            addressId: snapshot.data![index],
-                            coin: coin,
-                            onPressed: () {
-                              Navigator.of(context).pushNamed(
-                                AddressDetailsView.routeName,
-                                arguments: Tuple2(
-                                  snapshot.data![index],
-                                  widget.walletId,
-                                ),
-                              );
-                            },
-                          ),
+                      itemBuilder: (_, index) => AddressCard(
+                        walletId: widget.walletId,
+                        addressId: snapshot.data![index],
+                        coin: coin,
+                        onPressed: () {
+                          Navigator.of(context).pushNamed(
+                            AddressDetailsView.routeName,
+                            arguments: Tuple2(
+                              snapshot.data![index],
+                              widget.walletId,
+                            ),
+                          );
+                        },
+                      ),
                     );
                   } else {
                     return const Center(
