@@ -14,6 +14,7 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 
 import '../app_config.dart';
+import 'flatpak_data_directory.dart';
 import 'prefs.dart';
 import 'util.dart';
 
@@ -33,6 +34,30 @@ abstract class StackFileSystem {
   static bool get _createSubDirs =>
       Util.isDesktop || AppConfig.appName == "Campfire";
 
+  static Future<Directory>? _linuxRootResolution;
+
+  static Future<Directory> _resolveLinuxRoot() async {
+    try {
+      return await FlatpakDataDirectory.resolve(
+            environment: Platform.environment,
+            appDirectoryName: AppConfig.appDefaultDataDirName,
+            onError: (error) => stderr.writeln(
+              "Flatpak data migration failed; using legacy data: $error",
+            ),
+          ) ??
+          Directory(
+            path.join(
+              Platform.environment['HOME']!,
+              ".${AppConfig.appDefaultDataDirName}",
+            ),
+          );
+    } catch (_) {
+      // Only a successful resolution is sticky.
+      _linuxRootResolution = null;
+      rethrow;
+    }
+  }
+
   static Future<Directory> applicationRootDirectory() async {
     Directory appDirectory;
 
@@ -46,12 +71,13 @@ abstract class StackFileSystem {
       if (_overrideDesktopDirPath != null) {
         appDirectory = Directory(_overrideDesktopDirPath!);
       } else {
-        appDirectory = Directory(
-          path.join(
-            Platform.environment['HOME']!,
-            ".${AppConfig.appDefaultDataDirName}",
-          ),
-        );
+        // Resolved once per process: the Flatpak migration must run before
+        // Hive opens and never again. A second resolution could switch the
+        // root out from under an already open Hive/Isar, redo the whole copy
+        // after a failure, and its unlock() would drop this process's own
+        // fcntl lock on hive/dbinfo.lock (those locks are per process),
+        // defeating the already-running guard in main().
+        appDirectory = await (_linuxRootResolution ??= _resolveLinuxRoot());
       }
     } else if (Platform.isWindows) {
       if (_overrideDesktopDirPath != null) {
