@@ -86,6 +86,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
     BackupFrequencyType.everyTenMinutes,
     BackupFrequencyType.everyAppStart,
     BackupFrequencyType.afterClosingAWallet,
+    BackupFrequencyType.afterChanges,
   ];
 
   Future<void> _enableAutoBackup() async {
@@ -615,6 +616,9 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                               break;
                             case BackupFrequencyType.afterClosingAWallet:
                               message = "After closing a cryptocurrency wallet";
+                              break;
+                            case BackupFrequencyType.afterChanges:
+                              message = "After editing a note or contact";
                               break;
                           }
 

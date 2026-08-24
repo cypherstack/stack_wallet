@@ -9,10 +9,18 @@
  */
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'secure_store_provider.dart';
-import '../../services/auto_swb_service.dart';
 
-final autoSWBServiceProvider = ChangeNotifierProvider<AutoSWBService>(
-  (ref) =>
-      AutoSWBService(secureStorageInterface: ref.read(secureStoreProvider)),
-);
+import '../../services/auto_swb_service.dart';
+import '../../utilities/enums/backup_frequency_type.dart';
+import 'prefs_provider.dart';
+import 'secure_store_provider.dart';
+
+final autoSWBServiceProvider = ChangeNotifierProvider<AutoSWBService>((ref) {
+  final prefs = ref.read(prefsChangeNotifierProvider);
+  return AutoSWBService(
+    secureStorageInterface: ref.read(secureStoreProvider),
+    shouldBackupAfterChange: () =>
+        prefs.isAutoBackupEnabled &&
+        prefs.backupFrequencyType == BackupFrequencyType.afterChanges,
+  );
+});

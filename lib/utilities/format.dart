@@ -142,6 +142,8 @@ abstract class Format {
         return "Every app start";
       case BackupFrequencyType.afterClosingAWallet:
         return "After closing a cryptocurrency wallet";
+      case BackupFrequencyType.afterChanges:
+        return "After editing a note or contact";
     }
   }
 }
