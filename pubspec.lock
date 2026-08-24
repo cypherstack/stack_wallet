@@ -801,11 +801,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: ba7d7d87a3772e972adb1358a5ec9a111b514fce
-      resolved-ref: ba7d7d87a3772e972adb1358a5ec9a111b514fce
+      ref: "73c4ed946816c5ec032d13a44f8f510e2ced9886"
+      resolved-ref: "73c4ed946816c5ec032d13a44f8f510e2ced9886"
       url: "https://github.com/cypherstack/flutter-devicelocale"
     source: git
-    version: "0.8.1"
+    version: "0.9.0"
   digest_auth:
     dependency: "direct main"
     description:
