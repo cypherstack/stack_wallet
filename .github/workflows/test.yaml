@@ -56,6 +56,11 @@ jobs:
           const kShopInBitPartnerSecret = "";
           const kCakePayApiToken = "";
           const kExolixApiKey = "";
+          const kLetsExchangeId = "";
+          const kLetsExchangeToken = "";
+          const kCypherGoatApiKey = "";
+          const kCypherGoatAffiliate = "";
+          const kCypherGoatSource = "";
           EOF
           fi
 
