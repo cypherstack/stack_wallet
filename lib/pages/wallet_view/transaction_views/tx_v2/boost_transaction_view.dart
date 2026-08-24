@@ -118,6 +118,7 @@ class _BoostTransactionViewState extends ConsumerState<BoostTransactionView> {
                   walletId: walletId,
                   onSuccess: () {},
                   // isPaynymTransaction: isPaynymSend, TODO ?
+                  isRbfTransaction: true,
                   routeOnSuccessName: DesktopHomeView.routeName,
                 ),
               ),
@@ -132,6 +133,7 @@ class _BoostTransactionViewState extends ConsumerState<BoostTransactionView> {
                   txData: txData!,
                   walletId: walletId,
                   // isPaynymTransaction: isPaynymSend, TODO ?
+                  isRbfTransaction: true,
                   onSuccess: () {},
                 ),
                 settings: const RouteSettings(
