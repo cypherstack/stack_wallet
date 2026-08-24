@@ -45,6 +45,7 @@ import '../../models/tx_data.dart';
 import '../wallet.dart';
 import '../wallet_mixin_interfaces/multi_address_interface.dart';
 import '../wallet_mixin_interfaces/view_only_option_interface.dart';
+import 'cryptonote_wallet_lifecycle.dart';
 import 'cryptonote_wallet.dart';
 
 abstract class LibWowneroWallet<T extends CryptonoteCurrency>
@@ -54,27 +55,27 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
   @override
   int get isarTransactionVersion => 2;
 
-  LibWowneroWallet(super.currency, this.compatType) {
+  LibWowneroWallet(super.currency, this.compatType);
+
+  void _attachTorListeners() {
+    if (_torStatusListener != null || _torPreferenceListener != null) {
+      return;
+    }
+
     final bus = GlobalEventBus.instance;
 
     // Listen for tor status changes.
     _torStatusListener = bus.on<TorConnectionStatusChangedEvent>().listen((
       event,
-    ) async {
+    ) {
       switch (event.newStatus) {
         case TorConnectionStatus.connecting:
-          if (!_torConnectingLock.isLocked) {
-            await _torConnectingLock.acquire();
-          }
-          _requireMutex = true;
+          _torTransitionGate.block();
           break;
 
         case TorConnectionStatus.connected:
         case TorConnectionStatus.disconnected:
-          if (_torConnectingLock.isLocked) {
-            _torConnectingLock.release();
-          }
-          _requireMutex = false;
+          _torTransitionGate.release();
           break;
       }
     });
@@ -83,32 +84,62 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
     _torPreferenceListener = bus.on<TorPreferenceChangedEvent>().listen((
       event,
     ) async {
-      await updateNode();
+      await _updateNodeFromTor();
     });
 
-    // Potentially dangerous hack. See comments in _startInit()
-    _startInit();
+    if (TorService.sharedInstance.status == TorConnectionStatus.connecting) {
+      _torTransitionGate.block();
+    }
   }
+
+  Future<void> _updateNodeFromTor() async {
+    try {
+      await updateNode();
+    } catch (e, s) {
+      Logging.instance.w(
+        "Tor-triggered node update failed",
+        error: e,
+        stackTrace: s,
+      );
+    }
+  }
+
+  Future<void> _stopEventSources() async {
+    try {
+      await cancelCryptonoteWalletSubscriptions([
+        _torStatusListener,
+        _torPreferenceListener,
+        _streamSub,
+      ]);
+    } finally {
+      _torStatusListener = null;
+      _torPreferenceListener = null;
+      _streamSub = null;
+      _torTransitionGate.release();
+    }
+  }
+
   // cw based wallet listener to handle synchronization of utxo frozen states
-  late final StreamSubscription<List<UTXO>> _streamSub;
-  Future<void> _startInit() async {
-    // Delay required as `mainDB` is not initialized in constructor.
-    // This is a hack and could lead to a race condition.
-    Future.delayed(const Duration(seconds: 2), () {
-      _streamSub = mainDB.isar.utxos
-          .where()
-          .walletIdEqualTo(walletId)
-          .watch(fireImmediately: true)
-          .listen((utxos) async {
-            try {
-              await onUTXOsChanged(utxos);
-              await updateBalance(shouldUpdateUtxos: false);
-            } catch (e, s) {
-              Logging.instance.e("_startInit", error: e, stackTrace: s);
-            }
-          });
-    });
+  StreamSubscription<List<UTXO>>? _streamSub;
+  void _attachUtxoListener() {
+    _streamSub ??= mainDB.isar.utxos
+        .where()
+        .walletIdEqualTo(walletId)
+        .watch(fireImmediately: true)
+        .listen((utxos) async {
+          try {
+            await _handleUtxosChanged(utxos);
+          } catch (e, s) {
+            Logging.instance.e("UTXO listener failed", error: e, stackTrace: s);
+          }
+        });
   }
+
+  Future<void> _handleUtxosChanged(List<UTXO> utxos) =>
+      _lifecycle.runIfCurrent(() async {
+        await onUTXOsChanged(utxos);
+        await updateBalance(shouldUpdateUtxos: false);
+      });
 
   final lib_monero_compat.WalletType compatType;
 
@@ -194,12 +225,39 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
   }
 
   @override
-  Future<void> open() async {
-    bool wasNull = false;
+  Future<void> open() => _lifecycle.open(_open);
+
+  Future<void> _open(bool Function() isCurrent) async {
+    try {
+      await _openNative(isCurrent);
+    } catch (error, stackTrace) {
+      try {
+        await _stopEventSources();
+      } catch (cleanupError, cleanupStackTrace) {
+        Logging.instance.e(
+          "Failed to stop wallet event sources after open failure",
+          error: cleanupError,
+          stackTrace: cleanupStackTrace,
+        );
+      }
+      try {
+        await _exitNative();
+      } catch (cleanupError, cleanupStackTrace) {
+        Logging.instance.e(
+          "Failed to clean up native wallet after open failure",
+          error: cleanupError,
+          stackTrace: cleanupStackTrace,
+        );
+      }
+      Error.throwWithStackTrace(error, stackTrace);
+    }
+  }
+
+  Future<void> _openNative(bool Function() isCurrent) async {
+    var wasNull = false;
 
     if (wallet == null) {
       wasNull = true;
-      // LibWowneroWalletT?.close();
       final path = await pathForWallet(name: walletId, type: compatType);
 
       final String password;
@@ -212,10 +270,15 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
       }
 
       wallet = await loadWallet(path: path, password: password);
-
       _setListener();
+    }
 
-      await updateNode();
+    _attachTorListeners();
+    // A node/Tor preference change that arrived while this wallet was exited
+    // (or after a failed open) was rejected by the lifecycle, so the native
+    // wallet may still hold stale daemon/proxy settings and a stopped sync.
+    if (wasNull || _nativeNeedsReconnect) {
+      await _updateNode(isCurrent);
     }
 
     Address? currentAddress = await getCurrentReceivingAddress();
@@ -236,14 +299,16 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
         csWownero.startSyncing(wallet!);
       } catch (_) {
         _setSyncStatus(lib_monero_compat.FailedSyncStatus());
-        // TODO log
       }
     }
     _setListener();
     csWownero.startListeners(wallet!);
     csWownero.startAutoSaving(wallet!);
 
-    unawaited(refresh());
+    if (isCurrent()) {
+      _attachUtxoListener();
+      unawaited(refresh());
+    }
   }
 
   @Deprecated("Only used in the case of older wallets")
@@ -376,9 +441,7 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
         );
 
         this.wallet = wallet;
-        await updateNode();
-        await csWownero.close(wallet, save: true);
-        this.wallet = null;
+        await _initializeAndClose(wallet);
       } catch (e, s) {
         Logging.instance.f("", error: e, stackTrace: s);
       }
@@ -387,8 +450,21 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
     return super.init();
   }
 
+  Future<void> _initializeAndClose(WrappedWallet wallet) async {
+    try {
+      await updateNode();
+      await csWownero.close(wallet, save: true);
+    } finally {
+      await _stopEventSources();
+      this.wallet = null;
+    }
+  }
+
   @override
-  Future<void> recover({required bool isRescan}) async {
+  Future<void> recover({required bool isRescan}) =>
+      _lifecycle.replaceNative(() => _recover(isRescan: isRescan));
+
+  Future<void> _recover({required bool isRescan}) async {
     if (isRescan) {
       await refreshMutex.protect(() async {
         // clear blockchain info
@@ -404,7 +480,7 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
     }
 
     if (isViewOnly) {
-      await recoverViewOnly();
+      await _recoverViewOnly();
       return;
     }
 
@@ -443,7 +519,7 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
           );
 
           if (this.wallet != null) {
-            await exit();
+            await _exitNative();
           }
 
           this.wallet = wallet;
@@ -471,7 +547,7 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
           Logging.instance.f("", error: e, stackTrace: s);
           rethrow;
         }
-        await updateNode();
+        await _updateNode(() => _lifecycle.allowsNodeUpdates);
         _setListener();
 
         // LibWowneroWallet?.setRecoveringFromSeed(isRecovery: true);
@@ -505,7 +581,22 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
   }
 
   @override
-  Future<void> updateNode() async {
+  Future<void> updateNode() => _lifecycle.updateNode(_updateNode);
+
+  Future<void> _updateNode(bool Function() isCurrent) async {
+    if (wallet == null) {
+      return;
+    }
+
+    _attachTorListeners();
+    if (!await _torTransitionGate.wait(
+      isBlocked: () =>
+          TorService.sharedInstance.status == TorConnectionStatus.connecting,
+      isCurrent: isCurrent,
+    )) {
+      return;
+    }
+
     final node = getCurrentNode();
 
     if (_torNodeMismatchGuard(node)) {
@@ -515,48 +606,39 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
     final host = node.host.endsWith(".onion")
         ? node.host
         : Uri.parse(node.host).host;
-    final ({InternetAddress host, int port})? proxy =
-        AppConfig.hasFeature(AppFeature.tor) && prefs.useTor && !node.forceNoTor
-        ? TorService.sharedInstance.getProxyInfo()
-        : null;
 
     _setSyncStatus(lib_monero_compat.ConnectingSyncStatus());
     try {
-      if (_requireMutex) {
-        await _torConnectingLock.protect(() async {
-          await csWownero.connect(
-            wallet!,
-            daemonAddress: "$host:${node.port}",
-            daemonUsername: node.loginName,
-            daemonPassword: await node.getPassword(secureStorageInterface),
-            trusted: node.trusted ?? false,
-            useSSL: node.useSSL,
-            socksProxyAddress: node.forceNoTor
-                ? null
-                : proxy == null
-                ? null
-                : "${proxy.host.address}:${proxy.port}",
-          );
-        });
-      } else {
-        await csWownero.connect(
-          wallet!,
-          daemonAddress: "$host:${node.port}",
-          daemonUsername: node.loginName,
-          daemonPassword: await node.getPassword(secureStorageInterface),
-          trusted: node.trusted ?? false,
-          useSSL: node.useSSL,
-          socksProxyAddress: node.forceNoTor
-              ? null
-              : proxy == null
-              ? null
-              : "${proxy.host.address}:${proxy.port}",
-        );
+      if (!isCurrent() || wallet == null) {
+        return;
+      }
+
+      final ({InternetAddress host, int port})? proxy =
+          AppConfig.hasFeature(AppFeature.tor) &&
+              prefs.useTor &&
+              !node.forceNoTor
+          ? TorService.sharedInstance.getProxyInfo()
+          : null;
+      await csWownero.connect(
+        wallet!,
+        daemonAddress: "$host:${node.port}",
+        daemonUsername: node.loginName,
+        daemonPassword: await node.getPassword(secureStorageInterface),
+        trusted: node.trusted ?? false,
+        useSSL: node.useSSL,
+        socksProxyAddress: proxy == null
+            ? null
+            : "${proxy.host.address}:${proxy.port}",
+      );
+
+      if (!isCurrent() || wallet == null) {
+        return;
       }
       csWownero.startSyncing(wallet!);
       csWownero.startListeners(wallet!);
       csWownero.startAutoSaving(wallet!);
 
+      _nativeNeedsReconnect = false;
       _setSyncStatus(lib_monero_compat.ConnectedSyncStatus());
     } catch (e, s) {
       _setSyncStatus(lib_monero_compat.FailedSyncStatus());
@@ -566,8 +648,6 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
         stackTrace: s,
       );
     }
-
-    return;
   }
 
   @override
@@ -750,6 +830,14 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
   @override
   Future<void> exit() async {
     Logging.instance.i("exit called on $wallet!");
+    await _lifecycle.close(
+      stopEventSources: _stopEventSources,
+      closeNative: _exitNative,
+    );
+  }
+
+  Future<void> _exitNative() async {
+    _nativeNeedsReconnect = true;
     if (wallet != null) {
       csWownero.stopAutoSaving(wallet!);
       csWownero.stopListeners(wallet!);
@@ -1524,7 +1612,9 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
   // ============== View only ==================================================
 
   @override
-  Future<void> recoverViewOnly() async {
+  Future<void> recoverViewOnly() => _lifecycle.replaceNative(_recoverViewOnly);
+
+  Future<void> _recoverViewOnly() async {
     await refreshMutex.protect(() async {
       final data =
           await getViewOnlyWalletData() as CryptonoteViewOnlyWalletData;
@@ -1555,8 +1645,8 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
           height: height,
         );
 
-        if (this.wallet == null) {
-          await exit();
+        if (this.wallet != null) {
+          await _exitNative();
         }
         this.wallet = wallet;
 
@@ -1580,7 +1670,7 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
           isar: mainDB.isar,
         );
 
-        await updateNode();
+        await _updateNode(() => _lifecycle.allowsNodeUpdates);
         _setListener();
 
         unawaited(csWownero.rescanBlockchain(this.wallet!));
@@ -1605,6 +1695,11 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
   StreamSubscription<TorConnectionStatusChangedEvent>? _torStatusListener;
   StreamSubscription<TorPreferenceChangedEvent>? _torPreferenceListener;
 
-  final Mutex _torConnectingLock = Mutex();
-  bool _requireMutex = false;
+  final _torTransitionGate = CryptonoteTorTransitionGate();
+
+  final _lifecycle = CryptonoteWalletLifecycle();
+
+  /// True once the native daemon session was torn down (exit or failed open)
+  /// so the next open() reconnects instead of trusting stale settings.
+  bool _nativeNeedsReconnect = false;
 }
