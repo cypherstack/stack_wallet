@@ -270,6 +270,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
               isSpark: wallet is FiroWallet && !firoPublicSend,
               onCancel: () {
                 wasCancelled = true;
+                Navigator.of(context).pop();
               },
             );
           },
