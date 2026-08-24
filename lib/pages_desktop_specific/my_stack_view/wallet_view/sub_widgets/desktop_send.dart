@@ -540,9 +540,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       }
     }
 
+    bool wasCancelled = false;
     try {
-      bool wasCancelled = false;
-
       if (mounted) {
         unawaited(
           showDialog<dynamic>(
@@ -780,7 +779,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       }
     } catch (e, s) {
       Logging.instance.e("Desktop send: ", error: e, stackTrace: s);
-      if (mounted) {
+      if (mounted && !wasCancelled) {
         // pop building dialog
         Navigator.of(context, rootNavigator: true).pop();
 
