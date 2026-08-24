@@ -83,6 +83,7 @@ class Prefs extends ChangeNotifier {
       _autoLockInfo = await _getAutoLockInfo();
       _privacyScreen = await _getPrivacyScreen();
       _disableScreenShots = await _getDisableScreenShots();
+      _hideBalances = await _getHideBalances();
 
       _initialized = true;
     }
@@ -1436,6 +1437,33 @@ class Prefs extends ChangeNotifier {
     return await DB.instance.get<dynamic>(
               boxName: DB.boxNamePrefs,
               key: "disableScreenShots",
+            )
+            as bool? ??
+        false;
+  }
+
+  // hide balances
+
+  bool _hideBalances = false;
+
+  bool get hideBalances => _hideBalances;
+
+  set hideBalances(bool hideBalances) {
+    if (_hideBalances != hideBalances) {
+      DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs,
+        key: "hideBalances",
+        value: hideBalances,
+      );
+      _hideBalances = hideBalances;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> _getHideBalances() async {
+    return await DB.instance.get<dynamic>(
+              boxName: DB.boxNamePrefs,
+              key: "hideBalances",
             )
             as bool? ??
         false;

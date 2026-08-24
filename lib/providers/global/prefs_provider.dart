@@ -8,15 +8,15 @@
  *
  */
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../utilities/prefs.dart';
 
-int _count = 0;
-final prefsChangeNotifierProvider = ChangeNotifierProvider<Prefs>((_) {
-  if (kDebugMode) {
-    _count++;
-  }
+final prefsChangeNotifierProvider = ChangeNotifierProvider<Prefs>(
+  (_) => Prefs.instance,
+);
 
-  return Prefs.instance;
-});
+final hideBalancesProvider = Provider<bool>(
+  (ref) => ref.watch(
+    prefsChangeNotifierProvider.select((value) => value.hideBalances),
+  ),
+);
