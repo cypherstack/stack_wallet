@@ -22,6 +22,7 @@ import '../../../utilities/enums/wallet_balance_toggle_state.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../widgets/hideable_balance.dart';
 
 enum _BalanceType { available, full, privateAvailable, privateFull }
 
@@ -44,23 +45,21 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
 
     _BalanceType _bal =
         ref.watch(walletBalanceToggleStateProvider.state).state ==
-                WalletBalanceToggleState.available
-            ? _BalanceType.available
-            : _BalanceType.full;
+            WalletBalanceToggleState.available
+        ? _BalanceType.available
+        : _BalanceType.full;
 
     Balance? balancePrivate;
     if (hasPrivate) {
-      balancePrivate =
-          isMweb
-              ? ref.watch(pWalletBalanceSecondary(walletId))
-              : ref.watch(pWalletBalanceTertiary(walletId));
+      balancePrivate = isMweb
+          ? ref.watch(pWalletBalanceSecondary(walletId))
+          : ref.watch(pWalletBalanceTertiary(walletId));
 
       if (ref.watch(publicPrivateBalanceStateProvider.state).state ==
           BalanceType.private) {
-        _bal =
-            _bal == _BalanceType.available
-                ? _BalanceType.privateAvailable
-                : _BalanceType.privateFull;
+        _bal = _bal == _BalanceType.available
+            ? _BalanceType.privateAvailable
+            : _BalanceType.privateFull;
       }
     }
 
@@ -85,10 +84,9 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
               Center(
                 child: Container(
                   decoration: BoxDecoration(
-                    color:
-                        Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textFieldDefaultBG,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),
@@ -244,10 +242,9 @@ class BalanceSelector<T> extends ConsumerWidget {
               width: 20,
               height: 20,
               child: Radio(
-                activeColor:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()!.radioButtonIconEnabled,
+                activeColor: Theme.of(
+                  context,
+                ).extension<StackColors>()!.radioButtonIconEnabled,
                 value: value,
                 groupValue: groupValue,
                 onChanged: onChanged,
@@ -259,13 +256,18 @@ class BalanceSelector<T> extends ConsumerWidget {
               children: [
                 Text(title, style: STextStyles.titleBold12(context)),
                 const SizedBox(height: 2),
-                Text(
-                  ref.watch(pAmountFormatter(coin)).format(balance),
-                  style: STextStyles.itemSubtitle12(context).copyWith(
-                    color:
-                        Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textSubtitle1,
+                HideableBalance(
+                  iconColor: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textSubtitle1,
+                  iconSize: 16,
+                  child: Text(
+                    ref.watch(pAmountFormatter(coin)).format(balance),
+                    style: STextStyles.itemSubtitle12(context).copyWith(
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textSubtitle1,
+                    ),
                   ),
                 ),
               ],

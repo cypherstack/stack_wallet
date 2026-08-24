@@ -23,12 +23,12 @@ import '../../../utilities/amount/amount.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
-import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/isar/providers/solana/current_sol_token_wallet_provider.dart';
 import '../../../wallets/isar/providers/solana/sol_token_balance_provider.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../widgets/coin_ticker_tag.dart';
 import '../../../widgets/conditional_parent.dart';
+import '../../../widgets/hideable_balance.dart';
 import '../../../widgets/rounded_container.dart';
 import '../../receive_view/sol_token_receive_view.dart';
 import '../../send_view/sol_token_send_view.dart';
@@ -63,8 +63,9 @@ class SolanaTokenSummary extends ConsumerWidget {
           child: Text(
             "Loading token data...",
             style: STextStyles.subtitle500(context).copyWith(
-              color:
-                  Theme.of(context).extension<StackColors>()!.tokenSummaryTextPrimary,
+              color: Theme.of(
+                context,
+              ).extension<StackColors>()!.tokenSummaryTextPrimary,
             ),
           ),
         ),
@@ -73,12 +74,7 @@ class SolanaTokenSummary extends ConsumerWidget {
 
     // Watch the balance from the database provider.
     final balance = ref.watch(
-      pSolanaTokenBalance(
-        (
-          walletId: walletId,
-          tokenMint: tokenMint,
-        ),
-      ),
+      pSolanaTokenBalance((walletId: walletId, tokenMint: tokenMint)),
     );
 
     Decimal? price;
@@ -124,28 +120,40 @@ class SolanaTokenSummary extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    balance.total.decimal.toStringAsFixed(tokenWallet.tokenDecimals),
-                    style: STextStyles.pageTitleH1(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.tokenSummaryTextPrimary,
+                  HideableBalance(
+                    iconColor: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.tokenSummaryTextPrimary,
+                    iconSize: 24,
+                    child: Text(
+                      balance.total.decimal.toStringAsFixed(
+                        tokenWallet.tokenDecimals,
+                      ),
+                      style: STextStyles.pageTitleH1(context).copyWith(
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.tokenSummaryTextPrimary,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
-                  CoinTickerTag(
-                    ticker: tokenWallet.tokenSymbol,
-                  ),
+                  CoinTickerTag(ticker: tokenWallet.tokenSymbol),
                 ],
               ),
               if (price != null) const SizedBox(height: 6),
               if (price != null)
-                Text(
-                  "${(balance.total.decimal * price).toAmount(fractionDigits: 2).fiatString(locale: ref.watch(localeServiceChangeNotifierProvider.select((value) => value.locale)))} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
-                  style: STextStyles.subtitle500(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.tokenSummaryTextPrimary,
+                HideableBalance(
+                  iconColor: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.tokenSummaryTextPrimary,
+                  iconSize: 16,
+                  child: Text(
+                    "${(balance.total.decimal * price).toAmount(fractionDigits: 2).fiatString(locale: ref.watch(localeServiceChangeNotifierProvider.select((value) => value.locale)))} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
+                    style: STextStyles.subtitle500(context).copyWith(
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.tokenSummaryTextPrimary,
+                    ),
                   ),
                 ),
               const SizedBox(height: 20),
@@ -163,8 +171,9 @@ class SolanaTokenSummary extends ConsumerWidget {
             walletId: walletId,
             initialSyncStatus: initialSyncStatus,
             tokenContractAddress: tokenMint,
-            overrideIconColor:
-                Theme.of(context).extension<StackColors>()!.topNavIconPrimary,
+            overrideIconColor: Theme.of(
+              context,
+            ).extension<StackColors>()!.topNavIconPrimary,
           ),
         ),
       ],
@@ -250,8 +259,9 @@ class TokenOptionsButton extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         RawMaterialButton(
-          fillColor:
-              Theme.of(context).extension<StackColors>()!.tokenSummaryButtonBG,
+          fillColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.tokenSummaryButtonBG,
           elevation: 0,
           focusElevation: 0,
           hoverElevation: 0,
@@ -267,36 +277,31 @@ class TokenOptionsButton extends StatelessWidget {
             padding: const EdgeInsets.all(10),
             child: ConditionalParent(
               condition: iconSize < 24,
-              builder:
-                  (child) => RoundedContainer(
-                    padding: const EdgeInsets.all(6),
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .tokenSummaryIcon
-                        .withOpacity(0.4),
-                    radiusMultiplier: 10,
-                    child: Center(child: child),
-                  ),
-              child:
-                  iconAssetPathSVG.startsWith("assets/")
-                      ? SvgPicture.asset(
-                        iconAssetPathSVG,
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.tokenSummaryIcon,
-                        width: iconSize,
-                        height: iconSize,
-                      )
-                      : SvgPicture.file(
-                        File(iconAssetPathSVG),
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.tokenSummaryIcon,
-                        width: iconSize,
-                        height: iconSize,
-                      ),
+              builder: (child) => RoundedContainer(
+                padding: const EdgeInsets.all(6),
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.tokenSummaryIcon.withOpacity(0.4),
+                radiusMultiplier: 10,
+                child: Center(child: child),
+              ),
+              child: iconAssetPathSVG.startsWith("assets/")
+                  ? SvgPicture.asset(
+                      iconAssetPathSVG,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.tokenSummaryIcon,
+                      width: iconSize,
+                      height: iconSize,
+                    )
+                  : SvgPicture.file(
+                      File(iconAssetPathSVG),
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.tokenSummaryIcon,
+                      width: iconSize,
+                      height: iconSize,
+                    ),
             ),
           ),
         ),
@@ -304,10 +309,9 @@ class TokenOptionsButton extends StatelessWidget {
         Text(
           subLabel,
           style: STextStyles.w500_12(context).copyWith(
-            color:
-                Theme.of(
-                  context,
-                ).extension<StackColors>()!.tokenSummaryTextPrimary,
+            color: Theme.of(
+              context,
+            ).extension<StackColors>()!.tokenSummaryTextPrimary,
           ),
         ),
       ],
