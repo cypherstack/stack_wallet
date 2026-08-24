@@ -62,8 +62,9 @@ class _EditNoteViewState extends ConsumerState<EditTradeNoteView> {
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.background,
           leading: AppBarBackButton(
             onPressed: () async {
               if (FocusScope.of(context).hasFocus) {
@@ -102,41 +103,43 @@ class _EditNoteViewState extends ConsumerState<EditTradeNoteView> {
                               ),
                               child: TextField(
                                 autocorrect: Util.isDesktop ? false : true,
-                                enableSuggestions:
-                                    Util.isDesktop ? false : true,
+                                enableSuggestions: Util.isDesktop
+                                    ? false
+                                    : true,
                                 controller: _noteController,
                                 style: STextStyles.field(context),
                                 focusNode: noteFieldFocusNode,
                                 onChanged: (_) => setState(() {}),
-                                decoration: standardInputDecoration(
-                                  "Note",
-                                  noteFieldFocusNode,
-                                  context,
-                                ).copyWith(
-                                  suffixIcon:
-                                      _noteController.text.isNotEmpty
+                                decoration:
+                                    standardInputDecoration(
+                                      "Note",
+                                      noteFieldFocusNode,
+                                      context,
+                                    ).copyWith(
+                                      suffixIcon:
+                                          _noteController.text.isNotEmpty
                                           ? Padding(
-                                            padding: const EdgeInsets.only(
-                                              right: 0,
-                                            ),
-                                            child: UnconstrainedBox(
-                                              child: Row(
-                                                children: [
-                                                  TextFieldIconButton(
-                                                    child: const XIcon(),
-                                                    onTap: () async {
-                                                      setState(() {
-                                                        _noteController.text =
-                                                            "";
-                                                      });
-                                                    },
-                                                  ),
-                                                ],
+                                              padding: const EdgeInsets.only(
+                                                right: 0,
                                               ),
-                                            ),
-                                          )
+                                              child: UnconstrainedBox(
+                                                child: Row(
+                                                  children: [
+                                                    TextFieldIconButton(
+                                                      child: const XIcon(),
+                                                      onTap: () async {
+                                                        setState(() {
+                                                          _noteController.text =
+                                                              "";
+                                                        });
+                                                      },
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            )
                                           : null,
-                                ),
+                                    ),
                               ),
                             ),
                             const Spacer(),
