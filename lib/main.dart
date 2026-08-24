@@ -878,7 +878,8 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         ),
       ),
       // Wraps the navigator rather than sitting in it: as home: this listener
-      // is a route, so the first post-login navigation disposes it.
+      // was a route, so the first post-login navigation disposed it and no
+      // notification could be delivered.
       builder: (context, child) =>
           CryptoNotifications(child: child ?? const SizedBox.shrink()),
       home: Util.isDesktop
