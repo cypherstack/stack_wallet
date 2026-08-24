@@ -88,7 +88,7 @@ class _EditNoteViewState extends ConsumerState<EditNoteView> {
                         const Duration(milliseconds: 75),
                       );
                     }
-                    if (mounted) {
+                    if (context.mounted) {
                       Navigator.of(context).pop();
                     }
                   },
@@ -124,6 +124,10 @@ class _EditNoteViewState extends ConsumerState<EditNoteView> {
                   child: TextField(
                     autocorrect: Util.isDesktop ? false : true,
                     enableSuggestions: Util.isDesktop ? false : true,
+                    minLines: 3,
+                    maxLines: 6,
+                    keyboardType: TextInputType.multiline,
+                    textInputAction: TextInputAction.newline,
                     controller: _noteController,
                     style: isDesktop
                         ? STextStyles.desktopTextExtraSmall(context).copyWith(
@@ -172,8 +176,8 @@ class _EditNoteViewState extends ConsumerState<EditNoteView> {
                   ),
                 ),
               ),
-              // if (!isDesktop)
-              const Spacer(),
+              if (!isDesktop) const Spacer(),
+              if (isDesktop) const SizedBox(height: 12),
               if (isDesktop)
                 Padding(
                   padding: const EdgeInsets.all(32),
@@ -191,7 +195,7 @@ class _EditNoteViewState extends ConsumerState<EditNoteView> {
                                 ),
                           );
 
-                      if (mounted) {
+                      if (context.mounted) {
                         Navigator.of(context).pop();
                       }
                     },
@@ -210,7 +214,7 @@ class _EditNoteViewState extends ConsumerState<EditNoteView> {
                                 value: _noteController.text,
                               ),
                         );
-                    if (mounted) {
+                    if (context.mounted) {
                       Navigator.of(context).pop();
                     }
                   },
@@ -235,7 +239,9 @@ class MobileEditNoteScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (Util.isDesktop) {
-      return child;
+      // Desktop callers host this view in a DesktopDialog of fixed height,
+      // which a multi-line note field can exceed.
+      return SingleChildScrollView(child: child);
     } else {
       return SafeArea(
         child: Padding(

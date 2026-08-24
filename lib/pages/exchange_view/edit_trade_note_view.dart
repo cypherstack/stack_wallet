@@ -71,7 +71,7 @@ class _EditNoteViewState extends ConsumerState<EditTradeNoteView> {
                 FocusScope.of(context).unfocus();
                 await Future<void>.delayed(const Duration(milliseconds: 75));
               }
-              if (mounted) {
+              if (context.mounted) {
                 Navigator.of(context).pop();
               }
             },
@@ -106,6 +106,10 @@ class _EditNoteViewState extends ConsumerState<EditTradeNoteView> {
                                 enableSuggestions: Util.isDesktop
                                     ? false
                                     : true,
+                                minLines: 3,
+                                maxLines: 6,
+                                keyboardType: TextInputType.multiline,
+                                textInputAction: TextInputAction.newline,
                                 controller: _noteController,
                                 style: STextStyles.field(context),
                                 focusNode: noteFieldFocusNode,
@@ -151,7 +155,7 @@ class _EditNoteViewState extends ConsumerState<EditTradeNoteView> {
                                       tradeId: widget.tradeId,
                                       note: _noteController.text,
                                     );
-                                if (mounted) {
+                                if (context.mounted) {
                                   Navigator.of(context).pop();
                                 }
                               },
