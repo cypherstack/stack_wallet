@@ -207,9 +207,8 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
       }
     }
 
+    bool wasCancelled = false;
     try {
-      bool wasCancelled = false;
-
       if (mounted) {
         unawaited(
           showDialog<dynamic>(
@@ -289,7 +288,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
         );
       }
     } catch (e) {
-      if (mounted) {
+      if (mounted && !wasCancelled) {
         // pop building dialog
         Navigator.of(context, rootNavigator: true).pop();
 

@@ -463,9 +463,8 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
     //   }
     // }
 
+    bool wasCancelled = false;
     try {
-      bool wasCancelled = false;
-
       if (mounted) {
         unawaited(
           showDialog<void>(
@@ -538,7 +537,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
       }
     } catch (e, s) {
       Logging.instance.e("$e\n$s", error: e, stackTrace: s);
-      if (mounted) {
+      if (mounted && !wasCancelled) {
         // pop building dialog
         Navigator.of(context).pop();
 
