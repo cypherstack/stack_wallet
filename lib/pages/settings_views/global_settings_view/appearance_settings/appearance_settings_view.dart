@@ -115,6 +115,65 @@ class AppearanceSettingsView extends ConsumerWidget {
                           ),
                           const SizedBox(height: 10),
                           RoundedWhiteContainer(
+                            child: Consumer(
+                              builder: (_, ref, __) {
+                                return RawMaterialButton(
+                                  splashColor: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .highlight,
+                                  materialTapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      Constants.size.circularBorderRadius,
+                                    ),
+                                  ),
+                                  onPressed: null,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 8,
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "Hide balances",
+                                          style: STextStyles.titleBold12(
+                                            context,
+                                          ),
+                                          textAlign: TextAlign.left,
+                                        ),
+                                        SizedBox(
+                                          height: 20,
+                                          width: 40,
+                                          child: DraggableSwitchButton(
+                                            isOn: ref.watch(
+                                              prefsChangeNotifierProvider
+                                                  .select(
+                                                    (value) =>
+                                                        value.hideBalances,
+                                                  ),
+                                            ),
+                                            onValueChanged: (newValue) {
+                                              ref
+                                                      .read(
+                                                        prefsChangeNotifierProvider,
+                                                      )
+                                                      .hideBalances =
+                                                  newValue;
+                                            },
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          RoundedWhiteContainer(
                             child: Column(
                               children: [
                                 Row(
