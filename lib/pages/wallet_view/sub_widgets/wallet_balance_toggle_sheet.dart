@@ -22,6 +22,7 @@ import '../../../utilities/enums/wallet_balance_toggle_state.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../widgets/hideable_balance.dart';
 
 enum _BalanceType { available, full, privateAvailable, privateFull }
 
@@ -255,12 +256,18 @@ class BalanceSelector<T> extends ConsumerWidget {
               children: [
                 Text(title, style: STextStyles.titleBold12(context)),
                 const SizedBox(height: 2),
-                Text(
-                  ref.watch(pAmountFormatter(coin)).format(balance),
-                  style: STextStyles.itemSubtitle12(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textSubtitle1,
+                HideableBalance(
+                  iconColor: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textSubtitle1,
+                  iconSize: 16,
+                  child: Text(
+                    ref.watch(pAmountFormatter(coin)).format(balance),
+                    style: STextStyles.itemSubtitle12(context).copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textSubtitle1,
+                    ),
                   ),
                 ),
               ],

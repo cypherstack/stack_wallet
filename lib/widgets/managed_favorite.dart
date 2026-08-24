@@ -26,6 +26,7 @@ import '../utilities/util.dart';
 import '../wallets/crypto_currency/coins/firo.dart';
 import '../wallets/isar/providers/wallet_info_provider.dart';
 import 'custom_buttons/favorite_toggle.dart';
+import 'hideable_balance.dart';
 import 'rounded_white_container.dart';
 
 class ManagedFavorite extends ConsumerStatefulWidget {
@@ -109,9 +110,16 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
                         ),
                       ),
                       Expanded(
-                        child: Text(
-                          ref.watch(pAmountFormatter(coin)).format(total),
-                          style: STextStyles.itemSubtitle(context),
+                        child: HideableBalance(
+                          key: ValueKey("hideBalance_$walletId"),
+                          iconColor: Theme.of(context)
+                              .extension<StackColors>()!
+                              .infoItemLabel,
+                          iconSize: 16,
+                          child: Text(
+                            ref.watch(pAmountFormatter(coin)).format(total),
+                            style: STextStyles.itemSubtitle(context),
+                          ),
                         ),
                       ),
                       Text(
@@ -143,9 +151,16 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
                         style: STextStyles.titleBold12(context),
                       ),
                       const SizedBox(height: 2),
-                      Text(
-                        ref.watch(pAmountFormatter(coin)).format(total),
-                        style: STextStyles.itemSubtitle(context),
+                      HideableBalance(
+                        key: ValueKey("hideBalance_$walletId"),
+                        iconColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .infoItemLabel,
+                        iconSize: 16,
+                        child: Text(
+                          ref.watch(pAmountFormatter(coin)).format(total),
+                          style: STextStyles.itemSubtitle(context),
+                        ),
                       ),
                     ],
                   ),

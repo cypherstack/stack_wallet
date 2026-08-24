@@ -31,6 +31,7 @@ import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/wallet/intermediate/external_wallet.dart';
 import '../../../widgets/coin_card.dart';
 import '../../../widgets/conditional_parent.dart';
+import '../../../widgets/hideable_balance.dart';
 import '../../wallet_view/wallet_view.dart';
 
 class FavoriteCard extends ConsumerStatefulWidget {
@@ -239,28 +240,41 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                         children: [
                           FittedBox(
                             fit: BoxFit.scaleDown,
-                            child: Text(
-                              ref.watch(pAmountFormatter(coin)).format(total),
-                              style: STextStyles.titleBold12(context).copyWith(
-                                fontSize: 16,
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textFavoriteCard,
+                            child: HideableBalance(
+                              iconColor: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFavoriteCard,
+                              iconSize: 16,
+                              child: Text(
+                                ref.watch(pAmountFormatter(coin)).format(total),
+                                style: STextStyles.titleBold12(context)
+                                    .copyWith(
+                                      fontSize: 16,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textFavoriteCard,
+                                    ),
                               ),
                             ),
                           ),
                           if (externalCalls && price != null)
                             const SizedBox(height: 4),
                           if (externalCalls && price != null)
-                            Text(
-                              "${fiatTotal.fiatString(locale: ref.watch(localeServiceChangeNotifierProvider.select((value) => value.locale)))} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
-                              style: STextStyles.itemSubtitle12(context)
-                                  .copyWith(
-                                    fontSize: 10,
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textFavoriteCard,
-                                  ),
+                            HideableBalance(
+                              iconColor: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFavoriteCard,
+                              iconSize: 10,
+                              child: Text(
+                                "${fiatTotal.fiatString(locale: ref.watch(localeServiceChangeNotifierProvider.select((value) => value.locale)))} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
+                                style: STextStyles.itemSubtitle12(context)
+                                    .copyWith(
+                                      fontSize: 10,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textFavoriteCard,
+                                    ),
+                              ),
                             ),
                         ],
                       );

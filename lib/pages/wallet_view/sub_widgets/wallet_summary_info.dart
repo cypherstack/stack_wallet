@@ -33,6 +33,7 @@ import '../../../wallets/crypto_currency/coins/firo.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/wallet/impl/banano_wallet.dart';
 import '../../../widgets/conditional_parent.dart';
+import '../../../widgets/hideable_balance.dart';
 import 'wallet_balance_toggle_sheet.dart';
 import 'wallet_refresh_button.dart';
 
@@ -203,23 +204,35 @@ class WalletSummaryInfo extends ConsumerWidget {
                 const Spacer(),
                 FittedBox(
                   fit: BoxFit.scaleDown,
-                  child: SelectableText(
-                    ref.watch(pAmountFormatter(coin)).format(balanceToShow),
-                    style: STextStyles.pageTitleH1(context).copyWith(
-                      fontSize: 24,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textFavoriteCard,
+                  child: HideableBalance(
+                    iconColor: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFavoriteCard,
+                    iconSize: 24,
+                    child: SelectableText(
+                      ref.watch(pAmountFormatter(coin)).format(balanceToShow),
+                      style: STextStyles.pageTitleH1(context).copyWith(
+                        fontSize: 24,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFavoriteCard,
+                      ),
                     ),
                   ),
                 ),
                 if (price != null)
-                  Text(
-                    "${(price.value * balanceToShow.decimal).toAmount(fractionDigits: 2).fiatString(locale: locale)} $baseCurrency",
-                    style: STextStyles.subtitle500(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textFavoriteCard,
+                  HideableBalance(
+                    iconColor: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFavoriteCard,
+                    iconSize: 16,
+                    child: Text(
+                      "${(price.value * balanceToShow.decimal).toAmount(fractionDigits: 2).fiatString(locale: locale)} $baseCurrency",
+                      style: STextStyles.subtitle500(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFavoriteCard,
+                      ),
                     ),
                   ),
               ],
