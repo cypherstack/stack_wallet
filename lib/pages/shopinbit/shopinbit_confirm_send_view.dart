@@ -9,6 +9,7 @@ import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/deskt
 import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../providers/providers.dart';
 import '../../route_generator.dart';
+import '../../services/transaction_note_service.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
@@ -113,12 +114,10 @@ class _ShopInBitConfirmSendViewState
 
       txid = (results.first as TxData).txid!;
 
-      // save note
-      await ref
-          .read(mainDBProvider)
-          .putTransactionNote(
-            TransactionNote(walletId: walletId, txid: txid, value: note),
-          );
+      await saveTransactionNotesAfterSend(
+        notes: [TransactionNote(walletId: walletId, txid: txid, value: note)],
+        persist: ref.read(mainDBProvider).putTransactionNotes,
+      );
 
       // The server (and the BTCPay webhook) own ticket + payment state from
       // here, so there's nothing to persist locally; just nudge a refresh so
@@ -132,9 +131,7 @@ class _ShopInBitConfirmSendViewState
         final popThroughRouteName = widget.popThroughRouteName;
         if (popThroughRouteName != null) {
           final navigator = Navigator.of(context, rootNavigator: true);
-          navigator.popUntil(
-            ModalRoute.withName(popThroughRouteName),
-          );
+          navigator.popUntil(ModalRoute.withName(popThroughRouteName));
           navigator.pop();
         } else {
           // pop sending dialog (pushed via showDialog which uses root navigator)
