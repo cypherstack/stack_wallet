@@ -73,6 +73,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
     BackupFrequencyType.everyTenMinutes,
     BackupFrequencyType.everyAppStart,
     BackupFrequencyType.afterClosingAWallet,
+    BackupFrequencyType.afterChanges,
   ];
 
   String passwordFeedback =
@@ -570,6 +571,9 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                         break;
                       case BackupFrequencyType.afterClosingAWallet:
                         message = "After closing a cryptocurrency wallet";
+                        break;
+                      case BackupFrequencyType.afterChanges:
+                        message = "After editing a note or contact";
                         break;
                     }
 
