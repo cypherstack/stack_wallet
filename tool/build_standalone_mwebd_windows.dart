@@ -50,9 +50,15 @@ Future<void> _fetchPrebuilt(Directory projectToolDir) async {
   final expected = (await File(
     shaPath,
   ).readAsString()).trim().split(RegExp(r"\s+")).first;
-  final actual = (await Process.run("sha256sum", [
-    exePath,
-  ], runInShell: true)).stdout.toString().trim().split(RegExp(r"\s+")).first;
+  // sha256sum adds a leading '\' to the hash when the filename contains
+  // backslashes. Strip it before comparing.
+  final actual = (await Process.run("sha256sum", [exePath], runInShell: true))
+      .stdout
+      .toString()
+      .trim()
+      .split(RegExp(r"\s+"))
+      .first
+      .replaceFirst(r'\', '');
   if (expected.toLowerCase() != actual.toLowerCase()) {
     stderr.writeln(
       "mwebd.exe sha256 mismatch: expected $expected, got $actual",
