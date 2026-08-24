@@ -1,4 +1,7 @@
-package com.place.holder
+// This package matches the hardcoded Kotlin source directory and the Gradle
+// namespace. It is intentionally the same for all brands; the per-brand
+// application id comes from the product flavors in build.gradle.
+package com.cypherstack.stackwallet
 
 import androidx.annotation.NonNull;
 import io.flutter.embedding.android.FlutterFragmentActivity

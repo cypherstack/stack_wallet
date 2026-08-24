@@ -2,13 +2,16 @@
 cmake_minimum_required(VERSION 3.10)
 project(runner LANGUAGES CXX)
 
-# The name of the executable created for the application. Change this to change
-# the on-disk name of your application.
-set(BINARY_NAME "place_holder")
+# Default brand identity (stack_wallet). The Flutter tool parses the literal
+# BINARY_NAME below to locate the built binary, so keep one literal
+# `set(BINARY_NAME "...")` line at the top level. When building with
+# `--flavor <brand>` (Flutter 3.47+), the flavor block further below
+# overrides these defaults.
+set(BINARY_NAME "stack_wallet")
 # The unique GTK application identifier for this application. See:
 # https://wiki.gnome.org/HowDoI/ChooseApplicationID
-set(APPLICATION_ID "com.place.holder")
-
+set(APPLICATION_ID "com.cypherstack.stackwallet")
+set(APP_DISPLAY_NAME "Stack Wallet")
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.
@@ -51,6 +54,30 @@ endfunction()
 set(FLUTTER_MANAGED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/flutter")
 add_subdirectory(${FLUTTER_MANAGED_DIR})
 
+# Brand identity per --flavor (Flutter 3.47+ sets FLUTTER_APP_FLAVOR in
+# flutter/ephemeral/generated_config.cmake, included above). Keep these in
+# sync with the brand manifests in the whitelabel package
+# (whitelabel/brands/*.yaml) and the product flavors in
+# android/app/build.gradle.
+if(FLUTTER_APP_FLAVOR)
+  if(FLUTTER_APP_FLAVOR STREQUAL "stack_wallet")
+    set(BINARY_NAME "stack_wallet")
+    set(APPLICATION_ID "com.cypherstack.stackwallet")
+    set(APP_DISPLAY_NAME "Stack Wallet")
+  elseif(FLUTTER_APP_FLAVOR STREQUAL "stack_duo")
+    set(BINARY_NAME "stack_duo")
+    set(APPLICATION_ID "com.cypherstack.stackduo")
+    set(APP_DISPLAY_NAME "Stack Duo")
+  elseif(FLUTTER_APP_FLAVOR STREQUAL "campfire")
+    set(BINARY_NAME "campfire")
+    set(APPLICATION_ID "com.cypherstack.campfire")
+    set(APP_DISPLAY_NAME "Campfire")
+  else()
+    message(FATAL_ERROR "Unknown flavor: ${FLUTTER_APP_FLAVOR} "
+      "(expected stack_wallet, stack_duo, or campfire)")
+  endif()
+endif()
+
 # System-level dependencies.
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTK REQUIRED IMPORTED_TARGET gtk+-3.0)
@@ -83,6 +110,7 @@ else()
 endif()
 
 add_definitions(-DAPPLICATION_ID="${APPLICATION_ID}")
+add_definitions(-DAPP_DISPLAY_NAME="${APP_DISPLAY_NAME}")
 
 # Define the application target. To change its name, change BINARY_NAME above,
 # not the value here, or `flutter run` will no longer work.

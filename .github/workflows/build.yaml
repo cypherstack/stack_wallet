@@ -86,15 +86,15 @@ jobs:
       - name: Build
         env:
           USE_SYSTEM_SECURE_STORAGE_DEPS: "1"
-        run: flutter build linux --release --verbose
+        run: flutter build linux --release --verbose --flavor stack_wallet
 
       - name: Prepare Linux release bundle
-        run: python3 scripts/linux/prepare_release_bundle.py build/linux/x64/release/bundle
+        run: python3 scripts/linux/prepare_release_bundle.py build/linux/x64/stack_wallet/release/bundle
 
       - name: Package
         run: |
           tar -czf "stack_wallet-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz" \
-            -C build/linux/x64/release bundle
+            -C build/linux/x64/stack_wallet/release bundle
 
       - uses: actions/upload-artifact@v7
         with:
@@ -180,22 +180,22 @@ jobs:
           EOF
 
       - name: Build APKs
-        run: flutter build apk --split-per-abi --release
+        run: flutter build apk --split-per-abi --release --flavor stack_wallet
 
       - name: Build AAB
-        run: flutter build appbundle --release
+        run: flutter build appbundle --release --flavor stack_wallet
 
       - name: Collect artifacts
         run: |
           VERSION="${{ steps.ver.outputs.version }}"
           mkdir -p android-artifacts
-          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk \
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-stack_wallet-release.apk \
              android-artifacts/stack_wallet-android-arm64-v8a-${VERSION}.apk
-          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk \
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-stack_wallet-release.apk \
              android-artifacts/stack_wallet-android-armeabi-v7a-${VERSION}.apk
-          cp build/app/outputs/flutter-apk/app-x86_64-release.apk \
+          cp build/app/outputs/flutter-apk/app-x86_64-stack_wallet-release.apk \
              android-artifacts/stack_wallet-android-x86_64-${VERSION}.apk
-          cp build/app/outputs/bundle/release/app-release.aab \
+          cp build/app/outputs/bundle/stack_walletRelease/app-stack_wallet-release.aab \
              android-artifacts/stack_wallet-android-${VERSION}.aab
 
       - uses: actions/upload-artifact@v7
@@ -482,15 +482,15 @@ jobs:
       - name: Build
         env:
           USE_SYSTEM_SECURE_STORAGE_DEPS: "1"
-        run: flutter build linux --release --verbose
+        run: flutter build linux --release --verbose --flavor campfire
 
       - name: Prepare Linux release bundle
-        run: python3 scripts/linux/prepare_release_bundle.py build/linux/x64/release/bundle
+        run: python3 scripts/linux/prepare_release_bundle.py build/linux/x64/campfire/release/bundle
 
       - name: Package
         run: |
           tar -czf "campfire-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz" \
-            -C build/linux/x64/release bundle
+            -C build/linux/x64/campfire/release bundle
 
       - uses: actions/upload-artifact@v7
         with:
@@ -549,15 +549,15 @@ jobs:
       - name: Build
         env:
           USE_SYSTEM_SECURE_STORAGE_DEPS: "1"
-        run: flutter build linux --release --verbose
+        run: flutter build linux --release --verbose --flavor stack_duo
 
       - name: Prepare Linux release bundle
-        run: python3 scripts/linux/prepare_release_bundle.py build/linux/x64/release/bundle
+        run: python3 scripts/linux/prepare_release_bundle.py build/linux/x64/stack_duo/release/bundle
 
       - name: Package
         run: |
           tar -czf "stack_duo-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz" \
-            -C build/linux/x64/release bundle
+            -C build/linux/x64/stack_duo/release bundle
 
       - uses: actions/upload-artifact@v7
         with:
@@ -760,22 +760,22 @@ jobs:
           EOF
 
       - name: Build APKs
-        run: flutter build apk --split-per-abi --release
+        run: flutter build apk --split-per-abi --release --flavor campfire
 
       - name: Build AAB
-        run: flutter build appbundle --release
+        run: flutter build appbundle --release --flavor campfire
 
       - name: Collect artifacts
         run: |
           VERSION="${{ steps.ver.outputs.version }}"
           mkdir -p android-artifacts
-          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk \
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-campfire-release.apk \
              android-artifacts/campfire-android-arm64-v8a-${VERSION}.apk
-          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk \
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-campfire-release.apk \
              android-artifacts/campfire-android-armeabi-v7a-${VERSION}.apk
-          cp build/app/outputs/flutter-apk/app-x86_64-release.apk \
+          cp build/app/outputs/flutter-apk/app-x86_64-campfire-release.apk \
              android-artifacts/campfire-android-x86_64-${VERSION}.apk
-          cp build/app/outputs/bundle/release/app-release.aab \
+          cp build/app/outputs/bundle/campfireRelease/app-campfire-release.aab \
              android-artifacts/campfire-android-${VERSION}.aab
 
       - uses: actions/upload-artifact@v7
@@ -1218,22 +1218,22 @@ jobs:
           EOF
 
       - name: Build APKs
-        run: flutter build apk --split-per-abi --release
+        run: flutter build apk --split-per-abi --release --flavor stack_duo
 
       - name: Build AAB
-        run: flutter build appbundle --release
+        run: flutter build appbundle --release --flavor stack_duo
 
       - name: Collect artifacts
         run: |
           VERSION="${{ steps.ver.outputs.version }}"
           mkdir -p android-artifacts
-          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk \
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-stack_duo-release.apk \
              android-artifacts/stack_duo-android-arm64-v8a-${VERSION}.apk
-          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk \
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-stack_duo-release.apk \
              android-artifacts/stack_duo-android-armeabi-v7a-${VERSION}.apk
-          cp build/app/outputs/flutter-apk/app-x86_64-release.apk \
+          cp build/app/outputs/flutter-apk/app-x86_64-stack_duo-release.apk \
              android-artifacts/stack_duo-android-x86_64-${VERSION}.apk
-          cp build/app/outputs/bundle/release/app-release.aab \
+          cp build/app/outputs/bundle/stack_duoRelease/app-stack_duo-release.aab \
              android-artifacts/stack_duo-android-${VERSION}.aab
 
       - uses: actions/upload-artifact@v7

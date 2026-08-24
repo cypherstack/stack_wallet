@@ -12,7 +12,11 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace "com.place.holder"
+    // The namespace matches the (hardcoded) MainActivity package under
+    // android/app/src/main/kotlin/com/cypherstack/stackwallet. It is the same
+    // for all brands; per-brand application ids are set by the product
+    // flavors below.
+    namespace "com.cypherstack.stackwallet"
     compileSdk 37
 //    ndkVersion flutter.ndkVersion
     ndkVersion = "28.2.13676358"
@@ -25,7 +29,6 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.place.holder"
         minSdk flutter.minSdkVersion
         targetSdk flutter.targetSdkVersion
         versionCode flutter.versionCode
@@ -57,6 +60,29 @@ android {
 //                version "3.10.2"
 //            }
 //        }
+    }
+
+    // Brand identity is expressed as Gradle product flavors so that
+    // `flutter build apk --flavor <brand>` works without any sed-style
+    // rewriting. Keep these in sync with the brand manifests in the
+    // whitelabel package (whitelabel/brands/*.yaml).
+    flavorDimensions "brand"
+    productFlavors {
+        stack_wallet {
+            dimension "brand"
+            applicationId "com.cypherstack.stackwallet"
+            manifestPlaceholders = [appLabel: "Stack Wallet"]
+        }
+        stack_duo {
+            dimension "brand"
+            applicationId "com.cypherstack.stackduo"
+            manifestPlaceholders = [appLabel: "Stack Duo"]
+        }
+        campfire {
+            dimension "brand"
+            applicationId "com.cypherstack.campfire"
+            manifestPlaceholders = [appLabel: "Campfire"]
+        }
     }
 
     signingConfigs {

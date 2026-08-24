@@ -7,7 +7,7 @@
         android:name="android.permission.CAMERA"/>
     <application
         android:name="${applicationName}"
-        android:label="PlaceHolderName"
+        android:label="${appLabel}"
         android:requestLegacyExternalStorage="true"
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="false"
@@ -31,7 +31,7 @@
             </intent-filter>
             <intent-filter
                 android:icon="@mipmap/ic_launcher"
-                android:label="PlaceHolderName"
+                android:label="${appLabel}"
                 android:priority="1">
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
