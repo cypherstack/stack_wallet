@@ -8,8 +8,4 @@
  *
  */
 
-enum BackupFrequencyType {
-  everyTenMinutes,
-  everyAppStart,
-  afterClosingAWallet,
-}
+enum BackupFrequencyType { everyTenMinutes, everyAppStart, afterClosingAWallet }

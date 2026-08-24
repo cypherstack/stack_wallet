@@ -71,34 +71,33 @@ class _EditNoteViewState extends ConsumerState<EditNoteView> {
       condition: !isDesktop,
       builder: (child) => Background(child: child),
       child: Scaffold(
-        backgroundColor:
-            isDesktop
-                ? Colors.transparent
-                : Theme.of(context).extension<StackColors>()!.background,
-        appBar:
-            isDesktop
-                ? null
-                : AppBar(
-                  backgroundColor:
-                      Theme.of(context).extension<StackColors>()!.background,
-                  leading: AppBarBackButton(
-                    onPressed: () async {
-                      if (FocusScope.of(context).hasFocus) {
-                        FocusScope.of(context).unfocus();
-                        await Future<void>.delayed(
-                          const Duration(milliseconds: 75),
-                        );
-                      }
-                      if (mounted) {
-                        Navigator.of(context).pop();
-                      }
-                    },
-                  ),
-                  title: Text(
-                    "Edit note",
-                    style: STextStyles.navBarTitle(context),
-                  ),
+        backgroundColor: isDesktop
+            ? Colors.transparent
+            : Theme.of(context).extension<StackColors>()!.background,
+        appBar: isDesktop
+            ? null
+            : AppBar(
+                backgroundColor: Theme.of(
+                  context,
+                ).extension<StackColors>()!.background,
+                leading: AppBarBackButton(
+                  onPressed: () async {
+                    if (FocusScope.of(context).hasFocus) {
+                      FocusScope.of(context).unfocus();
+                      await Future<void>.delayed(
+                        const Duration(milliseconds: 75),
+                      );
+                    }
+                    if (mounted) {
+                      Navigator.of(context).pop();
+                    }
+                  },
                 ),
+                title: Text(
+                  "Edit note",
+                  style: STextStyles.navBarTitle(context),
+                ),
+              ),
         body: MobileEditNoteScaffold(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -115,10 +114,9 @@ class _EditNoteViewState extends ConsumerState<EditNoteView> {
                   ),
                 ),
               Padding(
-                padding:
-                    isDesktop
-                        ? const EdgeInsets.symmetric(horizontal: 32)
-                        : const EdgeInsets.all(0),
+                padding: isDesktop
+                    ? const EdgeInsets.symmetric(horizontal: 32)
+                    : const EdgeInsets.all(0),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
@@ -127,55 +125,50 @@ class _EditNoteViewState extends ConsumerState<EditNoteView> {
                     autocorrect: Util.isDesktop ? false : true,
                     enableSuggestions: Util.isDesktop ? false : true,
                     controller: _noteController,
-                    style:
-                        isDesktop
-                            ? STextStyles.desktopTextExtraSmall(
+                    style: isDesktop
+                        ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                            color: Theme.of(
                               context,
-                            ).copyWith(
-                              color:
-                                  Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textFieldActiveText,
-                              height: 1.8,
-                            )
-                            : STextStyles.field(context),
+                            ).extension<StackColors>()!.textFieldActiveText,
+                            height: 1.8,
+                          )
+                        : STextStyles.field(context),
                     focusNode: noteFieldFocusNode,
-                    decoration: standardInputDecoration(
-                      "Note",
-                      noteFieldFocusNode,
-                      context,
-                      desktopMed: isDesktop,
-                    ).copyWith(
-                      contentPadding:
-                          isDesktop
+                    decoration:
+                        standardInputDecoration(
+                          "Note",
+                          noteFieldFocusNode,
+                          context,
+                          desktopMed: isDesktop,
+                        ).copyWith(
+                          contentPadding: isDesktop
                               ? const EdgeInsets.only(
-                                left: 16,
-                                top: 11,
-                                bottom: 12,
-                                right: 5,
-                              )
+                                  left: 16,
+                                  top: 11,
+                                  bottom: 12,
+                                  right: 5,
+                                )
                               : null,
-                      suffixIcon:
-                          _noteController.text.isNotEmpty
+                          suffixIcon: _noteController.text.isNotEmpty
                               ? Padding(
-                                padding: const EdgeInsets.only(right: 0),
-                                child: UnconstrainedBox(
-                                  child: Row(
-                                    children: [
-                                      TextFieldIconButton(
-                                        child: const XIcon(),
-                                        onTap: () async {
-                                          setState(() {
-                                            _noteController.text = "";
-                                          });
-                                        },
-                                      ),
-                                    ],
+                                  padding: const EdgeInsets.only(right: 0),
+                                  child: UnconstrainedBox(
+                                    child: Row(
+                                      children: [
+                                        TextFieldIconButton(
+                                          child: const XIcon(),
+                                          onTap: () async {
+                                            setState(() {
+                                              _noteController.text = "";
+                                            });
+                                          },
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              )
+                                )
                               : null,
-                    ),
+                        ),
                   ),
                 ),
               ),

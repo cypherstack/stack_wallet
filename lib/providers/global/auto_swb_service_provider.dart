@@ -13,7 +13,6 @@ import 'secure_store_provider.dart';
 import '../../services/auto_swb_service.dart';
 
 final autoSWBServiceProvider = ChangeNotifierProvider<AutoSWBService>(
-  (ref) => AutoSWBService(
-    secureStorageInterface: ref.read(secureStoreProvider),
-  ),
+  (ref) =>
+      AutoSWBService(secureStorageInterface: ref.read(secureStoreProvider)),
 );
