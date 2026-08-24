@@ -17,6 +17,7 @@ import 'package:flutter_svg/svg.dart';
 
 import '../../app_config.dart';
 import '../../models/exchange/response_objects/trade.dart';
+import '../../models/isar/models/isar_models.dart';
 import '../../pages_desktop_specific/desktop_exchange/desktop_exchange_view.dart';
 import '../../providers/providers.dart';
 import '../../route_generator.dart';
@@ -48,6 +49,7 @@ import '../../widgets/stack_dialog.dart';
 import '../home_view/home_view.dart';
 import '../send_view/sub_widgets/building_transaction_dialog.dart';
 import 'confirm_change_now_send.dart';
+import 'sub_widgets/exchange_coin_control.dart';
 
 class SendFromView extends ConsumerStatefulWidget {
   const SendFromView({
@@ -222,12 +224,13 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
   late final String address;
   late final Trade trade;
 
+  Set<UTXO> _selectedUTXOs = {};
+
   Future<void> _send({bool? shouldSendPublicFiroFunds}) async {
     final coin = ref.read(pWalletCoin(walletId));
+    var wasCancelled = false;
 
     try {
-      bool wasCancelled = false;
-
       final wallet = ref.read(pWallets).getWallet(walletId);
 
       unawaited(
@@ -278,6 +281,16 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
         addressType: wallet.cryptoCurrency.getAddressType(address)!,
       );
 
+      final selectedInputs = _selectedUTXOs.isEmpty
+          ? null
+          : (await prepareExchangeCoinSelection(
+              walletId: walletId,
+              wallet: wallet,
+              currentChainHeight: ref.read(pWalletChainHeight(walletId)),
+              amount: amount,
+              selected: _selectedUTXOs,
+            )).inputs;
+
       // if not firo then do normal send
       if (shouldSendPublicFiroFunds == null) {
         final memo = coin is Stellar || coin is Solana
@@ -290,6 +303,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
             recipients: [recipient],
             memo: memo,
             feeRateType: FeeRateType.average,
+            utxos: selectedInputs,
           ),
         );
       } else {
@@ -299,6 +313,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
             txData: TxData(
               recipients: [recipient],
               feeRateType: FeeRateType.average,
+              utxos: selectedInputs,
             ),
           );
         } else {
@@ -349,7 +364,10 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
       }
     } catch (e, s) {
       Logging.instance.e("$e\n$s", error: e, stackTrace: s);
-      if (mounted) {
+      if (e is ExchangeCoinSelectionException && e.clearSelection && mounted) {
+        setState(() => _selectedUTXOs = {});
+      }
+      if (mounted && !wasCancelled) {
         // pop building dialog
         Navigator.of(context, rootNavigator: Util.isDesktop).pop();
 
@@ -543,68 +561,84 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
             ],
           ),
         ),
-        child: ConditionalParent(
-          condition: !isFiro,
-          builder: (child) => MaterialButton(
-            splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-            key: Key("walletsSheetItemButtonKey_$walletId"),
-            padding: const EdgeInsets.all(8),
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(
-                Constants.size.circularBorderRadius,
-              ),
-            ),
-            onPressed: () async {
-              if (mounted) {
-                unawaited(_send());
-              }
-            },
-            child: child,
-          ),
-          child: Row(
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: ref.watch(pCoinColor(coin)).withOpacity(0.5),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ConditionalParent(
+              condition: !isFiro,
+              builder: (child) => MaterialButton(
+                splashColor: Theme.of(
+                  context,
+                ).extension<StackColors>()!.highlight,
+                key: Key("walletsSheetItemButtonKey_$walletId"),
+                padding: const EdgeInsets.all(8),
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(6),
-                  child: SvgPicture.file(
-                    File(ref.watch(coinIconProvider(coin))),
-                    width: 24,
-                    height: 24,
-                  ),
-                ),
+                onPressed: () async {
+                  if (mounted) {
+                    unawaited(_send());
+                  }
+                },
+                child: child,
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      ref.watch(pWalletName(walletId)),
-                      style: STextStyles.titleBold12(context),
-                    ),
-                    if (!isFiro) const SizedBox(height: 2),
-                    if (!isFiro)
-                      Text(
-                        ref
-                            .watch(pAmountFormatter(coin))
-                            .format(
-                              ref.watch(pWalletBalance(walletId)).spendable,
-                            ),
-                        style: STextStyles.itemSubtitle(context),
+              child: Row(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: ref.watch(pCoinColor(coin)).withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(
+                        Constants.size.circularBorderRadius,
                       ),
-                  ],
-                ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: SvgPicture.file(
+                        File(ref.watch(coinIconProvider(coin))),
+                        width: 24,
+                        height: 24,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          ref.watch(pWalletName(walletId)),
+                          style: STextStyles.titleBold12(context),
+                        ),
+                        if (!isFiro) const SizedBox(height: 2),
+                        if (!isFiro)
+                          Text(
+                            ref
+                                .watch(pAmountFormatter(coin))
+                                .format(
+                                  ref.watch(pWalletBalance(walletId)).spendable,
+                                ),
+                            style: STextStyles.itemSubtitle(context),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+            ExchangeCoinControlSelector(
+              walletId: walletId,
+              amount: amount,
+              selected: _selectedUTXOs,
+              onChanged: (selected) {
+                setState(() => _selectedUTXOs = selected);
+              },
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            ),
+          ],
         ),
       ),
     );
