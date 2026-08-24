@@ -877,81 +877,83 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
           ),
         ),
       ),
-      home: CryptoNotifications(
-        child: Util.isDesktop
-            ? FutureBuilder(
-                future: loadShared(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    if (_desktopHasPassword) {
-                      String? startupWalletId;
-                      if (ref
+      // Wraps the navigator rather than sitting in it: as home: this listener
+      // is a route, so the first post-login navigation disposes it.
+      builder: (context, child) =>
+          CryptoNotifications(child: child ?? const SizedBox.shrink()),
+      home: Util.isDesktop
+          ? FutureBuilder(
+              future: loadShared(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  if (_desktopHasPassword) {
+                    String? startupWalletId;
+                    if (ref
+                        .read(prefsChangeNotifierProvider)
+                        .gotoWalletOnStartup) {
+                      startupWalletId = ref
                           .read(prefsChangeNotifierProvider)
-                          .gotoWalletOnStartup) {
-                        startupWalletId = ref
-                            .read(prefsChangeNotifierProvider)
-                            .startupWalletId;
-                      }
+                          .startupWalletId;
+                    }
 
-                      return DesktopLoginView(
-                        startupWalletId: startupWalletId,
-                        load: () => load(true),
-                      );
+                    return DesktopLoginView(
+                      startupWalletId: startupWalletId,
+                      load: () => load(true),
+                    );
+                  } else {
+                    return const IntroView();
+                  }
+                } else {
+                  return const LoadingView();
+                }
+              },
+            )
+          : FutureBuilder(
+              future: load(false),
+              builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  // FlutterNativeSplash.remove();
+                  if (ref.read(pAllWalletsInfo).isNotEmpty ||
+                      ref.read(prefsChangeNotifierProvider).hasPin) {
+                    // return HomeView();
+
+                    String? startupWalletId;
+                    if (ref
+                        .read(prefsChangeNotifierProvider)
+                        .gotoWalletOnStartup) {
+                      startupWalletId = ref
+                          .read(prefsChangeNotifierProvider)
+                          .startupWalletId;
+                    }
+
+                    return LockscreenView(
+                      isInitialAppLogin: true,
+                      routeOnSuccess: HomeView.routeName,
+                      routeOnSuccessArguments: startupWalletId,
+                      biometricsAuthenticationTitle:
+                          "Unlock ${AppConfig.prefix}",
+                      biometricsLocalizedReason:
+                          "Unlock your ${AppConfig.appName} using biometrics",
+                      biometricsCancelButtonString: "Cancel",
+                    );
+                  } else {
+                    if (AppConfig.appName == "Campfire" &&
+                        !CampfireMigration.didRun &&
+                        CampfireMigration.hasOldWallets) {
+                      return const CampfireMigrateView();
                     } else {
                       return const IntroView();
                     }
-                  } else {
-                    return const LoadingView();
                   }
-                },
-              )
-            : FutureBuilder(
-                future: load(false),
-                builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    // FlutterNativeSplash.remove();
-                    if (ref.read(pAllWalletsInfo).isNotEmpty ||
-                        ref.read(prefsChangeNotifierProvider).hasPin) {
-                      // return HomeView();
-
-                      String? startupWalletId;
-                      if (ref
-                          .read(prefsChangeNotifierProvider)
-                          .gotoWalletOnStartup) {
-                        startupWalletId = ref
-                            .read(prefsChangeNotifierProvider)
-                            .startupWalletId;
-                      }
-
-                      return LockscreenView(
-                        isInitialAppLogin: true,
-                        routeOnSuccess: HomeView.routeName,
-                        routeOnSuccessArguments: startupWalletId,
-                        biometricsAuthenticationTitle:
-                            "Unlock ${AppConfig.prefix}",
-                        biometricsLocalizedReason:
-                            "Unlock your ${AppConfig.appName} using biometrics",
-                        biometricsCancelButtonString: "Cancel",
-                      );
-                    } else {
-                      if (AppConfig.appName == "Campfire" &&
-                          !CampfireMigration.didRun &&
-                          CampfireMigration.hasOldWallets) {
-                        return const CampfireMigrateView();
-                      } else {
-                        return const IntroView();
-                      }
-                    }
-                  } else {
-                    // CURRENTLY DISABLED as cannot be animated
-                    // technically not needed as FlutterNativeSplash will overlay
-                    // anything returned here until the future completes but
-                    // FutureBuilder requires you to return something
-                    return const LoadingView();
-                  }
-                },
-              ),
-      ),
+                } else {
+                  // CURRENTLY DISABLED as cannot be animated
+                  // technically not needed as FlutterNativeSplash will overlay
+                  // anything returned here until the future completes but
+                  // FutureBuilder requires you to return something
+                  return const LoadingView();
+                }
+              },
+            ),
     );
   }
 }
