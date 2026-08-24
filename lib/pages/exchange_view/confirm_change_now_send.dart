@@ -21,6 +21,7 @@ import '../../notifications/show_flush_bar.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
 import '../../providers/providers.dart';
 import '../../route_generator.dart';
+import '../../services/transaction_note_service.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
@@ -135,12 +136,10 @@ class _ConfirmChangeNowSendViewState
 
       txid = (results.first as TxData).txid!;
 
-      // save note
-      await ref
-          .read(mainDBProvider)
-          .putTransactionNote(
-            TransactionNote(walletId: walletId, txid: txid, value: note),
-          );
+      await saveTransactionNotesAfterSend(
+        notes: [TransactionNote(walletId: walletId, txid: txid, value: note)],
+        persist: ref.read(mainDBProvider).putTransactionNotes,
+      );
 
       await ref
           .read(tradeSentFromStackLookupProvider)

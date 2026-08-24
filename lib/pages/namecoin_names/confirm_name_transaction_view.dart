@@ -24,6 +24,7 @@ import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/deskt
 import '../../providers/global/secure_store_provider.dart';
 import '../../providers/providers.dart';
 import '../../route_generator.dart';
+import '../../services/transaction_note_service.dart';
 import '../../themes/stack_colors.dart';
 import '../../themes/theme_providers.dart';
 import '../../utilities/amount/amount.dart';
@@ -140,14 +141,15 @@ class _ConfirmNameTransactionViewState
         ref.refresh(desktopUseUTXOs);
       }
 
-      // save note
-      for (final txid in txids) {
-        await ref
-            .read(mainDBProvider)
-            .putTransactionNote(
-              TransactionNote(walletId: walletId, txid: txid, value: note),
-            );
-      }
+      await saveTransactionNotesAfterSend(
+        notes: txids
+            .map(
+              (txid) =>
+                  TransactionNote(walletId: walletId, txid: txid, value: note),
+            )
+            .toList(),
+        persist: ref.read(mainDBProvider).putTransactionNotes,
+      );
 
       unawaited(wallet.refresh());
 
