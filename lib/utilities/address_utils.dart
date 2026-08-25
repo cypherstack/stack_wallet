@@ -81,12 +81,22 @@ class AddressUtils {
         }
       }
     } catch (e, s) {
-      Logging.instance.d(
-        "Exception caught in parseUri("
-        "${redactUriInLogs ? '<redacted>' : uri}): $e",
-        error: e,
-        stackTrace: s,
-      );
+      if (redactUriInLogs) {
+        // FormatException.toString() quotes a window of its source, and
+        // Uri.parse's source is the pasted uri, so log the message alone and
+        // never hand the exception object to the logger.
+        Logging.instance.d(
+          "Exception caught in parseUri(<redacted>): "
+          "${e is FormatException ? e.message : e.runtimeType}",
+          stackTrace: s,
+        );
+      } else {
+        Logging.instance.d(
+          "Exception caught in parseUri($uri): $e",
+          error: e,
+          stackTrace: s,
+        );
+      }
     }
     return result;
   }
