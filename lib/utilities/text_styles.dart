@@ -467,7 +467,7 @@ class STextStyles {
     }
   }
 
-// Desktop
+  // Desktop
 
   static TextStyle desktopH1(BuildContext context) {
     switch (_theme(context).themeId) {

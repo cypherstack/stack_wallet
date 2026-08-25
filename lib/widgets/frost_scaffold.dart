@@ -57,28 +57,23 @@ class _FrostScaffoldState extends ConsumerState<FrostStepScaffold> {
           label: "No",
           onPressed: () {
             // pop dialog
-            Navigator.of(
-              context,
-              rootNavigator: Util.isDesktop,
-            ).pop("no");
+            Navigator.of(context, rootNavigator: Util.isDesktop).pop("no");
           },
         ),
         rightButton: PrimaryButton(
           label: "Yes",
           onPressed: () {
             // pop dialog
-            Navigator.of(
-              context,
-              rootNavigator: Util.isDesktop,
-            ).pop("yes");
+            Navigator.of(context, rootNavigator: Util.isDesktop).pop("yes");
           },
         ),
       ),
     );
 
     // make sure to at least delay some time otherwise flutter pops back more than a single route lol...
-    final minTimeFuture =
-        Future<void>.delayed(const Duration(milliseconds: 200));
+    final minTimeFuture = Future<void>.delayed(
+      const Duration(milliseconds: 200),
+    );
 
     final result = await Future.wait<dynamic>([resultFuture, minTimeFuture]);
 
@@ -109,11 +104,10 @@ class _FrostScaffoldState extends ConsumerState<FrostStepScaffold> {
             condition: !Util.isDesktop,
             builder: (child) => Background(
               child: Scaffold(
-                backgroundColor:
-                    Theme.of(context).extension<StackColors>()!.background,
-                body: SafeArea(
-                  child: child,
-                ),
+                backgroundColor: Theme.of(
+                  context,
+                ).extension<StackColors>()!.background,
+                body: SafeArea(child: child),
               ),
             ),
             child: Column(
@@ -122,9 +116,7 @@ class _FrostScaffoldState extends ConsumerState<FrostStepScaffold> {
                 SizedBox(
                   height: 56,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Row(
                       children: [
                         Text(
@@ -136,21 +128,17 @@ class _FrostScaffoldState extends ConsumerState<FrostStepScaffold> {
                                 .customTextButtonEnabledText,
                           ),
                         ),
-                        const SizedBox(
-                          width: 10,
-                        ),
+                        const SizedBox(width: 10),
                         Expanded(
                           child: Text(
                             _routes[ref.watch(pFrostCreateCurrentStep) - 1]
                                 .title,
-                            style: STextStyles.navBarTitle(context).copyWith(
-                              fontSize: _titleTextSize,
-                            ),
+                            style: STextStyles.navBarTitle(
+                              context,
+                            ).copyWith(fontSize: _titleTextSize),
                           ),
                         ),
-                        const SizedBox(
-                          width: 10,
-                        ),
+                        const SizedBox(width: 10),
                         CustomTextButton(
                           text: "Exit",
                           textSize: _titleTextSize,
@@ -164,9 +152,9 @@ class _FrostScaffoldState extends ConsumerState<FrostStepScaffold> {
                   builder: (subContext, constraints) => ProgressBar(
                     width: constraints.maxWidth,
                     height: 3,
-                    fillColor: Theme.of(context)
-                        .extension<StackColors>()!
-                        .customTextButtonEnabledText,
+                    fillColor: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.customTextButtonEnabledText,
                     backgroundColor: Theme.of(context)
                         .extension<StackColors>()!
                         .customTextButtonEnabledText
@@ -181,12 +169,7 @@ class _FrostScaffoldState extends ConsumerState<FrostStepScaffold> {
                     builder: (child) => Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Flexible(
-                          child: SizedBox(
-                            width: 500,
-                            child: child,
-                          ),
-                        ),
+                        Flexible(child: SizedBox(width: 500, child: child)),
                       ],
                     ),
                     child: ConditionalParent(
@@ -198,9 +181,7 @@ class _FrostScaffoldState extends ConsumerState<FrostStepScaffold> {
                               constraints: BoxConstraints(
                                 minHeight: constraints.maxHeight,
                               ),
-                              child: IntrinsicHeight(
-                                child: child,
-                              ),
+                              child: IntrinsicHeight(child: child),
                             ),
                           );
                         },

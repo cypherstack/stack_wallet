@@ -21,13 +21,10 @@ class FrostSignNavIcon extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context)
-            .extension<StackColors>()!
-            .bottomNavIconIcon
-            .withOpacity(0.4),
-        borderRadius: BorderRadius.circular(
-          24,
-        ),
+        color: Theme.of(
+          context,
+        ).extension<StackColors>()!.bottomNavIconIcon.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(24),
       ),
       child: Padding(
         padding: const EdgeInsets.all(6.0),

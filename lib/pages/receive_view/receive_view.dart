@@ -161,8 +161,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
 
     if (slatepackString == null) return;
     if (mounted) {
-      final wallet =
-          ref.read(pWallets).getWallet(walletId) as EpiccashWallet;
+      final wallet = ref.read(pWallets).getWallet(walletId) as EpiccashWallet;
 
       Exception? ex;
       final result = await showLoading(

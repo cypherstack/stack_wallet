@@ -44,8 +44,9 @@ class WalletSyncingOptionsView extends ConsumerWidget {
       builder: (child) {
         return Background(
           child: Scaffold(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(
+              context,
+            ).extension<StackColors>()!.background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () async {
@@ -98,12 +99,11 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                         const SizedBox(height: 12),
                         RoundedWhiteContainer(
                           padding: const EdgeInsets.all(0),
-                          borderColor:
-                              !isDesktop
-                                  ? Colors.transparent
-                                  : Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.background,
+                          borderColor: !isDesktop
+                              ? Colors.transparent
+                              : Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.background,
                           child: Column(
                             children: [
                               ...walletInfos.map(
@@ -177,24 +177,23 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                                         child: DraggableSwitchButton(
                                           isOn: ref
                                               .watch(
-                                                prefsChangeNotifierProvider.select(
-                                                  (value) =>
-                                                      value
+                                                prefsChangeNotifierProvider
+                                                    .select(
+                                                      (value) => value
                                                           .walletIdsSyncOnStartup,
-                                                ),
+                                                    ),
                                               )
                                               .contains(info.walletId),
                                           onValueChanged: (value) {
                                             // final syncType = ref
                                             //     .read(prefsChangeNotifierProvider)
                                             //     .syncType;
-                                            final ids =
-                                                ref
-                                                    .read(
-                                                      prefsChangeNotifierProvider,
-                                                    )
-                                                    .walletIdsSyncOnStartup
-                                                    .toList();
+                                            final ids = ref
+                                                .read(
+                                                  prefsChangeNotifierProvider,
+                                                )
+                                                .walletIdsSyncOnStartup
+                                                .toList();
                                             if (value) {
                                               ids.add(info.walletId);
                                             } else {
@@ -222,10 +221,11 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                                             // }
 
                                             ref
-                                                .read(
-                                                  prefsChangeNotifierProvider,
-                                                )
-                                                .walletIdsSyncOnStartup = ids;
+                                                    .read(
+                                                      prefsChangeNotifierProvider,
+                                                    )
+                                                    .walletIdsSyncOnStartup =
+                                                ids;
                                           },
                                         ),
                                       ),

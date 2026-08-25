@@ -20,13 +20,10 @@ class ReceiveNavIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context)
-            .extension<StackColors>()!
-            .bottomNavIconIcon
-            .withOpacity(0.4),
-        borderRadius: BorderRadius.circular(
-          24,
-        ),
+        color: Theme.of(
+          context,
+        ).extension<StackColors>()!.bottomNavIconIcon.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(24),
       ),
       child: Padding(
         padding: const EdgeInsets.all(6.0),

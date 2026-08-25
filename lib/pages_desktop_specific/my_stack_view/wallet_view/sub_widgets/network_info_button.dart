@@ -54,8 +54,9 @@ class _NetworkInfoButtonState extends ConsumerState<NetworkInfoButton> {
     walletId = widget.walletId;
     final wallet = ref.read(pWallets).getWallet(walletId);
 
-    eventBus =
-        widget.eventBus != null ? widget.eventBus! : GlobalEventBus.instance;
+    eventBus = widget.eventBus != null
+        ? widget.eventBus!
+        : GlobalEventBus.instance;
 
     if (wallet.refreshMutex.isLocked) {
       _currentSyncStatus = WalletSyncStatus.syncing;
@@ -212,66 +213,63 @@ class _NetworkInfoButtonState extends ConsumerState<NetworkInfoButton> {
 
           showDialog<void>(
             context: context,
-            builder:
-                (context) => Navigator(
-                  initialRoute: WalletNetworkSettingsView.routeName,
-                  onGenerateRoute: RouteGenerator.generateRoute,
-                  onGenerateInitialRoutes: (_, __) {
-                    return [
-                      FadePageRoute(
-                        DesktopDialog(
-                          maxHeight: null,
-                          maxWidth: 580,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(left: 32),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      "Network",
-                                      style: STextStyles.desktopH3(context),
-                                    ),
-                                    DesktopDialogCloseButton(
-                                      onPressedOverride:
-                                          Navigator.of(
-                                            context,
-                                            rootNavigator: true,
-                                          ).pop,
-                                    ),
-                                  ],
+            builder: (context) => Navigator(
+              initialRoute: WalletNetworkSettingsView.routeName,
+              onGenerateRoute: RouteGenerator.generateRoute,
+              onGenerateInitialRoutes: (_, __) {
+                return [
+                  FadePageRoute(
+                    DesktopDialog(
+                      maxHeight: null,
+                      maxWidth: 580,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(left: 32),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "Network",
+                                  style: STextStyles.desktopH3(context),
                                 ),
-                              ),
-                              Flexible(
-                                child: Padding(
-                                  padding: const EdgeInsets.only(
-                                    top: 16,
-                                    left: 32,
-                                    right: 32,
-                                    bottom: 32,
-                                  ),
-                                  child: SingleChildScrollView(
-                                    child: WalletNetworkSettingsView(
-                                      walletId: walletId,
-                                      initialSyncStatus: _currentSyncStatus,
-                                      initialNodeStatus: _currentNodeStatus,
-                                    ),
-                                  ),
+                                DesktopDialogCloseButton(
+                                  onPressedOverride: Navigator.of(
+                                    context,
+                                    rootNavigator: true,
+                                  ).pop,
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                        const RouteSettings(
-                          name: WalletNetworkSettingsView.routeName,
-                        ),
+                          Flexible(
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                top: 16,
+                                left: 32,
+                                right: 32,
+                                bottom: 32,
+                              ),
+                              child: SingleChildScrollView(
+                                child: WalletNetworkSettingsView(
+                                  walletId: walletId,
+                                  initialSyncStatus: _currentSyncStatus,
+                                  initialNodeStatus: _currentNodeStatus,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ];
-                  },
-                ),
+                    ),
+                    const RouteSettings(
+                      name: WalletNetworkSettingsView.routeName,
+                    ),
+                  ),
+                ];
+              },
+            ),
           );
         } else {
           Navigator.of(context).pushNamed(

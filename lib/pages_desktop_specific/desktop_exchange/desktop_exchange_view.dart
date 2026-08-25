@@ -86,10 +86,9 @@ class _DesktopExchangeViewState extends ConsumerState<DesktopExchangeView> {
           children: [
             child,
             Material(
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .overlay
-                  .withOpacity(0.6),
+              color: Theme.of(
+                context,
+              ).extension<StackColors>()!.overlay.withOpacity(0.6),
               child: const CustomLoadingOverlay(
                 message: "Updating exchange data",
                 subMessage: "This could take a few minutes",
@@ -103,21 +102,12 @@ class _DesktopExchangeViewState extends ConsumerState<DesktopExchangeView> {
         appBar: DesktopAppBar(
           isCompactHeight: true,
           leading: Padding(
-            padding: const EdgeInsets.only(
-              left: 24,
-            ),
-            child: Text(
-              "Swap",
-              style: STextStyles.desktopH3(context),
-            ),
+            padding: const EdgeInsets.only(left: 24),
+            child: Text("Swap", style: STextStyles.desktopH3(context)),
           ),
         ),
         body: Padding(
-          padding: const EdgeInsets.only(
-            left: 24,
-            right: 24,
-            bottom: 24,
-          ),
+          padding: const EdgeInsets.only(left: 24, right: 24, bottom: 24),
           child: Column(
             children: [
               Row(
@@ -128,24 +118,23 @@ class _DesktopExchangeViewState extends ConsumerState<DesktopExchangeView> {
                       style: STextStyles.desktopTextExtraExtraSmall(context),
                     ),
                   ),
-                  const SizedBox(
-                    width: 16,
-                  ),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           "Recent trades",
-                          style:
-                              STextStyles.desktopTextExtraExtraSmall(context),
+                          style: STextStyles.desktopTextExtraExtraSmall(
+                            context,
+                          ),
                         ),
                         CustomTextButton(
                           text: "See all",
                           onTap: () {
-                            Navigator.of(context).pushNamed(
-                              DesktopAllTradesView.routeName,
-                            );
+                            Navigator.of(
+                              context,
+                            ).pushNamed(DesktopAllTradesView.routeName);
                           },
                         ),
                       ],
@@ -153,9 +142,7 @@ class _DesktopExchangeViewState extends ConsumerState<DesktopExchangeView> {
                   ),
                 ],
               ),
-              const SizedBox(
-                height: 16,
-              ),
+              const SizedBox(height: 16),
               Expanded(
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -170,16 +157,10 @@ class _DesktopExchangeViewState extends ConsumerState<DesktopExchangeView> {
                         ],
                       ),
                     ),
-                    const SizedBox(
-                      width: 16,
-                    ),
+                    const SizedBox(width: 16),
                     const Expanded(
                       child: Row(
-                        children: [
-                          Expanded(
-                            child: DesktopTradeHistory(),
-                          ),
-                        ],
+                        children: [Expanded(child: DesktopTradeHistory())],
                       ),
                     ),
                   ],
