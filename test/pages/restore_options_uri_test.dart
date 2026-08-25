@@ -183,6 +183,69 @@ void main() {
     );
   });
 
+  testWidgets("a URI for another coin is refused on this page", (tester) async {
+    final heightController = StartHeightPickerController();
+    addTearDown(heightController.dispose);
+
+    WalletUriData? parsed;
+    var parsedCalls = 0;
+    await tester.pumpWidget(
+      testApp(
+        UriRestoreOption(
+          coin: coin,
+          heightController: heightController,
+          onParsed: (value) {
+            parsed = value;
+            parsedCalls++;
+          },
+        ),
+      ),
+    );
+
+    await tester.enterText(
+      find.byType(TextField).first,
+      "wownero_wallet:?seed=alpha%20beta",
+    );
+    await tester.pump();
+
+    expect(parsedCalls, greaterThan(0));
+    expect(parsed, isNull);
+    expect(find.text("This is a Wownero wallet URI."), findsOneWidget);
+  });
+
+  testWidgets("a URI height prefills a field the user still controls", (
+    tester,
+  ) async {
+    final heightController = StartHeightPickerController();
+    addTearDown(heightController.dispose);
+
+    await tester.pumpWidget(
+      testApp(
+        UriRestoreOption(
+          coin: coin,
+          heightController: heightController,
+          onParsed: (_) {},
+        ),
+      ),
+    );
+
+    await tester.enterText(
+      find.byType(TextField).first,
+      "monero_wallet:?seed=alpha%20beta&height=3000000",
+    );
+    await tester.pumpAndSettle();
+
+    expect(heightController.height, 3000000);
+
+    await tester.enterText(
+      find.byKey(const Key("startHeightPickerBlockHeightFieldKey")),
+      "2500000",
+    );
+    await tester.pumpAndSettle();
+
+    expect(heightController.height, 2500000);
+  });
+
   testWidgets("key restore progress cannot be cancelled", (tester) async {
     await tester.pumpWidget(testApp(const RestoringDialog()));
 

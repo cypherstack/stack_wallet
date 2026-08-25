@@ -187,7 +187,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
     );
   }
 
-  Future<void> _attemptUriRestore(int fallbackHeight) async {
+  Future<void> _attemptUriRestore(int restoreHeight) async {
     final data = _uriData;
     if (data == null) return;
 
@@ -205,14 +205,14 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
       builder: (context) => const ConfirmRecoveryDialog(),
     );
     if (confirmed == true && mounted) {
-      await _doUriRestore(data, fallbackHeight);
+      await _doUriRestore(data, restoreHeight);
     }
   }
 
-  Future<void> _doUriRestore(WalletUriData data, int fallbackHeight) async {
+  /// [restoreHeight] comes from the visible picker, which the URI's own
+  /// `height=` only prefills.
+  Future<void> _doUriRestore(WalletUriData data, int restoreHeight) async {
     if (!Platform.isLinux && !isDesktop) await WakelockPlus.enable();
-
-    final restoreHeight = data.height ?? fallbackHeight;
 
     try {
       final Map<String, dynamic> otherDataJson;
@@ -232,7 +232,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
       }
 
       final info = WalletInfo.createNew(
-        coin: coin,
+        coin: data.coin,
         name: walletName,
         restoreHeight: restoreHeight,
         otherDataJsonString: jsonEncode(otherDataJson),
@@ -877,6 +877,11 @@ class _UriRestoreOptionState extends ConsumerState<UriRestoreOption> {
       error = e.message;
     } catch (_) {
       error = "Invalid wallet URI";
+      parsed = null;
+    }
+
+    if (parsed != null && parsed.coin.identifier != widget.coin.identifier) {
+      error = "This is a ${parsed.coin.prettyName} wallet URI.";
       parsed = null;
     }
 
