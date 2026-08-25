@@ -86,12 +86,20 @@ class AddressUtils {
     } on FormatException {
       rethrow;
     } catch (e, s) {
-      Logging.instance.d(
-        "Exception caught in parseUri("
-        "${redactUriInLogs ? '<redacted>' : uri}): $e",
-        error: e,
-        stackTrace: s,
-      );
+      if (redactUriInLogs) {
+        // The exception may quote the uri, so log its type alone and never
+        // hand the exception object to the logger.
+        Logging.instance.d(
+          "Exception caught in parseUri(<redacted>): ${e.runtimeType}",
+          stackTrace: s,
+        );
+      } else {
+        Logging.instance.d(
+          "Exception caught in parseUri($uri): $e",
+          error: e,
+          stackTrace: s,
+        );
+      }
     }
     return result;
   }
@@ -216,7 +224,13 @@ class AddressUtils {
         .replaceAll("-", "_");
     final compatibleScheme = scheme.replaceAll("_", "");
     final compatibleUri = compatibleScheme + uri.substring(separatorIndex);
-    parsedData.addAll(_parseUri(compatibleUri, redactUriInLogs: true));
+    try {
+      parsedData.addAll(_parseUri(compatibleUri, redactUriInLogs: true));
+    } on FormatException catch (e) {
+      // Uri.parse's FormatException carries the pasted uri as its source and
+      // toString() quotes it, so rethrow the message alone.
+      throw FormatException(e.message);
+    }
 
     // Match the normalized wallet-uri scheme exactly. A bare payment scheme
     // (e.g. "monero") must not be accepted here as a wallet uri; only the
