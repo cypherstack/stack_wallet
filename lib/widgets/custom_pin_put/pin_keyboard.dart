@@ -62,9 +62,10 @@ class _NumberKeyState extends State<NumberKey> {
         onPressed: () async {
           onPressed.call(number);
           setState(() {
-            _color = Theme.of(
-              context,
-            ).extension<StackColors>()!.numberBackDefault.withOpacity(0.8);
+            _color = Theme.of(context)
+                .extension<StackColors>()!
+                .numberBackDefault
+                .withValues(alpha: 0.8);
           });
 
           Future<void>.delayed(const Duration(milliseconds: 200), () {
@@ -125,9 +126,10 @@ class _BackspaceKeyState extends State<BackspaceKey> {
         onPressed: () {
           onPressed.call();
           setState(() {
-            _color = Theme.of(
-              context,
-            ).extension<StackColors>()!.numpadBackDefault.withOpacity(0.8);
+            _color = Theme.of(context)
+                .extension<StackColors>()!
+                .numpadBackDefault
+                .withValues(alpha: 0.8);
           });
 
           Future<void>.delayed(const Duration(milliseconds: 200), () {

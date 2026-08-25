@@ -100,7 +100,7 @@ class _DesktopBuyViewState extends ConsumerState<DesktopBuyView> {
             Container(
               color: Theme.of(
                 context,
-              ).extension<StackColors>()!.overlay.withOpacity(0.7),
+              ).extension<StackColors>()!.overlay.withValues(alpha: 0.7),
               height: MediaQuery.of(context).size.height,
               width: MediaQuery.of(context).size.width,
               child: DesktopDialog(

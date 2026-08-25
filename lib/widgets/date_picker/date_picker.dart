@@ -55,7 +55,7 @@ Future<List<DateTime?>?> showSWDatePicker(
       ).extension<StackColors>()!.accentColorDark,
       daySplashColor: Theme.of(
         context,
-      ).extension<StackColors>()!.accentColorDark.withOpacity(0.6),
+      ).extension<StackColors>()!.accentColorDark.withValues(alpha: 0.6),
     ),
   );
 

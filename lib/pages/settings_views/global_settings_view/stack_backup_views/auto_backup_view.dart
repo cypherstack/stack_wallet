@@ -369,7 +369,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                             color: Theme.of(context)
                                 .extension<StackColors>()!
                                 .textDark
-                                .withOpacity(0.5),
+                                .withValues(alpha: 0.5),
                           ),
                           readOnly: true,
                           enableSuggestions: false,
@@ -401,7 +401,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                             color: Theme.of(context)
                                 .extension<StackColors>()!
                                 .textDark
-                                .withOpacity(0.5),
+                                .withValues(alpha: 0.5),
                           ),
                           obscureText: true,
                           enableSuggestions: false,
@@ -432,9 +432,10 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                         controller: frequencyController,
                         enabled: false,
                         style: STextStyles.field(context).copyWith(
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.textDark.withOpacity(0.5),
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textDark
+                              .withValues(alpha: 0.5),
                         ),
                         toolbarOptions: const ToolbarOptions(
                           copy: true,

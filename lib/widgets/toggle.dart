@@ -68,14 +68,14 @@ class ToggleState extends State<Toggle> {
 
   // Color _colorBG(bool isOn, double alpha) {
   //   return Color.alphaBlend(
-  //     onColor.withOpacity(alpha),
+  //     onColor.withValues(alpha: alpha),
   //     offColor,
   //   );
   // }
 
   // Color _colorFG(bool isOn, double alpha) {
   //   return Color.alphaBlend(
-  //     onColor.withOpacity(alpha),
+  //     onColor.withValues(alpha: alpha),
   //     offColor,
   //   );
   // }

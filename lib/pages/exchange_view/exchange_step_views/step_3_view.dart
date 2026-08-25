@@ -228,7 +228,7 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                               color: Theme.of(context)
                                                   .extension<StackColors>()!
                                                   .overlay
-                                                  .withOpacity(0.6),
+                                                  .withValues(alpha: 0.6),
                                               child: const CustomLoadingOverlay(
                                                 message: "Creating a trade",
                                                 eventBus: null,

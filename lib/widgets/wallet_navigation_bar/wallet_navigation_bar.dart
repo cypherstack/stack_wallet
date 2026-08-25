@@ -66,7 +66,7 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
             child: AnimatedOpacity(
               opacity: ref.watch(walletNavBarMore.state).state ? 1 : 0,
               duration: _moreDuration,
-              child: Container(color: Colors.black.withOpacity(0.7)),
+              child: Container(color: Colors.black.withValues(alpha: 0.7)),
             ),
           ),
         ),

@@ -85,7 +85,9 @@ class NotificationCardLayout extends StatelessWidget {
         ),
         if (read)
           Positioned.fill(
-            child: RoundedContainer(color: colors.background.withOpacity(0.5)),
+            child: RoundedContainer(
+              color: colors.background.withValues(alpha: 0.5),
+            ),
           ),
       ],
     );

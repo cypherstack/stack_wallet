@@ -76,7 +76,7 @@ class _WalletInfoCoinIconState extends ConsumerState<WalletInfoCoinIcon> {
       width: widget.size,
       height: widget.size,
       decoration: BoxDecoration(
-        color: ref.watch(pCoinColor(widget.coin)).withOpacity(0.4),
+        color: ref.watch(pCoinColor(widget.coin)).withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(
           Constants.size.circularBorderRadius,
         ),

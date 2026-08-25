@@ -117,7 +117,7 @@ class _MwcSlatepackDialogState extends ConsumerState<MwcSlatepackDialog> {
           //     decoration: BoxDecoration(
           //       color: Theme.of(
           //         context,
-          //       ).extension<StackColors>()!.infoItemIcons.withOpacity(0.1),
+          //       ).extension<StackColors>()!.infoItemIcons.withValues(alpha: 0.1),
           //       borderRadius: BorderRadius.circular(8),
           //     ),
           //     child: Row(

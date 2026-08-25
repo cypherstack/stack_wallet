@@ -158,7 +158,7 @@ class _FrostScaffoldState extends ConsumerState<FrostStepScaffold> {
                     backgroundColor: Theme.of(context)
                         .extension<StackColors>()!
                         .customTextButtonEnabledText
-                        .withOpacity(0.1),
+                        .withValues(alpha: 0.1),
                     percent:
                         ref.watch(pFrostCreateCurrentStep) / _routes.length,
                   ),

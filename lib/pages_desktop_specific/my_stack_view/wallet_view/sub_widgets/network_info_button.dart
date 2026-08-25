@@ -166,7 +166,7 @@ class _NetworkInfoButtonState extends ConsumerState<NetworkInfoButton> {
   @override
   Widget build(BuildContext context) {
     return RawMaterialButton(
-      hoverColor: _getColor(_currentSyncStatus, context).withOpacity(0.1),
+      hoverColor: _getColor(_currentSyncStatus, context).withValues(alpha: 0.1),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(1000)),
       onPressed: () {
         if (Util.isDesktop) {

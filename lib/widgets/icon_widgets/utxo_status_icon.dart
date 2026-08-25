@@ -79,8 +79,8 @@ class UTXOStatusIcon extends StatelessWidget {
             color: selected
                 ? Theme.of(context).extension<StackColors>()!.infoItemIcons
                 : blocked
-                ? _blockedColor.withOpacity(0.3)
-                : _availableColor.withOpacity(0.2),
+                ? _blockedColor.withValues(alpha: 0.3)
+                : _availableColor.withValues(alpha: 0.2),
             width: width,
             height: height,
           ),

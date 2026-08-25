@@ -83,7 +83,7 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
           child: Container(
             color: Theme.of(
               context,
-            ).extension<StackColors>()!.overlay.withOpacity(0.6),
+            ).extension<StackColors>()!.overlay.withValues(alpha: 0.6),
             child: const CustomLoadingOverlay(
               message: "Creating a trade",
               eventBus: null,

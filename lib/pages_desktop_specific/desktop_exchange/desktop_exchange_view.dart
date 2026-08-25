@@ -88,7 +88,7 @@ class _DesktopExchangeViewState extends ConsumerState<DesktopExchangeView> {
             Material(
               color: Theme.of(
                 context,
-              ).extension<StackColors>()!.overlay.withOpacity(0.6),
+              ).extension<StackColors>()!.overlay.withValues(alpha: 0.6),
               child: const CustomLoadingOverlay(
                 message: "Updating exchange data",
                 subMessage: "This could take a few minutes",

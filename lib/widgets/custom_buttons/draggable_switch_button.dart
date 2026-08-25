@@ -50,7 +50,7 @@ class DraggableSwitchButtonState extends State<DraggableSwitchButton> {
       return Color.alphaBlend(
         Theme.of(
           context,
-        ).extension<StackColors>()!.switchBGOn.withOpacity(alpha),
+        ).extension<StackColors>()!.switchBGOn.withValues(alpha: alpha),
         Theme.of(context).extension<StackColors>()!.switchBGOff,
       );
     }
@@ -62,7 +62,7 @@ class DraggableSwitchButtonState extends State<DraggableSwitchButton> {
       return Color.alphaBlend(
         Theme.of(
           context,
-        ).extension<StackColors>()!.switchCircleOn.withOpacity(alpha),
+        ).extension<StackColors>()!.switchCircleOn.withValues(alpha: alpha),
         Theme.of(context).extension<StackColors>()!.switchCircleOff,
       );
     }

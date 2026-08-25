@@ -82,7 +82,7 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
             children: [
               Container(
                 decoration: BoxDecoration(
-                  color: ref.watch(pCoinColor(coin)).withOpacity(0.5),
+                  color: ref.watch(pCoinColor(coin)).withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),

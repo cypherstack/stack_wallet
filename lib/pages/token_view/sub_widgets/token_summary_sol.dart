@@ -267,9 +267,10 @@ class TokenOptionsButton extends StatelessWidget {
               condition: iconSize < 24,
               builder: (child) => RoundedContainer(
                 padding: const EdgeInsets.all(6),
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.tokenSummaryIcon.withOpacity(0.4),
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .tokenSummaryIcon
+                    .withValues(alpha: 0.4),
                 radiusMultiplier: 10,
                 child: Center(child: child),
               ),

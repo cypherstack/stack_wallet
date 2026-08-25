@@ -79,7 +79,7 @@ class _ExchangeLoadingOverlayViewState
           Container(
             color: Theme.of(
               context,
-            ).extension<StackColors>()!.overlay.withOpacity(0.7),
+            ).extension<StackColors>()!.overlay.withValues(alpha: 0.7),
             child: const CustomLoadingOverlay(
               message: "Loading Exchange data",
               eventBus: null,
@@ -92,7 +92,7 @@ class _ExchangeLoadingOverlayViewState
           Container(
             color: Theme.of(
               context,
-            ).extension<StackColors>()!.overlay.withOpacity(0.7),
+            ).extension<StackColors>()!.overlay.withValues(alpha: 0.7),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [

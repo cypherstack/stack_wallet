@@ -394,7 +394,7 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
                 borderRadius: BorderRadius.circular(8),
                 color: status
                     .getColor(Theme.of(context).extension<StackColors>()!)
-                    .withOpacity(0.2),
+                    .withValues(alpha: 0.2),
               ),
               child: Text(
                 status.label,
@@ -981,8 +981,8 @@ class _ChatBubble extends StatelessWidget {
                       .copyWith(
                         fontSize: 10,
                         color: isFromUser
-                            ? colors.buttonTextPrimary.withOpacity(0.7)
-                            : colors.textSubtitle1.withOpacity(0.7),
+                            ? colors.buttonTextPrimary.withValues(alpha: 0.7)
+                            : colors.textSubtitle1.withValues(alpha: 0.7),
                       ),
             ),
           ],

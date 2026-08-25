@@ -51,9 +51,10 @@ class _PaynymCardButtonState extends ConsumerState<PaynymCardButton> {
                         .state
                         ?.nymId ==
                     widget.accountLite.nymId
-            ? Theme.of(
-                context,
-              ).extension<StackColors>()!.accentColorDark.withOpacity(0.08)
+            ? Theme.of(context)
+                  .extension<StackColors>()!
+                  .accentColorDark
+                  .withValues(alpha: 0.08)
             : Colors.transparent,
         child: RawMaterialButton(
           padding: const EdgeInsets.all(0),
