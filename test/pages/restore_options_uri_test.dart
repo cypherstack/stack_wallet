@@ -11,6 +11,8 @@ import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/options.dart';
+import 'package:stackwallet/widgets/start_height_picker.dart';
+import 'package:tuple/tuple.dart';
 
 import '../sample_data/theme_json.dart';
 
@@ -83,22 +85,15 @@ void main() {
   });
 
   testWidgets("shows URI validation errors", (tester) async {
-    final dateController = TextEditingController();
-    final blockController = TextEditingController();
-    final blockFocusNode = FocusNode();
-    addTearDown(dateController.dispose);
-    addTearDown(blockController.dispose);
-    addTearDown(blockFocusNode.dispose);
+    final heightController = StartHeightPickerController();
+    addTearDown(heightController.dispose);
 
     WalletUriData? parsed;
     await tester.pumpWidget(
       testApp(
         UriRestoreOption(
           coin: coin,
-          dateController: dateController,
-          dateChooserFunction: () async {},
-          blockHeightController: blockController,
-          blockHeightFocusNode: blockFocusNode,
+          heightController: heightController,
           onParsed: (value) => parsed = value,
         ),
       ),
@@ -117,6 +112,75 @@ void main() {
     await tester.pump();
 
     expect(find.text("Invalid restore height."), findsNothing);
+  });
+
+  testWidgets("a URI height does not leak into a mode with no picker", (
+    tester,
+  ) async {
+    RouteSettings? pushed;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [themeProvider.overrideWithValue(StateController(theme))],
+        child: MaterialApp(
+          theme: ThemeData(
+            extensions: [StackColors.fromStackColorTheme(theme)],
+          ),
+          onGenerateRoute: (settings) {
+            pushed = settings;
+            return MaterialPageRoute<void>(
+              builder: (_) => const SizedBox.shrink(),
+            );
+          },
+          home: Scaffold(
+            body: RestoreOptionsView(walletName: "wallet", coin: coin),
+          ),
+        ),
+      ),
+    );
+
+    Future<void> selectOption(double horizontalFraction) async {
+      final rect = tester.getRect(find.byType(Options));
+      await tester.tapAt(
+        Offset(rect.left + rect.width * horizontalFraction, rect.center.dy),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    await selectOption(5 / 6);
+    await tester.enterText(
+      find.byType(TextField).first,
+      "monero_wallet:?seed=alpha%20beta&height=3000000",
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      tester
+          .widget<TextField>(
+            find.byKey(const Key("startHeightPickerBlockHeightFieldKey")),
+          )
+          .controller!
+          .text,
+      "3000000",
+    );
+
+    // Monero's default 16 word seed restore shows no height control at all, so
+    // the height chosen in URI mode must not follow the user over to it.
+    await selectOption(1 / 6);
+    expect(
+      find.byKey(const Key("startHeightPickerBlockHeightFieldKey")),
+      findsNothing,
+    );
+
+    tester
+        .widget<RestoreOptionsNextButton>(find.byType(RestoreOptionsNextButton))
+        .onPressed!();
+    await tester.pumpAndSettle();
+
+    expect(pushed?.arguments, isA<Tuple5<String, dynamic, int, int, String>>());
+    expect(
+      (pushed!.arguments! as Tuple5<String, dynamic, int, int, String>).item4,
+      0,
+    );
   });
 
   testWidgets("key restore progress cannot be cancelled", (tester) async {
