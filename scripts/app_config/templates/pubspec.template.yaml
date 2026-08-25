@@ -97,6 +97,10 @@ dependencies:
       url: https://github.com/cypherstack/bitcoindart.git
       ref: ea33b1f5d6a701791359a2e180f73866dc667732
 
+  # Successor to bitcoindart and coinlib. All three coexist until the call sites
+  # migrate; see test/crypto_vectors for the differential harness that gates it.
+  coin: 0.1.0
+
   stack_wallet_backup:
     git:
       url: https://github.com/cypherstack/stack_wallet_backup.git
