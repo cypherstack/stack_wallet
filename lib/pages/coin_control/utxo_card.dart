@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../db/isar/main_db.dart';
 import '../../models/isar/models/isar_models.dart';
@@ -17,14 +18,15 @@ import '../../providers/global/wallets_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
-import '../../utilities/constants.dart';
+import '../../utilities/assets.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/impl/namecoin_wallet.dart';
 import '../../wallets/wallet/wallet.dart';
-import '../../widgets/conditional_parent.dart';
+import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/icon_widgets/utxo_status_icon.dart';
 import '../../widgets/rounded_container.dart';
+import 'selectable_utxo_surface.dart';
 
 class UtxoCard extends ConsumerStatefulWidget {
   const UtxoCard({
@@ -34,14 +36,14 @@ class UtxoCard extends ConsumerStatefulWidget {
     required this.onSelectedChanged,
     required this.initialSelectedState,
     required this.canSelect,
-    this.onPressed,
+    this.onOptionsPressed,
   });
 
   final String walletId;
   final UTXO utxo;
   final void Function(bool) onSelectedChanged;
   final bool initialSelectedState;
-  final VoidCallback? onPressed;
+  final VoidCallback? onOptionsPressed;
   final bool canSelect;
 
   @override
@@ -75,6 +77,25 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
     super.initState();
   }
 
+  void _setSelected(bool selected) {
+    if (_selected == selected) {
+      return;
+    }
+    _selected = selected;
+    widget.onSelectedChanged(_selected);
+    setState(() {});
+  }
+
+  void _toggleSelected() => _setSelected(!_selected);
+
+  @override
+  void didUpdateWidget(covariant UtxoCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialSelectedState != widget.initialSelectedState) {
+      _selected = widget.initialSelectedState;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
@@ -82,29 +103,13 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
     final coin = ref.watch(pWalletCoin(widget.walletId));
     final currentHeight = ref.watch(pWalletChainHeight(widget.walletId));
 
-    return ConditionalParent(
-      condition: widget.onPressed != null,
-      builder: (child) => MaterialButton(
-        padding: const EdgeInsets.all(0),
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        color: Theme.of(context).extension<StackColors>()!.popupBG,
-        elevation: 0,
-        disabledElevation: 0,
-        hoverElevation: 0,
-        focusElevation: 0,
-        highlightElevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(
-            Constants.size.circularBorderRadius,
-          ),
-        ),
-        onPressed: widget.onPressed,
-        child: child,
-      ),
+    return SelectableUtxoSurface(
+      canSelect: widget.canSelect,
+      selected: _selected,
+      onToggle: _toggleSelected,
+      color: Theme.of(context).extension<StackColors>()!.popupBG,
       child: RoundedContainer(
-        color: widget.onPressed == null
-            ? Theme.of(context).extension<StackColors>()!.popupBG
-            : Colors.transparent,
+        color: Theme.of(context).extension<StackColors>()!.popupBG,
         child: StreamBuilder<UTXO?>(
           stream: stream,
           builder: (context, snapshot) {
@@ -113,37 +118,24 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
             }
             return Row(
               children: [
-                ConditionalParent(
-                  condition: widget.canSelect,
-                  builder: (child) => GestureDetector(
-                    onTap: () {
-                      _selected = !_selected;
-                      widget.onSelectedChanged(_selected);
-                      setState(() {});
-                    },
-                    child: child,
-                  ),
-                  child: UTXOStatusIcon(
-                    blocked: utxo.isBlocked,
-                    status:
-                        _isConfirmed(
-                          utxo,
-                          currentHeight,
-                          ref.watch(
-                            pWallets.select(
-                              (s) => s.getWallet(widget.walletId),
-                            ),
-                          ),
-                        )
-                        ? UTXOStatusIconStatus.confirmed
-                        : UTXOStatusIconStatus.unconfirmed,
-                    background: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.popupBG,
-                    selected: _selected,
-                    width: 32,
-                    height: 32,
-                  ),
+                UTXOStatusIcon(
+                  blocked: utxo.isBlocked,
+                  status:
+                      _isConfirmed(
+                        utxo,
+                        currentHeight,
+                        ref.watch(
+                          pWallets.select((s) => s.getWallet(widget.walletId)),
+                        ),
+                      )
+                      ? UTXOStatusIconStatus.confirmed
+                      : UTXOStatusIconStatus.unconfirmed,
+                  background: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.popupBG,
+                  selected: _selected,
+                  width: 32,
+                  height: 32,
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -181,6 +173,27 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
                     ],
                   ),
                 ),
+                if (widget.onOptionsPressed != null) const SizedBox(width: 10),
+                if (widget.onOptionsPressed != null)
+                  AppBarIconButton(
+                    semanticsLabel: "Output options",
+                    tooltip: "Output options",
+                    size: 36,
+                    shadows: const [],
+                    color: Theme.of(context).extension<StackColors>()!.popupBG,
+                    icon: SvgPicture.asset(
+                      Assets.svg.verticalEllipsis,
+                      colorFilter: ColorFilter.mode(
+                        Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textSubtitle1,
+                        BlendMode.srcIn,
+                      ),
+                      width: 20,
+                      height: 20,
+                    ),
+                    onPressed: widget.onOptionsPressed,
+                  ),
               ],
             );
           },

@@ -41,6 +41,7 @@ import '../../widgets/icon_widgets/x_icon.dart';
 import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/toggle.dart';
+import 'coin_control_rules.dart';
 import 'utxo_card.dart';
 import 'utxo_details_view.dart';
 
@@ -123,20 +124,19 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    final minConfirms = ref
-        .watch(pWallets)
-        .getWallet(widget.walletId)
-        .cryptoCurrency
-        .minConfirms;
-
     final coin = ref.watch(pWalletCoin(widget.walletId));
     final currentHeight = ref.watch(pWalletChainHeight(widget.walletId));
+
+    final filter = coinControlFilter(
+      isSearching: _isSearching,
+      showBlocked: _showBlocked,
+    );
 
     if (_sort == CCSortDescriptor.address && !_isSearching) {
       _list = null;
       _map = MainDB.instance.queryUTXOsGroupedByAddressSync(
         walletId: widget.walletId,
-        filter: CCFilter.all,
+        filter: filter,
         sort: _sort,
         searchTerm: "",
         cryptoCurrency: coin,
@@ -145,11 +145,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
       _map = null;
       _list = MainDB.instance.queryUTXOsSync(
         walletId: widget.walletId,
-        filter: _isSearching
-            ? CCFilter.all
-            : _showBlocked
-            ? CCFilter.frozen
-            : CCFilter.available,
+        filter: filter,
         sort: _sort,
         searchTerm: _isSearching ? searchController.text : "",
         cryptoCurrency: coin,
@@ -281,8 +277,8 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                           RoundedWhiteContainer(
                             child: Text(
                               "This option allows you to control, freeze, and utilize "
-                              "outputs at your discretion. Tap the output circle to "
-                              "select.",
+                              "outputs at your discretion. Tap an output to select it, "
+                              "or use the options button for more actions.",
                               style: STextStyles.w500_14(context).copyWith(
                                 color: Theme.of(
                                   context,
@@ -291,7 +287,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                             ),
                           ),
                         if (!_isSearching) const SizedBox(height: 10),
-                        if (!(_isSearching || _map != null))
+                        if (!_isSearching)
                           SizedBox(
                             height: 48,
                             child: Toggle(
@@ -341,22 +337,21 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                   ),
                                   walletId: widget.walletId,
                                   utxo: utxo,
-                                  canSelect:
-                                      widget.type ==
-                                          CoinControlViewType.manage ||
-                                      (widget.type == CoinControlViewType.use &&
-                                          !utxo.isBlocked &&
-                                          _isConfirmed(
-                                            utxo,
-                                            currentHeight,
-                                            ref.watch(
-                                              pWallets.select(
-                                                (s) => s.getWallet(
-                                                  widget.walletId,
-                                                ),
-                                              ),
-                                            ),
-                                          )),
+                                  canSelect: canSelectCoinControlOutput(
+                                    isManageMode:
+                                        widget.type ==
+                                        CoinControlViewType.manage,
+                                    isBlocked: utxo.isBlocked,
+                                    isConfirmed: _isConfirmed(
+                                      utxo,
+                                      currentHeight,
+                                      ref.watch(
+                                        pWallets.select(
+                                          (s) => s.getWallet(widget.walletId),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
                                   initialSelectedState: isSelected,
                                   onSelectedChanged: (value) {
                                     if (value) {
@@ -370,7 +365,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                     }
                                     setState(() {});
                                   },
-                                  onPressed: () async {
+                                  onOptionsPressed: () async {
                                     final result = await Navigator.of(context)
                                         .pushNamed(
                                           UtxoDetailsView.routeName,
@@ -410,23 +405,23 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                         ),
                                         walletId: widget.walletId,
                                         utxo: utxo,
-                                        canSelect:
-                                            widget.type ==
-                                                CoinControlViewType.manage ||
-                                            (widget.type ==
-                                                    CoinControlViewType.use &&
-                                                !_showBlocked &&
-                                                _isConfirmed(
-                                                  utxo,
-                                                  currentHeight,
-                                                  ref.watch(
-                                                    pWallets.select(
-                                                      (s) => s.getWallet(
-                                                        widget.walletId,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                )),
+                                        canSelect: canSelectCoinControlOutput(
+                                          isManageMode:
+                                              widget.type ==
+                                              CoinControlViewType.manage,
+                                          isBlocked: utxo.isBlocked,
+                                          isConfirmed: _isConfirmed(
+                                            utxo,
+                                            currentHeight,
+                                            ref.watch(
+                                              pWallets.select(
+                                                (s) => s.getWallet(
+                                                  widget.walletId,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
                                         initialSelectedState: isSelected,
                                         onSelectedChanged: (value) {
                                           if (value) {
@@ -442,7 +437,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                           }
                                           setState(() {});
                                         },
-                                        onPressed: () async {
+                                        onOptionsPressed: () async {
                                           final result =
                                               await Navigator.of(
                                                 context,
@@ -561,24 +556,24 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                             walletId: widget.walletId,
                                             utxo: utxo,
                                             canSelect:
-                                                widget.type ==
-                                                    CoinControlViewType
-                                                        .manage ||
-                                                (widget.type ==
-                                                        CoinControlViewType
-                                                            .use &&
-                                                    !utxo.isBlocked &&
-                                                    _isConfirmed(
-                                                      utxo,
-                                                      currentHeight,
-                                                      ref.watch(
-                                                        pWallets.select(
-                                                          (s) => s.getWallet(
-                                                            widget.walletId,
-                                                          ),
+                                                canSelectCoinControlOutput(
+                                                  isManageMode:
+                                                      widget.type ==
+                                                      CoinControlViewType
+                                                          .manage,
+                                                  isBlocked: utxo.isBlocked,
+                                                  isConfirmed: _isConfirmed(
+                                                    utxo,
+                                                    currentHeight,
+                                                    ref.watch(
+                                                      pWallets.select(
+                                                        (s) => s.getWallet(
+                                                          widget.walletId,
                                                         ),
                                                       ),
-                                                    )),
+                                                    ),
+                                                  ),
+                                                ),
                                             initialSelectedState: isSelected,
                                             onSelectedChanged: (value) {
                                               if (value) {
@@ -598,7 +593,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                               }
                                               setState(() {});
                                             },
-                                            onPressed: () async {
+                                            onOptionsPressed: () async {
                                               final result =
                                                   await Navigator.of(
                                                     context,
