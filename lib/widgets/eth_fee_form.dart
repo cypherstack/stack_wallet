@@ -2,9 +2,12 @@ import 'dart:async';
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../providers/global/locale_provider.dart';
 import '../services/ethereum/ethereum_api.dart';
 import '../themes/stack_colors.dart';
+import '../utilities/amount/amount_input_formatter.dart';
 import '../utilities/constants.dart';
 import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
@@ -35,7 +38,7 @@ class EthEIP1559Fee {
       "gasLimit: $gasLimit)";
 }
 
-class EthFeeForm extends StatefulWidget {
+class EthFeeForm extends ConsumerStatefulWidget {
   EthFeeForm({
     super.key,
     this.minGasLimit = 21000,
@@ -56,10 +59,10 @@ class EthFeeForm extends StatefulWidget {
   final void Function(EthEIP1559Fee) stateChanged;
 
   @override
-  State<EthFeeForm> createState() => _EthFeeFormState();
+  ConsumerState<EthFeeForm> createState() => _EthFeeFormState();
 }
 
-class _EthFeeFormState extends State<EthFeeForm> {
+class _EthFeeFormState extends ConsumerState<EthFeeForm> {
   static const _textFadeDuration = Duration(milliseconds: 300);
 
   final maxBaseController = TextEditingController();
@@ -71,11 +74,26 @@ class _EthFeeFormState extends State<EthFeeForm> {
 
   late int _gasLimitCache;
 
+  // Decimal and int expect ungrouped input with a "." decimal separator.
+  String _normalizeForParsing(String value) {
+    final locale = ref.read(localeServiceChangeNotifierProvider).locale;
+    final numberSymbols = Util.getSymbolsFor(locale: locale);
+    final groupSeparator = numberSymbols?.GROUP_SEP ?? ",";
+    final decimalSeparator = numberSymbols?.DECIMAL_SEP ?? ".";
+
+    return value
+        .replaceAll(groupSeparator, "")
+        .replaceFirst(decimalSeparator, ".");
+  }
+
   EthEIP1559Fee get _current => EthEIP1559Fee(
-    maxBaseFeeGwei: Decimal.tryParse(maxBaseController.text) ?? Decimal.zero,
+    maxBaseFeeGwei:
+        Decimal.tryParse(_normalizeForParsing(maxBaseController.text)) ??
+        Decimal.zero,
     priorityFeeGwei:
-        Decimal.tryParse(priorityFeeController.text) ?? Decimal.zero,
-    gasLimit: int.parse(gasLimitController.text),
+        Decimal.tryParse(_normalizeForParsing(priorityFeeController.text)) ??
+        Decimal.zero,
+    gasLimit: int.parse(_normalizeForParsing(gasLimitController.text)),
   );
 
   String _currentBase = "Current: ";
@@ -107,10 +125,21 @@ class _EthFeeFormState extends State<EthFeeForm> {
       );
     });
 
+    final locale = ref.read(localeServiceChangeNotifierProvider).locale;
+    final decimalSeparator =
+        Util.getSymbolsFor(locale: locale)?.DECIMAL_SEP ?? ".";
     maxBaseController.text =
-        widget.initialState?.maxBaseFeeGwei.toString() ?? "";
+        widget.initialState?.maxBaseFeeGwei.toString().replaceFirst(
+          ".",
+          decimalSeparator,
+        ) ??
+        "";
     priorityFeeController.text =
-        widget.initialState?.priorityFeeGwei.toString() ?? "";
+        widget.initialState?.priorityFeeGwei.toString().replaceFirst(
+          ".",
+          decimalSeparator,
+        ) ??
+        "";
 
     _gasLimitCache = widget.initialState?.gasLimit ?? widget.minGasLimit;
     gasLimitController.text = _gasLimitCache.toString();
@@ -132,6 +161,10 @@ class _EthFeeFormState extends State<EthFeeForm> {
 
   @override
   Widget build(BuildContext context) {
+    final locale = ref.watch(
+      localeServiceChangeNotifierProvider.select((value) => value.locale),
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -149,6 +182,9 @@ class _EthFeeFormState extends State<EthFeeForm> {
             autocorrect: false,
             enableSuggestions: false,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: [
+              AmountInputFormatter(decimals: 9, locale: locale),
+            ],
             focusNode: maxBaseFocus,
             onChanged: (value) {
               widget.stateChanged(_current);
@@ -205,6 +241,9 @@ class _EthFeeFormState extends State<EthFeeForm> {
             autocorrect: false,
             enableSuggestions: false,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: [
+              AmountInputFormatter(decimals: 9, locale: locale),
+            ],
             focusNode: priorityFeeFocus,
             onChanged: (value) {
               widget.stateChanged(_current);
@@ -260,10 +299,13 @@ class _EthFeeFormState extends State<EthFeeForm> {
             readOnly: false,
             autocorrect: false,
             enableSuggestions: false,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            keyboardType: const TextInputType.numberWithOptions(),
+            inputFormatters: [
+              AmountInputFormatter(decimals: 0, locale: locale),
+            ],
             focusNode: gasLimitFocus,
             onChanged: (value) {
-              final intValue = int.tryParse(value);
+              final intValue = int.tryParse(_normalizeForParsing(value));
               if (intValue == null ||
                   intValue < widget.minGasLimit ||
                   intValue > widget.maxGasLimit) {
