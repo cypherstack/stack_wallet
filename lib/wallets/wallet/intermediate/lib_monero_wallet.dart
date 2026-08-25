@@ -1548,11 +1548,13 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
   }
 
   @override
-  void setRefreshFromBlockHeight(int newHeight) {
+  Future<void> setRefreshFromBlockHeight(int newHeight) async {
     if (wallet == null) {
-      throw Exception("Cannot internalCommitTx when wallet is not open");
+      throw Exception(
+        "Cannot setRefreshFromBlockHeight when wallet is not open",
+      );
     }
-    csMonero.setRefreshFromBlockHeight(wallet!, newHeight);
+    await csMonero.setRefreshFromBlockHeight(wallet!, newHeight);
   }
 
   // ============== Key-based restore ==========================================

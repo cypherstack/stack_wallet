@@ -31,7 +31,7 @@ abstract class CryptonoteWallet<T extends CryptonoteCurrency>
   Future<(String, String)>
   hackToCreateNewViewOnlyWalletDataFromNewlyCreatedWalletThisFunctionShouldNotBeCalledUnlessYouKnowWhatYouAreDoing();
 
-  void setRefreshFromBlockHeight(int newHeight);
+  Future<void> setRefreshFromBlockHeight(int newHeight);
 
   Future<int> getRefreshFromBlockHeight();
 
