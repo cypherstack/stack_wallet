@@ -40,8 +40,9 @@ class AmountInputFormatter extends TextInputFormatter {
         return oldValue;
       }
 
-      final fractionDigits =
-          unit == null ? decimals : max(decimals - unit!.shift, 0);
+      final fractionDigits = unit == null
+          ? decimals
+          : max(decimals - unit!.shift, 0);
 
       if (newText.startsWith(decimalSeparator)) {
         if (newText.length - 1 > fractionDigits) {
