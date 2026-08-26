@@ -17,6 +17,7 @@ import 'package:isar_community/isar.dart';
 
 import '../../db/isar/main_db.dart';
 import '../../models/isar/models/blockchain_data/utxo.dart';
+import '../../providers/global/locale_provider.dart';
 import '../../themes/coin_icon_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
@@ -84,6 +85,10 @@ class _DesktopCoinControlViewState
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
+    final locale = ref.watch(
+      localeServiceChangeNotifierProvider.select((value) => value.locale),
+    );
+
     if (_sort == CCSortDescriptor.address) {
       _list = null;
       _map = MainDB.instance.queryUTXOsGroupedByAddressSync(
@@ -91,6 +96,7 @@ class _DesktopCoinControlViewState
         filter: _filter,
         sort: _sort,
         searchTerm: _searchString,
+        locale: locale,
         cryptoCurrency: coin,
       );
     } else {
@@ -100,6 +106,7 @@ class _DesktopCoinControlViewState
         filter: _filter,
         sort: _sort,
         searchTerm: _searchString,
+        locale: locale,
         cryptoCurrency: coin,
       );
     }

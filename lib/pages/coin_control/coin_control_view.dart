@@ -18,6 +18,7 @@ import 'package:tuple/tuple.dart';
 
 import '../../db/isar/main_db.dart';
 import '../../models/isar/models/isar_models.dart';
+import '../../providers/global/locale_provider.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
@@ -132,6 +133,9 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
 
     final coin = ref.watch(pWalletCoin(widget.walletId));
     final currentHeight = ref.watch(pWalletChainHeight(widget.walletId));
+    final locale = ref.watch(
+      localeServiceChangeNotifierProvider.select((value) => value.locale),
+    );
 
     if (_sort == CCSortDescriptor.address && !_isSearching) {
       _list = null;
@@ -140,6 +144,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
         filter: CCFilter.all,
         sort: _sort,
         searchTerm: "",
+        locale: locale,
         cryptoCurrency: coin,
       );
     } else {
@@ -154,6 +159,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                 : CCFilter.available,
         sort: _sort,
         searchTerm: _isSearching ? searchController.text : "",
+        locale: locale,
         cryptoCurrency: coin,
       );
     }

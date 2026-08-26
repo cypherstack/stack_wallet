@@ -10,7 +10,6 @@
 
 import 'dart:io';
 
-import 'package:decimal/decimal.dart';
 import 'package:isar_community/isar.dart';
 import 'package:tuple/tuple.dart';
 

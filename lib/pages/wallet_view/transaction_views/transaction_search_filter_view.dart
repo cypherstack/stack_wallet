@@ -8,7 +8,6 @@
  *
  */
 
-import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -18,6 +17,7 @@ import '../../../providers/ui/transaction_filter_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../themes/theme_providers.dart';
 import '../../../utilities/amount/amount.dart';
+import '../../../utilities/amount/amount_field_relocalization.dart';
 import '../../../utilities/amount/amount_formatter.dart';
 import '../../../utilities/amount/amount_input_formatter.dart';
 import '../../../utilities/constants.dart';
@@ -35,6 +35,21 @@ import '../../../widgets/icon_widgets/x_icon.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_text_field.dart';
 import '../../../widgets/textfield_icon_button.dart';
+
+({bool isValid, Amount? amount}) parseTransactionFilterAmountInput({
+  required String text,
+  required String locale,
+  required AmountFormatter formatter,
+}) {
+  final decimalSeparator =
+      Util.getSymbolsFor(locale: locale)?.DECIMAL_SEP ?? ".";
+  if (text.isEmpty || text == decimalSeparator) {
+    return (isValid: true, amount: null);
+  }
+
+  final amount = formatter.tryParseEditable(text);
+  return (isValid: amount != null, amount: amount);
+}
 
 class TransactionSearchFilterView extends ConsumerStatefulWidget {
   const TransactionSearchFilterView({super.key, required this.coin});
@@ -77,7 +92,7 @@ class _TransactionSearchViewState
           ? ""
           : ref
                 .read(pAmountFormatter(widget.coin))
-                .format(filterState.amount!, withUnitName: false);
+                .formatEditable(filterState.amount!);
 
       _amountTextEditingController.text = amount;
     }
@@ -100,6 +115,10 @@ class _TransactionSearchViewState
 
   @override
   Widget build(BuildContext context) {
+    listenForAmountRelocalization(
+      ref.listen,
+      controllers: [_amountTextEditingController],
+    );
     if (Util.isDesktop) {
       return DesktopDialog(
         maxWidth: 576,
@@ -630,16 +649,14 @@ class _TransactionSearchViewState
   }
 
   Future<void> _onApplyPressed() async {
-    final amountText = _amountTextEditingController.text;
-    Amount? amount;
-    if (amountText.isNotEmpty && !(amountText == "," || amountText == ".")) {
-      amount = amountText.contains(",")
-          ? Decimal.parse(
-              amountText.replaceFirst(",", "."),
-            ).toAmount(fractionDigits: widget.coin.fractionDigits)
-          : Decimal.parse(
-              amountText,
-            ).toAmount(fractionDigits: widget.coin.fractionDigits);
+    final locale = ref.read(localeServiceChangeNotifierProvider).locale;
+    final parsedAmount = parseTransactionFilterAmountInput(
+      text: _amountTextEditingController.text,
+      locale: locale,
+      formatter: ref.read(pAmountFormatter(widget.coin)),
+    );
+    if (!parsedAmount.isValid) {
+      return;
     }
 
     final TransactionFilter filter = TransactionFilter(
@@ -648,7 +665,7 @@ class _TransactionSearchViewState
       trade: _isActiveTradeCheckbox,
       from: _selectedFromDate,
       to: _selectedToDate,
-      amount: amount,
+      amount: parsedAmount.amount,
       keyword: _keywordTextEditingController.text,
     );
 
