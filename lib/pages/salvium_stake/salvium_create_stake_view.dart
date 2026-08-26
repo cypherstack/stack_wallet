@@ -9,6 +9,7 @@ import '../../providers/global/wallets_provider.dart';
 import '../../route_generator.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
+import '../../utilities/amount/amount_field_relocalization.dart';
 import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/amount/amount_input_formatter.dart';
 import '../../utilities/amount/amount_unit.dart';
@@ -59,7 +60,7 @@ class _SalviumCreateStakeViewState
   void _parseAmount(String string) {
     final cryptoAmount = ref
         .read(pAmountFormatter(ref.read(pWalletCoin(widget.walletId))))
-        .tryParse(string);
+        .tryParseEditable(string);
 
     if (_amount != cryptoAmount) {
       setState(() {
@@ -289,6 +290,7 @@ class _SalviumCreateStakeViewState
     final locale = ref.watch(
       localeServiceChangeNotifierProvider.select((s) => s.locale),
     );
+    listenForAmountRelocalization(ref.listen, controllers: [_amountController]);
 
     return ConditionalParent(
       condition: !Util.isDesktop,
