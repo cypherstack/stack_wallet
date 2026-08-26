@@ -81,13 +81,19 @@ class _Step2ViewState extends ConsumerState<Step2View> {
       ExtraIdCurrencySupport.mayRequire(model.sendTicker);
 
   void _setRecipientMemo(String? memo) {
-    final value = _showRecipientMemo ? (memo ?? "") : "";
+    // A null memo means the selected address source did not provide one. In
+    // that case keep any memo the user already entered instead of wiping it.
+    if (memo == null) return;
+    final value = _showRecipientMemo ? memo : "";
     _toMemoController.text = value;
     model.extraId = value.isEmpty ? null : value;
   }
 
   void _setRefundMemo(String? memo) {
-    final value = _showRefundMemo ? (memo ?? "") : "";
+    // A null memo means the selected address source did not provide one. In
+    // that case keep any memo the user already entered instead of wiping it.
+    if (memo == null) return;
+    final value = _showRefundMemo ? memo : "";
     _refundMemoController.text = value;
     model.refundExtraId = value.isEmpty ? null : value;
   }
@@ -116,7 +122,6 @@ class _Step2ViewState extends ConsumerState<Step2View> {
       } else {
         _refundController.text = qrResult.rawContent!;
         model.refundAddress = _refundController.text;
-        _setRefundMemo(null);
 
         setState(() {
           enableNext =
@@ -173,7 +178,6 @@ class _Step2ViewState extends ConsumerState<Step2View> {
       } else {
         _toController.text = qrResult.rawContent!;
         model.recipientAddress = _toController.text;
-        _setRecipientMemo(null);
 
         setState(() {
           enableNext =
@@ -234,7 +238,6 @@ class _Step2ViewState extends ConsumerState<Step2View> {
             .then((value) {
               _toController.text = value!.value;
               model.recipientAddress = _toController.text;
-              _setRecipientMemo(null);
             });
       } else {
         if (model.sendTicker.toUpperCase() ==
@@ -246,7 +249,6 @@ class _Step2ViewState extends ConsumerState<Step2View> {
               .then((value) {
                 _refundController.text = value!.value;
                 model.refundAddress = _refundController.text;
-                _setRefundMemo(null);
               });
         }
       }
@@ -355,7 +357,6 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                     value.walletName;
                                                 model.recipientAddress =
                                                     value.address;
-                                                _setRecipientMemo(null);
 
                                                 setState(() {
                                                   enableNext =
@@ -444,7 +445,6 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                         _toController.text = "";
                                                         model.recipientAddress =
                                                             _toController.text;
-                                                        _setRecipientMemo(null);
 
                                                         setState(() {
                                                           enableNext =
@@ -496,9 +496,6 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                           } else {
                                                             _toController.text =
                                                                 content;
-                                                            _setRecipientMemo(
-                                                              null,
-                                                            );
                                                           }
                                                           model.recipientAddress =
                                                               _toController
@@ -560,7 +557,6 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                             address;
                                                         model.recipientAddress =
                                                             _toController.text;
-                                                        _setRecipientMemo(null);
                                                         ref
                                                                 .read(
                                                                   exchangeFromAddressBookAddressStateProvider
@@ -679,7 +675,6 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                       value.walletName;
                                                   model.refundAddress =
                                                       value.address;
-                                                  _setRefundMemo(null);
                                                 }
                                                 setState(() {
                                                   enableNext =
@@ -772,7 +767,6 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                           model.refundAddress =
                                                               _refundController
                                                                   .text;
-                                                          _setRefundMemo(null);
 
                                                           setState(() {
                                                             enableNext =
@@ -826,9 +820,6 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                               _refundController
                                                                       .text =
                                                                   content;
-                                                              _setRefundMemo(
-                                                                null,
-                                                              );
                                                             }
                                                             model.refundAddress =
                                                                 _refundController
@@ -894,9 +885,6 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                               model.refundAddress =
                                                                   _refundController
                                                                       .text;
-                                                              _setRefundMemo(
-                                                                null,
-                                                              );
                                                             }
                                                             setState(() {
                                                               enableNext =

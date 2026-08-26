@@ -76,7 +76,10 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
       );
 
   void _setRecipientMemo(String? memo) {
-    final value = _showRecipientMemo ? (memo ?? "") : "";
+    // A null memo means the selected address source did not provide one. In
+    // that case keep any memo the user already entered instead of wiping it.
+    if (memo == null) return;
+    final value = _showRecipientMemo ? memo : "";
     _toMemoController.text = value;
     ref.read(desktopExchangeModelProvider)!.extraId = value.isEmpty
         ? null
@@ -84,7 +87,10 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
   }
 
   void _setRefundMemo(String? memo) {
-    final value = _showRefundMemo ? (memo ?? "") : "";
+    // A null memo means the selected address source did not provide one. In
+    // that case keep any memo the user already entered instead of wiping it.
+    if (memo == null) return;
+    final value = _showRefundMemo ? memo : "";
     _refundMemoController.text = value;
     ref.read(desktopExchangeModelProvider)!.refundExtraId = value.isEmpty
         ? null
@@ -113,7 +119,6 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
       if (info is Tuple2<String, String>) {
         _toController.text = info.item1;
         ref.read(desktopExchangeModelProvider)!.recipientAddress = info.item2;
-        _setRecipientMemo(null);
       }
     } catch (e, s) {
       Logging.instance.i("$e\n$s", error: e, stackTrace: s);
@@ -143,7 +148,6 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
       if (info is Tuple2<String, String>) {
         _refundController.text = info.item1;
         ref.read(desktopExchangeModelProvider)!.refundAddress = info.item2;
-        _setRefundMemo(null);
       }
     } catch (e, s) {
       Logging.instance.i("$e\n$s", error: e, stackTrace: s);
@@ -187,7 +191,6 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
     if (entry != null) {
       _toController.text = entry.address;
       ref.read(desktopExchangeModelProvider)!.recipientAddress = entry.address;
-      _setRecipientMemo(null);
       widget.enableNextChanged.call(_next());
     }
   }
@@ -228,7 +231,6 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
     if (entry != null) {
       _refundController.text = entry.address;
       ref.read(desktopExchangeModelProvider)!.refundAddress = entry.address;
-      _setRefundMemo(null);
       widget.enableNextChanged.call(_next());
     }
   }
@@ -283,7 +285,6 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           ref.read(desktopExchangeModelProvider)!.recipientAddress =
               _toController.text;
-          _setRecipientMemo(null);
         });
       } else {
         if (doesRefundAddress &&
@@ -297,7 +298,6 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             ref.read(desktopExchangeModelProvider)!.refundAddress =
                 _refundController.text;
-            _setRefundMemo(null);
           });
         }
       }
@@ -422,7 +422,6 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
                                             .read(desktopExchangeModelProvider)!
                                             .recipientAddress =
                                         _toController.text;
-                                    _setRecipientMemo(null);
                                     widget.enableNextChanged.call(_next());
                                   },
                                   child: const XIcon(),
@@ -448,7 +447,6 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
                                         _setRecipientMemo(paymentData.memo);
                                       } else {
                                         _toController.text = content;
-                                        _setRecipientMemo(null);
                                       }
                                       ref
                                           .read(desktopExchangeModelProvider)!
@@ -611,7 +609,6 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
                                           .read(desktopExchangeModelProvider)!
                                           .refundAddress = _refundController
                                           .text;
-                                      _setRefundMemo(null);
 
                                       widget.enableNextChanged.call(_next());
                                     },
@@ -641,7 +638,6 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
                                           _setRefundMemo(paymentData.memo);
                                         } else {
                                           _refundController.text = content;
-                                          _setRefundMemo(null);
                                         }
                                         ref
                                             .read(desktopExchangeModelProvider)!
