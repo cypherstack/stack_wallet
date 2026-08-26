@@ -18,10 +18,11 @@ import '../../models/exchange/response_objects/range.dart';
 import '../../services/exchange/exchange.dart';
 import '../../services/exchange/exchange_response.dart';
 import '../../utilities/amount/amount.dart';
-import '../../utilities/amount/amount_unit.dart';
 import '../../utilities/enums/exchange_rate_type_enum.dart';
-import '../../wallets/crypto_currency/crypto_currency.dart';
-import '../global/locale_providerge?>?,
+import '../global/locale_provider.dart';
+
+final efEstimatesListProvider = StateProvider.family<
+    Tuple2<ExchangeResponse<List<Estimate>>, Range?>?,
     String>((ref, exchangeName) => null);
 
 final efRateTypeProvider =
