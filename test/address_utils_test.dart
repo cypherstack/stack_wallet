@@ -264,4 +264,38 @@ void main() {
       "firo:$firoAddress?amount=10.0123&message=Some+kind+of+message%21",
     );
   });
+
+  test("build a standard payment URI", () {
+    expect(
+      AddressUtils.buildPaymentUriString(
+        scheme: "firo",
+        address: firoAddress,
+        amount: "10.0123",
+        message: "Some kind of message!",
+      ),
+      "firo:$firoAddress?amount=10.0123&message=Some+kind+of+message%21",
+    );
+  });
+
+  test("build Monero-family payment URIs with standard query parameters", () {
+    for (final scheme in ["monero", "wownero"]) {
+      final uri = AddressUtils.buildPaymentUriString(
+        scheme: scheme,
+        address: firoAddress,
+        amount: "1.25",
+        message: "Some kind of message!",
+      );
+
+      expect(
+        uri,
+        "$scheme:$firoAddress?tx_amount=1.25&"
+        "tx_description=Some+kind+of+message%21",
+      );
+      expect(uri, isNot(contains("#")));
+
+      final parsed = AddressUtils.parsePaymentUri(uri);
+      expect(parsed?.amount, "1.25");
+      expect(parsed?.message, "Some kind of message!");
+    }
+  });
 }

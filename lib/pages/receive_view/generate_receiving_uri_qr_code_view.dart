@@ -27,6 +27,8 @@ import '../../providers/global/locale_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/address_utils.dart';
 import '../../utilities/amount/amount.dart';
+import '../../utilities/amount/amount_field_relocalization.dart';
+import '../../utilities/amount/amount_input_formatter.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/clipboard_interface.dart';
 import '../../utilities/constants.dart';
@@ -157,7 +159,11 @@ class _GenerateUriQrCodeViewState extends ConsumerState<GenerateUriQrCodeView> {
     final noteString = noteController.text;
 
     final locale = ref.read(localeServiceChangeNotifierProvider).locale;
-    final amount = Amount.tryParseLocalizedNumber(amountString, locale: locale);
+    final amount = Amount.tryParseEditableAmount(
+      amountString,
+      locale: locale,
+      fractionDigits: widget.coin.fractionDigits,
+    );
 
     if (amountString.isNotEmpty && amount == null) {
       showFloatingFlushBar(
@@ -168,15 +174,6 @@ class _GenerateUriQrCodeViewState extends ConsumerState<GenerateUriQrCodeView> {
       return null;
     }
 
-    final Map<String, String> queryParams = {};
-
-    if (amountString.isNotEmpty) {
-      queryParams["amount"] = amount.toString();
-    }
-    if (noteString.isNotEmpty) {
-      queryParams["message"] = noteString;
-    }
-
     String receivingAddress = widget.receivingAddress;
     if ((widget.coin is Bitcoincash || widget.coin is Ecash) &&
         receivingAddress.contains(":")) {
@@ -184,10 +181,11 @@ class _GenerateUriQrCodeViewState extends ConsumerState<GenerateUriQrCodeView> {
       receivingAddress = receivingAddress.split(":").sublist(1).join();
     }
 
-    final uriString = AddressUtils.buildUriString(
-      widget.coin.uriScheme,
-      receivingAddress,
-      queryParams,
+    final uriString = AddressUtils.buildPaymentUriString(
+      scheme: widget.coin.uriScheme,
+      address: receivingAddress,
+      amount: amount?.decimal.toString(),
+      message: noteString,
     );
 
     Logging.instance.d("Generated receiving QR code for: $uriString");
@@ -295,6 +293,8 @@ class _GenerateUriQrCodeViewState extends ConsumerState<GenerateUriQrCodeView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
+    listenForAmountRelocalization(ref.listen, controllers: [amountController]);
+
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(
@@ -391,6 +391,17 @@ class _GenerateUriQrCodeViewState extends ConsumerState<GenerateUriQrCodeView> {
                 keyboardType: Util.isDesktop
                     ? null
                     : const TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: [
+                  AmountInputFormatter(
+                    controller: amountController,
+                    decimals: widget.coin.fractionDigits,
+                    locale: ref.watch(
+                      localeServiceChangeNotifierProvider.select(
+                        (value) => value.locale,
+                      ),
+                    ),
+                  ),
+                ],
                 onChanged: (_) => setState(() {}),
                 decoration:
                     standardInputDecoration(

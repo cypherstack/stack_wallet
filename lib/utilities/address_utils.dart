@@ -193,25 +193,30 @@ class AddressUtils {
       uriString = "$scheme:$address";
     }
 
-    if (scheme.toLowerCase() == "monero") {
-      // Handle Monero-specific formatting.
-      if (filteredParams.containsKey("tx_description")) {
-        final description = filteredParams.remove("tx_description")!;
-        if (filteredParams.isNotEmpty) {
-          uriString += Uri(queryParameters: filteredParams).toString();
-        }
-        uriString += "#${Uri.encodeComponent(description)}";
-      } else if (filteredParams.isNotEmpty) {
-        uriString += Uri(queryParameters: filteredParams).toString();
-      }
-    } else {
-      // General case for other cryptocurrencies.
-      if (filteredParams.isNotEmpty) {
-        uriString += Uri(queryParameters: filteredParams).toString();
-      }
+    if (filteredParams.isNotEmpty) {
+      uriString += Uri(queryParameters: filteredParams).toString();
     }
 
     return uriString;
+  }
+
+  static String buildPaymentUriString({
+    required String scheme,
+    required String address,
+    String? amount,
+    String? message,
+  }) {
+    final normalizedScheme = scheme.toLowerCase();
+    final usesMoneroParameters =
+        normalizedScheme == "monero" || normalizedScheme == "wownero";
+    final params = <String, String>{
+      if (amount != null && amount.isNotEmpty)
+        usesMoneroParameters ? "tx_amount" : "amount": amount,
+      if (message != null && message.isNotEmpty)
+        usesMoneroParameters ? "tx_description" : "message": message,
+    };
+
+    return buildUriString(scheme, address, params);
   }
 
   /// returns empty if bad data
