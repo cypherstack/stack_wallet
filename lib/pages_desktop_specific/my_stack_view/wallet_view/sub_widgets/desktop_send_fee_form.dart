@@ -92,6 +92,16 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
   void initState() {
     super.initState();
     cryptoCurrency = ref.read(pWalletCoin(widget.walletId));
+
+    // The fee rate type provider is global and never disposed. Reset it here
+    // so a stale custom selection from another wallet/send form can't cause a
+    // send using an unset custom fee rate.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.read(feeRateTypeDesktopStateProvider.state).state =
+            FeeRateType.average;
+      }
+    });
   }
 
   @override
