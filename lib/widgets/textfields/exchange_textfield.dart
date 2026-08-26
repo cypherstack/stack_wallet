@@ -135,6 +135,7 @@ class _ExchangeTextFieldState extends ConsumerState<ExchangeTextField> {
                 ),
                 inputFormatters: [
                   AmountInputFormatter(
+                    controller: controller,
                     decimals: 8, // todo change this
                     locale: ref.watch(
                       localeServiceChangeNotifierProvider

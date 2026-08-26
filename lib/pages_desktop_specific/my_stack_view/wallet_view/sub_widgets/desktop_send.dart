@@ -1616,6 +1616,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           textAlign: TextAlign.right,
           inputFormatters: [
             AmountInputFormatter(
+              controller: cryptoAmountController,
               decimals: coin.fractionDigits,
               unit: ref.watch(pAmountUnit(coin)),
               locale: locale,
@@ -1675,7 +1676,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   ),
             textAlign: TextAlign.right,
             inputFormatters: [
-              AmountInputFormatter(decimals: 2, locale: locale),
+              AmountInputFormatter(
+                controller: baseAmountController,
+                decimals: 2,
+                locale: locale,
+              ),
               // // regex to validate a fiat amount with 2 decimal places
               // TextInputFormatter.withFunction((oldValue, newValue) =>
               //     RegExp(r'^([0-9]*[,.]?[0-9]{0,2}|[,.][0-9]{0,2})$')

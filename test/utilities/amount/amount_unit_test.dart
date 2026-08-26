@@ -1,6 +1,7 @@
 import 'package:decimal/decimal.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stackwallet/models/isar/models/solana/sol_contract.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/amount/amount_input_formatter.dart';
@@ -9,6 +10,12 @@ import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
 void main() {
+  TextEditingController testController() {
+    final controller = TextEditingController();
+    addTearDown(controller.dispose);
+    return controller;
+  }
+
   test("displayAmount BTC", () {
     final Amount amount = Amount(
       rawValue: BigInt.from(1012345678),
@@ -158,75 +165,46 @@ void main() {
     );
   });
 
-  test("parse eth string to amount", () {
+  test("tryParse rejects display-formatted strings", () {
     final eth = Ethereum(CryptoCurrencyNetwork.main);
-    final Amount amount = Amount.fromDecimal(
-      Decimal.parse("10.123456789123456789"),
-      fractionDigits: eth.fractionDigits,
-    );
+    final btc = Bitcoin(CryptoCurrencyNetwork.main);
 
+    // Display output (grouped, unit-suffixed, "~"-prefixed) is never
+    // valid input; only editable text parses.
     expect(
       AmountUnit.nano.tryParse(
         "~10,123,456,789.1 gwei",
         locale: "en_US",
         coin: eth,
       ),
-      Amount.fromDecimal(
-        Decimal.parse("10.1234567891"),
-        fractionDigits: eth.fractionDigits,
-      ),
+      isNull,
     );
-
     expect(
-      AmountUnit.atto.tryParse(
-        "10,123,456,789,123,456,789 wei",
-        locale: "en_US",
-        coin: eth,
-      ),
-      amount,
+      AmountUnit.normal.tryParse("10.12345678 BTC", locale: "en_US", coin: btc),
+      isNull,
     );
-  });
-
-  test("parse btc string to amount", () {
-    final Amount amount = Amount(
-      rawValue: BigInt.from(1012345678),
-      fractionDigits: 8,
-    );
-
-    expect(
-      AmountUnit.normal.tryParse(
-        "10.12345678 BTC",
-        locale: "en_US",
-        coin: Bitcoin(CryptoCurrencyNetwork.main),
-      ),
-      amount,
-    );
-
     expect(
       AmountUnit.milli.tryParse(
         "10,123.45678 mBTC",
         locale: "en_US",
-        coin: Bitcoin(CryptoCurrencyNetwork.main),
+        coin: btc,
       ),
-      amount,
+      isNull,
     );
 
     expect(
-      AmountUnit.micro.tryParse(
-        "10,123,456.7822 µBTC",
-        locale: "en_US",
-        coin: Bitcoin(CryptoCurrencyNetwork.main),
-      ),
-      amount,
+      AmountUnit.normal
+          .tryParse("10.12345678", locale: "en_US", coin: btc)
+          ?.raw,
+      BigInt.from(1012345678),
     );
-
     expect(
-      AmountUnit.nano.tryParse(
-        "1,012,345,678 sats",
-        locale: "en_US",
-        coin: Bitcoin(CryptoCurrencyNetwork.main),
-      ),
-      amount,
+      AmountUnit.milli.tryParse("10123.45678", locale: "en_US", coin: btc)?.raw,
+      BigInt.from(1012345678),
+    );
+    expect(
+      AmountUnit.nano.tryParse("1012345678", locale: "en_US", coin: btc)?.raw,
+      BigInt.from(1012345678),
     );
   });
 
@@ -239,15 +217,16 @@ void main() {
       maxDecimals: 8,
     );
 
-    expect(formatter.tryParse("5")?.decimal, Decimal.fromInt(5));
+    expect(formatter.tryParseEditable("5")?.decimal, Decimal.fromInt(5));
 
     for (final value in [
       "+5",
       "-5",
+      "1,000",
       for (final codePoint in [0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x20])
         "1${String.fromCharCode(codePoint)}234",
     ]) {
-      expect(formatter.tryParse(value), isNull, reason: value);
+      expect(formatter.tryParseEditable(value), isNull, reason: value);
       expect(
         Amount.tryParseFiatString(value, locale: "en_US"),
         isNull,
@@ -255,277 +234,612 @@ void main() {
       );
     }
 
+    expect(formatter.tryParseEditable("0.000000001"), isNull);
+    expect(Amount.tryParseFiatString("1.001", locale: "en_US"), isNull);
+
     expect(
-      AmountUnit.normal
-          .tryParse("5 legacy", locale: "en_US", coin: coin)
-          ?.decimal,
-      Decimal.fromInt(5),
+      AmountUnit.normal.tryParse("5 legacy", locale: "en_US", coin: coin),
+      isNull,
     );
   });
 
-  test("parse ASCII decimals in dot-group locales", () {
+  test("strict parsing accepts only the locale decimal separator", () {
     final coin = Bitcoin(CryptoCurrencyNetwork.main);
-    final formatter = AmountInputFormatter(decimals: 8, locale: "de_DE");
-    expect(
-      AmountUnit.normal.tryParse("1.5", locale: "de_DE", coin: coin)?.decimal,
-      Decimal.parse("1.5"),
-    );
-    expect(
-      AmountUnit.normal.tryParse("1.234", locale: "de_DE", coin: coin)?.decimal,
-      Decimal.fromInt(1234),
-    );
-    expect(
-      Amount.tryParseFiatString("1.50", locale: "de_DE")?.decimal,
-      Decimal.parse("1.5"),
-    );
-    final formatted = formatter.formatEditUpdate(
-      TextEditingValue.empty,
-      const TextEditingValue(
-        text: "1.5",
-        selection: TextSelection.collapsed(offset: 3),
-      ),
-    );
-    expect(formatted.text, "1,5");
 
-    final appended = formatter.formatEditUpdate(
-      const TextEditingValue(
-        text: "1.234",
-        selection: TextSelection.collapsed(offset: 5),
-      ),
-      const TextEditingValue(
-        text: "1.2345",
-        selection: TextSelection.collapsed(offset: 6),
-      ),
-    );
-    expect(appended.text, "12.345");
-
-    final insertedDecimal = formatter.formatEditUpdate(
-      const TextEditingValue(
-        text: "1.234",
-        selection: TextSelection.collapsed(offset: 1),
-      ),
-      const TextEditingValue(
-        text: "1..234",
-        selection: TextSelection.collapsed(offset: 2),
-      ),
-    );
-    expect(insertedDecimal.text, "1,234");
-    expect(insertedDecimal.selection.baseOffset, 2);
-  });
-
-  test("strict localized parsing validates grouping", () {
-    expect(
-      Amount.tryParseLocalizedNumber("1,000", locale: "en_US"),
-      Decimal.fromInt(1000),
-    );
-    expect(
-      Amount.tryParseLocalizedNumber("1.5", locale: "en_US"),
-      Decimal.parse("1.5"),
-    );
-    expect(
-      Amount.tryParseLocalizedNumber("1,5", locale: "de_DE"),
-      Decimal.parse("1.5"),
-    );
-    expect(
-      Amount.tryParseLocalizedNumber("1.5", locale: "de_DE"),
-      Decimal.parse("1.5"),
-    );
-
-    for (final malformed in ["1,5", "12,34", "0,001", "1,,000"]) {
+    // de_DE uses "," as its decimal separator, so ASCII dots are rejected.
+    for (final value in ["1.5", "1.234", "1.000", "10.000", "1.000,5"]) {
       expect(
-        Amount.tryParseLocalizedNumber(malformed, locale: "en_US"),
+        AmountUnit.normal.tryParse(value, locale: "de_DE", coin: coin),
         isNull,
-        reason: malformed,
+        reason: value,
       );
     }
-  });
+    expect(Amount.tryParseFiatString("1.50", locale: "de_DE"), isNull);
 
-  test("ambiguous dot-grouped values are rejected", () {
-    // A single "." group with exactly three trailing digits reads as both a
-    // grouped integer (1123) and a dot-decimal amount (1.123). Reject.
-    for (final ambiguous in ["1.123", "1.000", "12.345", "999.999"]) {
-      expect(
-        Amount.tryParseLocalizedNumber(ambiguous, locale: "de_DE"),
-        isNull,
-        reason: ambiguous,
-      );
-    }
-
-    // Values with only one possible reading still parse.
+    // The locale's own decimal separator parses.
     expect(
-      Amount.tryParseLocalizedNumber("1.12", locale: "de_DE"),
-      Decimal.parse("1.12"),
-    );
-    expect(
-      Amount.tryParseLocalizedNumber("1.1234", locale: "de_DE"),
-      Decimal.parse("1.1234"),
-    );
-    expect(
-      Amount.tryParseLocalizedNumber("0.123", locale: "de_DE"),
-      Decimal.parse("0.123"),
-    );
-    expect(
-      Amount.tryParseLocalizedNumber("1234.123", locale: "de_DE"),
-      Decimal.parse("1234.123"),
-    );
-    expect(
-      Amount.tryParseLocalizedNumber("1.000.000", locale: "de_DE"),
-      Decimal.fromInt(1000000),
-    );
-    expect(
-      Amount.tryParseLocalizedNumber("1.000,5", locale: "de_DE"),
-      Decimal.parse("1000.5"),
-    );
-
-    // Locales with "." as the decimal separator are unaffected.
-    expect(
-      Amount.tryParseLocalizedNumber("1.123", locale: "en_US"),
-      Decimal.parse("1.123"),
-    );
-    expect(
-      Amount.tryParseLocalizedNumber("1,123", locale: "en_US"),
-      Decimal.fromInt(1123),
-    );
-  });
-
-  test("tryParseLocalizedNumber input class matrix", () {
-    // (input, expected for en_US, expected for de_DE); null means rejected.
-    final cases = <(String, String?, String?)>[
-      // Plain integers.
-      ("0", "0", "0"),
-      ("5", "5", "5"),
-      ("007", "7", "7"),
-      (
-        "1234567890123456789012345678901234567890",
-        "1234567890123456789012345678901234567890",
-        "1234567890123456789012345678901234567890",
-      ),
-      // Decimal-separator forms.
-      ("1.5", "1.5", "1.5"),
-      ("0.5", "0.5", "0.5"),
-      (".5", "0.5", "0.5"),
-      ("00.5", "0.5", "0.5"),
-      ("1.12345678", "1.12345678", "1.12345678"),
-      ("1,5", null, "1.5"),
-      (",5", null, "0.5"),
-      (",000", null, "0"),
-      ("0,5", null, "0.5"),
-      ("1,12345678", null, "1.12345678"),
-      ("0.000000000000000001", "0.000000000000000001", "0.000000000000000001"),
-      // Grouped values; note a 3-digit comma "decimal" is valid in de_DE.
-      ("1,000", "1000", "1"),
-      ("10,000", "10000", "10"),
-      ("100,000", "100000", "100"),
-      ("999,999", "999999", "999.999"),
-      ("1,234,567", "1234567", null),
-      ("1,000.5", "1000.5", null),
-      ("1,000,000.12345678", "1000000.12345678", null),
-      ("1.234.567", null, "1234567"),
-      ("1.000,5", null, "1000.5"),
-      ("1.000.000,12345678", null, "1000000.12345678"),
-      // Malformed grouping (en_US); most re-read as decimals in de_DE.
-      ("1,23", null, "1.23"),
-      ("12,3456", null, "12.3456"),
-      ("1234,567", null, "1234.567"),
-      ("0,001", null, "0.001"),
-      ("1,0000", null, "1"),
-      ("1,,000", null, null),
-      ("1,000,00", null, null),
-      // Ambiguous single dot group in de_DE; plain decimals in en_US.
-      ("1.123", "1.123", null),
-      ("1.000", "1", null),
-      ("12.345", "12.345", null),
-      ("999.999", "999.999", null),
-      // Unambiguous dot forms in de_DE.
-      ("1.12", "1.12", "1.12"),
-      ("1.1234", "1.1234", "1.1234"),
-      ("0.123", "0.123", "0.123"),
-      ("1000.123", "1000.123", "1000.123"),
-      ("1234.123", "1234.123", "1234.123"),
-      // Separator garbage.
-      ("1.2.3", null, null),
-      ("1..5", null, null),
-      (".", null, null),
-      ("..", null, null),
-      (",", null, null),
-      ("1.", null, null),
-      ("5.", null, null),
-      ("5,", null, null),
-      ("1,000.", null, null),
-      ("1.000.", null, null),
-      (".5.5", null, null),
-      // Signs and whitespace.
-      ("", null, null),
-      ("+5", null, null),
-      ("-5", null, null),
-      ("5-", null, null),
-      ("1-2", null, null),
-      (" 5", null, null),
-      ("5 ", null, null),
-      ("1 000", null, null),
-      ("\t5", null, null),
-      ("5\n", null, null),
-      ("5\r", null, null),
-      // Non-numeric and exotic digits.
-      ("abc", null, null),
-      ("1a", null, null),
-      ("a1", null, null),
-      ("1e5", null, null),
-      ("1E5", null, null),
-      ("0x10", null, null),
-      ("NaN", null, null),
-      ("Infinity", null, null),
-      ("١٢٣", null, null),
-      ("１２３", null, null),
-    ];
-
-    for (final (input, enExpected, deExpected) in cases) {
-      expect(
-        Amount.tryParseLocalizedNumber(input, locale: "en_US"),
-        enExpected == null ? isNull : Decimal.parse(enExpected),
-        reason: "en_US: '$input'",
-      );
-      expect(
-        Amount.tryParseLocalizedNumber(input, locale: "de_DE"),
-        deExpected == null ? isNull : Decimal.parse(deExpected),
-        reason: "de_DE: '$input'",
-      );
-    }
-  });
-
-  test("tryParseLocalizedNumber locale symbols and fallback defaults", () {
-    // fr_FR groups with a non-breaking space variant; build input from the
-    // actual symbol so the test survives intl data updates.
-    final frGroup = Util.getSymbolsFor(locale: "fr_FR")!.GROUP_SEP;
-    expect(
-      Amount.tryParseLocalizedNumber("1${frGroup}234,5", locale: "fr_FR"),
-      Decimal.parse("1234.5"),
-    );
-    expect(
-      Amount.tryParseLocalizedNumber("1234,5", locale: "fr_FR"),
-      Decimal.parse("1234.5"),
-    );
-    // A typed ASCII space is never a valid separator.
-    expect(Amount.tryParseLocalizedNumber("1 000", locale: "fr_FR"), isNull);
-
-    // Unknown locale falls back to "," grouping and "." decimals.
-    expect(
-      Amount.tryParseLocalizedNumber("1,000.5", locale: "zz_ZZ"),
-      Decimal.parse("1000.5"),
-    );
-    expect(
-      Amount.tryParseLocalizedNumber("1.5", locale: "zz_ZZ"),
+      AmountUnit.normal.tryParse("1,5", locale: "de_DE", coin: coin)?.decimal,
       Decimal.parse("1.5"),
     );
-    expect(Amount.tryParseLocalizedNumber("1,5", locale: "zz_ZZ"), isNull);
+    expect(
+      Amount.tryParseFiatString("1,50", locale: "de_DE")?.decimal,
+      Decimal.parse("1.5"),
+    );
+    expect(
+      Amount.tryParseEditableDecimal("1,234", locale: "de_DE"),
+      Decimal.parse("1.234"),
+    );
+
+    expect(
+      Util.getSymbolsFor(locale: "de-Latn-CH")?.DECIMAL_SEP,
+      Util.getSymbolsFor(locale: "de_CH")?.DECIMAL_SEP,
+    );
+  });
+
+  test("formatter rejects non-decimal separators", () {
+    TextEditingValue edit(
+      AmountInputFormatter formatter,
+      String oldText,
+      String newText,
+    ) {
+      return formatter.formatEditUpdate(
+        TextEditingValue(
+          text: oldText,
+          selection: TextSelection.collapsed(offset: oldText.length),
+        ),
+        TextEditingValue(
+          text: newText,
+          selection: TextSelection.collapsed(offset: newText.length),
+        ),
+      );
+    }
+
+    final de = AmountInputFormatter(
+      controller: testController(),
+      decimals: 8,
+      locale: "de_DE",
+    );
+    expect(edit(de, "1", "1.").text, "1");
+    expect(edit(de, "1", "1,").text, "1,");
+    expect(edit(de, "", "1.200").text, "");
+    expect(edit(de, "", "1.200,5").text, "");
+
+    final us = AmountInputFormatter(
+      controller: testController(),
+      decimals: 8,
+      locale: "en_US",
+    );
+    expect(edit(us, "1", "1,").text, "1");
+    expect(edit(us, "1", "1.").text, "1.");
+    expect(edit(us, "", "1,200").text, "");
+    expect(edit(us, "", "1,200.5").text, "");
+  });
+
+  test("canonical and token parsing preserve exact precision", () {
+    final canonical = Amount.tryParseCanonicalAmount(
+      "1.234567",
+      fractionDigits: 6,
+    );
+    expect(canonical?.raw, BigInt.from(1234567));
+    // Excess trailing zeros still represent the exact value; only real
+    // sub-atomic precision is rejected.
+    expect(
+      Amount.tryParseCanonicalAmount("1.2345670", fractionDigits: 6)?.raw,
+      BigInt.from(1234567),
+    );
+    expect(
+      Amount.tryParseCanonicalAmount(
+        "0.0000000100000000",
+        fractionDigits: 8,
+      )?.raw,
+      BigInt.one,
+    );
+    expect(
+      Amount.tryParseCanonicalAmount("1.2345671", fractionDigits: 6),
+      isNull,
+    );
+    expect(Amount.tryParseCanonicalAmount("1", fractionDigits: -1), isNull);
+
+    // Externally supplied QR/URI amounts may opt into truncation instead of
+    // rejection.
+    expect(
+      Amount.tryParseCanonicalAmount(
+        "0.123456789",
+        fractionDigits: 8,
+        truncateOverprecision: true,
+      )?.raw,
+      BigInt.from(12345678),
+    );
+    expect(
+      Amount.tryParseCanonicalAmount(
+        "1.2345671",
+        fractionDigits: 6,
+        truncateOverprecision: true,
+      )?.raw,
+      BigInt.from(1234567),
+    );
+    // Truncation never loosens the grammar itself.
+    expect(
+      Amount.tryParseCanonicalAmount(
+        "1e-3",
+        fractionDigits: 8,
+        truncateOverprecision: true,
+      ),
+      isNull,
+    );
+    expect(
+      Amount.tryParseCanonicalAmount(
+        "-1",
+        fractionDigits: 8,
+        truncateOverprecision: true,
+      ),
+      isNull,
+    );
+
+    final token = SolContract(
+      address: "mint",
+      name: "Token",
+      symbol: "TKN",
+      decimals: 6,
+    );
+    final parsedToken = AmountUnit.normal.tryParse(
+      "1000",
+      locale: "en_US",
+      coin: Solana(CryptoCurrencyNetwork.main),
+      tokenContract: token,
+    );
+    expect(parsedToken?.raw, BigInt.from(1000000000));
+    expect(parsedToken?.fractionDigits, 6);
   });
 
   test("formatter tolerates an invalid selection", () {
-    final formatter = AmountInputFormatter(decimals: 8, locale: "en_US");
+    final formatter = AmountInputFormatter(
+      controller: testController(),
+      decimals: 8,
+      locale: "en_US",
+    );
     final result = formatter.formatEditUpdate(
       TextEditingValue.empty,
       const TextEditingValue(text: "1234"),
     );
-    expect(result.text, "1,234");
+    expect(result.text, "1234");
+
+    const composingValue = TextEditingValue(
+      text: "1.",
+      selection: TextSelection.collapsed(offset: 2),
+      composing: TextRange(start: 1, end: 2),
+    );
+    final commaFormatter = AmountInputFormatter(
+      controller: testController(),
+      decimals: 8,
+      locale: "de_DE",
+    );
+    expect(
+      commaFormatter.formatEditUpdate(TextEditingValue.empty, composingValue),
+      composingValue,
+    );
+
+    // When the IME commits that invalid composing text, the formatter
+    // sanitizes instead of trapping the field in an unparseable state.
+    final committed = commaFormatter.formatEditUpdate(
+      composingValue,
+      const TextEditingValue(
+        text: "1.",
+        selection: TextSelection.collapsed(offset: 2),
+      ),
+    );
+    expect(committed.text, "1");
+    expect(committed.composing, TextRange.empty);
+  });
+
+  test("formatter restores valid text after rebuilding during IME input", () {
+    const valid = TextEditingValue(
+      text: "1,5",
+      selection: TextSelection.collapsed(offset: 3),
+    );
+    const composing = TextEditingValue(
+      text: "1.5",
+      selection: TextSelection.collapsed(offset: 3),
+      composing: TextRange(start: 1, end: 2),
+    );
+    const committed = TextEditingValue(
+      text: "1.5",
+      selection: TextSelection.collapsed(offset: 3),
+    );
+
+    final controller = testController();
+    final beforeRebuild = AmountInputFormatter(
+      controller: controller,
+      decimals: 8,
+      locale: "de_DE",
+    );
+    expect(beforeRebuild.formatEditUpdate(valid, composing), composing);
+
+    final afterRebuild = AmountInputFormatter(
+      controller: controller,
+      decimals: 8,
+      locale: "de_DE",
+    );
+    expect(afterRebuild.formatEditUpdate(composing, committed), valid);
+  });
+
+  test("formatter restores valid text when an IME changes text at commit", () {
+    const valid = TextEditingValue(
+      text: "1,5",
+      selection: TextSelection.collapsed(offset: 3),
+    );
+    const composing = TextEditingValue(
+      text: "1.5",
+      selection: TextSelection.collapsed(offset: 3),
+      composing: TextRange(start: 1, end: 2),
+    );
+    const changedCommit = TextEditingValue(
+      text: "1.",
+      selection: TextSelection.collapsed(offset: 2),
+    );
+
+    final controller = testController();
+    AmountInputFormatter(
+      controller: controller,
+      decimals: 8,
+      locale: "de_DE",
+    ).formatEditUpdate(valid, composing);
+
+    expect(
+      AmountInputFormatter(
+        controller: controller,
+        decimals: 8,
+        locale: "de_DE",
+      ).formatEditUpdate(composing, changedCommit),
+      valid,
+    );
+  });
+
+  test("formatter recovery is isolated by controller and configuration", () {
+    TextEditingValue value(String text) => TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+    );
+
+    final controller = testController();
+    final de = AmountInputFormatter(
+      controller: controller,
+      decimals: 8,
+      locale: "de_DE",
+    );
+    de.formatEditUpdate(TextEditingValue.empty, value("1,5"));
+
+    final otherController = AmountInputFormatter(
+      controller: testController(),
+      decimals: 8,
+      locale: "de_DE",
+    );
+    expect(
+      otherController.formatEditUpdate(value("2.5"), value("2.5")).text,
+      "2",
+    );
+
+    final otherLocale = AmountInputFormatter(
+      controller: controller,
+      decimals: 8,
+      locale: "en_US",
+    );
+    expect(otherLocale.formatEditUpdate(value("2,5"), value("2,5")).text, "2");
+
+    final highPrecision = AmountInputFormatter(
+      controller: controller,
+      decimals: 8,
+      locale: "en_US",
+    );
+    highPrecision.formatEditUpdate(TextEditingValue.empty, value("1.234"));
+    final lowPrecision = AmountInputFormatter(
+      controller: controller,
+      decimals: 2,
+      locale: "en_US",
+    );
+    expect(
+      lowPrecision.formatEditUpdate(value("1.234"), value("1.234")).text,
+      "1.23",
+    );
+  });
+
+  test(
+    "formatter does not restore stale recovery after a config round trip",
+    () {
+      TextEditingValue value(String text) => TextEditingValue(
+        text: text,
+        selection: TextSelection.collapsed(offset: text.length),
+      );
+
+      final controller = testController();
+      final fiat = AmountInputFormatter(
+        controller: controller,
+        decimals: 2,
+        locale: "en_US",
+      );
+      fiat.formatEditUpdate(TextEditingValue.empty, value("50"));
+
+      final highPrecision = AmountInputFormatter(
+        controller: controller,
+        decimals: 8,
+        locale: "en_US",
+      );
+      highPrecision.formatEditUpdate(value("50"), value("0.12345"));
+
+      final fiatAgain = AmountInputFormatter(
+        controller: controller,
+        decimals: 2,
+        locale: "en_US",
+      );
+      expect(
+        fiatAgain.formatEditUpdate(value("0.12345"), value("0.123456")).text,
+        "0.12",
+      );
+    },
+  );
+
+  test("formatter clears recovery and isolates amount-unit shifts", () {
+    TextEditingValue value(String text) => TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+    );
+
+    final controller = testController();
+    final de = AmountInputFormatter(
+      controller: controller,
+      decimals: 8,
+      locale: "de_DE",
+    );
+    de.formatEditUpdate(TextEditingValue.empty, value("1,5"));
+    de.formatEditUpdate(value("1,5"), TextEditingValue.empty);
+    expect(
+      AmountInputFormatter(
+        controller: controller,
+        decimals: 8,
+        locale: "de_DE",
+      ).formatEditUpdate(value("2.5"), value("2.5")).text,
+      "2",
+    );
+
+    final normal = AmountInputFormatter(
+      controller: controller,
+      decimals: 8,
+      locale: "en_US",
+      unit: AmountUnit.normal,
+    );
+    normal.formatEditUpdate(TextEditingValue.empty, value("1.123456"));
+    expect(
+      AmountInputFormatter(
+        controller: controller,
+        decimals: 8,
+        locale: "en_US",
+        unit: AmountUnit.milli,
+      ).formatEditUpdate(value("1.123456"), value("1.123456")).text,
+      "1.12345",
+    );
+  });
+
+  test("formatter never joins digits around stripped invalid characters", () {
+    TextEditingValue committedInvalid(String text, {int? caret}) {
+      return TextEditingValue(
+        text: text,
+        selection: TextSelection.collapsed(offset: caret ?? text.length),
+      );
+    }
+
+    // Both old and new values invalid (IME commit path): the recovered text
+    // must be a prefix of the committed text, never digits joined across a
+    // stripped character ("1.5" must not become "15").
+    final de = AmountInputFormatter(
+      controller: testController(),
+      decimals: 8,
+      locale: "de_DE",
+    );
+    expect(
+      de
+          .formatEditUpdate(committedInvalid("1.5"), committedInvalid("1.5"))
+          .text,
+      "1",
+    );
+    expect(
+      de
+          .formatEditUpdate(committedInvalid("1e3"), committedInvalid("1e3"))
+          .text,
+      "1",
+    );
+    expect(
+      de.formatEditUpdate(committedInvalid("-5"), committedInvalid("-5")).text,
+      "",
+    );
+    expect(
+      de
+          .formatEditUpdate(
+            committedInvalid("abc12", caret: 3),
+            committedInvalid("abc12", caret: 3),
+          )
+          .text,
+      "",
+    );
+
+    // A formatter that admitted an invalid composing edit restores the valid
+    // value from immediately before that composition.
+    final usController = testController();
+    final us = AmountInputFormatter(
+      controller: usController,
+      decimals: 8,
+      locale: "en_US",
+    );
+    final valid = committedInvalid("1.5");
+    const composingInvalid = TextEditingValue(
+      text: "1,5",
+      selection: TextSelection.collapsed(offset: 3),
+      composing: TextRange(start: 1, end: 2),
+    );
+    expect(us.formatEditUpdate(valid, composingInvalid), composingInvalid);
+    expect(
+      AmountInputFormatter(
+        controller: usController,
+        decimals: 8,
+        locale: "en_US",
+      ).formatEditUpdate(composingInvalid, committedInvalid("1,5")).text,
+      "1.5",
+    );
+  });
+
+  test("editable parsers accept one trailing decimal separator", () {
+    expect(Amount.tryParseEditableDecimal("1.", locale: "en_US"), Decimal.one);
+    expect(Amount.tryParseEditableDecimal("1,", locale: "de_DE"), Decimal.one);
+    expect(
+      AmountUnit.normal
+          .tryParse(
+            "10.",
+            locale: "en_US",
+            coin: Bitcoin(CryptoCurrencyNetwork.main),
+          )
+          ?.raw,
+      BigInt.from(1000000000),
+    );
+    // Separator-only and doubled separators stay invalid.
+    for (final (value, locale) in [
+      (".", "en_US"),
+      (",", "de_DE"),
+      ("1..", "en_US"),
+      (".5.", "en_US"),
+    ]) {
+      expect(
+        Amount.tryParseEditableDecimal(value, locale: locale),
+        isNull,
+        reason: "$locale '$value'",
+      );
+    }
+    // Canonical parsing stays strict.
+    expect(Amount.tryParseCanonicalAmount("1.", fractionDigits: 8), isNull);
+  });
+
+  test("formatEditableDecimal writes locale-editable text", () {
+    expect(
+      Amount.formatEditableDecimal(Decimal.parse("1.5"), locale: "en_US"),
+      "1.5",
+    );
+    expect(
+      Amount.formatEditableDecimal(Decimal.parse("1.5"), locale: "de_DE"),
+      "1,5",
+    );
+    // no grouping, ever: editable text must parse back via tryParseEditable*
+    expect(
+      Amount.formatEditableDecimal(
+        Decimal.parse("1234567.89"),
+        locale: "de_DE",
+      ),
+      "1234567,89",
+    );
+    expect(
+      Amount.tryParseEditableDecimal(
+        Amount.formatEditableDecimal(
+          Decimal.parse("1234567.89"),
+          locale: "de_DE",
+        ),
+        locale: "de_DE",
+      ),
+      Decimal.parse("1234567.89"),
+    );
+  });
+
+  test("formatFixedDecimal writes locale-editable fixed text", () {
+    expect(
+      Amount.formatFixedDecimal(
+        Decimal.parse("1.5"),
+        fractionDigits: 3,
+        locale: "de_DE",
+      ),
+      "1,500",
+    );
+    expect(
+      Amount.formatFixedDecimal(
+        Decimal.parse("1.5"),
+        fractionDigits: 2,
+        locale: "en_US",
+      ),
+      "1.50",
+    );
+    expect(
+      () => Amount.formatFixedDecimal(
+        Decimal.one,
+        fractionDigits: -1,
+        locale: "en_US",
+      ),
+      throwsArgumentError,
+    );
+  });
+
+  test("formatEditable round-trips through tryParseEditable", () {
+    final coin = Bitcoin(CryptoCurrencyNetwork.main);
+    final amount = Amount(rawValue: BigInt.from(1012345678), fractionDigits: 8);
+
+    for (final locale in ["en_US", "de_DE"]) {
+      for (final unit in [
+        AmountUnit.normal,
+        AmountUnit.milli,
+        AmountUnit.nano,
+      ]) {
+        final formatter = AmountFormatter(
+          unit: unit,
+          locale: locale,
+          coin: coin,
+          maxDecimals: 8,
+        );
+        final text = formatter.formatEditable(amount);
+        expect(
+          formatter.tryParseEditable(text),
+          amount,
+          reason: "$locale $unit $text",
+        );
+      }
+    }
+
+    expect(
+      AmountUnit.normal.formatEditable(amount: amount, locale: "de_DE"),
+      "10,12345678",
+    );
+    expect(
+      AmountUnit.nano.formatEditable(amount: amount, locale: "de_DE"),
+      "1012345678",
+    );
+  });
+
+  test("relocalizeEditableDecimal rewrites the decimal separator", () {
+    expect(
+      Amount.relocalizeEditableDecimal(
+        "1,5",
+        sourceLocale: "de_DE",
+        targetLocale: "en_US",
+      ),
+      "1.5",
+    );
+    expect(
+      Amount.relocalizeEditableDecimal(
+        "1.5",
+        sourceLocale: "en_US",
+        targetLocale: "de_DE",
+      ),
+      "1,5",
+    );
+    expect(
+      Amount.relocalizeEditableDecimal(
+        "",
+        sourceLocale: "en_US",
+        targetLocale: "de_DE",
+      ),
+      "",
+    );
+    // same separator locales: unchanged
+    expect(
+      Amount.relocalizeEditableDecimal(
+        "1.5",
+        sourceLocale: "en_US",
+        targetLocale: "en_GB",
+      ),
+      "1.5",
+    );
   });
 }

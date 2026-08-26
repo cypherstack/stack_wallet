@@ -357,6 +357,7 @@ class _SalviumCreateStakeViewState
             textAlign: TextAlign.right,
             inputFormatters: [
               AmountInputFormatter(
+                controller: _amountController,
                 decimals: coin.fractionDigits,
                 unit: ref.watch(pAmountUnit(coin)),
                 locale: locale,

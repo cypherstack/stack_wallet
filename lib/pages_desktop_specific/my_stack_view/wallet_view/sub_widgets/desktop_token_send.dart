@@ -722,6 +722,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
           textAlign: TextAlign.right,
           inputFormatters: [
             AmountInputFormatter(
+              controller: cryptoAmountController,
               decimals: tokenContract.decimals,
               unit: ref.watch(pAmountUnit(coin)),
               locale: ref.watch(
@@ -794,6 +795,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
             textAlign: TextAlign.right,
             inputFormatters: [
               AmountInputFormatter(
+                controller: baseAmountController,
                 decimals: 2,
                 locale: ref.watch(
                   localeServiceChangeNotifierProvider.select(

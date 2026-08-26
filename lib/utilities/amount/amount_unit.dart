@@ -196,44 +196,50 @@ extension AmountUnitExt on AmountUnit {
     }
   }
 
+  static final RegExp _rejectedInputChars = RegExp(r'[+\-~ \x09-\x0D]');
+
+  /// Parses user-editable amount text (digits plus the locale's decimal
+  /// separator only). Display strings (grouped, unit-suffixed, or
+  /// "~"-prefixed) are intentionally rejected: formatted display output
+  /// must never be re-parsed as input.
   Amount? tryParse(
     String value, {
     required String locale,
     required CryptoCurrency coin,
     Contract? tokenContract,
+    // Compatibility-only parameters for callers migrated later in the
+    // series. Editable parsing is strict regardless of these values.
     bool strict = false,
     bool overrideWithDecimalPlacesFromString = false,
   }) {
-    if (value.contains(RegExp(r'[+\-\x09-\x0D]')) ||
-        (strict && value.contains(" "))) {
+    if (value.contains(_rejectedInputChars)) {
       return null;
     }
 
-    final precisionLost = value.startsWith("~");
-
-    final parts = (precisionLost ? value.substring(1) : value).split(" ");
-
-    if (parts.first.isEmpty) {
-      return null;
-    }
-
-    final str = parts.first;
-
-    // get number symbols for decimal place and group separator
-    final Decimal? decimal = Decimal.tryParse(
-      Amount.normalizeLocalizedNumber(str, locale: locale),
-    );
-
-    if (decimal == null) {
-      return null;
-    }
-
-    final decimalPlaces = overrideWithDecimalPlacesFromString
-        ? decimal.scale
-        : tokenContract?.decimals ?? coin.fractionDigits;
+    final decimalPlaces = tokenContract?.decimals ?? coin.fractionDigits;
     final realShift = math.min(shift, decimalPlaces);
 
-    return decimal.shift(0 - realShift).toAmount(fractionDigits: decimalPlaces);
+    final parsedUnitAmount = Amount.tryParseEditableAmount(
+      value,
+      locale: locale,
+      fractionDigits: decimalPlaces - realShift,
+    );
+    if (parsedUnitAmount == null) {
+      return null;
+    }
+
+    return Amount(
+      rawValue: parsedUnitAmount.raw,
+      fractionDigits: decimalPlaces,
+    );
+  }
+
+  String formatEditable({required Amount amount, required String locale}) {
+    final realShift = math.min(shift, amount.fractionDigits);
+    return Amount.formatEditableDecimal(
+      amount.decimal.shift(realShift),
+      locale: locale,
+    );
   }
 
   String displayAmount({

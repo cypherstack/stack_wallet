@@ -762,6 +762,7 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
           textAlign: TextAlign.right,
           inputFormatters: [
             AmountInputFormatter(
+              controller: cryptoAmountController,
               decimals: tokenWallet.tokenDecimals,
               unit: AmountUnit.normal,
               locale: ref.watch(
@@ -834,6 +835,7 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
             textAlign: TextAlign.right,
             inputFormatters: [
               AmountInputFormatter(
+                controller: baseAmountController,
                 decimals: 2,
                 locale: ref.watch(
                   localeServiceChangeNotifierProvider.select(

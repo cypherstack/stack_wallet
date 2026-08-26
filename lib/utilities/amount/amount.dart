@@ -72,10 +72,6 @@ class Amount {
       '^(?:$integerPattern(?:$escapedDecimal\\d+)?|$escapedDecimal\\d+)\$',
     );
 
-    // In locales that group digits with ".", a single-dot value with exactly
-    // three trailing digits ("1.123") is both a validly grouped integer and a
-    // plausible plain dot-decimal amount. Money input must not guess between
-    // readings that differ 1000x, so such values are rejected outright.
     if (groupSeparator == "." &&
         decimalSeparator != "." &&
         !value.contains(decimalSeparator) &&
@@ -97,16 +93,121 @@ class Amount {
     return null;
   }
 
-  static Amount? tryParseFiatString(String value, {required String locale}) {
-    if (value.isEmpty || value.contains(RegExp(r'[+\-\x09-\x0D ]'))) {
+  static Decimal? tryParseEditableDecimal(
+    String value, {
+    required String locale,
+  }) {
+    return _tryParseCanonicalDecimal(
+      _normalizeEditableDecimal(value, locale: locale),
+    );
+  }
+
+  static Amount? tryParseEditableAmount(
+    String value, {
+    required String locale,
+    required int fractionDigits,
+  }) {
+    return tryParseCanonicalAmount(
+      _normalizeEditableDecimal(value, locale: locale),
+      fractionDigits: fractionDigits,
+    );
+  }
+
+  static final RegExp _canonicalDecimalPattern = RegExp(
+    r'^(?:\d+(?:\.\d+)?|\.\d+)$',
+  );
+
+  static Decimal? _tryParseCanonicalDecimal(String value) {
+    if (!_canonicalDecimalPattern.hasMatch(value)) {
       return null;
     }
 
-    // get number symbols for decimal place and group separator
-    return Decimal.tryParse(
-      normalizeLocalizedNumber(value, locale: locale),
-    )?.toAmount(fractionDigits: 2);
+    return Decimal.tryParse(value);
   }
+
+  static Amount? tryParseCanonicalAmount(
+    String value, {
+    required int fractionDigits,
+    bool truncateOverprecision = false,
+  }) {
+    if (fractionDigits < 0) {
+      return null;
+    }
+
+    final decimal = _tryParseCanonicalDecimal(value);
+    if (decimal == null) {
+      return null;
+    }
+
+    // Excess trailing zeros are fine as long as the value stays exactly
+    // representable; the isInteger check below rejects real overprecision
+    // unless the caller opted into truncation (e.g. externally supplied
+    // QR/URI amounts).
+    final atomicValue = decimal.shift(fractionDigits);
+    if (!atomicValue.isInteger && !truncateOverprecision) {
+      return null;
+    }
+
+    return Amount(
+      rawValue: atomicValue.toBigInt(),
+      fractionDigits: fractionDigits,
+    );
+  }
+
+  static String formatEditableDecimal(Decimal value, {required String locale}) {
+    return value.toString().replaceFirst(".", _decimalSeparator(locale));
+  }
+
+  static String formatFixedDecimal(
+    Decimal value, {
+    required int fractionDigits,
+    required String locale,
+  }) {
+    if (fractionDigits < 0) {
+      throw ArgumentError.value(fractionDigits, "fractionDigits");
+    }
+    return value
+        .toStringAsFixed(fractionDigits)
+        .replaceFirst(".", _decimalSeparator(locale));
+  }
+
+  static String relocalizeEditableDecimal(
+    String value, {
+    required String sourceLocale,
+    required String targetLocale,
+  }) {
+    return value.replaceAll(
+      _decimalSeparator(sourceLocale),
+      _decimalSeparator(targetLocale),
+    );
+  }
+
+  static Amount? tryParseFiatString(String value, {required String locale}) {
+    return tryParseEditableAmount(value, locale: locale, fractionDigits: 2);
+  }
+
+  static String _normalizeEditableDecimal(
+    String value, {
+    required String locale,
+  }) {
+    final decimalSeparator = _decimalSeparator(locale);
+    // Editable input accepts only the locale's decimal separator.
+    if (decimalSeparator != "." && value.contains(".")) {
+      return "";
+    }
+    String normalized = value.replaceAll(decimalSeparator, ".");
+    // A single trailing separator after digits reads as the number typed so
+    // far ("1." == 1); separator-only input stays invalid.
+    if (normalized.endsWith(".") &&
+        normalized.length > 1 &&
+        !normalized.substring(0, normalized.length - 1).contains(".")) {
+      normalized = normalized.substring(0, normalized.length - 1);
+    }
+    return normalized;
+  }
+
+  static String _decimalSeparator(String locale) =>
+      Util.getSymbolsFor(locale: locale)?.DECIMAL_SEP ?? ".";
 
   // ===========================================================================
   // ======= Instance properties ===============================================

@@ -990,6 +990,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                               textAlign: TextAlign.right,
                               inputFormatters: [
                                 AmountInputFormatter(
+                                  controller: cryptoAmountController,
                                   decimals: tokenContract.decimals,
                                   unit: ref.watch(pAmountUnit(coin)),
                                   locale: locale,
@@ -1057,6 +1058,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                 textAlign: TextAlign.right,
                                 inputFormatters: [
                                   AmountInputFormatter(
+                                    controller: baseAmountController,
                                     decimals: 2,
                                     locale: locale,
                                   ),

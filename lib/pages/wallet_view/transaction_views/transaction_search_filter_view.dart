@@ -414,6 +414,7 @@ class _TransactionSearchViewState
                     ),
               inputFormatters: [
                 AmountInputFormatter(
+                  controller: _amountTextEditingController,
                   decimals: widget.coin.fractionDigits,
                   unit: ref.watch(pAmountUnit(widget.coin)),
                   locale: ref.watch(

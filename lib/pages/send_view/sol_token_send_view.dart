@@ -1088,6 +1088,7 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
                               textAlign: TextAlign.right,
                               inputFormatters: [
                                 AmountInputFormatter(
+                                  controller: cryptoAmountController,
                                   decimals: tokenWallet.tokenDecimals,
                                   unit: AmountUnit.normal,
                                   locale: locale,
@@ -1146,6 +1147,7 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
                                 textAlign: TextAlign.right,
                                 inputFormatters: [
                                   AmountInputFormatter(
+                                    controller: baseAmountController,
                                     decimals: 2,
                                     locale: locale,
                                   ),

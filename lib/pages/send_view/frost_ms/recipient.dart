@@ -402,6 +402,7 @@ class _RecipientState extends ConsumerState<Recipient> {
             textAlign: TextAlign.right,
             inputFormatters: [
               AmountInputFormatter(
+                controller: amountController,
                 decimals: widget.coin.fractionDigits,
                 unit: ref.watch(pAmountUnit(widget.coin)),
                 locale: locale,
