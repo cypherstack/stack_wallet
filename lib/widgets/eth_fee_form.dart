@@ -8,11 +8,10 @@ import '../themes/stack_colors.dart';
 import '../utilities/amount/amount.dart';
 import '../utilities/amount/amount_field_relocalization.dart';
 import '../utilities/amount/amount_input_formatter.dart';
-import '../utilities/constants.dart';
 import '../utilities/integer_input.dart';
 import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
-import 'stack_text_field.dart';
+import 'textfields/adaptive_text_field.dart';
 
 @immutable
 class EthEIP1559Fee {
@@ -256,56 +255,47 @@ class _EthFeeFormState extends State<EthFeeForm> {
 
   @override
   Widget build(BuildContext context) {
+    final fieldStyle = Util.isDesktop
+        ? STextStyles.desktopTextExtraSmall(context).copyWith(
+            color: Theme.of(
+              context,
+            ).extension<StackColors>()!.textFieldActiveText,
+            height: 1.8,
+          )
+        : STextStyles.field(context);
+    final fieldContentPadding = EdgeInsets.only(
+      left: 16,
+      top: Util.isDesktop ? 11 : 6,
+      bottom: Util.isDesktop ? 12 : 8,
+      right: 5,
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text("Max fee per gas (GWEI)", style: STextStyles.smallMed12(context)),
         const SizedBox(height: 10),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(
-            Constants.size.circularBorderRadius,
-          ),
-          child: TextField(
-            key: const Key("ethMaxFeePerGasField"),
-            minLines: 1,
-            maxLines: 1,
-            controller: maxFeePerGasController,
-            readOnly: false,
-            autocorrect: false,
-            enableSuggestions: false,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            inputFormatters: [
-              AmountInputFormatter(
-                controller: maxFeePerGasController,
-                decimals: 9,
-                locale: widget.locale,
-              ),
-            ],
-            focusNode: maxFeePerGasFocus,
-            onChanged: _maxFeePerGasChanged,
-            style: Util.isDesktop
-                ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldActiveText,
-                    height: 1.8,
-                  )
-                : STextStyles.field(context),
-            decoration:
-                standardInputDecoration(
-                  null,
-                  maxFeePerGasFocus,
-                  context,
-                  desktopMed: Util.isDesktop,
-                ).copyWith(
-                  contentPadding: EdgeInsets.only(
-                    left: 16,
-                    top: Util.isDesktop ? 11 : 6,
-                    bottom: Util.isDesktop ? 12 : 8,
-                    right: 5,
-                  ),
-                ),
-          ),
+        AdaptiveTextField(
+          textFieldKey: const Key("ethMaxFeePerGasField"),
+          minLines: 1,
+          maxLines: 1,
+          controller: maxFeePerGasController,
+          readOnly: false,
+          autocorrect: false,
+          enableSuggestions: false,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: [
+            AmountInputFormatter(
+              controller: maxFeePerGasController,
+              decimals: 9,
+              locale: widget.locale,
+            ),
+          ],
+          focusNode: maxFeePerGasFocus,
+          onChanged: _maxFeePerGasChanged,
+          style: fieldStyle,
+          desktopMed: Util.isDesktop,
+          contentPadding: fieldContentPadding,
         ),
         const SizedBox(height: 6),
         AnimatedSwitcher(
@@ -326,62 +316,34 @@ class _EthFeeFormState extends State<EthFeeForm> {
           style: STextStyles.smallMed12(context),
         ),
         const SizedBox(height: 10),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(
-            Constants.size.circularBorderRadius,
-          ),
-          child: TextField(
-            key: const Key("ethMaxPriorityFeePerGasField"),
-            minLines: 1,
-            maxLines: 1,
-            controller: maxPriorityFeePerGasController,
-            readOnly: false,
-            autocorrect: false,
-            enableSuggestions: false,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            inputFormatters: [
-              AmountInputFormatter(
-                controller: maxPriorityFeePerGasController,
-                decimals: 9,
-                locale: widget.locale,
-              ),
-            ],
-            focusNode: maxPriorityFeePerGasFocus,
-            onChanged: _maxPriorityFeePerGasChanged,
-            style: Util.isDesktop
-                ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldActiveText,
-                    height: 1.8,
-                  )
-                : STextStyles.field(context),
-            decoration:
-                standardInputDecoration(
-                  null,
-                  maxPriorityFeePerGasFocus,
-                  context,
-                  desktopMed: Util.isDesktop,
-                ).copyWith(
-                  contentPadding: EdgeInsets.only(
-                    left: 16,
-                    top: Util.isDesktop ? 11 : 6,
-                    bottom: Util.isDesktop ? 12 : 8,
-                    right: 5,
-                  ),
-                ),
-          ),
-        ),
-        if (_maxFeePerGasIsValid &&
-            _maxPriorityFeePerGasIsValid &&
-            !_feeCapsAreConsistent)
-          Padding(
-            padding: const EdgeInsets.only(top: 6, left: 12),
-            child: Text(
-              "Max priority fee must not exceed max fee",
-              style: STextStyles.errorSmall(context),
+        AdaptiveTextField(
+          textFieldKey: const Key("ethMaxPriorityFeePerGasField"),
+          minLines: 1,
+          maxLines: 1,
+          controller: maxPriorityFeePerGasController,
+          readOnly: false,
+          autocorrect: false,
+          enableSuggestions: false,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: [
+            AmountInputFormatter(
+              controller: maxPriorityFeePerGasController,
+              decimals: 9,
+              locale: widget.locale,
             ),
-          ),
+          ],
+          focusNode: maxPriorityFeePerGasFocus,
+          onChanged: _maxPriorityFeePerGasChanged,
+          style: fieldStyle,
+          desktopMed: Util.isDesktop,
+          contentPadding: fieldContentPadding,
+          errorText:
+              _maxFeePerGasIsValid &&
+                  _maxPriorityFeePerGasIsValid &&
+                  !_feeCapsAreConsistent
+              ? "Max priority fee must not exceed max fee"
+              : null,
+        ),
         const SizedBox(height: 6),
         AnimatedSwitcher(
           duration: _textFadeDuration,
@@ -398,67 +360,38 @@ class _EthFeeFormState extends State<EthFeeForm> {
         const SizedBox(height: 20),
         Text("Gas limit", style: STextStyles.smallMed12(context)),
         const SizedBox(height: 10),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(
-            Constants.size.circularBorderRadius,
-          ),
-          child: TextField(
-            key: const Key("ethFeeGasLimitField"),
-            minLines: 1,
-            maxLines: 1,
-            controller: gasLimitController,
-            readOnly: false,
-            autocorrect: false,
-            enableSuggestions: false,
-            keyboardType: TextInputType.number,
-            focusNode: gasLimitFocus,
-            onChanged: (value) {
-              final intValue = tryParseIntegerInput(
-                value,
-                minimum: widget.minGasLimit,
-                maximum: widget.maxGasLimit,
-              );
-              setState(() {
-                _gasLimitIsValid = intValue != null;
-                if (intValue != null) {
-                  _gasLimitCache = intValue;
-                }
-              });
-              _notifyStateChanged();
-            },
-            style: Util.isDesktop
-                ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldActiveText,
-                    height: 1.8,
-                  )
-                : STextStyles.field(context),
-            decoration:
-                standardInputDecoration(
-                  null,
-                  gasLimitFocus,
-                  context,
-                  desktopMed: Util.isDesktop,
-                ).copyWith(
-                  contentPadding: EdgeInsets.only(
-                    left: 16,
-                    top: Util.isDesktop ? 11 : 6,
-                    bottom: Util.isDesktop ? 12 : 8,
-                    right: 5,
-                  ),
-                ),
-          ),
+        AdaptiveTextField(
+          textFieldKey: const Key("ethFeeGasLimitField"),
+          minLines: 1,
+          maxLines: 1,
+          controller: gasLimitController,
+          readOnly: false,
+          autocorrect: false,
+          enableSuggestions: false,
+          keyboardType: TextInputType.number,
+          focusNode: gasLimitFocus,
+          onChanged: (value) {
+            final intValue = tryParseIntegerInput(
+              value,
+              minimum: widget.minGasLimit,
+              maximum: widget.maxGasLimit,
+            );
+            setState(() {
+              _gasLimitIsValid = intValue != null;
+              if (intValue != null) {
+                _gasLimitCache = intValue;
+              }
+            });
+            _notifyStateChanged();
+          },
+          style: fieldStyle,
+          desktopMed: Util.isDesktop,
+          contentPadding: fieldContentPadding,
+          errorText: _gasLimitIsValid
+              ? null
+              : "Enter a whole number from "
+                    "${widget.minGasLimit} to ${widget.maxGasLimit}",
         ),
-        if (!_gasLimitIsValid)
-          Padding(
-            padding: const EdgeInsets.only(top: 6, left: 12),
-            child: Text(
-              "Enter a whole number from "
-              "${widget.minGasLimit} to ${widget.maxGasLimit}",
-              style: STextStyles.errorSmall(context),
-            ),
-          ),
       ],
     );
   }
