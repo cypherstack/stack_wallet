@@ -170,10 +170,7 @@ dependencies:
   wakelock_plus: ^1.2.8
   intl: ^0.19.0
   html: ^0.15.6
-  devicelocale:
-    git:
-      url: https://github.com/cypherstack/flutter-devicelocale
-      ref: 73c4ed946816c5ec032d13a44f8f510e2ced9886
+  devicelocale: 0.9.1
   device_info_plus: ^12.4.0
   keyboard_dismisser: ^3.0.0
   another_flushbar: ^1.10.28
