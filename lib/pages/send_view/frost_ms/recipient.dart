@@ -1,4 +1,3 @@
-import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +6,7 @@ import '../../../providers/providers.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/address_utils.dart';
 import '../../../utilities/amount/amount.dart';
+import '../../../utilities/amount/amount_field_relocalization.dart';
 import '../../../utilities/amount/amount_formatter.dart';
 import '../../../utilities/amount/amount_input_formatter.dart';
 import '../../../utilities/amount/amount_unit.dart';
@@ -74,7 +74,7 @@ class _RecipientState extends ConsumerState<Recipient> {
     final address = addressController.text;
     final amount = ref
         .read(pAmountFormatter(widget.coin))
-        .tryParse(amountController.text);
+        .tryParseEditable(amountController.text);
 
     ref.read(pRecipient(widget.index).notifier).state = (
       address: address,
@@ -87,7 +87,7 @@ class _RecipientState extends ConsumerState<Recipient> {
     if (!_cryptoAmountChangeLock) {
       Amount? cryptoAmount = ref
           .read(pAmountFormatter(widget.coin))
-          .tryParse(amountController.text);
+          .tryParseEditable(amountController.text);
       if (cryptoAmount != null) {
         if (ref.read(pRecipient(widget.index))?.amount != null &&
             ref.read(pRecipient(widget.index))?.amount == cryptoAmount) {
@@ -142,12 +142,18 @@ class _RecipientState extends ConsumerState<Recipient> {
 
         // autofill amount field
         if (paymentData.amount != null) {
-          final Amount amount = Decimal.parse(
+          final amount = Amount.tryParseCanonicalAmount(
             paymentData.amount!,
-          ).toAmount(fractionDigits: widget.coin.fractionDigits);
-          amountController.text = ref
-              .read(pAmountFormatter(widget.coin))
-              .format(amount, withUnitName: false);
+            fractionDigits: widget.coin.fractionDigits,
+            truncateOverprecision: true,
+          );
+          if (amount != null) {
+            amountController.text = ref
+                .read(pAmountFormatter(widget.coin))
+                .formatEditable(amount);
+          } else {
+            amountController.clear();
+          }
         }
       } else {
         addressController.text = qrResult.rawContent!.trim();
@@ -193,7 +199,7 @@ class _RecipientState extends ConsumerState<Recipient> {
     if (amount != null) {
       amountController.text = ref
           .read(pAmountFormatter(widget.coin))
-          .format(amount, withUnitName: false);
+          .formatEditable(amount);
     }
     addressController.text = ref.read(pRecipient(widget.index))?.address ?? "";
 
@@ -228,6 +234,7 @@ class _RecipientState extends ConsumerState<Recipient> {
     final String locale = ref.watch(
       localeServiceChangeNotifierProvider.select((value) => value.locale),
     );
+    listenForAmountRelocalization(ref.listen, controllers: [amountController]);
 
     return RoundedContainer(
       color: Colors.transparent,

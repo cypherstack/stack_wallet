@@ -25,6 +25,7 @@ import '../../route_generator.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/address_utils.dart';
 import '../../utilities/amount/amount.dart';
+import '../../utilities/amount/amount_field_relocalization.dart';
 import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/amount/amount_input_formatter.dart';
 import '../../utilities/amount/amount_unit.dart';
@@ -115,10 +116,9 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
 
   Timer? _cryptoAmountChangedFeeUpdateTimer;
   Timer? _baseAmountChangedFeeUpdateTimer;
-  late Future<String> _calculateFeesFuture;
-  String cachedFees = "";
+  late Future<Amount> _calculateFeesFuture;
 
-  EthEIP1559Fee? ethFee;
+  final _ethFee = ValueNotifier<EthEIP1559Fee?>(null);
 
   void _onTokenSendViewPasteAddressFieldButtonPressed() async {
     final ClipboardData? data = await clipboard.getData(Clipboard.kTextPlain);
@@ -185,17 +185,21 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
 
         // autofill amount field
         if (paymentData.amount != null) {
-          final Amount amount = Decimal.parse(
+          final amount = Amount.tryParseCanonicalAmount(
             paymentData.amount!,
-          ).toAmount(fractionDigits: tokenContract.decimals);
-          cryptoAmountController.text = ref
-              .read(pAmountFormatter(coin))
-              .format(
-                amount,
-                withUnitName: false,
-                indicatePrecisionLoss: false,
-              );
-          _amountToSend = amount;
+            fractionDigits: tokenContract.decimals,
+            truncateOverprecision: true,
+          );
+          if (amount != null) {
+            cryptoAmountController.text = ref
+                .read(pAmountFormatter(coin))
+                .formatEditable(amount);
+            _amountToSend = amount;
+          } else {
+            cryptoAmountController.clear();
+            _amountToSend = null;
+            _cachedAmountToSend = null;
+          }
         }
 
         _updatePreviewButtonState(_address, _amountToSend);
@@ -273,10 +277,11 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = ref
           .read(pAmountFormatter(coin))
-          .format(_amountToSend!, withUnitName: false);
+          .formatEditable(_amountToSend!);
       _cryptoAmountChangeLock = false;
     } else {
       _amountToSend = Amount.zero;
+      _cachedAmountToSend = null;
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = "";
       _cryptoAmountChangeLock = false;
@@ -293,7 +298,10 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
     if (!_cryptoAmountChangeLock) {
       final cryptoAmount = ref
           .read(pAmountFormatter(coin))
-          .tryParse(cryptoAmountController.text, tokenContract: tokenContract);
+          .tryParseEditable(
+            cryptoAmountController.text,
+            tokenContract: tokenContract,
+          );
       if (cryptoAmount != null) {
         _amountToSend = cryptoAmount;
         if (_cachedAmountToSend != null &&
@@ -308,14 +316,17 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
             ?.value;
 
         if (price != null && price > Decimal.zero) {
-          baseAmountController.text = (_amountToSend!.decimal * price)
-              .toAmount(fractionDigits: 2)
-              .fiatString(
-                locale: ref.read(localeServiceChangeNotifierProvider).locale,
-              );
+          final fiatAmount = (_amountToSend!.decimal * price).toAmount(
+            fractionDigits: 2,
+          );
+          baseAmountController.text = Amount.formatEditableDecimal(
+            fiatAmount.decimal,
+            locale: ref.read(localeServiceChangeNotifierProvider).locale,
+          );
         }
       } else {
         _amountToSend = null;
+        _cachedAmountToSend = null;
         baseAmountController.text = "";
       }
 
@@ -368,7 +379,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
         (isValidAddress && amount != null && amount > Amount.zero);
   }
 
-  Future<String> calculateFees() async {
+  Future<Amount> calculateFees() async {
     final wallet = ref.read(pCurrentTokenWallet)!;
     final feeObject = await wallet.fees;
 
@@ -389,11 +400,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
     }
 
     final Amount fee = await wallet.estimateFeeFor(Amount.zero, feeRate);
-    cachedFees = ref
-        .read(pAmountFormatter(coin))
-        .format(fee, withUnitName: true, indicatePrecisionLoss: false);
-
-    return cachedFees;
+    return fee;
   }
 
   Future<void> _previewTransaction() async {
@@ -499,7 +506,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
           ],
           feeRateType: ref.read(feeRateTypeMobileStateProvider),
           note: noteController.text,
-          ethEIP1559Fee: ethFee,
+          ethEIP1559Fee: _ethFee.value,
         ),
       );
 
@@ -604,7 +611,11 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
 
     if (_data != null) {
       if (_data.amount != null) {
-        cryptoAmountController.text = _data.amount!.toString();
+        cryptoAmountController.text = ref
+            .read(pAmountFormatter(coin))
+            .formatEditable(
+              _data.amount!.toAmount(fractionDigits: tokenContract.decimals),
+            );
       }
       sendToController.text = _data.contactLabel;
       _address = _data.address.trim();
@@ -618,6 +629,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
   void dispose() {
     _cryptoAmountChangedFeeUpdateTimer?.cancel();
     _baseAmountChangedFeeUpdateTimer?.cancel();
+    _ethFee.dispose();
 
     cryptoAmountController.removeListener(onCryptoAmountChanged);
     baseAmountController.removeListener(_baseAmountChanged);
@@ -642,6 +654,17 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
     final String locale = ref.watch(
       localeServiceChangeNotifierProvider.select((value) => value.locale),
     );
+    listenForAmountRelocalization(
+      ref.listen,
+      controllers: [cryptoAmountController, baseAmountController],
+      onRelocalized: _cryptoAmountChanged,
+    );
+    // ethFee is checked in the ValueListenableBuilder around the preview
+    // button so fee keystrokes don't rebuild this whole view.
+    final previewEnabled = ref
+        .watch(previewTokenTxButtonStateProvider.state)
+        .state;
+    final needsEthFee = isCustomFee;
 
     Decimal? price;
     if (ref.watch(prefsChangeNotifierProvider.select((s) => s.externalCalls))) {
@@ -731,7 +754,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                       onTap: () {
                                         cryptoAmountController.text = ref
                                             .watch(pAmountFormatter(coin))
-                                            .format(
+                                            .formatEditable(
                                               ref
                                                   .read(
                                                     pTokenBalance((
@@ -741,9 +764,6 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                                     )),
                                                   )
                                                   .spendable,
-                                              tokenContract: tokenContract,
-                                              withUnitName: false,
-                                              indicatePrecisionLoss: true,
                                             );
                                       },
                                       child: Container(
@@ -1197,16 +1217,11 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                               walletId: walletId,
                                               isToken: true,
                                               amount:
-                                                  (Decimal.tryParse(
-                                                            cryptoAmountController
-                                                                .text,
-                                                          ) ??
-                                                          Decimal.zero)
-                                                      .toAmount(
-                                                        fractionDigits:
-                                                            tokenContract
-                                                                .decimals,
-                                                      ),
+                                                  _amountToSend ??
+                                                  Amount.zeroWith(
+                                                    fractionDigits:
+                                                        tokenContract.decimals,
+                                                  ),
                                               updateChosen: (feeRateType, fee) {
                                                 if (feeRateType.isCustom) {
                                                   return;
@@ -1215,9 +1230,12 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                                 setState(() {
                                                   if (fee != null) {
                                                     _calculateFeesFuture =
-                                                        Future(() => fee);
+                                                        Future.value(fee);
+                                                  } else {
+                                                    _calculateFeesFuture =
+                                                        calculateFees();
                                                   }
-                                                  ethFee = null;
+                                                  _ethFee.value = null;
                                                 });
                                               },
                                             ),
@@ -1248,10 +1266,20 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                                 if (snapshot.connectionState ==
                                                         ConnectionState.done &&
                                                     snapshot.hasData) {
+                                                  final formattedFee = ref
+                                                      .watch(
+                                                        pAmountFormatter(coin),
+                                                      )
+                                                      .format(
+                                                        snapshot.data!,
+                                                        withUnitName: true,
+                                                        indicatePrecisionLoss:
+                                                            false,
+                                                      );
                                                   return Text(
                                                     isCustomFee
                                                         ? ""
-                                                        : "~${snapshot.data!}",
+                                                        : "~$formattedFee",
                                                     style:
                                                         STextStyles.itemSubtitle(
                                                           context,
@@ -1298,35 +1326,39 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                               EthFeeForm(
                                 locale: locale,
                                 minGasLimit: kEthereumTokenMinGasLimit,
-                                stateChanged: (value) => ethFee = value,
+                                stateChanged: (value) {
+                                  _ethFee.value = value;
+                                },
                               ),
                             const Spacer(),
                             const SizedBox(height: 12),
-                            TextButton(
-                              onPressed:
-                                  ref
-                                      .watch(
-                                        previewTokenTxButtonStateProvider.state,
-                                      )
-                                      .state
-                                  ? _previewTransaction
-                                  : null,
-                              style:
-                                  ref
-                                      .watch(
-                                        previewTokenTxButtonStateProvider.state,
-                                      )
-                                      .state
-                                  ? Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .getPrimaryEnabledButtonStyle(context)
-                                  : Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .getPrimaryDisabledButtonStyle(context),
-                              child: Text(
-                                "Preview",
-                                style: STextStyles.button(context),
-                              ),
+                            ValueListenableBuilder<EthEIP1559Fee?>(
+                              valueListenable: _ethFee,
+                              builder: (context, ethFee, _) {
+                                final enabled =
+                                    previewEnabled &&
+                                    (!needsEthFee || ethFee != null);
+                                return TextButton(
+                                  onPressed: enabled
+                                      ? _previewTransaction
+                                      : null,
+                                  style: enabled
+                                      ? Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .getPrimaryEnabledButtonStyle(
+                                              context,
+                                            )
+                                      : Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .getPrimaryDisabledButtonStyle(
+                                              context,
+                                            ),
+                                  child: Text(
+                                    "Preview",
+                                    style: STextStyles.button(context),
+                                  ),
+                                );
+                              },
                             ),
                             const SizedBox(height: 16),
                           ],

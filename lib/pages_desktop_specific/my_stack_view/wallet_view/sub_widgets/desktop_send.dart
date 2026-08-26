@@ -38,6 +38,7 @@ import '../../../../services/spark_names_service.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/address_utils.dart';
 import '../../../../utilities/amount/amount.dart';
+import '../../../../utilities/amount/amount_field_relocalization.dart';
 import '../../../../utilities/amount/amount_formatter.dart';
 import '../../../../utilities/amount/amount_input_formatter.dart';
 import '../../../../utilities/amount/amount_unit.dart';
@@ -45,6 +46,7 @@ import '../../../../utilities/assets.dart';
 import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/enums/fee_rate_type_enum.dart';
+import '../../../../utilities/integer_input.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/prefs.dart';
 import '../../../../utilities/show_loading.dart';
@@ -141,8 +143,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
   bool get isPaynymSend => widget.accountLite != null;
 
+  ({bool isValid, int? value}) get _nonceInput =>
+      parseOptionalIntegerInput(nonceController.text, minimum: 0);
+
+  bool get _nonceIsValid => _nonceInput.isValid;
+
   int customFeeRate = 1;
-  EthEIP1559Fee? ethFee;
+  final _ethFee = ValueNotifier<EthEIP1559Fee?>(null);
 
   Future<void> scanWebcam() async {
     try {
@@ -424,6 +431,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   }
 
   Future<void> previewSend() async {
+    final nonceInput = _nonceInput;
+    if (!nonceInput.isValid) return;
+    final nonce = nonceInput.value;
+
     final wallet = ref.read(pWallets).getWallet(walletId);
 
     // Handle MWC slatepack transactions directly.
@@ -724,9 +735,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             memo: memo,
             feeRateType: feeRateType,
             satsPerVByte: satsPerVByte,
-            nonce: wallet.cryptoCurrency is Ethereum
-                ? int.tryParse(nonceController.text)
-                : null,
+            nonce: wallet.cryptoCurrency is Ethereum ? nonce : null,
             utxos:
                 (wallet is CoinControlInterface &&
                     wallet is! SalviumWallet &&
@@ -734,7 +743,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                     ref.read(pDesktopUseUTXOs).isNotEmpty)
                 ? ref.read(pDesktopUseUTXOs)
                 : null,
-            ethEIP1559Fee: ethFee,
+            ethEIP1559Fee: _ethFee.value,
           ),
         );
       }
@@ -857,8 +866,14 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     nonceController.text = "";
     _address = "";
     _addressToggleFlag = false;
+    _syncFeeAmount(null);
     _setOpReturnData(null);
     setState(() {});
+  }
+
+  void _syncFeeAmount(Amount? amount) {
+    ref.read(sendAmountProvider.notifier).state =
+        amount ?? Amount.zeroWith(fractionDigits: coin.fractionDigits);
   }
 
   void _setOpReturnData(String? data) {
@@ -872,7 +887,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     if (!_cryptoAmountChangeLock) {
       final cryptoAmount = ref
           .read(pAmountFormatter(coin))
-          .tryParse(cryptoAmountController.text);
+          .tryParseEditable(cryptoAmountController.text);
       final Amount? amount;
       if (cryptoAmount != null) {
         amount = cryptoAmount;
@@ -888,11 +903,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             ?.value;
 
         if (price != null && price > Decimal.zero) {
-          final String fiatAmountString = (amount.decimal * price)
-              .toAmount(fractionDigits: 2)
-              .fiatString(
-                locale: ref.read(localeServiceChangeNotifierProvider).locale,
-              );
+          final fiatAmount = (amount.decimal * price).toAmount(
+            fractionDigits: 2,
+          );
+          final fiatAmountString = Amount.formatEditableDecimal(
+            fiatAmount.decimal,
+            locale: ref.read(localeServiceChangeNotifierProvider).locale,
+          );
 
           baseAmountController.text = fiatAmountString;
         }
@@ -999,13 +1016,23 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
       // autofill amount field
       if (paymentData.amount != null) {
-        final amount = Decimal.parse(
+        final amount = Amount.tryParseCanonicalAmount(
           paymentData.amount!,
-        ).toAmount(fractionDigits: coin.fractionDigits);
-        cryptoAmountController.text = ref
-            .read(pAmountFormatter(coin))
-            .format(amount, withUnitName: false);
-        ref.read(pSendAmount.notifier).state = amount;
+          fractionDigits: coin.fractionDigits,
+          truncateOverprecision: true,
+        );
+        if (amount != null) {
+          cryptoAmountController.text = ref
+              .read(pAmountFormatter(coin))
+              .formatEditable(amount);
+          ref.read(pSendAmount.notifier).state = amount;
+          _syncFeeAmount(amount);
+        } else {
+          cryptoAmountController.clear();
+          _cachedAmountToSend = null;
+          ref.read(pSendAmount.notifier).state = null;
+          _syncFeeAmount(null);
+        }
       }
 
       // Trigger validation after pasting.
@@ -1149,13 +1176,14 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
       final amountString = ref
           .read(pAmountFormatter(coin))
-          .format(amount, withUnitName: false);
+          .formatEditable(amount);
 
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = amountString;
       _cryptoAmountChangeLock = false;
     } else {
       amount = Decimal.zero.toAmount(fractionDigits: coin.fractionDigits);
+      _cachedAmountToSend = null;
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = "";
       _cryptoAmountChangeLock = false;
@@ -1203,7 +1231,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
     cryptoAmountController.text = ref
         .read(pAmountFormatter(coin))
-        .format(amount, withUnitName: false);
+        .formatEditable(amount);
+    _syncFeeAmount(amount);
   }
 
   void _showDesktopCoinControl() async {
@@ -1251,9 +1280,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         _cryptoAmountChangeLock = true;
         cryptoAmountController.text = ref
             .read(pAmountFormatter(coin))
-            .format(
+            .formatEditable(
               _data.amount!.toAmount(fractionDigits: coin.fractionDigits),
-              withUnitName: false,
             );
         _cryptoAmountChangeLock = false;
       }
@@ -1264,6 +1292,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (hasAmount) {
           _cryptoAmountChanged();
+          _syncFeeAmount(ref.read(pSendAmount));
         }
         _setValidAddressProviders(_address);
       });
@@ -1304,6 +1333,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   @override
   void dispose() {
     cryptoAmountController.removeListener(onCryptoAmountChanged);
+    _ethFee.dispose();
 
     sendToController.dispose();
     cryptoAmountController.dispose();
@@ -1325,6 +1355,16 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     final String locale = ref.watch(
       localeServiceChangeNotifierProvider.select((value) => value.locale),
     );
+    listenForAmountRelocalization(
+      ref.listen,
+      controllers: [cryptoAmountController, baseAmountController],
+      onRelocalized: _cryptoAmountChanged,
+    );
+    final isCustomFee = ref.watch(feeRateTypeDesktopStateProvider).isCustom;
+    // ethFee is checked in the ValueListenableBuilder around the preview
+    // button so fee keystrokes don't rebuild this whole view.
+    final previewEnabled = ref.watch(pPreviewTxButtonEnabled(coin));
+    final needsEthFee = coin is Ethereum && isCustomFee;
 
     // add listener for epic cash to strip http:// and https:// prefixes if the address also ocntains an @ symbol (indicating an epicbox address)
     if (coin is Epiccash) {
@@ -2134,9 +2174,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             onCustomFeeSliderChanged: (value) => customFeeRate = value,
             onCustomFeeOptionChanged: () {
               customFeeRate = 1;
-              ethFee = null;
+              _ethFee.value = null;
             },
-            onCustomEip1559FeeOptionChanged: (value) => ethFee = value,
+            onCustomEip1559FeeOptionChanged: (value) {
+              _ethFee.value = value;
+            },
           ),
         if (coin is Ethereum) const SizedBox(height: 20),
         if (coin is Ethereum)
@@ -2163,8 +2205,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               readOnly: false,
               autocorrect: false,
               enableSuggestions: false,
-              keyboardType: const TextInputType.numberWithOptions(),
+              keyboardType: TextInputType.number,
               focusNode: _nonceFocusNode,
+              onChanged: (_) => setState(() {}),
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
                 color: Theme.of(
                   context,
@@ -2187,16 +2230,31 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   ),
             ),
           ),
+        if (coin is Ethereum && !_nonceIsValid)
+          Padding(
+            padding: const EdgeInsets.only(top: 6, left: 12),
+            child: Text(
+              "Enter a non-negative whole number",
+              style: STextStyles.errorSmall(context),
+            ),
+          ),
         const SizedBox(height: 36),
-        PrimaryButton(
-          buttonHeight: ButtonHeight.l,
-          label: ref.watch(pIsSlatepack(widget.walletId))
-              ? "Create slatepack"
-              : "Preview send",
-          enabled: ref.watch(pPreviewTxButtonEnabled(coin)),
-          onPressed: ref.watch(pPreviewTxButtonEnabled(coin))
-              ? previewSend
-              : null,
+        ValueListenableBuilder<EthEIP1559Fee?>(
+          valueListenable: _ethFee,
+          builder: (context, ethFee, _) {
+            final enabled =
+                previewEnabled &&
+                _nonceIsValid &&
+                (!needsEthFee || ethFee != null);
+            return PrimaryButton(
+              buttonHeight: ButtonHeight.l,
+              label: ref.watch(pIsSlatepack(widget.walletId))
+                  ? "Create slatepack"
+                  : "Preview send",
+              enabled: enabled,
+              onPressed: enabled ? previewSend : null,
+            );
+          },
         ),
       ],
     );
