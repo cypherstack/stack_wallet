@@ -78,8 +78,4 @@ class AmountFormatter {
       tokenContract: tokenContract,
     );
   }
-
-  // Compatibility shim for callers migrated in later commits.
-  Amount? tryParse(String string, {Contract? tokenContract}) =>
-      tryParseEditable(string, tokenContract: tokenContract);
 }

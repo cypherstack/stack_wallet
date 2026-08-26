@@ -207,10 +207,6 @@ extension AmountUnitExt on AmountUnit {
     required String locale,
     required CryptoCurrency coin,
     Contract? tokenContract,
-    // Compatibility-only parameters for callers migrated later in the
-    // series. Editable parsing is strict regardless of these values.
-    bool strict = false,
-    bool overrideWithDecimalPlacesFromString = false,
   }) {
     if (value.contains(_rejectedInputChars)) {
       return null;
