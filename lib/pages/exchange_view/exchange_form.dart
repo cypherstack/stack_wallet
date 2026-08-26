@@ -37,7 +37,8 @@ import '../../services/exchange/nanswap/nanswap_exchange.dart';
 import '../../services/exchange/trocador/trocador_exchange.dart';
 import '../../services/exchange/wizard_swap/wizard_swap_exchange.dart';
 import '../../themes/stack_colors.dart';
-import '../../utilities/amount/amount_unit.dart';
+import '../../utilities/amount/amount.dart';
+import '../../utilities/amount/amount_field_relocalization.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/enums/exchange_rate_type_enum.dart';
@@ -105,6 +106,10 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   // todo: check and adjust this value?
   static const _valueCheckInterval = Duration(milliseconds: 1500);
 
+  String? _pendingSendAmountText;
+  String? _pendingReceiveAmountText;
+  late String _amountInputLocale;
+
   Future<T> showUpdatingExchangeRate<T>({
     required Future<T> whileFuture,
   }) async {
@@ -140,9 +145,13 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   void sendFieldOnChanged(String value) {
     if (_sendFocusNode.hasFocus) {
       _sendFieldOnChangedTimer?.cancel();
+      _pendingSendAmountText = value;
 
       _sendFieldOnChangedTimer = Timer(_valueCheckInterval, () async {
-        final newFromAmount = _localizedStringToNum(value);
+        final pendingText = _pendingSendAmountText ?? value;
+        _pendingSendAmountText = null;
+        _sendFieldOnChangedTimer = null;
+        final newFromAmount = _localizedStringToNum(pendingText);
 
         ref.read(efSendAmountProvider.notifier).state = newFromAmount;
         if (!_swapLock && !ref.read(efReversedProvider)) {
@@ -155,9 +164,13 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   Timer? _receiveFieldOnChangedTimer;
   void receiveFieldOnChanged(String value) async {
     _receiveFieldOnChangedTimer?.cancel();
+    _pendingReceiveAmountText = value;
 
     _receiveFieldOnChangedTimer = Timer(_valueCheckInterval, () async {
-      final newToAmount = _localizedStringToNum(value);
+      final pendingText = _pendingReceiveAmountText ?? value;
+      _pendingReceiveAmountText = null;
+      _receiveFieldOnChangedTimer = null;
+      final newToAmount = _localizedStringToNum(pendingText);
 
       ref.read(efReceiveAmountProvider.notifier).state = newToAmount;
       if (!_swapLock && ref.read(efReversedProvider)) {
@@ -167,22 +180,37 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   }
 
   bool _flushPendingAmountChange() {
-    bool flushed = false;
-    if (_sendFieldOnChangedTimer?.isActive ?? false) {
+    final flushSend = _sendFieldOnChangedTimer?.isActive ?? false;
+    final flushReceive = _receiveFieldOnChangedTimer?.isActive ?? false;
+    String? sendText;
+    String? receiveText;
+
+    // Capture both edits before publishing either provider state. A provider
+    // refresh may rewrite either controller once the first state is visible.
+    if (flushSend) {
       _sendFieldOnChangedTimer!.cancel();
-      ref.read(efSendAmountProvider.notifier).state = _localizedStringToNum(
-        _sendController.text,
-      );
-      flushed = true;
+      _sendFieldOnChangedTimer = null;
+      sendText = _pendingSendAmountText ?? _sendController.text;
+      _pendingSendAmountText = null;
     }
-    if (_receiveFieldOnChangedTimer?.isActive ?? false) {
+    if (flushReceive) {
       _receiveFieldOnChangedTimer!.cancel();
-      ref.read(efReceiveAmountProvider.notifier).state = _localizedStringToNum(
-        _receiveController.text,
-      );
-      flushed = true;
+      _receiveFieldOnChangedTimer = null;
+      receiveText = _pendingReceiveAmountText ?? _receiveController.text;
+      _pendingReceiveAmountText = null;
     }
-    return flushed;
+
+    if (flushSend) {
+      ref.read(efSendAmountProvider.notifier).state = _localizedStringToNum(
+        sendText,
+      );
+    }
+    if (flushReceive) {
+      ref.read(efReceiveAmountProvider.notifier).state = _localizedStringToNum(
+        receiveText,
+      );
+    }
+    return flushSend || flushReceive;
   }
 
   Decimal? _localizedStringToNum(String? value) {
@@ -190,17 +218,33 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       return null;
     }
 
-    return AmountUnit.normal
-        .tryParse(
-          value,
-          locale: ref.read(localeServiceChangeNotifierProvider).locale,
-          coin: Bitcoin(
-            CryptoCurrencyNetwork.main,
-          ), // dummy value (not used due to override)
-          strict: true,
-          overrideWithDecimalPlacesFromString: true,
-        )
-        ?.decimal;
+    return Amount.tryParseEditableDecimal(
+      value,
+      locale: ref.read(localeServiceChangeNotifierProvider).locale,
+    );
+  }
+
+  void _relocalizePendingAmountText() {
+    final nextLocale = ref.read(localeServiceChangeNotifierProvider).locale;
+    if (nextLocale == _amountInputLocale) {
+      return;
+    }
+
+    if (_pendingSendAmountText != null) {
+      _pendingSendAmountText = Amount.relocalizeEditableDecimal(
+        _pendingSendAmountText!,
+        sourceLocale: _amountInputLocale,
+        targetLocale: nextLocale,
+      );
+    }
+    if (_pendingReceiveAmountText != null) {
+      _pendingReceiveAmountText = Amount.relocalizeEditableDecimal(
+        _pendingReceiveAmountText!,
+        sourceLocale: _amountInputLocale,
+        targetLocale: nextLocale,
+      );
+    }
+    _amountInputLocale = nextLocale;
   }
 
   void selectSendCurrency() async {
@@ -254,6 +298,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   }
 
   Future<void> _swap() async {
+    _flushPendingAmountChange();
     _swapLock = true;
     _sendFocusNode.unfocus();
     _receiveFocusNode.unfocus();
@@ -791,6 +836,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   void initState() {
     _sendController = TextEditingController();
     _receiveController = TextEditingController();
+    _amountInputLocale = ref.read(localeServiceChangeNotifierProvider).locale;
 
     walletId = widget.walletId;
     coin = widget.coin;
@@ -873,6 +919,20 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
 
     final isEstimated = rateType == ExchangeRateType.estimated;
 
+    // A pending debounce captured text in the old locale. Relocalize both the
+    // controllers and the stored user edits before parsing under the new
+    // locale, then refresh the quote for the newly committed amount.
+    listenForAmountRelocalization(
+      ref.listen,
+      controllers: [_sendController, _receiveController],
+      onRelocalized: () {
+        _relocalizePendingAmountText();
+        if (_flushPendingAmountChange()) {
+          unawaited(update());
+        }
+      },
+    );
+
     ref.listen(efReceiveAmountStringProvider, (previous, String next) {
       if (!_receiveFocusNode.hasFocus) {
         _receiveController.text = isEstimated && next.isEmpty ? "-" : next;
@@ -915,6 +975,10 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     });
 
     ref.listen(efCurrencyPairProvider, (previous, next) {
+      // Commit pending user text before its debounce can apply after the pair
+      // has changed. The controller may already have been rewritten from the
+      // previous provider value while focus moved between the fields.
+      _flushPendingAmountChange();
       if (!_swapLock) {
         update();
       }

@@ -10,21 +10,18 @@
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../models/exchange/active_pair.dart';
 import '../../models/exchange/response_objects/estimate.dart';
 import '../../models/exchange/response_objects/range.dart';
-import '../global/locale_provider.dart';
 import '../../services/exchange/exchange.dart';
 import '../../services/exchange/exchange_response.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_unit.dart';
-
 import '../../utilities/enums/exchange_rate_type_enum.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
-import 'package:tuple/tuple.dart';
-
-final efEstimatesListProvider = StateProvider.family<
-    Tuple2<ExchangeResponse<List<Estimate>>, Range?>?,
+import '../global/locale_providerge?>?,
     String>((ref, exchangeName) => null);
 
 final efRateTypeProvider =
@@ -52,17 +49,8 @@ final efSendAmountStringProvider = StateProvider<String>((ref) {
     final decimal = ref.watch(efSendAmountProvider);
     String string = "";
     if (decimal != null) {
-      final amount = Amount.fromDecimal(decimal, fractionDigits: decimal.scale);
       final locale = ref.watch(localeServiceChangeNotifierProvider).locale;
-      string = AmountUnit.normal.displayAmount(
-        amount: amount,
-        locale: locale,
-        coin: Nano(
-          CryptoCurrencyNetwork.main,
-        ), // use nano just to ensure decimal.scale < Coin.value.decimals
-        withUnitName: false,
-        maxDecimalPlaces: decimal.scale,
-      );
+      string = Amount.formatEditableDecimal(decimal, locale: locale);
     }
 
     return string;
@@ -78,17 +66,8 @@ final efReceiveAmountStringProvider = StateProvider<String>((ref) {
     final decimal = ref.watch(efReceiveAmountProvider);
     String string = "";
     if (decimal != null) {
-      final amount = Amount.fromDecimal(decimal, fractionDigits: decimal.scale);
       final locale = ref.watch(localeServiceChangeNotifierProvider).locale;
-      string = AmountUnit.normal.displayAmount(
-        amount: amount,
-        locale: locale,
-        coin: Nano(
-          CryptoCurrencyNetwork.main,
-        ), // use nano just to ensure decimal.scale < Coin.value.decimals
-        withUnitName: false,
-        maxDecimalPlaces: decimal.scale,
-      );
+      string = Amount.formatEditableDecimal(decimal, locale: locale);
     }
 
     return string;
