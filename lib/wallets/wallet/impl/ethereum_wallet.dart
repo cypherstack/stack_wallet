@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
 import 'package:ethereum_addresses/ethereum_addresses.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart';
 import 'package:isar_community/isar.dart';
 import 'package:wallet/wallet.dart' as eth_wallet;
@@ -29,6 +30,40 @@ import '../intermediate/bip39_wallet.dart';
 import '../wallet_mixin_interfaces/private_key_interface.dart';
 
 // Eth can not use tor with web3dart
+
+@visibleForTesting
+({BigInt maxFeePerGas, BigInt maxPriorityFeePerGas}) resolveEip1559FeeCaps({
+  required BigInt baseFee,
+  required BigInt priorityFeePerGas,
+  BigInt? customMaxFeePerGas,
+}) {
+  if (customMaxFeePerGas != null && priorityFeePerGas.isNegative) {
+    throw Exception("Max priority fee per gas cannot be negative.");
+  }
+  final maxPriorityFeePerGas = priorityFeePerGas.isNegative
+      ? BigInt.zero
+      : priorityFeePerGas;
+
+  // Presets get 2x base-fee headroom since it can rise 12.5% per block. The
+  // EIP-1559 max fee is the total per-gas cap, so it also includes priority.
+  final maxFeePerGas =
+      customMaxFeePerGas ?? baseFee * BigInt.two + maxPriorityFeePerGas;
+
+  if (maxFeePerGas <= BigInt.zero) {
+    throw Exception("Max fee per gas must be greater than zero.");
+  }
+  if (baseFee > maxFeePerGas) {
+    throw Exception("Max fee per gas is below the current network base fee.");
+  }
+  if (maxPriorityFeePerGas > maxFeePerGas) {
+    throw Exception("Max priority fee per gas exceeds max fee per gas.");
+  }
+
+  return (
+    maxFeePerGas: maxFeePerGas,
+    maxPriorityFeePerGas: maxPriorityFeePerGas,
+  );
+}
 
 class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
   EthereumWallet(CryptoCurrencyNetwork network) : super(Ethereum(network));
@@ -440,9 +475,8 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
     ({
       int nonce,
       BigInt chainId,
-      BigInt baseFee,
-      BigInt maxBaseFee,
-      BigInt priorityFee,
+      BigInt maxFeePerGas,
+      BigInt maxPriorityFeePerGas,
     })
   >
   internalSharedPrepareSend({
@@ -469,31 +503,25 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
     final feeObject = await fees;
     final BigInt baseFee = feeObject.suggestBaseFee;
 
-    // Presets get 2x headroom since base fee can rise 12.5% per block.
-    final BigInt maxBaseFee = feeRateType == .custom
-        ? txData.ethEIP1559Fee!.maxBaseFeeWei
-        : baseFee * BigInt.two;
-
     final BigInt rawPriority = switch (feeRateType) {
       .fast => feeObject.fast - baseFee,
       .average => feeObject.medium - baseFee,
       .slow => feeObject.slow - baseFee,
-      .custom => txData.ethEIP1559Fee!.priorityFeeWei,
+      .custom => txData.ethEIP1559Fee!.maxPriorityFeePerGasWei,
     };
-    final BigInt priorityFee = rawPriority.isNegative
-        ? BigInt.zero
-        : rawPriority;
-
-    if (baseFee > maxBaseFee) {
-      throw Exception("Max base fee is below the current network base fee.");
-    }
+    final feeCaps = resolveEip1559FeeCaps(
+      baseFee: baseFee,
+      priorityFeePerGas: rawPriority,
+      customMaxFeePerGas: feeRateType == .custom
+          ? txData.ethEIP1559Fee!.maxFeePerGasWei
+          : null,
+    );
 
     return (
       nonce: nonce,
       chainId: chainId,
-      baseFee: baseFee,
-      maxBaseFee: maxBaseFee,
-      priorityFee: priorityFee,
+      maxFeePerGas: feeCaps.maxFeePerGas,
+      maxPriorityFeePerGas: feeCaps.maxPriorityFeePerGas,
     );
   }
 
@@ -515,24 +543,26 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
       throw Exception("Insufficient balance");
     }
 
+    final gasLimit = txData.ethEIP1559Fee?.gasLimit ?? kEthereumMinGasLimit;
     final tx = web3.Transaction(
       to: eth_wallet.EthereumAddress.fromHex(address),
-      maxGas: txData.ethEIP1559Fee?.gasLimit ?? kEthereumMinGasLimit,
+      maxGas: gasLimit,
       value: eth_wallet.EtherAmount.inWei(amount.raw),
       nonce: prep.nonce,
       maxFeePerGas: eth_wallet.EtherAmount.fromBigInt(
         eth_wallet.EtherUnit.wei,
-        prep.maxBaseFee,
+        prep.maxFeePerGas,
       ),
       maxPriorityFeePerGas: eth_wallet.EtherAmount.fromBigInt(
         eth_wallet.EtherUnit.wei,
-        prep.priorityFee,
+        prep.maxPriorityFeePerGas,
       ),
     );
 
-    final feeEstimate = await estimateFeeFor(
-      Amount.zero,
-      prep.maxBaseFee + prep.priorityFee,
+    final feeEstimate = estimateEthFee(
+      prep.maxFeePerGas,
+      gasLimit,
+      cryptoCurrency.fractionDigits,
     );
 
     return txData.copyWith(

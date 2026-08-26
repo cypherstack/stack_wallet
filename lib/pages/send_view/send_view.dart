@@ -2733,6 +2733,7 @@ class _SendViewState extends ConsumerState<SendView> {
                               const SizedBox(height: 12),
                             if (isCustomFee && isEth)
                               EthFeeForm(
+                                locale: locale,
                                 minGasLimit: kEthereumMinGasLimit,
                                 stateChanged: (fee) => ethFee = fee,
                               ),

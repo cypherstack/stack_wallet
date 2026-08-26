@@ -1296,6 +1296,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                             if (isCustomFee) const SizedBox(height: 12),
                             if (isCustomFee)
                               EthFeeForm(
+                                locale: locale,
                                 minGasLimit: kEthereumTokenMinGasLimit,
                                 stateChanged: (value) => ethFee = value,
                               ),

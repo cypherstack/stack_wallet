@@ -240,25 +240,28 @@ class EthTokenWallet extends Wallet {
       throw Exception("Insufficient balance");
     }
 
+    final gasLimit =
+        txData.ethEIP1559Fee?.gasLimit ?? kEthereumTokenMinGasLimit;
     final tx = web3dart.Transaction.callContract(
       contract: _deployedContract,
       function: _sendFunction,
       parameters: [eth_wallet.EthereumAddress.fromHex(address), amount.raw],
-      maxGas: txData.ethEIP1559Fee?.gasLimit ?? kEthereumTokenMinGasLimit,
+      maxGas: gasLimit,
       nonce: prep.nonce,
       maxFeePerGas: eth_wallet.EtherAmount.fromBigInt(
         eth_wallet.EtherUnit.wei,
-        prep.maxBaseFee,
+        prep.maxFeePerGas,
       ),
       maxPriorityFeePerGas: eth_wallet.EtherAmount.fromBigInt(
         eth_wallet.EtherUnit.wei,
-        prep.priorityFee,
+        prep.maxPriorityFeePerGas,
       ),
     );
 
-    final feeEstimate = await estimateFeeFor(
-      Amount.zero,
-      prep.maxBaseFee + prep.priorityFee,
+    final feeEstimate = ethWallet.estimateEthFee(
+      prep.maxFeePerGas,
+      gasLimit,
+      cryptoCurrency.fractionDigits,
     );
     return txData.copyWith(
       fee: feeEstimate,

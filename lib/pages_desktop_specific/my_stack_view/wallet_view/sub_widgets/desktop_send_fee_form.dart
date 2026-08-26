@@ -41,7 +41,7 @@ class DesktopSendFeeForm extends ConsumerStatefulWidget {
   final bool isToken;
   final void Function(int) onCustomFeeSliderChanged;
   final VoidCallback onCustomFeeOptionChanged;
-  final void Function(EthEIP1559Fee)? onCustomEip1559FeeOptionChanged;
+  final void Function(EthEIP1559Fee?)? onCustomEip1559FeeOptionChanged;
 
   @override
   ConsumerState<DesktopSendFeeForm> createState() => _DesktopSendFeeFormState();
@@ -97,6 +97,9 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
   @override
   Widget build(BuildContext context) {
     final isCustomFee = ref.watch(feeRateTypeDesktopStateProvider).isCustom;
+    final locale = ref.watch(
+      localeServiceChangeNotifierProvider.select((value) => value.locale),
+    );
     final canEditFees =
         isEth ||
         cryptoCurrency is Solana ||
@@ -333,6 +336,7 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
           ),
         if (isCustomFee && isEth)
           EthFeeForm(
+            locale: locale,
             minGasLimit: widget.isToken
                 ? kEthereumTokenMinGasLimit
                 : kEthereumMinGasLimit,
