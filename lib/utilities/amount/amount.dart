@@ -32,67 +32,6 @@ class Amount {
         fractionDigits: fractionDigits,
       );
 
-  static String normalizeLocalizedNumber(
-    String value, {
-    required String locale,
-  }) {
-    final symbols = Util.getSymbolsFor(locale: locale);
-    final groupSeparator = symbols?.GROUP_SEP ?? ",";
-    final decimalSeparator = symbols?.DECIMAL_SEP ?? ".";
-
-    if (groupSeparator == "." &&
-        decimalSeparator != "." &&
-        !value.contains(decimalSeparator)) {
-      return RegExp(r'^[1-9]\d{0,2}(\.\d{3})+$').hasMatch(value)
-          ? value.replaceAll(groupSeparator, "")
-          : value;
-    }
-
-    return value
-        .replaceAll(groupSeparator, "")
-        .replaceFirst(decimalSeparator, ".");
-  }
-
-  static Decimal? tryParseLocalizedNumber(
-    String value, {
-    required String locale,
-  }) {
-    if (value.isEmpty || value.contains(RegExp(r'[+\-\x09-\x0D ]'))) {
-      return null;
-    }
-
-    final symbols = Util.getSymbolsFor(locale: locale);
-    final groupSeparator = symbols?.GROUP_SEP ?? ",";
-    final decimalSeparator = symbols?.DECIMAL_SEP ?? ".";
-    final escapedGroup = RegExp.escape(groupSeparator);
-    final escapedDecimal = RegExp.escape(decimalSeparator);
-    final integerPattern =
-        r'(?:\d+|[1-9]\d{0,2}(?:' + escapedGroup + r'\d{3})+)';
-    final localizedPattern = RegExp(
-      '^(?:$integerPattern(?:$escapedDecimal\\d+)?|$escapedDecimal\\d+)\$',
-    );
-
-    if (groupSeparator == "." &&
-        decimalSeparator != "." &&
-        !value.contains(decimalSeparator) &&
-        RegExp(r'^[1-9]\d{0,2}\.\d{3}$').hasMatch(value)) {
-      return null;
-    }
-
-    if (localizedPattern.hasMatch(value)) {
-      return Decimal.tryParse(normalizeLocalizedNumber(value, locale: locale));
-    }
-
-    if (groupSeparator == "." &&
-        decimalSeparator != "." &&
-        !value.contains(decimalSeparator) &&
-        RegExp(r'^(?:\d+(?:\.\d+)?|\.\d+)$').hasMatch(value)) {
-      return Decimal.tryParse(value);
-    }
-
-    return null;
-  }
-
   static Decimal? tryParseEditableDecimal(
     String value, {
     required String locale,
