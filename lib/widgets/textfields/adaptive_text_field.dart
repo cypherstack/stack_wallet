@@ -192,7 +192,24 @@ class _AdaptiveTextFieldState extends State<AdaptiveTextField> {
                               if (data?.text != null &&
                                   data!.text!.isNotEmpty) {
                                 final content = data.text!.trim();
-                                controller.text = content;
+                                // Setting controller.text directly skips
+                                // inputFormatters, so run them here as a
+                                // paste into the (empty) field would.
+                                TextEditingValue value = TextEditingValue(
+                                  text: content,
+                                  selection: TextSelection.collapsed(
+                                    offset: content.length,
+                                  ),
+                                );
+                                for (final formatter
+                                    in widget.inputFormatters ??
+                                        const <TextInputFormatter>[]) {
+                                  value = formatter.formatEditUpdate(
+                                    TextEditingValue.empty,
+                                    value,
+                                  );
+                                }
+                                controller.text = value.text;
                               }
                             } else {
                               controller.text = "";
