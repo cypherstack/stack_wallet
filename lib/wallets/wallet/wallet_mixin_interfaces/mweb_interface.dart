@@ -442,12 +442,17 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
 
   Future<TxData> processMwebTransaction(TxData txData) async {
     final client = await _client;
+    final vBytesPerKilobyte = BigInt.from(1000);
+    final customSatsPerVByte = txData.satsPerVByte;
+    final feeRatePerKB = customSatsPerVByte != null
+        ? BigInt.from(customSatsPerVByte) * vBytesPerKilobyte
+        : txData.feeRateAmount!;
     final response = await client.create(
       CreateRequest(
         rawTx: txData.raw!.toUint8ListFromHex,
         scanSecret: await _scanSecret,
         spendSecret: await _spendSecret,
-        feeRatePerKb: Int64(txData.feeRateAmount!.toInt()),
+        feeRatePerKb: Int64(feeRatePerKB.toInt()),
         dryRun: false,
       ),
     );
@@ -968,8 +973,11 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     final preOutputSum = outputs.fold(BigInt.zero, (p, e) => p + e.amount.raw);
     final fee = sumOfUtxosValue - preOutputSum;
 
-    final feeRate =
-        txData.satsPerVByte ?? (txData.feeRateAmount!.toInt() / 1000).ceil();
+    final vBytesPerKilobyte = BigInt.from(1000);
+    final customSatsPerVByte = txData.satsPerVByte;
+    final feeRatePerKB = customSatsPerVByte != null
+        ? BigInt.from(customSatsPerVByte) * vBytesPerKilobyte
+        : txData.feeRateAmount!;
 
     final client = await _client;
 
@@ -978,7 +986,7 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
         rawTx: txData.raw!.toUint8ListFromHex,
         scanSecret: await _scanSecret,
         spendSecret: await _spendSecret,
-        feeRatePerKb: Int64(feeRate * 1000),
+        feeRatePerKb: Int64(feeRatePerKB.toInt()),
         dryRun: true,
       ),
     );
@@ -1010,7 +1018,9 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     BigInt feeIncrease = posOutputSum - expectedPegin;
 
     if (expectedPegin > BigInt.zero) {
-      feeIncrease += BigInt.from(feeRate * 41);
+      feeIncrease +=
+          (feeRatePerKB * BigInt.from(41) + vBytesPerKilobyte - BigInt.one) ~/
+          vBytesPerKilobyte;
     }
 
     return Amount(

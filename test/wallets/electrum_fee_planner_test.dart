@@ -68,6 +68,20 @@ void main() {
     expect(plan.result.fee, BigInt.from(192));
   });
 
+  test('custom sats/vByte overrides the per-kilobyte rate', () async {
+    final plan = await _plan(
+      mode: ElectrumFeeMode.sweep,
+      inputTotal: 10000,
+      recipientAmount: 10000,
+      dustLimit: 546,
+      vSizes: [191],
+      satsPerVByte: 2,
+      feeRatePerKB: 50000,
+    );
+
+    expect(plan.result.fee, BigInt.from(382));
+  });
+
   test('does not let a minimum fee underpay the measured vsize', () async {
     final plan = await _plan(
       mode: ElectrumFeeMode.sweep,
