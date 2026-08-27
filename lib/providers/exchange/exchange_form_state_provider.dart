@@ -21,17 +21,22 @@ import '../../utilities/amount/amount.dart';
 import '../../utilities/enums/exchange_rate_type_enum.dart';
 import '../global/locale_provider.dart';
 
-final efEstimatesListProvider = StateProvider.family<
-    Tuple2<ExchangeResponse<List<Estimate>>, Range?>?,
-    String>((ref, exchangeName) => null);
+final efEstimatesListProvider =
+    StateProvider.family<
+      Tuple2<ExchangeResponse<List<Estimate>>, Range?>?,
+      String
+    >((ref, exchangeName) => null);
 
-final efRateTypeProvider =
-    StateProvider<ExchangeRateType>((ref) => ExchangeRateType.estimated);
+final efRateTypeProvider = StateProvider<ExchangeRateType>(
+  (ref) => ExchangeRateType.estimated,
+);
 
-final efExchangeProvider =
-    StateProvider<Exchange>((ref) => Exchange.defaultExchange);
-final efExchangeProviderNameProvider =
-    StateProvider<String>((ref) => Exchange.defaultExchange.name);
+final efExchangeProvider = StateProvider<Exchange>(
+  (ref) => Exchange.defaultExchange,
+);
+final efExchangeProviderNameProvider = StateProvider<String>(
+  (ref) => Exchange.defaultExchange.name,
+);
 
 final currentCombinedExchangeIdProvider = Provider<String>((ref) {
   return "${ref.watch(efExchangeProvider).name}"
@@ -92,10 +97,10 @@ final efEstimateProvider = StateProvider<Estimate?>((ref) {
       ?.item1
       .value
       ?.where((e) {
-    return e.exchangeProvider == provider &&
-        e.fixedRate == fixedRate &&
-        e.reversed == reversed;
-  });
+        return e.exchangeProvider == provider &&
+            e.fixedRate == fixedRate &&
+            e.reversed == reversed;
+      });
 
   Estimate? result;
 

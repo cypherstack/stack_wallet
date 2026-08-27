@@ -121,19 +121,17 @@ class _DesktopCoinControlViewState
               const SizedBox(width: 32),
               AppBarIconButton(
                 size: 32,
-                color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultBG,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.textFieldDefaultBG,
                 shadows: const [],
                 icon: SvgPicture.asset(
                   Assets.svg.arrowLeft,
                   width: 18,
                   height: 18,
-                  color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()!.topNavIconPrimary,
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.topNavIconPrimary,
                 ),
                 onPressed: Navigator.of(context).pop,
               ),
@@ -142,8 +140,9 @@ class _DesktopCoinControlViewState
                 Assets.svg.coinControl.gamePad,
                 width: 32,
                 height: 32,
-                color:
-                    Theme.of(context).extension<StackColors>()!.textSubtitle1,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.textSubtitle1,
               ),
               const SizedBox(width: 12),
               Text("Coin control", style: STextStyles.desktopH3(context)),
@@ -174,54 +173,52 @@ class _DesktopCoinControlViewState
                           _searchString = value;
                         });
                       },
-                      style: STextStyles.desktopTextExtraSmall(
-                        context,
-                      ).copyWith(
-                        color:
-                            Theme.of(
+                      style: STextStyles.desktopTextExtraSmall(context)
+                          .copyWith(
+                            color: Theme.of(
                               context,
                             ).extension<StackColors>()!.textFieldActiveText,
-                        height: 1.8,
-                      ),
-                      decoration: standardInputDecoration(
-                        "Search...",
-                        searchFieldFocusNode,
-                        context,
-                        desktopMed: true,
-                      ).copyWith(
-                        prefixIcon: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 18,
+                            height: 1.8,
                           ),
-                          child: SvgPicture.asset(
-                            Assets.svg.search,
-                            width: 20,
-                            height: 20,
-                          ),
-                        ),
-                        suffixIcon:
-                            _searchController.text.isNotEmpty
+                      decoration:
+                          standardInputDecoration(
+                            "Search...",
+                            searchFieldFocusNode,
+                            context,
+                            desktopMed: true,
+                          ).copyWith(
+                            prefixIcon: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 18,
+                              ),
+                              child: SvgPicture.asset(
+                                Assets.svg.search,
+                                width: 20,
+                                height: 20,
+                              ),
+                            ),
+                            suffixIcon: _searchController.text.isNotEmpty
                                 ? Padding(
-                                  padding: const EdgeInsets.only(right: 0),
-                                  child: UnconstrainedBox(
-                                    child: Row(
-                                      children: [
-                                        TextFieldIconButton(
-                                          child: const XIcon(),
-                                          onTap: () async {
-                                            setState(() {
-                                              _searchController.text = "";
-                                              _searchString = "";
-                                            });
-                                          },
-                                        ),
-                                      ],
+                                    padding: const EdgeInsets.only(right: 0),
+                                    child: UnconstrainedBox(
+                                      child: Row(
+                                        children: [
+                                          TextFieldIconButton(
+                                            child: const XIcon(),
+                                            onTap: () async {
+                                              setState(() {
+                                                _searchController.text = "";
+                                                _searchString = "";
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                )
+                                  )
                                 : null,
-                      ),
+                          ),
                     ),
                   ),
                 ),
@@ -245,10 +242,9 @@ class _DesktopCoinControlViewState
                     key: Key("${_selectedUTXOs.length}"),
                     selectedUTXOs: _selectedUTXOs,
                   ),
-                  crossFadeState:
-                      _selectedUTXOs.isEmpty
-                          ? CrossFadeState.showFirst
-                          : CrossFadeState.showSecond,
+                  crossFadeState: _selectedUTXOs.isEmpty
+                      ? CrossFadeState.showFirst
+                      : CrossFadeState.showSecond,
                   duration: const Duration(milliseconds: 200),
                 ),
                 const SizedBox(width: 24),
@@ -273,10 +269,9 @@ class _DesktopCoinControlViewState
                     label: "Clear selection (${_selectedUTXOs.length})",
                     onPressed: () => setState(() => _selectedUTXOs.clear()),
                   ),
-                  crossFadeState:
-                      _selectedUTXOs.isEmpty
-                          ? CrossFadeState.showFirst
-                          : CrossFadeState.showSecond,
+                  crossFadeState: _selectedUTXOs.isEmpty
+                      ? CrossFadeState.showFirst
+                      : CrossFadeState.showSecond,
                   duration: const Duration(milliseconds: 200),
                 ),
               ],
@@ -285,140 +280,132 @@ class _DesktopCoinControlViewState
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
-              child:
-                  _list != null
-                      ? ListView.separated(
-                        itemCount: _list!.length,
-                        separatorBuilder:
-                            (context, _) => const SizedBox(height: 10),
-                        itemBuilder: (context, index) {
-                          final utxo =
-                              MainDB.instance.isar.utxos
-                                  .where()
-                                  .idEqualTo(_list![index])
-                                  .findFirstSync()!;
-                          final data = UtxoRowData(utxo.id, false);
-                          data.selected = _selectedUTXOs.contains(data);
+              child: _list != null
+                  ? ListView.separated(
+                      itemCount: _list!.length,
+                      separatorBuilder: (context, _) =>
+                          const SizedBox(height: 10),
+                      itemBuilder: (context, index) {
+                        final utxo = MainDB.instance.isar.utxos
+                            .where()
+                            .idEqualTo(_list![index])
+                            .findFirstSync()!;
+                        final data = UtxoRowData(utxo.id, false);
+                        data.selected = _selectedUTXOs.contains(data);
 
-                          return UtxoRow(
-                            key: Key(
-                              "${utxo.walletId}_${utxo.id}_${utxo.isBlocked}",
-                            ),
-                            data: data,
-                            walletId: widget.walletId,
-                            onSelectionChanged: (value) {
-                              setState(() {
-                                if (data.selected) {
-                                  _selectedUTXOs.add(value);
-                                } else {
-                                  _selectedUTXOs.remove(value);
-                                }
-                              });
-                            },
-                          );
-                        },
-                      )
-                      : ListView.separated(
-                        itemCount: _map!.entries.length,
-                        separatorBuilder:
-                            (context, _) => const SizedBox(height: 10),
-                        itemBuilder: (context, index) {
-                          final entry = _map!.entries.elementAt(index);
-                          final _controller = RotateIconController();
-
-                          return Expandable2(
-                            border:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.backgroundAppBar,
-                            background:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.popupBG,
-                            animationDurationMultiplier:
-                                0.2 * entry.value.length,
-                            onExpandWillChange: (state) {
-                              if (state == Expandable2State.expanded) {
-                                _controller.forward?.call();
+                        return UtxoRow(
+                          key: Key(
+                            "${utxo.walletId}_${utxo.id}_${utxo.isBlocked}",
+                          ),
+                          data: data,
+                          walletId: widget.walletId,
+                          onSelectionChanged: (value) {
+                            setState(() {
+                              if (data.selected) {
+                                _selectedUTXOs.add(value);
                               } else {
-                                _controller.reverse?.call();
+                                _selectedUTXOs.remove(value);
                               }
-                            },
-                            header: RoundedContainer(
-                              padding: const EdgeInsets.all(20),
-                              color: Colors.transparent,
-                              child: Row(
-                                children: [
-                                  SvgPicture.file(
-                                    File(ref.watch(coinIconProvider(coin))),
-                                    width: 24,
-                                    height: 24,
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      entry.key,
-                                      style: STextStyles.w600_14(context),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                      "${entry.value.length} "
-                                      "output${entry.value.length > 1 ? "s" : ""}",
-                                      style:
-                                          STextStyles.desktopTextExtraExtraSmall(
-                                            context,
-                                          ),
-                                    ),
-                                  ),
-                                  RotateIcon(
-                                    animationDurationMultiplier:
-                                        0.2 * entry.value.length,
-                                    icon: SvgPicture.asset(
-                                      Assets.svg.chevronDown,
-                                      width: 14,
-                                      color:
-                                          Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .textSubtitle1,
-                                    ),
-                                    curve: Curves.easeInOut,
-                                    controller: _controller,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            children:
-                                entry.value.map((id) {
-                                  final utxo =
-                                      MainDB.instance.isar.utxos
-                                          .where()
-                                          .idEqualTo(id)
-                                          .findFirstSync()!;
-                                  final data = UtxoRowData(utxo.id, false);
-                                  data.selected = _selectedUTXOs.contains(data);
+                            });
+                          },
+                        );
+                      },
+                    )
+                  : ListView.separated(
+                      itemCount: _map!.entries.length,
+                      separatorBuilder: (context, _) =>
+                          const SizedBox(height: 10),
+                      itemBuilder: (context, index) {
+                        final entry = _map!.entries.elementAt(index);
+                        final _controller = RotateIconController();
 
-                                  return UtxoRow(
-                                    key: Key(
-                                      "${utxo.walletId}_${utxo.id}_${utxo.isBlocked}",
-                                    ),
-                                    data: data,
-                                    walletId: widget.walletId,
-                                    raiseOnSelected: false,
-                                    onSelectionChanged: (value) {
-                                      setState(() {
-                                        if (data.selected) {
-                                          _selectedUTXOs.add(value);
-                                        } else {
-                                          _selectedUTXOs.remove(value);
-                                        }
-                                      });
-                                    },
-                                  );
-                                }).toList(),
-                          );
-                        },
-                      ),
+                        return Expandable2(
+                          border: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.backgroundAppBar,
+                          background: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.popupBG,
+                          animationDurationMultiplier: 0.2 * entry.value.length,
+                          onExpandWillChange: (state) {
+                            if (state == Expandable2State.expanded) {
+                              _controller.forward?.call();
+                            } else {
+                              _controller.reverse?.call();
+                            }
+                          },
+                          header: RoundedContainer(
+                            padding: const EdgeInsets.all(20),
+                            color: Colors.transparent,
+                            child: Row(
+                              children: [
+                                SvgPicture.file(
+                                  File(ref.watch(coinIconProvider(coin))),
+                                  width: 24,
+                                  height: 24,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    entry.key,
+                                    style: STextStyles.w600_14(context),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    "${entry.value.length} "
+                                    "output${entry.value.length > 1 ? "s" : ""}",
+                                    style:
+                                        STextStyles.desktopTextExtraExtraSmall(
+                                          context,
+                                        ),
+                                  ),
+                                ),
+                                RotateIcon(
+                                  animationDurationMultiplier:
+                                      0.2 * entry.value.length,
+                                  icon: SvgPicture.asset(
+                                    Assets.svg.chevronDown,
+                                    width: 14,
+                                    color: Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.textSubtitle1,
+                                  ),
+                                  curve: Curves.easeInOut,
+                                  controller: _controller,
+                                ),
+                              ],
+                            ),
+                          ),
+                          children: entry.value.map((id) {
+                            final utxo = MainDB.instance.isar.utxos
+                                .where()
+                                .idEqualTo(id)
+                                .findFirstSync()!;
+                            final data = UtxoRowData(utxo.id, false);
+                            data.selected = _selectedUTXOs.contains(data);
+
+                            return UtxoRow(
+                              key: Key(
+                                "${utxo.walletId}_${utxo.id}_${utxo.isBlocked}",
+                              ),
+                              data: data,
+                              walletId: widget.walletId,
+                              raiseOnSelected: false,
+                              onSelectionChanged: (value) {
+                                setState(() {
+                                  if (data.selected) {
+                                    _selectedUTXOs.add(value);
+                                  } else {
+                                    _selectedUTXOs.remove(value);
+                                  }
+                                });
+                              },
+                            );
+                          }).toList(),
+                        );
+                      },
+                    ),
             ),
           ),
         ],
