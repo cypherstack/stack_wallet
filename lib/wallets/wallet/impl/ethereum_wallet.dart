@@ -29,6 +29,62 @@ import '../../models/tx_data.dart';
 import '../intermediate/bip39_wallet.dart';
 import '../wallet_mixin_interfaces/private_key_interface.dart';
 
+@visibleForTesting
+Future<List<TransactionV2>> findReplacedPendingEthereumTransactions({
+  required String walletId,
+  required Iterable<TransactionV2> transactions,
+  required Future<int> Function() getLatestConfirmedNonce,
+  required Future<web3.TransactionInformation?> Function(String txid)
+  getTransactionByHash,
+  void Function(Object error, StackTrace stackTrace)? onNonceLookupError,
+  void Function(TransactionV2 transaction, Object error, StackTrace stackTrace)?
+  onTransactionLookupError,
+}) async {
+  final candidates = transactions
+      .where(
+        (transaction) =>
+            transaction.walletId == walletId &&
+            transaction.height == null &&
+            transaction.blockHash == null &&
+            transaction.nonce != null &&
+            (transaction.type == TransactionType.outgoing ||
+                transaction.type == TransactionType.sentToSelf) &&
+            (transaction.subType == TransactionSubType.none ||
+                transaction.subType == TransactionSubType.ethToken),
+      )
+      .toList(growable: false);
+
+  if (candidates.isEmpty) {
+    return const [];
+  }
+
+  final int latestConfirmedNonce;
+  try {
+    latestConfirmedNonce = await getLatestConfirmedNonce();
+  } catch (e, s) {
+    onNonceLookupError?.call(e, s);
+    return const [];
+  }
+
+  final replacedTransactions = <TransactionV2>[];
+  for (final transaction in candidates) {
+    if (transaction.nonce! >= latestConfirmedNonce) {
+      continue;
+    }
+
+    try {
+      final originalTransaction = await getTransactionByHash(transaction.txid);
+      if (originalTransaction?.blockHash == null) {
+        replacedTransactions.add(transaction);
+      }
+    } catch (e, s) {
+      onTransactionLookupError?.call(transaction, e, s);
+    }
+  }
+
+  return replacedTransactions;
+}
+
 // Eth can not use tor with web3dart
 
 @visibleForTesting
@@ -339,6 +395,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
 
     if (response.value!.isEmpty) {
       // no new transactions found
+      await deleteReplacedPendingTransactions();
       return;
     }
 
@@ -457,6 +514,55 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
       txns.add(txn);
     }
     await mainDB.updateOrPutTransactionV2s(txns);
+    await deleteReplacedPendingTransactions();
+  }
+
+  Future<void> deleteReplacedPendingTransactions() async {
+    final pendingTransactions = await mainDB.isar.transactionV2s
+        .where()
+        .walletIdEqualTo(walletId)
+        .filter()
+        .heightIsNull()
+        .nonceIsNotNull()
+        .findAll();
+
+    web3.Web3Client? client;
+    web3.Web3Client getClient() => client ??= getEthClient();
+    final replacedTransactions = await findReplacedPendingEthereumTransactions(
+      walletId: walletId,
+      transactions: pendingTransactions,
+      getLatestConfirmedNonce: () async => getClient().getTransactionCount(
+        await getMyWeb3Address(),
+        atBlock: const web3.BlockNum.current(),
+      ),
+      getTransactionByHash: (txid) => getClient().getTransactionByHash(txid),
+      onNonceLookupError: (error, stackTrace) {
+        Logging.instance.w(
+          "$runtimeType failed to get the latest confirmed nonce",
+          error: error,
+          stackTrace: stackTrace,
+        );
+      },
+      onTransactionLookupError: (transaction, error, stackTrace) {
+        Logging.instance.w(
+          "$runtimeType failed to look up pending transaction "
+          "${transaction.txid}",
+          error: error,
+          stackTrace: stackTrace,
+        );
+      },
+    );
+    final replacedTransactionIds = replacedTransactions
+        .map((transaction) => transaction.id)
+        .toList(growable: false);
+
+    if (replacedTransactionIds.isEmpty) {
+      return;
+    }
+
+    await mainDB.isar.writeTxn(() async {
+      await mainDB.isar.transactionV2s.deleteAll(replacedTransactionIds);
+    });
   }
 
   @override

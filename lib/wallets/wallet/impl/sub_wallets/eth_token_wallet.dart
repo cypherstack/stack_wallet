@@ -388,6 +388,7 @@ class EthTokenWallet extends Wallet {
 
       // no need to continue if no transactions found
       if (response.value!.isEmpty) {
+        await ethWallet.deleteReplacedPendingTransactions();
         return;
       }
 
@@ -509,6 +510,7 @@ class EthTokenWallet extends Wallet {
         }
       }
       await mainDB.updateOrPutTransactionV2s(txns);
+      await ethWallet.deleteReplacedPendingTransactions();
     } catch (e, s) {
       Logging.instance.w(
         "$runtimeType wallet failed to update transactions: ",
