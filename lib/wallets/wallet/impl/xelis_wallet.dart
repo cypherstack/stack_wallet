@@ -22,6 +22,7 @@ import '../../../wl_gen/interfaces/lib_xelis_interface.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/lib_xelis_wallet.dart';
+import '../intermediate/xelis_event_batcher.dart';
 import '../wallet.dart';
 
 class XelisWallet extends LibXelisWallet {
@@ -200,7 +201,7 @@ class XelisWallet extends LibXelisWallet {
   @override
   Future<void> recover({required bool isRescan}) async {
     if (isRescan) {
-      await refreshMutex.protect(() async {
+      await runXelisRescan(() async {
         await mainDB.deleteWalletBlockchainData(walletId);
         await updateTransactions(isRescan: true, topoheight: 0);
       });
@@ -229,10 +230,8 @@ class XelisWallet extends LibXelisWallet {
   Future<bool> pingCheck() async {
     try {
       await libXelis.getDaemonInfo(wallet!);
-      await handleOnline();
       return true;
     } catch (_) {
-      await handleOffline();
       return false;
     }
   }
@@ -240,7 +239,10 @@ class XelisWallet extends LibXelisWallet {
   final _balanceUpdateMutex = Mutex();
 
   @override
-  Future<void> updateBalance({int? newBalance}) async {
+  Future<void> updateBalance({
+    int? newBalance,
+    bool rethrowErrors = false,
+  }) async {
     await _balanceUpdateMutex.protect(() async {
       try {
         if (await libXelis.hasXelisBalance(wallet!)) {
@@ -273,6 +275,9 @@ class XelisWallet extends LibXelisWallet {
           error: e,
           stackTrace: s,
         );
+        if (rethrowErrors) {
+          rethrow;
+        }
       }
     });
   }
@@ -288,7 +293,10 @@ class XelisWallet extends LibXelisWallet {
   }
 
   @override
-  Future<void> updateChainHeight({int? topoheight}) async {
+  Future<void> updateChainHeight({
+    int? topoheight,
+    bool rethrowErrors = false,
+  }) async {
     try {
       final height = topoheight ?? await _fetchChainHeight();
 
@@ -302,17 +310,16 @@ class XelisWallet extends LibXelisWallet {
         error: e,
         stackTrace: s,
       );
+      if (rethrowErrors) {
+        rethrow;
+      }
     }
   }
 
   @override
   Future<void> updateNode() async {
     try {
-      final bool online = await libXelis.isOnline(wallet!);
-      if (online == true) {
-        await libXelis.offlineMode(wallet!);
-      }
-      await super.connect();
+      await connect(disconnectFirst: true);
     } catch (e, s) {
       Logging.instance.e(
         "Error rethrown from $runtimeType updateNode()",
@@ -897,55 +904,52 @@ class XelisWallet extends LibXelisWallet {
   }
 
   @override
-  Future<void> handleNewTopoHeight(int height) async {
-    await info.updateCachedChainHeight(newHeight: height, isar: mainDB.isar);
-  }
+  Future<void> handleNewTopoHeight(int _) async =>
+      eventBatcher.queueTopoheightChanged();
 
   @override
-  Future<void> handleNewTransaction(TransactionEntryWrapper tx) async {
-    try {
-      final txList = [tx];
-      final newTxIds = await updateTransactions(
-        isRescan: false,
-        objTransactions: txList,
-      );
+  Future<void> handleNewTransaction(TransactionEntryWrapper tx) async =>
+      eventBatcher.queueTransaction(tx);
 
-      await updateBalance();
-
-      // Logging.instance.log(
-      //   "New transaction processed: ${newTxIds.first}",
-      //   level: LogLevel.Info,
-      // );
-    } catch (e, s) {
-      Logging.instance.e(
-        "Error in $runtimeType handleNewTransaction($tx)",
-        error: e,
-        stackTrace: s,
-      );
+  @override
+  Future<void> handleBalanceChanged(BalanceChanged event) async {
+    if (event.asset == libXelis.xelisAsset) {
+      eventBatcher.queueBalanceChanged();
     }
   }
 
   @override
-  Future<void> handleBalanceChanged(BalanceChanged event) async {
+  Future<void> applyXelisEventBatch(
+    XelisEventBatch<TransactionEntryWrapper> batch,
+  ) async {
     try {
-      final asset = event.asset;
-      if (asset == libXelis.xelisAsset) {
-        await updateBalance(newBalance: event.balance);
+      if (batch.topoheightChanged) {
+        await updateChainHeight(rethrowErrors: true);
       }
 
-      // TODO: Update asset balances if needed
+      if (batch.transactions.isNotEmpty) {
+        await updateTransactions(
+          isRescan: false,
+          objTransactions: batch.transactions,
+        );
+      }
+
+      if (batch.balanceChanged || batch.transactions.isNotEmpty) {
+        await updateBalance(rethrowErrors: true);
+      }
     } catch (e, s) {
       Logging.instance.e(
-        "Error in $runtimeType handleBalanceChanged($event)",
+        "Error in $runtimeType applyXelisEventBatch()",
         error: e,
         stackTrace: s,
       );
+      unawaited(refresh());
     }
   }
 
   @override
   Future<void> handleRescan(int startTopoheight) async {
-    await refreshMutex.protect(() async {
+    await runXelisRescan(() async {
       await mainDB.deleteWalletBlockchainData(walletId);
       await updateTransactions(isRescan: true, topoheight: startTopoheight);
       await updateBalance();
@@ -953,19 +957,7 @@ class XelisWallet extends LibXelisWallet {
   }
 
   @override
-  Future<void> handleOnline() async {
-    await updateChainHeight();
-    await updateBalance();
-    await updateTransactions();
-    GlobalEventBus.instance.fire(
-      WalletSyncStatusChangedEvent(
-        WalletSyncStatus.synced,
-        walletId,
-        info.coin,
-      ),
-    );
-    unawaited(refresh());
-  }
+  Future<void> handleOnline() => runXelisSyncEvent();
 
   @override
   Future<void> handleOffline() async {
@@ -979,18 +971,7 @@ class XelisWallet extends LibXelisWallet {
   }
 
   @override
-  Future<void> handleHistorySynced(int topoheight) async {
-    await updateChainHeight();
-    await updateBalance();
-    await updateTransactions();
-    GlobalEventBus.instance.fire(
-      WalletSyncStatusChangedEvent(
-        WalletSyncStatus.synced,
-        walletId,
-        info.coin,
-      ),
-    );
-  }
+  Future<void> handleHistorySynced(int _) => runXelisSyncEvent();
 
   @override
   Future<void> handleNewAsset(NewAsset asset) async {
@@ -1000,30 +981,59 @@ class XelisWallet extends LibXelisWallet {
   }
 
   @override
-  Future<void> refresh({int? topoheight}) async {
-    await refreshMutex.protect(() async {
-      try {
-        final bool online = await libXelis.isOnline(wallet!);
-        if (online == true) {
-          await updateChainHeight(topoheight: topoheight);
-          await updateBalance();
-          await updateTransactions();
-        } else {
+  Future<void> performXelisRefresh() async {
+    try {
+      final bool online = await libXelis.isOnline(wallet!);
+      if (online == true) {
+        if (!doNotFireRefreshEvents) {
           GlobalEventBus.instance.fire(
             WalletSyncStatusChangedEvent(
-              WalletSyncStatus.unableToSync,
+              WalletSyncStatus.syncing,
               walletId,
               info.coin,
             ),
           );
         }
-      } catch (e, s) {
-        Logging.instance.e(
-          "Error in $runtimeType refresh()",
-          error: e,
-          stackTrace: s,
+
+        await updateChainHeight(rethrowErrors: true);
+        await updateBalance(rethrowErrors: true);
+        await updateTransactions();
+
+        if (!doNotFireRefreshEvents) {
+          GlobalEventBus.instance.fire(
+            WalletSyncStatusChangedEvent(
+              WalletSyncStatus.synced,
+              walletId,
+              info.coin,
+            ),
+          );
+        }
+        ensurePeriodicRefreshTimer();
+      } else if (!doNotFireRefreshEvents) {
+        GlobalEventBus.instance.fire(
+          WalletSyncStatusChangedEvent(
+            WalletSyncStatus.unableToSync,
+            walletId,
+            info.coin,
+          ),
         );
       }
-    });
+    } catch (e, s) {
+      if (!doNotFireRefreshEvents) {
+        GlobalEventBus.instance.fire(
+          WalletSyncStatusChangedEvent(
+            WalletSyncStatus.unableToSync,
+            walletId,
+            info.coin,
+          ),
+        );
+      }
+      Logging.instance.e(
+        "Error in $runtimeType performXelisRefresh()",
+        error: e,
+        stackTrace: s,
+      );
+      rethrow;
+    }
   }
 }
