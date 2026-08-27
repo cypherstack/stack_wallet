@@ -800,12 +800,11 @@ packages:
   devicelocale:
     dependency: "direct main"
     description:
-      path: "."
-      ref: ba7d7d87a3772e972adb1358a5ec9a111b514fce
-      resolved-ref: ba7d7d87a3772e972adb1358a5ec9a111b514fce
-      url: "https://github.com/cypherstack/flutter-devicelocale"
-    source: git
-    version: "0.8.1"
+      name: devicelocale
+      sha256: f38dd07265ddd5ede22253d99c7beabb09e0b5b3d36f1f785086b8ca28c27673
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.9.1"
   digest_auth:
     dependency: "direct main"
     description:
