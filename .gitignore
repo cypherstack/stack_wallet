@@ -33,6 +33,7 @@ Microsoft.Windows*
 .pub/
 /build/
 android/app/.cxx
+android/build/
 
 # Web related
 lib/generated_plugin_registrant.dart

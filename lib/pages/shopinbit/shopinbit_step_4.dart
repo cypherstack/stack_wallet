@@ -1,6 +1,6 @@
 import "package:flutter/material.dart";
 
-import "../../models/shopinbit/shopinbit_order_model.dart";
+import "../../models/shopinbit/shopinbit_enums.dart";
 import "../../themes/stack_colors.dart";
 import "../../utilities/text_styles.dart";
 import "../../utilities/util.dart";
@@ -12,15 +12,14 @@ import "../../widgets/dialogs/nested_navigator_dialog/nested_navigator_dialog.da
 import "../../widgets/dialogs/s_dialog.dart";
 import "step_4_components/shopinbit_car_research_form.dart";
 import "step_4_components/shopinbit_concierge_form.dart";
-import "step_4_components/shopinbit_generic_form.dart";
 import "step_4_components/shopinbit_travel_form.dart";
 
 class ShopInBitStep4 extends StatelessWidget {
-  const ShopInBitStep4({super.key, required this.model});
+  const ShopInBitStep4({super.key, required this.category});
 
   static const String routeName = "/shopInBitStep4";
 
-  final ShopInBitOrderModel model;
+  final ShopInBitCategory category;
 
   @override
   Widget build(BuildContext context) {
@@ -30,11 +29,10 @@ class ShopInBitStep4 extends StatelessWidget {
       child: ConditionalParent(
         condition: !Util.isDesktop,
         builder: (child) => _ShopInBitStep4MobileShell(content: child),
-        child: switch (model.category) {
-          ShopInBitCategory.concierge => ShopInBitConciergeForm(model: model),
-          ShopInBitCategory.car => ShopInBitCarResearchForm(model: model),
-          ShopInBitCategory.travel => ShopInBitTravelForm(model: model),
-          null => ShopInBitGenericForm(model: model),
+        child: switch (category) {
+          ShopInBitCategory.concierge => const ShopInBitConciergeForm(),
+          ShopInBitCategory.car => const ShopInBitCarResearchForm(),
+          ShopInBitCategory.travel => const ShopInBitTravelForm(),
         },
       ),
     );

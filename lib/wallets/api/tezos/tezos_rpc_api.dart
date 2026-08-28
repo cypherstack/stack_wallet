@@ -46,7 +46,7 @@ abstract final class TezosRpcAPI {
   }) async {
     try {
       final api =
-          "${nodeInfo.host}:${nodeInfo.port}/chains/main/blocks/head/header/shell";
+          "${nodeInfo.host}:${nodeInfo.port}/chains/main/blocks/head/header";
 
       final response = await _client.get(
         url: Uri.parse(api),

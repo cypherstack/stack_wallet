@@ -86,6 +86,9 @@ class Trade {
   @HiveField(21)
   final String exchangeName;
 
+  @HiveField(22)
+  final String? other;
+
   const Trade({
     required this.uuid,
     required this.tradeId,
@@ -109,6 +112,7 @@ class Trade {
     required this.refundExtraId,
     required this.status,
     required this.exchangeName,
+    this.other,
   });
 
   Trade copyWith({
@@ -133,6 +137,7 @@ class Trade {
     String? refundExtraId,
     String? status,
     String? exchangeName,
+    String? other,
   }) {
     return Trade(
       uuid: uuid,
@@ -157,6 +162,7 @@ class Trade {
       refundExtraId: refundExtraId ?? this.refundExtraId,
       status: status ?? this.status,
       exchangeName: exchangeName ?? this.exchangeName,
+      other: other ?? this.other,
     );
   }
 
@@ -184,6 +190,7 @@ class Trade {
       "refundExtraId": refundExtraId,
       "status": status,
       "exchangeName": exchangeName,
+      if (other != null) "other": other!,
     };
   }
 
@@ -211,6 +218,7 @@ class Trade {
       refundExtraId: map["refundExtraId"] as String,
       status: map["status"] as String,
       exchangeName: map["exchangeName"] as String,
+      other: map["other"] as String?,
     );
   }
 

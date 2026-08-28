@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../models/shopinbit/shopinbit_order_model.dart';
+import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/text_styles.dart';
@@ -15,19 +16,19 @@ import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/dialogs/nested_navigator_dialog/nested_navigator_dialog.dart';
 import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/rounded_white_container.dart';
-import '../more_view/services_view.dart';
+import '../home_view/home_view.dart';
 import 'shopinbit_ticket_detail.dart';
 
-class ShopInBitOrderCreated extends StatelessWidget {
-  const ShopInBitOrderCreated({super.key, required this.model});
+class ShopInBitOrderCreated extends ConsumerWidget {
+  const ShopInBitOrderCreated({super.key, required this.apiTicketId});
 
   static const String routeName = "/shopInBitOrderCreated";
 
-  final ShopInBitOrderModel model;
+  final int apiTicketId;
 
   static void _popToServices(BuildContext context) {
     Navigator.of(context).popUntil((route) {
-      if (route.settings.name == ServicesView.routeName) {
+      if (route.settings.name == HomeView.routeName) {
         return true;
       }
       if (route.isFirst) {
@@ -38,8 +39,9 @@ class ShopInBitOrderCreated extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDesktop = Util.isDesktop;
+    final ticket = ref.watch(pShopInBitTicket(apiTicketId)).asData?.value;
 
     return ConditionalParent(
       condition: isDesktop,
@@ -166,7 +168,7 @@ class ShopInBitOrderCreated extends StatelessWidget {
                             : STextStyles.itemSubtitle12(context),
                       ),
                       Text(
-                        model.ticketId ?? "N/A",
+                        ticket?.ticketNumber ?? "N/A",
                         style: isDesktop
                             ? STextStyles.desktopTextSmall(context)
                             : STextStyles.titleBold12(context),
@@ -216,7 +218,7 @@ class ShopInBitOrderCreated extends StatelessWidget {
                   onPressed: () {
                     Navigator.of(context).pushNamed(
                       ShopInBitTicketDetail.routeName,
-                      arguments: model,
+                      arguments: apiTicketId,
                     );
                   },
                 ),

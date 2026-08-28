@@ -1,4 +1,27 @@
+import 'package:decimal/decimal.dart';
+
 import '../../../../utilities/logger.dart';
+
+/// Splits a raw `tracking_link` value into individual tracking URLs.
+///
+/// Multiple links may be joined with any of `,`, `|`, or `;` (and a single
+/// value may mix them). Returns an empty list for null/empty input. Each URL is
+/// trimmed and empty segments are discarded.
+List<String> splitTrackingLinks(String? raw) {
+  if (raw == null) return const [];
+  return raw
+      .split(RegExp(r'[,|;]'))
+      .map((s) {
+        final url = s.trim();
+        if (url.startsWith("http://") || url.startsWith("https://")) {
+          return url;
+        } else {
+          return "https://$url";
+        }
+      })
+      .where((s) => s.isNotEmpty)
+      .toList();
+}
 
 enum TicketState {
   newTicket('NEW'),
@@ -14,10 +37,6 @@ enum TicketState {
   closed('CLOSED'),
   closedCancelled('CLOSED/CANCELLED'),
   merged('MERGED'),
-  // Sentinel for any state string the API returns that this client does not
-  // recognise (e.g. the API added a new state, or renamed an existing one).
-  // Callers must handle this explicitly: treat as "do not trust", do not
-  // overwrite previously known good state with it.
   unknown('UNKNOWN');
 
   final String value;
@@ -33,20 +52,40 @@ enum TicketState {
     );
     return TicketState.unknown;
   }
+
+  bool get isTerminal => switch (this) {
+    .closed ||
+    .closedCancelled ||
+    .merged ||
+    .pendingClose ||
+    .refunded => true,
+    _ => false,
+  };
 }
 
 class TicketRef {
   final int id;
   final String number;
 
-  TicketRef({required this.id, required this.number});
+  /// [kind] is nullable for backwards compat only
+  final String? kind;
+
+  /// True only when [kind] explicitly marks this as a receipt ticket.
+  /// False does not rule it out, since legacy tickets have a null [kind].
+  bool get isKnownReceipt => kind == "receipt";
+
+  TicketRef({required this.id, required this.number, this.kind});
 
   factory TicketRef.fromJson(Map<String, dynamic> json) {
-    return TicketRef(id: _toInt(json['id']), number: json['number'].toString());
+    return TicketRef(
+      id: _toInt(json['id']),
+      number: json['number'] as String,
+      kind: json['ticket_kind'] as String?,
+    );
   }
 
   Map<String, dynamic> toMap() {
-    return {"id": id, "number": number};
+    return {"id": id, "number": number, "kind": kind};
   }
 
   @override
@@ -56,9 +95,6 @@ class TicketRef {
 class TicketStatus {
   final int ticketId;
   final TicketState state;
-  // The raw 'state' string returned by the API. Preserved verbatim so that
-  // unknown / renamed states can be re-derived later via a client update,
-  // rather than being lost to TicketState.unknown.
   final String stateRaw;
   final DateTime updatedAt;
   final DateTime? lastAgentMessageAt;
@@ -75,6 +111,14 @@ class TicketStatus {
     this.trackingLink,
   });
 
+  /// The tracking link(s) split into individual URLs.
+  ///
+  /// A ticket may carry zero, one, or several tracking URLs. When there are
+  /// several the API joins them into [trackingLink] using any of `,`, `|`, or
+  /// `;` as the separator (mixed separators occur in practice), so we split on
+  /// all three.
+  List<String> get trackingLinks => splitTrackingLinks(trackingLink);
+
   factory TicketStatus.fromJson(Map<String, dynamic> json) {
     final rawState = json['state'] as String;
     return TicketStatus(
@@ -86,7 +130,9 @@ class TicketStatus {
           ? DateTime.parse(json['last_agent_message_at'] as String)
           : null,
       paymentInvoiceStatus: json['payment_invoice_status'] as String?,
-      trackingLink: json['tracking_link'] as String?,
+      // Production returns "" (not null) when there is no tracking link yet;
+      // normalize so callers can treat it like any other absent value.
+      trackingLink: _emptyToNull(json['tracking_link']),
     );
   }
 
@@ -108,13 +154,14 @@ class TicketStatus {
 class TicketFull {
   final int id;
   final String number;
-  final String productName;
-  final String customerPrice;
-  final String partnerPrice;
-  final String partnerCommission;
-  final String netPurchasePrice;
-  final String netShippingCosts;
-  final int vatRate;
+  final String? productName;
+  final String? customerPrice;
+  final String? partnerPrice;
+  final String? partnerCommission;
+  final String? netPurchasePrice;
+  final String? netShippingCosts;
+  final String deliveryCountry;
+  final Decimal? vatRate;
 
   TicketFull({
     required this.id,
@@ -125,20 +172,23 @@ class TicketFull {
     required this.partnerCommission,
     required this.netPurchasePrice,
     required this.netShippingCosts,
+    required this.deliveryCountry,
     required this.vatRate,
   });
 
   factory TicketFull.fromJson(Map<String, dynamic> json) {
     return TicketFull(
       id: _toInt(json['id']),
-      number: json['number'].toString(),
-      productName: (json['product_name'] ?? '').toString(),
-      customerPrice: (json['customer_price'] ?? '').toString(),
-      partnerPrice: (json['partner_price'] ?? '').toString(),
-      partnerCommission: (json['partner_commission'] ?? '').toString(),
-      netPurchasePrice: (json['net_purchase_price'] ?? '').toString(),
-      netShippingCosts: (json['net_shipping_costs'] ?? '').toString(),
-      vatRate: _toInt(json['vat_rate']),
+      number: json['number'] as String,
+      productName: json['product_name'] as String?,
+      customerPrice: json['customer_price'] as String?,
+      partnerPrice: json['partner_price'] as String?,
+      partnerCommission: json['partner_commission'] as String?,
+      netPurchasePrice: json['net_purchase_price'] as String?,
+      netShippingCosts: json['net_shipping_costs'] as String?,
+      deliveryCountry:
+          (json['delivery_country'] ?? json['deliverycountry']) as String,
+      vatRate: Decimal.tryParse(json['vat_rate'].toString()),
     );
   }
 
@@ -152,6 +202,7 @@ class TicketFull {
       "partner_commission": partnerCommission,
       "net_purchase_price": netPurchasePrice,
       "net_shipping_costs": netShippingCosts,
+      "delivery_country": deliveryCountry,
       "vat_rate": vatRate,
     };
   }
@@ -163,4 +214,10 @@ class TicketFull {
 int _toInt(dynamic value) {
   if (value is int) return value;
   return int.parse(value.toString());
+}
+
+String? _emptyToNull(dynamic value) {
+  final s = value?.toString().trim();
+  if (s == null || s.isEmpty) return null;
+  return s;
 }

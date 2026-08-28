@@ -8,7 +8,6 @@ import 'package:flutter_svg/svg.dart';
 import '../../app_config.dart';
 import '../../models/isar/models/blockchain_data/address.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
-import '../../models/shopinbit/shopinbit_order_model.dart';
 import '../../pages_desktop_specific/desktop_home_view.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../providers/providers.dart';
@@ -45,7 +44,7 @@ class ShopInBitSendFromView extends ConsumerStatefulWidget {
   const ShopInBitSendFromView({
     super.key,
     required this.coin,
-    required this.model,
+    required this.apiTicketId,
     this.amount,
     required this.address,
     this.shouldPopRoot = false,
@@ -58,7 +57,7 @@ class ShopInBitSendFromView extends ConsumerStatefulWidget {
   final CryptoCurrency coin;
   final Amount? amount;
   final String address;
-  final ShopInBitOrderModel model;
+  final int apiTicketId;
   final bool shouldPopRoot;
   final EthContract? tokenContract;
   // If set, overrides the default success route (HomeView/DesktopHomeView).
@@ -73,7 +72,7 @@ class _ShopInBitSendFromViewState extends ConsumerState<ShopInBitSendFromView> {
   late final CryptoCurrency coin;
   late final Amount? amount;
   late final String address;
-  late final ShopInBitOrderModel model;
+  late final int apiTicketId;
   late final EthContract? tokenContract;
 
   @override
@@ -81,7 +80,7 @@ class _ShopInBitSendFromViewState extends ConsumerState<ShopInBitSendFromView> {
     coin = widget.coin;
     address = widget.address;
     amount = widget.amount;
-    model = widget.model;
+    apiTicketId = widget.apiTicketId;
     tokenContract = widget.tokenContract;
     super.initState();
   }
@@ -196,7 +195,7 @@ class _ShopInBitSendFromViewState extends ConsumerState<ShopInBitSendFromView> {
                       walletId: walletIds[index],
                       amount: amount,
                       address: address,
-                      model: model,
+                      apiTicketId: apiTicketId,
                       tokenContract: tokenContract,
                       routeOnSuccessName: widget.routeOnSuccessName,
                     ),
@@ -217,7 +216,7 @@ class ShopInBitSendFromCard extends ConsumerStatefulWidget {
     required this.walletId,
     this.amount,
     required this.address,
-    required this.model,
+    required this.apiTicketId,
     this.tokenContract,
     this.routeOnSuccessName,
   });
@@ -225,7 +224,7 @@ class ShopInBitSendFromCard extends ConsumerStatefulWidget {
   final String walletId;
   final Amount? amount;
   final String address;
-  final ShopInBitOrderModel model;
+  final int apiTicketId;
   final EthContract? tokenContract;
   final String? routeOnSuccessName;
 
@@ -238,7 +237,7 @@ class _ShopInBitSendFromCardState extends ConsumerState<ShopInBitSendFromCard> {
   late final String walletId;
   late final Amount? amount;
   late final String address;
-  late final ShopInBitOrderModel model;
+  late final int apiTicketId;
   late final EthContract? tokenContract;
 
   Future<void> _send() async {
@@ -380,8 +379,12 @@ class _ShopInBitSendFromCardState extends ConsumerState<ShopInBitSendFromCard> {
                     (Util.isDesktop
                         ? DesktopHomeView.routeName
                         : HomeView.routeName),
-                model: model,
+                apiTicketId: apiTicketId,
                 tokenContract: tokenContract,
+                popThroughRouteName:
+                    Util.isDesktop && widget.routeOnSuccessName != null
+                    ? ShopInBitSendFromView.routeName
+                    : null,
               ),
               settings: const RouteSettings(
                 name: ShopInBitConfirmSendView.routeName,
@@ -431,7 +434,7 @@ class _ShopInBitSendFromCardState extends ConsumerState<ShopInBitSendFromCard> {
     walletId = widget.walletId;
     amount = widget.amount;
     address = widget.address;
-    model = widget.model;
+    apiTicketId = widget.apiTicketId;
     tokenContract = widget.tokenContract;
     super.initState();
   }

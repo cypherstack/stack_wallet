@@ -44,4 +44,16 @@ class EthFeeObject extends FeeObject {
     required super.medium,
     required super.slow,
   });
+
+  @override
+  String toString() =>
+      "{\n"
+      "  fast: $fast,\n"
+      "  medium: $medium,\n"
+      "  slow: $slow,\n"
+      "  suggestBaseFee: $suggestBaseFee,\n"
+      "  numberOfBlocksFast: $numberOfBlocksFast,\n"
+      "  numberOfBlocksAverage: $numberOfBlocksAverage,\n"
+      "  numberOfBlocksSlow: $numberOfBlocksSlow,\n"
+      "}";
 }

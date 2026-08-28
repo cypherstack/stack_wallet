@@ -288,13 +288,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
       );
 
       if (wallet is FiroWallet && !firoPublicSend) {
-        txDataFuture = wallet.prepareSendSpark(
-          txData: TxData(
-            recipients: [recipient],
-            note:
-                "${model.trade!.payInCurrency.toUpperCase()}/"
-                "${model.trade!.payOutCurrency.toUpperCase()} exchange",
-          ),
+        throw Exception(
+          "Sending private Firo funds to an exchange address is temporarily "
+          "unavailable.",
         );
       } else {
         final memo = wallet.info.coin is Stellar

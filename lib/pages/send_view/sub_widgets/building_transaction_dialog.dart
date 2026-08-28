@@ -50,45 +50,24 @@ class _RestoringDialogState extends ConsumerState<BuildingTransactionDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final assetPath = ref.watch(
-      coinImageSecondaryProvider(
-        widget.coin,
-      ),
-    );
+    final assetPath = ref.watch(coinImageSecondaryProvider(widget.coin));
 
     if (Util.isDesktop) {
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            "Generating transaction",
-            style: STextStyles.desktopH3(context),
-          ),
-          if (widget.isSpark)
-            const SizedBox(
-              height: 16,
-            ),
+          Text("Generating transaction", style: STextStyles.desktopH3(context)),
+          if (widget.isSpark) const SizedBox(height: 16),
           if (widget.isSpark)
             Text(
               "This may take a few minutes...",
               style: STextStyles.desktopSubtitleH2(context),
             ),
-          const SizedBox(
-            height: 40,
-          ),
+          const SizedBox(height: 40),
           assetPath.endsWith(".gif")
-              ? Image.file(
-                  File(
-                    assetPath,
-                  ),
-                )
-              : const RotatingArrows(
-                  width: 40,
-                  height: 40,
-                ),
-          const SizedBox(
-            height: 40,
-          ),
+              ? Image.file(File(assetPath))
+              : const RotatingArrows(width: 40, height: 40),
+          const SizedBox(height: 40),
           SecondaryButton(
             buttonHeight: ButtonHeight.l,
             label: "Cancel",
@@ -109,29 +88,20 @@ class _RestoringDialogState extends ConsumerState<BuildingTransactionDialog> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.file(
-                      File(
-                        assetPath,
-                      ),
-                    ),
+                    Image.file(File(assetPath)),
                     Text(
                       "Generating transaction",
                       textAlign: TextAlign.center,
                       style: STextStyles.pageTitleH2(context),
                     ),
-                    if (widget.isSpark)
-                      const SizedBox(
-                        height: 12,
-                      ),
+                    if (widget.isSpark) const SizedBox(height: 12),
                     if (widget.isSpark)
                       Text(
                         "This may take a few minutes...",
                         textAlign: TextAlign.center,
                         style: STextStyles.w500_16(context),
                       ),
-                    const SizedBox(
-                      height: 32,
-                    ),
+                    const SizedBox(height: 32),
                     Row(
                       children: [
                         const Spacer(),
@@ -157,12 +127,10 @@ class _RestoringDialogState extends ConsumerState<BuildingTransactionDialog> {
               )
             : StackDialog(
                 title: "Generating transaction",
-                message:
-                    widget.isSpark ? "This may take a few minutes..." : null,
-                icon: const RotatingArrows(
-                  width: 24,
-                  height: 24,
-                ),
+                message: widget.isSpark
+                    ? "This may take a few minutes..."
+                    : null,
+                icon: const RotatingArrows(width: 24, height: 24),
                 rightButton: TextButton(
                   style: Theme.of(context)
                       .extension<StackColors>()!
