@@ -29,6 +29,7 @@ import '../../isar/models/wallet_info.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/external_wallet.dart';
 import 'electrumx_interface.dart';
+import 'mweb_fee_utils.dart';
 
 mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     on ElectrumXInterface<T>
@@ -440,13 +441,11 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     }
   }
 
-  Future<TxData> processMwebTransaction(TxData txData) async {
+  Future<TxData> processMwebTransaction({
+    required TxData txData,
+    required BigInt feeRatePerKB,
+  }) async {
     final client = await _client;
-    final vBytesPerKilobyte = BigInt.from(1000);
-    final customSatsPerVByte = txData.satsPerVByte;
-    final feeRatePerKB = customSatsPerVByte != null
-        ? BigInt.from(customSatsPerVByte) * vBytesPerKilobyte
-        : txData.feeRateAmount!;
     final response = await client.create(
       CreateRequest(
         rawTx: txData.raw!.toUint8ListFromHex,
@@ -964,7 +963,10 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     }
   }
 
-  Future<Amount> mwebFee({required TxData txData}) async {
+  Future<Amount> mwebFee({
+    required TxData txData,
+    required BigInt feeRatePerKB,
+  }) async {
     final outputs = txData.recipients!;
     final utxos = txData.usedUTXOs!;
 
@@ -974,10 +976,6 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     final fee = sumOfUtxosValue - preOutputSum;
 
     final vBytesPerKilobyte = BigInt.from(1000);
-    final customSatsPerVByte = txData.satsPerVByte;
-    final feeRatePerKB = customSatsPerVByte != null
-        ? BigInt.from(customSatsPerVByte) * vBytesPerKilobyte
-        : txData.feeRateAmount!;
 
     final client = await _client;
 
@@ -1024,7 +1022,13 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     }
 
     return Amount(
-      rawValue: fee + feeIncrease,
+      rawValue: requiredMwebFee(
+        currentFee: fee,
+        feeIncrease: feeIncrease,
+        hasPegin: expectedPegin > BigInt.zero,
+        vSize: txData.vSize!,
+        feeRatePerKB: feeRatePerKB,
+      ),
       fractionDigits: cryptoCurrency.fractionDigits,
     );
   }

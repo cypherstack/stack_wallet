@@ -35,6 +35,7 @@ import '../impl/peercoin_wallet.dart';
 import '../intermediate/bip39_hd_wallet.dart';
 import 'cpfp_interface.dart';
 import 'electrum_fee_planner.dart';
+import 'mweb_fee_utils.dart';
 import 'mweb_interface.dart';
 import 'paynym_interface.dart';
 import 'rbf_interface.dart';
@@ -2005,32 +2006,46 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
       // mweb
       if (result.type.isMweb()) {
-        final fee = await (this as MwebInterface).mwebFee(txData: result);
-
-        TxData mwebData = await coinSelection(
-          txData: result.copyWith(
-            recipients: txData.subtractFeeFromAmount
-                ? txData.recipients
-                : result.recipients!.where((e) => !(e.isChange)).toList(),
-          ),
-          utxos: utxos?.toList(),
-          coinControl: coinControl,
-          isSendAll: isSendAll,
-          isSendAllCoinControlUtxos: isSendAllCoinControlUtxos,
-          minimumFeeAmount: fee.raw,
+        final effectiveFeeRatePerKB = effectiveMwebFeeRatePerKB(
+          feeRatePerKB: result.feeRateAmount!,
+          satsPerVByte: result.satsPerVByte,
         );
-
-        if (mwebData.type == TxType.mwebPegIn) {
-          mwebData = await buildTransaction(
-            txData: mwebData,
-            inputsWithKeys: mwebData.usedUTXOs!,
-          );
-        }
-        final data = await (this as MwebInterface).processMwebTransaction(
-          mwebData,
+        // Awaited so failures surface in this function's catch below.
+        return await processWithReconciledMwebFee<TxData, TxData>(
+          initial: result,
+          feeRatePerKB: effectiveFeeRatePerKB,
+          paidFee: (candidate) => candidate.fee!.raw,
+          requiredFee: (candidate, feeRatePerKB) async =>
+              (await (this as MwebInterface).mwebFee(
+                txData: candidate,
+                feeRatePerKB: feeRatePerKB,
+              )).raw,
+          rebuild: (initial, minimumFee) {
+            // Use the original recipients so send-all selects every input.
+            return coinSelection(
+              txData: initial.copyWith(recipients: txData.recipients),
+              utxos: utxos?.toList(),
+              coinControl: coinControl,
+              isSendAll: isSendAll,
+              isSendAllCoinControlUtxos: isSendAllCoinControlUtxos,
+              minimumFeeAmount: minimumFee,
+            );
+          },
+          process: (candidate, feeRatePerKB) async {
+            if (candidate.type == TxType.mwebPegIn) {
+              candidate = await buildTransaction(
+                txData: candidate,
+                inputsWithKeys: candidate.usedUTXOs!,
+              );
+            }
+            final data = await (this as MwebInterface).processMwebTransaction(
+              txData: candidate,
+              feeRatePerKB: feeRatePerKB,
+            );
+            Logging.instance.d("prepare MWEB send: $data");
+            return data;
+          },
         );
-        Logging.instance.d("prepare MWEB send: $data");
-        return data;
       }
 
       Logging.instance.d("prepare send: $result");
