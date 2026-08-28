@@ -80,7 +80,7 @@ dependencies:
 # %%END_ENABLE_SAL%%
 
 # %%ENABLE_MWEBD%%
-#  flutter_mwebd: 0.0.1-pre.11
+#  flutter_mwebd: 0.0.1-pre.12
 # %%END_ENABLE_MWEBD%%
 
   monero_rpc: ^2.0.0
