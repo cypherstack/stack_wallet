@@ -154,7 +154,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         fractionDigits: cryptoCurrency.fractionDigits,
       );
       final Set<UTXO> utxosToUse = {};
-      final Set<UTXO> utxosRemaining = {};
+      final List<UTXO> utxosRemaining = [];
       for (int i = 0; i < utxos.length; i++) {
         final utxo = utxos[i];
         sum += Amount(
@@ -164,7 +164,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         utxosToUse.add(utxo);
         if (sum > total) {
           if (i + 1 < utxos.length) {
-            utxosRemaining.addAll(utxos.sublist(i));
+            utxosRemaining.addAll(utxos.sublist(i + 1));
           }
           break;
         }
@@ -214,7 +214,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         } on FrostInsufficientFundsException catch (_) {
           if (utxosRemaining.isNotEmpty) {
             // add extra utxo
-            final utxo = utxosRemaining.take(1).first;
+            final utxo = utxosRemaining.removeAt(0);
             final dData = await getDerivationData(utxo.address);
             final publicKey = cryptoCurrency.addressToPubkey(
               address: utxo.address!,
@@ -232,7 +232,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
 
       return txData.copyWith(
         frostMSConfig: config,
-        utxos: utxosToUse.map((e) => StandardInput(e)).toSet(),
+        utxos: inputs.map((e) => StandardInput(e.utxo)).toSet(),
       );
     } catch (_) {
       rethrow;
