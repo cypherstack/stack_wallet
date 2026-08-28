@@ -35,7 +35,7 @@
 	<key>NSFaceIDUsageDescription</key>
 	<string>This app requires Face ID permissions so that the user can securely lock their wallet if their device uses Face ID. It will be useful feature for all users, and especially those prone to forget their login pin on iPhones where Touch ID is not available.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Photo Library Access Warning</string>
+	<string>This app only reads images you select, such as a picture containing a QR code to scan. It will never access your photo library on its own.</string>
 	<key>UIFileSharingEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
