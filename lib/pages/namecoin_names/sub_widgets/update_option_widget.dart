@@ -73,6 +73,7 @@ class _BuyDomainWidgetState extends ConsumerState<UpdateOptionWidget> {
   Future<void> _previewUpdate() async {
     if (_previewLock) return;
     _previewLock = true;
+    bool wasCancelled = false;
     try {
       final newValue = _getNewValue();
       if (newValue == _currentValue) {
@@ -85,8 +86,6 @@ class _BuyDomainWidgetState extends ConsumerState<UpdateOptionWidget> {
 
       final wallet =
           ref.read(pWallets).getWallet(widget.walletId) as NamecoinWallet;
-
-      bool wasCancelled = false;
 
       if (mounted) {
         if (Util.isDesktop) {
@@ -213,7 +212,7 @@ class _BuyDomainWidgetState extends ConsumerState<UpdateOptionWidget> {
         err = "Contains invalid characters";
       }
 
-      if (mounted) {
+      if (mounted && !wasCancelled) {
         await showDialog<void>(
           context: context,
           builder: (_) => StackOkDialog(
