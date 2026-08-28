@@ -749,7 +749,8 @@ abstract class Wallet<T extends CryptoCurrency> {
   Future<void> exit() async {
     Logging.instance.i("exit called on $walletId");
     _periodicRefreshTimer?.cancel();
-    _networkAliveTimer?.cancel();
+    _periodicRefreshTimer = null;
+    _stopNetworkAlivePinging();
 
     // If the syncing pref is currentWalletOnly or selectedWalletsAtStartup (and
     // this wallet isn't in walletIdsSyncOnStartup), then we close subscriptions.
