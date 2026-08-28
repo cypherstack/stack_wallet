@@ -70,7 +70,7 @@ RUN mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools" \
       "platforms;android-34" \
       "platforms;android-35" \
       "platforms;android-36" \
-      "platforms;android-37" \
+      "platforms;android-37.0" \
       "ndk;28.0.13004108" \
       "ndk;28.2.13676358" \
       "cmake;3.22.1" \
@@ -158,7 +158,7 @@ RUN mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools" \
       "platforms;android-34" \
       "platforms;android-35" \
       "platforms;android-36" \
-      "platforms;android-37" \
+      "platforms;android-37.0" \
       "ndk;28.0.13004108" \
       "ndk;28.2.13676358" \
       "cmake;3.22.1" \
