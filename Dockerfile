@@ -203,6 +203,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       libjsoncpp-dev liblzma-dev libsecret-1-dev libssl-dev \
  && rm -rf /var/lib/apt/lists/*
 
+ENV PATH=/usr/local/go/bin:$PATH
+
+RUN curl -fsSL https://go.dev/dl/go1.24.13.linux-amd64.tar.gz -o /tmp/go.tar.gz \
+ && echo "1fc94b57134d51669c72173ad5d49fd62afb0f1db9bf3f798fd98ee423f8d730  /tmp/go.tar.gz" | sha256sum -c \
+ && tar -C /usr/local -xzf /tmp/go.tar.gz \
+ && rm /tmp/go.tar.gz
+
 ENV FLUTTER_HOME=/opt/flutter \
     PATH=/opt/flutter/bin:/opt/flutter/bin/cache/dart-sdk/bin:$PATH
 
@@ -214,4 +221,4 @@ RUN git clone --depth 1 --branch 3.44.9 https://github.com/flutter/flutter.git "
 
 RUN git config --system --add safe.directory '*'
 
-RUN flutter --version
+RUN flutter --version && go version
