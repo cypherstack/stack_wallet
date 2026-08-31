@@ -35,13 +35,18 @@ abstract class LibSparkInterface {
     required int sparkNameValidityBlocks,
     required String name,
     required String additionalInfo,
-    required String scalarHex,
+    required String ownershipDigest,
+    required int spendVersion,
     required String privateKeyHex,
     required int spendKeyIndex,
     required int diversifier,
     required bool isTestNet,
     required int hashFailSafe,
     required bool ignoreProof,
+  });
+
+  Uint8List getSparkNameCommitment({
+    required Uint8List serializedSparkNameData,
   });
 
   List<({Uint8List scriptPubKey, int amount, bool subtractFeeFromAmount})>
@@ -128,6 +133,8 @@ abstract class LibSparkInterface {
     required List<({int setId, Uint8List blockHash})> idAndBlockHashes,
     required Uint8List txHash,
     required int additionalTxSize,
+    required int spendVersion,
+    required Uint8List extensionCommitment,
   });
 
   int estimateSparkFee({
@@ -147,6 +154,7 @@ abstract class LibSparkInterface {
     required int privateRecipientsCount,
     required int utxoNum,
     required int additionalTxSize,
+    required int spendVersion,
   });
 }
 

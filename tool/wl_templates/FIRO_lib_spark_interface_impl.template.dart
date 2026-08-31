@@ -101,7 +101,8 @@ class _LibSparkInterfaceImpl extends LibSparkInterface {
     required int sparkNameValidityBlocks,
     required String name,
     required String additionalInfo,
-    required String scalarHex,
+    required String ownershipDigest,
+    required int spendVersion,
     required String privateKeyHex,
     required int spendKeyIndex,
     required int diversifier,
@@ -112,13 +113,21 @@ class _LibSparkInterfaceImpl extends LibSparkInterface {
     sparkNameValidityBlocks: sparkNameValidityBlocks,
     name: name,
     additionalInfo: additionalInfo,
-    scalarHex: scalarHex,
+    ownershipDigest: ownershipDigest,
+    spendVersion: spendVersion,
     privateKeyHex: privateKeyHex,
     spendKeyIndex: spendKeyIndex,
     diversifier: diversifier,
     isTestNet: isTestNet,
     hashFailSafe: hashFailSafe,
     ignoreProof: ignoreProof,
+  );
+
+  @override
+  Uint8List getSparkNameCommitment({
+    required Uint8List serializedSparkNameData,
+  }) => LibSpark.getSparkNameCommitment(
+    serializedSparkNameData: serializedSparkNameData,
   );
 
   @override
@@ -288,6 +297,8 @@ class _LibSparkInterfaceImpl extends LibSparkInterface {
     required List<({Uint8List blockHash, int setId})> idAndBlockHashes,
     required Uint8List txHash,
     required int additionalTxSize,
+    required int spendVersion,
+    required Uint8List extensionCommitment,
   }) => LibSpark.createSparkSendTransaction(
     index: index,
     privateKeyHex: privateKeyHex,
@@ -298,6 +309,8 @@ class _LibSparkInterfaceImpl extends LibSparkInterface {
     idAndBlockHashes: idAndBlockHashes,
     txHash: txHash,
     additionalTxSize: additionalTxSize,
+    spendVersion: spendVersion,
+    extensionCommitment: extensionCommitment,
   );
 
   @override
@@ -318,6 +331,7 @@ class _LibSparkInterfaceImpl extends LibSparkInterface {
     required int privateRecipientsCount,
     required int utxoNum,
     required int additionalTxSize,
+    required int spendVersion,
   }) => LibSpark.estimateSparkFee(
     privateKeyHex: privateKeyHex,
     sendAmount: sendAmount,
@@ -326,6 +340,7 @@ class _LibSparkInterfaceImpl extends LibSparkInterface {
     privateRecipientsCount: privateRecipientsCount,
     utxoNum: utxoNum,
     additionalTxSize: additionalTxSize,
+    spendVersion: spendVersion,
     index: index,
   );
 }

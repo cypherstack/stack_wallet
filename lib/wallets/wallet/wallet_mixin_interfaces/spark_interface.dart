@@ -56,6 +56,24 @@ const OP_SPARKNAMEID = 0xe1;
 const OP_DROP = 0x75;
 
 const _maxSingleInputSparkTransactions = 50;
+const _sparkTxVersion = 3;
+const _transactionSpark = 9;
+const _transactionSparkV2 = 11;
+const _sparkChaumV2ActivationHeight = 1371000;
+
+@visibleForTesting
+({int transactionType, int spendVersion}) sparkH2ParametersForNextBlock({
+  required CryptoCurrencyNetwork network,
+  required int nextBlockHeight,
+}) {
+  final useChaumV2 =
+      network == CryptoCurrencyNetwork.main &&
+      nextBlockHeight >= _sparkChaumV2ActivationHeight;
+  return (
+    transactionType: useChaumV2 ? _transactionSparkV2 : _transactionSpark,
+    spendVersion: useChaumV2 ? 2 : 1,
+  );
+}
 
 int _compareSparkCoinsForSingleInputSpend(SparkCoin a, SparkCoin b) {
   int result = b.value.compareTo(a.value);
@@ -512,6 +530,11 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
       final root = await getRootHDNode();
       final privateKey = root.derivePath(sparkDerivationPath).privateKey.data;
+      final chainTipHeight = await fetchChainHeight();
+      final spendVersion = sparkH2ParametersForNextBlock(
+        network: cryptoCurrency.network,
+        nextBlockHeight: chainTipHeight + 1,
+      ).spendVersion;
       BigInt singleInputFee = BigInt.from(
         await _asyncSparkFeesWrapper(
           privateKeyHex: privateKey.toHex,
@@ -522,6 +545,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           privateRecipientsCount: 1,
           utxoNum: 0,
           additionalTxSize: 0,
+          spendVersion: spendVersion,
         ),
       );
 
@@ -610,7 +634,11 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         .privateKey
         .data
         .toHex;
-    final lockTime = await chainHeight;
+    final lockTime = await fetchChainHeight();
+    final sparkParameters = sparkH2ParametersForNextBlock(
+      network: cryptoCurrency.network,
+      nextBlockHeight: lockTime + 1,
+    );
 
     if (txData.sparkNameInfo != null) {
       final spend = await _prepareSingleSparkSpend(
@@ -619,6 +647,8 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         subtractFeeFromAmount: false,
         privateKeyHex: privateKeyHex,
         lockTime: lockTime,
+        transactionType: sparkParameters.transactionType,
+        spendVersion: sparkParameters.spendVersion,
       );
       return spend.copyWith(sparkSpends: [spend]);
     }
@@ -637,6 +667,8 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         subtractFeeFromAmount: true,
         privateKeyHex: privateKeyHex,
         lockTime: lockTime,
+        transactionType: sparkParameters.transactionType,
+        spendVersion: sparkParameters.spendVersion,
       );
       return spend.copyWith(sparkSpends: [spend]);
     }
@@ -682,6 +714,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           privateRecipientsCount: privateRecipientCount,
           utxoNum: transparentRecipientCount,
           additionalTxSize: 0,
+          spendVersion: sparkParameters.spendVersion,
         ),
       );
       feeCache[key] = fee;
@@ -738,6 +771,8 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         subtractFeeFromAmount: false,
         privateKeyHex: privateKeyHex,
         lockTime: lockTime,
+        transactionType: sparkParameters.transactionType,
+        spendVersion: sparkParameters.spendVersion,
       );
       if (spend.fee?.raw != plan.fee) {
         throw Exception("Spark transaction fee changed during creation.");
@@ -772,6 +807,8 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     required bool subtractFeeFromAmount,
     required String privateKeyHex,
     required int lockTime,
+    required int transactionType,
+    required int spendVersion,
   }) async {
     if (!(txData.recipients?.isNotEmpty == true ||
         txData.sparkRecipients?.isNotEmpty == true)) {
@@ -889,7 +926,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
     final txb = btc.TransactionBuilder(network: _bitcoinDartNetwork);
     txb.setLockTime(lockTime);
-    txb.setVersion(3 | (9 << 16));
+    txb.setVersion(_sparkTxVersion | (transactionType << 16));
 
     List<TxRecipient>? recipientsWithFeeSubtracted;
     List<({String address, Amount amount, String memo, bool isChange})>?
@@ -910,6 +947,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         privateRecipientsCount: (txData.sparkRecipients?.length ?? 0),
         utxoNum: recipientCount,
         additionalTxSize: 0, // name script size
+        spendVersion: spendVersion,
       );
       estimatedFee = BigInt.from(estFee);
     } else {
@@ -1031,7 +1069,8 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         sparkNameValidityBlocks: txData.sparkNameInfo!.validBlocks,
         name: txData.sparkNameInfo!.name,
         additionalInfo: txData.sparkNameInfo!.additionalInfo,
-        scalarHex: extractedTx.getId(),
+        ownershipDigest: extractedTx.getId(),
+        spendVersion: spendVersion,
         privateKeyHex: privateKeyHex,
         spendKeyIndex: sparkIndex,
         diversifier: txData.sparkNameInfo!.sparkAddress.derivationIndex,
@@ -1040,6 +1079,12 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         hashFailSafe: 0,
       );
     }
+
+    final extensionCommitment = spendVersion == 2 && noProofNameTxData != null
+        ? libSpark.getSparkNameCommitment(
+            serializedSparkNameData: noProofNameTxData.script,
+          )
+        : Uint8List(32);
 
     final spend = await computeWithLibSparkLogging(_createSparkSend, (
       privateKeyHex: privateKeyHex,
@@ -1076,6 +1121,8 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       additionalTxSize: txData.sparkNameInfo == null
           ? 0
           : noProofNameTxData!.size + sparkNameFeeScriptSizeDelta,
+      spendVersion: spendVersion,
+      extensionCommitment: extensionCommitment,
     ));
 
     if (spend.usedCoins.length != 1) {
@@ -1108,7 +1155,8 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
             sparkNameValidityBlocks: txData.sparkNameInfo!.validBlocks,
             name: txData.sparkNameInfo!.name,
             additionalInfo: txData.sparkNameInfo!.additionalInfo,
-            scalarHex: hash,
+            ownershipDigest: hash,
+            spendVersion: spendVersion,
             privateKeyHex: privateKeyHex,
             spendKeyIndex: sparkIndex,
             diversifier: txData.sparkNameInfo!.sparkAddress.derivationIndex,
@@ -1118,7 +1166,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           );
           break;
         } catch (e) {
-          if (e.toString() != "Exception: hash fail") {
+          if (spendVersion == 2 || e.toString() != "Exception: hash fail") {
             rethrow;
           }
           hashFailSafe++;
@@ -2865,6 +2913,8 @@ _createSparkSend(
     List<({int setId, Uint8List blockHash})> idAndBlockHashes,
     Uint8List txHash,
     int additionalTxSize,
+    int spendVersion,
+    Uint8List extensionCommitment,
   })
   args,
 ) async {
@@ -2878,6 +2928,8 @@ _createSparkSend(
     idAndBlockHashes: args.idAndBlockHashes,
     txHash: args.txHash,
     additionalTxSize: args.additionalTxSize,
+    spendVersion: args.spendVersion,
+    extensionCommitment: args.extensionCommitment,
   );
 
   return spend;
@@ -2933,6 +2985,7 @@ Future<int> _asyncSparkFeesWrapper({
   required int privateRecipientsCount,
   required int utxoNum,
   required int additionalTxSize,
+  required int spendVersion,
 }) async {
   return await computeWithLibSparkLogging(_estSparkFeeComputeFunc, (
     privateKeyHex: privateKeyHex,
@@ -2943,6 +2996,7 @@ Future<int> _asyncSparkFeesWrapper({
     privateRecipientsCount: privateRecipientsCount,
     utxoNum: utxoNum,
     additionalTxSize: additionalTxSize,
+    spendVersion: spendVersion,
   ));
 }
 
@@ -2956,6 +3010,7 @@ int _estSparkFeeComputeFunc(
     int privateRecipientsCount,
     int utxoNum,
     int additionalTxSize,
+    int spendVersion,
   })
   args,
 ) {
@@ -2968,6 +3023,7 @@ int _estSparkFeeComputeFunc(
     privateRecipientsCount: args.privateRecipientsCount,
     utxoNum: args.utxoNum,
     additionalTxSize: args.additionalTxSize,
+    spendVersion: args.spendVersion,
   );
 
   return est;
