@@ -30,7 +30,6 @@ import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
 import '../../isar/models/wallet_info.dart';
 import '../../models/tx_data.dart';
 import '../impl/bitcoin_wallet.dart';
-import '../impl/firo_wallet.dart';
 import '../impl/peercoin_wallet.dart';
 import '../intermediate/bip39_hd_wallet.dart';
 import 'cpfp_interface.dart';
@@ -39,6 +38,41 @@ import 'paynym_interface.dart';
 import 'rbf_interface.dart';
 import 'sign_verify_interface.dart';
 import 'view_only_option_interface.dart';
+
+@visibleForTesting
+BigInt requiredFeeForVSize({
+  required int vSize,
+  required int? satsPerVByte,
+  required BigInt feeRatePerKB,
+  required int Function({required int vSize, required BigInt feeRatePerKB})
+  estimateTxFee,
+}) {
+  final estimatedFee = BigInt.from(
+    satsPerVByte != null
+        ? satsPerVByte * vSize
+        : estimateTxFee(vSize: vSize, feeRatePerKB: feeRatePerKB),
+  );
+  final minimumFee = BigInt.from(vSize);
+  return estimatedFee < minimumFee ? minimumFee : estimatedFee;
+}
+
+@visibleForTesting
+coinlib.Address parseElectrumXAddress({
+  required String address,
+  required ElectrumXCurrencyInterface cryptoCurrency,
+}) {
+  try {
+    return coinlib.Address.fromString(address, cryptoCurrency.networkParams);
+  } catch (_) {
+    if (cryptoCurrency is Firo) {
+      return EXP2PKHAddress.fromString(
+        address,
+        cryptoCurrency.exAddressVersion,
+      );
+    }
+    rethrow;
+  }
+}
 
 mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     on Bip39HDWallet<T>
@@ -320,6 +354,36 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       );
     }
 
+    final shouldReconcileFinalFee =
+        overrideFeeAmount == null &&
+        txData.type != TxType.mweb &&
+        txData.type != TxType.mwebPegOut;
+
+    BigInt requiredFeeForFinalVSize(int vSize) => requiredFeeForVSize(
+      vSize: vSize,
+      satsPerVByte: satsPerVByte,
+      feeRatePerKB: selectedTxFeeRate,
+      estimateTxFee: estimateTxFee,
+    );
+
+    Future<TxData> retryWithMoreInputs() {
+      Logging.instance.w(
+        'Cannot pay tx fee - checking for more outputs and trying again',
+      );
+      if (spendableOutputs.length > inputsBeingConsumed) {
+        return coinSelection(
+          txData: txData,
+          isSendAll: isSendAll,
+          additionalOutputs: additionalOutputs + 1,
+          utxos: utxos,
+          coinControl: coinControl,
+          isSendAllCoinControlUtxos: isSendAllCoinControlUtxos,
+          overrideFeeAmount: overrideFeeAmount,
+        );
+      }
+      throw Exception("Insufficient balance to pay transaction fee");
+    }
+
     final int vSizeForOneOutput;
     try {
       vSizeForOneOutput = (await buildTransaction(
@@ -403,6 +467,10 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           ),
         ),
       );
+      if (shouldReconcileFinalFee &&
+          difference < requiredFeeForFinalVSize(txnData.vSize!)) {
+        return retryWithMoreInputs();
+      }
       return txnData.copyWith(
         // No change output, so the whole difference is the fee (which can
         // exceed [feeForOneOutput]).
@@ -419,22 +487,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       Logging.instance.d('1 output in tx');
       return await singleOutputTxn();
     } else if (difference < feeForOneOutput) {
-      Logging.instance.w(
-        'Cannot pay tx fee - checking for more outputs and trying again',
-      );
-      // try adding more outputs
-      if (spendableOutputs.length > inputsBeingConsumed) {
-        return coinSelection(
-          txData: txData,
-          isSendAll: isSendAll,
-          additionalOutputs: additionalOutputs + 1,
-          utxos: utxos,
-          coinControl: coinControl,
-          isSendAllCoinControlUtxos: isSendAllCoinControlUtxos,
-          overrideFeeAmount: overrideFeeAmount,
-        );
-      }
-      throw Exception("Insufficient balance to pay transaction fee");
+      return retryWithMoreInputs();
     } else {
       if (difference > (feeForOneOutput + cryptoCurrency.dustLimit.raw)) {
         final changeOutputSize = difference - feeForTwoOutputs;
@@ -475,9 +528,12 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           // The fee was estimated from a differently signed build and
           // re-signing can change vSize, so it may no longer cover the final
           // signed size. Take any shortfall from change.
-          while (feeBeingPaid < BigInt.from(txnData.vSize!)) {
-            final vSize = BigInt.from(txnData.vSize!);
-            final adjustedChangeSize = difference - vSize;
+          while (shouldReconcileFinalFee) {
+            final requiredFee = requiredFeeForFinalVSize(txnData.vSize!);
+            if (feeBeingPaid >= requiredFee) {
+              break;
+            }
+            final adjustedChangeSize = difference - requiredFee;
             if (adjustedChangeSize <= cryptoCurrency.dustLimit.raw) {
               // Drop the change output entirely.
               recipientsArray.removeLast();
@@ -487,7 +543,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
               );
               return await singleOutputTxn();
             }
-            feeBeingPaid = vSize;
+            feeBeingPaid = requiredFee;
             recipientsAmtArray.last = adjustedChangeSize;
 
             Logging.instance.d(
@@ -526,7 +582,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       }
     }
 
-    return txData;
+    return await singleOutputTxn();
   }
 
   Future<TxData> _sendAllBuilder({
@@ -605,13 +661,12 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       }
 
       // Signing can change vSize, so calculate the fee from the final tx.
-      final vSize = BigInt.from(data.vSize!);
-      final feeForFinalVSize = BigInt.from(
-        satsPerVByte != null
-            ? satsPerVByte * data.vSize!
-            : estimateTxFee(vSize: data.vSize!, feeRatePerKB: feeRatePerKB),
+      final requiredFee = requiredFeeForVSize(
+        vSize: data.vSize!,
+        satsPerVByte: satsPerVByte,
+        feeRatePerKB: feeRatePerKB,
+        estimateTxFee: estimateTxFee,
       );
-      final requiredFee = feeForFinalVSize.atLeast(vSize);
       if (feeForOneOutput >= requiredFee) {
         break;
       }
@@ -627,25 +682,10 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     );
   }
 
-  /// Parses [address], falling back to Firo EX (exchange) address parsing
-  /// which plain [coinlib.Address.fromString] does not support.
-  coinlib.Address _addressFromString(String address) {
-    final normalized = normalizeAddress(address);
-    try {
-      return coinlib.Address.fromString(
-        normalized,
-        cryptoCurrency.networkParams,
-      );
-    } catch (_) {
-      if (this is FiroWallet) {
-        return EXP2PKHAddress.fromString(
-          normalized,
-          (cryptoCurrency as Firo).exAddressVersion,
-        );
-      }
-      rethrow;
-    }
-  }
+  coinlib.Address _addressFromString(String address) => parseElectrumXAddress(
+    address: normalizeAddress(address),
+    cryptoCurrency: cryptoCurrency,
+  );
 
   coinlib.Input standardInputToCoinlibInput(
     StandardInput input, {
@@ -1655,7 +1695,9 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           await electrumXClient.estimateFee(blocks: blocks),
           fractionDigits: info.coin.fractionDigits,
         ).raw;
-        return raw.atLeast(cryptoCurrency.defaultFeeRate);
+        return raw < cryptoCurrency.defaultFeeRate
+            ? cryptoCurrency.defaultFeeRate
+            : raw;
       }
 
       final feeObject = FeeObject(
