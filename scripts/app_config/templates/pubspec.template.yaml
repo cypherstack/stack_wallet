@@ -37,7 +37,7 @@ dependencies:
 #  xelis_flutter:
 #    git:
 #      url: https://github.com/xelis-project/xelis-flutter-ffi.git
-#      ref: f67a02c6fff7c3c269f4497e077c7cf419076a60
+#      ref: 3e5ac06c22956a9113a88a2d38ba82f8787be1c6
 # %%END_ENABLE_XEL%%
 
 # %%ENABLE_FIRO%%
@@ -170,10 +170,7 @@ dependencies:
   wakelock_plus: ^1.2.8
   intl: ^0.19.0
   html: ^0.15.6
-  devicelocale:
-    git:
-      url: https://github.com/cypherstack/flutter-devicelocale
-      ref: ba7d7d87a3772e972adb1358a5ec9a111b514fce
+  devicelocale: 0.9.1
   device_info_plus: ^10.1.2
   keyboard_dismisser: ^3.0.0
   another_flushbar: ^1.10.28
