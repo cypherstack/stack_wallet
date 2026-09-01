@@ -10,7 +10,7 @@ finish-args:
   - --socket=fallback-x11
   - --socket=wayland
   - --device=dri
-  - --filesystem=~/.stackduo
+  - --filesystem=~/.stackduo:create
   - --talk-name=org.freedesktop.secrets
   - --talk-name=org.freedesktop.Notifications
 
