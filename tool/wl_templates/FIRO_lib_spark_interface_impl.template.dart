@@ -97,12 +97,26 @@ class _LibSparkInterfaceImpl extends LibSparkInterface {
   );
 
   @override
+  LibSparkSpendVersion getSpendVersionForBlockHeight({
+    required int nextBlockHeight,
+    required int chaumV2ActivationHeight,
+  }) {
+    final version = SparkSpendVersion.forBlockHeight(
+      nextBlockHeight: nextBlockHeight,
+      chaumV2ActivationHeight: chaumV2ActivationHeight,
+    );
+    return switch (version) {
+      .chaumV1 => .chaumV1,
+      .chaumV2 => .chaumV2,
+    };
+  }
+
+  @override
   ({Uint8List script, int size}) createSparkNameScript({
     required int sparkNameValidityBlocks,
     required String name,
     required String additionalInfo,
-    required String ownershipDigest,
-    required int spendVersion,
+    required LibSparkNameProofInput proofInput,
     required String privateKeyHex,
     required int spendKeyIndex,
     required int diversifier,
@@ -113,8 +127,10 @@ class _LibSparkInterfaceImpl extends LibSparkInterface {
     sparkNameValidityBlocks: sparkNameValidityBlocks,
     name: name,
     additionalInfo: additionalInfo,
-    ownershipDigest: ownershipDigest,
-    spendVersion: spendVersion,
+    proofInput: switch (proofInput.spendVersion) {
+      .chaumV1 => .chaumV1(scalarHex: proofInput.inputHex),
+      .chaumV2 => .chaumV2(ownershipDigest: proofInput.inputHex),
+    },
     privateKeyHex: privateKeyHex,
     spendKeyIndex: spendKeyIndex,
     diversifier: diversifier,
@@ -297,8 +313,8 @@ class _LibSparkInterfaceImpl extends LibSparkInterface {
     required List<({Uint8List blockHash, int setId})> idAndBlockHashes,
     required Uint8List txHash,
     required int additionalTxSize,
-    required int spendVersion,
-    required Uint8List extensionCommitment,
+    required LibSparkSpendVersion spendVersion,
+    Uint8List? extensionCommitment,
   }) => LibSpark.createSparkSendTransaction(
     index: index,
     privateKeyHex: privateKeyHex,
@@ -309,7 +325,10 @@ class _LibSparkInterfaceImpl extends LibSparkInterface {
     idAndBlockHashes: idAndBlockHashes,
     txHash: txHash,
     additionalTxSize: additionalTxSize,
-    spendVersion: spendVersion,
+    spendVersion: switch (spendVersion) {
+      .chaumV1 => .chaumV1,
+      .chaumV2 => .chaumV2,
+    },
     extensionCommitment: extensionCommitment,
   );
 
@@ -331,7 +350,7 @@ class _LibSparkInterfaceImpl extends LibSparkInterface {
     required int privateRecipientsCount,
     required int utxoNum,
     required int additionalTxSize,
-    required int spendVersion,
+    required LibSparkSpendVersion spendVersion,
   }) => LibSpark.estimateSparkFee(
     privateKeyHex: privateKeyHex,
     sendAmount: sendAmount,
@@ -340,7 +359,10 @@ class _LibSparkInterfaceImpl extends LibSparkInterface {
     privateRecipientsCount: privateRecipientsCount,
     utxoNum: utxoNum,
     additionalTxSize: additionalTxSize,
-    spendVersion: spendVersion,
+    spendVersion: switch (spendVersion) {
+      .chaumV1 => .chaumV1,
+      .chaumV2 => .chaumV2,
+    },
     index: index,
   );
 }

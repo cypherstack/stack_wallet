@@ -56,24 +56,32 @@ const OP_SPARKNAMEID = 0xe1;
 const OP_DROP = 0x75;
 
 const _maxSingleInputSparkTransactions = 50;
-const _sparkTxVersion = 3;
-const _transactionSpark = 9;
-const _transactionSparkV2 = 11;
 const _sparkChaumV2ActivationHeight = 1371000;
 
 @visibleForTesting
-({int transactionType, int spendVersion}) sparkH2ParametersForNextBlock({
+LibSparkSpendVersion sparkSpendVersionForNextBlock({
   required CryptoCurrencyNetwork network,
   required int nextBlockHeight,
 }) {
-  final useChaumV2 =
-      network == CryptoCurrencyNetwork.main &&
-      nextBlockHeight >= _sparkChaumV2ActivationHeight;
-  return (
-    transactionType: useChaumV2 ? _transactionSparkV2 : _transactionSpark,
-    spendVersion: useChaumV2 ? 2 : 1,
+  if (network != .main) return .chaumV1;
+
+  return libSpark.getSpendVersionForBlockHeight(
+    nextBlockHeight: nextBlockHeight,
+    chaumV2ActivationHeight: _sparkChaumV2ActivationHeight,
   );
 }
+
+@visibleForTesting
+bool isChaumV2SparkTransactionVersion(int transactionVersion) =>
+    transactionVersion == LibSparkSpendVersion.chaumV2.transactionVersion;
+
+LibSparkNameProofInput _sparkNameProofInput({
+  required LibSparkSpendVersion spendVersion,
+  required String inputHex,
+}) => switch (spendVersion) {
+  .chaumV1 => .chaumV1(scalarHex: inputHex),
+  .chaumV2 => .chaumV2(ownershipDigest: inputHex),
+};
 
 int _compareSparkCoinsForSingleInputSpend(SparkCoin a, SparkCoin b) {
   int result = b.value.compareTo(a.value);
@@ -519,6 +527,44 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         );
       }
 
+      final root = await getRootHDNode();
+      final privateKey = root.derivePath(sparkDerivationPath).privateKey.data;
+      final chainTipHeight = await fetchChainHeight();
+      final spendVersion = sparkSpendVersionForNextBlock(
+        network: cryptoCurrency.network,
+        nextBlockHeight: chainTipHeight + 1,
+      );
+
+      if (spendVersion.allowsMultipleInputs) {
+        final serializedCoins = coins
+            .map(
+              (e) => (
+                serializedCoin: e.serializedCoinB64!,
+                serializedCoinContext: e.contextB64!,
+                groupId: e.groupId,
+                height: e.height!,
+              ),
+            )
+            .toList();
+        int estimate = await _asyncSparkFeesWrapper(
+          privateKeyHex: privateKey.toHex,
+          index: sparkIndex,
+          sendAmount: amount.raw.toInt(),
+          subtractFeeFromAmount: true,
+          serializedCoins: serializedCoins,
+          privateRecipientsCount: 1,
+          utxoNum: 0,
+          additionalTxSize: 0,
+          spendVersion: spendVersion,
+        );
+        if (estimate < 0) estimate = 0;
+
+        return Amount(
+          rawValue: BigInt.from(estimate),
+          fractionDigits: cryptoCurrency.fractionDigits,
+        );
+      }
+
       final serializedCoins = [
         (
           serializedCoin: coins.first.serializedCoinB64!,
@@ -527,14 +573,6 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           height: coins.first.height!,
         ),
       ];
-
-      final root = await getRootHDNode();
-      final privateKey = root.derivePath(sparkDerivationPath).privateKey.data;
-      final chainTipHeight = await fetchChainHeight();
-      final spendVersion = sparkH2ParametersForNextBlock(
-        network: cryptoCurrency.network,
-        nextBlockHeight: chainTipHeight + 1,
-      ).spendVersion;
       BigInt singleInputFee = BigInt.from(
         await _asyncSparkFeesWrapper(
           privateKeyHex: privateKey.toHex,
@@ -580,7 +618,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
   }
 
   /// Spark to Spark/Transparent (spend) creation
-  Future<TxData> prepareSendSpark({required TxData txData}) async {
+  Future<TxData> prepareSendSpark({
+    required TxData txData,
+    bool requireChaumV2 = false,
+  }) async {
     if (isViewOnly) {
       throw Exception("Spending is not supported for view only wallets");
     }
@@ -593,6 +634,18 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     if (transparentRecipients.any((e) => e.amount.raw <= BigInt.zero) ||
         privateRecipients.any((e) => e.amount.raw <= BigInt.zero)) {
       throw Exception("Recipient has invalid amount.");
+    }
+
+    final lockTime = await fetchChainHeight();
+    final spendVersion = sparkSpendVersionForNextBlock(
+      network: cryptoCurrency.network,
+      nextBlockHeight: lockTime + 1,
+    );
+    if (requireChaumV2 && !spendVersion.allowsMultipleInputs) {
+      throw Exception(
+        "Sending private Firo funds to an exchange address is temporarily "
+        "unavailable.",
+      );
     }
 
     final coins = await mainDB.isar.sparkCoins
@@ -634,21 +687,26 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         .privateKey
         .data
         .toHex;
-    final lockTime = await fetchChainHeight();
-    final sparkParameters = sparkH2ParametersForNextBlock(
-      network: cryptoCurrency.network,
-      nextBlockHeight: lockTime + 1,
-    );
+
+    if (spendVersion.allowsMultipleInputs) {
+      return _prepareSparkSpend(
+        txData: txData,
+        coins: coins,
+        subtractFeeFromAmount: isSendAll,
+        privateKeyHex: privateKeyHex,
+        lockTime: lockTime,
+        spendVersion: spendVersion,
+      );
+    }
 
     if (txData.sparkNameInfo != null) {
-      final spend = await _prepareSingleSparkSpend(
+      final spend = await _prepareSparkSpend(
         txData: txData,
-        coin: coins.first,
+        coins: [coins.first],
         subtractFeeFromAmount: false,
         privateKeyHex: privateKeyHex,
         lockTime: lockTime,
-        transactionType: sparkParameters.transactionType,
-        spendVersion: sparkParameters.spendVersion,
+        spendVersion: spendVersion,
       );
       return spend.copyWith(sparkSpends: [spend]);
     }
@@ -661,14 +719,13 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         );
       }
 
-      final spend = await _prepareSingleSparkSpend(
+      final spend = await _prepareSparkSpend(
         txData: txData,
-        coin: coins.single,
+        coins: [coins.single],
         subtractFeeFromAmount: true,
         privateKeyHex: privateKeyHex,
         lockTime: lockTime,
-        transactionType: sparkParameters.transactionType,
-        spendVersion: sparkParameters.spendVersion,
+        spendVersion: spendVersion,
       );
       return spend.copyWith(sparkSpends: [spend]);
     }
@@ -714,7 +771,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           privateRecipientsCount: privateRecipientCount,
           utxoNum: transparentRecipientCount,
           additionalTxSize: 0,
-          spendVersion: sparkParameters.spendVersion,
+          spendVersion: spendVersion,
         ),
       );
       feeCache[key] = fee;
@@ -762,17 +819,16 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         }
       }
 
-      final spend = await _prepareSingleSparkSpend(
+      final spend = await _prepareSparkSpend(
         txData: txData.copyWith(
           recipients: batchTransparentRecipients,
           sparkRecipients: batchPrivateRecipients,
         ),
-        coin: coins[plan.coinIndex],
+        coins: [coins[plan.coinIndex]],
         subtractFeeFromAmount: false,
         privateKeyHex: privateKeyHex,
         lockTime: lockTime,
-        transactionType: sparkParameters.transactionType,
-        spendVersion: sparkParameters.spendVersion,
+        spendVersion: spendVersion,
       );
       if (spend.fee?.raw != plan.fee) {
         throw Exception("Spark transaction fee changed during creation.");
@@ -801,15 +857,17 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     );
   }
 
-  Future<TxData> _prepareSingleSparkSpend({
+  Future<TxData> _prepareSparkSpend({
     required TxData txData,
-    required SparkCoin coin,
+    required List<SparkCoin> coins,
     required bool subtractFeeFromAmount,
     required String privateKeyHex,
     required int lockTime,
-    required int transactionType,
-    required int spendVersion,
+    required LibSparkSpendVersion spendVersion,
   }) async {
+    if (coins.isEmpty) {
+      throw Exception("No spendable Spark coins found");
+    }
     if (!(txData.recipients?.isNotEmpty == true ||
         txData.sparkRecipients?.isNotEmpty == true)) {
       throw Exception("No recipients provided.");
@@ -856,7 +914,6 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         );
 
     final txAmount = transparentSumOut + sparkSumOut;
-    final coins = [coin];
     final isSendAll = subtractFeeFromAmount;
 
     // prepare coin data for ffi
@@ -926,7 +983,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
 
     final txb = btc.TransactionBuilder(network: _bitcoinDartNetwork);
     txb.setLockTime(lockTime);
-    txb.setVersion(_sparkTxVersion | (transactionType << 16));
+    txb.setVersion(spendVersion.transactionVersion);
 
     List<TxRecipient>? recipientsWithFeeSubtracted;
     List<({String address, Amount amount, String memo, bool isChange})>?
@@ -1069,8 +1126,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         sparkNameValidityBlocks: txData.sparkNameInfo!.validBlocks,
         name: txData.sparkNameInfo!.name,
         additionalInfo: txData.sparkNameInfo!.additionalInfo,
-        ownershipDigest: extractedTx.getId(),
-        spendVersion: spendVersion,
+        proofInput: _sparkNameProofInput(
+          spendVersion: spendVersion,
+          inputHex: extractedTx.getId(),
+        ),
         privateKeyHex: privateKeyHex,
         spendKeyIndex: sparkIndex,
         diversifier: txData.sparkNameInfo!.sparkAddress.derivationIndex,
@@ -1080,11 +1139,12 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       );
     }
 
-    final extensionCommitment = spendVersion == 2 && noProofNameTxData != null
+    final extensionCommitment =
+        spendVersion == .chaumV2 && noProofNameTxData != null
         ? libSpark.getSparkNameCommitment(
             serializedSparkNameData: noProofNameTxData.script,
           )
-        : Uint8List(32);
+        : null;
 
     final spend = await computeWithLibSparkLogging(_createSparkSend, (
       privateKeyHex: privateKeyHex,
@@ -1125,7 +1185,8 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       extensionCommitment: extensionCommitment,
     ));
 
-    if (spend.usedCoins.length != 1) {
+    if (spend.usedCoins.isEmpty ||
+        (!spendVersion.allowsMultipleInputs && spend.usedCoins.length != 1)) {
       throw Exception("Unable to create a single-input Spark transaction.");
     }
 
@@ -1155,8 +1216,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
             sparkNameValidityBlocks: txData.sparkNameInfo!.validBlocks,
             name: txData.sparkNameInfo!.name,
             additionalInfo: txData.sparkNameInfo!.additionalInfo,
-            ownershipDigest: hash,
-            spendVersion: spendVersion,
+            proofInput: _sparkNameProofInput(
+              spendVersion: spendVersion,
+              inputHex: hash,
+            ),
             privateKeyHex: privateKeyHex,
             spendKeyIndex: sparkIndex,
             diversifier: txData.sparkNameInfo!.sparkAddress.derivationIndex,
@@ -1166,7 +1229,8 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           );
           break;
         } catch (e) {
-          if (spendVersion == 2 || e.toString() != "Exception: hash fail") {
+          if (spendVersion == .chaumV2 ||
+              e.toString() != "Exception: hash fail") {
             rethrow;
           }
           hashFailSafe++;
@@ -1236,7 +1300,8 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         );
       }
     }
-    if (usedSparkCoins.length != 1) {
+    if (usedSparkCoins.isEmpty ||
+        (!spendVersion.allowsMultipleInputs && usedSparkCoins.length != 1)) {
       throw Exception("Unable to create a single-input Spark transaction.");
     }
 
@@ -1278,16 +1343,27 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
             (e) =>
                 e.raw == null ||
                 e.usedSparkCoins == null ||
-                e.usedSparkCoins!.length != 1,
+                e.usedSparkCoins!.isEmpty,
           )) {
-        throw Exception(
-          "Refusing to broadcast a non-single-input Spark transaction.",
-        );
+        throw Exception("Refusing to broadcast an invalid Spark transaction.");
+      }
+      for (final transaction in transactions) {
+        if (transaction.usedSparkCoins!.length > 1) {
+          final transactionVersion = btc.Transaction.fromHex(
+            transaction.raw!,
+          ).version;
+          if (!isChaumV2SparkTransactionVersion(transactionVersion)) {
+            throw Exception(
+              "Refusing to broadcast a multi-input Chaum V1 transaction.",
+            );
+          }
+        }
       }
       final coinIds = transactions
-          .map((e) => e.usedSparkCoins!.single.lTagHash)
-          .toSet();
-      if (coinIds.length != transactions.length) {
+          .expand((e) => e.usedSparkCoins!)
+          .map((e) => e.lTagHash)
+          .toList(growable: false);
+      if (coinIds.toSet().length != coinIds.length) {
         throw Exception(
           "A Spark coin cannot be used by multiple transactions.",
         );
@@ -1323,6 +1399,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           }
           rethrow;
         }
+      }
+
+      if (txData.sparkSpends == null) {
+        return confirmed.single;
       }
 
       return txData.copyWith(
@@ -2913,8 +2993,8 @@ _createSparkSend(
     List<({int setId, Uint8List blockHash})> idAndBlockHashes,
     Uint8List txHash,
     int additionalTxSize,
-    int spendVersion,
-    Uint8List extensionCommitment,
+    LibSparkSpendVersion spendVersion,
+    Uint8List? extensionCommitment,
   })
   args,
 ) async {
@@ -2985,7 +3065,7 @@ Future<int> _asyncSparkFeesWrapper({
   required int privateRecipientsCount,
   required int utxoNum,
   required int additionalTxSize,
-  required int spendVersion,
+  required LibSparkSpendVersion spendVersion,
 }) async {
   return await computeWithLibSparkLogging(_estSparkFeeComputeFunc, (
     privateKeyHex: privateKeyHex,
@@ -3010,7 +3090,7 @@ int _estSparkFeeComputeFunc(
     int privateRecipientsCount,
     int utxoNum,
     int additionalTxSize,
-    int spendVersion,
+    LibSparkSpendVersion spendVersion,
   })
   args,
 ) {

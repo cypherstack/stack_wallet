@@ -4,6 +4,34 @@ import 'package:logger/logger.dart';
 
 export '../generated/lib_spark_interface_impl.dart';
 
+enum LibSparkSpendVersion {
+  chaumV1(transactionType: 9),
+  chaumV2(transactionType: 11);
+
+  const LibSparkSpendVersion({required this.transactionType});
+
+  static const int baseTransactionVersion = 3;
+  final int transactionType;
+
+  int get transactionVersion =>
+      baseTransactionVersion | (transactionType << 16);
+
+  bool get allowsMultipleInputs => this == chaumV2;
+}
+
+final class LibSparkNameProofInput {
+  const LibSparkNameProofInput.chaumV1({required String scalarHex})
+    : spendVersion = .chaumV1,
+      inputHex = scalarHex;
+
+  const LibSparkNameProofInput.chaumV2({required String ownershipDigest})
+    : spendVersion = .chaumV2,
+      inputHex = ownershipDigest;
+
+  final LibSparkSpendVersion spendVersion;
+  final String inputHex;
+}
+
 abstract class LibSparkInterface {
   const LibSparkInterface();
 
@@ -31,12 +59,16 @@ abstract class LibSparkInterface {
     bool isTestNet = false,
   });
 
+  LibSparkSpendVersion getSpendVersionForBlockHeight({
+    required int nextBlockHeight,
+    required int chaumV2ActivationHeight,
+  });
+
   ({Uint8List script, int size}) createSparkNameScript({
     required int sparkNameValidityBlocks,
     required String name,
     required String additionalInfo,
-    required String ownershipDigest,
-    required int spendVersion,
+    required LibSparkNameProofInput proofInput,
     required String privateKeyHex,
     required int spendKeyIndex,
     required int diversifier,
@@ -133,8 +165,8 @@ abstract class LibSparkInterface {
     required List<({int setId, Uint8List blockHash})> idAndBlockHashes,
     required Uint8List txHash,
     required int additionalTxSize,
-    required int spendVersion,
-    required Uint8List extensionCommitment,
+    required LibSparkSpendVersion spendVersion,
+    Uint8List? extensionCommitment,
   });
 
   int estimateSparkFee({
@@ -154,7 +186,7 @@ abstract class LibSparkInterface {
     required int privateRecipientsCount,
     required int utxoNum,
     required int additionalTxSize,
-    required int spendVersion,
+    required LibSparkSpendVersion spendVersion,
   });
 }
 
