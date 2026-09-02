@@ -95,6 +95,9 @@ class MasternodeInfo {
 
 final kMasterNodeValue = Decimal.fromInt(1000); // full value (not sats)
 
+const _zeroTxid =
+    "0000000000000000000000000000000000000000000000000000000000000000";
+
 class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     with
         ElectrumXInterface<T>,
@@ -278,7 +281,10 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
 
         final txid = map["txid"] as String?;
         final vout = map["vout"] as int?;
-        if (coinbase == null && txid != null && vout != null) {
+        if (coinbase == null &&
+            txid != null &&
+            vout != null &&
+            txid != _zeroTxid) {
           txInputTxidsSet.add(txid);
         }
       }
@@ -992,7 +998,8 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     ).raw.toInt();
     if (collateralUtxo.value != expectedCollateralRaw) {
       throw Exception(
-        "Collateral outpoint must be exactly ${kMasterNodeValue.toString()} FIRO.",
+        "Collateral outpoint must be exactly "
+        "${kMasterNodeValue.toString()} FIRO.",
       );
     }
 
