@@ -72,7 +72,6 @@ import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/custom_loading_overlay.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/frost_scaffold.dart';
-import '../../widgets/icon_widgets/credit_card_icon.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/small_tor_icon.dart';
 import '../../widgets/stack_dialog.dart';
@@ -96,9 +95,8 @@ import '../coin_control/coin_control_view.dart';
 import '../epic_finalize_view/epic_finalize_view.dart';
 import '../exchange_view/wallet_initiated_exchange_view.dart';
 import '../finalize_view/finalize_view.dart';
+import '../masternodes/masternodes_home_view.dart';
 import '../monkey/monkey_view.dart';
-import '../more_view/gift_cards_view.dart';
-import '../more_view/services_view.dart';
 import '../namecoin_names/namecoin_names_home_view.dart';
 import '../notification_views/notifications_view.dart';
 import '../ordinals/ordinals_view.dart';
@@ -1207,27 +1205,27 @@ class _WalletViewState extends ConsumerState<WalletView> {
                           );
                         },
                       ),
-                    // if (!viewOnly && wallet is FiroWallet)
-                    //   WalletNavigationBarItemData(
-                    //     label: "Masternodes",
-                    //     icon: SvgPicture.asset(
-                    //       Assets.svg.recycle,
-                    //       height: 20,
-                    //       width: 20,
-                    //       colorFilter: ColorFilter.mode(
-                    //         Theme.of(
-                    //           context,
-                    //         ).extension<StackColors>()!.bottomNavIconIcon,
-                    //         BlendMode.srcIn,
-                    //       ),
-                    //     ),
-                    //     onTap: () {
-                    //       Navigator.of(context).pushNamed(
-                    //         MasternodesHomeView.routeName,
-                    //         arguments: widget.walletId,
-                    //       );
-                    //     },
-                    //   ),
+                    if (!viewOnly && wallet is FiroWallet)
+                      WalletNavigationBarItemData(
+                        label: "Masternodes",
+                        icon: SvgPicture.asset(
+                          Assets.svg.recycle,
+                          height: 20,
+                          width: 20,
+                          colorFilter: ColorFilter.mode(
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.bottomNavIconIcon,
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            MasternodesHomeView.routeName,
+                            arguments: widget.walletId,
+                          );
+                        },
+                      ),
                     if (wallet is NamecoinWallet)
                       WalletNavigationBarItemData(
                         label: "Domains",
@@ -1345,39 +1343,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
                             ChurningView.routeName,
                             arguments: walletId,
                           );
-                        },
-                      ),
-                    if (!viewOnly && AppConfig.hasFeature(.shopinBit))
-                      WalletNavigationBarItemData(
-                        label: "Services",
-                        icon: SvgPicture.asset(
-                          Assets.svg.solidSliders,
-                          height: 20,
-                          width: 20,
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.bottomNavIconIcon,
-                        ),
-                        onTap: () {
-                          Navigator.of(
-                            context,
-                          ).pushNamed(ServicesView.routeName);
-                        },
-                      ),
-                    if (AppConfig.hasFeature(.cakePay))
-                      WalletNavigationBarItemData(
-                        label: "Gift cards",
-                        icon: CreditCardIcon(
-                          height: 20,
-                          width: 20,
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.bottomNavIconIcon,
-                        ),
-                        onTap: () {
-                          Navigator.of(
-                            context,
-                          ).pushNamed(GiftCardsView.routeName);
                         },
                       ),
                   ],

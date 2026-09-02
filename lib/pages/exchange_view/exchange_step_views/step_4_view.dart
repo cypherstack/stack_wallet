@@ -295,6 +295,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                 "${model.trade!.payInCurrency.toUpperCase()}/"
                 "${model.trade!.payOutCurrency.toUpperCase()} exchange",
           ),
+          requireChaumV2: true,
         );
       } else {
         final memo = wallet.info.coin is Stellar

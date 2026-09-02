@@ -2,15 +2,13 @@ import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
 
-import "../../../models/shopinbit/shopinbit_order_model.dart";
-import "../../../providers/db/drift_provider.dart";
+import "../../../models/shopinbit/shopinbit_request_draft.dart";
 import "../../../providers/global/shopin_bit_service_provider.dart";
 import "../../../utilities/text_styles.dart";
 import "../../../utilities/util.dart";
 import "../../../widgets/date_picker/date_picker.dart";
 import "../../../widgets/textfields/adaptive_text_field.dart";
 import "shopinbit_country_picker.dart";
-import "shopinbit_labeled_checkbox.dart";
 import "shopinbit_privacy_checkbox.dart";
 import "shopinbit_step4_dropdown.dart";
 import "shopinbit_step4_header.dart";
@@ -18,39 +16,7 @@ import "shopinbit_step4_submit.dart";
 import "shopinbit_step4_submit_button.dart";
 import "shopinbit_traveler_counter.dart";
 
-const String _exactDates = "Exact dates";
-const String _flexibleDates = "Flexible dates";
-
-const List<String> _arrangements = [
-  "Flights Only",
-  "Hotels Only",
-  "Flights + Hotels",
-  "Full Service",
-];
-
-const List<String> _dateModes = [_exactDates, _flexibleDates];
-
-const List<String> _flexibilities = [
-  "Exact",
-  "\u00B1 1 day",
-  "\u00B1 2-3 days",
-  "+ 1 week",
-];
-
-const List<String> _months = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
+const List<String> _arrangements = ["Flights Only", "Hotels Only"];
 
 const int _minTravelBudget = 1000;
 const int _minArrangementDetailsLength = 10;
@@ -59,9 +25,7 @@ const int _minArrangementDetailsLength = 10;
 /// dates (either exact or flexible), travelers and budget, then submits via
 /// the shared submit helper.
 class ShopInBitTravelForm extends ConsumerStatefulWidget {
-  const ShopInBitTravelForm({super.key, required this.model});
-
-  final ShopInBitOrderModel model;
+  const ShopInBitTravelForm({super.key});
 
   @override
   ConsumerState<ShopInBitTravelForm> createState() =>
@@ -86,10 +50,6 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
   DateTime? _departureDate;
   DateTime? _returnDate;
 
-  final TextEditingController _tripLengthController = TextEditingController();
-  final FocusNode _tripLengthFocusNode = FocusNode();
-  bool _tripLengthTouched = false;
-
   final TextEditingController _travelBudgetController = TextEditingController(
     text: "5000",
   );
@@ -98,11 +58,6 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
 
   String? _selectedArrangement;
   String? _selectedDepartureCountryIso;
-  String? _selectedDateMode;
-  String? _selectedFlexibility;
-  String? _selectedYear;
-  String? _selectedMonthSeason;
-  bool _needsRecommendations = false;
 
   int _adults = 1;
   int _children = 0;
@@ -124,7 +79,6 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
       () => _departureCityTouched = true,
     );
     _wireTouchOnBlur(_destinationsFocusNode, () => _destinationsTouched = true);
-    _wireTouchOnBlur(_tripLengthFocusNode, () => _tripLengthTouched = true);
     _wireTouchOnBlur(_travelBudgetFocusNode, () => _travelBudgetTouched = true);
   }
 
@@ -143,21 +97,12 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
     _departureCityFocusNode.dispose();
     _destinationsController.dispose();
     _destinationsFocusNode.dispose();
-    _tripLengthController.dispose();
-    _tripLengthFocusNode.dispose();
     _travelBudgetController.dispose();
     _travelBudgetFocusNode.dispose();
     super.dispose();
   }
 
-  bool get _hasValidDates => switch (_selectedDateMode) {
-    _flexibleDates =>
-      _selectedYear != null &&
-          _selectedMonthSeason != null &&
-          _tripLengthController.text.trim().isNotEmpty,
-    _exactDates => _departureDate != null && _returnDate != null,
-    _ => false,
-  };
+  bool get _hasValidDates => _departureDate != null && _returnDate != null;
 
   bool get _canContinue {
     final int? travelBudgetValue = int.tryParse(
@@ -170,9 +115,7 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
             _minArrangementDetailsLength &&
         _selectedDepartureCountryIso != null &&
         _departureCityController.text.trim().isNotEmpty &&
-        (_needsRecommendations ||
-            _destinationsController.text.trim().isNotEmpty) &&
-        _selectedDateMode != null &&
+        _destinationsController.text.trim().isNotEmpty &&
         _hasValidDates &&
         _adults >= 1 &&
         travelBudgetValue != null &&
@@ -190,30 +133,15 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
       "Arrangement: $_selectedArrangement",
       "Details: ${_arrangementDetailsController.text.trim()}",
       "Departure: ${_departureCityController.text.trim()}, "
-          "${_selectedDepartureCountryIso ?? ''}",
+          "${_selectedDepartureCountryIso!}",
     ];
 
-    if (_needsRecommendations) {
-      parts.add("Destinations: Recommendations requested");
-    } else {
-      parts.add("Destinations: ${_destinationsController.text.trim()}");
-    }
+    parts.add("Destinations: ${_destinationsController.text.trim()}");
 
-    if (_selectedDateMode == _exactDates) {
-      final String flex =
-          _selectedFlexibility != null && _selectedFlexibility != "Exact"
-          ? " ($_selectedFlexibility)"
-          : "";
-      parts.add(
-        "Dates: ${_formatDate(_departureDate!)} - "
-        "${_formatDate(_returnDate!)}$flex",
-      );
-    } else if (_selectedDateMode == _flexibleDates) {
-      parts.add(
-        "Dates: $_selectedMonthSeason $_selectedYear, "
-        "${_tripLengthController.text.trim()} nights",
-      );
-    }
+    parts.add(
+      "Dates: ${_formatDate(_departureDate!)} - "
+      "${_formatDate(_returnDate!)}",
+    );
 
     final List<String> travelers = ["$_adults adult${_adults > 1 ? 's' : ''}"];
     if (_children > 0) {
@@ -234,19 +162,19 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
 
   Future<void> _submit() async {
     setState(() => _submitting = true);
-    widget.model
-      ..requestDescription = _buildRequestDescription()
+    final draft = ShopinbitRequestDraft(
+      category: .travel,
+      requestDescription: _buildRequestDescription(),
       // Travel doesn't collect a delivery country: default to "DE" since the
       // API requires the field. Travel destinations are captured in the
       // structured comment field.
-      ..deliveryCountry = "DE";
+      deliveryCountryCode: "DE",
+      voucherCode: null,
+      deliveryCountryName: "Germany",
+      deliveryState: null,
+    );
     try {
-      await submitShopInBitRequest(
-        context,
-        widget.model,
-        ref.read(pShopinBitService),
-        ref.read(pSharedDrift),
-      );
+      await submitShopInBitRequest(context, draft, ref.read(pShopinBitService));
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -269,14 +197,7 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
         : null;
 
     final String? destinationsError =
-        _destinationsTouched &&
-            !_needsRecommendations &&
-            _destinationsController.text.trim().isEmpty
-        ? "Required (or check 'I need recommendations')"
-        : null;
-
-    final String? tripLengthError =
-        _tripLengthTouched && _tripLengthController.text.trim().isEmpty
+        _destinationsTouched && _destinationsController.text.trim().isEmpty
         ? "Required"
         : null;
 
@@ -289,8 +210,6 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
                 travelBudgetValue < _minTravelBudget)
         ? "Minimum budget is 1,000 EUR"
         : null;
-
-    final int currentYear = DateTime.now().year;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -309,28 +228,15 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
           hintText: "Arrangement type",
           onChanged: (value) => setState(() => _selectedArrangement = value),
         ),
-        SizedBox(height: isDesktop ? 24 : 16),
-        AdaptiveTextField(
-          controller: _arrangementDetailsController,
-          focusNode: _arrangementDetailsFocusNode,
-          labelText:
-              "Describe your specific requirements "
-              "(luggage, cabin class, hotel stars, etc.)",
-          minLines: 3,
-          maxLines: 6,
-          autocorrect: false,
-          enableSuggestions: false,
-          errorText: arrangementDetailsError,
-          onChanged: (_) => setState(() {}),
-        ),
 
         SizedBox(height: isDesktop ? 24 : 16),
         _TravelSectionLabel(text: "Where", isDesktop: isDesktop),
         SizedBox(height: isDesktop ? 12 : 8),
         ShopInBitCountryPicker(
           selectedIso: _selectedDepartureCountryIso,
-          onChanged: (iso) =>
-              setState(() => _selectedDepartureCountryIso = iso),
+          onChanged: (data) => setState(() {
+            _selectedDepartureCountryIso = data?.code;
+          }),
           hintText: "Departure country",
         ),
         SizedBox(height: isDesktop ? 24 : 16),
@@ -347,80 +253,28 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
         AdaptiveTextField(
           controller: _destinationsController,
           focusNode: _destinationsFocusNode,
-          labelText: "Destination city",
-          enabled: !_needsRecommendations,
+          labelText: "Destination (City, Country, Region)",
           autocorrect: false,
           enableSuggestions: false,
           errorText: destinationsError,
           onChanged: (_) => setState(() {}),
         ),
-        SizedBox(height: isDesktop ? 16 : 12),
-        ShopInBitLabeledCheckbox(
-          value: _needsRecommendations,
-          onChanged: (v) => setState(() => _needsRecommendations = v),
-          label: "I need recommendations",
-        ),
 
         SizedBox(height: isDesktop ? 24 : 16),
         _TravelSectionLabel(text: "When", isDesktop: isDesktop),
         SizedBox(height: isDesktop ? 12 : 8),
-        ShopInBitStep4Dropdown(
-          value: _selectedDateMode,
-          items: _dateModes,
-          hintText: "Date mode",
-          onChanged: (value) => setState(() => _selectedDateMode = value),
+        StackDateRangePicker(
+          fromDate: _departureDate,
+          toDate: _returnDate,
+          firstDate: DateTime.now(),
+          lastDate: DateTime.now().add(const Duration(days: 3650)),
+          onChanged: (from, to) {
+            setState(() {
+              _departureDate = from;
+              _returnDate = to;
+            });
+          },
         ),
-        SizedBox(height: isDesktop ? 24 : 16),
-
-        if (_selectedDateMode == _exactDates) ...[
-          StackDateRangePicker(
-            fromDate: _departureDate,
-            toDate: _returnDate,
-            firstDate: DateTime.now(),
-            lastDate: DateTime.now().add(const Duration(days: 3650)),
-            onChanged: (from, to) {
-              setState(() {
-                _departureDate = from;
-                _returnDate = to;
-              });
-            },
-          ),
-          SizedBox(height: isDesktop ? 24 : 16),
-          ShopInBitStep4Dropdown(
-            value: _selectedFlexibility,
-            items: _flexibilities,
-            hintText: "Flexibility",
-            onChanged: (value) => setState(() => _selectedFlexibility = value),
-          ),
-        ],
-
-        if (_selectedDateMode == _flexibleDates) ...[
-          ShopInBitStep4Dropdown(
-            value: _selectedYear,
-            items: ["$currentYear", "${currentYear + 1}"],
-            hintText: "Year",
-            onChanged: (value) => setState(() => _selectedYear = value),
-          ),
-          SizedBox(height: isDesktop ? 24 : 16),
-          ShopInBitStep4Dropdown(
-            value: _selectedMonthSeason,
-            items: _months,
-            hintText: "Month",
-            onChanged: (value) => setState(() => _selectedMonthSeason = value),
-          ),
-          SizedBox(height: isDesktop ? 24 : 16),
-          AdaptiveTextField(
-            controller: _tripLengthController,
-            focusNode: _tripLengthFocusNode,
-            labelText: "Number of nights",
-            keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            autocorrect: false,
-            enableSuggestions: false,
-            errorText: tripLengthError,
-            onChanged: (_) => setState(() {}),
-          ),
-        ],
 
         SizedBox(height: isDesktop ? 24 : 16),
         _TravelSectionLabel(text: "Who", isDesktop: isDesktop),
@@ -463,6 +317,19 @@ class _ShopInBitTravelFormState extends ConsumerState<ShopInBitTravelForm> {
           autocorrect: false,
           enableSuggestions: false,
           errorText: travelBudgetError,
+          onChanged: (_) => setState(() {}),
+        ),
+
+        SizedBox(height: isDesktop ? 24 : 16),
+        AdaptiveTextField(
+          controller: _arrangementDetailsController,
+          focusNode: _arrangementDetailsFocusNode,
+          labelText: "Describe your travel needs or paste a LINK here",
+          minLines: 3,
+          maxLines: 6,
+          autocorrect: false,
+          enableSuggestions: false,
+          errorText: arrangementDetailsError,
           onChanged: (_) => setState(() {}),
         ),
 

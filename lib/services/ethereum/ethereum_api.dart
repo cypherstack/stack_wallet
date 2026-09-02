@@ -256,7 +256,7 @@ abstract class EthereumAPI {
       throw response.exception!;
     }
 
-    return EthFeeObject(
+    final fees = EthFeeObject(
       suggestBaseFee: response.value!.suggestBaseFee.shift(9).toBigInt(),
       numberOfBlocksFast: response.value!.numberOfBlocksFast,
       numberOfBlocksAverage: response.value!.numberOfBlocksAverage,
@@ -265,6 +265,8 @@ abstract class EthereumAPI {
       medium: response.value!.average.shift(9).toBigInt(),
       slow: response.value!.low.shift(9).toBigInt(),
     );
+    Logging.instance.t(fees);
+    return fees;
   }
 
   static Future<void> _addContractInfoToServer(String contractAddress) async {

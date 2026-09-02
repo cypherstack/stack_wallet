@@ -1,16 +1,18 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 
-import '../../../models/shopinbit/shopinbit_order_model.dart';
+import '../../../db/drift/shared_db/shared_database.dart';
+import '../../../models/shopinbit/shopinbit_enums.dart';
+import '../../../models/shopinbit/shopinbit_request_draft.dart';
 import '../../../pages/cakepay/cakepay_card_detail_view.dart';
 import '../../../pages/cakepay/cakepay_order_view.dart';
 import '../../../pages/cakepay/cakepay_orders_view.dart';
 import '../../../pages/cakepay/cakepay_vendors_view.dart';
 import '../../../pages/shopinbit/shopinbit_car_fee_view.dart';
 import '../../../pages/shopinbit/shopinbit_car_research_payment_view.dart';
+import '../../../pages/shopinbit/shopinbit_offer_view.dart';
 import '../../../pages/shopinbit/shopinbit_order_created.dart';
-import '../../../pages/shopinbit/shopinbit_step_1.dart';
+import '../../../pages/shopinbit/shopinbit_payment_view.dart';
+import '../../../pages/shopinbit/shopinbit_shipping_view.dart';
 import '../../../pages/shopinbit/shopinbit_step_2.dart';
 import '../../../pages/shopinbit/shopinbit_step_3.dart';
 import '../../../pages/shopinbit/shopinbit_step_4.dart';
@@ -32,43 +34,29 @@ abstract final class NestedNavigatorDialogRouteGenerator {
 
     switch (settings.name) {
       case DesktopShopinBitFirstRun.routeName:
-        if (args is ShopInBitOrderModel) {
-          return getRoute(
-            builder: (_) => DesktopShopinBitFirstRun(model: args),
-            settings: RouteSettings(name: settings.name),
-          );
-        }
-        return _routeError(
-          "${settings.name} invalid args\n"
-          "Got ${args.runtimeType}\n"
-          "Expected ShopInBitOrderModel",
-        );
-
-      case ShopInBitStep1.routeName:
-        if (args is ShopInBitOrderModel) {
-          return getRoute(
-            builder: (_) => ShopInBitStep1(model: args),
-            settings: RouteSettings(name: settings.name),
-          );
-        }
-        return _routeError(
-          "${settings.name} invalid args\n"
-          "Got ${args.runtimeType}\n"
-          "Expected ShopInBitOrderModel",
+        return getRoute(
+          builder: (_) => const DesktopShopinBitFirstRun(),
+          settings: RouteSettings(name: settings.name),
         );
 
       case ShopInBitStep2.routeName:
-        if (args is ShopInBitOrderModel) {
+        if (args is bool) {
           return getRoute(
-            builder: (_) => ShopInBitStep2(model: args),
+            builder: (_) => ShopInBitStep2(isActuallyFirstStep: args),
             settings: RouteSettings(name: settings.name),
           );
         }
-        if (args is ({ShopInBitOrderModel model, bool isActuallyFirstStep})) {
+        return getRoute(
+          builder: (_) => const ShopInBitStep2(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case ShopInBitStep3.routeName:
+        if (args is ({ShopInBitCategory category, String customerKey})) {
           return getRoute(
-            builder: (_) => ShopInBitStep2(
-              model: args.model,
-              isActuallyFirstStep: args.isActuallyFirstStep,
+            builder: (_) => ShopInBitStep3(
+              category: args.category,
+              customerKey: args.customerKey,
             ),
             settings: RouteSettings(name: settings.name),
           );
@@ -76,33 +64,20 @@ abstract final class NestedNavigatorDialogRouteGenerator {
         return _routeError(
           "${settings.name} invalid args\n"
           "Got ${args.runtimeType}\n"
-          "Expected ShopInBitOrderModel",
-        );
-
-      case ShopInBitStep3.routeName:
-        if (args is ShopInBitOrderModel) {
-          return getRoute(
-            builder: (_) => ShopInBitStep3(model: args),
-            settings: RouteSettings(name: settings.name),
-          );
-        }
-        return _routeError(
-          "${settings.name} invalid args\n"
-          "Got ${args.runtimeType}\n"
-          "Expected ShopInBitOrderModel",
+          "Expected ({ShopInBitCategory category, String customerKey})",
         );
 
       case ShopInBitStep4.routeName:
-        if (args is ShopInBitOrderModel) {
+        if (args is ShopInBitCategory) {
           return getRoute(
-            builder: (_) => ShopInBitStep4(model: args),
+            builder: (_) => ShopInBitStep4(category: args),
             settings: RouteSettings(name: settings.name),
           );
         }
         return _routeError(
           "${settings.name} invalid args\n"
           "Got ${args.runtimeType}\n"
-          "Expected ShopInBitOrderModel",
+          "Expected ShopInBitCategory",
         );
 
       case ShopInBitTicketsView.routeName:
@@ -112,37 +87,37 @@ abstract final class NestedNavigatorDialogRouteGenerator {
         );
 
       case ShopInBitOrderCreated.routeName:
-        if (args is ShopInBitOrderModel) {
+        if (args is int) {
           return getRoute(
-            builder: (_) => ShopInBitOrderCreated(model: args),
+            builder: (_) => ShopInBitOrderCreated(apiTicketId: args),
             settings: RouteSettings(name: settings.name),
           );
         }
         return _routeError(
           "${settings.name} invalid args\n"
           "Got ${args.runtimeType}\n"
-          "Expected ShopInBitOrderModel",
+          "Expected int apiTicketId",
         );
 
       case ShopInBitCarFeeView.routeName:
-        if (args is ShopInBitOrderModel) {
+        if (args is ShopinbitRequestDraft) {
           return getRoute(
-            builder: (_) => ShopInBitCarFeeView(model: args),
+            builder: (_) => ShopInBitCarFeeView(draft: args),
             settings: RouteSettings(name: settings.name),
           );
         }
         return _routeError(
           "${settings.name} invalid args\n"
           "Got ${args.runtimeType}\n"
-          "Expected ShopInBitOrderModel",
+          "Expected ShopinbitRequestDraft",
         );
 
       case ShopInBitCarResearchPaymentView.routeName:
-        if (args is (ShopInBitOrderModel, CarResearchInvoice)) {
+        if (args is ({CarResearchInvoice invoice, String customerKey})) {
           return getRoute(
             builder: (_) => ShopInBitCarResearchPaymentView(
-              model: args.$1,
-              invoice: args.$2,
+              invoice: args.invoice,
+              customerKey: args.customerKey,
             ),
             settings: RouteSettings(name: settings.name),
           );
@@ -150,20 +125,70 @@ abstract final class NestedNavigatorDialogRouteGenerator {
         return _routeError(
           "${settings.name} invalid args\n"
           "Got ${args.runtimeType}\n"
-          "Expected ({ShopInBitOrderModel model, CarResearchInvoice invoice})",
+          "Expected CarResearchInvoice",
         );
 
       case ShopInBitTicketDetail.routeName:
-        if (args is ShopInBitOrderModel) {
+        if (args is int) {
           return getRoute(
-            builder: (_) => ShopInBitTicketDetail(model: args),
+            builder: (_) => ShopInBitTicketDetail(apiTicketId: args),
             settings: RouteSettings(name: settings.name),
           );
         }
         return _routeError(
           "${settings.name} invalid args\n"
           "Got ${args.runtimeType}\n"
-          "Expected ShopInBitOrderModel",
+          "Expected int apiTicketId",
+        );
+
+      case ShopInBitOfferView.routeName:
+        if (args is int) {
+          return getRoute(
+            builder: (_) => ShopInBitOfferView(apiTicketId: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError(
+          "${settings.name} invalid args\n"
+          "Got ${args.runtimeType}\n"
+          "Expected int apiTicketId",
+        );
+
+      case ShopInBitShippingView.routeName:
+        if (args
+            is ({
+              ShopInBitTicket ticket,
+              List<Map<String, dynamic>> countries,
+            })) {
+          return getRoute(
+            builder: (_) => ShopInBitShippingView(
+              ticket: args.ticket,
+              countries: args.countries,
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError(
+          "${settings.name} invalid args\n"
+          "Got ${args.runtimeType}\n"
+          "Expected ({int apiTicketId, String deliveryCountry, "
+          "List<Map<String, dynamic>> countries})",
+        );
+
+      case ShopInBitPaymentView.routeName:
+        if (args is ({int apiTicketId, PaymentInfo paymentInfo})) {
+          return getRoute(
+            builder: (_) => ShopInBitPaymentView(
+              apiTicketId: args.apiTicketId,
+              paymentInfo: args.paymentInfo,
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError(
+          "${settings.name} invalid args\n"
+          "Got ${args.runtimeType}\n"
+          "Expected ({int apiTicketId, PaymentInfo paymentInfo})",
         );
 
       case CakePayVendorsView.routeName:

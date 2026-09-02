@@ -11,7 +11,9 @@
 import 'package:flutter/material.dart';
 
 import '../services/exchange/change_now/change_now_exchange.dart';
+import '../services/exchange/cyphergoat/cyphergoat_exchange.dart';
 import '../services/exchange/exolix/exolix_exchange.dart';
+import '../services/exchange/lets_exchange/lets_exchange_exchange.dart';
 import '../services/exchange/nanswap/nanswap_exchange.dart';
 import '../services/exchange/simpleswap/simpleswap_exchange.dart';
 import '../services/exchange/trocador/trocador_exchange.dart';
@@ -52,6 +54,9 @@ class _EXCHANGE {
   String get wizard => "${_path}wizard.svg";
 
   String get exolix => "${_path}exolix.png";
+  String get cypherGoat => "${_path}cyphergoat.svg";
+
+  String get letsexchange => "${_path}letsexchange.svg";
 
   String getIconFor({required String exchangeName}) {
     switch (exchangeName) {
@@ -69,6 +74,10 @@ class _EXCHANGE {
         return wizard;
       case ExolixExchange.exchangeName:
         return exolix;
+      case CypherGoatExchange.exchangeName:
+        return cypherGoat;
+      case LetsExchangeExchange.exchangeName:
+        return letsexchange;
       default:
         throw ArgumentError(
           "Invalid exchange name passed to "
@@ -243,6 +252,8 @@ class _SVG {
   String get trocadorRatingD => "assets/svg/trocador_rating_d.svg";
 
   String get spark => "assets/svg/spark.svg";
+
+  String get sib => "assets/svg/sib.svg";
 }
 
 class _PNG {

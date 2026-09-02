@@ -9,7 +9,9 @@ import 'package:tuple/tuple.dart';
 
 import '../../models/isar/models/blockchain_data/utxo.dart';
 import '../../models/send_view_auto_fill_data.dart';
+import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_send.dart';
 import '../../providers/global/wallets_provider.dart';
+import '../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/assets.dart';
@@ -21,6 +23,8 @@ import '../../wallets/isar/models/wallet_info.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_app_bar.dart';
+import '../../widgets/desktop/desktop_dialog.dart';
+import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/desktop_scaffold.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
@@ -29,9 +33,7 @@ import '../../widgets/loading_indicator.dart';
 import '../../widgets/stack_dialog.dart';
 import '../send_view/send_view.dart';
 import 'create_masternode_view.dart';
-import 'masternode_constants.dart';
 import 'sub_widgets/masternodes_list.dart';
-import 'sub_widgets/masternodes_table_desktop.dart';
 
 class MasternodesHomeView extends ConsumerStatefulWidget {
   const MasternodesHomeView({super.key, required this.walletId});
@@ -79,6 +81,16 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
     );
   }
 
+  Future<Set<String>> _registeredCollateral() async {
+    try {
+      return (await _masternodesFuture)
+          .map((e) => "${e.collateralHash}:${e.collateralIndex}")
+          .toSet();
+    } catch (_) {
+      return {};
+    }
+  }
+
   Future<({String txid, int vout, String address})?>
   _findCollateralUtxo() async {
     final wallet = ref.read(pWallets).getWallet(widget.walletId) as FiroWallet;
@@ -86,6 +98,7 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
         .getUTXOs(widget.walletId)
         .findAll();
     final currentChainHeight = await wallet.chainHeight;
+    final registered = await _registeredCollateral();
     final masternodeRaw = Amount.fromDecimal(
       kMasterNodeValue,
       fractionDigits: wallet.cryptoCurrency.fractionDigits,
@@ -95,6 +108,7 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
       if (utxo.value == masternodeRaw &&
           !utxo.isBlocked &&
           utxo.used != true &&
+          !registered.contains("${utxo.txid}:${utxo.vout}") &&
           utxo.isConfirmed(
             currentChainHeight,
             wallet.cryptoCurrency.minConfirms,
@@ -379,35 +393,41 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
         return;
       }
 
-      if (Util.isDesktop) {
-        final txid = await showDialog<Object>(
-          context: context,
-          barrierDismissible: true,
-          builder: (context) => SDialog(
-            child: CreateMasternodeView(
-              firoWalletId: widget.walletId,
-              collateralTxid: collateral.txid,
-              collateralVout: collateral.vout,
-              collateralAddress: collateral.address,
-            ),
-          ),
-        );
-        _handleSuccessTxid(txid);
-      } else {
-        final txid = await Navigator.of(context).pushNamed(
-          CreateMasternodeView.routeName,
-          arguments: {
-            'walletId': widget.walletId,
-            'collateralTxid': collateral.txid,
-            'collateralVout': collateral.vout,
-            'collateralAddress': collateral.address,
-          },
-        );
-        _handleSuccessTxid(txid);
-      }
+      await _openCreateMasternode(collateral);
     } finally {
       _createMasternodeLock = false;
     }
+  }
+
+  Future<void> _openCreateMasternode(
+    ({String txid, int vout, String address}) collateral,
+  ) async {
+    final Object? txid;
+    if (Util.isDesktop) {
+      txid = await showDialog<Object>(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => SDialog(
+          child: CreateMasternodeView(
+            firoWalletId: widget.walletId,
+            collateralTxid: collateral.txid,
+            collateralVout: collateral.vout,
+            collateralAddress: collateral.address,
+          ),
+        ),
+      );
+    } else {
+      txid = await Navigator.of(context).pushNamed(
+        CreateMasternodeView.routeName,
+        arguments: {
+          'walletId': widget.walletId,
+          'collateralTxid': collateral.txid,
+          'collateralVout': collateral.vout,
+          'collateralAddress': collateral.address,
+        },
+      );
+    }
+    _handleSuccessTxid(txid);
   }
 
   Future<void> _openCreateCollateralSendFlow(
@@ -424,23 +444,57 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
       return;
     }
 
-    await Navigator.of(context).pushNamed(
-      SendView.routeName,
-      arguments: Tuple3(
-        widget.walletId,
-        wallet.cryptoCurrency,
-        SendViewAutoFillData(
-          address: selfAddress.value,
-          contactLabel: "My FIRO address",
-          amount: fromPrivate
-              ? (unshieldAmount ?? kMasterNodeValue)
-              : kMasterNodeValue,
-          note: fromPrivate
-              ? MasternodeCollateralNotes.unshield
-              : MasternodeCollateralNotes.prep,
-        ),
-      ),
+    ref.read(publicPrivateBalanceStateProvider.state).state = fromPrivate
+        ? BalanceType.private
+        : BalanceType.public;
+
+    final ticker = wallet.cryptoCurrency.ticker;
+    final autoFillData = SendViewAutoFillData(
+      address: selfAddress.value,
+      contactLabel: selfAddress.value,
+      amount: fromPrivate
+          ? (unshieldAmount ?? kMasterNodeValue)
+          : kMasterNodeValue,
     );
+
+    if (Util.isDesktop) {
+      await showDialog<void>(
+        context: context,
+        builder: (context) => DesktopDialog(
+          maxWidth: 580,
+          maxHeight: double.infinity,
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: .spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 32),
+                    child: Text(
+                      "Send $ticker",
+                      style: STextStyles.desktopH3(context),
+                    ),
+                  ),
+                  const DesktopDialogCloseButton(),
+                ],
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 32, right: 32, bottom: 32),
+                child: DesktopSend(
+                  walletId: widget.walletId,
+                  autoFillData: autoFillData,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    } else {
+      await Navigator.of(context).pushNamed(
+        SendView.routeName,
+        arguments: Tuple3(widget.walletId, wallet.cryptoCurrency, autoFillData),
+      );
+    }
   }
 
   Future<void> _maybePromptForExistingCollateral() async {
@@ -473,6 +527,8 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
           message:
               "A 1000 FIRO collateral UTXO was found in your wallet. "
               "Would you like to register a masternode now?",
+          width: Util.isDesktop ? 580 : null,
+          padding: .all(Util.isDesktop ? 32 : 24),
           leftButton: TextButton(
             style: Theme.of(
               ctx,
@@ -495,48 +551,28 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
         ),
       );
 
-      if (wantsMN == false || wantsMN == null) {
+      if (wantsMN != true) {
         await _persistDismissedCollateral(
           wallet,
           collateral.txid,
           collateral.vout,
         );
-      }
-
-      if (wantsMN != true || !mounted) {
         return;
       }
 
-      if (Util.isDesktop) {
-        final txid = await showDialog<Object>(
-          context: context,
-          barrierDismissible: true,
-          builder: (context) => SDialog(
-            child: CreateMasternodeView(
-              firoWalletId: widget.walletId,
-              collateralTxid: collateral.txid,
-              collateralVout: collateral.vout,
-              collateralAddress: collateral.address,
-            ),
-          ),
-        );
-        _handleSuccessTxid(txid);
-      } else {
-        final txid = await Navigator.of(context).pushNamed(
-          CreateMasternodeView.routeName,
-          arguments: {
-            'walletId': widget.walletId,
-            'collateralTxid': collateral.txid,
-            'collateralVout': collateral.vout,
-            'collateralAddress': collateral.address,
-          },
-        );
-        _handleSuccessTxid(txid);
+      if (!mounted) {
+        return;
       }
+
+      await _openCreateMasternode(collateral);
     } finally {
       _isCheckingForCollateral = false;
     }
   }
+
+  Future<List<MasternodeInfo>> _fetchMasternodes() =>
+      (ref.read(pWallets).getWallet(widget.walletId) as FiroWallet)
+          .getMyMasternodes();
 
   void _handleSuccessTxid(Object? txid) {
     Logging.instance.i(
@@ -544,21 +580,21 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
     );
     if (mounted && txid is String) {
       setState(() {
-        _masternodesFuture =
-            (ref.read(pWallets).getWallet(widget.walletId) as FiroWallet)
-                .getMyMasternodes();
+        _masternodesFuture = _fetchMasternodes();
       });
 
-      showDialog<void>(
-        context: context,
-        builder: (_) => StackOkDialog(
-          title: "Masternode Registration Submitted",
-          message:
-              "Masternode registration submitted, your masternode will "
-              "appear in the list after the tx is confirmed.\n\nTransaction"
-              " ID: $txid",
-          desktopPopRootNavigator: Util.isDesktop,
-          maxWidth: Util.isDesktop ? 400 : null,
+      unawaited(
+        showDialog<void>(
+          context: context,
+          builder: (_) => StackOkDialog(
+            title: "Masternode Registration Submitted",
+            message:
+                "Masternode registration submitted, your masternode will "
+                "appear in the list after the tx is confirmed.\n\nTransaction"
+                " ID: $txid",
+            desktopPopRootNavigator: Util.isDesktop,
+            maxWidth: Util.isDesktop ? 400 : null,
+          ),
         ),
       );
     }
@@ -568,9 +604,7 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
   void initState() {
     super.initState();
 
-    _masternodesFuture =
-        (ref.read(pWallets).getWallet(widget.walletId) as FiroWallet)
-            .getMyMasternodes();
+    _masternodesFuture = _fetchMasternodes();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(_maybePromptForExistingCollateral());
@@ -693,58 +727,67 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
             return const Center(child: LoadingIndicator(height: 50, width: 50));
           }
           if (snapshot.hasError) {
-            return Center(
-              child: Text(
-                "Failed to load masternodes",
-                style: STextStyles.w600_14(context),
-              ),
+            return _CenteredMessage(
+              message: "Failed to load masternodes",
+              buttonLabel: "Retry",
+              onPressed: () =>
+                  setState(() => _masternodesFuture = _fetchMasternodes()),
             );
           }
           final nodes = snapshot.data ?? const <MasternodeInfo>[];
           if (nodes.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "No masternodes found",
-                    style: STextStyles.w600_14(context),
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisSize: .min,
-                    mainAxisAlignment: .center,
-                    children: [
-                      PrimaryButton(
-                        label: "Create Your First Masternode",
-                        horizontalContentPadding: 16,
-                        buttonHeight: Util.isDesktop ? .l : null,
-                        onPressed: _createMasternode,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+            return _CenteredMessage(
+              message: "No masternodes found",
+              buttonLabel: "Create Your First Masternode",
+              onPressed: _createMasternode,
             );
           }
 
-          if (Util.isDesktop) {
-            return MasternodesTableDesktop(nodes: nodes);
-          } else {
-            return MasternodesList(nodes: nodes);
-          }
+          return MasternodesList(nodes: nodes);
         },
       ),
     );
   }
 }
 
-class _OpenSendDialog extends StatelessWidget {
-  const _OpenSendDialog({
-    super.key,
-    required this.title,
+class _CenteredMessage extends StatelessWidget {
+  const _CenteredMessage({
     required this.message,
+    required this.buttonLabel,
+    required this.onPressed,
   });
+
+  final String message, buttonLabel;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: .center,
+        children: [
+          Text(message, style: STextStyles.w600_14(context)),
+          const SizedBox(height: 24),
+          Row(
+            mainAxisSize: .min,
+            mainAxisAlignment: .center,
+            children: [
+              PrimaryButton(
+                label: buttonLabel,
+                horizontalContentPadding: 16,
+                buttonHeight: Util.isDesktop ? .l : null,
+                onPressed: onPressed,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OpenSendDialog extends StatelessWidget {
+  const _OpenSendDialog({required this.title, required this.message});
 
   final String title, message;
 

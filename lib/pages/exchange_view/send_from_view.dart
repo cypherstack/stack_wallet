@@ -316,8 +316,8 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                       ),
                     ]
                   : null,
-              // feeRateType: FeeRateType.average,
             ),
+            requireChaumV2: true,
           );
         }
       }

@@ -249,6 +249,7 @@ class TrocadorExchange extends Exchange {
       final provider = quote.provider.toLowerCase();
       if (quote.fixed == fixedRate &&
           provider != "changenow" &&
+          provider != "letsexchange" &&
           provider != "exolix") {
         final rating = quote.kycRating.toLowerCase();
         if (rating == "a" || rating == "b") {

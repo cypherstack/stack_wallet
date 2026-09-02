@@ -18,6 +18,7 @@ import 'package:flutter_svg/svg.dart';
 import '../../app_config.dart';
 import '../../providers/global/notifications_provider.dart';
 import '../../providers/global/prefs_provider.dart';
+import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../providers/ui/home_view_index_provider.dart';
 import '../../providers/ui/unread_notifications_provider.dart';
 import '../../route_generator.dart';
@@ -38,6 +39,8 @@ import '../../widgets/small_tor_icon.dart';
 import '../../widgets/stack_dialog.dart';
 import '../buy_view/buy_view.dart';
 import '../exchange_view/exchange_view.dart';
+import '../more_view/gift_cards_view.dart';
+import '../more_view/services_view.dart';
 import '../notification_views/notifications_view.dart';
 import '../pinpad_views/lock_screen_view.dart';
 import '../settings_views/global_settings_view/global_settings_view.dart';
@@ -227,6 +230,11 @@ class _HomeViewState extends ConsumerState<HomeView> {
         const ExchangeView(),
       if (AppConfig.hasFeature(AppFeature.buy) && Constants.enableExchange)
         const BuyView(),
+      if (AppConfig.hasFeature(AppFeature.cakePay) && Constants.enableExchange)
+        const GiftCardsView(),
+      if (AppConfig.hasFeature(AppFeature.shopinBit) &&
+          Constants.enableExchange)
+        const ServicesView(),
     ];
 
     ref.read(notificationsProvider).startCheckingWatchedNotifications();
@@ -339,11 +347,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                       context,
                     ).extension<StackColors>()!.backgroundAppBar,
                     icon:
-                        ref.watch(
-                          notificationsProvider.select(
-                            (value) => value.hasUnreadNotifications,
-                          ),
-                        )
+                        ref.watch(pAnyGlobalUnreadNotifications)
                         ? SvgPicture.file(
                             File(
                               ref.watch(
@@ -355,11 +359,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                             width: 20,
                             height: 20,
                             color:
-                                ref.watch(
-                                  notificationsProvider.select(
-                                    (value) => value.hasUnreadNotifications,
-                                  ),
-                                )
+                                ref.watch(pAnyGlobalUnreadNotifications)
                                 ? null
                                 : Theme.of(
                                     context,
@@ -370,11 +370,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                             width: 20,
                             height: 20,
                             color:
-                                ref.watch(
-                                  notificationsProvider.select(
-                                    (value) => value.hasUnreadNotifications,
-                                  ),
-                                )
+                                ref.watch(pAnyGlobalUnreadNotifications)
                                 ? null
                                 : Theme.of(
                                     context,

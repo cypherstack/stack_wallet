@@ -90,6 +90,7 @@ const Set<AppFeature> _features = {
   AppFeature.themeSelection,
   AppFeature.buy,
   AppFeature.tor,
+  AppFeature.shopinBit,
   AppFeature.cakePay,
   AppFeature.swap
 };

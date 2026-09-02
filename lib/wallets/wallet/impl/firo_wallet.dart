@@ -95,6 +95,9 @@ class MasternodeInfo {
 
 final kMasterNodeValue = Decimal.fromInt(1000); // full value (not sats)
 
+const _zeroTxid =
+    "0000000000000000000000000000000000000000000000000000000000000000";
+
 class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     with
         ElectrumXInterface<T>,
@@ -278,7 +281,10 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
 
         final txid = map["txid"] as String?;
         final vout = map["vout"] as int?;
-        if (coinbase == null && txid != null && vout != null) {
+        if (coinbase == null &&
+            txid != null &&
+            vout != null &&
+            txid != _zeroTxid) {
           txInputTxidsSet.add(txid);
         }
       }
@@ -759,6 +765,13 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
             txid: jsonTX!["txid"] as String,
             index: jsonUTXO["tx_pos"] as int,
           );
+
+          if (blocked) {
+            blockedReason =
+                "Masternode collateral. "
+                "Unlocking and spending will invalidate this masternode!";
+            label = "Masternode collateral";
+          }
         } catch (_) {
           // call failed, lock utxo just in case
           // it should logically already be blocked
@@ -768,10 +781,10 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
       }
 
       if (blocked) {
-        blockedReason =
+        blockedReason ??=
             "Possible masternode collateral. "
             "Unlock and spend at your own risk.";
-        label = "Possible masternode collateral";
+        label ??= "Possible masternode collateral";
       }
     }
 
@@ -985,7 +998,8 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     ).raw.toInt();
     if (collateralUtxo.value != expectedCollateralRaw) {
       throw Exception(
-        "Collateral outpoint must be exactly ${kMasterNodeValue.toString()} FIRO.",
+        "Collateral outpoint must be exactly "
+        "${kMasterNodeValue.toString()} FIRO.",
       );
     }
 
