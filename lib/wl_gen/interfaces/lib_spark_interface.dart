@@ -41,6 +41,7 @@ abstract class LibSparkInterface {
   int get maxNameRegistrationLengthYears;
   int get maxNameLength;
   int get maxAdditionalInfoLengthBytes;
+  int get maxSparkMessageLengthBytes;
   String get nameRegexString;
   String get stage3CommunityFundAddressMainNet;
   String get stage3CommunityFundAddressTestNet;
@@ -75,6 +76,13 @@ abstract class LibSparkInterface {
     required bool isTestNet,
     required int hashFailSafe,
     required bool ignoreProof,
+  });
+
+  String createSparkAddressOwnershipProof({
+    required String message,
+    required String privateKeyHex,
+    required int spendKeyIndex,
+    required int diversifier,
   });
 
   Uint8List getSparkNameCommitment({

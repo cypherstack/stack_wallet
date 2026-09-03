@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -7,10 +9,12 @@ import '../../../providers/db/drift_provider.dart';
 import '../../../providers/db/main_db_provider.dart';
 import '../../../providers/global/wallets_provider.dart';
 import '../../../themes/stack_colors.dart';
+import '../../../utilities/show_loading.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
+import '../../../wl_gen/interfaces/lib_spark_interface.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -19,6 +23,8 @@ import '../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/dialogs/s_dialog.dart';
 import '../../../widgets/rounded_container.dart';
+import '../../../widgets/textfields/adaptive_text_field.dart';
+import '../../signing/signing_view.dart';
 import '../../wallet_view/transaction_views/transaction_details_view.dart'
     as tvd;
 import '../buy_spark_name_view.dart';
@@ -126,6 +132,32 @@ class _SparkNameDetailsViewState extends ConsumerState<SparkNameDetailsView> {
           ),
         );
       }
+    } finally {
+      _lock = false;
+    }
+  }
+
+  Future<void> _proveOwnership() async {
+    if (_lock) return;
+    _lock = true;
+    try {
+      await showDialog<void>(
+        context: context,
+        builder: (context) => SDialog(
+          margin: Util.isDesktop
+              ? null
+              : EdgeInsets.fromLTRB(
+                  16,
+                  16,
+                  16,
+                  16 + MediaQuery.viewInsetsOf(context).bottom,
+                ),
+          child: _SparkNameOwnershipProofDialog(
+            walletId: widget.walletId,
+            address: name.address,
+          ),
+        ),
+      );
     } finally {
       _lock = false;
     }
@@ -435,9 +467,154 @@ class _SparkNameDetailsViewState extends ConsumerState<SparkNameDetailsView> {
                     ],
                   ),
                 ),
+                if (!_isViewOnlyWallet) ...[
+                  const _Div(),
+                  Padding(
+                    padding: Util.isDesktop
+                        ? const EdgeInsets.all(16)
+                        : EdgeInsets.zero,
+                    child: PrimaryButton(
+                      label: "Prove ownership",
+                      onPressed: _proveOwnership,
+                    ),
+                  ),
+                ],
               ],
             );
           },
+        ),
+      ),
+    );
+  }
+}
+
+class _SparkNameOwnershipProofDialog extends ConsumerStatefulWidget {
+  const _SparkNameOwnershipProofDialog({
+    required this.walletId,
+    required this.address,
+  });
+
+  final String walletId;
+  final String address;
+
+  @override
+  ConsumerState<_SparkNameOwnershipProofDialog> createState() =>
+      _SparkNameOwnershipProofDialogState();
+}
+
+class _SparkNameOwnershipProofDialogState
+    extends ConsumerState<_SparkNameOwnershipProofDialog> {
+  final _messageController = TextEditingController();
+
+  String _proof = "";
+  String? _messageError;
+  bool _isGenerating = false;
+
+  @override
+  void dispose() {
+    _messageController.dispose();
+    super.dispose();
+  }
+
+  void _onMessageChanged(String message) {
+    final maxLength = libSpark.maxSparkMessageLengthBytes;
+    final byteLength = utf8.encode(message).length;
+
+    setState(() {
+      _proof = "";
+      _messageError = byteLength > maxLength
+          ? "Message exceeds $maxLength UTF-8 bytes"
+          : null;
+    });
+  }
+
+  Future<void> _generateProof() async {
+    if (_isGenerating ||
+        _messageController.text.isEmpty ||
+        _messageError != null) {
+      return;
+    }
+
+    setState(() => _isGenerating = true);
+    Exception? exception;
+    final proof = await showLoading(
+      whileFuture:
+          (ref.read(pWallets).getWallet(widget.walletId) as SparkInterface)
+              .createSparkAddressOwnershipProof(
+                address: widget.address,
+                message: _messageController.text,
+              ),
+      context: context,
+      message: "Creating proof...",
+      onException: (e) => exception = e,
+    );
+
+    if (!mounted) return;
+    setState(() => _isGenerating = false);
+
+    if (exception != null) {
+      await showSignVerifyError(exception!, context: context);
+    } else if (proof != null) {
+      setState(() => _proof = proof);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final canGenerate =
+        !_isGenerating &&
+        _messageController.text.isNotEmpty &&
+        _messageError == null;
+
+    return SizedBox(
+      width: Util.isDesktop ? 520 : null,
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Prove ownership",
+                  style: Util.isDesktop
+                      ? STextStyles.desktopH3(context)
+                      : STextStyles.pageTitleH2(context),
+                ),
+                if (Util.isDesktop) const DesktopDialogCloseButton(),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Text("Message", style: STextStyles.w500_14(context)),
+            const SizedBox(height: 8),
+            AdaptiveTextField(
+              controller: _messageController,
+              minLines: 3,
+              maxLines: 5,
+              errorText: _messageError,
+              onChangedComprehensive: _onMessageChanged,
+            ),
+            if (_proof.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("Proof", style: STextStyles.w500_14(context)),
+                  SimpleCopyButton(data: _proof),
+                ],
+              ),
+              const SizedBox(height: 8),
+              SelectableText(_proof, style: STextStyles.w500_14(context)),
+            ],
+            const SizedBox(height: 24),
+            PrimaryButton(
+              label: "Create proof",
+              enabled: canGenerate,
+              onPressed: canGenerate ? _generateProof : null,
+            ),
+          ],
         ),
       ),
     );
