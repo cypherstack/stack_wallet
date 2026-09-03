@@ -33,6 +33,10 @@ void main() {
     );
     expect(
       prices,
+      contains("Instance of 'BitcoinFrost': (change24h: 0.0, value: 1)"),
+    );
+    expect(
+      prices,
       contains(
         "Instance of 'Monero': (change24h: -0.77656, value: 0.00717236)",
       ),

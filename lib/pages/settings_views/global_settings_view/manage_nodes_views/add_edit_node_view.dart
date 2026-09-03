@@ -828,16 +828,11 @@ class _NodeFormState extends ConsumerState<NodeForm> {
   }
 
   bool get canSave {
-    // 65535 is max tcp port
     return _nameController.text.isNotEmpty && canTestConnection;
   }
 
   bool get canTestConnection {
-    // 65535 is max tcp port
-    return _hostController.text.isNotEmpty &&
-        port != null &&
-        port! >= 0 &&
-        port! <= 65535;
+    return _hostController.text.isNotEmpty && isValidNodePort(port);
   }
 
   bool enableField(TextEditingController controller) {

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:decimal/decimal.dart';
@@ -11,8 +12,6 @@ import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/tor_plain_net_option_enum.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
 import 'sample_data/get_anonymity_set_sample_data.dart';
@@ -214,6 +213,29 @@ void main() {
 
       expect(result, isTrue);
       expect(server.requestCount('blockchain.headers.subscribe'), 1);
+      expect(server.requestCount('server.ping'), 1);
+    });
+
+    test('ping timeout returns false', () async {
+      final response = Completer<void>();
+      addTearDown(() {
+        if (!response.isCompleted) {
+          response.complete();
+        }
+      });
+      final server = registerServer(
+        handlers: {'server.ping': (_) => response.future},
+      );
+      final client = buildClient(clearServer: server, coin: bitcoin());
+      await client.checkElectrumAdapter();
+
+      final result = await client.ping(
+        requestID: 'ping-timeout',
+        timeout: const Duration(milliseconds: 100),
+      );
+      response.complete();
+
+      expect(result, isFalse);
       expect(server.requestCount('server.ping'), 1);
     });
 

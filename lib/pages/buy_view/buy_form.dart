@@ -31,6 +31,9 @@ import '../../services/buy/buy_response.dart';
 import '../../services/buy/simplex/simplex_api.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/address_utils.dart';
+import '../../utilities/amount/amount.dart';
+import '../../utilities/amount/amount_field_relocalization.dart';
+import '../../utilities/amount/amount_input_formatter.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/barcode_scanner_interface.dart';
 import '../../utilities/clipboard_interface.dart';
@@ -125,6 +128,13 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   // static String boundedCryptoTicker = '';
 
   String _amountOutOfRangeErrorString = "";
+
+  Decimal? get _parsedBuyAmount => Amount.tryParseEditableAmount(
+    _buyAmountController.text,
+    locale: ref.read(localeServiceChangeNotifierProvider).locale,
+    fractionDigits: buyWithFiat ? 2 : 30,
+  )?.decimal;
+
   void validateAmount() {
     if (_buyAmountController.text.isEmpty) {
       setState(() {
@@ -133,20 +143,30 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       return;
     }
 
-    final value = Decimal.tryParse(_buyAmountController.text);
+    final value = _parsedBuyAmount;
     if (value == null) {
       setState(() {
         _amountOutOfRangeErrorString = "Invalid amount";
       });
     } else if (value > maxFiat && buyWithFiat) {
+      final locale = ref.read(localeServiceChangeNotifierProvider).locale;
+      final maximum = Amount.formatFixedDecimal(
+        maxFiat,
+        fractionDigits: 2,
+        locale: locale,
+      );
       setState(() {
-        _amountOutOfRangeErrorString =
-            "Maximum amount: ${maxFiat.toStringAsFixed(2)}";
+        _amountOutOfRangeErrorString = "Maximum amount: $maximum";
       });
     } else if (value < minFiat && buyWithFiat) {
+      final locale = ref.read(localeServiceChangeNotifierProvider).locale;
+      final minimum = Amount.formatFixedDecimal(
+        minFiat,
+        fractionDigits: 2,
+        locale: locale,
+      );
       setState(() {
-        _amountOutOfRangeErrorString =
-            "Minimum amount: ${minFiat.toStringAsFixed(2)}";
+        _amountOutOfRangeErrorString = "Minimum amount: $minimum";
       });
     } else {
       setState(() {
@@ -396,6 +416,11 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   // }
 
   Future<void> previewQuote(SimplexQuote quote) async {
+    final buyAmount = _parsedBuyAmount;
+    if (buyAmount == null) {
+      return;
+    }
+
     bool shouldPop = false;
     unawaited(
       showDialog(
@@ -414,11 +439,11 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       crypto: selectedCrypto!,
       fiat: selectedFiat!,
       youPayFiatPrice: buyWithFiat
-          ? Decimal.parse(_buyAmountController.text)
+          ? buyAmount
           : Decimal.parse("100"), // dummy value
       youReceiveCryptoAmount: buyWithFiat
           ? Decimal.parse("0.000420282") // dummy value
-          : Decimal.parse(_buyAmountController.text), // Ternary for this
+          : buyAmount,
       id: "id", // anything; we get an ID back
       receivingAddress: _receiveAddressController.text,
       buyWithFiat: buyWithFiat,
@@ -795,8 +820,23 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    final Locale locale = Localizations.localeOf(context);
-    final format = NumberFormat.simpleCurrency(locale: locale.toString());
+    final locale = ref.watch(
+      localeServiceChangeNotifierProvider.select((value) => value.locale),
+    );
+    listenForAmountRelocalization(
+      ref.listen,
+      controllers: [_buyAmountController],
+      onRelocalized: validateAmount,
+    );
+    // intl throws ArgumentError for device locales it has no data for
+    // (e.g. yo, ig, mi); this is the raw device locale, not one resolved
+    // against supported locales.
+    NumberFormat format;
+    try {
+      format = NumberFormat.simpleCurrency(locale: locale);
+    } on ArgumentError {
+      format = NumberFormat.simpleCurrency(locale: "en_US");
+    }
     // See https://stackoverflow.com/a/67055685
 
     return ConditionalParent(
@@ -1013,7 +1053,13 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                       decimal: true,
                     ),
               textAlign: TextAlign.left,
-              // inputFormatters: [NumericalRangeFormatter()],
+              inputFormatters: [
+                AmountInputFormatter(
+                  controller: _buyAmountController,
+                  decimals: buyWithFiat ? 2 : 30,
+                  locale: locale,
+                ),
+              ],
               onChanged: (_) {
                 validateAmount();
               },
@@ -1123,12 +1169,17 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                                   final ClipboardData? data = await clipboard
                                       .getData(Clipboard.kTextPlain);
 
-                                  final amountString = Decimal.tryParse(
+                                  final amount = Amount.tryParseEditableAmount(
                                     data?.text ?? "",
+                                    locale: locale,
+                                    fractionDigits: buyWithFiat ? 2 : 30,
                                   );
-                                  if (amountString != null) {
-                                    _buyAmountController.text = amountString
-                                        .toString();
+                                  if (amount != null) {
+                                    _buyAmountController.text =
+                                        Amount.formatEditableDecimal(
+                                          amount.decimal,
+                                          locale: locale,
+                                        );
 
                                     validateAmount();
                                   }

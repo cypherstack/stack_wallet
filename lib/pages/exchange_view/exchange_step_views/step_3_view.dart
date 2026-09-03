@@ -169,6 +169,27 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                 ],
                               ),
                             ),
+                            if (model.extraId?.isNotEmpty == true)
+                              const SizedBox(height: 8),
+                            if (model.extraId?.isNotEmpty == true)
+                              RoundedWhiteContainer(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Recipient memo or tag",
+                                      style: STextStyles.itemSubtitle(context),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      model.extraId!,
+                                      style: STextStyles.itemSubtitle12(
+                                        context,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             if (supportsRefund) const SizedBox(height: 8),
                             if (supportsRefund)
                               RoundedWhiteContainer(
@@ -182,6 +203,29 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                     const SizedBox(height: 4),
                                     Text(
                                       model.refundAddress!,
+                                      style: STextStyles.itemSubtitle12(
+                                        context,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            if (supportsRefund &&
+                                model.refundExtraId?.isNotEmpty == true)
+                              const SizedBox(height: 8),
+                            if (supportsRefund &&
+                                model.refundExtraId?.isNotEmpty == true)
+                              RoundedWhiteContainer(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Refund memo or tag",
+                                      style: STextStyles.itemSubtitle(context),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      model.refundExtraId!,
                                       style: STextStyles.itemSubtitle12(
                                         context,
                                       ),
@@ -205,14 +249,12 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                         ),
                                     child: Text(
                                       "Back",
-                                      style: STextStyles.button(
-                                        context,
-                                      ).copyWith(
-                                        color:
-                                            Theme.of(context)
+                                      style: STextStyles.button(context)
+                                          .copyWith(
+                                            color: Theme.of(context)
                                                 .extension<StackColors>()!
                                                 .buttonTextSecondary,
-                                      ),
+                                          ),
                                     ),
                                   ),
                                 ),
@@ -224,22 +266,19 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                         showDialog<void>(
                                           context: context,
                                           barrierDismissible: false,
-                                          builder:
-                                              (_) => WillPopScope(
-                                                onWillPop: () async => false,
-                                                child: Container(
-                                                  color: Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .overlay
-                                                      .withOpacity(0.6),
-                                                  child:
-                                                      const CustomLoadingOverlay(
-                                                        message:
-                                                            "Creating a trade",
-                                                        eventBus: null,
-                                                      ),
-                                                ),
+                                          builder: (_) => WillPopScope(
+                                            onWillPop: () async => false,
+                                            child: Container(
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .overlay
+                                                  .withOpacity(0.6),
+                                              child: const CustomLoadingOverlay(
+                                                message: "Creating a trade",
+                                                eventBus: null,
                                               ),
+                                            ),
+                                          ),
                                         ),
                                       );
 
@@ -256,17 +295,16 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                             fixedRate:
                                                 model.rateType !=
                                                 ExchangeRateType.estimated,
-                                            amount:
-                                                model.reversed
-                                                    ? model.receiveAmount
-                                                    : model.sendAmount,
+                                            amount: model.reversed
+                                                ? model.receiveAmount
+                                                : model.sendAmount,
                                             addressTo: model.recipientAddress!,
-                                            extraId: null,
-                                            addressRefund:
-                                                supportsRefund
-                                                    ? model.refundAddress!
-                                                    : "",
-                                            refundExtraId: "",
+                                            extraId: model.extraId,
+                                            addressRefund: supportsRefund
+                                                ? model.refundAddress!
+                                                : "",
+                                            refundExtraId:
+                                                model.refundExtraId ?? "",
                                             estimate: model.estimate,
                                             reversed: model.reversed,
                                           );
@@ -278,8 +316,8 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                           // TODO: better errors
                                           String? message;
                                           if (response.exception != null) {
-                                            message =
-                                                response.exception!.toString();
+                                            message = response.exception!
+                                                .toString();
                                             if (message.startsWith(
                                                   "FormatException:",
                                                 ) &&
@@ -293,12 +331,10 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                             showDialog<void>(
                                               context: context,
                                               barrierDismissible: true,
-                                              builder:
-                                                  (_) => StackDialog(
-                                                    title:
-                                                        "Failed to create trade",
-                                                    message: message ?? "",
-                                                  ),
+                                              builder: (_) => StackDialog(
+                                                title: "Failed to create trade",
+                                                message: message ?? "",
+                                              ),
                                             ),
                                           );
                                         }

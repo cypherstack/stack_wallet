@@ -1,10 +1,15 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../providers/global/locale_provider.dart';
 import '../../services/cakepay/cakepay_service.dart';
 import '../../services/cakepay/src/models/card.dart';
 import '../../themes/stack_colors.dart';
+import '../../utilities/amount/amount.dart';
+import '../../utilities/amount/amount_field_relocalization.dart';
+import '../../utilities/amount/amount_input_formatter.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../widgets/background.dart';
@@ -21,7 +26,7 @@ import '../../widgets/stack_dialog.dart';
 import '../../widgets/textfields/adaptive_text_field.dart';
 import 'cakepay_order_view.dart';
 
-class CakePayCardDetailView extends StatefulWidget {
+class CakePayCardDetailView extends ConsumerStatefulWidget {
   const CakePayCardDetailView({super.key, required this.card});
 
   static const String routeName = "/cakePayCardDetail";
@@ -29,10 +34,11 @@ class CakePayCardDetailView extends StatefulWidget {
   final CakePayCard card;
 
   @override
-  State<CakePayCardDetailView> createState() => _CakePayCardDetailViewState();
+  ConsumerState<CakePayCardDetailView> createState() =>
+      _CakePayCardDetailViewState();
 }
 
-class _CakePayCardDetailViewState extends State<CakePayCardDetailView> {
+class _CakePayCardDetailViewState extends ConsumerState<CakePayCardDetailView> {
   late CakePayCard _card;
   bool _purchasing = false;
   Decimal? _selectedDenomination;
@@ -52,23 +58,24 @@ class _CakePayCardDetailViewState extends State<CakePayCardDetailView> {
     }
   }
 
-  String get _priceString {
+  Decimal? get _price {
     if (_card.isFixedDenomination && _selectedDenomination != null) {
-      return _selectedDenomination!.toStringAsFixed(2);
+      return _selectedDenomination;
     }
-    return _customAmountController.text.trim();
+    return Amount.tryParseFiatString(
+      _customAmountController.text,
+      locale: ref.read(localeServiceChangeNotifierProvider).locale,
+    )?.decimal;
   }
 
   bool _checkCanPurchase() {
     if (!_termsAccepted || _purchasing) return false;
     if (_emailController.text.trim().isEmpty) return false;
-    final price = _priceString;
-    if (price.isEmpty) return false;
-    final parsed = Decimal.tryParse(price);
-    if (parsed == null || parsed <= Decimal.zero) return false;
+    final price = _price;
+    if (price == null || price <= Decimal.zero) return false;
     if (_card.isRangeDenomination) {
-      if (_card.minValue != null && parsed < _card.minValue!) return false;
-      if (_card.maxValue != null && parsed > _card.maxValue!) return false;
+      if (_card.minValue != null && price < _card.minValue!) return false;
+      if (_card.maxValue != null && price > _card.maxValue!) return false;
     }
     return true;
   }
@@ -80,11 +87,13 @@ class _CakePayCardDetailViewState extends State<CakePayCardDetailView> {
 
   Future<void> _purchase() async {
     if (!_checkCanPurchase()) return;
+    final price = _price;
+    if (price == null) return;
     setState(() => _purchasing = true);
 
     final resp = await CakePayService.instance.client.createOrder(
       cardId: _card.id,
-      price: _priceString,
+      price: price.toStringAsFixed(2),
       quantity: _quantity > 1 ? _quantity : null,
       userEmail: _emailController.text.trim(),
       confirmsNoVpn: true,
@@ -150,6 +159,14 @@ class _CakePayCardDetailViewState extends State<CakePayCardDetailView> {
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
     final card = _card;
+    final locale = ref.watch(
+      localeServiceChangeNotifierProvider.select((value) => value.locale),
+    );
+    listenForAmountRelocalization(
+      ref.listen,
+      controllers: [_customAmountController],
+      onRelocalized: _updateCanPurchase,
+    );
 
     return ConditionalParent(
       condition: isDesktop,
@@ -250,6 +267,7 @@ class _CakePayCardDetailViewState extends State<CakePayCardDetailView> {
             _DenominationSelector(
               card: card,
               isDesktop: isDesktop,
+              locale: locale,
               selectedDenomination: _selectedDenomination,
               customAmountController: _customAmountController,
               onDenominationSelected: (Decimal d) {
@@ -414,6 +432,7 @@ class _DenominationSelector extends StatelessWidget {
   const _DenominationSelector({
     required this.card,
     required this.isDesktop,
+    required this.locale,
     required this.selectedDenomination,
     required this.customAmountController,
     required this.onDenominationSelected,
@@ -422,6 +441,7 @@ class _DenominationSelector extends StatelessWidget {
 
   final CakePayCard card;
   final bool isDesktop;
+  final String locale;
   final Decimal? selectedDenomination;
   final TextEditingController customAmountController;
   final ValueChanged<Decimal> onDenominationSelected;
@@ -429,6 +449,10 @@ class _DenominationSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String formatPrice(Decimal? price) => price == null
+        ? "?"
+        : Amount.formatFixedDecimal(price, fractionDigits: 2, locale: locale);
+
     if (card.isFixedDenomination) {
       return Wrap(
         spacing: 8,
@@ -437,7 +461,7 @@ class _DenominationSelector extends StatelessWidget {
           final bool selected = d == selectedDenomination;
           return ChoiceChip(
             label: Text(
-              "${d.toStringAsFixed(2)} ${card.currencyCode ?? ''}",
+              "${formatPrice(d)} ${card.currencyCode ?? ''}",
               style:
                   (isDesktop
                           ? STextStyles.desktopTextExtraExtraSmall(context)
@@ -465,8 +489,8 @@ class _DenominationSelector extends StatelessWidget {
         mainAxisSize: .min,
         children: [
           Text(
-            "Enter amount (${card.minValue?.toStringAsFixed(2) ?? '?'} - "
-            "${card.maxValue?.toStringAsFixed(2) ?? '?'} "
+            "Enter amount (${formatPrice(card.minValue)} - "
+            "${formatPrice(card.maxValue)} "
             "${card.currencyCode ?? ''})",
             style: isDesktop
                 ? STextStyles.desktopTextExtraExtraSmall(context)
@@ -477,6 +501,13 @@ class _DenominationSelector extends StatelessWidget {
             labelText: "Amount",
             controller: customAmountController,
             keyboardType: const .numberWithOptions(decimal: true),
+            inputFormatters: [
+              AmountInputFormatter(
+                controller: customAmountController,
+                decimals: 2,
+                locale: locale,
+              ),
+            ],
             onChangedComprehensive: (_) => onCustomAmountChanged(),
           ),
         ],

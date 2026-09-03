@@ -25,8 +25,10 @@ import '../../route_generator.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/address_utils.dart';
 import '../../utilities/amount/amount.dart';
+import '../../utilities/amount/amount_field_relocalization.dart';
 import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/amount/amount_input_formatter.dart';
+import '../../utilities/amount/amount_unit.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/barcode_scanner_interface.dart';
 import '../../utilities/clipboard_interface.dart';
@@ -55,6 +57,21 @@ import '../token_view/sol_token_view.dart';
 import 'confirm_transaction_view.dart';
 import 'sub_widgets/building_transaction_dialog.dart';
 import 'sub_widgets/transaction_fee_selection_sheet.dart';
+
+Amount? parseMobileSolTokenAmount(
+  String value, {
+  required String locale,
+  required CryptoCurrency coin,
+  required SolContract tokenContract,
+}) => AmountUnit.normal.tryParse(
+  value,
+  locale: locale,
+  coin: coin,
+  tokenContract: tokenContract,
+);
+
+Amount? parseMobileSolTokenFiatAmount(String value, {required String locale}) =>
+    Amount.tryParseFiatString(value, locale: locale);
 
 class SolTokenSendView extends ConsumerStatefulWidget {
   const SolTokenSendView({
@@ -109,8 +126,7 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
 
   Timer? _cryptoAmountChangedFeeUpdateTimer;
   Timer? _baseAmountChangedFeeUpdateTimer;
-  late Future<String> _calculateFeesFuture;
-  String cachedFees = "";
+  late Future<Amount> _calculateFeesFuture;
 
   void _onTokenSendViewPasteAddressFieldButtonPressed() async {
     final ClipboardData? data = await clipboard.getData(Clipboard.kTextPlain);
@@ -164,17 +180,22 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
         if (paymentData.amount != null) {
           final tokenWallet = ref.read(pCurrentSolanaTokenWallet);
           if (tokenWallet != null) {
-            final Amount amount = Decimal.parse(
+            final amount = Amount.tryParseCanonicalAmount(
               paymentData.amount!,
-            ).toAmount(fractionDigits: tokenWallet.tokenDecimals);
-            cryptoAmountController.text = ref
-                .read(pAmountFormatter(Solana(CryptoCurrencyNetwork.main)))
-                .format(
-                  amount,
-                  withUnitName: false,
-                  indicatePrecisionLoss: false,
-                );
-            _amountToSend = amount;
+              fractionDigits: tokenWallet.tokenDecimals,
+              truncateOverprecision: true,
+            );
+            if (amount != null) {
+              cryptoAmountController.text = Amount.formatEditableDecimal(
+                amount.decimal,
+                locale: ref.read(localeServiceChangeNotifierProvider).locale,
+              );
+              _amountToSend = amount;
+            } else {
+              cryptoAmountController.clear();
+              _amountToSend = null;
+              _cachedAmountToSend = null;
+            }
           }
         }
 
@@ -217,8 +238,19 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
     }
   }
 
+  String _formatTokenBalance(Amount amount) {
+    final tokenWallet = ref.read(pCurrentSolanaTokenWallet)!;
+    return AmountUnit.normal.displayAmount(
+      amount: amount,
+      locale: ref.read(localeServiceChangeNotifierProvider).locale,
+      coin: tokenWallet.cryptoCurrency,
+      maxDecimalPlaces: tokenWallet.tokenDecimals,
+      tokenContract: tokenWallet.solContract,
+    );
+  }
+
   void _onFiatAmountFieldChanged(String baseAmountString) {
-    final baseAmount = Amount.tryParseFiatString(
+    final baseAmount = parseMobileSolTokenFiatAmount(
       baseAmountString,
       locale: ref.read(localeServiceChangeNotifierProvider).locale,
     );
@@ -249,12 +281,14 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
       _cachedAmountToSend = _amountToSend;
 
       _cryptoAmountChangeLock = true;
-      cryptoAmountController.text = ref
-          .read(pAmountFormatter(Solana(CryptoCurrencyNetwork.main)))
-          .format(_amountToSend!, withUnitName: false);
+      cryptoAmountController.text = Amount.formatEditableDecimal(
+        _amountToSend!.decimal,
+        locale: ref.read(localeServiceChangeNotifierProvider).locale,
+      );
       _cryptoAmountChangeLock = false;
     } else {
       _amountToSend = Amount.zero;
+      _cachedAmountToSend = null;
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = "";
       _cryptoAmountChangeLock = false;
@@ -267,9 +301,12 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
       final tokenWallet = ref.read(pCurrentSolanaTokenWallet);
       if (tokenWallet == null) return;
 
-      final cryptoAmount = Decimal.tryParse(
+      final cryptoAmount = parseMobileSolTokenAmount(
         cryptoAmountController.text,
-      )?.toAmount(fractionDigits: tokenWallet.tokenDecimals);
+        locale: ref.read(localeServiceChangeNotifierProvider).locale,
+        coin: tokenWallet.cryptoCurrency,
+        tokenContract: tokenWallet.solContract,
+      );
       if (cryptoAmount != null) {
         _amountToSend = cryptoAmount;
         if (_cachedAmountToSend != null &&
@@ -284,14 +321,17 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
             ?.value;
 
         if (price != null && price > Decimal.zero) {
-          baseAmountController.text = (_amountToSend!.decimal * price)
-              .toAmount(fractionDigits: 2)
-              .fiatString(
-                locale: ref.read(localeServiceChangeNotifierProvider).locale,
-              );
+          final fiatAmount = (_amountToSend!.decimal * price).toAmount(
+            fractionDigits: 2,
+          );
+          baseAmountController.text = Amount.formatEditableDecimal(
+            fiatAmount.decimal,
+            locale: ref.read(localeServiceChangeNotifierProvider).locale,
+          );
         }
       } else {
         _amountToSend = null;
+        _cachedAmountToSend = null;
         baseAmountController.text = "";
       }
 
@@ -340,11 +380,16 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
         (isValidAddress && amount != null && amount > Amount.zero);
   }
 
-  Future<String> calculateFees() async {
+  Future<Amount> calculateFees() async {
+    final solana = Solana(CryptoCurrencyNetwork.main);
+    final minimumFee = Amount(
+      rawValue: BigInt.from(5000),
+      fractionDigits: solana.fractionDigits,
+    );
     try {
       final wallet = ref.read(pCurrentSolanaTokenWallet);
       if (wallet == null) {
-        return "0.000005 SOL";
+        return minimumFee;
       }
 
       final feeObject = await wallet.fees;
@@ -366,19 +411,14 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
       }
 
       final Amount fee = await wallet.estimateFeeFor(Amount.zero, feeRate);
-      cachedFees = ref
-          .read(pAmountFormatter(Solana(CryptoCurrencyNetwork.main)))
-          .format(fee, withUnitName: true, indicatePrecisionLoss: false);
-
-      return cachedFees;
+      return fee;
     } catch (e, s) {
       Logging.instance.w(
         "Failed to calculate Solana token fees: ",
         error: e,
         stackTrace: s,
       );
-      // Return minimum fee as fallback.
-      return "0.000005 SOL";
+      return minimumFee;
     }
   }
 
@@ -581,7 +621,15 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
 
     if (_data != null) {
       if (_data.amount != null) {
-        cryptoAmountController.text = _data.amount!.toString();
+        final tokenWallet = ref.read(pCurrentSolanaTokenWallet)!;
+        final amount = Amount.fromDecimal(
+          _data.amount!,
+          fractionDigits: tokenWallet.tokenDecimals,
+        );
+        cryptoAmountController.text = Amount.formatEditableDecimal(
+          amount.decimal,
+          locale: ref.read(localeServiceChangeNotifierProvider).locale,
+        );
       }
       sendToController.text = _data.contactLabel;
       _address = _data.address.trim();
@@ -619,6 +667,11 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
     debugPrint("BUILD: $runtimeType");
     final String locale = ref.watch(
       localeServiceChangeNotifierProvider.select((value) => value.locale),
+    );
+    listenForAmountRelocalization(
+      ref.listen,
+      controllers: [cryptoAmountController, baseAmountController],
+      onRelocalized: _cryptoAmountChanged,
     );
 
     final tokenWallet = ref.watch(pCurrentSolanaTokenWallet);
@@ -731,25 +784,18 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
                                     const Spacer(),
                                     GestureDetector(
                                       onTap: () {
-                                        cryptoAmountController.text = ref
-                                            .watch(
-                                              pAmountFormatter(
-                                                Solana(
-                                                  CryptoCurrencyNetwork.main,
-                                                ),
-                                              ),
+                                        final amount = ref
+                                            .read(
+                                              pSolanaTokenBalance((
+                                                walletId: widget.walletId,
+                                                tokenMint: tokenMint,
+                                              )),
                                             )
-                                            .format(
-                                              ref
-                                                  .read(
-                                                    pSolanaTokenBalance((
-                                                      walletId: widget.walletId,
-                                                      tokenMint: tokenMint,
-                                                    )),
-                                                  )
-                                                  .spendable,
-                                              withUnitName: false,
-                                              indicatePrecisionLoss: true,
+                                            .spendable;
+                                        cryptoAmountController.text =
+                                            Amount.formatEditableDecimal(
+                                              amount.decimal,
+                                              locale: locale,
                                             );
                                       },
                                       child: Container(
@@ -759,27 +805,17 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
                                               CrossAxisAlignment.end,
                                           children: [
                                             Text(
-                                              ref
-                                                  .watch(
-                                                    pAmountFormatter(
-                                                      Solana(
-                                                        CryptoCurrencyNetwork
-                                                            .main,
-                                                      ),
-                                                    ),
-                                                  )
-                                                  .format(
-                                                    ref
-                                                        .watch(
-                                                          pSolanaTokenBalance((
-                                                            walletId:
-                                                                widget.walletId,
-                                                            tokenMint:
-                                                                tokenMint,
-                                                          )),
-                                                        )
-                                                        .spendable,
-                                                  ),
+                                              _formatTokenBalance(
+                                                ref
+                                                    .watch(
+                                                      pSolanaTokenBalance((
+                                                        walletId:
+                                                            widget.walletId,
+                                                        tokenMint: tokenMint,
+                                                      )),
+                                                    )
+                                                    .spendable,
+                                              ),
                                               style: STextStyles.titleBold12(
                                                 context,
                                               ).copyWith(fontSize: 10),
@@ -1063,14 +1099,9 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
                               textAlign: TextAlign.right,
                               inputFormatters: [
                                 AmountInputFormatter(
+                                  controller: cryptoAmountController,
                                   decimals: tokenWallet.tokenDecimals,
-                                  // TODO: Implement token-specific unit lookup
-                                  // similar to Ethereum's pAmountUnit(coin).unitForContract(tokenContract)
-                                  unit: ref.watch(
-                                    pAmountUnit(
-                                      Solana(CryptoCurrencyNetwork.main),
-                                    ),
-                                  ),
+                                  unit: AmountUnit.normal,
                                   locale: locale,
                                 ),
                               ],
@@ -1127,6 +1158,7 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
                                 textAlign: TextAlign.right,
                                 inputFormatters: [
                                   AmountInputFormatter(
+                                    controller: baseAmountController,
                                     decimals: 2,
                                     locale: locale,
                                   ),
@@ -1258,21 +1290,17 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
                                               walletId: walletId,
                                               isToken: true,
                                               amount:
-                                                  (Decimal.tryParse(
-                                                            cryptoAmountController
-                                                                .text,
-                                                          ) ??
-                                                          Decimal.zero)
-                                                      .toAmount(
-                                                        fractionDigits:
-                                                            tokenWallet
-                                                                .tokenDecimals,
-                                                      ),
-                                              updateChosen: (String fee) {
+                                                  _amountToSend ??
+                                                  Amount.zeroWith(
+                                                    fractionDigits: tokenWallet
+                                                        .tokenDecimals,
+                                                  ),
+                                              updateChosen: (_, fee) {
                                                 setState(() {
-                                                  _calculateFeesFuture = Future(
-                                                    () => fee,
-                                                  );
+                                                  _calculateFeesFuture =
+                                                      fee == null
+                                                      ? calculateFees()
+                                                      : Future.value(fee);
                                                 });
                                               },
                                             ),
@@ -1303,8 +1331,21 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
                                                 if (snapshot.connectionState ==
                                                         ConnectionState.done &&
                                                     snapshot.hasData) {
+                                                  final formattedFee = ref
+                                                      .watch(
+                                                        pAmountFormatter(
+                                                          tokenWallet
+                                                              .cryptoCurrency,
+                                                        ),
+                                                      )
+                                                      .format(
+                                                        snapshot.data!,
+                                                        withUnitName: true,
+                                                        indicatePrecisionLoss:
+                                                            false,
+                                                      );
                                                   return Text(
-                                                    "~${snapshot.data!}",
+                                                    "~$formattedFee",
                                                     style:
                                                         STextStyles.itemSubtitle(
                                                           context,

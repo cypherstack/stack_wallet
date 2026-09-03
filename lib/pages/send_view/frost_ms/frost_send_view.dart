@@ -410,9 +410,8 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                       sendAllTapped: () {
                         return ref
                             .read(pAmountFormatter(coin))
-                            .format(
+                            .formatEditable(
                               ref.read(pWalletBalance(walletId)).spendable,
-                              withUnitName: false,
                             );
                       },
                     ),

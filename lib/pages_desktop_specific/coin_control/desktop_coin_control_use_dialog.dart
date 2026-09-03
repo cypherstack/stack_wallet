@@ -18,6 +18,7 @@ import 'package:isar_community/isar.dart';
 import '../../db/isar/main_db.dart';
 import '../../models/input.dart';
 import '../../models/isar/models/blockchain_data/utxo.dart';
+import '../../providers/global/locale_provider.dart';
 import '../../themes/coin_icon_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
@@ -108,6 +109,10 @@ class _DesktopCoinControlUseDialogState
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
+    final locale = ref.watch(
+      localeServiceChangeNotifierProvider.select((value) => value.locale),
+    );
+
     if (_sort == CCSortDescriptor.address) {
       _list = null;
       _map = MainDB.instance.queryUTXOsGroupedByAddressSync(
@@ -115,6 +120,7 @@ class _DesktopCoinControlUseDialogState
         filter: _filter,
         sort: _sort,
         searchTerm: _searchString,
+        locale: locale,
         cryptoCurrency: coin,
       );
     } else {
@@ -124,6 +130,7 @@ class _DesktopCoinControlUseDialogState
         filter: _filter,
         sort: _sort,
         searchTerm: _searchString,
+        locale: locale,
         cryptoCurrency: coin,
       );
     }
@@ -132,18 +139,16 @@ class _DesktopCoinControlUseDialogState
         .map((e) => e.value)
         .fold(
           Amount(rawValue: BigInt.zero, fractionDigits: coin.fractionDigits),
-          (value, element) =>
-              value += Amount(
-                rawValue: BigInt.from(element),
-                fractionDigits: coin.fractionDigits,
-              ),
+          (value, element) => value += Amount(
+            rawValue: BigInt.from(element),
+            fractionDigits: coin.fractionDigits,
+          ),
         );
 
-    final enableApply =
-        widget.amountToSend == null
-            ? selectedChanged(_selectedUTXOs)
-            : selectedChanged(_selectedUTXOs) &&
-                widget.amountToSend! <= selectedSum;
+    final enableApply = widget.amountToSend == null
+        ? selectedChanged(_selectedUTXOs)
+        : selectedChanged(_selectedUTXOs) &&
+              widget.amountToSend! <= selectedSum;
 
     return DesktopDialog(
       maxWidth: 700,
@@ -163,10 +168,9 @@ class _DesktopCoinControlUseDialogState
                 children: [
                   RoundedContainer(
                     color: Colors.transparent,
-                    borderColor:
-                        Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textFieldDefaultBG,
+                    borderColor: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldDefaultBG,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -198,56 +202,55 @@ class _DesktopCoinControlUseDialogState
                                 _searchString = value;
                               });
                             },
-                            style: STextStyles.desktopTextExtraSmall(
-                              context,
-                            ).copyWith(
-                              color:
-                                  Theme.of(context)
+                            style: STextStyles.desktopTextExtraSmall(context)
+                                .copyWith(
+                                  color: Theme.of(context)
                                       .extension<StackColors>()!
                                       .textFieldActiveText,
-                              height: 1.8,
-                            ),
-                            decoration: standardInputDecoration(
-                              "Search...",
-                              searchFieldFocusNode,
-                              context,
-                              desktopMed: true,
-                            ).copyWith(
-                              prefixIcon: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 18,
+                                  height: 1.8,
                                 ),
-                                child: SvgPicture.asset(
-                                  Assets.svg.search,
-                                  width: 20,
-                                  height: 20,
-                                ),
-                              ),
-                              suffixIcon:
-                                  _searchController.text.isNotEmpty
+                            decoration:
+                                standardInputDecoration(
+                                  "Search...",
+                                  searchFieldFocusNode,
+                                  context,
+                                  desktopMed: true,
+                                ).copyWith(
+                                  prefixIcon: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 18,
+                                    ),
+                                    child: SvgPicture.asset(
+                                      Assets.svg.search,
+                                      width: 20,
+                                      height: 20,
+                                    ),
+                                  ),
+                                  suffixIcon: _searchController.text.isNotEmpty
                                       ? Padding(
-                                        padding: const EdgeInsets.only(
-                                          right: 0,
-                                        ),
-                                        child: UnconstrainedBox(
-                                          child: Row(
-                                            children: [
-                                              TextFieldIconButton(
-                                                child: const XIcon(),
-                                                onTap: () async {
-                                                  setState(() {
-                                                    _searchController.text = "";
-                                                    _searchString = "";
-                                                  });
-                                                },
-                                              ),
-                                            ],
+                                          padding: const EdgeInsets.only(
+                                            right: 0,
                                           ),
-                                        ),
-                                      )
+                                          child: UnconstrainedBox(
+                                            child: Row(
+                                              children: [
+                                                TextFieldIconButton(
+                                                  child: const XIcon(),
+                                                  onTap: () async {
+                                                    setState(() {
+                                                      _searchController.text =
+                                                          "";
+                                                      _searchString = "";
+                                                    });
+                                                  },
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        )
                                       : null,
-                            ),
+                                ),
                           ),
                         ),
                       ),
@@ -257,14 +260,12 @@ class _DesktopCoinControlUseDialogState
                         width: 240,
                         child: Toggle(
                           isOn: _filter == CCFilter.frozen,
-                          onColor:
-                              Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .rateTypeToggleDesktopColorOn,
-                          offColor:
-                              Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .rateTypeToggleDesktopColorOff,
+                          onColor: Theme.of(context)
+                              .extension<StackColors>()!
+                              .rateTypeToggleDesktopColorOn,
+                          offColor: Theme.of(context)
+                              .extension<StackColors>()!
+                              .rateTypeToggleDesktopColorOff,
                           onIcon: Assets.svg.coinControl.unBlocked,
                           onText: "Available",
                           offIcon: Assets.svg.coinControl.blocked,
@@ -303,167 +304,151 @@ class _DesktopCoinControlUseDialogState
                   ),
                   const SizedBox(height: 16),
                   Expanded(
-                    child:
-                        _list != null
-                            ? ListView.separated(
-                              shrinkWrap: true,
-                              primary: false,
-                              itemCount: _list!.length,
-                              separatorBuilder:
-                                  (context, _) => const SizedBox(height: 10),
-                              itemBuilder: (context, index) {
-                                final utxo =
-                                    MainDB.instance.isar.utxos
-                                        .where()
-                                        .idEqualTo(_list![index])
-                                        .findFirstSync()!;
-                                final data = UtxoRowData(utxo.id, false);
-                                data.selected = _selectedUTXOsData.contains(
-                                  data,
-                                );
+                    child: _list != null
+                        ? ListView.separated(
+                            shrinkWrap: true,
+                            primary: false,
+                            itemCount: _list!.length,
+                            separatorBuilder: (context, _) =>
+                                const SizedBox(height: 10),
+                            itemBuilder: (context, index) {
+                              final utxo = MainDB.instance.isar.utxos
+                                  .where()
+                                  .idEqualTo(_list![index])
+                                  .findFirstSync()!;
+                              final data = UtxoRowData(utxo.id, false);
+                              data.selected = _selectedUTXOsData.contains(data);
 
-                                return UtxoRow(
-                                  key: Key(
-                                    "${utxo.walletId}_${utxo.id}_${utxo.isBlocked}",
-                                  ),
-                                  data: data,
-                                  compact: true,
-                                  walletId: widget.walletId,
-                                  onSelectionChanged: (value) {
-                                    setState(() {
-                                      if (data.selected) {
-                                        _selectedUTXOsData.add(value);
-                                        _selectedUTXOs.add(utxo);
-                                      } else {
-                                        _selectedUTXOsData.remove(value);
-                                        _selectedUTXOs.remove(utxo);
-                                      }
-                                    });
-                                  },
-                                );
-                              },
-                            )
-                            : ListView.separated(
-                              itemCount: _map!.entries.length,
-                              separatorBuilder:
-                                  (context, _) => const SizedBox(height: 10),
-                              itemBuilder: (context, index) {
-                                final entry = _map!.entries.elementAt(index);
-                                final _controller = RotateIconController();
-
-                                return Expandable2(
-                                  border:
-                                      Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .backgroundAppBar,
-                                  background:
-                                      Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.popupBG,
-                                  animationDurationMultiplier:
-                                      0.2 * entry.value.length,
-                                  onExpandWillChange: (state) {
-                                    if (state == Expandable2State.expanded) {
-                                      _controller.forward?.call();
+                              return UtxoRow(
+                                key: Key(
+                                  "${utxo.walletId}_${utxo.id}_${utxo.isBlocked}",
+                                ),
+                                data: data,
+                                compact: true,
+                                walletId: widget.walletId,
+                                onSelectionChanged: (value) {
+                                  setState(() {
+                                    if (data.selected) {
+                                      _selectedUTXOsData.add(value);
+                                      _selectedUTXOs.add(utxo);
                                     } else {
-                                      _controller.reverse?.call();
+                                      _selectedUTXOsData.remove(value);
+                                      _selectedUTXOs.remove(utxo);
                                     }
-                                  },
-                                  header: RoundedContainer(
-                                    padding: const EdgeInsets.all(20),
-                                    color: Colors.transparent,
-                                    child: Row(
-                                      children: [
-                                        SvgPicture.file(
-                                          File(
-                                            ref.watch(coinIconProvider(coin)),
-                                          ),
-                                          width: 24,
-                                          height: 24,
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          flex: 3,
-                                          child: Text(
-                                            entry.key,
-                                            style: STextStyles.w600_14(context),
-                                          ),
-                                        ),
-                                        Expanded(
-                                          child: Text(
-                                            "${entry.value.length} "
-                                            "output${entry.value.length > 1 ? "s" : ""}",
-                                            style:
-                                                STextStyles.desktopTextExtraExtraSmall(
-                                                  context,
-                                                ),
-                                          ),
-                                        ),
-                                        RotateIcon(
-                                          animationDurationMultiplier:
-                                              0.2 * entry.value.length,
-                                          icon: SvgPicture.asset(
-                                            Assets.svg.chevronDown,
-                                            width: 14,
-                                            color:
-                                                Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .textSubtitle1,
-                                          ),
-                                          curve: Curves.easeInOut,
-                                          controller: _controller,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  children:
-                                      entry.value.map((id) {
-                                        final utxo =
-                                            MainDB.instance.isar.utxos
-                                                .where()
-                                                .idEqualTo(id)
-                                                .findFirstSync()!;
-                                        final data = UtxoRowData(
-                                          utxo.id,
-                                          false,
-                                        );
-                                        data.selected = _selectedUTXOsData
-                                            .contains(data);
+                                  });
+                                },
+                              );
+                            },
+                          )
+                        : ListView.separated(
+                            itemCount: _map!.entries.length,
+                            separatorBuilder: (context, _) =>
+                                const SizedBox(height: 10),
+                            itemBuilder: (context, index) {
+                              final entry = _map!.entries.elementAt(index);
+                              final _controller = RotateIconController();
 
-                                        return UtxoRow(
-                                          key: Key(
-                                            "${utxo.walletId}_${utxo.id}_${utxo.isBlocked}",
-                                          ),
-                                          data: data,
-                                          compact: true,
-                                          compactWithBorder: false,
-                                          raiseOnSelected: false,
-                                          walletId: widget.walletId,
-                                          onSelectionChanged: (value) {
-                                            setState(() {
-                                              if (data.selected) {
-                                                _selectedUTXOsData.add(value);
-                                                _selectedUTXOs.add(utxo);
-                                              } else {
-                                                _selectedUTXOsData.remove(
-                                                  value,
-                                                );
-                                                _selectedUTXOs.remove(utxo);
-                                              }
-                                            });
-                                          },
-                                        );
-                                      }).toList(),
-                                );
-                              },
-                            ),
+                              return Expandable2(
+                                border: Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.backgroundAppBar,
+                                background: Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.popupBG,
+                                animationDurationMultiplier:
+                                    0.2 * entry.value.length,
+                                onExpandWillChange: (state) {
+                                  if (state == Expandable2State.expanded) {
+                                    _controller.forward?.call();
+                                  } else {
+                                    _controller.reverse?.call();
+                                  }
+                                },
+                                header: RoundedContainer(
+                                  padding: const EdgeInsets.all(20),
+                                  color: Colors.transparent,
+                                  child: Row(
+                                    children: [
+                                      SvgPicture.file(
+                                        File(ref.watch(coinIconProvider(coin))),
+                                        width: 24,
+                                        height: 24,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        flex: 3,
+                                        child: Text(
+                                          entry.key,
+                                          style: STextStyles.w600_14(context),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Text(
+                                          "${entry.value.length} "
+                                          "output${entry.value.length > 1 ? "s" : ""}",
+                                          style:
+                                              STextStyles.desktopTextExtraExtraSmall(
+                                                context,
+                                              ),
+                                        ),
+                                      ),
+                                      RotateIcon(
+                                        animationDurationMultiplier:
+                                            0.2 * entry.value.length,
+                                        icon: SvgPicture.asset(
+                                          Assets.svg.chevronDown,
+                                          width: 14,
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textSubtitle1,
+                                        ),
+                                        curve: Curves.easeInOut,
+                                        controller: _controller,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                children: entry.value.map((id) {
+                                  final utxo = MainDB.instance.isar.utxos
+                                      .where()
+                                      .idEqualTo(id)
+                                      .findFirstSync()!;
+                                  final data = UtxoRowData(utxo.id, false);
+                                  data.selected = _selectedUTXOsData.contains(
+                                    data,
+                                  );
+
+                                  return UtxoRow(
+                                    key: Key(
+                                      "${utxo.walletId}_${utxo.id}_${utxo.isBlocked}",
+                                    ),
+                                    data: data,
+                                    compact: true,
+                                    compactWithBorder: false,
+                                    raiseOnSelected: false,
+                                    walletId: widget.walletId,
+                                    onSelectionChanged: (value) {
+                                      setState(() {
+                                        if (data.selected) {
+                                          _selectedUTXOsData.add(value);
+                                          _selectedUTXOs.add(utxo);
+                                        } else {
+                                          _selectedUTXOsData.remove(value);
+                                          _selectedUTXOs.remove(utxo);
+                                        }
+                                      });
+                                    },
+                                  );
+                                }).toList(),
+                              );
+                            },
+                          ),
                   ),
                   const SizedBox(height: 16),
                   RoundedContainer(
-                    color:
-                        Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textFieldDefaultBG,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldDefaultBG,
                     padding: EdgeInsets.zero,
                     child: ConditionalParent(
                       condition: widget.amountToSend != null,
@@ -474,10 +459,9 @@ class _DesktopCoinControlUseDialogState
                             child,
                             Container(
                               height: 1.2,
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.popupBG,
+                              color: Theme.of(
+                                context,
+                              ).extension<StackColors>()!.popupBG,
                             ),
                             Padding(
                               padding: const EdgeInsets.all(16),
@@ -491,10 +475,9 @@ class _DesktopCoinControlUseDialogState
                                         STextStyles.desktopTextExtraExtraSmall(
                                           context,
                                         ).copyWith(
-                                          color:
-                                              Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .textDark,
+                                          color: Theme.of(
+                                            context,
+                                          ).extension<StackColors>()!.textDark,
                                         ),
                                   ),
                                   SelectableText(
@@ -504,10 +487,9 @@ class _DesktopCoinControlUseDialogState
                                         STextStyles.desktopTextExtraExtraSmall(
                                           context,
                                         ).copyWith(
-                                          color:
-                                              Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .textDark,
+                                          color: Theme.of(
+                                            context,
+                                          ).extension<StackColors>()!.textDark,
                                         ),
                                   ),
                                 ],
@@ -523,33 +505,33 @@ class _DesktopCoinControlUseDialogState
                           children: [
                             Text(
                               "Selected amount",
-                              style: STextStyles.desktopTextExtraExtraSmall(
-                                context,
-                              ).copyWith(
-                                color:
-                                    Theme.of(
+                              style:
+                                  STextStyles.desktopTextExtraExtraSmall(
+                                    context,
+                                  ).copyWith(
+                                    color: Theme.of(
                                       context,
                                     ).extension<StackColors>()!.textDark,
-                              ),
+                                  ),
                             ),
                             SelectableText(
                               "${selectedSum.decimal.toStringAsFixed(coin.fractionDigits)} ${coin.ticker}",
-                              style: STextStyles.desktopTextExtraExtraSmall(
-                                context,
-                              ).copyWith(
-                                color:
-                                    widget.amountToSend == null
+                              style:
+                                  STextStyles.desktopTextExtraExtraSmall(
+                                    context,
+                                  ).copyWith(
+                                    color: widget.amountToSend == null
                                         ? Theme.of(
-                                          context,
-                                        ).extension<StackColors>()!.textDark
+                                            context,
+                                          ).extension<StackColors>()!.textDark
                                         : selectedSum < widget.amountToSend!
                                         ? Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .accentColorRed
+                                              .extension<StackColors>()!
+                                              .accentColorRed
                                         : Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .accentColorGreen,
-                              ),
+                                              .extension<StackColors>()!
+                                              .accentColorGreen,
+                                  ),
                             ),
                           ],
                         ),
@@ -563,10 +545,9 @@ class _DesktopCoinControlUseDialogState
                         child: SecondaryButton(
                           enabled: _selectedUTXOsData.isNotEmpty,
                           buttonHeight: ButtonHeight.l,
-                          label:
-                              _selectedUTXOsData.isEmpty
-                                  ? "Clear selection"
-                                  : "Clear selection (${_selectedUTXOsData.length})",
+                          label: _selectedUTXOsData.isEmpty
+                              ? "Clear selection"
+                              : "Clear selection (${_selectedUTXOsData.length})",
                           onPressed: () {
                             setState(() {
                               _selectedUTXOsData.clear();

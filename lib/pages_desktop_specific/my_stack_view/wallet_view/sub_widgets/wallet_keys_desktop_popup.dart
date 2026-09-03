@@ -88,90 +88,16 @@ class WalletKeysDesktopPopup extends ConsumerWidget {
           const SizedBox(height: 6),
           frostData != null
               ? Column(
-                children: [
-                  Text("Keys", style: STextStyles.desktopTextMedium(context)),
-                  const SizedBox(height: 8),
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 32),
-                      child: RoundedWhiteContainer(
-                        borderColor:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textFieldDefaultBG,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 9,
-                        ),
-                        child: Row(
-                          children: [
-                            Flexible(
-                              child: SelectableText(
-                                frostData!.keys,
-                                style: STextStyles.desktopTextExtraExtraSmall(
-                                  context,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            IconCopyButton(data: frostData!.keys),
-                            // TODO [prio=low: Add QR code button and dialog.
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Text("Config", style: STextStyles.desktopTextMedium(context)),
-                  const SizedBox(height: 8),
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 32),
-                      child: RoundedWhiteContainer(
-                        borderColor:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textFieldDefaultBG,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 9,
-                        ),
-                        child: Row(
-                          children: [
-                            Flexible(
-                              child: SelectableText(
-                                frostData!.config,
-                                style: STextStyles.desktopTextExtraExtraSmall(
-                                  context,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            IconCopyButton(data: frostData!.config),
-                            // TODO [prio=low: Add QR code button and dialog.
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  if (frostData?.prevGen != null) const SizedBox(height: 24),
-                  if (frostData?.prevGen != null)
-                    Text(
-                      "Previous generation Keys",
-                      style: STextStyles.desktopTextMedium(context),
-                    ),
-                  if (frostData?.prevGen != null) const SizedBox(height: 8),
-                  if (frostData?.prevGen != null)
+                  children: [
+                    Text("Keys", style: STextStyles.desktopTextMedium(context)),
+                    const SizedBox(height: 8),
                     Center(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 32),
                         child: RoundedWhiteContainer(
-                          borderColor:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textFieldDefaultBG,
+                          borderColor: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.textFieldDefaultBG,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 9,
@@ -195,22 +121,19 @@ class WalletKeysDesktopPopup extends ConsumerWidget {
                         ),
                       ),
                     ),
-                  if (frostData?.prevGen != null) const SizedBox(height: 24),
-                  if (frostData?.prevGen != null)
+                    const SizedBox(height: 24),
                     Text(
-                      "Previous generation Config",
+                      "Config",
                       style: STextStyles.desktopTextMedium(context),
                     ),
-                  if (frostData?.prevGen != null) const SizedBox(height: 8),
-                  if (frostData?.prevGen != null)
+                    const SizedBox(height: 8),
                     Center(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 32),
                         child: RoundedWhiteContainer(
-                          borderColor:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textFieldDefaultBG,
+                          borderColor: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.textFieldDefaultBG,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 9,
@@ -219,7 +142,7 @@ class WalletKeysDesktopPopup extends ConsumerWidget {
                             children: [
                               Flexible(
                                 child: SelectableText(
-                                  frostData!.prevGen!.config,
+                                  frostData!.config,
                                   style: STextStyles.desktopTextExtraExtraSmall(
                                     context,
                                   ),
@@ -227,48 +150,128 @@ class WalletKeysDesktopPopup extends ConsumerWidget {
                                 ),
                               ),
                               const SizedBox(width: 10),
-                              IconCopyButton(data: frostData!.prevGen!.config),
+                              IconCopyButton(data: frostData!.config),
                               // TODO [prio=low: Add QR code button and dialog.
                             ],
                           ),
                         ),
                       ),
                     ),
-                  const SizedBox(height: 24),
-                ],
-              )
+                    if (frostData?.prevGen != null) const SizedBox(height: 24),
+                    if (frostData?.prevGen != null)
+                      Text(
+                        "Previous generation Keys",
+                        style: STextStyles.desktopTextMedium(context),
+                      ),
+                    if (frostData?.prevGen != null) const SizedBox(height: 8),
+                    if (frostData?.prevGen != null)
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 32),
+                          child: RoundedWhiteContainer(
+                            borderColor: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textFieldDefaultBG,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 9,
+                            ),
+                            child: Row(
+                              children: [
+                                Flexible(
+                                  child: SelectableText(
+                                    frostData!.prevGen!.keys,
+                                    style:
+                                        STextStyles.desktopTextExtraExtraSmall(
+                                          context,
+                                        ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                IconCopyButton(data: frostData!.prevGen!.keys),
+                                // TODO [prio=low: Add QR code button and dialog.
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    if (frostData?.prevGen != null) const SizedBox(height: 24),
+                    if (frostData?.prevGen != null)
+                      Text(
+                        "Previous generation Config",
+                        style: STextStyles.desktopTextMedium(context),
+                      ),
+                    if (frostData?.prevGen != null) const SizedBox(height: 8),
+                    if (frostData?.prevGen != null)
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 32),
+                          child: RoundedWhiteContainer(
+                            borderColor: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textFieldDefaultBG,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 9,
+                            ),
+                            child: Row(
+                              children: [
+                                Flexible(
+                                  child: SelectableText(
+                                    frostData!.prevGen!.config,
+                                    style:
+                                        STextStyles.desktopTextExtraExtraSmall(
+                                          context,
+                                        ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                IconCopyButton(
+                                  data: frostData!.prevGen!.config,
+                                ),
+                                // TODO [prio=low: Add QR code button and dialog.
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    const SizedBox(height: 24),
+                  ],
+                )
               : keyData != null
               ? keyData is ViewOnlyWalletData
-                  ? Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: ViewOnlyWalletDataWidget(
-                      data: keyData as ViewOnlyWalletData,
-                    ),
-                  )
-                  : CustomTabView(
-                    titles: [
-                      if (words.isNotEmpty) "Mnemonic",
-                      if (keyData is XPrivData) "XPriv(s)",
-                      if (keyData is CWKeyData) "Keys",
-                    ],
-                    children: [
-                      if (words.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 16),
-                          child: _Mnemonic(words: words),
+                    ? Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: ViewOnlyWalletDataWidget(
+                          data: keyData as ViewOnlyWalletData,
                         ),
-                      if (keyData is XPrivData)
-                        WalletXPrivs(
-                          xprivData: keyData as XPrivData,
-                          walletId: walletId,
-                        ),
-                      if (keyData is CWKeyData)
-                        CNWalletKeys(
-                          cwKeyData: keyData as CWKeyData,
-                          walletId: walletId,
-                        ),
-                    ],
-                  )
+                      )
+                    : CustomTabView(
+                        titles: [
+                          if (words.isNotEmpty) "Mnemonic",
+                          if (keyData is XPrivData) "XPriv(s)",
+                          if (keyData is CWKeyData) "Keys",
+                        ],
+                        children: [
+                          if (words.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 16),
+                              child: _Mnemonic(words: words),
+                            ),
+                          if (keyData is XPrivData)
+                            WalletXPrivs(
+                              xprivData: keyData as XPrivData,
+                              walletId: walletId,
+                            ),
+                          if (keyData is CWKeyData)
+                            CNWalletKeys(
+                              cwKeyData: keyData as CWKeyData,
+                              walletId: walletId,
+                            ),
+                        ],
+                      )
               : _Mnemonic(words: words),
           const SizedBox(height: 32),
         ],
@@ -311,8 +314,9 @@ class _Mnemonic extends StatelessWidget {
           child: MnemonicTable(
             words: words,
             isDesktop: true,
-            itemBorderColor:
-                Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
+            itemBorderColor: Theme.of(
+              context,
+            ).extension<StackColors>()!.buttonBackSecondary,
           ),
         ),
         const SizedBox(height: 24),

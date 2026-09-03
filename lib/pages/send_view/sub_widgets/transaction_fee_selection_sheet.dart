@@ -22,7 +22,6 @@ import '../../../utilities/amount/amount.dart';
 import '../../../utilities/amount/amount_formatter.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
-import '../../../utilities/logger.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
@@ -58,7 +57,7 @@ class TransactionFeeSelectionSheet extends ConsumerStatefulWidget {
 
   final String walletId;
   final Amount amount;
-  final Function updateChosen;
+  final void Function(FeeRateType feeRateType, Amount? fee) updateChosen;
   final bool isToken;
 
   @override
@@ -79,6 +78,16 @@ class _TransactionFeeSelectionSheetState
     "Calculating..",
     "Calculating...",
   ];
+
+  void _selectFeeRate(FeeRateType feeRateType) {
+    ref.read(feeRateTypeMobileStateProvider.state).state = feeRateType;
+    widget.updateChosen(
+      feeRateType,
+      feeRateType.isCustom ? null : getAmount(feeRateType),
+    );
+
+    Navigator.of(context).pop();
+  }
 
   Amount _addFiroOpReturnFee({
     required Amount fee,
@@ -349,23 +358,7 @@ class _TransactionFeeSelectionSheetState
                     ),
                     const SizedBox(height: 16),
                     GestureDetector(
-                      onTap: () {
-                        final state = ref
-                            .read(feeRateTypeMobileStateProvider.state)
-                            .state;
-                        if (state != FeeRateType.fast) {
-                          ref.read(feeRateTypeMobileStateProvider.state).state =
-                              FeeRateType.fast;
-                        }
-                        final String? fee = getAmount(
-                          FeeRateType.fast,
-                          wallet.info.coin,
-                        );
-                        if (fee != null) {
-                          widget.updateChosen(fee);
-                        }
-                        Navigator.of(context).pop();
-                      },
+                      onTap: () => _selectFeeRate(FeeRateType.fast),
                       child: Container(
                         color: Colors.transparent,
                         child: Row(
@@ -387,17 +380,8 @@ class _TransactionFeeSelectionSheetState
                                           feeRateTypeMobileStateProvider.state,
                                         )
                                         .state,
-                                    onChanged: (x) {
-                                      ref
-                                              .read(
-                                                feeRateTypeMobileStateProvider
-                                                    .state,
-                                              )
-                                              .state =
-                                          FeeRateType.fast;
-
-                                      Navigator.of(context).pop();
-                                    },
+                                    onChanged: (_) =>
+                                        _selectFeeRate(FeeRateType.fast),
                                   ),
                                 ),
                               ],
@@ -486,23 +470,7 @@ class _TransactionFeeSelectionSheetState
                     ),
                     const SizedBox(height: 16),
                     GestureDetector(
-                      onTap: () {
-                        final state = ref
-                            .read(feeRateTypeMobileStateProvider.state)
-                            .state;
-                        if (state != FeeRateType.average) {
-                          ref.read(feeRateTypeMobileStateProvider.state).state =
-                              FeeRateType.average;
-                        }
-                        final String? fee = getAmount(
-                          FeeRateType.average,
-                          coin,
-                        );
-                        if (fee != null) {
-                          widget.updateChosen(fee);
-                        }
-                        Navigator.of(context).pop();
-                      },
+                      onTap: () => _selectFeeRate(FeeRateType.average),
                       child: Container(
                         color: Colors.transparent,
                         child: Row(
@@ -523,16 +491,8 @@ class _TransactionFeeSelectionSheetState
                                           feeRateTypeMobileStateProvider.state,
                                         )
                                         .state,
-                                    onChanged: (x) {
-                                      ref
-                                              .read(
-                                                feeRateTypeMobileStateProvider
-                                                    .state,
-                                              )
-                                              .state =
-                                          FeeRateType.average;
-                                      Navigator.of(context).pop();
-                                    },
+                                    onChanged: (_) =>
+                                        _selectFeeRate(FeeRateType.average),
                                   ),
                                 ),
                               ],
@@ -621,20 +581,7 @@ class _TransactionFeeSelectionSheetState
                     ),
                     const SizedBox(height: 16),
                     GestureDetector(
-                      onTap: () {
-                        final state = ref
-                            .read(feeRateTypeMobileStateProvider.state)
-                            .state;
-                        if (state != FeeRateType.slow) {
-                          ref.read(feeRateTypeMobileStateProvider.state).state =
-                              FeeRateType.slow;
-                        }
-                        final String? fee = getAmount(FeeRateType.slow, coin);
-                        if (fee != null) {
-                          widget.updateChosen(fee);
-                        }
-                        Navigator.of(context).pop();
-                      },
+                      onTap: () => _selectFeeRate(FeeRateType.slow),
                       child: Container(
                         color: Colors.transparent,
                         child: Row(
@@ -655,16 +602,8 @@ class _TransactionFeeSelectionSheetState
                                           feeRateTypeMobileStateProvider.state,
                                         )
                                         .state,
-                                    onChanged: (x) {
-                                      ref
-                                              .read(
-                                                feeRateTypeMobileStateProvider
-                                                    .state,
-                                              )
-                                              .state =
-                                          FeeRateType.slow;
-                                      Navigator.of(context).pop();
-                                    },
+                                    onChanged: (_) =>
+                                        _selectFeeRate(FeeRateType.slow),
                                   ),
                                 ),
                               ],
@@ -754,20 +693,7 @@ class _TransactionFeeSelectionSheetState
                     const SizedBox(height: 24),
                     if (wallet is ElectrumXInterface || coin is Ethereum)
                       GestureDetector(
-                        onTap: () {
-                          final state = ref
-                              .read(feeRateTypeMobileStateProvider.state)
-                              .state;
-                          if (state != FeeRateType.custom) {
-                            ref
-                                    .read(feeRateTypeMobileStateProvider.state)
-                                    .state =
-                                FeeRateType.custom;
-                          }
-                          widget.updateChosen("custom");
-
-                          Navigator.of(context).pop();
-                        },
+                        onTap: () => _selectFeeRate(FeeRateType.custom),
                         child: Container(
                           color: Colors.transparent,
                           child: Row(
@@ -789,16 +715,8 @@ class _TransactionFeeSelectionSheetState
                                                 .state,
                                           )
                                           .state,
-                                      onChanged: (x) {
-                                        ref
-                                                .read(
-                                                  feeRateTypeMobileStateProvider
-                                                      .state,
-                                                )
-                                                .state =
-                                            FeeRateType.custom;
-                                        Navigator.of(context).pop();
-                                      },
+                                      onChanged: (_) =>
+                                          _selectFeeRate(FeeRateType.custom),
                                     ),
                                   ),
                                 ],
@@ -839,50 +757,16 @@ class _TransactionFeeSelectionSheetState
     );
   }
 
-  String? getAmount(FeeRateType feeRateType, CryptoCurrency coin) {
-    try {
-      switch (feeRateType) {
-        case FeeRateType.fast:
-          if (ref.read(feeSheetSessionCacheProvider).fast[amount] != null) {
-            return ref
-                .read(pAmountFormatter(coin))
-                .format(
-                  ref.read(feeSheetSessionCacheProvider).fast[amount]!,
-                  indicatePrecisionLoss: false,
-                  withUnitName: false,
-                );
-          }
-          return null;
-
-        case FeeRateType.average:
-          if (ref.read(feeSheetSessionCacheProvider).average[amount] != null) {
-            return ref
-                .read(pAmountFormatter(coin))
-                .format(
-                  ref.read(feeSheetSessionCacheProvider).average[amount]!,
-                  indicatePrecisionLoss: false,
-                  withUnitName: false,
-                );
-          }
-          return null;
-
-        case FeeRateType.slow:
-          if (ref.read(feeSheetSessionCacheProvider).slow[amount] != null) {
-            return ref
-                .read(pAmountFormatter(coin))
-                .format(
-                  ref.read(feeSheetSessionCacheProvider).slow[amount]!,
-                  indicatePrecisionLoss: false,
-                  withUnitName: false,
-                );
-          }
-          return null;
-        case FeeRateType.custom:
-          return null;
-      }
-    } catch (e, s) {
-      Logging.instance.w("$e $s", error: e, stackTrace: s);
-      return null;
+  Amount? getAmount(FeeRateType feeRateType) {
+    switch (feeRateType) {
+      case FeeRateType.fast:
+        return ref.read(feeSheetSessionCacheProvider).fast[amount];
+      case FeeRateType.average:
+        return ref.read(feeSheetSessionCacheProvider).average[amount];
+      case FeeRateType.slow:
+        return ref.read(feeSheetSessionCacheProvider).slow[amount];
+      case FeeRateType.custom:
+        return null;
     }
   }
 }

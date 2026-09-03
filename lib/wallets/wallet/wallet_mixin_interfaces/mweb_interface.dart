@@ -29,6 +29,7 @@ import '../../isar/models/wallet_info.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/external_wallet.dart';
 import 'electrumx_interface.dart';
+import 'mweb_fee_utils.dart';
 
 mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     on ElectrumXInterface<T>
@@ -440,14 +441,17 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     }
   }
 
-  Future<TxData> processMwebTransaction(TxData txData) async {
+  Future<TxData> processMwebTransaction({
+    required TxData txData,
+    required BigInt feeRatePerKB,
+  }) async {
     final client = await _client;
     final response = await client.create(
       CreateRequest(
         rawTx: txData.raw!.toUint8ListFromHex,
         scanSecret: await _scanSecret,
         spendSecret: await _spendSecret,
-        feeRatePerKb: Int64(txData.feeRateAmount!.toInt()),
+        feeRatePerKb: Int64(feeRatePerKB.toInt()),
         dryRun: false,
       ),
     );
@@ -959,7 +963,10 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     }
   }
 
-  Future<Amount> mwebFee({required TxData txData}) async {
+  Future<Amount> mwebFee({
+    required TxData txData,
+    required BigInt feeRatePerKB,
+  }) async {
     final outputs = txData.recipients!;
     final utxos = txData.usedUTXOs!;
 
@@ -968,8 +975,7 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     final preOutputSum = outputs.fold(BigInt.zero, (p, e) => p + e.amount.raw);
     final fee = sumOfUtxosValue - preOutputSum;
 
-    final feeRate =
-        txData.satsPerVByte ?? (txData.feeRateAmount!.toInt() / 1000).ceil();
+    final vBytesPerKilobyte = BigInt.from(1000);
 
     final client = await _client;
 
@@ -978,7 +984,7 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
         rawTx: txData.raw!.toUint8ListFromHex,
         scanSecret: await _scanSecret,
         spendSecret: await _spendSecret,
-        feeRatePerKb: Int64(feeRate * 1000),
+        feeRatePerKb: Int64(feeRatePerKB.toInt()),
         dryRun: true,
       ),
     );
@@ -1010,11 +1016,19 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     BigInt feeIncrease = posOutputSum - expectedPegin;
 
     if (expectedPegin > BigInt.zero) {
-      feeIncrease += BigInt.from(feeRate * 41);
+      feeIncrease +=
+          (feeRatePerKB * BigInt.from(41) + vBytesPerKilobyte - BigInt.one) ~/
+          vBytesPerKilobyte;
     }
 
     return Amount(
-      rawValue: fee + feeIncrease,
+      rawValue: requiredMwebFee(
+        currentFee: fee,
+        feeIncrease: feeIncrease,
+        hasPegin: expectedPegin > BigInt.zero,
+        vSize: txData.vSize!,
+        feeRatePerKB: feeRatePerKB,
+      ),
       fractionDigits: cryptoCurrency.fractionDigits,
     );
   }

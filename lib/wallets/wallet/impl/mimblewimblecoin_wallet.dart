@@ -35,6 +35,7 @@ import '../../crypto_currency/crypto_currency.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/bip39_wallet.dart';
 import '../supporting/mimblewimblecoin_wallet_info_extension.dart';
+import '../supporting/restore_progress.dart';
 
 class MimblewimblecoinWallet extends Bip39Wallet {
   MimblewimblecoinWallet(CryptoCurrencyNetwork network)
@@ -55,7 +56,10 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     final int lastScannedBlock =
         info.mimblewimblecoinData?.lastScannedBlock ?? 0;
     final _chainHeight = await chainHeight;
-    final double restorePercent = lastScannedBlock / _chainHeight;
+    final restorePercent = calculateRestoreProgress(
+      scannedHeight: lastScannedBlock,
+      chainHeight: _chainHeight,
+    );
     GlobalEventBus.instance.fire(
       RefreshPercentChangedEvent(highestPercent, walletId),
     );
@@ -834,7 +838,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
 
   int _calculateRestoreHeightFrom({required DateTime date}) {
     final int secondsSinceEpoch = date.millisecondsSinceEpoch ~/ 1000;
-    const int mimblewimblecoinFirstBlock = 1565370278;
+    const int mimblewimblecoinFirstBlock = 1573462800;
     const double overestimateSecondsPerBlock = 61;
     final int chosenSeconds = secondsSinceEpoch - mimblewimblecoinFirstBlock;
     final int approximateHeight = chosenSeconds ~/ overestimateSecondsPerBlock;

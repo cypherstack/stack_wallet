@@ -20,9 +20,7 @@ import '../step_scaffold.dart';
 import 'desktop_step_item.dart';
 
 class DesktopStep3 extends ConsumerStatefulWidget {
-  const DesktopStep3({
-    super.key,
-  });
+  const DesktopStep3({super.key});
 
   @override
   ConsumerState<DesktopStep3> createState() => _DesktopStep3State();
@@ -37,9 +35,7 @@ class _DesktopStep3State extends ConsumerState<DesktopStep3> {
           "Confirm exchange details",
           style: STextStyles.desktopTextMedium(context),
         ),
-        const SizedBox(
-          height: 20,
-        ),
+        const SizedBox(height: 20),
         RoundedWhiteContainer(
           borderColor: Theme.of(context).extension<StackColors>()!.background,
           padding: const EdgeInsets.all(0),
@@ -72,16 +68,19 @@ class _DesktopStep3State extends ConsumerState<DesktopStep3> {
                 color: Theme.of(context).extension<StackColors>()!.background,
               ),
               DesktopStepItem(
-                label: ref.watch(
-                          desktopExchangeModelProvider
-                              .select((value) => value!.rateType),
+                label:
+                    ref.watch(
+                          desktopExchangeModelProvider.select(
+                            (value) => value!.rateType,
+                          ),
                         ) ==
                         ExchangeRateType.estimated
                     ? "Estimated rate"
                     : "Fixed rate",
                 value: ref.watch(
-                  desktopExchangeModelProvider
-                      .select((value) => value!.rateInfo),
+                  desktopExchangeModelProvider.select(
+                    (value) => value!.rateInfo,
+                  ),
                 ),
               ),
               Container(
@@ -92,12 +91,37 @@ class _DesktopStep3State extends ConsumerState<DesktopStep3> {
                 vertical: true,
                 label:
                     "Recipient ${ref.watch(desktopExchangeModelProvider.select((value) => value!.receiveTicker.toUpperCase()))} address",
-                value: ref.watch(
-                      desktopExchangeModelProvider
-                          .select((value) => value!.recipientAddress),
+                value:
+                    ref.watch(
+                      desktopExchangeModelProvider.select(
+                        (value) => value!.recipientAddress,
+                      ),
                     ) ??
                     "Error",
               ),
+              if (ref.watch(
+                desktopExchangeModelProvider.select(
+                  (value) => value!.extraId?.isNotEmpty == true,
+                ),
+              ))
+                Container(
+                  height: 1,
+                  color: Theme.of(context).extension<StackColors>()!.background,
+                ),
+              if (ref.watch(
+                desktopExchangeModelProvider.select(
+                  (value) => value!.extraId?.isNotEmpty == true,
+                ),
+              ))
+                DesktopStepItem(
+                  vertical: true,
+                  label: "Recipient memo or tag",
+                  value: ref.watch(
+                    desktopExchangeModelProvider.select(
+                      (value) => value!.extraId!,
+                    ),
+                  ),
+                ),
               if (ref.watch(efExchangeProvider).supportsRefundAddress)
                 Container(
                   height: 1,
@@ -108,11 +132,38 @@ class _DesktopStep3State extends ConsumerState<DesktopStep3> {
                   vertical: true,
                   label:
                       "Refund ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker.toUpperCase()))} address",
-                  value: ref.watch(
-                        desktopExchangeModelProvider
-                            .select((value) => value!.refundAddress),
+                  value:
+                      ref.watch(
+                        desktopExchangeModelProvider.select(
+                          (value) => value!.refundAddress,
+                        ),
                       ) ??
                       "Error",
+                ),
+              if (ref.watch(efExchangeProvider).supportsRefundAddress &&
+                  ref.watch(
+                    desktopExchangeModelProvider.select(
+                      (value) => value!.refundExtraId?.isNotEmpty == true,
+                    ),
+                  ))
+                Container(
+                  height: 1,
+                  color: Theme.of(context).extension<StackColors>()!.background,
+                ),
+              if (ref.watch(efExchangeProvider).supportsRefundAddress &&
+                  ref.watch(
+                    desktopExchangeModelProvider.select(
+                      (value) => value!.refundExtraId?.isNotEmpty == true,
+                    ),
+                  ))
+                DesktopStepItem(
+                  vertical: true,
+                  label: "Refund memo or tag",
+                  value: ref.watch(
+                    desktopExchangeModelProvider.select(
+                      (value) => value!.refundExtraId!,
+                    ),
+                  ),
                 ),
             ],
           ),

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:decimal/decimal.dart';
+import 'package:flutter/foundation.dart';
 import 'package:isar_community/isar.dart';
 import 'package:mutex/mutex.dart';
 import 'package:stack_wallet_backup/generate_password.dart';
@@ -40,6 +41,7 @@ import '../../crypto_currency/crypto_currency.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/bip39_wallet.dart';
 import '../supporting/epiccash_wallet_info_extension.dart';
+import '../supporting/restore_progress.dart';
 
 //
 // refactor of https://github.com/cypherstack/stack_wallet/blob/1d9fb4cd069f22492ece690ac788e05b8f8b1209/lib/services/coins/epiccash/epiccash_wallet.dart
@@ -57,7 +59,10 @@ class EpiccashWallet extends Bip39Wallet {
   Future<double> get getSyncPercent async {
     final int lastScannedBlock = info.epicData?.lastScannedBlock ?? 0;
     final _chainHeight = await chainHeight;
-    final double restorePercent = lastScannedBlock / _chainHeight;
+    final restorePercent = calculateRestoreProgress(
+      scannedHeight: lastScannedBlock,
+      chainHeight: _chainHeight,
+    );
     GlobalEventBus.instance.fire(
       RefreshPercentChangedEvent(highestPercent, walletId),
     );
@@ -931,18 +936,22 @@ class EpiccashWallet extends Bip39Wallet {
     return await super.init();
   }
 
+  @visibleForTesting
+  bool shouldCheckEpicbox(String receiverAddress) =>
+      !isHttpAddress(receiverAddress);
+
   @override
   Future<TxData> confirmSend({required TxData txData}) async {
     try {
       _hackedCheckTorNodePrefs();
-      final EpicBoxConfigModel epicboxConfig = await getEpicBoxConfig();
 
       // TODO determine whether it is worth sending change to a change address.
 
       final String receiverAddress = txData.recipients!.first.address;
+      final useEpicbox = shouldCheckEpicbox(receiverAddress);
 
-      if (!receiverAddress.startsWith("http://") ||
-          !receiverAddress.startsWith("https://")) {
+      if (useEpicbox) {
+        final epicboxConfig = await getEpicBoxConfig();
         final bool isEpicboxConnected = await _testEpicboxServer(epicboxConfig);
         if (!isEpicboxConnected) {
           throw Exception("Failed to send TX : Unable to reach epicbox server");
@@ -951,8 +960,7 @@ class EpiccashWallet extends Bip39Wallet {
 
       ({String commitId, String slateId, String slateJson}) transaction;
 
-      if (receiverAddress.startsWith("http://") ||
-          receiverAddress.startsWith("https://")) {
+      if (!useEpicbox) {
         final httpResult = await libEpic.txHttpSend(
           wallet: _wallet!,
           selectionStrategyIsAll: 0,

@@ -186,11 +186,16 @@ class MockElectrumXClient extends _i1.Mock implements _i5.ElectrumXClient {
           as _i8.Future<List<dynamic>>);
 
   @override
-  _i8.Future<bool> ping({String? requestID, int? retryCount = 1}) =>
+  _i8.Future<bool> ping({
+    String? requestID,
+    int? retryCount = 1,
+    Duration? timeout = const Duration(seconds: 30),
+  }) =>
       (super.noSuchMethod(
             Invocation.method(#ping, [], {
               #requestID: requestID,
               #retryCount: retryCount,
+              #timeout: timeout,
             }),
             returnValue: _i8.Future<bool>.value(false),
           )

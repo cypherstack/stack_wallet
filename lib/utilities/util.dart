@@ -28,15 +28,59 @@ abstract class Util {
   static const isArmLinux = bool.fromEnvironment("IS_ARM");
   static final isTestEnv = Platform.environment["FLUTTER_TEST"] == "true";
 
+  static final Map<String, NumberSymbols?> _numberSymbolsCache = {};
+
   static Directory? libraryPath;
   static double? screenWidth;
 
   static NumberSymbols? getSymbolsFor({required String locale}) {
-    return numberFormatSymbols[locale] as NumberSymbols? ??
-        numberFormatSymbols[locale.replaceAll("-", "_")] as NumberSymbols? ??
-        numberFormatSymbols[locale.substring(3).toLowerCase()]
-            as NumberSymbols? ??
-        numberFormatSymbols[locale.substring(0, 2)] as NumberSymbols?;
+    return _numberSymbolsCache.putIfAbsent(locale, () {
+      final exactSymbols = numberFormatSymbols[locale];
+      if (exactSymbols is NumberSymbols) {
+        return exactSymbols;
+      }
+
+      final localeParts = locale
+          .replaceAll("-", "_")
+          .split("_")
+          .where((part) => part.isNotEmpty)
+          .toList();
+      if (localeParts.isEmpty) {
+        return null;
+      }
+
+      final languageCode = localeParts.first.toLowerCase();
+      String? scriptCode;
+      String? regionCode;
+      for (final part in localeParts.skip(1)) {
+        if (scriptCode == null && RegExp(r'^[A-Za-z]{4}$').hasMatch(part)) {
+          scriptCode =
+              "${part[0].toUpperCase()}${part.substring(1).toLowerCase()}";
+        } else if (regionCode == null &&
+            RegExp(r'^(?:[A-Za-z]{2}|\d{3})$').hasMatch(part)) {
+          regionCode = part.toUpperCase();
+        }
+      }
+
+      final candidates = <String>{
+        [
+          languageCode,
+          if (scriptCode != null) scriptCode,
+          if (regionCode != null) regionCode,
+        ].join("_"),
+        if (regionCode != null) "${languageCode}_$regionCode",
+        if (scriptCode != null) "${languageCode}_$scriptCode",
+        languageCode,
+      };
+
+      for (final candidate in candidates) {
+        final symbols = numberFormatSymbols[candidate];
+        if (symbols is NumberSymbols) {
+          return symbols;
+        }
+      }
+      return null;
+    });
   }
 
   static bool get isDesktop {

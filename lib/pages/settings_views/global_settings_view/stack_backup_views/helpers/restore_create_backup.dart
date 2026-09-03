@@ -1028,7 +1028,7 @@ abstract class SWB {
         }
       }
     } else {
-      final Map<String, dynamic> preNodeMap = {};
+      final Map<String, Map<String, dynamic>> preNodeMap = {};
       for (final nodeData in nodes) {
         preNodeMap[nodeData['id'] as String] = nodeData as Map<String, dynamic>;
       }
@@ -1039,19 +1039,7 @@ abstract class SWB {
           // node existed before restore attempt
           // revert to pre restore node
           await nodeService.save(
-            node.copyWith(
-              host: nodeData['host'] as String,
-              port: nodeData['port'] as int,
-              name: nodeData['name'] as String,
-              useSSL: nodeData['useSSL'] == "false" ? false : true,
-              enabled: nodeData['enabled'] == "false" ? false : true,
-              coinName: nodeData['coinName'] as String,
-              loginName: nodeData['loginName'] as String?,
-              isFailover: nodeData['isFailover'] as bool,
-              isDown: nodeData['isDown'] as bool,
-              trusted: nodeData['trusted'] as bool?,
-              isPrimary: nodeData["isPrimary"] as bool? ?? false,
-            ),
+            NodeModel.fromStackBackup({...nodeData, 'id': node.id}),
             nodeData['password'] as String?,
             true,
           );
@@ -1258,25 +1246,10 @@ abstract class SWB {
           .toSet();
 
       for (final node in nodes) {
-        final id = node['id'] as String;
+        final nodeData = Map<String, dynamic>.from(node as Map);
         await nodeService.save(
-          NodeModel(
-            host: node['host'] as String,
-            port: node['port'] as int,
-            name: node['name'] as String,
-            id: id,
-            useSSL: node['useSSL'] == "false" ? false : true,
-            enabled: node['enabled'] == "false" ? false : true,
-            coinName: node['coinName'] as String,
-            loginName: node['loginName'] as String?,
-            isFailover: node['isFailover'] as bool,
-            isDown: node['isDown'] as bool,
-            torEnabled: node['torEnabled'] as bool? ?? true,
-            clearnetEnabled: node['plainEnabled'] as bool? ?? true,
-            isPrimary:
-                node["isPrimary"] as bool? ?? primaryIds?.contains(id) ?? false,
-          ),
-          node["password"] as String?,
+          NodeModel.fromStackBackup(nodeData, legacyPrimaryNodeIds: primaryIds),
+          nodeData["password"] as String?,
           true,
         );
       }

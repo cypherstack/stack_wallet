@@ -250,7 +250,23 @@ class _Step4ViewState extends ConsumerState<Step4View> {
 
     final wallet = ref.read(pWallets).getWallet(tuple.item1);
 
-    final Amount amount = model.sendAmount.toAmount(
+    final payInDecimal = model.payInDecimal;
+    if (payInDecimal == null) {
+      if (mounted) {
+        await showDialog<void>(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => StackOkDialog(
+            title: "Invalid trade amount",
+            message:
+                "The exchange returned an invalid pay-in amount:"
+                " \"${model.payInAmount}\"",
+          ),
+        );
+      }
+      return;
+    }
+    final Amount amount = payInDecimal.toAmount(
       fractionDigits: wallet.info.coin.fractionDigits,
     );
     final address = model.trade!.payInAddress;
@@ -461,10 +477,10 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                               DetailItem(
                                 title: "Amount",
                                 detail:
-                                    "${model.sendAmount.toString()} "
+                                    "${model.payInAmount} "
                                     "${model.sendTicker.toUpperCase()}",
                                 button: SimpleCopyButton(
-                                  data: model.sendAmount.toString(),
+                                  data: model.payInAmount,
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -559,7 +575,7 @@ class _WarningInfo extends StatelessWidget {
         text: TextSpan(
           text:
               "You must send at least "
-              "${model.sendAmount.toString()} ${model.sendTicker}. ",
+              "${model.payInAmount} ${model.sendTicker}. ",
           style: STextStyles.label700(context).copyWith(
             color: Theme.of(
               context,
@@ -569,7 +585,7 @@ class _WarningInfo extends StatelessWidget {
             TextSpan(
               text:
                   "If you send less than "
-                  "${model.sendAmount.toString()} ${model.sendTicker},"
+                  "${model.payInAmount} ${model.sendTicker},"
                   " your transaction may not be converted and it may not be"
                   " refunded.",
               style: STextStyles.label(context).copyWith(
@@ -614,6 +630,20 @@ class _SendFromButton extends ConsumerWidget {
                 tuple.item2.ticker.toLowerCase()) {
           await confirmSend(tuple);
         } else {
+          final payInDecimal = model.payInDecimal;
+          if (payInDecimal == null) {
+            await showDialog<void>(
+              context: context,
+              barrierDismissible: true,
+              builder: (context) => StackOkDialog(
+                title: "Invalid trade amount",
+                message:
+                    "The exchange returned an invalid pay-in amount:"
+                    " \"${model.payInAmount}\"",
+              ),
+            );
+            return;
+          }
           await Navigator.of(context).push(
             RouteGenerator.getRoute(
               shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
@@ -626,7 +656,7 @@ class _SendFromButton extends ConsumerWidget {
 
                 return SendFromView(
                   coin: coin,
-                  amount: model.sendAmount.toAmount(
+                  amount: payInDecimal.toAmount(
                     fractionDigits: coin.fractionDigits,
                   ),
                   address: model.trade!.payInAddress,

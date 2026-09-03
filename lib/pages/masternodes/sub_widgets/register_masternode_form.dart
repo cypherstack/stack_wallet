@@ -1,7 +1,12 @@
+import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../providers/global/locale_provider.dart';
 import '../../../providers/global/wallets_provider.dart';
+import '../../../utilities/amount/amount.dart';
+import '../../../utilities/amount/amount_field_relocalization.dart';
+import '../../../utilities/amount/amount_input_formatter.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/if_not_already.dart';
 import '../../../utilities/logger.dart';
@@ -60,9 +65,17 @@ class _RegisterMasternodeFormState
 
   bool _enableCreateButton = false;
 
+  // Parse as a 2-decimal Amount so pasted overprecision ("0.001") is
+  // rejected instead of silently rounding to zero basis points.
+  Decimal? get _operatorRewardPercent => Amount.tryParseEditableAmount(
+    _operatorRewardController.text,
+    locale: ref.read(localeServiceChangeNotifierProvider).locale,
+    fractionDigits: 2,
+  )?.decimal;
+
   void _validate() {
     if (mounted) {
-      final percent = double.tryParse(_operatorRewardController.text);
+      final percent = _operatorRewardPercent;
       setState(() {
         _enableCreateButton = [
           _ipAndPortController.text
@@ -72,8 +85,7 @@ class _RegisterMasternodeFormState
                   .length ==
               2,
           _operatorPubKeyController.text.trim().isNotEmpty,
-          percent != null && !percent.isNegative,
-          percent != null && percent <= 100.0,
+          percent != null && percent <= Decimal.fromInt(100),
           _payoutAddressController.text.trim().isNotEmpty,
         ].every((e) => e);
       });
@@ -90,11 +102,15 @@ class _RegisterMasternodeFormState
 
     // according to https://github.com/cypherstack/stack_wallet/blob/c898a70f808ed5490b8dd23571f5f162d9e38158/lib/wallets/wallet/impl/firo_wallet.dart#L1064
     // this should be a percent of 10000
-    final operatorPercent = double.parse(_operatorRewardController.text);
-    final operatorReward = (10000 * (operatorPercent / 100)).round().clamp(
-      0,
-      10000,
-    );
+    final operatorPercent = _operatorRewardPercent;
+    if (operatorPercent == null) {
+      throw Exception("Invalid operator reward");
+    }
+    final operatorReward = (operatorPercent * Decimal.fromInt(100))
+        .round()
+        .toBigInt()
+        .toInt()
+        .clamp(0, 10000);
 
     final wallet =
         ref.read(pWallets).getWallet(widget.firoWalletId) as FiroWallet;
@@ -169,6 +185,12 @@ class _RegisterMasternodeFormState
   @override
   Widget build(BuildContext context) {
     final stack = Theme.of(context).extension<StackColors>()!;
+
+    listenForAmountRelocalization(
+      ref.listen,
+      controllers: [_operatorRewardController],
+      onRelocalized: _validate,
+    );
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -254,6 +276,18 @@ class _RegisterMasternodeFormState
           controller: _operatorRewardController,
           showPasteClearButton: true,
           maxLines: 1,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: [
+            AmountInputFormatter(
+              controller: _operatorRewardController,
+              decimals: 2,
+              locale: ref.watch(
+                localeServiceChangeNotifierProvider.select(
+                  (value) => value.locale,
+                ),
+              ),
+            ),
+          ],
           onChangedComprehensive: (_) => _validate(),
         ),
         SizedBox(height: Util.isDesktop ? 24 : 16),

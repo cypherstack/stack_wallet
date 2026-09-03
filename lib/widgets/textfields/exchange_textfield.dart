@@ -124,29 +124,22 @@ class _ExchangeTextFieldState extends ConsumerState<ExchangeTextField> {
                         decimal: true,
                       ),
                 decoration: InputDecoration(
-                  contentPadding: const EdgeInsets.only(
-                    top: 12,
-                    left: 12,
-                  ),
+                  contentPadding: const EdgeInsets.only(top: 12, left: 12),
                   hintText: widget.currency == null ? "select currency" : "0",
-                  hintStyle: STextStyles.fieldLabel(context).copyWith(
-                    fontSize: 14,
-                  ),
+                  hintStyle: STextStyles.fieldLabel(
+                    context,
+                  ).copyWith(fontSize: 14),
                 ),
                 inputFormatters: [
                   AmountInputFormatter(
-                    decimals: 8, // todo change this
+                    controller: controller,
+                    decimals: 8,
                     locale: ref.watch(
-                      localeServiceChangeNotifierProvider
-                          .select((value) => value.locale),
+                      localeServiceChangeNotifierProvider.select(
+                        (value) => value.locale,
+                      ),
                     ),
                   ),
-                  // // regex to validate a crypto amount with 8 decimal places
-                  // TextInputFormatter.withFunction((oldValue, newValue) =>
-                  //     RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
-                  //             .hasMatch(newValue.text)
-                  //         ? newValue
-                  //         : oldValue),
                 ],
               ),
             ),
@@ -158,15 +151,11 @@ class _ExchangeTextFieldState extends ConsumerState<ExchangeTextField> {
                   decoration: BoxDecoration(
                     color: buttonColor,
                     borderRadius: BorderRadius.horizontal(
-                      right: Radius.circular(
-                        borderRadius,
-                      ),
+                      right: Radius.circular(borderRadius),
                     ),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Row(
                       children: [
                         Container(
@@ -203,14 +192,10 @@ class _ExchangeTextFieldState extends ConsumerState<ExchangeTextField> {
                                         color: Theme.of(context)
                                             .extension<StackColors>()!
                                             .textFieldDefaultBG,
-                                        borderRadius: BorderRadius.circular(
-                                          18,
-                                        ),
+                                        borderRadius: BorderRadius.circular(18),
                                       ),
                                       child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(
-                                          18,
-                                        ),
+                                        borderRadius: BorderRadius.circular(18),
                                         child: const LoadingIndicator(),
                                       ),
                                     ),
@@ -237,29 +222,24 @@ class _ExchangeTextFieldState extends ConsumerState<ExchangeTextField> {
                             },
                           ),
                         ),
-                        const SizedBox(
-                          width: 6,
-                        ),
+                        const SizedBox(width: 6),
                         Text(
                           widget.currency?.ticker.toUpperCase() ?? "n/a",
                           style: STextStyles.smallMed14(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textDark,
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textDark,
                           ),
                         ),
-                        if (!widget.isWalletCoin)
-                          const SizedBox(
-                            width: 6,
-                          ),
+                        if (!widget.isWalletCoin) const SizedBox(width: 6),
                         if (!widget.isWalletCoin)
                           SvgPicture.asset(
                             Assets.svg.chevronDown,
                             width: 5,
                             height: 2.5,
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textDark,
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textDark,
                           ),
                       ],
                     ),

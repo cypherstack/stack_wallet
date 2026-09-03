@@ -10,7 +10,6 @@
 
 import 'dart:async';
 
-import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -113,9 +112,10 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
               ? ref.read(desktopExchangeModelProvider)!.receiveAmount
               : ref.read(desktopExchangeModelProvider)!.sendAmount,
           addressTo: ref.read(desktopExchangeModelProvider)!.recipientAddress!,
-          extraId: null,
+          extraId: ref.read(desktopExchangeModelProvider)!.extraId,
           addressRefund: ref.read(desktopExchangeModelProvider)!.refundAddress!,
-          refundExtraId: "",
+          refundExtraId:
+              ref.read(desktopExchangeModelProvider)!.refundExtraId ?? "",
           estimate: ref.read(desktopExchangeModelProvider)!.estimate,
           reversed: ref.read(desktopExchangeModelProvider)!.reversed,
         );
@@ -210,14 +210,27 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
   }
 
   void sendFromStack() {
-    final trade = ref.read(desktopExchangeModelProvider)!.trade!;
+    final model = ref.read(desktopExchangeModelProvider)!;
+    final trade = model.trade!;
     final address = trade.payInAddress;
     final coin =
         AppConfig.getCryptoCurrencyForTicker(trade.payInCurrency) ??
         AppConfig.getCryptoCurrencyByPrettyName(trade.payInCurrency);
-    final amount = Decimal.parse(
-      trade.payInAmount,
-    ).toAmount(fractionDigits: coin.fractionDigits);
+    final payInDecimal = model.payInDecimal;
+    if (payInDecimal == null) {
+      showDialog<void>(
+        context: context,
+        barrierDismissible: true,
+        builder: (_) => SimpleDesktopDialog(
+          title: "Invalid trade amount",
+          message:
+              "The exchange returned an invalid pay-in amount:"
+              " \"${trade.payInAmount}\"",
+        ),
+      );
+      return;
+    }
+    final amount = payInDecimal.toAmount(fractionDigits: coin.fractionDigits);
 
     showDialog<void>(
       context: context,
@@ -395,7 +408,7 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Text(
-                                  "Send ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendAmount.toStringAsFixed(8)))} ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker))} to this address",
+                                  "Send ${ref.watch(desktopExchangeModelProvider.select((value) => value!.payInAmount))} ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker))} to this address",
                                   style: STextStyles.desktopH3(context),
                                 ),
                                 const SizedBox(height: 48),

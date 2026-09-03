@@ -24,6 +24,9 @@ class AddressUtils {
     'recipient_name',
     'tx_description',
     'op_return', // For Rosen Bridge and other OP_RETURN protocols.
+    'memo', // Stellar SEP-0007.
+    'dt', // XRP destination tag.
+    'destination_tag',
     // TODO [prio=med]: Add more recognized params for other coins.
   };
 
@@ -76,6 +79,8 @@ class AddressUtils {
           result["tx_description"] = Uri.decodeComponent(u.fragment);
         }
       }
+    } on FormatException {
+      rethrow;
     } catch (e, s) {
       Logging.instance.d(
         "Exception caught in parseUri($uri): $e",
@@ -95,40 +100,37 @@ class AddressUtils {
         switch (lowerKey) {
           case 'amount':
           case 'tx_amount':
-            result['amount'] = _normalizeAmount(value);
+            final normalized = _normalizeAmount(value);
+            if (normalized == null) {
+              throw FormatException("Invalid payment URI amount: $value");
+            }
+            result['amount'] = normalized;
             break;
           case 'label':
           case 'recipient_name':
-            result['label'] = Uri.decodeComponent(value);
+            result['label'] = value;
             break;
           case 'message':
           case 'tx_description':
-            result['message'] = Uri.decodeComponent(value);
+            result['message'] = value;
             break;
           case 'tx_payment_id':
-            result['tx_payment_id'] = Uri.decodeComponent(value);
+            result['tx_payment_id'] = value;
             break;
           default:
-            result[lowerKey] = Uri.decodeComponent(value);
+            result[lowerKey] = value;
         }
       } else {
         // Include unrecognized parameters as-is.
-        result[key] = Uri.decodeComponent(value);
+        result[key] = value;
       }
     });
     return result;
   }
 
-  /// Normalizes amount value to a standard format.
-  static String _normalizeAmount(String amount) {
-    // Remove any non-numeric characters except for '.'
-    final sanitized = amount.replaceAll(RegExp(r'[^\d.]'), '');
-    // Ensure only one decimal point
-    final parts = sanitized.split('.');
-    if (parts.length > 2) {
-      return '${parts[0]}.${parts.sublist(1).join()}';
-    }
-    return sanitized;
+  static String? _normalizeAmount(String amount) {
+    final trimmed = amount.trim();
+    return RegExp(r'^(\d+(\.\d+)?|\.\d+)$').hasMatch(trimmed) ? trimmed : null;
   }
 
   /// Centralized method to handle various cryptocurrency URIs and return a common object.
@@ -136,17 +138,13 @@ class AddressUtils {
   /// Returns null on failure to parse
   static PaymentUriData? parsePaymentUri(String uri, {Logging? logging}) {
     // hacky check its not just a bcash, ecash, or xel address
-    final parts = uri.split(":");
-    if (parts.length == 2) {
-      if ([
-        "xel",
-        "bitcoincash",
-        "bchtest",
-        "ecash",
-        "ectest",
-      ].contains(parts.first.toLowerCase())) {
-        return null;
-      }
+    const cashAddrSchemes = {"bitcoincash", "bchtest", "ecash", "ectest"};
+    final parsedUri = Uri.tryParse(uri);
+    final scheme = parsedUri?.scheme.toLowerCase();
+    if (parsedUri != null &&
+        (scheme == "xel" ||
+            (!parsedUri.hasQuery && cashAddrSchemes.contains(scheme)))) {
+      return null;
     }
 
     try {
@@ -155,13 +153,16 @@ class AddressUtils {
       // Normalize the URI scheme.
       final String scheme = parsedData['scheme'] ?? '';
       parsedData.remove('scheme');
+      final address = parsedData['address']!.trim();
 
       // Filter out unrecognized parameters.
       final filteredParams = _filterParams(parsedData);
 
       return PaymentUriData(
         scheme: scheme,
-        address: parsedData['address']!.trim(),
+        address: cashAddrSchemes.contains(scheme)
+            ? "$scheme:$address".toLowerCase()
+            : address,
         amount: filteredParams['amount'] ?? filteredParams['tx_amount'],
         label: filteredParams['label'] ?? filteredParams['recipient_name'],
         message: filteredParams['message'] ?? filteredParams['tx_description'],
@@ -192,25 +193,30 @@ class AddressUtils {
       uriString = "$scheme:$address";
     }
 
-    if (scheme.toLowerCase() == "monero") {
-      // Handle Monero-specific formatting.
-      if (filteredParams.containsKey("tx_description")) {
-        final description = filteredParams.remove("tx_description")!;
-        if (filteredParams.isNotEmpty) {
-          uriString += Uri(queryParameters: filteredParams).toString();
-        }
-        uriString += "#${Uri.encodeComponent(description)}";
-      } else if (filteredParams.isNotEmpty) {
-        uriString += Uri(queryParameters: filteredParams).toString();
-      }
-    } else {
-      // General case for other cryptocurrencies.
-      if (filteredParams.isNotEmpty) {
-        uriString += Uri(queryParameters: filteredParams).toString();
-      }
+    if (filteredParams.isNotEmpty) {
+      uriString += Uri(queryParameters: filteredParams).toString();
     }
 
     return uriString;
+  }
+
+  static String buildPaymentUriString({
+    required String scheme,
+    required String address,
+    String? amount,
+    String? message,
+  }) {
+    final normalizedScheme = scheme.toLowerCase();
+    final usesMoneroParameters =
+        normalizedScheme == "monero" || normalizedScheme == "wownero";
+    final params = <String, String>{
+      if (amount != null && amount.isNotEmpty)
+        usesMoneroParameters ? "tx_amount" : "amount": amount,
+      if (message != null && message.isNotEmpty)
+        usesMoneroParameters ? "tx_description" : "message": message,
+    };
+
+    return buildUriString(scheme, address, params);
   }
 
   /// returns empty if bad data
@@ -384,6 +390,20 @@ class PaymentUriData {
   CryptoCurrency? get coin => AddressUtils._getCryptoCurrencyByScheme(
     scheme ?? "", // empty will just return null
   );
+
+  String? get memo {
+    for (final value in [
+      paymentId,
+      additionalParams["memo"],
+      additionalParams["dt"],
+      additionalParams["destination_tag"],
+    ]) {
+      if (value?.isNotEmpty == true) {
+        return value;
+      }
+    }
+    return null;
+  }
 
   PaymentUriData({
     required this.address,
