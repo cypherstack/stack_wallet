@@ -30,6 +30,7 @@ import '../wallet_mixin_interfaces/coin_control_interface.dart';
 import '../wallet_mixin_interfaces/electrumx_interface.dart';
 import '../wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../wallet_mixin_interfaces/spark_interface.dart';
+import 'firo_transaction_type.dart';
 
 class MasternodeInfo {
   final String proTxHash;
@@ -332,7 +333,7 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
       bool isMint = false;
       bool isJMint = false;
       bool isSparkMint = false;
-      final bool isSparkSpend = txData["type"] == 9 && txData["version"] == 3;
+      final bool isSparkSpend = isSparkSpendTransaction(txData);
       final bool isMySpark = sparkTxids.contains(txData["txid"] as String);
       final bool isMySpentSpark = missing
           .where((e) => e.txid == txData["txid"])
