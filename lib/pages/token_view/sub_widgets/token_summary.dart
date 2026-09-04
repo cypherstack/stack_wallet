@@ -36,6 +36,7 @@ import '../../../wallets/isar/providers/eth/token_balance_provider.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../widgets/coin_ticker_tag.dart';
 import '../../../widgets/conditional_parent.dart';
+import '../../../widgets/hideable_balance.dart';
 import '../../../widgets/rounded_container.dart';
 import '../../buy_view/buy_in_wallet_view.dart';
 import '../../exchange_view/wallet_initiated_exchange_view.dart';
@@ -104,18 +105,24 @@ class TokenSummary extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    ref
-                        .watch(
-                          pAmountFormatter(
-                            Ethereum(CryptoCurrencyNetwork.main),
-                          ),
-                        )
-                        .format(balance.total, tokenContract: token),
-                    style: STextStyles.pageTitleH1(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.tokenSummaryTextPrimary,
+                  HideableBalance(
+                    iconColor: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.tokenSummaryTextPrimary,
+                    iconSize: 24,
+                    child: Text(
+                      ref
+                          .watch(
+                            pAmountFormatter(
+                              Ethereum(CryptoCurrencyNetwork.main),
+                            ),
+                          )
+                          .format(balance.total, tokenContract: token),
+                      style: STextStyles.pageTitleH1(context).copyWith(
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.tokenSummaryTextPrimary,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -128,12 +135,18 @@ class TokenSummary extends ConsumerWidget {
               ),
               if (price != null) const SizedBox(height: 6),
               if (price != null)
-                Text(
-                  "${(balance.total.decimal * price).toAmount(fractionDigits: 2).fiatString(locale: ref.watch(localeServiceChangeNotifierProvider.select((value) => value.locale)))} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
-                  style: STextStyles.subtitle500(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.tokenSummaryTextPrimary,
+                HideableBalance(
+                  iconColor: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.tokenSummaryTextPrimary,
+                  iconSize: 16,
+                  child: Text(
+                    "${(balance.total.decimal * price).toAmount(fractionDigits: 2).fiatString(locale: ref.watch(localeServiceChangeNotifierProvider.select((value) => value.locale)))} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
+                    style: STextStyles.subtitle500(context).copyWith(
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.tokenSummaryTextPrimary,
+                    ),
                   ),
                 ),
               const SizedBox(height: 20),
