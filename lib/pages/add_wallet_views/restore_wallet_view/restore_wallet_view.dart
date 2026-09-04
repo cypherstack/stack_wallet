@@ -98,7 +98,6 @@ class RestoreWalletView extends ConsumerStatefulWidget {
 }
 
 class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
-  final _formKey = GlobalKey<FormState>();
   late final int _seedWordCount;
   late final bool isDesktop;
 
@@ -125,7 +124,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       return;
     }
 
-    final words = text.split(" ");
+    final words = _splitMnemonic(text);
     if (words.isEmpty) {
       unawaited(delegate.pasteText(SelectionChangedCause.toolbar));
       return;
@@ -175,14 +174,57 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
     super.dispose();
   }
 
-  // TODO: check for wownero wordlist?
+  // Legacy seeds may be written as truncated words, cut at the unique prefix
+  // length their wordlist declares. Only English's is applied here; the other
+  // lists declare 4 (most Latin scripts) or 1 (Chinese) and are matched whole.
+  static const int _cryptonoteEnglishPrefixLength = 3;
+
+  // The wallet library identifies a legacy seed's language by trying every
+  // wordlist it ships, so a phrase in any of these restores natively and must
+  // not be refused here.
+  static const List<String> _otherLegacyCryptonoteLanguages = [
+    "Chinese (simplified)",
+    "Dutch",
+    "French",
+    "German",
+    "Italian",
+    "Japanese",
+    "Portuguese",
+    "Russian",
+    "Spanish",
+  ];
+
+  late final Set<String> _otherLegacyCryptonoteWords = {
+    for (final language in _otherLegacyCryptonoteLanguages)
+      for (final word in csMonero.getMoneroWordList(language))
+        word.toLowerCase(),
+  };
+
+  bool _isValidCryptonoteWord(String word, List<String> wordList) {
+    if (word.length < _cryptonoteEnglishPrefixLength) {
+      return _otherLegacyCryptonoteWords.contains(word);
+    }
+
+    final prefix = word.substring(0, _cryptonoteEnglishPrefixLength);
+    return wordList.any((candidate) => candidate.startsWith(prefix)) ||
+        _otherLegacyCryptonoteWords.contains(word);
+  }
+
+  List<String> _splitMnemonic(String mnemonic) {
+    final trimmed = mnemonic.trim();
+    return trimmed.isEmpty ? const [] : trimmed.split(RegExp(r"\s+"));
+  }
+
   bool _isValidMnemonicWord(String word) {
     // TODO: get the actual language
     if (widget.coin is Monero || widget.coin is Salvium) {
-      // Salvium use's Monero's wordlists.
+      // Salvium uses Monero's wordlists.
       switch (widget.seedWordsLength) {
         case 25:
-          return csMonero.getMoneroWordList("English").contains(word);
+          return _isValidCryptonoteWord(
+            word,
+            csMonero.getMoneroWordList("English"),
+          );
         case 16:
           return Monero.sixteenWordsWordList.contains(word);
         default:
@@ -194,6 +236,9 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         "English",
         widget.seedWordsLength,
       );
+      if (widget.seedWordsLength == 25) {
+        return _isValidCryptonoteWord(word, wowneroWordList);
+      }
       return wowneroWordList.contains(word);
     }
     if (widget.coin is Xelis) {
@@ -210,273 +255,310 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
   }
 
   Future<void> attemptRestore() async {
-    if (_formKey.currentState!.validate()) {
-      if (mounted) setState(() => _hideSeedWords = true);
+    final words = _controllers
+        .map((controller) => controller.text.trim().toLowerCase())
+        .toList(growable: false);
 
-      String mnemonic = "";
-      for (final element in _controllers) {
-        mnemonic += " ${element.text.trim().toLowerCase()}";
-      }
-      mnemonic = mnemonic.trim();
-
-      int height = widget.restoreBlockHeight;
-      String? otherDataJsonString;
-
-      // TODO: make more robust estimate of date maybe using https://explorer.epic.tech/api-index
-      if (widget.coin is Epiccash) {
-        otherDataJsonString = jsonEncode({
-          WalletInfoKeys.epiccashData: jsonEncode(
-            ExtraEpiccashWalletInfo(
-              receivingIndex: 0,
-              changeIndex: 0,
-              slatesToAddresses: {},
-              slatesToCommits: {},
-              lastScannedBlock: height,
-              restoreHeight: height,
-              creationHeight: height,
-            ).toMap(),
-          ),
-        });
-      } else if (widget.coin is Mimblewimblecoin) {
-        // final int secondsSinceEpoch =
-        //     widget.restoreFromDate!.millisecondsSinceEpoch ~/ 1000;
-        final int secondsSinceEpoch =
-            DateTime.now().millisecondsSinceEpoch ~/ 1000;
-        const int mimblewimblecoinFirstBlock = 1573462801;
-        const double overestimateSecondsPerBlock = 61;
-        final int chosenSeconds =
-            secondsSinceEpoch - mimblewimblecoinFirstBlock;
-        final int approximateHeight =
-            chosenSeconds ~/ overestimateSecondsPerBlock;
-        height = approximateHeight;
-        if (height < 0) {
-          height = 0;
-        }
-        otherDataJsonString = jsonEncode({
-          WalletInfoKeys.mimblewimblecoinData: jsonEncode(
-            ExtraMimblewimblecoinWalletInfo(
-              receivingIndex: 0,
-              changeIndex: 0,
-              slatesToAddresses: {},
-              slatesToCommits: {},
-              lastScannedBlock: height,
-              restoreHeight: height,
-              creationHeight: height,
-            ).toMap(),
-          ),
-        });
-      }
-
-      // TODO: do actual check to make sure it is a valid mnemonic for monero + xelis
-      if (bip39.validateMnemonic(mnemonic) == false &&
-          !(widget.coin is Monero ||
-              widget.coin is Wownero ||
-              widget.coin is Salvium ||
-              widget.coin is Xelis)) {
+    final wordCount = words.where((word) => word.isNotEmpty).length;
+    if (wordCount != _seedWordCount) {
+      if (mounted) {
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.warning,
-            message: "Invalid seed phrase!",
+            message:
+                "Expected $_seedWordCount words but got $wordCount. "
+                "Please fill in all fields.",
             context: context,
           ),
         );
-      } else {
-        if (!Platform.isLinux) await WakelockPlus.enable();
+        setState(() => _hideSeedWords = false);
+      }
+      return;
+    }
 
-        final info = WalletInfo.createNew(
-          coin: widget.coin,
-          name: widget.walletName,
-          restoreHeight: height,
-          otherDataJsonString: otherDataJsonString,
-        );
+    final statuses = words
+        .map(
+          (word) => _isValidMnemonicWord(word)
+              ? FormInputStatus.valid
+              : FormInputStatus.invalid,
+        )
+        .toList(growable: false);
+    final hasInvalidWords = statuses.contains(FormInputStatus.invalid);
 
-        bool isRestoring = true;
-        // show restoring in progress
-
-        if (mounted) {
-          unawaited(
-            showDialog<dynamic>(
-              context: context,
-              useSafeArea: false,
-              barrierDismissible: false,
-              builder: (context) {
-                return RestoringDialog(
-                  onCancel: () async {
-                    isRestoring = false;
-
-                    if (mounted) setState(() => _hideSeedWords = false);
-
-                    await ref
-                        .read(pWallets)
-                        .deleteWallet(info, ref.read(secureStoreProvider));
-                  },
-                );
-              },
-            ),
-          );
+    if (mounted) {
+      setState(() {
+        _inputStatuses
+          ..clear()
+          ..addAll(statuses);
+        if (hasInvalidWords) {
+          _hideSeedWords = false;
         }
+      });
+    }
 
-        var node = ref
-            .read(nodeServiceChangeNotifierProvider)
-            .getPrimaryNodeFor(currency: widget.coin);
+    if (hasInvalidWords) {
+      return;
+    }
 
-        if (node == null) {
-          node = widget.coin.defaultNode(isPrimary: true);
-          await ref
-              .read(nodeServiceChangeNotifierProvider)
-              .save(node, null, false);
-        }
+    final mnemonic = words.join(" ");
 
-        final txTracker = TransactionNotificationTracker(
-          walletId: info.walletId,
-        );
+    int height = widget.restoreBlockHeight;
+    String? otherDataJsonString;
 
-        try {
-          final wallet = await Wallet.create(
-            walletInfo: info,
-            mainDB: ref.read(mainDBProvider),
-            secureStorageInterface: ref.read(secureStoreProvider),
-            nodeService: ref.read(nodeServiceChangeNotifierProvider),
-            prefs: ref.read(prefsChangeNotifierProvider),
-            mnemonicPassphrase: widget.mnemonicPassphrase,
-            mnemonic: mnemonic,
-          );
+    // TODO: make more robust estimate of date maybe using https://explorer.epic.tech/api-index
+    if (widget.coin is Epiccash) {
+      otherDataJsonString = jsonEncode({
+        WalletInfoKeys.epiccashData: jsonEncode(
+          ExtraEpiccashWalletInfo(
+            receivingIndex: 0,
+            changeIndex: 0,
+            slatesToAddresses: {},
+            slatesToCommits: {},
+            lastScannedBlock: height,
+            restoreHeight: height,
+            creationHeight: height,
+          ).toMap(),
+        ),
+      });
+    } else if (widget.coin is Mimblewimblecoin) {
+      // final int secondsSinceEpoch =
+      //     widget.restoreFromDate!.millisecondsSinceEpoch ~/ 1000;
+      final int secondsSinceEpoch =
+          DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      const int mimblewimblecoinFirstBlock = 1573462801;
+      const double overestimateSecondsPerBlock = 61;
+      final int chosenSeconds = secondsSinceEpoch - mimblewimblecoinFirstBlock;
+      final int approximateHeight =
+          chosenSeconds ~/ overestimateSecondsPerBlock;
+      height = approximateHeight;
+      if (height < 0) {
+        height = 0;
+      }
+      otherDataJsonString = jsonEncode({
+        WalletInfoKeys.mimblewimblecoinData: jsonEncode(
+          ExtraMimblewimblecoinWalletInfo(
+            receivingIndex: 0,
+            changeIndex: 0,
+            slatesToAddresses: {},
+            slatesToCommits: {},
+            lastScannedBlock: height,
+            restoreHeight: height,
+            creationHeight: height,
+          ).toMap(),
+        ),
+      });
+    }
 
-          // TODO: extract interface with isRestore param
-          switch (wallet) {
-            case EpiccashWallet():
-              await wallet.init(isRestore: true);
-              break;
+    // TODO: do actual check to make sure it is a valid mnemonic for monero + xelis
+    if (bip39.validateMnemonic(mnemonic) == false &&
+        !(widget.coin is Monero ||
+            widget.coin is Wownero ||
+            widget.coin is Salvium ||
+            widget.coin is Xelis)) {
+      unawaited(
+        showFloatingFlushBar(
+          type: FlushBarType.warning,
+          message: "Invalid seed phrase!",
+          context: context,
+        ),
+      );
+    } else {
+      // Hide the words only once the phrase has cleared every check; a
+      // rejected one has to stay readable so the user can correct it.
+      if (mounted) setState(() => _hideSeedWords = true);
 
-            case MimblewimblecoinWallet():
-              await wallet.init(isRestore: true);
-              break;
+      if (!Platform.isLinux) await WakelockPlus.enable();
 
-            case CryptonoteWallet():
-              await wallet.init(isRestore: true);
-              break;
+      final info = WalletInfo.createNew(
+        coin: widget.coin,
+        name: widget.walletName,
+        restoreHeight: height,
+        otherDataJsonString: otherDataJsonString,
+      );
 
-            case XelisWallet():
-              await wallet.init(isRestore: true);
-              break;
+      bool isRestoring = true;
+      // show restoring in progress
 
-            default:
-              await wallet.init();
-          }
-          await wallet.recover(isRescan: false);
+      if (mounted) {
+        unawaited(
+          showDialog<dynamic>(
+            context: context,
+            useSafeArea: false,
+            barrierDismissible: false,
+            builder: (context) {
+              return RestoringDialog(
+                onCancel: () async {
+                  isRestoring = false;
 
-          if (wallet is ExternalWallet) {
-            await wallet.exit();
-          }
+                  if (mounted) setState(() => _hideSeedWords = false);
 
-          // check if state is still active before continuing
-          if (mounted) {
-            await wallet.info.setMnemonicVerified(
-              isar: ref.read(mainDBProvider).isar,
-            );
-
-            if (ref.read(pDuress)) {
-              await wallet.info.updateDuressVisibilityStatus(
-                isDuressVisible: true,
-                isar: ref.read(mainDBProvider).isar,
-              );
-            }
-
-            ref.read(pWallets).addWallet(wallet);
-
-            final isCreateSpecialEthWallet = ref.read(
-              createSpecialEthWalletRoutingFlag,
-            );
-            if (isCreateSpecialEthWallet) {
-              ref.read(createSpecialEthWalletRoutingFlag.notifier).state =
-                  false;
-              ref
-                  .read(newEthWalletTriggerTempUntilHiveCompletelyDeleted.state)
-                  .state = !ref
-                  .read(newEthWalletTriggerTempUntilHiveCompletelyDeleted.state)
-                  .state;
-            }
-
-            if (mounted) {
-              if (isDesktop) {
-                Navigator.of(
-                  context,
-                ).popUntil(ModalRoute.withName(DesktopHomeView.routeName));
-              } else {
-                if (isCreateSpecialEthWallet) {
-                  Navigator.of(context).popUntil(
-                    ModalRoute.withName(SelectWalletForTokenView.routeName),
-                  );
-                } else {
-                  unawaited(
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                      HomeView.routeName,
-                      (route) => false,
-                    ),
-                  );
-                  if (info.coin is Ethereum || info.coin is Solana) {
-                    unawaited(
-                      Navigator.of(context).pushNamed(
-                        EditWalletTokensView.routeName,
-                        arguments: wallet.walletId,
-                      ),
-                    );
-                  }
-                }
-              }
-
-              await showDialog<dynamic>(
-                context: context,
-                useSafeArea: false,
-                barrierDismissible: true,
-                builder: (context) {
-                  return const RestoreSucceededDialog();
+                  await ref
+                      .read(pWallets)
+                      .deleteWallet(info, ref.read(secureStoreProvider));
                 },
               );
+            },
+          ),
+        );
+      }
+
+      var node = ref
+          .read(nodeServiceChangeNotifierProvider)
+          .getPrimaryNodeFor(currency: widget.coin);
+
+      if (node == null) {
+        node = widget.coin.defaultNode(isPrimary: true);
+        await ref
+            .read(nodeServiceChangeNotifierProvider)
+            .save(node, null, false);
+      }
+
+      final txTracker = TransactionNotificationTracker(walletId: info.walletId);
+
+      try {
+        final wallet = await Wallet.create(
+          walletInfo: info,
+          mainDB: ref.read(mainDBProvider),
+          secureStorageInterface: ref.read(secureStoreProvider),
+          nodeService: ref.read(nodeServiceChangeNotifierProvider),
+          prefs: ref.read(prefsChangeNotifierProvider),
+          mnemonicPassphrase: widget.mnemonicPassphrase,
+          mnemonic: mnemonic,
+        );
+
+        // TODO: extract interface with isRestore param
+        switch (wallet) {
+          case EpiccashWallet():
+            await wallet.init(isRestore: true);
+            break;
+
+          case MimblewimblecoinWallet():
+            await wallet.init(isRestore: true);
+            break;
+
+          case CryptonoteWallet():
+            await wallet.init(isRestore: true);
+            break;
+
+          case XelisWallet():
+            await wallet.init(isRestore: true);
+            break;
+
+          default:
+            await wallet.init();
+        }
+        await wallet.recover(isRescan: false);
+
+        if (wallet is ExternalWallet) {
+          await wallet.exit();
+        }
+
+        // check if state is still active before continuing
+        if (mounted) {
+          await wallet.info.setMnemonicVerified(
+            isar: ref.read(mainDBProvider).isar,
+          );
+
+          if (ref.read(pDuress)) {
+            await wallet.info.updateDuressVisibilityStatus(
+              isDuressVisible: true,
+              isar: ref.read(mainDBProvider).isar,
+            );
+          }
+
+          ref.read(pWallets).addWallet(wallet);
+
+          final isCreateSpecialEthWallet = ref.read(
+            createSpecialEthWalletRoutingFlag,
+          );
+          if (isCreateSpecialEthWallet) {
+            ref.read(createSpecialEthWalletRoutingFlag.notifier).state = false;
+            ref
+                .read(newEthWalletTriggerTempUntilHiveCompletelyDeleted.state)
+                .state = !ref
+                .read(newEthWalletTriggerTempUntilHiveCompletelyDeleted.state)
+                .state;
+          }
+
+          if (mounted) {
+            if (isDesktop) {
+              Navigator.of(
+                context,
+              ).popUntil(ModalRoute.withName(DesktopHomeView.routeName));
+            } else {
+              if (isCreateSpecialEthWallet) {
+                Navigator.of(context).popUntil(
+                  ModalRoute.withName(SelectWalletForTokenView.routeName),
+                );
+              } else {
+                unawaited(
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                    HomeView.routeName,
+                    (route) => false,
+                  ),
+                );
+                if (info.coin is Ethereum || info.coin is Solana) {
+                  unawaited(
+                    Navigator.of(context).pushNamed(
+                      EditWalletTokensView.routeName,
+                      arguments: wallet.walletId,
+                    ),
+                  );
+                }
+              }
             }
 
-            if (!Platform.isLinux && !isDesktop) {
-              await WakelockPlus.disable();
-            }
-          }
-        } catch (e) {
-          if (!Platform.isLinux && !isDesktop) {
-            await WakelockPlus.disable();
-          }
-
-          // if (e is HiveError &&
-          //     e.message == "Box has already been closed.") {
-          //   // restore was cancelled
-          //   return;
-          // }
-
-          // check if state is still active and restore wasn't cancelled
-          // before continuing
-          if (mounted && isRestoring) {
-            // pop waiting dialog
-            Navigator.pop(context);
-
-            // show restoring wallet failed dialog
             await showDialog<dynamic>(
               context: context,
               useSafeArea: false,
               barrierDismissible: true,
               builder: (context) {
-                return RestoreFailedDialog(
-                  errorMessage: e.toString(),
-                  walletId: info.walletId,
-                  walletName: info.name,
-                );
+                return const RestoreSucceededDialog();
               },
             );
+          }
 
-            if (mounted) setState(() => _hideSeedWords = false);
+          if (!Platform.isLinux && !isDesktop) {
+            await WakelockPlus.disable();
           }
         }
-
+      } catch (e) {
         if (!Platform.isLinux && !isDesktop) {
           await WakelockPlus.disable();
         }
+
+        // if (e is HiveError &&
+        //     e.message == "Box has already been closed.") {
+        //   // restore was cancelled
+        //   return;
+        // }
+
+        // check if state is still active and restore wasn't cancelled
+        // before continuing
+        if (mounted && isRestoring) {
+          // pop waiting dialog
+          Navigator.pop(context);
+
+          // show restoring wallet failed dialog
+          await showDialog<dynamic>(
+            context: context,
+            useSafeArea: false,
+            barrierDismissible: true,
+            builder: (context) {
+              return RestoreFailedDialog(
+                errorMessage: e.toString(),
+                walletId: info.walletId,
+                walletName: info.name,
+              );
+            },
+          );
+
+          if (mounted) setState(() => _hideSeedWords = false);
+        }
+      }
+
+      if (!Platform.isLinux && !isDesktop) {
+        await WakelockPlus.disable();
       }
     }
   }
@@ -660,7 +742,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
     if (data?.text != null && data!.text!.isNotEmpty) {
       final content = data.text!.trim();
-      final list = content.split(" ");
+      final list = _splitMnemonic(content);
+      if (list.isEmpty) {
+        return;
+      }
       _clearAndPopulateMnemonic(list);
     }
   }
@@ -845,283 +930,262 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
                         return Column(
                           children: [
-                            Form(
-                              key: _formKey,
-                              child: TableView(
-                                shrinkWrap: true,
-                                rowSpacing: 20,
-                                rows: [
-                                  for (int i = 0; i < rows; i++)
-                                    TableViewRow(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      spacing: 16,
-                                      cells: [
-                                        for (int j = 1; j <= cols; j++)
-                                          TableViewCell(
-                                            flex: 1,
-                                            child: Column(
-                                              children: [
-                                                TextFormField(
-                                                  enableIMEPersonalizedLearning:
-                                                      false,
-                                                  obscureText: _hideSeedWords,
-                                                  autocorrect: !isDesktop,
-                                                  enableSuggestions: !isDesktop,
-                                                  textCapitalization:
-                                                      TextCapitalization.none,
-                                                  key: Key(
-                                                    "restoreMnemonicFormField_$i",
-                                                  ),
-                                                  decoration:
-                                                      _getInputDecorationFor(
-                                                        _inputStatuses[i * 4 +
-                                                            j -
-                                                            1],
-                                                        "${i * 4 + j}",
-                                                      ),
-                                                  autovalidateMode:
-                                                      AutovalidateMode
-                                                          .onUserInteraction,
-                                                  selectionControls:
-                                                      i * 4 + j - 1 == 1
-                                                      ? textSelectionControls
-                                                      : null,
-                                                  // focusNode:
-                                                  //     _focusNodes[i * 4 + j - 1],
-                                                  onChanged: (value) {
-                                                    final FormInputStatus
-                                                    formInputStatus;
-
-                                                    if (value.isEmpty) {
-                                                      formInputStatus =
-                                                          FormInputStatus.empty;
-                                                    } else if (_isValidMnemonicWord(
-                                                      value
-                                                          .trim()
-                                                          .toLowerCase(),
-                                                    )) {
-                                                      formInputStatus =
-                                                          FormInputStatus.valid;
-                                                    } else {
-                                                      formInputStatus =
-                                                          FormInputStatus
-                                                              .invalid;
-                                                    }
-
-                                                    // if (formInputStatus ==
-                                                    //     FormInputStatus.valid) {
-                                                    //   if (i * 4 + j <
-                                                    //       _focusNodes.length) {
-                                                    //     _focusNodes[i * 4 + j]
-                                                    //         .requestFocus();
-                                                    //   } else if (i * 4 + j ==
-                                                    //       _focusNodes.length) {
-                                                    //     _focusNodes[i * 4 + j - 1]
-                                                    //         .unfocus();
-                                                    //   }
-                                                    // }
-                                                    setState(() {
+                            TableView(
+                              shrinkWrap: true,
+                              rowSpacing: 20,
+                              rows: [
+                                for (int i = 0; i < rows; i++)
+                                  TableViewRow(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    spacing: 16,
+                                    cells: [
+                                      for (int j = 1; j <= cols; j++)
+                                        TableViewCell(
+                                          flex: 1,
+                                          child: Column(
+                                            children: [
+                                              TextFormField(
+                                                enableIMEPersonalizedLearning:
+                                                    false,
+                                                obscureText: _hideSeedWords,
+                                                autocorrect: !isDesktop,
+                                                enableSuggestions: !isDesktop,
+                                                textCapitalization:
+                                                    TextCapitalization.none,
+                                                key: Key(
+                                                  "restoreMnemonicFormField_$i",
+                                                ),
+                                                decoration:
+                                                    _getInputDecorationFor(
                                                       _inputStatuses[i * 4 +
-                                                              j -
-                                                              1] =
-                                                          formInputStatus;
-                                                    });
-                                                  },
-                                                  controller:
-                                                      _controllers[i * 4 +
                                                           j -
                                                           1],
-                                                  style:
-                                                      STextStyles.field(
-                                                        context,
-                                                      ).copyWith(
-                                                        color: Theme.of(context)
-                                                            .extension<
-                                                              StackColors
-                                                            >()!
-                                                            .textRestore,
-                                                        fontSize: isDesktop
-                                                            ? 16
-                                                            : 14,
-                                                      ),
-                                                ),
-                                                if (_inputStatuses[i * 4 +
-                                                        j -
-                                                        1] ==
-                                                    FormInputStatus.invalid)
-                                                  Align(
-                                                    alignment:
-                                                        Alignment.topLeft,
-                                                    child: Padding(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                            left: 12.0,
-                                                            bottom: 4.0,
+                                                      "${i * 4 + j}",
+                                                    ),
+                                                selectionControls:
+                                                    i * 4 + j - 1 == 1
+                                                    ? textSelectionControls
+                                                    : null,
+                                                // focusNode:
+                                                //     _focusNodes[i * 4 + j - 1],
+                                                onChanged: (value) {
+                                                  final FormInputStatus
+                                                  formInputStatus;
+
+                                                  if (value.isEmpty) {
+                                                    formInputStatus =
+                                                        FormInputStatus.empty;
+                                                  } else if (_isValidMnemonicWord(
+                                                    value.trim().toLowerCase(),
+                                                  )) {
+                                                    formInputStatus =
+                                                        FormInputStatus.valid;
+                                                  } else {
+                                                    formInputStatus =
+                                                        FormInputStatus.invalid;
+                                                  }
+
+                                                  // if (formInputStatus ==
+                                                  //     FormInputStatus.valid) {
+                                                  //   if (i * 4 + j <
+                                                  //       _focusNodes.length) {
+                                                  //     _focusNodes[i * 4 + j]
+                                                  //         .requestFocus();
+                                                  //   } else if (i * 4 + j ==
+                                                  //       _focusNodes.length) {
+                                                  //     _focusNodes[i * 4 + j - 1]
+                                                  //         .unfocus();
+                                                  //   }
+                                                  // }
+                                                  setState(() {
+                                                    _inputStatuses[i * 4 +
+                                                            j -
+                                                            1] =
+                                                        formInputStatus;
+                                                  });
+                                                },
+                                                controller:
+                                                    _controllers[i * 4 + j - 1],
+                                                style:
+                                                    STextStyles.field(
+                                                      context,
+                                                    ).copyWith(
+                                                      color: Theme.of(context)
+                                                          .extension<
+                                                            StackColors
+                                                          >()!
+                                                          .textRestore,
+                                                      fontSize: isDesktop
+                                                          ? 16
+                                                          : 14,
+                                                    ),
+                                              ),
+                                              if (_inputStatuses[i * 4 +
+                                                      j -
+                                                      1] ==
+                                                  FormInputStatus.invalid)
+                                                Align(
+                                                  alignment: Alignment.topLeft,
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                          left: 12.0,
+                                                          bottom: 4.0,
+                                                        ),
+                                                    child: Text(
+                                                      "Please check spelling",
+                                                      textAlign: TextAlign.left,
+                                                      style:
+                                                          STextStyles.label(
+                                                            context,
+                                                          ).copyWith(
+                                                            color:
+                                                                Theme.of(
+                                                                      context,
+                                                                    )
+                                                                    .extension<
+                                                                      StackColors
+                                                                    >()!
+                                                                    .textError,
                                                           ),
-                                                      child: Text(
-                                                        "Please check spelling",
-                                                        textAlign:
-                                                            TextAlign.left,
-                                                        style:
-                                                            STextStyles.label(
-                                                              context,
-                                                            ).copyWith(
-                                                              color:
-                                                                  Theme.of(
-                                                                        context,
-                                                                      )
-                                                                      .extension<
-                                                                        StackColors
-                                                                      >()!
-                                                                      .textError,
-                                                            ),
-                                                      ),
                                                     ),
                                                   ),
-                                              ],
-                                            ),
-                                          ),
-                                      ],
-                                      expandingChild: null,
-                                    ),
-                                  if (remainder > 0)
-                                    TableViewRow(
-                                      spacing: 16,
-                                      cells: [
-                                        for (
-                                          int i = rows * cols;
-                                          i < _seedWordCount - remainder;
-                                          i++
-                                        ) ...[
-                                          const TableViewCell(
-                                            flex: 1,
-                                            child: Column(
-                                              // ... (existing code for input field)
-                                            ),
-                                          ),
-                                        ],
-                                        for (
-                                          int i = _seedWordCount - remainder;
-                                          i < _seedWordCount;
-                                          i++
-                                        ) ...[
-                                          TableViewCell(
-                                            flex: 1,
-                                            child: Column(
-                                              children: [
-                                                TextFormField(
-                                                  enableIMEPersonalizedLearning:
-                                                      false,
-                                                  obscureText: _hideSeedWords,
-                                                  autocorrect: !isDesktop,
-                                                  enableSuggestions: !isDesktop,
-                                                  textCapitalization:
-                                                      TextCapitalization.none,
-                                                  key: Key(
-                                                    "restoreMnemonicFormField_$i",
-                                                  ),
-                                                  decoration:
-                                                      _getInputDecorationFor(
-                                                        _inputStatuses[i],
-                                                        "${i + 1}",
-                                                      ),
-                                                  autovalidateMode:
-                                                      AutovalidateMode
-                                                          .onUserInteraction,
-                                                  selectionControls: i == 1
-                                                      ? textSelectionControls
-                                                      : null,
-                                                  onChanged: (value) {
-                                                    final FormInputStatus
-                                                    formInputStatus;
-
-                                                    if (value.isEmpty) {
-                                                      formInputStatus =
-                                                          FormInputStatus.empty;
-                                                    } else if (_isValidMnemonicWord(
-                                                      value
-                                                          .trim()
-                                                          .toLowerCase(),
-                                                    )) {
-                                                      formInputStatus =
-                                                          FormInputStatus.valid;
-                                                    } else {
-                                                      formInputStatus =
-                                                          FormInputStatus
-                                                              .invalid;
-                                                    }
-
-                                                    setState(() {
-                                                      _inputStatuses[i] =
-                                                          formInputStatus;
-                                                    });
-                                                  },
-                                                  controller: _controllers[i],
-                                                  style:
-                                                      STextStyles.field(
-                                                        context,
-                                                      ).copyWith(
-                                                        color: Theme.of(context)
-                                                            .extension<
-                                                              StackColors
-                                                            >()!
-                                                            .overlay,
-                                                        fontSize: isDesktop
-                                                            ? 16
-                                                            : 14,
-                                                      ),
                                                 ),
-                                                if (_inputStatuses[i] ==
-                                                    FormInputStatus.invalid)
-                                                  Align(
-                                                    alignment:
-                                                        Alignment.topLeft,
-                                                    child: Padding(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                            left: 12.0,
-                                                            bottom: 4.0,
+                                            ],
+                                          ),
+                                        ),
+                                    ],
+                                    expandingChild: null,
+                                  ),
+                                if (remainder > 0)
+                                  TableViewRow(
+                                    spacing: 16,
+                                    cells: [
+                                      for (
+                                        int i = rows * cols;
+                                        i < _seedWordCount - remainder;
+                                        i++
+                                      ) ...[
+                                        const TableViewCell(
+                                          flex: 1,
+                                          child: Column(
+                                            // ... (existing code for input field)
+                                          ),
+                                        ),
+                                      ],
+                                      for (
+                                        int i = _seedWordCount - remainder;
+                                        i < _seedWordCount;
+                                        i++
+                                      ) ...[
+                                        TableViewCell(
+                                          flex: 1,
+                                          child: Column(
+                                            children: [
+                                              TextFormField(
+                                                enableIMEPersonalizedLearning:
+                                                    false,
+                                                obscureText: _hideSeedWords,
+                                                autocorrect: !isDesktop,
+                                                enableSuggestions: !isDesktop,
+                                                textCapitalization:
+                                                    TextCapitalization.none,
+                                                key: Key(
+                                                  "restoreMnemonicFormField_$i",
+                                                ),
+                                                decoration:
+                                                    _getInputDecorationFor(
+                                                      _inputStatuses[i],
+                                                      "${i + 1}",
+                                                    ),
+                                                selectionControls: i == 1
+                                                    ? textSelectionControls
+                                                    : null,
+                                                onChanged: (value) {
+                                                  final FormInputStatus
+                                                  formInputStatus;
+
+                                                  if (value.isEmpty) {
+                                                    formInputStatus =
+                                                        FormInputStatus.empty;
+                                                  } else if (_isValidMnemonicWord(
+                                                    value.trim().toLowerCase(),
+                                                  )) {
+                                                    formInputStatus =
+                                                        FormInputStatus.valid;
+                                                  } else {
+                                                    formInputStatus =
+                                                        FormInputStatus.invalid;
+                                                  }
+
+                                                  setState(() {
+                                                    _inputStatuses[i] =
+                                                        formInputStatus;
+                                                  });
+                                                },
+                                                controller: _controllers[i],
+                                                style:
+                                                    STextStyles.field(
+                                                      context,
+                                                    ).copyWith(
+                                                      color: Theme.of(context)
+                                                          .extension<
+                                                            StackColors
+                                                          >()!
+                                                          .overlay,
+                                                      fontSize: isDesktop
+                                                          ? 16
+                                                          : 14,
+                                                    ),
+                                              ),
+                                              if (_inputStatuses[i] ==
+                                                  FormInputStatus.invalid)
+                                                Align(
+                                                  alignment: Alignment.topLeft,
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                          left: 12.0,
+                                                          bottom: 4.0,
+                                                        ),
+                                                    child: Text(
+                                                      "Please check spelling",
+                                                      textAlign: TextAlign.left,
+                                                      style:
+                                                          STextStyles.label(
+                                                            context,
+                                                          ).copyWith(
+                                                            color:
+                                                                Theme.of(
+                                                                      context,
+                                                                    )
+                                                                    .extension<
+                                                                      StackColors
+                                                                    >()!
+                                                                    .textError,
                                                           ),
-                                                      child: Text(
-                                                        "Please check spelling",
-                                                        textAlign:
-                                                            TextAlign.left,
-                                                        style:
-                                                            STextStyles.label(
-                                                              context,
-                                                            ).copyWith(
-                                                              color:
-                                                                  Theme.of(
-                                                                        context,
-                                                                      )
-                                                                      .extension<
-                                                                        StackColors
-                                                                      >()!
-                                                                      .textError,
-                                                            ),
-                                                      ),
                                                     ),
                                                   ),
-                                              ],
-                                            ),
+                                                ),
+                                            ],
                                           ),
-                                        ],
-                                        for (
-                                          int i = 0;
-                                          i < cols - remainder;
-                                          i++
-                                        ) ...[
-                                          TableViewCell(
-                                            flex: 1,
-                                            child: Container(),
-                                          ),
-                                        ],
+                                        ),
                                       ],
-                                      expandingChild: null,
-                                    ),
-                                ],
-                              ),
+                                      for (
+                                        int i = 0;
+                                        i < cols - remainder;
+                                        i++
+                                      ) ...[
+                                        TableViewCell(
+                                          flex: 1,
+                                          child: Container(),
+                                        ),
+                                      ],
+                                    ],
+                                    expandingChild: null,
+                                  ),
+                              ],
                             ),
                             const SizedBox(height: 32),
                             PrimaryButton(
@@ -1141,102 +1205,96 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                 if (!isDesktop)
                   Padding(
                     padding: const EdgeInsets.all(4.0),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          for (int i = 1; i <= _seedWordCount; i++)
-                            Column(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 4,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        for (int i = 1; i <= _seedWordCount; i++)
+                          Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 4,
+                                ),
+                                child: TextFormField(
+                                  enableIMEPersonalizedLearning: false,
+                                  obscureText: _hideSeedWords,
+                                  autocorrect: !isDesktop,
+                                  enableSuggestions: !isDesktop,
+                                  textCapitalization: TextCapitalization.none,
+                                  key: Key("restoreMnemonicFormField_$i"),
+                                  decoration: _getInputDecorationFor(
+                                    _inputStatuses[i - 1],
+                                    "$i",
                                   ),
-                                  child: TextFormField(
-                                    enableIMEPersonalizedLearning: false,
-                                    obscureText: _hideSeedWords,
-                                    autocorrect: !isDesktop,
-                                    enableSuggestions: !isDesktop,
-                                    textCapitalization: TextCapitalization.none,
-                                    key: Key("restoreMnemonicFormField_$i"),
-                                    decoration: _getInputDecorationFor(
-                                      _inputStatuses[i - 1],
-                                      "$i",
+                                  selectionControls: i == 1
+                                      ? textSelectionControls
+                                      : null,
+                                  // focusNode: _focusNodes[i - 1],
+                                  onChanged: (value) {
+                                    final FormInputStatus formInputStatus;
+
+                                    if (value.isEmpty) {
+                                      formInputStatus = FormInputStatus.empty;
+                                    } else if (_isValidMnemonicWord(
+                                      value.trim().toLowerCase(),
+                                    )) {
+                                      formInputStatus = FormInputStatus.valid;
+                                    } else {
+                                      formInputStatus = FormInputStatus.invalid;
+                                    }
+
+                                    // if (formInputStatus ==
+                                    //     FormInputStatus.valid) {
+                                    //   if (i < _focusNodes.length) {
+                                    //     _focusNodes[i].requestFocus();
+                                    //   } else if (i == _focusNodes.length) {
+                                    //     _focusNodes[i - 1].unfocus();
+                                    //   }
+                                    // }
+                                    setState(() {
+                                      _inputStatuses[i - 1] = formInputStatus;
+                                    });
+                                  },
+                                  controller: _controllers[i - 1],
+                                  style: STextStyles.field(context).copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.textRestore,
+                                    fontSize: isDesktop ? 16 : 14,
+                                  ),
+                                ),
+                              ),
+                              if (_inputStatuses[i - 1] ==
+                                  FormInputStatus.invalid)
+                                Align(
+                                  alignment: Alignment.topLeft,
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(
+                                      left: 12.0,
+                                      bottom: 4.0,
                                     ),
-                                    autovalidateMode:
-                                        AutovalidateMode.onUserInteraction,
-                                    selectionControls: i == 1
-                                        ? textSelectionControls
-                                        : null,
-                                    // focusNode: _focusNodes[i - 1],
-                                    onChanged: (value) {
-                                      final FormInputStatus formInputStatus;
-
-                                      if (value.isEmpty) {
-                                        formInputStatus = FormInputStatus.empty;
-                                      } else if (_isValidMnemonicWord(
-                                        value.trim().toLowerCase(),
-                                      )) {
-                                        formInputStatus = FormInputStatus.valid;
-                                      } else {
-                                        formInputStatus =
-                                            FormInputStatus.invalid;
-                                      }
-
-                                      // if (formInputStatus ==
-                                      //     FormInputStatus.valid) {
-                                      //   if (i < _focusNodes.length) {
-                                      //     _focusNodes[i].requestFocus();
-                                      //   } else if (i == _focusNodes.length) {
-                                      //     _focusNodes[i - 1].unfocus();
-                                      //   }
-                                      // }
-                                      setState(() {
-                                        _inputStatuses[i - 1] = formInputStatus;
-                                      });
-                                    },
-                                    controller: _controllers[i - 1],
-                                    style: STextStyles.field(context).copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textRestore,
-                                      fontSize: isDesktop ? 16 : 14,
+                                    child: Text(
+                                      "Please check spelling",
+                                      textAlign: TextAlign.left,
+                                      style: STextStyles.label(context)
+                                          .copyWith(
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textError,
+                                          ),
                                     ),
                                   ),
                                 ),
-                                if (_inputStatuses[i - 1] ==
-                                    FormInputStatus.invalid)
-                                  Align(
-                                    alignment: Alignment.topLeft,
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(
-                                        left: 12.0,
-                                        bottom: 4.0,
-                                      ),
-                                      child: Text(
-                                        "Please check spelling",
-                                        textAlign: TextAlign.left,
-                                        style: STextStyles.label(context)
-                                            .copyWith(
-                                              color: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .textError,
-                                            ),
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8.0),
-                            child: PrimaryButton(
-                              onPressed: requestRestore,
-                              label: "Restore",
-                            ),
+                            ],
                           ),
-                        ],
-                      ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: PrimaryButton(
+                            onPressed: requestRestore,
+                            label: "Restore",
+                          ),
+                        ),
+                      ],
                     ),
                   ),
               ],
