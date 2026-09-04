@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:paymint/wallets/wallet/impl/firo_transaction_type.dart';
+import 'package:stackwallet/wallets/wallet/impl/firo_transaction_type.dart';
 
 void main() {
   test('recognizes Spark spend transaction types', () {
