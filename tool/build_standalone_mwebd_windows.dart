@@ -50,15 +50,7 @@ Future<void> _fetchPrebuilt(Directory projectToolDir) async {
   final expected = (await File(
     shaPath,
   ).readAsString()).trim().split(RegExp(r"\s+")).first;
-  // sha256sum adds a leading '\' to the hash when the filename contains
-  // backslashes. Strip it before comparing.
-  final actual = (await Process.run("sha256sum", [exePath], runInShell: true))
-      .stdout
-      .toString()
-      .trim()
-      .split(RegExp(r"\s+"))
-      .first
-      .replaceFirst(r'\', '');
+  final actual = await _sha256(exePath);
   if (expected.toLowerCase() != actual.toLowerCase()) {
     stderr.writeln(
       "mwebd.exe sha256 mismatch: expected $expected, got $actual",
@@ -66,6 +58,30 @@ Future<void> _fetchPrebuilt(Directory projectToolDir) async {
     exit(1);
   }
   await File(shaPath).delete();
+}
+
+Future<String> _sha256(String path) async {
+  if (Platform.isWindows) {
+    final result = await Process.run("certutil", ["-hashfile", path, "SHA256"]);
+    if (result.exitCode != 0) {
+      throw ProcessException("certutil", ["-hashfile", path, "SHA256"],
+          result.stderr.toString(), result.exitCode);
+    }
+    final lines = result.stdout
+        .toString()
+        .split(RegExp(r"\r?\n"))
+        .map((line) => line.trim())
+        .where((line) => RegExp(r"^[0-9a-fA-F]{64}$").hasMatch(line));
+    if (lines.isEmpty) throw FormatException("Unexpected certutil output");
+    return lines.first;
+  }
+
+  final result = await Process.run("sha256sum", [path]);
+  if (result.exitCode != 0) {
+    throw ProcessException(
+        "sha256sum", [path], result.stderr.toString(), result.exitCode);
+  }
+  return result.stdout.toString().trim().split(RegExp(r"\s+")).first;
 }
 
 Future<void> _buildFromSource(Directory projectToolDir) async {
