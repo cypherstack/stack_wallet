@@ -424,9 +424,8 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
     final wallet = ref.read(pWallets).getWallet(walletId);
     final Amount amount = _amountToSend!;
 
+    bool wasCancelled = false;
     try {
-      bool wasCancelled = false;
-
       if (mounted) {
         unawaited(
           showDialog<void>(
@@ -503,7 +502,7 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
       }
     } catch (e, s) {
       Logging.instance.e("$e\n$s", error: e, stackTrace: s);
-      if (mounted) {
+      if (mounted && !wasCancelled) {
         // pop building dialog
         Navigator.of(context).pop();
 

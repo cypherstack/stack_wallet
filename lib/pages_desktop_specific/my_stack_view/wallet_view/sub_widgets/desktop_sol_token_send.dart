@@ -207,9 +207,8 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
       }
     }
 
+    bool wasCancelled = false;
     try {
-      bool wasCancelled = false;
-
       if (mounted) {
         unawaited(
           showDialog<dynamic>(
@@ -292,7 +291,7 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
         );
       }
     } catch (e) {
-      if (mounted) {
+      if (mounted && !wasCancelled) {
         // pop building dialog
         Navigator.of(context, rootNavigator: true).pop();
 
