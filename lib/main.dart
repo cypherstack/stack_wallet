@@ -259,16 +259,18 @@ void main(List<String> args) async {
       MwebdService.instance
           .logsStream(CryptoCurrencyNetwork.main)
           .then(
-            (stream) =>
-                stream.listen((line) => debugPrint("[MWEBD: MAINNET]: $line")),
+            (stream) => stream.listen(
+              (line) => Logging.instance.d("[MWEBD: MAINNET]: $line"),
+            ),
           ),
     );
     unawaited(
       MwebdService.instance
           .logsStream(CryptoCurrencyNetwork.test)
           .then(
-            (stream) =>
-                stream.listen((line) => debugPrint("[MWEBD: TESTNET]: $line")),
+            (stream) => stream.listen(
+              (line) => Logging.instance.d("[MWEBD: TESTNET]: $line"),
+            ),
           ),
     );
   }
