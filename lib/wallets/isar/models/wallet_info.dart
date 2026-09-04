@@ -584,4 +584,5 @@ abstract class WalletInfoKeys {
       "solanaCustomTokenMintAddressesKey";
   static const String firoMasternodeCollateralDismissed =
       "firoMasternodeCollateralDismissedKey";
+  static const String isRestoredFromKeysKey = "isRestoredFromKeysKey";
 }

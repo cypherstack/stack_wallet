@@ -163,6 +163,15 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     int height = 0,
   });
 
+  Future<WrappedWallet> getRestoredFromKeysWallet({
+    required String path,
+    required String password,
+    required String address,
+    required String privateViewKey,
+    required String privateSpendKey,
+    int height = 0,
+  });
+
   void invalidSeedLengthCheck(int length);
 
   bool walletExists(String path);
@@ -403,6 +412,14 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
 
     if (isViewOnly) {
       await recoverViewOnly();
+      return;
+    }
+
+    final keysDataJson = await secureStorageInterface.read(
+      key: Wallet.keysRestoreDataKey(walletId: walletId),
+    );
+    if (keysDataJson != null) {
+      await _recoverFromKeys(keysDataJson);
       return;
     }
 
@@ -1541,6 +1558,102 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
       throw Exception("Cannot internalCommitTx when wallet is not open");
     }
     csMonero.setRefreshFromBlockHeight(wallet!, newHeight);
+  }
+
+  // ============== Key-based restore ==========================================
+
+  Future<void> _recoverFromKeys(String keysDataJson) async {
+    await refreshMutex.protect(() async {
+      final data = jsonDecode(keysDataJson) as Map<String, dynamic>;
+      final address = data["address"] as String;
+      final viewKey = data["viewKey"] as String;
+      final spendKey = data["spendKey"] as String;
+
+      try {
+        final height = max(info.restoreHeight, 0);
+
+        await info.updateRestoreHeight(
+          newRestoreHeight: height,
+          isar: mainDB.isar,
+        );
+
+        final String name = walletId;
+        final path = await pathForWallet(name: name, type: compatType);
+
+        final password = generatePassword();
+        await secureStorageInterface.write(
+          key: lib_monero_compat.libMoneroWalletPasswordKey(walletId),
+          value: password,
+        );
+
+        final wallet = await getRestoredFromKeysWallet(
+          path: path,
+          password: password,
+          address: address,
+          privateViewKey: viewKey,
+          privateSpendKey: spendKey,
+          height: height,
+        );
+
+        if (this.wallet != null) {
+          await exit();
+        }
+        this.wallet = wallet;
+
+        _setListener();
+
+        // Try to recover the mnemonic from the restored wallet
+        try {
+          final seed = await csMonero.getSeed(wallet);
+          if (seed.isNotEmpty) {
+            await secureStorageInterface.write(
+              key: Wallet.mnemonicKey(walletId: walletId),
+              value: seed,
+            );
+            await secureStorageInterface.write(
+              key: Wallet.mnemonicPassphraseKey(walletId: walletId),
+              value: "",
+            );
+          }
+        } catch (_) {
+          // Not all key-restored wallets can recover the seed
+        }
+
+        final newReceivingAddress =
+            await getCurrentReceivingAddress() ??
+            Address(
+              walletId: walletId,
+              derivationIndex: 0,
+              derivationPath: null,
+              value: await csMonero.getAddress(this.wallet!),
+              publicKey: [],
+              type: AddressType.cryptonote,
+              subType: AddressSubType.receiving,
+            );
+
+        await mainDB.updateOrPutAddresses([newReceivingAddress]);
+        await info.updateReceivingAddress(
+          newAddress: newReceivingAddress.value,
+          isar: mainDB.isar,
+        );
+
+        await updateNode();
+        _setListener();
+
+        await csMonero.rescanBlockchain(this.wallet!);
+        await csMonero.startSyncing(this.wallet!);
+
+        await csMonero.startListeners(this.wallet!);
+        csMonero.startAutoSaving(this.wallet!);
+      } catch (e, s) {
+        Logging.instance.e(
+          "Exception rethrown from _recoverFromKeys(): ",
+          error: e,
+          stackTrace: s,
+        );
+        rethrow;
+      }
+    });
   }
 
   // ============== View only ==================================================
