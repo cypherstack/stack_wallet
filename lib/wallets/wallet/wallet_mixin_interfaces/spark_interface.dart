@@ -130,6 +130,25 @@ bool shouldSubtractSparkFeeFromAmount({
 
 void initSparkLogging(Level level) => libSpark.initSparkLogging(level);
 
+({String? proof, String? error}) _createSparkAddressOwnershipProof(
+  ({String message, String privateKeyHex, int spendKeyIndex, int diversifier})
+  args,
+) {
+  try {
+    return (
+      proof: libSpark.createSparkAddressOwnershipProof(
+        message: args.message,
+        privateKeyHex: args.privateKeyHex,
+        spendKeyIndex: args.spendKeyIndex,
+        diversifier: args.diversifier,
+      ),
+      error: null,
+    );
+  } catch (e) {
+    return (proof: null, error: e.toString());
+  }
+}
+
 abstract class _SparkIsolate {
   static Isolate? _isolate;
   static SendPort? _sendPort;
@@ -189,6 +208,8 @@ Future<R> computeWithLibSparkLogging<M, R>(
 
 mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     on Bip39HDWallet<T>, ElectrumXInterface<T> {
+  static const _sparkNameLookAheadCount = 100;
+
   Address? _currentSparkAddress;
 
   String? _viewKeyHex;
@@ -1872,12 +1893,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       // some look ahead
       // TODO revisit this and clean up (track pre gen'd addresses instead of
       //  generating every time) arbitrary number of addresses
-      const lookAheadCount = 100;
-
       // force unwrap optional should be fine here. If not then the
       // eclosing function is being called somewhere it probably shouldn't be.
       int diversifier = _currentSparkAddress!.derivationIndex;
-      final maxDiversifier = diversifier + lookAheadCount;
+      final maxDiversifier = diversifier + _sparkNameLookAheadCount;
 
       while (diversifier < maxDiversifier) {
         // change address check
@@ -2913,6 +2932,71 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     );
 
     return txData;
+  }
+
+  Future<String> createSparkAddressOwnershipProof({
+    required String address,
+    required String message,
+  }) async {
+    if (isViewOnly) {
+      throw Exception(
+        "Cannot create an ownership proof from a view only wallet",
+      );
+    }
+
+    final messageLength = utf8.encode(message).length;
+    if (messageLength == 0 ||
+        messageLength > libSpark.maxSparkMessageLengthBytes) {
+      throw Exception(
+        "Message must contain between 1 and "
+        "${libSpark.maxSparkMessageLengthBytes} UTF-8 bytes",
+      );
+    }
+
+    Address? sparkAddress = await mainDB.getAddress(walletId, address);
+    if (sparkAddress == null) {
+      final currentDiversifier =
+          (await getCurrentReceivingSparkAddress())?.derivationIndex;
+      if (currentDiversifier != null) {
+        var diversifier = currentDiversifier;
+        final maxDiversifier = diversifier + _sparkNameLookAheadCount;
+        while (diversifier < maxDiversifier) {
+          if (diversifier == libSpark.sparkChange) {
+            diversifier++;
+          }
+          final candidate = await _generateSparkAddress(diversifier++);
+          if (candidate.value == address) {
+            sparkAddress = candidate;
+            break;
+          }
+        }
+      }
+    }
+    if (sparkAddress == null || sparkAddress.type != AddressType.spark) {
+      throw Exception("Spark address does not belong to this wallet");
+    }
+    if (sparkAddress.derivationIndex < 0) {
+      throw Exception("Spark address diversifier is unavailable");
+    }
+
+    final root = await getRootHDNode();
+    final privateKeyHex = root
+        .derivePath(sparkDerivationPath)
+        .privateKey
+        .data
+        .toHex;
+
+    final result =
+        await computeWithLibSparkLogging(_createSparkAddressOwnershipProof, (
+          message: message,
+          privateKeyHex: privateKeyHex,
+          spendKeyIndex: sparkIndex,
+          diversifier: sparkAddress.derivationIndex,
+        ));
+    if (result.error != null) {
+      throw Exception(result.error);
+    }
+    return result.proof!;
   }
 
   @override

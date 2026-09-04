@@ -39,6 +39,9 @@ class _LibSparkInterfaceImpl extends LibSparkInterface {
   int get maxAdditionalInfoLengthBytes => kMaxAdditionalInfoLengthBytes;
 
   @override
+  int get maxSparkMessageLengthBytes => kMaxSparkMessageLengthBytes;
+
+  @override
   int get maxNameLength => kMaxNameLength;
 
   @override
@@ -137,6 +140,19 @@ class _LibSparkInterfaceImpl extends LibSparkInterface {
     isTestNet: isTestNet,
     hashFailSafe: hashFailSafe,
     ignoreProof: ignoreProof,
+  );
+
+  @override
+  String createSparkAddressOwnershipProof({
+    required String message,
+    required String privateKeyHex,
+    required int spendKeyIndex,
+    required int diversifier,
+  }) => LibSpark.createSparkAddressOwnershipProof(
+    message: message,
+    privateKeyHex: privateKeyHex,
+    spendKeyIndex: spendKeyIndex,
+    diversifier: diversifier,
   );
 
   @override
