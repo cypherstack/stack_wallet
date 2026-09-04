@@ -21,12 +21,25 @@ final class _LibEpicCashInterfaceImpl extends LibEpicCashInterface {
   const _LibEpicCashInterfaceImpl();
 
   @override
-  Future<String> cancelTransaction({
+  Future<String> cancelEpicboxTransaction({
     required DynamicObject wallet,
-    required String transactionId,
-  }) {
-    return wallet.get<EpicWallet>().cancelTransaction(
-      transactionId: transactionId,
+    required bool methodIsEpicbox,
+    String? epicboxConfig,
+    int? txId,
+    String? txSlateId,
+    String? txEpicboxId,
+  }) async {
+    final epicWallet = wallet.get<EpicWallet>();
+
+    if (epicboxConfig != null) {
+      epicWallet.updateEpicboxConfig(epicboxConfig);
+    }
+
+    return epicWallet.cancelEpicboxTransaction(
+      methodIsEpicbox: methodIsEpicbox,
+      txId: txId,
+      txSlateId: txSlateId,
+      txEpicboxId: txEpicboxId,
     );
   }
 
@@ -124,6 +137,17 @@ final class _LibEpicCashInterfaceImpl extends LibEpicCashInterface {
       refreshFromNode: refreshFromNode,
     );
 
+    // Log the flutter_libepiccash Transaction BEFORE converting it.
+    for (final e in transactions) {
+      print(
+        "EPIC INTERFACE TX "
+        "id=${e.id} "
+        "txSlateId=${e.txSlateId} "
+        "txEpicboxId=${e.txEpicboxId} "
+        "type=${e.txType}",
+      );
+    }
+
     return transactions
         .map(
           (e) => EpicTransaction(
@@ -138,6 +162,7 @@ final class _LibEpicCashInterfaceImpl extends LibEpicCashInterface {
             amountCredited: e.amountCredited,
             amountDebited: e.amountDebited,
             txSlateId: e.txSlateId,
+            txEpicboxId: e.txEpicboxId,
             fee: e.fee,
             ttlCutoffHeight: e.ttlCutoffHeight,
             messages: e.messages?.messages

@@ -138,9 +138,12 @@ class EpiccashWallet extends Bip39Wallet {
         throw Exception('Wallet not initialized');
       }
 
-      final result = await libEpic.cancelTransaction(
+      final epicboxConfig = await getEpicBoxConfig();
+      final result = await libEpic.cancelEpicboxTransaction(
         wallet: _wallet!,
-        transactionId: txSlateId,
+        methodIsEpicbox: true,
+        epicboxConfig: epicboxConfig.toString(),
+        txSlateId: txSlateId,
       );
       Logging.instance.d("cancel $txSlateId result: $result");
       return result;
@@ -1386,10 +1389,22 @@ class EpiccashWallet extends Bip39Wallet {
       final slatesToCommits = info.epicData?.slatesToCommits ?? {};
 
       for (final tx in transactions) {
+
+        Logging.instance.w(
+          "EPIC TX "
+          "id=${tx.id} "
+          "slate=${tx.txSlateId} "
+          "epicbox_tx_id=${tx.txEpicboxId} "
+          "type=${tx.txType} "
+          "sentCancelled=${libEpic.txTypeIsSentCancelled(tx.txType)} "
+          "receiveCancelled=${libEpic.txTypeIsReceiveCancelled(tx.txType)}",
+        );
+
         final isIncoming =
             libEpic.txTypeIsReceived(tx.txType) ||
             libEpic.txTypeIsReceiveCancelled(tx.txType);
         final slateId = tx.txSlateId;
+        final epicboxId = tx.txEpicboxId;
         final commitId = slatesToCommits[slateId]?['commitId'] as String?;
         final numberOfMessages = tx.messages?.length;
         final onChainNote = tx.messages?.first.message;
@@ -1451,6 +1466,7 @@ class EpiccashWallet extends Bip39Wallet {
           "isEpiccashTransaction": true,
           "numberOfMessages": numberOfMessages,
           "slateId": slateId,
+          "epicboxId": epicboxId,
           "onChainNote": onChainNote,
           "isCancelled":
               libEpic.txTypeIsSentCancelled(tx.txType) ||
