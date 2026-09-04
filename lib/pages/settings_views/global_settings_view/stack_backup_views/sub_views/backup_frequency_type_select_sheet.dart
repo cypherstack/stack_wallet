@@ -18,9 +18,7 @@ import '../../../../../utilities/enums/backup_frequency_type.dart';
 import '../../../../../utilities/text_styles.dart';
 
 class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
-  const BackupFrequencyTypeSelectSheet({
-    super.key,
-  });
+  const BackupFrequencyTypeSelectSheet({super.key});
 
   String prettyFrequencyType(BackupFrequencyType type) {
     switch (type) {
@@ -30,6 +28,8 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
         return "Every app start";
       case BackupFrequencyType.afterClosingAWallet:
         return "After closing a cryptocurrency wallet";
+      case BackupFrequencyType.afterChanges:
+        return "After editing a note or contact";
     }
   }
 
@@ -37,16 +37,15 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return WillPopScope(
       onWillPop: () async {
-        Navigator.of(context)
-            .pop(ref.read(prefsChangeNotifierProvider).backupFrequencyType);
+        Navigator.of(
+          context,
+        ).pop(ref.read(prefsChangeNotifierProvider).backupFrequencyType);
         return false;
       },
       child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).extension<StackColors>()!.popupBG,
-          borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(20),
-          ),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Padding(
           padding: const EdgeInsets.only(
@@ -62,9 +61,9 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
               Center(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFieldDefaultBG,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),
@@ -73,9 +72,7 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
                   height: 4,
                 ),
               ),
-              const SizedBox(
-                height: 36,
-              ),
+              const SizedBox(height: 36),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -84,9 +81,7 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
                     style: STextStyles.pageTitleH2(context),
                     textAlign: TextAlign.left,
                   ),
-                  const SizedBox(
-                    height: 24,
-                  ),
+                  const SizedBox(height: 24),
                   for (int i = 0; i < BackupFrequencyType.values.length; i++)
                     Column(
                       children: [
@@ -131,9 +126,7 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
                                     },
                                   ),
                                 ),
-                                const SizedBox(
-                                  width: 12,
-                                ),
+                                const SizedBox(width: 12),
                                 Flexible(
                                   child: Column(
                                     children: [
@@ -151,14 +144,10 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(
-                          height: 20,
-                        ),
+                        const SizedBox(height: 20),
                       ],
                     ),
-                  const SizedBox(
-                    height: 24,
-                  ),
+                  const SizedBox(height: 24),
                 ],
               ),
             ],

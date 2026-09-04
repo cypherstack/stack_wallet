@@ -25,6 +25,9 @@ enum AutoSWBStatus { idle, backingUp, error }
 
 class AutoSWBService extends ChangeNotifier {
   Timer? _timer;
+  Timer? _debounceTimer;
+  bool _backupPending = false;
+  bool _isDisposed = false;
 
   AutoSWBStatus _status = AutoSWBStatus.idle;
   AutoSWBStatus get status => _status;
@@ -33,95 +36,124 @@ class AutoSWBService extends ChangeNotifier {
   bool get isActivePeriodicTimer => _isActiveTimer;
 
   final SecureStorageInterface secureStorageInterface;
+  final bool Function() shouldBackupAfterChange;
+  @visibleForTesting
+  final Future<void> Function()? backupRunner;
+  final Duration debounceDuration;
 
-  AutoSWBService({required this.secureStorageInterface});
+  AutoSWBService({
+    required this.secureStorageInterface,
+    required this.shouldBackupAfterChange,
+    this.backupRunner,
+    this.debounceDuration = const Duration(seconds: 5),
+  });
+
+  void requestBackupAfterChange() {
+    if (_isDisposed || !shouldBackupAfterChange()) return;
+
+    Logging.instance.d("AutoSWBService.requestBackupAfterChange() triggered");
+    // Re-checked when the timer fires: a backup writes wallet seed material,
+    // and the user can turn auto backup off inside the debounce window.
+    requestBackup(onlyIf: shouldBackupAfterChange);
+  }
+
+  void requestBackup({Duration? debounceDuration, bool Function()? onlyIf}) {
+    if (_isDisposed) return;
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(debounceDuration ?? this.debounceDuration, () {
+      _debounceTimer = null;
+      if (_isDisposed || (onlyIf != null && !onlyIf())) {
+        Logging.instance.d(
+          "AutoSWBService.requestBackup() debounce fired but the trigger "
+          "condition no longer holds; skipping backup",
+        );
+        return;
+      }
+      Logging.instance.d(
+        "AutoSWBService.requestBackup() debounce fired, running doBackup()",
+      );
+      unawaited(doBackup());
+    });
+  }
 
   /// Attempt a backup.
   Future<void> doBackup() async {
+    if (_isDisposed) return;
     if (_status == AutoSWBStatus.backingUp) {
-      Logging.instance.w(
-        "AutoSWBService attempted to run doBackup() while a backup is in progress!",
-      );
+      _backupPending = true;
       return;
     }
-    Logging.instance.d("AutoSWBService.doBackup() started...");
 
-    // set running backup status and notify listeners
-    _status = AutoSWBStatus.backingUp;
-    notifyListeners();
+    do {
+      _backupPending = false;
+      await _doBackupOnce();
+    } while (_backupPending && !_isDisposed);
+  }
+
+  Future<void> _doBackupOnce() async {
+    Logging.instance.d("AutoSWBService.doBackup() started...");
+    _setStatus(AutoSWBStatus.backingUp);
 
     try {
-      if (!Prefs.instance.isInitialized) {
-        await Prefs.instance.init();
-      }
-
-      final autoBackupDirectoryPath = Prefs.instance.autoBackupLocation;
-      if (autoBackupDirectoryPath == null) {
-        Logging.instance.e(
-          "AutoSWBService attempted to run doBackup() when no auto backup directory was set!",
-        );
-        // set error backup status and notify listeners
-        _status = AutoSWBStatus.error;
-        notifyListeners();
-        return;
-      }
-
-      final json = await SWB.createStackWalletJSON(
-        secureStorage: secureStorageInterface,
-      );
-      final jsonString = jsonEncode(json);
-
-      final adkString = await secureStorageInterface.read(
-        key: "auto_adk_string",
-      );
-
-      final adkVersionString = await secureStorageInterface.read(
-        key: "auto_adk_version_string",
-      );
-      final int adkVersion = int.parse(adkVersionString!);
-
-      final DateTime now = DateTime.now();
-      final String fileToSave = createAutoBackupFilename(
-        autoBackupDirectoryPath,
-        now,
-      );
-
-      final content = await SWB.encryptStackWalletWithADK(
-        adkString!,
-        jsonString,
-        adkVersion,
-      );
-
-      await FS.writeStringToFile(
-        content,
-        autoBackupDirectoryPath,
-        fileToSave.split("/").last,
-      );
-
-      Prefs.instance.lastAutoBackup = now;
-
-      // delete all but the latest 3 auto backups
-      trimBackups(autoBackupDirectoryPath, 3);
-
+      await (backupRunner?.call() ?? _writeBackup());
       Logging.instance.d("AutoSWBService.doBackup() succeeded");
     } on Exception catch (e, s) {
       final String err = getErrorMessageFromSWBException(e);
       Logging.instance.e("$err\n$s", error: e, stackTrace: s);
-      // set error backup status and notify listeners
-      _status = AutoSWBStatus.error;
-      notifyListeners();
+      _setStatus(AutoSWBStatus.error);
       return;
     } catch (e, s) {
       Logging.instance.e("$e\n$s", error: e, stackTrace: s);
-      // set error backup status and notify listeners
-      _status = AutoSWBStatus.error;
-      notifyListeners();
+      _setStatus(AutoSWBStatus.error);
       return;
     }
 
-    // set done/idle backup status and notify listeners
-    _status = AutoSWBStatus.idle;
-    notifyListeners();
+    _setStatus(AutoSWBStatus.idle);
+  }
+
+  Future<void> _writeBackup() async {
+    if (!Prefs.instance.isInitialized) {
+      await Prefs.instance.init();
+    }
+
+    final autoBackupDirectoryPath = Prefs.instance.autoBackupLocation;
+    if (autoBackupDirectoryPath == null) {
+      throw StateError("No auto backup directory is set");
+    }
+
+    final json = await SWB.createStackWalletJSON(
+      secureStorage: secureStorageInterface,
+    );
+    final jsonString = jsonEncode(json);
+
+    final adkString = await secureStorageInterface.read(key: "auto_adk_string");
+    final adkVersionString = await secureStorageInterface.read(
+      key: "auto_adk_version_string",
+    );
+    final adkVersion = int.parse(adkVersionString!);
+    final now = DateTime.now();
+    final fileToSave = createAutoBackupFilename(autoBackupDirectoryPath, now);
+    final content = await SWB.encryptStackWalletWithADK(
+      adkString!,
+      jsonString,
+      adkVersion,
+    );
+
+    await FS.writeStringToFile(
+      content,
+      autoBackupDirectoryPath,
+      fileToSave.split("/").last,
+    );
+
+    Prefs.instance.lastAutoBackup = now;
+    trimBackups(autoBackupDirectoryPath, 3);
+  }
+
+  void _setStatus(AutoSWBStatus status) {
+    _status = status;
+    if (!_isDisposed) {
+      notifyListeners();
+    }
   }
 
   /// Trim the number of auto backup files based on age
@@ -165,7 +197,7 @@ class AutoSWBService extends ChangeNotifier {
       (a, b) => b.item1.millisecondsSinceEpoch - a.item1.millisecondsSinceEpoch,
     );
 
-    // delete any older backups if there are more than the number we want to keep
+    // Delete backups beyond the retention limit.
     while (files.length > numberToKeep) {
       final fileToDelete = files.removeLast().item2;
       fileToDelete.deleteSync();
@@ -199,6 +231,10 @@ class AutoSWBService extends ChangeNotifier {
 
   @override
   void dispose() {
+    _isDisposed = true;
+    _backupPending = false;
+    _debounceTimer?.cancel();
+    _debounceTimer = null;
     stopPeriodicBackupTimer(shouldNotifyListeners: false);
     super.dispose();
   }
