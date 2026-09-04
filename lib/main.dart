@@ -24,6 +24,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:keyboard_dismisser/keyboard_dismisser.dart';
 import 'package:logger/logger.dart';
 import 'package:mobile_app_privacy/mobile_app_privacy.dart';
+import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:window_size/window_size.dart';
 
@@ -96,8 +97,43 @@ void main(List<String> args) async {
   }
   WidgetsFlutterBinding.ensureInitialized();
 
-  if (Util.isDesktop && args.length == 2 && args.first == "-d") {
-    StackFileSystem.setDesktopOverrideDir(args.last);
+  final appImageEnv = Platform.isLinux
+      ? Platform.environment["APPIMAGE"]
+      : null;
+  // A blank APPIMAGE means "not an AppImage" just as an unset one does.
+  final appImagePath = appImageEnv != null && appImageEnv.trim().isNotEmpty
+      ? path.absolute(appImageEnv)
+      : null;
+  final portableMarkerExists =
+      appImagePath != null && File("$appImagePath.portable").existsSync();
+
+  if (args.contains("--portable") && appImagePath == null) {
+    stderr.writeln("--portable is only supported when running an AppImage.");
+    // Returning from main() would leave the runner's already mapped window
+    // open and empty; only exit() ends the process.
+    exit(64);
+  }
+
+  final ({String path, bool portable})? dataDirectoryOverride;
+  try {
+    dataDirectoryOverride = StackFileSystem.desktopDataDirectoryOverride(
+      arguments: args,
+      appImagePath: appImagePath,
+      appDataDirectoryName: AppConfig.appDefaultDataDirName,
+      portableMarkerExists: portableMarkerExists,
+    );
+  } on ArgumentError catch (e) {
+    stderr.writeln(e.message);
+    exit(64);
+  }
+  if (dataDirectoryOverride != null && Util.isDesktop) {
+    if (dataDirectoryOverride.portable) {
+      StackFileSystem.setPortableDesktopDataDirectory(
+        dataDirectoryOverride.path,
+      );
+    } else {
+      StackFileSystem.setDesktopOverrideDir(dataDirectoryOverride.path);
+    }
   }
 
   final loadCoinlibFuture = loadCoinlib();
