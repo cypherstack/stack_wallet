@@ -66,6 +66,34 @@ jobs:
         run: bash prebuild.sh
         working-directory: scripts
 
+      - name: Verify committed generated files are up to date
+        run: |
+          # --delete-conflicting-outputs deletes the gitignored app config too
+          # (source_gen claims <x>.dart -> <x>.g.dart for every input), and
+          # ensure_test_app_config.sh's stub is not the configured app, so put
+          # the configured file back and leave the script as the fallback.
+          SAVED_APP_CONFIG="${RUNNER_TEMP:-/tmp}/app_config.g.dart.saved"
+          cp lib/app_config.g.dart "$SAVED_APP_CONFIG"
+          dart run build_runner build --delete-conflicting-outputs
+          cp "$SAVED_APP_CONFIG" lib/app_config.g.dart
+          bash scripts/ensure_test_app_config.sh
+          # hive_ce emits a registrar nothing here imports; never delete it if
+          # someone has committed it.
+          if [ -f lib/hive_registrar.g.dart ] \
+             && ! git ls-files --error-unmatch lib/hive_registrar.g.dart >/dev/null 2>&1; then
+            rm -f lib/hive_registrar.g.dart
+          fi
+
+          # build.yaml never runs build_runner, so releases are compiled from
+          # the committed *.g.dart; stale isar/drift output has to fail the job
+          # here or nothing checks it at all.
+          GENERATED_STATUS=$(git status --porcelain -- '*.mocks.dart' '*.g.dart')
+          if [ -n "$GENERATED_STATUS" ]; then
+            echo "$GENERATED_STATUS"
+            echo "::error::Committed generated files differ from build_runner output; re-run scripts/dev/build_runner.sh and commit the result."
+            exit 1
+          fi
+
       - name: Check formatting of changed files
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
