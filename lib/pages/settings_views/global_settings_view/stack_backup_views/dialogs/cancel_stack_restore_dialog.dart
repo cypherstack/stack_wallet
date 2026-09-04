@@ -21,16 +21,12 @@ import '../../../../../widgets/rounded_container.dart';
 import '../../../../../widgets/stack_dialog.dart';
 
 class CancelStackRestoreDialog extends StatelessWidget {
-  const CancelStackRestoreDialog({
-    super.key,
-  });
+  const CancelStackRestoreDialog({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        return false;
-      },
+    return PopScope(
+      canPop: false,
       child: !Util.isDesktop
           ? StackDialog(
               title: "Cancel restore process",
@@ -40,10 +36,7 @@ class CancelStackRestoreDialog extends StatelessWidget {
                 style: Theme.of(context)
                     .extension<StackColors>()!
                     .getSecondaryEnabledButtonStyle(context),
-                child: Text(
-                  "Back",
-                  style: STextStyles.itemSubtitle12(context),
-                ),
+                child: Text("Back", style: STextStyles.itemSubtitle12(context)),
                 onPressed: () {
                   Navigator.of(context).pop(false);
                 },
@@ -55,9 +48,9 @@ class CancelStackRestoreDialog extends StatelessWidget {
                 child: Text(
                   "Yes, cancel",
                   style: STextStyles.itemSubtitle12(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .buttonTextPrimary,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.buttonTextPrimary,
                   ),
                 ),
                 onPressed: () {
@@ -85,9 +78,9 @@ class CancelStackRestoreDialog extends StatelessWidget {
                     SizedBox(
                       width: 500,
                       child: RoundedContainer(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .snackBarBackError,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.snackBarBackError,
                         child: Text(
                           "If you cancel, the restore will not complete, and "
                           "the wallets will not appear in your ${AppConfig.prefix}.",

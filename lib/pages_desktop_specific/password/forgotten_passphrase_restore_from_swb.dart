@@ -76,15 +76,12 @@ class _ForgottenPassphraseRestoreFromSWBState
       return;
     }
 
-    bool shouldPop = false;
     unawaited(
       showDialog<dynamic>(
         barrierDismissible: false,
         context: context,
-        builder: (_) => WillPopScope(
-          onWillPop: () async {
-            return shouldPop;
-          },
+        builder: (_) => PopScope(
+          canPop: false,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -120,7 +117,6 @@ class _ForgottenPassphraseRestoreFromSWBState
 
     if (mounted) {
       // pop LoadingIndicator
-      shouldPop = true;
       Navigator.of(context).pop();
 
       passwordController.text = "";

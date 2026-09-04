@@ -19,10 +19,7 @@ import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/stack_dialog.dart';
 
 class FetchMonkeyDialog extends StatefulWidget {
-  const FetchMonkeyDialog({
-    super.key,
-    required this.onCancel,
-  });
+  const FetchMonkeyDialog({super.key, required this.onCancel});
 
   final Future<void> Function() onCancel;
 
@@ -53,24 +50,15 @@ class _FetchMonkeyDialogState extends State<FetchMonkeyDialog> {
                 }
               },
             ),
-            const Spacer(
-              flex: 1,
-            ),
-            const RotatingArrows(
-              width: 40,
-              height: 40,
-            ),
-            const Spacer(
-              flex: 2,
-            ),
+            const Spacer(flex: 1),
+            const RotatingArrows(width: 40, height: 40),
+            const Spacer(flex: 2),
             Text(
               "Fetching MonKey",
               style: STextStyles.desktopH2(context),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(
-              height: 16,
-            ),
+            const SizedBox(height: 16),
             Text(
               "We are fetching your MonKey",
               style: STextStyles.desktopTextMedium(context).copyWith(
@@ -78,15 +66,9 @@ class _FetchMonkeyDialogState extends State<FetchMonkeyDialog> {
               ),
               textAlign: TextAlign.center,
             ),
-            const Spacer(
-              flex: 2,
-            ),
+            const Spacer(flex: 2),
             Padding(
-              padding: const EdgeInsets.only(
-                left: 32,
-                right: 32,
-                bottom: 32,
-              ),
+              padding: const EdgeInsets.only(left: 32, right: 32, bottom: 32),
               child: SecondaryButton(
                 label: "Cancel",
                 width: 272.5,
@@ -102,25 +84,17 @@ class _FetchMonkeyDialogState extends State<FetchMonkeyDialog> {
         ),
       );
     } else {
-      return WillPopScope(
-        onWillPop: () async {
-          return false;
-        },
+      return PopScope(
+        canPop: false,
         child: StackDialog(
           title: "Fetching MonKey",
           message: "We are fetching your MonKey",
-          icon: const RotatingArrows(
-            width: 24,
-            height: 24,
-          ),
+          icon: const RotatingArrows(width: 24, height: 24),
           rightButton: TextButton(
-            style: Theme.of(context)
-                .extension<StackColors>()!
-                .getSecondaryEnabledButtonStyle(context),
-            child: Text(
-              "Cancel",
-              style: STextStyles.itemSubtitle12(context),
-            ),
+            style: Theme.of(
+              context,
+            ).extension<StackColors>()!.getSecondaryEnabledButtonStyle(context),
+            child: Text("Cancel", style: STextStyles.itemSubtitle12(context)),
             onPressed: () async {
               await onCancel.call();
               if (mounted) {

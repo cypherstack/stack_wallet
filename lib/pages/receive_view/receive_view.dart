@@ -161,8 +161,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
 
     if (slatepackString == null) return;
     if (mounted) {
-      final wallet =
-          ref.read(pWallets).getWallet(walletId) as EpiccashWallet;
+      final wallet = ref.read(pWallets).getWallet(walletId) as EpiccashWallet;
 
       Exception? ex;
       final result = await showLoading(
@@ -218,13 +217,12 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
     final wallet = ref.read(pWallets).getWallet(walletId);
 
     if (wallet is MultiAddressInterface) {
-      bool shouldPop = false;
       unawaited(
         showDialog(
           context: context,
           builder: (_) {
-            return WillPopScope(
-              onWillPop: () async => shouldPop,
+            return PopScope(
+              canPop: false,
               child: Container(
                 color: Theme.of(
                   context,
@@ -282,8 +280,6 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
         address = null;
       }
 
-      shouldPop = true;
-
       if (mounted) {
         Navigator.of(
           context,
@@ -300,13 +296,12 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
   Future<void> generateNewSparkAddress() async {
     final wallet = ref.read(pWallets).getWallet(walletId);
     if (wallet is SparkInterface) {
-      bool shouldPop = false;
       unawaited(
         showDialog(
           context: context,
           builder: (_) {
-            return WillPopScope(
-              onWillPop: () async => shouldPop,
+            return PopScope(
+              canPop: false,
               child: Container(
                 color: Theme.of(
                   context,
@@ -322,8 +317,6 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
       );
 
       final address = await wallet.generateNextSparkAddress(saveToDB: true);
-
-      shouldPop = true;
 
       if (mounted) {
         Navigator.of(context, rootNavigator: true).pop();

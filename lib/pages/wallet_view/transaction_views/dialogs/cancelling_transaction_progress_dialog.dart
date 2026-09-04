@@ -27,17 +27,14 @@ class _CancellingTransactionProgressDialogState
     extends State<CancellingTransactionProgressDialog> {
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        return false;
-      },
+    return PopScope(
+      canPop: false,
       child: ConditionalParent(
         condition: Util.isDesktop,
-        builder:
-            (child) => Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [SizedBox(width: 400, child: child)],
-            ),
+        builder: (child) => Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [SizedBox(width: 400, child: child)],
+        ),
         child: const StackDialog(
           title: "Cancelling transaction",
           message: "This may take a while. Please do not exit this screen.",

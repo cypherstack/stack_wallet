@@ -174,8 +174,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
   }
 
   Future<void> _onEpicReceiveSlatePressed() async {
-    final wallet =
-        ref.read(pWallets).getWallet(walletId) as EpiccashWallet;
+    final wallet = ref.read(pWallets).getWallet(walletId) as EpiccashWallet;
 
     Exception? ex;
     final result = await showLoading(
@@ -236,13 +235,12 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
   Future<void> generateNewAddress() async {
     final wallet = ref.read(pWallets).getWallet(walletId);
     if (wallet is MultiAddressInterface) {
-      bool shouldPop = false;
       unawaited(
         showDialog(
           context: context,
           builder: (_) {
-            return WillPopScope(
-              onWillPop: () async => shouldPop,
+            return PopScope(
+              canPop: false,
               child: Container(
                 color: Theme.of(
                   context,
@@ -299,8 +297,6 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
         address = null;
       }
 
-      shouldPop = true;
-
       if (mounted) {
         Navigator.of(context, rootNavigator: true).pop();
 
@@ -315,13 +311,12 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
   Future<void> generateNewSparkAddress() async {
     final wallet = ref.read(pWallets).getWallet(walletId);
     if (wallet is SparkInterface) {
-      bool shouldPop = false;
       unawaited(
         showDialog(
           context: context,
           builder: (_) {
-            return WillPopScope(
-              onWillPop: () async => shouldPop,
+            return PopScope(
+              canPop: false,
               child: Container(
                 color: Theme.of(
                   context,
@@ -337,8 +332,6 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
       );
 
       final address = await wallet.generateNextSparkAddress(saveToDB: true);
-
-      shouldPop = true;
 
       if (mounted) {
         Navigator.of(context, rootNavigator: true).pop();
@@ -605,9 +598,11 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
               ),
             ),
           ),
-        if (!((isMimblewimblecoin || isEpiccash) && ref.watch(pIsSlatepack(widget.walletId))))
+        if (!((isMimblewimblecoin || isEpiccash) &&
+            ref.watch(pIsSlatepack(widget.walletId))))
           const SizedBox(height: 20),
-        if (!((isMimblewimblecoin || isEpiccash) && ref.watch(pIsSlatepack(widget.walletId))))
+        if (!((isMimblewimblecoin || isEpiccash) &&
+            ref.watch(pIsSlatepack(widget.walletId))))
           ConditionalParent(
             condition: showMultiType,
             builder: (child) => Column(
@@ -778,7 +773,8 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
             label: "Generate new address",
           ),
         const SizedBox(height: 20),
-        if ((isMimblewimblecoin || isEpiccash) && ref.watch(pIsSlatepack(widget.walletId)))
+        if ((isMimblewimblecoin || isEpiccash) &&
+            ref.watch(pIsSlatepack(widget.walletId)))
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -909,7 +905,8 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
 
         // TODO: create transparent button class to account for hover
         // Conditional logic for 'Submit' button or QR code
-        if ((isMimblewimblecoin || isEpiccash) && ref.watch(pIsSlatepack(widget.walletId)))
+        if ((isMimblewimblecoin || isEpiccash) &&
+            ref.watch(pIsSlatepack(widget.walletId)))
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: PrimaryButton(
@@ -917,7 +914,9 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
               label: "Receive Slatepack",
               enabled: _slateToggleFlag,
               onPressed: _slateToggleFlag
-                  ? (isEpiccash ? _onEpicReceiveSlatePressed : _onReceiveSlatePressed)
+                  ? (isEpiccash
+                        ? _onEpicReceiveSlatePressed
+                        : _onReceiveSlatePressed)
                   : null,
             ),
           )

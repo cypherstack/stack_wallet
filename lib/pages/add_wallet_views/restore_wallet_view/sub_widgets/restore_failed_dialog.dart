@@ -51,30 +51,29 @@ class _RestoreFailedDialogState extends ConsumerState<RestoreFailedDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        return false;
-      },
+    return PopScope(
+      canPop: false,
       child: StackDialog(
         title: "Restore failed",
         message: errorMessage,
         rightButton: TextButton(
-          style: Theme.of(context)
-              .extension<StackColors>()!
-              .getSecondaryEnabledButtonStyle(context),
-          child: Text(
-            "Ok",
-            style: STextStyles.itemSubtitle12(context),
-          ),
+          style: Theme.of(
+            context,
+          ).extension<StackColors>()!.getSecondaryEnabledButtonStyle(context),
+          child: Text("Ok", style: STextStyles.itemSubtitle12(context)),
           onPressed: () async {
             try {
-              await ref.read(pWallets).deleteWallet(
+              await ref
+                  .read(pWallets)
+                  .deleteWallet(
                     ref.read(pWalletInfo(walletId)),
                     ref.read(secureStoreProvider),
                   );
             } catch (e, s) {
-              Logging.instance.e("Error while getting wallet info in restore failed dialog\n"
-                "Error: $e\nStack trace: $s");
+              Logging.instance.e(
+                "Error while getting wallet info in restore failed dialog\n"
+                "Error: $e\nStack trace: $s",
+              );
             } finally {
               if (mounted) {
                 Navigator.of(context).pop();

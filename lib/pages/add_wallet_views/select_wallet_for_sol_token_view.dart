@@ -31,14 +31,12 @@ import '../../widgets/rounded_white_container.dart';
 import '../../widgets/wallet_info_row/wallet_info_row.dart';
 import 'package:tuple/tuple.dart';
 
-final newSolWalletTriggerTempUntilHiveCompletelyDeleted =
-    StateProvider((ref) => false);
+final newSolWalletTriggerTempUntilHiveCompletelyDeleted = StateProvider(
+  (ref) => false,
+);
 
 class SelectWalletForSolTokenView extends ConsumerStatefulWidget {
-  const SelectWalletForSolTokenView({
-    super.key,
-    required this.entity,
-  });
+  const SelectWalletForSolTokenView({super.key, required this.entity});
 
   static const String routeName = "/selectWalletForSolTokenView";
 
@@ -58,15 +56,13 @@ class _SelectWalletForSolTokenViewState
   void _onContinue() {
     Navigator.of(context).pushNamed(
       EditWalletTokensView.routeName,
-      arguments: Tuple2(
-        _selectedWalletId!,
-        [widget.entity.token.address],
-      ),
+      arguments: Tuple2(_selectedWalletId!, [widget.entity.token.address]),
     );
   }
 
   void _onAddNewSolWallet() {
-    ref.read(newSolWalletTriggerTempUntilHiveCompletelyDeleted.notifier).state = true;
+    ref.read(newSolWalletTriggerTempUntilHiveCompletelyDeleted.notifier).state =
+        true;
     Navigator.of(context).pushNamed(
       CreateOrRestoreWalletView.routeName,
       arguments: CoinEntity(widget.entity.cryptoCurrency),
@@ -91,17 +87,25 @@ class _SelectWalletForSolTokenViewState
       }
     }
 
-    return WillPopScope(
-      onWillPop: () async {
-        ref.read(newSolWalletTriggerTempUntilHiveCompletelyDeleted.notifier).state = false;
-        return true;
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        if (didPop) {
+          ref
+                  .read(
+                    newSolWalletTriggerTempUntilHiveCompletelyDeleted.notifier,
+                  )
+                  .state =
+              false;
+        }
       },
       child: ConditionalParent(
         condition: !isDesktop,
         builder: (child) => Background(
           child: Scaffold(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(
+              context,
+            ).extension<StackColors>()!.background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () {
@@ -110,10 +114,7 @@ class _SelectWalletForSolTokenViewState
               ),
             ),
             body: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: child,
-              ),
+              child: Padding(padding: const EdgeInsets.all(16), child: child),
             ),
           ),
         ),
@@ -124,18 +125,12 @@ class _SelectWalletForSolTokenViewState
               isCompactHeight: false,
               leading: AppBarBackButton(),
             ),
-            body: SizedBox(
-              width: 500,
-              child: child,
-            ),
+            body: SizedBox(width: 500, child: child),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (isDesktop)
-                const SizedBox(
-                  height: 24,
-                ),
+              if (isDesktop) const SizedBox(height: 24),
               Text(
                 "Select Solana wallet",
                 textAlign: TextAlign.center,
@@ -143,9 +138,7 @@ class _SelectWalletForSolTokenViewState
                     ? STextStyles.desktopH2(context)
                     : STextStyles.pageTitleH1(context),
               ),
-              SizedBox(
-                height: isDesktop ? 16 : 8,
-              ),
+              SizedBox(height: isDesktop ? 16 : 8),
               Text(
                 "You are adding a Solana token.",
                 textAlign: TextAlign.center,
@@ -153,9 +146,7 @@ class _SelectWalletForSolTokenViewState
                     ? STextStyles.desktopSubtitleH2(context)
                     : STextStyles.subtitle(context),
               ),
-              const SizedBox(
-                height: 8,
-              ),
+              const SizedBox(height: 8),
               Text(
                 "You must choose a Solana wallet in order to use ${widget.entity.name}",
                 textAlign: TextAlign.center,
@@ -163,9 +154,7 @@ class _SelectWalletForSolTokenViewState
                     ? STextStyles.desktopSubtitleH2(context)
                     : STextStyles.subtitle(context),
               ),
-              SizedBox(
-                height: isDesktop ? 60 : 16,
-              ),
+              SizedBox(height: isDesktop ? 60 : 16),
               solWalletIds.isEmpty
                   ? RoundedWhiteContainer(
                       padding: EdgeInsets.all(isDesktop ? 16 : 12),
@@ -193,9 +182,8 @@ class _SelectWalletForSolTokenViewState
                       child: ListView.separated(
                         itemCount: solWalletIds.length,
                         shrinkWrap: true,
-                        separatorBuilder: (_, __) => SizedBox(
-                          height: isDesktop ? 12 : 6,
-                        ),
+                        separatorBuilder: (_, __) =>
+                            SizedBox(height: isDesktop ? 12 : 6),
                         itemBuilder: (_, index) {
                           return RoundedContainer(
                             padding: EdgeInsets.all(isDesktop ? 16 : 8),
@@ -205,34 +193,26 @@ class _SelectWalletForSolTokenViewState
                               });
                             },
                             color: isDesktop
-                                ? Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .popupBG
+                                ? Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.popupBG
                                 : _selectedWalletId == solWalletIds[index]
-                                    ? Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .highlight
-                                    : Colors.transparent,
+                                ? Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.highlight
+                                : Colors.transparent,
                             child: isDesktop
                                 ? EthWalletRadio(
                                     walletId: solWalletIds[index],
                                     selectedWalletId: _selectedWalletId,
                                   )
-                                : WalletInfoRow(
-                                    walletId: solWalletIds[index],
-                                  ),
+                                : WalletInfoRow(walletId: solWalletIds[index]),
                           );
                         },
                       ),
                     ),
-              if (solWalletIds.isEmpty || isDesktop)
-                const SizedBox(
-                  height: 16,
-                ),
-              if (isDesktop)
-                const SizedBox(
-                  height: 16,
-                ),
+              if (solWalletIds.isEmpty || isDesktop) const SizedBox(height: 16),
+              if (isDesktop) const SizedBox(height: 16),
               solWalletIds.isEmpty
                   ? PrimaryButton(
                       label: "Add new Solana wallet",
