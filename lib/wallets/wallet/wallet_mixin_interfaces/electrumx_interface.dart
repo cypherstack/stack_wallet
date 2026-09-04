@@ -30,7 +30,6 @@ import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
 import '../../isar/models/wallet_info.dart';
 import '../../models/tx_data.dart';
 import '../impl/bitcoin_wallet.dart';
-import '../impl/firo_wallet.dart';
 import '../impl/peercoin_wallet.dart';
 import '../intermediate/bip39_hd_wallet.dart';
 import 'cpfp_interface.dart';
@@ -39,6 +38,41 @@ import 'paynym_interface.dart';
 import 'rbf_interface.dart';
 import 'sign_verify_interface.dart';
 import 'view_only_option_interface.dart';
+
+@visibleForTesting
+BigInt requiredFeeForVSize({
+  required int vSize,
+  required int? satsPerVByte,
+  required BigInt feeRatePerKB,
+  required int Function({required int vSize, required BigInt feeRatePerKB})
+  estimateTxFee,
+}) {
+  final estimatedFee = BigInt.from(
+    satsPerVByte != null
+        ? satsPerVByte * vSize
+        : estimateTxFee(vSize: vSize, feeRatePerKB: feeRatePerKB),
+  );
+  final minimumFee = BigInt.from(vSize);
+  return estimatedFee < minimumFee ? minimumFee : estimatedFee;
+}
+
+@visibleForTesting
+coinlib.Address parseElectrumXAddress({
+  required String address,
+  required ElectrumXCurrencyInterface cryptoCurrency,
+}) {
+  try {
+    return coinlib.Address.fromString(address, cryptoCurrency.networkParams);
+  } catch (_) {
+    if (cryptoCurrency is Firo) {
+      return EXP2PKHAddress.fromString(
+        address,
+        cryptoCurrency.exAddressVersion,
+      );
+    }
+    rethrow;
+  }
+}
 
 mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     on Bip39HDWallet<T>
@@ -320,6 +354,36 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       );
     }
 
+    final shouldReconcileFinalFee =
+        overrideFeeAmount == null &&
+        txData.type != TxType.mweb &&
+        txData.type != TxType.mwebPegOut;
+
+    BigInt requiredFeeForFinalVSize(int vSize) => requiredFeeForVSize(
+      vSize: vSize,
+      satsPerVByte: satsPerVByte,
+      feeRatePerKB: selectedTxFeeRate,
+      estimateTxFee: estimateTxFee,
+    );
+
+    Future<TxData> retryWithMoreInputs() {
+      Logging.instance.w(
+        'Cannot pay tx fee - checking for more outputs and trying again',
+      );
+      if (spendableOutputs.length > inputsBeingConsumed) {
+        return coinSelection(
+          txData: txData,
+          isSendAll: isSendAll,
+          additionalOutputs: additionalOutputs + 1,
+          utxos: utxos,
+          coinControl: coinControl,
+          isSendAllCoinControlUtxos: isSendAllCoinControlUtxos,
+          overrideFeeAmount: overrideFeeAmount,
+        );
+      }
+      throw Exception("Insufficient balance to pay transaction fee");
+    }
+
     final int vSizeForOneOutput;
     try {
       vSizeForOneOutput = (await buildTransaction(
@@ -403,9 +467,15 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           ),
         ),
       );
+      if (shouldReconcileFinalFee &&
+          difference < requiredFeeForFinalVSize(txnData.vSize!)) {
+        return retryWithMoreInputs();
+      }
       return txnData.copyWith(
+        // No change output, so the whole difference is the fee (which can
+        // exceed [feeForOneOutput]).
         fee: Amount(
-          rawValue: feeForOneOutput,
+          rawValue: difference,
           fractionDigits: cryptoCurrency.fractionDigits,
         ),
         usedUTXOs: inputsWithKeys,
@@ -417,22 +487,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       Logging.instance.d('1 output in tx');
       return await singleOutputTxn();
     } else if (difference < feeForOneOutput) {
-      Logging.instance.w(
-        'Cannot pay tx fee - checking for more outputs and trying again',
-      );
-      // try adding more outputs
-      if (spendableOutputs.length > inputsBeingConsumed) {
-        return coinSelection(
-          txData: txData,
-          isSendAll: isSendAll,
-          additionalOutputs: additionalOutputs + 1,
-          utxos: utxos,
-          coinControl: coinControl,
-          isSendAllCoinControlUtxos: isSendAllCoinControlUtxos,
-          overrideFeeAmount: overrideFeeAmount,
-        );
-      }
-      throw Exception("Insufficient balance to pay transaction fee");
+      return retryWithMoreInputs();
     } else {
       if (difference > (feeForOneOutput + cryptoCurrency.dustLimit.raw)) {
         final changeOutputSize = difference - feeForTwoOutputs;
@@ -470,24 +525,33 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
             ),
           );
 
-          // make sure minimum fee is accurate if that is being used
-          if (BigInt.from(txnData.vSize!) - feeBeingPaid == BigInt.one) {
-            final changeOutputSize = difference - BigInt.from(txnData.vSize!);
-            feeBeingPaid = difference - changeOutputSize;
-            recipientsAmtArray.removeLast();
-            recipientsAmtArray.add(changeOutputSize);
+          // The fee was estimated from a differently signed build and
+          // re-signing can change vSize, so it may no longer cover the final
+          // signed size. Take any shortfall from change.
+          while (shouldReconcileFinalFee) {
+            final requiredFee = requiredFeeForFinalVSize(txnData.vSize!);
+            if (feeBeingPaid >= requiredFee) {
+              break;
+            }
+            final adjustedChangeSize = difference - requiredFee;
+            if (adjustedChangeSize <= cryptoCurrency.dustLimit.raw) {
+              // Drop the change output entirely.
+              recipientsArray.removeLast();
+              recipientsAmtArray.removeLast();
+              Logging.instance.d(
+                'Adjusted change would be dust, reverting to 1 output in tx',
+              );
+              return await singleOutputTxn();
+            }
+            feeBeingPaid = requiredFee;
+            recipientsAmtArray.last = adjustedChangeSize;
 
-            Logging.instance.d('Adjusted Input size: $satoshisBeingUsed');
             Logging.instance.d(
-              'Adjusted Recipient output size: $satoshiAmountToSend',
-            );
-            Logging.instance.d(
-              'Adjusted Change Output Size: $changeOutputSize',
+              'Adjusted Change Output Size: $adjustedChangeSize',
             );
             Logging.instance.d(
               'Adjusted Difference (fee being paid): $feeBeingPaid sats',
             );
-            Logging.instance.d('Adjusted Estimated fee: $feeForTwoOutputs');
 
             txnData = await buildTransaction(
               inputsWithKeys: inputsWithKeys,
@@ -518,7 +582,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       }
     }
 
-    return txData;
+    return await singleOutputTxn();
   }
 
   Future<TxData> _sendAllBuilder({
@@ -570,45 +634,8 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     }
 
     late TxData data;
-    if (txData.type == TxType.mwebPegIn) {
-      while (true) {
-        final satoshiAmountToSend = satoshisBeingUsed - feeForOneOutput;
-        if (satoshiAmountToSend.isNegative) {
-          throw Exception(
-            "Estimated fee ($feeForOneOutput sats) is greater than balance!",
-          );
-        }
-
-        data = await buildTransaction(
-          txData: txData.copyWith(
-            recipients: await helperRecipientsConvert(
-              [recipientAddress],
-              [satoshiAmountToSend],
-            ),
-          ),
-          inputsWithKeys: inputsWithKeys,
-        );
-
-        if (overrideFeeAmount != null) {
-          break;
-        }
-
-        // Signing can change vSize, so calculate the fee from the final tx.
-        final vSize = BigInt.from(data.vSize!);
-        final feeForFinalVSize = BigInt.from(
-          satsPerVByte != null
-              ? satsPerVByte * data.vSize!
-              : estimateTxFee(vSize: data.vSize!, feeRatePerKB: feeRatePerKB),
-        );
-        final requiredFee = feeForFinalVSize > vSize ? feeForFinalVSize : vSize;
-        if (feeForOneOutput >= requiredFee) {
-          break;
-        }
-        feeForOneOutput = requiredFee;
-      }
-    } else {
+    while (true) {
       final satoshiAmountToSend = satoshisBeingUsed - feeForOneOutput;
-
       if (satoshiAmountToSend.isNegative) {
         throw Exception(
           "Estimated fee ($feeForOneOutput sats) is greater than balance!",
@@ -624,6 +651,26 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         ),
         inputsWithKeys: inputsWithKeys,
       );
+
+      // Stop when the fee is not authoritative: overridden by the caller, or
+      // MWEB (except peg ins) whose fee is recalculated by the caller later.
+      if (overrideFeeAmount != null ||
+          txData.type == TxType.mweb ||
+          txData.type == TxType.mwebPegOut) {
+        break;
+      }
+
+      // Signing can change vSize, so calculate the fee from the final tx.
+      final requiredFee = requiredFeeForVSize(
+        vSize: data.vSize!,
+        satsPerVByte: satsPerVByte,
+        feeRatePerKB: feeRatePerKB,
+        estimateTxFee: estimateTxFee,
+      );
+      if (feeForOneOutput >= requiredFee) {
+        break;
+      }
+      feeForOneOutput = requiredFee;
     }
 
     return data.copyWith(
@@ -634,6 +681,11 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       usedUTXOs: inputsWithKeys,
     );
   }
+
+  coinlib.Address _addressFromString(String address) => parseElectrumXAddress(
+    address: normalizeAddress(address),
+    cryptoCurrency: cryptoCurrency,
+  );
 
   coinlib.Input standardInputToCoinlibInput(
     StandardInput input, {
@@ -728,13 +780,9 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       candidateBaseInputs[i] = baseInput;
     }
 
-    final coinlib.Address clRecipientAddress = coinlib.Address.fromString(
-      normalizeAddress(recipientAddress),
-      cryptoCurrency.networkParams,
-    );
     final coinlib.Output recipientOutput = coinlib.Output.fromAddress(
       satoshiAmountToSend,
-      clRecipientAddress,
+      _addressFromString(recipientAddress),
     );
 
     final coinlib.Address clChangeAddress = coinlib.Address.fromString(
@@ -1010,23 +1058,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
     // Add transaction output
     for (var i = 0; i < txData.recipients!.length; i++) {
-      late final coinlib.Address address;
-
-      try {
-        address = coinlib.Address.fromString(
-          normalizeAddress(txData.recipients![i].address),
-          cryptoCurrency.networkParams,
-        );
-      } catch (_) {
-        if (this is FiroWallet) {
-          address = EXP2PKHAddress.fromString(
-            normalizeAddress(txData.recipients![i].address),
-            (cryptoCurrency as Firo).exAddressVersion,
-          );
-        } else {
-          rethrow;
-        }
-      }
+      final address = _addressFromString(txData.recipients![i].address);
       final coinlib.Output output;
       if (address is coinlib.MwebAddress) {
         isMweb = true;
@@ -1655,26 +1687,26 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     try {
       const int f = 1, m = 5, s = 20;
 
-      final fast = await electrumXClient.estimateFee(blocks: f);
-      final medium = await electrumXClient.estimateFee(blocks: m);
-      final slow = await electrumXClient.estimateFee(blocks: s);
+      // Clamp server responses below the coin's default rate, consistent
+      // with the -1 fallback in [ElectrumXClient.estimateFee], so a broken
+      // estimate cannot force the fee-vs-vSize failure in prepareSend.
+      Future<BigInt> rate(int blocks) async {
+        final raw = Amount.fromDecimal(
+          await electrumXClient.estimateFee(blocks: blocks),
+          fractionDigits: info.coin.fractionDigits,
+        ).raw;
+        return raw < cryptoCurrency.defaultFeeRate
+            ? cryptoCurrency.defaultFeeRate
+            : raw;
+      }
 
       final feeObject = FeeObject(
         numberOfBlocksFast: f,
         numberOfBlocksAverage: m,
         numberOfBlocksSlow: s,
-        fast: Amount.fromDecimal(
-          fast,
-          fractionDigits: info.coin.fractionDigits,
-        ).raw,
-        medium: Amount.fromDecimal(
-          medium,
-          fractionDigits: info.coin.fractionDigits,
-        ).raw,
-        slow: Amount.fromDecimal(
-          slow,
-          fractionDigits: info.coin.fractionDigits,
-        ).raw,
+        fast: await rate(f),
+        medium: await rate(m),
+        slow: await rate(s),
       );
 
       Logging.instance.d("fetched fees: $feeObject");

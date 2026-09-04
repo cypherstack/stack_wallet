@@ -351,5 +351,5 @@ class Ecash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   int get transactionVersion => 2;
 
   @override
-  BigInt get defaultFeeRate => BigInt.from(200);
+  BigInt get defaultFeeRate => BigInt.from(1000);
 }
