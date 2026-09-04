@@ -114,13 +114,9 @@ class Wallets {
     _wallets.remove(walletId);
     await wallet?.exit();
 
-    await secureStorage.delete(key: Wallet.mnemonicKey(walletId: walletId));
-    await secureStorage.delete(
-      key: Wallet.mnemonicPassphraseKey(walletId: walletId),
-    );
-    await secureStorage.delete(key: Wallet.privateKeyKey(walletId: walletId));
-    await secureStorage.delete(
-      key: Wallet.getViewOnlyWalletDataSecStoreKey(walletId: walletId),
+    await Wallet.deleteSecureStorageData(
+      walletId: walletId,
+      secureStorage: secureStorage,
     );
 
     if (info.coin is CryptonoteCurrency) {

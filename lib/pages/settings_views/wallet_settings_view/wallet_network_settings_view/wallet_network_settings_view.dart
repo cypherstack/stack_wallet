@@ -44,6 +44,7 @@ import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
+import '../../../../wallets/wallet/wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../../../widgets/animated_text.dart';
@@ -131,7 +132,27 @@ class _WalletNetworkSettingsViewState
     }
   }
 
-  Future<void> _attemptRescan() async {
+  /// Persists [height] where the coin's own rescan reads it back from, and
+  /// pushes it into an open Cryptonote wallet, which keeps the height in the
+  /// native wallet rather than in the wallet info.
+  Future<void> _applyStartHeight(Wallet wallet, int height) async {
+    await ref
+        .read(pWalletInfo(widget.walletId))
+        .updateRestoreHeight(
+          newRestoreHeight: height,
+          isar: ref.read(mainDBProvider).isar,
+        );
+
+    if (wallet is EpiccashWallet) {
+      await wallet.updateRestoreHeight(height);
+    } else if (wallet is MimblewimblecoinWallet) {
+      await wallet.updateRestoreHeight(height);
+    } else if (wallet is CryptonoteWallet) {
+      await wallet.setRefreshFromBlockHeight(height);
+    }
+  }
+
+  Future<void> _attemptRescan(int? startHeight) async {
     if (!Platform.isLinux) await WakelockPlus.enable();
 
     try {
@@ -147,6 +168,10 @@ class _WalletNetworkSettingsViewState
 
         try {
           final wallet = ref.read(pWallets).getWallet(widget.walletId);
+
+          if (startHeight != null) {
+            await _applyStartHeight(wallet, startHeight);
+          }
 
           await wallet.recover(isRescan: true);
 
@@ -449,6 +474,7 @@ class _WalletNetworkSettingsViewState
                                                 barrierDismissible: true,
                                                 builder: (context) {
                                                   return ConfirmFullRescanDialog(
+                                                    coin: coin,
                                                     onConfirm: _attemptRescan,
                                                   );
                                                 },
@@ -1078,6 +1104,7 @@ class _WalletNetworkSettingsViewState
                           await Navigator.of(context).push(
                             FadePageRoute<void>(
                               ConfirmFullRescanDialog(
+                                coin: coin,
                                 onConfirm: _attemptRescan,
                               ),
                               const RouteSettings(),

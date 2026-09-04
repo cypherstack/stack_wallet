@@ -28,6 +28,7 @@ class AddressUtils {
   };
 
   static String condenseAddress(String address) {
+    if (address.length < 10) return address;
     return '${address.substring(0, 5)}...${address.substring(address.length - 5)}';
   }
 
@@ -41,7 +42,10 @@ class AddressUtils {
   }
 
   /// Parses a URI string and returns a map with parsed components.
-  static Map<String, String> _parseUri(String uri) {
+  static Map<String, String> _parseUri(
+    String uri, {
+    bool redactUriInLogs = false,
+  }) {
     final Map<String, String> result = {};
     try {
       final u = Uri.parse(uri);
@@ -77,43 +81,71 @@ class AddressUtils {
         }
       }
     } catch (e, s) {
-      Logging.instance.d(
-        "Exception caught in parseUri($uri): $e",
-        error: e,
-        stackTrace: s,
-      );
+      if (redactUriInLogs) {
+        // FormatException.toString() quotes a window of its source, and
+        // Uri.parse's source is the pasted uri, so log the message alone and
+        // never hand the exception object to the logger.
+        Logging.instance.d(
+          "Exception caught in parseUri(<redacted>): "
+          "${e is FormatException ? e.message : e.runtimeType}",
+          stackTrace: s,
+        );
+      } else {
+        Logging.instance.d(
+          "Exception caught in parseUri($uri): $e",
+          error: e,
+          stackTrace: s,
+        );
+      }
     }
     return result;
   }
 
+  /// Strips surrounding single or double quotes from a string.
+  static String _stripQuotes(String value) {
+    if (value.length >= 2 &&
+        ((value.startsWith('"') && value.endsWith('"')) ||
+            (value.startsWith("'") && value.endsWith("'")))) {
+      return value.substring(1, value.length - 1);
+    }
+    return value;
+  }
+
   /// Helper method to parse and normalize query parameters.
+  ///
+  /// Keys are lowercased and dashes are replaced with underscores so that
+  /// e.g. `spend-key` and `spend_key` are treated identically.
+  /// Surrounding quotation marks on values are stripped.
   static Map<String, String> _parseQueryParameters(Map<String, String> params) {
     final Map<String, String> result = {};
     params.forEach((key, value) {
-      final lowerKey = key.toLowerCase();
-      if (recognizedParams.contains(lowerKey)) {
-        switch (lowerKey) {
+      // Normalize: lowercase + dashes -> underscores.
+      final normalizedKey = key.toLowerCase().replaceAll('-', '_');
+      final strippedValue = _stripQuotes(value);
+
+      if (recognizedParams.contains(normalizedKey)) {
+        switch (normalizedKey) {
           case 'amount':
           case 'tx_amount':
-            result['amount'] = _normalizeAmount(value);
+            result['amount'] = _normalizeAmount(strippedValue);
             break;
           case 'label':
           case 'recipient_name':
-            result['label'] = Uri.decodeComponent(value);
+            result['label'] = Uri.decodeComponent(strippedValue);
             break;
           case 'message':
           case 'tx_description':
-            result['message'] = Uri.decodeComponent(value);
+            result['message'] = Uri.decodeComponent(strippedValue);
             break;
           case 'tx_payment_id':
-            result['tx_payment_id'] = Uri.decodeComponent(value);
+            result['tx_payment_id'] = Uri.decodeComponent(strippedValue);
             break;
           default:
-            result[lowerKey] = Uri.decodeComponent(value);
+            result[normalizedKey] = Uri.decodeComponent(strippedValue);
         }
       } else {
-        // Include unrecognized parameters as-is.
-        result[key] = Uri.decodeComponent(value);
+        // Include unrecognized parameters with normalized key.
+        result[normalizedKey] = Uri.decodeComponent(strippedValue);
       }
     });
     return result;
@@ -173,6 +205,39 @@ class AddressUtils {
       logging?.i("Invalid payment URI: $uri", error: e, stackTrace: s);
       return null;
     }
+  }
+
+  /// Parses a wallet URI and returns a Map.
+  ///
+  /// Returns null on failure to parse.
+  static Map<String, dynamic>? _parseWalletUri(String uri) {
+    final Map<String, dynamic> parsedData = {};
+
+    final separatorIndex = uri.indexOf(":");
+    if (separatorIndex <= 0) return null;
+
+    final scheme = uri
+        .substring(0, separatorIndex)
+        .toLowerCase()
+        .replaceAll("-", "_");
+    final compatibleScheme = scheme.replaceAll("_", "");
+    final compatibleUri = compatibleScheme + uri.substring(separatorIndex);
+    parsedData.addAll(_parseUri(compatibleUri, redactUriInLogs: true));
+
+    // Match the normalized wallet-uri scheme exactly. A bare payment scheme
+    // (e.g. "monero") must not be accepted here as a wallet uri; only the
+    // "<uriScheme>_wallet" form is valid.
+    final possibleCoins = AppConfig.coins.where(
+      (e) => "${e.uriScheme}_wallet" == scheme,
+    );
+
+    if (possibleCoins.length != 1) {
+      return null;
+    }
+
+    parsedData["coin"] = possibleCoins.first;
+
+    return parsedData;
   }
 
   /// Builds a uri string with the given address and query parameters (if any)
@@ -407,4 +472,142 @@ class PaymentUriData {
       "paymentId: $paymentId, "
       "additionalParams: $additionalParams"
       " }";
+}
+
+class WalletUriData {
+  final CryptoCurrency coin;
+  final String? address;
+  final String? seed;
+  final String? spendKey;
+  final String? viewKey;
+  final int? height;
+
+  bool get isViewOnly => spendKey == null && seed == null;
+
+  WalletUriData({
+    required this.coin,
+    this.address,
+    this.seed,
+    this.spendKey,
+    this.viewKey,
+    this.height,
+  });
+
+  factory WalletUriData.fromUriString(
+    String uri, {
+    bool Function(String address)? addressValidator,
+  }) {
+    final map = AddressUtils._parseWalletUri(uri);
+
+    if (map == null) {
+      throw const FormatException("Invalid wallet URI");
+    }
+
+    return WalletUriData.fromJson(
+      map,
+      map["coin"] as CryptoCurrency,
+      addressValidator: addressValidator,
+    );
+  }
+
+  /// Factory constructor with validation logic according to the spec:
+  /// https://github.com/monero-project/monero/wiki/URI-Formatting#wallet-definition-scheme
+  factory WalletUriData.fromJson(
+    Map<String, dynamic> json,
+    CryptoCurrency coin, {
+    bool Function(String address)? addressValidator,
+  }) {
+    String? optionalString(String key) {
+      final value = json[key];
+      return value is String && value.trim().isNotEmpty ? value.trim() : null;
+    }
+
+    final address = optionalString("address");
+    final spendKey = optionalString("spend_key");
+    final viewKey = optionalString("view_key");
+    final seed = optionalString("seed") ?? optionalString("mnemonic_seed");
+    final heightValue = json["height"];
+    final rawHeight = heightValue == null
+        ? null
+        : heightValue.toString().trim();
+    final txid = optionalString("txid");
+
+    if (json.containsKey("height") &&
+        (rawHeight == null || rawHeight.isEmpty)) {
+      throw const FormatException("Invalid restore height.");
+    }
+
+    final height = rawHeight == null ? null : int.tryParse(rawHeight);
+    if (rawHeight != null && (height == null || height < 0)) {
+      throw const FormatException("Invalid restore height.");
+    }
+
+    if (txid != null) {
+      throw UnsupportedError("Transaction-ID wallet restores are unsupported");
+    }
+
+    // Must have seed XOR view_key (spend_key is optional).
+    // May have seed only, view_key + spend_key, or view_key only.
+    final hasSeed = seed != null;
+    final hasKeys = viewKey != null || spendKey != null;
+
+    if (hasSeed && hasKeys) {
+      throw const FormatException(
+        "Invalid: cannot specify both seed and keys.",
+      );
+    }
+    if (!hasSeed && !hasKeys) {
+      throw const FormatException(
+        "Invalid: must specify either seed or view_key.",
+      );
+    }
+
+    if (spendKey != null && viewKey == null) {
+      throw const FormatException("Invalid: spend_key requires view_key.");
+    }
+
+    if (hasKeys && address == null) {
+      throw const FormatException(
+        "Invalid: an address is required with private keys.",
+      );
+    }
+    final addressPattern = RegExp(
+      r"^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{95}$",
+    );
+    if (hasKeys && !addressPattern.hasMatch(address!)) {
+      throw const FormatException("Invalid wallet address.");
+    }
+    if (hasKeys && addressValidator != null && !addressValidator(address!)) {
+      throw const FormatException("Invalid wallet address.");
+    }
+
+    final privateKeyPattern = RegExp(r"^[0-9a-fA-F]{64}$");
+    if (viewKey != null && !privateKeyPattern.hasMatch(viewKey)) {
+      throw const FormatException("Invalid private view key.");
+    }
+    if (spendKey != null && !privateKeyPattern.hasMatch(spendKey)) {
+      throw const FormatException("Invalid private spend key.");
+    }
+
+    return WalletUriData(
+      coin: coin,
+      address: address,
+      spendKey: spendKey,
+      viewKey: viewKey,
+      seed: seed,
+      height: height,
+    );
+  }
+
+  @override
+  String toString() {
+    return "WalletUriData { "
+        "coin: $coin, "
+        "address: $address, "
+        "seed: ${seed == null ? null : '<redacted>'}, "
+        "spendKey: ${spendKey == null ? null : '<redacted>'}, "
+        "viewKey: ${viewKey == null ? null : '<redacted>'}, "
+        "height: $height, "
+        " }";
+  }
 }

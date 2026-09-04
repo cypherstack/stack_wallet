@@ -294,10 +294,10 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
   }
 
   @override
-  Future<CWKeyData?> getKeys() async {
+  Future<CWKeyData> getKeys() async {
     final oldInfo = getLibWowneroWalletInfo(walletId);
     if (wallet == null || (oldInfo != null && oldInfo.name != walletId)) {
-      return null;
+      throw StateError("Wownero wallet is not loaded");
     }
     try {
       return CWKeyData(
@@ -309,13 +309,7 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
       );
     } catch (e, s) {
       Logging.instance.f("getKeys failed: ", error: e, stackTrace: s);
-      return CWKeyData(
-        walletId: walletId,
-        publicViewKey: "ERROR",
-        privateViewKey: "ERROR",
-        publicSpendKey: "ERROR",
-        privateSpendKey: "ERROR",
-      );
+      rethrow;
     }
   }
 
@@ -1514,9 +1508,11 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
   }
 
   @override
-  void setRefreshFromBlockHeight(int newHeight) {
+  Future<void> setRefreshFromBlockHeight(int newHeight) async {
     if (wallet == null) {
-      throw Exception("Cannot internalCommitTx when wallet is not open");
+      throw Exception(
+        "Cannot setRefreshFromBlockHeight when wallet is not open",
+      );
     }
     csWownero.setRefreshFromBlockHeight(wallet!, newHeight);
   }

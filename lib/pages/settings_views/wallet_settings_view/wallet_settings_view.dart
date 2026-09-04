@@ -18,8 +18,8 @@ import 'package:tuple/tuple.dart';
 import '../../../db/hive/db.dart';
 import '../../../db/sqlite/firo_cache.dart';
 import '../../../models/epicbox_config_model.dart';
-import '../../../models/keys/key_data_interface.dart';
 import '../../../models/keys/view_only_wallet_data.dart';
+import '../../../models/keys/wallet_recovery_material.dart';
 import '../../../models/mwcmqs_config_model.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../providers/global/wallets_provider.dart';
@@ -28,6 +28,7 @@ import '../../../route_generator.dart';
 import '../../../services/event_bus/events/global/node_connection_status_changed_event.dart';
 import '../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import '../../../services/event_bus/global_event_bus.dart';
+import '../../../services/wallet_recovery_service.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/if_not_already.dart';
@@ -37,12 +38,9 @@ import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/crypto_currency/intermediate/frost_currency.dart';
 import '../../../wallets/crypto_currency/intermediate/nano_currency.dart';
-import '../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import '../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
-import '../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
-import '../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../widgets/background.dart';
@@ -162,68 +160,20 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
   }
 
   Future<void> _walletBackupPressedHelper() async {
-    // TODO: [prio=med] take wallets that don't have a mnemonic into account
-
     final wallet = ref.read(pWallets).getWallet(widget.walletId);
-
-    List<String>? mnemonic;
-    ({
-      String myName,
-      String config,
-      String keys,
-      ({String config, String keys})? prevGen,
-    })?
-    frostWalletData;
-    if (wallet is BitcoinFrostWallet) {
-      final futures = [
-        wallet.getSerializedKeys(),
-        wallet.getMultisigConfig(),
-        wallet.getSerializedKeysPrevGen(),
-        wallet.getMultisigConfigPrevGen(),
-      ];
-
-      final results = await Future.wait(futures);
-
-      if (results.length == 4) {
-        frostWalletData = (
-          myName: wallet.frostInfo.myName,
-          config: results[1]!,
-          keys: results[0]!,
-          prevGen: results[2] == null || results[3] == null
-              ? null
-              : (config: results[3]!, keys: results[2]!),
-        );
-      }
-    } else {
-      if (wallet is MnemonicInterface) {
-        if (wallet is ViewOnlyOptionInterface &&
-            (wallet as ViewOnlyOptionInterface).isViewOnly) {
-          // TODO: is something needed here?
-        } else {
-          mnemonic = await wallet.getMnemonicAsWords();
-        }
-      }
-    }
-
-    KeyDataInterface? keyData;
-    if (wallet is ViewOnlyOptionInterface && wallet.isViewOnly) {
-      keyData = await wallet.getViewOnlyWalletData();
-    } else if (wallet is ExtendedKeysInterface) {
-      keyData = await wallet.getXPrivs();
-    } else if (wallet is CryptonoteWallet) {
-      keyData = await wallet.getKeys();
-    }
+    final recoveryMaterial = await WalletRecoveryService.getMaterial(wallet);
 
     if (mounted) {
-      if (keyData != null &&
-          wallet is ViewOnlyOptionInterface &&
-          wallet.isViewOnly) {
+      if (recoveryMaterial is ViewOnlyWalletRecoveryMaterial) {
         await Navigator.push(
           context,
-          RouteGenerator.getRoute(
+          RouteGenerator.getRoute<void>(
             shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
             builder: (_) => LockscreenView(
-              routeOnSuccessArguments: (walletId: walletId, keyData: keyData),
+              routeOnSuccessArguments: (
+                walletId: walletId,
+                keyData: recoveryMaterial.keyData,
+              ),
               showBackButton: true,
               routeOnSuccess: MobileKeyDataView.routeName,
               biometricsCancelButtonString: "CANCEL",
@@ -236,15 +186,10 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
       } else {
         await Navigator.push(
           context,
-          RouteGenerator.getRoute(
+          RouteGenerator.getRoute<void>(
             shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
             builder: (_) => LockscreenView(
-              routeOnSuccessArguments: (
-                walletId: walletId,
-                mnemonic: mnemonic ?? [],
-                frostWalletData: frostWalletData,
-                keyData: keyData,
-              ),
+              routeOnSuccessArguments: recoveryMaterial,
               showBackButton: true,
               routeOnSuccess: WalletBackupView.routeName,
               biometricsCancelButtonString: "CANCEL",
@@ -417,10 +362,9 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                 iconSize: 16,
                 title: "Epicbox Servers",
                 onPressed: () {
-                  Navigator.of(context).pushNamed(
-                    ManageEpicboxView.routeName,
-                    arguments: walletId,
-                  );
+                  Navigator.of(
+                    context,
+                  ).pushNamed(ManageEpicboxView.routeName, arguments: walletId);
                 },
               ),
             if (canBackup) const SizedBox(height: 8),

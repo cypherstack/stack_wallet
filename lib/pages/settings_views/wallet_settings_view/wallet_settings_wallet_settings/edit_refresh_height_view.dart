@@ -64,7 +64,7 @@ class _EditRefreshHeightViewState extends ConsumerState<EditRefreshHeightView> {
           }
 
           if (wallet is CryptonoteWallet && wallet.wallet != null) {
-            wallet.setRefreshFromBlockHeight(newHeight);
+            await wallet.setRefreshFromBlockHeight(newHeight);
           }
         } else {
           errMessage = "Invalid height: ${_controller.text}";

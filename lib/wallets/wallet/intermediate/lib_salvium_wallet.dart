@@ -273,9 +273,9 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
   }
 
   @override
-  Future<CWKeyData?> getKeys() async {
+  Future<CWKeyData> getKeys() async {
     if (wallet == null) {
-      return null;
+      throw StateError("Salvium wallet is not loaded");
     }
     try {
       return CWKeyData(
@@ -287,13 +287,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
       );
     } catch (e, s) {
       Logging.instance.f("getKeys failed: ", error: e, stackTrace: s);
-      return CWKeyData(
-        walletId: walletId,
-        publicViewKey: "ERROR",
-        privateViewKey: "ERROR",
-        publicSpendKey: "ERROR",
-        privateSpendKey: "ERROR",
-      );
+      rethrow;
     }
   }
 
@@ -1502,9 +1496,11 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
   }
 
   @override
-  void setRefreshFromBlockHeight(int newHeight) {
+  Future<void> setRefreshFromBlockHeight(int newHeight) async {
     if (wallet == null) {
-      throw Exception("Cannot internalCommitTx when wallet is not open");
+      throw Exception(
+        "Cannot setRefreshFromBlockHeight when wallet is not open",
+      );
     }
     csSalvium.setRefreshFromBlockHeight(wallet!, newHeight);
   }

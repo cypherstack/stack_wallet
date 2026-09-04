@@ -12,6 +12,7 @@ import '../../../app_config.dart';
 import '../../../db/hive/db.dart';
 import '../../../models/balance.dart';
 import '../../../models/input.dart';
+import '../../../models/keys/cryptonote_key_restore_data.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../models/isar/models/blockchain_data/utxo.dart';
@@ -163,6 +164,15 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     int height = 0,
   });
 
+  Future<WrappedWallet> getRestoredFromKeysWallet({
+    required String path,
+    required String password,
+    required String address,
+    required String privateViewKey,
+    required String privateSpendKey,
+    int height = 0,
+  });
+
   void invalidSeedLengthCheck(int length);
 
   bool walletExists(String path);
@@ -292,10 +302,10 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
   }
 
   @override
-  Future<CWKeyData?> getKeys() async {
+  Future<CWKeyData> getKeys() async {
     final oldInfo = getLibMoneroWalletInfo(walletId);
     if (wallet == null || (oldInfo != null && oldInfo.name != walletId)) {
-      return null;
+      throw StateError("Monero wallet is not loaded");
     }
     try {
       return CWKeyData(
@@ -307,13 +317,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
       );
     } catch (e, s) {
       Logging.instance.f("getKeys failed: ", error: e, stackTrace: s);
-      return CWKeyData(
-        walletId: walletId,
-        publicViewKey: "ERROR",
-        privateViewKey: "ERROR",
-        publicSpendKey: "ERROR",
-        privateSpendKey: "ERROR",
-      );
+      rethrow;
     }
   }
 
@@ -403,6 +407,14 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
 
     if (isViewOnly) {
       await recoverViewOnly();
+      return;
+    }
+
+    final keysDataJson = await secureStorageInterface.read(
+      key: Wallet.keysRestoreDataKey(walletId: walletId),
+    );
+    if (keysDataJson != null) {
+      await _recoverFromKeys(keysDataJson);
       return;
     }
 
@@ -1536,11 +1548,89 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
   }
 
   @override
-  void setRefreshFromBlockHeight(int newHeight) {
+  Future<void> setRefreshFromBlockHeight(int newHeight) async {
     if (wallet == null) {
-      throw Exception("Cannot internalCommitTx when wallet is not open");
+      throw Exception(
+        "Cannot setRefreshFromBlockHeight when wallet is not open",
+      );
     }
-    csMonero.setRefreshFromBlockHeight(wallet!, newHeight);
+    await csMonero.setRefreshFromBlockHeight(wallet!, newHeight);
+  }
+
+  // ============== Key-based restore ==========================================
+
+  Future<void> _recoverFromKeys(String keysDataJson) async {
+    await refreshMutex.protect(() async {
+      final data = CryptonoteKeyRestoreData.fromJsonEncodedString(keysDataJson);
+
+      try {
+        final height = max(info.restoreHeight, 0);
+
+        await info.updateRestoreHeight(
+          newRestoreHeight: height,
+          isar: mainDB.isar,
+        );
+
+        final String name = walletId;
+        final path = await pathForWallet(name: name, type: compatType);
+
+        final password = generatePassword();
+        await secureStorageInterface.write(
+          key: lib_monero_compat.libMoneroWalletPasswordKey(walletId),
+          value: password,
+        );
+
+        final wallet = await getRestoredFromKeysWallet(
+          path: path,
+          password: password,
+          address: data.address,
+          privateViewKey: data.privateViewKey,
+          privateSpendKey: data.privateSpendKey,
+          height: height,
+        );
+
+        if (this.wallet != null) {
+          await exit();
+        }
+        this.wallet = wallet;
+
+        _setListener();
+
+        final newReceivingAddress =
+            await getCurrentReceivingAddress() ??
+            Address(
+              walletId: walletId,
+              derivationIndex: 0,
+              derivationPath: null,
+              value: await csMonero.getAddress(this.wallet!),
+              publicKey: [],
+              type: AddressType.cryptonote,
+              subType: AddressSubType.receiving,
+            );
+
+        await mainDB.updateOrPutAddresses([newReceivingAddress]);
+        await info.updateReceivingAddress(
+          newAddress: newReceivingAddress.value,
+          isar: mainDB.isar,
+        );
+
+        await updateNode();
+        _setListener();
+
+        await csMonero.rescanBlockchain(this.wallet!);
+        await csMonero.startSyncing(this.wallet!);
+
+        await csMonero.startListeners(this.wallet!);
+        csMonero.startAutoSaving(this.wallet!);
+      } catch (e, s) {
+        Logging.instance.e(
+          "Exception rethrown from _recoverFromKeys(): ",
+          error: e,
+          stackTrace: s,
+        );
+        rethrow;
+      }
+    });
   }
 
   // ============== View only ==================================================

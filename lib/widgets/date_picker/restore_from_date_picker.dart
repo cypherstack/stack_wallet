@@ -10,10 +10,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import '../../../../../themes/stack_colors.dart';
-import '../../../../../utilities/assets.dart';
-import '../../../../../utilities/text_styles.dart';
-import '../../../../../utilities/util.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/assets.dart';
+import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
 
 class RestoreFromDatePicker extends StatefulWidget {
   const RestoreFromDatePicker({
@@ -54,25 +54,21 @@ class _RestoreFromDatePickerState extends State<RestoreFromDatePicker> {
         decoration: InputDecoration(
           hintText: "Restore from...",
           hintStyle: STextStyles.fieldLabel(context).copyWith(
-            color: Theme.of(context)
-                .extension<StackColors>()!
-                .textFieldDefaultSearchIconLeft,
+            color: Theme.of(
+              context,
+            ).extension<StackColors>()!.textFieldDefaultSearchIconLeft,
           ),
           suffixIcon: UnconstrainedBox(
             child: Row(
               children: [
-                const SizedBox(
-                  width: 16,
-                ),
+                const SizedBox(width: 16),
                 SvgPicture.asset(
                   Assets.svg.calendar,
                   color: Theme.of(context).extension<StackColors>()!.textDark3,
                   width: 16,
                   height: 16,
                 ),
-                const SizedBox(
-                  width: 12,
-                ),
+                const SizedBox(width: 12),
               ],
             ),
           ),
