@@ -32,11 +32,12 @@ abstract class Util {
   static double? screenWidth;
 
   static NumberSymbols? getSymbolsFor({required String locale}) {
+    final normalized = locale.replaceAll("-", "_");
+    final language = normalized.split("_").first.toLowerCase();
+
     return numberFormatSymbols[locale] as NumberSymbols? ??
-        numberFormatSymbols[locale.replaceAll("-", "_")] as NumberSymbols? ??
-        numberFormatSymbols[locale.substring(3).toLowerCase()]
-            as NumberSymbols? ??
-        numberFormatSymbols[locale.substring(0, 2)] as NumberSymbols?;
+        numberFormatSymbols[normalized] as NumberSymbols? ??
+        numberFormatSymbols[language] as NumberSymbols?;
   }
 
   static bool get isDesktop {

@@ -31,6 +31,9 @@ import '../../services/buy/buy_response.dart';
 import '../../services/buy/simplex/simplex_api.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/address_utils.dart';
+import '../../utilities/amount/amount.dart';
+import '../../utilities/amount/amount_formatter.dart';
+import '../../utilities/amount/amount_input_formatter.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/barcode_scanner_interface.dart';
 import '../../utilities/clipboard_interface.dart';
@@ -80,8 +83,6 @@ class BuyForm extends ConsumerStatefulWidget {
 }
 
 class _BuyFormState extends ConsumerState<BuyForm> {
-  late final CryptoCurrency? coin;
-
   late final ClipboardInterface clipboard;
 
   late final TextEditingController _receiveAddressController;
@@ -124,6 +125,45 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   // static Decimal maxCrypto = Decimal.parse((10000.00000000).toString());
   // static String boundedCryptoTicker = '';
 
+  /// The currency a crypto amount is denominated in: the crypto being bought,
+  /// which need not be the wallet's coin and is the only source on desktop,
+  /// where [BuyForm] is always built without one.
+  CryptoCurrency? get _selectedCryptoCurrency {
+    final ticker = selectedCrypto?.ticker ?? widget.coin?.ticker;
+    return ticker == null ? null : AppConfig.getCryptoCurrencyForTicker(ticker);
+  }
+
+  /// Parse a buy amount string using the active locale's decimal and group
+  /// separators. Fiat amounts are parsed via [Amount.tryParseFiatString];
+  /// crypto amounts go through [pAmountFormatter] so that full crypto
+  /// precision is preserved.
+  Decimal? _tryParseBuyAmount(String value) {
+    if (buyWithFiat) {
+      return Amount.tryParseFiatString(
+        value,
+        locale: ref.read(localeServiceChangeNotifierProvider).locale,
+      )?.decimal;
+    }
+
+    final cc = _selectedCryptoCurrency;
+    if (cc == null) {
+      // Fail closed: the fiat parser truncates to 2 decimals, which would
+      // silently zero a small crypto amount.
+      return null;
+    }
+
+    return ref.read(pAmountFormatter(cc)).tryParse(value)?.decimal;
+  }
+
+  AmountInputFormatter _buyAmountInputFormatter() {
+    final cc = buyWithFiat ? null : _selectedCryptoCurrency;
+    return AmountInputFormatter(
+      decimals: buyWithFiat ? 2 : cc?.fractionDigits ?? 8,
+      locale: ref.read(localeServiceChangeNotifierProvider).locale,
+      unit: cc == null ? null : ref.read(pAmountUnit(cc)),
+    );
+  }
+
   String _amountOutOfRangeErrorString = "";
   void validateAmount() {
     if (_buyAmountController.text.isEmpty) {
@@ -133,7 +173,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       return;
     }
 
-    final value = Decimal.tryParse(_buyAmountController.text);
+    final value = _tryParseBuyAmount(_buyAmountController.text);
     if (value == null) {
       setState(() {
         _amountOutOfRangeErrorString = "Invalid amount";
@@ -396,6 +436,12 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   // }
 
   Future<void> previewQuote(SimplexQuote quote) async {
+    final amount = _tryParseBuyAmount(_buyAmountController.text);
+    if (amount == null) {
+      validateAmount();
+      return;
+    }
+
     bool shouldPop = false;
     unawaited(
       showDialog(
@@ -414,11 +460,11 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       crypto: selectedCrypto!,
       fiat: selectedFiat!,
       youPayFiatPrice: buyWithFiat
-          ? Decimal.parse(_buyAmountController.text)
+          ? amount
           : Decimal.parse("100"), // dummy value
       youReceiveCryptoAmount: buyWithFiat
           ? Decimal.parse("0.000420282") // dummy value
-          : Decimal.parse(_buyAmountController.text), // Ternary for this
+          : amount,
       id: "id", // anything; we get an ID back
       receivingAddress: _receiveAddressController.text,
       buyWithFiat: buyWithFiat,
@@ -1013,7 +1059,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                       decimal: true,
                     ),
               textAlign: TextAlign.left,
-              // inputFormatters: [NumericalRangeFormatter()],
+              inputFormatters: [_buyAmountInputFormatter()],
               onChanged: (_) {
                 validateAmount();
               },
@@ -1123,13 +1169,21 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                                   final ClipboardData? data = await clipboard
                                       .getData(Clipboard.kTextPlain);
 
-                                  final amountString = Decimal.tryParse(
-                                    data?.text ?? "",
-                                  );
-                                  if (amountString != null) {
-                                    _buyAmountController.text = amountString
-                                        .toString();
-
+                                  final pasted = data?.text ?? "";
+                                  final formatted = _buyAmountInputFormatter()
+                                      .formatEditUpdate(
+                                        TextEditingValue.empty,
+                                        TextEditingValue(
+                                          text: pasted,
+                                          selection: TextSelection.collapsed(
+                                            offset: pasted.length,
+                                          ),
+                                        ),
+                                      );
+                                  if (formatted.text.isNotEmpty &&
+                                      _tryParseBuyAmount(formatted.text) !=
+                                          null) {
+                                    _buyAmountController.value = formatted;
                                     validateAmount();
                                   }
                                 },

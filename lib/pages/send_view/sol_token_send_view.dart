@@ -267,9 +267,11 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
       final tokenWallet = ref.read(pCurrentSolanaTokenWallet);
       if (tokenWallet == null) return;
 
-      final cryptoAmount = Decimal.tryParse(
-        cryptoAmountController.text,
-      )?.toAmount(fractionDigits: tokenWallet.tokenDecimals);
+      final cryptoAmount = ref
+          .read(pAmountFormatter(Solana(CryptoCurrencyNetwork.main)))
+          .tryParse(cryptoAmountController.text)
+          ?.decimal
+          .toAmount(fractionDigits: tokenWallet.tokenDecimals);
       if (cryptoAmount != null) {
         _amountToSend = cryptoAmount;
         if (_cachedAmountToSend != null &&
@@ -1258,16 +1260,29 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
                                               walletId: walletId,
                                               isToken: true,
                                               amount:
-                                                  (Decimal.tryParse(
-                                                            cryptoAmountController
-                                                                .text,
-                                                          ) ??
-                                                          Decimal.zero)
+                                                  ref
+                                                      .read(
+                                                        pAmountFormatter(
+                                                          Solana(
+                                                            CryptoCurrencyNetwork
+                                                                .main,
+                                                          ),
+                                                        ),
+                                                      )
+                                                      .tryParse(
+                                                        cryptoAmountController
+                                                            .text,
+                                                      )
+                                                      ?.decimal
                                                       .toAmount(
                                                         fractionDigits:
                                                             tokenWallet
                                                                 .tokenDecimals,
-                                                      ),
+                                                      ) ??
+                                                  Amount.zeroWith(
+                                                    fractionDigits: tokenWallet
+                                                        .tokenDecimals,
+                                                  ),
                                               updateChosen: (String fee) {
                                                 setState(() {
                                                   _calculateFeesFuture = Future(

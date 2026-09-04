@@ -1277,10 +1277,11 @@ class _SendViewState extends ConsumerState<SendView> {
       builder: (_) => TransactionFeeSelectionSheet(
         walletId: walletId,
         amount:
-            (Decimal.tryParse(cryptoAmountController.text) ??
-                    ref.watch(pSendAmount)?.decimal ??
-                    Decimal.zero)
-                .toAmount(fractionDigits: coin.fractionDigits),
+            ref
+                .read(pAmountFormatter(coin))
+                .tryParse(cryptoAmountController.text) ??
+            ref.watch(pSendAmount) ??
+            Amount.zeroWith(fractionDigits: coin.fractionDigits),
         updateChosen: (String fee) {
           if (fee == "custom") {
             if (!isCustomFee.value) {
