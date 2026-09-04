@@ -4,6 +4,10 @@ import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
 void main() {
   const String firoAddress = "a6ESWKz7szru5syLtYAPRhHLdKvMq3Yt1j";
+  const moneroAddress =
+      "4AeRgkWZsMJhAWKMeCZ3h4ZSPnAcW5VBtRFyLd6gBEf6GgJU2FHXDA6i1DnQTd6h8R3VU5AkbGcWSNhtSwNNPgaD48gp4nn";
+  const privateKey =
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 
   test("condense address", () {
     final condensedAddress = AddressUtils.condenseAddress(firoAddress);
@@ -131,5 +135,130 @@ void main() {
       ),
       "firo:$firoAddress?amount=10.0123&message=Some+kind+of+message%21",
     );
+  });
+
+  group("wallet URI", () {
+    test("parses a private-key restore", () {
+      final result = WalletUriData.fromUriString(
+        "monero_wallet:$moneroAddress"
+        "?view_key=$privateKey&spend_key=$privateKey&height=123",
+      );
+
+      expect(result.address, moneroAddress);
+      expect(result.viewKey, privateKey);
+      expect(result.spendKey, privateKey);
+      expect(result.height, 123);
+      expect(result.isViewOnly, isFalse);
+    });
+
+    test("accepts the legacy mnemonic_seed parameter", () {
+      final result = WalletUriData.fromUriString(
+        "MONERO-WALLET:?mnemonic_seed=alpha%20beta",
+      );
+
+      expect(result.seed, "alpha beta");
+    });
+
+    test("requires an address for key-based restores", () {
+      expect(
+        () => WalletUriData.fromUriString(
+          "monero_wallet:?view_key=$privateKey&spend_key=$privateKey",
+        ),
+        throwsFormatException,
+      );
+    });
+
+    test("rejects a payment URI", () {
+      expect(
+        () => WalletUriData.fromUriString(
+          "monero:$moneroAddress?view_key=$privateKey",
+        ),
+        throwsFormatException,
+      );
+    });
+
+    test("requires a view key with a spend key", () {
+      expect(
+        () => WalletUriData.fromUriString(
+          "monero_wallet:$moneroAddress?spend_key=$privateKey",
+        ),
+        throwsFormatException,
+      );
+    });
+
+    test("rejects seed and private keys together", () {
+      expect(
+        () => WalletUriData.fromUriString(
+          "monero_wallet:$moneroAddress"
+          "?seed=alpha%20beta&view_key=$privateKey",
+        ),
+        throwsFormatException,
+      );
+    });
+
+    test("uses the supplied address validator", () {
+      expect(
+        () => WalletUriData.fromUriString(
+          "monero_wallet:$moneroAddress?view_key=$privateKey",
+          addressValidator: (_) => false,
+        ),
+        throwsFormatException,
+      );
+    });
+
+    test("rejects empty recovery material", () {
+      expect(
+        () => WalletUriData.fromUriString("monero_wallet:?seed="),
+        throwsFormatException,
+      );
+    });
+
+    test("rejects malformed private keys", () {
+      expect(
+        () => WalletUriData.fromUriString(
+          "monero_wallet:$moneroAddress?view_key=not-a-key",
+        ),
+        throwsFormatException,
+      );
+    });
+
+    test("rejects invalid restore heights", () {
+      for (final height in ["abc", "-1"]) {
+        expect(
+          () => WalletUriData.fromUriString(
+            "monero_wallet:?seed=alpha%20beta&height=$height",
+          ),
+          throwsFormatException,
+        );
+      }
+    });
+
+    test("accepts numeric restore heights from JSON", () {
+      final result = WalletUriData.fromJson({
+        "seed": "alpha beta",
+        "height": 123,
+      }, Monero(CryptoCurrencyNetwork.main));
+
+      expect(result.height, 123);
+    });
+
+    test("rejects transaction-ID restores until they are implemented", () {
+      expect(
+        () => WalletUriData.fromUriString(
+          "monero_wallet:?seed=alpha%20beta&txid=$privateKey",
+        ),
+        throwsUnsupportedError,
+      );
+    });
+
+    test("does not expose secrets in diagnostics", () {
+      final result = WalletUriData.fromUriString(
+        "monero_wallet:$moneroAddress"
+        "?view_key=$privateKey&spend_key=$privateKey",
+      );
+
+      expect(result.toString(), isNot(contains(privateKey)));
+      expect(result.toString(), contains("redacted"));
+    });
   });
 }

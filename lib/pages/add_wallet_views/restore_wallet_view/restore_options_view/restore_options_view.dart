@@ -8,6 +8,10 @@
  *
  */
 
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -15,10 +19,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:logger/logger.dart';
 import 'package:tuple/tuple.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
+import '../../../../models/keys/cryptonote_key_restore_data.dart';
+import '../../../../models/keys/view_only_wallet_data.dart';
+import '../../../../pages_desktop_specific/desktop_home_view.dart';
 import '../../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
+import '../../../../providers/global/secure_store_provider.dart';
+import '../../../../providers/providers.dart';
 import '../../../../providers/ui/verify_recovery_phrase/mnemonic_word_count_state_provider.dart';
 import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/address_utils.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/format.dart';
@@ -28,6 +39,9 @@ import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../wallets/crypto_currency/interfaces/view_only_option_currency_interface.dart';
 import '../../../../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
+import '../../../../wallets/isar/models/wallet_info.dart';
+import '../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
+import '../../../../wallets/wallet/wallet.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/custom_buttons/blue_text_button.dart';
@@ -36,6 +50,7 @@ import '../../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../../widgets/desktop/desktop_scaffold.dart';
 import '../../../../widgets/expandable.dart';
 import '../../../../widgets/icon_widgets/x_icon.dart';
+import '../../../../widgets/options.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_text_field.dart';
 import '../../../../widgets/textfield_icon_button.dart';
@@ -43,10 +58,15 @@ import '../../../../widgets/toggle.dart';
 import '../../../../wl_gen/interfaces/cs_monero_interface.dart';
 import '../../../../wl_gen/interfaces/cs_salvium_interface.dart';
 import '../../../../wl_gen/interfaces/cs_wownero_interface.dart';
+import '../../../home_view/home_view.dart';
 import '../../create_or_restore_wallet_view/sub_widgets/coin_image.dart';
+import '../confirm_recovery_dialog.dart';
 import '../restore_view_only_wallet_view.dart';
 import '../restore_wallet_view.dart';
 import '../sub_widgets/mnemonic_word_count_select_sheet.dart';
+import '../sub_widgets/restore_failed_dialog.dart';
+import '../sub_widgets/restore_succeeded_dialog.dart';
+import '../sub_widgets/restoring_dialog.dart';
 import 'sub_widgets/mobile_mnemonic_length_selector.dart';
 import 'sub_widgets/restore_from_date_picker.dart';
 import 'sub_widgets/restore_options_next_button.dart';
@@ -85,6 +105,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
   bool _hasBlockHeight = false;
   DateTime? _restoreFromDate;
   bool hidePassword = true;
+  WalletUriData? _uriData;
 
   @override
   void initState() {
@@ -143,26 +164,32 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
         } else {
           height = int.tryParse(_blockHeightController.text) ?? 0;
         }
-        if (!_showViewOnlyOption) {
-          await Navigator.of(context).pushNamed(
-            RestoreWalletView.routeName,
-            arguments: Tuple5(
-              walletName,
-              coin,
-              ref.read(mnemonicWordCountStateProvider.state).state,
-              height,
-              passwordController.text,
-            ),
-          );
-        } else {
-          await Navigator.of(context).pushNamed(
-            RestoreViewOnlyWalletView.routeName,
-            arguments: (
-              walletName: walletName,
-              coin: coin,
-              restoreBlockHeight: height,
-            ),
-          );
+        switch (_restoreMode) {
+          case 0: // Seed
+            await Navigator.of(context).pushNamed(
+              RestoreWalletView.routeName,
+              arguments: Tuple5(
+                walletName,
+                coin,
+                ref.read(mnemonicWordCountStateProvider.state).state,
+                height,
+                passwordController.text,
+              ),
+            );
+            break;
+          case 1: // View Only
+            await Navigator.of(context).pushNamed(
+              RestoreViewOnlyWalletView.routeName,
+              arguments: (
+                walletName: walletName,
+                coin: coin,
+                restoreBlockHeight: height,
+              ),
+            );
+            break;
+          case 2: // URI
+            await _attemptUriRestore(height);
+            break;
         }
       }
     } finally {
@@ -254,7 +281,198 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
     }
   }
 
-  bool _showViewOnlyOption = false;
+  Future<void> _attemptUriRestore(int fallbackHeight) async {
+    final data = _uriData;
+    if (data == null) return;
+
+    if (!isDesktop) {
+      FocusScope.of(context).unfocus();
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    }
+
+    if (!mounted) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      useSafeArea: false,
+      barrierDismissible: true,
+      builder: (context) => const ConfirmRecoveryDialog(),
+    );
+    if (confirmed == true && mounted) {
+      await _doUriRestore(data, fallbackHeight);
+    }
+  }
+
+  Future<void> _doUriRestore(WalletUriData data, int fallbackHeight) async {
+    if (!Platform.isLinux && !isDesktop) await WakelockPlus.enable();
+
+    final restoreHeight = data.height ?? fallbackHeight;
+
+    try {
+      final Map<String, dynamic> otherDataJson;
+      if (data.seed != null) {
+        otherDataJson = {};
+      } else if (data.isViewOnly) {
+        otherDataJson = {
+          WalletInfoKeys.isViewOnlyKey: true,
+          WalletInfoKeys.viewOnlyTypeIndexKey:
+              ViewOnlyWalletType.cryptonote.index,
+        };
+      } else {
+        otherDataJson = {
+          WalletInfoKeys.recoveryTypeIndexKey:
+              WalletRecoveryType.privateKeys.index,
+        };
+      }
+
+      final info = WalletInfo.createNew(
+        coin: coin,
+        name: walletName,
+        restoreHeight: restoreHeight,
+        otherDataJsonString: jsonEncode(otherDataJson),
+      );
+
+      bool restoringDialogOpen = false;
+      void closeRestoringDialog() {
+        if (restoringDialogOpen && mounted) {
+          Navigator.of(context, rootNavigator: true).pop();
+          restoringDialogOpen = false;
+        }
+      }
+
+      if (mounted) {
+        restoringDialogOpen = true;
+        unawaited(
+          showDialog<dynamic>(
+            context: context,
+            useSafeArea: false,
+            barrierDismissible: false,
+            builder: (context) => const RestoringDialog(),
+          ),
+        );
+      }
+
+      late final Wallet wallet;
+      try {
+        var node = ref
+            .read(nodeServiceChangeNotifierProvider)
+            .getPrimaryNodeFor(currency: coin);
+
+        if (node == null) {
+          node = coin.defaultNode(isPrimary: true);
+          await ref
+              .read(nodeServiceChangeNotifierProvider)
+              .save(node, null, false);
+        }
+
+        if (data.seed != null) {
+          wallet = await Wallet.create(
+            walletInfo: info,
+            mainDB: ref.read(mainDBProvider),
+            secureStorageInterface: ref.read(secureStoreProvider),
+            nodeService: ref.read(nodeServiceChangeNotifierProvider),
+            prefs: ref.read(prefsChangeNotifierProvider),
+            mnemonic: data.seed,
+          );
+        } else if (data.isViewOnly) {
+          final viewOnlyData = CryptonoteViewOnlyWalletData(
+            walletId: info.walletId,
+            address: data.address!,
+            privateViewKey: data.viewKey!,
+          );
+          wallet = await Wallet.create(
+            walletInfo: info,
+            mainDB: ref.read(mainDBProvider),
+            secureStorageInterface: ref.read(secureStoreProvider),
+            nodeService: ref.read(nodeServiceChangeNotifierProvider),
+            prefs: ref.read(prefsChangeNotifierProvider),
+            viewOnlyData: viewOnlyData,
+          );
+        } else {
+          wallet = await Wallet.create(
+            walletInfo: info,
+            mainDB: ref.read(mainDBProvider),
+            secureStorageInterface: ref.read(secureStoreProvider),
+            nodeService: ref.read(nodeServiceChangeNotifierProvider),
+            prefs: ref.read(prefsChangeNotifierProvider),
+            cryptonoteKeyRestoreData: CryptonoteKeyRestoreData(
+              address: data.address!,
+              privateViewKey: data.viewKey!,
+              privateSpendKey: data.spendKey!,
+            ),
+          );
+        }
+
+        if (wallet is CryptonoteWallet) {
+          await wallet.init(isRestore: true);
+        } else {
+          await wallet.init();
+        }
+
+        await wallet.recover(isRescan: false);
+
+        await wallet.info.setMnemonicVerified(
+          isar: ref.read(mainDBProvider).isar,
+        );
+
+        if (ref.read(pDuress)) {
+          await wallet.info.updateDuressVisibilityStatus(
+            isDuressVisible: true,
+            isar: ref.read(mainDBProvider).isar,
+          );
+        }
+      } catch (e, s) {
+        Logging.instance.e(
+          "Wallet URI restore failed",
+          error: e,
+          stackTrace: s,
+        );
+        closeRestoringDialog();
+        if (mounted) {
+          await showDialog<dynamic>(
+            context: context,
+            useSafeArea: false,
+            barrierDismissible: true,
+            builder: (context) => RestoreFailedDialog(
+              errorMessage: e.toString(),
+              walletId: info.walletId,
+              walletName: info.name,
+            ),
+          );
+        }
+        return;
+      }
+
+      if (!mounted) return;
+
+      ref.read(pWallets).addWallet(wallet);
+      closeRestoringDialog();
+      await showDialog<dynamic>(
+        context: context,
+        useSafeArea: false,
+        barrierDismissible: true,
+        builder: (context) => const RestoreSucceededDialog(),
+      );
+
+      if (!mounted) return;
+      if (isDesktop) {
+        Navigator.of(
+          context,
+        ).popUntil(ModalRoute.withName(DesktopHomeView.routeName));
+      } else {
+        unawaited(
+          Navigator.of(
+            context,
+          ).pushNamedAndRemoveUntil(HomeView.routeName, (route) => false),
+        );
+      }
+    } finally {
+      if (!Platform.isLinux && !isDesktop) await WakelockPlus.disable();
+    }
+  }
+
+  // 0 = Seed, 1 = View Only, 2 = URI (Monero only)
+  int _restoreMode = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -306,59 +524,99 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                 SizedBox(
                   height: isDesktop ? 56 : 48,
                   width: isDesktop ? 490 : null,
-                  child: Toggle(
-                    key: UniqueKey(),
-                    onText: "Seed",
-                    offText: "View Only",
-                    onColor: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.popupBG,
-                    offColor: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultBG,
-                    isOn: _showViewOnlyOption,
-                    onValueChanged: (value) {
-                      setState(() {
-                        _showViewOnlyOption = value;
-                      });
-                    },
-                    decoration: BoxDecoration(
-                      color: Colors.transparent,
-                      borderRadius: BorderRadius.circular(
-                        Constants.size.circularBorderRadius,
-                      ),
-                    ),
-                  ),
+                  child: coin is Monero
+                      ? Options(
+                          key: UniqueKey(),
+                          texts: const ["Seed", "View Only", "URI"],
+                          onColor: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.popupBG,
+                          offColor: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.textFieldDefaultBG,
+                          selectedIndex: _restoreMode,
+                          onValueChanged: (value) {
+                            setState(() {
+                              _restoreMode = value;
+                              if (value != 2) {
+                                _uriData = null;
+                              }
+                            });
+                          },
+                          decoration: BoxDecoration(
+                            color: Colors.transparent,
+                            borderRadius: BorderRadius.circular(
+                              Constants.size.circularBorderRadius,
+                            ),
+                          ),
+                        )
+                      : Toggle(
+                          key: UniqueKey(),
+                          onText: "Seed",
+                          offText: "View Only",
+                          onColor: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.popupBG,
+                          offColor: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.textFieldDefaultBG,
+                          isOn: _restoreMode == 1,
+                          onValueChanged: (value) {
+                            setState(() {
+                              _restoreMode = value ? 1 : 0;
+                            });
+                          },
+                          decoration: BoxDecoration(
+                            color: Colors.transparent,
+                            borderRadius: BorderRadius.circular(
+                              Constants.size.circularBorderRadius,
+                            ),
+                          ),
+                        ),
                 ),
               if (coin is ViewOnlyOptionCurrencyInterface)
                 SizedBox(height: isDesktop ? 40 : 24),
-              _showViewOnlyOption
-                  ? ViewOnlyRestoreOption(
-                      coin: coin,
-                      dateController: _dateController,
-                      dateChooserFunction: isDesktop
-                          ? chooseDesktopDate
-                          : chooseDate,
-                      blockHeightController: _blockHeightController,
-                      blockHeightFocusNode: _blockHeightFocusNode,
-                    )
-                  : SeedRestoreOption(
-                      coin: coin,
-                      dateController: _dateController,
-                      blockHeightController: _blockHeightController,
-                      blockHeightFocusNode: _blockHeightFocusNode,
-                      pwController: passwordController,
-                      pwFocusNode: passwordFocusNode,
-                      dateChooserFunction: isDesktop
-                          ? chooseDesktopDate
-                          : chooseDate,
-                      chooseMnemonicLength: chooseMnemonicLength,
-                    ),
+              if (_restoreMode == 1)
+                ViewOnlyRestoreOption(
+                  coin: coin,
+                  dateController: _dateController,
+                  dateChooserFunction: isDesktop
+                      ? chooseDesktopDate
+                      : chooseDate,
+                  blockHeightController: _blockHeightController,
+                  blockHeightFocusNode: _blockHeightFocusNode,
+                )
+              else if (_restoreMode == 2)
+                UriRestoreOption(
+                  coin: coin,
+                  dateController: _dateController,
+                  dateChooserFunction: isDesktop
+                      ? chooseDesktopDate
+                      : chooseDate,
+                  blockHeightController: _blockHeightController,
+                  blockHeightFocusNode: _blockHeightFocusNode,
+                  onParsed: (data) => setState(() => _uriData = data),
+                )
+              else
+                SeedRestoreOption(
+                  coin: coin,
+                  dateController: _dateController,
+                  blockHeightController: _blockHeightController,
+                  blockHeightFocusNode: _blockHeightFocusNode,
+                  pwController: passwordController,
+                  pwFocusNode: passwordFocusNode,
+                  dateChooserFunction: isDesktop
+                      ? chooseDesktopDate
+                      : chooseDate,
+                  chooseMnemonicLength: chooseMnemonicLength,
+                ),
               if (!isDesktop) const Spacer(flex: 3),
               SizedBox(height: isDesktop ? 32 : 12),
               RestoreOptionsNextButton(
                 isDesktop: isDesktop,
-                onPressed: ref.watch(_pIsUsingDate) || _hasBlockHeight
+                onPressed: _restoreMode == 2
+                    ? (_uriData != null ? nextPressed : null)
+                    : ref.watch(_pIsUsingDate) || _hasBlockHeight
                     ? nextPressed
                     : null,
               ),
@@ -904,5 +1162,244 @@ class _ViewOnlyRestoreOptionState extends ConsumerState<ViewOnlyRestoreOption> {
     super.initState();
 
     _blockFieldEmpty = widget.blockHeightController.text.isEmpty;
+  }
+}
+
+class UriRestoreOption extends ConsumerStatefulWidget {
+  const UriRestoreOption({
+    super.key,
+    required this.coin,
+    required this.dateController,
+    required this.dateChooserFunction,
+    required this.blockHeightController,
+    required this.blockHeightFocusNode,
+    required this.onParsed,
+  });
+
+  final CryptoCurrency coin;
+  final TextEditingController dateController;
+  final TextEditingController blockHeightController;
+  final FocusNode blockHeightFocusNode;
+  final void Function(WalletUriData?) onParsed;
+
+  final Future<void> Function() dateChooserFunction;
+
+  @override
+  ConsumerState<UriRestoreOption> createState() => _UriRestoreOptionState();
+}
+
+class _UriRestoreOptionState extends ConsumerState<UriRestoreOption> {
+  bool _blockFieldEmpty = true;
+  late final TextEditingController _uriController;
+  late final FocusNode _uriFocusNode;
+  String? _uriError;
+
+  @override
+  void initState() {
+    super.initState();
+    _blockFieldEmpty = widget.blockHeightController.text.isEmpty;
+    _uriController = TextEditingController();
+    _uriFocusNode = FocusNode();
+  }
+
+  @override
+  void dispose() {
+    _uriController.dispose();
+    _uriFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _onUriChanged(String value) {
+    final uri = value.trim();
+    if (uri.isEmpty) {
+      setState(() => _uriError = null);
+      widget.onParsed(null);
+      return;
+    }
+
+    WalletUriData? parsed;
+    String? error;
+    try {
+      parsed = WalletUriData.fromUriString(
+        uri,
+        addressValidator: widget.coin.validateAddress,
+      );
+    } on FormatException catch (e) {
+      error = e.message;
+    } on UnsupportedError catch (e) {
+      error = e.message;
+    } catch (_) {
+      error = "Invalid wallet URI";
+      parsed = null;
+    }
+
+    setState(() => _uriError = error);
+
+    // If the URI contains a height, switch to block height mode and populate.
+    if (parsed?.height != null) {
+      ref.read(_pIsUsingDate.notifier).state = false;
+      widget.blockHeightController.text = parsed!.height.toString();
+    }
+
+    widget.onParsed(parsed);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          "Paste wallet URI",
+          style: Util.isDesktop
+              ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                  color: Theme.of(context).extension<StackColors>()!.textDark3,
+                )
+              : STextStyles.smallMed12(context),
+          textAlign: TextAlign.left,
+        ),
+        SizedBox(height: Util.isDesktop ? 16 : 8),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(
+            Constants.size.circularBorderRadius,
+          ),
+          child: TextField(
+            controller: _uriController,
+            focusNode: _uriFocusNode,
+            autocorrect: false,
+            enableSuggestions: false,
+            smartDashesType: SmartDashesType.disabled,
+            smartQuotesType: SmartQuotesType.disabled,
+            style: Util.isDesktop
+                ? STextStyles.desktopTextMedium(context).copyWith(height: 2)
+                : STextStyles.field(context),
+            decoration:
+                standardInputDecoration(
+                  "monero_wallet:<address>?seed=...",
+                  _uriFocusNode,
+                  context,
+                ).copyWith(
+                  suffixIcon: UnconstrainedBox(
+                    child: TextFieldIconButton(
+                      child: _uriController.text.isNotEmpty
+                          ? XIcon(
+                              width: Util.isDesktop ? 24 : 16,
+                              height: Util.isDesktop ? 24 : 16,
+                            )
+                          : const SizedBox.shrink(),
+                      onTap: () {
+                        _uriController.clear();
+                        _onUriChanged("");
+                      },
+                    ),
+                  ),
+                ),
+            maxLines: 3,
+            minLines: 1,
+            onChanged: _onUriChanged,
+          ),
+        ),
+        if (_uriError != null) ...[
+          const SizedBox(height: 6),
+          Text(
+            _uriError!,
+            style: STextStyles.smallMed12(context).copyWith(
+              color: Theme.of(context).extension<StackColors>()!.textError,
+            ),
+          ),
+        ],
+        SizedBox(height: Util.isDesktop ? 24 : 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              ref.watch(_pIsUsingDate) ? "Choose start date" : "Block height",
+              style: Util.isDesktop
+                  ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textDark3,
+                    )
+                  : STextStyles.smallMed12(context),
+              textAlign: TextAlign.left,
+            ),
+            CustomTextButton(
+              text: ref.watch(_pIsUsingDate) ? "Use block height" : "Use date",
+              onTap: () => ref.read(_pIsUsingDate.notifier).state = !ref.read(
+                _pIsUsingDate,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: Util.isDesktop ? 16 : 8),
+        ref.watch(_pIsUsingDate)
+            ? RestoreFromDatePicker(
+                onTap: widget.dateChooserFunction,
+                controller: widget.dateController,
+              )
+            : ClipRRect(
+                borderRadius: BorderRadius.circular(
+                  Constants.size.circularBorderRadius,
+                ),
+                child: TextField(
+                  focusNode: widget.blockHeightFocusNode,
+                  controller: widget.blockHeightController,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  textInputAction: TextInputAction.done,
+                  style: Util.isDesktop
+                      ? STextStyles.desktopTextMedium(
+                          context,
+                        ).copyWith(height: 2)
+                      : STextStyles.field(context),
+                  onChanged: (value) {
+                    setState(() {
+                      _blockFieldEmpty = value.isEmpty;
+                    });
+                  },
+                  decoration:
+                      standardInputDecoration(
+                        "Start scanning from...",
+                        widget.blockHeightFocusNode,
+                        context,
+                      ).copyWith(
+                        suffixIcon: UnconstrainedBox(
+                          child: TextFieldIconButton(
+                            child: !_blockFieldEmpty
+                                ? XIcon(
+                                    width: Util.isDesktop ? 24 : 16,
+                                    height: Util.isDesktop ? 24 : 16,
+                                  )
+                                : const SizedBox.shrink(),
+                            onTap: () {
+                              widget.blockHeightController.text = "";
+                              setState(() {
+                                _blockFieldEmpty = true;
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                ),
+              ),
+        const SizedBox(height: 8),
+        RoundedWhiteContainer(
+          child: Center(
+            child: Text(
+              ref.watch(_pIsUsingDate)
+                  ? "Choose the date you made the wallet (approximate is fine)"
+                  : "Enter the initial block height of the wallet",
+              style: Util.isDesktop
+                  ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textSubtitle1,
+                    )
+                  : STextStyles.smallMed12(context).copyWith(fontSize: 10),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
