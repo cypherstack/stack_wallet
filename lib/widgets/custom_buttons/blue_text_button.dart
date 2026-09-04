@@ -59,7 +59,7 @@ class _CustomTextButtonState extends State<_CustomTextButton>
       );
       animation = ColorTween(
         begin: widget.enabledColor,
-        end: widget.enabledColor.withOpacity(0.4),
+        end: widget.enabledColor.withValues(alpha: 0.4),
       ).animate(controller!);
 
       animation!.addListener(() {
@@ -98,7 +98,7 @@ class _CustomTextButtonState extends State<_CustomTextButton>
               color: Theme.of(context)
                   .extension<StackColors>()!
                   .highlight
-                  .withOpacity(_hovering ? 0.3 : 0),
+                  .withValues(alpha: _hovering ? 0.3 : 0),
               child: child,
             ),
           ),

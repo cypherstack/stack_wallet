@@ -44,16 +44,17 @@ class _PaynymCardButtonState extends ConsumerState<PaynymCardButton> {
       padding: const EdgeInsets.all(4),
       child: RoundedContainer(
         padding: const EdgeInsets.all(0),
-        color: isDesktop &&
+        color:
+            isDesktop &&
                 ref
                         .watch(selectedPaynymDetailsItemProvider.state)
                         .state
                         ?.nymId ==
                     widget.accountLite.nymId
             ? Theme.of(context)
-                .extension<StackColors>()!
-                .accentColorDark
-                .withOpacity(0.08)
+                  .extension<StackColors>()!
+                  .accentColorDark
+                  .withValues(alpha: 0.08)
             : Colors.transparent,
         child: RawMaterialButton(
           padding: const EdgeInsets.all(0),
@@ -79,20 +80,12 @@ class _PaynymCardButtonState extends ConsumerState<PaynymCardButton> {
           },
           child: Padding(
             padding: isDesktop
-                ? const EdgeInsets.symmetric(
-                    vertical: 8,
-                    horizontal: 12,
-                  )
+                ? const EdgeInsets.symmetric(vertical: 8, horizontal: 12)
                 : const EdgeInsets.all(8.0),
             child: Row(
               children: [
-                PayNymBot(
-                  size: 36,
-                  paymentCodeString: widget.accountLite.code,
-                ),
-                const SizedBox(
-                  width: 12,
-                ),
+                PayNymBot(size: 36, paymentCodeString: widget.accountLite.code),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -100,25 +93,24 @@ class _PaynymCardButtonState extends ConsumerState<PaynymCardButton> {
                       Text(
                         widget.accountLite.nymName,
                         style: isDesktop
-                            ? STextStyles.desktopTextExtraExtraSmall(context)
-                                .copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textFieldActiveText,
+                            ? STextStyles.desktopTextExtraExtraSmall(
+                                context,
+                              ).copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.textFieldActiveText,
                               )
                             : STextStyles.w500_14(context),
                       ),
-                      const SizedBox(
-                        height: 2,
-                      ),
+                      const SizedBox(height: 2),
                       Text(
                         Format.shorten(widget.accountLite.code, 12, 5),
                         style: isDesktop
                             ? STextStyles.desktopTextExtraExtraSmall(context)
                             : STextStyles.w500_14(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textSubtitle1,
+                                color: Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.textSubtitle1,
                               ),
                       ),
                     ],

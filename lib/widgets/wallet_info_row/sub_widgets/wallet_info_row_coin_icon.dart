@@ -48,18 +48,14 @@ class _WalletInfoCoinIconState extends ConsumerState<WalletInfoCoinIcon> {
 
     ExchangeDataLoadingService.instance.isar.then((isar) async {
       if (widget.contractAddress != null) {
-        final currency =
-            await isar.currencies
-                .where()
-                .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
-                .filter()
-                .tokenContractEqualTo(
-                  widget.contractAddress!,
-                  caseSensitive: false,
-                )
-                .and()
-                .imageIsNotEmpty()
-                .findFirst();
+        final currency = await isar.currencies
+            .where()
+            .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
+            .filter()
+            .tokenContractEqualTo(widget.contractAddress!, caseSensitive: false)
+            .and()
+            .imageIsNotEmpty()
+            .findFirst();
 
         if (mounted) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -80,21 +76,20 @@ class _WalletInfoCoinIconState extends ConsumerState<WalletInfoCoinIcon> {
       width: widget.size,
       height: widget.size,
       decoration: BoxDecoration(
-        color: ref.watch(pCoinColor(widget.coin)).withOpacity(0.4),
+        color: ref.watch(pCoinColor(widget.coin)).withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(
           Constants.size.circularBorderRadius,
         ),
       ),
       child: Padding(
         padding: EdgeInsets.all(widget.size / 5),
-        child:
-            imageUrl != null && imageUrl!.isNotEmpty
-                ? SvgPicture.network(imageUrl!, width: 20, height: 20)
-                : SvgPicture.file(
-                  File(ref.watch(coinIconProvider(widget.coin))),
-                  width: 20,
-                  height: 20,
-                ),
+        child: imageUrl != null && imageUrl!.isNotEmpty
+            ? SvgPicture.network(imageUrl!, width: 20, height: 20)
+            : SvgPicture.file(
+                File(ref.watch(coinIconProvider(widget.coin))),
+                width: 20,
+                height: 20,
+              ),
       ),
     );
   }

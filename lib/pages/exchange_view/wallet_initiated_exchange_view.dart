@@ -113,7 +113,7 @@ class _WalletInitiatedExchangeViewState
             Material(
               color: Theme.of(
                 context,
-              ).extension<StackColors>()!.overlay.withOpacity(0.6),
+              ).extension<StackColors>()!.overlay.withValues(alpha: 0.6),
               child: const CustomLoadingOverlay(
                 message: "Updating exchange data",
                 subMessage: "This could take a few minutes",
@@ -125,8 +125,9 @@ class _WalletInitiatedExchangeViewState
       },
       child: Background(
         child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.background,
           appBar: AppBar(
             leading: AppBarBackButton(
               onPressed: () async {

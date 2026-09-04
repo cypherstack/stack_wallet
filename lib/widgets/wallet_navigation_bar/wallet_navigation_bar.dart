@@ -40,8 +40,9 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
   final _moreDuration = const Duration(milliseconds: 200);
 
   void _onMorePressed() {
-    ref.read(walletNavBarMore.state).state =
-        !ref.read(walletNavBarMore.state).state;
+    ref.read(walletNavBarMore.state).state = !ref
+        .read(walletNavBarMore.state)
+        .state;
   }
 
   @override
@@ -65,9 +66,7 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
             child: AnimatedOpacity(
               opacity: ref.watch(walletNavBarMore.state).state ? 1 : 0,
               duration: _moreDuration,
-              child: Container(
-                color: Colors.black.withOpacity(0.7),
-              ),
+              child: Container(color: Colors.black.withValues(alpha: 0.7)),
             ),
           ),
         ),
@@ -87,10 +86,7 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
                   AnimatedScale(
                     scale: ref.watch(walletNavBarMore.state).state ? 1 : 0,
                     duration: _moreDuration,
-                    alignment: const Alignment(
-                      0.5,
-                      1.0,
-                    ),
+                    alignment: const Alignment(0.5, 1.0),
                     child: AnimatedOpacity(
                       opacity: ref.watch(walletNavBarMore.state).state ? 1 : 0,
                       duration: _moreDuration,
@@ -99,18 +95,14 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            ...widget.moreItems.map(
-                              (e) {
-                                return Column(
-                                  children: [
-                                    WalletNavigationBarMoreItem(data: e),
-                                    const SizedBox(
-                                      height: 8,
-                                    ),
-                                  ],
-                                );
-                              },
-                            ),
+                            ...widget.moreItems.map((e) {
+                              return Column(
+                                children: [
+                                  WalletNavigationBarMoreItem(data: e),
+                                  const SizedBox(height: 8),
+                                ],
+                              );
+                            }),
                           ],
                         ),
                       ),
@@ -119,23 +111,19 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
                   Material(
                     color: Colors.transparent,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                        1000,
-                      ),
+                      borderRadius: BorderRadius.circular(1000),
                     ),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .bottomNavBack,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.bottomNavBack,
                         boxShadow: [
-                          Theme.of(context)
-                              .extension<StackColors>()!
-                              .standardBoxShadow,
+                          Theme.of(
+                            context,
+                          ).extension<StackColors>()!.standardBoxShadow,
                         ],
-                        borderRadius: BorderRadius.circular(
-                          1000,
-                        ),
+                        borderRadius: BorderRadius.circular(1000),
                       ),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
@@ -145,10 +133,8 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
                         // child: IntrinsicWidth(
                         child: ConditionalParent(
                           condition: buttonCount > 4,
-                          builder: (child) => SizedBox(
-                            width: width * 0.9,
-                            child: child,
-                          ),
+                          builder: (child) =>
+                              SizedBox(width: width * 0.9, child: child),
                           child: ConditionalParent(
                             condition: buttonCount <= 4,
                             builder: (child) => SizedBox(
@@ -187,7 +173,8 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
                                                 .extension<StackColors>()!
                                                 .bottomNavIconIconHighlighted,
                                           ),
-                                          crossFadeState: ref
+                                          crossFadeState:
+                                              ref
                                                   .watch(walletNavBarMore.state)
                                                   .state
                                               ? CrossFadeState.showSecond
@@ -198,24 +185,27 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
                                           firstChild: Text(
                                             "More",
                                             style:
-                                                STextStyles.buttonSmall(context)
-                                                    .copyWith(
-                                              color: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .bottomNavText,
-                                            ),
+                                                STextStyles.buttonSmall(
+                                                  context,
+                                                ).copyWith(
+                                                  color: Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .bottomNavText,
+                                                ),
                                           ),
                                           secondChild: Text(
                                             "More",
                                             style:
-                                                STextStyles.buttonSmall(context)
-                                                    .copyWith(
-                                              color: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .bottomNavIconIconHighlighted,
-                                            ),
+                                                STextStyles.buttonSmall(
+                                                  context,
+                                                ).copyWith(
+                                                  color: Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .bottomNavIconIconHighlighted,
+                                                ),
                                           ),
-                                          crossFadeState: ref
+                                          crossFadeState:
+                                              ref
                                                   .watch(walletNavBarMore.state)
                                                   .state
                                               ? CrossFadeState.showSecond

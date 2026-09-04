@@ -15,10 +15,7 @@ import '../../utilities/assets.dart';
 import '../conditional_parent.dart';
 import '../rounded_container.dart';
 
-enum UTXOStatusIconStatus {
-  confirmed,
-  unconfirmed;
-}
+enum UTXOStatusIconStatus { confirmed, unconfirmed }
 
 class UTXOStatusIcon extends StatelessWidget {
   const UTXOStatusIcon({
@@ -82,8 +79,8 @@ class UTXOStatusIcon extends StatelessWidget {
             color: selected
                 ? Theme.of(context).extension<StackColors>()!.infoItemIcons
                 : blocked
-                    ? _blockedColor.withOpacity(0.3)
-                    : _availableColor.withOpacity(0.2),
+                ? _blockedColor.withValues(alpha: 0.3)
+                : _availableColor.withValues(alpha: 0.2),
             width: width,
             height: height,
           ),
@@ -91,15 +88,15 @@ class UTXOStatusIcon extends StatelessWidget {
             selected
                 ? Assets.svg.coinControl.selected
                 : blocked
-                    ? Assets.svg.coinControl.blocked
-                    : Assets.svg.coinControl.unBlocked,
+                ? Assets.svg.coinControl.blocked
+                : Assets.svg.coinControl.unBlocked,
             width: 20,
             height: 20,
             color: selected
                 ? Colors.white
                 : blocked
-                    ? _blockedColor
-                    : _availableColor,
+                ? _blockedColor
+                : _availableColor,
           ),
         ],
       ),

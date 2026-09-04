@@ -68,14 +68,14 @@ class ToggleState extends State<Toggle> {
 
   // Color _colorBG(bool isOn, double alpha) {
   //   return Color.alphaBlend(
-  //     onColor.withOpacity(alpha),
+  //     onColor.withValues(alpha: alpha),
   //     offColor,
   //   );
   // }
 
   // Color _colorFG(bool isOn, double alpha) {
   //   return Color.alphaBlend(
-  //     onColor.withOpacity(alpha),
+  //     onColor.withValues(alpha: alpha),
   //     offColor,
   //   );
   // }
@@ -126,9 +126,7 @@ class ToggleState extends State<Toggle> {
                     duration: tapAnimationDuration,
                     height: constraint.maxHeight,
                     width: constraint.maxWidth,
-                    decoration: decoration?.copyWith(
-                      color: offColor,
-                    ),
+                    decoration: decoration?.copyWith(color: offColor),
                   );
                 },
               ),
@@ -138,9 +136,10 @@ class ToggleState extends State<Toggle> {
                     key: const Key("draggableSwitchButtonSwitch"),
                     onHorizontalDragStart: (_) => _isDragging = true,
                     onHorizontalDragUpdate: (details) {
-                      valueListener.value = (valueListener.value +
-                              details.delta.dx / constraint.maxWidth)
-                          .clamp(0.0, 1.0);
+                      valueListener.value =
+                          (valueListener.value +
+                                  details.delta.dx / constraint.maxWidth)
+                              .clamp(0.0, 1.0);
                     },
                     onHorizontalDragEnd: (details) {
                       final bool oldValue = _isOn;
@@ -177,8 +176,9 @@ class ToggleState extends State<Toggle> {
                     animation: valueListener,
                     builder: (context, child) {
                       return AnimatedAlign(
-                        duration:
-                            _isDragging ? Duration.zero : tapAnimationDuration,
+                        duration: _isDragging
+                            ? Duration.zero
+                            : tapAnimationDuration,
                         alignment: Alignment(valueListener.value * 2 - 1, 0.5),
                         child: child,
                       );
@@ -204,24 +204,21 @@ class ToggleState extends State<Toggle> {
                                 height: 14,
                                 color: isDesktop
                                     ? !_isOn
-                                        ? Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .accentColorBlue
-                                        : Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .buttonTextSecondary
+                                          ? Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .accentColorBlue
+                                          : Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .buttonTextSecondary
                                     : !_isOn
-                                        ? Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textDark
-                                        : Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textSubtitle1,
+                                    ? Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.textDark
+                                    : Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.textSubtitle1,
                               ),
-                            if (widget.onIcon != null)
-                              const SizedBox(
-                                width: 5,
-                              ),
+                            if (widget.onIcon != null) const SizedBox(width: 5),
                             Text(
                               widget.onText ?? "",
                               style: isDesktop
@@ -230,20 +227,20 @@ class ToggleState extends State<Toggle> {
                                     ).copyWith(
                                       color: !_isOn
                                           ? Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .accentColorBlue
+                                                .extension<StackColors>()!
+                                                .accentColorBlue
                                           : Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .buttonTextSecondary,
+                                                .extension<StackColors>()!
+                                                .buttonTextSecondary,
                                     )
                                   : STextStyles.smallMed12(context).copyWith(
                                       color: !_isOn
-                                          ? Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .textDark
+                                          ? Theme.of(
+                                              context,
+                                            ).extension<StackColors>()!.textDark
                                           : Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .textSubtitle1,
+                                                .extension<StackColors>()!
+                                                .textSubtitle1,
                                     ),
                             ),
                           ],
@@ -263,24 +260,22 @@ class ToggleState extends State<Toggle> {
                                 height: 14,
                                 color: isDesktop
                                     ? _isOn
-                                        ? Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .accentColorBlue
-                                        : Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .buttonTextSecondary
+                                          ? Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .accentColorBlue
+                                          : Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .buttonTextSecondary
                                     : _isOn
-                                        ? Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textDark
-                                        : Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textSubtitle1,
+                                    ? Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.textDark
+                                    : Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.textSubtitle1,
                               ),
                             if (widget.offIcon != null)
-                              const SizedBox(
-                                width: 5,
-                              ),
+                              const SizedBox(width: 5),
                             Text(
                               widget.offText ?? "",
                               style: isDesktop
@@ -289,20 +284,20 @@ class ToggleState extends State<Toggle> {
                                     ).copyWith(
                                       color: _isOn
                                           ? Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .accentColorBlue
+                                                .extension<StackColors>()!
+                                                .accentColorBlue
                                           : Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .buttonTextSecondary,
+                                                .extension<StackColors>()!
+                                                .buttonTextSecondary,
                                     )
                                   : STextStyles.smallMed12(context).copyWith(
                                       color: _isOn
-                                          ? Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .textDark
+                                          ? Theme.of(
+                                              context,
+                                            ).extension<StackColors>()!.textDark
                                           : Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .textSubtitle1,
+                                                .extension<StackColors>()!
+                                                .textSubtitle1,
                                     ),
                             ),
                           ],

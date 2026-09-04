@@ -237,7 +237,7 @@ class _CategoryCard extends StatelessWidget {
             height: isDesktop ? 48 : 40,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: colors.textDark.withOpacity(0.1),
+              color: colors.textDark.withValues(alpha: 0.1),
             ),
             alignment: Alignment.center,
             child: SvgPicture.asset(

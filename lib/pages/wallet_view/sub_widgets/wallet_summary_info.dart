@@ -101,10 +101,9 @@ class WalletSummaryInfo extends ConsumerWidget {
           "${_showAvailable ? "Available" : "Full"} ${type.name.capitalize()} balance";
       switch (type) {
         case BalanceType.private:
-          final balance =
-              coin is Firo
-                  ? ref.watch(pWalletBalanceTertiary(walletId))
-                  : ref.watch(pWalletBalanceSecondary(walletId));
+          final balance = coin is Firo
+              ? ref.watch(pWalletBalanceTertiary(walletId))
+              : ref.watch(pWalletBalanceSecondary(walletId));
           balanceToShow = _showAvailable ? balance.spendable : balance.total;
           break;
 
@@ -122,23 +121,21 @@ class WalletSummaryInfo extends ConsumerWidget {
     List<int>? imageBytes;
 
     if (coin is Banano) {
-      imageBytes =
-          (ref.watch(pWallets).getWallet(walletId) as BananoWallet)
-              .getMonkeyImageBytes();
+      imageBytes = (ref.watch(pWallets).getWallet(walletId) as BananoWallet)
+          .getMonkeyImageBytes();
     }
 
     return ConditionalParent(
       condition: imageBytes != null,
-      builder:
-          (child) => Stack(
-            children: [
-              Positioned.fill(
-                left: 150.0,
-                child: SvgPicture.memory(Uint8List.fromList(imageBytes!)),
-              ),
-              child,
-            ],
+      builder: (child) => Stack(
+        children: [
+          Positioned.fill(
+            left: 150.0,
+            child: SvgPicture.memory(Uint8List.fromList(imageBytes!)),
           ),
+          child,
+        ],
+      ),
       child: Row(
         children: [
           Expanded(
@@ -151,12 +148,14 @@ class WalletSummaryInfo extends ConsumerWidget {
                       if (ref.read(walletBalanceToggleStateProvider) ==
                           WalletBalanceToggleState.available) {
                         ref
-                            .read(walletBalanceToggleStateProvider.notifier)
-                            .state = WalletBalanceToggleState.full;
+                                .read(walletBalanceToggleStateProvider.notifier)
+                                .state =
+                            WalletBalanceToggleState.full;
                       } else {
                         ref
-                            .read(walletBalanceToggleStateProvider.notifier)
-                            .state = WalletBalanceToggleState.available;
+                                .read(walletBalanceToggleStateProvider.notifier)
+                                .state =
+                            WalletBalanceToggleState.available;
                       }
                     } else {
                       showSheet(context);
@@ -167,20 +166,18 @@ class WalletSummaryInfo extends ConsumerWidget {
                       Text(
                         title,
                         style: STextStyles.subtitle500(context).copyWith(
-                          color:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textFavoriteCard,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.textFavoriteCard,
                         ),
                       ),
                       if (!toggleBalance) ...[
                         const SizedBox(width: 4),
                         SvgPicture.asset(
                           Assets.svg.chevronDown,
-                          color:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textFavoriteCard,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.textFavoriteCard,
                           width: 8,
                           height: 4,
                         ),
@@ -199,7 +196,7 @@ class WalletSummaryInfo extends ConsumerWidget {
                         color: Theme.of(context)
                             .extension<StackColors>()!
                             .textFavoriteCard
-                            .withOpacity(0.7),
+                            .withValues(alpha: 0.7),
                       ),
                     ),
                   ),
@@ -210,10 +207,9 @@ class WalletSummaryInfo extends ConsumerWidget {
                     ref.watch(pAmountFormatter(coin)).format(balanceToShow),
                     style: STextStyles.pageTitleH1(context).copyWith(
                       fontSize: 24,
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.textFavoriteCard,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textFavoriteCard,
                     ),
                   ),
                 ),
@@ -221,10 +217,9 @@ class WalletSummaryInfo extends ConsumerWidget {
                   Text(
                     "${(price.value * balanceToShow.decimal).toAmount(fractionDigits: 2).fiatString(locale: locale)} $baseCurrency",
                     style: STextStyles.subtitle500(context).copyWith(
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.textFavoriteCard,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textFavoriteCard,
                     ),
                   ),
               ],

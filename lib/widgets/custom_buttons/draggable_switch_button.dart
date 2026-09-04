@@ -50,7 +50,7 @@ class DraggableSwitchButtonState extends State<DraggableSwitchButton> {
       return Color.alphaBlend(
         Theme.of(
           context,
-        ).extension<StackColors>()!.switchBGOn.withOpacity(alpha),
+        ).extension<StackColors>()!.switchBGOn.withValues(alpha: alpha),
         Theme.of(context).extension<StackColors>()!.switchBGOff,
       );
     }
@@ -62,7 +62,7 @@ class DraggableSwitchButtonState extends State<DraggableSwitchButton> {
       return Color.alphaBlend(
         Theme.of(
           context,
-        ).extension<StackColors>()!.switchCircleOn.withOpacity(alpha),
+        ).extension<StackColors>()!.switchCircleOn.withValues(alpha: alpha),
         Theme.of(context).extension<StackColors>()!.switchCircleOff,
       );
     }
@@ -126,9 +126,10 @@ class DraggableSwitchButtonState extends State<DraggableSwitchButton> {
                     key: const Key("draggableSwitchButtonSwitch"),
                     onHorizontalDragStart: (_) => _isDragging = true,
                     onHorizontalDragUpdate: (details) {
-                      valueListener.value = (valueListener.value +
-                              details.delta.dx / constraint.maxWidth)
-                          .clamp(0.0, 1.0);
+                      valueListener.value =
+                          (valueListener.value +
+                                  details.delta.dx / constraint.maxWidth)
+                              .clamp(0.0, 1.0);
                     },
                     onHorizontalDragEnd: (details) {
                       final bool oldValue = _isOn;
@@ -172,8 +173,9 @@ class DraggableSwitchButtonState extends State<DraggableSwitchButton> {
                     animation: valueListener,
                     builder: (context, child) {
                       return AnimatedAlign(
-                        duration:
-                            _isDragging ? Duration.zero : tapAnimationDuration,
+                        duration: _isDragging
+                            ? Duration.zero
+                            : tapAnimationDuration,
                         alignment: Alignment(valueListener.value * 2 - 1, 0.5),
                         child: child,
                       );

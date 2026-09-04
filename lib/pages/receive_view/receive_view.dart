@@ -161,8 +161,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
 
     if (slatepackString == null) return;
     if (mounted) {
-      final wallet =
-          ref.read(pWallets).getWallet(walletId) as EpiccashWallet;
+      final wallet = ref.read(pWallets).getWallet(walletId) as EpiccashWallet;
 
       Exception? ex;
       final result = await showLoading(
@@ -228,7 +227,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
               child: Container(
                 color: Theme.of(
                   context,
-                ).extension<StackColors>()!.overlay.withOpacity(0.5),
+                ).extension<StackColors>()!.overlay.withValues(alpha: 0.5),
                 child: const CustomLoadingOverlay(
                   message: "Generating address",
                   eventBus: null,
@@ -310,7 +309,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
               child: Container(
                 color: Theme.of(
                   context,
-                ).extension<StackColors>()!.overlay.withOpacity(0.5),
+                ).extension<StackColors>()!.overlay.withValues(alpha: 0.5),
                 child: const CustomLoadingOverlay(
                   message: "Generating address",
                   eventBus: null,

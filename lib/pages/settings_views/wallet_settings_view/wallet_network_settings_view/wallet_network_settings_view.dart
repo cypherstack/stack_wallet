@@ -537,7 +537,7 @@ class _WalletNetworkSettingsViewState
                       color: Theme.of(context)
                           .extension<StackColors>()!
                           .accentColorGreen
-                          .withOpacity(0.2),
+                          .withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(_iconSize),
                     ),
                     child: Center(
@@ -600,7 +600,7 @@ class _WalletNetworkSettingsViewState
                       color: Theme.of(context)
                           .extension<StackColors>()!
                           .accentColorYellow
-                          .withOpacity(0.2),
+                          .withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(_iconSize),
                     ),
                     child: Center(
@@ -701,7 +701,7 @@ class _WalletNetworkSettingsViewState
                       color: Theme.of(context)
                           .extension<StackColors>()!
                           .accentColorRed
-                          .withOpacity(0.2),
+                          .withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(_iconSize),
                     ),
                     child: Center(
@@ -849,7 +849,7 @@ class _WalletNetworkSettingsViewState
                         color: Theme.of(context)
                             .extension<StackColors>()!
                             .accentColorGreen
-                            .withOpacity(0.2),
+                            .withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(_iconSize),
                       ),
                       child: Center(
@@ -870,9 +870,10 @@ class _WalletNetworkSettingsViewState
                       width: _iconSize,
                       height: _iconSize,
                       decoration: BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textDark.withOpacity(0.08),
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark
+                            .withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(_iconSize),
                       ),
                       child: Center(
