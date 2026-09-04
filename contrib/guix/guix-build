@@ -1,0 +1,156 @@
+#!/usr/bin/env bash
+# Copyright (c) Stack Wallet developers
+# Distributed under the MIT software license, see the accompanying
+# file COPYING or https://opensource.org/licenses/MIT.
+#
+# guix-build — Outer orchestrator for reproducible Stack Wallet builds.
+#
+# Usage:  ./guix-build [--app stack_wallet|stack_duo|campfire]
+#                      [--jobs N]
+#                      [--version X.Y.Z]
+#                      [--build-number NNN]
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/libexec/prelude.bash"
+
+################
+# CLI args     #
+################
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --app)        APP_NAME_ID="$2"; shift 2 ;;
+        --jobs)       JOBS="$2"; shift 2 ;;
+        --version)    APP_VERSION="$2"; shift 2 ;;
+        --build-number) APP_BUILD_NUMBER="$2"; shift 2 ;;
+        --hosts)      HOSTS="$2"; shift 2 ;;
+        --help|-h)
+            echo "Usage: guix-build [--app NAME] [--jobs N] [--version X.Y.Z] [--build-number NNN]"
+            exit 0
+            ;;
+        *) die "Unknown option: $1" ;;
+    esac
+done
+
+auto_detect_version
+compute_source_date_epoch
+
+# Compute commit hash outside the container (source .git is not mounted).
+if [ -e "${SOURCE_DIR}/.git" ]; then
+    BUILT_COMMIT_HASH="$(git -C "${SOURCE_DIR}" log -1 --pretty=format:"%H")"
+else
+    BUILT_COMMIT_HASH="0000000000000000000000000000000000000000"
+fi
+
+export APP_NAME_ID APP_VERSION APP_BUILD_NUMBER JOBS SOURCE_DATE_EPOCH BUILT_COMMIT_HASH
+
+################
+# Validate     #
+################
+
+log_info "=== Stack Wallet Guix Build ==="
+log_info "App:              ${APP_NAME_ID}"
+log_info "Version:          ${APP_VERSION}+${APP_BUILD_NUMBER}"
+log_info "Jobs:             ${JOBS}"
+log_info "Hosts:            ${HOSTS}"
+log_info "Source:           ${SOURCE_DIR}"
+log_info "SOURCE_DATE_EPOCH: ${SOURCE_DATE_EPOCH}"
+log_info "Output:           ${OUTDIR}"
+
+# Verify pre-fetched caches exist.
+for cache_dir in "$PUB_CACHE_DIR" "$CARGO_CACHE_DIR" "$FLUTTER_SDK_DIR" "$RUST_DIR" "${BASE_CACHE}/native-sources"; do
+    if [ ! -d "$cache_dir" ]; then
+        die "Missing cache directory: ${cache_dir}
+Run supplementary/deps/fetch-pub-deps.sh and fetch-cargo-deps.sh first."
+    fi
+done
+
+# Verify Flutter SDK is present.
+if [ ! -x "${FLUTTER_SDK_DIR}/flutter/bin/flutter" ]; then
+    die "Flutter SDK not found at ${FLUTTER_SDK_DIR}/flutter"
+fi
+
+# Verify at least the default Rust toolchain.
+if [ ! -x "${RUST_DIR}/${RUST_VERSION_DEFAULT}/bin/rustc" ]; then
+    die "Rust ${RUST_VERSION_DEFAULT} not found at ${RUST_DIR}/${RUST_VERSION_DEFAULT}"
+fi
+
+# Verify source directory.
+if [ ! -f "${SOURCE_DIR}/pubspec.yaml" ] && [ ! -f "${SOURCE_DIR}/scripts/app_config/templates/pubspec.template.yaml" ]; then
+    die "Source directory does not look like a Stack Wallet checkout: ${SOURCE_DIR}"
+fi
+
+################
+# Build loop   #
+################
+
+mkdir -p "$OUTDIR"
+
+for HOST in $HOSTS; do
+    log_info "--- Building for ${HOST} ---"
+
+    HOST_OUTDIR="${OUTDIR}/${HOST}"
+    mkdir -p "$HOST_OUTDIR"
+
+    # NOTE: guix shell --container --pure strips the environment.
+    # We use env inside the container to inject required variables.
+    # The guix scripts tree is mounted at /sw/guix since it lives
+    # outside the main source directory.
+    guix shell \
+        --container \
+        --pure \
+        --emulate-fhs \
+        --manifest="${SCRIPT_DIR}/manifest.scm" \
+        --expose="${SOURCE_DIR}=/sw/src" \
+        --expose="${SCRIPT_DIR}=/sw/guix" \
+        --share="${HOST_OUTDIR}=/sw/output" \
+        --share="${PUB_CACHE_DIR}=/sw/pub-cache" \
+        --expose="${CARGO_CACHE_DIR}=/sw/cargo-cache" \
+        --share="${FLUTTER_SDK_DIR}=/sw/flutter-sdk" \
+        --expose="${RUST_DIR}=/sw/rust" \
+        --expose="${BASE_CACHE}/native-sources=/sw/native-sources" \
+        --expose="${BASE_CACHE}/go-cache=/sw/go-cache" \
+        --no-cwd \
+        -- env \
+            HOME="/tmp" \
+            HOST="$HOST" \
+            JOBS="$JOBS" \
+            SOURCE_DATE_EPOCH="$SOURCE_DATE_EPOCH" \
+            APP_NAME_ID="$APP_NAME_ID" \
+            APP_VERSION="$APP_VERSION" \
+            APP_BUILD_NUMBER="$APP_BUILD_NUMBER" \
+            RUST_VERSION_DEFAULT="$RUST_VERSION_DEFAULT" \
+            RUST_VERSION_MWC="$RUST_VERSION_MWC" \
+            RUST_VERSION_FROSTDART="$RUST_VERSION_FROSTDART" \
+            BUILT_COMMIT_HASH="$BUILT_COMMIT_HASH" \
+            bash /sw/guix/libexec/build.sh \
+        2>&1 | tee "${HOST_OUTDIR}/build.log" \
+    || die "Build failed for ${HOST}. See ${HOST_OUTDIR}/build.log"
+
+    log_info "Build complete for ${HOST}"
+    log_info "Output: ${HOST_OUTDIR}"
+done
+
+################
+# Summary      #
+################
+
+log_info "=== All builds complete ==="
+log_info "Output directory: ${OUTDIR}"
+
+# Collect all SHA256SUMS.part files.
+SUMS_FILE="${OUTDIR}/SHA256SUMS"
+: > "$SUMS_FILE"
+for HOST in $HOSTS; do
+    PART="${OUTDIR}/${HOST}/SHA256SUMS.part"
+    if [ -f "$PART" ]; then
+        cat "$PART" >> "$SUMS_FILE"
+    fi
+done
+
+if [ -s "$SUMS_FILE" ]; then
+    log_info "Combined SHA256SUMS:"
+    cat "$SUMS_FILE"
+fi

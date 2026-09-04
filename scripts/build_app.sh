@@ -9,7 +9,8 @@ APP_NAMED_IDS=("stack_wallet" "stack_duo" "campfire")
 
 # Function to display usage.
 usage() {
-    echo "Usage: $0 -v <version> -b <build_number> -p <platform> -a <app> [-d] [-i] [-f] [-s]"
+    echo "Usage: $0 -v <version> -b <build_number> -p <platform> -a <app> [-d] [-i] [-f] [-g] [-s]"
+    echo "  -g  Guix reproducible build (linux only). Delegates to contrib/guix/guix-build."
     exit 1
 }
 
@@ -35,10 +36,11 @@ unset -v APP_NAMED_ID
 BUILD_CRYPTO_PLUGINS=0
 DOWNLOAD_CRYPTO_PLUGINS=0
 BUILD_ISAR_FROM_SOURCE=0
+BUILD_WITH_GUIX=0
 USE_SYSTEM_SECURE_STORAGE_DEPS=0
 
 # Parse command-line arguments.
-while getopts "v:b:p:a:idfs" opt; do
+while getopts "v:b:p:a:idfgs" opt; do
     case "${opt}" in
         v) APP_VERSION_STRING="$OPTARG" ;;
         b) APP_BUILD_NUMBER="$OPTARG" ;;
@@ -47,6 +49,7 @@ while getopts "v:b:p:a:idfs" opt; do
         i) BUILD_CRYPTO_PLUGINS=1 ;;
         d) DOWNLOAD_CRYPTO_PLUGINS=1 ;;
         f) BUILD_ISAR_FROM_SOURCE=1 ;;
+        g) BUILD_WITH_GUIX=1 ;;
         s) USE_SYSTEM_SECURE_STORAGE_DEPS=1 ;;
         *) usage ;;
     esac
@@ -73,6 +76,27 @@ if [ -z "$APP_NAMED_ID" ]; then
 fi
 
 confirmDisclaimer
+
+# Guix reproducible build: short-circuit before any configure/build steps.
+# guix-build handles its own source mounting, config, and build inside a container.
+if [ "$BUILD_WITH_GUIX" -eq 1 ]; then
+    if [ "$APP_BUILD_PLATFORM" != "linux" ]; then
+        echo "Error: -g (Guix build) is only supported with -p linux"
+        exit 1
+    fi
+    GUIX_BUILD="${APP_PROJECT_ROOT_DIR}/contrib/guix/guix-build"
+    if [ ! -x "$GUIX_BUILD" ]; then
+        echo "guix-build not found at: $GUIX_BUILD"
+        echo "Ensure contrib/guix/ exists (e.g. feat/guix branch)."
+        exit 1
+    fi
+    export SOURCE_DIR="$APP_PROJECT_ROOT_DIR"
+    exec "$GUIX_BUILD" \
+        --app "$APP_NAMED_ID" \
+        --version "$APP_VERSION_STRING" \
+        --build-number "$APP_BUILD_NUMBER"
+fi
+
 set -x
 
 source "${APP_PROJECT_ROOT_DIR}/scripts/app_config/templates/configure_template_files.sh"
