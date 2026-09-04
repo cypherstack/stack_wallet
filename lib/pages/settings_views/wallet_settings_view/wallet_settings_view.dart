@@ -200,7 +200,11 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
             (wallet as ViewOnlyOptionInterface).isViewOnly) {
           // TODO: is something needed here?
         } else {
-          mnemonic = await wallet.getMnemonicAsWords();
+          try {
+            mnemonic = await wallet.getMnemonicAsWords();
+          } catch (_) {
+            // Key-restored wallets may not have a mnemonic.
+          }
         }
       }
     }
@@ -417,10 +421,9 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                 iconSize: 16,
                 title: "Epicbox Servers",
                 onPressed: () {
-                  Navigator.of(context).pushNamed(
-                    ManageEpicboxView.routeName,
-                    arguments: walletId,
-                  );
+                  Navigator.of(
+                    context,
+                  ).pushNamed(ManageEpicboxView.routeName, arguments: walletId);
                 },
               ),
             if (canBackup) const SizedBox(height: 8),
