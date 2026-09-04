@@ -35,6 +35,7 @@ import 'event_bus/global_event_bus.dart';
 import 'node_service.dart';
 import 'notifications_service.dart';
 import 'trade_sent_from_stack_service.dart';
+import 'transaction_notification_tracker.dart';
 
 class Wallets {
   Wallets._private();
@@ -458,6 +459,10 @@ class Wallets {
           (q, element) => q.coinNameMatches(element),
         )
         .findAll();
+
+    await TransactionNotificationTracker.initializeExistingWallets(
+      walletInfoList.map((walletInfo) => walletInfo.walletId),
+    );
 
     if (isDuress) {
       walletInfoList.retainWhere((e) => e.isDuressVisible);

@@ -159,21 +159,20 @@ class NotificationsService extends ChangeNotifier {
               torEnabled: node.torEnabled,
               clearnetEnabled: node.clearnetEnabled,
             );
-            final failovers =
-                nodeService
-                    .failoverNodesFor(currency: coin)
-                    .map(
-                      (e) => ElectrumXNode(
-                        address: e.host,
-                        port: e.port,
-                        name: e.name,
-                        id: e.id,
-                        useSSL: e.useSSL,
-                        torEnabled: node.torEnabled,
-                        clearnetEnabled: node.clearnetEnabled,
-                      ),
-                    )
-                    .toList();
+            final failovers = nodeService
+                .failoverNodesFor(currency: coin)
+                .map(
+                  (e) => ElectrumXNode(
+                    address: e.host,
+                    port: e.port,
+                    name: e.name,
+                    id: e.id,
+                    useSSL: e.useSSL,
+                    torEnabled: node.torEnabled,
+                    clearnetEnabled: node.clearnetEnabled,
+                  ),
+                )
+                .toList();
 
             final client = ElectrumXClient.from(
               node: eNode,
@@ -342,10 +341,10 @@ class NotificationsService extends ChangeNotifier {
     );
     if (notification.shouldWatchForUpdates) {
       if (notification.txid != null) {
-        _addWatchedTxNotification(notification);
+        await _addWatchedTxNotification(notification);
       }
       if (notification.changeNowId != null) {
-        _addWatchedTradeNotification(notification);
+        await _addWatchedTradeNotification(notification);
       }
     }
     if (shouldNotifyListeners) {
@@ -371,11 +370,10 @@ class NotificationsService extends ChangeNotifier {
   }
 
   Future<void> markAsRead(int id, bool shouldNotifyListeners) async {
-    final model =
-        DB.instance.get<NotificationModel>(
-          boxName: DB.boxNameNotifications,
-          key: id,
-        )!;
+    final model = DB.instance.get<NotificationModel>(
+      boxName: DB.boxNameNotifications,
+      key: id,
+    )!;
     await DB.instance.put<NotificationModel>(
       boxName: DB.boxNameNotifications,
       key: model.id,

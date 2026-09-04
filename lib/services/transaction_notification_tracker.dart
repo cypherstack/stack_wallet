@@ -8,100 +8,197 @@
  *
  */
 
+import 'package:meta/meta.dart';
+
 import '../db/hive/db.dart';
 
-class TransactionNotificationTracker {
+abstract interface class TransactionNotificationStore {
+  bool get isInitialized;
+  Set<String> get deliveredTxids;
+  Future<void> markInitialized();
+  Future<void> recordDelivered(String txid);
+}
+
+class TransactionNotificationTracker implements TransactionNotificationStore {
+  // Per-wallet boxes are only opened for installs that predate the Isar
+  // migration, so this state is namespaced into the always-open prefs box
+  // instead of a box named after walletId.
+  static const _keyPrefix = "incomingTransactionNotifications";
+  static const _existingWalletsMigratedKey =
+      "incomingTransactionNotificationsExistingWalletsMigrated";
+  static const _maxDeliveredTxids = 256;
+
+  @visibleForTesting
+  static Map<dynamic, dynamic> mergeDeliveredTxids(
+    Map<dynamic, dynamic>? stored,
+    Iterable<String> txids, {
+    int maxEntries = _maxDeliveredTxids,
+  }) {
+    assert(maxEntries > 0);
+    final result = Map<dynamic, dynamic>.from(stored ?? const {});
+    for (final txid in txids) {
+      result[txid] = true;
+    }
+    while (result.length > maxEntries) {
+      result.remove(result.keys.first);
+    }
+    return result;
+  }
+
   final String walletId;
 
   TransactionNotificationTracker({required this.walletId});
 
-  List<String> get pendings {
-    final notifiedPendingTransactions = DB.instance.get<dynamic>(
-          boxName: walletId,
-          key: "notifiedPendingTransactions",
-        ) as Map? ??
-        {};
-    return List<String>.from(notifiedPendingTransactions.keys);
+  String _key(String suffix) => "${_keyPrefix}_${walletId}_$suffix";
+
+  static Future<void> initializeExistingWallets(
+    Iterable<String> walletIds,
+  ) async {
+    final migrated =
+        DB.instance.get<dynamic>(
+              boxName: DB.boxNamePrefs,
+              key: _existingWalletsMigratedKey,
+            )
+            as bool? ??
+        false;
+    if (migrated) return;
+
+    for (final walletId in walletIds) {
+      await TransactionNotificationTracker(
+        walletId: walletId,
+      ).markInitialized();
+    }
+    await DB.instance.put<dynamic>(
+      boxName: DB.boxNamePrefs,
+      key: _existingWalletsMigratedKey,
+      value: true,
+    );
   }
 
+  @override
+  bool get isInitialized =>
+      DB.instance.get<dynamic>(
+            boxName: DB.boxNamePrefs,
+            key: _key("initialized"),
+          )
+          as bool? ??
+      false;
+
+  List<String> get pendings {
+    final notifiedPendingTransactions =
+        DB.instance.get<dynamic>(
+              boxName: DB.boxNamePrefs,
+              key: _key("notifiedPending"),
+            )
+            as Map? ??
+        {};
+    return notifiedPendingTransactions.keys.whereType<String>().toList();
+  }
+
+  @override
+  Set<String> get deliveredTxids => pendings.toSet();
+
   bool wasNotifiedPending(String txid) {
-    final notifiedPendingTransactions = DB.instance.get<dynamic>(
-          boxName: walletId,
-          key: "notifiedPendingTransactions",
-        ) as Map? ??
+    final notifiedPendingTransactions =
+        DB.instance.get<dynamic>(
+              boxName: DB.boxNamePrefs,
+              key: _key("notifiedPending"),
+            )
+            as Map? ??
         {};
     return notifiedPendingTransactions[txid] as bool? ?? false;
   }
 
   Future<void> addNotifiedPending(String txid) async {
-    final notifiedPendingTransactions = DB.instance.get<dynamic>(
-          boxName: walletId,
-          key: "notifiedPendingTransactions",
-        ) as Map? ??
-        {};
-    notifiedPendingTransactions[txid] = true;
+    final stored =
+        DB.instance.get<dynamic>(
+              boxName: DB.boxNamePrefs,
+              key: _key("notifiedPending"),
+            )
+            as Map?;
+    final notifiedPendingTransactions = mergeDeliveredTxids(stored, [txid]);
     await DB.instance.put<dynamic>(
-      boxName: walletId,
-      key: "notifiedPendingTransactions",
+      boxName: DB.boxNamePrefs,
+      key: _key("notifiedPending"),
       value: notifiedPendingTransactions,
     );
   }
 
+  @override
+  Future<void> recordDelivered(String txid) => addNotifiedPending(txid);
+
+  @override
+  Future<void> markInitialized() => DB.instance.put<dynamic>(
+    boxName: DB.boxNamePrefs,
+    key: _key("initialized"),
+    value: true,
+  );
+
   List<String> get confirmeds {
-    final notifiedConfirmedTransactions = DB.instance.get<dynamic>(
-          boxName: walletId,
-          key: "notifiedConfirmedTransactions",
-        ) as Map? ??
+    final notifiedConfirmedTransactions =
+        DB.instance.get<dynamic>(
+              boxName: DB.boxNamePrefs,
+              key: _key("notifiedConfirmed"),
+            )
+            as Map? ??
         {};
     return List<String>.from(notifiedConfirmedTransactions.keys);
   }
 
   bool wasNotifiedConfirmed(String txid) {
-    final notifiedConfirmedTransactions = DB.instance.get<dynamic>(
-          boxName: walletId,
-          key: "notifiedConfirmedTransactions",
-        ) as Map? ??
+    final notifiedConfirmedTransactions =
+        DB.instance.get<dynamic>(
+              boxName: DB.boxNamePrefs,
+              key: _key("notifiedConfirmed"),
+            )
+            as Map? ??
         {};
     return notifiedConfirmedTransactions[txid] as bool? ?? false;
   }
 
   Future<void> addNotifiedConfirmed(String txid) async {
-    final notifiedConfirmedTransactions = DB.instance.get<dynamic>(
-          boxName: walletId,
-          key: "notifiedConfirmedTransactions",
-        ) as Map? ??
+    final notifiedConfirmedTransactions =
+        DB.instance.get<dynamic>(
+              boxName: DB.boxNamePrefs,
+              key: _key("notifiedConfirmed"),
+            )
+            as Map? ??
         {};
     notifiedConfirmedTransactions[txid] = true;
     await DB.instance.put<dynamic>(
-      boxName: walletId,
-      key: "notifiedConfirmedTransactions",
+      boxName: DB.boxNamePrefs,
+      key: _key("notifiedConfirmed"),
       value: notifiedConfirmedTransactions,
     );
   }
 
   Future<void> deleteTransaction(String txid) async {
-    final notifiedPendingTransactions = DB.instance.get<dynamic>(
-          boxName: walletId,
-          key: "notifiedPendingTransactions",
-        ) as Map? ??
+    final notifiedPendingTransactions =
+        DB.instance.get<dynamic>(
+              boxName: DB.boxNamePrefs,
+              key: _key("notifiedPending"),
+            )
+            as Map? ??
         {};
-    final notifiedConfirmedTransactions = DB.instance.get<dynamic>(
-          boxName: walletId,
-          key: "notifiedConfirmedTransactions",
-        ) as Map? ??
+    final notifiedConfirmedTransactions =
+        DB.instance.get<dynamic>(
+              boxName: DB.boxNamePrefs,
+              key: _key("notifiedConfirmed"),
+            )
+            as Map? ??
         {};
 
     notifiedPendingTransactions.remove(txid);
     notifiedConfirmedTransactions.remove(txid);
 
     await DB.instance.put<dynamic>(
-      boxName: walletId,
-      key: "notifiedConfirmedTransactions",
+      boxName: DB.boxNamePrefs,
+      key: _key("notifiedConfirmed"),
       value: notifiedConfirmedTransactions,
     );
     await DB.instance.put<dynamic>(
-      boxName: walletId,
-      key: "notifiedPendingTransactions",
+      boxName: DB.boxNamePrefs,
+      key: _key("notifiedPending"),
       value: notifiedPendingTransactions,
     );
   }
