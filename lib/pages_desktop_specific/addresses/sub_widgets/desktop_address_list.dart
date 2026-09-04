@@ -8,14 +8,15 @@
  *
  */
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:isar_community/isar.dart';
 
-import '../../../models/isar/models/isar_models.dart';
 import '../../../pages/receive_view/addresses/address_card.dart';
-import '../../../providers/db/main_db_provider.dart';
+import '../../../pages/receive_view/addresses/address_tag_data.dart';
+import '../../../pages/receive_view/addresses/address_tag_filter.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/constants.dart';
@@ -23,6 +24,7 @@ import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../widgets/icon_widgets/x_icon.dart';
+import '../../../widgets/loading_indicator.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_text_field.dart';
 import '../../../widgets/textfield_icon_button.dart';
@@ -46,109 +48,11 @@ class _DesktopAddressListState extends ConsumerState<DesktopAddressList> {
   final bool isDesktop = Util.isDesktop;
 
   String _searchString = "";
+  String? _selectedTag;
+  Timer? _searchDebounce;
 
   late final TextEditingController _searchController;
   final searchFieldFocusNode = FocusNode();
-
-  List<Id> _search(String term) {
-    if (term.isEmpty) {
-      return ref
-          .read(mainDBProvider)
-          .getAddresses(widget.walletId)
-          .filter()
-          .group(
-            (q) => q
-                .subTypeEqualTo(AddressSubType.change)
-                .or()
-                .subTypeEqualTo(AddressSubType.receiving)
-                .or()
-                .subTypeEqualTo(AddressSubType.paynymReceive)
-                .or()
-                .subTypeEqualTo(AddressSubType.paynymNotification),
-          )
-          .and()
-          .not()
-          .typeEqualTo(AddressType.nonWallet)
-          .and()
-          .group(
-            (q) => q
-                .group(
-                  (q2) => q2
-                      .typeEqualTo(AddressType.frostMS)
-                      .and()
-                      .zSafeFrostEqualTo(true),
-                )
-                .or()
-                .not()
-                .typeEqualTo(AddressType.frostMS),
-          )
-          .sortByDerivationIndex()
-          .idProperty()
-          .findAllSync();
-    }
-
-    final labels =
-        ref
-            .read(mainDBProvider)
-            .getAddressLabels(widget.walletId)
-            .filter()
-            .group(
-              (q) => q
-                  .valueContains(term, caseSensitive: false)
-                  .or()
-                  .addressStringContains(term, caseSensitive: false)
-                  .or()
-                  .group(
-                    (q) => q.tagsIsNotNull().and().tagsElementContains(
-                      term,
-                      caseSensitive: false,
-                    ),
-                  ),
-            )
-            .findAllSync();
-
-    if (labels.isEmpty) {
-      return [];
-    }
-
-    return ref
-        .read(mainDBProvider)
-        .getAddresses(widget.walletId)
-        .filter()
-        .anyOf<AddressLabel, Address>(
-          labels,
-          (q, e) => q.valueEqualTo(e.addressString),
-        )
-        .group(
-          (q) => q
-              .subTypeEqualTo(AddressSubType.change)
-              .or()
-              .subTypeEqualTo(AddressSubType.receiving)
-              .or()
-              .subTypeEqualTo(AddressSubType.paynymReceive)
-              .or()
-              .subTypeEqualTo(AddressSubType.paynymNotification),
-        )
-        .and()
-        .not()
-        .typeEqualTo(AddressType.nonWallet)
-        .and()
-        .group(
-          (q) => q
-              .group(
-                (q2) => q2
-                    .typeEqualTo(AddressType.frostMS)
-                    .and()
-                    .zSafeFrostEqualTo(true),
-              )
-              .or()
-              .not()
-              .typeEqualTo(AddressType.frostMS),
-        )
-        .sortByDerivationIndex()
-        .idProperty()
-        .findAllSync();
-  }
 
   @override
   void initState() {
@@ -159,6 +63,7 @@ class _DesktopAddressListState extends ConsumerState<DesktopAddressList> {
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _searchController.dispose();
     searchFieldFocusNode.dispose();
     super.dispose();
@@ -167,8 +72,30 @@ class _DesktopAddressListState extends ConsumerState<DesktopAddressList> {
   @override
   Widget build(BuildContext context) {
     final coin = ref.watch(pWalletCoin(widget.walletId));
-
-    final ids = _search(_searchString);
+    final tags = ref
+        .watch(walletAddressTagsProvider(widget.walletId))
+        .when(
+          data: (value) => value,
+          error: (_, __) => const <String>[],
+          loading: () => const <String>[],
+        );
+    final selectedTag = reconcileSelectedAddressTag(_selectedTag, tags);
+    if (selectedTag != _selectedTag) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _selectedTag != selectedTag) {
+          setState(() => _selectedTag = selectedTag);
+        }
+      });
+    }
+    final ids = ref.watch(
+      filteredWalletAddressIdsProvider(
+        WalletAddressFilter(
+          walletId: widget.walletId,
+          searchTerm: _searchString,
+          tag: selectedTag,
+        ),
+      ),
+    );
 
     return Column(
       children: [
@@ -185,92 +112,113 @@ class _DesktopAddressListState extends ConsumerState<DesktopAddressList> {
                 controller: _searchController,
                 focusNode: searchFieldFocusNode,
                 onChanged: (value) {
-                  setState(() {
-                    _searchString = value;
-                  });
+                  _searchDebounce?.cancel();
+                  setState(() {});
+                  _searchDebounce = Timer(
+                    const Duration(milliseconds: 250),
+                    () {
+                      if (mounted) {
+                        setState(() => _searchString = value);
+                      }
+                    },
+                  );
                 },
-                style:
-                    isDesktop
-                        ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                          color:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textFieldActiveText,
-                          height: 1.8,
-                        )
-                        : STextStyles.field(context),
-                decoration: standardInputDecoration(
-                  "Search...",
-                  searchFieldFocusNode,
-                  context,
-                  desktopMed: isDesktop,
-                ).copyWith(
-                  prefixIcon: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: isDesktop ? 12 : 10,
-                      vertical: isDesktop ? 18 : 16,
-                    ),
-                    child: SvgPicture.asset(
-                      Assets.svg.search,
-                      width: isDesktop ? 20 : 16,
-                      height: isDesktop ? 20 : 16,
-                    ),
-                  ),
-                  suffixIcon:
-                      _searchController.text.isNotEmpty
+                style: isDesktop
+                    ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textFieldActiveText,
+                        height: 1.8,
+                      )
+                    : STextStyles.field(context),
+                decoration:
+                    standardInputDecoration(
+                      "Search...",
+                      searchFieldFocusNode,
+                      context,
+                      desktopMed: isDesktop,
+                    ).copyWith(
+                      prefixIcon: Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isDesktop ? 12 : 10,
+                          vertical: isDesktop ? 18 : 16,
+                        ),
+                        child: SvgPicture.asset(
+                          Assets.svg.search,
+                          width: isDesktop ? 20 : 16,
+                          height: isDesktop ? 20 : 16,
+                        ),
+                      ),
+                      suffixIcon: _searchController.text.isNotEmpty
                           ? Padding(
-                            padding: const EdgeInsets.only(right: 0),
-                            child: UnconstrainedBox(
-                              child: Row(
-                                children: [
-                                  TextFieldIconButton(
-                                    child: const XIcon(),
-                                    onTap: () async {
-                                      setState(() {
-                                        _searchController.text = "";
-                                        _searchString = "";
-                                      });
-                                    },
-                                  ),
-                                ],
+                              padding: const EdgeInsets.only(right: 0),
+                              child: UnconstrainedBox(
+                                child: Row(
+                                  children: [
+                                    TextFieldIconButton(
+                                      child: const XIcon(),
+                                      onTap: () async {
+                                        _searchDebounce?.cancel();
+                                        setState(() {
+                                          _searchController.text = "";
+                                          _searchString = "";
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          )
+                            )
                           : null,
-                ),
+                    ),
               ),
             ),
           ),
         ),
+        if (tags.isNotEmpty) const SizedBox(height: 16),
+        if (tags.isNotEmpty)
+          AddressTagFilter(
+            tags: tags,
+            selectedTag: selectedTag,
+            onSelected: (tag) => setState(() => _selectedTag = tag),
+          ),
         const SizedBox(height: 20),
         Expanded(
           child: RoundedWhiteContainer(
             padding: EdgeInsets.zero,
-            child: ListView.separated(
-              shrinkWrap: true,
-              itemCount: ids.length,
-              separatorBuilder:
-                  (_, __) => Container(
-                    height: 1,
-                    color:
-                        Theme.of(
-                          context,
-                        ).extension<StackColors>()!.backgroundAppBar,
+            child: ids.when(
+              data: (addressIds) => ListView.separated(
+                shrinkWrap: true,
+                itemCount: addressIds.length,
+                separatorBuilder: (_, __) => Container(
+                  height: 1,
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.backgroundAppBar,
+                ),
+                itemBuilder: (_, index) => Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: AddressCard(
+                    key: Key("addressCardDesktop_key_${addressIds[index]}"),
+                    walletId: widget.walletId,
+                    addressId: addressIds[index],
+                    coin: coin,
+                    onPressed: () {
+                      ref.read(desktopSelectedAddressId.state).state =
+                          addressIds[index];
+                    },
                   ),
-              itemBuilder:
-                  (_, index) => Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: AddressCard(
-                      key: Key("addressCardDesktop_key_${ids[index]}"),
-                      walletId: widget.walletId,
-                      addressId: ids[index],
-                      coin: coin,
-                      onPressed: () {
-                        ref.read(desktopSelectedAddressId.state).state =
-                            ids[index];
-                      },
-                    ),
-                  ),
+                ),
+              ),
+              error: (_, __) => Center(
+                child: Text(
+                  "Couldn't load addresses",
+                  style: STextStyles.w500_14(context),
+                ),
+              ),
+              loading: () => const Center(
+                child: LoadingIndicator(height: 200, width: 200),
+              ),
             ),
           ),
         ),

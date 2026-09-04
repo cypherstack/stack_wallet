@@ -41,6 +41,7 @@ import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/qr.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_dialog.dart';
+import 'address_tag.dart';
 
 class AddressCard extends ConsumerStatefulWidget {
   const AddressCard({
@@ -347,18 +348,16 @@ class _AddressCardState extends ConsumerState<AddressCard> {
                       ),
                     ],
                   ),
-                // if (label!.tags != null && label!.tags!.isNotEmpty)
-                //   Wrap(
-                //     spacing: 10,
-                //     runSpacing: 10,
-                //     children: label!.tags!
-                //         .map(
-                //           (e) => AddressTag(
-                //             tag: e,
-                //           ),
-                //         )
-                //         .toList(),
-                //   ),
+                if (label!.tags != null && label!.tags!.isNotEmpty)
+                  const SizedBox(height: 10),
+                if (label!.tags != null && label!.tags!.isNotEmpty)
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: label!.tags!
+                        .map((e) => AddressTag(tag: e))
+                        .toList(),
+                  ),
               ],
             ),
           );
