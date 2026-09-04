@@ -37,5 +37,11 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
+    target.build_configurations.each do |config|
+      # Several vendored crypto libraries ship arm64-only simulator slices;
+      # exclude x86_64 (and legacy i386) so simulator builds on Apple Silicon
+      # don't try to build/link missing x86_64 slices.
+      config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'i386 x86_64'
+    end
   end
 end

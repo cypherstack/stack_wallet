@@ -253,6 +253,47 @@ flutter pub get
 flutter run ios
 ```
 
+#### iOS Simulator (arm64/Apple Silicon)
+Running on the iOS Simulator requires simulator (aarch64-apple-ios-sim)
+slices for every native dependency. The crypto plugin submodules build
+device-only static libraries by default; simulator slices must be built
+additionally and are packaged as XCFrameworks:
+
+```
+# after running scripts/ios/build_all.sh or download_all.sh (device slices):
+(cd crypto_plugins/frostdart/scripts/ios && ./build_all.sh)   # builds both slices
+(cd crypto_plugins/flutter_libepiccash/scripts/ios && ./build_sim.sh)
+(cd crypto_plugins/flutter_libmwc/scripts/ios && ./build_sim.sh)
+```
+
+The remaining native deps are handled as follows:
+
+- `flutter_libsparkmobile`, `cs_salvium_flutter_libs_ios`: already ship
+  arm64 simulator slices in their XCFrameworks.
+- `tor_ffi_plugin`, `xelis_flutter`: built per-SDK by cargokit at pod
+  build time; no changes needed.
+- `flutter_mwebd`: builds both slices as an XCFramework at pod install
+  time (requires Go) when using the simulator-enabled fork.
+- `cs_monero_flutter_libs_ios`, `cs_wownero_flutter_libs_ios`: build the
+  simulator dylib from the respective monero_c tree with
+  `./build_single.sh <coin> aarch64-apple-iossimulator -j8` and package it
+  with the device slice via `tools/dart/bin/build_libs.dart ios`
+  (cs_monero) or the equivalent tooling in cs_wownero.
+
+`ios/Podfile` excludes `i386 x86_64` for `iphonesimulator` on all pod
+targets, so simulator builds are arm64-only (Apple Silicon). On Xcode 26,
+if `xcodebuild` reports no available simulator destinations or
+"iOS <version> is not installed", install the matching simulator runtime
+with `xcodebuild -downloadPlatform iOS`.
+
+The simulator-enabled `flutter_mwebd`, `cs_monero_flutter_libs_ios`, and
+`cs_wownero_flutter_libs_ios` changes are pinned to their review commits in
+the app-config template. Update those refs to their merged commits or package
+releases before readying this PR. `flutter_libsparkmobile` already ships its
+simulator slice and needs no local override.
+
+Then run against a booted simulator as usual (`flutter run`).
+
 #### macOS
 Run the following commands or launch via Android Studio:
 ```
