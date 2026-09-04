@@ -39,6 +39,64 @@ import '../../../../widgets/stack_text_field.dart';
 import 'helpers/restore_create_backup.dart';
 import 'helpers/swb_file_system.dart';
 
+Future<void> showStackWalletBackupResult({
+  required BuildContext context,
+  required String? savedPath,
+  required Exception? error,
+  required bool isDesktop,
+}) => showDialog<void>(
+  context: context,
+  barrierDismissible: false,
+  builder: (dialogContext) {
+    if (savedPath == null) {
+      return StackOkDialog(
+        title: "Backup creation failed",
+        message: error?.toString() ?? "Unexpected error",
+        desktopPopRootNavigator: isDesktop,
+      );
+    }
+
+    if (!isDesktop) {
+      return StackOkDialog(title: "Backup saved to:", message: savedPath);
+    }
+
+    return DesktopDialog(
+      maxHeight: double.infinity,
+      maxWidth: 500,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 32, right: 32, bottom: 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 26),
+            Text(
+              "${AppConfig.prefix} backup saved to: \n",
+              style: STextStyles.desktopH3(dialogContext),
+            ),
+            Text(
+              savedPath,
+              style: STextStyles.desktopTextExtraExtraSmall(dialogContext),
+            ),
+            const SizedBox(height: 40),
+            Row(
+              children: [
+                Expanded(
+                  child: PrimaryButton(
+                    label: "Ok",
+                    buttonHeight: ButtonHeight.l,
+                    onPressed: () => Navigator.of(dialogContext).pop(),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  },
+);
+
 class CreateBackupView extends ConsumerStatefulWidget {
   const CreateBackupView({super.key});
 
@@ -118,70 +176,18 @@ class _RestoreFromFileViewState extends ConsumerState<CreateBackupView> {
       );
 
       if (mounted) {
+        await showStackWalletBackupResult(
+          context: context,
+          savedPath: savedPath,
+          error: ex,
+          isDesktop: Util.isDesktop,
+        );
         if (savedPath != null) {
-          await showDialog<dynamic>(
-            context: context,
-            barrierDismissible: false,
-            builder: (_) => !Util.isDesktop
-                ? StackOkDialog(title: "Backup saved to:", message: savedPath)
-                : DesktopDialog(
-                    maxHeight: double.infinity,
-                    maxWidth: 500,
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                        left: 32,
-                        right: 32,
-                        bottom: 32,
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 26),
-                          Text(
-                            "${AppConfig.prefix} backup saved to: \n",
-                            style: STextStyles.desktopH3(context),
-                          ),
-                          Text(
-                            savedPath,
-                            style: STextStyles.desktopTextExtraExtraSmall(
-                              context,
-                            ),
-                          ),
-                          const SizedBox(height: 40),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: PrimaryButton(
-                                  label: "Ok",
-                                  buttonHeight: ButtonHeight.l,
-                                  onPressed: Navigator.of(
-                                    context,
-                                    rootNavigator: true,
-                                  ).pop,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-          );
           passwordController.text = "";
           passwordRepeatController.text = "";
           if (mounted) {
             setState(() {});
           }
-        } else {
-          await showDialog<dynamic>(
-            context: context,
-            barrierDismissible: false,
-            builder: (_) => StackOkDialog(
-              title: "Backup creation failed",
-              message: ex?.toString() ?? "Unexpected error",
-            ),
-          );
         }
       }
     }
