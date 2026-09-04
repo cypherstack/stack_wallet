@@ -12,7 +12,5 @@ for (( i=0; i<=2; i++ )); do
   fi
 done
 
-# Configure Windows
-sed -i "s/${APP_NAME_PLACEHOLDER}/${NEW_NAME}/g" "${APP_PROJECT_ROOT_DIR}/${WIN_TF_0}"
-sed -i "s/${APP_NAME_PLACEHOLDER}/${NEW_NAME}/g" "${APP_PROJECT_ROOT_DIR}/${WIN_TF_1}"
-sed -i "s/${APP_BASIC_NAME_PLACEHOLDER}/${NEW_BASIC_NAME}/g" "${APP_PROJECT_ROOT_DIR}/${WIN_TF_2}"
+# Brand identity is selected by `flutter build windows --flavor <brand>` in the
+# CMake template.

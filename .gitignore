@@ -97,6 +97,7 @@ pubspec.yaml
 /macos/Runner/Assets.xcassets/AppIcon.appiconset/*.png
 
 /windows/runner/Runner.rc
+/windows/runner/Runner.rc.in
 /windows/runner/main.cpp
 /windows/CMakeLists.txt
 /windows/runner/resources/app_icon.ico

@@ -20,7 +20,7 @@ export LINUX_TF_1="linux/my_application.cc"
 export MAC_TF_0="macos/Runner.xcodeproj/project.pbxproj"
 export MAC_TF_1="macos/Runner.xcodeproj/xcshareddata/xcschemes/Runner.xcscheme"
 export MAC_TF_2="macos/Runner/Configs/AppInfo.xcconfig"
-export WIN_TF_0="windows/runner/Runner.rc"
+export WIN_TF_0="windows/runner/Runner.rc.in"
 export WIN_TF_1="windows/runner/main.cpp"
 export WIN_TF_2="windows/CMakeLists.txt"
 

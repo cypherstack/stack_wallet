@@ -284,12 +284,12 @@ jobs:
         run: dart run coinlib:build_windows
 
       - name: Build
-        run: flutter build windows --release
+        run: flutter build windows --flavor stack_wallet --release
 
       - name: Package
         shell: pwsh
         run: |
-          Compress-Archive -Path "build/windows/x64/runner/Release/*" `
+          Compress-Archive -Path "build/windows/x64/stack_wallet/runner/Release/*" `
             -DestinationPath "stack_wallet-windows-x86_64-${{ steps.ver.outputs.version }}.zip"
 
       - uses: actions/upload-artifact@v7
@@ -862,12 +862,12 @@ jobs:
         run: dart run coinlib:build_windows
 
       - name: Build
-        run: flutter build windows --release
+        run: flutter build windows --flavor campfire --release
 
       - name: Package
         shell: pwsh
         run: |
-          Compress-Archive -Path "build/windows/x64/runner/Release/*" `
+          Compress-Archive -Path "build/windows/x64/campfire/runner/Release/*" `
             -DestinationPath "campfire-windows-x86_64-${{ steps.ver.outputs.version }}.zip"
 
       - uses: actions/upload-artifact@v7
@@ -1320,12 +1320,12 @@ jobs:
         run: dart run coinlib:build_windows
 
       - name: Build
-        run: flutter build windows --release
+        run: flutter build windows --flavor stack_duo --release
 
       - name: Package
         shell: pwsh
         run: |
-          Compress-Archive -Path "build/windows/x64/runner/Release/*" `
+          Compress-Archive -Path "build/windows/x64/stack_duo/runner/Release/*" `
             -DestinationPath "stack_duo-windows-x86_64-${{ steps.ver.outputs.version }}.zip"
 
       - uses: actions/upload-artifact@v7

@@ -6,6 +6,9 @@ project(runner LANGUAGES CXX)
 # work.
 #
 # Any new source files that you add to the application should be added here.
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/Runner.rc.in"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Runner.rc" @ONLY)
+
 add_executable(${BINARY_NAME} WIN32
   "flutter_window.cpp"
   "main.cpp"

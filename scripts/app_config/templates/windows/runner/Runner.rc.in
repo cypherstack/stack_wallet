@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.cypherstack" "\0"
-            VALUE "FileDescription", "PlaceHolderName" "\0"
+            VALUE "FileDescription", "@APP_DISPLAY_NAME@" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "PlaceHolderName" "\0"
+            VALUE "InternalName", "@APP_DISPLAY_NAME@" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2022 com.cypherstack. All rights reserved." "\0"
-            VALUE "OriginalFilename", "PlaceHolderName.exe" "\0"
-            VALUE "ProductName", "PlaceHolderName" "\0"
+            VALUE "OriginalFilename", "@BINARY_NAME@.exe" "\0"
+            VALUE "ProductName", "@APP_DISPLAY_NAME@" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
