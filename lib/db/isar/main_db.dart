@@ -324,7 +324,9 @@ class MainDB {
 
     await isar.writeTxn(() async {
       final set = utxos.toSet();
+      final noteValues = <String, String?>{};
       for (final utxo in utxos) {
+        UTXO persistedUtxo = utxo;
         // check if utxo exists in db and update accordingly
         final storedUtxo = await isar.utxos
             .where()
@@ -342,23 +344,35 @@ class MainDB {
               !storedUtxo.isBlocked &&
               !storedUtxo.userUnfroze;
           set.remove(utxo);
-          set.add(
-            storedUtxo.copyWith(
-              value: utxo.value,
-              address: utxo.address,
-              blockTime: utxo.blockTime,
-              blockHeight: utxo.blockHeight,
-              blockHash: utxo.blockHash,
-              // passing null keeps the stored value
-              isBlocked: applyAutoBlock ? true : null,
-              blockedReason: applyAutoBlock ? utxo.blockedReason : null,
-              name: applyAutoBlock && storedUtxo.name.isEmpty
-                  ? utxo.name
-                  : null,
-            ),
+          persistedUtxo = storedUtxo.copyWith(
+            value: utxo.value,
+            address: utxo.address,
+            blockTime: utxo.blockTime,
+            blockHeight: utxo.blockHeight,
+            blockHash: utxo.blockHash,
+            // passing null keeps the stored value
+            isBlocked: applyAutoBlock ? true : null,
+            blockedReason: applyAutoBlock ? utxo.blockedReason : null,
+            name: applyAutoBlock && storedUtxo.name.isEmpty ? utxo.name : null,
           );
+          set.add(persistedUtxo);
         } else {
           newUTXO = true;
+        }
+
+        if (persistedUtxo.name.isEmpty) {
+          final noteValue = noteValues.containsKey(utxo.txid)
+              ? noteValues[utxo.txid]
+              : (await isar.transactionNotes.getByTxidWalletId(
+                  utxo.txid,
+                  walletId,
+                ))?.value;
+          noteValues[utxo.txid] = noteValue;
+          if (noteValue?.isNotEmpty == true) {
+            set
+              ..remove(persistedUtxo)
+              ..add(persistedUtxo.copyWith(name: noteValue));
+          }
         }
       }
 
@@ -381,14 +395,37 @@ class MainDB {
       isar.transactionNotes.where().walletIdEqualTo(walletId);
 
   Future<void> putTransactionNote(TransactionNote transactionNote) =>
-      isar.writeTxn(() async {
-        await isar.transactionNotes.put(transactionNote);
-      });
+      putTransactionNotes([transactionNote]);
 
+  /// Copies a note only to blank UTXO labels. The label is independent after
+  /// that first assignment, so later note edits cannot overwrite it.
   Future<void> putTransactionNotes(List<TransactionNote> transactionNotes) =>
-      isar.writeTxn(() async {
-        await isar.transactionNotes.putAll(transactionNotes);
-      });
+      transactionNotes.isEmpty
+      ? Future.value()
+      : isar.writeTxn(() async {
+          await isar.transactionNotes.putAll(transactionNotes);
+
+          final toUpdate = <UTXO>[];
+          for (final note in transactionNotes) {
+            if (note.value.isEmpty) {
+              continue;
+            }
+            final utxos = await isar.utxos
+                .where()
+                .walletIdEqualTo(note.walletId)
+                .filter()
+                .txidEqualTo(note.txid)
+                .findAll();
+            toUpdate.addAll(
+              utxos
+                  .where((utxo) => utxo.name.isEmpty)
+                  .map((utxo) => utxo.copyWith(name: note.value)),
+            );
+          }
+          if (toUpdate.isNotEmpty) {
+            await isar.utxos.putAll(toUpdate);
+          }
+        });
 
   Future<TransactionNote?> getTransactionNote(
     String walletId,
