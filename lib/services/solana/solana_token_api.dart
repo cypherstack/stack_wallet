@@ -10,6 +10,23 @@
 import 'package:solana/dto.dart';
 import 'package:solana/solana.dart';
 
+import '../../utilities/default_sol_tokens.dart';
+
+/// A token mint discovered in a wallet, with its decimals when known.
+class DiscoveredSolMint {
+  const DiscoveredSolMint({
+    this.mint = '',
+    this.decimals,
+    this.rawBalance,
+    this.hasConflictingDecimals = false,
+  });
+
+  final String mint;
+  final int? decimals;
+  final BigInt? rawBalance;
+  final bool hasConflictingDecimals;
+}
+
 /// Exception for Solana token API errors.
 class SolanaTokenApiException implements Exception {
   final String message;
@@ -110,30 +127,57 @@ class TokenAccountInfo {
       'TokenAccountInfo(address=$address, owner=$owner, mint=$mint, balance=$balance, decimals=$decimals)';
 }
 
+abstract interface class SolanaTokenDiscoveryClient {
+  Future<ProgramAccountsResult> getTokenAccountsByProgram({
+    required String walletAddress,
+    required String programId,
+  });
+
+  Future<AccountResult> getAccountInfo(String mintAddress);
+}
+
+class _RpcSolanaTokenDiscoveryClient implements SolanaTokenDiscoveryClient {
+  const _RpcSolanaTokenDiscoveryClient(this._client);
+
+  final RpcClient _client;
+
+  @override
+  Future<ProgramAccountsResult> getTokenAccountsByProgram({
+    required String walletAddress,
+    required String programId,
+  }) => _client.getTokenAccountsByOwner(
+    walletAddress,
+    TokenAccountsFilter.byProgramId(programId),
+    encoding: Encoding.jsonParsed,
+  );
+
+  @override
+  Future<AccountResult> getAccountInfo(String mintAddress) =>
+      _client.getAccountInfo(mintAddress, encoding: Encoding.jsonParsed);
+}
+
 /// Solana SPL Token API service.
 ///
 /// Provides methods to interact with Solana token accounts and metadata
 /// using RPC calls.  Uses the solana package's RpcClient under the hood.
 class SolanaTokenAPI {
-  static final SolanaTokenAPI _instance = SolanaTokenAPI._internal();
+  factory SolanaTokenAPI({
+    RpcClient? rpcClient,
+    SolanaTokenDiscoveryClient? discoveryClient,
+  }) => SolanaTokenAPI._(
+    rpcClient,
+    discoveryClient ??
+        (rpcClient == null ? null : _RpcSolanaTokenDiscoveryClient(rpcClient)),
+  );
 
-  factory SolanaTokenAPI() {
-    return _instance;
-  }
+  SolanaTokenAPI._(this._rpcClient, this._discoveryClient);
 
-  SolanaTokenAPI._internal();
-
-  RpcClient? _rpcClient;
-
-  void initializeRpcClient(RpcClient rpcClient) {
-    _rpcClient = rpcClient;
-  }
+  final RpcClient? _rpcClient;
+  final SolanaTokenDiscoveryClient? _discoveryClient;
 
   void _checkClient() {
     if (_rpcClient == null) {
-      throw SolanaTokenApiException(
-        'RPC client not initialized. Call initializeRpcClient() first.',
-      );
+      throw SolanaTokenApiException('RPC client not configured.');
     }
   }
 
@@ -274,7 +318,7 @@ class SolanaTokenAPI {
       _checkClient();
 
       // Return placeholder data.
-      // 
+      //
       // TODO: Implement actual RPC call using proper client methods.
       return SolanaTokenApiResponse<TokenAccountInfo>(
         value: TokenAccountInfo(
@@ -332,34 +376,248 @@ class SolanaTokenAPI {
   }
 
   Future<SolanaTokenApiResponse<Map<String, dynamic>?>>
-      fetchTokenMetadataByMint(
-    String mintAddress,
-  ) async {
+  fetchTokenMetadataByMint(String mintAddress) async {
     try {
-      _checkClient();
+      // Resolve name/symbol/logo from the bundled known token list when the
+      // mint matches a well known token.
+      for (final token in DefaultSolTokens.list) {
+        if (token.address == mintAddress) {
+          return SolanaTokenApiResponse<Map<String, dynamic>?>(
+            value: {
+              "name": token.name,
+              "symbol": token.symbol,
+              "decimals": token.decimals,
+              "logoUri": token.logoUri,
+            },
+          );
+        }
+      }
 
-      // TODO: Implement proper metadata PDA derivation when solana package
-      // exposes findProgramAddress() utilities.
-      //
-      // The Solana Token Metadata program (metaqbxxUerdq28cj1RbAqWwTRiWLs6nshmbbuP3xqb)
-      // stores token metadata at a PDA derived from the mint address using:
-      // findProgramAddress(
-      //   ["metadata", metadataProgram, mintPubkey],
-      //   metadataProgram
-      // )
-      //
-      // Until then, return null to allow users to enter custom token details.
-
-      // Metadata PDA derivation not yet implemented
-      return SolanaTokenApiResponse<Map<String, dynamic>?>(
-        value: null,
-      );
+      // On-chain metadata lookup is not implemented here: it would require
+      // deriving the Token Metadata program PDA
+      // (metaqbxxUerdq28cj1RbAqWwTRiWLs6nshmbbuP3xqb) from the mint and
+      // decoding the Metaplex account, which the solana package does not yet
+      // expose helpers for. Returning null lets callers fall back to a
+      // mint-derived placeholder name/symbol while still using the correct
+      // on-chain decimals.
+      return SolanaTokenApiResponse<Map<String, dynamic>?>(value: null);
     } on Exception {
       // On error, return null to allow user to manually enter token details
-      return SolanaTokenApiResponse<Map<String, dynamic>?>(
-        value: null,
+      return SolanaTokenApiResponse<Map<String, dynamic>?>(value: null);
+    }
+  }
+
+  /// Discover all SPL token mints held by a wallet.
+  ///
+  /// Queries the wallet's token accounts for both the standard SPL Token
+  /// program and the Token2022 program, then extracts the unique mint
+  /// addresses from those accounts along with the number of decimals each
+  /// mint is configured with. The decimals are read directly from the parsed
+  /// token account data ('tokenAmount.decimals'), which mirrors the value
+  /// stored on the mint account, so balances are scaled correctly.
+  Future<SolanaTokenApiResponse<List<DiscoveredSolMint>>>
+  discoverTokensForWallet({required String walletAddress}) async {
+    try {
+      final client = _discoveryClient;
+      if (client == null) {
+        throw SolanaTokenApiException('RPC client not configured.');
+      }
+
+      const splTokenProgramId = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
+      const token2022ProgramId = 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb';
+
+      final splResponse = await client.getTokenAccountsByProgram(
+        walletAddress: walletAddress,
+        programId: splTokenProgramId,
+      );
+
+      final token2022Response = await client.getTokenAccountsByProgram(
+        walletAddress: walletAddress,
+        programId: token2022ProgramId,
+      );
+
+      final accounts = [...splResponse.value, ...token2022Response.value];
+
+      final byMint = <String, DiscoveredSolMint>{};
+      for (final account in accounts) {
+        final extracted = _extractMintFromParsedTokenAccount(
+          account.account.data,
+        );
+        final mint = extracted.mint;
+        final balance = extracted.rawBalance;
+        if (mint.isEmpty || balance == null) {
+          continue;
+        }
+
+        final existing = byMint[mint];
+        if (existing == null) {
+          byMint[mint] = extracted;
+        } else {
+          final conflict =
+              existing.hasConflictingDecimals ||
+              existing.decimals != null &&
+                  extracted.decimals != null &&
+                  existing.decimals != extracted.decimals;
+          final decimals = conflict
+              ? null
+              : existing.decimals ?? extracted.decimals;
+          byMint[mint] = DiscoveredSolMint(
+            mint: mint,
+            decimals: decimals,
+            rawBalance: existing.rawBalance! + balance,
+            hasConflictingDecimals: conflict,
+          );
+        }
+      }
+
+      // For any mint whose decimals could not be read from the token account
+      // data, fetch the mint account directly and read its decimals.
+      final resolved = <DiscoveredSolMint>[];
+      for (final entry in byMint.values) {
+        // Positive wrapped/native token accounts are holdings too; closed or
+        // zero-balance accounts are not.
+        if (entry.rawBalance! <= BigInt.zero) {
+          continue;
+        }
+        if (entry.decimals != null) {
+          resolved.add(entry);
+        } else {
+          final decimals = await _fetchMintDecimals(entry.mint);
+          resolved.add(
+            DiscoveredSolMint(
+              mint: entry.mint,
+              decimals: decimals,
+              rawBalance: entry.rawBalance,
+              hasConflictingDecimals:
+                  decimals == null && entry.hasConflictingDecimals,
+            ),
+          );
+        }
+      }
+
+      return SolanaTokenApiResponse<List<DiscoveredSolMint>>(value: resolved);
+    } on Exception catch (e) {
+      return SolanaTokenApiResponse<List<DiscoveredSolMint>>(
+        exception: SolanaTokenApiException(
+          'Failed to discover tokens: ${e.toString()}',
+          originalException: e,
+        ),
       );
     }
+  }
+
+  /// Both token programs store a mint's decimals as a u8, so anything outside
+  /// 0..255 came from a malformed or hostile node. The value ends up as
+  /// Amount.fractionDigits on every send and balance for that token, where a
+  /// negative one throws and a huge one makes Decimal arithmetic crawl, so
+  /// treat it as unknown rather than persisting it to the token catalog.
+  static int? _validMintDecimals(int? decimals) {
+    if (decimals == null || decimals < 0 || decimals > 255) {
+      return null;
+    }
+    return decimals;
+  }
+
+  /// Fetch the number of decimals configured on a token's mint account.
+  ///
+  /// Used as a fallback when the decimals could not be read from a parsed
+  /// token account. Returns null if the mint account cannot be read or parsed.
+  Future<int?> _fetchMintDecimals(String mintAddress) async {
+    try {
+      final response = await _discoveryClient!.getAccountInfo(mintAddress);
+
+      final data = response.value?.data;
+      if (data is ParsedAccountData) {
+        return data.when(
+          splToken: (spl) => spl.when(
+            account: (info, type, accountType) => null,
+            mint: (info, type, accountType) =>
+                _validMintDecimals(info.decimals),
+            unknown: (type) => null,
+          ),
+          token2022: (token2022data) => token2022data.when(
+            account: (info, type, accountType) => null,
+            mint: (info, type, accountType) =>
+                _validMintDecimals(info.decimals),
+            unknown: (type) => null,
+          ),
+          stake: (_) => null,
+          unsupported: (_) => null,
+        );
+      }
+    } catch (_) {
+      // Ignore and report unknown decimals.
+    }
+
+    return null;
+  }
+
+  /// Extract the mint address and decimals from a parsed token account's data.
+  ///
+  /// Handles both standard SPL Token and Token2022 account data. The decimals
+  /// come from 'tokenAmount.decimals' on the holding, which matches the value
+  /// stored on the mint account. Returns an empty mint when the data is not a
+  /// token account or cannot be parsed, and null decimals when unavailable.
+  DiscoveredSolMint _extractMintFromParsedTokenAccount(dynamic data) {
+    try {
+      if (data is ParsedAccountData) {
+        return data.when(
+          splToken: (spl) => spl.when(
+            account: (info, type, accountType) => DiscoveredSolMint(
+              mint: info.mint,
+              decimals: _validMintDecimals(info.tokenAmount.decimals),
+              rawBalance: BigInt.tryParse(info.tokenAmount.amount),
+            ),
+            mint: (info, type, accountType) => const DiscoveredSolMint(),
+            unknown: (type) => const DiscoveredSolMint(),
+          ),
+          token2022: (token2022data) => token2022data.when(
+            account: (info, type, accountType) => DiscoveredSolMint(
+              mint: info.mint,
+              decimals: _validMintDecimals(info.tokenAmount.decimals),
+              rawBalance: BigInt.tryParse(info.tokenAmount.amount),
+            ),
+            mint: (info, type, accountType) => const DiscoveredSolMint(),
+            unknown: (type) => const DiscoveredSolMint(),
+          ),
+          stake: (_) => const DiscoveredSolMint(),
+          unsupported: (_) => const DiscoveredSolMint(),
+        );
+      }
+
+      if (data is Map<String, dynamic>) {
+        final parsed = data['parsed'];
+        if (parsed is Map<String, dynamic>) {
+          final info = parsed['info'];
+          if (info is Map<String, dynamic>) {
+            final mint = info['mint'];
+            if (mint is String) {
+              int? decimals;
+              BigInt? rawBalance;
+              final tokenAmount = info['tokenAmount'];
+              if (tokenAmount is Map) {
+                final d = tokenAmount['decimals'];
+                decimals = _validMintDecimals(
+                  d is int ? d : int.tryParse(d?.toString() ?? ''),
+                );
+                rawBalance = BigInt.tryParse(
+                  tokenAmount['amount']?.toString() ?? '',
+                );
+              }
+              return DiscoveredSolMint(
+                mint: mint,
+                decimals: decimals,
+                rawBalance: rawBalance,
+              );
+            }
+          }
+        }
+      }
+    } catch (_) {
+      // Ignore parsing errors and treat as no mint found.
+    }
+
+    return const DiscoveredSolMint();
   }
 
   /// Validate if a string is a valid Solana mint address.
