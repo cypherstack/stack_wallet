@@ -79,6 +79,31 @@ class OpenCryptoPaySendHandler {
 
   bool get isQuoteExpired => _session?.isQuoteExpired ?? false;
 
+  List<String> get businessLines {
+    final details = _session?.details;
+    if (details == null) return const [];
+    final recipient = details.recipient;
+    final displayName = details.displayName;
+    String line(List<String?> parts) =>
+        parts.nonNulls.where((part) => part.isNotEmpty).join(" ");
+    final lines = <String?>[
+      displayName,
+      if (recipient != null) ...[
+        if (recipient.name != displayName) recipient.name,
+        line([recipient.street, recipient.houseNumber]),
+        line([recipient.zip, recipient.city]),
+        recipient.country,
+        recipient.phone,
+        recipient.mail,
+        recipient.website,
+        if (recipient.registrationNumber case final number?
+            when number.isNotEmpty)
+          "Registration number: $number",
+      ],
+    ];
+    return lines.nonNulls.where((line) => line.isNotEmpty).toList();
+  }
+
   bool isActivePaymentFor(String? recipientAddress) =>
       _session?.isActivePaymentFor(recipientAddress) ?? false;
 

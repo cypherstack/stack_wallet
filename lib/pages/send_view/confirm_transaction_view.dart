@@ -313,24 +313,31 @@ class _ConfirmTransactionViewState
     }
   }
 
+  /// Firo private (spark) sends carry the recipient in sparkRecipients.
+  String? get _recipientAddress =>
+      widget.txData.recipients?.firstOrNull?.address ??
+      widget.txData.sparkRecipients?.firstOrNull?.address;
+
+  OpenCryptoPaySendHandler? get _activeOcp {
+    final ocp = widget.openCryptoPayHandler;
+    return ocp != null && ocp.isActivePaymentFor(_recipientAddress)
+        ? ocp
+        : null;
+  }
+
   Future<void> _attemptSend(BuildContext context) async {
     final wallet = ref.read(pWallets).getWallet(walletId);
     final coin = wallet.info.coin;
 
-    final ocp = widget.openCryptoPayHandler;
-    // Firo private (spark) sends carry the recipient in sparkRecipients.
-    final recipientAddress =
-        widget.txData.recipients?.firstOrNull?.address ??
-        widget.txData.sparkRecipients?.firstOrNull?.address;
-    final isOcp = ocp != null && ocp.isActivePaymentFor(recipientAddress);
+    final ocp = _activeOcp;
 
-    if (isOcp && ocp.isQuoteExpired) {
+    if (ocp != null && ocp.isQuoteExpired) {
       // Abort before anything is broadcast or submitted (both proof types).
       await ocp.showQuoteExpiredError(context, paymentNotSent: true);
       return;
     }
 
-    if (isOcp && !ocp.requiresBroadcast) {
+    if (ocp != null && !ocp.requiresBroadcast) {
       // Signed-hex proof type: the provider broadcasts the transaction, so
       // do NOT broadcast here. The txid proof type falls through to the
       // normal confirmSend flow below.
@@ -467,7 +474,7 @@ class _ConfirmTransactionViewState
 
       widget.onSuccess.call();
 
-      if (isOcp && txids.isNotEmpty) {
+      if (ocp != null && txids.isNotEmpty) {
         // Broadcast (txid) proof type: submit the txid to the
         // OpenCryptoPay provider.
         unawaited(ocp.submitProof(context, txids.first));
@@ -746,6 +753,7 @@ class _ConfirmTransactionViewState
 
     final String unit;
     final wallet = ref.watch(pWallets).getWallet(walletId);
+    final businessLines = _activeOcp?.businessLines ?? const <String>[];
     if (widget.isTokenTx) {
       if (wallet is SolanaWallet) {
         // For Solana tokens, use the Solana token wallet provider or TxData as fallback.
@@ -894,21 +902,31 @@ class _ConfirmTransactionViewState
                         Text(
                           widget.isPaynymTransaction
                               ? widget.txData.paynymAccountLite!.nymName
-                              : widget
-                                        .txData
-                                        .recipients
-                                        ?.firstOrNull
-                                        ?.address ??
-                                    widget
-                                        .txData
-                                        .sparkRecipients!
-                                        .first
-                                        .address,
+                              : _recipientAddress!,
                           style: STextStyles.itemSubtitle12(context),
                         ),
                       ],
                     ),
                   ),
+                  if (businessLines.isNotEmpty) const SizedBox(height: 12),
+                  if (businessLines.isNotEmpty)
+                    RoundedWhiteContainer(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            "Business",
+                            style: STextStyles.smallMed12(context),
+                          ),
+                          const SizedBox(height: 4),
+                          for (final line in businessLines)
+                            SelectableText(
+                              line,
+                              style: STextStyles.itemSubtitle12(context),
+                            ),
+                        ],
+                      ),
+                    ),
                   const SizedBox(height: 12),
                   RoundedWhiteContainer(
                     child: Row(
@@ -1244,16 +1262,7 @@ class _ConfirmTransactionViewState
                               // TODO: [prio=med] spark transaction specifics - better handling
                               widget.isPaynymTransaction
                                   ? widget.txData.paynymAccountLite!.nymName
-                                  : widget
-                                            .txData
-                                            .recipients
-                                            ?.firstOrNull
-                                            ?.address ??
-                                        widget
-                                            .txData
-                                            .sparkRecipients!
-                                            .first
-                                            .address,
+                                  : _recipientAddress!,
                               style:
                                   STextStyles.desktopTextExtraExtraSmall(
                                     context,
@@ -1266,6 +1275,42 @@ class _ConfirmTransactionViewState
                           ],
                         ),
                       ),
+                      if (businessLines.isNotEmpty)
+                        Container(
+                          height: 1,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.background,
+                        ),
+                      if (businessLines.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Business",
+                                style: STextStyles.desktopTextExtraExtraSmall(
+                                  context,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              for (final line in businessLines)
+                                SelectableText(
+                                  line,
+                                  style:
+                                      STextStyles.desktopTextExtraExtraSmall(
+                                        context,
+                                      ).copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).extension<StackColors>()!.textDark,
+                                      ),
+                                ),
+                            ],
+                          ),
+                        ),
                       if (widget.isPaynymTransaction)
                         Container(
                           height: 1,

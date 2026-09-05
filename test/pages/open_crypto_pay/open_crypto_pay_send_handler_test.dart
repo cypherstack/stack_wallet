@@ -37,11 +37,30 @@ const _hashHint =
     'Use this data to create a transaction, sign and broadcast it. Then '
     'send the transaction id back via the endpoint.';
 
-Map<String, dynamic> _paymentInfoJson({required String quoteExpiration}) => {
+const _recipientJson = {
+  "name": "Test Shop AG",
+  "address": {
+    "street": "Bahnhofstrasse",
+    "houseNumber": "7",
+    "city": "Zug",
+    "zip": "6300",
+    "country": "CH",
+  },
+  "phone": "+41792684224",
+  "mail": "mail@example.org",
+  "website": "https://example.org/",
+  "registrationNumber": "CHE-429.856.521",
+};
+
+Map<String, dynamic> _paymentInfoJson({
+  required String quoteExpiration,
+  Map<String, dynamic>? recipient,
+}) => {
   "id": "pl_test",
   "tag": "payRequest",
   "callback": _callbackUrl,
   "displayName": "Test Shop",
+  if (recipient != null) "recipient": recipient,
   "quote": {
     "id": "plq_test",
     "expiration": quoteExpiration,
@@ -295,6 +314,70 @@ void main() {
       expect(setup.handler.isActivePaymentFor("bc1qsomeotheraddress"), isFalse);
       expect(setup.handler.requiresBroadcast, isTrue);
       expect(setup.handler.isQuoteExpired, isFalse);
+      expect(setup.handler.businessLines, ["Test Shop"]);
+    });
+
+    testWidgets("lists the business information of the pending payment", (
+      tester,
+    ) async {
+      final harness = await _pumpHarness(tester);
+      final setup = _makeHandler(
+        harness: harness,
+        coin: Bitcoin(CryptoCurrencyNetwork.main),
+        client: _mockOcpServer(
+          paymentInfo: _paymentInfoJson(
+            quoteExpiration: _futureExpiration(),
+            recipient: _recipientJson,
+          ),
+          txDetails: _btcDetailsJson(hint: _hashHint),
+        ),
+      );
+
+      await _handle(tester, harness, setup.handler);
+
+      expect(setup.handler.businessLines, [
+        "Test Shop",
+        "Test Shop AG",
+        "Bahnhofstrasse 7",
+        "6300 Zug",
+        "CH",
+        "+41792684224",
+        "mail@example.org",
+        "https://example.org/",
+        "Registration number: CHE-429.856.521",
+      ]);
+    });
+
+    testWidgets("skips empty and missing business fields", (tester) async {
+      final harness = await _pumpHarness(tester);
+      final setup = _makeHandler(
+        harness: harness,
+        coin: Bitcoin(CryptoCurrencyNetwork.main),
+        client: _mockOcpServer(
+          paymentInfo: _paymentInfoJson(
+            quoteExpiration: _futureExpiration(),
+            recipient: {
+              "name": "Test Shop",
+              "address": {
+                "street": "Bahnhofstrasse",
+                "houseNumber": "",
+                "city": "Zug",
+              },
+              "phone": "",
+              "registrationNumber": "",
+            },
+          ),
+          txDetails: _btcDetailsJson(hint: _hashHint),
+        ),
+      );
+
+      await _handle(tester, harness, setup.handler);
+
+      expect(setup.handler.businessLines, [
+        "Test Shop",
+        "Bahnhofstrasse",
+        "Zug",
+      ]);
     });
 
     testWidgets("signed-hex hint results in requiresBroadcast false", (
