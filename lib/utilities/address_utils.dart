@@ -44,45 +44,46 @@ class AddressUtils {
   static Map<String, String> _parseUri(String uri) {
     final Map<String, String> result = {};
     try {
-      final u = Uri.parse(uri);
-      if (u.hasScheme) {
-        result["scheme"] = u.scheme.toLowerCase();
+      final Uri parsedUri = Uri.parse(uri);
+
+      if (parsedUri.hasScheme) {
+        final String scheme = parsedUri.scheme.toLowerCase();
+        result["scheme"] = scheme;
 
         // Handle different URI formats.
         if (result["scheme"] == "bitcoin" ||
             result["scheme"] == "bitcoincash") {
-          result["address"] = u.path;
+          result["address"] = parsedUri.path;
         } else if (result["scheme"] == "monero") {
           // Monero addresses can contain '?' which Uri.parse interprets as query start.
-          final addressEnd = uri.indexOf(
-            '?',
-            7,
-          ); // 7 is the length of "monero:".
-          if (addressEnd != -1) {
-            result["address"] = uri.substring(7, addressEnd);
-          } else {
-            result["address"] = uri.substring(7);
-          }
+          final int addressEnd = uri.indexOf(
+            "?",
+            7, // 7 is the length of "monero:".
+          );
         } else {
           // Default case, treat path as address.
-          result["address"] = u.path;
+          result["address"] = parsedUri.path;
         }
+      } else {
+        // Plain address, including an Epicbox/Grinbox address containing '@'.
+        result["address"] = parsedUri.path;
+      }
 
-        // Parse query parameters.
-        result.addAll(_parseQueryParameters(u.queryParameters));
+      // Parse query parameters.
+      result.addAll(_parseQueryParameters(parsedUri.queryParameters));
 
-        // Handle Monero-specific fragment (tx_description).
-        if (u.fragment.isNotEmpty && result["scheme"] == "monero") {
-          result["tx_description"] = Uri.decodeComponent(u.fragment);
-        }
+      // Handle Monero-specific fragment (tx_description).
+      if (parsedUri.fragment.isNotEmpty && result["scheme"] == "monero") {
+        result["tx_description"] = Uri.decodeComponent(parsedUri.fragment);
       }
     } catch (e, s) {
       Logging.instance.d(
-        "Exception caught in parseUri($uri): $e",
+        "Exception caught in _parseUri($uri): $e",
         error: e,
         stackTrace: s,
       );
     }
+
     return result;
   }
 
@@ -137,6 +138,7 @@ class AddressUtils {
   static PaymentUriData? parsePaymentUri(String uri, {Logging? logging}) {
     // hacky check its not just a bcash, ecash, or xel address
     final parts = uri.split(":");
+
     if (parts.length == 2) {
       if ([
         "xel",
@@ -153,20 +155,25 @@ class AddressUtils {
       final Map<String, String> parsedData = _parseUri(uri);
 
       // Normalize the URI scheme.
-      final String scheme = parsedData['scheme'] ?? '';
-      parsedData.remove('scheme');
+      final String scheme = parsedData["scheme"] ?? "";
+      parsedData.remove("scheme");
 
       // Filter out unrecognized parameters.
-      final filteredParams = _filterParams(parsedData);
+      final String? address = parsedData["address"];
+
+      if (address == null || address.trim().isEmpty) {
+        return null;
+      }
+
+      final Map<String, String> filteredParams = _filterParams(parsedData);
 
       return PaymentUriData(
         scheme: scheme,
-        address: parsedData['address']!.trim(),
-        amount: filteredParams['amount'] ?? filteredParams['tx_amount'],
-        label: filteredParams['label'] ?? filteredParams['recipient_name'],
-        message: filteredParams['message'] ?? filteredParams['tx_description'],
-        paymentId: filteredParams['tx_payment_id'],
-        // Specific to Monero
+        address: address.trim(),
+        amount: filteredParams["amount"] ?? filteredParams["tx_amount"],
+        label: filteredParams["label"] ?? filteredParams["recipient_name"],
+        message: filteredParams["message"] ?? filteredParams["tx_description"],
+        paymentId: filteredParams["tx_payment_id"],
         additionalParams: filteredParams,
       );
     } catch (e, s) {

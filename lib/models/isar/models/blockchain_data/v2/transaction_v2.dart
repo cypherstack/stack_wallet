@@ -106,6 +106,7 @@ class TransactionV2 {
   int? get numberOfMessages =>
       _getFromOtherData(key: TxV2OdKeys.numberOfMessages) as int?;
   String? get slateId => _getFromOtherData(key: TxV2OdKeys.slateId) as String?;
+  String? get epicboxId => _getFromOtherData(key: TxV2OdKeys.epicboxId) as String?;
   String? get onChainNote =>
       _getFromOtherData(key: TxV2OdKeys.onChainNote) as String?;
   bool get isCancelled =>
@@ -409,6 +410,7 @@ abstract final class TxV2OdKeys {
   static const isMimblewimblecoinTransaction = "isMimblewimblecoinTransaction";
   static const numberOfMessages = "numberOfMessages";
   static const slateId = "slateId";
+  static const epicboxId = "epicboxId";
   static const onChainNote = "onChainNote";
   static const isCancelled = "isCancelled";
   static const contractAddress = "contractAddress";
