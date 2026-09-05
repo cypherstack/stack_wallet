@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:opencryptopay/opencryptopay.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../models/epic_slatepack_models.dart';
@@ -82,6 +83,7 @@ import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
 import '../address_book_views/address_book_view.dart';
 import '../coin_control/coin_control_view.dart';
+import '../open_crypto_pay/open_crypto_pay_send_handler.dart';
 import 'confirm_transaction_view.dart';
 import 'sub_widgets/building_transaction_dialog.dart';
 import 'sub_widgets/dual_balance_selection_sheet.dart';
@@ -155,6 +157,16 @@ class _SendViewState extends ConsumerState<SendView> {
   late VoidCallback onCryptoAmountChanged;
 
   Set<StandardInput> selectedUTXOs = {};
+
+  late final OpenCryptoPaySendHandler _openCryptoPay;
+
+  void _openCryptoPaySetValidAddress(String address) {
+    _address = address;
+    _setValidAddressProviders(_address);
+    setState(() {
+      _addressToggleFlag = sendToController.text.isNotEmpty;
+    });
+  }
 
   void _applyUri(PaymentUriData paymentData) {
     try {
@@ -315,6 +327,12 @@ class _SendViewState extends ConsumerState<SendView> {
 
       Logging.instance.d("qrResult content: ${qrResult.rawContent}");
       if (qrResult.rawContent == null) return;
+
+      if (OpenCryptoPayController.isOpenCryptoPayUri(qrResult.rawContent)) {
+        if (!mounted) return;
+        unawaited(_openCryptoPay.handle(context, qrResult.rawContent!));
+        return;
+      }
 
       final paymentData = AddressUtils.parsePaymentUri(
         qrResult.rawContent!,
@@ -1152,6 +1170,7 @@ class _SendViewState extends ConsumerState<SendView> {
                     clearSendForm();
                   }
                 },
+                openCryptoPayHandler: _openCryptoPay,
               ),
               settings: const RouteSettings(
                 name: ConfirmTransactionView.routeName,
@@ -1342,6 +1361,18 @@ class _SendViewState extends ConsumerState<SendView> {
     onCryptoAmountChanged = _cryptoAmountChanged;
     cryptoAmountController.addListener(onCryptoAmountChanged);
     baseAmountController.addListener(_baseAmountChanged);
+    _openCryptoPay = OpenCryptoPaySendHandler(
+      coin: coin,
+      sendToController: sendToController,
+      onAmountReceived: (parsed) {
+        cryptoAmountController.text = ref
+            .read(pAmountFormatter(coin))
+            .format(parsed, withUnitName: false);
+        ref.read(pSendAmount.notifier).state = parsed;
+      },
+      setValidAddress: _openCryptoPaySetValidAddress,
+      isMounted: () => mounted,
+    );
 
     if (_data != null) {
       final hasAmount = _data.amount != null;

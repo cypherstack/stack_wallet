@@ -265,6 +265,10 @@ class EthTokenWallet extends Wallet {
       web3dartTransaction: tx,
       chainId: prep.chainId,
       nonce: tx.nonce,
+      raw: await ethWallet.signWeb3TransactionToHex(
+        tx: tx,
+        chainId: prep.chainId,
+      ),
     );
   }
 
