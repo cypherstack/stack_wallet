@@ -59,6 +59,30 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
     return web3.Web3Client(node.host, client);
   }
 
+  /// Sign [tx] without broadcasting; returns the raw signed transaction hex
+  /// (0x-prefixed, EIP-1559 type byte included). Used for flows where a
+  /// third party broadcasts (e.g. OpenCryptoPay signed-hex proof).
+  Future<String> signWeb3TransactionToHex({
+    required web3.Transaction tx,
+    required BigInt chainId,
+  }) async {
+    if (_credentials == null) {
+      await _initCredentials();
+    }
+    // The tx built by prepareSend always has nonce and fees populated, so
+    // the pure signTransactionRaw is equivalent to Web3Client.signTransaction
+    // without constructing a client.
+    var signed = web3.signTransactionRaw(
+      tx,
+      _credentials!,
+      chainId: chainId.toInt(),
+    );
+    if (tx.isEIP1559) {
+      signed = web3.prependTransactionType(0x02, signed);
+    }
+    return web3.bytesToHex(signed, include0x: true, padToEvenLength: true);
+  }
+
   Amount estimateEthFee(BigInt feeRate, int gasLimit, int decimals) {
     final gweiAmount = feeRate.toDecimal() / (Decimal.ten.pow(9).toDecimal());
     final fee =
@@ -540,6 +564,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
       web3dartTransaction: tx,
       fee: feeEstimate,
       chainId: prep.chainId,
+      raw: await signWeb3TransactionToHex(tx: tx, chainId: prep.chainId),
     );
   }
 
