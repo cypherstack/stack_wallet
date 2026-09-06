@@ -1,7 +1,9 @@
 part of 'firo_cache.dart';
 
 enum FCFuncName {
-  _updateSparkAnonSetCoinsWith,
+  _insertSparkAnonSetCoinsIncremental,
+  _markSparkAnonSetComplete,
+  _deleteIncompleteSparkSetsForGroup,
   _updateSparkUsedTagsWith,
 }
 
@@ -37,23 +39,18 @@ class _FiroCacheWorker {
 
     initPort.handler = (dynamic initialMessage) {
       final commandPort = initialMessage as SendPort;
-      connection.complete(
-        (
-          ReceivePort.fromRawReceivePort(initPort),
-          commandPort,
-        ),
-      );
+      connection.complete((
+        ReceivePort.fromRawReceivePort(initPort),
+        commandPort,
+      ));
     };
 
     try {
-      await Isolate.spawn(
-        _startWorkerIsolate,
-        (
-          initPort.sendPort,
-          setCacheFilePath,
-          usedTagsCacheFilePath,
-        ),
-      );
+      await Isolate.spawn(_startWorkerIsolate, (
+        initPort.sendPort,
+        setCacheFilePath,
+        usedTagsCacheFilePath,
+      ));
     } catch (_) {
       initPort.close();
       rethrow;
@@ -93,13 +90,24 @@ class _FiroCacheWorker {
         try {
           final FCResult result;
           switch (task.func) {
-            case FCFuncName._updateSparkAnonSetCoinsWith:
-              final data =
-                  task.data as (SparkAnonymitySetMeta, List<RawSparkCoin>);
-              result = _updateSparkAnonSetCoinsWith(
+            case FCFuncName._insertSparkAnonSetCoinsIncremental:
+              result = _insertSparkAnonSetCoinsIncremental(
                 setCacheDb,
-                data.$2,
-                data.$1,
+                task.data as (SparkAnonymitySetMeta, List<RawSparkCoin>, int),
+              );
+              break;
+
+            case FCFuncName._markSparkAnonSetComplete:
+              result = _markSparkAnonSetComplete(
+                setCacheDb,
+                task.data as (SparkAnonymitySetMeta, int),
+              );
+              break;
+
+            case FCFuncName._deleteIncompleteSparkSetsForGroup:
+              result = _deleteIncompleteSparkSetsForGroup(
+                setCacheDb,
+                task.data as int,
               );
               break;
 
@@ -127,14 +135,10 @@ class _FiroCacheWorker {
     final receivePort = ReceivePort();
     args.$1.send(receivePort.sendPort);
     final mutex = Mutex();
-    final setCacheDb = sqlite3.open(
-      args.$2,
-      mode: OpenMode.readWrite,
-    );
-    final usedTagsCacheDb = sqlite3.open(
-      args.$3,
-      mode: OpenMode.readWrite,
-    );
+    final setCacheDb = sqlite3.open(args.$2, mode: OpenMode.readWrite);
+    final usedTagsCacheDb = sqlite3.open(args.$3, mode: OpenMode.readWrite);
+    _FiroCache._configureDb(setCacheDb);
+    _FiroCache._configureDb(usedTagsCacheDb);
     _handleCommandsToIsolate(
       receivePort,
       args.$1,
