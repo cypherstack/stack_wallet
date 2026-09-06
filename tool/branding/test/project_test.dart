@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
@@ -21,6 +22,7 @@ void copyTree(Directory source, Directory target) {
 
 void main() {
   final repository = p.normalize(p.absolute('../..'));
+  final adapter = Directory.current.path;
   late Directory temporary;
   late Directory project;
   setUp(() {
@@ -156,6 +158,88 @@ void main() {
         throwsStateError,
       );
       expect(config.readAsStringSync(), 'manual edit');
+    },
+  );
+
+  test('prebuilts enable the native asset hook block', () {
+    String pubspec(bool prebuilts) {
+      planStackWallet(
+        projectRoot: project.path,
+        brand: StackWalletManifest.load('brands/stack_wallet.yaml'),
+        version: '2.4.0',
+        buildNumber: '123',
+        platforms: {'linux'},
+        revision: 'a' * 40,
+        nativePrebuilts: prebuilts,
+      ).apply();
+      return File(p.join(project.path, 'pubspec.yaml')).readAsStringSync();
+    }
+
+    expect(pubspec(false), isNot(contains('\nhooks:\n')));
+    expect(pubspec(true), contains('\nhooks:\n'));
+  });
+
+  test(
+    'standalone launcher preserves relative paths and JSON stdout',
+    () async {
+      final result = await Process.run(Platform.resolvedExecutable, [
+        p.join(adapter, 'configure.dart'),
+        '--brand',
+        'campfire',
+        '--project',
+        'project',
+        '--version',
+        '2.4.0',
+        '--build-number',
+        '123',
+        '--platforms',
+        'linux',
+        '--revision',
+        'a' * 40,
+        '--json',
+      ], workingDirectory: temporary.path);
+      expect(result.exitCode, 0, reason: '${result.stdout}${result.stderr}');
+      expect(jsonDecode(result.stdout.toString()), isA<Map<String, dynamic>>());
+      expect(
+        Directory(p.join(project.path, '.whitelabel')).existsSync(),
+        isFalse,
+      );
+    },
+    timeout: const Timeout(Duration(minutes: 2)),
+  );
+
+  test(
+    'CLI rejects missing platforms and mismatched build flavor without writes',
+    () async {
+      for (final extra in [
+        <String>[],
+        ['--platforms', 'linux', '--flavor', 'stack_wallet'],
+      ]) {
+        final result = await Process.run(Platform.resolvedExecutable, [
+          'run',
+          'bin/configure.dart',
+          '--brand',
+          'campfire',
+          '--project',
+          project.path,
+          '--version',
+          '2.4.0',
+          '--build-number',
+          '123',
+          '--revision',
+          'a' * 40,
+          ...extra,
+        ], workingDirectory: adapter);
+        expect(result.exitCode, isNot(0));
+        expect(
+          File(p.join(project.path, 'pubspec.yaml')).existsSync(),
+          isFalse,
+        );
+        expect(
+          Directory(p.join(project.path, '.whitelabel')).existsSync(),
+          isFalse,
+        );
+      }
     },
   );
 }

@@ -1,0 +1,72 @@
+name: Consumer branding
+
+on:
+  push:
+    branches: [feat/whitelabel]
+  pull_request:
+    paths:
+      - 'tool/branding/**'
+      - 'tool/wl_templates/**'
+      - 'scripts/app_config/**'
+      - 'scripts/env.sh'
+      - 'asset_sources/**'
+      - 'ios/Flutter/Flavor-*.xcconfig'
+      - 'macos/Runner/Configs/AppInfo-*.xcconfig'
+      - '.github/workflows/branding.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  adapter:
+    # The current engine repository is private. Never expose its deploy key to
+    # fork code via pull_request_target; review forks before testing a trusted ref.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: tool/branding
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: dart-lang/setup-dart@6afc89df92d6eb3834022f73cd65adc8cdfcb92d # v1
+        with:
+          sdk: '3.12.2'
+      - name: Configure read-only access to the pinned engine
+        env:
+          DEPLOY_KEY: ${{ secrets.WHITELABEL_DEPLOY_KEY }}
+          KNOWN_HOSTS: ${{ vars.WHITELABEL_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          if [ -z "$DEPLOY_KEY" ] || [ -z "$KNOWN_HOSTS" ]; then
+            echo '::error::Configure the WHITELABEL_DEPLOY_KEY secret and the WHITELABEL_KNOWN_HOSTS variable.'
+            exit 1
+          fi
+          umask 077
+          key_dir="${RUNNER_TEMP//\\//}/branding-ssh"
+          mkdir -p "$key_dir"
+          printf '%s\n' "$DEPLOY_KEY" > "$key_dir/key"
+          printf '%s\n' "$KNOWN_HOSTS" > "$key_dir/known_hosts"
+          echo "GIT_SSH_COMMAND=ssh -i '$key_dir/key' -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile='$key_dir/known_hosts'" >> "$GITHUB_ENV"
+      - name: Resolve the committed dependency without local overrides
+        run: |
+          test ! -e pubspec_overrides.yaml
+          dart pub get --enforce-lockfile
+          git diff --exit-code -- pubspec.yaml pubspec.lock
+      - run: dart format --output=none --set-exit-if-changed .
+      - run: dart analyze --fatal-infos
+      - run: dart test
+      - name: Compare all brands with the legacy pipeline
+        if: runner.os == 'Linux'
+        run: python3 tool/verify_parity.py --repo ../.. --base HEAD
+      - name: Remove temporary credentials
+        if: always()
+        run: rm -rf "${RUNNER_TEMP//\\//}/branding-ssh"
