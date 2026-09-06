@@ -74,6 +74,7 @@ secp256k1.dll
 ## other generated project files
 
 pubspec.yaml
+!/tool/branding/pubspec.yaml
 
 /android/app/build.gradle
 /android/app/src/debug/AndroidManifest.xml
@@ -121,3 +122,6 @@ lib/wl_gen/generated/
 
 /assets/windows/mwebd.exe
 /tool/build
+
+# Branding ownership and interrupted-write recovery (local to each checkout).
+/.whitelabel/

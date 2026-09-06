@@ -1,0 +1,35 @@
+brand: campfire
+app_name: Campfire
+app_id: com.cypherstack.campfire
+app_id_ios: com.cypherstack.campfirefirowallet
+app_id_camel: com.cypherstack.campfire
+app_id_snake: com.cypherstack.campfire
+basic_name: campfire
+pubspec_name: paymint
+
+enable_coins: [TOR, FIRO]
+
+prefix: Campfire
+separator: ""
+suffix: ""
+empty_wallets_message: "Join us around the Campfire and create a wallet!"
+app_data_dir_name: campfire
+short_description: "Your privacy. Your wallet. Your Firo."
+
+features: [tor, swap]
+
+app_icon_asset:
+  light: "assets/in_app_logo_icons/campfire-icon_light.svg"
+  dark: "assets/in_app_logo_icons/campfire-icon_dark.svg"
+
+supported_coins:
+  - "Firo(CryptoCurrencyNetwork.main),"
+  - "Ethereum(CryptoCurrencyNetwork.main),"
+
+default_eth_tokens: [rsFiro, usdc, usdt]
+
+swap_defaults:
+  from: BTC
+  from_fuzzy_net: btc
+  to: FIRO
+  to_fuzzy_net: firo

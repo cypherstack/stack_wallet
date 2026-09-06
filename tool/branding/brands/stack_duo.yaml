@@ -1,0 +1,39 @@
+brand: stack_duo
+app_name: Stack Duo
+app_id: com.cypherstack.stackduo
+app_id_camel: com.cypherstack.stackDuo
+app_id_snake: com.cypherstack.stack_duo
+basic_name: stack_duo
+pubspec_name: stackduo
+
+enable_coins: [XMR, TOR, FROST]
+
+prefix: Stack
+separator: " "
+suffix: Duo
+empty_wallets_message: "You do not have any wallets yet. Start building your crypto Stack!"
+app_data_dir_name: stackduo
+short_description: "An open-source, multicoin wallet for everyone"
+
+features: [themeSelection, buy, tor, shopinBit, cakePay, swap]
+
+app_icon_asset:
+  light: "assets/in_app_logo_icons/stack-duo-icon_light.svg"
+  dark: "assets/in_app_logo_icons/stack-duo-icon_dark.svg"
+
+supported_coins:
+  - "Bitcoin(CryptoCurrencyNetwork.main),"
+  - "Monero(CryptoCurrencyNetwork.main),"
+  - "BitcoinFrost(CryptoCurrencyNetwork.main),"
+  - "Bitcoin(CryptoCurrencyNetwork.test),"
+  - "Bitcoin(CryptoCurrencyNetwork.test4),"
+  - "BitcoinFrost(CryptoCurrencyNetwork.test),"
+  - "BitcoinFrost(CryptoCurrencyNetwork.test4),"
+
+default_eth_tokens: []
+
+swap_defaults:
+  from: BTC
+  from_fuzzy_net: btc
+  to: XMR
+  to_fuzzy_net: xmr

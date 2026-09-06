@@ -1,0 +1,67 @@
+brand: stack_wallet
+app_name: Stack Wallet
+app_id: com.cypherstack.stackwallet
+app_id_camel: com.cypherstack.stackWallet
+app_id_snake: com.cypherstack.stack_wallet
+basic_name: stack_wallet
+pubspec_name: stackwallet
+
+enable_coins: [MWC, MWEBD, XMR, WOW, SAL, TOR, EPIC, FIRO, XEL, FROST]
+
+prefix: Stack
+separator: " "
+suffix: Wallet
+empty_wallets_message: "You do not have any wallets yet. Start building your crypto Stack!"
+app_data_dir_name: stackwallet
+short_description: "An open-source, multicoin wallet for everyone"
+
+features: [themeSelection, buy, tor, shopinBit, cakePay, swap]
+
+app_icon_asset: null
+
+supported_coins:
+  - "Bitcoin(CryptoCurrencyNetwork.main),"
+  - "Monero(CryptoCurrencyNetwork.main),"
+  - "Banano(CryptoCurrencyNetwork.main),"
+  - "Bitcoincash(CryptoCurrencyNetwork.main),"
+  - "BitcoinFrost(CryptoCurrencyNetwork.main),"
+  - "Cardano(CryptoCurrencyNetwork.main),"
+  - "Dash(CryptoCurrencyNetwork.main),"
+  - "Dogecoin(CryptoCurrencyNetwork.main),"
+  - "Ecash(CryptoCurrencyNetwork.main),"
+  - "Epiccash(CryptoCurrencyNetwork.main),"
+  - "Ethereum(CryptoCurrencyNetwork.main),"
+  - "Fact0rn(CryptoCurrencyNetwork.main),"
+  - "Firo(CryptoCurrencyNetwork.main),"
+  - "Litecoin(CryptoCurrencyNetwork.main),"
+  - "Mimblewimblecoin(CryptoCurrencyNetwork.main),"
+  - "Nano(CryptoCurrencyNetwork.main),"
+  - "Namecoin(CryptoCurrencyNetwork.main),"
+  - "Particl(CryptoCurrencyNetwork.main),"
+  - "Peercoin(CryptoCurrencyNetwork.main),"
+  - "Salvium(CryptoCurrencyNetwork.main),"
+  - "Solana(CryptoCurrencyNetwork.main),"
+  - "Stellar(CryptoCurrencyNetwork.main),"
+  - "Tezos(CryptoCurrencyNetwork.main),"
+  - "Wownero(CryptoCurrencyNetwork.main),"
+  - "Xelis(CryptoCurrencyNetwork.main),"
+  - "Bitcoin(CryptoCurrencyNetwork.test),"
+  - "Bitcoin(CryptoCurrencyNetwork.test4),"
+  - "Bitcoincash(CryptoCurrencyNetwork.test),"
+  - "BitcoinFrost(CryptoCurrencyNetwork.test),"
+  - "BitcoinFrost(CryptoCurrencyNetwork.test4),"
+  - "Dogecoin(CryptoCurrencyNetwork.test),"
+  - "Firo(CryptoCurrencyNetwork.test),"
+  - "Litecoin(CryptoCurrencyNetwork.test),"
+  - "Peercoin(CryptoCurrencyNetwork.test),"
+  - "Salvium(CryptoCurrencyNetwork.test),"
+  - "Stellar(CryptoCurrencyNetwork.test),"
+  - "Xelis(CryptoCurrencyNetwork.test),"
+
+default_eth_tokens: [usdc, usdt, shib, link, uni, rsFiro]
+
+swap_defaults:
+  from: BTC
+  from_fuzzy_net: btc
+  to: XMR
+  to_fuzzy_net: xmr
