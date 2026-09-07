@@ -12,7 +12,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import '../../../exceptions/main_db/main_db_exception.dart';
 import '../../../exceptions/wallet/node_tor_mismatch_config_exception.dart';
 import '../../../models/balance.dart';
-import '../../../models/epic_slatepack_models.dart';
+import '../../../models/slatepack_models.dart';
 import '../../../models/epicbox_config_model.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
@@ -191,7 +191,7 @@ class EpiccashWallet extends Bip39Wallet {
   // ================= Slatepack Operations ===================================
 
   /// Create a slatepack for sending Epic Cash.
-  Future<EpicSlatepackResult> createSlatepack({
+  Future<SlatepackResult> createSlatepack({
     required Amount amount,
     String? recipientAddress,
     String? message,
@@ -214,7 +214,7 @@ class EpiccashWallet extends Bip39Wallet {
         returnSlate: true,
       );
 
-      return EpicSlatepackResult(
+      return SlatepackResult(
         success: true,
         slatepack: result.slateJson,
         slateJson: result.slateJson,
@@ -223,18 +223,18 @@ class EpiccashWallet extends Bip39Wallet {
       );
     } catch (e, s) {
       Logging.instance.e('Failed to create slatepack: $e\n$s');
-      return EpicSlatepackResult(success: false, error: e.toString());
+      return SlatepackResult(success: false, error: e.toString());
     }
   }
 
   /// Decode a slatepack/slate JSON.
-  Future<EpicSlatepackDecodeResult> decodeSlatepack(String slateJson) async {
+  Future<SlatepackDecodeResult> decodeSlatepack(String slateJson) async {
     try {
       // For Epic Cash, slates are already JSON, so we parse directly.
       // Validate that the JSON is valid.
       jsonDecode(slateJson);
 
-      return EpicSlatepackDecodeResult(
+      return SlatepackDecodeResult(
         success: true,
         slateJson: slateJson,
         wasEncrypted: false,
@@ -243,12 +243,12 @@ class EpiccashWallet extends Bip39Wallet {
       );
     } catch (e, s) {
       Logging.instance.e('Failed to decode slatepack: $e\n$s');
-      return EpicSlatepackDecodeResult(success: false, error: e.toString());
+      return SlatepackDecodeResult(success: false, error: e.toString());
     }
   }
 
   /// Full decode of a slatepack including type analysis.
-  Future<({EpicSlatepackDecodeResult result, String type, String raw})?>
+  Future<({SlatepackDecodeResult result, String type, String raw})?>
   fullDecodeSlatepack(String slateJson) async {
     // Add delay for showloading exception catching hack fix.
     await Future<void>.delayed(const Duration(seconds: 1));
@@ -277,7 +277,7 @@ class EpiccashWallet extends Bip39Wallet {
   }
 
   /// Receive a slatepack and return response slate JSON.
-  Future<EpicReceiveResult> receiveSlatepack(String slateJson) async {
+  Future<ReceiveResult> receiveSlatepack(String slateJson) async {
     try {
       _hackedCheckTorNodePrefs();
       if (_wallet == null) {
@@ -290,7 +290,7 @@ class EpiccashWallet extends Bip39Wallet {
         slateJson: slateJson,
       );
 
-      return EpicReceiveResult(
+      return ReceiveResult(
         success: true,
         slateId: received.slateId,
         commitId: received.commitId,
@@ -300,12 +300,12 @@ class EpiccashWallet extends Bip39Wallet {
       );
     } catch (e, s) {
       Logging.instance.e('Failed to receive slatepack: $e\n$s');
-      return EpicReceiveResult(success: false, error: e.toString());
+      return ReceiveResult(success: false, error: e.toString());
     }
   }
 
   /// Finalize a slatepack (sender step 3).
-  Future<EpicFinalizeResult> finalizeSlatepack(String slateJson) async {
+  Future<FinalizeResult> finalizeSlatepack(String slateJson) async {
     try {
       _hackedCheckTorNodePrefs();
       if (_wallet == null) {
@@ -318,14 +318,14 @@ class EpiccashWallet extends Bip39Wallet {
         slateJson: slateJson,
       );
 
-      return EpicFinalizeResult(
+      return FinalizeResult(
         success: true,
         slateId: finalized.slateId,
         commitId: finalized.commitId,
       );
     } catch (e, s) {
       Logging.instance.e('Failed to finalize slatepack: $e\n$s');
-      return EpicFinalizeResult(success: false, error: e.toString());
+      return FinalizeResult(success: false, error: e.toString());
     }
   }
 

@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../models/epic_slatepack_models.dart';
+import '../../../models/slatepack_models.dart';
 import '../../../providers/global/wallets_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/amount/amount.dart';
@@ -36,7 +36,7 @@ class EpicSlatepackImportDialog extends ConsumerStatefulWidget {
 
   final String walletId;
   final String rawSlatepack;
-  final EpicSlatepackDecodeResult decoded;
+  final SlatepackDecodeResult decoded;
   final String slatepackType;
   final ClipboardInterface clipboard;
 

@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../../models/epic_slatepack_models.dart';
+import '../../../models/slatepack_models.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
@@ -24,7 +24,7 @@ class EpicSlatepackDialog extends ConsumerStatefulWidget {
     this.clipboard = const ClipboardWrapper(),
   });
 
-  final EpicSlatepackResult slatepackResult;
+  final SlatepackResult slatepackResult;
   final ClipboardInterface clipboard;
 
   @override

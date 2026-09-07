@@ -18,11 +18,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../../../models/epic_slatepack_models.dart';
+import '../../../../models/slatepack_models.dart';
 import '../../../../models/isar/models/blockchain_data/address.dart';
 import '../../../../models/isar/models/blockchain_data/utxo.dart';
 import '../../../../models/isar/models/contact_entry.dart';
-import '../../../../models/mwc_slatepack_models.dart';
 import '../../../../models/paynym/paynym_account_lite.dart';
 import '../../../../models/send_view_auto_fill_data.dart';
 import '../../../../notifications/show_flush_bar.dart';
@@ -334,7 +333,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     try {
       final amount = ref.read(pSendAmount)!;
 
-      Future<EpicSlatepackResult> wrappedFutureWithDelay() async {
+      Future<SlatepackResult> wrappedFutureWithDelay() async {
         await Future<void>.delayed(const Duration(seconds: 1));
         return wallet.createSlatepack(
           amount: amount,

@@ -14,7 +14,7 @@ import '../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
-import '../../../models/mwc_slatepack_models.dart';
+import '../../../models/slatepack_models.dart';
 import '../../../models/mwcmqs_config_model.dart';
 import '../../../models/node_model.dart';
 import '../../../models/paymint/fee_object_model.dart';
