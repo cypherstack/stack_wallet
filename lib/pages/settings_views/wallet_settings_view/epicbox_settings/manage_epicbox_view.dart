@@ -61,7 +61,7 @@ class _ManageEpicboxViewState extends ConsumerState<ManageEpicboxView> {
     // update wallet's epicbox config
     final wallet =
         ref.read(pWallets).getWallet(widget.walletId) as EpiccashWallet;
-    await wallet.updateEpicboxConfig(epicBox.host, epicBox.port ?? 443);
+    await wallet.updateRelayConfig(epicBox.host, epicBox.port ?? 443);
 
     if (mounted) {
       unawaited(
