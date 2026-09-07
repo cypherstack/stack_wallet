@@ -8,22 +8,15 @@ import 'package:isar_community/isar.dart';
 import 'package:mutex/mutex.dart';
 import 'package:stack_wallet_backup/generate_password.dart';
 
-import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
-import '../../../models/slatepack_models.dart';
 import '../../../models/mwcmqs_config_model.dart';
 import '../../../models/node_model.dart';
-import '../../../models/paymint/fee_object_model.dart';
+import '../../../models/slatepack_models.dart';
 import '../../../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
-import '../../../services/event_bus/events/global/blocks_remaining_event.dart';
-import '../../../services/event_bus/events/global/node_connection_status_changed_event.dart';
-import '../../../services/event_bus/events/global/refresh_percent_changed_event.dart';
-import '../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
-import '../../../services/event_bus/global_event_bus.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/default_mwcmqs.dart';
 import '../../../utilities/flutter_secure_storage_interface.dart';
@@ -32,51 +25,35 @@ import '../../../utilities/stack_file_system.dart';
 import '../../../utilities/test_mwcmqs_connection.dart';
 import '../../../wl_gen/interfaces/libmwc_interface.dart';
 import '../../crypto_currency/crypto_currency.dart';
+import '../../isar/models/wallet_info.dart';
 import '../../models/tx_data.dart';
-import '../intermediate/bip39_wallet.dart';
-import '../supporting/mimblewimblecoin_wallet_info_extension.dart';
-import '../supporting/restore_progress.dart';
+import '../intermediate/mimblewimble_wallet.dart';
+import '../supporting/mimblewimble_wallet_info_extension.dart';
 
-class MimblewimblecoinWallet extends Bip39Wallet {
+class MimblewimblecoinWallet extends MimblewimbleWallet {
   MimblewimblecoinWallet(CryptoCurrencyNetwork network)
     : super(Mimblewimblecoin(network));
 
-  final syncMutex = Mutex();
-  final _walletOpenMutex = Mutex();
+  final Mutex _walletOpenMutex = Mutex();
   NodeModel? _mimblewimblecoinNode;
-  Timer? timer;
 
   static bool _mwcLogsInitialized = false;
 
   // Process-scoped Rust pointer; do not persist.
   String? _walletHandle;
 
-  double highestPercent = 0;
-  Future<double> get getSyncPercent async {
-    final int lastScannedBlock =
-        info.mimblewimblecoinData?.lastScannedBlock ?? 0;
-    final _chainHeight = await chainHeight;
-    final restorePercent = calculateRestoreProgress(
-      scannedHeight: lastScannedBlock,
-      chainHeight: _chainHeight,
-    );
-    GlobalEventBus.instance.fire(
-      RefreshPercentChangedEvent(highestPercent, walletId),
-    );
-    if (restorePercent > highestPercent) {
-      highestPercent = restorePercent;
-    }
+  @override
+  String get walletInfoDataKey => WalletInfoKeys.mimblewimblecoinData;
 
-    final int blocksRemaining = _chainHeight - lastScannedBlock;
-    GlobalEventBus.instance.fire(
-      BlocksRemainingEvent(blocksRemaining, walletId),
-    );
+  @override
+  String get walletDirName => "mimblewimblecoin";
 
-    return restorePercent < 0 ? 0.0 : restorePercent;
-  }
+  @override
+  int get firstBlockTimestamp => 1573462800;
 
-  Future<void> updateMwcmqsConfig(String host, int port) async {
-    final String stringConfig = jsonEncode({
+  @override
+  Future<void> updateRelayConfig(String host, int port) async {
+    final String stringConfig = jsonEncode(<String, dynamic>{
       "mwcmqs_domain": host,
       "mwcmqs_port": port,
     });
@@ -102,10 +79,10 @@ class MimblewimblecoinWallet extends Bip39Wallet {
 
   Future<String> _ensureWalletOpen() async {
     return await _walletOpenMutex.protect(() async {
-      final cached = _walletHandle;
+      final String? cached = _walletHandle;
       if (cached != null && cached.isNotEmpty) return cached;
 
-      final config = await _getRealConfig();
+      final String config = await _getRealConfig();
       if (!_mwcLogsInitialized) {
         try {
           await libMwc.initLogs(config: config);
@@ -114,13 +91,13 @@ class MimblewimblecoinWallet extends Bip39Wallet {
           Logging.instance.w("libMwc.initLogs failed: $e\n$s");
         }
       }
-      final password = await secureStorageInterface.read(
+      final String? password = await secureStorageInterface.read(
         key: '${walletId}_password',
       );
       if (password == null) {
         throw Exception('Wallet password not found');
       }
-      final opened = await libMwc
+      final String opened = await libMwc
           .openWallet(config: config, password: password)
           .timeout(
             const Duration(seconds: 60),
@@ -131,12 +108,12 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     });
   }
 
-  /// Returns an empty String on success, error message on failure.
+  @override
   Future<String> cancelPendingTransactionAndPost(String txSlateId) async {
     try {
       final String wallet = await _ensureWalletOpen();
 
-      final result = await libMwc.cancelTransaction(
+      final String result = await libMwc.cancelTransaction(
         wallet: wallet,
         transactionId: txSlateId,
       );
@@ -148,18 +125,19 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     }
   }
 
-  Future<MwcMqsConfigModel> getMwcMqsConfig() async {
+  @override
+  Future<MwcMqsConfigModel> getRelayConfig() async {
     // Check if there's a custom MWCMQS config stored.
-    final customConfigJson = await secureStorageInterface.read(
+    final String? customConfigJson = await secureStorageInterface.read(
       key: '${walletId}_mwcmqsConfig',
     );
 
     if (customConfigJson != null) {
       try {
-        final customConfig =
+        final Map<String, dynamic> customConfig =
             jsonDecode(customConfigJson) as Map<String, dynamic>;
-        final host = customConfig['mwcmqs_domain'] as String?;
-        final port = customConfig['mwcmqs_port'] as int?;
+        final String? host = customConfig['mwcmqs_domain'] as String?;
+        final int? port = customConfig['mwcmqs_port'] as int?;
 
         if (host != null && port != null) {
           return MwcMqsConfigModel(host: host, port: port);
@@ -175,7 +153,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
 
   // ================= Slatepack Operations ===================================
 
-  /// Create a slatepack for sending MWC.
+  @override
   Future<SlatepackResult> createSlatepack({
     required Amount amount,
     String? recipientAddress,
@@ -184,10 +162,10 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     int? minimumConfirmations,
   }) async {
     try {
-      final handle = await _ensureWalletOpen();
+      final String handle = await _ensureWalletOpen();
 
       // Generate S1 slate JSON.
-      final s1Json = await libMwc.txInit(
+      final String s1Json = await libMwc.txInit(
         wallet: handle,
         amount: amount.raw.toInt(),
         minimumConfirmations:
@@ -217,57 +195,17 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     }
   }
 
-  // this isn't nearly the best way to handle this but better than copy pasting
-  // this function in two places (mobile and desktop widgets)...
-  Future<({SlatepackDecodeResult result, String type, String raw})?>
-  fullDecodeSlatepack(String slatepack) async {
-    // add delay for showloading exception catching hack fix
-    await Future<void>.delayed(const Duration(seconds: 1));
-
-    if (slatepack.isEmpty) {
-      return null;
-    }
-
-    // Basic format validation.
-    final coin = cryptoCurrency as Mimblewimblecoin;
-    if (!coin.isSlatepack(slatepack)) {
+  @override
+  void checkSlatepackFormat(String slatepack) {
+    if (!isSlatepack(slatepack)) {
       throw Exception("Invalid slatepack format");
-    }
-
-    // Attempt to decode.
-    final decoded = await decodeSlatepack(slatepack);
-
-    if (decoded.success) {
-      final analysis = await analyzeSlatepack(slatepack);
-
-      String _determineSlatepackType(SlatepackDecodeResult decoded) {
-        // Fallback analysis based on sender/recipient addresses.
-        if (decoded.senderAddress != null && decoded.recipientAddress != null) {
-          return "S2 (Response)";
-        } else if (decoded.senderAddress != null) {
-          return "S1 (Initial)";
-        } else {
-          return "Unknown";
-        }
-      }
-
-      final String slatepackType = switch (analysis.status) {
-        'S1' => "S1 (Initial Send)",
-        'S2' => "S2 (Response)",
-        'S3' => "S3 (Finalized)",
-        _ => _determineSlatepackType(decoded), // Fallback.
-      };
-
-      return (result: decoded, type: slatepackType, raw: slatepack);
-    } else {
-      throw Exception(decoded.error ?? "Failed to decode slatepack");
     }
   }
 
-  /// Decode a slatepack.
+  @override
   Future<SlatepackDecodeResult> decodeSlatepack(String slatepack) async {
     try {
-      final handle = _walletHandle;
+      final String? handle = _walletHandle;
       final result = handle != null
           ? await libMwc.decodeSlatepackWithWallet(
               wallet: handle,
@@ -288,10 +226,10 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     }
   }
 
-  /// Receive a slatepack and return response slatepack.
+  @override
   Future<ReceiveResult> receiveSlatepack(String slatepack) async {
     try {
-      final handle = await _ensureWalletOpen();
+      final String handle = await _ensureWalletOpen();
 
       // Decode to get slate JSON and sender address.
       final decoded = await libMwc.decodeSlatepackWithWallet(
@@ -327,10 +265,10 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     }
   }
 
-  /// Finalize a slatepack (sender step 3).
+  @override
   Future<FinalizeResult> finalizeSlatepack(String slatepack) async {
     try {
-      final handle = await _ensureWalletOpen();
+      final String handle = await _ensureWalletOpen();
 
       // Decode to get slate JSON.
       final decoded = await libMwc.decodeSlatepackWithWallet(
@@ -358,8 +296,8 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   /// Start MWCMQS listener for automatic transaction processing.
   Future<void> startSlatepackListener() async {
     try {
-      final wallet = await _ensureWalletOpen();
-      final mwcmqsConfig = await getMwcMqsConfig();
+      final String wallet = await _ensureWalletOpen();
+      final MwcMqsConfigModel mwcmqsConfig = await getRelayConfig();
       libMwc.startMwcMqsListener(
         wallet: wallet,
         mwcmqsConfig: mwcmqsConfig.toString(),
@@ -384,7 +322,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     return libMwc.validateSendAddress(address: address);
   }
 
-  /// Detect if an address is a slatepack.
+  @override
   bool isSlatepack(String data) {
     return data.trim().startsWith('BEGINSLATE') &&
         (data.trim().endsWith('ENDSLATEPACK') ||
@@ -396,107 +334,6 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   /// Detect if an address is MWCMQS format.
   bool isMwcmqsAddress(String address) {
     return address.startsWith('mwcmqs://');
-  }
-
-  /// Detect if an address is HTTP format.
-  bool isHttpAddress(String address) {
-    return address.startsWith('http://') || address.startsWith('https://');
-  }
-
-  /// Analyze a slatepack and determine transaction type and metadata.
-  /// Returns a record with transaction type and slate information.
-  Future<
-    ({
-      String type,
-      String status,
-      String? amount,
-      bool wasEncrypted,
-      String? senderAddress,
-      String? recipientAddress,
-      String slateId,
-    })
-  >
-  analyzeSlatepack(String slatepack) async {
-    try {
-      final wallet = _walletHandle;
-
-      // Decode the slatepack
-      final decoded = wallet != null
-          ? await libMwc.decodeSlatepackWithWallet(
-              wallet: wallet,
-              slatepack: slatepack,
-            )
-          : await libMwc.decodeSlatepack(slatepack: slatepack);
-
-      // Parse the slate JSON to extract metadata
-      final slateData = jsonDecode(decoded.slateJson);
-      final String slateId = "${slateData['id'] ?? ''}";
-      final String? amountStr = slateData['amount']?.toString();
-
-      Logging.instance.d('Analyzed slatepack with ID: $slateId');
-
-      // Determine slate status from the slate structure
-      String status = 'Unknown';
-      String type = 'Unknown';
-
-      // Check participant data to determine slate status
-      final List<dynamic>? participants =
-          slateData['participant_data'] as List<dynamic>?;
-      if (participants != null && participants.isNotEmpty) {
-        // Count how many participants have signatures
-        int signedParticipants = 0;
-        for (final participant in participants) {
-          if (participant['part_sig'] != null) {
-            signedParticipants++;
-          }
-        }
-
-        // Determine status based on signatures and participant count
-        if (signedParticipants == 0) {
-          status = 'S1';
-          type = 'Outgoing'; // Initial send slate - this is outgoing
-        } else if (signedParticipants == 1) {
-          status = 'S2';
-          type = 'Incoming'; // Response slate - this means we're receiving
-        } else if (signedParticipants >= participants.length) {
-          status = 'S3';
-          type = 'Outgoing'; // Finalized slate - completed outgoing transaction
-        }
-      }
-
-      // Fallback: check for explicit 'sta' field (some slates may have this)
-      if (status == 'Unknown' && slateData['sta'] != null) {
-        status = "${slateData['sta']}";
-        if (status == 'S1') {
-          type = 'Outgoing';
-        } else if (status == 'S2') {
-          type = 'Incoming';
-        } else if (status == 'S3') {
-          type = 'Outgoing';
-        }
-      }
-
-      return (
-        type: type,
-        status: status,
-        amount: amountStr,
-        wasEncrypted: decoded.wasEncrypted,
-        senderAddress: decoded.senderAddress,
-        recipientAddress: decoded.recipientAddress,
-        slateId: slateId,
-      );
-    } catch (e) {
-      // If we can't decode it, return unknown
-      return (
-        type: 'Unknown',
-        status: 'Unknown',
-        amount: null,
-        wasEncrypted: false,
-        senderAddress: null,
-        recipientAddress: null,
-        slateId: '',
-      );
-    }
   }
 
   /// Improved transaction type detection for slatepacks.
@@ -542,10 +379,12 @@ class MimblewimblecoinWallet extends Bip39Wallet {
       // Check if this is a MWC transaction with slatepack data
       if (transaction.isMimblewimblecoinTransaction) {
         // Try to analyze any slatepack addresses in the transaction
-        for (final output in transaction.outputs) {
-          for (final address in output.addresses) {
+        for (final OutputV2 output in transaction.outputs) {
+          for (final String address in output.addresses) {
             if (isSlatepack(address)) {
-              final slatepackType = await getSlatepackTransactionType(address);
+              final String slatepackType = await getSlatepackTransactionType(
+                address,
+              );
               switch (slatepackType) {
                 case 'Outgoing':
                   return TransactionType.outgoing;
@@ -570,8 +409,8 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   // ================= Private =================================================
 
   Future<void> _ensureApiSecret(String walletDir) async {
-    final file = File('$walletDir/.api_secret');
-    final secret = _mimblewimblecoinNode?.nodeApiSecret;
+    final File file = File('$walletDir/.api_secret');
+    final String? secret = _mimblewimblecoinNode?.nodeApiSecret;
     if (secret != null) {
       await Directory(walletDir).create(recursive: true);
       await file.writeAsString(secret);
@@ -588,12 +427,12 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     final String nodeAddress = node.host;
     final int port = node.port;
 
-    final uri = Uri.parse(nodeAddress).replace(port: port);
+    final Uri uri = Uri.parse(nodeAddress).replace(port: port);
 
     final String nodeApiAddress = uri.toString();
-    final walletDir = await _currentWalletDirPath();
+    final String walletDir = await currentWalletDirPath();
 
-    final Map<String, dynamic> config = {};
+    final Map<String, dynamic> config = <String, dynamic>{};
     config["wallet_dir"] = walletDir;
     config["check_node_api_http_addr"] = nodeApiAddress;
     config["chain"] = "mainnet";
@@ -602,21 +441,11 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     return stringConfig;
   }
 
-  Future<String> _currentWalletDirPath() async {
-    final Directory appDir = await StackFileSystem.applicationRootDirectory();
-
-    final path = "${appDir.path}/mimblewimblecoin";
-    final String name = walletId.trim();
-    return '$path/$name';
-  }
-
-  Future<int> _nativeFee(
-    int satoshiAmount, {
-    bool ifErrorEstimateFee = false,
-  }) async {
-    final wallet = await _ensureWalletOpen();
+  @override
+  Future<int> nativeFee(int satoshiAmount) async {
+    final String wallet = await _ensureWalletOpen();
     try {
-      final available = info.cachedBalance.spendable.raw.toInt();
+      final int available = info.cachedBalance.spendable.raw.toInt();
       final transactionFees = await libMwc.getTransactionFees(
         wallet: wallet,
         amount: satoshiAmount,
@@ -640,24 +469,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     }
   }
 
-  Future<void> _startSync() async {
-    Logging.instance.i("request start sync");
-    final wallet = await _ensureWalletOpen();
-    const int refreshFromNode = 1;
-    if (!syncMutex.isLocked) {
-      await syncMutex.protect(() async {
-        // How does getWalletBalances start syncing????
-        await libMwc.getWalletBalances(
-          wallet: wallet,
-          refreshFromNode: refreshFromNode,
-          minimumConfirmations: 10,
-        );
-      });
-    } else {
-      Logging.instance.i("request start sync denied");
-    }
-  }
-
+  @override
   Future<
     ({
       double awaitingFinalization,
@@ -666,59 +478,29 @@ class MimblewimblecoinWallet extends Bip39Wallet {
       double total,
     })
   >
-  _allWalletBalances() async {
-    final wallet = await _ensureWalletOpen();
-    const refreshFromNode = 0;
+  fetchWalletBalances({
+    required int refreshFromNode,
+    required int minimumConfirmations,
+  }) async {
+    final String wallet = await _ensureWalletOpen();
     return await libMwc.getWalletBalances(
       wallet: wallet,
       refreshFromNode: refreshFromNode,
-      minimumConfirmations: cryptoCurrency.minConfirms,
+      minimumConfirmations: minimumConfirmations,
     );
   }
 
-  Future<bool> _putSendToAddresses(
-    ({String slateId, String commitId}) slateData,
-    Map<String, String> txAddressInfo,
-  ) async {
-    try {
-      final slatesToCommits = info.mimblewimblecoinData?.slatesToCommits ?? {};
-      final from = txAddressInfo['from'];
-      final to = txAddressInfo['to'];
-      slatesToCommits[slateData.slateId] = {
-        "commitId": slateData.commitId,
-        "from": from,
-        "to": to,
-      };
-      await info.updateExtraMimblewimblecoinWalletInfo(
-        mimblewimblecoinData: info.mimblewimblecoinData!.copyWith(
-          slatesToCommits: slatesToCommits,
-        ),
-        isar: mainDB.isar,
-      );
-      return true;
-    } catch (e, s) {
-      Logging.instance.e("ERROR STORING ADDRESS $e $s");
-      return false;
-    }
-  }
-
-  Future<int> _getCurrentIndex() async {
-    try {
-      final int receivingIndex = info.mimblewimblecoinData!.receivingIndex;
-      // TODO: go through pendingarray and processed array and choose the index
-      //  of the last one that has not been processed, or the index after the one most recently processed;
-      return receivingIndex;
-    } catch (e, s) {
-      Logging.instance.e("$e $s");
-      return 0;
-    }
+  @override
+  Future<int> fetchChainHeight() async {
+    final String config = await _getRealConfig();
+    return libMwc.getChainHeight(config: config);
   }
 
   Future<Address> _generateAndStoreReceivingAddressForIndex(int index) async {
     Address? address = await getCurrentReceivingAddress();
 
     if (address == null) {
-      final mwcmqsConfig = await getMwcMqsConfig();
+      final MwcMqsConfigModel mwcmqsConfig = await getRelayConfig();
       address = await thisWalletAddress(index, mwcmqsConfig);
     }
 
@@ -735,16 +517,16 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     int index,
     MwcMqsConfigModel mwcmqsConfig,
   ) async {
-    final wallet = await _ensureWalletOpen();
+    final String wallet = await _ensureWalletOpen();
 
-    final walletAddress = await libMwc.getAddressInfo(
+    final String walletAddress = await libMwc.getAddressInfo(
       wallet: wallet,
       index: index,
     );
 
     Logging.instance.i("WALLET_ADDRESS_IS $walletAddress");
 
-    final address = Address(
+    final Address address = Address(
       walletId: walletId,
       value: walletAddress,
       derivationIndex: index,
@@ -757,64 +539,36 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     return address;
   }
 
-  Future<void> _startScans() async {
-    try {
-      //First stop the current listener
-      libMwc.stopMwcMqsListener();
-      final wallet = await _ensureWalletOpen();
+  @override
+  Future<int> scanOutputs({
+    required int startHeight,
+    required int numberOfBlocks,
+  }) async {
+    final String wallet = await _ensureWalletOpen();
+    return libMwc.scanOutputs(
+      wallet: wallet,
+      startHeight: startHeight,
+      numberOfBlocks: numberOfBlocks,
+    );
+  }
 
-      // max number of blocks to scan per loop iteration
-      const scanChunkSize = 10000;
+  @override
+  Future<void> pauseListenerForScan({required bool needsScanning}) async {
+    //First stop the current listener
+    libMwc.stopMwcMqsListener();
+    await _ensureWalletOpen();
+  }
 
-      // force firing of scan progress event
-      await getSyncPercent;
-
-      // fetch current chain height and last scanned block (should be the
-      // restore height if full rescan or a wallet restore)
-      int chainHeight = await this.chainHeight;
-      int lastScannedBlock = info.mimblewimblecoinData!.lastScannedBlock;
-
-      // loop while scanning in chain in chunks (of blocks?)
-      while (lastScannedBlock < chainHeight) {
-        Logging.instance.i(
-          "chainHeight: $chainHeight, lastScannedBlock: $lastScannedBlock",
-        );
-
-        final int nextScannedBlock = await libMwc.scanOutputs(
-          wallet: wallet,
-          startHeight: lastScannedBlock,
-          numberOfBlocks: scanChunkSize,
-        );
-
-        // update local cache
-        await info.updateExtraMimblewimblecoinWalletInfo(
-          mimblewimblecoinData: info.mimblewimblecoinData!.copyWith(
-            lastScannedBlock: nextScannedBlock,
-          ),
-          isar: mainDB.isar,
-        );
-
-        // force firing of scan progress event
-        await getSyncPercent;
-
-        // update while loop condition variables
-        chainHeight = await this.chainHeight;
-        lastScannedBlock = nextScannedBlock;
-      }
-
-      Logging.instance.i("_startScans successfully at the tip");
-      //Once scanner completes restart listener
-      await _listenToMwcmqs();
-    } catch (e, s) {
-      Logging.instance.e("_startScans failed: $e\n$s");
-      rethrow;
-    }
+  @override
+  Future<void> resumeListenerAfterScan() async {
+    //Once scanner completes restart listener
+    await _listenToMwcmqs();
   }
 
   Future<void> _listenToMwcmqs() async {
     Logging.instance.i("STARTING WALLET LISTENER ....");
-    final wallet = await _ensureWalletOpen();
-    final MwcMqsConfigModel mwcmqsConfig = await getMwcMqsConfig();
+    final String wallet = await _ensureWalletOpen();
+    final MwcMqsConfigModel mwcmqsConfig = await getRelayConfig();
     libMwc.startMwcMqsListener(
       wallet: wallet,
       mwcmqsConfig: mwcmqsConfig.toString(),
@@ -827,8 +581,8 @@ class MimblewimblecoinWallet extends Bip39Wallet {
       key: '${walletId}_config',
     );
     if (Platform.isIOS) {
-      final walletDir = await _currentWalletDirPath();
-      final editConfig = jsonDecode(config as String);
+      final String walletDir = await currentWalletDirPath();
+      final dynamic editConfig = jsonDecode(config as String);
 
       editConfig["wallet_dir"] = walletDir;
       config = jsonEncode(editConfig);
@@ -836,35 +590,13 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     return config!;
   }
 
-  int _calculateRestoreHeightFrom({required DateTime date}) {
-    final int secondsSinceEpoch = date.millisecondsSinceEpoch ~/ 1000;
-    const int mimblewimblecoinFirstBlock = 1573462800;
-    const double overestimateSecondsPerBlock = 61;
-    final int chosenSeconds = secondsSinceEpoch - mimblewimblecoinFirstBlock;
-    final int approximateHeight = chosenSeconds ~/ overestimateSecondsPerBlock;
-    int height = approximateHeight;
-    if (height < 0) {
-      height = 0;
-    }
-    return height;
-  }
-
   // ============== Overrides ==================================================
 
   @override
-  int get isarTransactionVersion => 2;
-
-  @override
-  FilterOperation? get changeAddressFilterOperation =>
-      FilterGroup.and(standardChangeAddressFilters);
-
-  @override
-  FilterOperation? get receivingAddressFilterOperation =>
-      FilterGroup.and(standardReceivingAddressFilters);
-
-  @override
-  Future<void> checkSaveInitialReceivingAddress() async {
-    // epiccash seems ok with nothing here?
+  Future<void> prepareRefresh() async {
+    // this will always be zero????
+    final int curAdd = await getCurrentIndex();
+    await _generateAndStoreReceivingAddressForIndex(curAdd);
   }
 
   @override
@@ -872,17 +604,17 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     if (isRestore != true) {
       // Password presence is the durable "wallet provisioned" marker; the
       // old wallet-handle marker was process-scoped.
-      final existingPassword = await secureStorageInterface.read(
+      final String? existingPassword = await secureStorageInterface.read(
         key: '${walletId}_password',
       );
 
       if (existingPassword == null) {
         await updateNode();
-        final mnemonicString = await getMnemonic();
+        final String mnemonicString = await getMnemonic();
 
         final String password = generatePassword();
         final String stringConfig = await _getConfig();
-        final MwcMqsConfigModel mwcmqsConfig = await getMwcMqsConfig();
+        final MwcMqsConfigModel mwcmqsConfig = await getRelayConfig();
         await secureStorageInterface.write(
           key: '${walletId}_config',
           value: stringConfig,
@@ -911,24 +643,22 @@ class MimblewimblecoinWallet extends Bip39Wallet {
         await _generateAndStoreReceivingAddressForIndex(0);
 
         // subtract a couple days to ensure we have a buffer for SWB
-        final bufferedCreateHeight = _calculateRestoreHeightFrom(
+        final int bufferedCreateHeight = calculateRestoreHeightFrom(
           date: DateTime.now().subtract(const Duration(days: 2)),
         );
 
-        final mimblewimblecoinData = ExtraMimblewimblecoinWalletInfo(
-          receivingIndex: 0,
-          changeIndex: 0,
-          slatesToAddresses: {},
-          slatesToCommits: {},
-          lastScannedBlock: bufferedCreateHeight,
-          restoreHeight: bufferedCreateHeight,
-          creationHeight: bufferedCreateHeight,
-        );
+        final ExtraMimblewimbleWalletInfo mimblewimblecoinData =
+            ExtraMimblewimbleWalletInfo(
+              receivingIndex: 0,
+              changeIndex: 0,
+              slatesToAddresses: {},
+              slatesToCommits: {},
+              lastScannedBlock: bufferedCreateHeight,
+              restoreHeight: bufferedCreateHeight,
+              creationHeight: bufferedCreateHeight,
+            );
 
-        await info.updateExtraMimblewimblecoinWalletInfo(
-          mimblewimblecoinData: mimblewimblecoinData,
-          isar: mainDB.isar,
-        );
+        await updateMimblewimbleData(mimblewimblecoinData);
       } else {
         try {
           await _ensureWalletOpen();
@@ -947,23 +677,12 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   @override
   Future<TxData> confirmSend({required TxData txData}) async {
     try {
-      final wallet = await _ensureWalletOpen();
-      final MwcMqsConfigModel mwcmqsConfig = await getMwcMqsConfig();
+      final String wallet = await _ensureWalletOpen();
+      final MwcMqsConfigModel mwcmqsConfig = await getRelayConfig();
 
       // TODO determine whether it is worth sending change to a change address.
 
       final String receiverAddress = txData.recipients!.first.address;
-
-      //if (!receiverAddress.startsWith("http://") ||
-      //    !receiverAddress.startsWith("https://")) {
-      //  final bool isMwcmqsConnected = await _testMwcmqsServer(
-      //    mwcmqsConfig,
-      //  );
-      //  if (!isMwcmqsConnected) {
-      //    throw Exception(
-      //        "Failed to send TX : Unable to reach mimblewimblecoin server");
-      //  }
-      //}
 
       ({String commitId, String slateId}) transaction;
 
@@ -993,10 +712,10 @@ class MimblewimblecoinWallet extends Bip39Wallet {
         );
       }
 
-      final Map<String, String> txAddressInfo = {};
+      final Map<String, String> txAddressInfo = <String, String>{};
       txAddressInfo['from'] = (await getCurrentReceivingAddress())!.value;
       txAddressInfo['to'] = txData.recipients!.first.address;
-      await _putSendToAddresses(transaction, txAddressInfo);
+      await putSendToAddresses(transaction, txAddressInfo);
 
       return txData.copyWith(txid: transaction.slateId);
     } catch (e, s) {
@@ -1023,13 +742,13 @@ class MimblewimblecoinWallet extends Bip39Wallet {
         // This would be used for receiving/finalizing slatepacks.
         return txData.copyWith(
           fee: Amount.zeroWith(fractionDigits: cryptoCurrency.fractionDigits),
-          otherData: jsonEncode({'isSlatepackInput': true}),
+          otherData: jsonEncode(<String, dynamic>{'isSlatepackInput': true}),
         );
       }
 
       // For regular address-based sends, calculate fee
-      final int realFee = await _nativeFee(recipient.amount.raw.toInt());
-      final feeAmount = Amount(
+      final int realFee = await nativeFee(recipient.amount.raw.toInt());
+      final Amount feeAmount = Amount(
         rawValue: BigInt.from(realFee),
         fractionDigits: cryptoCurrency.fractionDigits,
       );
@@ -1062,7 +781,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
       return txData.copyWith(
         recipients: [recipient],
         fee: feeAmount,
-        otherData: jsonEncode({'transactionMethod': txMethod}),
+        otherData: jsonEncode(<String, dynamic>{'transactionMethod': txMethod}),
       );
     } catch (e, s) {
       Logging.instance.e("Mimblewimblecoin prepareSend: $e\n$s");
@@ -1078,20 +797,19 @@ class MimblewimblecoinWallet extends Bip39Wallet {
           // clear blockchain info
           await mainDB.deleteWalletBlockchainData(walletId);
 
-          await info.updateExtraMimblewimblecoinWalletInfo(
-            mimblewimblecoinData: info.mimblewimblecoinData!.copyWith(
-              lastScannedBlock: info.mimblewimblecoinData!.restoreHeight,
+          await updateMimblewimbleData(
+            mimblewimbleData!.copyWith(
+              lastScannedBlock: mimblewimbleData!.restoreHeight,
             ),
-            isar: mainDB.isar,
           );
 
-          unawaited(_startScans());
+          unawaited(startScans());
         } else {
           await updateNode();
           final String password = generatePassword();
 
           final String stringConfig = await _getConfig();
-          final MwcMqsConfigModel mwcmqsConfig = await getMwcMqsConfig();
+          final MwcMqsConfigModel mwcmqsConfig = await getRelayConfig();
 
           await secureStorageInterface.write(
             key: '${walletId}_config',
@@ -1101,7 +819,6 @@ class MimblewimblecoinWallet extends Bip39Wallet {
             key: '${walletId}_password',
             value: password,
           );
-
           await secureStorageInterface.write(
             key: '${walletId}_mwcmqsConfig',
             value: mwcmqsConfig.toString(),
@@ -1114,21 +831,19 @@ class MimblewimblecoinWallet extends Bip39Wallet {
             name: info.walletId,
           );
 
-          final mimblewimblecoinData = ExtraMimblewimblecoinWalletInfo(
-            receivingIndex: 0,
-            changeIndex: 0,
-            slatesToAddresses: {},
-            slatesToCommits: {},
-            lastScannedBlock: info.restoreHeight,
-            restoreHeight: info.restoreHeight,
-            creationHeight:
-                info.mimblewimblecoinData?.creationHeight ?? info.restoreHeight,
-          );
+          final ExtraMimblewimbleWalletInfo mimblewimblecoinData =
+              ExtraMimblewimbleWalletInfo(
+                receivingIndex: 0,
+                changeIndex: 0,
+                slatesToAddresses: {},
+                slatesToCommits: {},
+                lastScannedBlock: info.restoreHeight,
+                restoreHeight: info.restoreHeight,
+                creationHeight:
+                    mimblewimbleData?.creationHeight ?? info.restoreHeight,
+              );
 
-          await info.updateExtraMimblewimblecoinWalletInfo(
-            mimblewimblecoinData: mimblewimblecoinData,
-            isar: mainDB.isar,
-          );
+          await updateMimblewimbleData(mimblewimblecoinData);
 
           //Open Wallet
           await _ensureWalletOpen();
@@ -1150,157 +865,12 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   }
 
   @override
-  Future<void> refresh() async {
-    // Awaiting this lock could be dangerous.
-    // Since refresh is periodic (generally)
-    if (refreshMutex.isLocked) {
-      return;
-    }
-
-    try {
-      // this acquire should be almost instant due to above check.
-      // Slight possibility of race but should be irrelevant
-      await refreshMutex.acquire();
-
-      GlobalEventBus.instance.fire(
-        WalletSyncStatusChangedEvent(
-          WalletSyncStatus.syncing,
-          walletId,
-          cryptoCurrency,
-        ),
-      );
-
-      // if (info.epicData?.creationHeight == null) {
-      //   await info.updateExtraEpiccashWalletInfo(epicData: inf, isar: isar)
-      //   await epicUpdateCreationHeight(await chainHeight);
-      // }
-
-      // this will always be zero????
-      final int curAdd = await _getCurrentIndex();
-      await _generateAndStoreReceivingAddressForIndex(curAdd);
-
-      await _startScans();
-
-      unawaited(_startSync());
-
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.0, walletId));
-      await updateChainHeight();
-
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.1, walletId));
-
-      //  if (this is MultiAddressInterface) {
-      //   await (this as MultiAddressInterface)
-      //       .checkReceivingAddressForTransactions();
-      // }
-
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.2, walletId));
-
-      // // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
-      // if (this is MultiAddressInterface) {
-      //   await (this as MultiAddressInterface)
-      //       .checkChangeAddressForTransactions();
-      // }
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.3, walletId));
-
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.50, walletId));
-      final fetchFuture = updateTransactions();
-      // if (currentHeight != storedHeight) {
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.60, walletId));
-
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.70, walletId));
-
-      await fetchFuture;
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.80, walletId));
-
-      // await getAllTxsToWatch();
-
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(0.90, walletId));
-
-      await updateBalance();
-
-      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(1.0, walletId));
-      GlobalEventBus.instance.fire(
-        WalletSyncStatusChangedEvent(
-          WalletSyncStatus.synced,
-          walletId,
-          cryptoCurrency,
-        ),
-      );
-
-      if (shouldAutoSync) {
-        timer ??= Timer.periodic(const Duration(seconds: 150), (timer) async {
-          // chain height check currently broken
-          // if ((await chainHeight) != (await storedChainHeight)) {
-
-          // TODO: [prio=med] some kind of quick check if wallet needs to refresh to replace the old refreshIfThereIsNewData call
-          // if (await refreshIfThereIsNewData()) {
-          unawaited(refresh());
-
-          // }
-          // }
-        });
-      }
-    } catch (error, strace) {
-      GlobalEventBus.instance.fire(
-        NodeConnectionStatusChangedEvent(
-          NodeConnectionStatus.disconnected,
-          walletId,
-          cryptoCurrency,
-        ),
-      );
-      GlobalEventBus.instance.fire(
-        WalletSyncStatusChangedEvent(
-          WalletSyncStatus.unableToSync,
-          walletId,
-          cryptoCurrency,
-        ),
-      );
-      Logging.instance.e(
-        "Caught exception in refreshWalletData(): $error\n$strace",
-      );
-    } finally {
-      refreshMutex.release();
-    }
-  }
-
-  @override
-  Future<void> updateBalance() async {
-    try {
-      final balances = await _allWalletBalances();
-      final balance = Balance(
-        total: Amount.fromDecimal(
-          Decimal.parse(balances.total.toString()) +
-              Decimal.parse(balances.awaitingFinalization.toString()),
-          fractionDigits: cryptoCurrency.fractionDigits,
-        ),
-        spendable: Amount.fromDecimal(
-          Decimal.parse(balances.spendable.toString()),
-          fractionDigits: cryptoCurrency.fractionDigits,
-        ),
-        blockedTotal: Amount.zeroWith(
-          fractionDigits: cryptoCurrency.fractionDigits,
-        ),
-        pendingSpendable: Amount.fromDecimal(
-          Decimal.parse(balances.pending.toString()),
-          fractionDigits: cryptoCurrency.fractionDigits,
-        ),
-      );
-
-      await info.updateBalance(newBalance: balance, isar: mainDB.isar);
-    } catch (e, s) {
-      Logging.instance.e(
-        "Mimblewimblecoin wallet failed to update balance: $e\n$s",
-      );
-    }
-  }
-
-  @override
   Future<void> updateTransactions() async {
     try {
-      final wallet = await _ensureWalletOpen();
-      const refreshFromNode = 1;
+      final String wallet = await _ensureWalletOpen();
+      const int refreshFromNode = 1;
 
-      final myAddresses = await mainDB
+      final List<String> myAddresses = await mainDB
           .getAddresses(walletId)
           .filter()
           .typeEqualTo(AddressType.mimbleWimble)
@@ -1310,39 +880,40 @@ class MimblewimblecoinWallet extends Bip39Wallet {
           .valueIsNotEmpty()
           .valueProperty()
           .findAll();
-      final myAddressesSet = myAddresses.toSet();
+      final Set<String> myAddressesSet = myAddresses.toSet();
 
-      final transactions = await libMwc.getTransactions(
-        wallet: wallet,
-        refreshFromNode: refreshFromNode,
-      );
+      final List<MimblewimbleTransaction> transactions = await libMwc
+          .getTransactions(wallet: wallet, refreshFromNode: refreshFromNode);
 
       final List<TransactionV2> txns = [];
 
-      final slatesToCommits = info.mimblewimblecoinData?.slatesToCommits ?? {};
+      final Map<dynamic, dynamic> slatesToCommits =
+          mimblewimbleData?.slatesToCommits ?? <dynamic, dynamic>{};
 
-      for (final tx in transactions) {
+      for (final MimblewimbleTransaction tx in transactions) {
         Logging.instance.i("tx: $tx");
 
-        final isIncoming =
+        final bool isIncoming =
             libMwc.txTypeIsReceived(tx.txType) ||
             libMwc.txTypeIsReceiveCancelled(tx.txType);
-        final slateId = tx.txSlateId;
-        final commitId = slatesToCommits[slateId]?['commitId'] as String?;
-        final numberOfMessages = tx.messages?.length;
-        final onChainNote = tx.messages?.first.message;
-        final addressFrom = slatesToCommits[slateId]?["from"] as String?;
-        final addressTo = slatesToCommits[slateId]?["to"] as String?;
+        final String? slateId = tx.txSlateId;
+        final String? commitId =
+            slatesToCommits[slateId]?['commitId'] as String?;
+        final int? numberOfMessages = tx.messages?.length;
+        final String? onChainNote = tx.messages?.first.message;
+        final String? addressFrom =
+            slatesToCommits[slateId]?["from"] as String?;
+        final String? addressTo = slatesToCommits[slateId]?["to"] as String?;
 
-        final credit = int.parse(tx.amountCredited);
-        final debit = int.parse(tx.amountDebited);
-        final fee = int.tryParse(tx.fee ?? "0") ?? 0;
+        final int credit = int.parse(tx.amountCredited);
+        final int debit = int.parse(tx.amountDebited);
+        final int fee = int.tryParse(tx.fee ?? "0") ?? 0;
 
         // hack Mimblewimblecoin tx data into inputs and outputs
         final List<OutputV2> outputs = [];
         final List<InputV2> inputs = [];
-        final addressFromIsMine = myAddressesSet.contains(addressFrom);
-        final addressToIsMine = myAddressesSet.contains(addressTo);
+        final bool addressFromIsMine = myAddressesSet.contains(addressFrom);
+        final bool addressToIsMine = myAddressesSet.contains(addressTo);
 
         OutputV2 output = OutputV2.isarCantDoRequiredInDefaultConstructor(
           scriptPubKeyHex: "00",
@@ -1383,7 +954,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
           // Try to get better type determination for slatepack transactions
           if (addressTo != null) {
             try {
-              final slatepackType = await getSlatepackTransactionType(
+              final String slatepackType = await getSlatepackTransactionType(
                 addressTo,
               );
               if (slatepackType == 'Incoming') {
@@ -1406,7 +977,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
         outputs.add(output);
         inputs.add(input);
 
-        final otherData = {
+        final Map<String, dynamic> otherData = <String, dynamic>{
           "isMimblewimblecoinTransaction": true,
           "numberOfMessages": numberOfMessages,
           "slateId": slateId,
@@ -1420,7 +991,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
           ).toJsonString(),
         };
 
-        final txn = TransactionV2(
+        final TransactionV2 txn = TransactionV2(
           walletId: walletId,
           blockHash: null,
           hash: commitId ?? tx.id.toString(),
@@ -1455,16 +1026,10 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   }
 
   @override
-  Future<bool> updateUTXOs() async {
-    // not used for mimblewimblecoin
-    return false;
-  }
-
-  @override
   Future<void> updateNode() async {
     _mimblewimblecoinNode = getCurrentNode();
 
-    final walletDir = await _currentWalletDirPath();
+    final String walletDir = await currentWalletDirPath();
     await _ensureApiSecret(walletDir);
 
     // TODO: [prio=low] move this out of secure storage if secure storage not needed
@@ -1480,7 +1045,9 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   @override
   Future<bool> pingCheck() async {
     try {
-      final node = nodeService.getPrimaryNodeFor(currency: cryptoCurrency);
+      final NodeModel? node = nodeService.getPrimaryNodeFor(
+        currency: cryptoCurrency,
+      );
       return await testMwcNodeConnection(
             NodeFormData()
               ..host = node!.host
@@ -1493,57 +1060,6 @@ class MimblewimblecoinWallet extends Bip39Wallet {
       Logging.instance.i("$e\n$s");
       return false;
     }
-  }
-
-  @override
-  Future<void> updateChainHeight() async {
-    final config = await _getRealConfig();
-    final latestHeight = await libMwc.getChainHeight(config: config);
-    await info.updateCachedChainHeight(
-      newHeight: latestHeight,
-      isar: mainDB.isar,
-    );
-  }
-
-  @override
-  Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate) async {
-    // setting ifErrorEstimateFee doesn't do anything as its not used in the nativeFee function?????
-    final int currentFee = await _nativeFee(
-      amount.raw.toInt(),
-      ifErrorEstimateFee: true,
-    );
-    return Amount(
-      rawValue: BigInt.from(currentFee),
-      fractionDigits: cryptoCurrency.fractionDigits,
-    );
-  }
-
-  @override
-  Future<FeeObject> get fees async {
-    // this wasn't done before the refactor either so...
-    // TODO: implement _getFees
-    return FeeObject(
-      numberOfBlocksFast: 10,
-      numberOfBlocksAverage: 10,
-      numberOfBlocksSlow: 10,
-      fast: BigInt.one,
-      medium: BigInt.one,
-      slow: BigInt.one,
-    );
-  }
-
-  @override
-  Future<TxData> updateSentCachedTxData({required TxData txData}) async {
-    // TODO: [prio=low] Was not used before refactor so maybe not required(?)
-    return txData;
-  }
-
-  @override
-  Future<void> exit() async {
-    timer?.cancel();
-    timer = null;
-    await super.exit();
-    Logging.instance.i("Mimblewimblecoin_wallet exit finished");
   }
 }
 
@@ -1560,11 +1076,11 @@ Future<String> deleteMimblewimblecoinWallet({
   if (Platform.isIOS) {
     final Directory appDir = await StackFileSystem.applicationRootDirectory();
 
-    final path = "${appDir.path}/mimblewimblecoin";
+    final String path = "${appDir.path}/mimblewimblecoin";
     final String name = walletId.trim();
-    final walletDir = '$path/$name';
+    final String walletDir = '$path/$name';
 
-    final editConfig = jsonDecode(config);
+    final dynamic editConfig = jsonDecode(config);
 
     editConfig["wallet_dir"] = walletDir;
     config = jsonEncode(editConfig);

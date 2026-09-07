@@ -417,10 +417,9 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                 iconSize: 16,
                 title: "Epicbox Servers",
                 onPressed: () {
-                  Navigator.of(context).pushNamed(
-                    ManageEpicboxView.routeName,
-                    arguments: walletId,
-                  );
+                  Navigator.of(
+                    context,
+                  ).pushNamed(ManageEpicboxView.routeName, arguments: walletId);
                 },
               ),
             if (canBackup) const SizedBox(height: 8),
@@ -651,7 +650,7 @@ class _EpiBoxInfoFormState extends ConsumerState<EpicBoxInfoForm> {
   void initState() {
     wallet = ref.read(pWallets).getWallet(widget.walletId) as EpiccashWallet;
 
-    wallet.getEpicBoxConfig().then((EpicBoxConfigModel epicBoxConfig) {
+    wallet.getRelayConfig().then((EpicBoxConfigModel epicBoxConfig) {
       hostController.text = epicBoxConfig.host;
       portController.text = "${epicBoxConfig.port ?? 443}";
     });
@@ -691,7 +690,7 @@ class _EpiBoxInfoFormState extends ConsumerState<EpicBoxInfoForm> {
           TextButton(
             onPressed: () async {
               try {
-                await wallet.updateEpicboxConfig(
+                await wallet.updateRelayConfig(
                   hostController.text,
                   int.parse(portController.text),
                 );
@@ -748,7 +747,7 @@ class _MwcmqsInfoFormState extends ConsumerState<MwcMqsInfoForm> {
     wallet =
         ref.read(pWallets).getWallet(widget.walletId) as MimblewimblecoinWallet;
 
-    wallet.getMwcMqsConfig().then((MwcMqsConfigModel mwcmqsConfig) {
+    wallet.getRelayConfig().then((MwcMqsConfigModel mwcmqsConfig) {
       hostController.text = mwcmqsConfig.host;
       portController.text = "${mwcmqsConfig.port ?? 443}";
     });
@@ -788,7 +787,7 @@ class _MwcmqsInfoFormState extends ConsumerState<MwcMqsInfoForm> {
           TextButton(
             onPressed: () async {
               try {
-                await wallet.updateMwcmqsConfig(
+                await wallet.updateRelayConfig(
                   hostController.text,
                   int.parse(portController.text),
                 );

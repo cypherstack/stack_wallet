@@ -5,19 +5,20 @@ import 'package:isar_community/isar.dart';
 import '../../../utilities/logger.dart';
 import '../../isar/models/wallet_info.dart';
 
-extension EpiccashWalletInfoExtension on WalletInfo {
-  ExtraEpiccashWalletInfo? get epicData {
-    final String? data = otherData[WalletInfoKeys.epiccashData] as String?;
+extension MimblewimbleWalletInfoExtension on WalletInfo {
+  /// [key] is the [WalletInfoKeys] entry the coin keeps its data under.
+  ExtraMimblewimbleWalletInfo? mimblewimbleData(String key) {
+    final String? data = otherData[key] as String?;
     if (data == null) {
       return null;
     }
     try {
-      return ExtraEpiccashWalletInfo.fromMap(
+      return ExtraMimblewimbleWalletInfo.fromMap(
         Map<String, dynamic>.from(jsonDecode(data) as Map),
       );
     } catch (e, s) {
       Logging.instance.e(
-        "ExtraEpiccashWalletInfo.fromMap failed: ",
+        "ExtraMimblewimbleWalletInfo.fromMap failed: ",
         error: e,
         stackTrace: s,
       );
@@ -25,19 +26,20 @@ extension EpiccashWalletInfoExtension on WalletInfo {
     }
   }
 
-  Future<void> updateExtraEpiccashWalletInfo({
-    required ExtraEpiccashWalletInfo epicData,
+  Future<void> updateMimblewimbleData({
+    required String key,
+    required ExtraMimblewimbleWalletInfo data,
     required Isar isar,
   }) async {
     await updateOtherData(
-      newEntries: {WalletInfoKeys.epiccashData: jsonEncode(epicData.toMap())},
+      newEntries: <String, dynamic>{key: jsonEncode(data.toMap())},
       isar: isar,
     );
   }
 }
 
 /// Holds data previously stored in hive
-class ExtraEpiccashWalletInfo {
+class ExtraMimblewimbleWalletInfo {
   final int receivingIndex;
   final int changeIndex;
 
@@ -49,7 +51,7 @@ class ExtraEpiccashWalletInfo {
   final int restoreHeight;
   final int creationHeight;
 
-  ExtraEpiccashWalletInfo({
+  ExtraMimblewimbleWalletInfo({
     required this.receivingIndex,
     required this.changeIndex,
     required this.slatesToAddresses,
@@ -59,9 +61,8 @@ class ExtraEpiccashWalletInfo {
     required this.creationHeight,
   });
 
-  // Convert the object to JSON
   Map<String, dynamic> toMap() {
-    return {
+    return <String, dynamic>{
       'receivingIndex': receivingIndex,
       'changeIndex': changeIndex,
       'slatesToAddresses': slatesToAddresses,
@@ -72,7 +73,7 @@ class ExtraEpiccashWalletInfo {
     };
   }
 
-  ExtraEpiccashWalletInfo.fromMap(Map<String, dynamic> json)
+  ExtraMimblewimbleWalletInfo.fromMap(Map<String, dynamic> json)
     : receivingIndex = json['receivingIndex'] as int,
       changeIndex = json['changeIndex'] as int,
       slatesToAddresses = json['slatesToAddresses'] as Map,
@@ -81,7 +82,7 @@ class ExtraEpiccashWalletInfo {
       restoreHeight = json['restoreHeight'] as int,
       creationHeight = json['creationHeight'] as int;
 
-  ExtraEpiccashWalletInfo copyWith({
+  ExtraMimblewimbleWalletInfo copyWith({
     int? receivingIndex,
     int? changeIndex,
     Map<dynamic, dynamic>? slatesToAddresses,
@@ -90,7 +91,7 @@ class ExtraEpiccashWalletInfo {
     int? restoreHeight,
     int? creationHeight,
   }) {
-    return ExtraEpiccashWalletInfo(
+    return ExtraMimblewimbleWalletInfo(
       receivingIndex: receivingIndex ?? this.receivingIndex,
       changeIndex: changeIndex ?? this.changeIndex,
       slatesToAddresses: slatesToAddresses ?? this.slatesToAddresses,
