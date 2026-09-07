@@ -113,7 +113,7 @@ final class _LibEpicCashInterfaceImpl extends LibEpicCashInterface {
   }
 
   @override
-  Future<List<EpicTransaction>> getTransactions({
+  Future<List<MimblewimbleTransaction>> getTransactions({
     required DynamicObject wallet,
     required int refreshFromNode,
   }) async {
@@ -123,7 +123,7 @@ final class _LibEpicCashInterfaceImpl extends LibEpicCashInterface {
 
     return transactions
         .map(
-          (e) => EpicTransaction(
+          (e) => MimblewimbleTransaction(
             parentKeyId: e.parentKeyId,
             id: e.id,
             txType: e.txType,
@@ -139,7 +139,7 @@ final class _LibEpicCashInterfaceImpl extends LibEpicCashInterface {
             ttlCutoffHeight: e.ttlCutoffHeight,
             messages: e.messages?.messages
                 .map(
-                  (f) => EpicMessage(
+                  (f) => MimblewimbleMessage(
                     id: f.id,
                     publicKey: f.publicKey,
                     message: f.message,
