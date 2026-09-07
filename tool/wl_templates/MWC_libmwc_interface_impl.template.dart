@@ -137,7 +137,7 @@ final class _LibMwcInterfaceImpl extends LibMwcInterface {
   }
 
   @override
-  Future<List<MwcTransaction>> getTransactions({
+  Future<List<MimblewimbleTransaction>> getTransactions({
     required String wallet,
     required int refreshFromNode,
   }) async {
@@ -148,7 +148,7 @@ final class _LibMwcInterfaceImpl extends LibMwcInterface {
 
     return transactions
         .map(
-          (e) => MwcTransaction(
+          (e) => MimblewimbleTransaction(
             parentKeyId: e.parentKeyId,
             id: e.id,
             txType: e.txType,
@@ -164,7 +164,7 @@ final class _LibMwcInterfaceImpl extends LibMwcInterface {
             ttlCutoffHeight: e.ttlCutoffHeight,
             messages: e.messages?.messages
                 .map(
-                  (f) => MwcMessage(
+                  (f) => MimblewimbleMessage(
                     id: f.id,
                     publicKey: f.publicKey,
                     message: f.message,
