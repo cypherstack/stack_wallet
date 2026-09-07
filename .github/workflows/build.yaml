@@ -265,6 +265,8 @@ jobs:
         run: flutter doctor -v
 
       - name: Configure app
+        env:
+          MWEBD_FETCH: '1'
         run: |
           cd scripts
           echo "yes" | ./build_app.sh \
@@ -1401,6 +1403,383 @@ jobs:
         with:
           name: stack_duo-windows-x86_64-${{ steps.ver.outputs.version }}.zip
           path: stack_duo-windows-x86_64-${{ steps.ver.outputs.version }}.zip
+
+  build-windows-arm:
+    runs-on: windows-11-arm
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set version
+        id: ver
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            VERSION="${{ github.ref_name }}"
+            VERSION="${VERSION#v}"
+            BUILD_NUMBER="${{ github.run_number }}"
+          elif [ -n "${{ inputs.version }}" ]; then
+            VERSION="${{ inputs.version }}"
+            BUILD_NUMBER="${{ inputs.build_number }}"
+          else
+            VERSION="0.0.0-staging.${{ github.run_number }}"
+            BUILD_NUMBER="${{ github.run_number }}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
+
+      # Flutter only publishes x64 Windows SDK binaries; architecture: x64 forces
+      # the action to fetch the x64 SDK which runs via emulation on the ARM64 host.
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.1'
+          channel: 'stable'
+          architecture: x64
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.24.13'
+
+      - name: Install Rust toolchains
+        run: |
+          rustup toolchain install 1.85.1
+          rustup toolchain install 1.89.0
+          rustup default 1.89.0
+          rustup target add --toolchain 1.89.0 aarch64-pc-windows-msvc
+          rustup target add --toolchain 1.85.1 aarch64-pc-windows-msvc
+
+      - name: Flutter doctor
+        run: flutter doctor -v
+
+      - name: Configure app
+        env:
+          # configure_stack_wallet.sh calls build_standalone_mwebd_windows.dart
+          # without --fetch by default, which tries to build mwebd.exe from source
+          # via WSL + CGO. On ARM64 the WSL host is ARM64 but the x64 MinGW
+          # assembler can't compile Go's gcc_arm64.S. Fetch the pre-built x64
+          # binary instead — it runs fine as a subprocess under x64 emulation.
+          MWEBD_FETCH: '1'
+        run: |
+          cd scripts
+          echo "yes" | ./build_app.sh \
+            -v "${{ steps.ver.outputs.version }}" \
+            -b "${{ steps.ver.outputs.build_number }}" \
+            -p windows -a stack_wallet -i -s
+
+      - name: Replace asset symlinks with copies (CI workaround)
+        run: |
+          set -euo pipefail
+          for dirname in default_themes icon lottie in_app_logo_icons svg; do
+            target="assets/${dirname}"
+            source="asset_sources/${dirname}/stack_wallet"
+            if [ -e "$target" ] || [ -L "$target" ]; then
+              cmd.exe /c rmdir "$(cygpath -w "$target")" 2>/dev/null || rm -rf "$target"
+            fi
+            mkdir -p "$target"
+            cp -r "${source}/." "$target/"
+          done
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Patch flutter_mwebd to skip Windows FFI build (CI workaround)
+        run: |
+          set -euo pipefail
+          cache_root="$(cygpath -u "$LOCALAPPDATA")/Pub/Cache/hosted/pub.dev"
+          plugin_dir=$(find "$cache_root" -maxdepth 1 -type d -name 'flutter_mwebd-*' -print -quit)
+          if [ -z "$plugin_dir" ] || [ ! -f "$plugin_dir/pubspec.yaml" ]; then
+            echo "::error::Could not locate flutter_mwebd in $cache_root"
+            exit 1
+          fi
+          pubspec="$plugin_dir/pubspec.yaml"
+          echo "Patching $pubspec"
+          sed -i '/^      windows:$/,/^        ffiPlugin: true$/d' "$pubspec"
+          flutter pub get
+
+      - name: Build flutter_libepiccash for Windows ARM64
+        run: |
+          set -euo pipefail
+          cd crypto_plugins/flutter_libepiccash/rust
+          cargo +1.89.0 build --target aarch64-pc-windows-msvc --release --lib
+          mkdir -p ../scripts/windows/build
+          # Cargo may output to target/release/ instead of target/<triple>/release/
+          # when --target matches the native host. Search both locations.
+          DLL="$(find target -name 'epic_cash_wallet.dll' -path '*/release/*' | head -1)"
+          [ -n "$DLL" ] || { echo "epic_cash_wallet.dll not found"; exit 1; }
+          cp "$DLL" ../scripts/windows/build/libepic_cash_wallet.dll
+
+      - name: Build flutter_libmwc for Windows ARM64
+        run: |
+          set -euo pipefail
+          cd crypto_plugins/flutter_libmwc/rust
+          cargo +1.85.1 build --target aarch64-pc-windows-msvc --release --lib
+          mkdir -p ../scripts/windows/build
+          DLL="$(find target -name 'mwc_wallet.dll' -path '*/release/*' | head -1)"
+          [ -n "$DLL" ] || { echo "mwc_wallet.dll not found"; exit 1; }
+          cp "$DLL" ../scripts/windows/build/libmwc_wallet.dll
+
+      - name: Build frostdart for Windows ARM64
+        run: |
+          set -euo pipefail
+          cd crypto_plugins/frostdart/src/serai/hrf
+          cargo +1.89.0 build --target aarch64-pc-windows-msvc --release --lib
+          mkdir -p ../../../scripts/windows/build
+          DLL="$(find target -name 'hrf_api.dll' -path '*/release/*' | head -1)"
+          [ -n "$DLL" ] || { echo "hrf_api.dll not found"; exit 1; }
+          cp "$DLL" ../../../scripts/windows/build/frostdart.dll
+
+      - name: Create git_versions.dart stubs
+        run: |
+          mkdir -p crypto_plugins/flutter_libepiccash/lib
+          mkdir -p crypto_plugins/flutter_libmwc/lib
+
+          EPIC_TAG=$(git -C crypto_plugins/flutter_libepiccash describe --tags --exact-match HEAD 2>/dev/null || echo "dev")
+          MWC_TAG=$(git -C crypto_plugins/flutter_libmwc describe --tags --exact-match HEAD 2>/dev/null || echo "dev")
+
+          printf 'String getPluginVersion() => "%s";\n' "$EPIC_TAG" \
+            > crypto_plugins/flutter_libepiccash/lib/git_versions.dart
+          printf 'String getPluginVersion() => "%s";\n' "$MWC_TAG" \
+            > crypto_plugins/flutter_libmwc/lib/git_versions.dart
+
+      - name: Decode secrets
+        env:
+          CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
+        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+
+      # coinlib's windows/CMakeLists.txt builds secp256k1 via cmake ExternalProject
+      # during flutter build windows. dart run coinlib:build_windows is skipped
+      # because it hardcodes -A x64.
+
+      - name: Build
+        run: flutter build windows --release
+
+      - name: Package
+        shell: pwsh
+        run: |
+          # Flutter outputs to arm64/ when it detects native ARM64, x64/ otherwise
+          # (x64 SDK via emulation on ARM64 runner may report either arch).
+          $releaseDir = if (Test-Path "build/windows/arm64/runner/Release") {
+            "build/windows/arm64/runner/Release"
+          } else {
+            "build/windows/x64/runner/Release"
+          }
+          Compress-Archive -Path "$releaseDir/*" `
+            -DestinationPath "stack_wallet-windows-arm64-${{ steps.ver.outputs.version }}.zip"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: stack_wallet-windows-arm64-${{ steps.ver.outputs.version }}.zip
+          path: stack_wallet-windows-arm64-${{ steps.ver.outputs.version }}.zip
+
+  build-campfire-windows-arm:
+    runs-on: windows-11-arm
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set version
+        id: ver
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            VERSION="${{ github.ref_name }}"
+            VERSION="${VERSION#v}"
+            BUILD_NUMBER="${{ github.run_number }}"
+          elif [ -n "${{ inputs.version }}" ]; then
+            VERSION="${{ inputs.version }}"
+            BUILD_NUMBER="${{ inputs.build_number }}"
+          else
+            VERSION="0.0.0-staging.${{ github.run_number }}"
+            BUILD_NUMBER="${{ github.run_number }}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
+
+      # Flutter only publishes x64 Windows SDK binaries; architecture: x64 forces
+      # the action to fetch the x64 SDK which runs via emulation on the ARM64 host.
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.1'
+          channel: 'stable'
+          architecture: x64
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.24.13'
+
+      - name: Flutter doctor
+        run: flutter doctor -v
+
+      - name: Configure app
+        run: |
+          cd scripts
+          echo "yes" | ./build_app.sh \
+            -v "${{ steps.ver.outputs.version }}" \
+            -b "${{ steps.ver.outputs.build_number }}" \
+            -p windows -a campfire -d -s
+
+      - name: Replace asset symlinks with copies (CI workaround)
+        run: |
+          set -euo pipefail
+          for dirname in default_themes icon lottie in_app_logo_icons svg; do
+            target="assets/${dirname}"
+            source="asset_sources/${dirname}/campfire"
+            if [ -e "$target" ] || [ -L "$target" ]; then
+              cmd.exe /c rmdir "$(cygpath -w "$target")" 2>/dev/null || rm -rf "$target"
+            fi
+            mkdir -p "$target"
+            cp -r "${source}/." "$target/"
+          done
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Decode secrets
+        env:
+          CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
+        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+
+      # coinlib's windows/CMakeLists.txt builds secp256k1 via cmake ExternalProject
+      # during flutter build windows. dart run coinlib:build_windows is skipped
+      # because it hardcodes -A x64.
+
+      - name: Build
+        run: flutter build windows --release
+
+      - name: Package
+        shell: pwsh
+        run: |
+          $releaseDir = if (Test-Path "build/windows/arm64/runner/Release") {
+            "build/windows/arm64/runner/Release"
+          } else {
+            "build/windows/x64/runner/Release"
+          }
+          Compress-Archive -Path "$releaseDir/*" `
+            -DestinationPath "campfire-windows-arm64-${{ steps.ver.outputs.version }}.zip"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: campfire-windows-arm64-${{ steps.ver.outputs.version }}.zip
+          path: campfire-windows-arm64-${{ steps.ver.outputs.version }}.zip
+
+  build-stack-duo-windows-arm:
+    runs-on: windows-11-arm
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Set version
+        id: ver
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            VERSION="${{ github.ref_name }}"
+            VERSION="${VERSION#v}"
+            BUILD_NUMBER="${{ github.run_number }}"
+          elif [ -n "${{ inputs.version }}" ]; then
+            VERSION="${{ inputs.version }}"
+            BUILD_NUMBER="${{ inputs.build_number }}"
+          else
+            VERSION="0.0.0-staging.${{ github.run_number }}"
+            BUILD_NUMBER="${{ github.run_number }}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
+
+      # Flutter only publishes x64 Windows SDK binaries; architecture: x64 forces
+      # the action to fetch the x64 SDK which runs via emulation on the ARM64 host.
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.1'
+          channel: 'stable'
+          architecture: x64
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.24.13'
+
+      - name: Install Rust toolchains
+        run: |
+          rustup toolchain install 1.89.0
+          rustup default 1.89.0
+          rustup target add --toolchain 1.89.0 aarch64-pc-windows-msvc
+
+      - name: Flutter doctor
+        run: flutter doctor -v
+
+      - name: Configure app
+        run: |
+          cd scripts
+          echo "yes" | ./build_app.sh \
+            -v "${{ steps.ver.outputs.version }}" \
+            -b "${{ steps.ver.outputs.build_number }}" \
+            -p windows -a stack_duo -i -s
+
+      - name: Replace asset symlinks with copies (CI workaround)
+        run: |
+          set -euo pipefail
+          for dirname in default_themes icon lottie in_app_logo_icons svg; do
+            target="assets/${dirname}"
+            source="asset_sources/${dirname}/stack_duo"
+            if [ -e "$target" ] || [ -L "$target" ]; then
+              cmd.exe /c rmdir "$(cygpath -w "$target")" 2>/dev/null || rm -rf "$target"
+            fi
+            mkdir -p "$target"
+            cp -r "${source}/." "$target/"
+          done
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build frostdart for Windows ARM64
+        run: |
+          set -euo pipefail
+          cd crypto_plugins/frostdart/src/serai/hrf
+          cargo +1.89.0 build --target aarch64-pc-windows-msvc --release --lib
+          mkdir -p ../../../scripts/windows/build
+          DLL="$(find target -name 'hrf_api.dll' -path '*/release/*' | head -1)"
+          [ -n "$DLL" ] || { echo "hrf_api.dll not found"; exit 1; }
+          cp "$DLL" ../../../scripts/windows/build/frostdart.dll
+
+      - name: Decode secrets
+        env:
+          CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
+        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+
+      # coinlib's windows/CMakeLists.txt builds secp256k1 via cmake ExternalProject
+      # during flutter build windows. dart run coinlib:build_windows is skipped
+      # because it hardcodes -A x64.
+
+      - name: Build
+        run: flutter build windows --release
+
+      - name: Package
+        shell: pwsh
+        run: |
+          $releaseDir = if (Test-Path "build/windows/arm64/runner/Release") {
+            "build/windows/arm64/runner/Release"
+          } else {
+            "build/windows/x64/runner/Release"
+          }
+          Compress-Archive -Path "$releaseDir/*" `
+            -DestinationPath "stack_duo-windows-arm64-${{ steps.ver.outputs.version }}.zip"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: stack_duo-windows-arm64-${{ steps.ver.outputs.version }}.zip
+          path: stack_duo-windows-arm64-${{ steps.ver.outputs.version }}.zip
 
   build-stack-duo-macos:
     runs-on: macos-latest
