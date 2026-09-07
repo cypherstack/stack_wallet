@@ -13,40 +13,25 @@ import 'dart:convert';
 import 'package:hive_ce/hive.dart';
 
 import 'mwcmqs_server_model.dart';
+import 'relay_config_model.dart';
 
 part 'type_adaptors/mwcmqs_config_model.g.dart';
 
 @HiveType(typeId: 82)
-class MwcMqsConfigModel {
-  @HiveField(1)
-  final String host;
-  @HiveField(2)
-  final int? port;
-
-  MwcMqsConfigModel({required this.host, this.port});
+class MwcMqsConfigModel extends RelayConfigModel {
+  const MwcMqsConfigModel({required super.host, super.port});
 
   MwcMqsConfigModel copyWith({int? port, bool? protocolInsecure}) {
     return MwcMqsConfigModel(host: host, port: this.port ?? 443);
   }
 
-  Map<String, dynamic> toMap() {
-    final Map<String, dynamic> map = {};
-    map['mwcmqs_domain'] = host;
-    map['mwcmqs_port'] = port;
-    return map;
-  }
-
-  Map<String, dynamic> toJson() {
-    return {'mwcmqs_domain': host, 'mwcmqs_port': port};
-  }
-
   @override
-  String toString() {
-    return json.encode(toJson());
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{'mwcmqs_domain': host, 'mwcmqs_port': port};
   }
 
-  static MwcMqsConfigModel fromString(String MwcMqsConfigString) {
-    final dynamic _mwcmqs = json.decode(MwcMqsConfigString);
+  static MwcMqsConfigModel fromString(String mwcMqsConfigString) {
+    final dynamic _mwcmqs = json.decode(mwcMqsConfigString);
 
     final oldDomain = _mwcmqs["domain"] ?? "empty";
     if (oldDomain != "empty") {

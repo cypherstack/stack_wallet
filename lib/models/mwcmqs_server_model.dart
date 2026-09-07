@@ -10,38 +10,24 @@
 
 import 'package:hive_ce/hive.dart';
 
+import 'relay_server_model.dart';
+
 part 'type_adaptors/mwcmqs_server_model.g.dart';
 
 @HiveType(typeId: 81)
-class MwcMqsServerModel {
-  @HiveField(0)
-  final String id;
-  @HiveField(1)
-  final String host;
-  @HiveField(2)
-  final int? port;
-  @HiveField(3)
-  final String name;
-  @HiveField(4)
-  final bool? useSSL;
-  @HiveField(5)
-  final bool? enabled;
-  @HiveField(6)
-  final bool? isFailover;
-  @HiveField(7)
-  final bool? isDown;
-
-  MwcMqsServerModel({
-    required this.id,
-    required this.host,
-    this.port,
-    required this.name,
-    this.useSSL,
-    this.enabled,
-    this.isFailover,
-    this.isDown,
+class MwcMqsServerModel extends RelayServerModel {
+  const MwcMqsServerModel({
+    required super.id,
+    required super.host,
+    super.port,
+    required super.name,
+    super.useSSL,
+    super.enabled,
+    super.isFailover,
+    super.isDown,
   });
 
+  @override
   MwcMqsServerModel copyWith({
     String? host,
     int? port,
@@ -61,33 +47,5 @@ class MwcMqsServerModel {
       isFailover: isFailover ?? this.isFailover,
       isDown: isDown ?? this.isDown,
     );
-  }
-
-  Map<String, dynamic> toMap() {
-    final Map<String, dynamic> map = {};
-    map['id'] = id;
-    map['host'] = host;
-    map['port'] = port;
-    map['name'] = name;
-    map['useSSL'] = useSSL;
-    map['enabled'] = enabled;
-    map['isFailover'] = isFailover;
-    map['isDown'] = isDown;
-    return map;
-  }
-
-  bool get isDefault => id.startsWith("default_");
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'host': host,
-      'port': port,
-      'name': name,
-      'useSSL': useSSL,
-      'enabled': enabled,
-      'isFailover': isFailover,
-      'isDown': isDown,
-    };
   }
 }
