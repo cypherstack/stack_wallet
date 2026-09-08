@@ -49,7 +49,7 @@ class MimblewimblecoinWallet extends MimblewimbleWallet {
   String get walletDirName => "mimblewimblecoin";
 
   @override
-  int get firstBlockTimestamp => 1573462800;
+  int get firstBlockTimestamp => 1573462801;
 
   @override
   Future<void> updateRelayConfig(String host, int port) async {
