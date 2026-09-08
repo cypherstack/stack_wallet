@@ -11,8 +11,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../utilities/amount/amount.dart';
-import '../../utilities/enums/epic_transaction_method.dart';
-import '../../utilities/enums/mwc_transaction_method.dart';
+import '../../utilities/enums/mimblewimble_transaction_method.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../wallet/public_private_balance_state_provider.dart';
@@ -25,73 +24,59 @@ final pIsExchangeAddress = StateProvider<bool>((_) => false);
 
 final pOpReturnData = StateProvider.autoDispose<String?>((_) => null);
 
-// MWC Transaction Method Provider.
-final pSelectedMwcTransactionMethod = StateProvider<MwcTransactionMethod>(
-  (_) => MwcTransactionMethod.slatepack,
-);
-
-// Epic Cash Transaction Method Provider.
-final pSelectedEpicTransactionMethod = StateProvider<EpicTransactionMethod>(
-  (_) => EpicTransactionMethod.epicbox,
-);
+// Selected exchange method per slatepack coin. Epic Cash defaults to its
+// relay, MWC to manual slatepacks.
+final pSelectedSlatepackMethod =
+    StateProvider.family<MimblewimbleTransactionMethod, CryptoCurrency>(
+      (_, CryptoCurrency coin) => coin is Epiccash
+          ? MimblewimbleTransactionMethod.relay
+          : MimblewimbleTransactionMethod.slatepack,
+    );
 
 final pIsSlatepack = Provider.family<bool, String>((ref, walletId) {
   final coin = ref.watch(pWalletCoin(walletId));
-  if (coin is Mimblewimblecoin) {
-    return ref.watch(pSelectedMwcTransactionMethod) ==
-        MwcTransactionMethod.slatepack;
-  }
-  if (coin is Epiccash) {
-    return ref.watch(pSelectedEpicTransactionMethod) ==
-        EpicTransactionMethod.slatepack;
+  if (coin is Mimblewimblecoin || coin is Epiccash) {
+    return ref.watch(pSelectedSlatepackMethod(coin)) ==
+        MimblewimbleTransactionMethod.slatepack;
   }
 
   return false;
 });
 
-final pPreviewTxButtonEnabled = Provider.autoDispose.family<bool, CryptoCurrency>(
-  (ref, coin) {
-    final amount = ref.watch(pSendAmount) ?? Amount.zero;
-    final opReturnData = ref.watch(pOpReturnData);
+final pPreviewTxButtonEnabled = Provider.autoDispose
+    .family<bool, CryptoCurrency>((ref, coin) {
+      final amount = ref.watch(pSendAmount) ?? Amount.zero;
+      final opReturnData = ref.watch(pOpReturnData);
 
-    if (coin is! Firo && opReturnData != null) {
-      return false;
-    }
-
-    // For MWC slatepack transactions, address validation is not required.
-    if (coin is Mimblewimblecoin) {
-      final selectedMethod = ref.watch(pSelectedMwcTransactionMethod);
-      if (selectedMethod == MwcTransactionMethod.slatepack) {
-        return amount > Amount.zero;
+      if (coin is! Firo && opReturnData != null) {
+        return false;
       }
-    }
 
-    // For Epic Cash slatepack transactions, address validation is not required.
-    if (coin is Epiccash) {
-      final selectedMethod = ref.watch(pSelectedEpicTransactionMethod);
-      if (selectedMethod == EpicTransactionMethod.slatepack) {
-        return amount > Amount.zero;
+      // Slatepack transactions have no address to validate.
+      if (coin is Mimblewimblecoin || coin is Epiccash) {
+        if (ref.watch(pSelectedSlatepackMethod(coin)) ==
+            MimblewimbleTransactionMethod.slatepack) {
+          return amount > Amount.zero;
+        }
       }
-    }
 
-    if (coin is Firo) {
-      final firoType = ref.watch(publicPrivateBalanceStateProvider);
-      switch (firoType) {
-        case BalanceType.private:
-          return (ref.watch(pValidSendToAddress) ||
-                  ref.watch(pValidSparkSendToAddress)) &&
-              !ref.watch(pIsExchangeAddress) &&
-              opReturnData == null &&
-              amount > Amount.zero;
+      if (coin is Firo) {
+        final firoType = ref.watch(publicPrivateBalanceStateProvider);
+        switch (firoType) {
+          case BalanceType.private:
+            return (ref.watch(pValidSendToAddress) ||
+                    ref.watch(pValidSparkSendToAddress)) &&
+                !ref.watch(pIsExchangeAddress) &&
+                opReturnData == null &&
+                amount > Amount.zero;
 
-        case BalanceType.public:
-          return ref.watch(pValidSendToAddress) && amount > Amount.zero;
+          case BalanceType.public:
+            return ref.watch(pValidSendToAddress) && amount > Amount.zero;
+        }
+      } else {
+        return ref.watch(pValidSendToAddress) && amount > Amount.zero;
       }
-    } else {
-      return ref.watch(pValidSendToAddress) && amount > Amount.zero;
-    }
-  },
-);
+    });
 
 final previewTokenTxButtonStateProvider = StateProvider.autoDispose<bool>((_) {
   return false;

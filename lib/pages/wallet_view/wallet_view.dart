@@ -52,11 +52,11 @@ import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import '../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
-import '../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../wallets/wallet/impl/namecoin_wallet.dart';
 import '../../wallets/wallet/impl/salvium_wallet.dart';
 import '../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
+import '../../wallets/wallet/intermediate/mimblewimble_wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
@@ -1011,7 +1011,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         }
                       },
                     ),
-                    if (wallet is MimblewimblecoinWallet)
+                    if (wallet is MimblewimbleWallet)
                       WalletNavigationBarItemData(
                         label: "Finalize",
                         icon: const FinalizeNavIcon(),
@@ -1019,22 +1019,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
                           if (mounted) {
                             unawaited(
                               Navigator.of(context).pushNamed(
-                                FinalizeView.routeName,
-                                arguments: walletId,
-                              ),
-                            );
-                          }
-                        },
-                      ),
-                    if (wallet is EpiccashWallet)
-                      WalletNavigationBarItemData(
-                        label: "Finalize",
-                        icon: const FinalizeNavIcon(),
-                        onTap: () {
-                          if (mounted) {
-                            unawaited(
-                              Navigator.of(context).pushNamed(
-                                EpicFinalizeView.routeName,
+                                wallet is EpiccashWallet
+                                    ? EpicFinalizeView.routeName
+                                    : FinalizeView.routeName,
                                 arguments: walletId,
                               ),
                             );

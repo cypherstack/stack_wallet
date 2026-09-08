@@ -8,6 +8,7 @@ import '../../../utilities/barcode_scanner_interface.dart';
 import '../../../utilities/clipboard_interface.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/logger.dart';
+import '../../../utilities/slatepack_terms.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/desktop/secondary_button.dart';
@@ -21,9 +22,11 @@ import '../../../widgets/textfield_icon_button.dart';
 class SlatepackEntryDialog extends ConsumerStatefulWidget {
   const SlatepackEntryDialog({
     super.key,
+    required this.terms,
     this.clipboard = const ClipboardWrapper(),
   });
 
+  final SlatepackTerms terms;
   final ClipboardInterface clipboard;
 
   @override
@@ -103,7 +106,7 @@ class _SlatepackEntryDialogState extends ConsumerState<SlatepackEntryDialog> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            "Receive Slatepack",
+            "Receive ${widget.terms.title}",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
               color: Theme.of(
                 context,
@@ -144,7 +147,7 @@ class _SlatepackEntryDialogState extends ConsumerState<SlatepackEntryDialog> {
               ),
               decoration:
                   standardInputDecoration(
-                    "Enter Slatepack Message",
+                    "Enter ${widget.terms.payload}",
                     _slateFocusNode,
                     context,
                     desktopMed: true,
