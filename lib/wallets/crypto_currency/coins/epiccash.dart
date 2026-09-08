@@ -4,7 +4,7 @@ import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/node_model.dart';
 import '../../../utilities/default_nodes.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
-import '../../../utilities/enums/epic_transaction_method.dart';
+import '../../../utilities/enums/mimblewimble_transaction_method.dart';
 import '../../../wl_gen/interfaces/libepiccash_interface.dart';
 import '../crypto_currency.dart';
 import '../intermediate/bip39_currency.dart';
@@ -156,14 +156,14 @@ class Epiccash extends Bip39Currency {
   }
 
   /// Detect transaction type based on address/data format.
-  EpicTransactionMethod getTransactionMethod(String addressOrData) {
+  MimblewimbleTransactionMethod getTransactionMethod(String addressOrData) {
     if (isSlateJson(addressOrData)) {
-      return EpicTransactionMethod.slatepack;
+      return MimblewimbleTransactionMethod.slatepack;
     } else if (isEpicboxAddress(addressOrData) ||
         isHttpAddress(addressOrData)) {
-      return EpicTransactionMethod.epicbox;
+      return MimblewimbleTransactionMethod.relay;
     } else {
-      throw Exception("Unknown EpicTransactionMethod found!");
+      throw Exception("Unknown MimblewimbleTransactionMethod found!");
     }
   }
 

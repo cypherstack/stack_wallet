@@ -37,8 +37,7 @@ import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
-import '../../../wallets/wallet/impl/epiccash_wallet.dart';
-import '../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
+import '../../../wallets/wallet/intermediate/mimblewimble_wallet.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -1699,66 +1698,15 @@ class _TransactionDetailsViewState
                     onPressed: () async {
                       final wallet = ref.read(pWallets).getWallet(walletId);
 
-                      if (wallet is EpiccashWallet) {
+                      if (wallet is MimblewimbleWallet) {
                         final String? id = _transaction.slateId;
                         if (id == null) {
                           unawaited(
                             showFloatingFlushBar(
                               type: FlushBarType.warning,
-                              message: "Could not find Epic transaction ID",
-                              context: context,
-                            ),
-                          );
-                          return;
-                        }
-
-                        unawaited(
-                          showDialog<dynamic>(
-                            barrierDismissible: false,
-                            context: context,
-                            builder: (_) =>
-                                const CancellingTransactionProgressDialog(),
-                          ),
-                        );
-
-                        final result = await wallet
-                            .cancelPendingTransactionAndPost(id);
-
-                        if (context.mounted) {
-                          // pop progress dialog
-                          Navigator.of(context).pop();
-
-                          if (result.isEmpty) {
-                            await showDialog<dynamic>(
-                              context: context,
-                              builder: (_) => StackOkDialog(
-                                title: "Transaction cancelled",
-                                maxWidth: Util.isDesktop ? 400 : null,
-                                onOkPressed: (_) {
-                                  Navigator.of(context).popUntil(
-                                    ModalRoute.withName(WalletView.routeName),
-                                  );
-                                },
-                              ),
-                            );
-                          } else {
-                            await showDialog<dynamic>(
-                              context: context,
-                              builder: (_) => StackOkDialog(
-                                title: "Failed to cancel transaction",
-                                message: result,
-                                maxWidth: Util.isDesktop ? 400 : null,
-                              ),
-                            );
-                          }
-                        }
-                      } else if (wallet is MimblewimblecoinWallet) {
-                        final String? id = _transaction.slateId;
-                        if (id == null) {
-                          unawaited(
-                            showFloatingFlushBar(
-                              type: FlushBarType.warning,
-                              message: "Could not find MWC transaction ID",
+                              message:
+                                  "Could not find "
+                                  "${wallet.cryptoCurrency.ticker} transaction ID",
                               context: context,
                             ),
                           );

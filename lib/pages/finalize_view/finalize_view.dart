@@ -25,7 +25,9 @@ import '../../utilities/logger.dart';
 import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
-import '../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
+import '../../utilities/slatepack_terms.dart';
+import '../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../wallets/wallet/intermediate/mimblewimble_wallet.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -56,6 +58,7 @@ class FinalizeView extends ConsumerStatefulWidget {
 class _FinalizeViewState extends ConsumerState<FinalizeView> {
   late final TextEditingController _slateController;
   late final FocusNode _slateFocusNode;
+  late final SlatepackTerms _terms;
 
   bool _slateToggleFlag = false;
 
@@ -116,16 +119,16 @@ class _FinalizeViewState extends ConsumerState<FinalizeView> {
     await Future<void>.delayed(const Duration(seconds: 1));
 
     final wallet =
-        ref.read(pWallets).getWallet(widget.walletId) as MimblewimblecoinWallet;
+        ref.read(pWallets).getWallet(widget.walletId) as MimblewimbleWallet;
 
     final decoded = await wallet.decodeSlatepack(_slateController.text);
     if (!decoded.success) {
-      throw Exception(decoded.error ?? "Failed to decode slatepack");
+      throw Exception(decoded.error ?? "Failed to decode ${_terms.noun}");
     }
 
     final analysis = await wallet.analyzeSlatepack(_slateController.text);
     if (analysis.status != "S2") {
-      throw Exception("Invalid slatepack type: ${analysis.status}");
+      throw Exception("Invalid ${_terms.noun} type: ${analysis.status}");
     }
 
     final result = await wallet.finalizeSlatepack(_slateController.text);
@@ -147,7 +150,7 @@ class _FinalizeViewState extends ConsumerState<FinalizeView> {
       await showLoading(
         whileFuture: _finalize(),
         context: context,
-        message: "Finalizing slatepack...",
+        message: "Finalizing ${_terms.noun}...",
         rootNavigator: Util.isDesktop,
         onException: (e) => ex = e,
       );
@@ -158,7 +161,7 @@ class _FinalizeViewState extends ConsumerState<FinalizeView> {
             context: context,
             builder: (context) => StackOkDialog(
               desktopPopRootNavigator: Util.isDesktop,
-              title: "Slatepack finalize error",
+              title: "${_terms.title} finalize error",
               message: ex?.toString() ?? "Unexpected result without exception",
               maxWidth: Util.isDesktop ? 400 : null,
             ),
@@ -184,6 +187,7 @@ class _FinalizeViewState extends ConsumerState<FinalizeView> {
     super.initState();
     _slateController = TextEditingController();
     _slateFocusNode = FocusNode();
+    _terms = SlatepackTerms.forCoin(ref.read(pWalletCoin(widget.walletId)));
   }
 
   @override
@@ -211,7 +215,7 @@ class _FinalizeViewState extends ConsumerState<FinalizeView> {
               },
             ),
             title: Text(
-              "Finalize slatepack",
+              "Finalize ${_terms.noun}",
               style: STextStyles.navBarTitle(context),
             ),
           ),
@@ -268,7 +272,7 @@ class _FinalizeViewState extends ConsumerState<FinalizeView> {
               style: STextStyles.field(context),
               decoration:
                   standardInputDecoration(
-                    "Enter Final Slatepack Message",
+                    _terms.finalizeHint,
                     _slateFocusNode,
                     context,
                     desktopMed: true,
@@ -325,7 +329,7 @@ class _FinalizeViewState extends ConsumerState<FinalizeView> {
           ),
           Util.isDesktop ? const SizedBox(height: 24) : const Spacer(),
           PrimaryButton(
-            label: "Finalize Slatepack",
+            label: "Finalize ${_terms.title}",
             enabled: _slateToggleFlag,
             onPressed: _slateToggleFlag ? _finalizePressed : null,
           ),

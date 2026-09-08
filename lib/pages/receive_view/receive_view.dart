@@ -29,12 +29,12 @@ import '../../utilities/clipboard_interface.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/enums/derive_path_type_enum.dart';
 import '../../utilities/show_loading.dart';
+import '../../utilities/slatepack_terms.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/impl/bitcoin_wallet.dart';
-import '../../wallets/wallet/impl/epiccash_wallet.dart';
-import '../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
+import '../../wallets/wallet/intermediate/mimblewimble_wallet.dart';
 import '../../wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/bcash_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
@@ -55,9 +55,7 @@ import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import 'addresses/wallet_addresses_view.dart';
 import 'generate_receiving_uri_qr_code_view.dart';
-import 'sub_widgets/epic_slatepack_entry_dialog.dart';
-import 'sub_widgets/epic_slatepack_import_dialog.dart';
-import 'sub_widgets/mwc_slatepack_import_dialog.dart';
+import 'sub_widgets/slatepack_import_dialog.dart';
 import 'sub_widgets/slatepack_entry_dialog.dart';
 
 class ReceiveView extends ConsumerStatefulWidget {
@@ -93,21 +91,23 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
   final Map<AddressType, StreamSubscription<Address?>> _addressSubMap = {};
 
   Future<void> _importSlatepack() async {
+    final SlatepackTerms terms = SlatepackTerms.forCoin(coin);
+
     final slatepackString = await showDialog<String>(
       context: context,
-      builder: (context) => const SlatepackEntryDialog(),
+      builder: (context) => SlatepackEntryDialog(terms: terms),
     );
 
     if (slatepackString == null) return;
     if (mounted) {
       final wallet =
-          ref.read(pWallets).getWallet(walletId) as MimblewimblecoinWallet;
+          ref.read(pWallets).getWallet(walletId) as MimblewimbleWallet;
 
       Exception? ex;
       final result = await showLoading(
         whileFuture: wallet.fullDecodeSlatepack(slatepackString),
         context: context,
-        message: "Decoding slatepack...",
+        message: "Decoding ${terms.noun}...",
         onException: (e) => ex = e,
       );
 
@@ -116,7 +116,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
           await showDialog<void>(
             context: context,
             builder: (context) => StackOkDialog(
-              title: "Slatepack receive error",
+              title: "${terms.title} receive error",
               message: ex?.toString() ?? "Unexpected result without exception",
             ),
           );
@@ -129,7 +129,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
             await showDialog<({String responseSlatepack, bool wasEncrypted})>(
               context: context,
               builder: (context) => SDialog(
-                child: MwcSlatepackImportDialog(
+                child: SlatepackImportDialog(
                   walletId: widget.walletId,
                   clipboard: widget.clipboard,
                   rawSlatepack: result.raw,
@@ -144,67 +144,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
             context: context,
             barrierDismissible: false,
             builder: (context) => SlatepackResponseDialog(
-              responseSlatepack: response.responseSlatepack,
-              wasEncrypted: response.wasEncrypted,
-            ),
-          );
-        }
-      }
-    }
-  }
-
-  Future<void> _importEpicSlatepack() async {
-    final slatepackString = await showDialog<String>(
-      context: context,
-      builder: (context) => const EpicSlatepackEntryDialog(),
-    );
-
-    if (slatepackString == null) return;
-    if (mounted) {
-      final wallet =
-          ref.read(pWallets).getWallet(walletId) as EpiccashWallet;
-
-      Exception? ex;
-      final result = await showLoading(
-        whileFuture: wallet.fullDecodeSlatepack(slatepackString),
-        context: context,
-        message: "Decoding slate...",
-        onException: (e) => ex = e,
-      );
-
-      if (result == null || ex != null) {
-        if (mounted) {
-          await showDialog<void>(
-            context: context,
-            builder: (context) => StackOkDialog(
-              title: "Slate receive error",
-              message: ex?.toString() ?? "Unexpected result without exception",
-            ),
-          );
-        }
-        return;
-      }
-
-      if (mounted) {
-        final response =
-            await showDialog<({String responseSlatepack, bool wasEncrypted})>(
-              context: context,
-              builder: (context) => SDialog(
-                child: EpicSlatepackImportDialog(
-                  walletId: widget.walletId,
-                  clipboard: widget.clipboard,
-                  rawSlatepack: result.raw,
-                  decoded: result.result,
-                  slatepackType: result.type,
-                ),
-              ),
-            );
-
-        if (mounted && response != null) {
-          await showDialog<void>(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => EpicSlatepackResponseDialog(
+              terms: terms,
               responseSlatepack: response.responseSlatepack,
               wasEncrypted: response.wasEncrypted,
             ),
@@ -820,20 +760,11 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                             ? generateNewSparkAddress
                             : generateNewAddress,
                       ),
-                    // MWC Slatepack import button.
-                    if (coin is Mimblewimblecoin) ...[
+                    if (coin is Mimblewimblecoin || coin is Epiccash) ...[
                       const SizedBox(height: 12),
                       SecondaryButton(
-                        label: "Import Slatepack",
+                        label: "Import ${SlatepackTerms.forCoin(coin).title}",
                         onPressed: _importSlatepack,
-                      ),
-                    ],
-                    // Epic Cash Slate import button.
-                    if (coin is Epiccash) ...[
-                      const SizedBox(height: 12),
-                      SecondaryButton(
-                        label: "Import Slate",
-                        onPressed: _importEpicSlatepack,
                       ),
                     ],
                     const SizedBox(height: 30),

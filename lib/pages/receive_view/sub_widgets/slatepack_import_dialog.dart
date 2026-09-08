@@ -10,10 +10,11 @@ import '../../../utilities/amount/amount.dart';
 import '../../../utilities/amount/amount_formatter.dart';
 import '../../../utilities/clipboard_interface.dart';
 import '../../../utilities/show_loading.dart';
+import '../../../utilities/slatepack_terms.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
-import '../../../wallets/wallet/impl/epiccash_wallet.dart';
+import '../../../wallets/wallet/intermediate/mimblewimble_wallet.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/custom_buttons/simple_copy_button.dart';
 import '../../../widgets/desktop/desktop_dialog_close_button.dart';
@@ -24,8 +25,8 @@ import '../../../widgets/dialogs/s_dialog.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_dialog.dart';
 
-class EpicSlatepackImportDialog extends ConsumerStatefulWidget {
-  const EpicSlatepackImportDialog({
+class SlatepackImportDialog extends ConsumerStatefulWidget {
+  const SlatepackImportDialog({
     super.key,
     required this.walletId,
     required this.rawSlatepack,
@@ -41,19 +42,20 @@ class EpicSlatepackImportDialog extends ConsumerStatefulWidget {
   final ClipboardInterface clipboard;
 
   @override
-  ConsumerState<EpicSlatepackImportDialog> createState() =>
-      _EpicSlatepackImportDialogState();
+  ConsumerState<SlatepackImportDialog> createState() =>
+      _SlatepackImportDialogState();
 }
 
-class _EpicSlatepackImportDialogState
-    extends ConsumerState<EpicSlatepackImportDialog> {
+class _SlatepackImportDialogState extends ConsumerState<SlatepackImportDialog> {
+  late final SlatepackTerms _terms;
+
   Future<({String responseSlatepack, bool wasEncrypted})>
   _processSlatepack() async {
     // add delay for showloading exception catching hack fix
     await Future<void>.delayed(const Duration(seconds: 1));
 
     final wallet =
-        ref.read(pWallets).getWallet(widget.walletId) as EpiccashWallet;
+        ref.read(pWallets).getWallet(widget.walletId) as MimblewimbleWallet;
 
     // Determine action based on slatepack type.
     if (widget.slatepackType.contains("S1")) {
@@ -78,7 +80,7 @@ class _EpicSlatepackImportDialogState
     final result = await showLoading(
       whileFuture: _processSlatepack(),
       context: context,
-      message: "Processing slate...",
+      message: "Processing ${_terms.noun}...",
       onException: (e) => ex = e,
     );
 
@@ -87,14 +89,12 @@ class _EpicSlatepackImportDialogState
         await showDialog<void>(
           context: context,
           useRootNavigator: true,
-          builder:
-              (context) => StackOkDialog(
-                desktopPopRootNavigator: true,
-                maxWidth: Util.isDesktop ? 400 : null,
-                title: "Slate receive error",
-                message:
-                    ex?.toString() ?? "Unexpected result without exception",
-              ),
+          builder: (context) => StackOkDialog(
+            desktopPopRootNavigator: true,
+            maxWidth: Util.isDesktop ? 400 : null,
+            title: "${_terms.title} receive error",
+            message: ex?.toString() ?? "Unexpected result without exception",
+          ),
         );
       }
       return;
@@ -107,19 +107,33 @@ class _EpicSlatepackImportDialogState
 
   late final Amount? _amount;
 
+  // late final Amount? _fee;
+
   @override
   void initState() {
+    _terms = SlatepackTerms.forCoin(ref.read(pWalletCoin(widget.walletId)));
+
     final map = jsonDecode(widget.decoded.slateJson!) as Map;
 
     final rawAmount = BigInt.tryParse(map["amount"].toString());
-    _amount =
-        rawAmount == null
-            ? null
-            : Amount(
-              rawValue: rawAmount,
-              fractionDigits:
-                  ref.read(pWalletCoin(widget.walletId)).fractionDigits,
-            );
+    _amount = rawAmount == null
+        ? null
+        : Amount(
+            rawValue: rawAmount,
+            fractionDigits: ref
+                .read(pWalletCoin(widget.walletId))
+                .fractionDigits,
+          );
+
+    // final rawFee = BigInt.tryParse(map["fee"].toString());
+    // _fee =
+    //     rawFee == null
+    //         ? null
+    //         : Amount(
+    //           rawValue: rawFee,
+    //           fractionDigits:
+    //               ref.read(pWalletCoin(widget.walletId)).fractionDigits,
+    //         );
 
     super.initState();
   }
@@ -139,7 +153,7 @@ class _EpicSlatepackImportDialogState
               Padding(
                 padding: const EdgeInsets.only(left: 32),
                 child: Text(
-                  "Import Slate",
+                  "Import ${_terms.title}",
                   style: STextStyles.pageTitleH2(context),
                 ),
               ),
@@ -154,17 +168,15 @@ class _EpicSlatepackImportDialogState
             children: [
               ConditionalParent(
                 condition: isDesktop,
-                builder:
-                    (child) => RoundedWhiteContainer(
-                      borderColor:
-                          isDesktop
-                              ? Theme.of(
-                                context,
-                              ).extension<StackColors>()!.backgroundAppBar
-                              : null,
-                      padding: const EdgeInsets.all(0),
-                      child: child,
-                    ),
+                builder: (child) => RoundedWhiteContainer(
+                  borderColor: isDesktop
+                      ? Theme.of(
+                          context,
+                        ).extension<StackColors>()!.backgroundAppBar
+                      : null,
+                  padding: const EdgeInsets.all(0),
+                  child: child,
+                ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -173,11 +185,32 @@ class _EpicSlatepackImportDialogState
                       Padding(
                         padding: const EdgeInsets.only(top: 24, bottom: 24),
                         child: Text(
-                          "Import slate",
+                          "Import ${_terms.noun}",
                           style: STextStyles.pageTitleH2(context),
                         ),
                       ),
 
+                    // DetailItem(title: "Type", detail: widget.slatepackType),
+                    // const DetailDivider(),
+                    // DetailItem(
+                    //   title: "Encrypted",
+                    //   detail: (widget.decoded.wasEncrypted ?? false).toString(),
+                    // ),
+                    // if (widget.decoded.senderAddress != null)
+                    //   const DetailDivider(),
+                    // if (widget.decoded.senderAddress != null)
+                    //   DetailItem(
+                    //     title: "From",
+                    //     detail: widget.decoded.senderAddress!,
+                    //   ),
+                    // if (widget.decoded.recipientAddress != null)
+                    //   const DetailDivider(),
+                    // if (widget.decoded.recipientAddress != null)
+                    //   DetailItem(
+                    //     title: "To",
+                    //     detail: widget.decoded.recipientAddress!,
+                    //   ),
+                    // if (_amount != null) const DetailDivider(),
                     if (_amount != null)
                       DetailItem(
                         title: "Amount",
@@ -189,17 +222,28 @@ class _EpicSlatepackImportDialogState
                             )
                             .format(_amount),
                       ),
+                    // if (_fee != null) const DetailDivider(),
+                    // if (_fee != null)
+                    //   DetailItem(
+                    //     title: "Fee",
+                    //     detail: ref
+                    //         .watch(
+                    //           pAmountFormatter(
+                    //             ref.watch(pWalletCoin(widget.walletId)),
+                    //           ),
+                    //         )
+                    //         .format(_fee),
+                    //   ),
                   ],
                 ),
               ),
               const SizedBox(height: 24),
               ConditionalParent(
                 condition: isDesktop,
-                builder:
-                    (child) => Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [child],
-                    ),
+                builder: (child) => Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [child],
+                ),
                 child: PrimaryButton(
                   width: isDesktop ? 220 : null,
 
@@ -223,13 +267,15 @@ class _EpicSlatepackImportDialogState
   }
 }
 
-class EpicSlatepackResponseDialog extends StatelessWidget {
-  const EpicSlatepackResponseDialog({
+class SlatepackResponseDialog extends StatelessWidget {
+  const SlatepackResponseDialog({
     super.key,
+    required this.terms,
     required this.responseSlatepack,
     required this.wasEncrypted,
   });
 
+  final SlatepackTerms terms;
   final String responseSlatepack;
   final bool wasEncrypted;
 
@@ -247,7 +293,7 @@ class EpicSlatepackResponseDialog extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "Response Slate",
+                    "Response ${terms.title}",
                     style: STextStyles.pageTitleH2(context),
                   ),
                   const DesktopDialogCloseButton(),
@@ -255,16 +301,16 @@ class EpicSlatepackResponseDialog extends StatelessWidget {
               ),
             ),
           Padding(
-            padding:
-                Util.isDesktop
-                    ? const EdgeInsets.only(left: 32, right: 32, bottom: 32)
-                    : const EdgeInsets.only(left: 24, right: 24, bottom: 24),
+            padding: Util.isDesktop
+                ? const EdgeInsets.only(left: 32, right: 32, bottom: 32)
+                : const EdgeInsets.only(left: 24, right: 24, bottom: 24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (!Util.isDesktop) const SizedBox(height: 24),
                 Text(
-                  "Return this slate to the sender to complete the transaction.",
+                  "Return this ${terms.noun} to the sender to complete the "
+                  "transaction.",
                   style: STextStyles.pageTitleH2(context),
                 ),
                 const SizedBox(height: 24),
@@ -272,7 +318,7 @@ class EpicSlatepackResponseDialog extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "Response slate",
+                      "Response ${terms.noun}",
                       style: STextStyles.itemSubtitle(context),
                     ),
                     SimpleCopyButton(data: responseSlatepack),
@@ -281,11 +327,10 @@ class EpicSlatepackResponseDialog extends StatelessWidget {
                 const SizedBox(height: 8),
                 ConditionalParent(
                   condition: !Util.isDesktop,
-                  builder:
-                      (child) => SizedBox(
-                        height: 220,
-                        child: SingleChildScrollView(child: child),
-                      ),
+                  builder: (child) => SizedBox(
+                    height: 220,
+                    child: SingleChildScrollView(child: child),
+                  ),
                   child: SelectableText(
                     responseSlatepack,
                     style: STextStyles.w500_14(context),
@@ -294,11 +339,10 @@ class EpicSlatepackResponseDialog extends StatelessWidget {
                 const SizedBox(height: 24),
                 ConditionalParent(
                   condition: Util.isDesktop,
-                  builder:
-                      (child) => Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [child],
-                      ),
+                  builder: (child) => Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [child],
+                  ),
                   child: PrimaryButton(
                     label: "Done",
                     width: Util.isDesktop ? 220 : null,
