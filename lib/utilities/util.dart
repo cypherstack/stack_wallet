@@ -30,8 +30,8 @@ abstract class Util {
 
   static final Map<String, NumberSymbols?> _numberSymbolsCache = {};
 
-  static Directory? libraryPath;
   static double? screenWidth;
+  static bool? isIpad;
 
   static NumberSymbols? getSymbolsFor({required String locale}) {
     return _numberSymbolsCache.putIfAbsent(locale, () {
@@ -89,20 +89,17 @@ abstract class Util {
       return false;
     }
 
-    // special check for running under ipad mode in macos
-    if (Platform.isIOS &&
-        libraryPath != null &&
-        !libraryPath!.path.contains("/var/mobile/")) {
+    if (isIpad == true) {
       return true;
     }
 
     return Platform.isLinux || Platform.isMacOS || Platform.isWindows;
   }
 
-  static Future<bool> get isIPad async {
+  static Future<bool> get getIsIPad async {
     final deviceInfo = (await DeviceInfoPlugin().deviceInfo);
     if (deviceInfo is IosDeviceInfo) {
-      return (deviceInfo).name?.toLowerCase().contains("ipad") == true;
+      return (deviceInfo).name.toLowerCase().contains("ipad") == true;
     }
     return false;
   }
