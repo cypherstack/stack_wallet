@@ -86,17 +86,17 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                     padding: const EdgeInsets.only(left: 24, right: 20),
                     child: AppBarIconButton(
                       size: 32,
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textFieldDefaultBG,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldDefaultBG,
                       shadows: const [],
                       icon: SvgPicture.asset(
                         Assets.svg.arrowLeft,
                         width: 18,
                         height: 18,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.topNavIconPrimary,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .topNavIconPrimary,
                       ),
                       onPressed: Navigator.of(context).pop,
                     ),
@@ -139,9 +139,9 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                                 horizontal: 24.0,
                               ),
                               color: _followButtonHoverState
-                                  ? Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.highlight
+                                  ? Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .highlight
                                   : Colors.transparent,
                               radiusMultiplier: 100,
                               child: Row(
@@ -150,9 +150,9 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                                     Assets.svg.plus,
                                     width: 16,
                                     height: 16,
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.textDark,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark,
                                   ),
                                   const SizedBox(width: 8),
                                   Column(
@@ -199,9 +199,9 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                           Assets.svg.circlePlusFilled,
                           width: 20,
                           height: 20,
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.accentColorDark,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorDark,
                         ),
                         onPressed: () {
                           Navigator.of(context).pushNamed(
@@ -221,9 +221,9 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                         Assets.svg.circleQuestion,
                         width: 20,
                         height: 20,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorDark,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
                       ),
                       onPressed: () {
                         // todo info ?
@@ -306,9 +306,9 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                           icon: CopyIcon(
                             width: 12,
                             height: 12,
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.buttonTextSecondary,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .buttonTextSecondary,
                           ),
                           onPressed: () async {
                             await Clipboard.setData(
@@ -340,13 +340,13 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                           icon: ShareIcon(
                             width: 12,
                             height: 12,
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.buttonTextSecondary,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .buttonTextSecondary,
                           ),
                           onPressed: () async {
                             Rect? sharePositionOrigin;
-                            if (await Util.isIPad) {
+                            if (Util.isIpad == true) {
                               final box =
                                   context.findRenderObject() as RenderBox?;
                               if (box != null) {
@@ -376,9 +376,9 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                           icon: QrCodeIcon(
                             width: 12,
                             height: 12,
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.buttonTextSecondary,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .buttonTextSecondary,
                           ),
                           onPressed: () {
                             showDialog<void>(
@@ -469,9 +469,9 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                         icon: CopyIcon(
                           width: 18,
                           height: 18,
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.textDark,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textDark,
                         ),
                         onPressed: () async {
                           await Clipboard.setData(
@@ -501,9 +501,9 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                         icon: QrCodeIcon(
                           width: 18,
                           height: 18,
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.textDark,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textDark,
                         ),
                         onPressed: () {
                           showDialog<void>(
@@ -535,9 +535,9 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                   onColor: Theme.of(context).extension<StackColors>()!.popupBG,
                   onText:
                       "Following (${ref.watch(myPaynymAccountStateProvider.state).state?.following.length ?? 0})",
-                  offColor: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldDefaultBG,
+                  offColor: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultBG,
                   offText:
                       "Followers (${ref.watch(myPaynymAccountStateProvider.state).state?.followers.length ?? 0})",
                   isOn: showFollowers,

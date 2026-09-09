@@ -839,7 +839,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         const changeChain = 1;
         final List<Future<({int index, List<Address> addresses})>>
         receiveFutures = [
-          _checkGapsLinearly(serializedKeys, receiveChain, secure: true),
+          _checkGapsLinearly(serializedKeys!, receiveChain, secure: true),
         ];
         final List<Future<({int index, List<Address> addresses})>>
         changeFutures = [
@@ -872,8 +872,9 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         }
 
         int highestChangeIndexWithHistory = 0;
-        // If restoring a wallet that never sent any funds with change, then set changeArray
-        // manually. If we didn't do this, it'd store an empty array.
+        // If restoring a wallet that never sent any funds with change, then
+        // set changeArray manually.
+        // If we didn't do this, it'd store an empty array.
         for (final tuple in changeResults) {
           if (tuple.addresses.isEmpty) {
             await checkChangeAddressForTransactions();
@@ -900,7 +901,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
 
         await mainDB.updateOrPutAddresses(addressesToStore);
 
-        await _legacyInsecureScan(serializedKeys);
+        await _legacyInsecureScan(serializedKeys!);
       });
 
       GlobalEventBus.instance.fire(
@@ -1432,7 +1433,8 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         throw Exception();
       } catch (_, s) {
         Logging.instance.e(
-          "checkReceivingAddressForTransactions called but reuse address flag set: $s",
+          "checkReceivingAddressForTransactions called but reuse address flag"
+          " set: $s",
           stackTrace: s,
         );
       }
@@ -1602,7 +1604,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
   }
 
   Future<Address> _generateAddressSafe({
-    required final int chain,
+    required int chain,
     required int startingIndex,
   }) async {
     final serializedKeys = (await getSerializedKeys())!;
