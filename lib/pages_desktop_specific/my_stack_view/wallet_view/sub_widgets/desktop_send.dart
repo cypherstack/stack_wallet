@@ -545,6 +545,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           // cancel preview
           return;
         }
+        if (coin is Xelis) _xelisSendAll = true;
       }
     }
 
@@ -721,6 +722,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         final memo = hasOptionalMemo ? memoController.text : null;
         txDataFuture = wallet.prepareSend(
           txData: TxData(
+            xelisSendAll: coin is Xelis && _xelisSendAll,
             recipients: [
               TxRecipient(
                 address: _address!,
@@ -748,6 +750,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       final results = await Future.wait([txDataFuture, time]);
 
       txData = results.first as TxData;
+
+      if (wasCancelled || !mounted) {
+        await wallet.cancelSend(txData: txData);
+        return;
+      }
 
       if (!wasCancelled && mounted) {
         if (isPaynymSend) {
@@ -879,7 +886,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     ref.read(pOpReturnData.notifier).state = data;
   }
 
+  bool _xelisSendAll = false;
+
   void _cryptoAmountChanged() async {
+    _xelisSendAll = false;
     if (!_cryptoAmountChangeLock) {
       final cryptoAmount = ref
           .read(pAmountFormatter(coin))
@@ -1229,6 +1239,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         .read(pAmountFormatter(coin))
         .formatEditable(amount);
     _syncFeeAmount(amount);
+    _xelisSendAll = coin is Xelis;
   }
 
   void _showDesktopCoinControl() async {

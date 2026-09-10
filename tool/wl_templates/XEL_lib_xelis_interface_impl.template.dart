@@ -1,22 +1,12 @@
 //ON
-import 'dart:convert';
+import 'dart:async';
 
 import 'package:logger/logger.dart';
-import 'package:xelis_dart_sdk/src/data_transfer_objects/get_asset/max_supply_mode.dart';
-import 'package:xelis_dart_sdk/xelis_dart_sdk.dart' as xelis_sdk;
-import 'package:xelis_flutter/src/api/api.dart' as xelis_api;
-import 'package:xelis_flutter/src/api/logger.dart' as xelis_logging;
-import 'package:xelis_flutter/src/api/models/wallet_dtos.dart' as x_wallet_dtos;
-import 'package:xelis_flutter/src/api/network.dart' as x_network;
-import 'package:xelis_flutter/src/api/precomputed_tables.dart' as x_tables;
-import 'package:xelis_flutter/src/api/progress_report.dart' as x_report;
-import 'package:xelis_flutter/src/api/seed_search_engine.dart' as x_seed;
-import 'package:xelis_flutter/src/api/utils.dart' as x_utils;
-import 'package:xelis_flutter/src/api/wallet.dart' as x_wallet;
-import 'package:xelis_flutter/src/frb_generated.dart' as xelis_rust;
+import 'package:path/path.dart' as path;
+import 'package:xelis_dart_sdk/xelis_dart_sdk.dart' as sdk;
+import 'package:xelis_wallet_flutter/xelis_wallet_flutter.dart' as xwf;
 
 import '../../providers/progress_report/xelis_table_progress_provider.dart';
-import '../../utilities/dynamic_object.dart';
 import '../../utilities/logger.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 //END_ON
@@ -25,214 +15,185 @@ import '../interfaces/lib_xelis_interface.dart';
 LibXelisInterface get libXelis => _getInterface();
 
 //OFF
-LibXelisInterface _getInterface() => throw Exception("XEL not enabled!");
-
+LibXelisInterface _getInterface() => throw StateError('XEL not enabled');
 //END_OFF
 //ON
-LibXelisInterface _getInterface() => const _LibXelisInterfaceImpl();
+final _interface = _LibXelisInterfaceImpl();
+LibXelisInterface _getInterface() => _interface;
 
-extension _OpaqueXelisWalletExt on OpaqueXelisWallet {
-  x_wallet.XelisWallet get actual => get();
+extension on OpaqueXelisWallet {
+  xwf.XelisWallet get actual => get<xwf.XelisWallet>();
 }
 
 final class _LibXelisInterfaceImpl extends LibXelisInterface {
-  const _LibXelisInterfaceImpl();
+  StreamSubscription<xwf.XelisLogEntry>? _logs;
+  StreamSubscription<xwf.ProgressReport>? _progress;
+  final _progressEvents = StreamController<XelisTableProgressState>.broadcast();
+  XelisTableProgressState _lastProgress = const XelisTableProgressState();
 
   @override
-  String get xelisAsset => xelis_sdk.xelisAsset;
+  String get xelisAsset => sdk.xelisAsset;
 
   @override
-  Future<void> initRustLib() => xelis_rust.RustLib.init();
-
-  @override
-  Future<void> setupRustLogger() => xelis_api.setUpRustLogger();
-
-  @override
-  void startListeningToRustLogs() => xelis_api.createLogStream().listen(
-    (logEntry) {
-      final Level level;
-      switch (logEntry.level) {
-        case xelis_logging.Level.error:
-          level = Level.error;
-        case xelis_logging.Level.warn:
-          level = Level.warning;
-        case xelis_logging.Level.info:
-          level = Level.info;
-        case xelis_logging.Level.debug:
-          level = Level.debug;
-        case xelis_logging.Level.trace:
-          level = Level.trace;
-      }
-
-      Logging.instance.log(
-        level,
-        "[Xelis Rust Log] ${logEntry.tag}: ${logEntry.msg}",
+  Future<void> initRustLib() async {
+    await xwf.XelisWalletFlutter.initialize();
+    await xwf.XelisWalletFlutter.initializeConfiguration();
+    await xwf.XelisWalletFlutter.initializeCryptoProvider();
+    _progress ??= xwf.XelisWalletFlutter.createProgressReportStream().listen((
+      report,
+    ) {
+      _lastProgress = XelisTableProgressState(
+        tableProgress: report.progress,
+        currentStep: XelisTableGenerationStep.fromString(report.step),
       );
-    },
-    onError: (dynamic e) {
-      Logging.instance.e("Error receiving Xelis Rust logs: $e");
-    },
+      _progressEvents.add(_lastProgress);
+    }, onError: _progressEvents.addError);
+  }
+
+  @override
+  Future<void> setupRustLogger() => xwf.XelisWalletFlutter.initializeRustLogger(
+    scope: xwf.XelisNativeLogScope.standard,
   );
 
   @override
-  Stream<XelisTableProgressState> createProgressReportStream() {
-    double lastPrintedProgress = 0.0;
-    XelisTableGenerationStep? lastStep;
+  void startListeningToRustLogs() {
+    _logs ??= xwf.XelisWalletFlutter.createRustLogStream().listen(
+      (entry) => Logging.instance.log(switch (entry.level) {
+        xwf.XelisLogLevel.error => Level.error,
+        xwf.XelisLogLevel.warn => Level.warning,
+        xwf.XelisLogLevel.info => Level.info,
+        xwf.XelisLogLevel.debug => Level.debug,
+        xwf.XelisLogLevel.trace => Level.trace,
+      }, '[Xelis] ${entry.message}'),
+      onError: (Object error, StackTrace stack) => Logging.instance.e(
+        'Xelis log stream failed',
+        error: error,
+        stackTrace: stack,
+      ),
+    );
+  }
 
-    return xelis_api.createProgressReportStream().map((report) {
-      return report.when(
-        tableGeneration: (progress, step, message) {
-          final currentStep = XelisTableGenerationStep.fromString(step);
-
-          final hasProgressJump =
-              (progress - lastPrintedProgress).abs() >= 0.05;
-          final stepChanged = currentStep != lastStep;
-          final isFinished = progress >= 0.99;
-
-          if (hasProgressJump || stepChanged || isFinished) {
-            final percent = (progress * 100).toStringAsFixed(1);
-            final extra = (message != null && message.isNotEmpty)
-                ? ' – $message'
-                : '';
-
-            Logging.instance.d(
-              'Xelis Table Generation: $step - $percent%$extra',
-            );
-
-            lastPrintedProgress = progress;
-            lastStep = currentStep;
-          }
-
-          return XelisTableProgressState(
-            tableProgress: progress,
-            currentStep: currentStep,
-          );
-        },
-        misc: (message) {
-          if (message != null && message.isNotEmpty) {
-            Logging.instance.d('Xelis Table Generation (misc): $message');
-          }
-          return const XelisTableProgressState();
-        },
-      );
-    });
+  @override
+  Stream<XelisTableProgressState> createProgressReportStream() async* {
+    yield _lastProgress;
+    yield* _progressEvents.stream;
   }
 
   @override
   bool isAddressValid({
     required String address,
     required CryptoCurrencyNetwork network,
-  }) => x_utils.isAddressValid(
-    strAddress: address,
-    network: network.xelisNetwork,
+  }) => xwf.XelisWalletFlutter.isAddressValid(
+    address: address,
+    network: _network(network),
   );
 
   @override
   bool validateSeedWord(String word) {
-    return x_seed.SearchEngine.init(
-      languageIndex: BigInt.from(0),
-    ).search(query: word).isNotEmpty;
+    final engine = xwf.XelisWalletFlutter.createSeedSearchEngine(
+      language: xwf.SeedLanguage.english,
+    );
+    try {
+      return word.isNotEmpty && engine.findInvalidWords(words: [word]).isEmpty;
+    } finally {
+      engine.dispose();
+    }
   }
 
   @override
-  Stream<Event> eventsStream(OpaqueXelisWallet wallet) async* {
-    final rawEventStream = wallet.actual.eventsStream();
+  Future<XelisEventSubscription> subscribeRuntimeEvents(
+    OpaqueXelisWallet wallet,
+  ) async {
+    final subscription = await wallet.actual.subscribeRuntimeEvents();
+    return XelisEventSubscription(
+      cancel: subscription.cancel,
+      events: subscription.events.map(
+        (frame) => switch (frame.event) {
+          xwf.XelisWalletOnline() => const Online(),
+          xwf.XelisWalletOffline() => const Offline(),
+          xwf.XelisWalletTopoheightChanged(:final topoheight) => NewTopoheight(
+            topoheight,
+          ),
+          xwf.XelisWalletHistorySynced(:final topoheight) => HistorySynced(
+            topoheight,
+          ),
+          xwf.XelisWalletRescanStarted(:final startTopoheight) => Rescan(
+            startTopoheight,
+          ),
+          xwf.XelisWalletSyncIssue(:final failure) => XelisSyncIssue(failure),
+          xwf.XelisWalletEventStreamDegraded(:final failure) =>
+            XelisStateInvalidated(failure: failure),
+          xwf.XelisWalletEventStreamClosed(:final failure) =>
+            XelisChannelClosed(failure, isRuntime: true),
+        },
+      ),
+    );
+  }
 
-    await for (final rawData in rawEventStream) {
-      final json = jsonDecode(rawData);
-      try {
-        final eventType = xelis_sdk.WalletEvent.fromStr(
-          json['event'] as String,
-        );
-        switch (eventType) {
-          case xelis_sdk.WalletEvent.newTopoHeight:
-            yield NewTopoheight(json['data']['topoheight'] as int);
-          case xelis_sdk.WalletEvent.newAsset:
-            final data = xelis_sdk.AssetData.fromJson(
-              json['data'] as Map<String, dynamic>,
-            );
-
-            yield NewAsset(
-              data.name,
-              data.decimals,
-              DynamicObject(data.maxSupply),
-            );
-          case xelis_sdk.WalletEvent.newTransaction:
-            final tx = xelis_sdk.TransactionEntry.fromJson(
-              json['data'] as Map<String, dynamic>,
-            );
-            yield NewTransaction(
-              TransactionEntryWrapper(
-                tx,
-                entryType: _entryTypeConversion(tx.txEntryType),
-                hash: tx.hash,
-                timestamp: tx.timestamp,
-                topoheight: tx.topoheight,
-              ),
-            );
-          case xelis_sdk.WalletEvent.newPendingTransaction:
-            continue;
-          case xelis_sdk.WalletEvent.balanceChanged:
-            final data = xelis_sdk.BalanceChangedEvent.fromJson(
-              json['data'] as Map<String, dynamic>,
-            );
-            yield BalanceChanged(data.assetHash, data.balance);
-          case xelis_sdk.WalletEvent.trackAsset:
-            // TODO
-            continue;
-          case xelis_sdk.WalletEvent.untrackAsset:
-            // TODO
-            continue;
-          case xelis_sdk.WalletEvent.rescan:
-            yield Rescan(json['data']['start_topoheight'] as int);
-          case xelis_sdk.WalletEvent.online:
-            yield const Online();
-          case xelis_sdk.WalletEvent.offline:
-            yield const Offline();
-          case xelis_sdk.WalletEvent.historySynced:
-            yield HistorySynced(json['data']['topoheight'] as int);
-          case xelis_sdk.WalletEvent.syncError:
-            print("ERROR SYNCING: ${json['data']['message']}");
-            yield const Offline(); // TODO: make a message describing the error with json['data']['message']
-        }
-      } catch (e, s) {
-        Logging.instance.e(
-          "Error processing xelis wallet event: $rawData",
-          error: e,
-          stackTrace: s,
-        );
-        continue;
-      }
-    }
+  @override
+  Future<XelisEventSubscription> subscribeBusinessEvents(
+    OpaqueXelisWallet wallet,
+  ) async {
+    final subscription = await wallet.actual.subscribeBusinessEvents();
+    return XelisEventSubscription(
+      cancel: subscription.cancel,
+      events: subscription.events.map(
+        (frame) => switch (frame.event) {
+          xwf.XelisWalletNewTransaction(:final transaction) => NewTransaction(
+            _confirmed(transaction),
+          ),
+          xwf.XelisWalletNewPendingTransaction(:final transaction) =>
+            NewTransaction(_pending(transaction)),
+          xwf.XelisWalletBalanceChanged(:final asset, :final balance) =>
+            BalanceChanged(asset, balance),
+          xwf.XelisWalletNewAsset() ||
+          xwf.XelisWalletAssetTracked() ||
+          xwf.XelisWalletAssetUntracked() => const XelisStateInvalidated(),
+          xwf.XelisWalletBusinessEventStreamDegraded(:final failure) =>
+            XelisStateInvalidated(failure: failure),
+          xwf.XelisWalletBusinessEventStreamClosed(:final failure) =>
+            XelisChannelClosed(failure, isRuntime: false),
+        },
+      ),
+    );
   }
 
   @override
   Future<void> onlineMode(
     OpaqueXelisWallet wallet, {
     required String daemonAddress,
-  }) => wallet.actual.onlineMode(daemonAddress: daemonAddress);
+  }) => wallet.actual.setOnline(daemonAddress: daemonAddress);
 
   @override
   Future<void> offlineMode(OpaqueXelisWallet wallet) =>
-      wallet.actual.offlineMode();
+      wallet.actual.setOffline();
+
+  @override
+  Future<void> closeWallet(OpaqueXelisWallet wallet) async {
+    try {
+      await wallet.actual.close();
+    } finally {
+      wallet.actual.dispose();
+    }
+  }
 
   @override
   Future<void> updateTables({
     required String precomputedTablesPath,
     required bool stack_l1Low,
-  }) async {
-    // TODO: add more granular table size management interface
-    // for now, just patching the old system into the new FFI API
+  }) => xwf.XelisWalletFlutter.updatePrecomputedTables(
+    path: precomputedTablesPath,
+    type: _tableType(stack_l1Low),
+  );
 
-    x_tables.PrecomputedTableType tableType = stack_l1Low
-        ? x_tables.PrecomputedTableType.l1Low()
-        : x_tables.PrecomputedTableType.l1Full();
-
-    return x_wallet.updateTables(
-      precomputedTablesPath: precomputedTablesPath,
-      precomputedTableType: tableType,
-    );
-  }
+  @override
+  Future<bool> hasTables({
+    required String precomputedTablesPath,
+    required bool stack_l1Low,
+  }) => xwf.XelisWalletFlutter.hasPrecomputedTables(
+    path: precomputedTablesPath,
+    type: _tableType(stack_l1Low),
+  );
 
   @override
   Future<String> getSeed(OpaqueXelisWallet wallet) => wallet.actual.getSeed();
@@ -249,24 +210,25 @@ final class _LibXelisInterfaceImpl extends LibXelisInterface {
     String? precomputedTablesPath,
     bool? stack_l1Low,
   }) async {
-    // TODO: add more granular table size management interface
-    // for now, just patching the old system into the new FFI API
-
-    x_tables.PrecomputedTableType tableType = stack_l1Low ?? false
-        ? x_tables.PrecomputedTableType.l1Low()
-        : x_tables.PrecomputedTableType.l1Full();
-
-    final wallet = await x_wallet.createXelisWallet(
-      name: name,
-      directory: directory,
-      password: password,
-      privateKey: privateKey,
-      seed: seed,
-      network: network.xelisNetwork,
-      precomputedTablesPath: precomputedTablesPath,
-      precomputedTableType: tableType,
-    );
-
+    if (privateKey != null)
+      throw UnsupportedError('Stack Xelis uses mnemonic recovery');
+    final walletPath = _walletPath(walletId, name, directory);
+    final wallet = seed == null
+        ? await xwf.XelisWalletFlutter.createWallet(
+            walletPath: walletPath,
+            password: password,
+            network: _network(network),
+            precomputedTablesPath: precomputedTablesPath,
+            precomputedTableType: _tableType(stack_l1Low ?? true),
+          )
+        : await xwf.XelisWalletFlutter.recoverWalletFromSeed(
+            walletPath: walletPath,
+            password: password,
+            seed: seed,
+            network: _network(network),
+            precomputedTablesPath: precomputedTablesPath,
+            precomputedTableType: _tableType(stack_l1Low ?? true),
+          );
     return OpaqueXelisWallet(wallet);
   }
 
@@ -279,220 +241,313 @@ final class _LibXelisInterfaceImpl extends LibXelisInterface {
     required CryptoCurrencyNetwork network,
     String? precomputedTablesPath,
     bool? stack_l1Low,
-  }) async {
-    // TODO: add more granular table size management interface
-    // for now, just patching the old system into the new FFI API
-
-    x_tables.PrecomputedTableType tableType = (stack_l1Low ?? false)
-        ? x_tables.PrecomputedTableType.l1Low()
-        : x_tables.PrecomputedTableType.l1Full();
-
-    final wallet = await x_wallet.openXelisWallet(
-      name: name,
-      directory: directory,
+  }) async => OpaqueXelisWallet(
+    await xwf.XelisWalletFlutter.openWallet(
+      walletPath: _walletPath(walletId, name, directory),
       password: password,
-      network: network.xelisNetwork,
+      network: _network(network),
       precomputedTablesPath: precomputedTablesPath,
-      precomputedTableType: tableType,
+      precomputedTableType: _tableType(stack_l1Low ?? true),
+    ),
+  );
+
+  @override
+  String getAddress(OpaqueXelisWallet wallet) => wallet.actual.address;
+
+  @override
+  Future<XelisDaemonSnapshot> getDaemonInfo(OpaqueXelisWallet wallet) async {
+    final info = await wallet.actual.getDaemonInfo();
+    return XelisDaemonSnapshot(
+      topoheight: info.topoheight,
+      stableTopoheight: info.stableTopoheight,
+      prunedTopoheight: info.prunedTopoheight,
     );
-
-    return OpaqueXelisWallet(wallet);
   }
-
-  @override
-  String getAddress(OpaqueXelisWallet wallet) => wallet.actual.getAddressStr();
-
-  @override
-  Future<String> getDaemonInfo(OpaqueXelisWallet wallet) =>
-      wallet.actual.getDaemonInfo();
 
   @override
   Future<bool> isOnline(OpaqueXelisWallet wallet) => wallet.actual.isOnline();
-
+  @override
+  Future<bool> isSyncing(OpaqueXelisWallet wallet) => wallet.actual.isSyncing();
   @override
   Future<void> rescan(OpaqueXelisWallet wallet, {required BigInt topoheight}) =>
       wallet.actual.rescan(topoheight: topoheight);
+  @override
+  Future<BigInt> getXelisBalanceRaw(OpaqueXelisWallet wallet) =>
+      wallet.actual.getXelisBalance();
 
   @override
   Future<List<TransactionEntryWrapper>> allHistory(
-    OpaqueXelisWallet wallet,
-  ) async => (await wallet.actual.allHistory()).map((e) {
-    final tx = _checkDecodeJsonStringTxEntry(e);
-    return TransactionEntryWrapper(
+    OpaqueXelisWallet wallet, {
+    BigInt? minTopoheight,
+  }) async {
+    final pending = await wallet.actual.pendingTransactions();
+    final confirmed = await wallet.actual.history(
+      filter: xwf.XelisWalletHistoryFilter(
+        page: BigInt.one,
+        minTopoheight: minTopoheight,
+      ),
+    );
+    // Confirmed state wins if the native wallet transitions during these reads.
+    final byHash = {for (final tx in pending) tx.hash: _pending(tx)};
+    for (final tx in confirmed) {
+      byHash[tx.hash] = _confirmed(tx);
+    }
+    return byHash.values.toList();
+  }
+
+  @override
+  Future<BigInt> estimateFees(
+    OpaqueXelisWallet wallet, {
+    required List<XelisTransfer> transfers,
+  }) => wallet.actual.estimateTransferFees(
+    transfers: transfers.map(_transfer).toList(),
+  );
+
+  @override
+  Future<XelisPreparedTransaction> prepareTransfers(
+    OpaqueXelisWallet wallet, {
+    required List<XelisTransfer> transfers,
+  }) async => _prepared(
+    await wallet.actual.prepareTransfers(
+      transfers: transfers.map(_transfer).toList(),
+    ),
+  );
+
+  @override
+  Future<XelisPreparedTransaction> prepareTransferAll(
+    OpaqueXelisWallet wallet, {
+    required String destination,
+  }) async => _prepared(
+    await wallet.actual.prepareTransferAll(
+      destination: destination,
+      asset: xelisAsset,
+    ),
+  );
+
+  @override
+  Future<void> discardPreparedTransaction(
+    OpaqueXelisWallet wallet, {
+    required XelisPreparedTransaction transaction,
+  }) => wallet.actual.discardPreparedTransaction(
+    transaction: transaction.handle<xwf.XelisWalletPreparedTransaction>(),
+  );
+
+  @override
+  Future<XelisBroadcastOutcome> broadcastTransaction(
+    OpaqueXelisWallet wallet, {
+    required XelisPreparedTransaction transaction,
+  }) async => switch (await wallet.actual.broadcastPreparedTransaction(
+    transaction: transaction.handle<xwf.XelisWalletPreparedTransaction>(),
+  )) {
+    xwf.XelisWalletBroadcastSubmitted() => const XelisBroadcastOutcome(
+      XelisBroadcastDisposition.submitted,
+    ),
+    xwf.XelisWalletBroadcastRetryable(:final failure) => XelisBroadcastOutcome(
+      XelisBroadcastDisposition.retryable,
+      failure: failure,
+    ),
+    xwf.XelisWalletBroadcastRejected(:final failure) => XelisBroadcastOutcome(
+      XelisBroadcastDisposition.rejected,
+      failure: failure,
+    ),
+    xwf.XelisWalletBroadcastLocalFailure(:final failure) =>
+      XelisBroadcastOutcome(
+        XelisBroadcastDisposition.localFailure,
+        failure: failure,
+      ),
+    xwf.XelisWalletBroadcastSubmittedNeedsResync(:final failure) =>
+      XelisBroadcastOutcome(
+        XelisBroadcastDisposition.submittedNeedsResync,
+        failure: failure,
+      ),
+  };
+
+  @override
+  Future<bool> testDaemonConnection(
+    String endPoint,
+    bool useSSL,
+    CryptoCurrencyNetwork network,
+  ) async {
+    final daemon = sdk.DaemonClient(
+      endPoint: endPoint,
+      secureWebSocket: useSSL,
+      timeout: 5000,
+    );
+    try {
+      daemon.connect();
+      final info = await daemon.getInfo();
+      return info.network.name == _network(network).name;
+    } on sdk.RpcException {
+      return false;
+    } finally {
+      daemon.disconnect();
+    }
+  }
+}
+
+xwf.XelisNetwork _network(CryptoCurrencyNetwork network) => switch (network) {
+  CryptoCurrencyNetwork.main => xwf.XelisNetwork.mainnet,
+  CryptoCurrencyNetwork.test => xwf.XelisNetwork.testnet,
+  CryptoCurrencyNetwork.stage => xwf.XelisNetwork.stagenet,
+  _ => throw ArgumentError('Unsupported Xelis network'),
+};
+
+xwf.XelisPrecomputedTableType _tableType(bool low) => low
+    ? const xwf.XelisPrecomputedTableType.l1Low()
+    : const xwf.XelisPrecomputedTableType.l1Full();
+
+String _walletPath(String walletId, String name, String directory) {
+  if (walletId != name ||
+      !RegExp(r'^[a-zA-Z0-9_-]+$').hasMatch(name) ||
+      name.toLowerCase() == 'table' ||
+      path.isAbsolute(name)) {
+    throw ArgumentError('Invalid Xelis wallet identifier');
+  }
+  return path.join(directory, name);
+}
+
+xwf.XelisWalletTransferRequest _transfer(XelisTransfer transfer) =>
+    xwf.XelisWalletTransferRequest(
+      destination: transfer.destination,
+      asset: transfer.asset,
+      amountAtomic: transfer.amountAtomic,
+    );
+
+XelisPreparedTransaction _prepared(
+  xwf.XelisWalletPreparedTransaction transaction,
+) {
+  final details = transaction.details;
+  if (details is! xwf.XelisWalletPreparedTransfers)
+    throw StateError('Expected a Xelis transfer');
+  return XelisPreparedTransaction(
+    handle: transaction,
+    hash: transaction.hash,
+    feeAtomic: transaction.feeAtomic,
+    transfers: details.transfers
+        .map(
+          (transfer) => XelisPreparedTransfer(
+            destination: transfer.destination,
+            amountAtomic: transfer.amountAtomic,
+            asset: transfer.asset,
+            hasExtraData: transfer.hasExtraData,
+          ),
+        )
+        .toList(),
+  );
+}
+
+TransactionEntryWrapper _confirmed(xwf.XelisWalletTransactionEntry tx) =>
+    TransactionEntryWrapper(
       tx,
-      entryType: _entryTypeConversion(tx.txEntryType),
+      entryType: _entry(tx.entry),
       hash: tx.hash,
-      timestamp: tx.timestamp,
+      timestamp: DateTime.fromMillisecondsSinceEpoch(
+        xelisStorageInt(tx.timestampMillis),
+        isUtc: true,
+      ),
       topoheight: tx.topoheight,
     );
-  }).toList();
 
-  @override
-  Future<void> broadcastTransaction(
-    OpaqueXelisWallet wallet, {
-    required String txHash,
-  }) => wallet.actual.broadcastTransaction(txHash: txHash);
-
-  @override
-  Future<String> createTransfersTransaction(
-    OpaqueXelisWallet wallet, {
-    required List<WrappedTransfer> transfers,
-  }) => wallet.actual.createTransfersTransaction(
-    transfers: transfers
-        .map(
-          (e) => x_wallet_dtos.Transfer(
-            floatAmount: e.floatAmount,
-            strAddress: e.strAddress,
-            assetHash: e.assetHash,
-            extraData: e.extraData,
-          ),
-        )
-        .toList(),
-  );
-
-  @override
-  Future<String> estimateFees(
-    OpaqueXelisWallet wallet, {
-    required List<WrappedTransfer> transfers,
-  }) => wallet.actual.estimateFees(
-    transfers: transfers
-        .map(
-          (e) => x_wallet_dtos.Transfer(
-            floatAmount: e.floatAmount,
-            strAddress: e.strAddress,
-            assetHash: e.assetHash,
-            extraData: e.extraData,
-          ),
-        )
-        .toList(),
-  );
-
-  @override
-  Future<String> formatCoin(
-    OpaqueXelisWallet wallet, {
-    required BigInt atomicAmount,
-    String? assetHash,
-  }) => wallet.actual.formatCoin(
-    atomicAmount: atomicAmount,
-    assetHash: assetHash,
-  );
-
-  @override
-  Future<int> getAssetDecimals(
-    OpaqueXelisWallet wallet, {
-    required String asset,
-  }) => wallet.actual.getAssetDecimals(asset: asset);
-
-  @override
-  Future<BigInt> getXelisBalanceRaw(OpaqueXelisWallet wallet) =>
-      wallet.actual.getXelisBalanceRaw();
-
-  @override
-  Future<bool> hasXelisBalance(OpaqueXelisWallet wallet) =>
-      wallet.actual.hasXelisBalance();
-
-  @override
-  Future<bool> testDaemonConnection(String endPoint, bool useSSL) async {
-    try {
-      final daemon = xelis_sdk.DaemonClient(
-        endPoint: endPoint,
-        secureWebSocket: useSSL,
-        timeout: 5000,
-      );
-      daemon.connect();
-      final xelis_sdk.GetInfoResult networkInfo = await daemon.getInfo();
-      daemon.disconnect();
-
-      Logging.instance.i(
-        "Xelis testNodeConnection result: \"${networkInfo.toString()}\"",
-      );
-      return true;
-    } catch (e, s) {
-      Logging.instance.w(
-        "xelis daemon connection test failed, returning false.",
-        error: e,
-        stackTrace: s,
-      );
-      return false;
-    }
-  }
-}
-
-extension _XelisNetworkConversion on CryptoCurrencyNetwork {
-  x_network.Network get xelisNetwork {
-    switch (this) {
-      case CryptoCurrencyNetwork.main:
-        return x_network.Network.mainnet;
-      case CryptoCurrencyNetwork.test:
-        return x_network.Network.testnet;
-      default:
-        throw ArgumentError('Unsupported network type for Xelis: $this');
-    }
-  }
-}
-
-extension _CryptoCurrencyNetworkConversion on x_network.Network {
-  CryptoCurrencyNetwork get cryptoCurrencyNetwork {
-    switch (this) {
-      case x_network.Network.mainnet:
-        return CryptoCurrencyNetwork.main;
-      case x_network.Network.testnet:
-        return CryptoCurrencyNetwork.test;
-      default:
-        throw ArgumentError('Unsupported Xelis network type: $this');
-    }
-  }
-}
-
-EntryWrapper _entryTypeConversion(xelis_sdk.TransactionEntryType entryType) {
-  if (entryType is xelis_sdk.CoinbaseEntry) {
-    return CoinbaseEntryWrapper(reward: entryType.reward);
-  } else if (entryType is xelis_sdk.BurnEntry) {
-    return BurnEntryWrapper(
-      amount: entryType.amount,
-      fee: entryType.fee,
-      asset: entryType.asset,
+TransactionEntryWrapper _pending(xwf.XelisWalletPendingTransaction tx) =>
+    TransactionEntryWrapper(
+      tx,
+      entryType: _entry(tx.entry),
+      hash: tx.hash,
+      timestamp: DateTime.fromMillisecondsSinceEpoch(
+        xelisStorageInt(tx.timestampMillis),
+        isUtc: true,
+      ),
+      topoheight: null,
     );
-  } else if (entryType is xelis_sdk.IncomingEntry) {
-    return IncomingEntryWrapper(
-      from: entryType.from,
-      transfers: entryType.transfers
-          .map(
-            (e) => (
-              amount: e.amount,
-              asset: e.asset,
-              extraData: e.extraData?.toJson(),
-            ),
-          )
+
+EntryWrapper _entry(
+  xwf.XelisWalletTransactionEntryData entry,
+) => switch (entry) {
+  xwf.XelisWalletCoinbaseEntry(:final reward) => CoinbaseEntryWrapper(
+    reward: reward,
+  ),
+  xwf.XelisWalletBurnEntry(:final amount, :final fee, :final asset) =>
+    BurnEntryWrapper(amount: amount, fee: fee, asset: asset),
+  xwf.XelisWalletIncomingEntry(:final from, :final transfers) =>
+    IncomingEntryWrapper(
+      from: from,
+      transfers: transfers
+          .map((e) => (amount: e.amount, asset: e.asset, extraData: null))
           .toList(),
-    );
-  } else if (entryType is xelis_sdk.OutgoingEntry) {
-    return OutgoingEntryWrapper(
-      nonce: entryType.nonce,
-      fee: entryType.fee,
-      transfers: entryType.transfers
+    ),
+  xwf.XelisWalletOutgoingEntry(:final nonce, :final fee, :final transfers) =>
+    OutgoingEntryWrapper(
+      nonce: nonce,
+      fee: fee,
+      transfers: transfers
           .map(
             (e) => (
               destination: e.destination,
               amount: e.amount,
               asset: e.asset,
-              extraData: e.extraData?.toJson(),
+              extraData: null,
             ),
           )
           .toList(),
-    );
-  } else {
-    return UnknownEntryWrapper();
-  }
-}
+    ),
+  xwf.XelisWalletMultisigEntry(:final fee, :final nonce) =>
+    XelisActionEntryWrapper(
+      kind: 'multisig',
+      spent: BigInt.zero,
+      received: BigInt.zero,
+      fee: fee,
+      nonce: nonce,
+    ),
+  xwf.XelisWalletOutgoingBlobEntry(:final fee, :final nonce) =>
+    XelisActionEntryWrapper(
+      kind: 'blob',
+      spent: BigInt.zero,
+      received: BigInt.zero,
+      fee: fee,
+      nonce: nonce,
+    ),
+  xwf.XelisWalletIncomingContractEntry(:final transfers) =>
+    XelisActionEntryWrapper(
+      kind: 'incoming_contract',
+      spent: BigInt.zero,
+      received: transfers
+          .expand((group) => group.transfers)
+          .where((e) => e.asset == sdk.xelisAsset)
+          .fold(BigInt.zero, (sum, e) => sum + e.amount),
+      fee: BigInt.zero,
+    ),
+  xwf.XelisWalletInvokeContractEntry(
+    :final deposits,
+    :final received,
+    :final fee,
+    :final maxGas,
+    :final nonce,
+  ) =>
+    XelisActionEntryWrapper(
+      kind: 'invoke_contract',
+      spent: _xelAmounts(deposits) + maxGas,
+      received: _xelAmounts(received.expand((group) => group.transfers)),
+      fee: fee,
+      nonce: nonce,
+    ),
+  xwf.XelisWalletDeployContractEntry(:final fee, :final nonce, :final invoke) =>
+    XelisActionEntryWrapper(
+      kind: 'deploy_contract',
+      // Pinned core db59b5c: BURN_PER_CONTRACT = COIN_VALUE (1 XEL).
+      spent:
+          BigInt.from(100000000) +
+          (invoke == null
+              ? BigInt.zero
+              : _xelAmounts(invoke.deposits) + invoke.maxGas),
+      received: BigInt.zero,
+      fee: fee,
+      nonce: nonce,
+    ),
+  // A received blob moves no XEL and Stack has no messaging UI.
+  xwf.XelisWalletIncomingBlobEntry() => UnknownEntryWrapper(),
+};
 
-xelis_sdk.TransactionEntry _checkDecodeJsonStringTxEntry(String jsonString) {
-  final json = jsonDecode(jsonString);
-  if (json is Map) {
-    return xelis_sdk.TransactionEntry.fromJson(json.cast());
-  }
-
-  throw Exception("Not a Map on jsonDecode($jsonString)");
-}
-
+BigInt _xelAmounts(Iterable<xwf.XelisWalletAssetAmount> amounts) => amounts
+    .where((item) => item.asset == sdk.xelisAsset)
+    .fold(BigInt.zero, (sum, item) => sum + item.amount);
 //END_ON

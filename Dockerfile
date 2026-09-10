@@ -33,7 +33,7 @@ ENV RUSTUP_HOME=/usr/local/rustup \
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
       | sh -s -- -y --default-toolchain 1.89.0 --profile minimal --no-modify-path \
- && rustup install 1.85.1 1.71.0 stable --profile minimal \
+ && rustup install 1.85.1 1.71.0 1.94.1 stable --profile minimal \
  && rustup target add x86_64-unknown-linux-gnu --toolchain 1.89.0 \
  && cargo install cargo-ndk \
  && chmod -R a+rwX "$CARGO_HOME" "$RUSTUP_HOME"
@@ -123,6 +123,10 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
  && rustup target add \
       aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android \
       --toolchain 1.89.0 \
+ && rustup toolchain install 1.94.1 --profile minimal \
+ && rustup target add \
+      aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android \
+      --toolchain 1.94.1 \
  && cargo install cargo-ndk \
  && chmod -R a+rwX "$CARGO_HOME" "$RUSTUP_HOME"
 
@@ -185,7 +189,7 @@ RUN git config --system --add safe.directory '*'
 RUN flutter --version && rustc --version && cargo --version && go version
 
 
-# Image for flutter test (no Android SDK or cross-compilers)
+# Test image: Native Assets hooks also compile the Xelis Rust runtime.
 FROM ubuntu:24.04 AS test
 
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -210,6 +214,7 @@ ENV RUSTUP_HOME=/usr/local/rustup \
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
       | sh -s -- -y --default-toolchain 1.90.0 --profile minimal --no-modify-path \
+ && rustup toolchain install 1.94.1 --profile minimal \
  && chmod -R a+rwX "$CARGO_HOME" "$RUSTUP_HOME"
 
 ENV PATH=/usr/local/go/bin:$PATH
