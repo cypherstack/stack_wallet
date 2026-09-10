@@ -421,7 +421,10 @@ class _SendViewState extends ConsumerState<SendView> {
     ref.read(pSendAmount.notifier).state = amount;
   }
 
+  bool _xelisSendAll = false;
+
   void _cryptoAmountChanged() async {
+    _xelisSendAll = false;
     if (!_cryptoAmountChangeLock) {
       final cryptoAmount = ref
           .read(pAmountFormatter(coin))
@@ -569,6 +572,10 @@ class _SendViewState extends ConsumerState<SendView> {
   }
 
   Future<Amount> calculateFees(Amount amount) async {
+    // Xelis obtains the exact fee when preparing the reviewed transaction.
+    if (coin is Xelis) {
+      return Amount.zeroWith(fractionDigits: coin.fractionDigits);
+    }
     final feeRateType = ref.read(feeRateTypeMobileStateProvider);
     final cacheKey = (amount, feeRateType);
     final hasOpReturnData =
@@ -914,6 +921,7 @@ class _SendViewState extends ConsumerState<SendView> {
           // cancel preview
           return;
         }
+        if (coin is Xelis) _xelisSendAll = true;
       }
     }
 
@@ -1077,6 +1085,7 @@ class _SendViewState extends ConsumerState<SendView> {
         final memo = coin is Stellar ? memoController.text : null;
         txDataFuture = wallet.prepareSend(
           txData: TxData(
+            xelisSendAll: coin is Xelis && _xelisSendAll,
             recipients: [
               TxRecipient(
                 address: _address!,
@@ -1103,6 +1112,11 @@ class _SendViewState extends ConsumerState<SendView> {
       final results = await Future.wait([txDataFuture, time]);
 
       TxData txData = results.first as TxData;
+
+      if (wasCancelled || !mounted) {
+        await wallet.cancelSend(txData: txData);
+        return;
+      }
 
       if (!wasCancelled && mounted) {
         if (isPaynymSend) {
@@ -1238,6 +1252,7 @@ class _SendViewState extends ConsumerState<SendView> {
         .read(pAmountFormatter(coin))
         .formatEditable(amount);
     _cryptoAmountChanged();
+    _xelisSendAll = coin is Xelis;
   }
 
   bool get isPaynymSend => widget.accountLite != null;
@@ -2526,7 +2541,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                 coin is! NanoCurrency &&
                                 coin is! Tezos)
                               Text(
-                                "Transaction fee (estimated)",
+                                coin is Xelis
+                                    ? "Transaction fee"
+                                    : "Transaction fee (estimated)",
                                 style: STextStyles.smallMed12(context),
                                 textAlign: TextAlign.left,
                               ),
@@ -2535,7 +2552,15 @@ class _SendViewState extends ConsumerState<SendView> {
                                 coin is! NanoCurrency &&
                                 coin is! Tezos)
                               const SizedBox(height: 8),
-                            if (coin is! Epiccash &&
+                            if (coin is Xelis)
+                              Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Text(
+                                  'Calculated when reviewing',
+                                  style: STextStyles.itemSubtitle(context),
+                                ),
+                              )
+                            else if (coin is! Epiccash &&
                                 coin is! Mimblewimblecoin &&
                                 coin is! NanoCurrency &&
                                 coin is! Tezos)

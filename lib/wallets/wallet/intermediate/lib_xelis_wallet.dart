@@ -8,25 +8,29 @@ import 'package:mutex/mutex.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/stack_file_system.dart';
+import '../../../utilities/xelis_storage.dart';
 import '../../../wl_gen/interfaces/lib_xelis_interface.dart';
 import '../../crypto_currency/intermediate/electrum_currency.dart';
 import '../wallet_mixin_interfaces/mnemonic_interface.dart';
 import 'external_wallet.dart';
 import 'xelis_event_batcher.dart';
-import 'xelis_operation_coordinator.dart';
 
 abstract class LibXelisWallet<T extends ElectrumCurrency>
     extends ExternalWallet<T>
     with MnemonicInterface {
-  LibXelisWallet(super.currency);
+  LibXelisWallet(super.currency, {LibXelisInterface? native})
+    : _native = native;
+
+  final LibXelisInterface? _native;
+  LibXelisInterface get xelis => _native ?? libXelis;
 
   static const String _kHasFullTablesKey = 'xelis_has_full_tables';
   static const String _kGeneratingTablesKey = 'xelis_generating_tables';
   static const String _kWantsFullTablesKey = 'xelis_wants_full_tables';
   static final _tableGenerationMutex = Mutex();
-  static Completer<void>? _tableGenerationCompleter;
+  static Future<void>? _tableGenerationFuture;
 
-  int pruningHeight = 0;
+  BigInt pruningHeight = BigInt.zero;
 
   OpaqueXelisWallet? wallet;
 
@@ -36,22 +40,24 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
     }
   }
 
-  final syncMutex = Mutex();
   Timer? timer;
 
-  StreamSubscription<void>? _eventSubscription;
-  late final XelisOperationCoordinator _operationCoordinator =
-      XelisOperationCoordinator(refreshMutex);
+  final _connectionMutex = Mutex();
+  XelisEventSubscription? _runtimeEvents;
+  XelisEventSubscription? _businessEvents;
+  bool _businessEventsFailed = false;
+  Future<void> _eventWork = Future.value();
+  XelisEventBatcher<Event>? _businessBatcher;
+  XelisEventBatcher<Event>? _runtimeBatcher;
+  Timer? _reconnectTimer;
+  int _connectionGeneration = 0;
+  int sessionGeneration = 0;
+  int _retryAttempt = 0;
 
-  static const _eventFlushInterval = Duration(milliseconds: 500);
-
-  @protected
-  late final XelisEventBatcher<TransactionEntryWrapper> eventBatcher =
-      XelisEventBatcher(
-        flushInterval: _eventFlushInterval,
-        flush: (batch) =>
-            runXelisEventUpdate(() => applyXelisEventBatch(batch)),
-      );
+  bool isCurrentSession(OpaqueXelisWallet handle, int generation) =>
+      !exitInProgress &&
+      identical(wallet, handle) &&
+      sessionGeneration == generation;
 
   Future<String> getPrecomputedTablesPath() async {
     if (kIsWeb) {
@@ -63,10 +69,11 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
   }
 
   Future<XelisTableState> getTableState() async {
-    final hasFullTables =
-        await secureStorageInterface.read(key: _kHasFullTablesKey) == 'true';
-    final isGenerating =
-        await secureStorageInterface.read(key: _kGeneratingTablesKey) == 'true';
+    final hasFullTables = await xelis.hasTables(
+      precomputedTablesPath: await getPrecomputedTablesPath(),
+      stack_l1Low: false,
+    );
+    final isGenerating = _tableGenerationFuture != null;
     final wantsFull =
         await secureStorageInterface.read(key: _kWantsFullTablesKey) != 'false';
 
@@ -92,79 +99,212 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
     );
   }
 
-  Future<void> handleEvent(Event event) async {}
-  Future<void> handleNewTopoHeight(int height);
+  Future<void> handleEvent(Event event, {required bool Function() isCurrent});
+  Future<void> handleNewTopoHeight(BigInt height);
   Future<void> handleNewTransaction(TransactionEntryWrapper tx);
   Future<void> handleBalanceChanged(BalanceChanged event);
-  Future<void> handleRescan(int startTopoheight) async {}
+  Future<void> handleRescan(BigInt startTopoheight) async {}
   Future<void> handleOnline() async {}
   Future<void> handleOffline() async {}
-  Future<void> handleHistorySynced(int topoheight) async {}
+  Future<void> handleHistorySynced(BigInt topoheight) async {}
   Future<void> handleNewAsset(NewAsset asset) async {}
 
-  @protected
-  Future<void> performXelisRefresh();
-
-  @protected
-  Future<void> applyXelisEventBatch(
-    XelisEventBatch<TransactionEntryWrapper> batch,
-  );
-
-  @protected
-  Future<void> runXelisRescan(Future<void> Function() operation) {
-    eventBatcher.reset();
-    return _operationCoordinator.rescan(operation);
-  }
-
-  @protected
-  Future<void> runXelisEventUpdate(Future<void> Function() operation) =>
-      _operationCoordinator.processEvent(operation);
-
-  @protected
-  Future<void> runXelisSyncEvent() =>
-      _operationCoordinator.processSyncEvent(performXelisRefresh);
-
-  // Intentionally swallow logged errors because refresh is often unawaited.
   @override
-  Future<void> refresh() =>
-      _operationCoordinator.refresh(performXelisRefresh).catchError((_) {});
+  Future<void> refresh({int? topoheight});
 
-  Future<void> connect({bool disconnectFirst = false}) =>
-      _operationCoordinator.connect(() async {
-        final node = getCurrentNode();
-        try {
+  Future<void> connect() async {
+    _reconnectTimer?.cancel();
+    _businessBatcher?.reset();
+    _runtimeBatcher?.reset();
+    final requestedGeneration = ++_connectionGeneration;
+    await _connectionMutex
+        .protect(() async {
+          // Drain the old connection before starting its replacement.
+          // The generation invalidates the old connection's callbacks.
+          await _eventWork;
           checkInitialized();
-
-          final wasOnline = await libXelis.isOnline(wallet!);
-          await _eventSubscription?.cancel();
-          _eventSubscription = null;
-
-          if (wasOnline && disconnectFirst) {
-            await libXelis.offlineMode(wallet!);
+          final handle = wallet!;
+          final session = sessionGeneration;
+          bool current() =>
+              isCurrentSession(handle, session) &&
+              requestedGeneration == _connectionGeneration;
+          if (!current()) return;
+          await _runtimeEvents?.cancel();
+          _runtimeEvents = null;
+          if (!current()) return;
+          await xelis.offlineMode(handle);
+          if (!current()) return;
+          if (_businessEventsFailed) {
+            final failed = _businessEvents;
+            _businessEvents = null;
+            await failed?.cancel();
+            if (!current()) return;
           }
-
-          _eventSubscription = libXelis.eventsStream(wallet!).listen((event) {
-            unawaited(handleEvent(event));
-          });
-
-          if (!wasOnline || disconnectFirst) {
-            Logging.instance.i("Connecting to node: ${node.host}:${node.port}");
-            await libXelis.onlineMode(
-              wallet!,
-              daemonAddress: "${node.host}:${node.port}",
+          if (_businessEvents == null) {
+            final events = await xelis.subscribeBusinessEvents(handle);
+            if (!current()) {
+              await events.cancel();
+              return;
+            }
+            _businessEvents = events;
+            _businessEventsFailed = false;
+            _listen(
+              events,
+              () =>
+                  isCurrentSession(handle, session) &&
+                  identical(_businessEvents, events),
+              isRuntime: false,
             );
           }
-
-          await performXelisRefresh();
-        } catch (e, s) {
-          Logging.instance.e(
-            "rethrowing error connecting to node: $node",
-            error: e,
-            stackTrace: s,
+          final events = await xelis.subscribeRuntimeEvents(handle);
+          if (!current()) {
+            await events.cancel();
+            return;
+          }
+          _runtimeEvents = events;
+          _listen(events, current, isRuntime: true);
+          final node = getCurrentNode();
+          await xelis.onlineMode(
+            handle,
+            daemonAddress: xelisDaemonOrigin(
+              host: node.host,
+              port: node.port,
+              useSSL: node.useSSL,
+            ),
           );
-          rethrow;
+          if (current()) {
+            _retryAttempt = 0;
+            unawaited(refresh());
+          }
+        })
+        .catchError((Object error, StackTrace stack) {
+          // Subscriptions and offline transitions can fail before onlineMode.
+          // Only the latest connection may schedule recovery for this session.
+          if (requestedGeneration == _connectionGeneration &&
+              !exitInProgress &&
+              wallet != null) {
+            scheduleReconnect();
+          }
+          Error.throwWithStackTrace(error, stack);
+        });
+  }
+
+  void _listen(
+    XelisEventSubscription events,
+    bool Function() current, {
+    required bool isRuntime,
+  }) {
+    Future<void> enqueue(Event event) {
+      return _eventWork = _eventWork
+          .then((_) async {
+            if (current()) await handleEvent(event, isCurrent: current);
+          })
+          .catchError((Object error, StackTrace stack) {
+            if (current()) {
+              Logging.instance.e(
+                'Xelis event handling failed',
+                error: error,
+                stackTrace: stack,
+              );
+              unawaited(refresh());
+            }
+          });
+    }
+
+    // XWF reads authoritative snapshots. Coalesce bursts before adding work
+    // to the serialized queue, preserving staging's bounded refresh cadence.
+    NewTopoheight? latestHeight;
+    BalanceChanged? latestBalance;
+    final batcher = XelisEventBatcher<Event>(
+      flushInterval: const Duration(milliseconds: 500),
+      flush: (batch) async {
+        final height = latestHeight;
+        final balance = latestBalance;
+        latestHeight = null;
+        latestBalance = null;
+        if (!current()) return;
+        if (batch.topoheightChanged && height != null) {
+          await enqueue(height);
         }
-      }, joinExisting: !disconnectFirst);
+        if (batch.transactions.isNotEmpty) {
+          await enqueue(batch.transactions.last);
+        } else if (batch.balanceChanged && balance != null) {
+          await enqueue(balance);
+        }
+      },
+    );
+    if (isRuntime) {
+      _runtimeBatcher = batcher;
+    } else {
+      _businessBatcher = batcher;
+    }
+    events.events.listen(
+      (event) {
+        if (!current()) return;
+        switch (event) {
+          case NewTopoheight():
+            latestHeight = event;
+            batcher.queueTopoheightChanged();
+            return;
+          case NewTransaction():
+            batcher.queueTransaction(event);
+            return;
+          case BalanceChanged(:final asset):
+            if (asset == xelis.xelisAsset) {
+              latestBalance = event;
+              batcher.queueBalanceChanged();
+            }
+            return;
+          case Rescan() || HistorySynced() || XelisStateInvalidated():
+            _runtimeBatcher?.reset();
+            _businessBatcher?.reset();
+          default:
+            break;
+        }
+        unawaited(enqueue(event));
+      },
+      onError: (Object error, StackTrace stack) {
+        if (!current()) return;
+        Logging.instance.e(
+          'Xelis event stream failed',
+          error: error,
+          stackTrace: stack,
+        );
+        recoverEventChannel(isRuntime: isRuntime);
+      },
+      onDone: () {
+        if (!current()) return;
+        recoverEventChannel(isRuntime: isRuntime);
+      },
+    );
+  }
+
+  void recoverEventChannel({required bool isRuntime}) {
+    if (!isRuntime) _businessEventsFailed = true;
+    scheduleReconnect();
+  }
+
+  void scheduleReconnect() {
+    if (exitInProgress || wallet == null || _reconnectTimer?.isActive == true) {
+      return;
+    }
+    final handle = wallet!;
+    final session = sessionGeneration;
+    final seconds = 1 << (_retryAttempt++).clamp(0, 5);
+    _reconnectTimer = Timer(Duration(seconds: seconds), () async {
+      if (!isCurrentSession(handle, session)) return;
+      try {
+        await connect();
+      } catch (error, stack) {
+        Logging.instance.e(
+          'Xelis reconnect failed',
+          error: error,
+          stackTrace: stack,
+        );
+        if (isCurrentSession(handle, session)) scheduleReconnect();
+      }
+    });
+  }
 
   List<FilterOperation> get standardReceivingAddressFilters => [
     FilterCondition.equalTo(property: r"type", value: info.mainAddressType),
@@ -184,30 +324,88 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
 
   static Future<bool> checkWalletExists(String walletId) async {
     final xelisDir = await StackFileSystem.applicationXelisDirectory();
-    final walletDir = Directory(
-      "${xelisDir.path}${Platform.pathSeparator}$walletId",
-    );
-    // TODO: should we check for certain files within the dir?
-    return await walletDir.exists();
+    // Opening must reject the same aliases and unexpected files as deletion.
+    return await xelisWalletDirectory(xelisDir, walletId) != null;
   }
 
   @override
-  Future<void> open() => connect();
+  Future<void> open() async {
+    while (exitInProgress) {
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+    }
+
+    try {
+      await init();
+      await connect();
+    } catch (e) {
+      // Logging.instance.log(
+      //   "Failed to start sync: $e",
+      //   level: LogLevel.Error,
+      // );
+      rethrow;
+    }
+    unawaited(refresh());
+  }
+
+  bool exitInProgress = false;
+
+  /// Called after session invalidation, before releasing the native handle.
+  Future<void> drainSessionOperations() async {}
 
   @override
-  Future<void> exit() => _operationCoordinator.exit(() async {
-    timer?.cancel();
-    timer = null;
-
-    eventBatcher.reset();
-    await _eventSubscription?.cancel();
-    _eventSubscription = null;
-
-    if (wallet != null && await libXelis.isOnline(wallet!)) {
-      await libXelis.offlineMode(wallet!);
+  Future<void> exit() async {
+    if (exitInProgress) {
+      while (exitInProgress) {
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+      }
+      return;
     }
-    await super.exit();
-  });
+    exitInProgress = true;
+    ++sessionGeneration;
+    ++_connectionGeneration;
+    _reconnectTimer?.cancel();
+    _businessBatcher?.reset();
+    _businessBatcher = null;
+    _runtimeBatcher?.reset();
+    _runtimeBatcher = null;
+    Object? firstError;
+    StackTrace? firstStack;
+    Future<void> attempt(Future<void> Function() operation) async {
+      try {
+        await operation();
+      } catch (error, stack) {
+        firstError ??= error;
+        firstStack ??= stack;
+      }
+    }
+
+    try {
+      await drainSessionOperations();
+      await _connectionMutex.protect(() async {
+        timer?.cancel();
+        timer = null;
+        final runtime = _runtimeEvents;
+        final business = _businessEvents;
+        _runtimeEvents = null;
+        _businessEvents = null;
+        if (runtime != null) await attempt(runtime.cancel);
+        if (business != null) await attempt(business.cancel);
+      });
+      await _eventWork;
+      await refreshMutex.protect(() async {
+        final handle = wallet;
+        wallet = null;
+        if (handle != null) await attempt(() => xelis.closeWallet(handle));
+      });
+    } finally {
+      try {
+        await attempt(() => super.exit());
+      } finally {
+        exitInProgress = false;
+      }
+    }
+    if (firstError != null) Error.throwWithStackTrace(firstError!, firstStack!);
+  }
 
   void invalidSeedLengthCheck(int length) {
     if (!(length == 25)) {
@@ -219,75 +417,28 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
 extension XelisTableManagement on LibXelisWallet {
   Future<bool> isTableUpgradeAvailable() async {
     if (kIsWeb) return false;
-
     final state = await getTableState();
     return state.currentSize != state.desiredSize;
   }
 
-  Future<void> updateTablesToDesiredSize() async {
-    if (kIsWeb) return;
-
-    await Future<void>.delayed(const Duration(seconds: 1));
-    if (LibXelisWallet._tableGenerationCompleter != null) {
-      try {
-        await LibXelisWallet._tableGenerationCompleter!.future;
-        return;
-      } catch (_) {
-        // Previous generation failed, we'll try again
-      }
-    }
-
-    await LibXelisWallet._tableGenerationMutex.protect(() async {
-      // Check again after acquiring mutex
-      if (LibXelisWallet._tableGenerationCompleter != null) {
-        try {
-          await LibXelisWallet._tableGenerationCompleter!.future;
-          return;
-        } catch (_) {
-          // Previous generation failed, we'll try again
-        }
-      }
-
+  Future<void> updateTablesToDesiredSize() {
+    if (kIsWeb) return Future<void>.value();
+    final running = LibXelisWallet._tableGenerationFuture;
+    if (running != null) return running;
+    final operation = LibXelisWallet._tableGenerationMutex.protect(() async {
       final state = await getTableState();
       if (state.currentSize == state.desiredSize) return;
-
-      LibXelisWallet._tableGenerationCompleter = Completer<void>();
-      await setTableState(state.copyWith(isGenerating: true));
-
-      try {
-        Logging.instance.i("Xelis: Generating large tables in background");
-        final tablePath = await getPrecomputedTablesPath();
-        await libXelis.updateTables(
-          precomputedTablesPath: tablePath,
-          stack_l1Low: state.desiredSize.isLow,
-        );
-
-        await setTableState(
-          XelisTableState(
-            isGenerating: false,
-            currentSize: state.desiredSize,
-            desiredSize: state.desiredSize,
-          ),
-        );
-
-        Logging.instance.i("Xelis: Table upgrade done");
-        LibXelisWallet._tableGenerationCompleter!.complete();
-      } catch (e) {
-        // Logging.instance.log(
-        //   "Failed to update tables: $e\n$s",
-        //   level: LogLevel.Error,
-        // );
-        await setTableState(state.copyWith(isGenerating: false));
-
-        LibXelisWallet._tableGenerationCompleter!.completeError(e);
-      } finally {
-        if (!LibXelisWallet._tableGenerationCompleter!.isCompleted) {
-          LibXelisWallet._tableGenerationCompleter!.completeError(
-            Exception('Table generation abandoned'),
-          );
-        }
-        LibXelisWallet._tableGenerationCompleter = null;
-      }
+      // Actual table presence is authoritative. Do not overwrite a preference
+      // changed by another wallet while generation was in flight.
+      await xelis.updateTables(
+        precomputedTablesPath: await getPrecomputedTablesPath(),
+        stack_l1Low: state.desiredSize.isLow,
+      );
     });
+    final shared = operation.whenComplete(() {
+      LibXelisWallet._tableGenerationFuture = null;
+    });
+    LibXelisWallet._tableGenerationFuture = shared;
+    return shared;
   }
 }

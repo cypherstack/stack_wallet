@@ -22,6 +22,7 @@ import '../utilities/flutter_secure_storage_interface.dart';
 import '../utilities/logger.dart';
 import '../utilities/prefs.dart';
 import '../utilities/stack_file_system.dart';
+import '../utilities/xelis_storage.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import '../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
 import '../wallets/crypto_currency/intermediate/frost_currency.dart';
@@ -117,6 +118,14 @@ class Wallets {
     final wallet = _wallets[walletId];
     _wallets.remove(walletId);
     await wallet?.exit();
+
+    if (info.coin is Xelis) {
+      // Remove unlocked native storage before forgetting its password.
+      // The precomputed tables belong to all Xelis wallets.
+      final root = await StackFileSystem.applicationXelisDirectory();
+      final directory = await xelisWalletDirectory(root, walletId);
+      if (directory != null) await directory.delete(recursive: true);
+    }
 
     await secureStorage.delete(key: Wallet.mnemonicKey(walletId: walletId));
     await secureStorage.delete(

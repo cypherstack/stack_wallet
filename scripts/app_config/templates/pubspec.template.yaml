@@ -32,14 +32,14 @@ dependencies:
 # %%END_ENABLE_FROST%%
 
 # %%ENABLE_XEL%%
-#  xelis_dart_sdk: 0.35.1
-##   git:
-##     url: https://github.com/xelis-project/xelis-dart-sdk.git
-##     ref: f1da98f8bad8b9ad3645661a23f9efb83e44b0c9
-#  xelis_flutter:
+#  xelis_dart_sdk:
 #    git:
-#      url: https://github.com/cypherstack/xelis-flutter-ffi.git
-#      ref: 07a89303aacbeec6386e357287b6fd9fcca77d94
+#      url: https://github.com/xelis-project/xelis-dart-sdk.git
+#      ref: f1e912cf549d311f6ccbb065b1d1d5c70f42b578 # v0.36.0
+#  xelis_wallet_flutter:
+#    git:
+#      url: https://github.com/xelis-project/xelis-wallet-flutter.git
+#      ref: 69e48e7da2efd69439f045592337b1f7c27a646e # v0.4.0
 # %%END_ENABLE_XEL%%
 
 # %%ENABLE_FIRO%%
