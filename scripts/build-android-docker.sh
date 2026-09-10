@@ -8,7 +8,12 @@
 #
 # Usage:
 #   scripts/build-android-docker.sh            # debug APK (default)
+#   scripts/build-android-docker.sh profile    # release-speed APK you can profile and time
 #   scripts/build-android-docker.sh release    # split-per-abi release APKs (unsigned unless keystore wired)
+#
+# Use `profile` for any measurement. A debug build runs the Dart VM in JIT with
+# assertions enabled and is several times slower than what a user gets, so
+# timings taken from one are not evidence about the app.
 #
 # Env overrides:
 #   BUILD_IMAGE=1   force a local `docker build` instead of pulling
@@ -47,7 +52,7 @@ MODE="${1:-debug}"
 # release build locally.
 if [ "$MODE" != "release" ] && [ "${BFX_ALLOW_PROD_ID:-0}" != "1" ]; then
   case "${BFX_APP_ID:-}" in
-    *.debug) : ;;
+    *.debug|*.profile) : ;;
     *)
       echo "refusing to build $MODE with app id '${BFX_APP_ID:-<default: org.bitfinitechain.wallet>}'." >&2
       echo "" >&2
@@ -166,13 +171,32 @@ EOF
     # VERSION/BUILD_NUM reach build_app.sh above, but the APK takes its version
     # from pubspec unless told otherwise — so every build stamped version code
     # 1 and Android refused the next install as a downgrade.
-    if [ "$MODE" = "release" ]; then
-      flutter build apk --split-per-abi --release \
-        --build-name "$VERSION" --build-number "$BUILD_NUM"
-    else
-      flutter build apk --debug \
-        --build-name "$VERSION" --build-number "$BUILD_NUM"
-    fi
+    case "$MODE" in
+      release)
+        flutter build apk --split-per-abi --release \
+          --build-name "$VERSION" --build-number "$BUILD_NUM"
+        ;;
+      profile)
+        # Release-grade compilation with the profiler still attachable. This is
+        # the only build worth taking timings from: debug runs the Dart VM in
+        # JIT with assertions on and is several times slower for reasons that
+        # have nothing to do with our code, so a debug measurement says almost
+        # nothing about what a user experiences.
+        flutter build apk --profile \
+          --build-name "$VERSION" --build-number "$BUILD_NUM"
+        ;;
+      debug)
+        flutter build apk --debug \
+          --build-name "$VERSION" --build-number "$BUILD_NUM"
+        ;;
+      *)
+        # Previously anything unrecognised fell through to debug, so asking for
+        # a profile build quietly produced a debug APK and the timings taken
+        # from it were wrong in the direction that mattered.
+        echo "unknown mode: $MODE (expected debug, profile or release)" >&2
+        exit 2
+        ;;
+    esac
 
     chown -R "$HOST_UID:$HOST_GID" build android/app .dart_tool 2>/dev/null || true
   '

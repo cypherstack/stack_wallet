@@ -21,6 +21,7 @@ import '../../utilities/constants.dart';
 import '../../utilities/enums/sync_type_enum.dart';
 import '../../utilities/flutter_secure_storage_interface.dart';
 import '../../utilities/logger.dart';
+import '../../utilities/sync_trace.dart';
 import '../../utilities/paynym_is_api.dart';
 import '../../utilities/prefs.dart';
 import '../crypto_currency/crypto_currency.dart';
@@ -677,8 +678,13 @@ abstract class Wallet<T extends CryptoCurrency> {
         }
       }
 
+      // Times the phases below so a slow refresh can be attributed rather than
+      // guessed at. See utilities/sync_trace.dart.
+      final trace = SyncTrace("${cryptoCurrency.identifier}/${info.walletId}")
+        ..start();
+
       _fireRefreshPercentChange(0);
-      await updateChainHeight();
+      await trace.time("chainHeight", () => updateChainHeight());
 
       if (this is BitcoinFrostWallet) {
         await (this as BitcoinFrostWallet).lookAhead();
@@ -689,8 +695,11 @@ abstract class Wallet<T extends CryptoCurrency> {
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
       if (this is MultiAddressInterface) {
         if (info.otherData[WalletInfoKeys.reuseAddress] != true) {
-          await (this as MultiAddressInterface)
-              .checkReceivingAddressForTransactions();
+          await trace.time(
+            "receivingAddrScan",
+            () => (this as MultiAddressInterface)
+                .checkReceivingAddressForTransactions(),
+          );
         }
       }
 
@@ -699,8 +708,11 @@ abstract class Wallet<T extends CryptoCurrency> {
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
       if (this is MultiAddressInterface) {
         if (info.otherData[WalletInfoKeys.reuseAddress] != true) {
-          await (this as MultiAddressInterface)
-              .checkChangeAddressForTransactions();
+          await trace.time(
+            "changeAddrScan",
+            () => (this as MultiAddressInterface)
+                .checkChangeAddressForTransactions(),
+          );
         }
       }
       _fireRefreshPercentChange(0.3);
@@ -716,9 +728,14 @@ abstract class Wallet<T extends CryptoCurrency> {
         _fireRefreshPercentChange(0.70);
         await updateTransactions();
       } else {
-        final fetchFuture = updateTransactions();
+        // These two run concurrently, so their timings overlap and must not be
+        // added together. Each is the wall clock cost of that phase alone.
+        final fetchFuture = trace.time(
+          "transactions",
+          () => updateTransactions(),
+        );
         _fireRefreshPercentChange(0.6);
-        final utxosRefreshFuture = updateUTXOs();
+        final utxosRefreshFuture = trace.time("utxos", () => updateUTXOs());
         _fireRefreshPercentChange(0.65);
         await utxosRefreshFuture;
         _fireRefreshPercentChange(0.70);
@@ -739,9 +756,16 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       _fireRefreshPercentChange(0.90);
 
-      await updateBalance();
+      await trace.time("balance", () => updateBalance());
 
       _fireRefreshPercentChange(1.0);
+
+      // Counts come from the local store, so this costs a read and not a round
+      // trip, and it is what makes two runs comparable across devices.
+      trace.finish(
+        transactions: await mainDB.getTransactions(walletId).count(),
+        utxos: await mainDB.getUTXOs(walletId).count(),
+      );
 
       completer.complete();
     } catch (error, strace) {
