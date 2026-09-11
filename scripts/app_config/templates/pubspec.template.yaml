@@ -54,7 +54,9 @@ dependencies:
 
 # %%ENABLE_MWC%%
 #  flutter_libmwc:
-#    path: ./crypto_plugins/flutter_libmwc
+#    git:
+#      url: https://github.com/cypherstack/flutter_libmwc.git
+#      ref: ebf46676986b60fa61b2d89c92c6de498e1e917e
 # %%END_ENABLE_MWC%%
 
 # %%ENABLE_TOR%%
@@ -299,6 +301,10 @@ flutter_native_splash:
     color_dark: "2A2D34"
 
 dependency_overrides:
+  # required for: native_toolchain_rust >=1.0.3 depends on toml ^0.18.0
+  # stellar sdk package needs to get 0.18.0 to remove this override
+  toml: ^0.18.0
+
   logger:
     git:
       url: https://github.com/cypherstack/logger
