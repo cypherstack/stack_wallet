@@ -314,7 +314,9 @@ void main() {
       expect(setup.handler.isActivePaymentFor("bc1qsomeotheraddress"), isFalse);
       expect(setup.handler.requiresBroadcast, isTrue);
       expect(setup.handler.isQuoteExpired, isFalse);
-      expect(setup.handler.businessLines, ["Test Shop"]);
+      expect(setup.handler.businessDetails, [
+        (label: "Name", value: "Test Shop", uri: null),
+      ]);
     });
 
     testWidgets("lists the business information of the pending payment", (
@@ -335,16 +337,29 @@ void main() {
 
       await _handle(tester, harness, setup.handler);
 
-      expect(setup.handler.businessLines, [
-        "Test Shop",
-        "Test Shop AG",
-        "Bahnhofstrasse 7",
-        "6300 Zug",
-        "CH",
-        "+41792684224",
-        "mail@example.org",
-        "https://example.org/",
-        "Registration number: CHE-429.856.521",
+      expect(setup.handler.businessDetails, [
+        (label: "Legal name", value: "Test Shop AG", uri: null),
+        (
+          label: "Postal address",
+          value: "Bahnhofstrasse 7\n6300 Zug\nCH",
+          uri: null,
+        ),
+        (
+          label: "Phone number",
+          value: "+41792684224",
+          uri: Uri.parse("tel:+41792684224"),
+        ),
+        (
+          label: "Email",
+          value: "mail@example.org",
+          uri: Uri.parse("mailto:mail@example.org"),
+        ),
+        (
+          label: "Website",
+          value: "https://example.org/",
+          uri: Uri.parse("https://example.org/"),
+        ),
+        (label: "Registration number", value: "CHE-429.856.521", uri: null),
       ]);
     });
 
@@ -373,10 +388,9 @@ void main() {
 
       await _handle(tester, harness, setup.handler);
 
-      expect(setup.handler.businessLines, [
-        "Test Shop",
-        "Bahnhofstrasse",
-        "Zug",
+      expect(setup.handler.businessDetails, [
+        (label: "Legal name", value: "Test Shop", uri: null),
+        (label: "Postal address", value: "Bahnhofstrasse\nZug", uri: null),
       ]);
     });
 

@@ -31,6 +31,8 @@ CryptoCoin cryptoCoinFor(CryptoCurrency currency, {String? tokenSymbol}) =>
       displayName: tokenSymbol ?? currency.prettyName,
     );
 
+typedef BusinessDetail = ({String label, String value, Uri? uri});
+
 class OpenCryptoPaySendHandler {
   OpenCryptoPaySendHandler({
     required this.coin,
@@ -79,29 +81,27 @@ class OpenCryptoPaySendHandler {
 
   bool get isQuoteExpired => _session?.isQuoteExpired ?? false;
 
-  List<String> get businessLines {
+  List<BusinessDetail> get businessDetails {
     final details = _session?.details;
     if (details == null) return const [];
     final recipient = details.recipient;
-    final displayName = details.displayName;
-    String line(List<String?> parts) =>
-        parts.nonNulls.where((part) => part.isNotEmpty).join(" ");
-    final lines = <String?>[
-      displayName,
+    BusinessDetail? detail(String label, String? value, {Uri? uri}) =>
+        value == null || value.isEmpty
+        ? null
+        : (label: label, value: value, uri: uri);
+    final legalName = details.legalName;
+    return [
+      legalName == null
+          ? detail("Name", details.displayName)
+          : detail("Legal name", legalName),
       if (recipient != null) ...[
-        if (recipient.name != displayName) recipient.name,
-        line([recipient.street, recipient.houseNumber]),
-        line([recipient.zip, recipient.city]),
-        recipient.country,
-        recipient.phone,
-        recipient.mail,
-        recipient.website,
-        if (recipient.registrationNumber case final number?
-            when number.isNotEmpty)
-          "Registration number: $number",
+        detail("Postal address", recipient.postalAddress),
+        detail("Phone number", recipient.phone, uri: recipient.phoneUri),
+        detail("Email", recipient.mail, uri: recipient.mailUri),
+        detail("Website", recipient.website, uri: recipient.websiteUri),
+        detail("Registration number", recipient.registrationNumber),
       ],
-    ];
-    return lines.nonNulls.where((line) => line.isNotEmpty).toList();
+    ].nonNulls.toList();
   }
 
   bool isActivePaymentFor(String? recipientAddress) =>

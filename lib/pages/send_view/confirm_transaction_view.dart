@@ -69,6 +69,7 @@ import '../pinpad_views/lock_screen_view.dart';
 import '../wallet_view/wallet_view.dart';
 import 'sub_widgets/epic_slatepack_dialog.dart';
 import 'sub_widgets/mwc_slatepack_dialog.dart';
+import 'sub_widgets/open_crypto_pay_business_details.dart';
 import 'sub_widgets/sending_transaction_dialog.dart';
 
 class ConfirmTransactionView extends ConsumerStatefulWidget {
@@ -753,7 +754,8 @@ class _ConfirmTransactionViewState
 
     final String unit;
     final wallet = ref.watch(pWallets).getWallet(walletId);
-    final businessLines = _activeOcp?.businessLines ?? const <String>[];
+    final businessDetails =
+        _activeOcp?.businessDetails ?? const <BusinessDetail>[];
     if (widget.isTokenTx) {
       if (wallet is SolanaWallet) {
         // For Solana tokens, use the Solana token wallet provider or TxData as fallback.
@@ -908,23 +910,11 @@ class _ConfirmTransactionViewState
                       ],
                     ),
                   ),
-                  if (businessLines.isNotEmpty) const SizedBox(height: 12),
-                  if (businessLines.isNotEmpty)
+                  if (businessDetails.isNotEmpty) const SizedBox(height: 12),
+                  if (businessDetails.isNotEmpty)
                     RoundedWhiteContainer(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            "Business",
-                            style: STextStyles.smallMed12(context),
-                          ),
-                          const SizedBox(height: 4),
-                          for (final line in businessLines)
-                            SelectableText(
-                              line,
-                              style: STextStyles.itemSubtitle12(context),
-                            ),
-                        ],
+                      child: OpenCryptoPayBusinessDetails(
+                        details: businessDetails,
                       ),
                     ),
                   const SizedBox(height: 12),
@@ -1275,40 +1265,18 @@ class _ConfirmTransactionViewState
                           ],
                         ),
                       ),
-                      if (businessLines.isNotEmpty)
+                      if (businessDetails.isNotEmpty)
                         Container(
                           height: 1,
                           color: Theme.of(
                             context,
                           ).extension<StackColors>()!.background,
                         ),
-                      if (businessLines.isNotEmpty)
+                      if (businessDetails.isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.all(12),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Business",
-                                style: STextStyles.desktopTextExtraExtraSmall(
-                                  context,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              for (final line in businessLines)
-                                SelectableText(
-                                  line,
-                                  style:
-                                      STextStyles.desktopTextExtraExtraSmall(
-                                        context,
-                                      ).copyWith(
-                                        color: Theme.of(
-                                          context,
-                                        ).extension<StackColors>()!.textDark,
-                                      ),
-                                ),
-                            ],
+                          child: OpenCryptoPayBusinessDetails(
+                            details: businessDetails,
                           ),
                         ),
                       if (widget.isPaynymTransaction)
