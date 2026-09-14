@@ -185,6 +185,58 @@ class PriceAPI {
     return cached?.$2;
   }
 
+  /// BFX price, from our own endpoint rather than CoinGecko.
+  ///
+  /// BFX is not on CoinGecko, so it was simply unpriced until it gained a
+  /// market. This reads explorer.bitfinitechain.org, which proxies the
+  /// exchange: the wallet polls every minute, and pointing every installation
+  /// straight at the venue would hand it a view of our users.
+  ///
+  /// USD ONLY for now. The endpoint quotes BFX/USDT and does no currency
+  /// conversion, so a wallet set to any other base currency keeps showing no
+  /// BFX price, exactly as it did before. That is the honest failure: a number
+  /// in the wrong currency is worse than no number.
+  ///
+  /// Returns null on any problem, which the caller treats as unpriced. Never
+  /// returns zero: zero means "worthless" to every consumer downstream, and
+  /// what we actually mean is "no price".
+  static const _bfxPriceUrl = "https://explorer.bitfinitechain.org/api/price";
+
+  Future<({Decimal value, double change24h, List<double> sparkline})?>
+  _getBitfinitePrice({required String baseCurrency}) async {
+    if (baseCurrency.toLowerCase() != "usd") return null;
+    try {
+      final response = await client.get(
+        url: Uri.parse(_bfxPriceUrl),
+        headers: {'Content-Type': 'application/json'},
+        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+            ? null
+            : Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
+      );
+      if (response.code != 200) return null;
+
+      final map = jsonDecode(response.body) as Map<String, dynamic>;
+      final value = Decimal.tryParse(map["usd"].toString());
+      if (value == null || value <= Decimal.zero) return null;
+
+      // Absent until the market is genuinely a day old. The endpoint sends
+      // null rather than dressing "change since listing" up as a 24h move.
+      final change = (map["change24h"] as num?)?.toDouble() ?? 0.0;
+
+      final series = (map["sparkline"] as List<dynamic>? ?? [])
+          .map((e) => (e as num?)?.toDouble())
+          .whereType<double>()
+          .toList();
+
+      return (value: value, change24h: change, sparkline: series);
+    } catch (e, s) {
+      Logging.instance.e("_getBitfinitePrice: ", error: e, stackTrace: s);
+      return null;
+    }
+  }
+
   Future<Map<CryptoCurrency, ({Decimal value, double change24h})>>
   getPricesAnd24hChange({required String baseCurrency}) async {
     final now = DateTime.now();
@@ -268,6 +320,33 @@ class PriceAPI {
         } catch (_) {
           result.remove(coin);
           sparklines.remove(coin);
+        }
+      }
+
+      // BFX rides alongside rather than inside the CoinGecko response,
+      // because it is not listed there. A failure here must not lose the
+      // prices we just fetched, so it is deliberately not inside the try
+      // that wraps the CoinGecko call.
+      final bfx = await _getBitfinitePrice(baseCurrency: baseCurrency);
+      if (bfx != null) {
+        try {
+          // "BitFinite" with the capital F is the real prettyName, so this
+          // matches on both the exact name and the lowercased identifier.
+          // The testnet coin is "tBitFinite"/"bitfiniteTestnet" and cannot
+          // collide with it.
+          final coin = AppConfig.getCryptoCurrencyByPrettyName("BitFinite");
+          result[coin] = (value: bfx.value, change24h: bfx.change24h);
+          if (bfx.sparkline.length > 1) {
+            sparklines[coin] = bfx.sparkline;
+          } else {
+            sparklines.remove(coin);
+          }
+        } catch (e, s) {
+          Logging.instance.e(
+            "BFX price: no matching app coin",
+            error: e,
+            stackTrace: s,
+          );
         }
       }
 
