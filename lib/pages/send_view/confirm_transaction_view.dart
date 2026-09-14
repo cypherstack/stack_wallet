@@ -764,7 +764,11 @@ class _ConfirmTransactionViewState
                         Text(
                           widget.isPaynymTransaction
                               ? widget.txData.paynymAccountLite!.nymName
-                              : widget.txData.recipients?.first.address ??
+                              : widget
+                                        .txData
+                                        .recipients
+                                        ?.firstOrNull
+                                        ?.address ??
                                     widget
                                         .txData
                                         .sparkRecipients!
@@ -1110,7 +1114,11 @@ class _ConfirmTransactionViewState
                               // TODO: [prio=med] spark transaction specifics - better handling
                               widget.isPaynymTransaction
                                   ? widget.txData.paynymAccountLite!.nymName
-                                  : widget.txData.recipients?.first.address ??
+                                  : widget
+                                            .txData
+                                            .recipients
+                                            ?.firstOrNull
+                                            ?.address ??
                                         widget
                                             .txData
                                             .sparkRecipients!

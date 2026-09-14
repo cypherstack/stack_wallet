@@ -15,7 +15,7 @@ version: PLACEHOLDER_V+PLACEHOLDER_B
 
 environment:
   sdk: ">=3.12.0 <4.0.0"
-  flutter: ^3.44.0
+  flutter: ^3.44.9
 
 dependencies:
   flutter:
@@ -44,7 +44,7 @@ dependencies:
 #  flutter_libsparkmobile:
 #    git:
 #      url: https://github.com/cypherstack/flutter_libsparkmobile.git
-#      ref: 783bd00f0114b007f7ef97017cd10ad263ed452c
+#      ref: e017e62766908e9714c5309761183e8be8b37799
 # %%END_ENABLE_FIRO%%
 
 # %%ENABLE_EPIC%%
