@@ -1223,10 +1223,12 @@ packages:
   frostdart:
     dependency: "direct main"
     description:
-      path: "crypto_plugins/frostdart"
-      relative: true
-    source: path
-    version: "0.2.0"
+      path: "."
+      ref: "3397cf62f30f1467aea781c23d84051441775f14"
+      resolved-ref: "3397cf62f30f1467aea781c23d84051441775f14"
+      url: "https://github.com/cypherstack/frostdart.git"
+    source: git
+    version: "0.3.0"
   fuchsia_remote_debug_protocol:
     dependency: transitive
     description: flutter
