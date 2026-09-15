@@ -217,9 +217,9 @@ _HandlerSetup _makeHandler({
       harness.ref.read(pSendAmount.notifier).state = parsed;
     },
     setValidAddress: validAddresses.add,
-    isMounted: isMounted ?? () => true,
     tokenSymbol: tokenSymbol,
     tokenDecimals: tokenDecimals,
+    isMounted: isMounted ?? () => true,
     controller: OpenCryptoPayController(
       service: OpenCryptoPayService(client: client),
     ),
@@ -558,15 +558,13 @@ void main() {
       },
     );
 
-    testWidgets("failure retains the payment so the user can retry", (
+    testWidgets("failure shows a dialog and retains the payment for retry", (
       tester,
     ) async {
       final harness = await _pumpHarness(tester);
-      var mounted = true;
       final setup = _makeHandler(
         harness: harness,
         coin: Bitcoin(CryptoCurrencyNetwork.main),
-        isMounted: () => mounted,
         client: _mockOcpServer(
           paymentInfo: _paymentInfoJson(quoteExpiration: _futureExpiration()),
           txDetails: _btcDetailsJson(hint: _hashHint),
@@ -576,11 +574,15 @@ void main() {
 
       await _handle(tester, harness, setup.handler);
 
-      // Unmounted so the failure flushbar is skipped; the state handling is
-      // what is under test here.
-      mounted = false;
-      final ok = await setup.handler.submitProof(harness.context, "some_txid");
-      expect(ok, isFalse);
+      final fut = setup.handler.submitProof(harness.context, "some_txid");
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.text(OpenCryptoPayStrings.proofFailedTitle), findsOneWidget);
+      expect(find.text(OpenCryptoPayStrings.proofFailed), findsOneWidget);
+      await _tapOk(tester);
+
+      expect(await fut, isFalse);
       expect(setup.handler.isActivePaymentFor(_btcAddress), isTrue);
     });
 

@@ -8,13 +8,10 @@
  *
  */
 
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:opencryptopay/opencryptopay.dart';
 
 import '../../networking/http.dart';
-import '../../notifications/show_flush_bar.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/show_loading.dart';
@@ -152,13 +149,11 @@ class OpenCryptoPaySendHandler {
       case OpenCryptoPayFailure():
         final text = OpenCryptoPayStrings.failure(result);
         await _showError(
-          // ignore: use_build_context_synchronously
           context: context,
           title: text.title,
           message: text.message,
         );
       case OpenCryptoPaySuccess() when result.session.isQuoteExpired:
-        // ignore: use_build_context_synchronously
         await showQuoteExpiredError(context);
       case OpenCryptoPaySuccess():
         _applySuccess(result);
@@ -199,7 +194,6 @@ class OpenCryptoPaySendHandler {
           error: error,
         );
         if (!isMounted()) return false;
-        // ignore: use_build_context_synchronously
         await showQuoteExpiredError(context, paymentNotSent: true);
         return false;
       case OpenCryptoPayProofFailed(:final error):
@@ -209,15 +203,13 @@ class OpenCryptoPaySendHandler {
           error: error,
         );
         if (!isMounted()) return false;
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.warning,
-            message: OpenCryptoPayStrings.proofFailure(
-              requiresBroadcast: session.requiresBroadcast,
-            ).message,
-            // ignore: use_build_context_synchronously
-            context: context,
-          ),
+        final text = OpenCryptoPayStrings.proofFailure(
+          requiresBroadcast: session.requiresBroadcast,
+        );
+        await _showError(
+          context: context,
+          title: text.title,
+          message: text.message,
         );
         return false;
     }
