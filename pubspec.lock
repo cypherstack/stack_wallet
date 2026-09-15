@@ -1020,9 +1020,11 @@ packages:
   flutter_libepiccash:
     dependency: "direct main"
     description:
-      path: "crypto_plugins/flutter_libepiccash"
-      relative: true
-    source: path
+      path: "."
+      ref: dcb285b30ac4a91285a6aa4536ce24630b406d3c
+      resolved-ref: dcb285b30ac4a91285a6aa4536ce24630b406d3c
+      url: "https://github.com/cypherstack/flutter_libepiccash.git"
+    source: git
     version: "0.0.1"
   flutter_libmwc:
     dependency: "direct main"
