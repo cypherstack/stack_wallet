@@ -1274,31 +1274,34 @@ class _SendViewState extends ConsumerState<SendView> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (_) => TransactionFeeSelectionSheet(
-        walletId: walletId,
-        amount:
-            (Decimal.tryParse(cryptoAmountController.text) ??
-                    ref.watch(pSendAmount)?.decimal ??
-                    Decimal.zero)
-                .toAmount(fractionDigits: coin.fractionDigits),
-        updateChosen: (String fee) {
-          if (fee == "custom") {
-            if (!isCustomFee.value) {
-              setState(() {
-                isCustomFee.value = true;
-              });
+      builder: (_) => SafeArea(
+        top: false,
+        child: TransactionFeeSelectionSheet(
+          walletId: walletId,
+          amount:
+              (Decimal.tryParse(cryptoAmountController.text) ??
+                      ref.watch(pSendAmount)?.decimal ??
+                      Decimal.zero)
+                  .toAmount(fractionDigits: coin.fractionDigits),
+          updateChosen: (String fee) {
+            if (fee == "custom") {
+              if (!isCustomFee.value) {
+                setState(() {
+                  isCustomFee.value = true;
+                });
+              }
+              return;
             }
-            return;
-          }
 
-          _setCurrentFee(fee, true);
-          setState(() {
-            _calculateFeesFuture = Future(() => fee);
-            if (isCustomFee.value) {
-              isCustomFee.value = false;
-            }
-          });
-        },
+            _setCurrentFee(fee, true);
+            setState(() {
+              _calculateFeesFuture = Future(() => fee);
+              if (isCustomFee.value) {
+                isCustomFee.value = false;
+              }
+            });
+          },
+        ),
       ),
     );
   }
@@ -2122,10 +2125,12 @@ class _SendViewState extends ConsumerState<SendView> {
                                               top: Radius.circular(20),
                                             ),
                                           ),
-                                          builder: (_) =>
-                                              DualBalanceSelectionSheet(
-                                                walletId: walletId,
-                                              ),
+                                          builder: (_) => SafeArea(
+                                            top: false,
+                                            child: DualBalanceSelectionSheet(
+                                              walletId: walletId,
+                                            ),
+                                          ),
                                         );
                                       },
                                       child: Row(
