@@ -2402,11 +2402,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "21077186e6bf773ec8a7cd57ef149b2cee5daa7b"
-      resolved-ref: "21077186e6bf773ec8a7cd57ef149b2cee5daa7b"
+      ref: "5586bfa3c48e495bc00f9b56fa18869daf768573"
+      resolved-ref: "5586bfa3c48e495bc00f9b56fa18869daf768573"
       url: "https://github.com/cypherstack/tor.git"
     source: git
-    version: "0.0.1"
+    version: "0.1.0"
   tuple:
     dependency: "direct main"
     description:
