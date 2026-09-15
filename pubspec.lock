@@ -1030,8 +1030,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: ebf46676986b60fa61b2d89c92c6de498e1e917e
-      resolved-ref: ebf46676986b60fa61b2d89c92c6de498e1e917e
+      ref: eec0f5ae0ee49d2d6e14c925d61e5d29dbd17be4
+      resolved-ref: eec0f5ae0ee49d2d6e14c925d61e5d29dbd17be4
       url: "https://github.com/cypherstack/flutter_libmwc.git"
     source: git
     version: "0.1.0"
