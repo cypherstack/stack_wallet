@@ -144,11 +144,12 @@ class OpenCryptoPaySendHandler {
 
     switch (result) {
       case OpenCryptoPayFailure():
+        final text = OpenCryptoPayStrings.failure(result);
         await _showError(
           // ignore: use_build_context_synchronously
           context: context,
-          title: result.title,
-          message: result.message,
+          title: text.title,
+          message: text.message,
         );
       case OpenCryptoPaySuccess() when result.session.isQuoteExpired:
         // ignore: use_build_context_synchronously
@@ -195,7 +196,7 @@ class OpenCryptoPaySendHandler {
         // ignore: use_build_context_synchronously
         await showQuoteExpiredError(context, paymentNotSent: true);
         return false;
-      case OpenCryptoPayProofFailed(:final message, :final error):
+      case OpenCryptoPayProofFailed(:final error):
         // The session stays active so the user can retry.
         Logging.instance.w(
           "OpenCryptoPay proof submission failed",
@@ -205,7 +206,9 @@ class OpenCryptoPaySendHandler {
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.warning,
-            message: message,
+            message: OpenCryptoPayStrings.proofFailure(
+              requiresBroadcast: session.requiresBroadcast,
+            ).message,
             // ignore: use_build_context_synchronously
             context: context,
           ),

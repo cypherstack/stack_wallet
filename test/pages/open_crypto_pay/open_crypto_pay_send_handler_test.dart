@@ -464,6 +464,33 @@ void main() {
       expect(setup.handler.isQuoteExpired, isFalse);
     });
 
+    testWidgets("network failure shows a generic dialog without details", (
+      tester,
+    ) async {
+      final harness = await _pumpHarness(tester);
+      final setup = _makeHandler(
+        harness: harness,
+        coin: Bitcoin(CryptoCurrencyNetwork.main),
+        client: MockClient((_) async => throw Exception("socket closed")),
+      );
+
+      final fut = setup.handler.handle(harness.context, _qrLink);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.text(OpenCryptoPayStrings.genericErrorTitle), findsOneWidget);
+      expect(
+        find.text(OpenCryptoPayStrings.genericErrorMessage),
+        findsOneWidget,
+      );
+      expect(find.textContaining("socket closed"), findsNothing);
+      await _tapOk(tester);
+      await fut;
+
+      expect(setup.sendTo.text, isEmpty);
+      expect(setup.handler.isActivePaymentFor(_btcAddress), isFalse);
+    });
+
     testWidgets(
       "no pending payment (404) shows a dialog and prefills nothing",
       (tester) async {
