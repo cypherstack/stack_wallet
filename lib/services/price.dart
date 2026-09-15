@@ -192,10 +192,10 @@ class PriceAPI {
   /// exchange: the wallet polls every minute, and pointing every installation
   /// straight at the venue would hand it a view of our users.
   ///
-  /// USD ONLY for now. The endpoint quotes BFX/USDT and does no currency
-  /// conversion, so a wallet set to any other base currency keeps showing no
-  /// BFX price, exactly as it did before. That is the honest failure: a number
-  /// in the wrong currency is worse than no number.
+  /// The endpoint quotes BFX/USDT and converts into whatever `vs` asks for, so
+  /// this works for any base currency it knows. One it does not know returns
+  /// 503 rather than a dollar figure wearing the wrong label, and we then show
+  /// nothing, which is what the app did for BFX before it had a market at all.
   ///
   /// Returns null on any problem, which the caller treats as unpriced. Never
   /// returns zero: zero means "worthless" to every consumer downstream, and
@@ -204,10 +204,10 @@ class PriceAPI {
 
   Future<({Decimal value, double change24h, List<double> sparkline})?>
   _getBitfinitePrice({required String baseCurrency}) async {
-    if (baseCurrency.toLowerCase() != "usd") return null;
+    final want = baseCurrency.toLowerCase().trim();
     try {
       final response = await client.get(
-        url: Uri.parse(_bfxPriceUrl),
+        url: Uri.parse("$_bfxPriceUrl?vs=$want"),
         headers: {'Content-Type': 'application/json'},
         proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
             ? null
@@ -218,6 +218,12 @@ class PriceAPI {
       if (response.code != 200) return null;
 
       final map = jsonDecode(response.body) as Map<String, dynamic>;
+
+      // Check we got the currency we asked for. The endpoint states its own,
+      // so a mismatch means something changed underneath us and the number
+      // would be in the wrong units. Showing nothing beats showing that.
+      if ((map["currency"] as String?)?.toLowerCase() != want) return null;
+
       final value = Decimal.tryParse(map["usd"].toString());
       if (value == null || value <= Decimal.zero) return null;
 
