@@ -53,7 +53,7 @@ dependencies:
 #  flutter_libepiccash:
 #    git:
 #      url: https://github.com/cypherstack/flutter_libepiccash.git
-#      ref: dcb285b30ac4a91285a6aa4536ce24630b406d3c
+#      ref: 920ac94cf5295df3c3ae083c6a23ff602fb0f068
 # %%END_ENABLE_EPIC%%
 
 # %%ENABLE_MWC%%
@@ -375,8 +375,8 @@ dependency_overrides:
 #  user_defines:
 #    flutter_libepiccash:
 #      native_build: prebuilt
-#      prebuilt_manifest_url: "https://github.com/cypherstack/flutter_libepiccash/releases/download/native-0.2.0/manifest.json"
-#      prebuilt_manifest_sha256: "e46451e60cacae2c622681854c44d76a9f37c4c5eb9aff8fa28483464afafde1"
+#      prebuilt_manifest_url: "https://github.com/cypherstack/flutter_libepiccash/releases/download/native-0.3.0/manifest.json"
+#      prebuilt_manifest_sha256: "19be31940f7a58af98f315032d13c0a7c43a45bbcc86847587a6d1593985603a"
 #    flutter_libmwc:
 #      native_build: prebuilt
 #      prebuilt_manifest_url: "https://github.com/cypherstack/flutter_libmwc/releases/download/native-0.1.0-1/manifest.json"

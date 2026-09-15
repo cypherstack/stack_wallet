@@ -1021,8 +1021,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: dcb285b30ac4a91285a6aa4536ce24630b406d3c
-      resolved-ref: dcb285b30ac4a91285a6aa4536ce24630b406d3c
+      ref: "920ac94cf5295df3c3ae083c6a23ff602fb0f068"
+      resolved-ref: "920ac94cf5295df3c3ae083c6a23ff602fb0f068"
       url: "https://github.com/cypherstack/flutter_libepiccash.git"
     source: git
     version: "0.0.1"
