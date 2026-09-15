@@ -474,7 +474,15 @@ class _ConfirmTransactionViewState
       if (ocp != null && txids.isNotEmpty && context.mounted) {
         // Broadcast (txid) proof type: submit the txid to the
         // OpenCryptoPay provider.
-        await ocp.submitProof(context, txids.first);
+        final proof = ocp.submitProof(context, txids.first);
+        final done = await Future.any([
+          proof,
+          Future<bool?>.delayed(const Duration(seconds: 2)),
+        ]);
+        if (done == null) {
+          sendProgressController.message.value = "Notifying the seller...";
+        }
+        await proof;
       }
 
       closeSendingDialog();
