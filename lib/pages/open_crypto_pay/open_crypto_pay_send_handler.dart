@@ -140,9 +140,15 @@ class OpenCryptoPaySendHandler {
       message: OpenCryptoPayStrings.loading,
     );
 
-    if (!isMounted() || result == null) return;
+    if (!isMounted()) return;
 
     switch (result) {
+      case null:
+        await _showError(
+          context: context,
+          title: OpenCryptoPayStrings.genericErrorTitle,
+          message: OpenCryptoPayStrings.genericErrorMessage,
+        );
       case OpenCryptoPayFailure():
         final text = OpenCryptoPayStrings.failure(result);
         await _showError(
