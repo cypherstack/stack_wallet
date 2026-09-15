@@ -61,8 +61,6 @@ if  [[ "$1" == "windows" ]]; then
 fi
 
 
-export INCLUDE_EPIC_SO="ON"
-export INCLUDE_MWC_SO="ON"
 
 pushd "${APP_PROJECT_ROOT_DIR}"
 BUILT_COMMIT_HASH=$(git log -1 --pretty=format:"%H")
