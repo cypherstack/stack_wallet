@@ -106,7 +106,7 @@ dependencies:
   stack_wallet_backup:
     git:
       url: https://github.com/cypherstack/stack_wallet_backup.git
-      ref: 5efe8f8f259317d32b6f037cf91f62e06125c040
+      ref: d353fcd289c2fd5de8f4f32395536dad9674ebe3
 
   bip47:
     git:
