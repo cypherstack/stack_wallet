@@ -56,7 +56,7 @@ const EthContractSchema = CollectionSchema(
   getId: _ethContractGetId,
   getLinks: _ethContractGetLinks,
   attach: _ethContractAttach,
-  version: '3.3.0-dev.2',
+  version: '3.3.2',
 );
 
 int _ethContractEstimateSize(
