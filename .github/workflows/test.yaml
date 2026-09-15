@@ -18,26 +18,14 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
-      - name: Configure app
+      # -d enables the pinned Epic/MWC native-assets prebuilts for flutter test.
+      - name: Configure app (prebuilt native assets)
         run: |
           cd scripts
           echo "yes" | ./build_app.sh -v "0.0.1" -b "1" -p "linux" -a "stack_wallet" -d -s
 
       - name: Get dependencies
         run: flutter pub get
-
-      - name: Create git_versions.dart stubs
-        run: |
-          mkdir -p crypto_plugins/flutter_libepiccash/lib
-          mkdir -p crypto_plugins/flutter_libmwc/lib
-
-          cat > crypto_plugins/flutter_libepiccash/lib/git_versions.dart << 'EOF'
-          String getPluginVersion() => "stub-for-tests";
-          EOF
-
-          cat > crypto_plugins/flutter_libmwc/lib/git_versions.dart << 'EOF'
-          String getPluginVersion() => "stub-for-tests";
-          EOF
 
       - name: Decode secrets
         env:

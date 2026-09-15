@@ -17,6 +17,8 @@ on:
         required: true
         default: '1'
 
+# Configure app uses -d to select pinned Epic/MWC prebuilts when included.
+# Other native-assets packages, including frostdart, still build from source.
 jobs:
 
   build-disclaimer:
@@ -75,19 +77,6 @@ jobs:
 
       - name: Get dependencies
         run: flutter pub get
-
-      - name: Create git_versions.dart stubs
-        run: |
-          mkdir -p crypto_plugins/flutter_libepiccash/lib
-          mkdir -p crypto_plugins/flutter_libmwc/lib
-
-          EPIC_TAG=$(git -C crypto_plugins/flutter_libepiccash describe --tags --exact-match HEAD 2>/dev/null || echo "dev")
-          MWC_TAG=$(git -C crypto_plugins/flutter_libmwc describe --tags --exact-match HEAD 2>/dev/null || echo "dev")
-
-          printf 'String getPluginVersion() => "%s";\n' "$EPIC_TAG" \
-            > crypto_plugins/flutter_libepiccash/lib/git_versions.dart
-          printf 'String getPluginVersion() => "%s";\n' "$MWC_TAG" \
-            > crypto_plugins/flutter_libmwc/lib/git_versions.dart
 
       - name: Decode secrets
         env:
@@ -152,19 +141,6 @@ jobs:
 
       - name: Get dependencies
         run: flutter pub get
-
-      - name: Create git_versions.dart stubs
-        run: |
-          mkdir -p crypto_plugins/flutter_libepiccash/lib
-          mkdir -p crypto_plugins/flutter_libmwc/lib
-
-          EPIC_TAG=$(git -C crypto_plugins/flutter_libepiccash describe --tags --exact-match HEAD 2>/dev/null || echo "dev")
-          MWC_TAG=$(git -C crypto_plugins/flutter_libmwc describe --tags --exact-match HEAD 2>/dev/null || echo "dev")
-
-          printf 'String getPluginVersion() => "%s";\n' "$EPIC_TAG" \
-            > crypto_plugins/flutter_libepiccash/lib/git_versions.dart
-          printf 'String getPluginVersion() => "%s";\n' "$MWC_TAG" \
-            > crypto_plugins/flutter_libmwc/lib/git_versions.dart
 
       - name: Decode secrets
         env:
@@ -254,7 +230,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.44.9'
+          flutter-version: '3.47.2'
           channel: 'stable'
 
       - uses: actions/setup-go@v6
@@ -295,19 +271,6 @@ jobs:
 
       - name: Get dependencies
         run: flutter pub get
-
-      - name: Create git_versions.dart stubs
-        run: |
-          mkdir -p crypto_plugins/flutter_libepiccash/lib
-          mkdir -p crypto_plugins/flutter_libmwc/lib
-
-          EPIC_TAG=$(git -C crypto_plugins/flutter_libepiccash describe --tags --exact-match HEAD 2>/dev/null || echo "dev")
-          MWC_TAG=$(git -C crypto_plugins/flutter_libmwc describe --tags --exact-match HEAD 2>/dev/null || echo "dev")
-
-          printf 'String getPluginVersion() => "%s";\n' "$EPIC_TAG" \
-            > crypto_plugins/flutter_libepiccash/lib/git_versions.dart
-          printf 'String getPluginVersion() => "%s";\n' "$MWC_TAG" \
-            > crypto_plugins/flutter_libmwc/lib/git_versions.dart
 
       - name: Decode secrets
         env:
@@ -358,7 +321,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.44.9'
+          flutter-version: '3.47.2'
           channel: 'stable'
 
       - uses: actions/setup-go@v6
@@ -375,19 +338,6 @@ jobs:
 
       - name: Get dependencies
         run: flutter pub get
-
-      - name: Create git_versions.dart stubs
-        run: |
-          mkdir -p crypto_plugins/flutter_libepiccash/lib
-          mkdir -p crypto_plugins/flutter_libmwc/lib
-
-          EPIC_TAG=$(git -C crypto_plugins/flutter_libepiccash describe --tags --exact-match HEAD 2>/dev/null || echo "dev")
-          MWC_TAG=$(git -C crypto_plugins/flutter_libmwc describe --tags --exact-match HEAD 2>/dev/null || echo "dev")
-
-          printf 'String getPluginVersion() => "%s";\n' "$EPIC_TAG" \
-            > crypto_plugins/flutter_libepiccash/lib/git_versions.dart
-          printf 'String getPluginVersion() => "%s";\n' "$MWC_TAG" \
-            > crypto_plugins/flutter_libmwc/lib/git_versions.dart
 
       - name: Decode secrets
         env:
@@ -440,7 +390,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.44.9'
+          flutter-version: '3.47.2'
           channel: 'stable'
 
       - uses: actions/setup-go@v6
@@ -457,19 +407,6 @@ jobs:
 
       - name: Get dependencies
         run: flutter pub get
-
-      - name: Create git_versions.dart stubs
-        run: |
-          mkdir -p crypto_plugins/flutter_libepiccash/lib
-          mkdir -p crypto_plugins/flutter_libmwc/lib
-
-          EPIC_TAG=$(git -C crypto_plugins/flutter_libepiccash describe --tags --exact-match HEAD 2>/dev/null || echo "dev")
-          MWC_TAG=$(git -C crypto_plugins/flutter_libmwc describe --tags --exact-match HEAD 2>/dev/null || echo "dev")
-
-          printf 'String getPluginVersion() => "%s";\n' "$EPIC_TAG" \
-            > crypto_plugins/flutter_libepiccash/lib/git_versions.dart
-          printf 'String getPluginVersion() => "%s";\n' "$MWC_TAG" \
-            > crypto_plugins/flutter_libmwc/lib/git_versions.dart
 
       - name: Decode secrets
         env:
@@ -867,7 +804,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.44.9'
+          flutter-version: '3.47.2'
           channel: 'stable'
 
       - uses: actions/setup-go@v6
@@ -956,7 +893,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.44.9'
+          flutter-version: '3.47.2'
           channel: 'stable'
 
       - uses: actions/setup-go@v6
@@ -1031,7 +968,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.44.9'
+          flutter-version: '3.47.2'
           channel: 'stable'
 
       - uses: actions/setup-go@v6
@@ -1325,7 +1262,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.44.9'
+          flutter-version: '3.47.2'
           channel: 'stable'
 
       - uses: actions/setup-go@v6
@@ -1414,7 +1351,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.44.9'
+          flutter-version: '3.47.2'
           channel: 'stable'
 
       - uses: actions/setup-go@v6
@@ -1491,7 +1428,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.44.9'
+          flutter-version: '3.47.2'
           channel: 'stable'
 
       - uses: actions/setup-go@v6

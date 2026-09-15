@@ -86,7 +86,7 @@ RUN curl -fsSL https://go.dev/dl/go1.24.13.linux-amd64.tar.gz -o /tmp/go.tar.gz 
 ENV FLUTTER_HOME=/opt/flutter \
     PATH=/opt/flutter/bin:/opt/flutter/bin/cache/dart-sdk/bin:$PATH
 
-RUN git clone --depth 1 --branch 3.44.9 https://github.com/flutter/flutter.git "$FLUTTER_HOME" \
+RUN git clone --depth 1 --branch 3.47.2 https://github.com/flutter/flutter.git "$FLUTTER_HOME" \
  && git config --global --add safe.directory '*' \
  && flutter config --no-analytics \
  && flutter precache --linux --android \
@@ -174,7 +174,7 @@ RUN curl -fsSL https://go.dev/dl/go1.24.13.linux-amd64.tar.gz -o /tmp/go.tar.gz 
 ENV FLUTTER_HOME=/opt/flutter \
     PATH=/opt/flutter/bin:/opt/flutter/bin/cache/dart-sdk/bin:$PATH
 
-RUN git clone --depth 1 --branch 3.44.9 https://github.com/flutter/flutter.git "$FLUTTER_HOME" \
+RUN git clone --depth 1 --branch 3.47.2 https://github.com/flutter/flutter.git "$FLUTTER_HOME" \
  && git config --global --add safe.directory '*' \
  && flutter config --no-analytics \
  && flutter precache --android \
@@ -185,7 +185,7 @@ RUN git config --system --add safe.directory '*'
 RUN flutter --version && rustc --version && cargo --version && go version
 
 
-# Minimal image for flutter test (no Rust, no Android SDK, no cross-compilers)
+# Image for flutter test (no Android SDK or cross-compilers)
 FROM ubuntu:24.04 AS test
 
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -203,6 +203,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       libjsoncpp-dev liblzma-dev libsecret-1-dev libssl-dev \
  && rm -rf /var/lib/apt/lists/*
 
+# Epic/MWC use prebuilts; frostdart still compiles through its native-assets hook.
+ENV RUSTUP_HOME=/usr/local/rustup \
+    CARGO_HOME=/usr/local/cargo \
+    PATH=/usr/local/cargo/bin:$PATH
+
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+      | sh -s -- -y --default-toolchain 1.90.0 --profile minimal --no-modify-path \
+ && chmod -R a+rwX "$CARGO_HOME" "$RUSTUP_HOME"
+
 ENV PATH=/usr/local/go/bin:$PATH
 
 RUN curl -fsSL https://go.dev/dl/go1.24.13.linux-amd64.tar.gz -o /tmp/go.tar.gz \
@@ -213,7 +222,7 @@ RUN curl -fsSL https://go.dev/dl/go1.24.13.linux-amd64.tar.gz -o /tmp/go.tar.gz 
 ENV FLUTTER_HOME=/opt/flutter \
     PATH=/opt/flutter/bin:/opt/flutter/bin/cache/dart-sdk/bin:$PATH
 
-RUN git clone --depth 1 --branch 3.44.9 https://github.com/flutter/flutter.git "$FLUTTER_HOME" \
+RUN git clone --depth 1 --branch 3.47.2 https://github.com/flutter/flutter.git "$FLUTTER_HOME" \
  && git config --global --add safe.directory '*' \
  && flutter config --no-analytics \
  && flutter precache --linux \
