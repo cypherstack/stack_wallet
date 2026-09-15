@@ -127,6 +127,15 @@ class PriceAPI {
   /// has no series, and the UI must render nothing rather than an empty chart.
   final Map<CryptoCurrency, List<double>> sparklines = {};
 
+  /// What each sparkline ACTUALLY spans, in hours.
+  ///
+  /// CoinGecko's is always 168, because `sparkline_in_7d` is seven days by
+  /// definition. BFX's is however much history its market has: 29 hours on the
+  /// day it opened, growing. Deriving the spacing from the range the caller
+  /// asked for instead of from this is how a 29-hour chart ends up labelling
+  /// its oldest point "7d ago".
+  final Map<CryptoCurrency, double> sparklineSpanHours = {};
+
   // Redesign: the hero chart gained 24H/30D ranges beside the bundled 7D
   // sparkline. Those need their own market_chart call, fetched lazily on
   // first selection and cached per coin+range+currency, because CoinGecko's
@@ -185,6 +194,38 @@ class PriceAPI {
     return cached?.$2;
   }
 
+  // BFX ranges come from our own endpoint, not CoinGecko, for the same reason
+  // its price does: CoinGecko does not list it. getMarketChart returns null
+  // immediately for BFX (no id in the map), which is why 24H and 30D showed
+  // nothing at all before this existed.
+  final Map<String, (DateTime, ({List<double> series, double? spanHours}))>
+  _bfxRangeCache = {};
+
+  /// Price series for BFX over [days], or null when there is none.
+  Future<({List<double> series, double? spanHours})?> getBitfiniteRange({
+    required int days,
+    required String baseCurrency,
+  }) async {
+    final key = "$days:${baseCurrency.toLowerCase()}";
+    final cached = _bfxRangeCache[key];
+    if (cached != null &&
+        DateTime.now().difference(cached.$1) < _marketChartCacheLife) {
+      return cached.$2;
+    }
+
+    final r = await _getBitfinitePrice(
+      baseCurrency: baseCurrency,
+      rangeDays: days,
+    );
+    // Two points is the minimum that draws a line. Below that, and on any
+    // failure, a stale series beats an empty chart flash.
+    if (r == null || r.sparkline.length < 2) return cached?.$2;
+
+    final out = (series: r.sparkline, spanHours: r.spanHours);
+    _bfxRangeCache[key] = (DateTime.now(), out);
+    return out;
+  }
+
   /// BFX price, from our own endpoint rather than CoinGecko.
   ///
   /// BFX is not on CoinGecko, so it was simply unpriced until it gained a
@@ -202,12 +243,22 @@ class PriceAPI {
   /// what we actually mean is "no price".
   static const _bfxPriceUrl = "https://explorer.bitfinitechain.org/api/price";
 
-  Future<({Decimal value, double change24h, List<double> sparkline})?>
-  _getBitfinitePrice({required String baseCurrency}) async {
+  Future<
+    ({
+      Decimal value,
+      double change24h,
+      List<double> sparkline,
+      double? spanHours,
+    })?
+  >
+  _getBitfinitePrice({
+    required String baseCurrency,
+    int rangeDays = 7,
+  }) async {
     final want = baseCurrency.toLowerCase().trim();
     try {
       final response = await client.get(
-        url: Uri.parse("$_bfxPriceUrl?vs=$want"),
+        url: Uri.parse("$_bfxPriceUrl?vs=$want&range=$rangeDays"),
         headers: {'Content-Type': 'application/json'},
         proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
             ? null
@@ -236,7 +287,17 @@ class PriceAPI {
           .whereType<double>()
           .toList();
 
-      return (value: value, change24h: change, sparkline: series);
+      // The endpoint states what its series really covers. An older server
+      // that does not send it leaves this null, and the caller falls back to
+      // assuming the range it asked for.
+      final span = (map["spanHours"] as num?)?.toDouble();
+
+      return (
+        value: value,
+        change24h: change,
+        sparkline: series,
+        spanHours: span,
+      );
     } catch (e, s) {
       Logging.instance.e("_getBitfinitePrice: ", error: e, stackTrace: s);
       return null;
@@ -319,13 +380,17 @@ class PriceAPI {
                 .toList();
             if (series.length > 1) {
               sparklines[coin] = series;
+              // sparkline_in_7d is seven days by definition.
+              sparklineSpanHours[coin] = 168.0;
             } else {
               sparklines.remove(coin);
+              sparklineSpanHours.remove(coin);
             }
           }
         } catch (_) {
           result.remove(coin);
           sparklines.remove(coin);
+          sparklineSpanHours.remove(coin);
         }
       }
 
@@ -344,8 +409,14 @@ class PriceAPI {
           result[coin] = (value: bfx.value, change24h: bfx.change24h);
           if (bfx.sparkline.length > 1) {
             sparklines[coin] = bfx.sparkline;
+            if (bfx.spanHours != null) {
+              sparklineSpanHours[coin] = bfx.spanHours!;
+            } else {
+              sparklineSpanHours.remove(coin);
+            }
           } else {
             sparklines.remove(coin);
+            sparklineSpanHours.remove(coin);
           }
         } catch (e, s) {
           Logging.instance.e(

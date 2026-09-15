@@ -54,7 +54,10 @@ final _chartRangeDaysProvider = StateProvider.family<int, String>(
 /// switching ranges and rebuilding the hero does not refetch on every frame —
 /// PriceAPI caches 5 minutes per coin+range underneath this.
 final _heroSeriesProvider = FutureProvider.autoDispose
-    .family<List<double>?, ({String walletId, int days})>((ref, arg) async {
+    .family<
+      ({List<double> series, double spanHours})?,
+      ({String walletId, int days})
+    >((ref, arg) async {
       final coin = ref.watch(pWalletCoin(arg.walletId));
       return await ref
           .watch(priceAnd24hChangeNotifierProvider)
@@ -594,13 +597,20 @@ class _HeroChartCard extends ConsumerWidget {
     final seriesAsync = ref.watch(
       _heroSeriesProvider((walletId: walletId, days: days)),
     );
-    final series = seriesAsync.asData?.value;
+    // THREE states, not two. `asData?.value` is null both while the fetch is
+    // in flight AND when it finished with nothing, and collapsing those left
+    // BFX spinning forever on 24H and 30D: getRangeSeries returned null the
+    // moment it was asked, and the UI read that as "still loading". An error
+    // was read the same way. Loading is the only state that gets a spinner.
+    final loading = seriesAsync is AsyncLoading;
+    final resolved = seriesAsync.asData?.value;
+    final series = resolved?.series;
 
     // No 7D series at all means the coin has no market data worth a card.
     final fallback = ref.watch(priceAnd24hChangeNotifierProvider).getSparkline(
       ref.watch(pWalletCoin(walletId)),
     );
-    if (series == null && fallback == null && seriesAsync is! AsyncLoading) {
+    if (series == null && fallback == null && !loading) {
       return const SizedBox.shrink();
     }
 
@@ -731,7 +741,11 @@ class _HeroChartCard extends ConsumerWidget {
                     series: series,
                     color: deltaColor,
                     height: 32,
-                    spanHours: days * 24.0,
+                    // What the data covers, not what was asked for. BFX's
+                    // market opened on 2026-09-14, so every range currently
+                    // returns the same short history and `days * 24` would
+                    // date its oldest point by weeks.
+                    spanHours: resolved!.spanHours,
                     // The pills already say what the chart spans.
                     idleLabel: "",
                     // The same formatter as the fiat figure under the balance,
@@ -742,18 +756,28 @@ class _HeroChartCard extends ConsumerWidget {
                         "${Decimal.parse(v.toString()).toAmount(fractionDigits: 8).fiatString(locale: locale)} $baseCurrency",
                   )
                 // Matches the sparkline's own height (line plus caption), so
-                // the hero does not jump when the series arrives.
+                // the hero does not jump when the series arrives. Only while
+                // the fetch is actually running: a resolved-but-empty range
+                // says so instead of spinning at the reader indefinitely.
                 : SizedBox(
                     height: 47,
                     child: Center(
-                      child: SizedBox(
-                        height: 14,
-                        width: 14,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: favText.withOpacity(0.5),
-                        ),
-                      ),
+                      child: loading
+                          ? SizedBox(
+                              height: 14,
+                              width: 14,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: favText.withOpacity(0.5),
+                              ),
+                            )
+                          : Text(
+                              "No chart for this range",
+                              style: STextStyles.subtitle500(context).copyWith(
+                                fontSize: 11,
+                                color: favText.withOpacity(0.5),
+                              ),
+                            ),
                     ),
                   ),
           ),

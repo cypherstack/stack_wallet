@@ -70,19 +70,62 @@ class PriceService extends ChangeNotifier {
     return (series != null && series.length > 1) ? series : null;
   }
 
-  /// Price series for the hero chart's range selector. 7 days comes from the
-  /// sparkline the price poll already carries (no extra request); 1 and 30
-  /// days are fetched lazily and cached by PriceAPI. Same unlisted-coin gate
-  /// as [getSparkline]: no market, no chart, never a flat line at zero.
-  Future<List<double>?> getRangeSeries(CryptoCurrency coin, int days) async {
+  final Map<CryptoCurrency, double> _cachedSparklineSpans = {};
+
+  /// Price series for the hero chart's range selector, with the span it really
+  /// covers.
+  ///
+  /// Returns null for "this coin has no chart", which the caller must render
+  /// as nothing. It is NOT the same as "still loading", and conflating the two
+  /// is what left BFX on a spinner that never resolved: 24H and 30D went to
+  /// CoinGecko, which does not list BFX, so they returned null forever.
+  ///
+  /// spanHours is what the data actually covers, not what was asked for. A
+  /// market younger than the requested range returns everything it has, and
+  /// labelling that by the range would date the oldest point wrongly.
+  ///
+  /// Same unlisted-coin gate as [getSparkline]: no market, no chart, never a
+  /// flat line at zero.
+  Future<({List<double> series, double spanHours})?> getRangeSeries(
+    CryptoCurrency coin,
+    int days,
+  ) async {
     if (getPrice(coin) == null) return null;
-    if (days == 7) return getSparkline(coin);
-    return await _priceAPI.getMarketChart(
+
+    // 7 days costs nothing for any coin: the price poll already carries it.
+    // Checked before the BFX branch on purpose, so opening a wallet does not
+    // fire an extra request for the range the hero opens on.
+    if (days == 7) {
+      final s = getSparkline(coin);
+      if (s == null) return null;
+      return (series: s, spanHours: _cachedSparklineSpans[coin] ?? 168.0);
+    }
+
+    if (_isBitfinite(coin)) {
+      final r = await _priceAPI.getBitfiniteRange(
+        days: days,
+        baseCurrency: baseTicker,
+      );
+      if (r == null || r.series.length < 2) return null;
+      return (series: r.series, spanHours: r.spanHours ?? days * 24.0);
+    }
+
+    final s = await _priceAPI.getMarketChart(
       coin: coin,
       days: days,
       baseCurrency: baseTicker,
     );
+    if (s == null || s.length < 2) return null;
+    // CoinGecko honours the window it is given, so the range asked for is the
+    // range returned.
+    return (series: s, spanHours: days * 24.0);
   }
+
+  /// BFX is the one coin served by our own endpoint rather than CoinGecko, so
+  /// it is the one coin whose ranges do not come from getMarketChart. Matched
+  /// on prettyName because that is what the price fetch already keys on, and
+  /// the testnet coin ("tBitFinite") cannot collide with it.
+  bool _isBitfinite(CryptoCurrency coin) => coin.prettyName == "BitFinite";
 
   PriceService(this.baseTicker);
 
@@ -94,6 +137,9 @@ class PriceService extends ChangeNotifier {
     _cachedSparklines
       ..clear()
       ..addAll(_priceAPI.sparklines);
+    _cachedSparklineSpans
+      ..clear()
+      ..addAll(_priceAPI.sparklineSpanHours);
 
     bool shouldNotify = false;
     for (final map in priceMap.entries) {
