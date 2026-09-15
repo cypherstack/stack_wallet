@@ -619,7 +619,6 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
         ref.read(pSendAmount.notifier).state = parsed;
       },
       setValidAddress: _openCryptoPaySetValidAddress,
-      isMounted: () => mounted,
       tokenSymbol: tokenWallet?.tokenSymbol,
       tokenDecimals: tokenWallet?.tokenDecimals,
     );

@@ -1371,7 +1371,6 @@ class _SendViewState extends ConsumerState<SendView> {
         ref.read(pSendAmount.notifier).state = parsed;
       },
       setValidAddress: _openCryptoPaySetValidAddress,
-      isMounted: () => mounted,
     );
 
     if (_data != null) {

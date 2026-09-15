@@ -645,7 +645,6 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
         ref.read(pSendAmount.notifier).state = parsed;
       },
       setValidAddress: _openCryptoPaySetValidAddress,
-      isMounted: () => mounted,
       tokenSymbol: tokenContract.symbol,
       tokenDecimals: tokenContract.decimals,
     );

@@ -202,7 +202,6 @@ _HandlerSetup _makeHandler({
   required Client client,
   String? tokenSymbol,
   int? tokenDecimals,
-  bool Function()? isMounted,
 }) {
   final sendTo = TextEditingController();
   final amount = TextEditingController();
@@ -219,7 +218,6 @@ _HandlerSetup _makeHandler({
     setValidAddress: validAddresses.add,
     tokenSymbol: tokenSymbol,
     tokenDecimals: tokenDecimals,
-    isMounted: isMounted ?? () => true,
     controller: OpenCryptoPayController(
       service: OpenCryptoPayService(client: client),
     ),

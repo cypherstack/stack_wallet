@@ -677,7 +677,6 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
         ref.read(pSendAmount.notifier).state = parsed;
       },
       setValidAddress: _openCryptoPaySetValidAddress,
-      isMounted: () => mounted,
       tokenSymbol: tokenWallet?.tokenSymbol,
       tokenDecimals: tokenWallet?.tokenDecimals,
     );

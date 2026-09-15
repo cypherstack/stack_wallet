@@ -1272,7 +1272,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         ref.read(pSendAmount.notifier).state = parsed;
       },
       setValidAddress: _openCryptoPaySetValidAddress,
-      isMounted: () => mounted,
     );
 
     if (_data != null) {

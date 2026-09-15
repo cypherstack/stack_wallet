@@ -650,7 +650,6 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
         ref.read(pSendAmount.notifier).state = parsed;
       },
       setValidAddress: _openCryptoPaySetValidAddress,
-      isMounted: () => mounted,
       tokenSymbol: tokenContract?.symbol,
       tokenDecimals: tokenContract?.decimals,
     );

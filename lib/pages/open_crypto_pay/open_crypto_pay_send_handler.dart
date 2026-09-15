@@ -36,7 +36,6 @@ class OpenCryptoPaySendHandler {
     required this.sendToController,
     required this.onAmountReceived,
     required this.setValidAddress,
-    required this.isMounted,
     this.tokenSymbol,
     this.tokenDecimals,
     @visibleForTesting OpenCryptoPayController? controller,
@@ -50,7 +49,6 @@ class OpenCryptoPaySendHandler {
   final TextEditingController sendToController;
   final void Function(Amount amount) onAmountReceived;
   final void Function(String address) setValidAddress;
-  final bool Function() isMounted;
 
   /// Set for token wallets (ERC-20, SPL, ...) so the OpenCryptoPay request
   /// targets the token asset (ex: "USDT") instead of the chain's native coin
@@ -109,7 +107,7 @@ class OpenCryptoPaySendHandler {
     required String title,
     required String message,
   }) async {
-    if (!isMounted()) return;
+    if (!context.mounted) return;
     await showDialog<void>(
       context: context,
       builder: (_) => StackOkDialog(
@@ -137,7 +135,7 @@ class OpenCryptoPaySendHandler {
       message: OpenCryptoPayStrings.loading,
     );
 
-    if (!isMounted()) return;
+    if (!context.mounted) return;
 
     switch (result) {
       case null:
@@ -193,7 +191,7 @@ class OpenCryptoPaySendHandler {
           "OpenCryptoPay proof submission failed",
           error: error,
         );
-        if (!isMounted()) return false;
+        if (!context.mounted) return false;
         await showQuoteExpiredError(context, paymentNotSent: true);
         return false;
       case OpenCryptoPayProofFailed(:final error):
@@ -202,7 +200,7 @@ class OpenCryptoPaySendHandler {
           "OpenCryptoPay proof submission failed",
           error: error,
         );
-        if (!isMounted()) return false;
+        if (!context.mounted) return false;
         final text = OpenCryptoPayStrings.proofFailure(
           requiresBroadcast: session.requiresBroadcast,
         );
