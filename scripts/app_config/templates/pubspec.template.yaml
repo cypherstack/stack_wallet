@@ -364,6 +364,25 @@ dependency_overrides:
 #      ref: 39ea19ff035518aef4d0e776206d96a428f57789
 # %%END_ENABLE_ISAR%%
 
+# Prebuilt native assets for CI. Enabled by scripts/build_app.sh -d.
+# Each listed plugin's build hook downloads and verifies prebuilt binaries
+# instead of compiling its Rust sources. Entries for packages that are not in
+# the dependency graph are ignored, so this block is safe for every app config.
+# Each url/sha256 pair is tied to a source fingerprint of the plugin, so it must
+# be updated together with the plugin git ref pinned in dependencies above.
+# %%ENABLE_NATIVE_PREBUILTS%%
+#hooks:
+#  user_defines:
+#    flutter_libepiccash:
+#      native_build: prebuilt
+#      prebuilt_manifest_url: "https://github.com/cypherstack/flutter_libepiccash/releases/download/native-0.2.0/manifest.json"
+#      prebuilt_manifest_sha256: "e46451e60cacae2c622681854c44d76a9f37c4c5eb9aff8fa28483464afafde1"
+#    flutter_libmwc:
+#      native_build: prebuilt
+#      prebuilt_manifest_url: "https://github.com/cypherstack/flutter_libmwc/releases/download/native-0.1.0-1/manifest.json"
+#      prebuilt_manifest_sha256: "956fbf9a9d5d4624d9d7ea19fb4c07057c5612e32efa62f5f609a189ace16276"
+# %%END_ENABLE_NATIVE_PREBUILTS%%
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 

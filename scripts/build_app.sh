@@ -34,7 +34,9 @@ unset -v APP_NAMED_ID
 # optional args (with defaults)
 # -i: skip building the platform native deps (secure storage deps, secp256k1).
 SKIP_NATIVE_DEPS_BUILD=0
-# -d: use downloaded/prebuilt binaries instead of building from source where supported.
+# -d: use downloaded/prebuilt binaries instead of building from source where
+#     supported. Enables the NATIVE_PREBUILTS block in the pubspec template so
+#     native-assets plugins use CI prebuilts via hooks user_defines.
 DOWNLOAD_CRYPTO_PLUGINS=0
 BUILD_ISAR_FROM_SOURCE=0
 USE_SYSTEM_SECURE_STORAGE_DEPS=0
@@ -104,6 +106,11 @@ if printf '%s\0' "${APP_NAMED_IDS[@]}" | grep -Fxqz -- "${APP_NAMED_ID}"; then
     "${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/link_assets.sh" "${APP_NAMED_ID}" "${APP_BUILD_PLATFORM}"
     # shellcheck disable=SC1090
     source "${APP_PROJECT_ROOT_DIR}/scripts/app_config/configure_${APP_NAMED_ID}.sh" "${APP_BUILD_PLATFORM}"
+    if [ "$DOWNLOAD_CRYPTO_PLUGINS" -eq 1 ]; then
+        # Enable CI prebuilt native assets (hooks user_defines) in pubspec.yaml so
+        # native-assets plugins download verified binaries instead of compiling Rust.
+        dart "${APP_PROJECT_ROOT_DIR}/tool/process_pubspec_deps.dart" "${ACTUAL_PUBSPEC}" NATIVE_PREBUILTS
+    fi
     "${APP_PROJECT_ROOT_DIR}/scripts/app_config/platforms/${APP_BUILD_PLATFORM}/platform_config.sh"
 
     if [[ "$APP_BUILD_PLATFORM" != "linux" ]]; then
