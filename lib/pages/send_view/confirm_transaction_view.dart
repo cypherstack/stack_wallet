@@ -471,15 +471,15 @@ class _ConfirmTransactionViewState
 
       _refreshAfterSend(wallet);
 
+      if (ocp != null && txids.isNotEmpty && context.mounted) {
+        // Broadcast (txid) proof type: submit the txid to the
+        // OpenCryptoPay provider.
+        await ocp.submitProof(context, txids.first);
+      }
+
       closeSendingDialog();
 
       widget.onSuccess.call();
-
-      if (ocp != null && txids.isNotEmpty) {
-        // Broadcast (txid) proof type: submit the txid to the
-        // OpenCryptoPay provider.
-        unawaited(ocp.submitProof(context, txids.first));
-      }
 
       _navigateOnSuccess(context);
     } on BadHttpAddressException catch (_) {
