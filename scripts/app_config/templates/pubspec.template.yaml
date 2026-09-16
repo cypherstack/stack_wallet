@@ -276,6 +276,10 @@ dependencies:
 
   # required for web3dart to use EthereumAddress class...
   wallet: 0.0.18
+  opencryptopay:
+    git:
+      url: https://github.com/Cyrix126/opencryptopay
+      ref: 83754ac3565573b0551db9a47dd63f2d79d36bbd
 
 dev_dependencies:
   flutter_test:

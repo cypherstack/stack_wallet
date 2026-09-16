@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:opencryptopay/opencryptopay.dart';
 
 import '../../models/isar/models/isar_models.dart';
 import '../../models/send_view_auto_fill_data.dart';
@@ -53,6 +54,7 @@ import '../../widgets/icon_widgets/x_icon.dart';
 import '../../widgets/stack_dialog.dart';
 import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
+import '../open_crypto_pay/open_crypto_pay_send_handler.dart';
 import '../token_view/sol_token_view.dart';
 import 'confirm_transaction_view.dart';
 import 'sub_widgets/building_transaction_dialog.dart';
@@ -128,6 +130,16 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
   Timer? _baseAmountChangedFeeUpdateTimer;
   late Future<Amount> _calculateFeesFuture;
 
+  late final OpenCryptoPaySendHandler _openCryptoPay;
+
+  void _openCryptoPaySetValidAddress(String address) {
+    _address = address;
+    _updatePreviewButtonState(_address, _amountToSend);
+    setState(() {
+      _addressToggleFlag = sendToController.text.isNotEmpty;
+    });
+  }
+
   void _onTokenSendViewPasteAddressFieldButtonPressed() async {
     final ClipboardData? data = await clipboard.getData(Clipboard.kTextPlain);
     if (data?.text != null && data!.text!.isNotEmpty) {
@@ -156,6 +168,12 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
 
       Logging.instance.d("qrResult content: ${qrResult.rawContent}");
       if (qrResult.rawContent == null) return;
+
+      if (OpenCryptoPayController.isOpenCryptoPayUri(qrResult.rawContent)) {
+        if (!mounted) return;
+        unawaited(_openCryptoPay.handle(context, qrResult.rawContent!));
+        return;
+      }
 
       final paymentData = AddressUtils.parsePaymentUri(
         qrResult.rawContent!,
@@ -532,6 +550,7 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
                 walletId: walletId,
                 isTokenTx: true,
                 onSuccess: clearSendForm,
+                openCryptoPayHandler: _openCryptoPay,
                 routeOnSuccessName: SolTokenView.routeName,
               ),
               settings: const RouteSettings(
@@ -635,6 +654,22 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
       _address = _data.address.trim();
       _addressToggleFlag = true;
     }
+
+    final tokenWallet = ref.read(pCurrentSolanaTokenWallet);
+    final coin = ref.read(pWallets).getWallet(walletId).info.coin;
+    _openCryptoPay = OpenCryptoPaySendHandler(
+      coin: coin,
+      sendToController: sendToController,
+      onAmountReceived: (parsed) {
+        cryptoAmountController.text = ref
+            .read(pAmountFormatter(coin))
+            .format(parsed, withUnitName: false);
+        ref.read(pSendAmount.notifier).state = parsed;
+      },
+      setValidAddress: _openCryptoPaySetValidAddress,
+      tokenSymbol: tokenWallet?.tokenSymbol,
+      tokenDecimals: tokenWallet?.tokenDecimals,
+    );
 
     super.initState();
   }

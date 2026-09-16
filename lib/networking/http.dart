@@ -3,9 +3,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart';
 import 'package:socks5_proxy/socks_client.dart';
 
+import '../app_config.dart';
+import '../services/tor_service.dart';
 import '../utilities/logger.dart';
+import '../utilities/prefs.dart';
 
 // WIP wrapper layer
 
@@ -267,5 +271,53 @@ class HTTP {
       cancelOnError: true,
     );
     return completer.future;
+  }
+}
+
+/// HTTP client class that can be used with librairies that
+/// accept an http.Client
+class StackClient extends BaseClient {
+  StackClient({HTTP? client, this.timeout = const Duration(seconds: 30)})
+    : _client = client ?? const HTTP();
+
+  final HTTP _client;
+  final Duration timeout;
+
+  static ({InternetAddress host, int port})? _proxyInfo() {
+    if (AppConfig.hasFeature(AppFeature.tor) && Prefs.instance.useTor) {
+      return TorService.sharedInstance.getProxyInfo();
+    } else {
+      return null;
+    }
+  }
+
+  @override
+  Future<StreamedResponse> send(BaseRequest request) async {
+    final proxyInfo = _proxyInfo();
+
+    final Response response;
+    switch (request.method) {
+      case 'GET':
+        response = await _client
+            .get(
+              url: request.url,
+              headers: request.headers,
+              proxyInfo: proxyInfo,
+              connectionTimeout: timeout,
+            )
+            .timeout(timeout);
+      default:
+        throw ClientException(
+          'Unsupported HTTP method ${request.method}',
+          request.url,
+        );
+    }
+
+    return StreamedResponse(
+      ByteStream.fromBytes(response.bodyBytes),
+      response.code,
+      contentLength: response.bodyBytes.length,
+      request: request,
+    );
   }
 }
