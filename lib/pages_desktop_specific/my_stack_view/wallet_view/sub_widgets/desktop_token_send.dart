@@ -647,8 +647,13 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
       onAmountReceived: (parsed) {
         cryptoAmountController.text = ref
             .read(pAmountFormatter(coin))
-            .format(parsed, withUnitName: false);
-        ref.read(pSendAmount.notifier).state = parsed;
+            .format(
+              parsed,
+              tokenContract: ref.read(pCurrentTokenWallet)!.tokenContract,
+              withUnitName: false,
+            );
+        _amountToSend = parsed;
+        _updatePreviewButtonState(_address, parsed);
       },
       setValidAddress: _openCryptoPaySetValidAddress,
       tokenSymbol: tokenContract?.symbol,

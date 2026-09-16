@@ -642,8 +642,9 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
       onAmountReceived: (parsed) {
         cryptoAmountController.text = ref
             .read(pAmountFormatter(coin))
-            .format(parsed, withUnitName: false);
-        ref.read(pSendAmount.notifier).state = parsed;
+            .format(parsed, tokenContract: tokenContract, withUnitName: false);
+        _amountToSend = parsed;
+        _updatePreviewButtonState(_address, parsed);
       },
       setValidAddress: _openCryptoPaySetValidAddress,
       tokenSymbol: tokenContract.symbol,

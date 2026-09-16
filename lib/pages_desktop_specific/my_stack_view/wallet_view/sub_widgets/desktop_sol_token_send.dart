@@ -672,10 +672,11 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
       coin: coin,
       sendToController: sendToController,
       onAmountReceived: (parsed) {
-        cryptoAmountController.text = ref
-            .read(pAmountFormatter(coin))
-            .format(parsed, withUnitName: false);
-        ref.read(pSendAmount.notifier).state = parsed;
+        cryptoAmountController.text = parsed.decimal.toStringAsFixed(
+          parsed.fractionDigits,
+        );
+        _amountToSend = parsed;
+        _updatePreviewButtonState(_address, parsed);
       },
       setValidAddress: _openCryptoPaySetValidAddress,
       tokenSymbol: tokenWallet?.tokenSymbol,
