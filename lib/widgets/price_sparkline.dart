@@ -137,7 +137,9 @@ class _PriceSparklineState extends State<PriceSparkline> {
                       height: 1.1,
                       fontWeight: i == null ? FontWeight.w500 : FontWeight.w600,
                       letterSpacing: 0.2,
-                      color: widget.color.withValues(alpha: i == null ? 0.5 : 1),
+                      color: widget.color.withValues(
+                        alpha: i == null ? 0.5 : 1,
+                      ),
                       fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
@@ -271,4 +273,97 @@ class _SparklinePainter extends CustomPainter {
       old.color != color ||
       old.strokeWidth != strokeWidth ||
       !identical(old.series, series);
+}
+
+/// A price series at a glance: one line, no readout, no caption.
+///
+/// The interactive [PriceSparkline] above is the chart on the price screen,
+/// where a touch should tell you the value under your finger. This is the
+/// glyph beside a balance, which says only which way the day went. It takes
+/// no touches at all, so the row it sits in stays one tap target rather than
+/// two, and it reserves no room for a caption it will never show.
+class MiniSparkline extends StatelessWidget {
+  const MiniSparkline({
+    super.key,
+    required this.series,
+    required this.color,
+    this.height = 26,
+    this.strokeWidth = 2,
+  });
+
+  final List<double> series;
+  final Color color;
+  final double height;
+  final double strokeWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    // Below two points there is no line to draw.
+    if (series.length < 2) return SizedBox(height: height);
+
+    return IgnorePointer(
+      child: SizedBox(
+        height: height,
+        width: double.infinity,
+        child: CustomPaint(
+          painter: _MiniPainter(
+            series: series,
+            color: color,
+            strokeWidth: strokeWidth,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MiniPainter extends CustomPainter {
+  _MiniPainter({
+    required this.series,
+    required this.color,
+    required this.strokeWidth,
+  });
+
+  final List<double> series;
+  final Color color;
+  final double strokeWidth;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    var low = series.first;
+    var high = series.first;
+    for (final v in series) {
+      if (v < low) low = v;
+      if (v > high) high = v;
+    }
+    // A price that never moved has no range to divide by. Down the middle is
+    // the honest picture of one.
+    final span = high - low;
+    final inset = strokeWidth / 2;
+    final usable = size.height - inset * 2;
+
+    double y(double v) =>
+        span == 0 ? size.height / 2 : inset + (1 - (v - low) / span) * usable;
+
+    final path = Path()..moveTo(0, y(series.first));
+    for (var i = 1; i < series.length; i++) {
+      path.lineTo(i / (series.length - 1) * size.width, y(series[i]));
+    }
+
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth
+        ..strokeJoin = StrokeJoin.round
+        ..strokeCap = StrokeCap.round,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_MiniPainter old) =>
+      old.series != series ||
+      old.color != color ||
+      old.strokeWidth != strokeWidth;
 }

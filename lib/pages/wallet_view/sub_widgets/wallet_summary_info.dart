@@ -38,30 +38,31 @@ import '../../../wallets/crypto_currency/coins/firo.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/wallet/impl/banano_wallet.dart';
 import '../../../widgets/price_sparkline.dart';
+import '../../../services/price.dart';
+import '../price_view.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/coin_card.dart';
 import 'wallet_balance_toggle_sheet.dart';
 import 'wallet_sync_chip.dart';
 
-/// Selected hero-chart range in days, per wallet. 7 is the default because it
-/// is the only range that costs no extra network request (the price poll
-/// already carries the 7-day sparkline).
-final _chartRangeDaysProvider = StateProvider.family<int, String>(
-  (ref, walletId) => 7,
-);
-
-/// Series for the selected range. A provider rather than a FutureBuilder so
-/// switching ranges and rebuilding the hero does not refetch on every frame —
-/// PriceAPI caches 5 minutes per coin+range underneath this.
-final _heroSeriesProvider = FutureProvider.autoDispose
-    .family<
-      ({List<double> series, double spanHours})?,
-      ({String walletId, int days})
-    >((ref, arg) async {
-      final coin = ref.watch(pWalletCoin(arg.walletId));
+/// One day of this coin's price, for the glyph on the market row.
+///
+/// A day, not the seven the price poll already carries, because the figure
+/// beside the glyph is the 24h change and a shape that covered a week next to
+/// a number that covered a day would be two different claims in one row.
+///
+/// Gated on the same preference the price itself is: a wallet told to make no
+/// outside calls must not make this one either.
+final _heroMarketProvider = FutureProvider.autoDispose
+    .family<PriceHistory?, String>((ref, walletId) async {
+      final allowed = ref.watch(
+        prefsChangeNotifierProvider.select((value) => value.externalCalls),
+      );
+      if (!allowed) return null;
+      final coin = ref.watch(pWalletCoin(walletId));
       return await ref
           .watch(priceAnd24hChangeNotifierProvider)
-          .getRangeSeries(coin, arg.days);
+          .getHistory(coin, 1);
     });
 
 class WalletSummaryInfo extends ConsumerWidget {
@@ -134,10 +135,9 @@ class WalletSummaryInfo extends ConsumerWidget {
           "${_showAvailable ? "Available" : "Full"} ${type.name.capitalize()} balance";
       switch (type) {
         case BalanceType.private:
-          final balance =
-              coin is Firo
-                  ? ref.watch(pWalletBalanceTertiary(walletId))
-                  : ref.watch(pWalletBalanceSecondary(walletId));
+          final balance = coin is Firo
+              ? ref.watch(pWalletBalanceTertiary(walletId))
+              : ref.watch(pWalletBalanceSecondary(walletId));
           balanceToShow = _showAvailable ? balance.spendable : balance.total;
           break;
 
@@ -155,9 +155,8 @@ class WalletSummaryInfo extends ConsumerWidget {
     List<int>? imageBytes;
 
     if (coin is Banano) {
-      imageBytes =
-          (ref.watch(pWallets).getWallet(walletId) as BananoWallet)
-              .getMonkeyImageBytes();
+      imageBytes = (ref.watch(pWallets).getWallet(walletId) as BananoWallet)
+          .getMonkeyImageBytes();
     }
 
     // Hero balance: split the formatted amount into a full-weight part and
@@ -166,10 +165,9 @@ class WalletSummaryInfo extends ConsumerWidget {
     final formatter = ref.watch(pAmountFormatter(coin));
     final String fullStr = formatter.format(balanceToShow);
     final String numStr = formatter.format(balanceToShow, withUnitName: false);
-    final String unitStr =
-        fullStr.startsWith(numStr)
-            ? fullStr.substring(numStr.length).trim()
-            : coin.ticker;
+    final String unitStr = fullStr.startsWith(numStr)
+        ? fullStr.substring(numStr.length).trim()
+        : coin.ticker;
     // The break is AT the decimal separator, so the headline is the whole
     // coins and everything under one coin is the quiet part — 87,432 then
     // .19045008. It used to keep the first two decimals at full size, which
@@ -237,33 +235,18 @@ class WalletSummaryInfo extends ConsumerWidget {
 
     return ConditionalParent(
       condition: imageBytes != null,
-      builder:
-          (child) => Stack(
-            children: [
-              Positioned.fill(
-                left: 150.0,
-                child: SvgPicture.memory(Uint8List.fromList(imageBytes!)),
-              ),
-              child,
-            ],
+      builder: (child) => Stack(
+        children: [
+          Positioned.fill(
+            left: 150.0,
+            child: SvgPicture.memory(Uint8List.fromList(imageBytes!)),
           ),
+          child,
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // The chart card: current price, a change figure, a range selector
-          // (24H / 7D / 30D) and the series for whichever range is selected.
-          // Gated on price != null — a coin with no market gets no chart, not
-          // a flat line at zero. Hidden in privacy mode for the same reason
-          // the fiat figure is: the shape still tells you how it moved.
-          if (price != null && price.value > Decimal.zero && !privacyMode)
-            _HeroChartCard(
-              walletId: walletId,
-              favText: favText,
-              heroFill: kHeroSurface,
-              price: price,
-              locale: locale,
-              baseCurrency: baseCurrency,
-            ),
           Row(
             children: [
               Expanded(
@@ -273,12 +256,14 @@ class WalletSummaryInfo extends ConsumerWidget {
                       if (ref.read(walletBalanceToggleStateProvider) ==
                           WalletBalanceToggleState.available) {
                         ref
-                            .read(walletBalanceToggleStateProvider.notifier)
-                            .state = WalletBalanceToggleState.full;
+                                .read(walletBalanceToggleStateProvider.notifier)
+                                .state =
+                            WalletBalanceToggleState.full;
                       } else {
                         ref
-                            .read(walletBalanceToggleStateProvider.notifier)
-                            .state = WalletBalanceToggleState.available;
+                                .read(walletBalanceToggleStateProvider.notifier)
+                                .state =
+                            WalletBalanceToggleState.available;
                       }
                     } else {
                       showSheet(context);
@@ -303,7 +288,9 @@ class WalletSummaryInfo extends ConsumerWidget {
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                             letterSpacing: 1.2,
-                            color: favText.withOpacity(heroEmphasis(favText, 0.8)),
+                            color: favText.withOpacity(
+                              heroEmphasis(favText, 0.8),
+                            ),
                           ),
                         ),
                       ),
@@ -359,10 +346,9 @@ class WalletSummaryInfo extends ConsumerWidget {
             behavior: HitTestBehavior.opaque,
             // Tap the balance to change how many decimals are shown, per coin
             // (Settings > Advanced > Manage coin units). Nothing is hardcoded.
-            onTap: () => Navigator.of(context).pushNamed(
-              EditCoinUnitsView.routeName,
-              arguments: coin,
-            ),
+            onTap: () => Navigator.of(
+              context,
+            ).pushNamed(EditCoinUnitsView.routeName, arguments: coin),
             child: FittedBox(
               fit: BoxFit.scaleDown,
               child: Text.rich(
@@ -380,7 +366,9 @@ class WalletSummaryInfo extends ConsumerWidget {
                           // digits of the balance, not decoration. 0.62 gives
                           // 3.46:1 and still reads as secondary against the
                           // 52px full-opacity main part.
-                          color: favText.withOpacity(heroEmphasis(favText, 0.62)),
+                          color: favText.withOpacity(
+                            heroEmphasis(favText, 0.62),
+                          ),
                         ),
                       ),
                     TextSpan(
@@ -521,14 +509,16 @@ class WalletSummaryInfo extends ConsumerWidget {
                       Text(
                         receivingAddress.length > 22
                             ? "${receivingAddress.substring(0, 12)}…"
-                                "${receivingAddress.substring(receivingAddress.length - 6)}"
+                                  "${receivingAddress.substring(receivingAddress.length - 6)}"
                             : receivingAddress,
                         style: STextStyles.subtitle500(context).copyWith(
                           // Spec: 13px monospace at 0.92. On blue-600 that is
                           // 5.94:1 — comfortably AA. The same 0.92 on the old
                           // #2F6BFF was 4.05:1 and failed.
                           fontSize: 13,
-                          color: favText.withOpacity(heroEmphasis(favText, 0.92)),
+                          color: favText.withOpacity(
+                            heroEmphasis(favText, 0.92),
+                          ),
                           fontFeatures: const [FontFeature.tabularFigures()],
                         ),
                       ),
@@ -546,24 +536,39 @@ class WalletSummaryInfo extends ConsumerWidget {
                 ),
               ),
             ),
+          // The market, last and smallest. It used to sit above the balance
+          // with its own chart and a range selector, which put the number
+          // somebody opened the wallet for in third place behind a line most
+          // of them never read. Hidden in privacy mode for the same reason
+          // the fiat figure is: the shape still says how it moved.
+          if (price != null && price.value > Decimal.zero && !privacyMode)
+            _HeroMarketRow(
+              walletId: walletId,
+              favText: favText,
+              price: price,
+              locale: locale,
+              baseCurrency: baseCurrency,
+            ),
         ],
       ),
     );
   }
 }
 
-/// The hero's price-chart card: price + change + 24H/7D/30D selector + line.
+/// The market, as one row at the foot of the hero.
 ///
-/// The change figure is computed from the ENDPOINTS OF THE SERIES ON SCREEN,
-/// not from the API's change24h — a "+1.02%" sitting beside an active 7D pill
-/// must be the 7-day change, or the card contradicts its own chart. Every ink
-/// derives from favText so the card follows any coin colour and either ink
-/// polarity.
-class _HeroChartCard extends ConsumerWidget {
-  const _HeroChartCard({
+/// What a coin costs, how it moved today, the shape of that move, and a way
+/// in. Everything else the old card carried — the range selector and a chart
+/// large enough to argue with — moved to [PriceView], where a chart has the
+/// room to be read and does not compete with the balance for the top of the
+/// card.
+///
+/// Every ink derives from favText so the row follows any coin colour and
+/// either ink polarity, the same rule the rest of the hero follows.
+class _HeroMarketRow extends ConsumerWidget {
+  const _HeroMarketRow({
     required this.walletId,
     required this.favText,
-    required this.heroFill,
     required this.price,
     required this.locale,
     required this.baseCurrency,
@@ -571,215 +576,146 @@ class _HeroChartCard extends ConsumerWidget {
 
   final String walletId;
   final Color favText;
-  final Color heroFill;
   final ({double change24h, Decimal value}) price;
   final String locale;
   final String baseCurrency;
 
-  static const _ranges = [(label: "24H", days: 1), (label: "7D", days: 7), (label: "30D", days: 30)];
-
-  String _formatPrice(Decimal v) {
-    // Sub-cent coins need more than the fiat 2dp or every price reads 0.00;
-    // trim trailing zeros so PEP shows 0.0001157, not 0.00011570.
-    if (v >= Decimal.one) {
-      return v.toStringAsFixed(2);
-    }
-    var s = v.toStringAsFixed(8);
-    while (s.endsWith("0")) {
-      s = s.substring(0, s.length - 1);
-    }
-    return s.endsWith(".") ? "${s}0" : s;
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final days = ref.watch(_chartRangeDaysProvider(walletId));
-    final seriesAsync = ref.watch(
-      _heroSeriesProvider((walletId: walletId, days: days)),
-    );
-    // THREE states, not two. `asData?.value` is null both while the fetch is
-    // in flight AND when it finished with nothing, and collapsing those left
-    // BFX spinning forever on 24H and 30D: getRangeSeries returned null the
-    // moment it was asked, and the UI read that as "still loading". An error
-    // was read the same way. Loading is the only state that gets a spinner.
-    final loading = seriesAsync is AsyncLoading;
-    final resolved = seriesAsync.asData?.value;
-    final series = resolved?.series;
-
-    // No 7D series at all means the coin has no market data worth a card.
-    final fallback = ref.watch(priceAnd24hChangeNotifierProvider).getSparkline(
-      ref.watch(pWalletCoin(walletId)),
-    );
-    if (series == null && fallback == null && !loading) {
-      return const SizedBox.shrink();
-    }
-
-    String? changeStr;
-    if (series != null && series.length > 1 && series.first != 0) {
-      final pct = (series.last - series.first) / series.first * 100;
-      final sign = pct < 0 ? "-" : "+";
-      changeStr = "$sign${pct.abs().toStringAsFixed(2)}%";
-    }
-
-    // Up green, down red, both the theme's own — the same two colours the
-    // transaction list uses for a received and a sent amount, so a rise in the
-    // hero and a payment below it are not two unrelated greens. They were
-    // hardcoded here while the hero was the coin's colour and the theme's
-    // values could not be trusted to contrast with it.
+    final coin = ref.watch(pWalletCoin(walletId));
     final colors = Theme.of(context).extension<StackColors>()!;
-    final bool down = changeStr != null && changeStr.startsWith("-");
-    final Color deltaColor = onHeroSignal(
+
+    // The glyph only. Its absence costs the row nothing: the price and the
+    // change are worth showing on their own, and a coin whose series has not
+    // arrived should not hold them back.
+    final series = ref
+        .watch(_heroMarketProvider(walletId))
+        .asData
+        ?.value
+        ?.series;
+
+    final c = price.change24h;
+    final down = c < 0;
+    final changeStr = c.isFinite
+        ? "${down ? "-" : "+"}${c.abs().toStringAsFixed(2)}% 24h"
+        : "";
+    final signal = onHeroSignal(
       down ? colors.accentColorRed : colors.accentColorGreen,
     );
 
-    // Two rows, not one. Squeezing price, line and pills onto a single 44px
-    // row left the sparkline about a third of the hero's width, which is not
-    // enough for a reader to see a shape in it — the one thing a sparkline is
-    // for. Splitting the row gives the line the full width for 24px more
-    // height, and it still costs a third of the 219px card this replaced.
+    // The same formatter the price screen uses. A card that says 0.04 and a
+    // screen that says 0.04320 for the same coin read as one of them being
+    // out of date.
+    final priceStr = priceFigure(price.value.toDouble(), locale, baseCurrency);
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(top: 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Row one: what the price is, and which range you are reading.
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      "${_formatPrice(price.value)} $baseCurrency",
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: STextStyles.subtitle500(context).copyWith(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        height: 1.15,
-                        color: favText.withOpacity(heroEmphasis(favText, 0.92)),
-                        fontFeatures: const [FontFeature.tabularFigures()],
-                      ),
-                    ),
-                    if (changeStr != null)
-                      Text(
-                        changeStr,
-                        maxLines: 1,
-                        // Green up, red down. The old rule here was hero ink
-                        // only, because a coloured delta on an arbitrary coin
-                        // fill could not promise contrast. The hero is a fixed
-                        // neutral now, so that objection is gone: both stops
-                        // clear AA on it.
-                        style: STextStyles.subtitle500(context).copyWith(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          height: 1.15,
-                          color: deltaColor,
-                          fontFeatures: const [FontFeature.tabularFigures()],
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              // The pills carry the well now that the card is gone, so the row
-              // still has one grouped control rather than three loose words.
-              Container(
-                padding: const EdgeInsets.all(3),
-                decoration: BoxDecoration(
-                  color: favText.withOpacity(0.10),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    for (final r in _ranges)
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () => ref
-                            .read(_chartRangeDaysProvider(walletId).notifier)
-                            .state = r.days,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 7,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: r.days == days ? favText : null,
-                            borderRadius: BorderRadius.circular(9),
-                          ),
-                          child: Text(
-                            r.label,
-                            style: STextStyles.subtitle500(context).copyWith(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              color: r.days == days
-                                  ? heroFill
-                                  : favText.withOpacity(0.6),
+          // A rule, because what follows is a different subject rather than
+          // another line about the balance.
+          Container(height: 1, color: favText.withOpacity(0.16)),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => Navigator.of(
+              context,
+            ).pushNamed(PriceView.routeName, arguments: coin),
+            child: Padding(
+              padding: const EdgeInsets.only(top: 12, bottom: 2),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "${coin.ticker.toUpperCase()} PRICE",
+                          style: STextStyles.subtitle500(context).copyWith(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 1.0,
+                            color: favText.withOpacity(
+                              heroEmphasis(favText, 0.8),
                             ),
                           ),
                         ),
-                      ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          // Row two: the line, edge to edge of the hero.
-          //
-          // No height on this box. PriceSparkline's `height` is the LINE, and
-          // it reserves a caption row above that for the read-out — so a box
-          // of the same number is short by exactly the caption and overflows.
-          // Letting it size itself is right whatever that caption becomes.
-          SizedBox(
-            width: double.infinity,
-            child: series != null
-                ? PriceSparkline(
-                    series: series,
-                    color: deltaColor,
-                    height: 32,
-                    // What the data covers, not what was asked for. BFX's
-                    // market opened on 2026-09-14, so every range currently
-                    // returns the same short history and `days * 24` would
-                    // date its oldest point by weeks.
-                    spanHours: resolved!.spanHours,
-                    // The pills already say what the chart spans.
-                    idleLabel: "",
-                    // The same formatter as the fiat figure under the balance,
-                    // so a price read off the chart and the value printed
-                    // below it cannot disagree about how to write a number
-                    // under a cent.
-                    format: (v) =>
-                        "${Decimal.parse(v.toString()).toAmount(fractionDigits: 8).fiatString(locale: locale)} $baseCurrency",
-                  )
-                // Matches the sparkline's own height (line plus caption), so
-                // the hero does not jump when the series arrives. Only while
-                // the fetch is actually running: a resolved-but-empty range
-                // says so instead of spinning at the reader indefinitely.
-                : SizedBox(
-                    height: 47,
-                    child: Center(
-                      child: loading
-                          ? SizedBox(
-                              height: 14,
-                              width: 14,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: favText.withOpacity(0.5),
-                              ),
-                            )
-                          : Text(
-                              "No chart for this range",
-                              style: STextStyles.subtitle500(context).copyWith(
-                                fontSize: 11,
-                                color: favText.withOpacity(0.5),
+                        const SizedBox(height: 3),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
+                          children: [
+                            Flexible(
+                              // Shrinks rather than truncates. An ellipsised
+                              // price is itself a plausible price, and this
+                              // row has to hold both eight decimals of a coin
+                              // trading under a cent and five figures of one
+                              // that is not.
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  priceStr,
+                                  maxLines: 1,
+                                  style: STextStyles.subtitle500(context)
+                                      .copyWith(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w700,
+                                        color: favText.withOpacity(
+                                          heroEmphasis(favText, 0.92),
+                                        ),
+                                        fontFeatures: const [
+                                          FontFeature.tabularFigures(),
+                                        ],
+                                      ),
+                                ),
                               ),
                             ),
+                            if (changeStr.isNotEmpty) ...[
+                              const SizedBox(width: 8),
+                              // Labelled "24h". An unlabelled percentage on a
+                              // card that also carries a holding's daily
+                              // change is two different claims wearing one
+                              // shape.
+                              Text(
+                                changeStr,
+                                style: STextStyles.subtitle500(context)
+                                    .copyWith(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: signal,
+                                      fontFeatures: const [
+                                        FontFeature.tabularFigures(),
+                                      ],
+                                    ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ],
                     ),
                   ),
+                  if (series != null && series.length > 1) ...[
+                    const SizedBox(width: 12),
+                    SizedBox(
+                      width: 64,
+                      child: MiniSparkline(
+                        series: series,
+                        color: signal,
+                        height: 26,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(width: 6),
+                  SvgPicture.asset(
+                    Assets.svg.chevronRight,
+                    width: 12,
+                    height: 12,
+                    color: favText.withOpacity(heroEmphasis(favText, 0.8)),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),

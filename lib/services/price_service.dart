@@ -121,6 +121,25 @@ class PriceService extends ChangeNotifier {
     return (series: s, spanHours: days * 24.0);
   }
 
+  /// One coin's history over [days], for the price screen.
+  ///
+  /// Distinct from [getRangeSeries], which exists to feed a bare line and
+  /// takes the cheapest route to one. This asks our own endpoint, which also
+  /// returns the high, the low and the day's volume, and is the only source
+  /// that has them for every coin at once.
+  Future<PriceHistory?> getHistory(CryptoCurrency coin, int days) async {
+    if (getPrice(coin) == null) return null;
+    return _priceAPI.getPriceHistory(
+      coin: coin,
+      days: days,
+      baseCurrency: baseTicker,
+    );
+  }
+
+  /// True when a price screen has anything to draw for this coin.
+  bool hasHistory(CryptoCurrency coin) =>
+      getPrice(coin) != null && _priceAPI.hasPriceHistory(coin);
+
   /// BFX is the one coin served by our own endpoint rather than CoinGecko, so
   /// it is the one coin whose ranges do not come from getMarketChart. Matched
   /// on prettyName because that is what the price fetch already keys on, and
@@ -165,13 +184,15 @@ class PriceService extends ChangeNotifier {
       }
     }
 
-    final _solTokenContractAddressesToCheck = await solTokenContractAddressesToCheck;
+    final _solTokenContractAddressesToCheck =
+        await solTokenContractAddressesToCheck;
 
     if (_solTokenContractAddressesToCheck.isNotEmpty) {
-      final solTokenPriceMap = await _priceAPI.getPricesAnd24hChangeForSolTokens(
-        contractAddresses: _solTokenContractAddressesToCheck,
-        baseCurrency: baseTicker,
-      );
+      final solTokenPriceMap = await _priceAPI
+          .getPricesAnd24hChangeForSolTokens(
+            contractAddresses: _solTokenContractAddressesToCheck,
+            baseCurrency: baseTicker,
+          );
 
       for (final map in solTokenPriceMap.entries) {
         if (_cachedTokenPrices[map.key] != map.value) {

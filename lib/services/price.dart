@@ -23,6 +23,22 @@ import '../utilities/util.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import 'tor_service.dart';
 
+/// One coin's price history, as the price screen needs it.
+///
+/// `high` and `low` are over the series returned, so they describe exactly
+/// what is drawn rather than some other window. `volume24h` is a day's
+/// trading whatever the range, which is why it is named for the day.
+typedef PriceHistory = ({
+  List<double> series,
+  double spanHours,
+  int from,
+  int to,
+  double? high,
+  double? low,
+  double? volume24h,
+  String source,
+});
+
 class PriceAPI {
   // coingecko coin ids
   static const Map<Type, String> _coinToIdMap = {
@@ -194,6 +210,109 @@ class PriceAPI {
     return cached?.$2;
   }
 
+  // Price history for the price screen, from our own endpoint rather than
+  // CoinGecko directly.
+  //
+  // Same three reasons the BFX price is proxied, now applied to every coin
+  // the wallet ships: one server absorbs the source's rate limit instead of
+  // every installation hitting it, a source change is a server fix rather
+  // than an app release, and no third party gets a view of who runs this
+  // wallet. It also carries the high, low and traded volume, which the
+  // CoinGecko call below does not.
+  //
+  // Coins the endpoint does not know fall back to [getMarketChart], so a
+  // coin added to the app before it is added to the server still charts.
+  static const _historyUrl =
+      "https://explorer.bitfinitechain.org/api/prices/history";
+
+  /// Keyed on prettyName, matched exactly, because that is what distinguishes
+  /// Bitcoin from Bitcoin Cash and a mainnet coin from its testnet twin. A
+  /// test coin must never borrow a real market's price.
+  static const _historyKeys = <String, String>{
+    "BitFinite": "bfx",
+    "Pepecoin": "pep",
+    "Bellscoin": "bells",
+    "Bitcoin": "btc",
+    "Dogecoin": "doge",
+  };
+
+  final Map<String, (DateTime, PriceHistory)> _historyCache = {};
+
+  /// True when the endpoint above can serve this coin at all.
+  bool hasPriceHistory(CryptoCurrency coin) =>
+      _historyKeys.containsKey(coin.prettyName);
+
+  /// One coin's series over [days], with the figures that describe it.
+  ///
+  /// Null when the coin is not served, or nothing could be fetched and
+  /// nothing was cached. A caller draws its empty state then; it must not
+  /// draw a flat line through no data.
+  Future<PriceHistory?> getPriceHistory({
+    required CryptoCurrency coin,
+    required int days,
+    required String baseCurrency,
+  }) async {
+    final key = _historyKeys[coin.prettyName];
+    if (key == null) return null;
+
+    final currency = baseCurrency.toLowerCase();
+    final cacheKey = "$key:$days:$currency";
+    final cached = _historyCache[cacheKey];
+    if (cached != null &&
+        DateTime.now().difference(cached.$1) < _marketChartCacheLife) {
+      return cached.$2;
+    }
+
+    try {
+      final uri = Uri.parse("$_historyUrl?coin=$key&range=$days&vs=$currency");
+      final response = await client.get(
+        url: uri,
+        headers: {'Content-Type': 'application/json'},
+        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+            ? null
+            : Prefs.instance.useTor
+            ? TorService.sharedInstance.getProxyInfo()
+            : null,
+      );
+
+      final json = jsonDecode(response.body) as Map<String, dynamic>;
+      final raw = json["series"] as List?;
+      // Two points is the minimum that draws a line; one stretched across a
+      // chart would be a flat claim about a market nobody measured.
+      if (raw == null || raw.length < 2) return cached?.$2;
+
+      double? num_(Object? v) {
+        final d = (v as num?)?.toDouble();
+        return d != null && d.isFinite && d > 0 ? d : null;
+      }
+
+      final out = (
+        series: raw.map((e) => (e as num).toDouble()).toList(growable: false),
+        // What the series really covers, which is not what was asked for:
+        // the BFX market opened in September 2026, so a 30 day request
+        // currently returns about 30 hours and a chart that labelled from
+        // the range would date its oldest point a month back.
+        spanHours: (json["spanHours"] as num?)?.toDouble() ?? days * 24.0,
+        from: (json["from"] as num?)?.toInt() ?? 0,
+        to: (json["to"] as num?)?.toInt() ?? 0,
+        high: num_(json["high"]),
+        low: num_(json["low"]),
+        volume24h: num_(json["volume24h"]),
+        source: (json["source"] as String?) ?? "",
+      );
+      _historyCache[cacheKey] = (DateTime.now(), out);
+      return out;
+    } catch (e, s) {
+      Logging.instance.w(
+        "getPriceHistory(${coin.prettyName}, $days) failed",
+        error: e,
+        stackTrace: s,
+      );
+    }
+    // A stale series beats an empty chart on a transient failure.
+    return cached?.$2;
+  }
+
   // BFX ranges come from our own endpoint, not CoinGecko, for the same reason
   // its price does: CoinGecko does not list it. getMarketChart returns null
   // immediately for BFX (no id in the map), which is why 24H and 30D showed
@@ -251,10 +370,7 @@ class PriceAPI {
       double? spanHours,
     })?
   >
-  _getBitfinitePrice({
-    required String baseCurrency,
-    int rangeDays = 7,
-  }) async {
+  _getBitfinitePrice({required String baseCurrency, int rangeDays = 7}) async {
     final want = baseCurrency.toLowerCase().trim();
     try {
       final response = await client.get(

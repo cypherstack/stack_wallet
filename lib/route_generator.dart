@@ -201,6 +201,7 @@ import 'pages/token_view/sol_token_view.dart';
 import 'pages/token_view/solana_token_contract_details_view.dart';
 import 'pages/token_view/token_contract_details_view.dart';
 import 'pages/token_view/token_view.dart';
+import 'pages/wallet_view/price_view.dart';
 import 'pages/wallet_view/transaction_views/all_transactions_view.dart';
 import 'pages/wallet_view/transaction_views/edit_note_view.dart';
 import 'pages/wallet_view/transaction_views/transaction_details_view.dart';
@@ -1528,6 +1529,16 @@ class RouteGenerator {
           settings: settings,
         );
 
+      case PriceView.routeName:
+        if (args is CryptoCurrency) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => PriceView(coin: args),
+            settings: settings,
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
       case EditCoinUnitsView.routeName:
         if (args is CryptoCurrency) {
           return getRoute(
@@ -2201,10 +2212,7 @@ class RouteGenerator {
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => ViewOnlySendGuard(
               walletId: args.$1,
-              child: SolTokenSendView(
-                walletId: args.$1,
-                tokenMint: args.$2,
-              ),
+              child: SolTokenSendView(walletId: args.$1, tokenMint: args.$2),
             ),
             settings: settings,
           );
