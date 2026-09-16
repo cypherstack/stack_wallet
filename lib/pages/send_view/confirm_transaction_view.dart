@@ -695,9 +695,10 @@ class _ConfirmTransactionViewState
     final results = await Future.wait([ocp.submitProof(context, hex), time]);
     if (results.first != true) {
       // The handler showed the error and retained the payment for retry.
-      // Nothing was broadcast, so no funds moved.
       sendingDialog.close();
       _discardOverriddenRequest();
+      // Pick up a transaction the provider may have broadcast anyway.
+      _refreshAfterSend(wallet);
       return;
     }
 

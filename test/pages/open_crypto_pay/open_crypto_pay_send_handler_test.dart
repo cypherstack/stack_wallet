@@ -119,12 +119,14 @@ MockClient _mockOcpServer({
   Map<String, dynamic>? txDetails,
   int paymentInfoStatus = 200,
   int proofStatus = 200,
+  bool proofUnreachable = false,
   void Function(Uri url)? onRequest,
 }) {
   return MockClient((request) async {
     onRequest?.call(request.url);
     // Proof submissions go to the callback URL with /cb/ replaced by /tx/.
     if (request.url.path.contains('/tx/')) {
+      if (proofUnreachable) throw Exception("socket closed");
       return Response(
         proofStatus == 200 ? '{"status": "ok"}' : '{}',
         proofStatus,
@@ -793,6 +795,34 @@ void main() {
       expect(find.text(OpenCryptoPayStrings.proofFailed), findsOneWidget);
       await _tapOk(tester);
 
+      expect(await fut, isFalse);
+      expect(setup.handler.isActivePaymentFor(_btcAddress), isTrue);
+    });
+
+    testWidgets("a lost response on hex-proof submission is reported as "
+        "unconfirmed delivery", (tester) async {
+      final harness = await _pumpHarness(tester);
+      final setup = _makeHandler(
+        harness: harness,
+        coin: Bitcoin(CryptoCurrencyNetwork.main),
+        client: _mockOcpServer(
+          paymentInfo: _paymentInfoJson(quoteExpiration: _futureExpiration()),
+          txDetails: _btcDetailsJson(hint: _hexHint),
+          proofUnreachable: true,
+        ),
+      );
+      await _handle(tester, harness, setup.handler);
+
+      final fut = setup.handler.submitProof(harness.context, "deadbeef");
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(
+        find.text(OpenCryptoPayStrings.deliveryUnconfirmedTitle),
+        findsOneWidget,
+      );
+      expect(find.textContaining("Nothing was sent"), findsNothing);
+      await _tapOk(tester);
       expect(await fut, isFalse);
       expect(setup.handler.isActivePaymentFor(_btcAddress), isTrue);
     });
