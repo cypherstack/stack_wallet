@@ -330,15 +330,6 @@ class _ConfirmTransactionViewState
     final wallet = ref.read(pWallets).getWallet(walletId);
     final coin = wallet.info.coin;
 
-    final handler = widget.openCryptoPayHandler;
-    if (handler != null) {
-      final amount = _feeAndAmount(wallet).amount;
-      if (!await handler.confirmSend(context, _recipientAddress, amount)) {
-        return;
-      }
-      if (!context.mounted) return;
-    }
-
     final ocp = _activeOcp;
 
     if (ocp != null && ocp.isQuoteExpired) {
@@ -1694,6 +1685,15 @@ class _ConfirmTransactionViewState
                 label: "Send",
                 buttonHeight: isDesktop ? ButtonHeight.l : null,
                 onPressed: () async {
+                  final handler = widget.openCryptoPayHandler;
+                  if (handler != null) {
+                    final proceed = await handler.confirmSend(
+                      context,
+                      _recipientAddress,
+                      _feeAndAmount(wallet).amount,
+                    );
+                    if (!proceed || !context.mounted) return;
+                  }
                   if (isDesktop) {
                     final unlocked = await showDialog<bool?>(
                       context: context,
