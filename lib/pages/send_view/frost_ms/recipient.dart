@@ -300,8 +300,7 @@ class _RecipientState extends ConsumerState<Recipient> {
                           children: [
                             !_addressIsEmpty
                                 ? TextFieldIconButton(
-                                    semanticsLabel:
-                                        "Clear Button. Clears The Address Field Input.",
+                                    semanticsLabel: "Clear Button. Clears The Address Field Input.",
                                     key: const Key(
                                       "sendViewClearAddressFieldButtonKey",
                                     ),
@@ -317,8 +316,7 @@ class _RecipientState extends ConsumerState<Recipient> {
                                     child: const XIcon(),
                                   )
                                 : TextFieldIconButton(
-                                    semanticsLabel:
-                                        "Paste Button. Pastes From Clipboard To Address Field Input.",
+                                    semanticsLabel: "Paste Button. Pastes From Clipboard To Address Field Input.",
                                     key: const Key(
                                       "sendViewPasteAddressFieldButtonKey",
                                     ),
@@ -428,9 +426,9 @@ class _RecipientState extends ConsumerState<Recipient> {
                         .watch(pAmountUnit(widget.coin))
                         .unitForCoin(widget.coin),
                     style: STextStyles.smallMed14(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
                     ),
                   ),
                 ),

@@ -54,9 +54,9 @@ class _RegisterMasternodeFormState
   TextStyle _getStyle(BuildContext context) {
     return Util.isDesktop
         ? STextStyles.desktopTextExtraExtraSmall(context).copyWith(
-            color: Theme.of(
-              context,
-            ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .textFieldActiveSearchIconRight,
           )
         : STextStyles.smallMed12(context);
   }
@@ -211,23 +211,20 @@ class _RegisterMasternodeFormState
                     children: [
                       Text(
                         "Masternode collateral",
-                        style: STextStyles.w500_12(
-                          context,
-                        ).copyWith(color: stack.textSubtitle1),
+                        style: STextStyles.w500_12(context)
+                            .copyWith(color: stack.textSubtitle1),
                       ),
                       const SizedBox(height: 4),
                       SelectableText(
                         widget.collateralAddress,
-                        style: STextStyles.w500_14(
-                          context,
-                        ).copyWith(color: stack.textDark),
+                        style: STextStyles.w500_14(context)
+                            .copyWith(color: stack.textDark),
                       ),
                       const SizedBox(height: 4),
                       SelectableText(
                         "${widget.collateralTxid}:${widget.collateralVout}",
-                        style: STextStyles.w500_12(
-                          context,
-                        ).copyWith(color: stack.textSubtitle1),
+                        style: STextStyles.w500_12(context)
+                            .copyWith(color: stack.textSubtitle1),
                       ),
                     ],
                   ),

@@ -4,11 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/global/locale_provider.dart';
 import 'amount.dart';
 
-typedef ProviderListen<T> =
-    void Function(
-      ProviderListenable<T> provider,
-      void Function(T? previous, T next) listener,
-    );
+typedef ProviderListen<T> = void Function(
+  ProviderListenable<T> provider,
+  void Function(T? previous, T next) listener,
+);
 
 /// Rewrites a controller's decimal separator while preserving its selection.
 void relocalizeAmountController(

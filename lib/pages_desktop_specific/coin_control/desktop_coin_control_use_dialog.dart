@@ -168,9 +168,9 @@ class _DesktopCoinControlUseDialogState
                 children: [
                   RoundedContainer(
                     color: Colors.transparent,
-                    borderColor: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultBG,
+                    borderColor: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -349,12 +349,12 @@ class _DesktopCoinControlUseDialogState
                               final _controller = RotateIconController();
 
                               return Expandable2(
-                                border: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.backgroundAppBar,
-                                background: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.popupBG,
+                                border: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .backgroundAppBar,
+                                background: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .popupBG,
                                 animationDurationMultiplier:
                                     0.2 * entry.value.length,
                                 onExpandWillChange: (state) {
@@ -446,9 +446,9 @@ class _DesktopCoinControlUseDialogState
                   ),
                   const SizedBox(height: 16),
                   RoundedContainer(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultBG,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
                     padding: EdgeInsets.zero,
                     child: ConditionalParent(
                       condition: widget.amountToSend != null,
@@ -459,9 +459,9 @@ class _DesktopCoinControlUseDialogState
                             child,
                             Container(
                               height: 1.2,
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.popupBG,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .popupBG,
                             ),
                             Padding(
                               padding: const EdgeInsets.all(16),
@@ -475,9 +475,9 @@ class _DesktopCoinControlUseDialogState
                                         STextStyles.desktopTextExtraExtraSmall(
                                           context,
                                         ).copyWith(
-                                          color: Theme.of(
-                                            context,
-                                          ).extension<StackColors>()!.textDark,
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textDark,
                                         ),
                                   ),
                                   SelectableText(
@@ -487,9 +487,9 @@ class _DesktopCoinControlUseDialogState
                                         STextStyles.desktopTextExtraExtraSmall(
                                           context,
                                         ).copyWith(
-                                          color: Theme.of(
-                                            context,
-                                          ).extension<StackColors>()!.textDark,
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textDark,
                                         ),
                                   ),
                                 ],
@@ -509,9 +509,9 @@ class _DesktopCoinControlUseDialogState
                                   STextStyles.desktopTextExtraExtraSmall(
                                     context,
                                   ).copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.textDark,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark,
                                   ),
                             ),
                             SelectableText(
@@ -521,9 +521,9 @@ class _DesktopCoinControlUseDialogState
                                     context,
                                   ).copyWith(
                                     color: widget.amountToSend == null
-                                        ? Theme.of(
-                                            context,
-                                          ).extension<StackColors>()!.textDark
+                                        ? Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textDark
                                         : selectedSum < widget.amountToSend!
                                         ? Theme.of(context)
                                               .extension<StackColors>()!

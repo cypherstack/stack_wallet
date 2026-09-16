@@ -626,9 +626,9 @@ class MimblewimblecoinWallet extends Bip39Wallet {
 
       int realFee = 0;
       try {
-        realFee = (Decimal.parse(
-          transactionFees.fee.toString(),
-        )).toBigInt().toInt();
+        realFee = (Decimal.parse(transactionFees.fee.toString()))
+            .toBigInt()
+            .toInt();
       } catch (e, s) {
         //todo: come back to this
         debugPrint("$e $s");
@@ -1372,8 +1372,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
           }
           output = output.copyWith(
             addresses: [
-              myAddressesSet
-                  .first, // Must be changed if we ever do more than a single wallet address!!!
+              myAddressesSet.first, // Must be changed if we ever do more than a single wallet address!!!
             ],
             walletOwns: true,
           );

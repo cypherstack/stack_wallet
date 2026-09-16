@@ -257,9 +257,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                             Expanded(
                               child: RoundedWhiteContainer(
                                 padding: const EdgeInsets.all(16),
-                                borderColor: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.background,
+                                borderColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .background,
                                 child: CryptoSelectionView(coins: coins),
                               ),
                             ),
@@ -383,9 +383,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                             Expanded(
                               child: RoundedWhiteContainer(
                                 padding: const EdgeInsets.all(16),
-                                borderColor: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.background,
+                                borderColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .background,
                                 child: FiatSelectionView(fiats: fiats),
                               ),
                             ),
@@ -516,9 +516,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                   child: Text(
                     "Ok",
                     style: STextStyles.button(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
                     ),
                   ),
                   onPressed: () {
@@ -602,9 +602,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                 child: Text(
                   "Ok",
                   style: STextStyles.button(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.accentColorDark,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
                   ),
                 ),
                 onPressed: () {
@@ -676,9 +676,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                             Expanded(
                               child: RoundedWhiteContainer(
                                 padding: const EdgeInsets.all(16),
-                                borderColor: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.background,
+                                borderColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .background,
                                 child: BuyQuotePreviewView(quote: quote),
                               ),
                             ),
@@ -881,9 +881,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                             .extension<StackColors>()!
                             .currencyListItemBG
                             .withOpacity(_hovering1 ? 0.3 : 0)
-                      : Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textFieldDefaultBG,
+                      : Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldDefaultBG,
                   child: Padding(
                     padding: const EdgeInsets.all(12),
                     child: Row(
@@ -921,9 +921,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                 Text(
                   "I want to pay with",
                   style: STextStyles.itemSubtitle(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textDark3,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textDark3,
                   ),
                 ),
               ],
@@ -947,9 +947,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                             .extension<StackColors>()!
                             .currencyListItemBG
                             .withOpacity(_hovering2 ? 0.3 : 0)
-                      : Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textFieldDefaultBG,
+                      : Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldDefaultBG,
                   child: Padding(
                     padding: const EdgeInsets.only(
                       left: 12.0,
@@ -965,9 +965,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                             horizontal: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.currencyListItemBG,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .currencyListItemBG,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
@@ -976,9 +976,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                             ),
                             textAlign: TextAlign.center,
                             style: STextStyles.smallMed12(context).copyWith(
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.accentColorDark,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorDark,
                             ),
                           ),
                         ),
@@ -1016,9 +1016,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                 Text(
                   buyWithFiat ? "Enter amount" : "Enter crypto amount",
                   style: STextStyles.itemSubtitle(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textDark3,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textDark3,
                   ),
                 ),
                 CustomTextButton(
@@ -1075,9 +1075,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                 ),
                 hintText: "0",
                 hintStyle: STextStyles.desktopTextExtraSmall(context).copyWith(
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldDefaultText,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultText,
                 ),
                 prefixIcon: FittedBox(
                   fit: BoxFit.scaleDown,
@@ -1123,9 +1123,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                               ? selectedFiat?.ticker ?? "ERR"
                               : selectedCrypto?.ticker ?? "ERR",
                           style: STextStyles.smallMed14(context).copyWith(
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.accentColorDark,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorDark,
                           ),
                         ),
                       ],
@@ -1208,9 +1208,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                 Text(
                   "Enter receiving address",
                   style: STextStyles.itemSubtitle(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textDark3,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textDark3,
                   ),
                 ),
                 if (AppConfig.isStackCoin(selectedCrypto?.ticker))

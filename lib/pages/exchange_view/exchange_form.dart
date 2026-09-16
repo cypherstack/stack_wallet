@@ -120,9 +120,10 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         builder: (_) => WillPopScope(
           onWillPop: () async => false,
           child: Container(
-            color: Theme.of(
-              context,
-            ).extension<StackColors>()!.overlay.withOpacity(0.6),
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .overlay
+                .withOpacity(0.6),
             child: const CustomLoadingOverlay(
               message: "Updating exchange rate",
               eventBus: null,
@@ -368,9 +369,9 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                             Expanded(
                               child: RoundedWhiteContainer(
                                 padding: const EdgeInsets.all(16),
-                                borderColor: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.background,
+                                borderColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .background,
                                 child: ExchangeCurrencySelectionView(
                                   pairedCurrency: paired,
                                   isFixedRate: isFixedRate,
@@ -517,8 +518,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           context: context,
           builder: (context) => const StackOkDialog(
             title: "WOW error",
-            message:
-                "Wownero is temporarily disabled as a receiving currency for fixed rate trades due to network issues",
+            message: "Wownero is temporarily disabled as a receiving currency for fixed rate trades due to network issues",
           ),
         );
       }
@@ -680,9 +680,8 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           );
         } else {
           unawaited(
-            Navigator.of(
-              context,
-            ).pushNamed(Step2View.routeName, arguments: model),
+            Navigator.of(context)
+                .pushNamed(Step2View.routeName, arguments: model),
           );
         }
       } else {
@@ -703,9 +702,8 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           );
         } else {
           unawaited(
-            Navigator.of(
-              context,
-            ).pushNamed(Step1View.routeName, arguments: model),
+            Navigator.of(context)
+                .pushNamed(Step1View.routeName, arguments: model),
           );
         }
       }
@@ -1006,13 +1004,13 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           textStyle: STextStyles.smallMed14(context).copyWith(
             color: Theme.of(context).extension<StackColors>()!.textDark,
           ),
-          buttonColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.buttonBackSecondary,
+          buttonColor: Theme.of(context)
+              .extension<StackColors>()!
+              .buttonBackSecondary,
           borderRadius: Constants.size.circularBorderRadius,
-          background: Theme.of(
-            context,
-          ).extension<StackColors>()!.textFieldDefaultBG,
+          background: Theme.of(context)
+              .extension<StackColors>()!
+              .textFieldDefaultBG,
           onTap: () {
             if (_sendController.text == "-") {
               _sendController.text = "";
@@ -1048,9 +1046,9 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                   padding: isDesktop
                       ? const EdgeInsets.all(6)
                       : const EdgeInsets.all(2),
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.buttonBackSecondary,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .buttonBackSecondary,
                   radiusMultiplier: 0.75,
                   child: GestureDetector(
                     onTap: () async {
@@ -1062,9 +1060,9 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                         Assets.svg.swap,
                         width: 20,
                         height: 20,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorDark,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
                       ),
                     ),
                   ),
@@ -1083,13 +1081,13 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           textStyle: STextStyles.smallMed14(context).copyWith(
             color: Theme.of(context).extension<StackColors>()!.textDark,
           ),
-          buttonColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.buttonBackSecondary,
+          buttonColor: Theme.of(context)
+              .extension<StackColors>()!
+              .buttonBackSecondary,
           borderRadius: Constants.size.circularBorderRadius,
-          background: Theme.of(
-            context,
-          ).extension<StackColors>()!.textFieldDefaultBG,
+          background: Theme.of(context)
+              .extension<StackColors>()!
+              .textFieldDefaultBG,
           onTap: rateType == ExchangeRateType.estimated
               ? null
               : () {

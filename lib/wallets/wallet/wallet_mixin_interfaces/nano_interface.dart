@@ -349,9 +349,8 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
   @override
   Future<void> updateNode() async {
     _cachedNode =
-        NodeService(
-          secureStorageInterface: secureStorageInterface,
-        ).getPrimaryNodeFor(currency: info.coin) ??
+        NodeService(secureStorageInterface: secureStorageInterface)
+            .getPrimaryNodeFor(currency: info.coin) ??
         info.coin.defaultNode(isPrimary: true);
 
     unawaited(refresh());
@@ -360,9 +359,8 @@ mixin NanoInterface<T extends NanoCurrency> on Bip39Wallet<T> {
   @override
   NodeModel getCurrentNode() {
     return _cachedNode ??
-        NodeService(
-          secureStorageInterface: secureStorageInterface,
-        ).getPrimaryNodeFor(currency: info.coin) ??
+        NodeService(secureStorageInterface: secureStorageInterface)
+            .getPrimaryNodeFor(currency: info.coin) ??
         info.coin.defaultNode(isPrimary: true);
   }
 

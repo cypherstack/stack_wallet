@@ -131,13 +131,13 @@ class _TransactionSearchViewState
     } else {
       return Background(
         child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             leading: AppBarBackButton(
               onPressed: () async {
                 if (FocusScope.of(context).hasFocus) {
@@ -451,9 +451,9 @@ class _TransactionSearchViewState
               ],
               style: isDesktop
                   ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textDark,
                       height: 1.8,
                     )
                   : STextStyles.field(context),
@@ -520,9 +520,9 @@ class _TransactionSearchViewState
               focusNode: keywordTextFieldFocusNode,
               style: isDesktop
                   ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textDark,
                       height: 1.8,
                     )
                   : STextStyles.field(context),

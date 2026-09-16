@@ -22,31 +22,25 @@ import 'utilities/mock_electrum_server.dart';
 
 class MockPrefs extends Mock implements Prefs {
   @override
-  bool get wifiOnly =>
-      super.noSuchMethod(
-            Invocation.getter(#wifiOnly),
-            returnValue: false,
-            returnValueForMissingStub: false,
-          )
-          as bool;
+  bool get wifiOnly => super.noSuchMethod(
+    Invocation.getter(#wifiOnly),
+    returnValue: false,
+    returnValueForMissingStub: false,
+  ) as bool;
 
   @override
-  bool get useTor =>
-      super.noSuchMethod(
-            Invocation.getter(#useTor),
-            returnValue: false,
-            returnValueForMissingStub: false,
-          )
-          as bool;
+  bool get useTor => super.noSuchMethod(
+    Invocation.getter(#useTor),
+    returnValue: false,
+    returnValueForMissingStub: false,
+  ) as bool;
 
   @override
-  bool get torKillSwitch =>
-      super.noSuchMethod(
-            Invocation.getter(#torKillSwitch),
-            returnValue: false,
-            returnValueForMissingStub: false,
-          )
-          as bool;
+  bool get torKillSwitch => super.noSuchMethod(
+    Invocation.getter(#torKillSwitch),
+    returnValue: false,
+    returnValueForMissingStub: false,
+  ) as bool;
 }
 
 class FakeTorService implements TorService {

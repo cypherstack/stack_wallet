@@ -558,9 +558,9 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                   child: Text(
                     "Ok",
                     style: STextStyles.button(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
                     ),
                   ),
                   onPressed: () {
@@ -714,9 +714,9 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                           children: [
                             Container(
                               decoration: BoxDecoration(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.popupBG,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .popupBG,
                                 borderRadius: BorderRadius.circular(
                                   Constants.size.circularBorderRadius,
                                 ),
@@ -743,9 +743,8 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                         ),
                                         Text(
                                           "Available balance",
-                                          style: STextStyles.label(
-                                            context,
-                                          ).copyWith(fontSize: 10),
+                                          style: STextStyles.label(context)
+                                              .copyWith(fontSize: 10),
                                         ),
                                       ],
                                     ),
@@ -992,9 +991,9 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                               autocorrect: Util.isDesktop ? false : true,
                               enableSuggestions: Util.isDesktop ? false : true,
                               style: STextStyles.smallMed14(context).copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textDark,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark,
                               ),
                               key: const Key(
                                 "amountInputFieldCryptoTextFieldKey",
@@ -1029,9 +1028,8 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                   right: 12,
                                 ),
                                 hintText: "0",
-                                hintStyle: STextStyles.fieldLabel(
-                                  context,
-                                ).copyWith(fontSize: 14),
+                                hintStyle: STextStyles.fieldLabel(context)
+                                    .copyWith(fontSize: 14),
                                 prefixIcon: FittedBox(
                                   fit: BoxFit.scaleDown,
                                   child: Padding(
@@ -1060,9 +1058,9 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                     ? false
                                     : true,
                                 style: STextStyles.smallMed14(context).copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.textDark,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark,
                                 ),
                                 key: const Key(
                                   "amountInputFieldFiatTextFieldKey",
@@ -1097,9 +1095,8 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                     right: 12,
                                   ),
                                   hintText: "0",
-                                  hintStyle: STextStyles.fieldLabel(
-                                    context,
-                                  ).copyWith(fontSize: 14),
+                                  hintStyle: STextStyles.fieldLabel(context)
+                                      .copyWith(fontSize: 14),
                                   prefixIcon: FittedBox(
                                     fit: BoxFit.scaleDown,
                                     child: Padding(
@@ -1195,9 +1192,9 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                     horizontal: 12,
                                   ),
                                   child: RawMaterialButton(
-                                    splashColor: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.highlight,
+                                    splashColor: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .highlight,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(
                                         Constants.size.circularBorderRadius,

@@ -95,9 +95,9 @@ class WalletKeysDesktopPopup extends ConsumerWidget {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 32),
                         child: RoundedWhiteContainer(
-                          borderColor: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.textFieldDefaultBG,
+                          borderColor: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textFieldDefaultBG,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 9,
@@ -131,9 +131,9 @@ class WalletKeysDesktopPopup extends ConsumerWidget {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 32),
                         child: RoundedWhiteContainer(
-                          borderColor: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.textFieldDefaultBG,
+                          borderColor: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textFieldDefaultBG,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 9,
@@ -169,9 +169,9 @@ class WalletKeysDesktopPopup extends ConsumerWidget {
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 32),
                           child: RoundedWhiteContainer(
-                            borderColor: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textFieldDefaultBG,
+                            borderColor: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textFieldDefaultBG,
                             padding: const EdgeInsets.symmetric(
                               horizontal: 12,
                               vertical: 9,
@@ -208,9 +208,9 @@ class WalletKeysDesktopPopup extends ConsumerWidget {
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 32),
                           child: RoundedWhiteContainer(
-                            borderColor: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textFieldDefaultBG,
+                            borderColor: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textFieldDefaultBG,
                             padding: const EdgeInsets.symmetric(
                               horizontal: 12,
                               vertical: 9,
@@ -314,9 +314,9 @@ class _Mnemonic extends StatelessWidget {
           child: MnemonicTable(
             words: words,
             isDesktop: true,
-            itemBorderColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.buttonBackSecondary,
+            itemBorderColor: Theme.of(context)
+                .extension<StackColors>()!
+                .buttonBackSecondary,
           ),
         ),
         const SizedBox(height: 24),

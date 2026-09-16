@@ -126,9 +126,8 @@ class _ExchangeTextFieldState extends ConsumerState<ExchangeTextField> {
                 decoration: InputDecoration(
                   contentPadding: const EdgeInsets.only(top: 12, left: 12),
                   hintText: widget.currency == null ? "select currency" : "0",
-                  hintStyle: STextStyles.fieldLabel(
-                    context,
-                  ).copyWith(fontSize: 14),
+                  hintStyle: STextStyles.fieldLabel(context)
+                      .copyWith(fontSize: 14),
                 ),
                 inputFormatters: [
                   AmountInputFormatter(
@@ -226,9 +225,9 @@ class _ExchangeTextFieldState extends ConsumerState<ExchangeTextField> {
                         Text(
                           widget.currency?.ticker.toUpperCase() ?? "n/a",
                           style: STextStyles.smallMed14(context).copyWith(
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textDark,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark,
                           ),
                         ),
                         if (!widget.isWalletCoin) const SizedBox(width: 6),
@@ -237,9 +236,9 @@ class _ExchangeTextFieldState extends ConsumerState<ExchangeTextField> {
                             Assets.svg.chevronDown,
                             width: 5,
                             height: 2.5,
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textDark,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark,
                           ),
                       ],
                     ),

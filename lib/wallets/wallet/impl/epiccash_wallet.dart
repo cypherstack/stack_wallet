@@ -498,9 +498,9 @@ class EpiccashWallet extends Bip39Wallet {
 
       int realFee = 0;
       try {
-        realFee = (Decimal.parse(
-          transactionFees.fee.toString(),
-        )).toBigInt().toInt();
+        realFee = (Decimal.parse(transactionFees.fee.toString()))
+            .toBigInt()
+            .toInt();
       } catch (e, s) {
         //todo: come back to this
         Logging.instance.e("Error getting fees", error: e, stackTrace: s);

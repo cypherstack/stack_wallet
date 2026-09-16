@@ -64,8 +64,7 @@ class Peercoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
     String coinType;
     switch (networkParams.wifPrefix) {
       case 183: // PPC mainnet wif.
-        coinType =
-            "6"; // according to https://github.com/satoshilabs/slips/blob/master/slip-0044.md
+        coinType = "6"; // according to https://github.com/satoshilabs/slips/blob/master/slip-0044.md
         break;
       case 239: // PPC testnet wif.
         coinType = "1";

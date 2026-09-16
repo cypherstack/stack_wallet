@@ -1082,9 +1082,9 @@ class ElectrumXClient {
         command: "spark.getmempoolsparktxids",
       );
 
-      final txids = List<String>.from(
-        response as List,
-      ).map((e) => e.toHexReversedFromBase64).toSet();
+      final txids = List<String>.from(response as List)
+          .map((e) => e.toHexReversedFromBase64)
+          .toSet();
 
       Logging.instance.d(
         "Finished ElectrumXClient.getMempoolTxids(). "
@@ -1295,8 +1295,7 @@ class ElectrumXClient {
     required int endIndex, // exclusive
   }) async {
     try {
-      const command =
-          "spark.getsparkanonymitysetsector"; // TODO verify this will be correct
+      const command = "spark.getsparkanonymitysetsector"; // TODO verify this will be correct
       final start = DateTime.now();
       final response = await request(
         requestID: requestID,

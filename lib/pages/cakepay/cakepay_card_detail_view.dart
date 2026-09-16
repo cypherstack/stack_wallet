@@ -203,9 +203,9 @@ class _CakePayCardDetailViewState extends ConsumerState<CakePayCardDetailView> {
         condition: !isDesktop,
         builder: (child) => Background(
           child: Scaffold(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -468,9 +468,9 @@ class _DenominationSelector extends StatelessWidget {
                           : STextStyles.itemSubtitle12(context))
                       .copyWith(
                         color: selected
-                            ? Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textDark
+                            ? Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textDark
                             : null,
                       ),
             ),
@@ -605,9 +605,8 @@ class _TermsCheckbox extends StatelessWidget {
                     const TextSpan(text: "I agree to the "),
                     TextSpan(
                       text: "terms and conditions",
-                      style: STextStyles.richLink(
-                        context,
-                      ).copyWith(fontSize: isDesktop ? null : 14),
+                      style: STextStyles.richLink(context)
+                          .copyWith(fontSize: isDesktop ? null : 14),
                       recognizer: TapGestureRecognizer()..onTap = onOpenTerms,
                     ),
                     const TextSpan(

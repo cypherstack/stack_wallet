@@ -80,9 +80,10 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
         builder: (_) => WillPopScope(
           onWillPop: () async => false,
           child: Container(
-            color: Theme.of(
-              context,
-            ).extension<StackColors>()!.overlay.withOpacity(0.6),
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .overlay
+                .withOpacity(0.6),
             child: const CustomLoadingOverlay(
               message: "Creating a trade",
               eventBus: null,

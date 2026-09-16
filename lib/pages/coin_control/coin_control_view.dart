@@ -172,9 +172,9 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
       },
       child: Background(
         child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
             automaticallyImplyLeading: false,
             leading: _isSearching
@@ -185,9 +185,9 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                     icon: XIcon(
                       width: 24,
                       height: 24,
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.topNavIconPrimary,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .topNavIconPrimary,
                     ),
                     onPressed: () {
                       setState(() {
@@ -222,9 +222,9 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                           Assets.svg.x,
                           width: 20,
                           height: 20,
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.topNavIconPrimary,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .topNavIconPrimary,
                         ),
                         onPressed: () {
                           // show search
@@ -244,9 +244,9 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                           Assets.svg.search,
                           width: 20,
                           height: 20,
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.topNavIconPrimary,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .topNavIconPrimary,
                         ),
                         onPressed: () {
                           // show search
@@ -290,9 +290,9 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                               "outputs at your discretion. Tap the output circle to "
                               "select.",
                               style: STextStyles.w500_14(context).copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textSubtitle1,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textSubtitle1,
                               ),
                             ),
                           ),
@@ -302,13 +302,13 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                             height: 48,
                             child: Toggle(
                               key: UniqueKey(),
-                              onColor: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.popupBG,
+                              onColor: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .popupBG,
                               onText: "Available outputs",
-                              offColor: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textFieldDefaultBG,
+                              offColor: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFieldDefaultBG,
                               offText: "Frozen outputs",
                               isOn: _showBlocked,
                               onValueChanged: (value) {
@@ -450,15 +450,14 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                         },
                                         onPressed: () async {
                                           final result =
-                                              await Navigator.of(
-                                                context,
-                                              ).pushNamed(
-                                                UtxoDetailsView.routeName,
-                                                arguments: Tuple2(
-                                                  utxo.id,
-                                                  widget.walletId,
-                                                ),
-                                              );
+                                              await Navigator.of(context)
+                                                  .pushNamed(
+                                                    UtxoDetailsView.routeName,
+                                                    arguments: Tuple2(
+                                                      utxo.id,
+                                                      widget.walletId,
+                                                    ),
+                                                  );
                                           if (mounted && result == "refresh") {
                                             setState(() {});
                                           }
@@ -483,9 +482,9 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                         border: Theme.of(context)
                                             .extension<StackColors>()!
                                             .backgroundAppBar,
-                                        background: Theme.of(
-                                          context,
-                                        ).extension<StackColors>()!.popupBG,
+                                        background: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .popupBG,
                                         animationDurationMultiplier:
                                             0.2 * entry.value.length,
                                         onExpandWillChange: (state) {
@@ -635,13 +634,13 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                     widget.type == CoinControlViewType.manage)
                   Container(
                     decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.backgroundAppBar,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .backgroundAppBar,
                       boxShadow: [
-                        Theme.of(
-                          context,
-                        ).extension<StackColors>()!.standardBoxShadow,
+                        Theme.of(context)
+                            .extension<StackColors>()!
+                            .standardBoxShadow,
                       ],
                     ),
                     child: Padding(
@@ -672,13 +671,13 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                 if (!_showBlocked && widget.type == CoinControlViewType.use)
                   Container(
                     decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.backgroundAppBar,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .backgroundAppBar,
                       boxShadow: [
-                        Theme.of(
-                          context,
-                        ).extension<StackColors>()!.standardBoxShadow,
+                        Theme.of(context)
+                            .extension<StackColors>()!
+                            .standardBoxShadow,
                       ],
                     ),
                     child: Padding(

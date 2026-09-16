@@ -344,9 +344,9 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
             Text(
               "Recipient Wallet",
               style: STextStyles.desktopTextExtraExtraSmall(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldActiveSearchIconRight,
               ),
             ),
             if (AppConfig.isStackCoin(
@@ -484,9 +484,9 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
           Text(
             "Memo or destination tag",
             style: STextStyles.desktopTextExtraExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldActiveSearchIconRight,
             ),
           ),
         if (_showRecipientMemo) const SizedBox(height: 10),
@@ -531,9 +531,9 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
               Text(
                 "Refund Wallet (required)",
                 style: STextStyles.desktopTextExtraExtraSmall(context).copyWith(
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldActiveSearchIconRight,
                 ),
               ),
               if (AppConfig.isStackCoin(
@@ -676,9 +676,9 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
           Text(
             "Refund memo or destination tag",
             style: STextStyles.desktopTextExtraExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldActiveSearchIconRight,
             ),
           ),
         if (doesRefundAddress && _showRefundMemo) const SizedBox(height: 10),

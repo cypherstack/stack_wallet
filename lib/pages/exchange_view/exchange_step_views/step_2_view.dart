@@ -858,44 +858,43 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                               )
                                                               .state =
                                                           true;
-                                                      Navigator.of(context)
-                                                          .pushNamed(
-                                                            AddressBookView
-                                                                .routeName,
-                                                          )
-                                                          .then((_) {
-                                                            ref
-                                                                    .read(
-                                                                      exchangeFlowIsActiveStateProvider
-                                                                          .state,
-                                                                    )
-                                                                    .state =
-                                                                false;
-                                                            final address = ref
+                                                      Navigator.of(
+                                                        context,
+                                                      ).pushNamed(AddressBookView.routeName).then((
+                                                        _,
+                                                      ) {
+                                                        ref
                                                                 .read(
-                                                                  exchangeFromAddressBookAddressStateProvider
+                                                                  exchangeFlowIsActiveStateProvider
                                                                       .state,
                                                                 )
-                                                                .state;
-                                                            if (address
-                                                                .isNotEmpty) {
+                                                                .state =
+                                                            false;
+                                                        final address = ref
+                                                            .read(
+                                                              exchangeFromAddressBookAddressStateProvider
+                                                                  .state,
+                                                            )
+                                                            .state;
+                                                        if (address
+                                                            .isNotEmpty) {
+                                                          _refundController
+                                                                  .text =
+                                                              address;
+                                                          model.refundAddress =
                                                               _refundController
-                                                                      .text =
-                                                                  address;
-                                                              model.refundAddress =
-                                                                  _refundController
-                                                                      .text;
-                                                            }
-                                                            setState(() {
-                                                              enableNext =
-                                                                  _toController
-                                                                      .text
-                                                                      .isNotEmpty &&
-                                                                  _refundController
-                                                                      .text
-                                                                      .isNotEmpty;
-                                                            });
-                                                          });
+                                                                  .text;
+                                                        }
+                                                        setState(() {
+                                                          enableNext =
+                                                              _toController
+                                                                  .text
+                                                                  .isNotEmpty &&
+                                                              _refundController
+                                                                  .text
+                                                                  .isNotEmpty;
+                                                        });
+                                                      });
                                                     },
                                                     child:
                                                         const AddressBookIcon(),

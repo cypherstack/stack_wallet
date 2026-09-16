@@ -223,11 +223,10 @@ P _addressDeserializeProp<P>(
       return (reader.readLong(offset)) as P;
     case 1:
       return (reader.readObjectOrNull<DerivationPath>(
-            offset,
-            DerivationPathSchema.deserialize,
-            allOffsets,
-          ))
-          as P;
+        offset,
+        DerivationPathSchema.deserialize,
+        allOffsets,
+      )) as P;
     case 2:
       return (reader.readStringOrNull(offset)) as P;
     case 3:

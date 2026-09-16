@@ -15,8 +15,9 @@ import 'api_response_models/n_estimate.dart';
 import 'api_response_models/n_trade.dart';
 import 'nanswap_api.dart';
 
-typedef NanswapOrderLookup =
-    Future<ExchangeResponse<NTrade>> Function({required String id});
+typedef NanswapOrderLookup = Future<ExchangeResponse<NTrade>> Function({
+  required String id,
+});
 
 class NanswapExchange extends Exchange {
   NanswapExchange._({NanswapOrderLookup? getOrder})

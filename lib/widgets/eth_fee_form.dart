@@ -257,9 +257,9 @@ class _EthFeeFormState extends State<EthFeeForm> {
   Widget build(BuildContext context) {
     final fieldStyle = Util.isDesktop
         ? STextStyles.desktopTextExtraSmall(context).copyWith(
-            color: Theme.of(
-              context,
-            ).extension<StackColors>()!.textFieldActiveText,
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .textFieldActiveText,
             height: 1.8,
           )
         : STextStyles.field(context);

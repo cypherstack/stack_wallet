@@ -156,9 +156,9 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
             "Transaction fee"
             "${isCustomFee ? "" : " (${isEth ? "max" : "estimated"})"}",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldActiveSearchIconRight,
             ),
             textAlign: TextAlign.left,
           ),
@@ -326,9 +326,9 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
                         feeSelectionResult?.$2 ?? "",
                         style: STextStyles.desktopTextExtraExtraSmall(context)
                             .copyWith(
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textFieldActiveText,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFieldActiveText,
                             ),
                         textAlign: TextAlign.left,
                       ),

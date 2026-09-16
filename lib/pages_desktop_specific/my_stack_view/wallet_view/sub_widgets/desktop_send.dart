@@ -276,9 +276,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                     child: Text(
                       'Failed to create slatepack: $e',
                       textAlign: TextAlign.left,
-                      style: STextStyles.desktopTextExtraExtraSmall(
-                        context,
-                      ).copyWith(fontSize: 18),
+                      style: STextStyles.desktopTextExtraExtraSmall(context)
+                          .copyWith(fontSize: 18),
                     ),
                   ),
                   const SizedBox(height: 40),
@@ -401,9 +400,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                     child: Text(
                       'Failed to create slate: $e',
                       textAlign: TextAlign.left,
-                      style: STextStyles.desktopTextExtraExtraSmall(
-                        context,
-                      ).copyWith(fontSize: 18),
+                      style: STextStyles.desktopTextExtraExtraSmall(context)
+                          .copyWith(fontSize: 18),
                     ),
                   ),
                   const SizedBox(height: 40),
@@ -505,9 +503,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       child: Text(
                         "You are about to send your entire balance. Would you like to continue?",
                         textAlign: TextAlign.left,
-                        style: STextStyles.desktopTextExtraExtraSmall(
-                          context,
-                        ).copyWith(fontSize: 18),
+                        style: STextStyles.desktopTextExtraExtraSmall(context)
+                            .copyWith(fontSize: 18),
                       ),
                     ),
                     const SizedBox(height: 40),
@@ -821,9 +818,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                         child: Text(
                           e.toString(),
                           textAlign: TextAlign.left,
-                          style: STextStyles.desktopTextExtraExtraSmall(
-                            context,
-                          ).copyWith(fontSize: 18),
+                          style: STextStyles.desktopTextExtraExtraSmall(context)
+                              .copyWith(fontSize: 18),
                         ),
                       ),
                       const SizedBox(height: 40),
@@ -1440,23 +1436,22 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             child: Container(
               decoration: BoxDecoration(
                 color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()?.textFieldDefaultBG ??
+                    Theme.of(context)
+                        .extension<StackColors>()
+                        ?.textFieldDefaultBG ??
                     Colors.white, // Fallback color
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()?.backgroundAppBar ??
+                      Theme.of(context)
+                          .extension<StackColors>()
+                          ?.backgroundAppBar ??
                       Colors.grey, // Fallback color
                   width: 1,
                 ),
               ),
               child: const SizedBox(
-                height:
-                    60, // Provide an explicit height to avoid infinite constraints
+                height: 60, // Provide an explicit height to avoid infinite constraints
                 child: MwcTxsMethodToggle(),
               ),
             ),
@@ -1468,23 +1463,22 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             child: Container(
               decoration: BoxDecoration(
                 color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()?.textFieldDefaultBG ??
+                    Theme.of(context)
+                        .extension<StackColors>()
+                        ?.textFieldDefaultBG ??
                     Colors.white, // Fallback color
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()?.backgroundAppBar ??
+                      Theme.of(context)
+                          .extension<StackColors>()
+                          ?.backgroundAppBar ??
                       Colors.grey, // Fallback color
                   width: 1,
                 ),
               ),
               child: const SizedBox(
-                height:
-                    60, // Provide an explicit height to avoid infinite constraints
+                height: 60, // Provide an explicit height to avoid infinite constraints
                 child: EpicTxsMethodToggle(),
               ),
             ),
@@ -1494,9 +1488,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           Text(
             "Send from",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldActiveSearchIconRight,
             ),
             textAlign: TextAlign.left,
           ),
@@ -1577,9 +1571,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 offset: const Offset(0, -10),
                 elevation: 0,
                 decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldDefaultBG,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultBG,
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),
@@ -1604,9 +1598,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             controller: sendToController,
             enabled: false,
             readOnly: true,
-            style: STextStyles.desktopTextFieldLabel(
-              context,
-            ).copyWith(fontSize: 16),
+            style: STextStyles.desktopTextFieldLabel(context)
+                .copyWith(fontSize: 16),
             decoration: const InputDecoration(
               contentPadding: EdgeInsets.symmetric(
                 vertical: 18,
@@ -1621,9 +1614,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             Text(
               "Amount",
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldActiveSearchIconRight,
               ),
               textAlign: TextAlign.left,
             ),
@@ -1677,9 +1670,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             ),
             hintText: "0",
             hintStyle: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldDefaultText,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldDefaultText,
             ),
             prefixIcon: FittedBox(
               fit: BoxFit.scaleDown,
@@ -1688,9 +1681,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 child: Text(
                   ref.watch(pAmountUnit(coin)).unitForCoin(coin),
                   style: STextStyles.smallMed14(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.accentColorDark,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
                   ),
                 ),
               ),
@@ -1737,9 +1730,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               ),
               hintText: "0",
               hintStyle: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldDefaultText,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldDefaultText,
               ),
               prefixIcon: FittedBox(
                 fit: BoxFit.scaleDown,
@@ -1752,9 +1745,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       ),
                     ),
                     style: STextStyles.smallMed14(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
                     ),
                   ),
                 ),
@@ -1765,9 +1758,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         if (showCoinControl)
           RoundedContainer(
             color: Colors.transparent,
-            borderColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.textFieldDefaultBG,
+            borderColor: Theme.of(context)
+                .extension<StackColors>()!
+                .textFieldDefaultBG,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -1791,9 +1784,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           Text(
             "Send to",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldActiveSearchIconRight,
             ),
             textAlign: TextAlign.left,
           ),
@@ -1858,9 +1851,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               },
               focusNode: _addressFocusNode,
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldActiveText,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldActiveText,
                 height: 1.8,
               ),
               decoration:
@@ -1974,8 +1967,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                               ),
                             if (sendToController.text.isEmpty)
                               TextFieldIconButton(
-                                semanticsLabel:
-                                    "Scan QR Button. Opens Camera For Scanning QR Code.",
+                                semanticsLabel: "Scan QR Button. Opens Camera For Scanning QR Code.",
                                 key: const Key("sendViewScanQrButtonKey"),
                                 onTap: scanWebcam,
                                 child: const QrCodeIcon(),
@@ -2031,9 +2023,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       error,
                       textAlign: TextAlign.left,
                       style: STextStyles.label(context).copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textError,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textError,
                       ),
                     ),
                   ),
@@ -2062,9 +2054,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                     "(${opData.length ~/ 2} bytes)",
                     textAlign: TextAlign.left,
                     style: STextStyles.label(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorGreen,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorGreen,
                     ),
                   ),
                 ),
@@ -2092,9 +2084,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   "to complete the bridge transaction.",
                   textAlign: TextAlign.left,
                   style: STextStyles.label(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textError,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textError,
                   ),
                 ),
               ),
@@ -2122,9 +2114,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 setState(() {});
               },
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldActiveText,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldActiveText,
                 height: 1.8,
               ),
               decoration:
@@ -2185,9 +2177,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           Text(
             "Nonce",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldActiveSearchIconRight,
             ),
             textAlign: TextAlign.left,
           ),
@@ -2209,9 +2201,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               focusNode: _nonceFocusNode,
               onChanged: (_) => setState(() {}),
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldActiveText,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldActiveText,
                 height: 1.8,
               ),
               decoration:

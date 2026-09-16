@@ -242,9 +242,9 @@ class _SalviumCreateStakeViewState
                         child: Text(
                           "Ok",
                           style: STextStyles.button(context).copyWith(
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.accentColorDark,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorDark,
                           ),
                         ),
                         onPressed: () {
@@ -332,9 +332,9 @@ class _SalviumCreateStakeViewState
               Text(
                 "Amount",
                 style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldActiveSearchIconRight,
                 ),
                 textAlign: TextAlign.left,
               ),
@@ -372,9 +372,9 @@ class _SalviumCreateStakeViewState
               hintText: "0",
               hintStyle: Util.isDesktop
                   ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textFieldDefaultText,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldDefaultText,
                     )
                   : STextStyles.fieldLabel(context).copyWith(fontSize: 14),
               prefixIcon: FittedBox(
@@ -384,9 +384,9 @@ class _SalviumCreateStakeViewState
                   child: Text(
                     ref.watch(pAmountUnit(coin)).unitForCoin(coin),
                     style: STextStyles.smallMed14(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
                     ),
                   ),
                 ),

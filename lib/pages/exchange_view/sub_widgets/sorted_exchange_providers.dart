@@ -76,9 +76,8 @@ class _SortedExchangeProvidersState
   Amount _getRate(Estimate e, Decimal amount, String rcvTicker) {
     int decimals;
     try {
-      decimals = AppConfig.getCryptoCurrencyForTicker(
-        rcvTicker,
-      )!.fractionDigits;
+      decimals = AppConfig.getCryptoCurrencyForTicker(rcvTicker)!
+          .fractionDigits;
     } catch (_) {
       decimals = 8; // some reasonable alternative
     }
@@ -172,9 +171,9 @@ class _SortedExchangeProvidersState
                           estimate: null,
                           pair: pair,
                           rateString: message ?? "Failed to fetch rate",
-                          rateColor: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.textError,
+                          rateColor: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textError,
                         );
                       },
                     );
@@ -223,9 +222,9 @@ class _SortedExchangeProvidersState
                         Util.isDesktop
                             ? Container(
                                 height: 1,
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.background,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .background,
                               )
                             : const SizedBox(height: 16),
                         child,

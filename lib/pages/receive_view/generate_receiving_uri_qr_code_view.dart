@@ -238,9 +238,9 @@ class _GenerateUriQrCodeViewState extends ConsumerState<GenerateUriQrCodeView> {
                       width: 14,
                       height: 14,
                       colorFilter: .mode(
-                        Theme.of(
-                          context,
-                        ).extension<StackColors>()!.buttonTextSecondary,
+                        Theme.of(context)
+                            .extension<StackColors>()!
+                            .buttonTextSecondary,
                         .srcIn,
                       ),
                     ),
@@ -299,9 +299,9 @@ class _GenerateUriQrCodeViewState extends ConsumerState<GenerateUriQrCodeView> {
       condition: !isDesktop,
       builder: (child) => Background(
         child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
             leading: AppBarBackButton(
               onPressed: () async {
@@ -382,9 +382,9 @@ class _GenerateUriQrCodeViewState extends ConsumerState<GenerateUriQrCodeView> {
                 focusNode: _amountFocusNode,
                 style: isDesktop
                     ? STextStyles.desktopTextExtraExtraSmall(context).copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textFieldDefaultText,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldDefaultText,
                         height: 1.8,
                       )
                     : STextStyles.field(context),
@@ -463,9 +463,9 @@ class _GenerateUriQrCodeViewState extends ConsumerState<GenerateUriQrCodeView> {
                 focusNode: _noteFocusNode,
                 style: isDesktop
                     ? STextStyles.desktopTextExtraExtraSmall(context).copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textFieldDefaultText,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldDefaultText,
                         height: 1.8,
                       )
                     : STextStyles.field(context),
@@ -534,9 +534,9 @@ class _GenerateUriQrCodeViewState extends ConsumerState<GenerateUriQrCodeView> {
                     children: [
                       const SizedBox(height: 20),
                       RoundedWhiteContainer(
-                        borderColor: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.background,
+                        borderColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .background,
                         width: isDesktop ? 370 : null,
                         child: Column(
                           children: [

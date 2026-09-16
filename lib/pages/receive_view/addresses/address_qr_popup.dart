@@ -159,9 +159,9 @@ class _AddressQrPopupState extends State<AddressQrPopup> {
                     Assets.svg.share,
                     width: 20,
                     height: 20,
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.buttonTextSecondary,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .buttonTextSecondary,
                   ),
                 ),
               ),
@@ -177,9 +177,9 @@ class _AddressQrPopupState extends State<AddressQrPopup> {
                     Assets.svg.arrowDown,
                     width: 20,
                     height: 20,
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.buttonTextPrimary,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .buttonTextPrimary,
                   ),
                 ),
               ),

@@ -121,17 +121,17 @@ class _DesktopCoinControlViewState
               const SizedBox(width: 32),
               AppBarIconButton(
                 size: 32,
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldDefaultBG,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldDefaultBG,
                 shadows: const [],
                 icon: SvgPicture.asset(
                   Assets.svg.arrowLeft,
                   width: 18,
                   height: 18,
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.topNavIconPrimary,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .topNavIconPrimary,
                 ),
                 onPressed: Navigator.of(context).pop,
               ),
@@ -140,9 +140,9 @@ class _DesktopCoinControlViewState
                 Assets.svg.coinControl.gamePad,
                 width: 32,
                 height: 32,
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textSubtitle1,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textSubtitle1,
               ),
               const SizedBox(width: 12),
               Text("Coin control", style: STextStyles.desktopH3(context)),
@@ -175,9 +175,9 @@ class _DesktopCoinControlViewState
                       },
                       style: STextStyles.desktopTextExtraSmall(context)
                           .copyWith(
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textFieldActiveText,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textFieldActiveText,
                             height: 1.8,
                           ),
                       decoration:
@@ -320,12 +320,12 @@ class _DesktopCoinControlViewState
                         final _controller = RotateIconController();
 
                         return Expandable2(
-                          border: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.backgroundAppBar,
-                          background: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.popupBG,
+                          border: Theme.of(context)
+                              .extension<StackColors>()!
+                              .backgroundAppBar,
+                          background: Theme.of(context)
+                              .extension<StackColors>()!
+                              .popupBG,
                           animationDurationMultiplier: 0.2 * entry.value.length,
                           onExpandWillChange: (state) {
                             if (state == Expandable2State.expanded) {
@@ -367,9 +367,9 @@ class _DesktopCoinControlViewState
                                   icon: SvgPicture.asset(
                                     Assets.svg.chevronDown,
                                     width: 14,
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.textSubtitle1,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textSubtitle1,
                                   ),
                                   curve: Curves.easeInOut,
                                   controller: _controller,

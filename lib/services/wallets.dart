@@ -588,9 +588,8 @@ class Wallets {
       );
     } else if (walletInitFutures.isNotEmpty) {
       unawaited(
-        Future.wait(
-          walletInitFutures,
-        ).then((value) => _refreshFutures(idsToRefresh)),
+        Future.wait(walletInitFutures)
+            .then((value) => _refreshFutures(idsToRefresh)),
       );
     } else if (walletsToInitLinearly.isNotEmpty) {
       unawaited(_initLinearly(walletsToInitLinearly));

@@ -181,9 +181,8 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
                       "You are about to send your entire balance. "
                       "Would you like to continue?",
                       textAlign: TextAlign.left,
-                      style: STextStyles.desktopTextExtraExtraSmall(
-                        context,
-                      ).copyWith(fontSize: 18),
+                      style: STextStyles.desktopTextExtraExtraSmall(context)
+                          .copyWith(fontSize: 18),
                     ),
                   ),
                   const SizedBox(height: 40),
@@ -343,9 +342,8 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
                         child: SelectableText(
                           e.toString(),
                           textAlign: TextAlign.left,
-                          style: STextStyles.desktopTextExtraExtraSmall(
-                            context,
-                          ).copyWith(fontSize: 18),
+                          style: STextStyles.desktopTextExtraExtraSmall(context)
+                              .copyWith(fontSize: 18),
                         ),
                       ),
                       const SizedBox(height: 40),
@@ -722,9 +720,9 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
           Text(
             "Send from",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldActiveSearchIconRight,
             ),
             textAlign: TextAlign.left,
           ),
@@ -734,9 +732,9 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
             Text(
               "Amount",
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldActiveSearchIconRight,
               ),
               textAlign: TextAlign.left,
             ),
@@ -793,9 +791,9 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
             ),
             hintText: "0",
             hintStyle: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldDefaultText,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldDefaultText,
             ),
             prefixIcon: FittedBox(
               fit: BoxFit.scaleDown,
@@ -804,9 +802,9 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
                 child: Text(
                   tokenWallet.tokenSymbol,
                   style: STextStyles.smallMed14(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.accentColorDark,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
                   ),
                 ),
               ),
@@ -862,9 +860,9 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
               ),
               hintText: "0",
               hintStyle: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldDefaultText,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldDefaultText,
               ),
               prefixIcon: FittedBox(
                 fit: BoxFit.scaleDown,
@@ -877,9 +875,9 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
                       ),
                     ),
                     style: STextStyles.smallMed14(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
                     ),
                   ),
                 ),
@@ -890,9 +888,9 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
         Text(
           "Send to",
           style: STextStyles.desktopTextExtraSmall(context).copyWith(
-            color: Theme.of(
-              context,
-            ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .textFieldActiveSearchIconRight,
           ),
           textAlign: TextAlign.left,
         ),
@@ -929,9 +927,9 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
             },
             focusNode: _addressFocusNode,
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldActiveText,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldActiveText,
               height: 1.8,
             ),
             decoration:
@@ -1068,9 +1066,9 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
                     error,
                     textAlign: TextAlign.left,
                     style: STextStyles.label(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textError,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textError,
                     ),
                   ),
                 ),
@@ -1097,9 +1095,9 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
               setState(() {});
             },
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldActiveText,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldActiveText,
               height: 1.8,
             ),
             decoration:

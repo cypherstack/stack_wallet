@@ -999,9 +999,8 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
           (utxo) => processedTx.inputs.any(
             (input) =>
                 input.prevOut.hash.toHex ==
-                Uint8List.fromList(
-                  utxo.id.toUint8ListFromHex.reversed.toList(),
-                ).toHex,
+                Uint8List.fromList(utxo.id.toUint8ListFromHex.reversed.toList())
+                    .toHex,
           ),
         )
         .toList();

@@ -133,9 +133,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                       child: Text(
                         "Cancel",
                         style: STextStyles.button(context).copyWith(
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.buttonTextSecondary,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .buttonTextSecondary,
                         ),
                       ),
                     ),
@@ -195,9 +195,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
 
     return await showModalBottomSheet<bool?>(
       context: context,
-      backgroundColor: Theme.of(
-        context,
-      ).extension<StackColors>()!.backgroundAppBar,
+      backgroundColor: Theme.of(context)
+          .extension<StackColors>()!
+          .backgroundAppBar,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(Constants.size.circularBorderRadius * 3),
@@ -384,9 +384,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                   child: Text(
                     "Ok",
                     style: STextStyles.button(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.buttonTextSecondary,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .buttonTextSecondary,
                     ),
                   ),
                   onPressed: () {
@@ -410,9 +410,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
       },
       child: Background(
         child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
             leading: Padding(
               padding: const EdgeInsets.all(10),
@@ -425,9 +425,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                   width: 24,
                   height: 24,
                   colorFilter: ColorFilter.mode(
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()!.topNavIconPrimary,
+                    Theme.of(context)
+                        .extension<StackColors>()!
+                        .topNavIconPrimary,
                     .srcIn,
                   ),
                 ),
@@ -577,9 +577,9 @@ class _WarningInfo extends StatelessWidget {
               "You must send at least "
               "${model.payInAmount} ${model.sendTicker}. ",
           style: STextStyles.label700(context).copyWith(
-            color: Theme.of(
-              context,
-            ).extension<StackColors>()!.warningForeground,
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .warningForeground,
           ),
           children: [
             TextSpan(
@@ -589,9 +589,9 @@ class _WarningInfo extends StatelessWidget {
                   " your transaction may not be converted and it may not be"
                   " refunded.",
               style: STextStyles.label(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.warningForeground,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .warningForeground,
               ),
             ),
           ],

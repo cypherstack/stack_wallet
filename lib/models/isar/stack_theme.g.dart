@@ -1315,18 +1315,16 @@ P _stackThemeDeserializeProp<P>(
       return (reader.readLong(offset)) as P;
     case 6:
       return (reader.readObjectOrNull<ThemeAssets>(
-            offset,
-            ThemeAssetsSchema.deserialize,
-            allOffsets,
-          ))
-          as P;
+        offset,
+        ThemeAssetsSchema.deserialize,
+        allOffsets,
+      )) as P;
     case 7:
       return (reader.readObjectOrNull<ThemeAssetsV2>(
-            offset,
-            ThemeAssetsV2Schema.deserialize,
-            allOffsets,
-          ))
-          as P;
+        offset,
+        ThemeAssetsV2Schema.deserialize,
+        allOffsets,
+      )) as P;
     case 8:
       return (reader.readLong(offset)) as P;
     case 9:
@@ -1635,11 +1633,10 @@ P _stackThemeDeserializeProp<P>(
       return (reader.readLong(offset)) as P;
     case 161:
       return (reader.readObjectOrNull<ThemeAssetsV3>(
-            offset,
-            ThemeAssetsV3Schema.deserialize,
-            allOffsets,
-          ))
-          as P;
+        offset,
+        ThemeAssetsV3Schema.deserialize,
+        allOffsets,
+      )) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }

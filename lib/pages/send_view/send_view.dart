@@ -879,8 +879,7 @@ class _SendViewState extends ConsumerState<SendView> {
             builder: (context) {
               return StackDialog(
                 title: "Confirm send all",
-                message:
-                    "You are about to send your entire balance. Would you like to continue?",
+                message: "You are about to send your entire balance. Would you like to continue?",
                 leftButton: TextButton(
                   style: Theme.of(context)
                       .extension<StackColors>()!
@@ -888,9 +887,9 @@ class _SendViewState extends ConsumerState<SendView> {
                   child: Text(
                     "Cancel",
                     style: STextStyles.button(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
                     ),
                   ),
                   onPressed: () {
@@ -1164,9 +1163,9 @@ class _SendViewState extends ConsumerState<SendView> {
                   child: Text(
                     "Ok",
                     style: STextStyles.button(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
                     ),
                   ),
                   onPressed: () {
@@ -1543,9 +1542,9 @@ class _SendViewState extends ConsumerState<SendView> {
                           children: [
                             Container(
                               decoration: BoxDecoration(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.popupBG,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .popupBG,
                                 borderRadius: BorderRadius.circular(
                                   Constants.size.circularBorderRadius,
                                 ),
@@ -1578,16 +1577,14 @@ class _SendViewState extends ConsumerState<SendView> {
                                         if (isFiro || isMwebEnabled)
                                           Text(
                                             "${balType.name.capitalize()} balance",
-                                            style: STextStyles.label(
-                                              context,
-                                            ).copyWith(fontSize: 10),
+                                            style: STextStyles.label(context)
+                                                .copyWith(fontSize: 10),
                                           ),
                                         if (coin is! Firo)
                                           Text(
                                             "Available balance",
-                                            style: STextStyles.label(
-                                              context,
-                                            ).copyWith(fontSize: 10),
+                                            style: STextStyles.label(context)
+                                                .copyWith(fontSize: 10),
                                           ),
                                       ],
                                     ),
@@ -1808,8 +1805,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                               children: [
                                                 _addressToggleFlag
                                                     ? TextFieldIconButton(
-                                                        semanticsLabel:
-                                                            "Clear Button. Clears The Address Field Input.",
+                                                        semanticsLabel: "Clear Button. Clears The Address Field Input.",
                                                         key: const Key(
                                                           "sendViewClearAddressFieldButtonKey",
                                                         ),
@@ -1832,8 +1828,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                         child: const XIcon(),
                                                       )
                                                     : TextFieldIconButton(
-                                                        semanticsLabel:
-                                                            "Paste Button. Pastes From Clipboard To Address Field Input.",
+                                                        semanticsLabel: "Paste Button. Pastes From Clipboard To Address Field Input.",
                                                         key: const Key(
                                                           "sendViewPasteAddressFieldButtonKey",
                                                         ),
@@ -1849,8 +1844,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                     .text
                                                     .isEmpty)
                                                   TextFieldIconButton(
-                                                    semanticsLabel:
-                                                        "Address Book Button. Opens Address Book For Address Field.",
+                                                    semanticsLabel: "Address Book Button. Opens Address Book For Address Field.",
                                                     key: const Key(
                                                       "sendViewAddressBookButtonKey",
                                                     ),
@@ -1870,8 +1864,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                     .text
                                                     .isEmpty)
                                                   TextFieldIconButton(
-                                                    semanticsLabel:
-                                                        "Scan QR Button. Opens Camera For Scanning QR Code.",
+                                                    semanticsLabel: "Scan QR Button. Opens Camera For Scanning QR Code.",
                                                     key: const Key(
                                                       "sendViewScanQrButtonKey",
                                                     ),
@@ -1928,8 +1921,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                               children: [
                                                 memoController.text.isNotEmpty
                                                     ? TextFieldIconButton(
-                                                        semanticsLabel:
-                                                            "Clear Button. Clears The Memo Field Input.",
+                                                        semanticsLabel: "Clear Button. Clears The Memo Field Input.",
                                                         key: const Key(
                                                           "sendViewClearMemoFieldButtonKey",
                                                         ),
@@ -1941,8 +1933,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                         child: const XIcon(),
                                                       )
                                                     : TextFieldIconButton(
-                                                        semanticsLabel:
-                                                            "Paste Button. Pastes From Clipboard To Memo Field Input.",
+                                                        semanticsLabel: "Paste Button. Pastes From Clipboard To Memo Field Input.",
                                                         key: const Key(
                                                           "sendViewPasteMemoFieldButtonKey",
                                                         ),
@@ -2089,9 +2080,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                       horizontal: 12,
                                     ),
                                     child: RawMaterialButton(
-                                      splashColor: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.highlight,
+                                      splashColor: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .highlight,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(
                                           Constants.size.circularBorderRadius,
@@ -2215,9 +2206,9 @@ class _SendViewState extends ConsumerState<SendView> {
                               autocorrect: Util.isDesktop ? false : true,
                               enableSuggestions: Util.isDesktop ? false : true,
                               style: STextStyles.smallMed14(context).copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textDark,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark,
                               ),
                               key: const Key(
                                 "amountInputFieldCryptoTextFieldKey",
@@ -2255,9 +2246,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                   right: 12,
                                 ),
                                 hintText: "0",
-                                hintStyle: STextStyles.fieldLabel(
-                                  context,
-                                ).copyWith(fontSize: 14),
+                                hintStyle: STextStyles.fieldLabel(context)
+                                    .copyWith(fontSize: 14),
                                 prefixIcon: FittedBox(
                                   fit: BoxFit.scaleDown,
                                   child: Padding(
@@ -2286,9 +2276,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                     ? false
                                     : true,
                                 style: STextStyles.smallMed14(context).copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.textDark,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark,
                                 ),
                                 key: const Key(
                                   "amountInputFieldFiatTextFieldKey",
@@ -2324,9 +2314,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                     right: 12,
                                   ),
                                   hintText: "0",
-                                  hintStyle: STextStyles.fieldLabel(
-                                    context,
-                                  ).copyWith(fontSize: 14),
+                                  hintStyle: STextStyles.fieldLabel(context)
+                                      .copyWith(fontSize: 14),
                                   prefixIcon: FittedBox(
                                     fit: BoxFit.scaleDown,
                                     child: Padding(
@@ -2393,19 +2382,18 @@ class _SendViewState extends ConsumerState<SendView> {
                                           }
 
                                           final result =
-                                              await Navigator.of(
-                                                context,
-                                              ).pushNamed(
-                                                CoinControlView.routeName,
-                                                arguments: Tuple4(
-                                                  walletId,
-                                                  CoinControlViewType.use,
-                                                  amount,
-                                                  selectedUTXOs
-                                                      .map((e) => e.utxo)
-                                                      .toSet(),
-                                                ),
-                                              );
+                                              await Navigator.of(context)
+                                                  .pushNamed(
+                                                    CoinControlView.routeName,
+                                                    arguments: Tuple4(
+                                                      walletId,
+                                                      CoinControlViewType.use,
+                                                      amount,
+                                                      selectedUTXOs
+                                                          .map((e) => e.utxo)
+                                                          .toSet(),
+                                                    ),
+                                                  );
 
                                           if (result is Set<UTXO>) {
                                             setState(() {
@@ -2571,9 +2559,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                         horizontal: 12,
                                       ),
                                       child: RawMaterialButton(
-                                        splashColor: Theme.of(
-                                          context,
-                                        ).extension<StackColors>()!.highlight,
+                                        splashColor: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .highlight,
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(
                                             Constants.size.circularBorderRadius,
@@ -2761,9 +2749,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                   "bridge transaction.",
                                   textAlign: TextAlign.left,
                                   style: STextStyles.label(context).copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.textError,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textError,
                                   ),
                                 ),
                               ),

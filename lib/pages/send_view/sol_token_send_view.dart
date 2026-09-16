@@ -445,9 +445,9 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
                 child: Text(
                   "Ok",
                   style: STextStyles.button(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.accentColorDark,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
                   ),
                 ),
                 onPressed: () {
@@ -563,9 +563,9 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
                   child: Text(
                     "Ok",
                     style: STextStyles.button(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
                     ),
                   ),
                   onPressed: () {
@@ -688,9 +688,9 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
     if (tokenWallet == null) {
       return Background(
         child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
             leading: AppBarBackButton(
               onPressed: () async {
@@ -748,9 +748,9 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
                           children: [
                             Container(
                               decoration: BoxDecoration(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.popupBG,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .popupBG,
                                 borderRadius: BorderRadius.circular(
                                   Constants.size.circularBorderRadius,
                                 ),
@@ -775,9 +775,8 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
                                         ),
                                         Text(
                                           "Available balance",
-                                          style: STextStyles.label(
-                                            context,
-                                          ).copyWith(fontSize: 10),
+                                          style: STextStyles.label(context)
+                                              .copyWith(fontSize: 10),
                                         ),
                                       ],
                                     ),
@@ -1016,8 +1015,7 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
                                             children: [
                                               memoController.text.isNotEmpty
                                                   ? TextFieldIconButton(
-                                                      semanticsLabel:
-                                                          "Clear Button. Clears The Memo Field Input.",
+                                                      semanticsLabel: "Clear Button. Clears The Memo Field Input.",
                                                       key: const Key(
                                                         "sendSolTokenViewClearMemoFieldButtonKey",
                                                       ),
@@ -1029,8 +1027,7 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
                                                       child: const XIcon(),
                                                     )
                                                   : TextFieldIconButton(
-                                                      semanticsLabel:
-                                                          "Paste Button. Pastes From Clipboard To Memo Field Input.",
+                                                      semanticsLabel: "Paste Button. Pastes From Clipboard To Memo Field Input.",
                                                       key: const Key(
                                                         "sendSolTokenViewPasteMemoFieldButtonKey",
                                                       ),
@@ -1081,9 +1078,9 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
                               autocorrect: Util.isDesktop ? false : true,
                               enableSuggestions: Util.isDesktop ? false : true,
                               style: STextStyles.smallMed14(context).copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textDark,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark,
                               ),
                               key: const Key(
                                 "solAmountInputFieldCryptoTextFieldKey",
@@ -1111,9 +1108,8 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
                                   right: 12,
                                 ),
                                 hintText: "0",
-                                hintStyle: STextStyles.fieldLabel(
-                                  context,
-                                ).copyWith(fontSize: 14),
+                                hintStyle: STextStyles.fieldLabel(context)
+                                    .copyWith(fontSize: 14),
                                 prefixIcon: FittedBox(
                                   fit: BoxFit.scaleDown,
                                   child: Padding(
@@ -1140,9 +1136,9 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
                                     ? false
                                     : true,
                                 style: STextStyles.smallMed14(context).copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.textDark,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark,
                                 ),
                                 key: const Key(
                                   "solAmountInputFieldFiatTextFieldKey",
@@ -1170,9 +1166,8 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
                                     right: 12,
                                   ),
                                   hintText: "0",
-                                  hintStyle: STextStyles.fieldLabel(
-                                    context,
-                                  ).copyWith(fontSize: 14),
+                                  hintStyle: STextStyles.fieldLabel(context)
+                                      .copyWith(fontSize: 14),
                                   prefixIcon: FittedBox(
                                     fit: BoxFit.scaleDown,
                                     child: Padding(
@@ -1268,9 +1263,9 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
                                     horizontal: 12,
                                   ),
                                   child: RawMaterialButton(
-                                    splashColor: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.highlight,
+                                    splashColor: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .highlight,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(
                                         Constants.size.circularBorderRadius,

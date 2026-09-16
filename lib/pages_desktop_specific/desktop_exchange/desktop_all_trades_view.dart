@@ -112,17 +112,17 @@ class _DesktopAllTradesViewState extends ConsumerState<DesktopAllTradesView> {
             const SizedBox(width: 32),
             AppBarIconButton(
               size: 32,
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldDefaultBG,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldDefaultBG,
               shadows: const [],
               icon: SvgPicture.asset(
                 Assets.svg.arrowLeft,
                 width: 18,
                 height: 18,
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.topNavIconPrimary,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .topNavIconPrimary,
               ),
               onPressed: Navigator.of(context).pop,
             ),
@@ -155,9 +155,9 @@ class _DesktopAllTradesViewState extends ConsumerState<DesktopAllTradesView> {
                       },
                       style: STextStyles.desktopTextExtraSmall(context)
                           .copyWith(
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textFieldActiveText,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textFieldActiveText,
                             height: 1.8,
                           ),
                       decoration:
@@ -243,9 +243,9 @@ class _DesktopAllTradesViewState extends ConsumerState<DesktopAllTradesView> {
                                 primary: false,
                                 separatorBuilder: (context, _) => Container(
                                   height: 1,
-                                  color: Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.background,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .background,
                                 ),
                                 itemCount: month.item2.length,
                                 itemBuilder: (context, index) => Padding(
@@ -529,9 +529,9 @@ class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
                   "→ ${trade.payOutCurrency.toUpperCase()}",
                   style: STextStyles.desktopTextExtraExtraSmall(context)
                       .copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textDark,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark,
                       ),
                 ),
               ),
@@ -550,9 +550,9 @@ class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
                   "-${Decimal.tryParse(trade.payInAmount)?.toStringAsFixed(8) ?? "..."} ${trade.payInCurrency.toUpperCase()}",
                   style: STextStyles.desktopTextExtraExtraSmall(context)
                       .copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textDark,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark,
                       ),
                 ),
               ),
@@ -567,9 +567,9 @@ class _DesktopTradeRowCardState extends ConsumerState<DesktopTradeRowCard> {
                 Assets.svg.circleInfo,
                 width: 20,
                 height: 20,
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textSubtitle2,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textSubtitle2,
               ),
             ],
           ),
