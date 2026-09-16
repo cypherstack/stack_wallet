@@ -17,7 +17,27 @@ import '../../utilities/logger.dart';
 import '../../utilities/show_loading.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/dialogs/basic_dialog.dart';
 import '../../widgets/stack_dialog.dart';
+
+({String title, String message}) _quoteMismatchText({
+  required bool sameRecipient,
+  required bool sameAmount,
+}) {
+  final changed = switch ((sameRecipient, sameAmount)) {
+    (false, false) => "recipient and amount",
+    (false, true) => "recipient",
+    _ => "amount",
+  };
+  return (
+    title: "${changed[0].toUpperCase()}${changed.substring(1)} changed",
+    message:
+        "The payment request asked for a different $changed. "
+        "The seller may not recognize this payment.",
+  );
+}
 
 /// Map a wallet [CryptoCurrency] (plus optional token symbol) to the
 /// library's [CryptoCoin] descriptor.
@@ -60,6 +80,7 @@ class OpenCryptoPaySendHandler {
 
   final OpenCryptoPayController _controller;
   OpenCryptoPaySession? _session;
+  Amount? _quotedAmount;
 
   Future<void> showQuoteExpiredError(
     BuildContext context, {
@@ -101,6 +122,50 @@ class OpenCryptoPaySendHandler {
 
   bool isActivePaymentFor(String? recipientAddress) =>
       _session?.isActivePaymentFor(recipientAddress) ?? false;
+
+  /// Whether sending [amount] to [address] may proceed. A pending payment
+  /// request with another recipient or amount asks for confirmation;
+  /// continuing to another recipient abandons the request.
+  Future<bool> confirmSend(
+    BuildContext context,
+    String? address,
+    Amount amount,
+  ) async {
+    final session = _session;
+    if (session == null || session.isCompleted || session.isQuoteExpired) {
+      return true;
+    }
+    final sameRecipient = session.isActivePaymentFor(address);
+    final sameAmount = _quotedAmount == null || amount == _quotedAmount;
+    if (sameRecipient && sameAmount) return true;
+    if (!context.mounted) return false;
+    final text = _quoteMismatchText(
+      sameRecipient: sameRecipient,
+      sameAmount: sameAmount,
+    );
+    final proceed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => BasicDialog(
+        title: text.title,
+        message: text.message,
+        leftButton: SecondaryButton(
+          label: "Cancel",
+          onPressed: () => Navigator.of(context).pop(false),
+        ),
+        rightButton: PrimaryButton(
+          label: "Continue",
+          onPressed: () => Navigator.of(context).pop(true),
+        ),
+        flex: true,
+      ),
+    );
+    if (proceed == true && !sameRecipient) {
+      _session = null;
+      _quotedAmount = null;
+    }
+    return proceed ?? false;
+  }
 
   Future<void> _showError({
     required BuildContext context,
@@ -166,13 +231,11 @@ class OpenCryptoPaySendHandler {
     sendToController.text = address;
 
     final rawAmount = result.amountInSmallestUnit(_fractionDigits);
-    if (rawAmount != null) {
-      final parsed = Amount(
-        rawValue: rawAmount,
-        fractionDigits: _fractionDigits,
-      );
-      onAmountReceived(parsed);
-    }
+    final quoted = rawAmount == null
+        ? null
+        : Amount(rawValue: rawAmount, fractionDigits: _fractionDigits);
+    _quotedAmount = quoted;
+    if (quoted != null) onAmountReceived(quoted);
 
     setValidAddress(address);
   }
