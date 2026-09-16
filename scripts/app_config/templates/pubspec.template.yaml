@@ -274,7 +274,7 @@ dependencies:
   opencryptopay:
     git:
       url: https://github.com/Cyrix126/opencryptopay
-      ref: 83754ac3565573b0551db9a47dd63f2d79d36bbd
+      ref: 4069af5f721bf1e1efc8d5992daf2f4a8f58c8e9
 
 dev_dependencies:
   flutter_test:
