@@ -560,6 +560,7 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
   }
 
   void clearSendForm() {
+    _openCryptoPay.reset();
     sendToController.text = "";
     memoController.text = "";
     cryptoAmountController.text = "";

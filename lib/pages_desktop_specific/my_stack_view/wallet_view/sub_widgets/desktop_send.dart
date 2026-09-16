@@ -851,6 +851,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   }
 
   void clearSendForm() {
+    _openCryptoPay.reset();
     if (!mounted) {
       return;
     }

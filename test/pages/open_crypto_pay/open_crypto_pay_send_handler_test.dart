@@ -629,13 +629,12 @@ void main() {
       expect(setup.handler.isActivePaymentFor(_btcAddress), isTrue);
     });
 
-    testWidgets("another recipient asks and abandons the payment on Continue", (
+    testWidgets("another recipient asks and marks the request overridden", (
       tester,
     ) async {
-      final requests = <Uri>[];
       final harness = await _pumpHarness(tester);
-      final setup = await pendingPayment(tester, harness, requests: requests);
-      final requestsBefore = requests.length;
+      final setup = await pendingPayment(tester, harness);
+      expect(setup.handler.quoteOverridden, isFalse);
 
       final fut = setup.handler.confirmSend(
         harness.context,
@@ -652,6 +651,21 @@ void main() {
       await _tapButton(tester, "Continue");
       expect(await fut, isTrue);
 
+      expect(setup.handler.quoteOverridden, isTrue);
+      expect(setup.handler.isActivePaymentFor(_btcAddress), isTrue);
+    });
+
+    testWidgets("reset drops the request without a network call", (
+      tester,
+    ) async {
+      final requests = <Uri>[];
+      final harness = await _pumpHarness(tester);
+      final setup = await pendingPayment(tester, harness, requests: requests);
+      final requestsBefore = requests.length;
+
+      setup.handler.reset();
+
+      expect(setup.handler.quoteOverridden, isFalse);
       expect(setup.handler.isActivePaymentFor(_btcAddress), isFalse);
       expect(
         await setup.handler.submitProof(harness.context, "some_txid"),
@@ -659,15 +673,14 @@ void main() {
       );
       expect(requests.length, requestsBefore);
 
-      // A later send from the same form no longer asks.
-      final again = setup.handler.confirmSend(
+      final fut = setup.handler.confirmSend(
         harness.context,
-        "bc1qthird",
+        "bc1qother",
         _btc(1),
       );
       await tester.pump();
       expect(dialogTitle, findsNothing);
-      expect(await again, isTrue);
+      expect(await fut, isTrue);
     });
 
     testWidgets("both changed names recipient and amount", (tester) async {

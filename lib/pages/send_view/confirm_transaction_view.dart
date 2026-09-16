@@ -502,11 +502,13 @@ class _ConfirmTransactionViewState
             context: context,
           ),
         );
+        _discardOverriddenRequest();
         return;
       }
     } catch (e, s) {
       const message = "Broadcast transaction failed";
       Logging.instance.e(message, error: e, stackTrace: s);
+      _discardOverriddenRequest();
       // pop sending dialog
       if (context.mounted) {
         closeSendingDialog();
@@ -695,6 +697,7 @@ class _ConfirmTransactionViewState
       // The handler showed the error and retained the payment for retry.
       // Nothing was broadcast, so no funds moved.
       sendingDialog.close();
+      _discardOverriddenRequest();
       return;
     }
 
@@ -754,6 +757,16 @@ class _ConfirmTransactionViewState
     _noteFocusNode.dispose();
     _onChainNoteFocusNode.dispose();
     super.dispose();
+  }
+
+  /// After a failed send that overrode the payment request, drop the request
+  /// and clear the send form so the code can be scanned again.
+  void _discardOverriddenRequest() {
+    final handler = widget.openCryptoPayHandler;
+    if (handler == null || !handler.quoteOverridden) return;
+    handler.reset();
+    // Every send view clears its form in onSuccess.
+    widget.onSuccess.call();
   }
 
   /// Fee and amount sent to recipients, following the Firo balance type.

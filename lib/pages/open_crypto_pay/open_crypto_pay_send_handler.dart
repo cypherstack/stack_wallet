@@ -13,6 +13,7 @@ import 'package:opencryptopay/opencryptopay.dart';
 
 import '../../networking/http.dart';
 import '../../utilities/amount/amount.dart';
+import '../../utilities/extensions/extensions.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/show_loading.dart';
 import '../../utilities/util.dart';
@@ -32,7 +33,7 @@ import '../../widgets/stack_dialog.dart';
     _ => "amount",
   };
   return (
-    title: "${changed[0].toUpperCase()}${changed.substring(1)} changed",
+    title: "${changed.capitalize()} changed",
     message:
         "The payment request asked for a different $changed. "
         "The seller may not recognize this payment.",
@@ -81,6 +82,17 @@ class OpenCryptoPaySendHandler {
   final OpenCryptoPayController _controller;
   OpenCryptoPaySession? _session;
   Amount? _quotedAmount;
+  bool _quoteOverridden = false;
+
+  /// Whether the user chose to send despite a recipient or amount that
+  /// differs from the payment request.
+  bool get quoteOverridden => _quoteOverridden;
+
+  void reset() {
+    _session = null;
+    _quotedAmount = null;
+    _quoteOverridden = false;
+  }
 
   Future<void> showQuoteExpiredError(
     BuildContext context, {
@@ -124,8 +136,7 @@ class OpenCryptoPaySendHandler {
       _session?.isActivePaymentFor(recipientAddress) ?? false;
 
   /// Whether sending [amount] to [address] may proceed. A pending payment
-  /// request with another recipient or amount asks for confirmation;
-  /// continuing to another recipient abandons the request.
+  /// request with another recipient or amount asks for confirmation.
   Future<bool> confirmSend(
     BuildContext context,
     String? address,
@@ -160,10 +171,7 @@ class OpenCryptoPaySendHandler {
         flex: true,
       ),
     );
-    if (proceed == true && !sameRecipient) {
-      _session = null;
-      _quotedAmount = null;
-    }
+    if (proceed == true) _quoteOverridden = true;
     return proceed ?? false;
   }
 
@@ -235,6 +243,7 @@ class OpenCryptoPaySendHandler {
         ? null
         : Amount(rawValue: rawAmount, fractionDigits: _fractionDigits);
     _quotedAmount = quoted;
+    _quoteOverridden = false;
     if (quoted != null) onAmountReceived(quoted);
 
     setValidAddress(address);
