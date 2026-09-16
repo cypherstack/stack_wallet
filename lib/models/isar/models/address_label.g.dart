@@ -75,7 +75,7 @@ const AddressLabelSchema = CollectionSchema(
   getId: _addressLabelGetId,
   getLinks: _addressLabelGetLinks,
   attach: _addressLabelAttach,
-  version: '3.3.0-dev.2',
+  version: '3.3.2',
 );
 
 int _addressLabelEstimateSize(

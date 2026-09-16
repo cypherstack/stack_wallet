@@ -12,11 +12,14 @@ import '../textfield_icon_button.dart';
 class AdaptiveTextField extends StatefulWidget {
   const AdaptiveTextField({
     super.key,
+    this.textFieldKey,
     this.labelText,
     this.hintText,
     this.controller,
     this.focusNode,
+    this.style,
     this.autocorrect,
+    this.desktopMed = false,
     this.readOnly = false,
     this.enabled = true,
     this.enableSuggestions = true,
@@ -35,12 +38,15 @@ class AdaptiveTextField extends StatefulWidget {
     this.keyboardType,
   });
 
+  final Key? textFieldKey;
   final String? labelText;
   final String? hintText;
 
   final TextEditingController? controller;
   final FocusNode? focusNode;
+  final TextStyle? style;
   final bool? autocorrect;
+  final bool desktopMed;
   final EdgeInsets? contentPadding;
   final int? minLines;
   final int? maxLines;
@@ -127,11 +133,14 @@ class _AdaptiveTextFieldState extends State<AdaptiveTextField> {
             Constants.size.circularBorderRadius,
           ),
           child: TextField(
+            key: widget.textFieldKey,
             minLines: widget.minLines,
             maxLines: widget.maxLines,
-            style: Util.isDesktop
-                ? STextStyles.field(context).copyWith(fontSize: 16)
-                : STextStyles.field(context),
+            style:
+                widget.style ??
+                (Util.isDesktop
+                    ? STextStyles.field(context).copyWith(fontSize: 16)
+                    : STextStyles.field(context)),
             controller: controller,
             focusNode: _focusNode,
             onChanged: widget.onChanged,
@@ -148,6 +157,7 @@ class _AdaptiveTextFieldState extends State<AdaptiveTextField> {
                   widget.labelText,
                   _focusNode,
                   context,
+                  desktopMed: widget.desktopMed,
                 ).copyWith(
                   alignLabelWithHint: (widget.minLines ?? 1) > 2 ? true : null,
                   hintText: widget.hintText,
@@ -192,7 +202,24 @@ class _AdaptiveTextFieldState extends State<AdaptiveTextField> {
                               if (data?.text != null &&
                                   data!.text!.isNotEmpty) {
                                 final content = data.text!.trim();
-                                controller.text = content;
+                                // Setting controller.text directly skips
+                                // inputFormatters, so run them here as a
+                                // paste into the (empty) field would.
+                                TextEditingValue value = TextEditingValue(
+                                  text: content,
+                                  selection: TextSelection.collapsed(
+                                    offset: content.length,
+                                  ),
+                                );
+                                for (final formatter
+                                    in widget.inputFormatters ??
+                                        const <TextInputFormatter>[]) {
+                                  value = formatter.formatEditUpdate(
+                                    TextEditingValue.empty,
+                                    value,
+                                  );
+                                }
+                                controller.text = value.text;
                               }
                             } else {
                               controller.text = "";

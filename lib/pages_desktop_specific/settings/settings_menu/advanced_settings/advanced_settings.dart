@@ -43,9 +43,7 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.only(
-              right: 30,
-            ),
+            padding: const EdgeInsets.only(right: 30),
             child: RoundedWhiteContainer(
               radiusMultiplier: 2,
               child: Column(
@@ -74,7 +72,8 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                               ),
                               TextSpan(
                                 text:
-                                    "\n\nConfigure these settings only if you know what you are doing!",
+                                    "\n\nConfigure these settings only if you"
+                                    " know what you are doing!",
                                 style: STextStyles.desktopTextExtraExtraSmall(
                                   context,
                                 ),
@@ -85,50 +84,50 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                       ),
                       const Padding(
                         padding: EdgeInsets.all(10.0),
-                        child: Divider(
-                          thickness: 0.5,
-                        ),
+                        child: Divider(thickness: 0.5),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Toggle testnet coins",
-                              style: STextStyles.desktopTextExtraSmall(context)
-                                  .copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark,
+                      if (!AppConfig.isSingleCoinApp)
+                        Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Toggle testnet coins",
+                                style:
+                                    STextStyles.desktopTextExtraSmall(context)
+                                        .copyWith(
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textDark,
+                                        ),
+                                textAlign: TextAlign.left,
                               ),
-                              textAlign: TextAlign.left,
-                            ),
-                            SizedBox(
-                              height: 20,
-                              width: 40,
-                              child: DraggableSwitchButton(
-                                isOn: ref.watch(
-                                  prefsChangeNotifierProvider.select(
-                                    (value) => value.showTestNetCoins,
+                              SizedBox(
+                                height: 20,
+                                width: 40,
+                                child: DraggableSwitchButton(
+                                  isOn: ref.watch(
+                                    prefsChangeNotifierProvider.select(
+                                      (value) => value.showTestNetCoins,
+                                    ),
                                   ),
+                                  onValueChanged: (newValue) {
+                                    ref
+                                            .read(prefsChangeNotifierProvider)
+                                            .showTestNetCoins =
+                                        newValue;
+                                  },
                                 ),
-                                onValueChanged: (newValue) {
-                                  ref
-                                      .read(prefsChangeNotifierProvider)
-                                      .showTestNetCoins = newValue;
-                                },
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                      const Padding(
-                        padding: EdgeInsets.all(10.0),
-                        child: Divider(
-                          thickness: 0.5,
+                      if (!AppConfig.isSingleCoinApp)
+                        const Padding(
+                          padding: EdgeInsets.all(10.0),
+                          child: Divider(thickness: 0.5),
                         ),
-                      ),
                       Padding(
                         padding: const EdgeInsets.all(10),
                         child: Row(
@@ -138,10 +137,10 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                               "Enable coin control",
                               style: STextStyles.desktopTextExtraSmall(context)
                                   .copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark,
-                              ),
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark,
+                                  ),
                               textAlign: TextAlign.left,
                             ),
                             SizedBox(
@@ -155,8 +154,9 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                                 ),
                                 onValueChanged: (newValue) {
                                   ref
-                                      .read(prefsChangeNotifierProvider)
-                                      .enableCoinControl = newValue;
+                                          .read(prefsChangeNotifierProvider)
+                                          .enableCoinControl =
+                                      newValue;
                                 },
                               ),
                             ),
@@ -167,9 +167,7 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                       if (Constants.enableExchange)
                         const Padding(
                           padding: EdgeInsets.all(10.0),
-                          child: Divider(
-                            thickness: 0.5,
-                          ),
+                          child: Divider(thickness: 0.5),
                         ),
                       if (Constants.enableExchange)
                         Padding(
@@ -182,10 +180,10 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                                 style:
                                     STextStyles.desktopTextExtraSmall(context)
                                         .copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textDark,
-                                ),
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textDark,
+                                        ),
                                 textAlign: TextAlign.left,
                               ),
                               SizedBox(
@@ -199,8 +197,9 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                                   ),
                                   onValueChanged: (newValue) {
                                     ref
-                                        .read(prefsChangeNotifierProvider)
-                                        .enableExchange = newValue;
+                                            .read(prefsChangeNotifierProvider)
+                                            .enableExchange =
+                                        newValue;
                                   },
                                 ),
                               ),
@@ -209,17 +208,16 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                         ),
                       const Padding(
                         padding: EdgeInsets.all(10.0),
-                        child: Divider(
-                          thickness: 0.5,
-                        ),
+                        child: Divider(thickness: 0.5),
                       ),
 
                       /// TODO: Make a dialog popup
                       Consumer(
                         builder: (_, ref, __) {
                           final externalCalls = ref.watch(
-                            prefsChangeNotifierProvider
-                                .select((value) => value.externalCalls),
+                            prefsChangeNotifierProvider.select(
+                              (value) => value.externalCalls,
+                            ),
                           );
                           return Padding(
                             padding: const EdgeInsets.all(10),
@@ -231,23 +229,24 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                                   children: [
                                     Text(
                                       "${AppConfig.prefix} Experience",
-                                      style: STextStyles.desktopTextExtraSmall(
-                                        context,
-                                      ).copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textDark,
-                                      ),
+                                      style:
+                                          STextStyles.desktopTextExtraSmall(
+                                            context,
+                                          ).copyWith(
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textDark,
+                                          ),
                                       textAlign: TextAlign.left,
                                     ),
                                     Text(
                                       externalCalls
                                           ? "Easy crypto"
                                           : "Incognito",
-                                      style: STextStyles
-                                          .desktopTextExtraExtraSmall(
-                                        context,
-                                      ),
+                                      style:
+                                          STextStyles.desktopTextExtraExtraSmall(
+                                            context,
+                                          ),
                                     ),
                                   ],
                                 ),
@@ -275,9 +274,7 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                   ),
                   const Padding(
                     padding: EdgeInsets.all(10.0),
-                    child: Divider(
-                      thickness: 0.5,
-                    ),
+                    child: Divider(thickness: 0.5),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(10),
@@ -288,10 +285,10 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                           "Block explorers",
                           style: STextStyles.desktopTextExtraSmall(context)
                               .copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textDark,
-                          ),
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark,
+                              ),
                           textAlign: TextAlign.left,
                         ),
                         PrimaryButton(
@@ -314,9 +311,7 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                   ),
                   const Padding(
                     padding: EdgeInsets.all(10.0),
-                    child: Divider(
-                      thickness: 0.5,
-                    ),
+                    child: Divider(thickness: 0.5),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(10),
@@ -327,10 +322,10 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                           "Units",
                           style: STextStyles.desktopTextExtraSmall(context)
                               .copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textDark,
-                          ),
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark,
+                              ),
                           textAlign: TextAlign.left,
                         ),
                         PrimaryButton(
@@ -353,9 +348,7 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                   ),
                   const Padding(
                     padding: EdgeInsets.all(10.0),
-                    child: Divider(
-                      thickness: 0.5,
-                    ),
+                    child: Divider(thickness: 0.5),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(10),
@@ -366,10 +359,10 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                           "Logging",
                           style: STextStyles.desktopTextExtraSmall(context)
                               .copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textDark,
-                          ),
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark,
+                              ),
                           textAlign: TextAlign.left,
                         ),
                         PrimaryButton(
@@ -390,9 +383,7 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                       ],
                     ),
                   ),
-                  const SizedBox(
-                    height: 10,
-                  ),
+                  const SizedBox(height: 10),
                 ],
               ),
             ),

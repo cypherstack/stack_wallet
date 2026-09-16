@@ -43,7 +43,9 @@ abstract class CampfireMigration {
       final myHive = HiveImpl();
       myHive.init(appDirectory.path);
       _wallets = await myHive.openBox<dynamic>('wallets');
-      _secureStore = const FlutterSecureStorage();
+      _secureStore = const FlutterSecureStorage(
+        aOptions: AndroidOptions(resetOnError: false, migrateWithBackup: true),
+      );
     } else {
       await setDidRun();
     }

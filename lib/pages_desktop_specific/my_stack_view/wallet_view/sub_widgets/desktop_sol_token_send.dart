@@ -16,6 +16,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../models/isar/models/contact_entry.dart';
+import '../../../../models/isar/models/solana/sol_contract.dart';
 import '../../../../models/paynym/paynym_account_lite.dart';
 import '../../../../models/send_view_auto_fill_data.dart';
 import '../../../../pages/send_view/confirm_transaction_view.dart';
@@ -25,8 +26,9 @@ import '../../../../providers/ui/preview_tx_button_state_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/address_utils.dart';
 import '../../../../utilities/amount/amount.dart';
-import '../../../../utilities/amount/amount_formatter.dart';
+import '../../../../utilities/amount/amount_field_relocalization.dart';
 import '../../../../utilities/amount/amount_input_formatter.dart';
+import '../../../../utilities/amount/amount_unit.dart';
 import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/logger.dart';
@@ -49,6 +51,23 @@ import '../../../../widgets/stack_text_field.dart';
 import '../../../../widgets/textfield_icon_button.dart';
 import '../../../desktop_home_view.dart';
 import 'address_book_address_chooser/address_book_address_chooser.dart';
+
+Amount? parseDesktopSolTokenAmount(
+  String value, {
+  required String locale,
+  required CryptoCurrency coin,
+  required SolContract tokenContract,
+}) => AmountUnit.normal.tryParse(
+  value,
+  locale: locale,
+  coin: coin,
+  tokenContract: tokenContract,
+);
+
+Amount? parseDesktopSolTokenFiatAmount(
+  String value, {
+  required String locale,
+}) => Amount.tryParseFiatString(value, locale: locale);
 
 class DesktopSolTokenSend extends ConsumerStatefulWidget {
   const DesktopSolTokenSend({
@@ -162,9 +181,8 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
                       "You are about to send your entire balance. "
                       "Would you like to continue?",
                       textAlign: TextAlign.left,
-                      style: STextStyles.desktopTextExtraExtraSmall(
-                        context,
-                      ).copyWith(fontSize: 18),
+                      style: STextStyles.desktopTextExtraExtraSmall(context)
+                          .copyWith(fontSize: 18),
                     ),
                   ),
                   const SizedBox(height: 40),
@@ -324,9 +342,8 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
                         child: SelectableText(
                           e.toString(),
                           textAlign: TextAlign.left,
-                          style: STextStyles.desktopTextExtraExtraSmall(
-                            context,
-                          ).copyWith(fontSize: 18),
+                          style: STextStyles.desktopTextExtraExtraSmall(context)
+                              .copyWith(fontSize: 18),
                         ),
                       ),
                       const SizedBox(height: 40),
@@ -372,52 +389,45 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
 
   void _cryptoAmountChanged() async {
     if (!_cryptoAmountChangeLock) {
-      // Get the token's decimal places for proper amount parsing
-      final tokenDecimals = ref.read(pCurrentSolanaTokenWallet)!.tokenDecimals;
+      // Get the token's decimal places for proper amount parsing. May still
+      // be null while the token wallet is loading (e.g. a locale change
+      // fires the relocalization listener before init completes).
+      final tokenWallet = ref.read(pCurrentSolanaTokenWallet);
+      if (tokenWallet == null) return;
 
       if (cryptoAmountController.text.isNotEmpty &&
           cryptoAmountController.text != "." &&
           cryptoAmountController.text != ",") {
-        try {
-          // Parse the amount using the token's decimal places, not the coin's
-          final inputDecimal = Decimal.parse(
-            cryptoAmountController.text.replaceFirst(",", "."),
-          );
-          final cryptoAmount = Amount.fromDecimal(
-            inputDecimal,
-            fractionDigits: tokenDecimals,
-          );
-
-          // Only proceed if the parsed amount is valid
-          if (cryptoAmount.raw > BigInt.zero) {
-            _amountToSend = cryptoAmount;
-            if (_cachedAmountToSend != null &&
-                _cachedAmountToSend == _amountToSend) {
-              return;
-            }
-            _cachedAmountToSend = _amountToSend;
-
-            final price = ref
-                .read(priceAnd24hChangeNotifierProvider)
-                .getTokenPrice(ref.read(pCurrentSolanaTokenWallet)!.tokenMint)
-                ?.value;
-
-            if (price != null && price > Decimal.zero) {
-              final String fiatAmountString =
-                  Amount.fromDecimal(
-                    _amountToSend!.decimal * price,
-                    fractionDigits: 2,
-                  ).fiatString(
-                    locale: ref
-                        .read(localeServiceChangeNotifierProvider)
-                        .locale,
-                  );
-
-              baseAmountController.text = fiatAmountString;
-            }
+        final parsedAmount = parseDesktopSolTokenAmount(
+          cryptoAmountController.text,
+          locale: ref.read(localeServiceChangeNotifierProvider).locale,
+          coin: coin,
+          tokenContract: tokenWallet.solContract,
+        );
+        if (parsedAmount != null) {
+          _amountToSend = parsedAmount;
+          if (_cachedAmountToSend != null &&
+              _cachedAmountToSend == _amountToSend) {
+            return;
           }
-        } catch (e) {
-          // Probably an invalid decimal input.
+          _cachedAmountToSend = _amountToSend;
+
+          final price = ref
+              .read(priceAnd24hChangeNotifierProvider)
+              .getTokenPrice(tokenWallet.tokenMint)
+              ?.value;
+
+          if (price != null && price > Decimal.zero) {
+            final fiatAmount = Amount.fromDecimal(
+              _amountToSend!.decimal * price,
+              fractionDigits: 2,
+            );
+            baseAmountController.text = Amount.formatEditableDecimal(
+              fiatAmount.decimal,
+              locale: ref.read(localeServiceChangeNotifierProvider).locale,
+            );
+          }
+        } else {
           _amountToSend = null;
           _cachedAmountToSend = null;
           baseAmountController.text = "";
@@ -496,14 +506,22 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
 
         // autofill amount field
         if (paymentData.amount != null) {
-          final Amount amount = Decimal.parse(paymentData.amount!).toAmount(
+          final amount = Amount.tryParseCanonicalAmount(
+            paymentData.amount!,
             fractionDigits: ref.read(pCurrentSolanaTokenWallet)!.tokenDecimals,
+            truncateOverprecision: true,
           );
-          cryptoAmountController.text = ref
-              .read(pAmountFormatter(coin))
-              .format(amount, withUnitName: false);
-
-          _amountToSend = amount;
+          if (amount != null) {
+            cryptoAmountController.text = Amount.formatEditableDecimal(
+              amount.decimal,
+              locale: ref.read(localeServiceChangeNotifierProvider).locale,
+            );
+            _amountToSend = amount;
+          } else {
+            cryptoAmountController.clear();
+            _amountToSend = null;
+            _cachedAmountToSend = null;
+          }
         }
 
         _updatePreviewButtonState(_address, _amountToSend);
@@ -555,15 +573,12 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
         .read(pCurrentSolanaTokenWallet)!
         .tokenDecimals;
 
-    if (baseAmountString.isNotEmpty &&
-        baseAmountString != "." &&
-        baseAmountString != ",") {
-      final baseAmount = baseAmountString.contains(",")
-          ? Decimal.parse(
-              baseAmountString.replaceFirst(",", "."),
-            ).toAmount(fractionDigits: 2)
-          : Decimal.parse(baseAmountString).toAmount(fractionDigits: 2);
+    final baseAmount = parseDesktopSolTokenFiatAmount(
+      baseAmountString,
+      locale: ref.read(localeServiceChangeNotifierProvider).locale,
+    );
 
+    if (baseAmount != null) {
       final Decimal? _price = ref
           .read(priceAnd24hChangeNotifierProvider)
           .getTokenPrice(ref.read(pCurrentSolanaTokenWallet)!.tokenMint)
@@ -583,15 +598,15 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
       }
       _cachedAmountToSend = _amountToSend;
 
-      final amountString = ref
-          .read(pAmountFormatter(coin))
-          .format(_amountToSend!, withUnitName: false);
-
       _cryptoAmountChangeLock = true;
-      cryptoAmountController.text = amountString;
+      cryptoAmountController.text = Amount.formatEditableDecimal(
+        _amountToSend!.decimal,
+        locale: ref.read(localeServiceChangeNotifierProvider).locale,
+      );
       _cryptoAmountChangeLock = false;
     } else {
       _amountToSend = Decimal.zero.toAmount(fractionDigits: tokenDecimals);
+      _cachedAmountToSend = null;
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = "";
       _cryptoAmountChangeLock = false;
@@ -609,8 +624,9 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
       )),
     );
 
-    cryptoAmountController.text = balance.spendable.decimal.toStringAsFixed(
-      tokenWallet.tokenDecimals,
+    cryptoAmountController.text = Amount.formatEditableDecimal(
+      balance.spendable.decimal,
+      locale: ref.read(localeServiceChangeNotifierProvider).locale,
     );
   }
 
@@ -639,7 +655,15 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
 
     if (_data != null) {
       if (_data!.amount != null) {
-        cryptoAmountController.text = _data!.amount!.toString();
+        final tokenWallet = ref.read(pCurrentSolanaTokenWallet)!;
+        final amount = Amount.fromDecimal(
+          _data!.amount!,
+          fractionDigits: tokenWallet.tokenDecimals,
+        );
+        cryptoAmountController.text = Amount.formatEditableDecimal(
+          amount.decimal,
+          locale: ref.read(localeServiceChangeNotifierProvider).locale,
+        );
       }
       sendToController.text = _data!.contactLabel;
       _address = _data!.address;
@@ -670,6 +694,12 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
+    listenForAmountRelocalization(
+      ref.listen,
+      controllers: [cryptoAmountController, baseAmountController],
+      onRelocalized: _cryptoAmountChanged,
+    );
+
     final tokenWallet = ref.watch(pCurrentSolanaTokenWallet);
 
     // If wallet is not initialized, show a placeholder.
@@ -690,9 +720,9 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
           Text(
             "Send from",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldActiveSearchIconRight,
             ),
             textAlign: TextAlign.left,
           ),
@@ -702,9 +732,9 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
             Text(
               "Amount",
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldActiveSearchIconRight,
               ),
               textAlign: TextAlign.left,
             ),
@@ -733,8 +763,9 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
           textAlign: TextAlign.right,
           inputFormatters: [
             AmountInputFormatter(
+              controller: cryptoAmountController,
               decimals: tokenWallet.tokenDecimals,
-              unit: ref.watch(pAmountUnit(coin)),
+              unit: AmountUnit.normal,
               locale: ref.watch(
                 localeServiceChangeNotifierProvider.select(
                   (value) => value.locale,
@@ -760,9 +791,9 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
             ),
             hintText: "0",
             hintStyle: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldDefaultText,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldDefaultText,
             ),
             prefixIcon: FittedBox(
               fit: BoxFit.scaleDown,
@@ -771,9 +802,9 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
                 child: Text(
                   tokenWallet.tokenSymbol,
                   style: STextStyles.smallMed14(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.accentColorDark,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
                   ),
                 ),
               ),
@@ -805,6 +836,7 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
             textAlign: TextAlign.right,
             inputFormatters: [
               AmountInputFormatter(
+                controller: baseAmountController,
                 decimals: 2,
                 locale: ref.watch(
                   localeServiceChangeNotifierProvider.select(
@@ -828,9 +860,9 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
               ),
               hintText: "0",
               hintStyle: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldDefaultText,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldDefaultText,
               ),
               prefixIcon: FittedBox(
                 fit: BoxFit.scaleDown,
@@ -843,9 +875,9 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
                       ),
                     ),
                     style: STextStyles.smallMed14(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
                     ),
                   ),
                 ),
@@ -856,9 +888,9 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
         Text(
           "Send to",
           style: STextStyles.desktopTextExtraSmall(context).copyWith(
-            color: Theme.of(
-              context,
-            ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .textFieldActiveSearchIconRight,
           ),
           textAlign: TextAlign.left,
         ),
@@ -895,9 +927,9 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
             },
             focusNode: _addressFocusNode,
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldActiveText,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldActiveText,
               height: 1.8,
             ),
             decoration:
@@ -1034,9 +1066,9 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
                     error,
                     textAlign: TextAlign.left,
                     style: STextStyles.label(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textError,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textError,
                     ),
                   ),
                 ),
@@ -1063,9 +1095,9 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
               setState(() {});
             },
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldActiveText,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldActiveText,
               height: 1.8,
             ),
             decoration:
