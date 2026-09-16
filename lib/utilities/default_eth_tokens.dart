@@ -47,5 +47,12 @@ abstract class DefaultTokens {
       decimals: 18,
       type: EthContractType.erc20,
     ),
+    EthContract(
+      address: "0x2744ea5ac9b11cb5e3cd63d3a88e858336aeddc2",
+      name: "rsFIRO",
+      symbol: "rsFIRO",
+      decimals: 8,
+      type: EthContractType.erc20,
+    ),
   ];
 }
