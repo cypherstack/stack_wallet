@@ -91,18 +91,18 @@ abstract class LibSparkInterface {
   Uint8List serializeMintContext({required List<(String, int)> inputs});
 
   WrappedLibSparkCoin? identifyAndRecoverCoin(
-    final String serializedCoin, {
-    required final String privateKeyHex,
-    required final int index,
-    required final Uint8List context,
-    final bool isTestNet = false,
+    String serializedCoin, {
+    required String privateKeyHex,
+    required int index,
+    required Uint8List context,
+    bool isTestNet = false,
   });
 
   WrappedLibSparkCoin? identifyAndRecoverCoinByFullViewKey(
-    final String serializedCoin, {
-    required final String fullViewKeyHex,
-    required final Uint8List context,
-    final bool isTestNet = false,
+    String serializedCoin, {
+    required String fullViewKeyHex,
+    required Uint8List context,
+    bool isTestNet = false,
   });
 
   Future<String> getAddressFromFullViewKey({

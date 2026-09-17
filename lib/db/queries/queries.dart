@@ -42,12 +42,11 @@ extension MainDBQueries on MainDB {
     required CCFilter filter,
     required CCSortDescriptor sort,
     required String searchTerm,
+    required String locale,
     required CryptoCurrency cryptoCurrency,
   }) {
     var preSort = getUTXOs(walletId).filter().group((q) {
-      final qq = q.group(
-        (q) => q.usedIsNull().or().usedEqualTo(false),
-      );
+      final qq = q.group((q) => q.usedIsNull().or().usedEqualTo(false));
       switch (filter) {
         case CCFilter.frozen:
           return qq.and().isBlockedEqualTo(true);
@@ -59,39 +58,36 @@ extension MainDBQueries on MainDB {
     });
 
     if (searchTerm.isNotEmpty) {
-      preSort = preSort.and().group(
-        (q) {
-          var qq = q.addressContains(searchTerm, caseSensitive: false);
+      preSort = preSort.and().group((q) {
+        var qq = q.addressContains(searchTerm, caseSensitive: false);
 
-          qq = qq.or().nameContains(searchTerm, caseSensitive: false);
-          qq = qq.or().group(
-                (q) => q
-                    .isBlockedEqualTo(true)
-                    .and()
-                    .blockedReasonContains(searchTerm, caseSensitive: false),
-              );
+        qq = qq.or().nameContains(searchTerm, caseSensitive: false);
+        qq = qq.or().group(
+          (q) => q
+              .isBlockedEqualTo(true)
+              .and()
+              .blockedReasonContains(searchTerm, caseSensitive: false),
+        );
 
-          qq = qq.or().txidContains(searchTerm, caseSensitive: false);
-          qq = qq.or().blockHashContains(searchTerm, caseSensitive: false);
+        qq = qq.or().txidContains(searchTerm, caseSensitive: false);
+        qq = qq.or().blockHashContains(searchTerm, caseSensitive: false);
 
-          final maybeDecimal = Decimal.tryParse(searchTerm);
-          if (maybeDecimal != null) {
-            qq = qq.or().valueEqualTo(
-                  Amount.fromDecimal(
-                    maybeDecimal,
-                    fractionDigits: cryptoCurrency.fractionDigits,
-                  ).raw.toInt(),
-                );
-          }
+        final maybeAmount = Amount.tryParseEditableAmount(
+          searchTerm,
+          locale: locale,
+          fractionDigits: cryptoCurrency.fractionDigits,
+        );
+        if (maybeAmount != null) {
+          qq = qq.or().valueEqualTo(maybeAmount.raw.toInt());
+        }
 
-          final maybeInt = int.tryParse(searchTerm);
-          if (maybeInt != null) {
-            qq = qq.or().valueEqualTo(maybeInt);
-          }
+        final maybeInt = int.tryParse(searchTerm);
+        if (maybeInt != null) {
+          qq = qq.or().valueEqualTo(maybeInt);
+        }
 
-          return qq;
-        },
-      );
+        return qq;
+      });
     }
 
     final List<Id> ids;
@@ -114,12 +110,11 @@ extension MainDBQueries on MainDB {
     required CCFilter filter,
     required CCSortDescriptor sort,
     required String searchTerm,
+    required String locale,
     required CryptoCurrency cryptoCurrency,
   }) {
     var preSort = getUTXOs(walletId).filter().group((q) {
-      final qq = q.group(
-        (q) => q.usedIsNull().or().usedEqualTo(false),
-      );
+      final qq = q.group((q) => q.usedIsNull().or().usedEqualTo(false));
       switch (filter) {
         case CCFilter.frozen:
           return qq.and().isBlockedEqualTo(true);
@@ -131,39 +126,36 @@ extension MainDBQueries on MainDB {
     });
 
     if (searchTerm.isNotEmpty) {
-      preSort = preSort.and().group(
-        (q) {
-          var qq = q.addressContains(searchTerm, caseSensitive: false);
+      preSort = preSort.and().group((q) {
+        var qq = q.addressContains(searchTerm, caseSensitive: false);
 
-          qq = qq.or().nameContains(searchTerm, caseSensitive: false);
-          qq = qq.or().group(
-                (q) => q
-                    .isBlockedEqualTo(true)
-                    .and()
-                    .blockedReasonContains(searchTerm, caseSensitive: false),
-              );
+        qq = qq.or().nameContains(searchTerm, caseSensitive: false);
+        qq = qq.or().group(
+          (q) => q
+              .isBlockedEqualTo(true)
+              .and()
+              .blockedReasonContains(searchTerm, caseSensitive: false),
+        );
 
-          qq = qq.or().txidContains(searchTerm, caseSensitive: false);
-          qq = qq.or().blockHashContains(searchTerm, caseSensitive: false);
+        qq = qq.or().txidContains(searchTerm, caseSensitive: false);
+        qq = qq.or().blockHashContains(searchTerm, caseSensitive: false);
 
-          final maybeDecimal = Decimal.tryParse(searchTerm);
-          if (maybeDecimal != null) {
-            qq = qq.or().valueEqualTo(
-                  Amount.fromDecimal(
-                    maybeDecimal,
-                    fractionDigits: cryptoCurrency.fractionDigits,
-                  ).raw.toInt(),
-                );
-          }
+        final maybeAmount = Amount.tryParseEditableAmount(
+          searchTerm,
+          locale: locale,
+          fractionDigits: cryptoCurrency.fractionDigits,
+        );
+        if (maybeAmount != null) {
+          qq = qq.or().valueEqualTo(maybeAmount.raw.toInt());
+        }
 
-          final maybeInt = int.tryParse(searchTerm);
-          if (maybeInt != null) {
-            qq = qq.or().valueEqualTo(maybeInt);
-          }
+        final maybeInt = int.tryParse(searchTerm);
+        if (maybeInt != null) {
+          qq = qq.or().valueEqualTo(maybeInt);
+        }
 
-          return qq;
-        },
-      );
+        return qq;
+      });
     }
 
     final List<UTXO> utxos;

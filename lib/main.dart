@@ -24,7 +24,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:keyboard_dismisser/keyboard_dismisser.dart';
 import 'package:logger/logger.dart';
 import 'package:mobile_app_privacy/mobile_app_privacy.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:window_size/window_size.dart';
 
 import 'app_config.dart';
@@ -104,7 +103,7 @@ void main(List<String> args) async {
 
   GoogleFonts.config.allowRuntimeFetching = false;
   if (Platform.isIOS) {
-    Util.libraryPath = await getLibraryDirectory();
+    Util.isIpad = await Util.getIsIPad;
   }
   Screen? screen;
   if (Platform.isLinux || (Util.isDesktop && !Platform.isIOS)) {
@@ -293,17 +292,21 @@ void main(List<String> args) async {
   if (!Util.isDesktop) {
     final int dbVersion =
         DB.instance.get<dynamic>(
-              boxName: DB.boxNameDBInfo,
-              key: "hive_data_version",
-            )
-            as int? ??
+          boxName: DB.boxNameDBInfo,
+          key: "hive_data_version",
+        ) as int? ??
         0;
     if (dbVersion < Constants.currentDataVersion) {
       try {
         await DbVersionMigrator().migrate(
           dbVersion,
           secureStore: const SecureStorageWrapper(
-            store: FlutterSecureStorage(),
+            store: FlutterSecureStorage(
+              aOptions: AndroidOptions(
+                resetOnError: false,
+                migrateWithBackup: true,
+              ),
+            ),
             isDesktop: false,
           ),
         );
@@ -722,16 +725,16 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
   Future<void> goToRestoreSWB(String encrypted) async {
     if (!ref.read(prefsChangeNotifierProvider).hasPin) {
-      await Navigator.of(
-        ref.read(pNavKey).currentContext!,
-      ).pushNamed(CreatePinView.routeName, arguments: true).then((value) {
-        if (value is! bool || value == false) {
-          Navigator.of(ref.read(pNavKey).currentContext!).pushNamed(
-            RestoreFromEncryptedStringView.routeName,
-            arguments: encrypted,
-          );
-        }
-      });
+      await Navigator.of(ref.read(pNavKey).currentContext!)
+          .pushNamed(CreatePinView.routeName, arguments: true)
+          .then((value) {
+            if (value is! bool || value == false) {
+              Navigator.of(ref.read(pNavKey).currentContext!).pushNamed(
+                RestoreFromEncryptedStringView.routeName,
+                arguments: encrypted,
+              );
+            }
+          });
     } else {
       unawaited(
         Navigator.push(

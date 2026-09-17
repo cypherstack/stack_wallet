@@ -1,6 +1,5 @@
 //ON
 import 'package:flutter_libepiccash/epic_cash.dart' as epc;
-import 'package:flutter_libepiccash/git_versions.dart' as epic_versions;
 import 'package:flutter_libepiccash/lib.dart';
 import 'package:flutter_libepiccash/models/transaction.dart';
 
@@ -35,9 +34,8 @@ final class _LibEpicCashInterfaceImpl extends LibEpicCashInterface {
     required DynamicObject wallet,
     required String slateJson,
   }) async {
-    return (await wallet.get<EpicWallet>().txReceive(
-      slateJson: slateJson,
-    )).toRecord();
+    return (await wallet.get<EpicWallet>().txReceive(slateJson: slateJson))
+        .toRecord();
   }
 
   @override
@@ -45,9 +43,8 @@ final class _LibEpicCashInterfaceImpl extends LibEpicCashInterface {
     required DynamicObject wallet,
     required String slateJson,
   }) async {
-    return (await wallet.get<EpicWallet>().txFinalize(
-      slateJson: slateJson,
-    )).toRecord();
+    return (await wallet.get<EpicWallet>().txFinalize(slateJson: slateJson))
+        .toRecord();
   }
 
   @override
@@ -310,9 +307,6 @@ final class _LibEpicCashInterfaceImpl extends LibEpicCashInterface {
   Future<void> close({required DynamicObject wallet}) {
     return wallet.get<EpicWallet>().close();
   }
-
-  @override
-  String getPluginVersion() => epic_versions.getPluginVersion();
 }
 
 //END_ON

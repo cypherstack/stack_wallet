@@ -47,6 +47,7 @@ import '../../../../widgets/icon_widgets/x_icon.dart';
 import '../../../../widgets/stack_dialog.dart';
 import '../../../../widgets/stack_text_field.dart';
 import '../../../../widgets/textfield_icon_button.dart';
+
 // import 'package:web3dart/web3dart.dart';
 
 enum AddEditNodeViewType { add, edit }
@@ -191,9 +192,9 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                   child: Text(
                     "Cancel",
                     style: STextStyles.button(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
                     ),
                   ),
                 ),
@@ -267,9 +268,8 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
             .save(node, formData.password, true);
         await _notifyWalletsOfUpdatedNode();
         if (mounted) {
-          Navigator.of(
-            context,
-          ).popUntil(ModalRoute.withName(widget.routeOnSuccessOrDelete));
+          Navigator.of(context)
+              .popUntil(ModalRoute.withName(widget.routeOnSuccessOrDelete));
         }
         break;
       case AddEditNodeViewType.edit:
@@ -297,9 +297,8 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
             .save(node, formData.password, true);
         await _notifyWalletsOfUpdatedNode();
         if (mounted) {
-          Navigator.of(
-            context,
-          ).popUntil(ModalRoute.withName(widget.routeOnSuccessOrDelete));
+          Navigator.of(context)
+              .popUntil(ModalRoute.withName(widget.routeOnSuccessOrDelete));
         }
         break;
     }
@@ -474,9 +473,9 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
       condition: !isDesktop,
       builder: (child) => Background(
         child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
             leading: AppBarBackButton(
               onPressed: () async {
@@ -495,8 +494,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
             ),
             actions: [
               if (viewType == AddEditNodeViewType.add &&
-                  coin
-                      is CryptonoteCurrency) // TODO: [prio=low] do something other than `coin is CryptonoteCurrency` in the future
+                  coin is CryptonoteCurrency) // TODO: [prio=low] do something other than `coin is CryptonoteCurrency` in the future
                 Padding(
                   padding: const EdgeInsets.only(
                     top: 10,
@@ -509,15 +507,15 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                       key: const Key("qrNodeAppBarButtonKey"),
                       size: 36,
                       shadows: const [],
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.background,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .background,
                       icon: QrCodeIcon(
                         width: 20,
                         height: 20,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorDark,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
                       ),
                       onPressed: _scanQr,
                     ),
@@ -544,14 +542,14 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                       key: const Key("deleteNodeAppBarButtonKey"),
                       size: 36,
                       shadows: const [],
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.background,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .background,
                       icon: SvgPicture.asset(
                         Assets.svg.trash,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorDark,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
                         width: 20,
                         height: 20,
                       ),
@@ -619,19 +617,18 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                       ),
                     ],
                   ),
-                  if (coin
-                      is CryptonoteCurrency) // TODO: [prio=low] do something other than `coin is CryptonoteCurrency` in the future
+                  if (coin is CryptonoteCurrency) // TODO: [prio=low] do something other than `coin is CryptonoteCurrency` in the future
                     Padding(
                       padding: const EdgeInsets.only(right: 32),
                       child: AppBarIconButton(
                         size: 40,
                         color: isDesktop
-                            ? Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textFieldDefaultBG
-                            : Theme.of(
-                                context,
-                              ).extension<StackColors>()!.background,
+                            ? Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFieldDefaultBG
+                            : Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .background,
                         icon: const QrCodeIcon(width: 21, height: 21),
                         onPressed: _scanQr,
                       ),
@@ -828,16 +825,11 @@ class _NodeFormState extends ConsumerState<NodeForm> {
   }
 
   bool get canSave {
-    // 65535 is max tcp port
     return _nameController.text.isNotEmpty && canTestConnection;
   }
 
   bool get canTestConnection {
-    // 65535 is max tcp port
-    return _hostController.text.isNotEmpty &&
-        port != null &&
-        port! >= 0 &&
-        port! <= 65535;
+    return _hostController.text.isNotEmpty && isValidNodePort(port);
   }
 
   bool enableField(TextEditingController controller) {
@@ -1545,9 +1537,9 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                   fillColor: !widget.readOnly
                       ? null
                       : MaterialStateProperty.all(
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.checkboxBGDisabled,
+                          Theme.of(context)
+                              .extension<StackColors>()!
+                              .checkboxBGDisabled,
                         ),
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   value: _forceNoTor,
@@ -1613,9 +1605,9 @@ class RadioTextButton<T> extends StatelessWidget {
                 width: 20,
                 height: 20,
                 child: Radio<T>(
-                  activeColor: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.radioButtonIconEnabled,
+                  activeColor: Theme.of(context)
+                      .extension<StackColors>()!
+                      .radioButtonIconEnabled,
                   value: value,
                   groupValue: groupValue,
                   onChanged: !enabled

@@ -58,17 +58,16 @@ class _SortedExchangeProvidersState
     }
 
     flattened.sort((a, b) {
-      if (a.$2 == null && b.$2 == null) return 1;
-      if (a.$2 != null && b.$2 == null) return 0;
-      if (a.$2 == null && b.$2 != null) return 0;
+      if (a.$2 != null && b.$2 != null) {
+        assert(a.$2!.reversed == b.$2!.reversed);
+      }
 
-      // or we get problems!!!
-      assert(a.$2!.reversed == b.$2!.reversed);
+      final aRate = a.$2 == null ? null : _getRate(a.$2!, amount, rcvTicker);
+      final bRate = b.$2 == null ? null : _getRate(b.$2!, amount, rcvTicker);
 
-      return _getRate(a.$2!, amount, rcvTicker) >
-              _getRate(b.$2!, amount, rcvTicker)
-          ? 0
-          : 1;
+      if (aRate == null) return bRate == null ? 0 : 1;
+      if (bRate == null) return -1;
+      return bRate.decimal.compareTo(aRate.decimal);
     });
 
     return flattened;
@@ -77,9 +76,8 @@ class _SortedExchangeProvidersState
   Amount _getRate(Estimate e, Decimal amount, String rcvTicker) {
     int decimals;
     try {
-      decimals = AppConfig.getCryptoCurrencyForTicker(
-        rcvTicker,
-      )!.fractionDigits;
+      decimals = AppConfig.getCryptoCurrencyForTicker(rcvTicker)!
+          .fractionDigits;
     } catch (_) {
       decimals = 8; // some reasonable alternative
     }
@@ -173,9 +171,9 @@ class _SortedExchangeProvidersState
                           estimate: null,
                           pair: pair,
                           rateString: message ?? "Failed to fetch rate",
-                          rateColor: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.textError,
+                          rateColor: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textError,
                         );
                       },
                     );
@@ -224,9 +222,9 @@ class _SortedExchangeProvidersState
                         Util.isDesktop
                             ? Container(
                                 height: 1,
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.background,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .background,
                               )
                             : const SizedBox(height: 16),
                         child,

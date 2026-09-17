@@ -20,6 +20,12 @@ analyzer:
     - "lib/generated_plugin_registrant.dart"
     - "lib/wl_gen/generated/**"
     - '**/*.template.dart'
+    - build/**
+    - android/**
+    - ios/**
+    - windows/**
+    - macos/**
+    - linux/**
 
   # For more information see:
   # https://dart.dev/guides/language/analysis-options#enabling-additional-type-checks

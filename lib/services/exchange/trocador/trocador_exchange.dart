@@ -77,9 +77,9 @@ class TrocadorExchange extends Exchange {
             toNetwork: onlySupportedNetwork,
             toAmount: amount.toString(),
             receivingAddress: addressTo,
-            receivingMemo: null,
+            receivingMemo: extraId?.isNotEmpty == true ? extraId : null,
             refundAddress: addressRefund,
-            refundMemo: null,
+            refundMemo: refundExtraId.isNotEmpty ? refundExtraId : null,
             exchangeProvider: estimate!.exchangeProvider!,
             isFixedRate: fixedRate,
           )
@@ -92,9 +92,9 @@ class TrocadorExchange extends Exchange {
             toNetwork: onlySupportedNetwork,
             fromAmount: amount.toString(),
             receivingAddress: addressTo,
-            receivingMemo: null,
+            receivingMemo: extraId?.isNotEmpty == true ? extraId : null,
             refundAddress: addressRefund,
-            refundMemo: null,
+            refundMemo: refundExtraId.isNotEmpty ? refundExtraId : null,
             exchangeProvider: estimate!.exchangeProvider!,
             isFixedRate: fixedRate,
           );

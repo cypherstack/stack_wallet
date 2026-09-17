@@ -1,4 +1,3 @@
-import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -74,16 +73,14 @@ ShopInBitPaymentTarget parseShopInBitPaymentTarget({
 
   Amount? amount;
   if (amountStr != null && amountStr.isNotEmpty) {
-    try {
-      amount = Amount.fromDecimal(
-        Decimal.parse(amountStr),
-        fractionDigits: fractionDigits,
-      );
-    } catch (e, s) {
+    amount = Amount.tryParseCanonicalAmount(
+      amountStr,
+      fractionDigits: fractionDigits,
+      truncateOverprecision: true,
+    );
+    if (amount == null) {
       Logging.instance.e(
         "Failed to parse ShopInBit payment amount '$amountStr'",
-        error: e,
-        stackTrace: s,
       );
     }
   }
@@ -296,9 +293,9 @@ class ShopInBitPaymentMobileScaffold extends StatelessWidget {
           }
         },
         child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
             leading: AppBarBackButton(onPressed: onBack),
             title: Text("ShopinBit", style: STextStyles.navBarTitle(context)),

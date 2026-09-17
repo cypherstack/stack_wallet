@@ -24,7 +24,9 @@ final secureStoreProvider = Provider<SecureStorageInterface>((ref) {
     );
   } else {
     return const SecureStorageWrapper(
-      store: FlutterSecureStorage(),
+      store: FlutterSecureStorage(
+        aOptions: AndroidOptions(resetOnError: false, migrateWithBackup: true),
+      ),
       isDesktop: false,
     );
   }

@@ -69,31 +69,25 @@ class MockElectrumXClient extends _i1.Mock implements _i5.ElectrumXClient {
   }
 
   @override
-  _i2.CryptoCurrency get cryptoCurrency =>
-      (super.noSuchMethod(
-            Invocation.getter(#cryptoCurrency),
-            returnValue: _FakeCryptoCurrency_0(
-              this,
-              Invocation.getter(#cryptoCurrency),
-            ),
-          )
-          as _i2.CryptoCurrency);
+  _i2.CryptoCurrency get cryptoCurrency => (super.noSuchMethod(
+    Invocation.getter(#cryptoCurrency),
+    returnValue: _FakeCryptoCurrency_0(
+      this,
+      Invocation.getter(#cryptoCurrency),
+    ),
+  ) as _i2.CryptoCurrency);
 
   @override
-  _i6.TorPlainNetworkOption get netType =>
-      (super.noSuchMethod(
-            Invocation.getter(#netType),
-            returnValue: _i6.TorPlainNetworkOption.tor,
-          )
-          as _i6.TorPlainNetworkOption);
+  _i6.TorPlainNetworkOption get netType => (super.noSuchMethod(
+    Invocation.getter(#netType),
+    returnValue: _i6.TorPlainNetworkOption.tor,
+  ) as _i6.TorPlainNetworkOption);
 
   @override
-  String get host =>
-      (super.noSuchMethod(
-            Invocation.getter(#host),
-            returnValue: _i7.dummyValue<String>(this, Invocation.getter(#host)),
-          )
-          as String);
+  String get host => (super.noSuchMethod(
+    Invocation.getter(#host),
+    returnValue: _i7.dummyValue<String>(this, Invocation.getter(#host)),
+  ) as String);
 
   @override
   int get port =>
@@ -105,23 +99,20 @@ class MockElectrumXClient extends _i1.Mock implements _i5.ElectrumXClient {
           as bool);
 
   @override
-  int get currentFailoverIndex =>
-      (super.noSuchMethod(
-            Invocation.getter(#currentFailoverIndex),
-            returnValue: 0,
-          )
-          as int);
+  int get currentFailoverIndex => (super.noSuchMethod(
+    Invocation.getter(#currentFailoverIndex),
+    returnValue: 0,
+  ) as int);
 
   @override
   Duration get connectionTimeoutForSpecialCaseJsonRPCClients =>
       (super.noSuchMethod(
-            Invocation.getter(#connectionTimeoutForSpecialCaseJsonRPCClients),
-            returnValue: _FakeDuration_1(
-              this,
-              Invocation.getter(#connectionTimeoutForSpecialCaseJsonRPCClients),
-            ),
-          )
-          as Duration);
+        Invocation.getter(#connectionTimeoutForSpecialCaseJsonRPCClients),
+        returnValue: _FakeDuration_1(
+          this,
+          Invocation.getter(#connectionTimeoutForSpecialCaseJsonRPCClients),
+        ),
+      ) as Duration);
 
   @override
   set currentFailoverIndex(int? value) => super.noSuchMethod(
@@ -130,22 +121,18 @@ class MockElectrumXClient extends _i1.Mock implements _i5.ElectrumXClient {
   );
 
   @override
-  _i8.Future<void> closeAdapter() =>
-      (super.noSuchMethod(
-            Invocation.method(#closeAdapter, []),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
-          )
-          as _i8.Future<void>);
+  _i8.Future<void> closeAdapter() => (super.noSuchMethod(
+    Invocation.method(#closeAdapter, []),
+    returnValue: _i8.Future<void>.value(),
+    returnValueForMissingStub: _i8.Future<void>.value(),
+  ) as _i8.Future<void>);
 
   @override
-  _i8.Future<void> checkElectrumAdapter() =>
-      (super.noSuchMethod(
-            Invocation.method(#checkElectrumAdapter, []),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
-          )
-          as _i8.Future<void>);
+  _i8.Future<void> checkElectrumAdapter() => (super.noSuchMethod(
+    Invocation.method(#checkElectrumAdapter, []),
+    returnValue: _i8.Future<void>.value(),
+    returnValueForMissingStub: _i8.Future<void>.value(),
+  ) as _i8.Future<void>);
 
   @override
   _i8.Future<dynamic> request({
@@ -154,18 +141,16 @@ class MockElectrumXClient extends _i1.Mock implements _i5.ElectrumXClient {
     String? requestID,
     int? retries = 2,
     Duration? requestTimeout = const Duration(seconds: 60),
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#request, [], {
-              #command: command,
-              #args: args,
-              #requestID: requestID,
-              #retries: retries,
-              #requestTimeout: requestTimeout,
-            }),
-            returnValue: _i8.Future<dynamic>.value(),
-          )
-          as _i8.Future<dynamic>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#request, [], {
+      #command: command,
+      #args: args,
+      #requestID: requestID,
+      #retries: retries,
+      #requestTimeout: requestTimeout,
+    }),
+    returnValue: _i8.Future<dynamic>.value(),
+  ) as _i8.Future<dynamic>);
 
   @override
   _i8.Future<List<dynamic>> batchRequest({
@@ -173,367 +158,316 @@ class MockElectrumXClient extends _i1.Mock implements _i5.ElectrumXClient {
     required List<dynamic>? args,
     Duration? requestTimeout = const Duration(seconds: 60),
     int? retries = 2,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#batchRequest, [], {
-              #command: command,
-              #args: args,
-              #requestTimeout: requestTimeout,
-              #retries: retries,
-            }),
-            returnValue: _i8.Future<List<dynamic>>.value(<dynamic>[]),
-          )
-          as _i8.Future<List<dynamic>>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#batchRequest, [], {
+      #command: command,
+      #args: args,
+      #requestTimeout: requestTimeout,
+      #retries: retries,
+    }),
+    returnValue: _i8.Future<List<dynamic>>.value(<dynamic>[]),
+  ) as _i8.Future<List<dynamic>>);
 
   @override
-  _i8.Future<bool> ping({String? requestID, int? retryCount = 1}) =>
-      (super.noSuchMethod(
-            Invocation.method(#ping, [], {
-              #requestID: requestID,
-              #retryCount: retryCount,
-            }),
-            returnValue: _i8.Future<bool>.value(false),
-          )
-          as _i8.Future<bool>);
+  _i8.Future<bool> ping({
+    String? requestID,
+    int? retryCount = 1,
+    Duration? timeout = const Duration(seconds: 30),
+  }) => (super.noSuchMethod(
+    Invocation.method(#ping, [], {
+      #requestID: requestID,
+      #retryCount: retryCount,
+      #timeout: timeout,
+    }),
+    returnValue: _i8.Future<bool>.value(false),
+  ) as _i8.Future<bool>);
 
   @override
   _i8.Future<Map<String, dynamic>> getBlockHeadTip({String? requestID}) =>
       (super.noSuchMethod(
-            Invocation.method(#getBlockHeadTip, [], {#requestID: requestID}),
-            returnValue: _i8.Future<Map<String, dynamic>>.value(
-              <String, dynamic>{},
-            ),
-          )
-          as _i8.Future<Map<String, dynamic>>);
+        Invocation.method(#getBlockHeadTip, [], {#requestID: requestID}),
+        returnValue: _i8.Future<Map<String, dynamic>>.value(
+          <String, dynamic>{},
+        ),
+      ) as _i8.Future<Map<String, dynamic>>);
 
   @override
   _i8.Future<Map<String, dynamic>> getServerFeatures({String? requestID}) =>
       (super.noSuchMethod(
-            Invocation.method(#getServerFeatures, [], {#requestID: requestID}),
-            returnValue: _i8.Future<Map<String, dynamic>>.value(
-              <String, dynamic>{},
-            ),
-          )
-          as _i8.Future<Map<String, dynamic>>);
+        Invocation.method(#getServerFeatures, [], {#requestID: requestID}),
+        returnValue: _i8.Future<Map<String, dynamic>>.value(
+          <String, dynamic>{},
+        ),
+      ) as _i8.Future<Map<String, dynamic>>);
 
   @override
   _i8.Future<String> broadcastTransaction({
     required String? rawTx,
     String? requestID,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#broadcastTransaction, [], {
-              #rawTx: rawTx,
-              #requestID: requestID,
-            }),
-            returnValue: _i8.Future<String>.value(
-              _i7.dummyValue<String>(
-                this,
-                Invocation.method(#broadcastTransaction, [], {
-                  #rawTx: rawTx,
-                  #requestID: requestID,
-                }),
-              ),
-            ),
-          )
-          as _i8.Future<String>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#broadcastTransaction, [], {
+      #rawTx: rawTx,
+      #requestID: requestID,
+    }),
+    returnValue: _i8.Future<String>.value(
+      _i7.dummyValue<String>(
+        this,
+        Invocation.method(#broadcastTransaction, [], {
+          #rawTx: rawTx,
+          #requestID: requestID,
+        }),
+      ),
+    ),
+  ) as _i8.Future<String>);
 
   @override
   _i8.Future<Map<String, dynamic>> getBalance({
     required String? scripthash,
     String? requestID,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#getBalance, [], {
-              #scripthash: scripthash,
-              #requestID: requestID,
-            }),
-            returnValue: _i8.Future<Map<String, dynamic>>.value(
-              <String, dynamic>{},
-            ),
-          )
-          as _i8.Future<Map<String, dynamic>>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#getBalance, [], {
+      #scripthash: scripthash,
+      #requestID: requestID,
+    }),
+    returnValue: _i8.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
+  ) as _i8.Future<Map<String, dynamic>>);
 
   @override
   _i8.Future<List<Map<String, dynamic>>> getHistory({
     required String? scripthash,
     String? requestID,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#getHistory, [], {
-              #scripthash: scripthash,
-              #requestID: requestID,
-            }),
-            returnValue: _i8.Future<List<Map<String, dynamic>>>.value(
-              <Map<String, dynamic>>[],
-            ),
-          )
-          as _i8.Future<List<Map<String, dynamic>>>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#getHistory, [], {
+      #scripthash: scripthash,
+      #requestID: requestID,
+    }),
+    returnValue: _i8.Future<List<Map<String, dynamic>>>.value(
+      <Map<String, dynamic>>[],
+    ),
+  ) as _i8.Future<List<Map<String, dynamic>>>);
 
   @override
   _i8.Future<List<List<Map<String, dynamic>>>> getBatchHistory({
     required List<dynamic>? args,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#getBatchHistory, [], {#args: args}),
-            returnValue: _i8.Future<List<List<Map<String, dynamic>>>>.value(
-              <List<Map<String, dynamic>>>[],
-            ),
-          )
-          as _i8.Future<List<List<Map<String, dynamic>>>>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#getBatchHistory, [], {#args: args}),
+    returnValue: _i8.Future<List<List<Map<String, dynamic>>>>.value(
+      <List<Map<String, dynamic>>>[],
+    ),
+  ) as _i8.Future<List<List<Map<String, dynamic>>>>);
 
   @override
   _i8.Future<List<Map<String, dynamic>>> getUTXOs({
     required String? scripthash,
     String? requestID,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#getUTXOs, [], {
-              #scripthash: scripthash,
-              #requestID: requestID,
-            }),
-            returnValue: _i8.Future<List<Map<String, dynamic>>>.value(
-              <Map<String, dynamic>>[],
-            ),
-          )
-          as _i8.Future<List<Map<String, dynamic>>>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#getUTXOs, [], {
+      #scripthash: scripthash,
+      #requestID: requestID,
+    }),
+    returnValue: _i8.Future<List<Map<String, dynamic>>>.value(
+      <Map<String, dynamic>>[],
+    ),
+  ) as _i8.Future<List<Map<String, dynamic>>>);
 
   @override
   _i8.Future<List<List<Map<String, dynamic>>>> getBatchUTXOs({
     required List<dynamic>? args,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#getBatchUTXOs, [], {#args: args}),
-            returnValue: _i8.Future<List<List<Map<String, dynamic>>>>.value(
-              <List<Map<String, dynamic>>>[],
-            ),
-          )
-          as _i8.Future<List<List<Map<String, dynamic>>>>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#getBatchUTXOs, [], {#args: args}),
+    returnValue: _i8.Future<List<List<Map<String, dynamic>>>>.value(
+      <List<Map<String, dynamic>>>[],
+    ),
+  ) as _i8.Future<List<List<Map<String, dynamic>>>>);
 
   @override
   _i8.Future<Map<String, dynamic>> getTransaction({
     required String? txHash,
     bool? verbose = true,
     String? requestID,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#getTransaction, [], {
-              #txHash: txHash,
-              #verbose: verbose,
-              #requestID: requestID,
-            }),
-            returnValue: _i8.Future<Map<String, dynamic>>.value(
-              <String, dynamic>{},
-            ),
-          )
-          as _i8.Future<Map<String, dynamic>>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#getTransaction, [], {
+      #txHash: txHash,
+      #verbose: verbose,
+      #requestID: requestID,
+    }),
+    returnValue: _i8.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
+  ) as _i8.Future<Map<String, dynamic>>);
 
   @override
   _i8.Future<List<Map<String, dynamic>>> getBatchTransactions({
     required List<String>? txHashes,
     String? requestID,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#getBatchTransactions, [], {
-              #txHashes: txHashes,
-              #requestID: requestID,
-            }),
-            returnValue: _i8.Future<List<Map<String, dynamic>>>.value(
-              <Map<String, dynamic>>[],
-            ),
-          )
-          as _i8.Future<List<Map<String, dynamic>>>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#getBatchTransactions, [], {
+      #txHashes: txHashes,
+      #requestID: requestID,
+    }),
+    returnValue: _i8.Future<List<Map<String, dynamic>>>.value(
+      <Map<String, dynamic>>[],
+    ),
+  ) as _i8.Future<List<Map<String, dynamic>>>);
 
   @override
   _i8.Future<Map<String, dynamic>> getLelantusAnonymitySet({
     String? groupId = '1',
     String? blockhash = '',
     String? requestID,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#getLelantusAnonymitySet, [], {
-              #groupId: groupId,
-              #blockhash: blockhash,
-              #requestID: requestID,
-            }),
-            returnValue: _i8.Future<Map<String, dynamic>>.value(
-              <String, dynamic>{},
-            ),
-          )
-          as _i8.Future<Map<String, dynamic>>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#getLelantusAnonymitySet, [], {
+      #groupId: groupId,
+      #blockhash: blockhash,
+      #requestID: requestID,
+    }),
+    returnValue: _i8.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
+  ) as _i8.Future<Map<String, dynamic>>);
 
   @override
   _i8.Future<dynamic> getLelantusMintData({dynamic mints, String? requestID}) =>
       (super.noSuchMethod(
-            Invocation.method(#getLelantusMintData, [], {
-              #mints: mints,
-              #requestID: requestID,
-            }),
-            returnValue: _i8.Future<dynamic>.value(),
-          )
-          as _i8.Future<dynamic>);
+        Invocation.method(#getLelantusMintData, [], {
+          #mints: mints,
+          #requestID: requestID,
+        }),
+        returnValue: _i8.Future<dynamic>.value(),
+      ) as _i8.Future<dynamic>);
 
   @override
   _i8.Future<Map<String, dynamic>> getLelantusUsedCoinSerials({
     String? requestID,
     required int? startNumber,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#getLelantusUsedCoinSerials, [], {
-              #requestID: requestID,
-              #startNumber: startNumber,
-            }),
-            returnValue: _i8.Future<Map<String, dynamic>>.value(
-              <String, dynamic>{},
-            ),
-          )
-          as _i8.Future<Map<String, dynamic>>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#getLelantusUsedCoinSerials, [], {
+      #requestID: requestID,
+      #startNumber: startNumber,
+    }),
+    returnValue: _i8.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
+  ) as _i8.Future<Map<String, dynamic>>);
 
   @override
   _i8.Future<int> getLelantusLatestCoinId({String? requestID}) =>
       (super.noSuchMethod(
-            Invocation.method(#getLelantusLatestCoinId, [], {
-              #requestID: requestID,
-            }),
-            returnValue: _i8.Future<int>.value(0),
-          )
-          as _i8.Future<int>);
+        Invocation.method(#getLelantusLatestCoinId, [], {
+          #requestID: requestID,
+        }),
+        returnValue: _i8.Future<int>.value(0),
+      ) as _i8.Future<int>);
 
   @override
   _i8.Future<Map<String, dynamic>> getSparkAnonymitySet({
     String? coinGroupId = '1',
     String? startBlockHash = '',
     String? requestID,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#getSparkAnonymitySet, [], {
-              #coinGroupId: coinGroupId,
-              #startBlockHash: startBlockHash,
-              #requestID: requestID,
-            }),
-            returnValue: _i8.Future<Map<String, dynamic>>.value(
-              <String, dynamic>{},
-            ),
-          )
-          as _i8.Future<Map<String, dynamic>>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#getSparkAnonymitySet, [], {
+      #coinGroupId: coinGroupId,
+      #startBlockHash: startBlockHash,
+      #requestID: requestID,
+    }),
+    returnValue: _i8.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
+  ) as _i8.Future<Map<String, dynamic>>);
 
   @override
   _i8.Future<int> getSparkLatestCoinId({String? requestID}) =>
       (super.noSuchMethod(
-            Invocation.method(#getSparkLatestCoinId, [], {
-              #requestID: requestID,
-            }),
-            returnValue: _i8.Future<int>.value(0),
-          )
-          as _i8.Future<int>);
+        Invocation.method(#getSparkLatestCoinId, [], {#requestID: requestID}),
+        returnValue: _i8.Future<int>.value(0),
+      ) as _i8.Future<int>);
 
   @override
   _i8.Future<Set<String>> getMempoolTxids({String? requestID}) =>
       (super.noSuchMethod(
-            Invocation.method(#getMempoolTxids, [], {#requestID: requestID}),
-            returnValue: _i8.Future<Set<String>>.value(<String>{}),
-          )
-          as _i8.Future<Set<String>>);
+        Invocation.method(#getMempoolTxids, [], {#requestID: requestID}),
+        returnValue: _i8.Future<Set<String>>.value(<String>{}),
+      ) as _i8.Future<Set<String>>);
 
   @override
   _i8.Future<List<_i3.SparkMempoolData>> getMempoolSparkData({
     String? requestID,
     required List<String>? txids,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#getMempoolSparkData, [], {
-              #requestID: requestID,
-              #txids: txids,
-            }),
-            returnValue: _i8.Future<List<_i3.SparkMempoolData>>.value(
-              <_i3.SparkMempoolData>[],
-            ),
-          )
-          as _i8.Future<List<_i3.SparkMempoolData>>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#getMempoolSparkData, [], {
+      #requestID: requestID,
+      #txids: txids,
+    }),
+    returnValue: _i8.Future<List<_i3.SparkMempoolData>>.value(
+      <_i3.SparkMempoolData>[],
+    ),
+  ) as _i8.Future<List<_i3.SparkMempoolData>>);
 
   @override
   _i8.Future<List<List<dynamic>>> getSparkUnhashedUsedCoinsTagsWithTxHashes({
     String? requestID,
     required int? startNumber,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#getSparkUnhashedUsedCoinsTagsWithTxHashes, [], {
-              #requestID: requestID,
-              #startNumber: startNumber,
-            }),
-            returnValue: _i8.Future<List<List<dynamic>>>.value(
-              <List<dynamic>>[],
-            ),
-          )
-          as _i8.Future<List<List<dynamic>>>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#getSparkUnhashedUsedCoinsTagsWithTxHashes, [], {
+      #requestID: requestID,
+      #startNumber: startNumber,
+    }),
+    returnValue: _i8.Future<List<List<dynamic>>>.value(<List<dynamic>>[]),
+  ) as _i8.Future<List<List<dynamic>>>);
 
   @override
   _i8.Future<List<({String address, String name})>> getSparkNames({
     String? requestID,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#getSparkNames, [], {#requestID: requestID}),
-            returnValue:
-                _i8.Future<List<({String address, String name})>>.value(
-                  <({String address, String name})>[],
-                ),
-          )
-          as _i8.Future<List<({String address, String name})>>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#getSparkNames, [], {#requestID: requestID}),
+    returnValue: _i8.Future<List<({String address, String name})>>.value(
+      <({String address, String name})>[],
+    ),
+  ) as _i8.Future<List<({String address, String name})>>);
 
   @override
   _i8.Future<({String additionalInfo, String address, int validUntil})>
-  getSparkNameData({required String? sparkName, String? requestID}) =>
-      (super.noSuchMethod(
+  getSparkNameData({
+    required String? sparkName,
+    String? requestID,
+  }) => (super.noSuchMethod(
+    Invocation.method(#getSparkNameData, [], {
+      #sparkName: sparkName,
+      #requestID: requestID,
+    }),
+    returnValue:
+        _i8.Future<
+          ({String additionalInfo, String address, int validUntil})
+        >.value((
+          additionalInfo: _i7.dummyValue<String>(
+            this,
             Invocation.method(#getSparkNameData, [], {
               #sparkName: sparkName,
               #requestID: requestID,
             }),
-            returnValue:
-                _i8.Future<
-                  ({String additionalInfo, String address, int validUntil})
-                >.value((
-                  additionalInfo: _i7.dummyValue<String>(
-                    this,
-                    Invocation.method(#getSparkNameData, [], {
-                      #sparkName: sparkName,
-                      #requestID: requestID,
-                    }),
-                  ),
-                  address: _i7.dummyValue<String>(
-                    this,
-                    Invocation.method(#getSparkNameData, [], {
-                      #sparkName: sparkName,
-                      #requestID: requestID,
-                    }),
-                  ),
-                  validUntil: 0,
-                )),
-          )
-          as _i8.Future<
-            ({String additionalInfo, String address, int validUntil})
-          >);
+          ),
+          address: _i7.dummyValue<String>(
+            this,
+            Invocation.method(#getSparkNameData, [], {
+              #sparkName: sparkName,
+              #requestID: requestID,
+            }),
+          ),
+          validUntil: 0,
+        )),
+  ) as _i8.Future<({String additionalInfo, String address, int validUntil})>);
 
   @override
   _i8.Future<_i3.SparkAnonymitySetMeta> getSparkAnonymitySetMeta({
     String? requestID,
     required int? coinGroupId,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#getSparkAnonymitySetMeta, [], {
-              #requestID: requestID,
-              #coinGroupId: coinGroupId,
-            }),
-            returnValue: _i8.Future<_i3.SparkAnonymitySetMeta>.value(
-              _FakeSparkAnonymitySetMeta_2(
-                this,
-                Invocation.method(#getSparkAnonymitySetMeta, [], {
-                  #requestID: requestID,
-                  #coinGroupId: coinGroupId,
-                }),
-              ),
-            ),
-          )
-          as _i8.Future<_i3.SparkAnonymitySetMeta>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#getSparkAnonymitySetMeta, [], {
+      #requestID: requestID,
+      #coinGroupId: coinGroupId,
+    }),
+    returnValue: _i8.Future<_i3.SparkAnonymitySetMeta>.value(
+      _FakeSparkAnonymitySetMeta_2(
+        this,
+        Invocation.method(#getSparkAnonymitySetMeta, [], {
+          #requestID: requestID,
+          #coinGroupId: coinGroupId,
+        }),
+      ),
+    ),
+  ) as _i8.Future<_i3.SparkAnonymitySetMeta>);
 
   @override
   _i8.Future<List<dynamic>> getSparkAnonymitySetBySector({
@@ -542,79 +476,70 @@ class MockElectrumXClient extends _i1.Mock implements _i5.ElectrumXClient {
     required String? latestBlock,
     required int? startIndex,
     required int? endIndex,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#getSparkAnonymitySetBySector, [], {
-              #requestID: requestID,
-              #coinGroupId: coinGroupId,
-              #latestBlock: latestBlock,
-              #startIndex: startIndex,
-              #endIndex: endIndex,
-            }),
-            returnValue: _i8.Future<List<dynamic>>.value(<dynamic>[]),
-          )
-          as _i8.Future<List<dynamic>>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#getSparkAnonymitySetBySector, [], {
+      #requestID: requestID,
+      #coinGroupId: coinGroupId,
+      #latestBlock: latestBlock,
+      #startIndex: startIndex,
+      #endIndex: endIndex,
+    }),
+    returnValue: _i8.Future<List<dynamic>>.value(<dynamic>[]),
+  ) as _i8.Future<List<dynamic>>);
 
   @override
   _i8.Future<bool> isMasterNodeCollateral({
     String? requestID,
     required String? txid,
     required int? index,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#isMasterNodeCollateral, [], {
-              #requestID: requestID,
-              #txid: txid,
-              #index: index,
-            }),
-            returnValue: _i8.Future<bool>.value(false),
-          )
-          as _i8.Future<bool>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#isMasterNodeCollateral, [], {
+      #requestID: requestID,
+      #txid: txid,
+      #index: index,
+    }),
+    returnValue: _i8.Future<bool>.value(false),
+  ) as _i8.Future<bool>);
 
   @override
   _i8.Future<Map<String, dynamic>> getFeeRate({String? requestID}) =>
       (super.noSuchMethod(
-            Invocation.method(#getFeeRate, [], {#requestID: requestID}),
-            returnValue: _i8.Future<Map<String, dynamic>>.value(
-              <String, dynamic>{},
-            ),
-          )
-          as _i8.Future<Map<String, dynamic>>);
+        Invocation.method(#getFeeRate, [], {#requestID: requestID}),
+        returnValue: _i8.Future<Map<String, dynamic>>.value(
+          <String, dynamic>{},
+        ),
+      ) as _i8.Future<Map<String, dynamic>>);
 
   @override
   _i8.Future<_i4.Decimal> estimateFee({
     String? requestID,
     required int? blocks,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#estimateFee, [], {
-              #requestID: requestID,
-              #blocks: blocks,
-            }),
-            returnValue: _i8.Future<_i4.Decimal>.value(
-              _FakeDecimal_3(
-                this,
-                Invocation.method(#estimateFee, [], {
-                  #requestID: requestID,
-                  #blocks: blocks,
-                }),
-              ),
-            ),
-          )
-          as _i8.Future<_i4.Decimal>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#estimateFee, [], {
+      #requestID: requestID,
+      #blocks: blocks,
+    }),
+    returnValue: _i8.Future<_i4.Decimal>.value(
+      _FakeDecimal_3(
+        this,
+        Invocation.method(#estimateFee, [], {
+          #requestID: requestID,
+          #blocks: blocks,
+        }),
+      ),
+    ),
+  ) as _i8.Future<_i4.Decimal>);
 
   @override
-  _i8.Future<_i4.Decimal> relayFee({String? requestID}) =>
-      (super.noSuchMethod(
-            Invocation.method(#relayFee, [], {#requestID: requestID}),
-            returnValue: _i8.Future<_i4.Decimal>.value(
-              _FakeDecimal_3(
-                this,
-                Invocation.method(#relayFee, [], {#requestID: requestID}),
-              ),
-            ),
-          )
-          as _i8.Future<_i4.Decimal>);
+  _i8.Future<_i4.Decimal> relayFee({String? requestID}) => (super.noSuchMethod(
+    Invocation.method(#relayFee, [], {#requestID: requestID}),
+    returnValue: _i8.Future<_i4.Decimal>.value(
+      _FakeDecimal_3(
+        this,
+        Invocation.method(#relayFee, [], {#requestID: requestID}),
+      ),
+    ),
+  ) as _i8.Future<_i4.Decimal>);
 }
 
 /// A class which mocks [CachedElectrumXClient].
@@ -627,84 +552,70 @@ class MockCachedElectrumXClient extends _i1.Mock
   }
 
   @override
-  _i5.ElectrumXClient get electrumXClient =>
-      (super.noSuchMethod(
-            Invocation.getter(#electrumXClient),
-            returnValue: _FakeElectrumXClient_4(
-              this,
-              Invocation.getter(#electrumXClient),
-            ),
-          )
-          as _i5.ElectrumXClient);
+  _i5.ElectrumXClient get electrumXClient => (super.noSuchMethod(
+    Invocation.getter(#electrumXClient),
+    returnValue: _FakeElectrumXClient_4(
+      this,
+      Invocation.getter(#electrumXClient),
+    ),
+  ) as _i5.ElectrumXClient);
 
   @override
-  String base64ToHex(String? source) =>
-      (super.noSuchMethod(
-            Invocation.method(#base64ToHex, [source]),
-            returnValue: _i7.dummyValue<String>(
-              this,
-              Invocation.method(#base64ToHex, [source]),
-            ),
-          )
-          as String);
+  String base64ToHex(String? source) => (super.noSuchMethod(
+    Invocation.method(#base64ToHex, [source]),
+    returnValue: _i7.dummyValue<String>(
+      this,
+      Invocation.method(#base64ToHex, [source]),
+    ),
+  ) as String);
 
   @override
-  String base64ToReverseHex(String? source) =>
-      (super.noSuchMethod(
-            Invocation.method(#base64ToReverseHex, [source]),
-            returnValue: _i7.dummyValue<String>(
-              this,
-              Invocation.method(#base64ToReverseHex, [source]),
-            ),
-          )
-          as String);
+  String base64ToReverseHex(String? source) => (super.noSuchMethod(
+    Invocation.method(#base64ToReverseHex, [source]),
+    returnValue: _i7.dummyValue<String>(
+      this,
+      Invocation.method(#base64ToReverseHex, [source]),
+    ),
+  ) as String);
 
   @override
   _i8.Future<Map<String, dynamic>> getTransaction({
     required String? txHash,
     required _i2.CryptoCurrency? cryptoCurrency,
     bool? verbose = true,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#getTransaction, [], {
-              #txHash: txHash,
-              #cryptoCurrency: cryptoCurrency,
-              #verbose: verbose,
-            }),
-            returnValue: _i8.Future<Map<String, dynamic>>.value(
-              <String, dynamic>{},
-            ),
-          )
-          as _i8.Future<Map<String, dynamic>>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#getTransaction, [], {
+      #txHash: txHash,
+      #cryptoCurrency: cryptoCurrency,
+      #verbose: verbose,
+    }),
+    returnValue: _i8.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
+  ) as _i8.Future<Map<String, dynamic>>);
 
   @override
   _i8.Future<List<Map<String, dynamic>>> getBatchTransactions({
     required List<String>? txHashes,
     required _i2.CryptoCurrency? cryptoCurrency,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#getBatchTransactions, [], {
-              #txHashes: txHashes,
-              #cryptoCurrency: cryptoCurrency,
-            }),
-            returnValue: _i8.Future<List<Map<String, dynamic>>>.value(
-              <Map<String, dynamic>>[],
-            ),
-          )
-          as _i8.Future<List<Map<String, dynamic>>>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#getBatchTransactions, [], {
+      #txHashes: txHashes,
+      #cryptoCurrency: cryptoCurrency,
+    }),
+    returnValue: _i8.Future<List<Map<String, dynamic>>>.value(
+      <Map<String, dynamic>>[],
+    ),
+  ) as _i8.Future<List<Map<String, dynamic>>>);
 
   @override
   _i8.Future<void> clearSharedTransactionCache({
     required _i2.CryptoCurrency? cryptoCurrency,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#clearSharedTransactionCache, [], {
-              #cryptoCurrency: cryptoCurrency,
-            }),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
-          )
-          as _i8.Future<void>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#clearSharedTransactionCache, [], {
+      #cryptoCurrency: cryptoCurrency,
+    }),
+    returnValue: _i8.Future<void>.value(),
+    returnValueForMissingStub: _i8.Future<void>.value(),
+  ) as _i8.Future<void>);
 }
 
 /// A class which mocks [TransactionNotificationTracker].
@@ -717,15 +628,10 @@ class MockTransactionNotificationTracker extends _i1.Mock
   }
 
   @override
-  String get walletId =>
-      (super.noSuchMethod(
-            Invocation.getter(#walletId),
-            returnValue: _i7.dummyValue<String>(
-              this,
-              Invocation.getter(#walletId),
-            ),
-          )
-          as String);
+  String get walletId => (super.noSuchMethod(
+    Invocation.getter(#walletId),
+    returnValue: _i7.dummyValue<String>(this, Invocation.getter(#walletId)),
+  ) as String);
 
   @override
   List<String> get pendings =>
@@ -733,53 +639,41 @@ class MockTransactionNotificationTracker extends _i1.Mock
           as List<String>);
 
   @override
-  List<String> get confirmeds =>
-      (super.noSuchMethod(
-            Invocation.getter(#confirmeds),
-            returnValue: <String>[],
-          )
-          as List<String>);
+  List<String> get confirmeds => (super.noSuchMethod(
+    Invocation.getter(#confirmeds),
+    returnValue: <String>[],
+  ) as List<String>);
 
   @override
-  bool wasNotifiedPending(String? txid) =>
-      (super.noSuchMethod(
-            Invocation.method(#wasNotifiedPending, [txid]),
-            returnValue: false,
-          )
-          as bool);
+  bool wasNotifiedPending(String? txid) => (super.noSuchMethod(
+    Invocation.method(#wasNotifiedPending, [txid]),
+    returnValue: false,
+  ) as bool);
 
   @override
-  _i8.Future<void> addNotifiedPending(String? txid) =>
-      (super.noSuchMethod(
-            Invocation.method(#addNotifiedPending, [txid]),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
-          )
-          as _i8.Future<void>);
+  _i8.Future<void> addNotifiedPending(String? txid) => (super.noSuchMethod(
+    Invocation.method(#addNotifiedPending, [txid]),
+    returnValue: _i8.Future<void>.value(),
+    returnValueForMissingStub: _i8.Future<void>.value(),
+  ) as _i8.Future<void>);
 
   @override
-  bool wasNotifiedConfirmed(String? txid) =>
-      (super.noSuchMethod(
-            Invocation.method(#wasNotifiedConfirmed, [txid]),
-            returnValue: false,
-          )
-          as bool);
+  bool wasNotifiedConfirmed(String? txid) => (super.noSuchMethod(
+    Invocation.method(#wasNotifiedConfirmed, [txid]),
+    returnValue: false,
+  ) as bool);
 
   @override
-  _i8.Future<void> addNotifiedConfirmed(String? txid) =>
-      (super.noSuchMethod(
-            Invocation.method(#addNotifiedConfirmed, [txid]),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
-          )
-          as _i8.Future<void>);
+  _i8.Future<void> addNotifiedConfirmed(String? txid) => (super.noSuchMethod(
+    Invocation.method(#addNotifiedConfirmed, [txid]),
+    returnValue: _i8.Future<void>.value(),
+    returnValueForMissingStub: _i8.Future<void>.value(),
+  ) as _i8.Future<void>);
 
   @override
-  _i8.Future<void> deleteTransaction(String? txid) =>
-      (super.noSuchMethod(
-            Invocation.method(#deleteTransaction, [txid]),
-            returnValue: _i8.Future<void>.value(),
-            returnValueForMissingStub: _i8.Future<void>.value(),
-          )
-          as _i8.Future<void>);
+  _i8.Future<void> deleteTransaction(String? txid) => (super.noSuchMethod(
+    Invocation.method(#deleteTransaction, [txid]),
+    returnValue: _i8.Future<void>.value(),
+    returnValueForMissingStub: _i8.Future<void>.value(),
+  ) as _i8.Future<void>);
 }
