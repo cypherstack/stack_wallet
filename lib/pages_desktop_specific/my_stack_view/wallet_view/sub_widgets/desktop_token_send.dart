@@ -573,6 +573,11 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
       if (content.contains("\n")) {
         content = content.substring(0, content.indexOf("\n"));
       }
+      if (OpenCryptoPayController.isOpenCryptoPayUri(content)) {
+        if (!mounted) return;
+        unawaited(_openCryptoPay.handle(context, content));
+        return;
+      }
 
       sendToController.text = content;
       _address = content;

@@ -1115,6 +1115,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       if (content.contains("\n")) {
         content = content.substring(0, content.indexOf("\n")).trim();
       }
+      if (OpenCryptoPayController.isOpenCryptoPayUri(content)) {
+        if (!mounted) return;
+        unawaited(_openCryptoPay.handle(context, content));
+        return;
+      }
 
       try {
         final paymentData = AddressUtils.parsePaymentUri(
