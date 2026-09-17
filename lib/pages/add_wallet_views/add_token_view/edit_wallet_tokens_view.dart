@@ -120,11 +120,13 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
         Navigator.of(context).pop(42);
       } else {
         if (isDesktop) {
-          Navigator.of(context)
-              .popUntil(ModalRoute.withName(DesktopHomeView.routeName));
+          Navigator.of(
+            context,
+          ).popUntil(ModalRoute.withName(DesktopHomeView.routeName));
         } else {
-          await Navigator.of(context)
-              .pushNamedAndRemoveUntil(HomeView.routeName, (route) => false);
+          await Navigator.of(
+            context,
+          ).pushNamedAndRemoveUntil(HomeView.routeName, (route) => false);
         }
         if (mounted) {
           unawaited(
@@ -159,8 +161,9 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
           ),
         );
       } else {
-        final result = await Navigator.of(context)
-            .pushNamed(AddCustomTokenView.routeName);
+        final result = await Navigator.of(
+          context,
+        ).pushNamed(AddCustomTokenView.routeName);
         contract = result as EthContract?;
       }
 
@@ -460,8 +463,9 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
                       _searchTerm = value;
                     });
                   },
-                  style: STextStyles.desktopTextMedium(context)
-                      .copyWith(height: 2),
+                  style: STextStyles.desktopTextMedium(
+                    context,
+                  ).copyWith(height: 2),
                   decoration:
                       standardInputDecoration(
                         "Search",
@@ -527,9 +531,9 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
     } else {
       return Background(
         child: Scaffold(
-          backgroundColor: Theme.of(context)
-              .extension<StackColors>()!
-              .background,
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.background,
           appBar: AppBar(
             leading: AppBarBackButton(
               onPressed: () {
@@ -549,14 +553,14 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
                     child: AppBarIconButton(
                       size: 36,
                       shadows: const [],
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .background,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.background,
                       icon: SvgPicture.asset(
                         Assets.svg.circlePlusFilled,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .topNavIconPrimary,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.topNavIconPrimary,
                         width: 20,
                         height: 20,
                       ),

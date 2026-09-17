@@ -110,8 +110,9 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
         ),
       );
     } else {
-      contract = await Navigator.of(context)
-          .pushNamed(AddCustomTokenView.routeName);
+      contract = await Navigator.of(
+        context,
+      ).pushNamed(AddCustomTokenView.routeName);
     }
 
     if (contract != null) {
@@ -142,8 +143,9 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
         ),
       );
     } else {
-      token = await Navigator.of(context)
-          .pushNamed(AddCustomSolanaTokenView.routeName);
+      token = await Navigator.of(
+        context,
+      ).pushNamed(AddCustomSolanaTokenView.routeName);
     }
 
     if (token != null) {
@@ -283,8 +285,9 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                                 _searchTerm = value;
                               });
                             },
-                            style: STextStyles.desktopTextMedium(context)
-                                .copyWith(height: 2),
+                            style: STextStyles.desktopTextMedium(
+                              context,
+                            ).copyWith(height: 2),
                             decoration:
                                 standardInputDecoration(
                                   "Search",
@@ -409,9 +412,9 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
     } else {
       return Background(
         child: Scaffold(
-          backgroundColor: Theme.of(context)
-              .extension<StackColors>()!
-              .background,
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.background,
           appBar: AppBar(
             leading: AppBarBackButton(
               onPressed: () {
@@ -434,7 +437,8 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                         Constants.size.circularBorderRadius,
                       ),
                       child: Semantics(
-                        label: "Search Text Field. Inputs Text To Search In Wallets.",
+                        label:
+                            "Search Text Field. Inputs Text To Search In Wallets.",
                         excludeSemantics: true,
                         child: TextField(
                           autofocus: isDesktop,
