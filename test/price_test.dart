@@ -125,13 +125,32 @@ void main() {
     final price = await priceAPI.getPricesAnd24hChange(baseCurrency: "btc");
 
     expectFetchedPriceSnapshot(price.toString());
-    verify(
+    // Two calls, not one, and the test says which two so that it documents
+    // the arrangement rather than just counting.
+    //
+    // It asserted a single call and went stale the day BFX gained a market:
+    // BFX is not listed on CoinGecko, so its price comes from our own
+    // explorer endpoint, which proxies the venue. That is deliberate. Polling
+    // the exchange from every installation would hand it a view of our users.
+    final urls = verify(
       client.get(
         proxyInfo: null,
-        url: anyNamed('url'),
+        url: captureAnyNamed('url'),
         headers: {'Content-Type': 'application/json'},
       ),
-    ).called(1);
+    ).captured.cast<Uri>();
+
+    expect(urls, hasLength(2));
+    expect(
+      urls.where((u) => u.host == "api.coingecko.com"),
+      hasLength(1),
+      reason: "every listed coin is priced in one CoinGecko request",
+    );
+    expect(
+      urls.where((u) => u.host == "explorer.bitfinitechain.org"),
+      hasLength(1),
+      reason: "BFX is priced by our own endpoint, never the venue directly",
+    );
 
     verifyNoMoreInteractions(client);
   });
@@ -227,13 +246,32 @@ void main() {
     expectFetchedPriceSnapshot(cachedPrice.toString());
 
     // verify only called once during filling of cache
-    verify(
+    // Two calls, not one, and the test says which two so that it documents
+    // the arrangement rather than just counting.
+    //
+    // It asserted a single call and went stale the day BFX gained a market:
+    // BFX is not listed on CoinGecko, so its price comes from our own
+    // explorer endpoint, which proxies the venue. That is deliberate. Polling
+    // the exchange from every installation would hand it a view of our users.
+    final urls = verify(
       client.get(
         proxyInfo: null,
-        url: anyNamed('url'),
+        url: captureAnyNamed('url'),
         headers: {'Content-Type': 'application/json'},
       ),
-    ).called(1);
+    ).captured.cast<Uri>();
+
+    expect(urls, hasLength(2));
+    expect(
+      urls.where((u) => u.host == "api.coingecko.com"),
+      hasLength(1),
+      reason: "every listed coin is priced in one CoinGecko request",
+    );
+    expect(
+      urls.where((u) => u.host == "explorer.bitfinitechain.org"),
+      hasLength(1),
+      reason: "BFX is priced by our own endpoint, never the venue directly",
+    );
 
     verifyNoMoreInteractions(client);
   });

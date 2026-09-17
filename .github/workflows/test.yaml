@@ -1,5 +1,17 @@
 name: Test
-on: [pull_request]
+
+# Runs on pushes to staging as well as on pull requests.
+#
+# It was pull_request only, and every change here lands by pushing straight to
+# staging, so the suite last ran on 26 August 2026 and nothing between then and
+# now was checked by anything but hand. A test suite that only guards a door
+# nobody uses is not guarding anything.
+on:
+  push:
+    branches:
+      - staging
+  pull_request:
+  workflow_dispatch:
 jobs:
   test:
     runs-on: ubuntu-24.04
@@ -81,8 +93,20 @@ jobs:
           echo "Checking formatting of $(echo "$FILES" | wc -l) file(s):"
           echo "$FILES"
           dart format --output=none --set-exit-if-changed $FILES
-#      - name: Analyze
-#        run: flutter analyze
+      # Errors only, on purpose.
+      #
+      # `flutter analyze` reports about 2,900 issues here, almost all of them
+      # inherited: 680 deprecations, 157 uses of a BuildContext across an async
+      # gap, and a long tail of unused imports. Zero are errors. Gating on the
+      # whole list would mean either a cleanup nobody has budgeted or a step
+      # that is red forever, which is how this one came to be commented out.
+      #
+      # Gating on errors alone is a check that passes today and genuinely
+      # fails when someone breaks the code. The warnings are worth paying down
+      # separately; being unable to compile is worth knowing now.
+      - name: Analyze (errors only)
+        run: |
+          flutter analyze --no-fatal-warnings --no-fatal-infos
       - name: Test
         run: |
           bash scripts/ensure_test_app_config.sh

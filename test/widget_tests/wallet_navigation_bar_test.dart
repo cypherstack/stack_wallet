@@ -9,7 +9,21 @@ import 'package:bitfinite/widgets/wallet_navigation_bar/wallet_navigation_bar.da
 import '../sample_data/theme_json.dart';
 
 void main() {
-  testWidgets("floating dock stretches its actions across the full width", (
+  /// The floating dock hugs its actions; it does not stretch them.
+  ///
+  /// This test used to assert the opposite, and was right for six minutes. A
+  /// commit that morning spread the actions across a fixed 260px pill with
+  /// spaceBetween, and the commit after it reverted that because three 48px
+  /// squares in a 260px pill left big dead gaps. The test was never updated,
+  /// so it pinned a layout that had already been deleted, and a later change
+  /// giving Receive and Send text labels broke its other assumption too.
+  ///
+  /// It has therefore been red since July while eight commits built on the
+  /// layout it rejects. Rewritten here against what the dock actually
+  /// promises: it is as wide as its contents, the gaps between actions are
+  /// uniform, and it is symmetric. None of those depend on an action being
+  /// 48px square, which is what went stale.
+  testWidgets("floating dock hugs its actions with uniform gaps", (
     tester,
   ) async {
     final theme = StackTheme.fromJson(json: lightThemeJsonMap);
@@ -51,35 +65,33 @@ void main() {
       for (int i = 0; i < 3; i++) tester.getCenter(buttons.at(i)).dx,
     ];
 
-    // The dock's 6px horizontal padding plus its 1px hairline border, both of
-    // which inset the content box the actions are laid out in.
-    const hPadding = 6.0 + 1.0;
-    const buttonSize = 48.0;
+    // Gaps measured between adjacent EDGES, not centres. Centres only line up
+    // when every action is the same width, and they are not: Receive and Send
+    // are labelled pills while More is a square.
+    final rects = <Rect>[
+      for (int i = 0; i < 3; i++) tester.getRect(buttons.at(i)),
+    ];
+    for (int i = 1; i < rects.length; i++) {
+      expect(
+        rects[i].left - rects[i - 1].right,
+        closeTo(4, 0.5),
+        reason: "actions should be separated by one uniform gap",
+      );
+    }
 
-    // The outer actions sit flush against the content box's edges, so the
-    // icons genuinely span the pill rather than clustering in the middle.
+    // The dock is as wide as what it holds. A stretched dock would be as wide
+    // as the screen it sits on, which is what this is really ruling out.
+    final screen = tester.getSize(find.byType(Scaffold)).width;
     expect(
-      centers.first,
-      closeTo(dock.left + hPadding + buttonSize / 2, 0.5),
-      reason: "first action should be flush with the dock's left edge",
-    );
-    expect(
-      centers.last,
-      closeTo(dock.right - hPadding - buttonSize / 2, 0.5),
-      reason: "last action should be flush with the dock's right edge",
-    );
-
-    // ...and the remaining ones are evenly spread between them.
-    expect(
-      (centers[1] - centers[0]) - (centers[2] - centers[1]),
-      closeTo(0, 0.5),
-      reason: "actions should be evenly spaced across the dock",
+      dock.width,
+      lessThan(screen - 40),
+      reason: "the dock should hug its content, not span the screen",
     );
 
-    // Symmetric: the dock reads as balanced, with the outer actions the same
-    // distance from their respective edges.
+    // Symmetric: the outer actions sit the same distance from their own edge,
+    // so the pill reads as balanced whatever the actions inside it weigh.
     expect(
-      (centers.first - dock.left) - (dock.right - centers.last),
+      (rects.first.left - dock.left) - (dock.right - rects.last.right),
       closeTo(0, 0.5),
       reason: "outer actions should be inset equally from both edges",
     );

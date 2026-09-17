@@ -33,6 +33,16 @@ jobs:
           EOF
 
   build-linux:
+    # Desktop and iOS are built on request only.
+    #
+    # Every release this project has ever published carries three Android APKs
+    # and a SHA256SUMS file, from v1.4.2 to v2.3.2. These jobs have never
+    # produced a shipped artifact, and they failed on every push, so the whole
+    # workflow was permanently red and a real Android break was
+    # indistinguishable from the usual noise. The jobs are kept because the
+    # platform support is real and someone may want it; they just do not run
+    # themselves.
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -178,12 +188,31 @@ jobs:
           flutter.sdk=${FLUTTER_HOME}
           EOF
 
+      # Signing is optional so that CI can still tell you whether the app
+      # COMPILES.
+      #
+      # This job used to stop dead here whenever ANDROID_KEYSTORE_BASE64 was
+      # unset, which it always is: releases are signed and uploaded by hand
+      # and the secret was never added. So the job failed before it reached a
+      # single line of Dart, every run, and a genuine compile break looked
+      # exactly like the usual red. 60 runs, 60 failures, no signal.
+      #
+      # With a keystore it behaves as it always did and produces signed
+      # release artifacts. Without one it builds a debug APK instead, which
+      # exercises the same Dart and native toolchain and is the thing worth
+      # knowing on a push.
       - name: Set up signing
+        id: signing
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+            echo "No ANDROID_KEYSTORE_BASE64 secret; building unsigned for verification only." >&2
+            exit 0
+          fi
           printf '%s' "$KEYSTORE_BASE64" | base64 --decode > android/keystore-orig.jks
-          [ -s android/keystore-orig.jks ] || { echo "ERROR: ANDROID_KEYSTORE_BASE64 secret is empty or not set"; exit 1; }
+          [ -s android/keystore-orig.jks ] || { echo "ERROR: ANDROID_KEYSTORE_BASE64 is set but did not decode"; exit 1; }
           keytool -importkeystore \
             -srckeystore android/keystore-orig.jks \
             -destkeystore android/keystore.jks \
@@ -199,14 +228,34 @@ jobs:
           keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
           keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
           EOF
+          echo "signed=true" >> "$GITHUB_OUTPUT"
 
       - name: Build APKs
+        if: steps.signing.outputs.signed == 'true'
         run: flutter build apk --split-per-abi --release
 
       - name: Build AAB
+        if: steps.signing.outputs.signed == 'true'
         run: flutter build appbundle --release
 
+      # The compile check. Debug rather than release because release without a
+      # keystore is version-dependent in how it fails, and what is being
+      # proven here is that the code builds, which debug proves just as well.
+      - name: Build APK (unsigned, verification only)
+        if: steps.signing.outputs.signed != 'true'
+        run: |
+          flutter build apk --debug
+          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+          ### Android: compile check only
+
+          No signing keystore is configured for this repository, so this job
+          built a debug APK to verify the code compiles. It did not produce a
+          release artifact. Releases are built and signed locally; see
+          `scripts/build-android-docker.sh`.
+          EOF
+
       - name: Collect artifacts
+        if: steps.signing.outputs.signed == 'true'
         run: |
           VERSION="${{ steps.ver.outputs.version }}"
           mkdir -p android-artifacts
@@ -220,11 +269,22 @@ jobs:
              android-artifacts/bitfinite-android-${VERSION}.aab
 
       - uses: actions/upload-artifact@v7
+        if: steps.signing.outputs.signed == 'true'
         with:
           name: bitfinite-android-${{ steps.ver.outputs.version }}
           path: android-artifacts/
 
   build-windows:
+    # Desktop and iOS are built on request only.
+    #
+    # Every release this project has ever published carries three Android APKs
+    # and a SHA256SUMS file, from v1.4.2 to v2.3.2. These jobs have never
+    # produced a shipped artifact, and they failed on every push, so the whole
+    # workflow was permanently red and a real Android break was
+    # indistinguishable from the usual noise. The jobs are kept because the
+    # platform support is real and someone may want it; they just do not run
+    # themselves.
+    if: github.event_name == 'workflow_dispatch'
     runs-on: windows-2022
     defaults:
       run:
@@ -347,6 +407,16 @@ jobs:
           path: bitfinite-windows-x86_64-${{ steps.ver.outputs.version }}.zip
 
   build-macos:
+    # Desktop and iOS are built on request only.
+    #
+    # Every release this project has ever published carries three Android APKs
+    # and a SHA256SUMS file, from v1.4.2 to v2.3.2. These jobs have never
+    # produced a shipped artifact, and they failed on every push, so the whole
+    # workflow was permanently red and a real Android break was
+    # indistinguishable from the usual noise. The jobs are kept because the
+    # platform support is real and someone may want it; they just do not run
+    # themselves.
+    if: github.event_name == 'workflow_dispatch'
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v6
@@ -424,6 +494,16 @@ jobs:
           path: bitfinite-macos-aarch64-${{ steps.ver.outputs.version }}.zip
 
   build-ios:
+    # Desktop and iOS are built on request only.
+    #
+    # Every release this project has ever published carries three Android APKs
+    # and a SHA256SUMS file, from v1.4.2 to v2.3.2. These jobs have never
+    # produced a shipped artifact, and they failed on every push, so the whole
+    # workflow was permanently red and a real Android break was
+    # indistinguishable from the usual noise. The jobs are kept because the
+    # platform support is real and someone may want it; they just do not run
+    # themselves.
+    if: github.event_name == 'workflow_dispatch'
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v6
@@ -506,6 +586,16 @@ jobs:
           path: bitfinite-ios-aarch64-${{ steps.ver.outputs.version }}.ipa
 
   build-flatpak:
+    # Desktop and iOS are built on request only.
+    #
+    # Every release this project has ever published carries three Android APKs
+    # and a SHA256SUMS file, from v1.4.2 to v2.3.2. These jobs have never
+    # produced a shipped artifact, and they failed on every push, so the whole
+    # workflow was permanently red and a real Android break was
+    # indistinguishable from the usual noise. The jobs are kept because the
+    # platform support is real and someone may want it; they just do not run
+    # themselves.
+    if: github.event_name == 'workflow_dispatch'
     # Disabled for the BitFinite fork: Flatpak packaging still needs a bitfinite
     # manifest/app-id (flatpak/com.bitfinitechain.*.yaml + .desktop + .metainfo);
     # only the upstream com.cypherstack.stackwallet.* files exist. Re-enable once
@@ -578,6 +668,16 @@ jobs:
           path: bitfinite-flatpak-x86_64-${{ steps.ver.outputs.version }}.flatpak
 
   build-appimage:
+    # Desktop and iOS are built on request only.
+    #
+    # Every release this project has ever published carries three Android APKs
+    # and a SHA256SUMS file, from v1.4.2 to v2.3.2. These jobs have never
+    # produced a shipped artifact, and they failed on every push, so the whole
+    # workflow was permanently red and a real Android break was
+    # indistinguishable from the usual noise. The jobs are kept because the
+    # platform support is real and someone may want it; they just do not run
+    # themselves.
+    if: github.event_name == 'workflow_dispatch'
     # Disabled for the BitFinite fork: AppImage packaging still needs an
     # appimage/bitfinite/ dir (AppRun + .desktop) and app-id; only the upstream
     # appimage/stack_wallet/ files exist. Re-enable once those are added.
