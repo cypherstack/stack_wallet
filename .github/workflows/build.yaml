@@ -99,10 +99,27 @@ jobs:
           printf 'String getPluginVersion() => "%s";\n' "$MWC_TAG" \
             > crypto_plugins/flutter_libmwc/lib/git_versions.dart
 
+      # With the CHANGE_NOW secret this writes the real API keys. Without it,
+      # this used to write an EMPTY file, and because scripts/prebuild.sh only
+      # creates its template when the file is absent, the empty one won every
+      # time. The build then failed on kChangeNowApiKey and kWizSwapApiKey
+      # being undefined, several minutes in, on every run.
+      #
+      # prebuild.sh is called rather than copied: it owns the list of keys, and
+      # a second copy of that list in YAML would drift the first time a key is
+      # added. A build made this way compiles and runs; its exchange features
+      # are inert, which is correct for a verification build.
       - name: Decode secrets
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
-        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+        run: |
+          if [ -n "$CHANGE_NOW" ]; then
+            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+          else
+            echo "No CHANGE_NOW secret; generating empty API key stubs." >&2
+            rm -f lib/external_api_keys.dart
+            ( cd scripts && ./prebuild.sh )
+          fi
 
       - name: Build
         env:
@@ -176,10 +193,27 @@ jobs:
           printf 'String getPluginVersion() => "%s";\n' "$MWC_TAG" \
             > crypto_plugins/flutter_libmwc/lib/git_versions.dart
 
+      # With the CHANGE_NOW secret this writes the real API keys. Without it,
+      # this used to write an EMPTY file, and because scripts/prebuild.sh only
+      # creates its template when the file is absent, the empty one won every
+      # time. The build then failed on kChangeNowApiKey and kWizSwapApiKey
+      # being undefined, several minutes in, on every run.
+      #
+      # prebuild.sh is called rather than copied: it owns the list of keys, and
+      # a second copy of that list in YAML would drift the first time a key is
+      # added. A build made this way compiles and runs; its exchange features
+      # are inert, which is correct for a verification build.
       - name: Decode secrets
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
-        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+        run: |
+          if [ -n "$CHANGE_NOW" ]; then
+            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+          else
+            echo "No CHANGE_NOW secret; generating empty API key stubs." >&2
+            rm -f lib/external_api_keys.dart
+            ( cd scripts && ./prebuild.sh )
+          fi
 
       - name: Set up Android local.properties
         run: |
@@ -384,10 +418,27 @@ jobs:
           printf 'String getPluginVersion() => "%s";\n' "$MWC_TAG" \
             > crypto_plugins/flutter_libmwc/lib/git_versions.dart
 
+      # With the CHANGE_NOW secret this writes the real API keys. Without it,
+      # this used to write an EMPTY file, and because scripts/prebuild.sh only
+      # creates its template when the file is absent, the empty one won every
+      # time. The build then failed on kChangeNowApiKey and kWizSwapApiKey
+      # being undefined, several minutes in, on every run.
+      #
+      # prebuild.sh is called rather than copied: it owns the list of keys, and
+      # a second copy of that list in YAML would drift the first time a key is
+      # added. A build made this way compiles and runs; its exchange features
+      # are inert, which is correct for a verification build.
       - name: Decode secrets
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
-        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+        run: |
+          if [ -n "$CHANGE_NOW" ]; then
+            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+          else
+            echo "No CHANGE_NOW secret; generating empty API key stubs." >&2
+            rm -f lib/external_api_keys.dart
+            ( cd scripts && ./prebuild.sh )
+          fi
 
       - name: Build secp256k1.dll for Windows
         run: dart run coinlib:build_windows
@@ -474,10 +525,27 @@ jobs:
           printf 'String getPluginVersion() => "%s";\n' "$MWC_TAG" \
             > crypto_plugins/flutter_libmwc/lib/git_versions.dart
 
+      # With the CHANGE_NOW secret this writes the real API keys. Without it,
+      # this used to write an EMPTY file, and because scripts/prebuild.sh only
+      # creates its template when the file is absent, the empty one won every
+      # time. The build then failed on kChangeNowApiKey and kWizSwapApiKey
+      # being undefined, several minutes in, on every run.
+      #
+      # prebuild.sh is called rather than copied: it owns the list of keys, and
+      # a second copy of that list in YAML would drift the first time a key is
+      # added. A build made this way compiles and runs; its exchange features
+      # are inert, which is correct for a verification build.
       - name: Decode secrets
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
-        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+        run: |
+          if [ -n "$CHANGE_NOW" ]; then
+            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+          else
+            echo "No CHANGE_NOW secret; generating empty API key stubs." >&2
+            rm -f lib/external_api_keys.dart
+            ( cd scripts && ./prebuild.sh )
+          fi
 
       - name: Build
         run: flutter build macos --release
@@ -566,10 +634,27 @@ jobs:
           printf 'String getPluginVersion() => "%s";\n' "$MWC_TAG" \
             > crypto_plugins/flutter_libmwc/lib/git_versions.dart
 
+      # With the CHANGE_NOW secret this writes the real API keys. Without it,
+      # this used to write an EMPTY file, and because scripts/prebuild.sh only
+      # creates its template when the file is absent, the empty one won every
+      # time. The build then failed on kChangeNowApiKey and kWizSwapApiKey
+      # being undefined, several minutes in, on every run.
+      #
+      # prebuild.sh is called rather than copied: it owns the list of keys, and
+      # a second copy of that list in YAML would drift the first time a key is
+      # added. A build made this way compiles and runs; its exchange features
+      # are inert, which is correct for a verification build.
       - name: Decode secrets
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
-        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+        run: |
+          if [ -n "$CHANGE_NOW" ]; then
+            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+          else
+            echo "No CHANGE_NOW secret; generating empty API key stubs." >&2
+            rm -f lib/external_api_keys.dart
+            ( cd scripts && ./prebuild.sh )
+          fi
 
       - name: Build
         run: flutter build ios --release --no-codesign
