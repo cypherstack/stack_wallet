@@ -1,6 +1,10 @@
 name: Test
 
-# Runs on pushes to staging as well as on pull requests.
+# Runs on pushes to every branch that carries work, and on pull requests.
+#
+# dev is where changes land, main is what gets released and what anyone forking
+# this repo clones, and upstream-sync is where a Stack Wallet merge is reviewed
+# on its own. A suite that guards only one of those guards the wrong one.
 #
 # It was pull_request only, and every change here lands by pushing straight to
 # staging, so the suite last ran on 26 August 2026 and nothing between then and
@@ -9,7 +13,10 @@ name: Test
 on:
   push:
     branches:
+      - main
+      - dev
       - staging
+      - upstream-sync
   pull_request:
   workflow_dispatch:
 jobs:
