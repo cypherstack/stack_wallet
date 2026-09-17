@@ -37,6 +37,13 @@ class ThemeService {
   // edit that does not move both numbers ships inside the APK and is then
   // ignored: the copy already in the database wins, and the change looks like
   // it silently did nothing.
+  // 40: the BitFinite coin icon was a recoloured Bitcoin symbol, and it was a
+  //     177 KB PNG wrapped in an SVG, shipped twice at identical bytes for the
+  //     small and big slots. An independent chain whose icon is Bitcoin's
+  //     glyph reads as a fork of it on every wallet row. Replaced with a bold
+  //     F drawn as an actual vector, 224 bytes: the wordmark already accents
+  //     FINITE, no major coin has claimed the letter, and it was the most
+  //     legible of the candidates at 24px.
   // 27: coin.bitfinite #2F6BFF -> Brandkit blue-600 #0644F1
   // 28: accent_color_blue #2F6BFF -> #0644F1 (one brand blue across fills and
   //     accents; as text on white this also goes 4.50:1 -> 6.76:1)
@@ -96,7 +103,7 @@ class ThemeService {
   //     replaces. Registered in all three slots at once, and the bundled-
   //     theme fallback then serves it under external themes too, ending the
   //     teal-placeholder ₿ the externals painted BFX with.
-  static const _currentDefaultThemeVersion = 39;
+  static const _currentDefaultThemeVersion = 40;
   ThemeService._();
   static ThemeService? _instance;
   static ThemeService get instance => _instance ??= ThemeService._();
