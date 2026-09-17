@@ -314,7 +314,6 @@ class OpenCryptoPaySendHandler {
         await showQuoteExpiredError(context, paymentNotSent: true);
         return false;
       case OpenCryptoPayProofFailed(:final error, :final providerAnswered):
-        // The session stays active so the user can retry.
         Logging.instance.w(
           "OpenCryptoPay proof submission failed",
           error: error,
