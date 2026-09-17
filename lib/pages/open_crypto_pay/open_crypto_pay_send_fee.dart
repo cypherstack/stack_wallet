@@ -113,9 +113,14 @@ Future<OpenCryptoPaySendFee?> _levelSendFee(
     }
   }
   final fastest = fee!;
-  String coins(BigInt raw) =>
-      "${Amount(rawValue: raw, fractionDigits: fastest.fractionDigits).decimal} "
-      "${wallet.cryptoCurrency.ticker}";
+  String coins(BigInt raw) {
+    final amount = Amount(
+      rawValue: raw,
+      fractionDigits: fastest.fractionDigits,
+    );
+    return "${amount.decimal} ${wallet.cryptoCurrency.ticker}";
+  }
+
   if (!context.mounted) return null;
   await unmet(
     context,
