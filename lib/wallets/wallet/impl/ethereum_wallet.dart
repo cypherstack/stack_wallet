@@ -160,11 +160,13 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
     if (_credentials == null) {
       await _initCredentials();
     }
-    // The tx built by prepareSend always has nonce and fees populated, so
-    // the pure signTransactionRaw is equivalent to Web3Client.signTransaction
-    // without constructing a client.
+    // Fill the defaults Web3Client.signTransaction applies.
+    final complete = tx.copyWith(
+      value: tx.value ?? eth_wallet.EtherAmount.zero(),
+      data: tx.data ?? Uint8List(0),
+    );
     var signed = web3.signTransactionRaw(
-      tx,
+      complete,
       _credentials!,
       chainId: chainId.toInt(),
     );
