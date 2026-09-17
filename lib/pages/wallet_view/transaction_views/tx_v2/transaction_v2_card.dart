@@ -81,11 +81,20 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
     }
   }
 
-  /// "9:59 · 6 confirmations" | "9:59 · <the user's note>" | "9:59".
+  /// "9:59 · 6 confirmations" | "9:59 · <the user's note>" |
+  /// "9:59 · 9 recipients" | "9:59".
   ///
   /// Confirmations show while they are still news (under 10); after that the
-  /// note takes the slot if one exists. The date is NOT here — the list's
-  /// day headers carry it, so the row repeats nothing.
+  /// note takes the slot if one exists. The date is NOT here, the list's day
+  /// headers carry it, so the row repeats nothing.
+  ///
+  /// The recipient count is the last resort, and it exists because without it
+  /// a settled send with no note falls back to the bare time. A pool wallet
+  /// pays out several times within the same minute, so three rows read "Sent
+  /// 22:32" and differ only in an eight decimal amount, which is not a
+  /// difference anybody scans. Only for sends, only when there is more than
+  /// one, and counted on the outputs this wallet does NOT own so that change
+  /// is not mistaken for a recipient.
   String _subtitle(int currentHeight, String? note) {
     final date = DateTime.fromMillisecondsSinceEpoch(
       _transaction.timestamp * 1000,
@@ -99,6 +108,14 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
     }
     if (note != null && note.isNotEmpty) {
       return "$time · $note";
+    }
+    if (_transaction.type == TransactionType.outgoing) {
+      final recipients = _transaction.outputs
+          .where((e) => !e.walletOwns)
+          .length;
+      if (recipients > 1) {
+        return "$time · $recipients recipients";
+      }
     }
     return time;
   }
@@ -342,10 +359,21 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
                               ),
                             ),
                             const SizedBox(height: 2),
-                            Text(
-                              _subtitle(currentHeight, note),
-                              style: STextStyles.label(context),
-                              overflow: TextOverflow.ellipsis,
+                            // Shrinks rather than cutting. The amount column
+                            // is capped at 52% of the row, so this line has
+                            // under half the width and "22:32 - 9 recipients"
+                            // ellipsised to "22:32 - 9 recipie...", which
+                            // reads as a rendering fault rather than as a
+                            // number. A point smaller keeps the whole phrase,
+                            // and most rows never reach the limit.
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                _subtitle(currentHeight, note),
+                                maxLines: 1,
+                                style: STextStyles.label(context),
+                              ),
                             ),
                           ],
                         ),
