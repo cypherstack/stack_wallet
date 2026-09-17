@@ -15,7 +15,6 @@ import '../../providers/providers.dart';
 import '../../services/price.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
-import '../../utilities/extensions/extensions.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';

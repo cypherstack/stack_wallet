@@ -20,7 +20,6 @@ import '../../settings_views/global_settings_view/advanced_views/manage_coin_uni
 import '../../../providers/providers.dart';
 import '../../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../../providers/wallet/wallet_balance_toggle_state_provider.dart';
-import '../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/hero_ink.dart';
 import '../../../utilities/amount/amount.dart';
@@ -39,7 +38,6 @@ import '../../../services/price.dart';
 import '../price_view.dart';
 import '../../../widgets/conditional_parent.dart';
 import 'wallet_balance_toggle_sheet.dart';
-import 'wallet_sync_chip.dart';
 
 /// One day of this coin's price, for the glyph on the market row.
 ///
@@ -62,14 +60,9 @@ final _heroMarketProvider = FutureProvider.autoDispose
     });
 
 class WalletSummaryInfo extends ConsumerWidget {
-  const WalletSummaryInfo({
-    super.key,
-    required this.walletId,
-    required this.initialSyncStatus,
-  });
+  const WalletSummaryInfo({super.key, required this.walletId});
 
   final String walletId;
-  final WalletSyncStatus initialSyncStatus;
 
   void showSheet(BuildContext context) {
     showModalBottomSheet<dynamic>(
@@ -346,11 +339,20 @@ class WalletSummaryInfo extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 4),
-              WalletSyncChip(
-                walletId: walletId,
-                initialSyncStatus: initialSyncStatus,
-              ),
+              // The sync chip used to sit here, and the app bar's network
+              // button now reports the same state two inches above it. One of
+              // them had to go.
+              //
+              // The app bar kept it. It is visible the whole time, while this
+              // card scrolls away, and sync state is most worth knowing when
+              // you are down in the transaction list wondering why something
+              // is missing. Its tap also lands on the network status page,
+              // which is where the detail lives, so the glyph and its
+              // destination agree.
+              //
+              // What the chip did that the glyph does not is refresh on tap,
+              // and the screen already pulls to refresh, so nothing was lost
+              // with it.
             ],
           ),
           const SizedBox(height: 10),

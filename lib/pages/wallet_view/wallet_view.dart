@@ -68,6 +68,7 @@ import '../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/sign_verify_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
+import '../../widgets/animated_widgets/rotating_arrows.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -372,12 +373,18 @@ class _WalletViewState extends ConsumerState<WalletView> {
           color: colors.accentColorGreen,
         );
       case WalletSyncStatus.syncing:
-        return adaptiveIcon(
-          Assets.svg.arrowRotate,
-          CupertinoIcons.arrow_2_circlepath,
-          size: 20,
-          color: ink,
-        );
+        // The one state where motion says something a still glyph cannot: it
+        // is working, right now, and you did not need to be told twice.
+        //
+        // The balance card carried a spinning "Syncing" pill until this, and
+        // between the two of them the screen reported one fact in two places,
+        // one animated and one not. The card's pill is gone and the movement
+        // came here, so the indicator that survived is the one that moves.
+        //
+        // RotatingArrows rather than a new spinner: the same Lottie the
+        // refresh buttons on desktop and the token views already use, so the
+        // gesture reads the same wherever it appears.
+        return RotatingArrows(width: 20, height: 20, color: ink);
     }
   }
 
@@ -1089,8 +1096,18 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       child: AspectRatio(
                         aspectRatio: 1,
                         child: AppBarIconButton(
-                          semanticsLabel:
-                              "Network Button. Takes To Network Status Page.",
+                          // Says the state, not just the destination. The
+                          // glyph is the only place sync status appears now,
+                          // and shape plus colour is no use to a screen
+                          // reader.
+                          semanticsLabel: switch (_currentSyncStatus) {
+                            WalletSyncStatus.synced =>
+                              "Synced. Opens network status.",
+                            WalletSyncStatus.syncing =>
+                              "Syncing. Opens network status.",
+                            WalletSyncStatus.unableToSync =>
+                              "Unable to sync. Opens network status.",
+                          },
                           key: const Key("walletViewRadioButton"),
                           size: 36,
                           shadows: const [],
@@ -1396,16 +1413,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                                   child: WalletSummary(
                                                     walletId: walletId,
                                                     aspectRatio: 1.75,
-                                                    initialSyncStatus:
-                                                        ref
-                                                            .watch(pWallets)
-                                                            .getWallet(walletId)
-                                                            .refreshMutex
-                                                            .isLocked
-                                                        ? WalletSyncStatus
-                                                              .syncing
-                                                        : WalletSyncStatus
-                                                              .synced,
                                                   ),
                                                 ),
                                               ),

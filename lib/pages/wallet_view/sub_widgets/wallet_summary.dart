@@ -11,14 +11,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'wallet_summary_info.dart';
 
 class WalletSummary extends ConsumerWidget {
   const WalletSummary({
     super.key,
     required this.walletId,
-    required this.initialSyncStatus,
     this.aspectRatio = 2.0,
     this.minHeight = 100.0,
     this.minWidth = 200.0,
@@ -27,7 +25,6 @@ class WalletSummary extends ConsumerWidget {
   });
 
   final String walletId;
-  final WalletSyncStatus initialSyncStatus;
 
   final double aspectRatio;
   final double minHeight;
@@ -41,10 +38,7 @@ class WalletSummary extends ConsumerWidget {
     // background (big tabular numerals + address chip), not a gradient card.
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
-      child: WalletSummaryInfo(
-        walletId: walletId,
-        initialSyncStatus: initialSyncStatus,
-      ),
+      child: WalletSummaryInfo(walletId: walletId),
     );
   }
 }

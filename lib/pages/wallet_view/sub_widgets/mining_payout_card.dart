@@ -17,7 +17,6 @@ import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/amount/amount_formatter.dart';
-import '../../../utilities/compact_amount.dart';
 import '../../../utilities/mining_payouts.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
