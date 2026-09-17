@@ -2457,11 +2457,11 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
                 canBatch
                     ? checkGapsBatched(
                         txCountBatchSize,
-                        root,
+                        root!,
                         type,
                         receiveChain,
                       )
-                    : checkGapsLinearly(root, type, receiveChain),
+                    : checkGapsLinearly(root!, type, receiveChain),
               );
             }
           }
@@ -2481,11 +2481,11 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
                 canBatch
                     ? checkGapsBatched(
                         txCountBatchSize,
-                        root,
+                        root!,
                         type,
                         changeChain,
                       )
-                    : checkGapsLinearly(root, type, changeChain),
+                    : checkGapsLinearly(root!, type, changeChain),
               );
             }
           }
