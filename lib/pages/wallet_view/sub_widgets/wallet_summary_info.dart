@@ -8,7 +8,6 @@
  *
  */
 
-import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:decimal/decimal.dart';
@@ -18,13 +17,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../settings_views/global_settings_view/advanced_views/manage_coin_units/edit_coin_units_view.dart';
-import '../../../notifications/show_flush_bar.dart';
 import '../../../providers/providers.dart';
 import '../../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../../providers/wallet/wallet_balance_toggle_state_provider.dart';
 import '../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import '../../../themes/stack_colors.dart';
-import '../../../themes/theme_providers.dart';
 import '../../../utilities/hero_ink.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/amount/amount_formatter.dart';
@@ -41,7 +38,6 @@ import '../../../widgets/price_sparkline.dart';
 import '../../../services/price.dart';
 import '../price_view.dart';
 import '../../../widgets/conditional_parent.dart';
-import '../../../widgets/coin_card.dart';
 import 'wallet_balance_toggle_sheet.dart';
 import 'wallet_sync_chip.dart';
 
@@ -213,7 +209,6 @@ class WalletSummaryInfo extends ConsumerWidget {
     // carries the whole block.
     final favText = heroInk(kHeroSurface);
     final colors = Theme.of(context).extension<StackColors>()!;
-    final receivingAddress = ref.watch(pWalletReceivingAddress(walletId));
     // Spec: 52px / 700 / letter-spacing -0.02em, tabular. -0.02em at 52px is
     // -1.04, so the previous -1.2 was slightly tighter than intended; w800 was
     // also heavier than the design, which relies on size rather than weight to
@@ -460,80 +455,6 @@ class WalletSummaryInfo extends ConsumerWidget {
                     ),
                   );
                 },
-              ),
-            ),
-          if (receivingAddress.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 10),
-              child: GestureDetector(
-                onTap: () {
-                  unawaited(HapticFeedback.lightImpact());
-                  Clipboard.setData(ClipboardData(text: receivingAddress));
-                  unawaited(
-                    showFloatingFlushBar(
-                      type: FlushBarType.info,
-                      message: "Address copied to clipboard",
-                      iconAsset: Assets.svg.copy,
-                      context: context,
-                    ),
-                  );
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    // Derived from the hero ink, NOT from the page theme.
-                    // textFieldDefaultBG is a *page* surface colour: near-white
-                    // in the light and forest themes, which put white text on
-                    // white and made the address unreadable in two themes out
-                    // of three. A translucent white scrim works on any hero
-                    // colour — today's blue, forest's teal, whatever a future
-                    // coin colour brings — because it is the same white the
-                    // text already uses, just quieter.
-                    // Redesign spec values: rgba(255,255,255,0.12) fill,
-                    // 0.22 border, 12px radius. These are tuned for blue-600
-                    // #0644F1 — on the old #2F6BFF they would fail AA, which
-                    // is why the coin colour moved to blue-600 alongside this.
-                    color: favText.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: favText.withOpacity(0.22),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        receivingAddress.length > 22
-                            ? "${receivingAddress.substring(0, 12)}…"
-                                  "${receivingAddress.substring(receivingAddress.length - 6)}"
-                            : receivingAddress,
-                        style: STextStyles.subtitle500(context).copyWith(
-                          // Spec: 13px monospace at 0.92. On blue-600 that is
-                          // 5.94:1 — comfortably AA. The same 0.92 on the old
-                          // #2F6BFF was 4.05:1 and failed.
-                          fontSize: 13,
-                          color: favText.withOpacity(
-                            heroEmphasis(favText, 0.92),
-                          ),
-                          fontFeatures: const [FontFeature.tabularFigures()],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      SvgPicture.asset(
-                        Assets.svg.copy,
-                        width: 14,
-                        height: 14,
-                        // The only affordance signalling the chip is tappable,
-                        // so it has to be findable rather than decorative.
-                        color: favText.withOpacity(heroEmphasis(favText, 0.8)),
-                      ),
-                    ],
-                  ),
-                ),
               ),
             ),
           // The market, last and smallest. It used to sit above the balance
