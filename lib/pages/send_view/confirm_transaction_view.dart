@@ -702,20 +702,27 @@ class _ConfirmTransactionViewState
       return;
     }
 
-    final txid = widget.txData.tempTx?.txid;
-
-    await _markInputsAsUsed();
+    // The provider holds the signed transaction, so the payment is complete
+    // even if recording it locally fails.
+    try {
+      await _markInputsAsUsed();
+      if (widget.txData.tempTx != null) {
+        await wallet.updateSentCachedTxData(txData: widget.txData);
+      }
+      final txid = widget.txData.tempTx?.txid;
+      if (txid != null) {
+        await _saveNote(txid: txid, note: noteController.text);
+      }
+    } catch (e, s) {
+      Logging.instance.e(
+        "Failed to record the submitted OpenCryptoPay transaction",
+        error: e,
+        stackTrace: s,
+      );
+    }
 
     if (wallet.info.coin is! Ethereum) {
       ref.refresh(desktopUseUTXOs);
-    }
-
-    if (widget.txData.tempTx != null) {
-      await wallet.updateSentCachedTxData(txData: widget.txData);
-    }
-
-    if (txid != null) {
-      await _saveNote(txid: txid, note: noteController.text);
     }
 
     _refreshAfterSend(wallet);

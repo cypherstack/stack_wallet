@@ -174,6 +174,10 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
     return web3.bytesToHex(signed, include0x: true, padToEvenLength: true);
   }
 
+  /// The transaction id of the signed transaction hex [raw].
+  String txidOfSignedHex(String raw) =>
+      web3.bytesToHex(web3.keccak256(web3.hexToBytes(raw)), include0x: true);
+
   Amount estimateEthFee(BigInt feeRate, int gasLimit, int decimals) {
     final gweiAmount = feeRate.toDecimal() / (Decimal.ten.pow(9).toDecimal());
     final fee =
@@ -695,12 +699,20 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
       cryptoCurrency.fractionDigits,
     );
 
-    return txData.copyWith(
-      nonce: tx.nonce,
-      web3dartTransaction: tx,
-      fee: feeEstimate,
-      chainId: prep.chainId,
-      raw: await signWeb3TransactionToHex(tx: tx, chainId: prep.chainId),
+    final raw = await signWeb3TransactionToHex(tx: tx, chainId: prep.chainId);
+    final txid = txidOfSignedHex(raw);
+
+    return _prepareTempTx(
+      txData.copyWith(
+        nonce: tx.nonce,
+        web3dartTransaction: tx,
+        fee: feeEstimate,
+        chainId: prep.chainId,
+        raw: raw,
+        txid: txid,
+        txHash: txid,
+      ),
+      (await getCurrentReceivingAddress())!.value,
     );
   }
 
