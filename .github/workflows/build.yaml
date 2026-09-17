@@ -586,16 +586,6 @@ jobs:
           path: bitfinite-ios-aarch64-${{ steps.ver.outputs.version }}.ipa
 
   build-flatpak:
-    # Desktop and iOS are built on request only.
-    #
-    # Every release this project has ever published carries three Android APKs
-    # and a SHA256SUMS file, from v1.4.2 to v2.3.2. These jobs have never
-    # produced a shipped artifact, and they failed on every push, so the whole
-    # workflow was permanently red and a real Android break was
-    # indistinguishable from the usual noise. The jobs are kept because the
-    # platform support is real and someone may want it; they just do not run
-    # themselves.
-    if: github.event_name == 'workflow_dispatch'
     # Disabled for the BitFinite fork: Flatpak packaging still needs a bitfinite
     # manifest/app-id (flatpak/com.bitfinitechain.*.yaml + .desktop + .metainfo);
     # only the upstream com.cypherstack.stackwallet.* files exist. Re-enable once
@@ -668,16 +658,6 @@ jobs:
           path: bitfinite-flatpak-x86_64-${{ steps.ver.outputs.version }}.flatpak
 
   build-appimage:
-    # Desktop and iOS are built on request only.
-    #
-    # Every release this project has ever published carries three Android APKs
-    # and a SHA256SUMS file, from v1.4.2 to v2.3.2. These jobs have never
-    # produced a shipped artifact, and they failed on every push, so the whole
-    # workflow was permanently red and a real Android break was
-    # indistinguishable from the usual noise. The jobs are kept because the
-    # platform support is real and someone may want it; they just do not run
-    # themselves.
-    if: github.event_name == 'workflow_dispatch'
     # Disabled for the BitFinite fork: AppImage packaging still needs an
     # appimage/bitfinite/ dir (AppRun + .desktop) and app-id; only the upstream
     # appimage/stack_wallet/ files exist. Re-enable once those are added.
