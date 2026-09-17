@@ -92,9 +92,10 @@ class _WalletSyncChipState extends ConsumerState<WalletSyncChip> {
     // works, both from the theme.
     //
     // These used to be hero ink too, because the hero was the coin's colour and
-    // a green dot measured 1.05:1 on Pepecoin's green. The hero is a fixed dark
-    // neutral now, so the status colour is safe here — onHeroSignal is what
-    // guarantees that for a theme whose green is darker than the bundled ones.
+    // a green dot measured 1.05:1 on Pepecoin's green. The hero is one fixed
+    // brand fill now, so a status colour has a single known ground to clear,
+    // and onHeroSignal is what maps the theme's state onto a tint authored for
+    // that ground.
     final dotColor = switch (_status) {
       WalletSyncStatus.synced => onHeroSignal(colors.accentColorGreen),
       WalletSyncStatus.syncing => onHeroSignal(colors.accentColorYellow),

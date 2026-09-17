@@ -335,25 +335,45 @@ class _WalletViewState extends ConsumerState<WalletView> {
   /// heroInk, the same white the bell and menu beside it use. No state is lost
   /// to this: each status draws a *different glyph* (radio, radioSyncing,
   /// radioProblem), and the chip directly below spells the state out in words.
+  /// The sync state, as a glyph and a colour.
+  ///
+  /// It used to be signal bars. Those are the phone's reception icon, and on a
+  /// screen that is not about reception they read as "your mobile signal",
+  /// which is a thing this app neither measures nor can affect. What the
+  /// control actually reports is whether the wallet is caught up with its
+  /// node, so it says that: a tick when it is, a warning when it could not be.
+  ///
+  /// Shape and colour both carry the state, never colour alone. Measured on
+  /// the button's own disc, which is white in the light theme and #1A2130 in
+  /// the dark one, against the 3:1 floor that applies to a glyph:
+  ///
+  ///     green  light 3.25:1   dark 7.57:1
+  ///     red    light 4.22:1   dark 3.90:1
+  ///
+  /// Syncing stays in the ordinary bar ink rather than taking the theme's
+  /// amber, which measures 1.32:1 on the light page and would be a warning
+  /// nobody could see. It is the transient state and the rotating glyph
+  /// already names it; green and red are the two worth colouring.
   Widget _buildNetworkIcon(WalletSyncStatus status, Color ink) {
+    final colors = Theme.of(context).extension<StackColors>()!;
     switch (status) {
       case WalletSyncStatus.unableToSync:
         return adaptiveIcon(
-          Assets.svg.radioProblem,
-          CupertinoIcons.wifi_slash,
+          Assets.svg.alertCircle,
+          CupertinoIcons.exclamationmark_circle,
           size: 20,
-          color: ink,
+          color: colors.accentColorRed,
         );
       case WalletSyncStatus.synced:
         return adaptiveIcon(
-          Assets.svg.radio,
-          CupertinoIcons.wifi,
+          Assets.svg.checkCircle,
+          CupertinoIcons.check_mark_circled,
           size: 20,
-          color: ink,
+          color: colors.accentColorGreen,
         );
       case WalletSyncStatus.syncing:
         return adaptiveIcon(
-          Assets.svg.radioSyncing,
+          Assets.svg.arrowRotate,
           CupertinoIcons.arrow_2_circlepath,
           size: 20,
           color: ink,
@@ -524,14 +544,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
     debugPrint("BUILD: $runtimeType");
 
     final coin = ref.watch(pWalletCoin(walletId));
-    // Ink for everything sitting on the hero (app bar glyphs, title, the
-    // translucent discs behind them). Derived from the hero fill for the same
-    // reason as the balance block: the hero is the theme's own colour and is a
-    // light orange in some themes, where white ink measures 3.00:1.
-    // The filled dock action is the hero neutral, the one surface already
-    // licensed to carry white. It used to be the coin colour, which made the
-    // same control a different colour in every wallet.
-    const accent = kHeroSurface;
     // The app bar sits on the PAGE now, not on the hero — the hero became an
     // inset slab below it — so its ink is the theme's, not the hero's white.
     final _barColors = Theme.of(context).extension<StackColors>()!;
@@ -553,7 +565,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
       WalletNavigationBarItemData(
         label: "Receive",
         icon: const ReceiveNavIcon(),
-        filledIcon: ReceiveNavIcon(onFilled: true, fill: accent),
+        filledIcon: const ReceiveNavIcon(onFilled: true),
         onTap: () {
           if (mounted) {
             unawaited(
@@ -602,7 +614,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
         WalletNavigationBarItemData(
           label: "Send",
           icon: const SendNavIcon(),
-          filledIcon: SendNavIcon(onFilled: true, fill: accent),
+          filledIcon: const SendNavIcon(onFilled: true),
           onTap: () {
             // not sure what this is supposed to accomplish?
             // switch (ref
@@ -1163,10 +1175,16 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                           .extension<StackColors>()!
                                           .accentColorRed,
                                       shape: BoxShape.circle,
-                                      // Ring in the hero colour so the dot reads
-                                      // as a badge rather than a smudge on the bell.
+                                      // Ringed in the colour of the disc it
+                                      // actually sits on, so the dot reads as a
+                                      // badge rather than a smudge on the bell.
+                                      // That disc used to be the hero, and the
+                                      // ring was the hero colour; the app bar
+                                      // moved onto the page and the ring did
+                                      // not, which only became visible once the
+                                      // hero stopped being a near-black.
                                       border: Border.all(
-                                        color: kHeroSurface,
+                                        color: _barColors.popupBG,
                                         width: 1.5,
                                       ),
                                     ),
@@ -1296,288 +1314,313 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       // which covers the whole of it rather than a fixed
                       // fraction of the viewport, and costs no saveLayer.
                       child: CustomScrollView(
-                          // Always scrollable so pull-to-refresh works even when
-                          // the content is shorter than the screen.
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          slivers: [
-                            SliverToBoxAdapter(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Container(
-                                    width: double.infinity,
-                                    // An inset slab, not a full-bleed block.
-                                    // The hero used to run edge to edge and
-                                    // carry the status bar; it is a card on the
-                                    // page now, so it takes side margins and
-                                    // all four corners, and the app bar above
-                                    // owns the top inset.
-                                    margin: const EdgeInsets.fromLTRB(
-                                      14,
-                                      2,
-                                      14,
-                                      0,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: kHeroSurface,
-                                      borderRadius: BorderRadius.circular(24),
-                                    ),
-                                    child: Padding(
-                                      padding: EdgeInsets.zero,
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          const SizedBox(height: 6),
-                                          Center(
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 16,
+                        // Always scrollable so pull-to-refresh works even when
+                        // the content is shorter than the screen.
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        slivers: [
+                          SliverToBoxAdapter(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Container(
+                                  width: double.infinity,
+                                  // An inset slab, not a full-bleed block.
+                                  // The hero used to run edge to edge and
+                                  // carry the status bar; it is a card on the
+                                  // page now, so it takes side margins and
+                                  // all four corners, and the app bar above
+                                  // owns the top inset.
+                                  margin: const EdgeInsets.fromLTRB(
+                                    14,
+                                    2,
+                                    14,
+                                    0,
+                                  ),
+                                  // Clipped so the two discs below stop at
+                                  // the card's corners instead of bleeding
+                                  // over the page.
+                                  clipBehavior: Clip.antiAlias,
+                                  decoration: BoxDecoration(
+                                    color: kHeroSurface,
+                                    borderRadius: BorderRadius.circular(24),
+                                  ),
+                                  child: Stack(
+                                    children: [
+                                      // Two faint discs off the right edge,
+                                      // the same pair the Rust wallet's hero
+                                      // card carries. They are white at 8 and
+                                      // 6 percent, so they read as a shift in
+                                      // the fill rather than as objects, and
+                                      // they are the only decoration on the
+                                      // screen. Positioned behind the content
+                                      // and non-interactive by construction:
+                                      // a Stack paints in order and these are
+                                      // first.
+                                      const Positioned(
+                                        right: -30,
+                                        top: -40,
+                                        child: _HeroDisc(200, 0.08),
+                                      ),
+                                      const Positioned(
+                                        right: 30,
+                                        bottom: -90,
+                                        child: _HeroDisc(180, 0.06),
+                                      ),
+                                      Padding(
+                                        padding: EdgeInsets.zero,
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const SizedBox(height: 6),
+                                            Center(
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 16,
+                                                    ),
+                                                // Cap the card height in landscape so the
+                                                // aspect-ratio card can't balloon and overflow the
+                                                // column; portrait keeps its natural full-width size.
+                                                child: ConstrainedBox(
+                                                  constraints: BoxConstraints(
+                                                    maxHeight:
+                                                        MediaQuery.of(
+                                                              context,
+                                                            ).orientation ==
+                                                            Orientation
+                                                                .landscape
+                                                        ? 180.0
+                                                        : double.infinity,
                                                   ),
-                                              // Cap the card height in landscape so the
-                                              // aspect-ratio card can't balloon and overflow the
-                                              // column; portrait keeps its natural full-width size.
-                                              child: ConstrainedBox(
-                                                constraints: BoxConstraints(
-                                                  maxHeight:
-                                                      MediaQuery.of(
-                                                            context,
-                                                          ).orientation ==
-                                                          Orientation.landscape
-                                                      ? 180.0
-                                                      : double.infinity,
-                                                ),
-                                                child: WalletSummary(
-                                                  walletId: walletId,
-                                                  aspectRatio: 1.75,
-                                                  initialSyncStatus:
-                                                      ref
-                                                          .watch(pWallets)
-                                                          .getWallet(walletId)
-                                                          .refreshMutex
-                                                          .isLocked
-                                                      ? WalletSyncStatus.syncing
-                                                      : WalletSyncStatus.synced,
+                                                  child: WalletSummary(
+                                                    walletId: walletId,
+                                                    aspectRatio: 1.75,
+                                                    initialSyncStatus:
+                                                        ref
+                                                            .watch(pWallets)
+                                                            .getWallet(walletId)
+                                                            .refreshMutex
+                                                            .isLocked
+                                                        ? WalletSyncStatus
+                                                              .syncing
+                                                        : WalletSyncStatus
+                                                              .synced,
+                                                  ),
                                                 ),
                                               ),
                                             ),
-                                          ),
-                                          // Foot of the blue block. Everything below this
-                                          // point sits on the page background, which is what
-                                          // makes the rounded corners visible at all.
-                                          //
-                                          // 18 as part of the compact-hero pass: the chip
-                                          // still clears the 32px curve, and the reclaimed
-                                          // height goes to the transaction list. At 16 the
-                                          // chip crowded the curve, so this is the floor.
-                                          const SizedBox(height: 18),
-                                        ],
+                                            // Foot of the blue block. Everything below this
+                                            // point sits on the page background, which is what
+                                            // makes the rounded corners visible at all.
+                                            //
+                                            // 18 as part of the compact-hero pass: the chip
+                                            // still clears the 32px curve, and the reclaimed
+                                            // height goes to the transaction list. At 16 the
+                                            // chip crowded the curve, so this is the floor.
+                                            const SizedBox(height: 18),
+                                          ],
+                                        ),
                                       ),
-                                    ),
+                                    ],
                                   ),
+                                ),
 
-                                  if ((isSparkWallet ||
-                                          ref
-                                              .watch(pWalletInfo(walletId))
-                                              .isMwebEnabled) &&
-                                      !viewOnly)
-                                    const SizedBox(height: 10),
-                                  if ((isSparkWallet ||
-                                          ref
-                                              .watch(pWalletInfo(walletId))
-                                              .isMwebEnabled) &&
-                                      !viewOnly)
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            child: TextButton(
-                                              style: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .getSecondaryEnabledButtonStyle(
-                                                    context,
-                                                  ),
-                                              onPressed: () async {
-                                                await showDialog<void>(
-                                                  context: context,
-                                                  builder: (context) => StackDialog(
-                                                    title: "Attention!",
-                                                    message:
-                                                        "You're about to privatize all of your public funds.",
-                                                    leftButton: TextButton(
-                                                      onPressed: () {
-                                                        Navigator.of(
-                                                          context,
-                                                        ).pop();
-                                                      },
-                                                      child: Text(
-                                                        "Cancel",
-                                                        style:
-                                                            STextStyles.button(
-                                                              context,
-                                                            ).copyWith(
-                                                              color: Theme.of(context)
-                                                                  .extension<
-                                                                    StackColors
-                                                                  >()!
-                                                                  .accentColorDark,
-                                                            ),
-                                                      ),
-                                                    ),
-                                                    rightButton: TextButton(
-                                                      onPressed: () async {
-                                                        Navigator.of(
-                                                          context,
-                                                        ).pop();
-
-                                                        unawaited(
-                                                          attemptAnonymize(),
-                                                        );
-                                                      },
-                                                      style: Theme.of(context)
-                                                          .extension<
-                                                            StackColors
-                                                          >()!
-                                                          .getPrimaryEnabledButtonStyle(
-                                                            context,
-                                                          ),
-                                                      child: Text(
-                                                        "Continue",
-                                                        style:
-                                                            STextStyles.button(
-                                                              context,
-                                                            ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                );
-                                              },
-                                              child: Text(
-                                                "Privatize funds",
-                                                style:
-                                                    STextStyles.button(
-                                                      context,
-                                                    ).copyWith(
-                                                      color: Theme.of(context)
-                                                          .extension<
-                                                            StackColors
-                                                          >()!
-                                                          .buttonTextSecondary,
-                                                    ),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  // Renders nothing unless mining has actually paid into
-                                  // this wallet, so an ordinary wallet is unchanged.
-                                  MiningPayoutCard(
-                                    walletId: widget.walletId,
-                                    coin: coin,
-                                  ),
-                                  const SizedBox(height: 20),
+                                if ((isSparkWallet ||
+                                        ref
+                                            .watch(pWalletInfo(walletId))
+                                            .isMwebEnabled) &&
+                                    !viewOnly)
+                                  const SizedBox(height: 10),
+                                if ((isSparkWallet ||
+                                        ref
+                                            .watch(pWalletInfo(walletId))
+                                            .isMwebEnabled) &&
+                                    !viewOnly)
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 16,
                                     ),
                                     child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Text(
-                                          "Transactions",
-                                          style:
-                                              STextStyles.itemSubtitle(
-                                                context,
-                                              ).copyWith(
-                                                color: Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .textDark3,
-                                              ),
-                                        ),
-                                        CustomTextButton(
-                                          text: "See all",
-                                          // No colour override: the theme's own
-                                          // link colour. The wallet screen used
-                                          // to tint its accents per coin, which
-                                          // is what made this link unreadable on
-                                          // Bellscoin. Chrome follows the theme
-                                          // now; the coin keeps its icon.
-                                          onTap: () {
-                                            Navigator.of(context).pushNamed(
-                                              ref
-                                                          .read(pWallets)
-                                                          .getWallet(
-                                                            widget.walletId,
-                                                          )
-                                                          .isarTransactionVersion ==
-                                                      2
-                                                  ? AllTransactionsV2View
-                                                        .routeName
-                                                  : AllTransactionsView
-                                                        .routeName,
-                                              arguments: walletId,
-                                            );
-                                          },
+                                        Expanded(
+                                          child: TextButton(
+                                            style: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .getSecondaryEnabledButtonStyle(
+                                                  context,
+                                                ),
+                                            onPressed: () async {
+                                              await showDialog<void>(
+                                                context: context,
+                                                builder: (context) => StackDialog(
+                                                  title: "Attention!",
+                                                  message:
+                                                      "You're about to privatize all of your public funds.",
+                                                  leftButton: TextButton(
+                                                    onPressed: () {
+                                                      Navigator.of(
+                                                        context,
+                                                      ).pop();
+                                                    },
+                                                    child: Text(
+                                                      "Cancel",
+                                                      style:
+                                                          STextStyles.button(
+                                                            context,
+                                                          ).copyWith(
+                                                            color: Theme.of(context)
+                                                                .extension<
+                                                                  StackColors
+                                                                >()!
+                                                                .accentColorDark,
+                                                          ),
+                                                    ),
+                                                  ),
+                                                  rightButton: TextButton(
+                                                    onPressed: () async {
+                                                      Navigator.of(
+                                                        context,
+                                                      ).pop();
+
+                                                      unawaited(
+                                                        attemptAnonymize(),
+                                                      );
+                                                    },
+                                                    style: Theme.of(context)
+                                                        .extension<
+                                                          StackColors
+                                                        >()!
+                                                        .getPrimaryEnabledButtonStyle(
+                                                          context,
+                                                        ),
+                                                    child: Text(
+                                                      "Continue",
+                                                      style: STextStyles.button(
+                                                        context,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                            child: Text(
+                                              "Privatize funds",
+                                              style: STextStyles.button(context)
+                                                  .copyWith(
+                                                    color: Theme.of(context)
+                                                        .extension<
+                                                          StackColors
+                                                        >()!
+                                                        .buttonTextSecondary,
+                                                  ),
+                                            ),
+                                          ),
                                         ),
                                       ],
                                     ),
                                   ),
-                                  const SizedBox(height: 12),
-                                ],
-                              ),
-                            ),
-                            // The list is slivers now, so it shares the page's
-                            // scroll instead of owning a second one. The last row
-                            // already pads itself past the floating dock.
-                            SliverPadding(
-                              // Bottom padding is the dock's opaque height, so
-                              // the last transaction can be scrolled clear of
-                              // it. The sliver path was missing this entirely
-                              // (the old ListView path had it), so the final
-                              // row could never be read in full. Sits outside
-                              // DecoratedSliver, so it is space under the card
-                              // rather than space inside it.
-                              padding: const EdgeInsets.fromLTRB(14, 0, 14, 96),
-                              sliver:
-                                  ref
-                                          .read(pWallets)
-                                          .getWallet(widget.walletId)
-                                          .isarTransactionVersion ==
-                                      2
-                                  // The v2 list paints its own grouped card.
-                                  // It has to: the truncation notice is a
-                                  // separate card ABOVE that one, and a
-                                  // decoration applied out here wrapped both,
-                                  // which is what made them look stacked.
-                                  ? TransactionsV2List(
-                                      walletId: widget.walletId,
-                                      asSliver: true,
-                                    )
-                                  // v1 has no sliver form. It keeps its own
-                                  // scrollable, filling what is left of the
-                                  // viewport, which is what it did before, and
-                                  // still needs the card drawn for it.
-                                  : DecoratedSliver(
-                                      decoration: BoxDecoration(
-                                        color: _barColors.popupBG,
-                                        borderRadius: BorderRadius.circular(20),
+                                // Renders nothing unless mining has actually paid into
+                                // this wallet, so an ordinary wallet is unchanged.
+                                MiningPayoutCard(
+                                  walletId: widget.walletId,
+                                  coin: coin,
+                                ),
+                                const SizedBox(height: 20),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        "Transactions",
+                                        style: STextStyles.itemSubtitle(context)
+                                            .copyWith(
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .textDark3,
+                                            ),
                                       ),
-                                      sliver: SliverFillRemaining(
-                                        hasScrollBody: true,
-                                        child: TransactionsList(
-                                          walletId: walletId,
-                                        ),
+                                      CustomTextButton(
+                                        text: "See all",
+                                        // No colour override: the theme's own
+                                        // link colour. The wallet screen used
+                                        // to tint its accents per coin, which
+                                        // is what made this link unreadable on
+                                        // Bellscoin. Chrome follows the theme
+                                        // now; the coin keeps its icon.
+                                        onTap: () {
+                                          Navigator.of(context).pushNamed(
+                                            ref
+                                                        .read(pWallets)
+                                                        .getWallet(
+                                                          widget.walletId,
+                                                        )
+                                                        .isarTransactionVersion ==
+                                                    2
+                                                ? AllTransactionsV2View
+                                                      .routeName
+                                                : AllTransactionsView.routeName,
+                                            arguments: walletId,
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                              ],
+                            ),
+                          ),
+                          // The list is slivers now, so it shares the page's
+                          // scroll instead of owning a second one. The last row
+                          // already pads itself past the floating dock.
+                          SliverPadding(
+                            // Bottom padding is the dock's opaque height, so
+                            // the last transaction can be scrolled clear of
+                            // it. The sliver path was missing this entirely
+                            // (the old ListView path had it), so the final
+                            // row could never be read in full. Sits outside
+                            // DecoratedSliver, so it is space under the card
+                            // rather than space inside it.
+                            padding: const EdgeInsets.fromLTRB(14, 0, 14, 96),
+                            sliver:
+                                ref
+                                        .read(pWallets)
+                                        .getWallet(widget.walletId)
+                                        .isarTransactionVersion ==
+                                    2
+                                // The v2 list paints its own grouped card.
+                                // It has to: the truncation notice is a
+                                // separate card ABOVE that one, and a
+                                // decoration applied out here wrapped both,
+                                // which is what made them look stacked.
+                                ? TransactionsV2List(
+                                    walletId: widget.walletId,
+                                    asSliver: true,
+                                  )
+                                // v1 has no sliver form. It keeps its own
+                                // scrollable, filling what is left of the
+                                // viewport, which is what it did before, and
+                                // still needs the card drawn for it.
+                                : DecoratedSliver(
+                                    decoration: BoxDecoration(
+                                      color: _barColors.popupBG,
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    sliver: SliverFillRemaining(
+                                      hasScrollBody: true,
+                                      child: TransactionsList(
+                                        walletId: walletId,
                                       ),
                                     ),
-                            ),
-                          ],
-                        ),
+                                  ),
+                          ),
+                        ],
+                      ),
                     ),
                     Positioned(left: 0, right: 0, bottom: 0, child: walletDock),
                   ],
@@ -1586,6 +1629,30 @@ class _WalletViewState extends ConsumerState<WalletView> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// One of the hero card's two background discs.
+///
+/// A plain white circle at a low opacity, sized and placed by the card. It
+/// carries no colour of its own so it works on any hero fill, and it is a
+/// const widget so the two of them cost nothing to rebuild.
+class _HeroDisc extends StatelessWidget {
+  const _HeroDisc(this.size, this.opacity);
+
+  final double size;
+  final double opacity;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white.withOpacity(opacity),
       ),
     );
   }

@@ -9,32 +9,45 @@
 
 import 'package:flutter/material.dart';
 
-/// The wallet hero is ONE neutral surface for every coin, with white ink.
+/// The wallet hero is ONE brand surface for every coin, with white ink.
 ///
-/// The coin's colour has not gone anywhere — it still paints the coin icon,
-/// its card on the home screen, and the accents. It just stopped being the
-/// wall the balance sits on.
+/// The coin's colour has not gone anywhere. It still paints the coin icon, its
+/// card on the home screen, and the accents. It just is not the wall the
+/// balance sits on.
 ///
-/// Two earlier rules are in the session notes, and both failed on the same
-/// coin. The hero began as the coin's own colour with white ink, which put
-/// white on Bellscoin's Bell Bag Gold #F3C532 at 1.64:1 — near invisible.
-/// The fix after that adapted the INK per coin, which was always legible but
-/// flipped between white and near-black from coin to coin, so three coins read
-/// as three products. Deepening the fills to earn white was tried and pulled:
-/// it stopped matching Bellscoin's brand kit.
+/// Two earlier rules failed on the same coin. The hero began as the coin's own
+/// colour with white ink, which put white on Bellscoin's Bell Bag Gold #F3C532
+/// at 1.64:1, near invisible. The fix after that adapted the INK per coin,
+/// which was always legible but flipped between white and near-black from coin
+/// to coin, so three coins read as three products.
 ///
-/// Measured, which is what ruled the alternatives out:
+/// Measured, which is what ruled those out:
 ///
 ///     BitFinite  #245BF3   white 5.43:1   near-black 3.48:1
 ///     Pepecoin   #269B4D   white 3.57:1   near-black 5.07:1
 ///     Bellscoin  #F3C532   white 1.64:1   near-black 11.08:1
 ///
 /// White cannot be used on that gold at all, so no single ink was reachable
-/// while the surface stayed the coin's colour. Moving the surface instead
-/// settles it once: white lands at 17.72:1 on every coin, and it keeps
-/// working for a fourth coin whatever colour that turns out to be, which
-/// neither of the other rules did.
-const Color kHeroSurface = Color(0xFF18181B);
+/// while the surface followed the coin. Moving the surface settles it once.
+///
+/// It was a dark neutral #18181B for a while, which was safe and said nothing.
+/// The surface is the brand fill now, blue-600 from the token set, the same
+/// blue the Rust wallet's hero card uses. White lands at 6.76:1 on it, so the
+/// balance, the labels and the address all clear AA, and the card finally
+/// looks like this product rather than like any product.
+///
+/// Every white step measured against this fill:
+///
+///     1.00  balance                6.76:1
+///     0.92  price, address         5.94:1
+///     0.85  sub                    5.28:1
+///     0.80  eyebrow, copy glyph    4.84:1
+///     0.78  labels                 4.66:1
+///     0.62  the balance's dust     3.46:1
+///
+/// Only the last sits under 4.5, and it is the greyed tail of a 30px w700
+/// number, which is large text and clears the 3:1 line that applies to it.
+const Color kHeroSurface = Color(0xFF0644F1);
 
 /// Always white now. Kept as a function because every hero label calls it, and
 /// a single definition is what stops the ink drifting apart again.
@@ -70,28 +83,34 @@ Color readableInk(Color preferred, Color surface, {double min = 4.0}) {
       : kInkDark;
 }
 
-/// A theme's own signal colour (green up, red down, amber busy), made safe to
-/// use on [kHeroSurface].
+/// A signal colour (green up, red down, amber busy) that works on the hero.
 ///
-/// The hero used to refuse status colours outright and render every figure in
-/// hero ink, because a coin-coloured hero could not promise contrast for them —
-/// green on Bellscoin gold measured under 2:1. That objection died with the
-/// coin-coloured hero: the surface is one fixed dark neutral now, so a colour
-/// only has to clear one known background.
+/// This used to take the theme's own colour and lift it toward white until it
+/// cleared the floor. That worked on the old dark neutral, where every bundled
+/// theme's green and red already passed and nothing was lifted at all. It does
+/// not work on the brand blue: the blue is far lighter than the neutral was, so
+/// the same loop had to lift the theme's green 9 steps and its red 15 before
+/// either cleared, landing on #9BE5B6 and #F2CCCD. Both pass on paper, and on
+/// screen they are two barely tinted whites. A rise and a fall have to be
+/// telling apart at a glance, and those were not.
 ///
-/// The theme still chooses the hue. Its greens and reds are authored against
-/// the PAGE, though, and a theme with a deep forest green would sit at 2.5:1 on
-/// this surface, so the colour is lifted toward white only as far as it takes
-/// to clear the floor. A theme whose colour already reads is returned
-/// untouched, which is every bundled theme.
+/// So the hero has its own three tints, authored against this one fill rather
+/// than derived from a theme that was authored against the page. The theme
+/// still says WHICH state it is; the hero says what that state looks like on
+/// blue. Measured on #0644F1:
+///
+///     up     #7BE8B3   4.52:1   150deg
+///     down   #FFC7C1   4.57:1     6deg   (145deg from the up tint)
+///     busy   #FFDF9E   5.25:1    38deg
+///
+/// The hue gap is the point. Contrast alone would have accepted the two
+/// washed-out pastels above.
 Color onHeroSignal(Color themeColor, {double min = 4.5}) {
-  var c = themeColor;
-  // 0.08 a step, capped, so a colour that cannot be rescued lands on something
-  // near white rather than looping.
-  for (var i = 0; i < 24 && _contrast(c, kHeroSurface) < min; i++) {
-    c = Color.lerp(c, Colors.white, 0.08)!;
-  }
-  return c;
+  final hue = HSVColor.fromColor(themeColor).hue;
+  // Warm reds wrap past 360, so both ends of the wheel are the down tint.
+  if (hue < 20 || hue >= 330) return const Color(0xFFFFC7C1);
+  if (hue < 70) return const Color(0xFFFFDF9E);
+  return const Color(0xFF7BE8B3);
 }
 
 /// A near-black rather than pure black: on a saturated fill pure black reads as
