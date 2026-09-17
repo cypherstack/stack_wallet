@@ -160,6 +160,7 @@ class _SendViewState extends ConsumerState<SendView> {
   Set<StandardInput> selectedUTXOs = {};
 
   late final OpenCryptoPaySendHandler _openCryptoPay;
+  bool _feeCheckPending = false;
 
   void _openCryptoPaySetValidAddress(String address) {
     _address = address;
@@ -937,6 +938,7 @@ class _SendViewState extends ConsumerState<SendView> {
 
     final chosenRateType = ref.read(feeRateTypeMobileStateProvider);
     if (!mounted) return;
+    setState(() => _feeCheckPending = true);
     final fee = await _openCryptoPay.sendFee(
       context,
       wallet,
@@ -949,7 +951,9 @@ class _SendViewState extends ConsumerState<SendView> {
           coin is! Firo ||
           ref.read(publicPrivateBalanceStateProvider) == BalanceType.public,
     );
-    if (fee == null || !mounted) return;
+    if (!mounted) return;
+    setState(() => _feeCheckPending = false);
+    if (fee == null) return;
 
     try {
       bool wasCancelled = false;
@@ -2806,6 +2810,7 @@ class _SendViewState extends ConsumerState<SendView> {
                               builder: (context, ethFee, _) {
                                 final enabled =
                                     previewEnabled &&
+                                    !_feeCheckPending &&
                                     (!needsEthFee || ethFee != null);
                                 return TextButton(
                                   onPressed: enabled

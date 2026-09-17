@@ -123,6 +123,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
   final _ethFee = ValueNotifier<EthEIP1559Fee?>(null);
 
   late final OpenCryptoPaySendHandler _openCryptoPay;
+  bool _feeCheckPending = false;
 
   void _openCryptoPaySetValidAddress(String address) {
     _address = address;
@@ -483,6 +484,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
 
     final feeRateType = ref.read(feeRateTypeMobileStateProvider);
     if (!mounted) return;
+    setState(() => _feeCheckPending = true);
     final fee = await _openCryptoPay.sendFee(
       context,
       tokenWallet,
@@ -491,7 +493,9 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
       feeRateType: feeRateType,
       ethFee: _ethFee.value,
     );
-    if (fee == null || !mounted) return;
+    if (!mounted) return;
+    setState(() => _feeCheckPending = false);
+    if (fee == null) return;
 
     try {
       bool wasCancelled = false;
@@ -1381,6 +1385,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                               builder: (context, ethFee, _) {
                                 final enabled =
                                     previewEnabled &&
+                                    !_feeCheckPending &&
                                     (!needsEthFee || ethFee != null);
                                 return TextButton(
                                   onPressed: enabled

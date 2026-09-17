@@ -130,6 +130,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   late final bool isMimblewimblecoin;
   late final bool isEpiccash;
   late final OpenCryptoPaySendHandler _openCryptoPay;
+  bool _feeCheckPending = false;
 
   String? _note;
   String? _onChainNote;
@@ -553,6 +554,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
     final chosenRateType = ref.read(feeRateTypeDesktopStateProvider);
     if (!mounted) return;
+    setState(() => _feeCheckPending = true);
     final fee = await _openCryptoPay.sendFee(
       context,
       wallet,
@@ -565,7 +567,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           coin is! Firo ||
           ref.read(publicPrivateBalanceStateProvider) == BalanceType.public,
     );
-    if (fee == null || !mounted) return;
+    if (!mounted) return;
+    setState(() => _feeCheckPending = false);
+    if (fee == null) return;
 
     try {
       bool wasCancelled = false;
@@ -2281,6 +2285,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           builder: (context, ethFee, _) {
             final enabled =
                 previewEnabled &&
+                !_feeCheckPending &&
                 _nonceIsValid &&
                 (!needsEthFee || ethFee != null);
             return PrimaryButton(

@@ -119,6 +119,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
   bool get _nonceIsValid => _nonceInput.isValid;
 
   late final OpenCryptoPaySendHandler _openCryptoPay;
+  bool _feeCheckPending = false;
 
   void _openCryptoPaySetValidAddress(String address) {
     _address = address;
@@ -222,6 +223,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
 
     final feeRateType = ref.read(feeRateTypeDesktopStateProvider);
     if (!mounted) return;
+    setState(() => _feeCheckPending = true);
     final fee = await _openCryptoPay.sendFee(
       context,
       tokenWallet,
@@ -230,7 +232,9 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
       feeRateType: feeRateType,
       ethFee: _ethFee.value,
     );
-    if (fee == null || !mounted) return;
+    if (!mounted) return;
+    setState(() => _feeCheckPending = false);
+    if (fee == null) return;
 
     try {
       bool wasCancelled = false;
@@ -1204,6 +1208,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
           builder: (context, ethFee, _) {
             final enabled =
                 previewEnabled &&
+                !_feeCheckPending &&
                 _nonceIsValid &&
                 (!needsEthFee || ethFee != null);
             return PrimaryButton(
