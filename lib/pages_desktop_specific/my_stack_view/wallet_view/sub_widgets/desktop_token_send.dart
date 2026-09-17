@@ -698,6 +698,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
       setValidAddress: _openCryptoPaySetValidAddress,
       tokenSymbol: tokenContract?.symbol,
       tokenDecimals: tokenContract?.decimals,
+      tokenContractAddress: tokenContract?.address,
     );
 
     _cryptoFocus.addListener(() {

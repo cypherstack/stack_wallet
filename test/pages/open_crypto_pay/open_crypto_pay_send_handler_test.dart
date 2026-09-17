@@ -317,6 +317,7 @@ _HandlerSetup _makeHandler({
   required Client client,
   String? tokenSymbol,
   int? tokenDecimals,
+  String? tokenContractAddress,
 }) {
   final sendTo = TextEditingController();
   final amount = TextEditingController();
@@ -333,6 +334,7 @@ _HandlerSetup _makeHandler({
     setValidAddress: validAddresses.add,
     tokenSymbol: tokenSymbol,
     tokenDecimals: tokenDecimals,
+    tokenContractAddress: tokenContractAddress,
     controller: OpenCryptoPayController(
       service: OpenCryptoPayService(client: client),
     ),
@@ -539,6 +541,8 @@ void main() {
         coin: Ethereum(CryptoCurrencyNetwork.main),
         tokenSymbol: "USDT",
         tokenDecimals: 6,
+        // Checksum case; the request names it in lower case.
+        tokenContractAddress: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
         client: _mockOcpServer(
           paymentInfo: _paymentInfoJson(quoteExpiration: _futureExpiration()),
           txDetails: _erc20DetailsJson(),
@@ -552,6 +556,34 @@ void main() {
       expect(harness.ref.read(pSendAmount)?.raw, BigInt.from(1246858));
       expect(harness.ref.read(pSendAmount)?.fractionDigits, 6);
       expect(setup.handler.isActivePaymentFor(_erc20Recipient), isTrue);
+    });
+
+    testWidgets("a request for another token contract is refused", (
+      tester,
+    ) async {
+      final harness = await _pumpHarness(tester);
+      final setup = _makeHandler(
+        harness: harness,
+        coin: Ethereum(CryptoCurrencyNetwork.main),
+        tokenSymbol: "USDT",
+        tokenDecimals: 6,
+        tokenContractAddress: "0x1111111111111111111111111111111111111111",
+        client: _mockOcpServer(
+          paymentInfo: _paymentInfoJson(quoteExpiration: _futureExpiration()),
+          txDetails: _erc20DetailsJson(),
+        ),
+      );
+
+      final fut = setup.handler.handle(harness.context, _qrLink);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.text("Different token"), findsOneWidget);
+      await _tapOk(tester);
+      await tester.pumpAndSettle();
+      await fut;
+
+      expect(setup.sendTo.text, isEmpty);
+      expect(setup.handler.isActivePaymentFor(_erc20Recipient), isFalse);
     });
 
     testWidgets("expired quote at fetch shows the expiry dialog and does not "

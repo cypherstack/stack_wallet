@@ -671,6 +671,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
       setValidAddress: _openCryptoPaySetValidAddress,
       tokenSymbol: tokenContract.symbol,
       tokenDecimals: tokenContract.decimals,
+      tokenContractAddress: tokenContract.address,
     );
 
     super.initState();

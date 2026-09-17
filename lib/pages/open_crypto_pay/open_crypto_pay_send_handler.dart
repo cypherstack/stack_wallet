@@ -55,6 +55,12 @@ CryptoCoin cryptoCoinFor(CryptoCurrency currency, {String? tokenSymbol}) =>
 
 typedef BusinessDetail = ({String label, String value, Uri? uri});
 
+const _tokenMismatchTitle = "Different token";
+const _tokenMismatchMessage =
+    "The payment request is for a token with a different contract address "
+    "than this wallet's token. Scan the code from the wallet holding that "
+    "token.";
+
 class OpenCryptoPaySendHandler {
   OpenCryptoPaySendHandler({
     required this.coin,
@@ -63,6 +69,7 @@ class OpenCryptoPaySendHandler {
     required this.setValidAddress,
     this.tokenSymbol,
     this.tokenDecimals,
+    this.tokenContractAddress,
     @visibleForTesting OpenCryptoPayController? controller,
   }) : _controller =
            controller ??
@@ -80,6 +87,9 @@ class OpenCryptoPaySendHandler {
   /// and amounts use the token's decimals.
   final String? tokenSymbol;
   final int? tokenDecimals;
+
+  /// Set for token wallets; a request for another contract is refused.
+  final String? tokenContractAddress;
 
   int get _fractionDigits => tokenDecimals ?? coin.fractionDigits;
 
@@ -276,9 +286,23 @@ class OpenCryptoPaySendHandler {
         );
       case OpenCryptoPaySuccess() when result.session.isQuoteExpired:
         await showQuoteExpiredError(context);
+      case OpenCryptoPaySuccess() when _isOtherToken(result):
+        await _showError(
+          context: context,
+          title: _tokenMismatchTitle,
+          message: _tokenMismatchMessage,
+        );
       case OpenCryptoPaySuccess():
         _applySuccess(result);
     }
+  }
+
+  bool _isOtherToken(OpenCryptoPaySuccess result) {
+    final requested = result.tokenContractAddress;
+    final held = tokenContractAddress;
+    return requested != null &&
+        held != null &&
+        requested.toLowerCase() != held.toLowerCase();
   }
 
   void _applySuccess(OpenCryptoPaySuccess result) {
