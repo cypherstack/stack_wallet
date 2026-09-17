@@ -107,6 +107,22 @@ class _TransactionV2DetailsViewState
 
   bool showFeePending = false;
 
+  /// Whether every recipient is listed, or only the first few.
+  ///
+  /// A mining payout pays hundreds of addresses in one transaction, and this
+  /// screen listed every one of them in full, inline, above the date, the fee
+  /// and the confirmation count. Somebody opening a payout to check whether it
+  /// confirmed had to scroll past several hundred addresses to find out. The
+  /// wallets that handle this well all collapse it: BlueWallet puts outputs
+  /// behind a count in a section closed by default, Ledger shows "Multiple
+  /// addresses" with See all and See less.
+  bool _showAllOutputs = false;
+
+  /// How many recipients to show before collapsing. Three is enough to see the
+  /// shape of an ordinary send, which is one or two, without any transaction
+  /// being able to bury the rest of the screen.
+  static const _outputPreviewCount = 3;
+
   String? _sparkMemo;
 
   bool _boostButtonLock = false;
@@ -468,6 +484,11 @@ class _TransactionV2DetailsViewState
       } else {
         outputLabel = "Receiving addresses";
       }
+    } else if (data.length > 1) {
+      // The count belongs in the label. "Sent to" above a list that has been
+      // collapsed to three entries reads as a transaction with three
+      // recipients, and a mining payout has several hundred.
+      outputLabel = "Sent to ${data.length} addresses";
     } else {
       outputLabel = "Sent to";
     }
@@ -784,7 +805,13 @@ class _TransactionV2DetailsViewState
                                                 else
                                                   for (
                                                     int i = 0;
-                                                    i < data.length;
+                                                    i <
+                                                        (_showAllOutputs
+                                                            ? data.length
+                                                            : data.length <
+                                                                  _outputPreviewCount
+                                                            ? data.length
+                                                            : _outputPreviewCount);
                                                     i++
                                                   )
                                                     ConditionalParent(
@@ -852,6 +879,50 @@ class _TransactionV2DetailsViewState
                                                         ),
                                                       ),
                                                     ),
+                                                // The rest, behind one tap, with the count stated so the
+                                                // number of recipients is itself visible without opening
+                                                // anything. A pool payout reaches several hundred.
+                                                if (data.length >
+                                                    _outputPreviewCount)
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                          top: 4,
+                                                        ),
+                                                    child: GestureDetector(
+                                                      behavior: HitTestBehavior
+                                                          .opaque,
+                                                      onTap: () => setState(
+                                                        () => _showAllOutputs =
+                                                            !_showAllOutputs,
+                                                      ),
+                                                      child: Padding(
+                                                        padding:
+                                                            const EdgeInsets.symmetric(
+                                                              horizontal: 8,
+                                                              vertical: 10,
+                                                            ),
+                                                        child: Text(
+                                                          _showAllOutputs
+                                                              ? "Show fewer"
+                                                              : "Show all ${data.length} recipients",
+                                                          style:
+                                                              STextStyles.smallMed14(
+                                                                context,
+                                                              ).copyWith(
+                                                                color: Theme.of(context)
+                                                                    .extension<
+                                                                      StackColors
+                                                                    >()!
+                                                                    .infoItemIcons,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                              ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
                                               ],
                                             ),
                                           ],
@@ -2229,82 +2300,82 @@ class _TxDetailsAmountHeader extends ConsumerWidget {
               // overflowed this row by 94px. Expanded hands it the rest of
               // the row, which is what the scaling below then works within.
               Expanded(
-                child:               Column(
-                crossAxisAlignment: isDesktop
-                    ? CrossAxisAlignment.end
-                    : CrossAxisAlignment.start,
-                children: [
-                  Builder(
-                    builder: (context) {
-                      final formattedAmount = ref
-                          .watch(pAmountFormatter(coin))
-                          .format(amount, tokenContract: tokenContract);
-                      final colors = Theme.of(
-                        context,
-                      ).extension<StackColors>()!;
-                      // This is the headline figure of the screen and was
-                      // rendering at itemSubtitle12 — subtitle size for the one
-                      // number the page exists to show. Spec is 24/700, with
-                      // incoming in green, using the same accentColorGreen the
-                      // transaction list uses so the two agree.
-                      // Shrink to fit rather than wrap. Digits broken across
-                      // two lines read as a different number, and this string
-                      // reaches 24 characters on a mining wallet:
-                      // "-39,967,175.37148800 PEP". scaleDown only ever
-                      // reduces, so ordinary amounts keep the full 24px.
-                      return FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: isDesktop
-                            ? Alignment.centerRight
-                            : Alignment.centerLeft,
-                        child: SelectableText(
-                          "$amountPrefix$formattedAmount",
-                          style: isDesktop
-                              ? detailStyle
-                              : detailStyle.copyWith(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w700,
-                                  height: 1.15,
-                                  color:
-                                      transaction.type ==
-                                          TransactionType.incoming
-                                      ? colors.accentColorGreen
-                                      : colors.textDark,
-                                  fontFeatures: const [
-                                    FontFeature.tabularFigures(),
-                                  ],
-                                ),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 2),
-                  if (price != null)
+                child: Column(
+                  crossAxisAlignment: isDesktop
+                      ? CrossAxisAlignment.end
+                      : CrossAxisAlignment.start,
+                  children: [
                     Builder(
                       builder: (context) {
-                        final total = (amount.decimal * price!).toAmount(
-                          fractionDigits: 2,
-                        );
-                        final formatted = total.fiatString(
-                          locale: ref.watch(
-                            localeServiceChangeNotifierProvider.select(
-                              (value) => value.locale,
-                            ),
+                        final formattedAmount = ref
+                            .watch(pAmountFormatter(coin))
+                            .format(amount, tokenContract: tokenContract);
+                        final colors = Theme.of(
+                          context,
+                        ).extension<StackColors>()!;
+                        // This is the headline figure of the screen and was
+                        // rendering at itemSubtitle12 — subtitle size for the one
+                        // number the page exists to show. Spec is 24/700, with
+                        // incoming in green, using the same accentColorGreen the
+                        // transaction list uses so the two agree.
+                        // Shrink to fit rather than wrap. Digits broken across
+                        // two lines read as a different number, and this string
+                        // reaches 24 characters on a mining wallet:
+                        // "-39,967,175.37148800 PEP". scaleDown only ever
+                        // reduces, so ordinary amounts keep the full 24px.
+                        return FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: isDesktop
+                              ? Alignment.centerRight
+                              : Alignment.centerLeft,
+                          child: SelectableText(
+                            "$amountPrefix$formattedAmount",
+                            style: isDesktop
+                                ? detailStyle
+                                : detailStyle.copyWith(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w700,
+                                    height: 1.15,
+                                    color:
+                                        transaction.type ==
+                                            TransactionType.incoming
+                                        ? colors.accentColorGreen
+                                        : colors.textDark,
+                                    fontFeatures: const [
+                                      FontFeature.tabularFigures(),
+                                    ],
+                                  ),
                           ),
-                        );
-                        final ticker = ref.watch(
-                          prefsChangeNotifierProvider.select(
-                            (value) => value.currency,
-                          ),
-                        );
-                        return SelectableText(
-                          "$amountPrefix$formatted $ticker",
-                          style: labelStyle,
                         );
                       },
                     ),
-                ],
-              ),
+                    const SizedBox(height: 2),
+                    if (price != null)
+                      Builder(
+                        builder: (context) {
+                          final total = (amount.decimal * price!).toAmount(
+                            fractionDigits: 2,
+                          );
+                          final formatted = total.fiatString(
+                            locale: ref.watch(
+                              localeServiceChangeNotifierProvider.select(
+                                (value) => value.locale,
+                              ),
+                            ),
+                          );
+                          final ticker = ref.watch(
+                            prefsChangeNotifierProvider.select(
+                              (value) => value.currency,
+                            ),
+                          );
+                          return SelectableText(
+                            "$amountPrefix$formatted $ticker",
+                            style: labelStyle,
+                          );
+                        },
+                      ),
+                  ],
+                ),
               ),
               if (!isDesktop)
                 TxIcon(
