@@ -12,6 +12,8 @@ import '../../../wl_gen/interfaces/lib_xelis_interface.dart';
 import '../../crypto_currency/intermediate/electrum_currency.dart';
 import '../wallet_mixin_interfaces/mnemonic_interface.dart';
 import 'external_wallet.dart';
+import 'xelis_event_batcher.dart';
+import 'xelis_operation_coordinator.dart';
 
 abstract class LibXelisWallet<T extends ElectrumCurrency>
     extends ExternalWallet<T>
@@ -38,6 +40,18 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
   Timer? timer;
 
   StreamSubscription<void>? _eventSubscription;
+  late final XelisOperationCoordinator _operationCoordinator =
+      XelisOperationCoordinator(refreshMutex);
+
+  static const _eventFlushInterval = Duration(milliseconds: 500);
+
+  @protected
+  late final XelisEventBatcher<TransactionEntryWrapper> eventBatcher =
+      XelisEventBatcher(
+        flushInterval: _eventFlushInterval,
+        flush: (batch) =>
+            runXelisEventUpdate(() => applyXelisEventBatch(batch)),
+      );
 
   Future<String> getPrecomputedTablesPath() async {
     if (kIsWeb) {
@@ -88,30 +102,69 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
   Future<void> handleHistorySynced(int topoheight) async {}
   Future<void> handleNewAsset(NewAsset asset) async {}
 
-  @override
-  Future<void> refresh({int? topoheight});
+  @protected
+  Future<void> performXelisRefresh();
 
-  Future<void> connect() async {
-    final node = getCurrentNode();
-    try {
-      checkInitialized();
-      _eventSubscription = libXelis.eventsStream(wallet!).listen(handleEvent);
+  @protected
+  Future<void> applyXelisEventBatch(
+    XelisEventBatch<TransactionEntryWrapper> batch,
+  );
 
-      Logging.instance.i("Connecting to node: ${node.host}:${node.port}");
-      await libXelis.onlineMode(
-        wallet!,
-        daemonAddress: "${node.host}:${node.port}",
-      );
-      await super.refresh();
-    } catch (e, s) {
-      Logging.instance.e(
-        "rethrowing error connecting to node: $node",
-        error: e,
-        stackTrace: s,
-      );
-      rethrow;
-    }
+  @protected
+  Future<void> runXelisRescan(Future<void> Function() operation) {
+    eventBatcher.reset();
+    return _operationCoordinator.rescan(operation);
   }
+
+  @protected
+  Future<void> runXelisEventUpdate(Future<void> Function() operation) =>
+      _operationCoordinator.processEvent(operation);
+
+  @protected
+  Future<void> runXelisSyncEvent() =>
+      _operationCoordinator.processSyncEvent(performXelisRefresh);
+
+  // Intentionally swallow logged errors because refresh is often unawaited.
+  @override
+  Future<void> refresh() =>
+      _operationCoordinator.refresh(performXelisRefresh).catchError((_) {});
+
+  Future<void> connect({bool disconnectFirst = false}) =>
+      _operationCoordinator.connect(() async {
+        final node = getCurrentNode();
+        try {
+          checkInitialized();
+
+          final wasOnline = await libXelis.isOnline(wallet!);
+          await _eventSubscription?.cancel();
+          _eventSubscription = null;
+
+          if (wasOnline && disconnectFirst) {
+            await libXelis.offlineMode(wallet!);
+          }
+
+          _eventSubscription = libXelis.eventsStream(wallet!).listen((event) {
+            unawaited(handleEvent(event));
+          });
+
+          if (!wasOnline || disconnectFirst) {
+            Logging.instance.i("Connecting to node: ${node.host}:${node.port}");
+            await libXelis.onlineMode(
+              wallet!,
+              daemonAddress: "${node.host}:${node.port}",
+            );
+          }
+
+          await performXelisRefresh();
+        } catch (e, s) {
+          Logging.instance.e(
+            "rethrowing error connecting to node: $node",
+            error: e,
+            stackTrace: s,
+          );
+          rethrow;
+        }
+      }, joinExisting: !disconnectFirst);
 
   List<FilterOperation> get standardReceivingAddressFilters => [
     FilterCondition.equalTo(property: r"type", value: info.mainAddressType),
@@ -139,45 +192,22 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
   }
 
   @override
-  Future<void> open() async {
-    while (exitInProgress) {
-      await Future<void>.delayed(const Duration(milliseconds: 500));
-    }
-
-    try {
-      await connect();
-    } catch (e) {
-      // Logging.instance.log(
-      //   "Failed to start sync: $e",
-      //   level: LogLevel.Error,
-      // );
-      rethrow;
-    }
-    unawaited(refresh());
-  }
-
-  bool exitInProgress = false;
+  Future<void> open() => connect();
 
   @override
-  Future<void> exit() async {
-    exitInProgress = true;
-    try {
-      await refreshMutex.protect(() async {
-        timer?.cancel();
-        timer = null;
+  Future<void> exit() => _operationCoordinator.exit(() async {
+    timer?.cancel();
+    timer = null;
 
-        await _eventSubscription?.cancel();
-        _eventSubscription = null;
+    eventBatcher.reset();
+    await _eventSubscription?.cancel();
+    _eventSubscription = null;
 
-        if (wallet != null && await libXelis.isOnline(wallet!)) {
-          await libXelis.offlineMode(wallet!);
-        }
-        await super.exit();
-      });
-    } finally {
-      exitInProgress = false;
+    if (wallet != null && await libXelis.isOnline(wallet!)) {
+      await libXelis.offlineMode(wallet!);
     }
-  }
+    await super.exit();
+  });
 
   void invalidSeedLengthCheck(int length) {
     if (!(length == 25)) {

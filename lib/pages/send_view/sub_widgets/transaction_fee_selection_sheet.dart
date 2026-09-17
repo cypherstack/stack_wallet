@@ -22,7 +22,6 @@ import '../../../utilities/amount/amount.dart';
 import '../../../utilities/amount/amount_formatter.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
-import '../../../utilities/logger.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
@@ -58,7 +57,7 @@ class TransactionFeeSelectionSheet extends ConsumerStatefulWidget {
 
   final String walletId;
   final Amount amount;
-  final Function updateChosen;
+  final void Function(FeeRateType feeRateType, Amount? fee) updateChosen;
   final bool isToken;
 
   @override
@@ -79,6 +78,16 @@ class _TransactionFeeSelectionSheetState
     "Calculating..",
     "Calculating...",
   ];
+
+  void _selectFeeRate(FeeRateType feeRateType) {
+    ref.read(feeRateTypeMobileStateProvider.state).state = feeRateType;
+    widget.updateChosen(
+      feeRateType,
+      feeRateType.isCustom ? null : getAmount(feeRateType),
+    );
+
+    Navigator.of(context).pop();
+  }
 
   Amount _addFiroOpReturnFee({
     required Amount fee,
@@ -306,468 +315,171 @@ class _TransactionFeeSelectionSheetState
         color: Theme.of(context).extension<StackColors>()!.popupBG,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      child: Padding(
-        padding: const EdgeInsets.only(left: 24, right: 24, top: 10, bottom: 0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldDefaultBG,
-                  borderRadius: BorderRadius.circular(
-                    Constants.size.circularBorderRadius,
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.only(
+            left: 24,
+            right: 24,
+            top: 10,
+            bottom: 0,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
+                    borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
+                    ),
                   ),
+                  width: 60,
+                  height: 4,
                 ),
-                width: 60,
-                height: 4,
               ),
-            ),
-            const SizedBox(height: 36),
-            FutureBuilder(
-              future: widget.isToken
-                  ? (coin is Ethereum
-                        ? ref.read(pCurrentTokenWallet)!.fees
-                        : wallet.fees)
-                  : wallet.fees,
-              builder: (context, AsyncSnapshot<FeeObject> snapshot) {
-                if (snapshot.connectionState == ConnectionState.done &&
-                    snapshot.hasData) {
-                  feeObject = snapshot.data!;
-                }
+              const SizedBox(height: 36),
+              FutureBuilder(
+                future: widget.isToken
+                    ? (coin is Ethereum
+                          ? ref.read(pCurrentTokenWallet)!.fees
+                          : wallet.fees)
+                    : wallet.fees,
+                builder: (context, AsyncSnapshot<FeeObject> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done &&
+                      snapshot.hasData) {
+                    feeObject = snapshot.data!;
+                  }
 
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Fee rate",
-                      style: STextStyles.pageTitleH2(context),
-                      textAlign: TextAlign.left,
-                    ),
-                    const SizedBox(height: 16),
-                    GestureDetector(
-                      onTap: () {
-                        final state = ref
-                            .read(feeRateTypeMobileStateProvider.state)
-                            .state;
-                        if (state != FeeRateType.fast) {
-                          ref.read(feeRateTypeMobileStateProvider.state).state =
-                              FeeRateType.fast;
-                        }
-                        final String? fee = getAmount(
-                          FeeRateType.fast,
-                          wallet.info.coin,
-                        );
-                        if (fee != null) {
-                          widget.updateChosen(fee);
-                        }
-                        Navigator.of(context).pop();
-                      },
-                      child: Container(
-                        color: Colors.transparent,
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: Radio(
-                                    activeColor: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .radioButtonIconEnabled,
-                                    value: FeeRateType.fast,
-                                    groupValue: ref
-                                        .watch(
-                                          feeRateTypeMobileStateProvider.state,
-                                        )
-                                        .state,
-                                    onChanged: (x) {
-                                      ref
-                                              .read(
-                                                feeRateTypeMobileStateProvider
-                                                    .state,
-                                              )
-                                              .state =
-                                          FeeRateType.fast;
-
-                                      Navigator.of(context).pop();
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(width: 12),
-                            Flexible(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Text(
-                                        FeeRateType.fast.prettyName,
-                                        style: STextStyles.titleBold12(context),
-                                        textAlign: TextAlign.left,
-                                      ),
-                                      const SizedBox(width: 2),
-                                      if (feeObject == null)
-                                        AnimatedText(
-                                          stringsToLoopThrough:
-                                              stringsToLoopThrough,
-                                          style: STextStyles.itemSubtitle(
-                                            context,
-                                          ),
-                                        ),
-                                      if (feeObject != null)
-                                        FutureBuilder(
-                                          future: feeFor(
-                                            coin: coin,
-                                            feeRateType: FeeRateType.fast,
-                                            feeRate: feeObject!.fast,
-                                            amount: amount,
-                                          ),
-                                          builder:
-                                              (
-                                                _,
-                                                AsyncSnapshot<Amount> snapshot,
-                                              ) {
-                                                if (snapshot.connectionState ==
-                                                        ConnectionState.done &&
-                                                    snapshot.hasData) {
-                                                  return Text(
-                                                    "(~${ref.watch(pAmountFormatter(coin)).format(snapshot.data!, indicatePrecisionLoss: false)})",
-                                                    style:
-                                                        STextStyles.itemSubtitle(
-                                                          context,
-                                                        ),
-                                                    textAlign: TextAlign.left,
-                                                  );
-                                                } else {
-                                                  return AnimatedText(
-                                                    stringsToLoopThrough:
-                                                        stringsToLoopThrough,
-                                                    style:
-                                                        STextStyles.itemSubtitle(
-                                                          context,
-                                                        ),
-                                                  );
-                                                }
-                                              },
-                                        ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 2),
-                                  if (feeObject == null && coin is! Ethereum)
-                                    AnimatedText(
-                                      stringsToLoopThrough:
-                                          stringsToLoopThrough,
-                                      style: STextStyles.itemSubtitle(context),
-                                    ),
-                                  if (feeObject != null && coin is! Ethereum)
-                                    Text(
-                                      estimatedTimeToBeIncludedInNextBlock(
-                                        coin.targetBlockTimeSeconds,
-                                        feeObject!.numberOfBlocksFast,
-                                      ),
-                                      style: STextStyles.itemSubtitle(context),
-                                      textAlign: TextAlign.left,
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Fee rate",
+                        style: STextStyles.pageTitleH2(context),
+                        textAlign: TextAlign.left,
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    GestureDetector(
-                      onTap: () {
-                        final state = ref
-                            .read(feeRateTypeMobileStateProvider.state)
-                            .state;
-                        if (state != FeeRateType.average) {
-                          ref.read(feeRateTypeMobileStateProvider.state).state =
-                              FeeRateType.average;
-                        }
-                        final String? fee = getAmount(
-                          FeeRateType.average,
-                          coin,
-                        );
-                        if (fee != null) {
-                          widget.updateChosen(fee);
-                        }
-                        Navigator.of(context).pop();
-                      },
-                      child: Container(
-                        color: Colors.transparent,
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Column(
-                              children: [
-                                SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: Radio(
-                                    activeColor: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .radioButtonIconEnabled,
-                                    value: FeeRateType.average,
-                                    groupValue: ref
-                                        .watch(
-                                          feeRateTypeMobileStateProvider.state,
-                                        )
-                                        .state,
-                                    onChanged: (x) {
-                                      ref
-                                              .read(
-                                                feeRateTypeMobileStateProvider
-                                                    .state,
-                                              )
-                                              .state =
-                                          FeeRateType.average;
-                                      Navigator.of(context).pop();
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(width: 12),
-                            Flexible(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Text(
-                                        FeeRateType.average.prettyName,
-                                        style: STextStyles.titleBold12(context),
-                                        textAlign: TextAlign.left,
-                                      ),
-                                      const SizedBox(width: 2),
-                                      if (feeObject == null)
-                                        AnimatedText(
-                                          stringsToLoopThrough:
-                                              stringsToLoopThrough,
-                                          style: STextStyles.itemSubtitle(
-                                            context,
-                                          ),
-                                        ),
-                                      if (feeObject != null)
-                                        FutureBuilder(
-                                          future: feeFor(
-                                            coin: coin,
-                                            feeRateType: FeeRateType.average,
-                                            feeRate: feeObject!.medium,
-                                            amount: amount,
-                                          ),
-                                          builder:
-                                              (
-                                                _,
-                                                AsyncSnapshot<Amount> snapshot,
-                                              ) {
-                                                if (snapshot.connectionState ==
-                                                        ConnectionState.done &&
-                                                    snapshot.hasData) {
-                                                  return Text(
-                                                    "(~${ref.watch(pAmountFormatter(coin)).format(snapshot.data!, indicatePrecisionLoss: false)})",
-                                                    style:
-                                                        STextStyles.itemSubtitle(
-                                                          context,
-                                                        ),
-                                                    textAlign: TextAlign.left,
-                                                  );
-                                                } else {
-                                                  return AnimatedText(
-                                                    stringsToLoopThrough:
-                                                        stringsToLoopThrough,
-                                                    style:
-                                                        STextStyles.itemSubtitle(
-                                                          context,
-                                                        ),
-                                                  );
-                                                }
-                                              },
-                                        ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 2),
-                                  if (feeObject == null && coin is! Ethereum)
-                                    AnimatedText(
-                                      stringsToLoopThrough:
-                                          stringsToLoopThrough,
-                                      style: STextStyles.itemSubtitle(context),
-                                    ),
-                                  if (feeObject != null && coin is! Ethereum)
-                                    Text(
-                                      estimatedTimeToBeIncludedInNextBlock(
-                                        coin.targetBlockTimeSeconds,
-                                        feeObject!.numberOfBlocksAverage,
-                                      ),
-                                      style: STextStyles.itemSubtitle(context),
-                                      textAlign: TextAlign.left,
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    GestureDetector(
-                      onTap: () {
-                        final state = ref
-                            .read(feeRateTypeMobileStateProvider.state)
-                            .state;
-                        if (state != FeeRateType.slow) {
-                          ref.read(feeRateTypeMobileStateProvider.state).state =
-                              FeeRateType.slow;
-                        }
-                        final String? fee = getAmount(FeeRateType.slow, coin);
-                        if (fee != null) {
-                          widget.updateChosen(fee);
-                        }
-                        Navigator.of(context).pop();
-                      },
-                      child: Container(
-                        color: Colors.transparent,
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Column(
-                              children: [
-                                SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: Radio(
-                                    activeColor: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .radioButtonIconEnabled,
-                                    value: FeeRateType.slow,
-                                    groupValue: ref
-                                        .watch(
-                                          feeRateTypeMobileStateProvider.state,
-                                        )
-                                        .state,
-                                    onChanged: (x) {
-                                      ref
-                                              .read(
-                                                feeRateTypeMobileStateProvider
-                                                    .state,
-                                              )
-                                              .state =
-                                          FeeRateType.slow;
-                                      Navigator.of(context).pop();
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(width: 12),
-                            Flexible(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Text(
-                                        FeeRateType.slow.prettyName,
-                                        style: STextStyles.titleBold12(context),
-                                        textAlign: TextAlign.left,
-                                      ),
-                                      const SizedBox(width: 2),
-                                      if (feeObject == null)
-                                        AnimatedText(
-                                          stringsToLoopThrough:
-                                              stringsToLoopThrough,
-                                          style: STextStyles.itemSubtitle(
-                                            context,
-                                          ),
-                                        ),
-                                      if (feeObject != null)
-                                        FutureBuilder(
-                                          future: feeFor(
-                                            coin: coin,
-                                            feeRateType: FeeRateType.slow,
-                                            feeRate: feeObject!.slow,
-                                            amount: amount,
-                                          ),
-                                          builder:
-                                              (
-                                                _,
-                                                AsyncSnapshot<Amount> snapshot,
-                                              ) {
-                                                if (snapshot.connectionState ==
-                                                        ConnectionState.done &&
-                                                    snapshot.hasData) {
-                                                  return Text(
-                                                    "(~${ref.watch(pAmountFormatter(coin)).format(snapshot.data!, indicatePrecisionLoss: false)})",
-                                                    style:
-                                                        STextStyles.itemSubtitle(
-                                                          context,
-                                                        ),
-                                                    textAlign: TextAlign.left,
-                                                  );
-                                                } else {
-                                                  return AnimatedText(
-                                                    stringsToLoopThrough:
-                                                        stringsToLoopThrough,
-                                                    style:
-                                                        STextStyles.itemSubtitle(
-                                                          context,
-                                                        ),
-                                                  );
-                                                }
-                                              },
-                                        ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 2),
-                                  if (feeObject == null && coin is! Ethereum)
-                                    AnimatedText(
-                                      stringsToLoopThrough:
-                                          stringsToLoopThrough,
-                                      style: STextStyles.itemSubtitle(context),
-                                    ),
-                                  if (feeObject != null && coin is! Ethereum)
-                                    Text(
-                                      estimatedTimeToBeIncludedInNextBlock(
-                                        coin.targetBlockTimeSeconds,
-                                        feeObject!.numberOfBlocksSlow,
-                                      ),
-                                      style: STextStyles.itemSubtitle(context),
-                                      textAlign: TextAlign.left,
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    if (wallet is ElectrumXInterface || coin is Ethereum)
+                      const SizedBox(height: 16),
                       GestureDetector(
-                        onTap: () {
-                          final state = ref
-                              .read(feeRateTypeMobileStateProvider.state)
-                              .state;
-                          if (state != FeeRateType.custom) {
-                            ref
-                                    .read(feeRateTypeMobileStateProvider.state)
-                                    .state =
-                                FeeRateType.custom;
-                          }
-                          widget.updateChosen("custom");
-
-                          Navigator.of(context).pop();
-                        },
+                        onTap: () => _selectFeeRate(FeeRateType.fast),
+                        child: Container(
+                          color: Colors.transparent,
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: Radio(
+                                      activeColor: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .radioButtonIconEnabled,
+                                      value: FeeRateType.fast,
+                                      groupValue: ref
+                                          .watch(
+                                            feeRateTypeMobileStateProvider
+                                                .state,
+                                          )
+                                          .state,
+                                      onChanged: (_) =>
+                                          _selectFeeRate(FeeRateType.fast),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(width: 12),
+                              Flexible(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          FeeRateType.fast.prettyName,
+                                          style: STextStyles.titleBold12(
+                                            context,
+                                          ),
+                                          textAlign: TextAlign.left,
+                                        ),
+                                        const SizedBox(width: 2),
+                                        if (feeObject == null)
+                                          AnimatedText(
+                                            stringsToLoopThrough:
+                                                stringsToLoopThrough,
+                                            style: STextStyles.itemSubtitle(
+                                              context,
+                                            ),
+                                          ),
+                                        if (feeObject != null)
+                                          FutureBuilder(
+                                            future: feeFor(
+                                              coin: coin,
+                                              feeRateType: FeeRateType.fast,
+                                              feeRate: feeObject!.fast,
+                                              amount: amount,
+                                            ),
+                                            builder: (_, AsyncSnapshot<Amount> snapshot) {
+                                              if (snapshot.connectionState ==
+                                                      ConnectionState.done &&
+                                                  snapshot.hasData) {
+                                                return Text(
+                                                  "(~${ref.watch(pAmountFormatter(coin)).format(snapshot.data!, indicatePrecisionLoss: false)})",
+                                                  style:
+                                                      STextStyles.itemSubtitle(
+                                                        context,
+                                                      ),
+                                                  textAlign: TextAlign.left,
+                                                );
+                                              } else {
+                                                return AnimatedText(
+                                                  stringsToLoopThrough:
+                                                      stringsToLoopThrough,
+                                                  style:
+                                                      STextStyles.itemSubtitle(
+                                                        context,
+                                                      ),
+                                                );
+                                              }
+                                            },
+                                          ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 2),
+                                    if (feeObject == null && coin is! Ethereum)
+                                      AnimatedText(
+                                        stringsToLoopThrough:
+                                            stringsToLoopThrough,
+                                        style: STextStyles.itemSubtitle(
+                                          context,
+                                        ),
+                                      ),
+                                    if (feeObject != null && coin is! Ethereum)
+                                      Text(
+                                        estimatedTimeToBeIncludedInNextBlock(
+                                          coin.targetBlockTimeSeconds,
+                                          feeObject!.numberOfBlocksFast,
+                                        ),
+                                        style: STextStyles.itemSubtitle(
+                                          context,
+                                        ),
+                                        textAlign: TextAlign.left,
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      GestureDetector(
+                        onTap: () => _selectFeeRate(FeeRateType.average),
                         child: Container(
                           color: Colors.transparent,
                           child: Row(
@@ -782,23 +494,15 @@ class _TransactionFeeSelectionSheetState
                                       activeColor: Theme.of(context)
                                           .extension<StackColors>()!
                                           .radioButtonIconEnabled,
-                                      value: FeeRateType.custom,
+                                      value: FeeRateType.average,
                                       groupValue: ref
                                           .watch(
                                             feeRateTypeMobileStateProvider
                                                 .state,
                                           )
                                           .state,
-                                      onChanged: (x) {
-                                        ref
-                                                .read(
-                                                  feeRateTypeMobileStateProvider
-                                                      .state,
-                                                )
-                                                .state =
-                                            FeeRateType.custom;
-                                        Navigator.of(context).pop();
-                                      },
+                                      onChanged: (_) =>
+                                          _selectFeeRate(FeeRateType.average),
                                     ),
                                   ),
                                 ],
@@ -811,15 +515,75 @@ class _TransactionFeeSelectionSheetState
                                     Row(
                                       children: [
                                         Text(
-                                          FeeRateType.custom.prettyName,
+                                          FeeRateType.average.prettyName,
                                           style: STextStyles.titleBold12(
                                             context,
                                           ),
                                           textAlign: TextAlign.left,
                                         ),
+                                        const SizedBox(width: 2),
+                                        if (feeObject == null)
+                                          AnimatedText(
+                                            stringsToLoopThrough:
+                                                stringsToLoopThrough,
+                                            style: STextStyles.itemSubtitle(
+                                              context,
+                                            ),
+                                          ),
+                                        if (feeObject != null)
+                                          FutureBuilder(
+                                            future: feeFor(
+                                              coin: coin,
+                                              feeRateType: FeeRateType.average,
+                                              feeRate: feeObject!.medium,
+                                              amount: amount,
+                                            ),
+                                            builder: (_, AsyncSnapshot<Amount> snapshot) {
+                                              if (snapshot.connectionState ==
+                                                      ConnectionState.done &&
+                                                  snapshot.hasData) {
+                                                return Text(
+                                                  "(~${ref.watch(pAmountFormatter(coin)).format(snapshot.data!, indicatePrecisionLoss: false)})",
+                                                  style:
+                                                      STextStyles.itemSubtitle(
+                                                        context,
+                                                      ),
+                                                  textAlign: TextAlign.left,
+                                                );
+                                              } else {
+                                                return AnimatedText(
+                                                  stringsToLoopThrough:
+                                                      stringsToLoopThrough,
+                                                  style:
+                                                      STextStyles.itemSubtitle(
+                                                        context,
+                                                      ),
+                                                );
+                                              }
+                                            },
+                                          ),
                                       ],
                                     ),
                                     const SizedBox(height: 2),
+                                    if (feeObject == null && coin is! Ethereum)
+                                      AnimatedText(
+                                        stringsToLoopThrough:
+                                            stringsToLoopThrough,
+                                        style: STextStyles.itemSubtitle(
+                                          context,
+                                        ),
+                                      ),
+                                    if (feeObject != null && coin is! Ethereum)
+                                      Text(
+                                        estimatedTimeToBeIncludedInNextBlock(
+                                          coin.targetBlockTimeSeconds,
+                                          feeObject!.numberOfBlocksAverage,
+                                        ),
+                                        style: STextStyles.itemSubtitle(
+                                          context,
+                                        ),
+                                        textAlign: TextAlign.left,
+                                      ),
                                   ],
                                 ),
                               ),
@@ -827,62 +591,199 @@ class _TransactionFeeSelectionSheetState
                           ),
                         ),
                       ),
-                    if (wallet is ElectrumXInterface || coin is Ethereum)
+                      const SizedBox(height: 16),
+                      GestureDetector(
+                        onTap: () => _selectFeeRate(FeeRateType.slow),
+                        child: Container(
+                          color: Colors.transparent,
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Column(
+                                children: [
+                                  SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: Radio(
+                                      activeColor: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .radioButtonIconEnabled,
+                                      value: FeeRateType.slow,
+                                      groupValue: ref
+                                          .watch(
+                                            feeRateTypeMobileStateProvider
+                                                .state,
+                                          )
+                                          .state,
+                                      onChanged: (_) =>
+                                          _selectFeeRate(FeeRateType.slow),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(width: 12),
+                              Flexible(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          FeeRateType.slow.prettyName,
+                                          style: STextStyles.titleBold12(
+                                            context,
+                                          ),
+                                          textAlign: TextAlign.left,
+                                        ),
+                                        const SizedBox(width: 2),
+                                        if (feeObject == null)
+                                          AnimatedText(
+                                            stringsToLoopThrough:
+                                                stringsToLoopThrough,
+                                            style: STextStyles.itemSubtitle(
+                                              context,
+                                            ),
+                                          ),
+                                        if (feeObject != null)
+                                          FutureBuilder(
+                                            future: feeFor(
+                                              coin: coin,
+                                              feeRateType: FeeRateType.slow,
+                                              feeRate: feeObject!.slow,
+                                              amount: amount,
+                                            ),
+                                            builder: (_, AsyncSnapshot<Amount> snapshot) {
+                                              if (snapshot.connectionState ==
+                                                      ConnectionState.done &&
+                                                  snapshot.hasData) {
+                                                return Text(
+                                                  "(~${ref.watch(pAmountFormatter(coin)).format(snapshot.data!, indicatePrecisionLoss: false)})",
+                                                  style:
+                                                      STextStyles.itemSubtitle(
+                                                        context,
+                                                      ),
+                                                  textAlign: TextAlign.left,
+                                                );
+                                              } else {
+                                                return AnimatedText(
+                                                  stringsToLoopThrough:
+                                                      stringsToLoopThrough,
+                                                  style:
+                                                      STextStyles.itemSubtitle(
+                                                        context,
+                                                      ),
+                                                );
+                                              }
+                                            },
+                                          ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 2),
+                                    if (feeObject == null && coin is! Ethereum)
+                                      AnimatedText(
+                                        stringsToLoopThrough:
+                                            stringsToLoopThrough,
+                                        style: STextStyles.itemSubtitle(
+                                          context,
+                                        ),
+                                      ),
+                                    if (feeObject != null && coin is! Ethereum)
+                                      Text(
+                                        estimatedTimeToBeIncludedInNextBlock(
+                                          coin.targetBlockTimeSeconds,
+                                          feeObject!.numberOfBlocksSlow,
+                                        ),
+                                        style: STextStyles.itemSubtitle(
+                                          context,
+                                        ),
+                                        textAlign: TextAlign.left,
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                       const SizedBox(height: 24),
-                  ],
-                );
-              },
-            ),
-          ],
+                      if (wallet is ElectrumXInterface || coin is Ethereum)
+                        GestureDetector(
+                          onTap: () => _selectFeeRate(FeeRateType.custom),
+                          child: Container(
+                            color: Colors.transparent,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Column(
+                                  children: [
+                                    SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: Radio(
+                                        activeColor: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .radioButtonIconEnabled,
+                                        value: FeeRateType.custom,
+                                        groupValue: ref
+                                            .watch(
+                                              feeRateTypeMobileStateProvider
+                                                  .state,
+                                            )
+                                            .state,
+                                        onChanged: (_) =>
+                                            _selectFeeRate(FeeRateType.custom),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(width: 12),
+                                Flexible(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Text(
+                                            FeeRateType.custom.prettyName,
+                                            style: STextStyles.titleBold12(
+                                              context,
+                                            ),
+                                            textAlign: TextAlign.left,
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 2),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      if (wallet is ElectrumXInterface || coin is Ethereum)
+                        const SizedBox(height: 24),
+                    ],
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  String? getAmount(FeeRateType feeRateType, CryptoCurrency coin) {
-    try {
-      switch (feeRateType) {
-        case FeeRateType.fast:
-          if (ref.read(feeSheetSessionCacheProvider).fast[amount] != null) {
-            return ref
-                .read(pAmountFormatter(coin))
-                .format(
-                  ref.read(feeSheetSessionCacheProvider).fast[amount]!,
-                  indicatePrecisionLoss: false,
-                  withUnitName: false,
-                );
-          }
-          return null;
-
-        case FeeRateType.average:
-          if (ref.read(feeSheetSessionCacheProvider).average[amount] != null) {
-            return ref
-                .read(pAmountFormatter(coin))
-                .format(
-                  ref.read(feeSheetSessionCacheProvider).average[amount]!,
-                  indicatePrecisionLoss: false,
-                  withUnitName: false,
-                );
-          }
-          return null;
-
-        case FeeRateType.slow:
-          if (ref.read(feeSheetSessionCacheProvider).slow[amount] != null) {
-            return ref
-                .read(pAmountFormatter(coin))
-                .format(
-                  ref.read(feeSheetSessionCacheProvider).slow[amount]!,
-                  indicatePrecisionLoss: false,
-                  withUnitName: false,
-                );
-          }
-          return null;
-        case FeeRateType.custom:
-          return null;
-      }
-    } catch (e, s) {
-      Logging.instance.w("$e $s", error: e, stackTrace: s);
-      return null;
+  Amount? getAmount(FeeRateType feeRateType) {
+    switch (feeRateType) {
+      case FeeRateType.fast:
+        return ref.read(feeSheetSessionCacheProvider).fast[amount];
+      case FeeRateType.average:
+        return ref.read(feeSheetSessionCacheProvider).average[amount];
+      case FeeRateType.slow:
+        return ref.read(feeSheetSessionCacheProvider).slow[amount];
+      case FeeRateType.custom:
+        return null;
     }
   }
 }

@@ -70,7 +70,7 @@ const TransactionNoteSchema = CollectionSchema(
   getId: _transactionNoteGetId,
   getLinks: _transactionNoteGetLinks,
   attach: _transactionNoteAttach,
-  version: '3.3.0-dev.2',
+  version: '3.3.2',
 );
 
 int _transactionNoteEstimateSize(

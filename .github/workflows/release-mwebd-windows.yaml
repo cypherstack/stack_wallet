@@ -6,7 +6,7 @@ on:
       mwebd_version:
         description: 'mwebd tag to build (must match _mwebdVersion in tool/build_standalone_mwebd_windows.dart)'
         required: true
-        default: 'v0.1.8'
+        default: 'v0.1.19'
 
 permissions:
   contents: write
@@ -18,9 +18,9 @@ jobs:
       run:
         shell: bash
     steps:
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
-          go-version: '1.22'
+          go-version: '1.24.13'
 
       - name: Clone mwebd
         run: git clone https://github.com/ltcmweb/mwebd.git --branch "${{ inputs.mwebd_version }}" mwebd

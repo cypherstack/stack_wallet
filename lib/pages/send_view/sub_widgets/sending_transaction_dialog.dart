@@ -57,12 +57,15 @@ class _RestoringDialogState extends ConsumerState<SendingTransactionDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final assetPath = ref.watch(
-      coinImageSecondaryProvider(
-        widget.coin,
-      ),
-    );
+    final assetPath = ref.watch(coinImageSecondaryProvider(widget.coin));
 
+    return ValueListenableBuilder(
+      valueListenable: widget.controller.message,
+      builder: (context, message, _) => _build(context, assetPath, message),
+    );
+  }
+
+  Widget _build(BuildContext context, String assetPath, String? message) {
     if (Util.isDesktop) {
       return DesktopDialog(
         maxHeight: assetPath.endsWith(".gif") ? double.infinity : null,
@@ -75,18 +78,15 @@ class _RestoringDialogState extends ConsumerState<SendingTransactionDialog> {
                 "Sending transaction",
                 style: STextStyles.desktopH3(context),
               ),
-              const SizedBox(
-                height: 40,
-              ),
+              const SizedBox(height: 40),
               assetPath.endsWith(".gif")
-                  ? Flexible(
-                      child: Image.file(
-                        File(assetPath),
-                      ),
-                    )
+                  ? Flexible(child: Image.file(File(assetPath)))
                   : ProgressAndSuccess(
                       controller: _progressAndSuccessController!,
                     ),
+              if (message != null) const SizedBox(height: 24),
+              if (message != null)
+                Text(message, style: STextStyles.desktopTextSmall(context)),
             ],
           ),
         ),
@@ -102,22 +102,26 @@ class _RestoringDialogState extends ConsumerState<SendingTransactionDialog> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.file(
-                      File(assetPath),
-                    ),
+                    Image.file(File(assetPath)),
                     Text(
                       "Sending transaction",
                       textAlign: TextAlign.center,
                       style: STextStyles.pageTitleH2(context),
                     ),
-                    const SizedBox(
-                      height: 32,
-                    ),
+                    if (message != null) const SizedBox(height: 8),
+                    if (message != null)
+                      Text(
+                        message,
+                        textAlign: TextAlign.center,
+                        style: STextStyles.smallMed14(context),
+                      ),
+                    const SizedBox(height: 32),
                   ],
                 ),
               )
             : StackDialog(
                 title: "Sending transaction",
+                message: message,
                 icon: ProgressAndSuccess(
                   controller: _progressAndSuccessController!,
                 ),
@@ -129,6 +133,8 @@ class _RestoringDialogState extends ConsumerState<SendingTransactionDialog> {
 
 class ProgressAndSuccessController {
   VoidCallback? triggerSuccess;
+
+  final ValueNotifier<String?> message = ValueNotifier(null);
 }
 
 class ProgressAndSuccess extends StatefulWidget {
@@ -201,13 +207,15 @@ class _ProgressAndSuccessState extends State<ProgressAndSuccess>
           values: [
             ValueDelegate.color(
               const ["**"],
-              value:
-                  Theme.of(context).extension<StackColors>()!.accentColorDark,
+              value: Theme.of(context)
+                  .extension<StackColors>()!
+                  .accentColorDark,
             ),
             ValueDelegate.strokeColor(
               const ["**"],
-              value:
-                  Theme.of(context).extension<StackColors>()!.accentColorDark,
+              value: Theme.of(context)
+                  .extension<StackColors>()!
+                  .accentColorDark,
             ),
           ],
         ),
@@ -233,7 +241,8 @@ class _ProgressAndSuccessState extends State<ProgressAndSuccess>
         height: widget.height,
         onLoaded: (composition) {
           setState(() {
-            controller2.duration = composition.duration *
+            controller2.duration =
+                composition.duration *
                 (composition.markers.last.end - composition.markers[1].start);
             controller2.value = composition.markers[1].start;
           });

@@ -50,208 +50,216 @@ class _FiroBalanceSelectionSheetState
         color: Theme.of(context).extension<StackColors>()!.popupBG,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      child: Padding(
-        padding: const EdgeInsets.only(left: 24, right: 24, top: 10, bottom: 0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                decoration: BoxDecoration(
-                  color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textFieldDefaultBG,
-                  borderRadius: BorderRadius.circular(
-                    Constants.size.circularBorderRadius,
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.only(
+            left: 24,
+            right: 24,
+            top: 10,
+            bottom: 16,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
+                    borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
+                    ),
                   ),
+                  width: 60,
+                  height: 4,
                 ),
-                width: 60,
-                height: 4,
               ),
-            ),
-            const SizedBox(height: 36),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Select balance",
-                  style: STextStyles.pageTitleH2(context),
-                  textAlign: TextAlign.left,
-                ),
-                const SizedBox(height: 16),
-                GestureDetector(
-                  onTap: () {
-                    final state =
-                        ref.read(publicPrivateBalanceStateProvider.state).state;
-                    if (state != BalanceType.private) {
-                      ref.read(publicPrivateBalanceStateProvider.state).state =
-                          BalanceType.private;
-                    }
-                    Navigator.of(context).pop();
-                  },
-                  child: Container(
-                    color: Colors.transparent,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: Radio(
-                                activeColor:
-                                    Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .radioButtonIconEnabled,
-                                value: BalanceType.private,
-                                groupValue:
-                                    ref
-                                        .watch(
-                                          publicPrivateBalanceStateProvider
-                                              .state,
-                                        )
-                                        .state,
-                                onChanged: (x) {
-                                  ref
-                                      .read(
+              const SizedBox(height: 36),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Select balance",
+                    style: STextStyles.pageTitleH2(context),
+                    textAlign: TextAlign.left,
+                  ),
+                  const SizedBox(height: 16),
+                  GestureDetector(
+                    onTap: () {
+                      final state = ref
+                          .read(publicPrivateBalanceStateProvider.state)
+                          .state;
+                      if (state != BalanceType.private) {
+                        ref
+                                .read(publicPrivateBalanceStateProvider.state)
+                                .state =
+                            BalanceType.private;
+                      }
+                      Navigator.of(context).pop();
+                    },
+                    child: Container(
+                      color: Colors.transparent,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: Radio(
+                                  activeColor: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .radioButtonIconEnabled,
+                                  value: BalanceType.private,
+                                  groupValue: ref
+                                      .watch(
                                         publicPrivateBalanceStateProvider.state,
                                       )
-                                      .state = BalanceType.private;
+                                      .state,
+                                  onChanged: (x) {
+                                    ref
+                                            .read(
+                                              publicPrivateBalanceStateProvider
+                                                  .state,
+                                            )
+                                            .state =
+                                        BalanceType.private;
 
-                                  Navigator.of(context).pop();
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(width: 12),
-                        Flexible(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Row(
-                              //   children: [
-                              Text(
-                                "Private balance",
-                                style: STextStyles.titleBold12(context),
-                                textAlign: TextAlign.left,
-                              ),
-                              const SizedBox(width: 2),
-                              Text(
-                                ref
-                                    .watch(pAmountFormatter(coin))
-                                    .format(
-                                      ref
-                                          .watch(
-                                            coin is Firo
-                                                ? pWalletBalanceTertiary(
-                                                  walletId,
-                                                )
-                                                : pWalletBalanceSecondary(
-                                                  walletId,
-                                                ),
-                                          )
-                                          .spendable,
-                                    ),
-                                style: STextStyles.itemSubtitle(context),
-                                textAlign: TextAlign.left,
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
                               ),
                             ],
                           ),
-                          //   ],
-                          // ),
-                        ),
-                      ],
+                          const SizedBox(width: 12),
+                          Flexible(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Row(
+                                //   children: [
+                                Text(
+                                  "Private balance",
+                                  style: STextStyles.titleBold12(context),
+                                  textAlign: TextAlign.left,
+                                ),
+                                const SizedBox(width: 2),
+                                Text(
+                                  ref
+                                      .watch(pAmountFormatter(coin))
+                                      .format(
+                                        ref
+                                            .watch(
+                                              coin is Firo
+                                                  ? pWalletBalanceTertiary(
+                                                      walletId,
+                                                    )
+                                                  : pWalletBalanceSecondary(
+                                                      walletId,
+                                                    ),
+                                            )
+                                            .spendable,
+                                      ),
+                                  style: STextStyles.itemSubtitle(context),
+                                  textAlign: TextAlign.left,
+                                ),
+                              ],
+                            ),
+                            //   ],
+                            // ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
 
-                const SizedBox(height: 16),
-                GestureDetector(
-                  onTap: () {
-                    final state =
-                        ref.read(publicPrivateBalanceStateProvider.state).state;
-                    if (state != BalanceType.public) {
-                      ref.read(publicPrivateBalanceStateProvider.state).state =
-                          BalanceType.public;
-                    }
-                    Navigator.of(context).pop();
-                  },
-                  child: Container(
-                    color: Colors.transparent,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Column(
-                          children: [
-                            SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: Radio(
-                                activeColor:
-                                    Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .radioButtonIconEnabled,
-                                value: BalanceType.public,
-                                groupValue:
-                                    ref
-                                        .watch(
-                                          publicPrivateBalanceStateProvider
-                                              .state,
-                                        )
-                                        .state,
-                                onChanged: (x) {
-                                  ref
-                                      .read(
+                  const SizedBox(height: 16),
+                  GestureDetector(
+                    onTap: () {
+                      final state = ref
+                          .read(publicPrivateBalanceStateProvider.state)
+                          .state;
+                      if (state != BalanceType.public) {
+                        ref
+                                .read(publicPrivateBalanceStateProvider.state)
+                                .state =
+                            BalanceType.public;
+                      }
+                      Navigator.of(context).pop();
+                    },
+                    child: Container(
+                      color: Colors.transparent,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Column(
+                            children: [
+                              SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: Radio(
+                                  activeColor: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .radioButtonIconEnabled,
+                                  value: BalanceType.public,
+                                  groupValue: ref
+                                      .watch(
                                         publicPrivateBalanceStateProvider.state,
                                       )
-                                      .state = BalanceType.public;
-                                  Navigator.of(context).pop();
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(width: 12),
-                        Flexible(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Row(
-                              //   children: [
-                              Text(
-                                "Public balance",
-                                style: STextStyles.titleBold12(context),
-                                textAlign: TextAlign.left,
-                              ),
-                              const SizedBox(width: 2),
-                              Text(
-                                ref
-                                    .watch(pAmountFormatter(coin))
-                                    .format(
-                                      ref
-                                          .watch(pWalletBalance(walletId))
-                                          .spendable,
-                                    ),
-                                style: STextStyles.itemSubtitle(context),
-                                textAlign: TextAlign.left,
+                                      .state,
+                                  onChanged: (x) {
+                                    ref
+                                            .read(
+                                              publicPrivateBalanceStateProvider
+                                                  .state,
+                                            )
+                                            .state =
+                                        BalanceType.public;
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
                               ),
                             ],
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 12),
+                          Flexible(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Row(
+                                //   children: [
+                                Text(
+                                  "Public balance",
+                                  style: STextStyles.titleBold12(context),
+                                  textAlign: TextAlign.left,
+                                ),
+                                const SizedBox(width: 2),
+                                Text(
+                                  ref
+                                      .watch(pAmountFormatter(coin))
+                                      .format(
+                                        ref
+                                            .watch(pWalletBalance(walletId))
+                                            .spendable,
+                                      ),
+                                  style: STextStyles.itemSubtitle(context),
+                                  textAlign: TextAlign.left,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                const SizedBox(height: 24),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

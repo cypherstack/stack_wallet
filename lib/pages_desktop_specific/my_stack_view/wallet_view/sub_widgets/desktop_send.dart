@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:opencryptopay/opencryptopay.dart';
 
 import '../../../../models/epic_slatepack_models.dart';
 import '../../../../models/isar/models/blockchain_data/address.dart';
@@ -24,6 +25,7 @@ import '../../../../models/isar/models/contact_entry.dart';
 import '../../../../models/mwc_slatepack_models.dart';
 import '../../../../models/paynym/paynym_account_lite.dart';
 import '../../../../models/send_view_auto_fill_data.dart';
+import '../../../../pages/open_crypto_pay/open_crypto_pay_send_handler.dart';
 import '../../../../pages/send_view/confirm_transaction_view.dart';
 import '../../../../pages/send_view/sub_widgets/building_transaction_dialog.dart';
 import '../../../../pages/send_view/sub_widgets/epic_slatepack_dialog.dart';
@@ -38,12 +40,15 @@ import '../../../../services/spark_names_service.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/address_utils.dart';
 import '../../../../utilities/amount/amount.dart';
+import '../../../../utilities/amount/amount_field_relocalization.dart';
 import '../../../../utilities/amount/amount_formatter.dart';
 import '../../../../utilities/amount/amount_input_formatter.dart';
 import '../../../../utilities/amount/amount_unit.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/constants.dart';
+import '../../../../utilities/enums/fee_rate_type_enum.dart';
+import '../../../../utilities/integer_input.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/prefs.dart';
 import '../../../../utilities/show_loading.dart';
@@ -124,6 +129,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   late final bool hasOptionalMemo;
   late final bool isMimblewimblecoin;
   late final bool isEpiccash;
+  late final OpenCryptoPaySendHandler _openCryptoPay;
+  bool _feeCheckPending = false;
 
   String? _note;
   String? _onChainNote;
@@ -140,9 +147,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
   bool get isPaynymSend => widget.accountLite != null;
 
-  bool isCustomFee = false;
+  ({bool isValid, int? value}) get _nonceInput =>
+      parseOptionalIntegerInput(nonceController.text, minimum: 0);
+
+  bool get _nonceIsValid => _nonceInput.isValid;
+
   int customFeeRate = 1;
-  EthEIP1559Fee? ethFee;
+  final _ethFee = ValueNotifier<EthEIP1559Fee?>(null);
 
   Future<void> scanWebcam() async {
     try {
@@ -269,9 +280,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                     child: Text(
                       'Failed to create slatepack: $e',
                       textAlign: TextAlign.left,
-                      style: STextStyles.desktopTextExtraExtraSmall(
-                        context,
-                      ).copyWith(fontSize: 18),
+                      style: STextStyles.desktopTextExtraExtraSmall(context)
+                          .copyWith(fontSize: 18),
                     ),
                   ),
                   const SizedBox(height: 40),
@@ -394,9 +404,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                     child: Text(
                       'Failed to create slate: $e',
                       textAlign: TextAlign.left,
-                      style: STextStyles.desktopTextExtraExtraSmall(
-                        context,
-                      ).copyWith(fontSize: 18),
+                      style: STextStyles.desktopTextExtraExtraSmall(context)
+                          .copyWith(fontSize: 18),
                     ),
                   ),
                   const SizedBox(height: 40),
@@ -424,6 +433,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   }
 
   Future<void> previewSend() async {
+    final nonceInput = _nonceInput;
+    if (!nonceInput.isValid) return;
+    final nonce = nonceInput.value;
+
     final wallet = ref.read(pWallets).getWallet(walletId);
 
     // Handle MWC slatepack transactions directly.
@@ -494,9 +507,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       child: Text(
                         "You are about to send your entire balance. Would you like to continue?",
                         textAlign: TextAlign.left,
-                        style: STextStyles.desktopTextExtraExtraSmall(
-                          context,
-                        ).copyWith(fontSize: 18),
+                        style: STextStyles.desktopTextExtraExtraSmall(context)
+                            .copyWith(fontSize: 18),
                       ),
                     ),
                     const SizedBox(height: 40),
@@ -540,6 +552,25 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       }
     }
 
+    final chosenRateType = ref.read(feeRateTypeDesktopStateProvider);
+    if (!mounted) return;
+    setState(() => _feeCheckPending = true);
+    final fee = await _openCryptoPay.sendFee(
+      context,
+      wallet,
+      address: _address,
+      amount: amount,
+      feeRateType: chosenRateType,
+      satsPerVByte: chosenRateType.customSatsPerVByte(customFeeRate),
+      ethFee: _ethFee.value,
+      feeRateApplies:
+          coin is! Firo ||
+          ref.read(publicPrivateBalanceStateProvider) == BalanceType.public,
+    );
+    if (!mounted) return;
+    setState(() => _feeCheckPending = false);
+    if (fee == null) return;
+
     try {
       bool wasCancelled = false;
 
@@ -580,11 +611,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
       TxData txData;
       Future<TxData> txDataFuture;
+      final (:feeRateType, :satsPerVByte, :ethFee) = fee;
 
       if (isPaynymSend) {
         final paynymWallet = wallet as PaynymInterface;
-
-        final feeRate = ref.read(feeRateTypeDesktopStateProvider);
         txDataFuture = paynymWallet.preparePaymentCodeSend(
           txData: TxData(
             paynymAccountLite: widget.accountLite!,
@@ -596,8 +626,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 addressType: AddressType.unknown,
               ),
             ],
-            satsPerVByte: isCustomFee ? customFeeRate : null,
-            feeRateType: feeRate,
+            satsPerVByte: satsPerVByte,
+            feeRateType: feeRateType,
             utxos:
                 (wallet is CoinControlInterface &&
                     wallet is! SalviumWallet &&
@@ -621,8 +651,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       isChange: false,
                     ),
                   ],
-                  feeRateType: ref.read(feeRateTypeDesktopStateProvider),
-                  satsPerVByte: isCustomFee ? customFeeRate : null,
+                  feeRateType: feeRateType,
+                  satsPerVByte: satsPerVByte,
                   utxos:
                       (coinControlEnabled &&
                           ref.read(pDesktopUseUTXOs).isNotEmpty)
@@ -643,8 +673,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       )!,
                     ),
                   ],
-                  feeRateType: ref.read(feeRateTypeDesktopStateProvider),
-                  satsPerVByte: isCustomFee ? customFeeRate : null,
+                  feeRateType: feeRateType,
+                  satsPerVByte: satsPerVByte,
                   utxos:
                       (coinControlEnabled &&
                           ref.read(pDesktopUseUTXOs).isNotEmpty)
@@ -698,8 +728,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 addressType: wallet.cryptoCurrency.getAddressType(_address!)!,
               ),
             ],
-            feeRateType: ref.read(feeRateTypeDesktopStateProvider),
-            satsPerVByte: isCustomFee ? customFeeRate : null,
+            feeRateType: feeRateType,
+            satsPerVByte: satsPerVByte,
             // these will need to be mweb utxos
             // utxos:
             //     (wallet is CoinControlInterface &&
@@ -722,11 +752,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               ),
             ],
             memo: memo,
-            feeRateType: ref.read(feeRateTypeDesktopStateProvider),
-            satsPerVByte: isCustomFee ? customFeeRate : null,
-            nonce: wallet.cryptoCurrency is Ethereum
-                ? int.tryParse(nonceController.text)
-                : null,
+            feeRateType: feeRateType,
+            satsPerVByte: satsPerVByte,
+            nonce: wallet.cryptoCurrency is Ethereum ? nonce : null,
             utxos:
                 (wallet is CoinControlInterface &&
                     wallet is! SalviumWallet &&
@@ -771,6 +799,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 txData: txData,
                 walletId: walletId,
                 onSuccess: clearSendForm,
+                openCryptoPayHandler: _openCryptoPay,
                 isPaynymTransaction: isPaynymSend,
                 routeOnSuccessName: DesktopHomeView.routeName,
               ),
@@ -812,9 +841,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                         child: Text(
                           e.toString(),
                           textAlign: TextAlign.left,
-                          style: STextStyles.desktopTextExtraExtraSmall(
-                            context,
-                          ).copyWith(fontSize: 18),
+                          style: STextStyles.desktopTextExtraExtraSmall(context)
+                              .copyWith(fontSize: 18),
                         ),
                       ),
                       const SizedBox(height: 40),
@@ -847,6 +875,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   }
 
   void clearSendForm() {
+    _openCryptoPay.reset();
     if (!mounted) {
       return;
     }
@@ -857,8 +886,14 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     nonceController.text = "";
     _address = "";
     _addressToggleFlag = false;
+    _syncFeeAmount(null);
     _setOpReturnData(null);
     setState(() {});
+  }
+
+  void _syncFeeAmount(Amount? amount) {
+    ref.read(sendAmountProvider.notifier).state =
+        amount ?? Amount.zeroWith(fractionDigits: coin.fractionDigits);
   }
 
   void _setOpReturnData(String? data) {
@@ -872,7 +907,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     if (!_cryptoAmountChangeLock) {
       final cryptoAmount = ref
           .read(pAmountFormatter(coin))
-          .tryParse(cryptoAmountController.text);
+          .tryParseEditable(cryptoAmountController.text);
       final Amount? amount;
       if (cryptoAmount != null) {
         amount = cryptoAmount;
@@ -888,11 +923,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             ?.value;
 
         if (price != null && price > Decimal.zero) {
-          final String fiatAmountString = (amount.decimal * price)
-              .toAmount(fractionDigits: 2)
-              .fiatString(
-                locale: ref.read(localeServiceChangeNotifierProvider).locale,
-              );
+          final fiatAmount = (amount.decimal * price).toAmount(
+            fractionDigits: 2,
+          );
+          final fiatAmountString = Amount.formatEditableDecimal(
+            fiatAmount.decimal,
+            locale: ref.read(localeServiceChangeNotifierProvider).locale,
+          );
 
           baseAmountController.text = fiatAmountString;
         }
@@ -921,8 +958,22 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   //   return null;
   // }
 
+  void _openCryptoPaySetValidAddress(String address) {
+    _address = address;
+    _setValidAddressProviders(_address);
+    setState(() {
+      _addressToggleFlag = sendToController.text.isNotEmpty;
+    });
+  }
+
   void _processQrCodeData(String qrCodeData) {
     try {
+      if (OpenCryptoPayController.isOpenCryptoPayUri(qrCodeData)) {
+        if (!mounted) return;
+        unawaited(_openCryptoPay.handle(context, qrCodeData));
+        return;
+      }
+
       final paymentData = AddressUtils.parsePaymentUri(
         qrCodeData,
         logging: Logging.instance,
@@ -999,13 +1050,23 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
       // autofill amount field
       if (paymentData.amount != null) {
-        final amount = Decimal.parse(
+        final amount = Amount.tryParseCanonicalAmount(
           paymentData.amount!,
-        ).toAmount(fractionDigits: coin.fractionDigits);
-        cryptoAmountController.text = ref
-            .read(pAmountFormatter(coin))
-            .format(amount, withUnitName: false);
-        ref.read(pSendAmount.notifier).state = amount;
+          fractionDigits: coin.fractionDigits,
+          truncateOverprecision: true,
+        );
+        if (amount != null) {
+          cryptoAmountController.text = ref
+              .read(pAmountFormatter(coin))
+              .formatEditable(amount);
+          ref.read(pSendAmount.notifier).state = amount;
+          _syncFeeAmount(amount);
+        } else {
+          cryptoAmountController.clear();
+          _cachedAmountToSend = null;
+          ref.read(pSendAmount.notifier).state = null;
+          _syncFeeAmount(null);
+        }
       }
 
       // Trigger validation after pasting.
@@ -1053,6 +1114,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       String content = data.text!.trim();
       if (content.contains("\n")) {
         content = content.substring(0, content.indexOf("\n")).trim();
+      }
+      if (OpenCryptoPayController.isOpenCryptoPayUri(content)) {
+        if (!mounted) return;
+        unawaited(_openCryptoPay.handle(context, content));
+        return;
       }
 
       try {
@@ -1149,13 +1215,14 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
       final amountString = ref
           .read(pAmountFormatter(coin))
-          .format(amount, withUnitName: false);
+          .formatEditable(amount);
 
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = amountString;
       _cryptoAmountChangeLock = false;
     } else {
       amount = Decimal.zero.toAmount(fractionDigits: coin.fractionDigits);
+      _cachedAmountToSend = null;
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = "";
       _cryptoAmountChangeLock = false;
@@ -1203,7 +1270,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
     cryptoAmountController.text = ref
         .read(pAmountFormatter(coin))
-        .format(amount, withUnitName: false);
+        .formatEditable(amount);
+    _syncFeeAmount(amount);
   }
 
   void _showDesktopCoinControl() async {
@@ -1244,6 +1312,17 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
     onCryptoAmountChanged = _cryptoAmountChanged;
     cryptoAmountController.addListener(onCryptoAmountChanged);
+    _openCryptoPay = OpenCryptoPaySendHandler(
+      coin: coin,
+      sendToController: sendToController,
+      onAmountReceived: (parsed) {
+        cryptoAmountController.text = ref
+            .read(pAmountFormatter(coin))
+            .formatEditable(parsed);
+        ref.read(pSendAmount.notifier).state = parsed;
+      },
+      setValidAddress: _openCryptoPaySetValidAddress,
+    );
 
     if (_data != null) {
       final hasAmount = _data.amount != null;
@@ -1251,9 +1330,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         _cryptoAmountChangeLock = true;
         cryptoAmountController.text = ref
             .read(pAmountFormatter(coin))
-            .format(
+            .formatEditable(
               _data.amount!.toAmount(fractionDigits: coin.fractionDigits),
-              withUnitName: false,
             );
         _cryptoAmountChangeLock = false;
       }
@@ -1264,6 +1342,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (hasAmount) {
           _cryptoAmountChanged();
+          _syncFeeAmount(ref.read(pSendAmount));
         }
         _setValidAddressProviders(_address);
       });
@@ -1304,6 +1383,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   @override
   void dispose() {
     cryptoAmountController.removeListener(onCryptoAmountChanged);
+    _ethFee.dispose();
 
     sendToController.dispose();
     cryptoAmountController.dispose();
@@ -1325,6 +1405,16 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     final String locale = ref.watch(
       localeServiceChangeNotifierProvider.select((value) => value.locale),
     );
+    listenForAmountRelocalization(
+      ref.listen,
+      controllers: [cryptoAmountController, baseAmountController],
+      onRelocalized: _cryptoAmountChanged,
+    );
+    final isCustomFee = ref.watch(feeRateTypeDesktopStateProvider).isCustom;
+    // ethFee is checked in the ValueListenableBuilder around the preview
+    // button so fee keystrokes don't rebuild this whole view.
+    final previewEnabled = ref.watch(pPreviewTxButtonEnabled(coin));
+    final needsEthFee = coin is Ethereum && isCustomFee;
 
     // add listener for epic cash to strip http:// and https:// prefixes if the address also ocntains an @ symbol (indicating an epicbox address)
     if (coin is Epiccash) {
@@ -1400,23 +1490,22 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             child: Container(
               decoration: BoxDecoration(
                 color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()?.textFieldDefaultBG ??
+                    Theme.of(context)
+                        .extension<StackColors>()
+                        ?.textFieldDefaultBG ??
                     Colors.white, // Fallback color
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()?.backgroundAppBar ??
+                      Theme.of(context)
+                          .extension<StackColors>()
+                          ?.backgroundAppBar ??
                       Colors.grey, // Fallback color
                   width: 1,
                 ),
               ),
               child: const SizedBox(
-                height:
-                    60, // Provide an explicit height to avoid infinite constraints
+                height: 60, // Provide an explicit height to avoid infinite constraints
                 child: MwcTxsMethodToggle(),
               ),
             ),
@@ -1428,23 +1517,22 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             child: Container(
               decoration: BoxDecoration(
                 color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()?.textFieldDefaultBG ??
+                    Theme.of(context)
+                        .extension<StackColors>()
+                        ?.textFieldDefaultBG ??
                     Colors.white, // Fallback color
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()?.backgroundAppBar ??
+                      Theme.of(context)
+                          .extension<StackColors>()
+                          ?.backgroundAppBar ??
                       Colors.grey, // Fallback color
                   width: 1,
                 ),
               ),
               child: const SizedBox(
-                height:
-                    60, // Provide an explicit height to avoid infinite constraints
+                height: 60, // Provide an explicit height to avoid infinite constraints
                 child: EpicTxsMethodToggle(),
               ),
             ),
@@ -1454,9 +1542,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           Text(
             "Send from",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldActiveSearchIconRight,
             ),
             textAlign: TextAlign.left,
           ),
@@ -1537,9 +1625,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 offset: const Offset(0, -10),
                 elevation: 0,
                 decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldDefaultBG,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultBG,
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),
@@ -1564,9 +1652,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             controller: sendToController,
             enabled: false,
             readOnly: true,
-            style: STextStyles.desktopTextFieldLabel(
-              context,
-            ).copyWith(fontSize: 16),
+            style: STextStyles.desktopTextFieldLabel(context)
+                .copyWith(fontSize: 16),
             decoration: const InputDecoration(
               contentPadding: EdgeInsets.symmetric(
                 vertical: 18,
@@ -1581,9 +1668,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             Text(
               "Amount",
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldActiveSearchIconRight,
               ),
               textAlign: TextAlign.left,
             ),
@@ -1616,6 +1703,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           textAlign: TextAlign.right,
           inputFormatters: [
             AmountInputFormatter(
+              controller: cryptoAmountController,
               decimals: coin.fractionDigits,
               unit: ref.watch(pAmountUnit(coin)),
               locale: locale,
@@ -1636,9 +1724,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             ),
             hintText: "0",
             hintStyle: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldDefaultText,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldDefaultText,
             ),
             prefixIcon: FittedBox(
               fit: BoxFit.scaleDown,
@@ -1647,9 +1735,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 child: Text(
                   ref.watch(pAmountUnit(coin)).unitForCoin(coin),
                   style: STextStyles.smallMed14(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.accentColorDark,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
                   ),
                 ),
               ),
@@ -1675,7 +1763,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   ),
             textAlign: TextAlign.right,
             inputFormatters: [
-              AmountInputFormatter(decimals: 2, locale: locale),
+              AmountInputFormatter(
+                controller: baseAmountController,
+                decimals: 2,
+                locale: locale,
+              ),
               // // regex to validate a fiat amount with 2 decimal places
               // TextInputFormatter.withFunction((oldValue, newValue) =>
               //     RegExp(r'^([0-9]*[,.]?[0-9]{0,2}|[,.][0-9]{0,2})$')
@@ -1692,9 +1784,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               ),
               hintText: "0",
               hintStyle: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldDefaultText,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldDefaultText,
               ),
               prefixIcon: FittedBox(
                 fit: BoxFit.scaleDown,
@@ -1707,9 +1799,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       ),
                     ),
                     style: STextStyles.smallMed14(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
                     ),
                   ),
                 ),
@@ -1720,9 +1812,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         if (showCoinControl)
           RoundedContainer(
             color: Colors.transparent,
-            borderColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.textFieldDefaultBG,
+            borderColor: Theme.of(context)
+                .extension<StackColors>()!
+                .textFieldDefaultBG,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -1746,9 +1838,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           Text(
             "Send to",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldActiveSearchIconRight,
             ),
             textAlign: TextAlign.left,
           ),
@@ -1813,9 +1905,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               },
               focusNode: _addressFocusNode,
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldActiveText,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldActiveText,
                 height: 1.8,
               ),
               decoration:
@@ -1929,8 +2021,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                               ),
                             if (sendToController.text.isEmpty)
                               TextFieldIconButton(
-                                semanticsLabel:
-                                    "Scan QR Button. Opens Camera For Scanning QR Code.",
+                                semanticsLabel: "Scan QR Button. Opens Camera For Scanning QR Code.",
                                 key: const Key("sendViewScanQrButtonKey"),
                                 onTap: scanWebcam,
                                 child: const QrCodeIcon(),
@@ -1986,9 +2077,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       error,
                       textAlign: TextAlign.left,
                       style: STextStyles.label(context).copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textError,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textError,
                       ),
                     ),
                   ),
@@ -2017,9 +2108,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                     "(${opData.length ~/ 2} bytes)",
                     textAlign: TextAlign.left,
                     style: STextStyles.label(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorGreen,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorGreen,
                     ),
                   ),
                 ),
@@ -2047,9 +2138,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   "to complete the bridge transaction.",
                   textAlign: TextAlign.left,
                   style: STextStyles.label(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textError,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textError,
                   ),
                 ),
               ),
@@ -2077,9 +2168,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 setState(() {});
               },
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldActiveText,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldActiveText,
                 height: 1.8,
               ),
               decoration:
@@ -2127,21 +2218,22 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             walletId: walletId,
             isToken: false,
             onCustomFeeSliderChanged: (value) => customFeeRate = value,
-            onCustomFeeOptionChanged: (value) {
-              isCustomFee = value;
+            onCustomFeeOptionChanged: () {
               customFeeRate = 1;
-              ethFee = null;
+              _ethFee.value = null;
             },
-            onCustomEip1559FeeOptionChanged: (value) => ethFee = value,
+            onCustomEip1559FeeOptionChanged: (value) {
+              _ethFee.value = value;
+            },
           ),
         if (coin is Ethereum) const SizedBox(height: 20),
         if (coin is Ethereum)
           Text(
             "Nonce",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldActiveSearchIconRight,
             ),
             textAlign: TextAlign.left,
           ),
@@ -2159,12 +2251,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               readOnly: false,
               autocorrect: false,
               enableSuggestions: false,
-              keyboardType: const TextInputType.numberWithOptions(),
+              keyboardType: TextInputType.number,
               focusNode: _nonceFocusNode,
+              onChanged: (_) => setState(() {}),
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldActiveText,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldActiveText,
                 height: 1.8,
               ),
               decoration:
@@ -2183,16 +2276,32 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   ),
             ),
           ),
+        if (coin is Ethereum && !_nonceIsValid)
+          Padding(
+            padding: const EdgeInsets.only(top: 6, left: 12),
+            child: Text(
+              "Enter a non-negative whole number",
+              style: STextStyles.errorSmall(context),
+            ),
+          ),
         const SizedBox(height: 36),
-        PrimaryButton(
-          buttonHeight: ButtonHeight.l,
-          label: ref.watch(pIsSlatepack(widget.walletId))
-              ? "Create slatepack"
-              : "Preview send",
-          enabled: ref.watch(pPreviewTxButtonEnabled(coin)),
-          onPressed: ref.watch(pPreviewTxButtonEnabled(coin))
-              ? previewSend
-              : null,
+        ValueListenableBuilder<EthEIP1559Fee?>(
+          valueListenable: _ethFee,
+          builder: (context, ethFee, _) {
+            final enabled =
+                previewEnabled &&
+                !_feeCheckPending &&
+                _nonceIsValid &&
+                (!needsEthFee || ethFee != null);
+            return PrimaryButton(
+              buttonHeight: ButtonHeight.l,
+              label: ref.watch(pIsSlatepack(widget.walletId))
+                  ? "Create slatepack"
+                  : "Preview send",
+              enabled: enabled,
+              onPressed: enabled ? previewSend : null,
+            );
+          },
         ),
       ],
     );

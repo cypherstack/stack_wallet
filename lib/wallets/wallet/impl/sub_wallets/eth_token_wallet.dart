@@ -240,31 +240,46 @@ class EthTokenWallet extends Wallet {
       throw Exception("Insufficient balance");
     }
 
+    final gasLimit =
+        txData.ethEIP1559Fee?.gasLimit ?? kEthereumTokenMinGasLimit;
     final tx = web3dart.Transaction.callContract(
       contract: _deployedContract,
       function: _sendFunction,
       parameters: [eth_wallet.EthereumAddress.fromHex(address), amount.raw],
-      maxGas: txData.ethEIP1559Fee?.gasLimit ?? kEthereumTokenMinGasLimit,
+      maxGas: gasLimit,
       nonce: prep.nonce,
       maxFeePerGas: eth_wallet.EtherAmount.fromBigInt(
         eth_wallet.EtherUnit.wei,
-        prep.maxBaseFee,
+        prep.maxFeePerGas,
       ),
       maxPriorityFeePerGas: eth_wallet.EtherAmount.fromBigInt(
         eth_wallet.EtherUnit.wei,
-        prep.priorityFee,
+        prep.maxPriorityFeePerGas,
       ),
     );
 
-    final feeEstimate = await estimateFeeFor(
-      Amount.zero,
-      prep.maxBaseFee + prep.priorityFee,
+    final feeEstimate = ethWallet.estimateEthFee(
+      prep.maxFeePerGas,
+      gasLimit,
+      cryptoCurrency.fractionDigits,
     );
-    return txData.copyWith(
-      fee: feeEstimate,
-      web3dartTransaction: tx,
+    final raw = await ethWallet.signWeb3TransactionToHex(
+      tx: tx,
       chainId: prep.chainId,
-      nonce: tx.nonce,
+    );
+    final txid = ethWallet.txidOfSignedHex(raw);
+
+    return _prepareTempTx(
+      txData.copyWith(
+        fee: feeEstimate,
+        web3dartTransaction: tx,
+        chainId: prep.chainId,
+        nonce: tx.nonce,
+        raw: raw,
+        txid: txid,
+        txHash: txid,
+      ),
+      (await ethWallet.getCurrentReceivingAddress())!.value,
     );
   }
 
@@ -385,6 +400,7 @@ class EthTokenWallet extends Wallet {
 
       // no need to continue if no transactions found
       if (response.value!.isEmpty) {
+        await ethWallet.deleteReplacedPendingTransactions();
         return;
       }
 
@@ -506,6 +522,7 @@ class EthTokenWallet extends Wallet {
         }
       }
       await mainDB.updateOrPutTransactionV2s(txns);
+      await ethWallet.deleteReplacedPendingTransactions();
     } catch (e, s) {
       Logging.instance.w(
         "$runtimeType wallet failed to update transactions: ",

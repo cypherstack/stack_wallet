@@ -64,9 +64,8 @@ class AdvancedSettingsView extends StatelessWidget {
                       ),
                     ),
                     onPressed: () {
-                      Navigator.of(
-                        context,
-                      ).pushNamed(LoggingSettingsView.routeName);
+                      Navigator.of(context)
+                          .pushNamed(LoggingSettingsView.routeName);
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
@@ -85,52 +84,55 @@ class AdvancedSettingsView extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 8),
-                RoundedWhiteContainer(
-                  child: Consumer(
-                    builder: (_, ref, __) {
-                      return RawMaterialButton(
-                        // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            Constants.size.circularBorderRadius,
+                if (!AppConfig.isSingleCoinApp) const SizedBox(height: 8),
+                if (!AppConfig.isSingleCoinApp)
+                  RoundedWhiteContainer(
+                    child: Consumer(
+                      builder: (_, ref, __) {
+                        return RawMaterialButton(
+                          // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              Constants.size.circularBorderRadius,
+                            ),
                           ),
-                        ),
-                        onPressed: null,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Toggle testnet coins",
-                                style: STextStyles.titleBold12(context),
-                                textAlign: TextAlign.left,
-                              ),
-                              SizedBox(
-                                height: 20,
-                                width: 40,
-                                child: DraggableSwitchButton(
-                                  isOn: ref.watch(
-                                    prefsChangeNotifierProvider.select(
-                                      (value) => value.showTestNetCoins,
-                                    ),
-                                  ),
-                                  onValueChanged: (newValue) {
-                                    ref
-                                        .read(prefsChangeNotifierProvider)
-                                        .showTestNetCoins = newValue;
-                                  },
+                          onPressed: null,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "Toggle testnet coins",
+                                  style: STextStyles.titleBold12(context),
+                                  textAlign: TextAlign.left,
                                 ),
-                              ),
-                            ],
+                                SizedBox(
+                                  height: 20,
+                                  width: 40,
+                                  child: DraggableSwitchButton(
+                                    isOn: ref.watch(
+                                      prefsChangeNotifierProvider.select(
+                                        (value) => value.showTestNetCoins,
+                                      ),
+                                    ),
+                                    onValueChanged: (newValue) {
+                                      ref
+                                              .read(prefsChangeNotifierProvider)
+                                              .showTestNetCoins =
+                                          newValue;
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
-                ),
                 const SizedBox(height: 8),
                 RoundedWhiteContainer(
                   child: Consumer(
@@ -165,8 +167,9 @@ class AdvancedSettingsView extends StatelessWidget {
                                   ),
                                   onValueChanged: (newValue) {
                                     ref
-                                        .read(prefsChangeNotifierProvider)
-                                        .enableCoinControl = newValue;
+                                            .read(prefsChangeNotifierProvider)
+                                            .enableCoinControl =
+                                        newValue;
                                   },
                                 ),
                               ),
@@ -214,8 +217,9 @@ class AdvancedSettingsView extends StatelessWidget {
                                     ),
                                     onValueChanged: (newValue) {
                                       ref
-                                          .read(prefsChangeNotifierProvider)
-                                          .enableExchange = newValue;
+                                              .read(prefsChangeNotifierProvider)
+                                              .enableExchange =
+                                          newValue;
                                     },
                                   ),
                                 ),
@@ -265,13 +269,11 @@ class AdvancedSettingsView extends StatelessWidget {
                                       style: STextStyles.titleBold12(context),
                                     ),
                                     TextSpan(
-                                      text:
-                                          externalCalls
-                                              ? "\nEasy crypto"
-                                              : "\nIncognito",
-                                      style: STextStyles.label(
-                                        context,
-                                      ).copyWith(fontSize: 15.0),
+                                      text: externalCalls
+                                          ? "\nEasy crypto"
+                                          : "\nIncognito",
+                                      style: STextStyles.label(context)
+                                          .copyWith(fontSize: 15.0),
                                     ),
                                   ],
                                 ),
@@ -333,9 +335,8 @@ class AdvancedSettingsView extends StatelessWidget {
                       ),
                     ),
                     onPressed: () {
-                      Navigator.of(
-                        context,
-                      ).pushNamed(ManageCoinUnitsView.routeName);
+                      Navigator.of(context)
+                          .pushNamed(ManageCoinUnitsView.routeName);
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(

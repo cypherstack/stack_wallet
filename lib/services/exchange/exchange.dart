@@ -61,6 +61,9 @@ abstract class Exchange {
 
   bool get supportsRefundAddress => true;
 
+  /// Whether createTrade forwards a payout memo/destination tag to the API.
+  bool get supportsExtraId => true;
+
   Future<ExchangeResponse<List<Currency>>> getAllCurrencies(bool fixedRate);
 
   // Future<ExchangeResponse<List<Currency>>> getPairedCurrencies(

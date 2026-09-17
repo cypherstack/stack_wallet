@@ -37,7 +37,8 @@ import '../../services/exchange/nanswap/nanswap_exchange.dart';
 import '../../services/exchange/trocador/trocador_exchange.dart';
 import '../../services/exchange/wizard_swap/wizard_swap_exchange.dart';
 import '../../themes/stack_colors.dart';
-import '../../utilities/amount/amount_unit.dart';
+import '../../utilities/amount/amount.dart';
+import '../../utilities/amount/amount_field_relocalization.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/enums/exchange_rate_type_enum.dart';
@@ -105,6 +106,10 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   // todo: check and adjust this value?
   static const _valueCheckInterval = Duration(milliseconds: 1500);
 
+  String? _pendingSendAmountText;
+  String? _pendingReceiveAmountText;
+  late String _amountInputLocale;
+
   Future<T> showUpdatingExchangeRate<T>({
     required Future<T> whileFuture,
   }) async {
@@ -115,9 +120,10 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         builder: (_) => WillPopScope(
           onWillPop: () async => false,
           child: Container(
-            color: Theme.of(
-              context,
-            ).extension<StackColors>()!.overlay.withOpacity(0.6),
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .overlay
+                .withOpacity(0.6),
             child: const CustomLoadingOverlay(
               message: "Updating exchange rate",
               eventBus: null,
@@ -140,9 +146,13 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   void sendFieldOnChanged(String value) {
     if (_sendFocusNode.hasFocus) {
       _sendFieldOnChangedTimer?.cancel();
+      _pendingSendAmountText = value;
 
       _sendFieldOnChangedTimer = Timer(_valueCheckInterval, () async {
-        final newFromAmount = _localizedStringToNum(value);
+        final pendingText = _pendingSendAmountText ?? value;
+        _pendingSendAmountText = null;
+        _sendFieldOnChangedTimer = null;
+        final newFromAmount = _localizedStringToNum(pendingText);
 
         ref.read(efSendAmountProvider.notifier).state = newFromAmount;
         if (!_swapLock && !ref.read(efReversedProvider)) {
@@ -155,9 +165,13 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   Timer? _receiveFieldOnChangedTimer;
   void receiveFieldOnChanged(String value) async {
     _receiveFieldOnChangedTimer?.cancel();
+    _pendingReceiveAmountText = value;
 
     _receiveFieldOnChangedTimer = Timer(_valueCheckInterval, () async {
-      final newToAmount = _localizedStringToNum(value);
+      final pendingText = _pendingReceiveAmountText ?? value;
+      _pendingReceiveAmountText = null;
+      _receiveFieldOnChangedTimer = null;
+      final newToAmount = _localizedStringToNum(pendingText);
 
       ref.read(efReceiveAmountProvider.notifier).state = newToAmount;
       if (!_swapLock && ref.read(efReversedProvider)) {
@@ -166,21 +180,72 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     });
   }
 
+  bool _flushPendingAmountChange() {
+    final flushSend = _sendFieldOnChangedTimer?.isActive ?? false;
+    final flushReceive = _receiveFieldOnChangedTimer?.isActive ?? false;
+    String? sendText;
+    String? receiveText;
+
+    // Capture both edits before publishing either provider state. A provider
+    // refresh may rewrite either controller once the first state is visible.
+    if (flushSend) {
+      _sendFieldOnChangedTimer!.cancel();
+      _sendFieldOnChangedTimer = null;
+      sendText = _pendingSendAmountText ?? _sendController.text;
+      _pendingSendAmountText = null;
+    }
+    if (flushReceive) {
+      _receiveFieldOnChangedTimer!.cancel();
+      _receiveFieldOnChangedTimer = null;
+      receiveText = _pendingReceiveAmountText ?? _receiveController.text;
+      _pendingReceiveAmountText = null;
+    }
+
+    if (flushSend) {
+      ref.read(efSendAmountProvider.notifier).state = _localizedStringToNum(
+        sendText,
+      );
+    }
+    if (flushReceive) {
+      ref.read(efReceiveAmountProvider.notifier).state = _localizedStringToNum(
+        receiveText,
+      );
+    }
+    return flushSend || flushReceive;
+  }
+
   Decimal? _localizedStringToNum(String? value) {
     if (value == null) {
       return null;
     }
 
-    return AmountUnit.normal
-        .tryParse(
-          value,
-          locale: ref.read(localeServiceChangeNotifierProvider).locale,
-          coin: Bitcoin(
-            CryptoCurrencyNetwork.main,
-          ), // dummy value (not used due to override)
-          overrideWithDecimalPlacesFromString: true,
-        )
-        ?.decimal;
+    return Amount.tryParseEditableDecimal(
+      value,
+      locale: ref.read(localeServiceChangeNotifierProvider).locale,
+    );
+  }
+
+  void _relocalizePendingAmountText() {
+    final nextLocale = ref.read(localeServiceChangeNotifierProvider).locale;
+    if (nextLocale == _amountInputLocale) {
+      return;
+    }
+
+    if (_pendingSendAmountText != null) {
+      _pendingSendAmountText = Amount.relocalizeEditableDecimal(
+        _pendingSendAmountText!,
+        sourceLocale: _amountInputLocale,
+        targetLocale: nextLocale,
+      );
+    }
+    if (_pendingReceiveAmountText != null) {
+      _pendingReceiveAmountText = Amount.relocalizeEditableDecimal(
+        _pendingReceiveAmountText!,
+        sourceLocale: _amountInputLocale,
+        targetLocale: nextLocale,
+      );
+    }
+    _amountInputLocale = nextLocale;
   }
 
   void selectSendCurrency() async {
@@ -234,6 +299,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   }
 
   Future<void> _swap() async {
+    _flushPendingAmountChange();
     _swapLock = true;
     _sendFocusNode.unfocus();
     _receiveFocusNode.unfocus();
@@ -303,9 +369,9 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                             Expanded(
                               child: RoundedWhiteContainer(
                                 padding: const EdgeInsets.all(16),
-                                borderColor: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.background,
+                                borderColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .background,
                                 child: ExchangeCurrencySelectionView(
                                   pairedCurrency: paired,
                                   isFixedRate: isFixedRate,
@@ -392,6 +458,11 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   }
 
   void onExchangePressed() async {
+    if (_flushPendingAmountChange()) {
+      await showUpdatingExchangeRate(whileFuture: update());
+      if (!mounted) return;
+    }
+
     final exchangeName = ref.read(efExchangeProvider).name;
 
     final fromCurrency = ref
@@ -421,8 +492,24 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     }
 
     final rateType = ref.read(efRateTypeProvider);
-    final estimate = ref.read(efEstimateProvider)!;
-    final sendAmount = ref.read(efSendAmountProvider)!;
+    final estimate = ref.read(efEstimateProvider);
+    final sendAmount = ref.read(efSendAmountProvider);
+
+    if (estimate == null || sendAmount == null) {
+      if (mounted) {
+        await showDialog<void>(
+          context: context,
+          builder: (context) => StackOkDialog(
+            title: "Exchange rate not ready",
+            message:
+                "Please wait for the exchange rate to update and try again",
+            maxWidth: Util.isDesktop ? 300 : null,
+          ),
+        );
+      }
+
+      return;
+    }
 
     if (rateType == ExchangeRateType.fixed &&
         toCurrency.ticker.toUpperCase() == "WOW") {
@@ -431,8 +518,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           context: context,
           builder: (context) => const StackOkDialog(
             title: "WOW error",
-            message:
-                "Wownero is temporarily disabled as a receiving currency for fixed rate trades due to network issues",
+            message: "Wownero is temporarily disabled as a receiving currency for fixed rate trades due to network issues",
           ),
         );
       }
@@ -594,9 +680,8 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           );
         } else {
           unawaited(
-            Navigator.of(
-              context,
-            ).pushNamed(Step2View.routeName, arguments: model),
+            Navigator.of(context)
+                .pushNamed(Step2View.routeName, arguments: model),
           );
         }
       } else {
@@ -617,9 +702,8 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           );
         } else {
           unawaited(
-            Navigator.of(
-              context,
-            ).pushNamed(Step1View.routeName, arguments: model),
+            Navigator.of(context)
+                .pushNamed(Step1View.routeName, arguments: model),
           );
         }
       }
@@ -645,9 +729,30 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   Future<void> update() async {
     final uuid = const Uuid().v1();
     _latestUuid = uuid;
-    _addUpdate(uuid);
-    for (final exchange in usableExchanges) {
-      ref.read(efEstimatesListProvider(exchange.name).notifier).state = null;
+
+    final exchanges = usableExchanges;
+    final estimatesNotifiers = {
+      for (final exchange in exchanges)
+        exchange.name: ref.read(
+          efEstimatesListProvider(exchange.name).notifier,
+        ),
+    };
+    final refreshingNotifier = ref.read(efRefreshingProvider.notifier);
+
+    _uuids.add(uuid);
+    refreshingNotifier.state = true;
+
+    void removeUpdate() {
+      _uuids.remove(uuid);
+      if (_uuids.isEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          refreshingNotifier.state = false;
+        });
+      }
+    }
+
+    for (final exchange in exchanges) {
+      estimatesNotifiers[exchange.name]!.state = null;
     }
 
     final reversed = ref.read(efReversedProvider);
@@ -660,14 +765,14 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         amount <= Decimal.zero ||
         pair.send == null ||
         pair.receive == null) {
-      _removeUpdate(uuid);
+      removeUpdate();
       return;
     }
     final rateType = ref.read(efRateTypeProvider);
     final Map<String, Tuple2<ExchangeResponse<List<Estimate>>, Range?>>
     results = {};
 
-    for (final exchange in usableExchanges) {
+    for (final exchange in exchanges) {
       final sendCurrency = pair.send?.forExchange(exchange.name);
       final receiveCurrency = pair.receive?.forExchange(exchange.name);
 
@@ -704,32 +809,17 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       }
     }
 
-    for (final exchange in usableExchanges) {
+    for (final exchange in exchanges) {
       if (uuid == _latestUuid) {
-        ref.read(efEstimatesListProvider(exchange.name).notifier).state =
-            results[exchange.name];
+        estimatesNotifiers[exchange.name]!.state = results[exchange.name];
       }
     }
 
-    _removeUpdate(uuid);
+    removeUpdate();
   }
 
   String? _latestUuid;
   final Set<String> _uuids = {};
-
-  void _addUpdate(String uuid) {
-    _uuids.add(uuid);
-    ref.read(efRefreshingProvider.notifier).state = true;
-  }
-
-  void _removeUpdate(String uuid) {
-    _uuids.remove(uuid);
-    if (_uuids.isEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(efRefreshingProvider.notifier).state = false;
-      });
-    }
-  }
 
   void updateSend(Estimate? estimate) {
     ref.read(efSendAmountProvider.notifier).state = estimate?.estimatedAmount;
@@ -744,6 +834,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   void initState() {
     _sendController = TextEditingController();
     _receiveController = TextEditingController();
+    _amountInputLocale = ref.read(localeServiceChangeNotifierProvider).locale;
 
     walletId = widget.walletId;
     coin = widget.coin;
@@ -809,6 +900,8 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
 
   @override
   void dispose() {
+    _sendFieldOnChangedTimer?.cancel();
+    _receiveFieldOnChangedTimer?.cancel();
     _receiveController.dispose();
     _sendController.dispose();
     _receiveFocusNode.dispose();
@@ -823,6 +916,20 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     final rateType = ref.watch(efRateTypeProvider);
 
     final isEstimated = rateType == ExchangeRateType.estimated;
+
+    // A pending debounce captured text in the old locale. Relocalize both the
+    // controllers and the stored user edits before parsing under the new
+    // locale, then refresh the quote for the newly committed amount.
+    listenForAmountRelocalization(
+      ref.listen,
+      controllers: [_sendController, _receiveController],
+      onRelocalized: () {
+        _relocalizePendingAmountText();
+        if (_flushPendingAmountChange()) {
+          unawaited(update());
+        }
+      },
+    );
 
     ref.listen(efReceiveAmountStringProvider, (previous, String next) {
       if (!_receiveFocusNode.hasFocus) {
@@ -866,6 +973,10 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     });
 
     ref.listen(efCurrencyPairProvider, (previous, next) {
+      // Commit pending user text before its debounce can apply after the pair
+      // has changed. The controller may already have been rewritten from the
+      // previous provider value while focus moved between the fields.
+      _flushPendingAmountChange();
       if (!_swapLock) {
         update();
       }
@@ -893,13 +1004,13 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           textStyle: STextStyles.smallMed14(context).copyWith(
             color: Theme.of(context).extension<StackColors>()!.textDark,
           ),
-          buttonColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.buttonBackSecondary,
+          buttonColor: Theme.of(context)
+              .extension<StackColors>()!
+              .buttonBackSecondary,
           borderRadius: Constants.size.circularBorderRadius,
-          background: Theme.of(
-            context,
-          ).extension<StackColors>()!.textFieldDefaultBG,
+          background: Theme.of(context)
+              .extension<StackColors>()!
+              .textFieldDefaultBG,
           onTap: () {
             if (_sendController.text == "-") {
               _sendController.text = "";
@@ -935,9 +1046,9 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                   padding: isDesktop
                       ? const EdgeInsets.all(6)
                       : const EdgeInsets.all(2),
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.buttonBackSecondary,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .buttonBackSecondary,
                   radiusMultiplier: 0.75,
                   child: GestureDetector(
                     onTap: () async {
@@ -949,9 +1060,9 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                         Assets.svg.swap,
                         width: 20,
                         height: 20,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorDark,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
                       ),
                     ),
                   ),
@@ -970,13 +1081,13 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           textStyle: STextStyles.smallMed14(context).copyWith(
             color: Theme.of(context).extension<StackColors>()!.textDark,
           ),
-          buttonColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.buttonBackSecondary,
+          buttonColor: Theme.of(context)
+              .extension<StackColors>()!
+              .buttonBackSecondary,
           borderRadius: Constants.size.circularBorderRadius,
-          background: Theme.of(
-            context,
-          ).extension<StackColors>()!.textFieldDefaultBG,
+          background: Theme.of(context)
+              .extension<StackColors>()!
+              .textFieldDefaultBG,
           onTap: rateType == ExchangeRateType.estimated
               ? null
               : () {

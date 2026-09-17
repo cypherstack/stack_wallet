@@ -1,6 +1,6 @@
 import 'dart:io';
 
-const _mwebdVersion = "v0.1.8";
+const _mwebdVersion = "v0.1.19";
 const _defaultFetchBaseUrl =
     "https://github.com/cypherstack/stack_wallet/releases/download";
 
@@ -17,7 +17,7 @@ Future<void> main(List<String> args) async {
 Future<void> _fetchPrebuilt(Directory projectToolDir) async {
   final baseUrl =
       Platform.environment["MWEBD_FETCH_BASE_URL"] ?? _defaultFetchBaseUrl;
-  final tag = "mwebd-$_mwebdVersion";
+  const tag = "mwebd-$_mwebdVersion";
 
   final winAssetsDir = Directory(
     "${projectToolDir.parent.path}"
@@ -50,9 +50,15 @@ Future<void> _fetchPrebuilt(Directory projectToolDir) async {
   final expected = (await File(
     shaPath,
   ).readAsString()).trim().split(RegExp(r"\s+")).first;
-  final actual = (await Process.run("sha256sum", [
-    exePath,
-  ], runInShell: true)).stdout.toString().trim().split(RegExp(r"\s+")).first;
+  // sha256sum adds a leading '\' to the hash when the filename contains
+  // backslashes. Strip it before comparing.
+  final actual = (await Process.run("sha256sum", [exePath], runInShell: true))
+      .stdout
+      .toString()
+      .trim()
+      .split(RegExp(r"\s+"))
+      .first
+      .replaceFirst(r'\', '');
   if (expected.toLowerCase() != actual.toLowerCase()) {
     stderr.writeln(
       "mwebd.exe sha256 mismatch: expected $expected, got $actual",
@@ -180,6 +186,7 @@ Future<void> _buildFromSource(Directory projectToolDir) async {
 Future<void> _waitForProcess(Process process) async {
   final exitCode = await process.exitCode;
   if (exitCode != 0) {
+    // ignore: avoid_print
     print("Exited process with code=$exitCode\n${StackTrace.current}");
     exit(exitCode);
   }

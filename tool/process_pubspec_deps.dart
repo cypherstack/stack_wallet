@@ -16,7 +16,7 @@ void main(List<String> args) {
   _process(args[0], args.sublist(1));
 }
 
-void _process(final String filePath, final List<String> enableCoinMarkers) {
+void _process(String filePath, List<String> enableCoinMarkers) {
   final lines = File(filePath).readAsLinesSync();
 
   String? activeMarker;

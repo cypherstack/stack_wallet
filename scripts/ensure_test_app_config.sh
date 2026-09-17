@@ -55,7 +55,7 @@ final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Fact0rn(CryptoCurrencyNetwork.main),
   Firo(CryptoCurrencyNetwork.main),
   Litecoin(CryptoCurrencyNetwork.main),
-  if (!Platform.isMacOS) Mimblewimblecoin(CryptoCurrencyNetwork.main),
+  Mimblewimblecoin(CryptoCurrencyNetwork.main),
   Nano(CryptoCurrencyNetwork.main),
   Namecoin(CryptoCurrencyNetwork.main),
   Particl(CryptoCurrencyNetwork.main),
