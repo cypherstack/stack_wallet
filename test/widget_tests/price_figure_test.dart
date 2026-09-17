@@ -43,7 +43,56 @@ void main() {
     expect(priceFigure(0, locale, "USD"), "0.00 USD");
   });
 
+  _windowLabels();
+
   test("a locale that writes a comma gets a comma", () {
     expect(priceFigure(0.02492901, "de_DE", "EUR"), "0,02493 EUR");
+  });
+}
+
+/// The two window labels on the price screen must describe the same window.
+///
+/// They did not. The change at the top derived its label from the span the
+/// server measured while the high and low rows underneath used the range that
+/// had been requested, so BFX showed "+2.14% past 2 days" directly above "30D
+/// high". Two scopes, one screen, and the high was a two day extreme wearing a
+/// monthly label. Both now come from spanHours, and these pin that.
+void _windowLabels() {
+  group("window labels", () {
+    test("agree about hours", () {
+      expect(windowLabel(24), "past 24 hours");
+      expect(windowShort(24), "24h");
+    });
+
+    test("agree about days", () {
+      expect(windowLabel(48), "past 2 days");
+      expect(windowShort(48), "2d");
+    });
+
+    test("never describe more than the data covers", () {
+      // The case that caused this: a 30 day request on a market that has only
+      // existed for about two days.
+      expect(windowShort(50), "2d");
+      expect(windowShort(50), isNot(contains("30")));
+    });
+
+    test("say nothing rather than guess when there is no span", () {
+      expect(windowLabel(0), "so far");
+      expect(windowShort(0), "");
+    });
+
+    test("cross from hours to days at the same point", () {
+      // A boundary that differed between the two would put "35h" next to
+      // "past 1 days" on the same screen.
+      for (final hours in <double>[1, 12, 35, 35.9, 36, 48, 200, 720]) {
+        final longIsDays = windowLabel(hours).contains("days");
+        final shortIsDays = windowShort(hours).endsWith("d");
+        expect(
+          longIsDays,
+          shortIsDays,
+          reason: "at $hours the two labels pick different units",
+        );
+      }
+    });
   });
 }

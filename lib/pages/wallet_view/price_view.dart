@@ -101,19 +101,6 @@ class _PriceViewState extends ConsumerState<PriceView> {
     );
   }
 
-  /// What the series really covers, in words.
-  ///
-  /// From the span the server measured, never the range asked for. The BFX
-  /// market opened in September 2026, so a 30 day request currently returns
-  /// about 30 hours, and a label taken from the range would be wrong by a
-  /// month.
-  String _window(PriceHistory h) {
-    final hours = h.spanHours;
-    if (hours <= 0) return "so far";
-    if (hours < 36) return "past ${hours.round()} hours";
-    return "past ${(hours / 24).round()} days";
-  }
-
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<StackColors>()!;
@@ -237,7 +224,9 @@ class _PriceViewState extends ConsumerState<PriceView> {
                 ),
               ),
               TextSpan(
-                text: shown == null ? "" : "  ·  ${_window(shown)}",
+                text: shown == null
+                    ? ""
+                    : "  ·  ${windowLabel(shown.spanHours)}",
                 style: STextStyles.smallMed14(context),
               ),
             ],
@@ -324,13 +313,15 @@ class _PriceViewState extends ConsumerState<PriceView> {
     PriceHistory shown,
     String Function(double) money,
   ) {
-    final window = _ranges[_days] ?? "";
-    // Labelled with the window they cover: a high over a month and a high
-    // over a day are different facts, and these rows change under the reader
-    // whenever the range does.
+    // Labelled with the window they actually cover, taken from the span the
+    // server measured rather than the range that was asked for. A high over a
+    // month and a high over a day are different facts, and on a market that
+    // opened this September a 30 day request still returns about two days.
+    final window = windowShort(shown.spanHours);
+    final prefix = window.isEmpty ? "" : "$window ";
     final rows = <(String, String)>[
-      if (shown.high != null) ("$window high", money(shown.high!)),
-      if (shown.low != null) ("$window low", money(shown.low!)),
+      if (shown.high != null) ("${prefix}high", money(shown.high!)),
+      if (shown.low != null) ("${prefix}low", money(shown.low!)),
       if (shown.volume24h != null) ("24h volume", money(shown.volume24h!)),
       if (shown.source.isNotEmpty) ("Priced by", _venue(shown.source)),
     ];
@@ -437,4 +428,28 @@ String priceFigure(double value, String locale, String currency) {
   }
   return "${d.toAmount(fractionDigits: 8).fiatString(locale: locale)} "
       "$currency";
+}
+
+/// What a price series really covers, in words.
+///
+/// From the span the server measured, never the range that was asked for. The
+/// BFX market opened in September 2026, so a 30 day request currently returns
+/// about two days, and a label taken from the range would be wrong by a month.
+String windowLabel(double spanHours) {
+  if (spanHours <= 0) return "so far";
+  if (spanHours < 36) return "past ${spanHours.round()} hours";
+  return "past ${(spanHours / 24).round()} days";
+}
+
+/// The same window, short enough to sit in front of "high" and "low".
+///
+/// Derived from the same measured span as [windowLabel] so the two cannot
+/// disagree. They did: the change at the top of the screen read "past 2 days"
+/// from the real span while the rows underneath said "30D high" from the range
+/// that had been requested, which presented a two day extreme as a monthly one
+/// on the same screen.
+String windowShort(double spanHours) {
+  if (spanHours <= 0) return "";
+  if (spanHours < 36) return "${spanHours.round()}h";
+  return "${(spanHours / 24).round()}d";
 }

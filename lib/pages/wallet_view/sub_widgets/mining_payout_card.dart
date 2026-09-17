@@ -99,26 +99,26 @@ class _MiningPayoutCardState extends ConsumerState<MiningPayoutCard> {
     return out.toString();
   }
 
-  /// The total, with sub-coin dust dropped once it is large enough that the
-  /// dust is only making the row overflow.
+  /// The total, without the trailing zeros that carry no information.
+  ///
+  /// It used to call withoutDustDecimals with minWholeDigits: 1, which drops
+  /// the entire fraction whenever there is at least one whole digit. Every
+  /// formatted amount here has eight decimals, so that condition was always
+  /// true, and the guard never guarded anything: a miner whose payouts totalled
+  /// 0.87654321 BFX was shown "0 BFX", and 12.5 BFX was shown "12 BFX". No
+  /// marker, no rounding, just gone.
+  ///
+  /// The reason it was there was width, and width was already solved: this
+  /// string goes into a FittedBox capped at 42% of the row, so a long number
+  /// shrinks instead of pushing the payout count into an ellipsis. Nothing
+  /// needed to be dropped to make it fit.
+  ///
+  /// trimTrailingZeros does the part that was actually wanted. It removes
+  /// decimals that are only zeros, which is the common case for block rewards,
+  /// and it cannot change the value: 49,850.00000000 becomes 49,850 and
+  /// 0.87654321 stays itself.
   String _totalLabel(AmountFormatter formatter, Amount total) {
-    final full = formatter.format(total, withUnitName: false);
-    var num = withoutDustDecimals(full, minWholeDigits: 1) ?? full;
-
-    // An all-zero fraction is not information, and on a coin displaying two
-    // decimals it survived the rule above (which only fires past three) and
-    // cost the width that truncated the payout count to "997 payouts sin…".
-    final sep = num.lastIndexOf(RegExp(r"[.,]"));
-    if (sep > 0) {
-      final decimals = num.substring(sep + 1);
-      if (decimals.length != 3 &&
-          decimals.isNotEmpty &&
-          !decimals.contains(RegExp(r"[^0]"))) {
-        num = num.substring(0, sep);
-      }
-    }
-
-    return "$num ${widget.coin.ticker}";
+    return formatter.format(total, trimTrailingZeros: true);
   }
 
   @override
