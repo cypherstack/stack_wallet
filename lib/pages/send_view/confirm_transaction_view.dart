@@ -18,6 +18,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar_community/isar.dart';
 
+import '../../db/drift/database.dart';
 import '../../models/input.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../models/isar/models/transaction_note.dart';
@@ -639,6 +640,19 @@ class _ConfirmTransactionViewState
     final sparkCoins = widget.txData.usedSparkCoins;
     if (sparkCoins != null && sparkCoins.isNotEmpty) {
       await db.isar.writeTxn(() => db.isar.sparkCoins.putAll(sparkCoins));
+    }
+
+    final mwebUtxos = widget.txData.usedUTXOs
+        ?.whereType<MwebInput>()
+        .map((e) => e.utxo.copyWith(used: true))
+        .toList();
+    if (mwebUtxos != null && mwebUtxos.isNotEmpty) {
+      final drift = Drift.get(walletId);
+      await drift.transaction(() async {
+        for (final utxo in mwebUtxos) {
+          await drift.update(drift.mwebUtxos).replace(utxo);
+        }
+      });
     }
   }
 
