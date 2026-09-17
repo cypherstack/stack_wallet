@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:coinlib/coinlib.dart' as coinlib;
@@ -79,91 +80,100 @@ void main() {
     expect(select(exactPlainValue, withData: true).ready, isFalse);
   });
 
-  test('signed transparent FIRO bytes retain and enforce bridge outputs', () async {
-    await coinlib.loadCoinlib();
-    // Public test key and synthetic outpoint: no network or wallet funds are used.
-    final key = coinlib.ECPrivateKey.fromHex('01'.padLeft(64, '0'));
-    const metadata =
-        '03000000000000007b00000000000001c81400112233445566778899aabbccddeeff00112233';
-    final lock = coinlib.Address.fromString(
-      'aEF6fyd5jjCPcbiEBZJ2g8583caUme8T7Y',
-      coinlib.Network.mainnet.copyWith(p2pkhPrefix: 0x52, p2shPrefix: 0x07),
-    ).program;
-    final amount = BigInt.from(100000000);
-    final payment = coinlib.Output.fromProgram(amount, lock);
-    final change = coinlib.Output.fromProgram(
-      BigInt.from(50000000),
-      coinlib.P2PKH.fromHash(coinlib.hash160(key.pubkey.data)),
-    );
-    final data = firoOpReturnOutput(metadata);
-    coinlib.Transaction sign(List<coinlib.Output> outputs) =>
-        coinlib.Transaction(
-          version: 1,
-          inputs: [
-            coinlib.P2PKHInput(
-              prevOut: coinlib.OutPoint(
-                Uint8List.fromList(List.filled(32, 1)),
-                0,
+  test(
+    'signed transparent FIRO bytes retain and enforce bridge outputs',
+    () async {
+      await coinlib.loadCoinlib();
+      // Public test key and synthetic outpoint: no network or wallet funds are used.
+      final key = coinlib.ECPrivateKey.fromHex('01'.padLeft(64, '0'));
+      const metadata =
+          '03000000000000007b00000000000001c81400112233445566778899aabbccddeeff00112233';
+      final lock = coinlib.Address.fromString(
+        'aEF6fyd5jjCPcbiEBZJ2g8583caUme8T7Y',
+        coinlib.Network.mainnet.copyWith(p2pkhPrefix: 0x52, p2shPrefix: 0x07),
+      ).program;
+      final amount = BigInt.from(100000000);
+      final payment = coinlib.Output.fromProgram(amount, lock);
+      final change = coinlib.Output.fromProgram(
+        BigInt.from(50000000),
+        coinlib.P2PKH.fromHash(coinlib.hash160(key.pubkey.data)),
+      );
+      final data = firoOpReturnOutput(metadata);
+      coinlib.Transaction sign(List<coinlib.Output> outputs) =>
+          coinlib.Transaction(
+            version: 1,
+            inputs: [
+              coinlib.P2PKHInput(
+                prevOut: coinlib.OutPoint(
+                  Uint8List.fromList(List.filled(32, 1)),
+                  0,
+                ),
+                publicKey: key.pubkey,
               ),
-              publicKey: key.pubkey,
-            ),
-          ],
-          outputs: outputs,
-        ).signLegacy(inputN: 0, key: key);
-    void verify(String raw) => verifyFiroOpReturnTransaction(
-      raw: raw,
-      data: metadata,
-      paymentScript: coinlib.bytesToHex(payment.scriptPubKey),
-      paymentAmount: amount,
-    );
+            ],
+            outputs: outputs,
+          ).signLegacy(inputN: 0, key: key);
+      void verify(String raw) => verifyFiroOpReturnTransaction(
+        raw: raw,
+        data: metadata,
+        paymentScript: coinlib.bytesToHex(payment.scriptPubKey),
+        paymentAmount: amount,
+      );
 
-    final signed = sign([payment, change, data]);
-    expect(signed.complete, isTrue);
-    expect(signed.inputs.single, isA<coinlib.P2PKHInput>());
-    expect(
-      signed.toHex(),
-      endsWith('0000000000000000286a26${metadata}00000000'),
-    );
-    verify(signed.toHex());
-    // Output order is not part of Rosen's protocol.
-    verify(sign([data, payment, change]).toHex());
+      final signed = sign([payment, change, data]);
+      expect(signed.complete, isTrue);
+      expect(signed.inputs.single, isA<coinlib.P2PKHInput>());
+      expect(
+        signed.toHex(),
+        endsWith('0000000000000000286a26${metadata}00000000'),
+      );
+      verify(signed.toHex());
+      // Output order is not part of Rosen's protocol.
+      verify(sign([data, payment, change]).toHex());
 
-    for (final outputs in [
-      [payment, change], // Sidecar metadata cannot replace an on-chain output.
-      [payment, change, firoOpReturnOutput('${metadata.substring(0, 74)}ff')],
-      [payment, change, data, data],
-      [
-        payment,
-        change,
-        coinlib.Output.fromScriptBytes(BigInt.one, data.scriptPubKey),
-      ],
-      [coinlib.Output.fromProgram(amount - BigInt.one, lock), change, data],
-      [change, data],
-    ]) {
-      expect(() => verify(sign(outputs).toHex()), throwsStateError);
-    }
-    expect(() => verify('${signed.toHex()}00'), throwsStateError);
-    final unsigned = coinlib.Transaction(
-      version: 1,
-      inputs: [
-        coinlib.P2PKHInput(
-          prevOut: signed.inputs.single.prevOut,
-          publicKey: key.pubkey,
-        ),
-      ],
-      outputs: signed.outputs,
-    );
-    expect(() => verify(unsigned.toHex()), throwsStateError);
-    final nonTransparent = coinlib.Transaction(
-      version: 1,
-      inputs: [
-        coinlib.RawInput(
-          prevOut: signed.inputs.single.prevOut,
-          scriptSig: Uint8List.fromList([0xd3]),
-        ),
-      ],
-      outputs: signed.outputs,
-    );
-    expect(() => verify(nonTransparent.toHex()), throwsStateError);
-  });
+      for (final outputs in [
+        [
+          payment,
+          change,
+        ], // Sidecar metadata cannot replace an on-chain output.
+        [payment, change, firoOpReturnOutput('${metadata.substring(0, 74)}ff')],
+        [payment, change, data, data],
+        [
+          payment,
+          change,
+          coinlib.Output.fromScriptBytes(BigInt.one, data.scriptPubKey),
+        ],
+        [coinlib.Output.fromProgram(amount - BigInt.one, lock), change, data],
+        [change, data],
+      ]) {
+        expect(() => verify(sign(outputs).toHex()), throwsStateError);
+      }
+      expect(() => verify('${signed.toHex()}00'), throwsStateError);
+      final unsigned = coinlib.Transaction(
+        version: 1,
+        inputs: [
+          coinlib.P2PKHInput(
+            prevOut: signed.inputs.single.prevOut,
+            publicKey: key.pubkey,
+          ),
+        ],
+        outputs: signed.outputs,
+      );
+      expect(() => verify(unsigned.toHex()), throwsStateError);
+      final nonTransparent = coinlib.Transaction(
+        version: 1,
+        inputs: [
+          coinlib.RawInput(
+            prevOut: signed.inputs.single.prevOut,
+            scriptSig: Uint8List.fromList([0xd3]),
+          ),
+        ],
+        outputs: signed.outputs,
+      );
+      expect(() => verify(nonTransparent.toHex()), throwsStateError);
+    },
+    skip: Platform.isLinux
+        ? 'Requires build/libsecp256k1.so for coinlib-backed signing checks on Ubuntu.'
+        : false,
+  );
 }
