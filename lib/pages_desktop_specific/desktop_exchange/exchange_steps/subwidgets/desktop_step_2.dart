@@ -320,9 +320,9 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
                   ? "Recipient Wallet (transparent FIRO)"
                   : "Recipient Wallet",
               style: STextStyles.desktopTextExtraExtraSmall(context).copyWith(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldActiveSearchIconRight,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.textFieldActiveSearchIconRight,
               ),
             ),
             if (_isRosen ||
@@ -461,9 +461,9 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
               Text(
                 "Refund Wallet (required)",
                 style: STextStyles.desktopTextExtraExtraSmall(context).copyWith(
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .textFieldActiveSearchIconRight,
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldActiveSearchIconRight,
                 ),
               ),
               if (AppConfig.isStackCoin(

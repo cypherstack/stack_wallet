@@ -118,9 +118,9 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
           ),
           const SizedBox(height: 20),
           RoundedContainer(
-            color: Theme.of(context)
-                .extension<StackColors>()!
-                .warningBackground,
+            color: Theme.of(
+              context,
+            ).extension<StackColors>()!.warningBackground,
             child: Text(
               model.sendTicker.toLowerCase() == "firo"
                   ? "Use your transparent FIRO balance. Stack Wallet adds the required Rosen Bridge data automatically."
@@ -168,9 +168,9 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
               text:
                   "You must send at least ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendAmount.toString()))} ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker))}. ",
               style: STextStyles.label700(context).copyWith(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .warningForeground,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.warningForeground,
                 fontSize: 14,
               ),
               children: [
@@ -178,9 +178,9 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
                   text:
                       "If you send less than ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendAmount.toString()))} ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker))}, your transaction may not be converted and it may not be refunded.",
                   style: STextStyles.label(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .warningForeground,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.warningForeground,
                     fontSize: 14,
                   ),
                 ),

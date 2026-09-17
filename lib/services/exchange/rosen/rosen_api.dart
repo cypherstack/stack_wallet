@@ -65,13 +65,15 @@ class RosenApi {
     final candidates = <Map<String, dynamic>>[];
     var offset = 0;
     while (true) {
-      final result = await _get(
-        Uri.https(
-          'api.ergoplatform.com',
-          '/api/v1/boxes/unspent/byTokenId/$_minimumFeeToken',
-          {'offset': '$offset', 'limit': '100'},
-        ),
-      ) as Map;
+      final result =
+          await _get(
+                Uri.https(
+                  'api.ergoplatform.com',
+                  '/api/v1/boxes/unspent/byTokenId/$_minimumFeeToken',
+                  {'offset': '$offset', 'limit': '100'},
+                ),
+              )
+              as Map;
       final items = result['items'] as List;
       for (final item in items) {
         final assets = item['assets'] as List;
@@ -124,12 +126,14 @@ class RosenApi {
       RegExp(r'^0x'),
       '',
     );
-    final result = await _get(
-      Uri.https('app.rosen.tech', '/api/v1/events', {
-        'sourceTxId*': normalized,
-        'limit': '100',
-      }),
-    ) as Map;
+    final result =
+        await _get(
+              Uri.https('app.rosen.tech', '/api/v1/events', {
+                'sourceTxId*': normalized,
+                'limit': '100',
+              }),
+            )
+            as Map;
     final matches = (result['items'] as List)
         .where(
           (item) =>

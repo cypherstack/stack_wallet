@@ -260,9 +260,9 @@ class _ConfirmChangeNowSendViewState
               child: Text(
                 "Ok",
                 style: STextStyles.button(context).copyWith(
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .buttonTextSecondary,
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.buttonTextSecondary,
                 ),
               ),
               onPressed: () {
@@ -361,13 +361,13 @@ class _ConfirmChangeNowSendViewState
       builder: (child) {
         return Background(
           child: Scaffold(
-            backgroundColor: Theme.of(context)
-                .extension<StackColors>()!
-                .background,
+            backgroundColor: Theme.of(
+              context,
+            ).extension<StackColors>()!.background,
             appBar: AppBar(
-              backgroundColor: Theme.of(context)
-                  .extension<StackColors>()!
-                  .backgroundAppBar,
+              backgroundColor: Theme.of(
+                context,
+              ).extension<StackColors>()!.backgroundAppBar,
               leading: AppBarBackButton(
                 onPressed: () async {
                   // if (FocusScope.of(context).hasFocus) {
@@ -435,9 +435,9 @@ class _ConfirmChangeNowSendViewState
                   children: [
                     RoundedWhiteContainer(
                       padding: const EdgeInsets.all(0),
-                      borderColor: Theme.of(context)
-                          .extension<StackColors>()!
-                          .background,
+                      borderColor: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.background,
                       child: child,
                     ),
                     const SizedBox(height: 16),
@@ -453,9 +453,9 @@ class _ConfirmChangeNowSendViewState
                     ),
                     const SizedBox(height: 10),
                     RoundedContainer(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textFieldDefaultBG,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textFieldDefaultBG,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
@@ -468,21 +468,22 @@ class _ConfirmChangeNowSendViewState
                                 )
                                 .format(widget.txData.fee!),
                             style:
-                                STextStyles.desktopTextExtraExtraSmall(context)
-                                    .copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textDark,
-                                    ),
+                                STextStyles.desktopTextExtraExtraSmall(
+                                  context,
+                                ).copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.textDark,
+                                ),
                           ),
                         ],
                       ),
                     ),
                     const SizedBox(height: 16),
                     RoundedContainer(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .snackBarBackSuccess,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.snackBarBackSuccess,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -563,9 +564,9 @@ class _ConfirmChangeNowSendViewState
             ),
             isDesktop
                 ? Container(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .background,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.background,
                     height: 1,
                   )
                 : const SizedBox(height: 12),
@@ -615,9 +616,9 @@ class _ConfirmChangeNowSendViewState
             ),
             isDesktop
                 ? Container(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .background,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.background,
                     height: 1,
                   )
                 : const SizedBox(height: 12),
@@ -640,9 +641,9 @@ class _ConfirmChangeNowSendViewState
             ),
             isDesktop
                 ? Container(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .background,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.background,
                     height: 1,
                   )
                 : const SizedBox(height: 12),
@@ -694,9 +695,9 @@ class _ConfirmChangeNowSendViewState
                                   STextStyles.desktopTextExtraExtraSmall(
                                     context,
                                   ).copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textSubtitle2,
+                                    color: Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.textSubtitle2,
                                   ),
                             );
                           },
@@ -725,9 +726,9 @@ class _ConfirmChangeNowSendViewState
             ),
             isDesktop
                 ? Container(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .background,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.background,
                     height: 1,
                   )
                 : const SizedBox(height: 12),
@@ -753,9 +754,9 @@ class _ConfirmChangeNowSendViewState
             ),
             isDesktop
                 ? Container(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .background,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.background,
                     height: 1,
                   )
                 : const SizedBox(height: 12),
@@ -774,9 +775,9 @@ class _ConfirmChangeNowSendViewState
             ),
             isDesktop
                 ? Container(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .background,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.background,
                     height: 1,
                   )
                 : const SizedBox(height: 12),
@@ -796,18 +797,18 @@ class _ConfirmChangeNowSendViewState
             if (!isDesktop) const SizedBox(height: 12),
             if (!isDesktop)
               RoundedContainer(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .snackBarBackSuccess,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.snackBarBackSuccess,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       "Total amount",
                       style: STextStyles.titleBold12(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textConfirmTotalAmount,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textConfirmTotalAmount,
                       ),
                     ),
                     Builder(
@@ -815,9 +816,9 @@ class _ConfirmChangeNowSendViewState
                         return Text(
                           _totalAmount(),
                           style: STextStyles.itemSubtitle12(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textConfirmTotalAmount,
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textConfirmTotalAmount,
                           ),
                           textAlign: TextAlign.right,
                         );

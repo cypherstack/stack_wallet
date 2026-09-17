@@ -111,132 +111,141 @@ void main() {
     },
   );
 
-  test('Rosen refresh retains the request and rejects funded or stale saves', () async {
-    final directory = await Directory.systemTemp.createTemp('rosen-refresh-');
-    final db = DB.instance;
-    db.hive.init(directory.path);
-    if (!db.hive.isAdapterRegistered(Trade.typeId)) {
-      db.hive.registerAdapter(TradeAdapter());
-    }
-    final box = await db.hive.openBox<Trade>(DB.boxNameTradesV2);
-    final service = TradesService();
-    final changed = isA<ExchangeException>().having(
-      (e) => e.type,
-      'type',
-      ExchangeExceptionType.quoteChanged,
-    );
-    try {
-      for (final fromFiro in [true, false]) {
-        final initial = _rosenRequest(fromFiro);
-        await service.add(trade: initial, shouldNotifyListeners: false);
-        final quote = RosenQuote(
-          bridgeFee: BigInt.from(456),
-          networkFee: BigInt.from(123),
-          minimum: BigInt.from(580),
-          receiveAmount: BigInt.from(100000000 - 579),
-        );
-        var refreshed = await RosenExchange.saveRefreshedTrade(initial, quote);
-        expect(refreshed.uuid, initial.uuid);
-        expect(refreshed.payInAmount, initial.payInAmount);
-        expect(refreshed.payOutAddress, initial.payOutAddress);
-        expect(
-          refreshed.payOutAmount,
-          initial.payOutAmount,
-        ); // Same total, new components.
-        expect(refreshed.other, isNot(initial.other));
-        expect(
-          RosenExchange.validatedMetadata(refreshed),
-          RosenProtocol.metadata(
-            fromFiro: fromFiro,
-            destination: initial.payOutAddress,
-            bridgeFee: quote.bridgeFee,
-            networkFee: quote.networkFee,
-          ),
-        );
-        expect(() => RosenExchange.currentUnfunded(initial), throwsA(changed));
-        await expectLater(
-          RosenExchange.saveRefreshedTrade(initial, quote),
-          throwsA(changed),
-        );
-
-        // A status poll captured before refresh must not restore old metadata.
-        await service.edit(trade: initial, shouldNotifyListeners: false);
-        expect(box.get(initial.uuid)!.other, refreshed.other);
-        expect(box.get(initial.uuid)!.updatedAt, refreshed.updatedAt);
-        for (final fees in [(700, 200), (50, 20)]) {
-          final nextQuote = RosenQuote(
-            bridgeFee: BigInt.from(fees.$1),
-            networkFee: BigInt.from(fees.$2),
-            minimum: BigInt.from(fees.$1 + fees.$2 + 1),
-            receiveAmount: BigInt.from(100000000 - fees.$1 - fees.$2),
+  test(
+    'Rosen refresh retains the request and rejects funded or stale saves',
+    () async {
+      final directory = await Directory.systemTemp.createTemp('rosen-refresh-');
+      final db = DB.instance;
+      db.hive.init(directory.path);
+      if (!db.hive.isAdapterRegistered(Trade.typeId)) {
+        db.hive.registerAdapter(TradeAdapter());
+      }
+      final box = await db.hive.openBox<Trade>(DB.boxNameTradesV2);
+      final service = TradesService();
+      final changed = isA<ExchangeException>().having(
+        (e) => e.type,
+        'type',
+        ExchangeExceptionType.quoteChanged,
+      );
+      try {
+        for (final fromFiro in [true, false]) {
+          final initial = _rosenRequest(fromFiro);
+          await service.add(trade: initial, shouldNotifyListeners: false);
+          final quote = RosenQuote(
+            bridgeFee: BigInt.from(456),
+            networkFee: BigInt.from(123),
+            minimum: BigInt.from(580),
+            receiveAmount: BigInt.from(100000000 - 579),
           );
-          refreshed = await RosenExchange.saveRefreshedTrade(
-            refreshed,
-            nextQuote,
+          var refreshed = await RosenExchange.saveRefreshedTrade(
+            initial,
+            quote,
           );
+          expect(refreshed.uuid, initial.uuid);
+          expect(refreshed.payInAmount, initial.payInAmount);
+          expect(refreshed.payOutAddress, initial.payOutAddress);
           expect(
             refreshed.payOutAmount,
-            RosenProtocol.formatAmount(nextQuote.receiveAmount),
-          );
+            initial.payOutAmount,
+          ); // Same total, new components.
+          expect(refreshed.other, isNot(initial.other));
           expect(
             RosenExchange.validatedMetadata(refreshed),
             RosenProtocol.metadata(
               fromFiro: fromFiro,
               destination: initial.payOutAddress,
-              bridgeFee: nextQuote.bridgeFee,
-              networkFee: nextQuote.networkFee,
+              bridgeFee: quote.bridgeFee,
+              networkFee: quote.networkFee,
             ),
           );
-        }
-        await expectLater(
-          RosenExchange.saveRefreshedTrade(
-            refreshed,
-            RosenQuote(
-              bridgeFee: BigInt.one,
-              networkFee: BigInt.one,
-              minimum: BigInt.from(100000001),
-              receiveAmount: BigInt.from(99999998),
+          expect(
+            () => RosenExchange.currentUnfunded(initial),
+            throwsA(changed),
+          );
+          await expectLater(
+            RosenExchange.saveRefreshedTrade(initial, quote),
+            throwsA(changed),
+          );
+
+          // A status poll captured before refresh must not restore old metadata.
+          await service.edit(trade: initial, shouldNotifyListeners: false);
+          expect(box.get(initial.uuid)!.other, refreshed.other);
+          expect(box.get(initial.uuid)!.updatedAt, refreshed.updatedAt);
+          for (final fees in [(700, 200), (50, 20)]) {
+            final nextQuote = RosenQuote(
+              bridgeFee: BigInt.from(fees.$1),
+              networkFee: BigInt.from(fees.$2),
+              minimum: BigInt.from(fees.$1 + fees.$2 + 1),
+              receiveAmount: BigInt.from(100000000 - fees.$1 - fees.$2),
+            );
+            refreshed = await RosenExchange.saveRefreshedTrade(
+              refreshed,
+              nextQuote,
+            );
+            expect(
+              refreshed.payOutAmount,
+              RosenProtocol.formatAmount(nextQuote.receiveAmount),
+            );
+            expect(
+              RosenExchange.validatedMetadata(refreshed),
+              RosenProtocol.metadata(
+                fromFiro: fromFiro,
+                destination: initial.payOutAddress,
+                bridgeFee: nextQuote.bridgeFee,
+                networkFee: nextQuote.networkFee,
+              ),
+            );
+          }
+          await expectLater(
+            RosenExchange.saveRefreshedTrade(
+              refreshed,
+              RosenQuote(
+                bridgeFee: BigInt.one,
+                networkFee: BigInt.one,
+                minimum: BigInt.from(100000001),
+                receiveAmount: BigInt.from(99999998),
+              ),
             ),
-          ),
-          throwsFormatException,
-        );
-        expect(
-          RosenExchange.sameVersion(box.get(initial.uuid)!, refreshed),
-          isTrue,
-        );
-        final funded = refreshed.copyWith(
-          payInTxid: 'deposit',
-          status: 'Confirming',
-        );
-        await service.edit(trade: funded, shouldNotifyListeners: false);
-        await expectLater(
-          RosenExchange.saveRefreshedTrade(refreshed, quote),
-          throwsStateError,
-        );
-        expect(
-          () => RosenExchange.refreshCandidate(funded, quote),
-          throwsStateError,
-        );
-        expect(
-          () => RosenExchange.refreshCandidate(
-            refreshed.copyWith(status: 'Finished'),
-            quote,
-          ),
-          throwsStateError,
-        );
-        await service.edit(trade: initial, shouldNotifyListeners: false);
-        final stored = box.get(initial.uuid)!;
-        expect(stored.payInTxid, 'deposit');
-        expect(stored.status, 'Confirming');
-        expect(stored.other, refreshed.other);
-        expect(stored.payOutAmount, refreshed.payOutAmount);
+            throwsFormatException,
+          );
+          expect(
+            RosenExchange.sameVersion(box.get(initial.uuid)!, refreshed),
+            isTrue,
+          );
+          final funded = refreshed.copyWith(
+            payInTxid: 'deposit',
+            status: 'Confirming',
+          );
+          await service.edit(trade: funded, shouldNotifyListeners: false);
+          await expectLater(
+            RosenExchange.saveRefreshedTrade(refreshed, quote),
+            throwsStateError,
+          );
+          expect(
+            () => RosenExchange.refreshCandidate(funded, quote),
+            throwsStateError,
+          );
+          expect(
+            () => RosenExchange.refreshCandidate(
+              refreshed.copyWith(status: 'Finished'),
+              quote,
+            ),
+            throwsStateError,
+          );
+          await service.edit(trade: initial, shouldNotifyListeners: false);
+          final stored = box.get(initial.uuid)!;
+          expect(stored.payInTxid, 'deposit');
+          expect(stored.status, 'Confirming');
+          expect(stored.other, refreshed.other);
+          expect(stored.payOutAmount, refreshed.payOutAmount);
+        }
+      } finally {
+        service.dispose();
+        await box.close();
+        await directory.delete(recursive: true);
       }
-    } finally {
-      service.dispose();
-      await box.close();
-      await directory.delete(recursive: true);
-    }
-  });
+    },
+  );
 }
 
 Trade _rosenRequest(bool fromFiro) {

@@ -241,11 +241,11 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                                           >()!
                                                           .overlay
                                                           .withOpacity(0.6),
-                                                      child:
-                                                          const CustomLoadingOverlay(
-                                                            message: "Creating a trade",
-                                                            eventBus: null,
-                                                          ),
+                                                      child: const CustomLoadingOverlay(
+                                                        message:
+                                                            "Creating a trade",
+                                                        eventBus: null,
+                                                      ),
                                                     ),
                                                   ),
                                                 ),
@@ -299,18 +299,18 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                                         );
                                                     if (!refresh || !mounted)
                                                       return;
-                                                    final refreshed =
-                                                        await showLoading(
-                                                          whileFuture:
-                                                              refreshRosenEstimate(
-                                                                model,
-                                                              ),
-                                                          context: context,
-                                                          message: 'Updating exchange rate',
-                                                          onException: (error) =>
-                                                              message = error
-                                                                  .toString(),
-                                                        );
+                                                    final refreshed = await showLoading(
+                                                      whileFuture:
+                                                          refreshRosenEstimate(
+                                                            model,
+                                                          ),
+                                                      context: context,
+                                                      message:
+                                                          'Updating exchange rate',
+                                                      onException: (error) =>
+                                                          message = error
+                                                              .toString(),
+                                                    );
                                                     if (!mounted) return;
                                                     if (refreshed != null) {
                                                       setState(
@@ -341,12 +341,11 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                                     showDialog<void>(
                                                       context: context,
                                                       barrierDismissible: true,
-                                                      builder: (_) =>
-                                                          StackDialog(
-                                                            title: "Failed to create trade",
-                                                            message:
-                                                                message ?? "",
-                                                          ),
+                                                      builder: (_) => StackDialog(
+                                                        title:
+                                                            "Failed to create trade",
+                                                        message: message ?? "",
+                                                      ),
                                                     ),
                                                   );
                                                 }
@@ -393,11 +392,12 @@ class _Step3ViewState extends ConsumerState<Step3View> {
 
                                               if (context.mounted) {
                                                 unawaited(
-                                                  Navigator.of(context)
-                                                      .pushNamed(
-                                                        Step4View.routeName,
-                                                        arguments: model,
-                                                      ),
+                                                  Navigator.of(
+                                                    context,
+                                                  ).pushNamed(
+                                                    Step4View.routeName,
+                                                    arguments: model,
+                                                  ),
                                                 );
                                               }
                                             } finally {

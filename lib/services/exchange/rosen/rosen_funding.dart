@@ -327,10 +327,12 @@ class RosenFunding {
         await client.dispose();
       }
       // Record token history, including the contract, instead of an ETH payment.
-      final tokenWallet = Wallet.loadTokenWallet(
-        ethWallet: ethereum,
-        contract: _tokenFor(wallet),
-      ) as EthTokenWallet;
+      final tokenWallet =
+          Wallet.loadTokenWallet(
+                ethWallet: ethereum,
+                contract: _tokenFor(wallet),
+              )
+              as EthTokenWallet;
       return await tokenWallet.confirmSend(
         txData: txData,
         onBroadcast: onBroadcast,

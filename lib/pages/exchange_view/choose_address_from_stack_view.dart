@@ -201,9 +201,9 @@ class _WalletAddressSelectCardState
           const SizedBox(height: 10),
           if (!widget.transparentOnly)
             RawMaterialButton(
-              splashColor: Theme.of(context)
-                  .extension<StackColors>()!
-                  .highlight,
+              splashColor: Theme.of(
+                context,
+              ).extension<StackColors>()!.highlight,
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(
@@ -223,8 +223,9 @@ class _WalletAddressSelectCardState
                     return sparkAddress.value;
                   }
 
-                  return (await wallet.generateNextSparkAddress(saveToDB: true))
-                      .value;
+                  return (await wallet.generateNextSparkAddress(
+                    saveToDB: true,
+                  )).value;
                 }
 
                 Exception? ex;

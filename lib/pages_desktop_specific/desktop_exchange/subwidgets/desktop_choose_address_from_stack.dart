@@ -113,9 +113,9 @@ class _DesktopChooseFromStackState
               });
             },
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .textFieldActiveText,
+              color: Theme.of(
+                context,
+              ).extension<StackColors>()!.textFieldActiveText,
               height: 1.8,
             ),
             decoration:
@@ -172,9 +172,9 @@ class _DesktopChooseFromStackState
                 return Column(
                   children: [
                     RoundedWhiteContainer(
-                      borderColor: Theme.of(context)
-                          .extension<StackColors>()!
-                          .background,
+                      borderColor: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.background,
                       child: Center(
                         child: Text(
                           "No ${widget.coin.ticker.toUpperCase()} wallets",
@@ -279,9 +279,9 @@ class _WalletRow extends ConsumerWidget {
                   ref.watch(pWalletName(walletId)),
                   style: STextStyles.desktopTextExtraExtraSmall(context)
                       .copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textDark,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textDark,
                       ),
                 ),
               ],
@@ -337,9 +337,9 @@ class _WalletRow extends ConsumerWidget {
                   "Spark",
                   style: STextStyles.desktopTextExtraExtraSmall(context)
                       .copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textDark,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textDark,
                       ),
                 ),
                 const Spacer(),

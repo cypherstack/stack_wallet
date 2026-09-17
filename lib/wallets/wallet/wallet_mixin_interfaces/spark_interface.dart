@@ -226,15 +226,13 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       );
     }
 
-    final sparkAddress = await computeWithLibSparkLogging(
-      _getAddressFromFullViewKey,
-      (
-        fullViewKeyHex: _viewKeyHex!,
-        index: sparkIndex,
-        diversifier: diversifier,
-        isTestNet: isTestNet,
-      ),
-    );
+    final sparkAddress =
+        await computeWithLibSparkLogging(_getAddressFromFullViewKey, (
+          fullViewKeyHex: _viewKeyHex!,
+          index: sparkIndex,
+          diversifier: diversifier,
+          isTestNet: isTestNet,
+        ));
 
     return Address(
       walletId: walletId,
@@ -1356,8 +1354,9 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       }
       for (final transaction in transactions) {
         if (transaction.usedSparkCoins!.length > 1) {
-          final transactionVersion = btc.Transaction.fromHex(transaction.raw!)
-              .version;
+          final transactionVersion = btc.Transaction.fromHex(
+            transaction.raw!,
+          ).version;
           if (!isChaumV2SparkTransactionVersion(transactionVersion)) {
             throw Exception(
               "Refusing to broadcast a multi-input Chaum V1 transaction.",
