@@ -36,6 +36,31 @@ else
   sed -i "s/description: PLACEHOLDER/description: ${NEW_NAME}/g" "${PUBSPEC_FILE}"
 fi
 
+# Drop assets/gif/ from THIS flavour only.
+#
+# The directory holds two upstream mascot animations, 13 MB of an 80 MB APK,
+# and neither can be reached in a BitFinite build:
+#
+#   monero-chan-dance.gif  2.4 MB   shown by the churning views. Churning is a
+#                                   Monero feature and this flavour ships five
+#                                   coins, none of them Monero.
+#   stacy_onion.gif       10.6 MB   shown by the one-time Tor dialog. All three
+#                                   of its call sites are commented out.
+#
+# Every release we have published is Android, where that is 16% of what a user
+# downloads over mobile data for something they can never see.
+#
+# Scoped here rather than in the shared template because Stack Wallet, Stack
+# Duo and Campfire all ship Monero and genuinely use these. The files stay in
+# the repo for them. If churning or the Tor dialog is ever turned on for
+# BitFinite, delete this block in the same commit, or the widget will fail at
+# runtime looking for an asset that was not bundled.
+if [[ "$(uname)" == 'Darwin' ]]; then
+  sed -i '' "/^    - assets\/gif\/$/d" "${PUBSPEC_FILE}"
+else
+  sed -i "/^    - assets\/gif\/$/d" "${PUBSPEC_FILE}"
+fi
+
 # Coin/feature flags. BFX is pure-Dart (coinlib) like BCH — it needs NO native
 # crypto .so (unlike FIRO/EPIC/MONERO). If process_pubspec_deps.dart / gen_interfaces.dart
 # require an explicit token, add "BITFINITE" to their known-coins list (see POC.md).

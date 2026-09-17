@@ -12,6 +12,8 @@ import 'package:isar_community/isar.dart';
 
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../providers/db/main_db_provider.dart';
+import '../../../wallets/isar/models/wallet_info.dart';
+import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/amount/amount_formatter.dart';
@@ -131,11 +133,24 @@ class _MiningPayoutCardState extends ConsumerState<MiningPayoutCard> {
     final colors = Theme.of(context).extension<StackColors>()!;
     final formatter = ref.watch(pAmountFormatter(widget.coin));
 
-    // The count used to carry the word "recent" on a truncated history. It is
-    // gone because the truncation notice sits directly below this row and says
-    // it properly ("Showing 5,033 of about 45,335"), while here the extra word
-    // pushed the count off the end into an ellipsis, which told the reader
-    // nothing at all.
+    // Whether this wallet's history was capped during sync. When it was, the
+    // count and the total below are floors, not lifetime figures: they sum the
+    // payouts the wallet actually holds.
+    //
+    // The card carried "recent" for this once and lost it, on the grounds that
+    // the truncation notice says it properly further down. It does not say it
+    // here, and "further down" is past a 20px gap and a "Transactions" header,
+    // which is far enough that a pool address capped at 1,000 transactions read
+    // as a complete lifetime record. The other half of that removal was width:
+    // the extra word pushed the count into an ellipsis. That objection is gone,
+    // because the line scales down rather than ellipsising now.
+    final truncated =
+        (ref
+                .watch(pWalletInfo(widget.walletId))
+                .otherData[WalletInfoKeys.historyTruncatedTotal]
+            as int?) !=
+        null;
+
     final countLabel = summary.count == 1
         ? "1 payout"
         : "${_grouped(summary.count)} payouts";
@@ -150,9 +165,13 @@ class _MiningPayoutCardState extends ConsumerState<MiningPayoutCard> {
     final headline = last == null
         ? "No payouts yet"
         : "Last payout ${describeAge(last)}";
+    // "at least", and only when it is true. On a complete history the phrase
+    // would be hedging about a number that is exact, which is its own kind of
+    // wrong.
+    final counted = truncated ? "at least $countLabel" : countLabel;
     final subtitle = first == null
-        ? countLabel
-        : "$countLabel since ${describeShortDate(first)}";
+        ? counted
+        : "$counted since ${describeShortDate(first)}";
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),

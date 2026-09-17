@@ -188,6 +188,26 @@ class WalletSummaryInfo extends ConsumerWidget {
       dustPart = "";
     }
 
+    // A balance that has never been summed is not a zero.
+    //
+    // cachedBalance turns a null cachedBalanceString into Balance.zeroFor, so
+    // "we have never worked this out" and "you own nothing" arrive here as the
+    // same number. The wallet list row already refuses to conflate them and
+    // says "Syncing…"; the hero one tap away said "0.00 BFX" for the same
+    // wallet, and per docs/watch-only-limits.md a large watch-only address can
+    // take about eight minutes to reach a first balance. Two screens, one of
+    // them wrong.
+    //
+    // Only the never-computed case. A real zero is still a zero, and a stale
+    // balance keeps showing while a later sync runs, because a number from ten
+    // minutes ago is worth more than a spinner.
+    final neverSynced =
+        ref.watch(pWalletInfo(walletId)).cachedBalanceString == null;
+    if (neverSynced) {
+      mainPart = "Syncing…";
+      dustPart = "";
+    }
+
     // Privacy mode: replace the digits entirely rather than blurring or
     // shrinking them. A fixed-width mask also means the hero does not change
     // size when toggled, so it cannot leak the magnitude of the balance
@@ -366,14 +386,19 @@ class WalletSummaryInfo extends ConsumerWidget {
                           ),
                         ),
                       ),
-                    TextSpan(
-                      text: " $unitStr",
-                      style: heroStyle.copyWith(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: favText.withOpacity(heroEmphasis(favText, 0.85)),
+                    // No ticker on "Syncing…": a unit after it would read as
+                    // a quantity of something.
+                    if (!neverSynced)
+                      TextSpan(
+                        text: " $unitStr",
+                        style: heroStyle.copyWith(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: favText.withOpacity(
+                            heroEmphasis(favText, 0.85),
+                          ),
+                        ),
                       ),
-                    ),
                   ],
                 ),
               ),
@@ -389,7 +414,9 @@ class WalletSummaryInfo extends ConsumerWidget {
           // symbol most people never type is a poor way to say so, and it
           // sits where the eye lands first. The word "today" beside it and
           // the moving price above already read as an estimate.
-          if (price != null && price.value > Decimal.zero)
+          // Nothing to convert until there is a balance, and "0.00 USD"
+          // under "Syncing…" would put the zero back by another route.
+          if (price != null && price.value > Decimal.zero && !neverSynced)
             Padding(
               padding: const EdgeInsets.only(top: 4, bottom: 2),
               child: Builder(

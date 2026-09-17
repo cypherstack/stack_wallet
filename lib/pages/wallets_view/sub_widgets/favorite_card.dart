@@ -78,53 +78,51 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
     }
     return ConditionalParent(
       condition: Util.isDesktop,
-      builder:
-          (child) => MouseRegion(
-            cursor: SystemMouseCursors.click,
-            onEnter: (_) {
-              setState(() {
-                _hovering = true;
-              });
-            },
-            onExit: (_) {
-              setState(() {
-                _hovering = false;
-              });
-            },
-            child: AnimatedScale(
-              duration: const Duration(milliseconds: 200),
-              scale: _hovering ? 1.05 : 1,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                decoration:
-                    _hovering
-                        ? BoxDecoration(
-                          color: Colors.transparent,
-                          borderRadius: BorderRadius.circular(
-                            Constants.size.circularBorderRadius,
-                          ),
-                          boxShadow: [
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.standardBoxShadow,
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.standardBoxShadow,
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.standardBoxShadow,
-                          ],
-                        )
-                        : BoxDecoration(
-                          color: Colors.transparent,
-                          borderRadius: BorderRadius.circular(
-                            Constants.size.circularBorderRadius,
-                          ),
-                        ),
-                child: child,
-              ),
-            ),
+      builder: (child) => MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) {
+          setState(() {
+            _hovering = true;
+          });
+        },
+        onExit: (_) {
+          setState(() {
+            _hovering = false;
+          });
+        },
+        child: AnimatedScale(
+          duration: const Duration(milliseconds: 200),
+          scale: _hovering ? 1.05 : 1,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            decoration: _hovering
+                ? BoxDecoration(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
+                    ),
+                    boxShadow: [
+                      Theme.of(
+                        context,
+                      ).extension<StackColors>()!.standardBoxShadow,
+                      Theme.of(
+                        context,
+                      ).extension<StackColors>()!.standardBoxShadow,
+                      Theme.of(
+                        context,
+                      ).extension<StackColors>()!.standardBoxShadow,
+                    ],
+                  )
+                : BoxDecoration(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
+                    ),
+                  ),
+            child: child,
           ),
+        ),
+      ),
       child: GestureDetector(
         onTap: () async {
           final wallet = ref.read(pWallets).getWallet(walletId);
@@ -193,8 +191,7 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                           child: Text(
                             ref.watch(pWalletName(walletId)),
                             style: STextStyles.itemSubtitle12(context).copyWith(
-                              color:
-onCoinCardColor(context, ref, coin),
+                              color: onCoinCardColor(context, ref, coin),
                             ),
                             overflow: TextOverflow.fade,
                           ),
@@ -213,15 +210,18 @@ onCoinCardColor(context, ref, coin),
 
                       Amount total = balance.total;
                       if (coin is Firo) {
-                        total +=
-                            ref.watch(pWalletBalanceSecondary(walletId)).total;
-                        total +=
-                            ref.watch(pWalletBalanceTertiary(walletId)).total;
+                        total += ref
+                            .watch(pWalletBalanceSecondary(walletId))
+                            .total;
+                        total += ref
+                            .watch(pWalletBalanceTertiary(walletId))
+                            .total;
                       } else if (ref.watch(
                         pWalletInfo(walletId).select((s) => s.isMwebEnabled),
                       )) {
-                        total +=
-                            ref.watch(pWalletBalanceSecondary(walletId)).total;
+                        total += ref
+                            .watch(pWalletBalanceSecondary(walletId))
+                            .total;
                       }
 
                       Amount fiatTotal = Amount.zero;
@@ -242,11 +242,24 @@ onCoinCardColor(context, ref, coin),
                           FittedBox(
                             fit: BoxFit.scaleDown,
                             child: Text(
-                              ref.watch(pAmountFormatter(coin)).format(total),
+                              // A balance that has never been summed is not a
+                              // zero. cachedBalance turns a null cached string
+                              // into Balance.zeroFor, so "never worked out" and
+                              // "you own nothing" arrive here as the same
+                              // number. The wallet list row already says
+                              // "Syncing…" for this; this card said "0.00" for
+                              // the same wallet on the same screen.
+                              ref
+                                          .watch(pWalletInfo(walletId))
+                                          .cachedBalanceString ==
+                                      null
+                                  ? "Syncing…"
+                                  : ref
+                                        .watch(pAmountFormatter(coin))
+                                        .format(total),
                               style: STextStyles.titleBold12(context).copyWith(
                                 fontSize: 16,
-                                color:
-onCoinCardColor(context, ref, coin),
+                                color: onCoinCardColor(context, ref, coin),
                               ),
                             ),
                           ),
@@ -261,13 +274,11 @@ onCoinCardColor(context, ref, coin),
                               price > Decimal.zero)
                             Text(
                               "${fiatTotal.fiatString(locale: ref.watch(localeServiceChangeNotifierProvider.select((value) => value.locale)))} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
-                              style: STextStyles.itemSubtitle12(
-                                context,
-                              ).copyWith(
-                                fontSize: 10,
-                                color:
-onCoinCardColor(context, ref, coin),
-                              ),
+                              style: STextStyles.itemSubtitle12(context)
+                                  .copyWith(
+                                    fontSize: 10,
+                                    color: onCoinCardColor(context, ref, coin),
+                                  ),
                             ),
                         ],
                       );
