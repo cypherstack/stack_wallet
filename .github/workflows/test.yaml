@@ -92,7 +92,8 @@ jobs:
           bash scripts/ensure_test_app_config.sh
           test -s lib/app_config.g.dart
           grep -Fq "part of 'app_config.dart';" lib/app_config.g.dart
-          flutter test --coverage
+          timeout --kill-after=1m 5m flutter test test/services/exchange/rosen_registration_test.dart --reporter expanded
+          timeout --kill-after=1m 20m flutter test --coverage --reporter expanded
       - name: Upload to code coverage
         uses: codecov/codecov-action@v1.2.2
         if: success() || failure()
