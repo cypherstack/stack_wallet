@@ -52,6 +52,7 @@ import '../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../wallets/wallet/impl/solana_wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
+import '../../widgets/address_text.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -874,17 +875,25 @@ class _ConfirmTransactionViewState
                           style: STextStyles.smallMed12(context),
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          widget.isPaynymTransaction
-                              ? widget.txData.paynymAccountLite!.nymName
-                              : widget.txData.recipients?.first.address ??
-                                    widget
-                                        .txData
-                                        .sparkRecipients!
-                                        .first
-                                        .address,
-                          style: STextStyles.itemSubtitle12(context),
-                        ),
+                        // The one screen where an address most needs checking,
+                        // and the one place the accenting had not reached. A
+                        // PayNym line is a name, not an address, so it stays
+                        // plain: accenting it would offer a comparison that
+                        // does not exist.
+                        if (widget.isPaynymTransaction)
+                          Text(
+                            widget.txData.paynymAccountLite!.nymName,
+                            style: STextStyles.itemSubtitle12(context),
+                          )
+                        else
+                          AddressText(
+                            widget.txData.recipients?.first.address ??
+                                widget.txData.sparkRecipients!.first.address,
+                            style: STextStyles.itemSubtitle12(context),
+                            accentColor: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.infoItemIcons,
+                          ),
                       ],
                     ),
                   ),
@@ -1378,12 +1387,9 @@ class _ConfirmTransactionViewState
                               _onChainNoteFocusNode,
                               context,
                             ).copyWith(
-                              suffixIcon:
-                                  onChainNoteController.text.isNotEmpty
+                              suffixIcon: onChainNoteController.text.isNotEmpty
                                   ? Padding(
-                                      padding: const EdgeInsets.only(
-                                        right: 0,
-                                      ),
+                                      padding: const EdgeInsets.only(right: 0),
                                       child: UnconstrainedBox(
                                         child: Row(
                                           children: [
@@ -1456,8 +1462,7 @@ class _ConfirmTransactionViewState
                                             child: const XIcon(),
                                             onTap: () async {
                                               setState(
-                                                () =>
-                                                    noteController.text = "",
+                                                () => noteController.text = "",
                                               );
                                             },
                                           ),
