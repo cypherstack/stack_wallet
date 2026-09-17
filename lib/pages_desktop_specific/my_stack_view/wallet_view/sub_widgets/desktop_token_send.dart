@@ -687,11 +687,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
       onAmountReceived: (parsed) {
         cryptoAmountController.text = ref
             .read(pAmountFormatter(coin))
-            .format(
-              parsed,
-              tokenContract: ref.read(pCurrentTokenWallet)!.tokenContract,
-              withUnitName: false,
-            );
+            .formatEditable(parsed);
         _amountToSend = parsed;
         _updatePreviewButtonState(_address, parsed);
       },

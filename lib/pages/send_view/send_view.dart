@@ -1353,7 +1353,7 @@ class _SendViewState extends ConsumerState<SendView> {
       onAmountReceived: (parsed) {
         cryptoAmountController.text = ref
             .read(pAmountFormatter(coin))
-            .format(parsed, withUnitName: false);
+            .formatEditable(parsed);
         ref.read(pSendAmount.notifier).state = parsed;
       },
       setValidAddress: _openCryptoPaySetValidAddress,
