@@ -46,8 +46,9 @@ class WalletListItem extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // debugPrint("BUILD: $runtimeType");
-    final walletCountString =
-        walletCount == 1 ? "$walletCount wallet" : "$walletCount wallets";
+    final walletCountString = walletCount == 1
+        ? "$walletCount wallet"
+        : "$walletCount wallets";
     final currency = ref.watch(
       prefsChangeNotifierProvider.select((value) => value.currency),
     );
@@ -92,7 +93,9 @@ class WalletListItem extends ConsumerWidget {
                 .wallets
                 .firstWhere((e) => e.info.coin == coin);
 
-            final tokenAddresses = ref.read(pWalletTokenAddresses(wallet.walletId));
+            final tokenAddresses = ref.read(
+              pWalletTokenAddresses(wallet.walletId),
+            );
             if (tokenAddresses.isNotEmpty) {
               shouldShowWalletsOverview = true;
             }
@@ -157,8 +160,9 @@ class WalletListItem extends ConsumerWidget {
             Expanded(
               child: Consumer(
                 builder: (_, ref, __) {
-                  Color percentChangedColor =
-                      Theme.of(context).extension<StackColors>()!.textDark;
+                  Color percentChangedColor = Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textDark;
                   String? priceString;
                   double? percentChange;
                   if (ref.watch(
@@ -185,15 +189,13 @@ class WalletListItem extends ConsumerWidget {
                       percentChange = price.change24h;
 
                       if (percentChange > 0) {
-                        percentChangedColor =
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.accentColorGreen;
+                        percentChangedColor = Theme.of(
+                          context,
+                        ).extension<StackColors>()!.accentColorGreen;
                       } else if (percentChange < 0) {
-                        percentChangedColor =
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.accentColorRed;
+                        percentChangedColor = Theme.of(
+                          context,
+                        ).extension<StackColors>()!.accentColorRed;
                       }
                     }
                   }
@@ -201,34 +203,73 @@ class WalletListItem extends ConsumerWidget {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      // Both halves of each row have to be able to give.
+                      //
+                      // A Spacer is an Expanded with nothing in it, so it takes
+                      // whatever is left and gives back nothing: once the name
+                      // and the price together exceed the row, the Spacer is
+                      // already at zero and the Texts simply overflow. Measured
+                      // on a device at the OS text size one step above default,
+                      // the Pepecoin row overflowed by 28 pixels and Flutter
+                      // painted its yellow and black warning stripe over the
+                      // price.
+                      //
+                      // The name ellipsises, because a clipped coin name is
+                      // still recognisable and the icon beside it says the same
+                      // thing. The price shrinks instead, because an ellipsised
+                      // number is itself a plausible number.
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            coin.prettyName,
-                            style: STextStyles.titleBold12(context),
+                          Flexible(
+                            child: Text(
+                              coin.prettyName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: STextStyles.titleBold12(context),
+                            ),
                           ),
-                          const Spacer(),
+                          const SizedBox(width: 12),
                           if (priceString != null)
-                            Text(
-                              "$priceString $currency/${coin.ticker}",
-                              style: STextStyles.itemSubtitle(context),
+                            Flexible(
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.centerRight,
+                                child: Text(
+                                  "$priceString $currency/${coin.ticker}",
+                                  maxLines: 1,
+                                  style: STextStyles.itemSubtitle(context),
+                                ),
+                              ),
                             ),
                         ],
                       ),
                       const SizedBox(height: 1),
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            walletCountString,
-                            style: STextStyles.itemSubtitle(context),
+                          Flexible(
+                            child: Text(
+                              walletCountString,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: STextStyles.itemSubtitle(context),
+                            ),
                           ),
-                          const Spacer(),
+                          const SizedBox(width: 12),
                           if (percentChange != null)
-                            Text(
-                              "${percentChange.toStringAsFixed(2)}%",
-                              style: STextStyles.itemSubtitle(
-                                context,
-                              ).copyWith(color: percentChangedColor),
+                            Flexible(
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.centerRight,
+                                child: Text(
+                                  "${percentChange.toStringAsFixed(2)}%",
+                                  maxLines: 1,
+                                  style: STextStyles.itemSubtitle(
+                                    context,
+                                  ).copyWith(color: percentChangedColor),
+                                ),
+                              ),
                             ),
                         ],
                       ),
