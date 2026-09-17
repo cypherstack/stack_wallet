@@ -73,6 +73,14 @@ class Bitfinite extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   @override
   int get minConfirms => 0; // BCH-style zeroconf
 
+  /// COINBASE_MATURITY from our own consensus header, not an assumption.
+  /// Stated here rather than left to the default because this is the one
+  /// chain we control, so it is the one where "we checked" should be on the
+  /// record. Zeroconf above is about payments; a block reward is a consensus
+  /// rule and the node will refuse a spend before 100.
+  @override
+  int get minCoinbaseConfirms => 100;
+
   @override
   bool get torSupport => true;
 

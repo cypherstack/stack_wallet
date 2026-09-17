@@ -2272,12 +2272,15 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       final int dustGuard = cryptoCurrency.dustLimit.raw.toInt() * 4;
 
       // The deep path records isCoinbase as false, so it must only be taken
-      // past real coinbase maturity. Do not trust minCoinbaseConfirms for
-      // that: it defaults to minConfirms, and most coins never override it,
-      // so Pepecoin reports 1 and BitFinite reports 0. A pool address is
-      // exactly the wallet that holds fresh block rewards, so taking those
-      // numbers at face value would show an immature reward as spendable.
-      // 100 is the Bitcoin-derived maturity these chains inherit.
+      // past real coinbase maturity.
+      //
+      // minCoinbaseConfirms is now trustworthy: it defaults to the
+      // Bitcoin-derived 100 rather than to minConfirms, which is what used to
+      // make it report 1 for Pepecoin and 0 for BitFinite. The floor below is
+      // kept anyway. It costs nothing, and this is the one place in the
+      // wallet where being wrong means handing a miner a reward the network
+      // will not let them spend, so a second guard on the same number is
+      // worth its two lines.
       final int deepConfirms = cryptoCurrency.minCoinbaseConfirms > 100
           ? cryptoCurrency.minCoinbaseConfirms
           : 100;

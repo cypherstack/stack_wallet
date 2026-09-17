@@ -76,7 +76,32 @@ abstract class CryptoCurrency {
   bool get torSupport => false;
 
   int get minConfirms;
-  int get minCoinbaseConfirms => minConfirms;
+
+  /// Confirmations a COINBASE output needs before it can be spent.
+  ///
+  /// This is a consensus rule, not a risk preference, and it is not the same
+  /// question as [minConfirms]. [minConfirms] asks how many blocks deep an
+  /// ordinary payment should be before this wallet is willing to treat it as
+  /// settled, which is a judgement call: a BCH-style chain answers zero and
+  /// accepts the reordering risk. A coinbase output is different. The chain
+  /// itself will reject a transaction that spends one too early, so a wallet
+  /// that counts an immature reward as spendable is not taking a risk, it is
+  /// stating something the network will refuse.
+  ///
+  /// It used to default to [minConfirms], which made every Bitcoin-derived
+  /// coin wrong in the dangerous direction: BitFinite answered 0 and most of
+  /// the others answered 1, against a real maturity of 100. A miner's freshly
+  /// won block showed up in the spendable balance, "send max" offered it, and
+  /// the network rejected the transaction. That is the wallet's own target
+  /// user hitting it on the wallet's own chain.
+  ///
+  /// So the default is the Bitcoin-derived 100 these chains inherit.
+  /// BitFinite's own COINBASE_MATURITY is 100, read from our consensus header
+  /// rather than assumed. Where a chain's real maturity is lower the only
+  /// cost is a reward sitting in the pending balance a little longer, which
+  /// is the safe direction to be wrong in: too high delays good news, too low
+  /// offers coins that cannot be spent.
+  int get minCoinbaseConfirms => 100;
 
   // TODO: [prio=low] could be handled differently as (at least) epiccash/mimblewimblecoin does not use this
   String get genesisHash;
