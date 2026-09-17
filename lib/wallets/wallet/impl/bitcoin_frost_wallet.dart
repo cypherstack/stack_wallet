@@ -837,11 +837,11 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         const changeChain = 1;
         final List<Future<({int index, List<Address> addresses})>>
         receiveFutures = [
-          _checkGapsLinearly(serializedKeys, receiveChain, secure: true),
+          _checkGapsLinearly(serializedKeys!, receiveChain, secure: true),
         ];
         final List<Future<({int index, List<Address> addresses})>>
         changeFutures = [
-          _checkGapsLinearly(serializedKeys, changeChain, secure: true),
+          _checkGapsLinearly(serializedKeys!, changeChain, secure: true),
         ];
 
         // io limitations may require running these linearly instead
@@ -898,7 +898,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
 
         await mainDB.updateOrPutAddresses(addressesToStore);
 
-        await _legacyInsecureScan(serializedKeys);
+        await _legacyInsecureScan(serializedKeys!);
       });
 
       GlobalEventBus.instance.fire(
