@@ -32,6 +32,7 @@ import '../../utilities/constants.dart';
 import '../../utilities/enums/derive_path_type_enum.dart';
 import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
+import '../../wallets/isar/models/wallet_info.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/impl/bitcoin_wallet.dart';
@@ -527,6 +528,15 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
       pWallets.select((value) => value.getWallet(walletId)),
     );
 
+    // The same flag checkReceivingAddressForTransactions consults before it
+    // rotates, so the sentence below cannot claim behaviour the wallet is not
+    // performing.
+    final bool reuseAddress =
+        ref
+            .watch(pWalletInfo(walletId))
+            .otherData[WalletInfoKeys.reuseAddress] ==
+        true;
+
     final bool canGen;
     if (wallet is ViewOnlyOptionInterface &&
         wallet.isViewOnly &&
@@ -804,6 +814,30 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                           ),
                         ),
                       ),
+                    ),
+                    // What reusing it costs, said where the address is.
+                    //
+                    // This wallet does not rotate on its own; the address
+                    // stands until someone presses the button below. That is a
+                    // defensible choice, but it is only an informed one if the
+                    // consequence is on the screen. Exodus states it plainly in
+                    // its docs and Ledger puts its version of the sentence on
+                    // the receive screen itself, where it answers the question
+                    // before it is asked.
+                    //
+                    // Ledger's exact line would be a lie here, since theirs
+                    // generates a fresh address every time and ours does not,
+                    // so this says what is actually true of ours.
+                    const SizedBox(height: 10),
+                    Text(
+                      reuseAddress
+                          ? "This wallet is set to reuse one address. Anyone "
+                                "you share it with can see every payment it "
+                                "receives."
+                          : "A new address appears here once this one has been "
+                                "paid. Old ones keep working, and anyone you "
+                                "gave one to can see what it received.",
+                      style: STextStyles.label(context),
                     ),
                     const SizedBox(height: 12),
                     PrimaryButton(
