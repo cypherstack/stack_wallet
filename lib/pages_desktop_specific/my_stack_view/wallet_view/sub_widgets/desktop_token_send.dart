@@ -1097,8 +1097,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
                             ),
                           if (sendToController.text.isEmpty)
                             TextFieldIconButton(
-                              semanticsLabel:
-                                  "Scan QR Button. Opens Camera For Scanning QR Code.",
+                              semanticsLabel: "Scan QR Button. Opens Camera For Scanning QR Code.",
                               key: const Key("sendViewScanQrButtonKey"),
                               onTap: scanQr,
                               child: const QrCodeIcon(),
