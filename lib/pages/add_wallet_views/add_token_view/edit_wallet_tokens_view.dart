@@ -102,11 +102,10 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
   }
 
   Future<void> onNextPressed() async {
-    final selectedTokens =
-        tokenEntities
-            .where((e) => e.selected)
-            .map((e) => e.token.address)
-            .toList();
+    final selectedTokens = tokenEntities
+        .where((e) => e.selected)
+        .map((e) => e.token.address)
+        .toList();
 
     final wallet = ref.read(pWallets).getWallet(widget.walletId);
 
@@ -121,13 +120,11 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
         Navigator.of(context).pop(42);
       } else {
         if (isDesktop) {
-          Navigator.of(
-            context,
-          ).popUntil(ModalRoute.withName(DesktopHomeView.routeName));
+          Navigator.of(context)
+              .popUntil(ModalRoute.withName(DesktopHomeView.routeName));
         } else {
-          await Navigator.of(
-            context,
-          ).pushNamedAndRemoveUntil(HomeView.routeName, (route) => false);
+          await Navigator.of(context)
+              .pushNamedAndRemoveUntil(HomeView.routeName, (route) => false);
         }
         if (mounted) {
           unawaited(
@@ -162,9 +159,8 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
           ),
         );
       } else {
-        final result = await Navigator.of(
-          context,
-        ).pushNamed(AddCustomTokenView.routeName);
+        final result = await Navigator.of(context)
+            .pushNamed(AddCustomTokenView.routeName);
         contract = result as EthContract?;
       }
 
@@ -179,7 +175,9 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
               tokenEntities.add(
                 AddTokenListElementData(contract!)..selected = true,
               );
-              tokenEntities.sort((a, b) => a.token.name.compareTo(b.token.name));
+              tokenEntities.sort(
+                (a, b) => a.token.name.compareTo(b.token.name),
+              );
             }
           });
         }
@@ -201,9 +199,7 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
         ),
       );
     } else {
-      final result = await Navigator.of(
-        context,
-      ).pushNamed(
+      final result = await Navigator.of(context).pushNamed(
         AddCustomSolanaTokenView.routeName,
         arguments: widget.walletId,
       );
@@ -230,9 +226,7 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
           if (tokenEntities
               .where((e) => e.token.address == token!.address)
               .isEmpty) {
-            tokenEntities.add(
-              AddTokenListElementData(token!)..selected = true,
-            );
+            tokenEntities.add(AddTokenListElementData(token!)..selected = true);
             tokenEntities.sort((a, b) => a.token.name.compareTo(b.token.name));
           }
         });
@@ -251,8 +245,9 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
       ...walletContracts,
       ...(widget.contractsToMarkSelected ?? []),
     ];
-    final selectedContractAddresses =
-        shouldMarkAsSelectedContracts.map((e) => e.toLowerCase()).toSet();
+    final selectedContractAddresses = shouldMarkAsSelectedContracts
+        .map((e) => e.toLowerCase())
+        .toSet();
 
     if (wallet is SolanaWallet) {
       final contracts = MainDB.instance
@@ -276,14 +271,12 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
           .sortByName()
           .findAllSync();
       final defaults = DefaultTokens.forApp(AppConfig.appName);
-      final existingAddresses =
-          contracts.map((e) => e.address.toLowerCase()).toSet();
-      final missingDefaults =
-          defaults
-              .where(
-                (token) => existingAddresses.add(token.address.toLowerCase()),
-              )
-              .toList();
+      final existingAddresses = contracts
+          .map((e) => e.address.toLowerCase())
+          .toSet();
+      final missingDefaults = defaults
+          .where((token) => existingAddresses.add(token.address.toLowerCase()))
+          .toList();
 
       if (missingDefaults.isNotEmpty) {
         contracts.addAll(missingDefaults);
@@ -304,10 +297,9 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
     }
 
     for (final e in tokenEntities) {
-      e.selected =
-          wallet is EthereumWallet
-              ? selectedContractAddresses.contains(e.token.address.toLowerCase())
-              : shouldMarkAsSelectedContracts.contains(e.token.address);
+      e.selected = wallet is EthereumWallet
+          ? selectedContractAddresses.contains(e.token.address.toLowerCase())
+          : shouldMarkAsSelectedContracts.contains(e.token.address);
     }
 
     super.initState();
@@ -468,9 +460,8 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
                       _searchTerm = value;
                     });
                   },
-                  style: STextStyles.desktopTextMedium(
-                    context,
-                  ).copyWith(height: 2),
+                  style: STextStyles.desktopTextMedium(context)
+                      .copyWith(height: 2),
                   decoration:
                       standardInputDecoration(
                         "Search",
@@ -536,9 +527,9 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
     } else {
       return Background(
         child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
             leading: AppBarBackButton(
               onPressed: () {
@@ -548,20 +539,24 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
             actions: [
               if (!isCampfire)
                 Padding(
-                  padding: const EdgeInsets.only(top: 10, bottom: 10, right: 20),
+                  padding: const EdgeInsets.only(
+                    top: 10,
+                    bottom: 10,
+                    right: 20,
+                  ),
                   child: AspectRatio(
                     aspectRatio: 1,
                     child: AppBarIconButton(
                       size: 36,
                       shadows: const [],
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.background,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .background,
                       icon: SvgPicture.asset(
                         Assets.svg.circlePlusFilled,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.topNavIconPrimary,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .topNavIconPrimary,
                         width: 20,
                         height: 20,
                       ),
