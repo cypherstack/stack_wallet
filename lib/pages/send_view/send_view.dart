@@ -935,6 +935,19 @@ class _SendViewState extends ConsumerState<SendView> {
       }
     }
 
+    final chosenRateType = ref.read(feeRateTypeMobileStateProvider);
+    if (!mounted) return;
+    final fee = await _openCryptoPay.sendFee(
+      context,
+      wallet,
+      address: _address,
+      amount: amount,
+      feeRateType: chosenRateType,
+      satsPerVByte: chosenRateType.customSatsPerVByte(customFeeRate),
+      ethFee: _ethFee.value,
+    );
+    if (fee == null || !mounted) return;
+
     try {
       bool wasCancelled = false;
 
@@ -965,8 +978,7 @@ class _SendViewState extends ConsumerState<SendView> {
       final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
 
       Future<TxData> txDataFuture;
-      final feeRateType = ref.read(feeRateTypeMobileStateProvider);
-      final satsPerVByte = feeRateType.customSatsPerVByte(customFeeRate);
+      final (:feeRateType, :satsPerVByte, :ethFee) = fee;
 
       if (isPaynymSend) {
         txDataFuture = (wallet as PaynymInterface).preparePaymentCodeSend(
@@ -1106,7 +1118,7 @@ class _SendViewState extends ConsumerState<SendView> {
             memo: memo,
             feeRateType: feeRateType,
             satsPerVByte: satsPerVByte,
-            ethEIP1559Fee: _ethFee.value,
+            ethEIP1559Fee: ethFee,
             utxos:
                 (wallet is CoinControlInterface &&
                     wallet is! SalviumWallet &&

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,6 +8,8 @@ import 'package:http/http.dart';
 import 'package:http/testing.dart';
 import 'package:opencryptopay/opencryptopay.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
+import 'package:stackwallet/models/paymint/fee_object_model.dart';
+import 'package:stackwallet/pages/open_crypto_pay/open_crypto_pay_send_fee.dart';
 import 'package:stackwallet/pages/open_crypto_pay/open_crypto_pay_send_handler.dart';
 import 'package:stackwallet/providers/ui/preview_tx_button_state_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -14,7 +17,14 @@ import 'package:stackwallet/themes/theme_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/amount/amount_unit.dart';
+import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
+import 'package:stackwallet/utilities/eth_commons.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import 'package:stackwallet/wallets/wallet/impl/ethereum_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/sub_wallets/eth_token_wallet.dart';
+import 'package:stackwallet/wallets/wallet/wallet.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
+import 'package:stackwallet/widgets/eth_fee_form.dart';
 
 import '../../sample_data/theme_json.dart';
 
@@ -56,6 +66,8 @@ const _recipientJson = {
 Map<String, dynamic> _paymentInfoJson({
   required String quoteExpiration,
   Map<String, dynamic>? recipient,
+  num btcMinFee = 0,
+  num ethMinFee = 0,
 }) => {
   "id": "pl_test",
   "tag": "payRequest",
@@ -70,7 +82,7 @@ Map<String, dynamic> _paymentInfoJson({
   "transferAmounts": [
     {
       "method": "Bitcoin",
-      "minFee": 0,
+      "minFee": btcMinFee,
       "assets": [
         {"asset": "BTC", "amount": "0.00001947"},
       ],
@@ -78,7 +90,7 @@ Map<String, dynamic> _paymentInfoJson({
     },
     {
       "method": "Ethereum",
-      "minFee": 0,
+      "minFee": ethMinFee,
       "assets": [
         {"asset": "USDT", "amount": "1.246858"},
       ],
@@ -151,6 +163,101 @@ class _FakeThemeService implements ThemeService {
 class _Harness {
   late BuildContext context;
   late WidgetRef ref;
+}
+
+/// UTXO wallet exposing only fee estimates, in sat/kB.
+class _FakeUtxoWallet implements ElectrumXInterface<Bitcoin> {
+  _FakeUtxoWallet.offline() : _fees = null;
+
+  _FakeUtxoWallet({required int fast, required int medium, required int slow})
+    : _fees = FeeObject(
+        numberOfBlocksFast: 1,
+        numberOfBlocksAverage: 5,
+        numberOfBlocksSlow: 20,
+        fast: BigInt.from(fast),
+        medium: BigInt.from(medium),
+        slow: BigInt.from(slow),
+      );
+
+  final FeeObject? _fees;
+
+  @override
+  Future<FeeObject> get fees async =>
+      _fees ?? (throw Exception("estimateFee failed"));
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// EVM fee estimates in wei; medium is the midpoint of fast and slow.
+EthFeeObject _ethFees({
+  required int baseFee,
+  required int fast,
+  required int slow,
+}) => EthFeeObject(
+  suggestBaseFee: BigInt.from(baseFee),
+  numberOfBlocksFast: 1,
+  numberOfBlocksAverage: 3,
+  numberOfBlocksSlow: 6,
+  fast: BigInt.from(fast),
+  medium: BigInt.from((fast + slow) ~/ 2),
+  slow: BigInt.from(slow),
+);
+
+/// Token wallet exposing only fee estimates.
+class _FakeTokenWallet implements EthTokenWallet {
+  _FakeTokenWallet(this._fees);
+
+  final EthFeeObject _fees;
+
+  @override
+  Future<EthFeeObject> get fees async => _fees;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// Ethereum wallet exposing only fee estimates.
+class _FakeEthWallet implements EthereumWallet {
+  _FakeEthWallet(this._fees);
+
+  final EthFeeObject _fees;
+
+  @override
+  Future<EthFeeObject> get fees async => _fees;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// Wallet with fixed fee levels; the fee object holds level ids and the
+/// estimate returns a fee amount per id.
+class _FakeLevelWallet implements Wallet<Monero> {
+  _FakeLevelWallet(this._feeByLevel);
+
+  final Map<int, int> _feeByLevel;
+
+  @override
+  Monero get cryptoCurrency => Monero(CryptoCurrencyNetwork.main);
+
+  @override
+  Future<FeeObject> get fees async => FeeObject(
+    numberOfBlocksFast: 10,
+    numberOfBlocksAverage: 15,
+    numberOfBlocksSlow: 20,
+    fast: BigInt.from(3),
+    medium: BigInt.from(2),
+    slow: BigInt.from(1),
+  );
+
+  @override
+  Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate) async => Amount(
+    rawValue: BigInt.from(_feeByLevel[feeRate.toInt()]!),
+    fractionDigits: 12,
+  );
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /// Pump a minimal app with the theme + providers the handler's UI needs and
@@ -725,6 +832,403 @@ void main() {
       await tester.pump();
       expect(dialogTitle, findsNothing);
       expect(await fut, isTrue);
+    });
+  });
+
+  group("OpenCryptoPaySendHandler.sendFee", () {
+    const title = "High network fee";
+
+    Future<_HandlerSetup> pendingBtc(
+      WidgetTester tester,
+      _Harness harness, {
+      num minFee = 0,
+    }) async {
+      final setup = _makeHandler(
+        harness: harness,
+        coin: Bitcoin(CryptoCurrencyNetwork.main),
+        client: _mockOcpServer(
+          paymentInfo: _paymentInfoJson(
+            quoteExpiration: _futureExpiration(),
+            btcMinFee: minFee,
+          ),
+          txDetails: _btcDetailsJson(hint: _hashHint),
+        ),
+      );
+      await _handle(tester, harness, setup.handler);
+      return setup;
+    }
+
+    Future<_HandlerSetup> pendingErc20(
+      WidgetTester tester,
+      _Harness harness, {
+      num minFee = 0,
+    }) async {
+      final setup = _makeHandler(
+        harness: harness,
+        coin: Ethereum(CryptoCurrencyNetwork.main),
+        tokenSymbol: "USDT",
+        tokenDecimals: 6,
+        client: _mockOcpServer(
+          paymentInfo: _paymentInfoJson(
+            quoteExpiration: _futureExpiration(),
+            ethMinFee: minFee,
+          ),
+          txDetails: _erc20DetailsJson(),
+        ),
+      );
+      await _handle(tester, harness, setup.handler);
+      return setup;
+    }
+
+    Future<OpenCryptoPaySendFee?> feeFor(
+      WidgetTester tester,
+      _Harness harness,
+      OpenCryptoPaySendHandler handler,
+      Wallet wallet, {
+      String? address = _btcAddress,
+      FeeRateType feeRateType = FeeRateType.average,
+      int? satsPerVByte,
+      EthEIP1559Fee? ethFee,
+      String? tap,
+      String? message,
+    }) async {
+      final fut = handler.sendFee(
+        harness.context,
+        wallet,
+        address: address,
+        amount: _btc(1000),
+        feeRateType: feeRateType,
+        satsPerVByte: satsPerVByte,
+        ethFee: ethFee,
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      if (tap != null) {
+        expect(find.text(title), findsOneWidget);
+        if (message != null) expect(find.text(message), findsOneWidget);
+        await _tapButton(tester, tap);
+        await tester.pumpAndSettle();
+      } else {
+        expect(find.text(title), findsNothing);
+      }
+      return fut;
+    }
+
+    // sat/kB estimates: fast 5 sat/vB, average 3, slow 1.
+    final utxoWallet = _FakeUtxoWallet(fast: 5000, medium: 3000, slow: 1000);
+    const average = (
+      feeRateType: FeeRateType.average,
+      satsPerVByte: null,
+      ethFee: null,
+    );
+
+    testWidgets("no override without a pending payment or a minimum", (
+      tester,
+    ) async {
+      final harness = await _pumpHarness(tester);
+      final none = await pendingBtc(tester, harness);
+      final floor = await feeFor(tester, harness, none.handler, utxoWallet);
+      expect(floor, average);
+
+      final other = await pendingBtc(tester, harness, minFee: 4);
+      final elsewhere = await feeFor(
+        tester,
+        harness,
+        other.handler,
+        utxoWallet,
+        address: "bc1qother",
+      );
+      expect(elsewhere, average);
+    });
+
+    testWidgets("a preset at or above the minimum is kept", (tester) async {
+      final harness = await _pumpHarness(tester);
+      final setup = await pendingBtc(tester, harness, minFee: 3);
+      final floor = await feeFor(tester, harness, setup.handler, utxoWallet);
+      expect(floor, average);
+
+      final custom = await feeFor(
+        tester,
+        harness,
+        setup.handler,
+        utxoWallet,
+        feeRateType: FeeRateType.custom,
+        satsPerVByte: 7,
+      );
+      expect(custom!.satsPerVByte, 7);
+    });
+
+    testWidgets("a preset below the minimum is raised without asking", (
+      tester,
+    ) async {
+      final harness = await _pumpHarness(tester);
+      final setup = await pendingBtc(tester, harness, minFee: 4.2);
+      final floor = await feeFor(
+        tester,
+        harness,
+        setup.handler,
+        utxoWallet,
+        feeRateType: FeeRateType.slow,
+      );
+      expect(floor!.feeRateType, FeeRateType.custom);
+      expect(floor.satsPerVByte, 5);
+    });
+
+    testWidgets("a custom rate below the minimum is raised", (tester) async {
+      final harness = await _pumpHarness(tester);
+      final setup = await pendingBtc(tester, harness, minFee: 4.2);
+      final floor = await feeFor(
+        tester,
+        harness,
+        setup.handler,
+        utxoWallet,
+        feeRateType: FeeRateType.custom,
+        satsPerVByte: 2,
+      );
+      expect(floor!.satsPerVByte, 5);
+    });
+
+    testWidgets("the minimum is compared in sat/kB", (tester) async {
+      final harness = await _pumpHarness(tester);
+      final setup = await pendingBtc(tester, harness, minFee: 2.146);
+      final wallet = _FakeUtxoWallet(fast: 5000, medium: 2146, slow: 2100);
+
+      final exact = await feeFor(tester, harness, setup.handler, wallet);
+      expect(exact, average);
+
+      final under = await feeFor(
+        tester,
+        harness,
+        setup.handler,
+        wallet,
+        feeRateType: FeeRateType.slow,
+      );
+      expect(under!.feeRateType, FeeRateType.custom);
+      expect(under.satsPerVByte, 3);
+    });
+
+    testWidgets("a minimum above the fast estimate asks first", (tester) async {
+      final harness = await _pumpHarness(tester);
+      final setup = await pendingBtc(tester, harness, minFee: 12);
+
+      final cancelled = await feeFor(
+        tester,
+        harness,
+        setup.handler,
+        utxoWallet,
+        tap: "Cancel",
+        message:
+            "The payment request requires a network fee of at least "
+            "12 sats/vByte, above the current fast estimate of 5.00 sats/vByte.",
+      );
+      expect(cancelled, isNull);
+
+      final accepted = await feeFor(
+        tester,
+        harness,
+        setup.handler,
+        utxoWallet,
+        tap: "Continue",
+      );
+      expect(accepted!.feeRateType, FeeRateType.custom);
+      expect(accepted.satsPerVByte, 12);
+    });
+
+    // Fee amounts per level id: slow 1, average 2, fast 3.
+    final levelWallet = _FakeLevelWallet({1: 1000, 2: 2000, 3: 3000});
+
+    testWidgets("a fee level at or above the minimum is kept", (tester) async {
+      final harness = await _pumpHarness(tester);
+      final setup = await pendingBtc(tester, harness, minFee: 1500);
+      final floor = await feeFor(tester, harness, setup.handler, levelWallet);
+      expect(floor, average);
+    });
+
+    testWidgets("the lowest fee level reaching the minimum is chosen", (
+      tester,
+    ) async {
+      final harness = await _pumpHarness(tester);
+      final setup = await pendingBtc(tester, harness, minFee: 2500);
+      final floor = await feeFor(
+        tester,
+        harness,
+        setup.handler,
+        levelWallet,
+        feeRateType: FeeRateType.slow,
+      );
+      expect(floor!.feeRateType, FeeRateType.fast);
+    });
+
+    testWidgets("a minimum above the fastest level blocks the send", (
+      tester,
+    ) async {
+      final harness = await _pumpHarness(tester);
+      final setup = await pendingBtc(tester, harness, minFee: 3500);
+      final fut = setup.handler.sendFee(
+        harness.context,
+        levelWallet,
+        address: _btcAddress,
+        amount: _btc(1000),
+        feeRateType: FeeRateType.fast,
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.text("Network fee too low"), findsOneWidget);
+      expect(
+        find.text(
+          "The payment request requires a network fee of at least "
+          "0.0000000035 XMR, above this wallet's fastest fee of "
+          "0.000000003 XMR.",
+        ),
+        findsOneWidget,
+      );
+      await _tapOk(tester);
+      await tester.pumpAndSettle();
+      expect(await fut, isNull);
+      expect(setup.handler.isActivePaymentFor(_btcAddress), isTrue);
+    });
+
+    testWidgets("an unavailable fee estimate keeps the chosen fee", (
+      tester,
+    ) async {
+      final harness = await _pumpHarness(tester);
+      final setup = await pendingBtc(tester, harness, minFee: 12);
+      final floor = await feeFor(
+        tester,
+        harness,
+        setup.handler,
+        _FakeUtxoWallet.offline(),
+      );
+      expect(floor, average);
+    });
+
+    // base 10 gwei, fast 12 gwei, slow 10.5 gwei.
+    final ethFees = _ethFees(
+      baseFee: 10000000000,
+      fast: 12000000000,
+      slow: 10500000000,
+    );
+    final tokenWallet = _FakeTokenWallet(ethFees);
+    final gwei = BigInt.from(1000000000);
+
+    testWidgets("an EVM preset at or above the minimum is kept", (
+      tester,
+    ) async {
+      final harness = await _pumpHarness(tester);
+      final setup = await pendingErc20(tester, harness, minFee: 12000000000);
+      const fast = (
+        feeRateType: FeeRateType.fast,
+        satsPerVByte: null,
+        ethFee: null,
+      );
+      final floor = await feeFor(
+        tester,
+        harness,
+        setup.handler,
+        tokenWallet,
+        address: _erc20Recipient,
+        feeRateType: FeeRateType.fast,
+      );
+      expect(floor, fast);
+
+      final customFee = EthEIP1559Fee(
+        maxFeePerGasGwei: Decimal.fromInt(15),
+        maxPriorityFeePerGasGwei: Decimal.one,
+        gasLimit: 90000,
+      );
+      final custom = await feeFor(
+        tester,
+        harness,
+        setup.handler,
+        tokenWallet,
+        address: _erc20Recipient,
+        feeRateType: FeeRateType.custom,
+        ethFee: customFee,
+      );
+      expect(custom!.ethFee, same(customFee));
+    });
+
+    testWidgets(
+      "an EVM minimum below the fast estimate is raised without asking",
+      (tester) async {
+        final harness = await _pumpHarness(tester);
+        final setup = await pendingErc20(tester, harness, minFee: 11000000000);
+        final floor = await feeFor(
+          tester,
+          harness,
+          setup.handler,
+          tokenWallet,
+          address: _erc20Recipient,
+          feeRateType: FeeRateType.slow,
+        );
+        expect(floor!.feeRateType, FeeRateType.custom);
+        final fee = floor.ethFee!;
+        expect(fee.maxFeePerGasWei, gwei * BigInt.from(11));
+        expect(fee.maxPriorityFeePerGasWei, gwei);
+        expect(fee.gasLimit, kEthereumTokenMinGasLimit);
+      },
+    );
+
+    testWidgets("an EVM custom fee below the minimum keeps its gas limit", (
+      tester,
+    ) async {
+      final harness = await _pumpHarness(tester);
+      final setup = await pendingErc20(tester, harness, minFee: 11000000000);
+      final floor = await feeFor(
+        tester,
+        harness,
+        setup.handler,
+        tokenWallet,
+        address: _erc20Recipient,
+        feeRateType: FeeRateType.custom,
+        ethFee: EthEIP1559Fee(
+          maxFeePerGasGwei: Decimal.fromInt(5),
+          maxPriorityFeePerGasGwei: Decimal.one,
+          gasLimit: 90000,
+        ),
+      );
+      final fee = floor!.ethFee!;
+      expect(fee.maxFeePerGasWei, gwei * BigInt.from(11));
+      expect(fee.maxPriorityFeePerGasWei, gwei);
+      expect(fee.gasLimit, 90000);
+    });
+
+    testWidgets("an EVM minimum above the fast estimate asks first", (
+      tester,
+    ) async {
+      final harness = await _pumpHarness(tester);
+      final setup = await pendingErc20(tester, harness, minFee: 30000000000);
+      const message =
+          "The payment request requires a network fee of at least "
+          "30.00 gwei, above the current fast estimate of 12.00 gwei.";
+
+      final cancelled = await feeFor(
+        tester,
+        harness,
+        setup.handler,
+        _FakeEthWallet(ethFees),
+        address: _erc20Recipient,
+        feeRateType: FeeRateType.fast,
+        tap: "Cancel",
+        message: message,
+      );
+      expect(cancelled, isNull);
+
+      final accepted = await feeFor(
+        tester,
+        harness,
+        setup.handler,
+        _FakeEthWallet(ethFees),
+        address: _erc20Recipient,
+        feeRateType: FeeRateType.fast,
+        tap: "Continue",
+        message: message,
+      );
+      expect(accepted!.feeRateType, FeeRateType.custom);
+      final fee = accepted.ethFee!;
+      expect(fee.maxFeePerGasWei, gwei * BigInt.from(30));
+      expect(fee.maxPriorityFeePerGasWei, gwei * BigInt.from(20));
+      expect(fee.gasLimit, kEthereumMinGasLimit);
     });
   });
 

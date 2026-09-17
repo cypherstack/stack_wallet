@@ -220,6 +220,18 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
       }
     }
 
+    final feeRateType = ref.read(feeRateTypeDesktopStateProvider);
+    if (!mounted) return;
+    final fee = await _openCryptoPay.sendFee(
+      context,
+      tokenWallet,
+      address: _address,
+      amount: amount,
+      feeRateType: feeRateType,
+      ethFee: _ethFee.value,
+    );
+    if (fee == null || !mounted) return;
+
     try {
       bool wasCancelled = false;
 
@@ -268,9 +280,9 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
               )!,
             ),
           ],
-          feeRateType: ref.read(feeRateTypeDesktopStateProvider),
+          feeRateType: fee.feeRateType,
           nonce: nonce,
-          ethEIP1559Fee: _ethFee.value,
+          ethEIP1559Fee: fee.ethFee,
         ),
       );
 

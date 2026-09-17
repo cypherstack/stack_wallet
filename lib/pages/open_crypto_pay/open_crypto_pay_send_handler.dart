@@ -13,15 +13,19 @@ import 'package:opencryptopay/opencryptopay.dart';
 
 import '../../networking/http.dart';
 import '../../utilities/amount/amount.dart';
+import '../../utilities/enums/fee_rate_type_enum.dart';
 import '../../utilities/extensions/extensions.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/show_loading.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../wallets/wallet/wallet.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/dialogs/basic_dialog.dart';
+import '../../widgets/eth_fee_form.dart';
 import '../../widgets/stack_dialog.dart';
+import 'open_crypto_pay_send_fee.dart';
 
 ({String title, String message}) _quoteMismatchText({
   required bool sameRecipient,
@@ -154,12 +158,56 @@ class OpenCryptoPaySendHandler {
       sameRecipient: sameRecipient,
       sameAmount: sameAmount,
     );
+    final proceed = await _confirm(context, text.title, text.message);
+    if (proceed) _quoteOverridden = true;
+    return proceed;
+  }
+
+  /// The fee to build the transaction with: the given one, raised to the
+  /// payment request's minimum when below it. Null when the send must stop.
+  Future<OpenCryptoPaySendFee?> sendFee(
+    BuildContext context,
+    Wallet wallet, {
+    required String? address,
+    required Amount amount,
+    required FeeRateType feeRateType,
+    int? satsPerVByte,
+    EthEIP1559Fee? ethFee,
+  }) async {
+    final chosen = (
+      feeRateType: feeRateType,
+      satsPerVByte: satsPerVByte,
+      ethFee: ethFee,
+    );
+    final session = _session;
+    if (session == null ||
+        session.minFee <= 0 ||
+        !session.isActivePaymentFor(address)) {
+      return chosen;
+    }
+    return openCryptoPaySendFee(
+      context,
+      wallet,
+      amount: amount,
+      minFee: session.minFee,
+      chosen: chosen,
+      confirm: _confirm,
+      unmet: (context, title, message) =>
+          _showError(context: context, title: title, message: message),
+    );
+  }
+
+  Future<bool> _confirm(
+    BuildContext context,
+    String title,
+    String message,
+  ) async {
     final proceed = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (context) => BasicDialog(
-        title: text.title,
-        message: text.message,
+        title: title,
+        message: message,
         leftButton: SecondaryButton(
           label: "Cancel",
           onPressed: () => Navigator.of(context).pop(false),
@@ -171,7 +219,6 @@ class OpenCryptoPaySendHandler {
         flex: true,
       ),
     );
-    if (proceed == true) _quoteOverridden = true;
     return proceed ?? false;
   }
 

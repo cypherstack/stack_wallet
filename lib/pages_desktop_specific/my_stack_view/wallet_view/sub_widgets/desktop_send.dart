@@ -551,6 +551,19 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       }
     }
 
+    final chosenRateType = ref.read(feeRateTypeDesktopStateProvider);
+    if (!mounted) return;
+    final fee = await _openCryptoPay.sendFee(
+      context,
+      wallet,
+      address: _address,
+      amount: amount,
+      feeRateType: chosenRateType,
+      satsPerVByte: chosenRateType.customSatsPerVByte(customFeeRate),
+      ethFee: _ethFee.value,
+    );
+    if (fee == null || !mounted) return;
+
     try {
       bool wasCancelled = false;
 
@@ -591,8 +604,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
       TxData txData;
       Future<TxData> txDataFuture;
-      final feeRateType = ref.read(feeRateTypeDesktopStateProvider);
-      final satsPerVByte = feeRateType.customSatsPerVByte(customFeeRate);
+      final (:feeRateType, :satsPerVByte, :ethFee) = fee;
 
       if (isPaynymSend) {
         final paynymWallet = wallet as PaynymInterface;
@@ -743,7 +755,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                     ref.read(pDesktopUseUTXOs).isNotEmpty)
                 ? ref.read(pDesktopUseUTXOs)
                 : null,
-            ethEIP1559Fee: _ethFee.value,
+            ethEIP1559Fee: ethFee,
           ),
         );
       }
