@@ -595,51 +595,67 @@ class _HeroMarketRow extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.baseline,
                           textBaseline: TextBaseline.alphabetic,
                           children: [
+                            // Price and change scale TOGETHER.
+                            //
+                            // They used to be a shrinking price beside a fixed
+                            // change, so at a large OS text size the price
+                            // shrank to make room while the percentage stayed
+                            // put, and the hero ended up showing its most
+                            // important number smaller than the number
+                            // qualifying it. Seen on a device at 1.8x: a
+                            // Bellscoin price at roughly half the size of its
+                            // own 24h change.
+                            //
+                            // One FittedBox over the pair keeps the ratio
+                            // between them fixed, whatever room there is.
                             Flexible(
-                              // Shrinks rather than truncates. An ellipsised
-                              // price is itself a plausible price, and this
-                              // row has to hold both eight decimals of a coin
-                              // trading under a cent and five figures of one
-                              // that is not.
                               child: FittedBox(
                                 fit: BoxFit.scaleDown,
                                 alignment: Alignment.centerLeft,
-                                child: Text(
-                                  priceStr,
-                                  maxLines: 1,
-                                  style: STextStyles.subtitle500(context)
-                                      .copyWith(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w700,
-                                        color: favText.withOpacity(
-                                          heroEmphasis(favText, 0.92),
-                                        ),
-                                        fontFeatures: const [
-                                          FontFeature.tabularFigures(),
-                                        ],
+                                child: Row(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.baseline,
+                                  textBaseline: TextBaseline.alphabetic,
+                                  children: [
+                                    Text(
+                                      priceStr,
+                                      maxLines: 1,
+                                      style: STextStyles.subtitle500(context)
+                                          .copyWith(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w700,
+                                            color: favText.withOpacity(
+                                              heroEmphasis(favText, 0.92),
+                                            ),
+                                            fontFeatures: const [
+                                              FontFeature.tabularFigures(),
+                                            ],
+                                          ),
+                                    ),
+                                    if (changeStr.isNotEmpty) ...[
+                                      const SizedBox(width: 8),
+                                      // Labelled "24h". An unlabelled
+                                      // percentage on a card that also carries
+                                      // a holding's daily change is two
+                                      // different claims wearing one shape.
+                                      Text(
+                                        changeStr,
+                                        maxLines: 1,
+                                        style: STextStyles.subtitle500(context)
+                                            .copyWith(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                              color: signal,
+                                              fontFeatures: const [
+                                                FontFeature.tabularFigures(),
+                                              ],
+                                            ),
                                       ),
+                                    ],
+                                  ],
                                 ),
                               ),
                             ),
-                            if (changeStr.isNotEmpty) ...[
-                              const SizedBox(width: 8),
-                              // Labelled "24h". An unlabelled percentage on a
-                              // card that also carries a holding's daily
-                              // change is two different claims wearing one
-                              // shape.
-                              Text(
-                                changeStr,
-                                style: STextStyles.subtitle500(context)
-                                    .copyWith(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: signal,
-                                      fontFeatures: const [
-                                        FontFeature.tabularFigures(),
-                                      ],
-                                    ),
-                              ),
-                            ],
                           ],
                         ),
                       ],
