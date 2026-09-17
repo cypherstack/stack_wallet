@@ -889,6 +889,7 @@ void main() {
       FeeRateType feeRateType = FeeRateType.average,
       int? satsPerVByte,
       EthEIP1559Fee? ethFee,
+      bool feeRateApplies = true,
       String? tap,
       String? message,
     }) async {
@@ -900,6 +901,7 @@ void main() {
         feeRateType: feeRateType,
         satsPerVByte: satsPerVByte,
         ethFee: ethFee,
+        feeRateApplies: feeRateApplies,
       );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
@@ -939,6 +941,21 @@ void main() {
         address: "bc1qother",
       );
       expect(elsewhere, average);
+    });
+
+    testWidgets("a send building its own fee keeps the chosen one", (
+      tester,
+    ) async {
+      final harness = await _pumpHarness(tester);
+      final setup = await pendingBtc(tester, harness, minFee: 20);
+      final floor = await feeFor(
+        tester,
+        harness,
+        setup.handler,
+        utxoWallet,
+        feeRateApplies: false,
+      );
+      expect(floor, average);
     });
 
     testWidgets("a preset at or above the minimum is kept", (tester) async {

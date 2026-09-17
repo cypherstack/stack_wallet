@@ -945,6 +945,9 @@ class _SendViewState extends ConsumerState<SendView> {
       feeRateType: chosenRateType,
       satsPerVByte: chosenRateType.customSatsPerVByte(customFeeRate),
       ethFee: _ethFee.value,
+      feeRateApplies:
+          coin is! Firo ||
+          ref.read(publicPrivateBalanceStateProvider) == BalanceType.public,
     );
     if (fee == null || !mounted) return;
 

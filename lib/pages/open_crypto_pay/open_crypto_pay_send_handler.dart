@@ -165,6 +165,7 @@ class OpenCryptoPaySendHandler {
 
   /// The fee to build the transaction with: the given one, raised to the
   /// payment request's minimum when below it. Null when the send must stop.
+  /// [feeRateApplies] is false when the send builds its own fee.
   Future<OpenCryptoPaySendFee?> sendFee(
     BuildContext context,
     Wallet wallet, {
@@ -173,6 +174,7 @@ class OpenCryptoPaySendHandler {
     required FeeRateType feeRateType,
     int? satsPerVByte,
     EthEIP1559Fee? ethFee,
+    bool feeRateApplies = true,
   }) async {
     final chosen = (
       feeRateType: feeRateType,
@@ -180,7 +182,8 @@ class OpenCryptoPaySendHandler {
       ethFee: ethFee,
     );
     final session = _session;
-    if (session == null ||
+    if (!feeRateApplies ||
+        session == null ||
         session.minFee <= 0 ||
         !session.isActivePaymentFor(address)) {
       return chosen;
