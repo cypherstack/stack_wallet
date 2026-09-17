@@ -17,6 +17,10 @@ String _highFeeMessage(String required, String fast) =>
     "The payment request requires a network fee of at least $required, "
     "above the current fast estimate of $fast.";
 const _unmetFeeTitle = "Network fee too low";
+const _unknownFeeTitle = "Network fee unknown";
+const _unknownFeeMessage =
+    "The network fee could not be estimated, so the payment request's "
+    "minimum cannot be checked. Check the wallet's connection and sync.";
 String _unmetFeeMessage(String required, String fastest) =>
     "The payment request requires a network fee of at least $required, "
     "above this wallet's fastest fee of $fastest.";
@@ -43,7 +47,8 @@ typedef OpenCryptoPayNotify = Future<void> Function(
 );
 
 /// The chosen fee, raised to the minimum when below it. Null when the user
-/// cancelled the confirmation or no fee level reaches the minimum.
+/// cancelled the confirmation, no fee level reaches the minimum, or the fee
+/// cannot be estimated.
 Future<OpenCryptoPaySendFee?> openCryptoPaySendFee(
   BuildContext context,
   Wallet wallet, {
@@ -64,7 +69,8 @@ Future<OpenCryptoPaySendFee?> openCryptoPaySendFee(
       error: e,
       stackTrace: s,
     );
-    return chosen;
+    if (!context.mounted) return null;
+    return _feeUnknown(context, unmet);
   }
   if (!context.mounted) return null;
   if (isUtxo) return _utxoSendFee(context, fees, minFee, chosen, confirm);
@@ -101,7 +107,23 @@ Future<OpenCryptoPaySendFee?> _levelSendFee(
   final start = levels.indexWhere((l) => l.type == chosen.feeRateType);
   Amount? fee;
   for (final level in levels.sublist(start < 0 ? 0 : start)) {
-    fee = await wallet.estimateFeeFor(amount, level.rate);
+    try {
+      fee = await wallet.estimateFeeFor(amount, level.rate);
+    } catch (e, s) {
+      Logging.instance.w(
+        "OpenCryptoPay fee estimate unavailable",
+        error: e,
+        stackTrace: s,
+      );
+      if (!context.mounted) return null;
+      return _feeUnknown(context, unmet);
+    }
+    // A zero estimate means the wallet cannot estimate yet.
+    if (fee.raw <= BigInt.zero) {
+      Logging.instance.w("OpenCryptoPay fee estimate is zero");
+      if (!context.mounted) return null;
+      return _feeUnknown(context, unmet);
+    }
     if (fee.raw >= required) {
       return level.type == chosen.feeRateType
           ? chosen
@@ -127,6 +149,15 @@ Future<OpenCryptoPaySendFee?> _levelSendFee(
     _unmetFeeTitle,
     _unmetFeeMessage(coins(required), coins(fastest.raw)),
   );
+  return null;
+}
+
+/// Stops the send when the fee cannot be checked against the minimum.
+Future<OpenCryptoPaySendFee?> _feeUnknown(
+  BuildContext context,
+  OpenCryptoPayNotify unmet,
+) async {
+  await unmet(context, _unknownFeeTitle, _unknownFeeMessage);
   return null;
 }
 

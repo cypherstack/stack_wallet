@@ -1105,18 +1105,66 @@ void main() {
       expect(setup.handler.isActivePaymentFor(_btcAddress), isTrue);
     });
 
-    testWidgets("an unavailable fee estimate keeps the chosen fee", (
-      tester,
+    Future<void> expectFeeUnknown(
+      WidgetTester tester,
+      _Harness harness,
+      OpenCryptoPaySendHandler handler,
+      Wallet wallet,
     ) async {
+      final fut = handler.sendFee(
+        harness.context,
+        wallet,
+        address: _btcAddress,
+        amount: _btc(1000),
+        feeRateType: FeeRateType.average,
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.text("Network fee unknown"), findsOneWidget);
+      expect(
+        find.text(
+          "The network fee could not be estimated, so the payment request's "
+          "minimum cannot be checked. Check the wallet's connection and sync.",
+        ),
+        findsOneWidget,
+      );
+      await _tapOk(tester);
+      await tester.pumpAndSettle();
+      expect(await fut, isNull);
+    }
+
+    testWidgets("unavailable fee levels block the send", (tester) async {
       final harness = await _pumpHarness(tester);
       final setup = await pendingBtc(tester, harness, minFee: 12);
-      final floor = await feeFor(
+      await expectFeeUnknown(
         tester,
         harness,
         setup.handler,
         _FakeUtxoWallet.offline(),
       );
-      expect(floor, average);
+    });
+
+    testWidgets("a failing fee estimate blocks the send", (tester) async {
+      final harness = await _pumpHarness(tester);
+      final setup = await pendingBtc(tester, harness, minFee: 1500);
+      // No level is known, so every estimate throws.
+      await expectFeeUnknown(
+        tester,
+        harness,
+        setup.handler,
+        _FakeLevelWallet({}),
+      );
+    });
+
+    testWidgets("a zero fee estimate blocks the send", (tester) async {
+      final harness = await _pumpHarness(tester);
+      final setup = await pendingBtc(tester, harness, minFee: 1500);
+      await expectFeeUnknown(
+        tester,
+        harness,
+        setup.handler,
+        _FakeLevelWallet({1: 0, 2: 0, 3: 0}),
+      );
     });
 
     // base 10 gwei, fast 12 gwei, slow 10.5 gwei.
