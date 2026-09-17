@@ -36,6 +36,7 @@ import '../../../../utilities/format.dart';
 import '../../../../utilities/mining_payouts.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
+import '../../../../wallets/isar/models/wallet_info.dart';
 import '../../../../wallets/crypto_currency/coins/ethereum.dart';
 import '../../../../wallets/crypto_currency/coins/solana.dart';
 import '../../../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
@@ -62,6 +63,10 @@ typedef _GroupedTransactions = ({
   DateTime startDate,
   List<TransactionV2> transactions,
 });
+
+/// Marks the truncation notice inside the flattened row list, which otherwise
+/// uses a bare String for a month heading.
+const String _kTruncatedNotice = "\u0000truncated";
 
 class AllTransactionsV2View extends ConsumerStatefulWidget {
   const AllTransactionsV2View({
@@ -124,9 +129,7 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                     .getWallet(widget.walletId)
                     .transactionFilterOperation
               : ref.read(pCurrentTokenWallet)!.transactionFilterOperation,
-          sortBy: [
-            const SortProperty(property: "timestamp", sort: Sort.desc),
-          ],
+          sortBy: [const SortProperty(property: "timestamp", sort: Sort.desc)],
         )
         .findAll();
 
@@ -140,8 +143,7 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
     super.dispose();
   }
 
-  String get _title =>
-      widget.payoutsOnly ? "Mining payouts" : "Transactions";
+  String get _title => widget.payoutsOnly ? "Mining payouts" : "Transactions";
 
   // TODO: optimise search+filter
   List<TransactionV2> filter({
@@ -349,10 +351,7 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                   }
                 },
               ),
-              title: Text(
-                _title,
-                style: STextStyles.navBarTitle(context),
-              ),
+              title: Text(_title, style: STextStyles.navBarTitle(context)),
               actions: [
                 Padding(
                   padding: const EdgeInsets.only(
@@ -420,9 +419,9 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                             ? STextStyles.desktopTextExtraSmall(
                                 context,
                               ).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textFieldActiveText,
+                                color: Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.textFieldActiveText,
                                 height: 1.8,
                               )
                             : STextStyles.field(context),
@@ -446,9 +445,7 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                               ),
                               suffixIcon: _searchController.text.isNotEmpty
                                   ? Padding(
-                                      padding: const EdgeInsets.only(
-                                        right: 0,
-                                      ),
+                                      padding: const EdgeInsets.only(right: 0),
                                       child: UnconstrainedBox(
                                         child: Row(
                                           children: [
@@ -558,6 +555,27 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                           // month with many transactions doesn't build every
                           // card eagerly (this was the See-all lag).
                           final List<Object> rows = [];
+                          // A capped history has to say so HERE too.
+                          //
+                          // The wallet view carries a notice; this screen
+                          // carried none, so a miner who taps "at least 997
+                          // payouts" lands on a list that looks complete. The
+                          // payout card was changed to say "at least" for
+                          // exactly this reason and then handed off to a screen
+                          // that did not.
+                          //
+                          // No "showing X of Y" here. The recorded total counts
+                          // every transaction and this list counts payouts
+                          // only, so the two numbers do not belong in one
+                          // sentence. Saying the history is capped is the part
+                          // that is true.
+                          if (ref
+                                  .watch(pWalletInfo(walletId))
+                                  .otherData[WalletInfoKeys
+                                  .historyTruncatedTotal] !=
+                              null) {
+                            rows.add(_kTruncatedNotice);
+                          }
                           for (final m in monthlyList) {
                             rows.add(m.label);
                             rows.addAll(m.transactions);
@@ -567,6 +585,52 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                             itemCount: rows.length,
                             itemBuilder: (_, index) {
                               final row = rows[index];
+                              if (row is String && row == _kTruncatedNotice) {
+                                return Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    16,
+                                    4,
+                                    16,
+                                    12,
+                                  ),
+                                  child: RoundedWhiteContainer(
+                                    child: Row(
+                                      children: [
+                                        SvgPicture.asset(
+                                          Assets.svg.circleInfo,
+                                          width: 16,
+                                          height: 16,
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textSubtitle1,
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Text(
+                                            widget.payoutsOnly
+                                                ? "This wallet's history was "
+                                                      "capped while syncing, so "
+                                                      "older payouts are not "
+                                                      "listed. The balance is "
+                                                      "exact."
+                                                : "This wallet's history was "
+                                                      "capped while syncing, so "
+                                                      "older transactions are "
+                                                      "not listed. The balance "
+                                                      "is exact.",
+                                            style: STextStyles.w500_12(context)
+                                                .copyWith(
+                                                  color: Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .textSubtitle1,
+                                                ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }
                               if (row is String) {
                                 return Padding(
                                   padding: EdgeInsets.only(
