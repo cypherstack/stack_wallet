@@ -44,6 +44,7 @@ import '../../wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dar
 import '../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
+import '../../widgets/address_text.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -164,8 +165,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
 
     if (slatepackString == null) return;
     if (mounted) {
-      final wallet =
-          ref.read(pWallets).getWallet(walletId) as EpiccashWallet;
+      final wallet = ref.read(pWallets).getWallet(walletId) as EpiccashWallet;
 
       Exception? ex;
       final result = await showLoading(
@@ -546,10 +546,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
               Navigator.of(context).pop();
             },
           ),
-          title: Text(
-            "Receive",
-            style: STextStyles.navBarTitle(context),
-          ),
+          title: Text("Receive", style: STextStyles.navBarTitle(context)),
           actions: [
             Padding(
               padding: const EdgeInsets.only(top: 10, bottom: 10, right: 10),
@@ -785,11 +782,20 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                               Row(
                                 children: [
                                   Expanded(
-                                    child: Text(
+                                    // Ends accented so the address can be
+                                    // checked by eye against whatever the
+                                    // sender pasted. Nothing truncated: the
+                                    // middle is the part a poisoned lookalike
+                                    // cannot match, so hiding it is what makes
+                                    // the check worthless.
+                                    child: AddressText(
                                       address,
                                       style: STextStyles.itemSubtitle12(
                                         context,
                                       ),
+                                      accentColor: Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.infoItemIcons,
                                     ),
                                   ),
                                 ],

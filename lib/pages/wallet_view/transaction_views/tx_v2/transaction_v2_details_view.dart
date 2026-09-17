@@ -47,6 +47,7 @@ import '../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../../widgets/background.dart';
+import '../../../../widgets/address_text.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/custom_buttons/blue_text_button.dart';
@@ -867,6 +868,9 @@ class _TransactionV2DetailsViewState
                                                                       return OutputCard(
                                                                         address:
                                                                             addressOrContactName,
+                                                                        isAddress:
+                                                                            addressOrContactName ==
+                                                                            e,
                                                                         amount:
                                                                             data[i].amount,
                                                                         coin:
@@ -1691,11 +1695,16 @@ class OutputCard extends ConsumerWidget {
   const OutputCard({
     super.key,
     required this.address,
+    this.isAddress = true,
     required this.amount,
     required this.coin,
   });
 
   final String address;
+
+  /// False when [address] holds a contact's NAME instead. Accenting the ends
+  /// of "Alice" would say a comparison is available where none is.
+  final bool isAddress;
   final Amount amount;
   final CryptoCurrency coin;
 
@@ -1710,13 +1719,28 @@ class OutputCard extends ConsumerWidget {
               ? STextStyles.desktopTextExtraExtraSmall(context)
               : STextStyles.itemSubtitle(context),
         ),
-        SelectableText(
-          address,
-          style: Util.isDesktop
-              ? STextStyles.desktopTextExtraExtraSmall(context).copyWith(
-                  color: Theme.of(context).extension<StackColors>()!.textDark,
-                )
-              : STextStyles.itemSubtitle12(context),
+        Builder(
+          builder: (context) {
+            final style = Util.isDesktop
+                ? STextStyles.desktopTextExtraExtraSmall(context).copyWith(
+                    color: Theme.of(context).extension<StackColors>()!.textDark,
+                  )
+                : STextStyles.itemSubtitle12(context);
+            if (!isAddress) {
+              return SelectableText(address, style: style);
+            }
+            // Selectable, because copying one recipient out of a payout is a
+            // real thing to want, and rich, because the ends carry the check.
+            return SelectableText.rich(
+              AddressText.spanFor(
+                address,
+                style: style,
+                accentColor: Theme.of(
+                  context,
+                ).extension<StackColors>()!.infoItemIcons,
+              ),
+            );
+          },
         ),
         const SizedBox(height: 10),
         Row(
