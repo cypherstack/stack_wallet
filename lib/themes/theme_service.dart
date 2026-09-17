@@ -37,6 +37,12 @@ class ThemeService {
   // edit that does not move both numbers ships inside the APK and is then
   // ignored: the copy already in the database wins, and the change looks like
   // it silently did nothing.
+  // 42: no asset change. 40 and 41 replaced the BitFinite coin icon with a
+  //     mark I drew, which was wrong: BitFinite already has a logo and it is
+  //     the one that was there. Both are reverted, and because the update path
+  //     only fires when the number goes UP, reverting the content alone would
+  //     leave any install that received 40 or 41 stuck on it. 42 carries the
+  //     original icon back to those installs.
   // 27: coin.bitfinite #2F6BFF -> Brandkit blue-600 #0644F1
   // 28: accent_color_blue #2F6BFF -> #0644F1 (one brand blue across fills and
   //     accents; as text on white this also goes 4.50:1 -> 6.76:1)
@@ -96,7 +102,7 @@ class ThemeService {
   //     replaces. Registered in all three slots at once, and the bundled-
   //     theme fallback then serves it under external themes too, ending the
   //     teal-placeholder ₿ the externals painted BFX with.
-  static const _currentDefaultThemeVersion = 39;
+  static const _currentDefaultThemeVersion = 42;
   ThemeService._();
   static ThemeService? _instance;
   static ThemeService get instance => _instance ??= ThemeService._();
