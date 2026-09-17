@@ -36,9 +36,14 @@ import '../../../widgets/textfield_icon_button.dart';
 import '../../../widgets/wallet_info_row/sub_widgets/wallet_info_row_coin_icon.dart';
 
 class DesktopChooseAddressFromStack extends ConsumerStatefulWidget {
-  const DesktopChooseAddressFromStack({super.key, required this.coin});
+  const DesktopChooseAddressFromStack({
+    super.key,
+    required this.coin,
+    this.transparentOnly = false,
+  });
 
   final CryptoCurrency coin;
+  final bool transparentOnly;
 
   @override
   ConsumerState<DesktopChooseAddressFromStack> createState() =>
@@ -108,9 +113,9 @@ class _DesktopChooseFromStackState
               });
             },
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldActiveText,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldActiveText,
               height: 1.8,
             ),
             decoration:
@@ -167,9 +172,9 @@ class _DesktopChooseFromStackState
                 return Column(
                   children: [
                     RoundedWhiteContainer(
-                      borderColor: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.background,
+                      borderColor: Theme.of(context)
+                          .extension<StackColors>()!
+                          .background,
                       child: Center(
                         child: Text(
                           "No ${widget.coin.ticker.toUpperCase()} wallets",
@@ -191,8 +196,10 @@ class _DesktopChooseFromStackState
                 primary: false,
                 itemCount: walletIds.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 5),
-                itemBuilder: (context, index) =>
-                    _WalletRow(walletId: walletIds[index]),
+                itemBuilder: (context, index) => _WalletRow(
+                  walletId: walletIds[index],
+                  transparentOnly: widget.transparentOnly,
+                ),
               );
             },
           ),
@@ -245,9 +252,14 @@ class _BalanceDisplay extends ConsumerWidget {
 }
 
 class _WalletRow extends ConsumerWidget {
-  const _WalletRow({super.key, required this.walletId});
+  const _WalletRow({
+    super.key,
+    required this.walletId,
+    required this.transparentOnly,
+  });
 
   final String walletId;
+  final bool transparentOnly;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -267,9 +279,9 @@ class _WalletRow extends ConsumerWidget {
                   ref.watch(pWalletName(walletId)),
                   style: STextStyles.desktopTextExtraExtraSmall(context)
                       .copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textDark,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark,
                       ),
                 ),
               ],
@@ -315,78 +327,82 @@ class _WalletRow extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 10),
-          Row(
-            children: [
-              const SizedBox(
-                width: 12 + 32, // space + size of WalletInfoCoinIcon
-              ),
-              Text(
-                "Spark",
-                style: STextStyles.desktopTextExtraExtraSmall(context).copyWith(
-                  color: Theme.of(context).extension<StackColors>()!.textDark,
+          if (!transparentOnly)
+            Row(
+              children: [
+                const SizedBox(
+                  width: 12 + 32, // space + size of WalletInfoCoinIcon
                 ),
-              ),
-              const Spacer(),
-              _BalanceDisplay(walletId: walletId, balanceType: .private),
-              const SizedBox(width: 80),
-              CustomTextButton(
-                text: "Select wallet",
-                onTap: () async {
-                  Future<String?> _future() async {
-                    final wallet =
-                        ref.read(pWallets).getWallet(walletId)
-                            as SparkInterface;
+                Text(
+                  "Spark",
+                  style: STextStyles.desktopTextExtraExtraSmall(context)
+                      .copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark,
+                      ),
+                ),
+                const Spacer(),
+                _BalanceDisplay(walletId: walletId, balanceType: .private),
+                const SizedBox(width: 80),
+                CustomTextButton(
+                  text: "Select wallet",
+                  onTap: () async {
+                    Future<String?> _future() async {
+                      final wallet =
+                          ref.read(pWallets).getWallet(walletId)
+                              as SparkInterface;
 
-                    final sparkAddress = await wallet
-                        .getCurrentReceivingSparkAddress();
-                    if (sparkAddress != null) {
-                      return sparkAddress.value;
+                      final sparkAddress = await wallet
+                          .getCurrentReceivingSparkAddress();
+                      if (sparkAddress != null) {
+                        return sparkAddress.value;
+                      }
+
+                      return (await wallet.generateNextSparkAddress(
+                        saveToDB: true,
+                      )).value;
                     }
 
-                    return (await wallet.generateNextSparkAddress(
-                      saveToDB: true,
-                    )).value;
-                  }
+                    Exception? ex;
+                    final sparkAddress = await showLoading(
+                      context: context,
+                      message: "Fetching Spark address",
+                      rootNavigator: Util.isDesktop,
+                      delay: const Duration(milliseconds: 1200),
+                      whileFutureAlt: _future,
+                      onException: (e) => ex = e,
+                    );
 
-                  Exception? ex;
-                  final sparkAddress = await showLoading(
-                    context: context,
-                    message: "Fetching Spark address",
-                    rootNavigator: Util.isDesktop,
-                    delay: const Duration(milliseconds: 1200),
-                    whileFutureAlt: _future,
-                    onException: (e) => ex = e,
-                  );
-
-                  if (context.mounted) {
-                    if (ex != null) {
-                      await showDialog<void>(
-                        context: context,
-                        builder: (context) => StackOkDialog(
-                          title: "Error",
-                          message: ex
-                              .toString()
-                              .replaceFirst("Exception:", "")
-                              .trim(),
-                          maxWidth: 400,
-                          desktopPopRootNavigator: true,
-                        ),
-                      );
-                    } else {
-                      Navigator.of(context).pop(
-                        sparkAddress == null
-                            ? null
-                            : Tuple2(
-                                "${ref.read(pWalletName(walletId))} (Spark)",
-                                sparkAddress,
-                              ),
-                      );
+                    if (context.mounted) {
+                      if (ex != null) {
+                        await showDialog<void>(
+                          context: context,
+                          builder: (context) => StackOkDialog(
+                            title: "Error",
+                            message: ex
+                                .toString()
+                                .replaceFirst("Exception:", "")
+                                .trim(),
+                            maxWidth: 400,
+                            desktopPopRootNavigator: true,
+                          ),
+                        );
+                      } else {
+                        Navigator.of(context).pop(
+                          sparkAddress == null
+                              ? null
+                              : Tuple2(
+                                  "${ref.read(pWalletName(walletId))} (Spark)",
+                                  sparkAddress,
+                                ),
+                        );
+                      }
                     }
-                  }
-                },
-              ),
-            ],
-          ),
+                  },
+                ),
+              ],
+            ),
           const SizedBox(height: 10),
           Row(
             children: [

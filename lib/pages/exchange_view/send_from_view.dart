@@ -16,10 +16,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../app_config.dart';
+import '../../exceptions/exchange/exchange_exception.dart';
 import '../../models/exchange/response_objects/trade.dart';
 import '../../pages_desktop_specific/desktop_exchange/desktop_exchange_view.dart';
 import '../../providers/providers.dart';
 import '../../route_generator.dart';
+import '../../services/exchange/rosen/rosen_exchange.dart';
+import '../../services/exchange/rosen/rosen_funding.dart';
 import '../../services/exchange/trocador/trocador_exchange.dart';
 import '../../themes/coin_icon_provider.dart';
 import '../../themes/stack_colors.dart';
@@ -48,6 +51,7 @@ import '../../widgets/stack_dialog.dart';
 import '../home_view/home_view.dart';
 import '../send_view/sub_widgets/building_transaction_dialog.dart';
 import 'confirm_change_now_send.dart';
+import 'rosen_quote_dialog.dart';
 
 class SendFromView extends ConsumerStatefulWidget {
   const SendFromView({
@@ -95,7 +99,11 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
     final walletIds = ref
         .watch(pWallets)
         .wallets
-        .where((e) => e.info.coin == coin)
+        .where(
+          (e) => trade.exchangeName == RosenExchange.exchangeName
+              ? RosenFunding.canFund(e, trade)
+              : e.info.coin == coin,
+        )
         .map((e) => e.walletId)
         .toList();
 
@@ -106,9 +114,9 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
       builder: (child) {
         return Background(
           child: Scaffold(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () {
@@ -160,7 +168,9 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
             Row(
               children: [
                 Text(
-                  "You need to send ${ref.watch(pAmountFormatter(coin)).format(amount)}",
+                  trade.exchangeName == RosenExchange.exchangeName
+                      ? "You need to send ${trade.payInAmount} ${trade.payInCurrency}"
+                      : "You need to send ${ref.watch(pAmountFormatter(coin)).format(amount)}",
                   style: isDesktop
                       ? STextStyles.desktopTextExtraExtraSmall(context)
                       : STextStyles.itemSubtitle(context),
@@ -168,6 +178,21 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
               ],
             ),
             const SizedBox(height: 16),
+            if (trade.exchangeName == RosenExchange.exchangeName)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Text(
+                  coin is Firo
+                      ? "Rosen Bridge uses your transparent FIRO balance and includes the required bridge data."
+                      : "Select the Ethereum wallet holding rsFIRO. ETH is required for network fees; the rsFIRO balance is checked before confirmation.",
+                  style: STextStyles.itemSubtitle(context),
+                ),
+              ),
+            if (walletIds.isEmpty)
+              Text(
+                "No compatible wallets available",
+                style: STextStyles.itemSubtitle(context),
+              ),
             ConditionalParent(
               condition: !isDesktop,
               builder: (child) => Expanded(child: child),
@@ -220,16 +245,30 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
   late final String walletId;
   late final Amount amount;
   late final String address;
-  late final Trade trade;
+  late Trade trade;
+  bool _preparing = false;
 
-  Future<void> _send({bool? shouldSendPublicFiroFunds}) async {
+  Future<void> _send({
+    bool? shouldSendPublicFiroFunds,
+    bool refreshQuote = false,
+  }) async {
+    if (_preparing) return;
+    _preparing = true;
     final coin = ref.read(pWalletCoin(walletId));
+    bool wasCancelled = false;
+    bool isBuildingDialogOpen = false;
+    bool refreshRequested = false;
+
+    void closeBuildingDialog() {
+      if (!mounted || !isBuildingDialogOpen) return;
+      Navigator.of(context, rootNavigator: true).pop();
+      isBuildingDialogOpen = false;
+    }
 
     try {
-      bool wasCancelled = false;
-
       final wallet = ref.read(pWallets).getWallet(walletId);
 
+      isBuildingDialogOpen = true;
       unawaited(
         showDialog<dynamic>(
           context: context,
@@ -246,17 +285,30 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
               child: BuildingTransactionDialog(
                 coin: coin,
                 isSpark:
-                    wallet is FiroWallet && shouldSendPublicFiroFunds != true,
+                    trade.exchangeName != RosenExchange.exchangeName &&
+                    wallet is FiroWallet &&
+                    shouldSendPublicFiroFunds != true,
                 onCancel: () {
                   wasCancelled = true;
-
-                  Navigator.of(context).pop();
+                  // The mobile building dialog closes itself before this callback.
+                  if (Util.isDesktop) {
+                    closeBuildingDialog();
+                  } else {
+                    isBuildingDialogOpen = false;
+                  }
                 },
               ),
             );
           },
-        ),
+        ).whenComplete(() => isBuildingDialogOpen = false),
       );
+
+      if (refreshQuote) {
+        trade = await RosenFunding.refreshTrade(wallet: wallet, trade: trade);
+        if (!mounted) return;
+        ref.read(tradesServiceProvider).refresh();
+      }
+      if (wasCancelled || !mounted) return;
 
       // Currently most external wallets need to fully sync before they can
       // which will cause errors and things and stuff
@@ -279,7 +331,9 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
       );
 
       // if not firo then do normal send
-      if (shouldSendPublicFiroFunds == null) {
+      if (trade.exchangeName == RosenExchange.exchangeName) {
+        txDataFuture = RosenFunding.prepareSend(wallet: wallet, trade: trade);
+      } else if (shouldSendPublicFiroFunds == null) {
         final memo = coin is Stellar || coin is Solana
             ? trade.payInExtraId.isNotEmpty
                   ? trade.payInExtraId
@@ -329,9 +383,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
       if (!wasCancelled) {
         // pop building dialog
 
-        if (mounted) {
-          Navigator.of(context, rootNavigator: Util.isDesktop).pop();
-        }
+        closeBuildingDialog();
 
         txData = txData.copyWith(
           note:
@@ -340,7 +392,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
         );
 
         if (mounted) {
-          await Navigator.of(context).push(
+          final result = await Navigator.of(context).push<bool>(
             RouteGenerator.getRoute(
               shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
               builder: (_) => ConfirmChangeNowSendView(
@@ -358,42 +410,57 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
               ),
             ),
           );
+          refreshRequested = result == true;
         }
       }
     } catch (e, s) {
       Logging.instance.e("$e\n$s", error: e, stackTrace: s);
-      if (mounted) {
-        // pop building dialog
-        Navigator.of(context, rootNavigator: Util.isDesktop).pop();
-
-        await showDialog<dynamic>(
-          context: context,
-          useSafeArea: false,
-          barrierDismissible: true,
-          builder: (context) {
-            return StackDialog(
-              title: "Transaction failed",
-              message: e.toString(),
-              rightButton: TextButton(
-                style: Theme.of(context)
-                    .extension<StackColors>()!
-                    .getSecondaryEnabledButtonStyle(context),
-                child: Text(
-                  "Ok",
-                  style: STextStyles.button(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.buttonTextSecondary,
+      if (mounted && !wasCancelled) {
+        closeBuildingDialog();
+        if (e is ExchangeException &&
+            e.type == ExchangeExceptionType.quoteChanged) {
+          refreshRequested = await showRosenQuoteChangedDialog(context);
+        } else {
+          await showDialog<dynamic>(
+            context: context,
+            useSafeArea: false,
+            barrierDismissible: true,
+            builder: (context) {
+              return StackDialog(
+                title: "Transaction failed",
+                message: e.toString(),
+                rightButton: TextButton(
+                  style: Theme.of(context)
+                      .extension<StackColors>()!
+                      .getSecondaryEnabledButtonStyle(context),
+                  child: Text(
+                    "Ok",
+                    style: STextStyles.button(context).copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .buttonTextSecondary,
+                    ),
                   ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
                 ),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            );
-          },
-        );
+              );
+            },
+          );
+        }
       }
+    } finally {
+      closeBuildingDialog();
+      _preparing = false;
+    }
+    if (mounted && refreshRequested) {
+      unawaited(
+        _send(
+          shouldSendPublicFiroFunds: shouldSendPublicFiroFunds,
+          refreshQuote: true,
+        ),
+      );
     }
   }
 
@@ -425,11 +492,14 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (!trade.exchangeName.startsWith(TrocadorExchange.exchangeName))
+              if (!trade.exchangeName.startsWith(
+                    TrocadorExchange.exchangeName,
+                  ) &&
+                  trade.exchangeName != RosenExchange.exchangeName)
                 MaterialButton(
-                  splashColor: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.highlight,
+                  splashColor: Theme.of(context)
+                      .extension<StackColors>()!
+                      .highlight,
                   key: Key("walletsSheetItemButtonFiroPrivateKey_$walletId"),
                   padding: const EdgeInsets.all(0),
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -481,9 +551,9 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                             Assets.svg.chevronRight,
                             height: 14,
                             width: 7,
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.infoItemLabel,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .infoItemLabel,
                           ),
                         ],
                       ),
@@ -491,9 +561,9 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                   ),
                 ),
               MaterialButton(
-                splashColor: Theme.of(
-                  context,
-                ).extension<StackColors>()!.highlight,
+                splashColor: Theme.of(context)
+                    .extension<StackColors>()!
+                    .highlight,
                 key: Key("walletsSheetItemButtonFiroPublicKey_$walletId"),
                 padding: const EdgeInsets.all(0),
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -524,7 +594,9 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "Use public balance",
+                              trade.exchangeName == RosenExchange.exchangeName
+                                  ? "Use transparent balance"
+                                  : "Use public balance",
                               style: STextStyles.itemSubtitle(context),
                             ),
                             Text(
@@ -543,9 +615,9 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                           Assets.svg.chevronRight,
                           height: 14,
                           width: 7,
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.infoItemLabel,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .infoItemLabel,
                         ),
                       ],
                     ),
@@ -606,11 +678,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                     if (!isFiro) const SizedBox(height: 2),
                     if (!isFiro)
                       Text(
-                        ref
-                            .watch(pAmountFormatter(coin))
-                            .format(
-                              ref.watch(pWalletBalance(walletId)).spendable,
-                            ),
+                        "${ref.watch(pAmountFormatter(coin)).format(ref.watch(pWalletBalance(walletId)).spendable)}${trade.exchangeName == RosenExchange.exchangeName ? " (network fees)" : ""}",
                         style: STextStyles.itemSubtitle(context),
                       ),
                   ],

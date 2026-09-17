@@ -15,19 +15,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app_config.dart';
+import '../../../exceptions/exchange/exchange_exception.dart';
 import '../../../models/exchange/incomplete_exchange.dart';
 import '../../../models/exchange/response_objects/trade.dart';
+import '../../../pages/exchange_view/rosen_quote_dialog.dart';
 import '../../../pages/exchange_view/send_from_view.dart';
 import '../../../providers/exchange/exchange_form_state_provider.dart';
 import '../../../providers/global/trades_service_provider.dart';
 import '../../../providers/global/wallets_provider.dart';
 import '../../../route_generator.dart';
 import '../../../services/exchange/exchange_response.dart';
+import '../../../services/exchange/rosen/rosen_exchange.dart';
+import '../../../services/exchange/rosen/rosen_funding.dart';
 import '../../../services/notifications_api.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/enums/exchange_rate_type_enum.dart';
+import '../../../utilities/show_loading.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -64,6 +69,7 @@ class StepScaffold extends ConsumerStatefulWidget {
 class _StepScaffoldState extends ConsumerState<StepScaffold> {
   int currentStep = 1;
   bool enableNext = false;
+  bool _creating = false;
 
   late final Duration duration;
 
@@ -74,113 +80,143 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
   }
 
   Future<bool> createTrade() async {
-    unawaited(
-      showDialog<void>(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => WillPopScope(
-          onWillPop: () async => false,
-          child: Container(
-            color: Theme.of(
-              context,
-            ).extension<StackColors>()!.overlay.withOpacity(0.6),
-            child: const CustomLoadingOverlay(
-              message: "Creating a trade",
-              eventBus: null,
+    if (_creating) return false;
+    setState(() => _creating = true);
+    try {
+      unawaited(
+        showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => WillPopScope(
+            onWillPop: () async => false,
+            child: Container(
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .overlay
+                  .withOpacity(0.6),
+              child: const CustomLoadingOverlay(
+                message: "Creating a trade",
+                eventBus: null,
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
 
-    final ExchangeResponse<Trade> response = await ref
-        .read(efExchangeProvider)
-        .createTrade(
-          from: ref.read(desktopExchangeModelProvider)!.sendTicker,
-          fromNetwork: ref
-              .read(desktopExchangeModelProvider)!
-              .sendCurrency
-              .network,
-          to: ref.read(desktopExchangeModelProvider)!.receiveTicker,
-          toNetwork: ref
-              .read(desktopExchangeModelProvider)!
-              .receiveCurrency
-              .network,
-          fixedRate:
-              ref.read(desktopExchangeModelProvider)!.rateType !=
-              ExchangeRateType.estimated,
-          amount: ref.read(desktopExchangeModelProvider)!.reversed
-              ? ref.read(desktopExchangeModelProvider)!.receiveAmount
-              : ref.read(desktopExchangeModelProvider)!.sendAmount,
-          addressTo: ref.read(desktopExchangeModelProvider)!.recipientAddress!,
-          extraId: null,
-          addressRefund: ref.read(desktopExchangeModelProvider)!.refundAddress!,
-          refundExtraId: "",
-          estimate: ref.read(desktopExchangeModelProvider)!.estimate,
-          reversed: ref.read(desktopExchangeModelProvider)!.reversed,
-        );
+      final ExchangeResponse<Trade> response = await ref
+          .read(efExchangeProvider)
+          .createTrade(
+            from: ref.read(desktopExchangeModelProvider)!.sendTicker,
+            fromNetwork: ref
+                .read(desktopExchangeModelProvider)!
+                .sendCurrency
+                .network,
+            to: ref.read(desktopExchangeModelProvider)!.receiveTicker,
+            toNetwork: ref
+                .read(desktopExchangeModelProvider)!
+                .receiveCurrency
+                .network,
+            fixedRate:
+                ref.read(desktopExchangeModelProvider)!.rateType !=
+                ExchangeRateType.estimated,
+            amount: ref.read(desktopExchangeModelProvider)!.reversed
+                ? ref.read(desktopExchangeModelProvider)!.receiveAmount
+                : ref.read(desktopExchangeModelProvider)!.sendAmount,
+            addressTo: ref
+                .read(desktopExchangeModelProvider)!
+                .recipientAddress!,
+            extraId: null,
+            addressRefund: ref
+                .read(desktopExchangeModelProvider)!
+                .refundAddress!,
+            refundExtraId: "",
+            estimate: ref.read(desktopExchangeModelProvider)!.estimate,
+            reversed: ref.read(desktopExchangeModelProvider)!.reversed,
+          );
 
-    if (response.value == null) {
+      if (response.value == null) {
+        if (mounted) {
+          Navigator.of(context).pop();
+
+          String? message;
+          if (response.exception?.type == ExchangeExceptionType.quoteChanged) {
+            final refresh = await showRosenQuoteChangedDialog(context);
+            if (!refresh || !mounted) return false;
+            final refreshed = await showLoading(
+              whileFuture: refreshRosenEstimate(
+                ref.read(desktopExchangeModelProvider)!,
+              ),
+              context: context,
+              rootNavigator: true,
+              message: 'Updating exchange rate',
+              onException: (error) => message = error.toString(),
+            );
+            if (!mounted) return false;
+            if (refreshed != null) {
+              ref.read(ssss.notifier).state = refreshed;
+              return false;
+            }
+          }
+          if (response.exception != null) {
+            final detail = message ?? response.exception!.toString();
+            message = detail;
+            // TODO: better errors
+            if (detail.startsWith("FormatException:") &&
+                detail.contains("<html>")) {
+              message = "${ref.read(efExchangeProvider).name} server error";
+            }
+          }
+
+          unawaited(
+            showDialog<void>(
+              context: context,
+              barrierDismissible: true,
+              builder: (_) => SimpleDesktopDialog(
+                title: "Failed to create trade",
+                message: message ?? "",
+              ),
+            ),
+          );
+        }
+        return false;
+      }
+
+      // save trade to hive
+      await ref
+          .read(tradesServiceProvider)
+          .add(trade: response.value!, shouldNotifyListeners: true);
+
+      String status = response.value!.status;
+
+      ref.read(desktopExchangeModelProvider)!.trade = response.value!;
+
+      // extra info if status is waiting
+      if (status == "Waiting") {
+        status += " for deposit";
+      }
+
       if (mounted) {
         Navigator.of(context).pop();
-
-        String? message;
-        if (response.exception != null) {
-          message = response.exception!.toString();
-          // TODO: better errors
-          if (message.startsWith("FormatException:") &&
-              message.contains("<html>")) {
-            message = "${ref.read(efExchangeProvider).name} server error";
-          }
-        }
-
-        unawaited(
-          showDialog<void>(
-            context: context,
-            barrierDismissible: true,
-            builder: (_) => SimpleDesktopDialog(
-              title: "Failed to create trade",
-              message: message ?? "",
-            ),
-          ),
-        );
       }
-      return false;
+
+      unawaited(
+        NotificationApi.showNotification(
+          changeNowId: ref.read(desktopExchangeModelProvider)!.trade!.tradeId,
+          title: status,
+          body:
+              "Trade ID ${ref.read(desktopExchangeModelProvider)!.trade!.tradeId}",
+          walletId: "",
+          iconAssetName: Assets.svg.arrowRotate,
+          date: ref.read(desktopExchangeModelProvider)!.trade!.timestamp,
+          shouldWatchForUpdates: true,
+          coinName: "coinName",
+        ),
+      );
+
+      return true;
+    } finally {
+      if (mounted) setState(() => _creating = false);
     }
-
-    // save trade to hive
-    await ref
-        .read(tradesServiceProvider)
-        .add(trade: response.value!, shouldNotifyListeners: true);
-
-    String status = response.value!.status;
-
-    ref.read(desktopExchangeModelProvider)!.trade = response.value!;
-
-    // extra info if status is waiting
-    if (status == "Waiting") {
-      status += " for deposit";
-    }
-
-    if (mounted) {
-      Navigator.of(context).pop();
-    }
-
-    unawaited(
-      NotificationApi.showNotification(
-        changeNowId: ref.read(desktopExchangeModelProvider)!.trade!.tradeId,
-        title: status,
-        body:
-            "Trade ID ${ref.read(desktopExchangeModelProvider)!.trade!.tradeId}",
-        walletId: "",
-        iconAssetName: Assets.svg.arrowRotate,
-        date: ref.read(desktopExchangeModelProvider)!.trade!.timestamp,
-        shouldWatchForUpdates: true,
-        coinName: "coinName",
-      ),
-    );
-
-    return true;
     // if (mounted) {
     //   unawaited(
     //     showDialog<void>(
@@ -212,12 +248,16 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
   void sendFromStack() {
     final trade = ref.read(desktopExchangeModelProvider)!.trade!;
     final address = trade.payInAddress;
-    final coin =
-        AppConfig.getCryptoCurrencyForTicker(trade.payInCurrency) ??
-        AppConfig.getCryptoCurrencyByPrettyName(trade.payInCurrency);
-    final amount = Decimal.parse(
-      trade.payInAmount,
-    ).toAmount(fractionDigits: coin.fractionDigits);
+    final isRosen = trade.exchangeName == RosenExchange.exchangeName;
+    final coin = isRosen
+        ? RosenFunding.sourceCoin(trade)
+        : AppConfig.getCryptoCurrencyForTicker(trade.payInCurrency) ??
+              AppConfig.getCryptoCurrencyByPrettyName(trade.payInCurrency);
+    final amount = Decimal.parse(trade.payInAmount).toAmount(
+      fractionDigits: isRosen
+          ? RosenFunding.fractionDigits(trade)
+          : coin.fractionDigits,
+    );
 
     showDialog<void>(
       context: context,
@@ -254,16 +294,22 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
   Widget build(BuildContext context) {
     final model = ref.watch(desktopExchangeModelProvider);
 
+    final isRosen = model?.trade?.exchangeName == RosenExchange.exchangeName;
+
     final bool canSendFromStack;
     if (currentStep != 4) {
       // set to true anyways to show back button
       canSendFromStack = true;
     } else {
-      canSendFromStack =
-          Util.isWalletCoinAndCanSendWithoutWalletOpenedIgnoringXMR(
-            model?.sendTicker ?? "",
-            ref.read(pWallets).wallets,
-          );
+      canSendFromStack = isRosen
+          ? ref
+                .read(pWallets)
+                .wallets
+                .any((wallet) => RosenFunding.canFund(wallet, model!.trade!))
+          : Util.isWalletCoinAndCanSendWithoutWalletOpenedIgnoringXMR(
+              model?.sendTicker ?? "",
+              ref.read(pWallets).wallets,
+            );
     }
 
     return Column(
@@ -364,7 +410,7 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
                     ),
                     secondChild: PrimaryButton(
                       label: "Confirm",
-                      enabled: currentStep != 2 ? true : enableNext,
+                      enabled: !_creating && (currentStep != 2 || enableNext),
                       buttonHeight: ButtonHeight.l,
                       onPressed: () async {
                         if (currentStep == 3) {
@@ -377,54 +423,63 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
                       },
                     ),
                   ),
-                  secondChild: PrimaryButton(
-                    label: "Show QR code",
-                    enabled: currentStep != 2 ? true : enableNext,
-                    buttonHeight: ButtonHeight.l,
-                    onPressed: () {
-                      showDialog<dynamic>(
-                        context: context,
-                        barrierColor: Colors.transparent,
-                        barrierDismissible: true,
-                        builder: (_) {
-                          return DesktopDialog(
-                            maxHeight: 720,
-                            maxWidth: 720,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Text(
-                                  "Send ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendAmount.toStringAsFixed(8)))} ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker))} to this address",
-                                  style: STextStyles.desktopH3(context),
-                                ),
-                                const SizedBox(height: 48),
-                                Center(
-                                  child: QR(
-                                    // TODO: grab coin uri scheme from somewhere
-                                    // data: "${coin.uriScheme}:$receivingAddress",
-                                    data: ref.watch(
-                                      desktopExchangeModelProvider.select(
-                                        (value) => value!.trade!.payInAddress,
+                  secondChild: isRosen
+                      ? PrimaryButton(
+                          label: "Done",
+                          buttonHeight: ButtonHeight.l,
+                          onPressed: () =>
+                              Navigator.of(context, rootNavigator: true).pop(),
+                        )
+                      : PrimaryButton(
+                          label: "Show QR code",
+                          enabled: currentStep != 2 ? true : enableNext,
+                          buttonHeight: ButtonHeight.l,
+                          onPressed: () {
+                            showDialog<dynamic>(
+                              context: context,
+                              barrierColor: Colors.transparent,
+                              barrierDismissible: true,
+                              builder: (_) {
+                                return DesktopDialog(
+                                  maxHeight: 720,
+                                  maxWidth: 720,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        "Send ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendAmount.toStringAsFixed(8)))} ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker))} to this address",
+                                        style: STextStyles.desktopH3(context),
                                       ),
-                                    ),
-                                    size: 290,
+                                      const SizedBox(height: 48),
+                                      Center(
+                                        child: QR(
+                                          // TODO: grab coin uri scheme from somewhere
+                                          // data: "${coin.uriScheme}:$receivingAddress",
+                                          data: ref.watch(
+                                            desktopExchangeModelProvider.select(
+                                              (value) =>
+                                                  value!.trade!.payInAddress,
+                                            ),
+                                          ),
+                                          size: 290,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 48),
+                                      SecondaryButton(
+                                        label: "Cancel",
+                                        width: 310,
+                                        buttonHeight: ButtonHeight.l,
+                                        onPressed: Navigator.of(context).pop,
+                                      ),
+                                    ],
                                   ),
-                                ),
-                                const SizedBox(height: 48),
-                                SecondaryButton(
-                                  label: "Cancel",
-                                  width: 310,
-                                  buttonHeight: ButtonHeight.l,
-                                  onPressed: Navigator.of(context).pop,
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
                 ),
               ),
             ],

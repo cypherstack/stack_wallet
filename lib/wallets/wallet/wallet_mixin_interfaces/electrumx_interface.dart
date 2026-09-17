@@ -34,6 +34,7 @@ import '../impl/firo_wallet.dart';
 import '../impl/peercoin_wallet.dart';
 import '../intermediate/bip39_hd_wallet.dart';
 import 'cpfp_interface.dart';
+import 'firo_op_return.dart';
 import 'mweb_interface.dart';
 import 'paynym_interface.dart';
 import 'rbf_interface.dart';
@@ -746,7 +747,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
     final coinlib.CoinSelection selection = coinlib.CoinSelection.optimal(
       candidates: candidates,
-      recipients: [recipientOutput],
+      recipients: [recipientOutput, ?_opReturnOutput(txData)],
       changeProgram: changeProgram,
       feePerKb: feePerKb,
       minFee: minFee,
@@ -898,12 +899,22 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     }
   }
 
+  coinlib.Output? _opReturnOutput(TxData txData) {
+    final hex = txData.opReturnData;
+    if (hex == null || hex.isEmpty) return null;
+    if (cryptoCurrency is! Firo) {
+      throw UnsupportedError('OP_RETURN sends are only supported for Firo');
+    }
+    return firoOpReturnOutput(hex);
+  }
+
   /// Builds and signs a transaction
   Future<TxData> buildTransaction({
     required TxData txData,
     required List<BaseInput> inputsWithKeys,
   }) async {
     Logging.instance.d("Starting buildTransaction ----------");
+    final opReturnOutput = _opReturnOutput(txData);
 
     // temp tx data to show in gui while waiting for real data from server
     final List<InputV2> tempInputs = [];
@@ -1061,62 +1072,16 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       );
     }
 
-    // Add OP_RETURN output if provided (for Rosen Bridge and other protocols)
-    // Currently only supported for Firo
-    if (cryptoCurrency is Firo &&
-        txData.opReturnData != null &&
-        txData.opReturnData!.isNotEmpty) {
-      try {
-        final opReturnBytes = txData.opReturnData!.toUint8ListFromHex;
-
-        // Validate OP_RETURN size (Bitcoin/Firo limit is 80 bytes)
-        if (opReturnBytes.length > 80) {
-          throw Exception(
-            "OP_RETURN data exceeds 80 byte limit: ${opReturnBytes.length} bytes",
-          );
-        }
-
-        // Encode push data: OP_PUSHDATA1 (0x4c) for 76-80 bytes, direct length otherwise
-        final pushData = opReturnBytes.length <= 75
-            ? Uint8List.fromList([opReturnBytes.length, ...opReturnBytes])
-            : Uint8List.fromList([
-                0x4c,
-                opReturnBytes.length,
-                ...opReturnBytes,
-              ]);
-
-        final opReturnScript = Uint8List.fromList([
-          0x6a, // OP_RETURN opcode
-          ...pushData,
-        ]);
-
-        final opReturnOutput = coinlib.Output.fromScriptBytes(
-          BigInt.zero, // OP_RETURN outputs have 0 value
-          opReturnScript,
-        );
-
-        clTx = clTx.addOutput(opReturnOutput);
-
-        Logging.instance.i(
-          "Added OP_RETURN output with ${opReturnBytes.length} bytes of data",
-        );
-
-        tempOutputs.add(
-          OutputV2.isarCantDoRequiredInDefaultConstructor(
-            scriptPubKeyHex: opReturnScript.toHex,
-            valueStringSats: "0",
-            addresses: [],
-            walletOwns: false,
-          ),
-        );
-      } catch (e, s) {
-        Logging.instance.e(
-          "Failed to add OP_RETURN output",
-          error: e,
-          stackTrace: s,
-        );
-        throw Exception("Invalid OP_RETURN data: $e");
-      }
+    if (opReturnOutput != null) {
+      clTx = clTx.addOutput(opReturnOutput);
+      tempOutputs.add(
+        OutputV2.isarCantDoRequiredInDefaultConstructor(
+          scriptPubKeyHex: opReturnOutput.scriptPubKey.toHex,
+          valueStringSats: "0",
+          addresses: [],
+          walletOwns: false,
+        ),
+      );
     }
     if (isMweb) {
       if (hasNonWitnessInput) {
@@ -2046,13 +2011,17 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
   }
 
   @override
-  Future<TxData> confirmSend({required TxData txData}) async {
+  Future<TxData> confirmSend({
+    required TxData txData,
+    void Function(String txid)? onBroadcast,
+  }) async {
     try {
       Logging.instance.d("confirmSend txData: $txData");
 
       final txHash = await electrumXClient.broadcastTransaction(
         rawTx: txData.raw!,
       );
+      onBroadcast?.call(txHash);
       Logging.instance.d("Sent txHash: $txHash");
 
       txData = txData.copyWith(
@@ -2271,10 +2240,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
   }
 
   @override
-  Future<String> signMessage(
-    final String message, {
-    required final Address address,
-  }) async {
+  Future<String> signMessage(String message, {required Address address}) async {
     if (isViewOnly) {
       throw Exception("Cannot sign a message in a view only wallet");
     }
@@ -2295,9 +2261,9 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
   @override
   Future<bool> verifyMessage(
-    final String message, {
-    required final String address,
-    required final String signature,
+    String message, {
+    required String address,
+    required String signature,
   }) async {
     final signed = coinlib.MessageSignature.fromBase64(signature);
 

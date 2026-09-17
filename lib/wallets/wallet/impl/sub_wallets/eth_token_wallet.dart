@@ -269,11 +269,15 @@ class EthTokenWallet extends Wallet {
   }
 
   @override
-  Future<TxData> confirmSend({required TxData txData}) async {
+  Future<TxData> confirmSend({
+    required TxData txData,
+    void Function(String txid)? onBroadcast,
+  }) async {
     try {
       return await ethWallet.confirmSend(
         txData: txData,
         prepareTempTx: _prepareTempTx,
+        onBroadcast: onBroadcast,
       );
     } catch (e) {
       // rethrow to pass error in alert
