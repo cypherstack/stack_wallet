@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar_community/isar.dart';
 
+import '../../../app_config.dart';
 import '../../../db/isar/main_db.dart';
 import '../../../models/isar/models/ethereum/eth_contract.dart';
 import '../../../models/isar/models/solana/sol_contract.dart';
@@ -80,6 +81,7 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
   final List<AddTokenListElementData> tokenEntities = [];
 
   final bool isDesktop = Util.isDesktop;
+  final bool isCampfire = AppConfig.appName == "Campfire";
 
   List<AddTokenListElementData> filter(
     String text,
@@ -244,6 +246,13 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
     _searchFocusNode = FocusNode();
 
     final wallet = ref.read(pWallets).getWallet(widget.walletId);
+    final walletContracts = ref.read(pWalletTokenAddresses(widget.walletId));
+    final shouldMarkAsSelectedContracts = [
+      ...walletContracts,
+      ...(widget.contractsToMarkSelected ?? []),
+    ];
+    final selectedContractAddresses =
+        shouldMarkAsSelectedContracts.map((e) => e.toLowerCase()).toSet();
 
     if (wallet is SolanaWallet) {
       final contracts = MainDB.instance
@@ -266,29 +275,39 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
           .getEthContracts()
           .sortByName()
           .findAllSync();
+      final defaults = DefaultTokens.forApp(AppConfig.appName);
+      final existingAddresses =
+          contracts.map((e) => e.address.toLowerCase()).toSet();
+      final missingDefaults =
+          defaults
+              .where(
+                (token) => existingAddresses.add(token.address.toLowerCase()),
+              )
+              .toList();
 
-      if (contracts.isEmpty) {
-        contracts.addAll(DefaultTokens.list);
+      if (missingDefaults.isNotEmpty) {
+        contracts.addAll(missingDefaults);
         MainDB.instance
-            .putEthContracts(contracts)
+            .putEthContracts(missingDefaults)
             .then(
               (_) => ref.read(priceAnd24hChangeNotifierProvider).updatePrice(),
             );
       }
 
+      contracts.retainWhere(
+        (token) =>
+            DefaultTokens.isAllowedForApp(AppConfig.appName, token) ||
+            selectedContractAddresses.contains(token.address.toLowerCase()),
+      );
+
       tokenEntities.addAll(contracts.map((e) => AddTokenListElementData(e)));
     }
 
-    // Get token addresses.
-    final walletContracts = ref.read(pWalletTokenAddresses(widget.walletId));
-
-    final shouldMarkAsSelectedContracts = [
-      ...walletContracts,
-      ...(widget.contractsToMarkSelected ?? []),
-    ];
-
     for (final e in tokenEntities) {
-      e.selected = shouldMarkAsSelectedContracts.contains(e.token.address);
+      e.selected =
+          wallet is EthereumWallet
+              ? selectedContractAddresses.contains(e.token.address.toLowerCase())
+              : shouldMarkAsSelectedContracts.contains(e.token.address);
     }
 
     super.initState();
@@ -318,7 +337,7 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
               walletName,
               style: STextStyles.desktopSubtitleH2(context),
             ),
-            trailing: widget.contractsToMarkSelected == null
+            trailing: widget.contractsToMarkSelected == null && !isCampfire
                 ? Padding(
                     padding: const EdgeInsets.only(right: 24),
                     child: SizedBox(
@@ -410,14 +429,15 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
                   padding: const EdgeInsets.symmetric(horizontal: 32),
                   child: Row(
                     children: [
-                      Expanded(
-                        child: SecondaryButton(
-                          label: "Add custom token",
-                          buttonHeight: ButtonHeight.l,
-                          onPressed: _addToken,
+                      if (!isCampfire)
+                        Expanded(
+                          child: SecondaryButton(
+                            label: "Add custom token",
+                            buttonHeight: ButtonHeight.l,
+                            onPressed: _addToken,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 16),
+                      if (!isCampfire) const SizedBox(width: 16),
                       Expanded(
                         child: PrimaryButton(
                           label: "Done",
@@ -526,28 +546,29 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
               },
             ),
             actions: [
-              Padding(
-                padding: const EdgeInsets.only(top: 10, bottom: 10, right: 20),
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: AppBarIconButton(
-                    size: 36,
-                    shadows: const [],
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.background,
-                    icon: SvgPicture.asset(
-                      Assets.svg.circlePlusFilled,
+              if (!isCampfire)
+                Padding(
+                  padding: const EdgeInsets.only(top: 10, bottom: 10, right: 20),
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: AppBarIconButton(
+                      size: 36,
+                      shadows: const [],
                       color: Theme.of(
                         context,
-                      ).extension<StackColors>()!.topNavIconPrimary,
-                      width: 20,
-                      height: 20,
+                      ).extension<StackColors>()!.background,
+                      icon: SvgPicture.asset(
+                        Assets.svg.circlePlusFilled,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.topNavIconPrimary,
+                        width: 20,
+                        height: 20,
+                      ),
+                      onPressed: _addToken,
                     ),
-                    onPressed: _addToken,
                   ),
                 ),
-              ),
             ],
           ),
           body: SafeArea(
@@ -620,7 +641,7 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
                       child: AddTokenList(
                         walletId: widget.walletId,
                         items: filter(_searchTerm, tokenEntities),
-                        addFunction: _addToken,
+                        addFunction: isCampfire ? null : _addToken,
                       ),
                     ),
                     const SizedBox(height: 16),

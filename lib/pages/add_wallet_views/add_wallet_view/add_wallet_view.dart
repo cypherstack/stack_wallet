@@ -178,16 +178,29 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
     if (AppConfig.coins.whereType<Ethereum>().isNotEmpty) {
       final contracts =
           MainDB.instance.getEthContracts().sortByName().findAllSync();
+      final defaults = DefaultTokens.forApp(AppConfig.appName);
+      final existingAddresses =
+          contracts.map((e) => e.address.toLowerCase()).toSet();
+      final missingDefaults =
+          defaults
+              .where(
+                (token) => existingAddresses.add(token.address.toLowerCase()),
+              )
+              .toList();
 
-      if (contracts.isEmpty) {
-        contracts.addAll(DefaultTokens.list);
+      if (missingDefaults.isNotEmpty) {
+        contracts.addAll(missingDefaults);
         MainDB.instance
-            .putEthContracts(contracts)
+            .putEthContracts(missingDefaults)
             .then(
               (value) =>
                   ref.read(priceAnd24hChangeNotifierProvider).updatePrice(),
             );
       }
+
+      contracts.retainWhere(
+        (token) => DefaultTokens.isAllowedForApp(AppConfig.appName, token),
+      );
 
       tokenEntities.addAll(contracts.map((e) => EthTokenEntity(e)));
     }
@@ -358,9 +371,12 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                                   entities: filter(_searchTerm, tokenEntities),
                                   initialState: ExpandableState.expanded,
                                   animationDurationMultiplier: 0.5,
-                                  trailing: AddCustomTokenSelector(
-                                    addFunction: _addToken,
-                                  ),
+                                  trailing:
+                                      AppConfig.appName == "Campfire"
+                                          ? null
+                                          : AddCustomTokenSelector(
+                                            addFunction: _addToken,
+                                          ),
                                 ),
                               if (solTokenEntities.isNotEmpty)
                                 ExpandingSubListItem(
