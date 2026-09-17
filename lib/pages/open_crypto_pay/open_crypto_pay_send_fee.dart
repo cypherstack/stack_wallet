@@ -191,14 +191,16 @@ Future<OpenCryptoPaySendFee?> _evmSendFee(
       )) {
     return null;
   }
-  // The priority fee tops the base fee up to the minimum gas price.
+  // The priority fee tops the base fee up to the minimum gas price; the cap
+  // gets the same base fee headroom as the presets.
   var priorityWei = minWei - fees.suggestBaseFee;
   if (priorityWei.isNegative) priorityWei = BigInt.zero;
+  final maxFeeWei = fees.suggestBaseFee * BigInt.two + priorityWei;
   return (
     feeRateType: FeeRateType.custom,
     satsPerVByte: chosen.satsPerVByte,
     ethFee: EthEIP1559Fee(
-      maxFeePerGasGwei: gwei(minWei),
+      maxFeePerGasGwei: gwei(maxFeeWei),
       maxPriorityFeePerGasGwei: gwei(priorityWei),
       gasLimit:
           chosen.ethFee?.gasLimit ??

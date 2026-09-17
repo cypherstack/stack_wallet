@@ -1163,7 +1163,7 @@ void main() {
         );
         expect(floor!.feeRateType, FeeRateType.custom);
         final fee = floor.ethFee!;
-        expect(fee.maxFeePerGasWei, gwei * BigInt.from(11));
+        expect(fee.maxFeePerGasWei, gwei * BigInt.from(21));
         expect(fee.maxPriorityFeePerGasWei, gwei);
         expect(fee.gasLimit, kEthereumTokenMinGasLimit);
       },
@@ -1188,7 +1188,7 @@ void main() {
         ),
       );
       final fee = floor!.ethFee!;
-      expect(fee.maxFeePerGasWei, gwei * BigInt.from(11));
+      expect(fee.maxFeePerGasWei, gwei * BigInt.from(21));
       expect(fee.maxPriorityFeePerGasWei, gwei);
       expect(fee.gasLimit, 90000);
     });
@@ -1226,7 +1226,7 @@ void main() {
       );
       expect(accepted!.feeRateType, FeeRateType.custom);
       final fee = accepted.ethFee!;
-      expect(fee.maxFeePerGasWei, gwei * BigInt.from(30));
+      expect(fee.maxFeePerGasWei, gwei * BigInt.from(40));
       expect(fee.maxPriorityFeePerGasWei, gwei * BigInt.from(20));
       expect(fee.gasLimit, kEthereumMinGasLimit);
     });
