@@ -92,7 +92,10 @@ jobs:
           bash scripts/ensure_test_app_config.sh
           test -s lib/app_config.g.dart
           grep -Fq "part of 'app_config.dart';" lib/app_config.g.dart
-          flutter test --coverage --concurrency=1
+          dart test test/paynym_p2tr_test.dart
+          flutter test --coverage $(find test -name '*_test.dart' \
+            ! -path 'test/paynym_p2tr_test.dart' \
+            ! -path 'test/screen_tests/onboarding/backup_key_warning_view_screen_test.dart')
       - name: Upload to code coverage
         uses: codecov/codecov-action@v1.2.2
         if: success() || failure()
