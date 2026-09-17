@@ -93,7 +93,7 @@ jobs:
           test -s lib/app_config.g.dart
           grep -Fq "part of 'app_config.dart';" lib/app_config.g.dart
           dart test test/paynym_p2tr_test.dart
-          flutter test --coverage $(find test -name '*_test.dart' \
+          timeout --kill-after=1m 20m flutter test --coverage --reporter expanded $(find test -name '*_test.dart' \
             ! -path 'test/paynym_p2tr_test.dart' \
             ! -path 'test/screen_tests/onboarding/backup_key_warning_view_screen_test.dart')
       - name: Upload to code coverage
