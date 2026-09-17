@@ -19,6 +19,7 @@ import '../../app_config.dart';
 import '../../exceptions/exchange/exchange_exception.dart';
 import '../../models/exchange/response_objects/trade.dart';
 import '../../pages_desktop_specific/desktop_exchange/desktop_exchange_view.dart';
+import '../../providers/global/trades_service_provider.dart';
 import '../../providers/providers.dart';
 import '../../route_generator.dart';
 import '../../services/exchange/rosen/rosen_exchange.dart';
