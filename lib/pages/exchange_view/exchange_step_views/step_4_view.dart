@@ -27,6 +27,7 @@ import '../../../utilities/amount/amount_formatter.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/clipboard_interface.dart';
 import '../../../utilities/constants.dart';
+import '../../../utilities/default_eth_tokens.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/text_styles.dart';
@@ -665,7 +666,7 @@ class _SendFromButton extends ConsumerWidget {
                   coin: coin,
                   amount: model.sendAmount.toAmount(
                     fractionDigits: isRosen
-                        ? RosenFunding.fractionDigits(model.trade!)
+                        ? DefaultTokens.rsFiro.decimals
                         : coin.fractionDigits,
                   ),
                   address: model.trade!.payInAddress,

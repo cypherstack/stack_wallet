@@ -31,6 +31,7 @@ import '../../../services/notifications_api.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/assets.dart';
+import '../../../utilities/default_eth_tokens.dart';
 import '../../../utilities/enums/exchange_rate_type_enum.dart';
 import '../../../utilities/show_loading.dart';
 import '../../../utilities/text_styles.dart';
@@ -254,7 +255,7 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
               AppConfig.getCryptoCurrencyByPrettyName(trade.payInCurrency);
     final amount = Decimal.parse(trade.payInAmount).toAmount(
       fractionDigits: isRosen
-          ? RosenFunding.fractionDigits(trade)
+          ? DefaultTokens.rsFiro.decimals
           : coin.fractionDigits,
     );
 

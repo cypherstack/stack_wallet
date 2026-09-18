@@ -15,11 +15,9 @@ class RosenApi {
 
   // Rosen mainnet config 7.1.1, verified against app.rosen.tech on 2026-09-17.
   // https://github.com/rosen-bridge/ui/blob/dev/apps/rosen/configs/generate.mjs
-  static const rsFiroContract = '0x2744ea5ac9b11cb5e3cd63d3a88e858336aeddc2';
   static const firoLockAddress = 'aEF6fyd5jjCPcbiEBZJ2g8583caUme8T7Y';
   static const ethereumLockAddress =
       '0x451698faa07fc68301af622a3ad42205f13c6e4b';
-  static const tokenDecimals = 8;
   static const _ergoFiroToken =
       '581d7df25808881b2b8b9b4e03e2f637c46a94f74a69a5da36434125bacb4e08';
   static const _minimumFeeToken =

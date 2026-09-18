@@ -11,10 +11,18 @@
 import '../models/isar/models/ethereum/eth_contract.dart';
 
 abstract class DefaultTokens {
-  static const _campfireTokenAddresses = {
+  static final rsFiro = EthContract(
+    address: "0x2744ea5ac9b11cb5e3cd63d3a88e858336aeddc2",
+    name: "rsFIRO",
+    symbol: "rsFIRO",
+    decimals: 8,
+    type: EthContractType.erc20,
+  );
+
+  static final _campfireTokenAddresses = {
     "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
     "0xdac17f958d2ee523a2206206994597c13d831ec7",
-    "0x2744ea5ac9b11cb5e3cd63d3a88e858336aeddc2",
+    rsFiro.address,
   };
 
   static List<EthContract> list = [
@@ -53,13 +61,7 @@ abstract class DefaultTokens {
       decimals: 18,
       type: EthContractType.erc20,
     ),
-    EthContract(
-      address: "0x2744ea5ac9b11cb5e3cd63d3a88e858336aeddc2",
-      name: "rsFIRO",
-      symbol: "rsFIRO",
-      decimals: 8,
-      type: EthContractType.erc20,
-    ),
+    rsFiro,
   ];
 
   static bool isAllowedForApp(String appName, EthContract token) =>

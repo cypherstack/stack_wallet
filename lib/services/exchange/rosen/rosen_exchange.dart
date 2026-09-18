@@ -10,6 +10,7 @@ import '../../../models/exchange/response_objects/range.dart';
 import '../../../models/exchange/response_objects/trade.dart';
 import '../../../models/isar/exchange_cache/currency.dart';
 import '../../../models/isar/exchange_cache/pair.dart';
+import '../../../utilities/default_eth_tokens.dart';
 import '../exchange.dart';
 import '../exchange_response.dart';
 import 'rosen_api.dart';
@@ -85,14 +86,14 @@ class RosenExchange extends Exchange {
                 ),
                 Currency(
                   exchangeName: name,
-                  ticker: 'rsFIRO',
-                  name: 'Rosen Firo',
+                  ticker: DefaultTokens.rsFiro.symbol,
+                  name: DefaultTokens.rsFiro.name,
                   network: 'eth',
                   image: '',
                   isFiat: false,
                   rateType: SupportedRateType.estimated,
                   isStackCoin: false,
-                  tokenContract: RosenApi.rsFiroContract,
+                  tokenContract: DefaultTokens.rsFiro.address,
                   isAvailable: true,
                 ),
               ],
@@ -235,7 +236,7 @@ class RosenExchange extends Exchange {
         'bridgeFee': quote.bridgeFee.toString(),
         'networkFee': quote.networkFee.toString(),
         'metadata': metadata,
-        'tokenContract': RosenApi.rsFiroContract,
+        'tokenContract': DefaultTokens.rsFiro.address,
       }),
     );
   });
@@ -330,7 +331,7 @@ class RosenExchange extends Exchange {
     final networkFee = BigInt.parse(data['networkFee'] as String);
     final amount = RosenProtocol.parseAmount(trade.payInAmount);
     if (data['version'] != 1 ||
-        data['tokenContract'] != RosenApi.rsFiroContract ||
+        data['tokenContract'] != DefaultTokens.rsFiro.address ||
         amount <= bridgeFee + networkFee ||
         amount - bridgeFee - networkFee !=
             RosenProtocol.parseAmount(trade.payOutAmount) ||
@@ -392,7 +393,7 @@ class RosenExchange extends Exchange {
                       trade.payOutAddress.toLowerCase()
                 : event['toAddress'] != trade.payOutAddress) ||
             event['sourceChainTokenId'].toString().toLowerCase() !=
-                (fromFiro ? 'firo' : RosenApi.rsFiroContract) ||
+                (fromFiro ? 'firo' : DefaultTokens.rsFiro.address) ||
             event['bridgeFee'].toString() != data['bridgeFee'] ||
             event['networkFee'].toString() != data['networkFee'] ||
             BigInt.parse(event['amount'].toString()) !=

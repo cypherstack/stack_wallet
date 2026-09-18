@@ -45,6 +45,7 @@ import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/clipboard_interface.dart';
 import '../../utilities/constants.dart';
+import '../../utilities/default_eth_tokens.dart';
 import '../../utilities/format.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
@@ -299,7 +300,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                         final amount = Amount.fromDecimal(
                           sendAmount,
                           fractionDigits: isRosen
-                              ? RosenFunding.fractionDigits(trade)
+                              ? DefaultTokens.rsFiro.decimals
                               : coin.fractionDigits,
                         );
                         final address = trade.payInAddress;
@@ -385,7 +386,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                     )!;
                                 final amount = sendAmount.toAmount(
                                   fractionDigits: isRosen
-                                      ? RosenFunding.fractionDigits(trade)
+                                      ? DefaultTokens.rsFiro.decimals
                                       : coin.fractionDigits,
                                 );
                                 text = ref
@@ -1262,7 +1263,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                   final amount = Amount.fromDecimal(
                     sendAmount,
                     fractionDigits: isRosen
-                        ? RosenFunding.fractionDigits(trade)
+                        ? DefaultTokens.rsFiro.decimals
                         : coin.fractionDigits,
                   );
                   final address = trade.payInAddress;

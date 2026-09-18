@@ -47,21 +47,9 @@ Pinned upstream implementation references:
 
 ## Verification
 
-The standalone fee check requires only Dart:
-
-```sh
-dart --enable-asserts test/rosen_fees_check.dart
-```
-
 After completing the repository's [build setup](building.md), including generated configuration, dependencies and required native libraries:
 
 ```sh
 bash scripts/ensure_test_app_config.sh
-flutter test test/services/exchange/rosen/rosen_protocol_test.dart test/wallets/firo_op_return_test.dart test/services/exchange/rosen_registration_test.dart
+flutter test test/services/exchange/rosen/ test/wallets/firo_op_return_test.dart test/services/exchange/rosen_registration_test.dart
 ```
-
-The fee check, 11 isolated protocol/OP_RETURN tests and read-only live fee/status endpoint checks were exercised during implementation and review. The tests include real native FIRO signing and validation of serialized outputs, rejection of altered or missing bridge outputs, and real web3dart signing through a mock `eth_sendRawTransaction` endpoint for both P2PKH and P2SH FIRO destinations. The Ethereum tests inspect the signed envelope for mainnet, the token contract, zero ETH and the complete metadata-bearing calldata. The `uint8` result from `decimals()` was verified to decode as `BigInt` with the pinned web3dart 3.0.1 dependency.
-
-Review traced fresh mobile/desktop swaps, wallet-initiated swaps and resumed swaps from history through the shared Rosen prepare/confirm functions. Plain-address recipient QR scans now enable Next for Rosen, which does not use a refund-address field. No full Flutter build, complete application test run, or live bridge transfer was performed. Mobile and desktop funding, persistence, and completion still need validation in the configured application with real wallets before release.
-
-Quote-refresh checks additionally cover fee increases/decreases, equal-total fee-component changes, preserving source amounts and destinations, regenerating metadata in both directions, stale/funded-save rejection and concurrent refresh protection. The standalone fee check ran directly; isolated harnesses exercised the actual refresh methods with fake network/wallet/database dependencies. Regression tests using real Hive are included in `rosen_registration_test.dart` but require the configured Flutter test environment and were not run here.

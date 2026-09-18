@@ -11,7 +11,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:tuple/tuple.dart';
 
 import '../../../app_config.dart';
 import '../../../providers/providers.dart';
@@ -298,7 +297,11 @@ class _WalletRow extends ConsumerWidget {
                     wallet.info.cachedReceivingAddress;
 
                 if (context.mounted) {
-                  Navigator.of(context).pop(Tuple2(wallet.info.name, address));
+                  Navigator.of(context).pop((
+                    walletId: walletId,
+                    address: address,
+                    walletName: wallet.info.name,
+                  ));
                 }
               },
             ),
@@ -392,9 +395,11 @@ class _WalletRow extends ConsumerWidget {
                         Navigator.of(context).pop(
                           sparkAddress == null
                               ? null
-                              : Tuple2(
-                                  "${ref.read(pWalletName(walletId))} (Spark)",
-                                  sparkAddress,
+                              : (
+                                  walletId: walletId,
+                                  address: sparkAddress,
+                                  walletName:
+                                      "${ref.read(pWalletName(walletId))} (Spark)",
                                 ),
                         );
                       }
@@ -427,9 +432,11 @@ class _WalletRow extends ConsumerWidget {
                       wallet.info.cachedReceivingAddress;
 
                   if (context.mounted) {
-                    Navigator.of(
-                      context,
-                    ).pop(Tuple2("${wallet.info.name} (Transparent)", address));
+                    Navigator.of(context).pop((
+                      walletId: walletId,
+                      address: address,
+                      walletName: "${wallet.info.name} (Transparent)",
+                    ));
                   }
                 },
               ),

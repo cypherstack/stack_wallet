@@ -1,13 +1,24 @@
-import 'dart:typed_data';
-
-import 'package:dart_bs58check/dart_bs58check.dart';
+import 'package:coinlib/coinlib.dart' as coinlib;
 import 'package:wallet/wallet.dart' show EthereumAddress;
+import 'package:web3dart/web3dart.dart' as web3;
+
+import '../../../utilities/default_eth_tokens.dart';
+import '../../../utilities/extensions/extensions.dart';
+import '../../../wallets/crypto_currency/crypto_currency.dart';
 
 /// Rosen's v1 metadata, shared by FIRO OP_RETURN and appended ERC-20 calldata.
 /// https://github.com/rosen-bridge/ui/tree/dev/networks/firo/src/utils.ts
 class RosenProtocol {
-  static const decimals = 8;
   static final maxAmount = (BigInt.one << 64) - BigInt.one;
+
+  static final tokenContract = web3.DeployedContract(
+    web3.ContractAbi.fromJson('''[
+      {"type":"function","name":"balanceOf","stateMutability":"view","inputs":[{"name":"account","type":"address"}],"outputs":[{"name":"","type":"uint256"}]},
+      {"type":"function","name":"decimals","stateMutability":"view","inputs":[],"outputs":[{"name":"","type":"uint8"}]},
+      {"type":"function","name":"transfer","stateMutability":"nonpayable","inputs":[{"name":"to","type":"address"},{"name":"amount","type":"uint256"}],"outputs":[{"name":"","type":"bool"}]}
+    ]''', DefaultTokens.rsFiro.name),
+    EthereumAddress.fromHex(DefaultTokens.rsFiro.address),
+  );
 
   static bool isTransactionId(String? txid) =>
       txid != null && RegExp(r'^(0x)?[0-9a-fA-F]{64}$').hasMatch(txid);
@@ -52,19 +63,6 @@ class RosenProtocol {
     return value.toRadixString(16).padLeft(bytes * 2, '0');
   }
 
-  static String hex(Iterable<int> bytes) =>
-      bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join();
-
-  static Uint8List bytes(String hex) {
-    if (hex.length.isOdd || !RegExp(r'^[0-9a-fA-F]*$').hasMatch(hex)) {
-      throw const FormatException('Invalid hexadecimal data.');
-    }
-    return Uint8List.fromList([
-      for (var i = 0; i < hex.length; i += 2)
-        int.parse(hex.substring(i, i + 2), radix: 16),
-    ]);
-  }
-
   static String ethereumAddress(String address) {
     if (!RegExp(r'^0x[0-9a-fA-F]{40}$').hasMatch(address) ||
         BigInt.parse(address.substring(2), radix: 16) == BigInt.zero) {
@@ -75,18 +73,18 @@ class RosenProtocol {
 
   /// address-codec encodes FIRO as its output script, not its Base58 payload.
   static String firoScript(String address) {
-    final decoded = bs58check.decode(address);
-    if (decoded.length != 21) {
-      throw const FormatException('Use a transparent FIRO mainnet address.');
+    try {
+      final program = coinlib.Address.fromString(
+        address,
+        Firo(CryptoCurrencyNetwork.main).networkParams,
+      ).program;
+      if (program is coinlib.P2PKH || program is coinlib.P2SH) {
+        return program.script.compiled.toHex;
+      }
+    } on Exception {
+      // Normalize malformed and wrong-network address errors.
     }
-    final hash = hex(decoded.sublist(1));
-    return switch (decoded.first) {
-      0x52 => '76a914${hash}88ac',
-      0x07 => 'a914${hash}87',
-      _ => throw const FormatException(
-        'Use a transparent FIRO mainnet address.',
-      ),
-    };
+    throw const FormatException('Use a transparent FIRO mainnet address.');
   }
 
   static String metadata({
@@ -111,8 +109,14 @@ class RosenProtocol {
     if (amount <= BigInt.zero || amount > maxAmount) {
       throw ArgumentError('Invalid rsFIRO amount.');
     }
-    bytes(metadata);
-    return 'a9059cbb${ethereumAddress(lockAddress).padLeft(64, '0')}'
-        '${_uint(amount, 32)}$metadata';
+    if (metadata.length.isOdd ||
+        !RegExp(r'^[0-9a-fA-F]*$').hasMatch(metadata)) {
+      throw const FormatException('Invalid hexadecimal data.');
+    }
+    final encoded = tokenContract.function('transfer').encodeCall([
+      EthereumAddress.fromHex('0x${ethereumAddress(lockAddress)}'),
+      amount,
+    ]);
+    return '${encoded.toHex}${metadata.toUint8ListFromHex.toHex}';
   }
 }

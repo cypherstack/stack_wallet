@@ -11,7 +11,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tuple/tuple.dart';
 
 import '../../../../app_config.dart';
 import '../../../../models/contact_address_entry.dart';
@@ -70,34 +69,34 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
           ? Ethereum(CryptoCurrencyNetwork.main)
           : AppConfig.getCryptoCurrencyForTicker(ticker)!;
 
-      final info = await showDialog<Tuple2<String, String>?>(
-        context: context,
-        barrierColor: Colors.transparent,
-        builder: (context) => DesktopDialog(
-          maxWidth: 720,
-          maxHeight: 670,
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: DesktopChooseAddressFromStack(
-              coin: coin,
-              transparentOnly: _isRosen,
+      final info =
+          await showDialog<
+            ({String walletId, String address, String walletName})
+          >(
+            context: context,
+            barrierColor: Colors.transparent,
+            builder: (context) => DesktopDialog(
+              maxWidth: 720,
+              maxHeight: 670,
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: DesktopChooseAddressFromStack(
+                  coin: coin,
+                  transparentOnly: _isRosen,
+                ),
+              ),
             ),
-          ),
-        ),
-      );
+          );
 
-      if (info is Tuple2<String, String>) {
+      if (info != null) {
         if (_isRosen && ticker.toLowerCase() == "rsfiro") {
-          for (final wallet in ref.read(pWallets).wallets) {
-            if (wallet.info.coin == coin &&
-                wallet.info.cachedReceivingAddress.toLowerCase() ==
-                    info.item2.toLowerCase()) {
-              await RosenFunding.registerToken(wallet);
-            }
-          }
+          await RosenFunding.registerToken(
+            ref.read(pWallets).getWallet(info.walletId),
+          );
+          if (!mounted) return;
         }
-        _toController.text = info.item1;
-        ref.read(desktopExchangeModelProvider)!.recipientAddress = info.item2;
+        _toController.text = info.walletName;
+        ref.read(desktopExchangeModelProvider)!.recipientAddress = info.address;
       }
     } catch (e, s) {
       Logging.instance.i("$e\n$s", error: e, stackTrace: s);
@@ -112,21 +111,24 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
         ref.read(desktopExchangeModelProvider)!.sendTicker,
       )!;
 
-      final info = await showDialog<Tuple2<String, String>?>(
-        context: context,
-        barrierColor: Colors.transparent,
-        builder: (context) => DesktopDialog(
-          maxWidth: 720,
-          maxHeight: 670,
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: DesktopChooseAddressFromStack(coin: coin),
-          ),
-        ),
-      );
-      if (info is Tuple2<String, String>) {
-        _refundController.text = info.item1;
-        ref.read(desktopExchangeModelProvider)!.refundAddress = info.item2;
+      final info =
+          await showDialog<
+            ({String walletId, String address, String walletName})
+          >(
+            context: context,
+            barrierColor: Colors.transparent,
+            builder: (context) => DesktopDialog(
+              maxWidth: 720,
+              maxHeight: 670,
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: DesktopChooseAddressFromStack(coin: coin),
+              ),
+            ),
+          );
+      if (info != null) {
+        _refundController.text = info.walletName;
+        ref.read(desktopExchangeModelProvider)!.refundAddress = info.address;
       }
     } catch (e, s) {
       Logging.instance.i("$e\n$s", error: e, stackTrace: s);

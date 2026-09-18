@@ -10,6 +10,7 @@ import 'package:stackwallet/services/exchange/exchange.dart';
 import 'package:stackwallet/services/exchange/rosen/rosen_api.dart';
 import 'package:stackwallet/services/exchange/rosen/rosen_exchange.dart';
 import 'package:stackwallet/services/exchange/rosen/rosen_protocol.dart';
+import 'package:stackwallet/utilities/default_eth_tokens.dart';
 import 'package:stackwallet/exceptions/exchange/exchange_exception.dart';
 
 void main() {
@@ -27,7 +28,7 @@ void main() {
       expect(firo.getFuzzyNet(), 'firo');
       expect(firo.tokenContract, isNull);
       expect(token.getFuzzyNet(), 'eth');
-      expect(token.tokenContract, RosenApi.rsFiroContract);
+      expect(token.tokenContract, DefaultTokens.rsFiro.address);
       expect(token.supportsEstimatedRate, isTrue);
       expect(token.supportsFixedRate, isFalse);
       expect((await exchange.getAllCurrencies(true)).value, isEmpty);
@@ -282,7 +283,7 @@ Trade _rosenRequest(bool fromFiro) {
       'version': 1,
       'bridgeFee': '123',
       'networkFee': '456',
-      'tokenContract': RosenApi.rsFiroContract,
+      'tokenContract': DefaultTokens.rsFiro.address,
       'metadata': RosenProtocol.metadata(
         fromFiro: fromFiro,
         destination: destination,

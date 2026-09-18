@@ -1,3 +1,4 @@
+import 'package:isar_community/isar.dart' show Isar;
 import 'package:wallet/wallet.dart' as eth;
 import 'package:web3dart/web3dart.dart' as web3;
 
@@ -5,7 +6,9 @@ import '../../../db/hive/db.dart';
 import '../../../models/exchange/response_objects/trade.dart';
 import '../../../models/isar/models/ethereum/eth_contract.dart';
 import '../../../utilities/amount/amount.dart';
+import '../../../utilities/default_eth_tokens.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
+import '../../../utilities/extensions/extensions.dart';
 import '../../../utilities/logger.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/models/tx_data.dart';
@@ -27,8 +30,6 @@ class RosenFunding {
       ? Firo(CryptoCurrencyNetwork.main)
       : Ethereum(CryptoCurrencyNetwork.main);
 
-  static int fractionDigits(Trade trade) => RosenApi.tokenDecimals;
-
   static bool canFund(Wallet wallet, Trade trade) =>
       !wallet.info.isViewOnly &&
       wallet.cryptoCurrency == sourceCoin(trade) &&
@@ -36,22 +37,12 @@ class RosenFunding {
           ? wallet is FiroWallet
           : wallet is EthereumWallet);
 
-  static const _abi = '''[
-    {"type":"function","name":"balanceOf","stateMutability":"view","inputs":[{"name":"account","type":"address"}],"outputs":[{"name":"","type":"uint256"}]},
-    {"type":"function","name":"decimals","stateMutability":"view","inputs":[],"outputs":[{"name":"","type":"uint8"}]},
-    {"type":"function","name":"transfer","stateMutability":"nonpayable","inputs":[{"name":"to","type":"address"},{"name":"amount","type":"uint256"}],"outputs":[{"name":"","type":"bool"}]}
-  ]''';
-
-  static EthContract _tokenFor(Wallet wallet) => EthContract(
+  static EthContract _tokenFor(Wallet wallet) => DefaultTokens.rsFiro.copyWith(
+    id: Isar.autoIncrement,
     address: wallet.info.tokenContractAddresses.firstWhere(
-      (address) => address.toLowerCase() == RosenApi.rsFiroContract,
-      orElse: () => RosenApi.rsFiroContract,
+      (address) => address.toLowerCase() == DefaultTokens.rsFiro.address,
+      orElse: () => DefaultTokens.rsFiro.address,
     ),
-    name: 'Rosen Firo',
-    symbol: 'rsFIRO',
-    decimals: RosenApi.tokenDecimals,
-    type: EthContractType.erc20,
-    abi: _abi,
   );
 
   static Future<void> registerToken(Wallet wallet) async {
@@ -61,13 +52,13 @@ class RosenFunding {
     }
     final token = _tokenFor(wallet);
     final stored = await wallet.mainDB.getEthContract(token.address);
-    await wallet.mainDB.putEthContract(token.copyWith(id: stored?.id));
+    if (stored == null) await wallet.mainDB.putEthContract(token);
     if (!wallet.info.tokenContractAddresses.any(
-      (address) => address.toLowerCase() == RosenApi.rsFiroContract,
+      (address) => address.toLowerCase() == DefaultTokens.rsFiro.address,
     )) {
       await wallet.updateTokenContracts([
         ...wallet.info.tokenContractAddresses,
-        RosenApi.rsFiroContract,
+        DefaultTokens.rsFiro.address,
       ]);
     }
   }
@@ -131,7 +122,7 @@ class RosenFunding {
     final metadata = RosenExchange.validatedMetadata(trade);
     final amount = Amount(
       rawValue: RosenProtocol.parseAmount(trade.payInAmount),
-      fractionDigits: RosenApi.tokenDecimals,
+      fractionDigits: DefaultTokens.rsFiro.decimals,
     );
     final data = TxData(
       recipients: [
@@ -179,16 +170,13 @@ class RosenFunding {
         trade,
         sourceHeight: await client.getBlockNumber(),
       );
-      final contract = web3.DeployedContract(
-        web3.ContractAbi.fromJson(_abi, 'rsFIRO'),
-        eth.EthereumAddress.fromHex(RosenApi.rsFiroContract),
-      );
+      final contract = RosenProtocol.tokenContract;
       final decimals = await client.call(
         contract: contract,
         function: contract.function('decimals'),
         params: [],
       );
-      if (decimals.single != BigInt.from(RosenApi.tokenDecimals)) {
+      if (decimals.single != BigInt.from(DefaultTokens.rsFiro.decimals)) {
         throw StateError('Unexpected rsFIRO token precision.');
       }
       final balance = await client.call(
@@ -198,14 +186,14 @@ class RosenFunding {
       );
       if ((balance.single as BigInt) < amount.raw)
         throw StateError('Insufficient rsFIRO balance.');
-      final calldata = RosenProtocol.bytes(
-        RosenProtocol.transferData(
-          lockAddress: RosenApi.ethereumLockAddress,
-          amount: amount.raw,
-          metadata: metadata,
-        ),
+      final calldata = RosenProtocol.transferData(
+        lockAddress: RosenApi.ethereumLockAddress,
+        amount: amount.raw,
+        metadata: metadata,
+      ).toUint8ListFromHex;
+      final tokenAddress = eth.EthereumAddress.fromHex(
+        DefaultTokens.rsFiro.address,
       );
-      final tokenAddress = eth.EthereumAddress.fromHex(RosenApi.rsFiroContract);
       final gas = await client.estimateGas(
         sender: sender,
         to: tokenAddress,
@@ -300,9 +288,9 @@ class RosenFunding {
       );
       if (tx == null ||
           txData.chainId != BigInt.one ||
-          tx.to?.with0x.toLowerCase() != RosenApi.rsFiroContract ||
+          tx.to?.with0x.toLowerCase() != DefaultTokens.rsFiro.address ||
           (tx.value?.getInWei ?? BigInt.zero) != BigInt.zero ||
-          RosenProtocol.hex(tx.data ?? []) != expected) {
+          tx.data?.toHex != expected) {
         throw StateError('Invalid rsFIRO bridge transaction.');
       }
       final client = ethereum.getEthClient();

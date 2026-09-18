@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:coinlib/coinlib.dart' as coinlib;
 import 'package:dart_bs58check/dart_bs58check.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -8,6 +9,7 @@ import 'package:wallet/wallet.dart' as eth;
 import 'package:web3dart/web3dart.dart' as web3;
 
 import '../../../../lib/services/exchange/rosen/rosen_protocol.dart';
+import '../../../../lib/utilities/extensions/extensions.dart';
 
 // Decode the signed wire envelope independently of web3dart's RLP encoder.
 dynamic _decodeRlp(List<int> bytes) {
@@ -46,7 +48,7 @@ dynamic _decodeRlp(List<int> bytes) {
 
 void main() {
   const ethereum = '0x00112233445566778899aabbccddeeff00112233';
-  final firo = bs58check.encode(RosenProtocol.bytes('52${'11' * 20}'));
+  final firo = bs58check.encode('52${'11' * 20}'.toUint8ListFromHex);
 
   test('Rosen FIRO metadata matches upstream uint64 BE layout', () {
     expect(
@@ -67,36 +69,8 @@ void main() {
       ),
       '07000000000000007b00000000000001c81976a914${'11' * 20}88ac',
     );
-    final p2sh = bs58check.encode(RosenProtocol.bytes('07${'22' * 20}'));
+    final p2sh = bs58check.encode('07${'22' * 20}'.toUint8ListFromHex);
     expect(RosenProtocol.firoScript(p2sh), 'a914${'22' * 20}87');
-  });
-
-  test('rsFIRO calldata uses ERC20 transfer followed by metadata', () {
-    final metadata = RosenProtocol.metadata(
-      fromFiro: false,
-      destination: firo,
-      bridgeFee: BigInt.from(123),
-      networkFee: BigInt.from(456),
-    );
-    final contract = web3.DeployedContract(
-      web3.ContractAbi.fromJson('''[
-      {"type":"function","name":"transfer","stateMutability":"nonpayable","inputs":[{"name":"to","type":"address"},{"name":"amount","type":"uint256"}],"outputs":[{"name":"","type":"bool"}]}
-    ]''', 'rsFIRO'),
-      eth.EthereumAddress.fromHex(ethereum),
-    );
-    final amount = BigInt.parse('9007199254740993');
-    final encoded = contract.function('transfer').encodeCall([
-      eth.EthereumAddress.fromHex(ethereum),
-      amount,
-    ]);
-    expect(
-      RosenProtocol.transferData(
-        lockAddress: ethereum,
-        amount: amount,
-        metadata: metadata,
-      ),
-      '${RosenProtocol.hex(encoded)}$metadata',
-    );
   });
 
   for (final version in ['52', '07']) {
@@ -104,7 +78,7 @@ void main() {
       const token = '0x2744ea5ac9b11cb5e3cd63d3a88e858336aeddc2';
       const lock = '0x451698faa07fc68301af622a3ad42205f13c6e4b';
       final destination = bs58check.encode(
-        RosenProtocol.bytes('$version${'11' * 20}'),
+        '$version${'11' * 20}'.toUint8ListFromHex,
       );
       final metadata = RosenProtocol.metadata(
         fromFiro: false,
@@ -131,16 +105,15 @@ void main() {
           expectAsync1((request) async {
             final rpc = jsonDecode(request.body) as Map<String, dynamic>;
             expect(rpc['method'], 'eth_sendRawTransaction');
-            final raw = RosenProtocol.bytes(
-              (rpc['params'] as List).single.substring(2) as String,
-            );
+            final raw =
+                ((rpc['params'] as List).single as String).toUint8ListFromHex;
             expect(raw.first, 2); // EIP-1559 transaction envelope.
             final fields = _decodeRlp(raw.sublist(1)) as List;
             expect(fields, hasLength(12));
             expect(fields[0], [1]); // Ethereum mainnet.
-            expect(fields[5], RosenProtocol.bytes(token.substring(2)));
+            expect(fields[5], token.toUint8ListFromHex);
             expect(fields[6], isEmpty); // No native ETH is sent.
-            expect(fields[7], RosenProtocol.bytes(expectedCalldata));
+            expect(fields[7], expectedCalldata.toUint8ListFromHex);
             expect(fields[8], isEmpty); // Access list.
             for (final signature in fields.sublist(10)) {
               expect((signature as List<int>).any((byte) => byte != 0), isTrue);
@@ -159,7 +132,7 @@ void main() {
           web3.Transaction(
             to: eth.EthereumAddress.fromHex(token),
             value: eth.EtherAmount.zero(),
-            data: RosenProtocol.bytes(calldata),
+            data: calldata.toUint8ListFromHex,
             nonce: 7,
             maxGas: 100000,
             maxFeePerGas: eth.EtherAmount.inWei(BigInt.from(3000000000)),
@@ -207,8 +180,16 @@ void main() {
   });
 
   test('invalid network addresses, metadata and fee overflow fail closed', () {
-    final testnet = bs58check.encode(RosenProtocol.bytes('41${'11' * 20}'));
+    final testnet = bs58check.encode('41${'11' * 20}'.toUint8ListFromHex);
     expect(() => RosenProtocol.firoScript(testnet), throwsFormatException);
+    final witness = coinlib.P2WPKHAddress.fromHash(
+      ('11' * 20).toUint8ListFromHex,
+      hrp: 'bc',
+    );
+    expect(
+      () => RosenProtocol.firoScript(witness.toString()),
+      throwsFormatException,
+    );
     expect(
       () => RosenProtocol.firoScript('spark1notatransparentaddress'),
       throwsA(anything),
@@ -217,7 +198,26 @@ void main() {
       () => RosenProtocol.ethereumAddress('0x${'00' * 20}'),
       throwsFormatException,
     );
-    expect(() => RosenProtocol.bytes('0xz1'), throwsFormatException);
+    for (final metadata in ['zz', 'a', 'aa bb', '0xaa', 'aa\n']) {
+      expect(
+        () => RosenProtocol.transferData(
+          lockAddress: ethereum,
+          amount: BigInt.one,
+          metadata: metadata,
+        ),
+        throwsFormatException,
+      );
+    }
+    for (final amount in [BigInt.zero, -BigInt.one, BigInt.one << 64]) {
+      expect(
+        () => RosenProtocol.transferData(
+          lockAddress: ethereum,
+          amount: amount,
+          metadata: '00',
+        ),
+        throwsArgumentError,
+      );
+    }
     expect(
       () => RosenProtocol.ethereumAddress(
         '0x52908400098527886E0F7030069857D2E4169Ee7',
