@@ -57,7 +57,17 @@ TEMPLATE_FILES=(
 if [ -f "${ACTUAL_PUBSPEC}" ]; then
   rm "${ACTUAL_PUBSPEC}"
 fi
-cp "${T_PUBSPEC}" "${ACTUAL_PUBSPEC}"
+
+if [ "$BUILD_ISAR_FROM_SOURCE" -eq 1 ]; then
+    sed '/^# %%ENABLE_ISAR%%$/,/^# %%END_ENABLE_ISAR%%$/{
+        /^# %%ENABLE_ISAR%%$/d
+        /^# %%END_ENABLE_ISAR%%$/d
+        s/^#  /  /g
+        s/^#    /    /g
+    }' "${T_PUBSPEC}" > "${ACTUAL_PUBSPEC}"
+else
+    cp "${T_PUBSPEC}" "${ACTUAL_PUBSPEC}"
+fi
 
 for TF in "${TEMPLATE_FILES[@]}"; do
   FILE="${APP_PROJECT_ROOT_DIR}/${TF}"
@@ -66,8 +76,3 @@ for TF in "${TEMPLATE_FILES[@]}"; do
   fi
   cp -rp "${TEMPLATES_DIR}/${TF}" "${FILE}"
 done
-
-if [ "$BUILD_ISAR_FROM_SOURCE" -eq 1 ]; then
-  source "${APP_PROJECT_ROOT_DIR}/scripts/app_config/templates/isar_build.sh"
-  build_isar_source
-fi
