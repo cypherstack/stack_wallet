@@ -9,11 +9,170 @@ import 'package:stackwallet/models/exchange/change_now/cn_exchange_transaction_s
 import 'package:stackwallet/services/exchange/exchange.dart';
 import 'package:stackwallet/services/exchange/rosen/rosen_api.dart';
 import 'package:stackwallet/services/exchange/rosen/rosen_exchange.dart';
+import 'package:stackwallet/services/exchange/rosen/rosen_funding.dart';
 import 'package:stackwallet/services/exchange/rosen/rosen_protocol.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/default_eth_tokens.dart';
+import 'package:stackwallet/utilities/extensions/extensions.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/exceptions/exchange/exchange_exception.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
+import 'package:stackwallet/wallets/models/tx_data.dart';
+import 'package:stackwallet/wallets/wallet/impl/ethereum_wallet.dart';
+import 'package:wallet/wallet.dart' as eth;
+import 'package:web3dart/web3dart.dart' as web3;
 
 void main() {
+  group('Rosen funding rejects unsafe transactions before RPC or signing', () {
+    final trade = _rosenRequest(false);
+    final recipient = TxRecipient(
+      address: trade.payInAddress,
+      amount: Amount(rawValue: BigInt.from(100000000), fractionDigits: 8),
+      isChange: false,
+      addressType: Ethereum(CryptoCurrencyNetwork.main).defaultAddressType,
+    );
+    final transaction = web3.Transaction(
+      to: eth.EthereumAddress.fromHex(DefaultTokens.rsFiro.address),
+      value: eth.EtherAmount.zero(),
+      data: RosenProtocol.transferData(
+        lockAddress: trade.payInAddress,
+        amount: recipient.amount.raw,
+        metadata: RosenExchange.validatedMetadata(trade),
+      ).toUint8ListFromHex,
+    );
+    final prepared = TxData(
+      recipients: [recipient],
+      chainId: BigInt.one,
+      web3dartTransaction: transaction,
+    );
+    Matcher rejected(String message) =>
+        throwsA(isA<StateError>().having((e) => e.message, 'message', message));
+
+    test(
+      'view-only and wrong-source wallets cannot prepare or confirm',
+      () async {
+        for (final (wallet, request) in [
+          (_FundingWallet(viewOnly: true), trade),
+          (_FundingWallet(), _rosenRequest(true)),
+        ]) {
+          await expectLater(
+            RosenFunding.prepareSend(wallet: wallet, trade: request),
+            rejected('Choose a spendable wallet on the source network.'),
+          );
+          await expectLater(
+            RosenFunding.confirmSend(
+              wallet: wallet,
+              trade: request,
+              txData: prepared,
+            ),
+            rejected('Invalid bridge source wallet.'),
+          );
+          expect(wallet.rpcAttempts, 0);
+        }
+      },
+    );
+
+    test(
+      'recipient, amount and recipient-count changes are rejected',
+      () async {
+        final wallet = _FundingWallet();
+        final half = Amount(rawValue: BigInt.from(50000000), fractionDigits: 8);
+        final cases = <String, List<TxRecipient>?>{
+          'missing recipients': null,
+          'empty recipients': [],
+          'change only': [recipient.copyWith(isChange: true)],
+          'wrong amount': [recipient.copyWith(amount: half)],
+          'two recipients with the correct total': [
+            recipient.copyWith(amount: half),
+            recipient.copyWith(amount: half),
+          ],
+          'wrong recipient': [
+            recipient.copyWith(address: DefaultTokens.rsFiro.address),
+          ],
+        };
+        for (final entry in cases.entries) {
+          await expectLater(
+            RosenFunding.confirmSend(
+              wallet: wallet,
+              trade: trade,
+              txData: TxData(
+                recipients: entry.value,
+                chainId: prepared.chainId,
+                web3dartTransaction: transaction,
+              ),
+            ),
+            rejected('The transaction does not match this bridge swap.'),
+            reason: entry.key,
+          );
+        }
+        expect(wallet.rpcAttempts, 0);
+      },
+    );
+
+    test(
+      'invalid rsFIRO envelopes are rejected and release the send lock',
+      () async {
+        final wallet = _FundingWallet();
+        final cases = <String, TxData>{
+          'missing transaction': TxData(
+            recipients: [recipient],
+            chainId: BigInt.one,
+          ),
+          'missing chain': TxData(
+            recipients: [recipient],
+            web3dartTransaction: transaction,
+          ),
+          'wrong chain': prepared.copyWith(chainId: BigInt.from(11155111)),
+          for (final entry in <String, web3.Transaction>{
+            'missing token': web3.Transaction(
+              value: transaction.value,
+              data: transaction.data,
+            ),
+            'wrong token': transaction.copyWith(
+              to: eth.EthereumAddress.fromHex(trade.payInAddress),
+            ),
+            'native ETH value': transaction.copyWith(
+              value: eth.EtherAmount.inWei(BigInt.one),
+            ),
+            'missing calldata': web3.Transaction(
+              to: transaction.to,
+              value: transaction.value,
+            ),
+            'altered calldata': transaction.copyWith(
+              data: ('${transaction.data!.toHex}00').toUint8ListFromHex,
+            ),
+          }.entries)
+            entry.key: prepared.copyWith(web3dartTransaction: entry.value),
+        };
+        for (final entry in cases.entries) {
+          await expectLater(
+            RosenFunding.confirmSend(
+              wallet: wallet,
+              trade: trade,
+              txData: entry.value,
+            ),
+            rejected('Invalid rsFIRO bridge transaction.'),
+            reason: entry.key,
+          );
+        }
+        expect(wallet.rpcAttempts, 0);
+
+        // The valid control passes these guards after every failed attempt, but
+        // stops at the fake client's boundary without node access or signing.
+        await expectLater(
+          RosenFunding.confirmSend(
+            wallet: wallet,
+            trade: trade,
+            txData: prepared,
+          ),
+          throwsA(same(_FundingWallet.rpcBoundary)),
+        );
+        expect(wallet.rpcAttempts, 1);
+      },
+    );
+  });
+
   test(
     'Rosen is a swap provider with distinct native and Ethereum assets',
     () async {
@@ -247,6 +406,38 @@ void main() {
       }
     },
   );
+}
+
+class _FundingWallet extends Fake implements EthereumWallet {
+  _FundingWallet({bool viewOnly = false}) : info = _FundingWalletInfo(viewOnly);
+
+  @override
+  final WalletInfo info;
+  @override
+  final Ethereum cryptoCurrency = Ethereum(CryptoCurrencyNetwork.main);
+  @override
+  final Prefs prefs = _FundingPrefs();
+
+  static final rpcBoundary = UnsupportedError('Funding test RPC boundary');
+  int rpcAttempts = 0;
+
+  @override
+  web3.Web3Client getEthClient() {
+    rpcAttempts++;
+    throw rpcBoundary;
+  }
+}
+
+class _FundingWalletInfo extends Fake implements WalletInfo {
+  _FundingWalletInfo(this.isViewOnly);
+
+  @override
+  final bool isViewOnly;
+}
+
+class _FundingPrefs extends Fake implements Prefs {
+  @override
+  bool get useTor => false;
 }
 
 Trade _rosenRequest(bool fromFiro) {
