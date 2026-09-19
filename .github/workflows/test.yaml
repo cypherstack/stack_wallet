@@ -3,6 +3,7 @@ on: [pull_request]
 jobs:
   test:
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     permissions:
       contents: read
       packages: read
@@ -72,11 +73,12 @@ jobs:
 #      - name: Analyze
 #        run: flutter analyze
       - name: Test
+        timeout-minutes: 20
         run: |
           bash scripts/ensure_test_app_config.sh
           test -s lib/app_config.g.dart
           grep -Fq "part of 'app_config.dart';" lib/app_config.g.dart
-          flutter test --coverage
+          flutter test --coverage --reporter expanded
       - name: Upload to code coverage
         uses: codecov/codecov-action@v1.2.2
         if: success() || failure()
