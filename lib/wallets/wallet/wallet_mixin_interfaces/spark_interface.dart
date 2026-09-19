@@ -622,6 +622,11 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     required TxData txData,
     bool requireChaumV2 = false,
   }) async {
+    if (txData.opReturnData != null) {
+      throw ArgumentError(
+        'OP_RETURN sends require the Firo transparent balance',
+      );
+    }
     if (isViewOnly) {
       throw Exception("Spending is not supported for view only wallets");
     }
@@ -2711,6 +2716,11 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
   ///
   /// See https://docs.google.com/document/d/1RG52GoYTZDvKlZz_3G4sQu-PpT6JWSZGHLNswWcrE3o
   Future<TxData> prepareSparkMintTransaction({required TxData txData}) async {
+    if (txData.opReturnData != null) {
+      throw ArgumentError(
+        'OP_RETURN sends require the Firo transparent balance',
+      );
+    }
     if (isViewOnly) {
       throw Exception("Minting is not supported for view only wallets");
     }

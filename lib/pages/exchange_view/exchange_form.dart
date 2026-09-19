@@ -34,6 +34,7 @@ import '../../services/exchange/exchange_response.dart';
 import '../../services/exchange/exolix/exolix_exchange.dart';
 import '../../services/exchange/lets_exchange/lets_exchange_exchange.dart';
 import '../../services/exchange/nanswap/nanswap_exchange.dart';
+import '../../services/exchange/rosen/rosen_exchange.dart';
 import '../../services/exchange/trocador/trocador_exchange.dart';
 import '../../services/exchange/wizard_swap/wizard_swap_exchange.dart';
 import '../../themes/stack_colors.dart';
@@ -90,6 +91,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         NanswapExchange.instance,
         WizardSwapExchange.instance,
         CypherGoatExchange.instance,
+        RosenExchange.instance,
       ];
     }
   }
@@ -344,6 +346,9 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     _sendFocusNode.unfocus();
 
     ref.read(efRateTypeProvider.notifier).state = newType;
+    if (newType == ExchangeRateType.estimated) {
+      ref.read(efReversedProvider.notifier).state = false;
+    }
     update();
   }
 
@@ -761,7 +766,8 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       }
     });
     _receiveFocusNode.addListener(() {
-      if (_receiveFocusNode.hasFocus) {
+      if (_receiveFocusNode.hasFocus &&
+          ref.read(efRateTypeProvider) == ExchangeRateType.fixed) {
         final reversed = ref.read(efReversedProvider);
         WidgetsBinding.instance.addPostFrameCallback((_) {
           ref.read(efReversedProvider.notifier).state = true;

@@ -516,7 +516,10 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     }
   }
 
-  Future<TxData> _confirmSendMweb({required TxData txData}) async {
+  Future<TxData> _confirmSendMweb({
+    required TxData txData,
+    void Function(String txid)? onBroadcast,
+  }) async {
     if (!info.isMwebEnabled) {
       throw Exception(
         "Tried calling _confirmSendMweb with mweb disabled for"
@@ -534,6 +537,7 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
       );
 
       final txHash = response.txid;
+      onBroadcast?.call(txHash);
       Logging.instance.d("Sent txHash: $txHash");
 
       txData = txData.copyWith(
@@ -724,11 +728,14 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
   // ===========================================================================
 
   @override
-  Future<TxData> confirmSend({required TxData txData}) async {
+  Future<TxData> confirmSend({
+    required TxData txData,
+    void Function(String txid)? onBroadcast,
+  }) async {
     if (txData.type.isMweb()) {
-      return await _confirmSendMweb(txData: txData);
+      return await _confirmSendMweb(txData: txData, onBroadcast: onBroadcast);
     } else {
-      return await super.confirmSend(txData: txData);
+      return await super.confirmSend(txData: txData, onBroadcast: onBroadcast);
     }
   }
 

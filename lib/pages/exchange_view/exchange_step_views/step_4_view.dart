@@ -19,12 +19,15 @@ import '../../../app_config.dart';
 import '../../../models/exchange/incomplete_exchange.dart';
 import '../../../providers/providers.dart';
 import '../../../route_generator.dart';
+import '../../../services/exchange/rosen/rosen_exchange.dart';
+import '../../../services/exchange/rosen/rosen_funding.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/amount/amount_formatter.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/clipboard_interface.dart';
 import '../../../utilities/constants.dart';
+import '../../../utilities/default_eth_tokens.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/text_styles.dart';
@@ -72,6 +75,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
   late final ClipboardInterface clipboard;
 
   String _statusString = "New";
+  bool get _isRosen => model.trade!.exchangeName == RosenExchange.exchangeName;
 
   Timer? _statusTimer;
 
@@ -153,12 +157,19 @@ class _Step4ViewState extends ConsumerState<Step4View> {
   void initState() {
     model = widget.model;
     clipboard = widget.clipboard;
+    _statusString = model.trade!.status == "Waiting"
+        ? "Waiting for deposit"
+        : model.trade!.status;
 
-    isWalletCoinAndCanSend =
-        Util.isWalletCoinAndCanSendWithoutWalletOpenedIgnoringXMR(
-          model.trade!.payInCurrency,
-          ref.read(pWallets).wallets,
-        );
+    isWalletCoinAndCanSend = _isRosen
+        ? ref
+              .read(pWallets)
+              .wallets
+              .any((wallet) => RosenFunding.canFund(wallet, model.trade!))
+        : Util.isWalletCoinAndCanSendWithoutWalletOpenedIgnoringXMR(
+            model.trade!.payInCurrency,
+            ref.read(pWallets).wallets,
+          );
 
     _statusTimer = Timer.periodic(const Duration(seconds: 60), (_) {
       _updateStatus();
@@ -440,19 +451,23 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                               StepRow(count: 4, current: 3, width: width),
                               const SizedBox(height: 14),
                               Text(
-                                "Send ${model.sendTicker.toUpperCase()} "
-                                "to the address below",
+                                _isRosen
+                                    ? "Send with Rosen Bridge"
+                                    : "Send ${model.sendTicker.toUpperCase()} "
+                                          "to the address below",
                                 style: STextStyles.pageTitleH1(context),
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                "Send ${model.sendTicker.toUpperCase()} "
-                                "to the address below. Once it is received, "
-                                "${model.trade!.exchangeName} will send the "
-                                "${model.receiveTicker.toUpperCase()} to the "
-                                "recipient address you provided. You can find"
-                                " this trade details and check its status in "
-                                "the list of trades.",
+                                _isRosen
+                                    ? "Send from ${AppConfig.appName} to include the required bridge data. Your pending bridge appears in your swaps."
+                                    : "Send ${model.sendTicker.toUpperCase()} "
+                                          "to the address below. Once it is received, "
+                                          "${model.trade!.exchangeName} will send the "
+                                          "${model.receiveTicker.toUpperCase()} to the "
+                                          "recipient address you provided. You can find"
+                                          " this trade details and check its status in "
+                                          "the list of trades.",
                                 style: STextStyles.itemSubtitle(context),
                               ),
                               const SizedBox(height: 12),
@@ -468,16 +483,17 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              DetailItem(
-                                title:
-                                    "Send "
-                                    "${model.sendTicker.toUpperCase()}"
-                                    " to this address",
-                                detail: model.trade!.payInAddress,
-                                button: SimpleCopyButton(
-                                  data: model.trade!.payInAddress,
+                              if (!_isRosen)
+                                DetailItem(
+                                  title:
+                                      "Send "
+                                      "${model.sendTicker.toUpperCase()}"
+                                      " to this address",
+                                  detail: model.trade!.payInAddress,
+                                  button: SimpleCopyButton(
+                                    data: model.trade!.payInAddress,
+                                  ),
                                 ),
-                              ),
                               const SizedBox(height: 6),
                               if (model.trade!.payInExtraId.isNotEmpty)
                                 DetailItem(
@@ -520,10 +536,16 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                               ),
                               const Spacer(),
                               const SizedBox(height: 12),
-                              PrimaryButton(
-                                label: "Show QR Code",
-                                onPressed: _showQr,
-                              ),
+                              if (!_isRosen)
+                                PrimaryButton(
+                                  label: "Show QR Code",
+                                  onPressed: _showQr,
+                                ),
+                              if (_isRosen && !isWalletCoinAndCanSend)
+                                Text(
+                                  "Add a ${model.sendTicker.toLowerCase() == "firo" ? "FIRO" : "Ethereum"} wallet to fund this swap.",
+                                  style: STextStyles.itemSubtitle(context),
+                                ),
                               if (isWalletCoinAndCanSend)
                                 const SizedBox(height: 12),
                               if (isWalletCoinAndCanSend)
@@ -553,6 +575,17 @@ class _WarningInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (model.trade!.exchangeName == RosenExchange.exchangeName) {
+      return RoundedContainer(
+        color: Theme.of(context).extension<StackColors>()!.warningBackground,
+        child: Text(
+          model.sendTicker.toLowerCase() == "firo"
+              ? "Use your transparent FIRO balance. Stack Wallet adds the required Rosen Bridge data automatically."
+              : "Use an Ethereum wallet holding rsFIRO and enough ETH for network fees.",
+          style: STextStyles.label(context),
+        ),
+      );
+    }
     return RoundedContainer(
       color: Theme.of(context).extension<StackColors>()!.warningBackground,
       child: RichText(
@@ -599,7 +632,10 @@ class _SendFromButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     String buttonTitle = "Send from ${AppConfig.appName}";
 
-    final tuple = ref.read(exchangeSendFromWalletIdStateProvider.state).state;
+    final isRosen = model.trade!.exchangeName == RosenExchange.exchangeName;
+    final tuple = isRosen
+        ? null
+        : ref.read(exchangeSendFromWalletIdStateProvider.state).state;
     if (tuple != null &&
         model.sendTicker.toLowerCase() == tuple.item2.ticker.toLowerCase()) {
       final walletName = ref.read(pWallets).getWallet(tuple.item1).info.name;
@@ -618,16 +654,20 @@ class _SendFromButton extends ConsumerWidget {
             RouteGenerator.getRoute(
               shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
               builder: (BuildContext context) {
-                final coin = AppConfig.coins.firstWhere(
-                  (e) =>
-                      e.ticker.toLowerCase() ==
-                      model.trade!.payInCurrency.toLowerCase(),
-                );
+                final coin = isRosen
+                    ? RosenFunding.sourceCoin(model.trade!)
+                    : AppConfig.coins.firstWhere(
+                        (e) =>
+                            e.ticker.toLowerCase() ==
+                            model.trade!.payInCurrency.toLowerCase(),
+                      );
 
                 return SendFromView(
                   coin: coin,
                   amount: model.sendAmount.toAmount(
-                    fractionDigits: coin.fractionDigits,
+                    fractionDigits: isRosen
+                        ? DefaultTokens.rsFiro.decimals
+                        : coin.fractionDigits,
                   ),
                   address: model.trade!.payInAddress,
                   trade: model.trade!,

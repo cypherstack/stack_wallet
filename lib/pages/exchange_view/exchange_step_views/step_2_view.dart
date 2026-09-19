@@ -15,6 +15,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app_config.dart';
 import '../../../models/exchange/incomplete_exchange.dart';
 import '../../../providers/providers.dart';
+import '../../../services/exchange/rosen/rosen_exchange.dart';
+import '../../../services/exchange/rosen/rosen_funding.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/address_utils.dart';
 import '../../../utilities/barcode_scanner_interface.dart';
@@ -22,6 +24,7 @@ import '../../../utilities/clipboard_interface.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/text_styles.dart';
+import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/custom_buttons/blue_text_button.dart';
@@ -150,7 +153,7 @@ class _Step2ViewState extends ConsumerState<Step2View> {
           enableNext =
               _toController.text.isNotEmpty &&
               (_refundController.text.isNotEmpty ||
-                  !!ref.read(efExchangeProvider).supportsRefundAddress);
+                  !ref.read(efExchangeProvider).supportsRefundAddress);
         });
       }
     } on PlatformException catch (e, s) {
@@ -231,7 +234,9 @@ class _Step2ViewState extends ConsumerState<Step2View> {
 
   @override
   Widget build(BuildContext context) {
-    final supportsRefund = ref.watch(efExchangeProvider).supportsRefundAddress;
+    final exchange = ref.watch(efExchangeProvider);
+    final supportsRefund = exchange.supportsRefundAddress;
+    final isRosen = exchange.name == RosenExchange.exchangeName;
 
     return Background(
       child: Scaffold(
@@ -283,25 +288,48 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  "Recipient Wallet",
+                                  isRosen &&
+                                          model.receiveTicker.toLowerCase() ==
+                                              "firo"
+                                      ? "Recipient Wallet (transparent FIRO)"
+                                      : "Recipient Wallet",
                                   style: STextStyles.smallMed12(context),
                                 ),
-                                if (AppConfig.isStackCoin(model.receiveTicker))
+                                if (isRosen ||
+                                    AppConfig.isStackCoin(model.receiveTicker))
                                   CustomTextButton(
                                     text: "Choose from ${AppConfig.prefix}",
                                     onTap: () {
                                       try {
-                                        final coin = AppConfig.coins.firstWhere(
-                                          (e) =>
-                                              e.ticker.toLowerCase() ==
-                                              model.receiveTicker.toLowerCase(),
-                                        );
+                                        final coin =
+                                            isRosen &&
+                                                model.receiveTicker
+                                                        .toLowerCase() ==
+                                                    "rsfiro"
+                                            ? Ethereum(
+                                                CryptoCurrencyNetwork.main,
+                                              )
+                                            : AppConfig.coins.firstWhere(
+                                                (e) =>
+                                                    e.ticker.toLowerCase() ==
+                                                    model.receiveTicker
+                                                        .toLowerCase(),
+                                              );
 
                                         Navigator.of(context)
-                                            .pushNamed(
-                                              ChooseAddressFromStackView
-                                                  .routeName,
-                                              arguments: coin,
+                                            .push(
+                                              MaterialPageRoute<dynamic>(
+                                                settings: const RouteSettings(
+                                                  name:
+                                                      ChooseAddressFromStackView
+                                                          .routeName,
+                                                ),
+                                                builder: (_) =>
+                                                    ChooseAddressFromStackView(
+                                                      coin: coin,
+                                                      transparentOnly: isRosen,
+                                                    ),
+                                              ),
                                             )
                                             .then((value) async {
                                               if (value
@@ -310,6 +338,19 @@ class _Step2ViewState extends ConsumerState<Step2View> {
                                                     String address,
                                                     String walletName,
                                                   })) {
+                                                if (isRosen &&
+                                                    model.receiveTicker
+                                                            .toLowerCase() ==
+                                                        "rsfiro") {
+                                                  await RosenFunding.registerToken(
+                                                    ref
+                                                        .read(pWallets)
+                                                        .getWallet(
+                                                          value.walletId,
+                                                        ),
+                                                  );
+                                                  if (!mounted) return;
+                                                }
                                                 _toController.text =
                                                     value.walletName;
                                                 model.recipientAddress =

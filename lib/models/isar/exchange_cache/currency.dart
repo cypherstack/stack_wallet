@@ -17,6 +17,7 @@ import '../../../services/exchange/exchange.dart';
 import '../../../services/exchange/exolix/exolix_exchange.dart';
 import '../../../services/exchange/lets_exchange/lets_exchange_exchange.dart';
 import '../../../services/exchange/nanswap/nanswap_exchange.dart';
+import '../../../services/exchange/rosen/rosen_exchange.dart';
 import '../../../services/exchange/trocador/trocador_exchange.dart';
 import '../../../services/exchange/wizard_swap/wizard_swap_exchange.dart';
 import 'pair.dart';
@@ -87,6 +88,7 @@ class Currency {
       const (ChangeNowExchange) => network,
 
       const (ExolixExchange) => network.toLowerCase(),
+      const (RosenExchange) => network.toLowerCase(),
 
       // not used at the time being
       // case const (SimpleSwapExchange):

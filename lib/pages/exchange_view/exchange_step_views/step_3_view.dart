@@ -13,6 +13,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../exceptions/exchange/exchange_exception.dart';
 import '../../../models/exchange/incomplete_exchange.dart';
 import '../../../models/exchange/response_objects/trade.dart';
 import '../../../providers/global/trades_service_provider.dart';
@@ -23,12 +24,14 @@ import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/clipboard_interface.dart';
 import '../../../utilities/enums/exchange_rate_type_enum.dart';
+import '../../../utilities/show_loading.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/custom_loading_overlay.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_dialog.dart';
+import '../rosen_quote_dialog.dart';
 import '../sub_widgets/step_row.dart';
 import 'step_4_view.dart';
 
@@ -49,8 +52,9 @@ class Step3View extends ConsumerStatefulWidget {
 }
 
 class _Step3ViewState extends ConsumerState<Step3View> {
-  late final IncompleteExchangeModel model;
+  late IncompleteExchangeModel model;
   late final ClipboardInterface clipboard;
+  bool _creating = false;
 
   @override
   void initState() {
@@ -205,150 +209,204 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                         ),
                                     child: Text(
                                       "Back",
-                                      style: STextStyles.button(
-                                        context,
-                                      ).copyWith(
-                                        color:
-                                            Theme.of(context)
+                                      style: STextStyles.button(context)
+                                          .copyWith(
+                                            color: Theme.of(context)
                                                 .extension<StackColors>()!
                                                 .buttonTextSecondary,
-                                      ),
+                                          ),
                                     ),
                                   ),
                                 ),
                                 const SizedBox(width: 16),
                                 Expanded(
                                   child: TextButton(
-                                    onPressed: () async {
-                                      unawaited(
-                                        showDialog<void>(
-                                          context: context,
-                                          barrierDismissible: false,
-                                          builder:
-                                              (_) => WillPopScope(
-                                                onWillPop: () async => false,
-                                                child: Container(
-                                                  color: Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .overlay
-                                                      .withOpacity(0.6),
-                                                  child:
-                                                      const CustomLoadingOverlay(
+                                    onPressed: _creating
+                                        ? null
+                                        : () async {
+                                            if (_creating) return;
+                                            setState(() => _creating = true);
+                                            try {
+                                              unawaited(
+                                                showDialog<void>(
+                                                  context: context,
+                                                  barrierDismissible: false,
+                                                  builder: (_) => WillPopScope(
+                                                    onWillPop: () async =>
+                                                        false,
+                                                    child: Container(
+                                                      color: Theme.of(context)
+                                                          .extension<
+                                                            StackColors
+                                                          >()!
+                                                          .overlay
+                                                          .withOpacity(0.6),
+                                                      child: const CustomLoadingOverlay(
                                                         message:
                                                             "Creating a trade",
                                                         eventBus: null,
                                                       ),
-                                                ),
-                                              ),
-                                        ),
-                                      );
-
-                                      final ExchangeResponse<Trade>
-                                      response = await ref
-                                          .read(efExchangeProvider)
-                                          .createTrade(
-                                            from: model.sendTicker,
-                                            fromNetwork:
-                                                model.sendCurrency.network,
-                                            to: model.receiveTicker,
-                                            toNetwork:
-                                                model.receiveCurrency.network,
-                                            fixedRate:
-                                                model.rateType !=
-                                                ExchangeRateType.estimated,
-                                            amount:
-                                                model.reversed
-                                                    ? model.receiveAmount
-                                                    : model.sendAmount,
-                                            addressTo: model.recipientAddress!,
-                                            extraId: null,
-                                            addressRefund:
-                                                supportsRefund
-                                                    ? model.refundAddress!
-                                                    : "",
-                                            refundExtraId: "",
-                                            estimate: model.estimate,
-                                            reversed: model.reversed,
-                                          );
-
-                                      if (response.value == null) {
-                                        if (context.mounted) {
-                                          Navigator.of(context).pop();
-
-                                          // TODO: better errors
-                                          String? message;
-                                          if (response.exception != null) {
-                                            message =
-                                                response.exception!.toString();
-                                            if (message.startsWith(
-                                                  "FormatException:",
-                                                ) &&
-                                                message.contains("<html>")) {
-                                              message =
-                                                  "${ref.read(efExchangeProvider).name} server error";
-                                            }
-                                          }
-
-                                          unawaited(
-                                            showDialog<void>(
-                                              context: context,
-                                              barrierDismissible: true,
-                                              builder:
-                                                  (_) => StackDialog(
-                                                    title:
-                                                        "Failed to create trade",
-                                                    message: message ?? "",
+                                                    ),
                                                   ),
-                                            ),
-                                          );
-                                        }
-                                        return;
-                                      }
+                                                ),
+                                              );
 
-                                      // save trade to hive
-                                      await ref
-                                          .read(tradesServiceProvider)
-                                          .add(
-                                            trade: response.value!,
-                                            shouldNotifyListeners: true,
-                                          );
+                                              final ExchangeResponse<Trade>
+                                              response = await ref
+                                                  .read(efExchangeProvider)
+                                                  .createTrade(
+                                                    from: model.sendTicker,
+                                                    fromNetwork: model
+                                                        .sendCurrency
+                                                        .network,
+                                                    to: model.receiveTicker,
+                                                    toNetwork: model
+                                                        .receiveCurrency
+                                                        .network,
+                                                    fixedRate:
+                                                        model.rateType !=
+                                                        ExchangeRateType
+                                                            .estimated,
+                                                    amount: model.reversed
+                                                        ? model.receiveAmount
+                                                        : model.sendAmount,
+                                                    addressTo:
+                                                        model.recipientAddress!,
+                                                    extraId: null,
+                                                    addressRefund:
+                                                        supportsRefund
+                                                        ? model.refundAddress!
+                                                        : "",
+                                                    refundExtraId: "",
+                                                    estimate: model.estimate,
+                                                    reversed: model.reversed,
+                                                  );
 
-                                      String status = response.value!.status;
+                                              if (response.value == null) {
+                                                if (context.mounted) {
+                                                  Navigator.of(context).pop();
 
-                                      model.trade = response.value!;
+                                                  // TODO: better errors
+                                                  String? message;
+                                                  if (response
+                                                          .exception
+                                                          ?.type ==
+                                                      ExchangeExceptionType
+                                                          .quoteChanged) {
+                                                    final refresh =
+                                                        await showRosenQuoteChangedDialog(
+                                                          context,
+                                                        );
+                                                    if (!refresh || !mounted)
+                                                      return;
+                                                    final refreshed = await showLoading(
+                                                      whileFuture:
+                                                          refreshRosenEstimate(
+                                                            model,
+                                                          ),
+                                                      context: context,
+                                                      message:
+                                                          'Updating exchange rate',
+                                                      onException: (error) =>
+                                                          message = error
+                                                              .toString(),
+                                                    );
+                                                    if (!mounted) return;
+                                                    if (refreshed != null) {
+                                                      setState(
+                                                        () => model = refreshed,
+                                                      );
+                                                      return;
+                                                    }
+                                                  }
+                                                  if (response.exception !=
+                                                      null) {
+                                                    final detail =
+                                                        message ??
+                                                        response.exception!
+                                                            .toString();
+                                                    message = detail;
+                                                    if (detail.startsWith(
+                                                          "FormatException:",
+                                                        ) &&
+                                                        detail.contains(
+                                                          "<html>",
+                                                        )) {
+                                                      message =
+                                                          "${ref.read(efExchangeProvider).name} server error";
+                                                    }
+                                                  }
 
-                                      // extra info if status is waiting
-                                      if (status == "Waiting") {
-                                        status += " for deposit";
-                                      }
+                                                  unawaited(
+                                                    showDialog<void>(
+                                                      context: context,
+                                                      barrierDismissible: true,
+                                                      builder: (_) => StackDialog(
+                                                        title:
+                                                            "Failed to create trade",
+                                                        message: message ?? "",
+                                                      ),
+                                                    ),
+                                                  );
+                                                }
+                                                return;
+                                              }
 
-                                      if (mounted) {
-                                        Navigator.of(context).pop();
-                                      }
+                                              // save trade to hive
+                                              await ref
+                                                  .read(tradesServiceProvider)
+                                                  .add(
+                                                    trade: response.value!,
+                                                    shouldNotifyListeners: true,
+                                                  );
 
-                                      unawaited(
-                                        NotificationApi.showNotification(
-                                          changeNowId: model.trade!.tradeId,
-                                          title: status,
-                                          body:
-                                              "Trade ID ${model.trade!.tradeId}",
-                                          walletId: "",
-                                          iconAssetName: Assets.svg.arrowRotate,
-                                          date: model.trade!.timestamp,
-                                          shouldWatchForUpdates: true,
-                                          coinName: "coinName",
-                                        ),
-                                      );
+                                              String status =
+                                                  response.value!.status;
 
-                                      if (context.mounted) {
-                                        unawaited(
-                                          Navigator.of(context).pushNamed(
-                                            Step4View.routeName,
-                                            arguments: model,
-                                          ),
-                                        );
-                                      }
-                                    },
+                                              model.trade = response.value!;
+
+                                              // extra info if status is waiting
+                                              if (status == "Waiting") {
+                                                status += " for deposit";
+                                              }
+
+                                              if (mounted) {
+                                                Navigator.of(context).pop();
+                                              }
+
+                                              unawaited(
+                                                NotificationApi.showNotification(
+                                                  changeNowId:
+                                                      model.trade!.tradeId,
+                                                  title: status,
+                                                  body:
+                                                      "Trade ID ${model.trade!.tradeId}",
+                                                  walletId: "",
+                                                  iconAssetName:
+                                                      Assets.svg.arrowRotate,
+                                                  date: model.trade!.timestamp,
+                                                  shouldWatchForUpdates: true,
+                                                  coinName: "coinName",
+                                                ),
+                                              );
+
+                                              if (context.mounted) {
+                                                unawaited(
+                                                  Navigator.of(
+                                                    context,
+                                                  ).pushNamed(
+                                                    Step4View.routeName,
+                                                    arguments: model,
+                                                  ),
+                                                );
+                                              }
+                                            } finally {
+                                              if (mounted)
+                                                setState(
+                                                  () => _creating = false,
+                                                );
+                                            }
+                                          },
                                     style: Theme.of(context)
                                         .extension<StackColors>()!
                                         .getPrimaryEnabledButtonStyle(context),

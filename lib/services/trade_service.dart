@@ -12,8 +12,12 @@ import 'package:flutter/cupertino.dart';
 
 import '../db/hive/db.dart';
 import '../models/exchange/response_objects/trade.dart';
+import 'exchange/rosen/rosen_exchange.dart';
 
 class TradesService extends ChangeNotifier {
+  /// Trade getters read the DB directly; notify after an atomic bridge refresh.
+  void refresh() => notifyListeners();
+
   List<Trade> get trades {
     final list = DB.instance.values<Trade>(boxName: DB.boxNameTradesV2);
     list.sort(
@@ -53,6 +57,52 @@ class TradesService extends ChangeNotifier {
     required Trade trade,
     required bool shouldNotifyListeners,
   }) async {
+    if (trade.exchangeName == RosenExchange.exchangeName) {
+      final db = DB.instance;
+      // Read and merge under the same lock as writes: a poll can finish after funding.
+      await db.mutex.protect(() async {
+        final box = db.hive.box<Trade>(DB.boxNameTradesV2);
+        final current = box.get(trade.uuid);
+        if (current == null) {
+          throw StateError("Cannot edit a swap that does not exist.");
+        }
+        // Quote refreshes have a compare-and-save path. Polls and funding updates
+        // must keep the persisted request that was actually shown or broadcast.
+        var updated = current.copyWith(
+          status: trade.status,
+          payInTxid: trade.payInTxid,
+          payOutTxid: trade.payOutTxid,
+          updatedAt: trade.updatedAt.isBefore(current.updatedAt)
+              ? current.updatedAt
+              : trade.updatedAt,
+        );
+        if (current.payInTxid.isNotEmpty) {
+          updated = updated.copyWith(
+            payInTxid: current.payInTxid,
+            status:
+                const ["new", "waiting"].contains(updated.status.toLowerCase())
+                ? current.status
+                : updated.status,
+            payOutTxid: updated.payOutTxid.isEmpty
+                ? current.payOutTxid
+                : updated.payOutTxid,
+          );
+        }
+        if (const [
+              "finished",
+              "failed",
+            ].contains(current.status.toLowerCase()) &&
+            !const [
+              "finished",
+              "failed",
+            ].contains(updated.status.toLowerCase())) {
+          updated = current;
+        }
+        await box.put(trade.uuid, updated);
+      });
+      if (shouldNotifyListeners) notifyListeners();
+      return;
+    }
     if (DB.instance.get<Trade>(boxName: DB.boxNameTradesV2, key: trade.uuid) ==
         null) {
       throw Exception("Attempted to edit a trade that does not exist in Hive!");

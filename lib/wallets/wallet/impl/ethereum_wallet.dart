@@ -547,6 +547,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
   Future<TxData> confirmSend({
     required TxData txData,
     TxData Function(TxData txData, String myAddress)? prepareTempTx,
+    void Function(String txid)? onBroadcast,
   }) async {
     final client = getEthClient();
     if (_credentials == null) {
@@ -559,6 +560,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
         txData.web3dartTransaction!,
         chainId: txData.chainId!.toInt(),
       );
+      onBroadcast?.call(txid);
 
       final data = (prepareTempTx ?? _prepareTempTx)(
         txData.copyWith(txid: txid, txHash: txid),

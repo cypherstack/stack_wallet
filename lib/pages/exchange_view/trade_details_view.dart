@@ -33,6 +33,8 @@ import '../../services/exchange/exchange.dart';
 import '../../services/exchange/exolix/exolix_exchange.dart';
 import '../../services/exchange/lets_exchange/lets_exchange_exchange.dart';
 import '../../services/exchange/nanswap/nanswap_exchange.dart';
+import '../../services/exchange/rosen/rosen_exchange.dart';
+import '../../services/exchange/rosen/rosen_funding.dart';
 import '../../services/exchange/simpleswap/simpleswap_exchange.dart';
 import '../../services/exchange/trocador/trocador_exchange.dart';
 import '../../services/exchange/wizard_swap/wizard_swap_exchange.dart';
@@ -43,6 +45,7 @@ import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/clipboard_interface.dart';
 import '../../utilities/constants.dart';
+import '../../utilities/default_eth_tokens.dart';
 import '../../utilities/format.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
@@ -171,8 +174,10 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
       ),
     );
 
+    final isRosen = trade.exchangeName == RosenExchange.exchangeName;
     final bool hasTx =
         sentFromStack ||
+        (isRosen && trade.payInTxid.isNotEmpty) ||
         !(trade.status == "New" ||
             trade.status == "new" ||
             trade.status == "wait" ||
@@ -203,11 +208,16 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
 
     final showSendFromStackButton =
         !hasTx &&
-        AppConfig.isStackCoin(trade.payInCurrency) &&
-        Util.isWalletCoinAndCanSendWithoutWalletOpenedIgnoringXMR(
-          trade.payInCurrency,
-          ref.read(pWallets).wallets,
-        ) &&
+        (isRosen
+            ? ref
+                  .read(pWallets)
+                  .wallets
+                  .any((wallet) => RosenFunding.canFund(wallet, trade))
+            : AppConfig.isStackCoin(trade.payInCurrency) &&
+                  Util.isWalletCoinAndCanSendWithoutWalletOpenedIgnoringXMR(
+                    trade.payInCurrency,
+                    ref.read(pWallets).wallets,
+                  )) &&
         (trade.status == "New" ||
             trade.status == "new" ||
             trade.status == "waiting" ||
@@ -277,9 +287,11 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       onPressed: () {
                         CryptoCurrency coin;
                         try {
-                          coin = AppConfig.getCryptoCurrencyForTicker(
-                            trade.payInCurrency,
-                          )!;
+                          coin = isRosen
+                              ? RosenFunding.sourceCoin(trade)
+                              : AppConfig.getCryptoCurrencyForTicker(
+                                  trade.payInCurrency,
+                                )!;
                         } catch (_) {
                           coin = AppConfig.getCryptoCurrencyByPrettyName(
                             trade.payInCurrency,
@@ -287,7 +299,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                         }
                         final amount = Amount.fromDecimal(
                           sendAmount,
-                          fractionDigits: coin.fractionDigits,
+                          fractionDigits: isRosen
+                              ? DefaultTokens.rsFiro.decimals
+                              : coin.fractionDigits,
                         );
                         final address = trade.payInAddress;
 
@@ -371,7 +385,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                       trade.payInCurrency,
                                     )!;
                                 final amount = sendAmount.toAmount(
-                                  fractionDigits: coin.fractionDigits,
+                                  fractionDigits: isRosen
+                                      ? DefaultTokens.rsFiro.decimals
+                                      : coin.fractionDigits,
                                 );
                                 text = ref
                                     .watch(pAmountFormatter(coin))
@@ -444,9 +460,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                 ],
               ),
             ),
-            if (!sentFromStack && !hasTx)
+            if (!isRosen && !sentFromStack && !hasTx)
               isDesktop ? const _Divider() : const SizedBox(height: 12),
-            if (!sentFromStack && !hasTx)
+            if (!isRosen && !sentFromStack && !hasTx)
               RoundedContainer(
                 padding: isDesktop
                     ? const EdgeInsets.all(16)
@@ -535,6 +551,15 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                   ),
                 ),
               ),
+            if (isRosen && !hasTx)
+              RoundedWhiteContainer(
+                child: Text(
+                  trade.payInCurrency.toLowerCase() == "firo"
+                      ? "Send from your transparent FIRO balance using the button below. Stack Wallet includes the required Rosen Bridge data."
+                      : "Send from an Ethereum wallet holding rsFIRO using the button below. ETH is required for network fees.",
+                  style: STextStyles.itemSubtitle(context),
+                ),
+              ),
             if (sentFromStack)
               isDesktop ? const _Divider() : const SizedBox(height: 12),
             if (sentFromStack)
@@ -555,9 +580,11 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     CustomTextButton(
                       text: "View transaction",
                       onTap: () {
-                        final coin = AppConfig.getCryptoCurrencyForTicker(
-                          trade.payInCurrency,
-                        )!;
+                        final coin = isRosen
+                            ? RosenFunding.sourceCoin(trade)
+                            : AppConfig.getCryptoCurrencyForTicker(
+                                trade.payInCurrency,
+                              )!;
 
                         if (isDesktop) {
                           Navigator.of(context).push(
@@ -629,9 +656,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                   ],
                 ),
               ),
-            if (!sentFromStack && !hasTx)
+            if (!isRosen && !sentFromStack && !hasTx)
               isDesktop ? const _Divider() : const SizedBox(height: 12),
-            if (!sentFromStack && !hasTx)
+            if (!isRosen && !sentFromStack && !hasTx)
               RoundedWhiteContainer(
                 padding: isDesktop
                     ? const EdgeInsets.all(16)
@@ -1156,6 +1183,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       builder: (context) {
                         late final String url;
                         switch (trade.exchangeName) {
+                          case RosenExchange.exchangeName:
+                            url = "https://app.rosen.tech/events";
+                            break;
                           case ChangeNowExchange.exchangeName:
                             url =
                                 "https://changenow.io/exchange/txs/${trade.tradeId}";
@@ -1220,9 +1250,11 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                 onPressed: () {
                   CryptoCurrency coin;
                   try {
-                    coin = AppConfig.getCryptoCurrencyForTicker(
-                      trade.payInCurrency,
-                    )!;
+                    coin = isRosen
+                        ? RosenFunding.sourceCoin(trade)
+                        : AppConfig.getCryptoCurrencyForTicker(
+                            trade.payInCurrency,
+                          )!;
                   } catch (_) {
                     coin = AppConfig.getCryptoCurrencyByPrettyName(
                       trade.payInCurrency,
@@ -1230,7 +1262,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                   }
                   final amount = Amount.fromDecimal(
                     sendAmount,
-                    fractionDigits: coin.fractionDigits,
+                    fractionDigits: isRosen
+                        ? DefaultTokens.rsFiro.decimals
+                        : coin.fractionDigits,
                   );
                   final address = trade.payInAddress;
 

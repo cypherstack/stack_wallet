@@ -15,6 +15,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app_config.dart';
 import '../../../../providers/providers.dart';
+import '../../../../services/exchange/rosen/rosen_exchange.dart';
+import '../../../../services/exchange/rosen/rosen_funding.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../widgets/rounded_container.dart';
@@ -92,6 +94,61 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
 
   @override
   Widget build(BuildContext context) {
+    final model = ref.watch(desktopExchangeModelProvider)!;
+    final status = _statusString == "New"
+        ? model.trade?.status ?? "New"
+        : _statusString;
+    final statusString = status == "Waiting" ? "Waiting for deposit" : status;
+    if (model.trade?.exchangeName == RosenExchange.exchangeName) {
+      final canFund = ref
+          .watch(pWallets)
+          .wallets
+          .any((wallet) => RosenFunding.canFund(wallet, model.trade!));
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            "Send with Rosen Bridge",
+            style: STextStyles.desktopTextMedium(context),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            "Send from ${AppConfig.appName} to include the required bridge data. Your pending bridge appears in your swaps.",
+            style: STextStyles.desktopTextExtraExtraSmall(context),
+          ),
+          const SizedBox(height: 20),
+          RoundedContainer(
+            color: Theme.of(
+              context,
+            ).extension<StackColors>()!.warningBackground,
+            child: Text(
+              model.sendTicker.toLowerCase() == "firo"
+                  ? "Use your transparent FIRO balance. Stack Wallet adds the required Rosen Bridge data automatically."
+                  : "Use an Ethereum wallet holding rsFIRO and enough ETH for network fees.",
+              style: STextStyles.label(context),
+            ),
+          ),
+          const SizedBox(height: 20),
+          RoundedWhiteContainer(
+            child: Column(
+              children: [
+                DesktopStepItem(
+                  label: "Amount",
+                  value: "${model.sendAmount} ${model.sendTicker}",
+                ),
+                DesktopStepItem(label: "Trade ID", value: model.trade!.tradeId),
+                DesktopStepItem(label: "Status", value: statusString),
+              ],
+            ),
+          ),
+          if (!canFund)
+            Text(
+              "Add a ${model.sendTicker.toLowerCase() == "firo" ? "FIRO" : "Ethereum"} wallet to fund this swap.",
+              style: STextStyles.label(context),
+            ),
+        ],
+      );
+    }
     return Column(
       children: [
         Text(
@@ -111,10 +168,9 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
               text:
                   "You must send at least ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendAmount.toString()))} ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker))}. ",
               style: STextStyles.label700(context).copyWith(
-                color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()!.warningForeground,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.warningForeground,
                 fontSize: 14,
               ),
               children: [
@@ -122,10 +178,9 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
                   text:
                       "If you send less than ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendAmount.toString()))} ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker))}, your transaction may not be converted and it may not be refunded.",
                   style: STextStyles.label(context).copyWith(
-                    color:
-                        Theme.of(
-                          context,
-                        ).extension<StackColors>()!.warningForeground,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.warningForeground,
                     fontSize: 14,
                   ),
                 ),
@@ -216,14 +271,13 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
                       style: STextStyles.desktopTextExtraExtraSmall(context),
                     ),
                     Text(
-                      _statusString,
-                      style: STextStyles.desktopTextExtraExtraSmall(
-                        context,
-                      ).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .colorForStatus(_statusString),
-                      ),
+                      statusString,
+                      style: STextStyles.desktopTextExtraExtraSmall(context)
+                          .copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .colorForStatus(statusString),
+                          ),
                     ),
                   ],
                 ),

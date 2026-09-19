@@ -11,16 +11,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tuple/tuple.dart';
 
 import '../../../../app_config.dart';
 import '../../../../models/contact_address_entry.dart';
 import '../../../../providers/providers.dart';
+import '../../../../services/exchange/rosen/rosen_exchange.dart';
+import '../../../../services/exchange/rosen/rosen_funding.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/text_styles.dart';
+import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
@@ -57,28 +59,44 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
   late final FocusNode _toFocusNode;
   late final FocusNode _refundFocusNode;
 
+  bool get _isRosen =>
+      ref.read(efExchangeProvider).name == RosenExchange.exchangeName;
+
   void selectRecipientAddressFromStack() async {
     try {
-      final coin = AppConfig.getCryptoCurrencyForTicker(
-        ref.read(desktopExchangeModelProvider)!.receiveTicker,
-      )!;
+      final ticker = ref.read(desktopExchangeModelProvider)!.receiveTicker;
+      final coin = _isRosen && ticker.toLowerCase() == "rsfiro"
+          ? Ethereum(CryptoCurrencyNetwork.main)
+          : AppConfig.getCryptoCurrencyForTicker(ticker)!;
 
-      final info = await showDialog<Tuple2<String, String>?>(
-        context: context,
-        barrierColor: Colors.transparent,
-        builder: (context) => DesktopDialog(
-          maxWidth: 720,
-          maxHeight: 670,
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: DesktopChooseAddressFromStack(coin: coin),
-          ),
-        ),
-      );
+      final info =
+          await showDialog<
+            ({String walletId, String address, String walletName})
+          >(
+            context: context,
+            barrierColor: Colors.transparent,
+            builder: (context) => DesktopDialog(
+              maxWidth: 720,
+              maxHeight: 670,
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: DesktopChooseAddressFromStack(
+                  coin: coin,
+                  transparentOnly: _isRosen,
+                ),
+              ),
+            ),
+          );
 
-      if (info is Tuple2<String, String>) {
-        _toController.text = info.item1;
-        ref.read(desktopExchangeModelProvider)!.recipientAddress = info.item2;
+      if (info != null) {
+        if (_isRosen && ticker.toLowerCase() == "rsfiro") {
+          await RosenFunding.registerToken(
+            ref.read(pWallets).getWallet(info.walletId),
+          );
+          if (!mounted) return;
+        }
+        _toController.text = info.walletName;
+        ref.read(desktopExchangeModelProvider)!.recipientAddress = info.address;
       }
     } catch (e, s) {
       Logging.instance.i("$e\n$s", error: e, stackTrace: s);
@@ -93,21 +111,24 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
         ref.read(desktopExchangeModelProvider)!.sendTicker,
       )!;
 
-      final info = await showDialog<Tuple2<String, String>?>(
-        context: context,
-        barrierColor: Colors.transparent,
-        builder: (context) => DesktopDialog(
-          maxWidth: 720,
-          maxHeight: 670,
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: DesktopChooseAddressFromStack(coin: coin),
-          ),
-        ),
-      );
-      if (info is Tuple2<String, String>) {
-        _refundController.text = info.item1;
-        ref.read(desktopExchangeModelProvider)!.refundAddress = info.item2;
+      final info =
+          await showDialog<
+            ({String walletId, String address, String walletName})
+          >(
+            context: context,
+            barrierColor: Colors.transparent,
+            builder: (context) => DesktopDialog(
+              maxWidth: 720,
+              maxHeight: 670,
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: DesktopChooseAddressFromStack(coin: coin),
+              ),
+            ),
+          );
+      if (info != null) {
+        _refundController.text = info.walletName;
+        ref.read(desktopExchangeModelProvider)!.refundAddress = info.address;
       }
     } catch (e, s) {
       Logging.instance.i("$e\n$s", error: e, stackTrace: s);
@@ -281,7 +302,9 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
         ),
         const SizedBox(height: 8),
         Text(
-          "Enter your recipient and refund addresses",
+          doesRefundAddress
+              ? "Enter your recipient and refund addresses"
+              : "Enter your recipient address",
           style: STextStyles.desktopTextExtraExtraSmall(context),
           textAlign: TextAlign.center,
         ),
@@ -290,20 +313,28 @@ class _DesktopStep2State extends ConsumerState<DesktopStep2> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              "Recipient Wallet",
+              _isRosen &&
+                      ref
+                              .read(desktopExchangeModelProvider)!
+                              .receiveTicker
+                              .toLowerCase() ==
+                          "firo"
+                  ? "Recipient Wallet (transparent FIRO)"
+                  : "Recipient Wallet",
               style: STextStyles.desktopTextExtraExtraSmall(context).copyWith(
                 color: Theme.of(
                   context,
                 ).extension<StackColors>()!.textFieldActiveSearchIconRight,
               ),
             ),
-            if (AppConfig.isStackCoin(
-              ref.watch(
-                desktopExchangeModelProvider.select(
-                  (value) => value!.receiveTicker,
-                ),
-              ),
-            ))
+            if (_isRosen ||
+                AppConfig.isStackCoin(
+                  ref.watch(
+                    desktopExchangeModelProvider.select(
+                      (value) => value!.receiveTicker,
+                    ),
+                  ),
+                ))
               CustomTextButton(
                 text: "Choose from ${AppConfig.prefix}",
                 onTap: selectRecipientAddressFromStack,

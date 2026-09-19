@@ -30,9 +30,14 @@ import '../../widgets/wallet_info_row/sub_widgets/wallet_info_row_balance.dart';
 import '../../widgets/wallet_info_row/sub_widgets/wallet_info_row_coin_icon.dart';
 
 class ChooseAddressFromStackView extends ConsumerStatefulWidget {
-  const ChooseAddressFromStackView({super.key, required this.coin});
+  const ChooseAddressFromStackView({
+    super.key,
+    required this.coin,
+    this.transparentOnly = false,
+  });
 
   final CryptoCurrency coin;
+  final bool transparentOnly;
 
   static const String routeName = "/chooseFromStack";
 
@@ -92,6 +97,7 @@ class _ChooseFromStackViewState
                       padding: const EdgeInsets.symmetric(vertical: 5.0),
                       child: _WalletAddressSelectCard(
                         walletId: walletIds[index],
+                        transparentOnly: widget.transparentOnly,
                       ),
                     ),
                   ),
@@ -103,9 +109,13 @@ class _ChooseFromStackViewState
 }
 
 class _WalletAddressSelectCard extends ConsumerStatefulWidget {
-  const _WalletAddressSelectCard({required this.walletId});
+  const _WalletAddressSelectCard({
+    required this.walletId,
+    required this.transparentOnly,
+  });
 
   final String walletId;
+  final bool transparentOnly;
 
   @override
   ConsumerState<_WalletAddressSelectCard> createState() =>
@@ -189,94 +199,100 @@ class _WalletAddressSelectCardState
             ],
           ),
           const SizedBox(height: 10),
-          RawMaterialButton(
-            splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(
-                Constants.size.circularBorderRadius,
-              ),
-            ),
-            padding: const EdgeInsets.all(0),
-            elevation: 0,
-            onPressed: () async {
-              Future<String?> _future() async {
-                final wallet =
-                    ref.read(pWallets).getWallet(widget.walletId)
-                        as SparkInterface;
-                final sparkAddress = await wallet
-                    .getCurrentReceivingSparkAddress();
-                if (sparkAddress != null) {
-                  return sparkAddress.value;
-                }
-
-                return (await wallet.generateNextSparkAddress(
-                  saveToDB: true,
-                )).value;
-              }
-
-              Exception? ex;
-              final sparkAddress = await showLoading(
-                context: context,
-                message: "Fetching Spark address",
-                rootNavigator: Util.isDesktop,
-                delay: const Duration(milliseconds: 1200),
-                whileFutureAlt: _future,
-                onException: (e) => ex = e,
-              );
-
-              if (context.mounted) {
-                if (ex != null) {
-                  await showDialog<void>(
-                    context: context,
-                    builder: (context) => StackOkDialog(
-                      title: "Error",
-                      message: ex
-                          .toString()
-                          .replaceFirst("Exception:", "")
-                          .trim(),
-                    ),
-                  );
-                } else {
-                  Navigator.of(context).pop((
-                    walletId: widget.walletId,
-                    address: sparkAddress,
-                    walletName:
-                        "${ref.read(pWalletName(widget.walletId))} (Spark)",
-                  ));
-                }
-              }
-            },
-            child: Row(
-              crossAxisAlignment: .center,
-              mainAxisAlignment: .spaceBetween,
-              children: [
-                Column(
-                  mainAxisSize: .min,
-                  crossAxisAlignment: .start,
-                  children: [
-                    Text("Spark address", style: STextStyles.w500_12(context)),
-                    const SizedBox(height: 2),
-                    WalletInfoRowBalance(
-                      walletId: widget.walletId,
-                      balanceType: .private,
-                    ),
-                  ],
+          if (!widget.transparentOnly)
+            RawMaterialButton(
+              splashColor: Theme.of(
+                context,
+              ).extension<StackColors>()!.highlight,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(
+                  Constants.size.circularBorderRadius,
                 ),
-                SizedBox(
-                  width: 25,
-                  height: 25,
-                  child: SvgPicture.asset(
-                    Assets.svg.chevronRight,
-                    colorFilter: ColorFilter.mode(
-                      Theme.of(context).extension<StackColors>()!.textDark,
-                      BlendMode.srcIn,
+              ),
+              padding: const EdgeInsets.all(0),
+              elevation: 0,
+              onPressed: () async {
+                Future<String?> _future() async {
+                  final wallet =
+                      ref.read(pWallets).getWallet(widget.walletId)
+                          as SparkInterface;
+                  final sparkAddress = await wallet
+                      .getCurrentReceivingSparkAddress();
+                  if (sparkAddress != null) {
+                    return sparkAddress.value;
+                  }
+
+                  return (await wallet.generateNextSparkAddress(
+                    saveToDB: true,
+                  )).value;
+                }
+
+                Exception? ex;
+                final sparkAddress = await showLoading(
+                  context: context,
+                  message: "Fetching Spark address",
+                  rootNavigator: Util.isDesktop,
+                  delay: const Duration(milliseconds: 1200),
+                  whileFutureAlt: _future,
+                  onException: (e) => ex = e,
+                );
+
+                if (context.mounted) {
+                  if (ex != null) {
+                    await showDialog<void>(
+                      context: context,
+                      builder: (context) => StackOkDialog(
+                        title: "Error",
+                        message: ex
+                            .toString()
+                            .replaceFirst("Exception:", "")
+                            .trim(),
+                      ),
+                    );
+                  } else {
+                    Navigator.of(context).pop((
+                      walletId: widget.walletId,
+                      address: sparkAddress,
+                      walletName:
+                          "${ref.read(pWalletName(widget.walletId))} (Spark)",
+                    ));
+                  }
+                }
+              },
+              child: Row(
+                crossAxisAlignment: .center,
+                mainAxisAlignment: .spaceBetween,
+                children: [
+                  Column(
+                    mainAxisSize: .min,
+                    crossAxisAlignment: .start,
+                    children: [
+                      Text(
+                        "Spark address",
+                        style: STextStyles.w500_12(context),
+                      ),
+                      const SizedBox(height: 2),
+                      WalletInfoRowBalance(
+                        walletId: widget.walletId,
+                        balanceType: .private,
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                    width: 25,
+                    height: 25,
+                    child: SvgPicture.asset(
+                      Assets.svg.chevronRight,
+                      colorFilter: ColorFilter.mode(
+                        Theme.of(context).extension<StackColors>()!.textDark,
+                        BlendMode.srcIn,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
           const SizedBox(height: 8),
           RawMaterialButton(
             splashColor: Theme.of(context).extension<StackColors>()!.highlight,
