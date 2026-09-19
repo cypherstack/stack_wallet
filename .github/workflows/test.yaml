@@ -80,8 +80,10 @@ jobs:
           grep -Fq "part of 'app_config.dart';" lib/app_config.g.dart
           flutter test --coverage --reporter expanded
       - name: Upload to code coverage
-        uses: codecov/codecov-action@v1.2.2
+        uses: codecov/codecov-action@v7.1.1
         if: success() || failure()
         with:
           token: ${{secrets.CODECOV_TOKEN}}
-          file: coverage/lcov.info
+          files: coverage/lcov.info
+          disable_search: true
+          fail_ci_if_error: true
