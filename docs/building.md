@@ -289,15 +289,13 @@ wsl
 
 https://stackoverflow.com/questions/46610256/chmod-wsl-bash-doesnt-work/50856772#50856772
 
-Then build windows `dll` libraries by running the following script on the WSL2 Ubuntu 24.04 host:
+Then build `secp256k1.dll` by running the following script on the WSL2 Ubuntu 24.04 host:
 
-- `stack_wallet/scripts/windows/build_all.sh`
+- `stack_wallet/scripts/windows/build_secp256k1_wsl.sh`
 
-If the DLLs were built on the WSL filesystem instead of on Windows, copy the resulting `dll`s to their respective positions on the Windows host:
+The crypto plugin libraries (epiccash, mwc, frostdart) are native-assets packages and are built by their build hooks during `flutter build`; they no longer need to be built here.
 
-- `stack_wallet/crypto_plugins/flutter_libepiccash/scripts/windows/build/libepic_cash_wallet.dll`
-
-<!-- TODO: script the copying or installation of libraries from WSL2 to the parent Windows host -->
+If the DLL was built on the WSL filesystem instead of on Windows, copy `stack_wallet/build/secp256k1.dll` to the same position on the Windows host.
 
 Frostdart will be built by the Windows host later.
 
@@ -355,15 +353,6 @@ cd .. // When finished go back to the root directory.
 
 
 or manually by creating the files referenced in that script with the specified content. 
-
-### Build frostdart
-
-In PowerShell on the Windows host, navigate to the `stack_wallet` folder:
-```
-cd crypto_plugins/frostdart/scripts/windows
-./build_all.bat
-cd .. // When finished go back to the root directory.
-```
 
 ### Running
 

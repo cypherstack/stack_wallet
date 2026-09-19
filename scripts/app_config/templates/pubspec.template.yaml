@@ -14,8 +14,8 @@ description: PLACEHOLDER
 version: PLACEHOLDER_V+PLACEHOLDER_B
 
 environment:
-  sdk: ">=3.12.0 <4.0.0"
-  flutter: ^3.44.9
+  sdk: ">=3.13.0 <4.0.0"
+  flutter: ^3.47.2
 
 dependencies:
   flutter:
@@ -26,7 +26,9 @@ dependencies:
 
 # %%ENABLE_FROST%%
 #  frostdart:
-#    path: ./crypto_plugins/frostdart
+#    git:
+#      url: https://github.com/cypherstack/frostdart.git
+#      ref: 3397cf62f30f1467aea781c23d84051441775f14
 # %%END_ENABLE_FROST%%
 
 # %%ENABLE_XEL%%
@@ -36,32 +38,36 @@ dependencies:
 ##     ref: f1da98f8bad8b9ad3645661a23f9efb83e44b0c9
 #  xelis_flutter:
 #    git:
-#      url: https://github.com/xelis-project/xelis-flutter-ffi.git
-#      ref: 3e5ac06c22956a9113a88a2d38ba82f8787be1c6
+#      url: https://github.com/cypherstack/xelis-flutter-ffi.git
+#      ref: 07a89303aacbeec6386e357287b6fd9fcca77d94
 # %%END_ENABLE_XEL%%
 
 # %%ENABLE_FIRO%%
 #  flutter_libsparkmobile:
 #    git:
 #      url: https://github.com/cypherstack/flutter_libsparkmobile.git
-#      ref: e017e62766908e9714c5309761183e8be8b37799
+#      ref: fe505c29f5dbb5dd94fb986e509506be9e2f37e7
 # %%END_ENABLE_FIRO%%
 
 # %%ENABLE_EPIC%%
 #  flutter_libepiccash:
-#    path: ./crypto_plugins/flutter_libepiccash
+#    git:
+#      url: https://github.com/cypherstack/flutter_libepiccash.git
+#      ref: 920ac94cf5295df3c3ae083c6a23ff602fb0f068
 # %%END_ENABLE_EPIC%%
 
 # %%ENABLE_MWC%%
 #  flutter_libmwc:
-#    path: ./crypto_plugins/flutter_libmwc
+#    git:
+#      url: https://github.com/cypherstack/flutter_libmwc.git
+#      ref: eec0f5ae0ee49d2d6e14c925d61e5d29dbd17be4
 # %%END_ENABLE_MWC%%
 
 # %%ENABLE_TOR%%
 #  tor_ffi_plugin:
 #    git:
 #      url: https://github.com/cypherstack/tor.git
-#      ref: 21077186e6bf773ec8a7cd57ef149b2cee5daa7b
+#      ref: 5586bfa3c48e495bc00f9b56fa18869daf768573
 # %%END_ENABLE_TOR%%
 
 # %%ENABLE_XMR%%
@@ -80,7 +86,7 @@ dependencies:
 # %%END_ENABLE_SAL%%
 
 # %%ENABLE_MWEBD%%
-#  flutter_mwebd: 0.0.1-pre.11
+#  flutter_mwebd: 0.0.1-pre.12
 # %%END_ENABLE_MWEBD%%
 
   monero_rpc: ^2.0.0
@@ -100,7 +106,7 @@ dependencies:
   stack_wallet_backup:
     git:
       url: https://github.com/cypherstack/stack_wallet_backup.git
-      ref: 5efe8f8f259317d32b6f037cf91f62e06125c040
+      ref: d353fcd289c2fd5de8f4f32395536dad9674ebe3
 
   bip47:
     git:
@@ -115,8 +121,8 @@ dependencies:
   # Utility plugins
   http: ^1.6.0
   local_auth: ^2.3.0
-  permission_handler: ^12.0.0+1
-  flutter_local_notifications: ^17.2.2
+  permission_handler: ^13.0.1
+  flutter_local_notifications: ^22.3.0
   zxcvbn: ^1.0.0
   dart_numerics: ^0.0.6
 
@@ -152,8 +158,8 @@ dependencies:
       ref: 6a5d3d69e54c175ae44b44040fb2743c9b6405a6
 
   # Storage plugins
-  flutter_secure_storage: ^8.0.0
-  hive_ce: ^2.13.2
+  flutter_secure_storage: ^10.3.1
+  hive_ce: ^2.16.0
   hive_ce_flutter: ^2.3.2
   path_provider: ^2.1.5
 
@@ -171,21 +177,21 @@ dependencies:
   intl: ^0.19.0
   html: ^0.15.6
   devicelocale: 0.9.1
-  device_info_plus: ^10.1.2
+  device_info_plus: ^12.4.0
   keyboard_dismisser: ^3.0.0
   another_flushbar: ^1.10.28
   tuple: ^2.0.0
   flutter_riverpod: ^1.0.3
   qr_flutter: ^4.0.0
-  share_plus: ^7.0.2
+  share_plus: ^12.0.2
   emojis: ^0.9.9
   pointycastle: ^4.0.0
   package_info_plus: ^8.0.2
   lottie: ^3.3.2
   file_picker: ^10.3.3
-  connectivity_plus: ^4.0.1
-  isar_community: 3.3.0-dev.2
-  isar_community_flutter_libs: 3.3.0-dev.2
+  connectivity_plus: ^7.3.1
+  isar_community: 3.3.2
+  isar_community_flutter_libs: 3.3.2
   dropdown_button2: ^2.1.3
   string_validator: ^0.3.0
   equatable: ^2.0.5
@@ -197,7 +203,7 @@ dependencies:
       ref: bed60e43e4e509ea45bb097e6caee9f8293ddf98
   hex: ^0.2.0
   archive: ^4.0.2
-  desktop_drop: ^0.4.4
+  desktop_drop: ^0.7.1
   nanodart:
     git:
       url: https://github.com/cypherstack/nanodart
@@ -230,8 +236,7 @@ dependencies:
       ref: dea799c20bc917f72b18c916ca96bc99fb1bd1c5
       path: packages/solana
   calendar_date_picker2: ^1.0.2
-  sqlite3: 2.9.0
-  sqlite3_flutter_libs: 0.5.25
+  sqlite3: 3.5.2
   camera_linux:
     git:
       url: https://github.com/cypherstack/camera-linux
@@ -242,7 +247,7 @@ dependencies:
       url: https://github.com/cypherstack/packages.git
       path: packages/camera/camera_windows
   camera_platform_interface: ^2.8.0
-  camera_macos: ^0.0.8
+  camera_macos: ^0.1.1
   blockchain_utils: ^3.3.0
   on_chain: ^4.0.1
   cbor: ^6.3.3
@@ -255,8 +260,8 @@ dependencies:
     git:
       url: https://github.com/cypherstack/namecoin_dart
       ref: 73a29731ba493595fed331d92c7a4b5604fd6e23
-  drift: ^2.28.2
-  drift_flutter: ^0.2.7
+  drift: 2.34.4
+  drift_flutter: 0.3.1
   path: ^1.9.1
   mweb_client: ^0.2.0
   fixnum: ^1.1.1
@@ -267,7 +272,7 @@ dependencies:
   mobile_app_privacy:
     git:
       url: https://github.com/cypherstack/mobile_app_privacy
-      ref: v0.0.3
+      ref: c393e8d1be93cce013f53fe16ec44080b2fdefdd
 
   # required for web3dart to use EthereumAddress class...
   wallet: 0.0.18
@@ -277,18 +282,19 @@ dev_dependencies:
     sdk: flutter
   integration_test:
       sdk: flutter
-  build_runner: ^2.5.4
+  build_runner: ^2.15.1
   flutter_launcher_icons: ^0.13.1
-  hive_ce_generator: ^1.9.3
+  hive_ce_generator: ^1.11.1
   dependency_validator: ^5.0.2
   hive_test: ^1.0.1
-  mockito: ^5.4.6
+  mockito: ^5.6.4
   mockingjay: ^0.2.0
-  analyzer: ^8.2.2
+  analyzer: ^10.2.0
   import_sorter: ^4.6.0
   flutter_lints: ^3.0.1
-  isar_community_generator: 3.3.0-dev.2
-  drift_dev: ^2.28.3
+  isar_community_generator: 3.3.2
+  # Later drift_dev releases require analyzer >=13; Isar supports <11.
+  drift_dev: 2.34.0
 
 flutter_native_splash:
   image: assets/icon/splash.png
@@ -300,16 +306,17 @@ flutter_native_splash:
     color_dark: "2A2D34"
 
 dependency_overrides:
+  # required for: native_toolchain_rust >=1.0.3 depends on toml ^0.18.0
+  # stellar sdk package needs to get 0.18.0 to remove this override
+  toml: ^0.18.0
+
   logger:
     git:
       url: https://github.com/cypherstack/logger
       ref: 3c0cba27868ebb5c7d65ebc30a8e6e5342186692
 
-  # required to make devicelocale work
+  # required to make web socket channel work (solana)
   web: ^0.5.0
-
-  # needed for dart 3.5+ (at least for now)
-  win32: ^5.5.4
 
   # coinlib_flutter requires this
   coinlib:
@@ -318,23 +325,11 @@ dependency_overrides:
       path: coinlib
       ref: f0e12dacb6d39e1cb340f0deae178d0fad1d6fd6
 
-  bip47:
-    git:
-      url: https://github.com/cypherstack/bip47.git
-      ref: bdc0c0788d1d6dfb04863a793955f848ba1624a8
-
   # bip47 pins a different bitcoindart commit; override to ours
   bitcoindart:
     git:
       url: https://github.com/cypherstack/bitcoindart.git
       ref: ea33b1f5d6a701791359a2e180f73866dc667732
-
-  # required for dart 3, at least until a fix is merged upstream
-  wakelock_windows:
-    git:
-      url: https://github.com/diegotori/wakelock
-      ref: 2a9bca63a540771f241d688562351482b2cf234c
-      path: wakelock_windows
 
   # required override for solana, etc
   bip39:
@@ -345,11 +340,7 @@ dependency_overrides:
   # required to override solana's lower version
   decimal: ^3.2.4
 
-  # pin analyzer below 8.4.0 to avoid source_gen 3.1.0 incompatibility (getInvocation() removed in 8.4.0+)
-  analyzer: ">=8.2.0 <8.4.0"
-
   # xelis override
-  json_rpc_2: ^4.0.0
   freezed: ^3.1.0
   freezed_annotation: ^3.1.0
 
@@ -370,6 +361,29 @@ dependency_overrides:
 #      path: packages/isar_community_generator
 #      ref: 39ea19ff035518aef4d0e776206d96a428f57789
 # %%END_ENABLE_ISAR%%
+
+# Prebuilt native assets for CI. Enabled by scripts/build_app.sh -d.
+# Each listed plugin's build hook downloads and verifies prebuilt binaries
+# instead of compiling its Rust sources. Entries for packages that are not in
+# the dependency graph are ignored, so this block is safe for every app config.
+# Each url/sha256 pair is tied to a source fingerprint of the plugin, so it must
+# be updated together with the plugin git ref pinned in dependencies above.
+# %%ENABLE_NATIVE_PREBUILTS%%
+#hooks:
+#  user_defines:
+#    tor_ffi_plugin:
+#      native_build: prebuilt
+#      prebuilt_manifest_url: "https://github.com/cypherstack/tor/releases/download/native-0.1.0/manifest.json"
+#      prebuilt_manifest_sha256: "00a988a2c0994dff300bb19493e935b0d4eae2b506d02af9dd69ddad65805a24"
+#    flutter_libepiccash:
+#      native_build: prebuilt
+#      prebuilt_manifest_url: "https://github.com/cypherstack/flutter_libepiccash/releases/download/native-0.3.0/manifest.json"
+#      prebuilt_manifest_sha256: "19be31940f7a58af98f315032d13c0a7c43a45bbcc86847587a6d1593985603a"
+#    flutter_libmwc:
+#      native_build: prebuilt
+#      prebuilt_manifest_url: "https://github.com/cypherstack/flutter_libmwc/releases/download/native-0.1.0-1/manifest.json"
+#      prebuilt_manifest_sha256: "956fbf9a9d5d4624d9d7ea19fb4c07057c5612e32efa62f5f609a189ace16276"
+# %%END_ENABLE_NATIVE_PREBUILTS%%
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

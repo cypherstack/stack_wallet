@@ -52,7 +52,7 @@ FCResult _updateSparkUsedTagsWith(Database db, List<List<dynamic>> tags) {
 /// returns true if successful, otherwise false
 FCResult _updateSparkAnonSetCoinsWith(
   Database db,
-  final List<RawSparkCoin> coinsRaw,
+  List<RawSparkCoin> coinsRaw,
   SparkAnonymitySetMeta meta,
 ) {
   if (coinsRaw.isEmpty) {

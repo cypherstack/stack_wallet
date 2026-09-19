@@ -461,9 +461,9 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
                                   )
                                 : STextStyles.itemSubtitle12(context))
                             .copyWith(
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textSubtitle1,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textSubtitle1,
                             ),
                   ),
                 ],
@@ -548,13 +548,13 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
                             : STextStyles.itemSubtitle12(context))
                         .copyWith(
                           color: isExpired
-                              ? Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.accentColorRed
+                              ? Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorRed
                               : remaining.inMinutes < 5
-                              ? Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.accentColorOrange
+                              ? Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorOrange
                               : null,
                           fontWeight: FontWeight.w600,
                         ),
@@ -583,9 +583,9 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
                     Assets.svg.checkCircle,
                     width: 20,
                     height: 20,
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.accentColorGreen,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorGreen,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -600,9 +600,9 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
                                     )
                                   : STextStyles.itemSubtitle12(context))
                               .copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.accentColorGreen,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorGreen,
                               ),
                     ),
                   ),
@@ -648,9 +648,9 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
                 Assets.svg.circleX,
                 width: 20,
                 height: 20,
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textSubtitle1,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textSubtitle1,
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -661,9 +661,9 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
                               ? STextStyles.desktopTextExtraExtraSmall(context)
                               : STextStyles.itemSubtitle12(context))
                           .copyWith(
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textSubtitle1,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textSubtitle1,
                           ),
                 ),
               ),
@@ -725,9 +725,9 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
                     border: Border(
                       bottom: BorderSide(
                         color: isSelected
-                            ? Theme.of(
-                                context,
-                              ).extension<StackColors>()!.accentColorBlue
+                            ? Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorBlue
                             : Colors.transparent,
                         width: 2,
                       ),
@@ -744,9 +744,9 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
                                 : STextStyles.itemSubtitle12(context))
                             .copyWith(
                               color: isSelected
-                                  ? Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.accentColorBlue
+                                  ? Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorBlue
                                   : null,
                               fontWeight: isSelected ? FontWeight.w600 : null,
                             ),
@@ -816,7 +816,7 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
                               : STextStyles.itemSubtitle12(context),
                         ),
                         const Spacer(),
-                        IconCopyButton(data: order.orderId),
+                        IconCopyButton(data: selected.address),
                         const SizedBox(width: 4),
                         Text("Copy", style: STextStyles.link2(context)),
                       ],
@@ -918,9 +918,9 @@ class _CakePayOrderViewState extends ConsumerState<CakePayOrderView> {
         condition: !isDesktop,
         builder: (child) => Background(
           child: Scaffold(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () => Navigator.of(context).pop(),

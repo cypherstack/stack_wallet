@@ -556,21 +556,7 @@ abstract class Wallet<T extends CryptoCurrency> {
             ),
           );
         }
-        if (shouldAutoSync) {
-          _periodicRefreshTimer ??= Timer.periodic(const Duration(seconds: 150), (
-            timer,
-          ) async {
-            // chain height check currently broken
-            // if ((await chainHeight) != (await storedChainHeight)) {
-
-            // TODO: [prio=med] some kind of quick check if wallet needs to refresh to replace the old refreshIfThereIsNewData call
-            // if (await refreshIfThereIsNewData()) {
-            unawaited(refresh());
-
-            // }
-            // }
-          });
-        }
+        ensurePeriodicRefreshTimer();
       },
       onError: (Object e, StackTrace s) {
         if (!doNotFireRefreshEvents) {
@@ -600,6 +586,16 @@ abstract class Wallet<T extends CryptoCurrency> {
     unawaited(_refresh(refreshCompleter));
 
     return future;
+  }
+
+  @protected
+  void ensurePeriodicRefreshTimer() {
+    if (shouldAutoSync) {
+      _periodicRefreshTimer ??= Timer.periodic(
+        const Duration(seconds: 150),
+        (_) => unawaited(refresh()),
+      );
+    }
   }
 
   void _fireRefreshPercentChange(double percent) {

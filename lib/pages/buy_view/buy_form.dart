@@ -31,6 +31,9 @@ import '../../services/buy/buy_response.dart';
 import '../../services/buy/simplex/simplex_api.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/address_utils.dart';
+import '../../utilities/amount/amount.dart';
+import '../../utilities/amount/amount_field_relocalization.dart';
+import '../../utilities/amount/amount_input_formatter.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/barcode_scanner_interface.dart';
 import '../../utilities/clipboard_interface.dart';
@@ -125,6 +128,13 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   // static String boundedCryptoTicker = '';
 
   String _amountOutOfRangeErrorString = "";
+
+  Decimal? get _parsedBuyAmount => Amount.tryParseEditableAmount(
+    _buyAmountController.text,
+    locale: ref.read(localeServiceChangeNotifierProvider).locale,
+    fractionDigits: buyWithFiat ? 2 : 30,
+  )?.decimal;
+
   void validateAmount() {
     if (_buyAmountController.text.isEmpty) {
       setState(() {
@@ -133,20 +143,30 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       return;
     }
 
-    final value = Decimal.tryParse(_buyAmountController.text);
+    final value = _parsedBuyAmount;
     if (value == null) {
       setState(() {
         _amountOutOfRangeErrorString = "Invalid amount";
       });
     } else if (value > maxFiat && buyWithFiat) {
+      final locale = ref.read(localeServiceChangeNotifierProvider).locale;
+      final maximum = Amount.formatFixedDecimal(
+        maxFiat,
+        fractionDigits: 2,
+        locale: locale,
+      );
       setState(() {
-        _amountOutOfRangeErrorString =
-            "Maximum amount: ${maxFiat.toStringAsFixed(2)}";
+        _amountOutOfRangeErrorString = "Maximum amount: $maximum";
       });
     } else if (value < minFiat && buyWithFiat) {
+      final locale = ref.read(localeServiceChangeNotifierProvider).locale;
+      final minimum = Amount.formatFixedDecimal(
+        minFiat,
+        fractionDigits: 2,
+        locale: locale,
+      );
       setState(() {
-        _amountOutOfRangeErrorString =
-            "Minimum amount: ${minFiat.toStringAsFixed(2)}";
+        _amountOutOfRangeErrorString = "Minimum amount: $minimum";
       });
     } else {
       setState(() {
@@ -237,9 +257,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                             Expanded(
                               child: RoundedWhiteContainer(
                                 padding: const EdgeInsets.all(16),
-                                borderColor: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.background,
+                                borderColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .background,
                                 child: CryptoSelectionView(coins: coins),
                               ),
                             ),
@@ -363,9 +383,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                             Expanded(
                               child: RoundedWhiteContainer(
                                 padding: const EdgeInsets.all(16),
-                                borderColor: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.background,
+                                borderColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .background,
                                 child: FiatSelectionView(fiats: fiats),
                               ),
                             ),
@@ -396,6 +416,11 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   // }
 
   Future<void> previewQuote(SimplexQuote quote) async {
+    final buyAmount = _parsedBuyAmount;
+    if (buyAmount == null) {
+      return;
+    }
+
     bool shouldPop = false;
     unawaited(
       showDialog(
@@ -414,11 +439,11 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       crypto: selectedCrypto!,
       fiat: selectedFiat!,
       youPayFiatPrice: buyWithFiat
-          ? Decimal.parse(_buyAmountController.text)
+          ? buyAmount
           : Decimal.parse("100"), // dummy value
       youReceiveCryptoAmount: buyWithFiat
           ? Decimal.parse("0.000420282") // dummy value
-          : Decimal.parse(_buyAmountController.text), // Ternary for this
+          : buyAmount,
       id: "id", // anything; we get an ID back
       receivingAddress: _receiveAddressController.text,
       buyWithFiat: buyWithFiat,
@@ -491,9 +516,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                   child: Text(
                     "Ok",
                     style: STextStyles.button(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
                     ),
                   ),
                   onPressed: () {
@@ -577,9 +602,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                 child: Text(
                   "Ok",
                   style: STextStyles.button(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.accentColorDark,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
                   ),
                 ),
                 onPressed: () {
@@ -651,9 +676,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                             Expanded(
                               child: RoundedWhiteContainer(
                                 padding: const EdgeInsets.all(16),
-                                borderColor: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.background,
+                                borderColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .background,
                                 child: BuyQuotePreviewView(quote: quote),
                               ),
                             ),
@@ -795,8 +820,23 @@ class _BuyFormState extends ConsumerState<BuyForm> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    final Locale locale = Localizations.localeOf(context);
-    final format = NumberFormat.simpleCurrency(locale: locale.toString());
+    final locale = ref.watch(
+      localeServiceChangeNotifierProvider.select((value) => value.locale),
+    );
+    listenForAmountRelocalization(
+      ref.listen,
+      controllers: [_buyAmountController],
+      onRelocalized: validateAmount,
+    );
+    // intl throws ArgumentError for device locales it has no data for
+    // (e.g. yo, ig, mi); this is the raw device locale, not one resolved
+    // against supported locales.
+    NumberFormat format;
+    try {
+      format = NumberFormat.simpleCurrency(locale: locale);
+    } on ArgumentError {
+      format = NumberFormat.simpleCurrency(locale: "en_US");
+    }
     // See https://stackoverflow.com/a/67055685
 
     return ConditionalParent(
@@ -841,9 +881,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                             .extension<StackColors>()!
                             .currencyListItemBG
                             .withOpacity(_hovering1 ? 0.3 : 0)
-                      : Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textFieldDefaultBG,
+                      : Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldDefaultBG,
                   child: Padding(
                     padding: const EdgeInsets.all(12),
                     child: Row(
@@ -881,9 +921,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                 Text(
                   "I want to pay with",
                   style: STextStyles.itemSubtitle(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textDark3,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textDark3,
                   ),
                 ),
               ],
@@ -907,9 +947,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                             .extension<StackColors>()!
                             .currencyListItemBG
                             .withOpacity(_hovering2 ? 0.3 : 0)
-                      : Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textFieldDefaultBG,
+                      : Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldDefaultBG,
                   child: Padding(
                     padding: const EdgeInsets.only(
                       left: 12.0,
@@ -925,9 +965,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                             horizontal: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.currencyListItemBG,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .currencyListItemBG,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
@@ -936,9 +976,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                             ),
                             textAlign: TextAlign.center,
                             style: STextStyles.smallMed12(context).copyWith(
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.accentColorDark,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorDark,
                             ),
                           ),
                         ),
@@ -976,9 +1016,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                 Text(
                   buyWithFiat ? "Enter amount" : "Enter crypto amount",
                   style: STextStyles.itemSubtitle(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textDark3,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textDark3,
                   ),
                 ),
                 CustomTextButton(
@@ -1013,7 +1053,13 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                       decimal: true,
                     ),
               textAlign: TextAlign.left,
-              // inputFormatters: [NumericalRangeFormatter()],
+              inputFormatters: [
+                AmountInputFormatter(
+                  controller: _buyAmountController,
+                  decimals: buyWithFiat ? 2 : 30,
+                  locale: locale,
+                ),
+              ],
               onChanged: (_) {
                 validateAmount();
               },
@@ -1029,9 +1075,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                 ),
                 hintText: "0",
                 hintStyle: STextStyles.desktopTextExtraSmall(context).copyWith(
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldDefaultText,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultText,
                 ),
                 prefixIcon: FittedBox(
                   fit: BoxFit.scaleDown,
@@ -1077,9 +1123,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                               ? selectedFiat?.ticker ?? "ERR"
                               : selectedCrypto?.ticker ?? "ERR",
                           style: STextStyles.smallMed14(context).copyWith(
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.accentColorDark,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorDark,
                           ),
                         ),
                       ],
@@ -1123,12 +1169,17 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                                   final ClipboardData? data = await clipboard
                                       .getData(Clipboard.kTextPlain);
 
-                                  final amountString = Decimal.tryParse(
+                                  final amount = Amount.tryParseEditableAmount(
                                     data?.text ?? "",
+                                    locale: locale,
+                                    fractionDigits: buyWithFiat ? 2 : 30,
                                   );
-                                  if (amountString != null) {
-                                    _buyAmountController.text = amountString
-                                        .toString();
+                                  if (amount != null) {
+                                    _buyAmountController.text =
+                                        Amount.formatEditableDecimal(
+                                          amount.decimal,
+                                          locale: locale,
+                                        );
 
                                     validateAmount();
                                   }
@@ -1157,9 +1208,9 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                 Text(
                   "Enter receiving address",
                   style: STextStyles.itemSubtitle(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textDark3,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textDark3,
                   ),
                 ),
                 if (AppConfig.isStackCoin(selectedCrypto?.ticker))

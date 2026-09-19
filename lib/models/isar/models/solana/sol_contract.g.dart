@@ -55,7 +55,7 @@ const SolContractSchema = CollectionSchema(
   getId: _solContractGetId,
   getLinks: _solContractGetLinks,
   attach: _solContractAttach,
-  version: '3.3.0-dev.2',
+  version: '3.3.2',
 );
 
 int _solContractEstimateSize(
