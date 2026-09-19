@@ -27,6 +27,9 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
+      - name: Install coverage uploader dependency
+        run: apt-get update && apt-get install -y --no-install-recommends gpg
+
       - name: Create git_versions.dart stubs
         run: |
           mkdir -p crypto_plugins/flutter_libepiccash/lib
