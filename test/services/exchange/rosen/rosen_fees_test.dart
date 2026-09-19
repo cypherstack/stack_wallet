@@ -1,6 +1,5 @@
+import 'package:stackwallet/services/exchange/rosen/rosen_fees.dart';
 import 'package:test/test.dart';
-
-import '../../../../lib/services/exchange/rosen/rosen_fees.dart';
 
 void main() {
   test('decodes fee schedules and rejects stale or malformed registers', () {

@@ -2,9 +2,8 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:coinlib/coinlib.dart' as coinlib;
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/firo_op_return.dart';
 import 'package:test/test.dart';
-
-import '../../lib/wallets/wallet/wallet_mixin_interfaces/firo_op_return.dart';
 
 class _SizedInput extends coinlib.RawInput {
   _SizedInput()

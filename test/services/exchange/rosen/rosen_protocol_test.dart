@@ -4,12 +4,11 @@ import 'package:coinlib/coinlib.dart' as coinlib;
 import 'package:dart_bs58check/dart_bs58check.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:stackwallet/services/exchange/rosen/rosen_protocol.dart';
+import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:test/test.dart';
 import 'package:wallet/wallet.dart' as eth;
 import 'package:web3dart/web3dart.dart' as web3;
-
-import '../../../../lib/services/exchange/rosen/rosen_protocol.dart';
-import '../../../../lib/utilities/extensions/extensions.dart';
 
 // Decode the signed wire envelope independently of web3dart's RLP encoder.
 dynamic _decodeRlp(List<int> bytes) {
