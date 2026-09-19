@@ -1,32 +1,11 @@
 import 'package:stackwallet/services/exchange/rosen/rosen_fees.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import 'rosen_test_utils.dart';
 
 void main() {
   test('decodes fee schedules and rejects stale or malformed registers', () {
-    // Actual FIRO fee box 346493beb1be3f439c64f71f98c07f7c6707c1f02e8f9505c2366e1f57c67655.
-    final registers = <String, dynamic>{
-      'R4': {
-        'serializedValue':
-            '1a060762696e616e63650d626974636f696e2d72756e65730763617264616e6f046572676f08657468657265756d046669726f',
-      },
-      'R5': {
-        'serializedValue':
-            '1c02069eee8d70c4d175ce869a0db2d8e201f8abcf1894bfa60106d6f2fd72baf575fc9aa20dd687e401a08ddd18d4cfa701',
-      },
-      'R6': {
-        'serializedValue':
-            '1d0206cedfebcf0acedfebcf0acedfebcf0acedfebcf0acedfebcf0acedfebcf0a06a28398b508a28398b508a28398b508a28398b508a28398b508a28398b508',
-      },
-      'R7': {
-        'serializedValue':
-            '1d0206b4faee01a4f1dc4ae8e2f976dc9db807ac80bb07c88b3d06d2e9cb01dae9e35fe8f6945fe0e1ce05e2a5b101c88b3d',
-      },
-      'R8': {
-        'serializedValue':
-            '0c1d020602fc826280a8d6b90702fc826280a8d6b90702fc826280a8d6b90702fc826280a8d6b90702fc826280a8d6b90702fc826280a8d6b9070602a2f80c8084af5f02a2f80c8084af5f02a2f80c8084af5f02a2f80c8084af5f02a2f80c8084af5f02a2f80c8084af5f',
-      },
-      'R9': {'serializedValue': '1d020664646464646406646464646464'},
-    };
+    final registers = {...rosenFeeRegisters};
     final amount = BigInt.from(10000000000);
     RosenQuote quote({bool fromFiro = true, int height = 1378335}) =>
         RosenQuote.fromRegisters(
