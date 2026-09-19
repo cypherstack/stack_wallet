@@ -27,7 +27,7 @@ import '../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
 import '../wallets/isar/models/wallet_info.dart';
 import '../wallets/wallet/impl/epiccash_wallet.dart';
 import '../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
-import '../wallets/wallet/intermediate/lib_monero_wallet.dart';
+import '../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../wallets/wallet/intermediate/lib_salvium_wallet.dart';
 import '../wallets/wallet/wallet.dart';
 import 'event_bus/events/wallet_added_event.dart';
@@ -126,13 +126,21 @@ class Wallets {
     if (info.coin is CryptonoteCurrency) {
       await _deleteCryptonoteWalletFilesHelper(info);
     } else if (info.coin is Epiccash) {
-      final deleteResult = await deleteEpicWallet(
-        walletId: walletId,
-        secureStore: secureStorage,
-      );
-      Logging.instance.d(
-        "epic wallet: $walletId deleted with result: $deleteResult",
-      );
+      if (wallet is! EpiccashWallet) {
+        Logging.instance.e(
+          "epic wallet: $walletId does not appear to exist???",
+          error: Exception(),
+          stackTrace: StackTrace.current,
+        );
+      } else {
+        final deleteResult = await deleteEpicWallet(
+          wallet: wallet,
+          secureStore: secureStorage,
+        );
+        Logging.instance.d(
+          "epic wallet: $walletId deleted with result: $deleteResult",
+        );
+      }
     } else if (info.coin is Mimblewimblecoin) {
       final deleteResult = await deleteMimblewimblecoinWallet(
         walletId: walletId,
@@ -201,11 +209,10 @@ class Wallets {
       boxName: DB.boxNameWalletsToDeleteOnStart,
     )) {
       await mainDB.isar.writeTxn(
-        () async =>
-            await mainDB.isar.walletInfo
-                .where()
-                .walletIdEqualTo(walletId)
-                .deleteAll(),
+        () async => await mainDB.isar.walletInfo
+            .where()
+            .walletIdEqualTo(walletId)
+            .deleteAll(),
       );
     }
     // clear list
@@ -262,7 +269,7 @@ class Wallets {
               shouldAutoSyncAll ||
               walletIdsToEnableAutoSync.contains(walletInfo.walletId);
 
-          if (wallet is LibMoneroWallet || wallet is LibSalviumWallet) {
+          if (wallet is CryptonoteWallet) {
             // walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
           } else {
             walletInitFutures.add(
@@ -310,11 +317,10 @@ class Wallets {
       boxName: DB.boxNameWalletsToDeleteOnStart,
     )) {
       await mainDB.isar.writeTxn(
-        () async =>
-            await mainDB.isar.walletInfo
-                .where()
-                .walletIdEqualTo(walletId)
-                .deleteAll(),
+        () async => await mainDB.isar.walletInfo
+            .where()
+            .walletIdEqualTo(walletId)
+            .deleteAll(),
       );
     }
     // clear list
@@ -371,7 +377,7 @@ class Wallets {
             nodeService: nodeService,
             prefs: prefs,
           ).then((wallet) {
-            if (wallet is LibMoneroWallet || wallet is LibSalviumWallet) {
+            if (wallet is CryptonoteWallet) {
               // walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
 
               walletIdCompleter.complete("dummy_ignore");
@@ -394,17 +400,15 @@ class Wallets {
     final asyncWalletIds = await Future.wait(walletIDInitFutures);
     asyncWalletIds.removeWhere((e) => e == "dummy_ignore");
 
-    final List<Future<void>> walletInitFutures =
-        asyncWalletIds
-            .map(
-              (id) => _wallets[id]!.init().then((_) {
-                if (shouldAutoSyncAll ||
-                    walletIdsToEnableAutoSync.contains(id)) {
-                  _wallets[id]!.shouldAutoSync = true;
-                }
-              }),
-            )
-            .toList();
+    final List<Future<void>> walletInitFutures = asyncWalletIds
+        .map(
+          (id) => _wallets[id]!.init().then((_) {
+            if (shouldAutoSyncAll || walletIdsToEnableAutoSync.contains(id)) {
+              _wallets[id]!.shouldAutoSync = true;
+            }
+          }),
+        )
+        .toList();
 
     if (walletInitFutures.isNotEmpty && walletsToInitLinearly.isNotEmpty) {
       unawaited(
@@ -435,11 +439,10 @@ class Wallets {
       boxName: DB.boxNameWalletsToDeleteOnStart,
     )) {
       await mainDB.isar.writeTxn(
-        () async =>
-            await mainDB.isar.walletInfo
-                .where()
-                .walletIdEqualTo(walletId)
-                .deleteAll(),
+        () async => await mainDB.isar.walletInfo
+            .where()
+            .walletIdEqualTo(walletId)
+            .deleteAll(),
       );
     }
     // clear list
@@ -447,15 +450,14 @@ class Wallets {
       boxName: DB.boxNameWalletsToDeleteOnStart,
     );
 
-    final walletInfoList =
-        await mainDB.isar.walletInfo
-            .where()
-            .filter()
-            .anyOf<String, CryptoCurrency>(
-              AppConfig.coins.map((e) => e.identifier),
-              (q, element) => q.coinNameMatches(element),
-            )
-            .findAll();
+    final walletInfoList = await mainDB.isar.walletInfo
+        .where()
+        .filter()
+        .anyOf<String, CryptoCurrency>(
+          AppConfig.coins.map((e) => e.identifier),
+          (q, element) => q.coinNameMatches(element),
+        )
+        .findAll();
 
     if (isDuress) {
       walletInfoList.retainWhere((e) => e.isDuressVisible);
@@ -509,7 +511,7 @@ class Wallets {
             nodeService: nodeService,
             prefs: prefs,
           ).then((wallet) {
-            if (wallet is LibMoneroWallet || wallet is LibSalviumWallet) {
+            if (wallet is CryptonoteWallet) {
               // walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
 
               walletIdCompleter.complete("dummy_ignore");
@@ -533,17 +535,16 @@ class Wallets {
     asyncWalletIds.removeWhere((e) => e == "dummy_ignore");
 
     final List<String> idsToRefresh = [];
-    final List<Future<void>> walletInitFutures =
-        asyncWalletIds
-            .map(
-              (id) => _wallets[id]!.init().then((_) {
-                if (shouldSyncAllOnceOnStartup ||
-                    walletIdsToSyncOnceOnStartup.contains(id)) {
-                  idsToRefresh.add(id);
-                }
-              }),
-            )
-            .toList();
+    final List<Future<void>> walletInitFutures = asyncWalletIds
+        .map(
+          (id) => _wallets[id]!.init().then((_) {
+            if (shouldSyncAllOnceOnStartup ||
+                walletIdsToSyncOnceOnStartup.contains(id)) {
+              idsToRefresh.add(id);
+            }
+          }),
+        )
+        .toList();
 
     Future<void> _refreshFutures(List<String> idsToRefresh) async {
       final start = DateTime.now();
@@ -620,7 +621,7 @@ class Wallets {
             walletIdsToEnableAutoSync.contains(wallet.walletId);
 
         if (isDesktop) {
-          if (wallet is LibMoneroWallet || wallet is LibSalviumWallet) {
+          if (wallet is CryptonoteWallet) {
             // walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
           } else {
             walletInitFutures.add(

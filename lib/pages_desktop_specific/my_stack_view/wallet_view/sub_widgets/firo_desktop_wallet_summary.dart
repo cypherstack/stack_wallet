@@ -55,6 +55,7 @@ class _WFiroDesktopWalletSummaryState
   void initState() {
     super.initState();
     walletId = widget.walletId;
+
     coin = ref.read(pWalletCoin(widget.walletId)) as Firo;
   }
 
@@ -66,14 +67,13 @@ class _WFiroDesktopWalletSummaryState
     if (ref.watch(
       prefsChangeNotifierProvider.select((value) => value.externalCalls),
     )) {
-      price =
-          ref
-              .watch(
-                priceAnd24hChangeNotifierProvider.select(
-                  (value) => value.getPrice(coin),
-                ),
-              )
-              ?.value;
+      price = ref
+          .watch(
+            priceAnd24hChangeNotifierProvider.select(
+              (value) => value.getPrice(coin),
+            ),
+          )
+          ?.value;
     }
 
     final _showAvailable =
@@ -81,14 +81,16 @@ class _WFiroDesktopWalletSummaryState
         WalletBalanceToggleState.available;
 
     final balance0 = ref.watch(pWalletBalanceTertiary(walletId));
-    final balanceToShowSpark =
-        _showAvailable ? balance0.spendable : balance0.total;
+    final balanceToShowSpark = _showAvailable
+        ? balance0.spendable
+        : balance0.total;
 
     final balance1 = ref.watch(pWalletBalanceSecondary(walletId));
 
     final balance2 = ref.watch(pWalletBalance(walletId));
-    final balanceToShowPublic =
-        _showAvailable ? balance2.spendable : balance2.total;
+    final balanceToShowPublic = _showAvailable
+        ? balance2.spendable
+        : balance2.total;
 
     return Consumer(
       builder: (context, ref, __) {
@@ -168,10 +170,9 @@ class _Prefix extends StatelessWidget {
           SizedBox(
             width: 20,
             height: 20,
-            child:
-                asset.endsWith(".png")
-                    ? Image(image: AssetImage(asset))
-                    : SvgPicture.asset(asset),
+            child: asset.endsWith(".png")
+                ? Image(image: AssetImage(asset))
+                : SvgPicture.asset(asset),
           ),
           const SizedBox(width: 6),
 
@@ -194,7 +195,7 @@ class _Balance extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return SelectableText(
-      ref.watch(pAmountFormatter(coin)).format(amount, ethContract: null),
+      ref.watch(pAmountFormatter(coin)).format(amount, tokenContract: null),
       style: STextStyles.desktopH3(context),
       textAlign: TextAlign.end,
     );

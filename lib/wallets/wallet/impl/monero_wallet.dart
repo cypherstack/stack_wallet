@@ -35,19 +35,13 @@ class MoneroWallet extends LibMoneroWallet {
   }
 
   @override
-  bool walletExists(String path) =>
-      csMonero.walletExists(path, csCoin: CsCoin.monero);
+  bool walletExists(String path) => csMonero.walletExists(path);
 
   @override
   Future<WrappedWallet> loadWallet({
     required String path,
     required String password,
-  }) => csMonero.loadWallet(
-    walletId,
-    path: path,
-    password: password,
-    csCoin: CsCoin.monero,
-  );
+  }) => csMonero.loadWallet(walletId, path: path, password: password);
 
   @override
   Future<WrappedWallet> getCreatedWallet({
@@ -56,7 +50,6 @@ class MoneroWallet extends LibMoneroWallet {
     required int wordCount,
     required String seedOffset,
   }) => csMonero.getCreatedWallet(
-    csCoin: CsCoin.monero,
     path: path,
     password: password,
     wordCount: wordCount,
@@ -76,7 +69,6 @@ class MoneroWallet extends LibMoneroWallet {
     mnemonic: mnemonic,
     height: height,
     seedOffset: seedOffset,
-    csCoin: CsCoin.monero,
     walletId: walletId,
   );
 
@@ -89,7 +81,6 @@ class MoneroWallet extends LibMoneroWallet {
     int height = 0,
   }) => csMonero.getRestoredFromViewKeyWallet(
     walletId: walletId,
-    csCoin: CsCoin.monero,
     path: path,
     password: password,
     address: address,

@@ -47,7 +47,7 @@ class _BuySparkNameWidgetState extends ConsumerState<BuySparkNameOptionWidget> {
         ref.read(pWallets).getWallet(widget.walletId) as SparkInterface;
 
     try {
-      await wallet.electrumXClient.getSparkNameData(sparkName: name);
+      await wallet.getSparkNameData(sparkName: name);
       // name exists
       return false;
     } catch (e) {
@@ -295,6 +295,9 @@ class _NameCard extends ConsumerWidget {
         ? STextStyles.w500_16(context)
         : STextStyles.w500_12(context));
 
+    final _isViewOnlyWallet =
+        (ref.read(pWallets).getWallet(walletId) as SparkInterface).isViewOnly;
+
     return RoundedWhiteContainer(
       padding: EdgeInsets.all(Util.isDesktop ? 24 : 16),
       child: IntrinsicHeight(
@@ -318,59 +321,63 @@ class _NameCard extends ConsumerWidget {
               children: [
                 PrimaryButton(
                   label: "Buy name",
-                  enabled: isAvailable,
+                  enabled: !_isViewOnlyWallet && isAvailable,
                   buttonHeight: Util.isDesktop
                       ? ButtonHeight.m
                       : ButtonHeight.l,
                   width: Util.isDesktop ? 140 : 120,
-                  onPressed: () async {
-                    if (context.mounted) {
-                      if (Util.isDesktop) {
-                        await showDialog<void>(
-                          context: context,
-                          builder: (context) => SDialog(
-                            child: SizedBox(
-                              width: 580,
-                              child: Column(
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                          left: 32,
+                  onPressed: _isViewOnlyWallet
+                      ? null
+                      : () async {
+                          if (context.mounted) {
+                            if (Util.isDesktop) {
+                              await showDialog<void>(
+                                context: context,
+                                builder: (context) => SDialog(
+                                  child: SizedBox(
+                                    width: 580,
+                                    child: Column(
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                left: 32,
+                                              ),
+                                              child: Text(
+                                                "Buy name",
+                                                style: STextStyles.desktopH3(
+                                                  context,
+                                                ),
+                                              ),
+                                            ),
+                                            const DesktopDialogCloseButton(),
+                                          ],
                                         ),
-                                        child: Text(
-                                          "Buy name",
-                                          style: STextStyles.desktopH3(context),
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 32,
+                                          ),
+                                          child: BuySparkNameView(
+                                            walletId: walletId,
+                                            name: name,
+                                          ),
                                         ),
-                                      ),
-                                      const DesktopDialogCloseButton(),
-                                    ],
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 32,
-                                    ),
-                                    child: BuySparkNameView(
-                                      walletId: walletId,
-                                      name: name,
+                                      ],
                                     ),
                                   ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      } else {
-                        await Navigator.of(context).pushNamed(
-                          BuySparkNameView.routeName,
-                          arguments: (walletId: walletId, name: name),
-                        );
-                      }
-                    }
-                  },
+                                ),
+                              );
+                            } else {
+                              await Navigator.of(context).pushNamed(
+                                BuySparkNameView.routeName,
+                                arguments: (walletId: walletId, name: name),
+                              );
+                            }
+                          }
+                        },
                 ),
               ],
             ),

@@ -1,9 +1,11 @@
 //ON
+import 'package:flutter_libepiccash/epic_cash.dart' as epc;
 import 'package:flutter_libepiccash/git_versions.dart' as epic_versions;
 import 'package:flutter_libepiccash/lib.dart';
 import 'package:flutter_libepiccash/models/transaction.dart';
 
 //END_ON
+import '../../utilities/dynamic_object.dart';
 import '../interfaces/libepiccash_interface.dart';
 
 LibEpicCashInterface get libEpic => _getLib();
@@ -20,55 +22,80 @@ final class _LibEpicCashInterfaceImpl extends LibEpicCashInterface {
 
   @override
   Future<String> cancelTransaction({
-    required String wallet,
+    required DynamicObject wallet,
     required String transactionId,
   }) {
-    return LibEpiccash.cancelTransaction(
-      wallet: wallet,
+    return wallet.get<EpicWallet>().cancelTransaction(
       transactionId: transactionId,
     );
   }
 
   @override
-  Future<({String commitId, String slateId})> createTransaction({
-    required String wallet,
-    required int amount,
-    required String address,
-    required int secretKeyIndex,
-    required String epicboxConfig,
-    required int minimumConfirmations,
-    required String note,
-  }) {
-    return LibEpiccash.createTransaction(
-      wallet: wallet,
-      amount: amount,
-      address: address,
-      secretKeyIndex: secretKeyIndex,
-      epicboxConfig: epicboxConfig,
-      minimumConfirmations: minimumConfirmations,
-      note: note,
-    );
+  Future<({String slateId, String commitId, String slateJson})> txReceive({
+    required DynamicObject wallet,
+    required String slateJson,
+  }) async {
+    return (await wallet.get<EpicWallet>().txReceive(
+      slateJson: slateJson,
+    )).toRecord();
   }
 
   @override
-  Future<String> deleteWallet({
-    required String wallet,
-    required String config,
+  Future<({String slateId, String commitId, String slateJson})> txFinalize({
+    required DynamicObject wallet,
+    required String slateJson,
+  }) async {
+    return (await wallet.get<EpicWallet>().txFinalize(
+      slateJson: slateJson,
+    )).toRecord();
+  }
+
+  @override
+  Future<({String commitId, String slateId, String slateJson})>
+  createTransaction({
+    required DynamicObject wallet,
+    required int amount,
+    required String address,
+    required int secretKeyIndex,
+    required int minimumConfirmations,
+    required String note,
+    bool returnSlate = false,
+  }) async {
+    return (await wallet.get<EpicWallet>().createTransaction(
+      amount: amount,
+      address: address,
+      secretKeyIndex: secretKeyIndex,
+      minimumConfirmations: minimumConfirmations,
+      note: note,
+      returnSlate: returnSlate,
+    )).toRecord();
+  }
+
+  @override
+  void updateEpicboxConfig({
+    required DynamicObject wallet,
+    required String epicBoxConfig,
   }) {
-    return LibEpiccash.deleteWallet(wallet: wallet, config: config);
+    return wallet.get<EpicWallet>().updateEpicboxConfig(epicBoxConfig);
+  }
+
+  @override
+  void updateConfig({required DynamicObject wallet, required String config}) {
+    return wallet.get<EpicWallet>().updateConfig(config);
+  }
+
+  @override
+  Future<String> deleteWallet({required String config}) {
+    return EpicWallet.deleteWallet(config: config);
   }
 
   @override
   Future<String> getAddressInfo({
-    required String wallet,
+    required DynamicObject wallet,
     required int index,
     required String epicboxConfig,
   }) {
-    return LibEpiccash.getAddressInfo(
-      wallet: wallet,
-      index: index,
-      epicboxConfig: epicboxConfig,
-    );
+    return wallet.get<EpicWallet>().getAddressInfo(index: index);
   }
 
   @override
@@ -78,26 +105,22 @@ final class _LibEpicCashInterfaceImpl extends LibEpicCashInterface {
 
   @override
   Future<({int fee, bool strategyUseAll, int total})> getTransactionFees({
-    required String wallet,
+    required DynamicObject wallet,
     required int amount,
     required int minimumConfirmations,
-    required int available,
   }) {
-    return LibEpiccash.getTransactionFees(
-      wallet: wallet,
+    return wallet.get<EpicWallet>().getTransactionFees(
       amount: amount,
       minimumConfirmations: minimumConfirmations,
-      available: available,
     );
   }
 
   @override
   Future<List<EpicTransaction>> getTransactions({
-    required String wallet,
+    required DynamicObject wallet,
     required int refreshFromNode,
   }) async {
-    final transactions = await LibEpiccash.getTransactions(
-      wallet: wallet,
+    final transactions = await wallet.get<EpicWallet>().getTransactions(
       refreshFromNode: refreshFromNode,
     );
 
@@ -146,87 +169,99 @@ final class _LibEpicCashInterfaceImpl extends LibEpicCashInterface {
     })
   >
   getWalletBalances({
-    required String wallet,
+    required DynamicObject wallet,
     required int refreshFromNode,
     required int minimumConfirmations,
   }) {
-    return LibEpiccash.getWalletBalances(
-      wallet: wallet,
+    return wallet.get<EpicWallet>().getBalancesRecord(
       refreshFromNode: refreshFromNode,
       minimumConfirmations: minimumConfirmations,
     );
   }
 
   @override
-  Future<String> initializeNewWallet({
+  Future<DynamicObject> initializeNewWallet({
     required String config,
     required String mnemonic,
     required String password,
     required String name,
-  }) {
-    return LibEpiccash.initializeNewWallet(
+    required String epicBoxConfig,
+  }) async {
+    final wallet = await EpicWallet.create(
       config: config,
       mnemonic: mnemonic,
       password: password,
       name: name,
+      epicboxConfig: epicBoxConfig,
     );
+
+    return DynamicObject(wallet);
   }
 
   @override
-  Future<String> openWallet({
+  Future<DynamicObject> openWallet({
     required String config,
     required String password,
-  }) {
-    return LibEpiccash.openWallet(config: config, password: password);
+    required String epicboxConfig,
+  }) async {
+    final wallet = await EpicWallet.load(
+      config: config,
+      password: password,
+      epicboxConfig: epicboxConfig,
+    );
+
+    return DynamicObject(wallet);
   }
 
   @override
-  Future<void> recoverWallet({
+  Future<DynamicObject> recoverWallet({
     required String config,
     required String password,
     required String mnemonic,
     required String name,
-  }) {
-    return LibEpiccash.recoverWallet(
+    required String epicBoxConfig,
+  }) async {
+    final wallet = await EpicWallet.recover(
       config: config,
       password: password,
       mnemonic: mnemonic,
       name: name,
+      epicboxConfig: epicBoxConfig,
     );
+
+    return DynamicObject(wallet);
   }
 
   @override
   Future<int> scanOutputs({
-    required String wallet,
+    required DynamicObject wallet,
     required int startHeight,
     required int numberOfBlocks,
   }) {
-    return LibEpiccash.scanOutputs(
-      wallet: wallet,
+    return wallet.get<EpicWallet>().scanOutputs(
       startHeight: startHeight,
       numberOfBlocks: numberOfBlocks,
     );
   }
 
   @override
-  void startEpicboxListener({
-    required String wallet,
-    required String epicboxConfig,
-  }) {
-    return LibEpiccash.startEpicboxListener(
-      wallet: wallet,
-      epicboxConfig: epicboxConfig,
-    );
+  Future<void> startEpicboxListener({required DynamicObject wallet}) {
+    return wallet.get<EpicWallet>().startListener();
   }
 
   @override
-  void stopEpicboxListener() {
-    return LibEpiccash.stopEpicboxListener();
+  Future<void> stopEpicboxListener({required DynamicObject wallet}) {
+    return wallet.get<EpicWallet>().stopListener();
+  }
+
+  @override
+  Future<bool> isEpicboxListenerRunning({required DynamicObject wallet}) {
+    return wallet.get<EpicWallet>().isEpicboxListenerRunning();
   }
 
   @override
   Future<({String commitId, String slateId})> txHttpSend({
-    required String wallet,
+    required DynamicObject wallet,
     required int selectionStrategyIsAll,
     required int minimumConfirmations,
     required String message,
@@ -234,8 +269,7 @@ final class _LibEpicCashInterfaceImpl extends LibEpicCashInterface {
     required String address,
   }) {
     try {
-      return LibEpiccash.txHttpSend(
-        wallet: wallet,
+      return wallet.get<EpicWallet>().txHttpSend(
         selectionStrategyIsAll: selectionStrategyIsAll,
         minimumConfirmations: minimumConfirmations,
         message: message,
@@ -263,8 +297,18 @@ final class _LibEpicCashInterfaceImpl extends LibEpicCashInterface {
   }
 
   @override
-  bool validateSendAddress({required String address}) {
-    return LibEpiccash.validateSendAddress(address: address);
+  Future<bool> validateSendAddress({required String address}) {
+    return EpicWallet.validateSendAddress(address: address);
+  }
+
+  @override
+  bool validateSendAddressSync({required String address}) {
+    return epc.validateSendAddress(address) == "1"; //lol
+  }
+
+  @override
+  Future<void> close({required DynamicObject wallet}) {
+    return wallet.get<EpicWallet>().close();
   }
 
   @override

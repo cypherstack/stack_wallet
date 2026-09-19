@@ -58,8 +58,8 @@ class _SlatepackEntryDialogState extends ConsumerState<SlatepackEntryDialog> {
 
       if (mounted) {
         final qrResult = await ref.read(pBarcodeScanner).scan(context: context);
-        if (qrResult.rawContent.isNotEmpty && qrResult.rawContent != "null") {
-          _receiveSlateController.text = qrResult.rawContent;
+        if (qrResult.rawContent != null && qrResult.rawContent!.isNotEmpty) {
+          _receiveSlateController.text = qrResult.rawContent!;
           setState(() {
             _slateToggleFlag = _receiveSlateController.text.isNotEmpty;
           });
@@ -105,10 +105,9 @@ class _SlatepackEntryDialogState extends ConsumerState<SlatepackEntryDialog> {
           Text(
             "Receive Slatepack",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color:
-                  Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+              color: Theme.of(
+                context,
+              ).extension<StackColors>()!.textFieldActiveSearchIconRight,
             ),
             textAlign: TextAlign.left,
           ),
@@ -138,78 +137,75 @@ class _SlatepackEntryDialogState extends ConsumerState<SlatepackEntryDialog> {
               },
               focusNode: _slateFocusNode,
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldActiveText,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.textFieldActiveText,
                 height: 1.8,
               ),
-              decoration: standardInputDecoration(
-                "Enter Slatepack Message",
-                _slateFocusNode,
-                context,
-                desktopMed: true,
-              ).copyWith(
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12, // Adjust vertical padding for better alignment
-                ),
-                suffixIcon: Padding(
-                  padding:
-                      _receiveSlateController.text.isEmpty
+              decoration:
+                  standardInputDecoration(
+                    "Enter Slatepack Message",
+                    _slateFocusNode,
+                    context,
+                    desktopMed: true,
+                  ).copyWith(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical:
+                          12, // Adjust vertical padding for better alignment
+                    ),
+                    suffixIcon: Padding(
+                      padding: _receiveSlateController.text.isEmpty
                           ? const EdgeInsets.only(right: 8)
                           : const EdgeInsets.only(right: 0),
-                  child: UnconstrainedBox(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _slateToggleFlag
-                            ? TextFieldIconButton(
-                              key: const Key(
-                                "receiveViewClearSlatepackFieldButtonKey",
+                      child: UnconstrainedBox(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            _slateToggleFlag
+                                ? TextFieldIconButton(
+                                    key: const Key(
+                                      "receiveViewClearSlatepackFieldButtonKey",
+                                    ),
+                                    onTap: () {
+                                      _receiveSlateController.text = "";
+                                      setState(() {
+                                        _slateToggleFlag = false;
+                                      });
+                                    },
+                                    child: const XIcon(),
+                                  )
+                                : TextFieldIconButton(
+                                    key: const Key(
+                                      "receiveViewPasteSlatepackFieldButtonKey",
+                                    ),
+                                    onTap: _pasteSlatepack,
+                                    child: _receiveSlateController.text.isEmpty
+                                        ? const ClipboardIcon()
+                                        : const XIcon(),
+                                  ),
+                            if (_receiveSlateController.text.isEmpty)
+                              TextFieldIconButton(
+                                semanticsLabel:
+                                    "Scan QR Button. Opens Camera For Scanning QR Code.",
+                                key: const Key("sendViewScanQrButtonKey"),
+                                onTap: _scanQr,
+                                child: const QrCodeIcon(),
                               ),
-                              onTap: () {
-                                _receiveSlateController.text = "";
-                                setState(() {
-                                  _slateToggleFlag = false;
-                                });
-                              },
-                              child: const XIcon(),
-                            )
-                            : TextFieldIconButton(
-                              key: const Key(
-                                "receiveViewPasteSlatepackFieldButtonKey",
-                              ),
-                              onTap: _pasteSlatepack,
-                              child:
-                                  _receiveSlateController.text.isEmpty
-                                      ? const ClipboardIcon()
-                                      : const XIcon(),
-                            ),
-                        if (_receiveSlateController.text.isEmpty)
-                          TextFieldIconButton(
-                            semanticsLabel:
-                                "Scan QR Button. Opens Camera For Scanning QR Code.",
-                            key: const Key("sendViewScanQrButtonKey"),
-                            onTap: _scanQr,
-                            child: const QrCodeIcon(),
-                          ),
-                      ],
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
             ),
           ),
           const SizedBox(height: 16),
           PrimaryButton(
             label: "Import",
             enabled: _slateToggleFlag,
-            onPressed:
-                !_slateToggleFlag
-                    ? null
-                    : () =>
-                        Navigator.of(context).pop(_receiveSlateController.text),
+            onPressed: !_slateToggleFlag
+                ? null
+                : () => Navigator.of(context).pop(_receiveSlateController.text),
           ),
           const SizedBox(height: 16),
           SecondaryButton(

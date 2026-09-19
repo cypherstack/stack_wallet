@@ -8,12 +8,15 @@
  *
  */
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../notifications/notification_card.dart';
-import '../../providers/providers.dart';
-import '../../providers/ui/unread_notifications_provider.dart';
+import '../../notifications/notification_feed_entry_card.dart';
+import '../../providers/global/shopin_bit_service_provider.dart';
+import '../../providers/ui/notification_feed_provider.dart';
+import '../../services/shopinbit/shopinbit_service.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
 import '../../widgets/background.dart';
@@ -32,29 +35,25 @@ class NotificationsView extends ConsumerStatefulWidget {
 }
 
 class _NotificationsViewState extends ConsumerState<NotificationsView> {
+  late final ShopInBitService _shopInBitService;
+
   @override
   void initState() {
     super.initState();
+    _shopInBitService = ref.read(pShopinBitService);
   }
 
   @override
   void dispose() {
+    if (widget.walletId == null) {
+      unawaited(_shopInBitService.markAllNotificationsRead());
+    }
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final notifications =
-        widget.walletId == null
-            ? ref.watch(
-              notificationsProvider.select((value) => value.notifications),
-            )
-            : ref
-                .watch(
-                  notificationsProvider.select((value) => value.notifications),
-                )
-                .where((element) => element.walletId == widget.walletId)
-                .toList(growable: false);
+    final entries = ref.watch(pNotificationFeed(widget.walletId));
 
     return Background(
       child: Scaffold(
@@ -70,54 +69,44 @@ class _NotificationsViewState extends ConsumerState<NotificationsView> {
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(12),
-            child:
-                notifications.isNotEmpty
-                    ? Column(
-                      children: [
-                        Expanded(
-                          child: ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: notifications.length,
-                            itemBuilder: (builderContext, index) {
-                              final notification = notifications[index];
-                              if (notification.read == false) {
-                                ref
-                                    .read(
-                                      unreadNotificationsStateProvider.state,
-                                    )
-                                    .state
-                                    .add(notification.id);
-                              }
-                              return Padding(
-                                padding: const EdgeInsets.all(4),
-                                child: NotificationCard(
-                                  notification: notifications[index],
-                                ),
-                              );
-                            },
-                          ),
+            child: entries.isNotEmpty
+                ? Column(
+                    children: [
+                      Expanded(
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: entries.length,
+                          itemBuilder: (builderContext, index) {
+                            return Padding(
+                              padding: const EdgeInsets.all(4),
+                              child: NotificationFeedEntryCard(
+                                entry: entries[index],
+                              ),
+                            );
+                          },
                         ),
-                      ],
-                    )
-                    : Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(4),
-                          child: RoundedWhiteContainer(
-                            child: Center(
-                              child: FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: Text(
-                                  "Notifications will appear here",
-                                  style: STextStyles.itemSubtitle(context),
-                                ),
+                      ),
+                    ],
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: RoundedWhiteContainer(
+                          child: Center(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                "Notifications will appear here",
+                                style: STextStyles.itemSubtitle(context),
                               ),
                             ),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
+                  ),
           ),
         ),
       ),

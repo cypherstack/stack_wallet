@@ -1,7 +1,7 @@
 import '../../../models/node_model.dart';
 import '../../../utilities/default_nodes.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
-import '../../../wl_gen/interfaces/cs_monero_interface.dart';
+import '../../../wl_gen/interfaces/cs_wownero_interface.dart';
 import '../crypto_currency.dart';
 import '../intermediate/cryptonote_currency.dart';
 
@@ -52,7 +52,7 @@ class Wownero extends CryptonoteCurrency {
     }
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return csMonero.validateAddress(address, 0, csCoin: CsCoin.wownero);
+        return csWownero.validateAddress(address, 0);
       default:
         throw Exception("Unsupported network: $network");
     }

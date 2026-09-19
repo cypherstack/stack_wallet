@@ -2,16 +2,21 @@
 import 'dart:convert';
 
 import 'package:logger/logger.dart';
+import 'package:xelis_dart_sdk/src/data_transfer_objects/get_asset/max_supply_mode.dart';
 import 'package:xelis_dart_sdk/xelis_dart_sdk.dart' as xelis_sdk;
 import 'package:xelis_flutter/src/api/api.dart' as xelis_api;
 import 'package:xelis_flutter/src/api/logger.dart' as xelis_logging;
+import 'package:xelis_flutter/src/api/models/wallet_dtos.dart' as x_wallet_dtos;
 import 'package:xelis_flutter/src/api/network.dart' as x_network;
+import 'package:xelis_flutter/src/api/precomputed_tables.dart' as x_tables;
+import 'package:xelis_flutter/src/api/progress_report.dart' as x_report;
 import 'package:xelis_flutter/src/api/seed_search_engine.dart' as x_seed;
 import 'package:xelis_flutter/src/api/utils.dart' as x_utils;
 import 'package:xelis_flutter/src/api/wallet.dart' as x_wallet;
 import 'package:xelis_flutter/src/frb_generated.dart' as xelis_rust;
 
 import '../../providers/progress_report/xelis_table_progress_provider.dart';
+import '../../utilities/dynamic_object.dart';
 import '../../utilities/logger.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 //END_ON
@@ -72,17 +77,30 @@ final class _LibXelisInterfaceImpl extends LibXelisInterface {
   @override
   Stream<XelisTableProgressState> createProgressReportStream() {
     double lastPrintedProgress = 0.0;
+    XelisTableGenerationStep? lastStep;
+
     return xelis_api.createProgressReportStream().map((report) {
       return report.when(
-        tableGeneration: (progress, step, _) {
+        tableGeneration: (progress, step, message) {
           final currentStep = XelisTableGenerationStep.fromString(step);
-          if ((progress - lastPrintedProgress).abs() >= 0.05 ||
-              currentStep != XelisTableGenerationStep.fromString(step) ||
-              progress >= 0.99) {
+
+          final hasProgressJump =
+              (progress - lastPrintedProgress).abs() >= 0.05;
+          final stepChanged = currentStep != lastStep;
+          final isFinished = progress >= 0.99;
+
+          if (hasProgressJump || stepChanged || isFinished) {
+            final percent = (progress * 100).toStringAsFixed(1);
+            final extra = (message != null && message.isNotEmpty)
+                ? ' – $message'
+                : '';
+
             Logging.instance.d(
-              "Xelis Table Generation: $step - ${progress * 100.0}%",
+              'Xelis Table Generation: $step - $percent%$extra',
             );
+
             lastPrintedProgress = progress;
+            lastStep = currentStep;
           }
 
           return XelisTableProgressState(
@@ -90,14 +108,24 @@ final class _LibXelisInterfaceImpl extends LibXelisInterface {
             currentStep: currentStep,
           );
         },
-        misc: (_) => const XelisTableProgressState(),
+        misc: (message) {
+          if (message != null && message.isNotEmpty) {
+            Logging.instance.d('Xelis Table Generation (misc): $message');
+          }
+          return const XelisTableProgressState();
+        },
       );
     });
   }
 
   @override
-  bool isAddressValid({required String address}) =>
-      x_utils.isAddressValid(strAddress: address);
+  bool isAddressValid({
+    required String address,
+    required CryptoCurrencyNetwork network,
+  }) => x_utils.isAddressValid(
+    strAddress: address,
+    network: network.xelisNetwork,
+  );
 
   @override
   bool validateSeedWord(String word) {
@@ -124,7 +152,11 @@ final class _LibXelisInterfaceImpl extends LibXelisInterface {
               json['data'] as Map<String, dynamic>,
             );
 
-            yield NewAsset(data.name, data.decimals, data.maxSupply);
+            yield NewAsset(
+              data.name,
+              data.decimals,
+              DynamicObject(data.maxSupply),
+            );
           case xelis_sdk.WalletEvent.newTransaction:
             final tx = xelis_sdk.TransactionEntry.fromJson(
               json['data'] as Map<String, dynamic>,
@@ -138,11 +170,19 @@ final class _LibXelisInterfaceImpl extends LibXelisInterface {
                 topoheight: tx.topoheight,
               ),
             );
+          case xelis_sdk.WalletEvent.newPendingTransaction:
+            continue;
           case xelis_sdk.WalletEvent.balanceChanged:
             final data = xelis_sdk.BalanceChangedEvent.fromJson(
               json['data'] as Map<String, dynamic>,
             );
             yield BalanceChanged(data.assetHash, data.balance);
+          case xelis_sdk.WalletEvent.trackAsset:
+            // TODO
+            continue;
+          case xelis_sdk.WalletEvent.untrackAsset:
+            // TODO
+            continue;
           case xelis_sdk.WalletEvent.rescan:
             yield Rescan(json['data']['start_topoheight'] as int);
           case xelis_sdk.WalletEvent.online:
@@ -151,6 +191,9 @@ final class _LibXelisInterfaceImpl extends LibXelisInterface {
             yield const Offline();
           case xelis_sdk.WalletEvent.historySynced:
             yield HistorySynced(json['data']['topoheight'] as int);
+          case xelis_sdk.WalletEvent.syncError:
+            print("ERROR SYNCING: ${json['data']['message']}");
+            yield const Offline(); // TODO: make a message describing the error with json['data']['message']
         }
       } catch (e, s) {
         Logging.instance.e(
@@ -176,11 +219,20 @@ final class _LibXelisInterfaceImpl extends LibXelisInterface {
   @override
   Future<void> updateTables({
     required String precomputedTablesPath,
-    required bool l1Low,
-  }) => x_wallet.updateTables(
-    precomputedTablesPath: precomputedTablesPath,
-    l1Low: l1Low,
-  );
+    required bool stack_l1Low,
+  }) async {
+    // TODO: add more granular table size management interface
+    // for now, just patching the old system into the new FFI API
+
+    x_tables.PrecomputedTableType tableType = stack_l1Low
+        ? x_tables.PrecomputedTableType.l1Low()
+        : x_tables.PrecomputedTableType.l1Full();
+
+    return x_wallet.updateTables(
+      precomputedTablesPath: precomputedTablesPath,
+      precomputedTableType: tableType,
+    );
+  }
 
   @override
   Future<String> getSeed(OpaqueXelisWallet wallet) => wallet.actual.getSeed();
@@ -195,8 +247,15 @@ final class _LibXelisInterfaceImpl extends LibXelisInterface {
     String? seed,
     String? privateKey,
     String? precomputedTablesPath,
-    bool? l1Low,
+    bool? stack_l1Low,
   }) async {
+    // TODO: add more granular table size management interface
+    // for now, just patching the old system into the new FFI API
+
+    x_tables.PrecomputedTableType tableType = stack_l1Low ?? false
+        ? x_tables.PrecomputedTableType.l1Low()
+        : x_tables.PrecomputedTableType.l1Full();
+
     final wallet = await x_wallet.createXelisWallet(
       name: name,
       directory: directory,
@@ -205,7 +264,7 @@ final class _LibXelisInterfaceImpl extends LibXelisInterface {
       seed: seed,
       network: network.xelisNetwork,
       precomputedTablesPath: precomputedTablesPath,
-      l1Low: l1Low,
+      precomputedTableType: tableType,
     );
 
     return OpaqueXelisWallet(wallet);
@@ -219,15 +278,22 @@ final class _LibXelisInterfaceImpl extends LibXelisInterface {
     required String password,
     required CryptoCurrencyNetwork network,
     String? precomputedTablesPath,
-    bool? l1Low,
+    bool? stack_l1Low,
   }) async {
+    // TODO: add more granular table size management interface
+    // for now, just patching the old system into the new FFI API
+
+    x_tables.PrecomputedTableType tableType = (stack_l1Low ?? false)
+        ? x_tables.PrecomputedTableType.l1Low()
+        : x_tables.PrecomputedTableType.l1Full();
+
     final wallet = await x_wallet.openXelisWallet(
       name: name,
       directory: directory,
       password: password,
       network: network.xelisNetwork,
       precomputedTablesPath: precomputedTablesPath,
-      l1Low: l1Low,
+      precomputedTableType: tableType,
     );
 
     return OpaqueXelisWallet(wallet);
@@ -274,7 +340,7 @@ final class _LibXelisInterfaceImpl extends LibXelisInterface {
   }) => wallet.actual.createTransfersTransaction(
     transfers: transfers
         .map(
-          (e) => x_wallet.Transfer(
+          (e) => x_wallet_dtos.Transfer(
             floatAmount: e.floatAmount,
             strAddress: e.strAddress,
             assetHash: e.assetHash,
@@ -291,7 +357,7 @@ final class _LibXelisInterfaceImpl extends LibXelisInterface {
   }) => wallet.actual.estimateFees(
     transfers: transfers
         .map(
-          (e) => x_wallet.Transfer(
+          (e) => x_wallet_dtos.Transfer(
             floatAmount: e.floatAmount,
             strAddress: e.strAddress,
             assetHash: e.assetHash,

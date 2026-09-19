@@ -1,0 +1,50 @@
+name: Release mwebd Windows binary
+
+on:
+  workflow_dispatch:
+    inputs:
+      mwebd_version:
+        description: 'mwebd tag to build (must match _mwebdVersion in tool/build_standalone_mwebd_windows.dart)'
+        required: true
+        default: 'v0.1.8'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Clone mwebd
+        run: git clone https://github.com/ltcmweb/mwebd.git --branch "${{ inputs.mwebd_version }}" mwebd
+
+      - name: Build mwebd.exe
+        working-directory: mwebd
+        env:
+          CGO_ENABLED: '1'
+        run: go build -v -o ../mwebd.exe github.com/ltcmweb/mwebd/cmd/mwebd
+
+      - name: Compute sha256
+        run: sha256sum mwebd.exe | awk '{print $1}' > mwebd.exe.sha256
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          TAG="mwebd-${{ inputs.mwebd_version }}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" mwebd.exe mwebd.exe.sha256 --clobber
+          else
+            gh release create "$TAG" \
+              --title "mwebd ${{ inputs.mwebd_version }} (windows-amd64)" \
+              --notes "Pre-built Windows binary for ltcmweb/mwebd ${{ inputs.mwebd_version }}, built with native Go on windows-latest. Used by the Stack Wallet Windows build via tool/build_standalone_mwebd_windows.dart --fetch." \
+              mwebd.exe mwebd.exe.sha256
+          fi

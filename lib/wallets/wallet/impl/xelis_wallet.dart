@@ -57,7 +57,7 @@ class XelisWallet extends LibXelisWallet {
       seed: mnemonic,
       network: cryptoCurrency.network,
       precomputedTablesPath: tablePath,
-      l1Low: tableState.currentSize.isLow,
+      stack_l1Low: tableState.currentSize.isLow,
     );
 
     await secureStorageInterface.write(
@@ -91,7 +91,7 @@ class XelisWallet extends LibXelisWallet {
       password: password,
       network: cryptoCurrency.network,
       precomputedTablesPath: tablePath,
-      l1Low: tableState.currentSize.isLow,
+      stack_l1Low: tableState.currentSize.isLow,
     );
 
     final mnemonic = await libXelis.getSeed(wallet);
@@ -123,7 +123,7 @@ class XelisWallet extends LibXelisWallet {
       password: password!,
       network: cryptoCurrency.network,
       precomputedTablesPath: tablePath,
-      l1Low: tableState.currentSize.isLow,
+      stack_l1Low: tableState.currentSize.isLow,
     );
 
     await _finishInit();

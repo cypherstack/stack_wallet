@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 
@@ -57,6 +58,18 @@ class _RotatingArrowsState extends State<RotatingArrows>
   }
 
   @override
+  void didUpdateWidget(RotatingArrows oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.spinByDefault != widget.spinByDefault) {
+      if (widget.spinByDefault) {
+        animationController.repeat();
+      } else {
+        animationController.stop();
+      }
+    }
+  }
+
+  @override
   void dispose() {
     animationController.dispose();
     widget.controller?.forward = null;
@@ -76,12 +89,14 @@ class _RotatingArrowsState extends State<RotatingArrows>
         values: [
           ValueDelegate.color(
             const ["**"],
-            value: widget.color ??
+            value:
+                widget.color ??
                 Theme.of(context).extension<StackColors>()!.accentColorDark,
           ),
           ValueDelegate.strokeColor(
             const ["**"],
-            value: widget.color ??
+            value:
+                widget.color ??
                 Theme.of(context).extension<StackColors>()!.accentColorDark,
           ),
         ],

@@ -81,6 +81,22 @@ class ViewOnlyWalletDataWidget extends StatelessWidget {
             ),
           ],
         ),
+      final SparkViewOnlyWalletData e => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            DetailItem(
+              title: "View Key",
+              detail: e.viewKey,
+              button: Util.isDesktop
+                  ? IconCopyButton(
+                      data: e.viewKey,
+                    )
+                  : SimpleCopyButton(
+                      data: e.viewKey,
+                    ),
+            ),
+          ],
+        ),
     };
   }
 }

@@ -1,6 +1,6 @@
-/* 
+/*
  * This file is part of Stack Wallet.
- * 
+ *
  * Copyright (c) 2023 Cypher Stack
  * All Rights Reserved.
  * The code is distributed under GPLv3 license, see LICENSE file for details.
@@ -8,31 +8,50 @@
  *
  */
 
+import 'package:bip47/bip47.dart';
+import 'package:bitcoindart/bitcoindart.dart' as bitcoindart;
+
 class PaynymAccountLite {
   final String nymId;
   final String nymName;
   final String code;
   final bool segwit;
+  final bool taproot;
 
   PaynymAccountLite(
     this.nymId,
     this.nymName,
     this.code,
-    this.segwit,
-  );
+    this.segwit, {
+    this.taproot = false,
+  });
 
   PaynymAccountLite.fromMap(Map<String, dynamic> map)
-      : nymId = map["nymId"] as String,
-        nymName = map["nymName"] as String,
-        code = map["code"] as String,
-        segwit = map["segwit"] as bool;
+    : nymId = map["nymId"] as String,
+      nymName = map["nymName"] as String,
+      code = map["code"] as String,
+      segwit = map["segwit"] as bool,
+      taproot = map["taproot"] as bool? ?? inferTaproot(map["code"] as String);
+
+  static bool inferTaproot(String paymentCodeString) {
+    try {
+      final pCode = PaymentCode.fromPaymentCode(
+        paymentCodeString,
+        networkType: bitcoindart.bitcoin,
+      );
+      return pCode.isTaprootEnabled();
+    } catch (_) {
+      return false;
+    }
+  }
 
   Map<String, dynamic> toMap() => {
-        "nymId": nymId,
-        "nymName": nymName,
-        "code": code,
-        "segwit": segwit,
-      };
+    "nymId": nymId,
+    "nymName": nymName,
+    "code": code,
+    "segwit": segwit,
+    "taproot": taproot,
+  };
 
   @override
   String toString() {

@@ -6,7 +6,7 @@ import 'wallets/crypto_currency/intermediate/frost_currency.dart';
 
 part 'app_config.g.dart';
 
-enum AppFeature { themeSelection, buy, swap, tor }
+enum AppFeature { themeSelection, buy, swap, tor, shopinBit, cakePay }
 
 abstract class AppConfig {
   static const appName = _prefix + _separator + suffix;
@@ -15,6 +15,8 @@ abstract class AppConfig {
   static const suffix = _suffix;
 
   static const emptyWalletsMessage = _emptyWalletsMessage;
+
+  static const windowsMwebdExeHash = _mwebdExeHash;
 
   static String get appDefaultDataDirName => _appDataDirName;
   static String get shortDescriptionText => _shortDescriptionText;
@@ -83,7 +85,10 @@ abstract class AppConfig {
 
     try {
       return coins.firstWhere(
-        (e) => e.identifier.toLowerCase() == name || e.prettyName == prettyName,
+        (e) =>
+            e.identifier.toLowerCase() == name ||
+            e.prettyName == prettyName ||
+            (e is Epiccash && prettyName == "Epic Private Internet Cash"),
       );
     } catch (_) {
       throw Exception("getCryptoCurrencyByPrettyName($prettyName) failed!");

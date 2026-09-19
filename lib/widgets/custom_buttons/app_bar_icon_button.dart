@@ -14,6 +14,7 @@ import 'package:flutter_svg/svg.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/util.dart';
+import '../conditional_parent.dart';
 
 class AppBarIconButton extends StatelessWidget {
   const AppBarIconButton({
@@ -25,6 +26,7 @@ class AppBarIconButton extends StatelessWidget {
     this.size = 36.0,
     this.shadows = const [],
     this.semanticsLabel = "Button",
+    this.tooltip,
   });
 
   final Widget icon;
@@ -34,29 +36,35 @@ class AppBarIconButton extends StatelessWidget {
   final double size;
   final List<BoxShadow> shadows;
   final String semanticsLabel;
+  final String? tooltip;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: size,
-      width: size,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(1000),
-        color: color ?? Theme.of(context).extension<StackColors>()!.background,
-        boxShadow: shadows,
-      ),
-      child: Semantics(
-        excludeSemantics: true,
-        label: semanticsLabel,
-        child: MaterialButton(
-          splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-          padding: EdgeInsets.zero,
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(1000),
+    return ConditionalParent(
+      condition: tooltip != null,
+      builder: (child) => Tooltip(message: tooltip, child: child),
+      child: Container(
+        height: size,
+        width: size,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(1000),
+          color:
+              color ?? Theme.of(context).extension<StackColors>()!.background,
+          boxShadow: shadows,
+        ),
+        child: Semantics(
+          excludeSemantics: true,
+          label: semanticsLabel,
+          child: MaterialButton(
+            splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+            padding: EdgeInsets.zero,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(1000),
+            ),
+            onPressed: onPressed,
+            child: icon,
           ),
-          onPressed: onPressed,
-          child: icon,
         ),
       ),
     );
@@ -84,18 +92,16 @@ class AppBarBackButton extends StatelessWidget {
     final isDesktop = Util.isDesktop;
     return Padding(
       padding: isDesktop
-          ? const EdgeInsets.symmetric(
-              vertical: 20,
-              horizontal: 24,
-            )
+          ? const EdgeInsets.symmetric(vertical: 20, horizontal: 24)
           : const EdgeInsets.all(10),
       child: AppBarIconButton(
         semanticsLabel: semanticsLabel,
-        size: size ??
+        size:
+            size ??
             (isDesktop
                 ? isCompact
-                    ? 42
-                    : 56
+                      ? 42
+                      : 56
                 : 32),
         color: isDesktop
             ? Theme.of(context).extension<StackColors>()!.textFieldDefaultBG

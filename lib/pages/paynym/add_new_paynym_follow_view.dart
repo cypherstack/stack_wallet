@@ -122,8 +122,9 @@ class _AddNewPaynymFollowViewState
       }
 
       final qrResult = await ref.read(pBarcodeScanner).scan(context: context);
+      if (qrResult.rawContent == null) return;
 
-      final pCodeString = qrResult.rawContent;
+      final pCodeString = qrResult.rawContent!;
 
       _searchString = pCodeString;
 
@@ -173,93 +174,82 @@ class _AddNewPaynymFollowViewState
 
     return ConditionalParent(
       condition: !isDesktop,
-      builder:
-          (child) => MasterScaffold(
-            isDesktop: isDesktop,
-            appBar: AppBar(
-              leading: AppBarBackButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-              titleSpacing: 0,
-              title: Text(
-                "New follow",
-                style: STextStyles.navBarTitle(context),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            body: SafeArea(
-              child: LayoutBuilder(
-                builder:
-                    (context, constraints) => SingleChildScrollView(
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minHeight: constraints.maxHeight,
-                        ),
-                        child: IntrinsicHeight(
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: child,
-                          ),
-                        ),
-                      ),
-                    ),
+      builder: (child) => MasterScaffold(
+        isDesktop: isDesktop,
+        appBar: AppBar(
+          leading: AppBarBackButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          titleSpacing: 0,
+          title: Text(
+            "New follow",
+            style: STextStyles.navBarTitle(context),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        body: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: IntrinsicHeight(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: child,
+                  ),
+                ),
               ),
             ),
           ),
+        ),
+      ),
       child: ConditionalParent(
         condition: isDesktop,
-        builder:
-            (child) => DesktopDialog(
-              maxWidth: 580,
-              maxHeight: double.infinity,
-              child: Column(
+        builder: (child) => DesktopDialog(
+          maxWidth: 580,
+          maxHeight: double.infinity,
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(left: 32),
-                        child: Text(
-                          "New follow",
-                          style: STextStyles.desktopH3(context),
-                        ),
-                      ),
-                      const DesktopDialogCloseButton(),
-                    ],
-                  ),
                   Padding(
-                    padding: const EdgeInsets.only(
-                      left: 32,
-                      right: 32,
-                      bottom: 32,
+                    padding: const EdgeInsets.only(left: 32),
+                    child: Text(
+                      "New follow",
+                      style: STextStyles.desktopH3(context),
                     ),
-                    child: child,
                   ),
+                  const DesktopDialogCloseButton(),
                 ],
               ),
-            ),
+              Padding(
+                padding: const EdgeInsets.only(left: 32, right: 32, bottom: 32),
+                child: child,
+              ),
+            ],
+          ),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 10),
             Text(
               "Featured PayNyms",
-              style:
-                  isDesktop
-                      ? STextStyles.desktopTextExtraExtraSmall(context)
-                      : STextStyles.sectionLabelMedium12(context),
+              style: isDesktop
+                  ? STextStyles.desktopTextExtraExtraSmall(context)
+                  : STextStyles.sectionLabelMedium12(context),
             ),
             const SizedBox(height: 12),
             FeaturedPaynymsWidget(walletId: widget.walletId),
             const SizedBox(height: 24),
             Text(
               "Add new",
-              style:
-                  isDesktop
-                      ? STextStyles.desktopTextExtraExtraSmall(context)
-                      : STextStyles.sectionLabelMedium12(context),
+              style: isDesktop
+                  ? STextStyles.desktopTextExtraExtraSmall(context)
+                  : STextStyles.sectionLabelMedium12(context),
             ),
             const SizedBox(height: 12),
             if (isDesktop)
@@ -270,10 +260,9 @@ class _AddNewPaynymFollowViewState
                       children: [
                         RoundedContainer(
                           padding: const EdgeInsets.all(0),
-                          color:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textFieldDefaultBG,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.textFieldDefaultBG,
                           height: 56,
                           child: Center(
                             child: TextField(
@@ -286,15 +275,15 @@ class _AddNewPaynymFollowViewState
                                   _searchString = value;
                                 });
                               },
-                              style: STextStyles.desktopTextExtraExtraSmall(
-                                context,
-                              ).copyWith(
-                                color:
-                                    Theme.of(context)
+                              style:
+                                  STextStyles.desktopTextExtraExtraSmall(
+                                    context,
+                                  ).copyWith(
+                                    color: Theme.of(context)
                                         .extension<StackColors>()!
                                         .textFieldActiveText,
-                                // height: 1.8,
-                              ),
+                                    // height: 1.8,
+                                  ),
                               decoration: InputDecoration(
                                 hintText: "Paste payment code",
                                 hoverColor: Colors.transparent,
@@ -315,38 +304,32 @@ class _AddNewPaynymFollowViewState
                                       children: [
                                         _searchController.text.isNotEmpty
                                             ? TextFieldIconButton(
-                                              onTap: _clear,
-                                              child: RoundedContainer(
-                                                padding: const EdgeInsets.all(
-                                                  8,
+                                                onTap: _clear,
+                                                child: RoundedContainer(
+                                                  padding: const EdgeInsets.all(
+                                                    8,
+                                                  ),
+                                                  color: Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .buttonBackSecondary,
+                                                  child: const XIcon(),
                                                 ),
-                                                color:
-                                                    Theme.of(context)
-                                                        .extension<
-                                                          StackColors
-                                                        >()!
-                                                        .buttonBackSecondary,
-                                                child: const XIcon(),
-                                              ),
-                                            )
+                                              )
                                             : TextFieldIconButton(
-                                              key: const Key(
-                                                "paynymPasteAddressFieldButtonKey",
-                                              ),
-                                              onTap: _paste,
-                                              child: RoundedContainer(
-                                                padding: const EdgeInsets.all(
-                                                  8,
+                                                key: const Key(
+                                                  "paynymPasteAddressFieldButtonKey",
                                                 ),
-                                                color:
-                                                    Theme.of(context)
-                                                        .extension<
-                                                          StackColors
-                                                        >()!
-                                                        .buttonBackSecondary,
-                                                child: const ClipboardIcon(),
+                                                onTap: _paste,
+                                                child: RoundedContainer(
+                                                  padding: const EdgeInsets.all(
+                                                    8,
+                                                  ),
+                                                  color: Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .buttonBackSecondary,
+                                                  child: const ClipboardIcon(),
+                                                ),
                                               ),
-                                            ),
                                         TextFieldIconButton(
                                           key: const Key(
                                             "paynymScanQrButtonKey",
@@ -354,10 +337,9 @@ class _AddNewPaynymFollowViewState
                                           onTap: _scanQr,
                                           child: RoundedContainer(
                                             padding: const EdgeInsets.all(8),
-                                            color:
-                                                Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .buttonBackSecondary,
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .buttonBackSecondary,
                                             child: const QrCodeIcon(),
                                           ),
                                         ),
@@ -392,39 +374,40 @@ class _AddNewPaynymFollowViewState
                     });
                   },
                   style: STextStyles.field(context),
-                  decoration: standardInputDecoration(
-                    "Paste payment code",
-                    searchFieldFocusNode,
-                    context,
-                    desktopMed: isDesktop,
-                  ).copyWith(
-                    suffixIcon: Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: UnconstrainedBox(
-                        child: Row(
-                          children: [
-                            _searchController.text.isNotEmpty
-                                ? TextFieldIconButton(
-                                  onTap: _clear,
-                                  child: const XIcon(),
-                                )
-                                : TextFieldIconButton(
-                                  key: const Key(
-                                    "paynymPasteAddressFieldButtonKey",
-                                  ),
-                                  onTap: _paste,
-                                  child: const ClipboardIcon(),
+                  decoration:
+                      standardInputDecoration(
+                        "Paste payment code",
+                        searchFieldFocusNode,
+                        context,
+                        desktopMed: isDesktop,
+                      ).copyWith(
+                        suffixIcon: Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: UnconstrainedBox(
+                            child: Row(
+                              children: [
+                                _searchController.text.isNotEmpty
+                                    ? TextFieldIconButton(
+                                        onTap: _clear,
+                                        child: const XIcon(),
+                                      )
+                                    : TextFieldIconButton(
+                                        key: const Key(
+                                          "paynymPasteAddressFieldButtonKey",
+                                        ),
+                                        onTap: _paste,
+                                        child: const ClipboardIcon(),
+                                      ),
+                                TextFieldIconButton(
+                                  key: const Key("paynymScanQrButtonKey"),
+                                  onTap: _scanQr,
+                                  child: const QrCodeIcon(),
                                 ),
-                            TextFieldIconButton(
-                              key: const Key("paynymScanQrButtonKey"),
-                              onTap: _scanQr,
-                              child: const QrCodeIcon(),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
                       ),
-                    ),
-                  ),
                 ),
               ),
             if (!isDesktop) const SizedBox(height: 12),
@@ -433,21 +416,19 @@ class _AddNewPaynymFollowViewState
             if (_didSearch) const SizedBox(height: 20),
             if (_didSearch && _searchResult == null)
               RoundedWhiteContainer(
-                borderColor:
-                    isDesktop
-                        ? Theme.of(
-                          context,
-                        ).extension<StackColors>()!.backgroundAppBar
-                        : null,
+                borderColor: isDesktop
+                    ? Theme.of(
+                        context,
+                      ).extension<StackColors>()!.backgroundAppBar
+                    : null,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       "Nothing found. Please check the payment code.",
-                      style:
-                          isDesktop
-                              ? STextStyles.desktopTextExtraExtraSmall(context)
-                              : STextStyles.label(context),
+                      style: isDesktop
+                          ? STextStyles.desktopTextExtraExtraSmall(context)
+                          : STextStyles.label(context),
                     ),
                   ],
                 ),
@@ -455,12 +436,11 @@ class _AddNewPaynymFollowViewState
             if (_didSearch && _searchResult != null)
               RoundedWhiteContainer(
                 padding: const EdgeInsets.all(0),
-                borderColor:
-                    isDesktop
-                        ? Theme.of(
-                          context,
-                        ).extension<StackColors>()!.backgroundAppBar
-                        : null,
+                borderColor: isDesktop
+                    ? Theme.of(
+                        context,
+                      ).extension<StackColors>()!.backgroundAppBar
+                    : null,
                 child: PaynymCard(
                   key: UniqueKey(),
                   label: _searchResult!.nymName,

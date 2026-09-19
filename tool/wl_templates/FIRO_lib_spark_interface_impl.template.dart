@@ -48,12 +48,12 @@ class _LibSparkInterfaceImpl extends LibSparkInterface {
   String get nameRegexString => kNameRegexString;
 
   @override
-  String get stage3DevelopmentFundAddressMainNet =>
-      kStage3DevelopmentFundAddressMainNet;
+  String get stage3CommunityFundAddressMainNet =>
+      kStage3CommunityFundAddressMainNet;
 
   @override
-  String get stage3DevelopmentFundAddressTestNet =>
-      kStage3DevelopmentFundAddressTestNet;
+  String get stage3CommunityFundAddressTestNet =>
+      kStage3DCommunityFundAddressTestNet;
 
   @override
   List<int> get standardSparkNamesFee =>
@@ -97,11 +97,26 @@ class _LibSparkInterfaceImpl extends LibSparkInterface {
   );
 
   @override
+  LibSparkSpendVersion getSpendVersionForBlockHeight({
+    required int nextBlockHeight,
+    required int chaumV2ActivationHeight,
+  }) {
+    final version = SparkSpendVersion.forBlockHeight(
+      nextBlockHeight: nextBlockHeight,
+      chaumV2ActivationHeight: chaumV2ActivationHeight,
+    );
+    return switch (version) {
+      .chaumV1 => .chaumV1,
+      .chaumV2 => .chaumV2,
+    };
+  }
+
+  @override
   ({Uint8List script, int size}) createSparkNameScript({
     required int sparkNameValidityBlocks,
     required String name,
     required String additionalInfo,
-    required String scalarHex,
+    required LibSparkNameProofInput proofInput,
     required String privateKeyHex,
     required int spendKeyIndex,
     required int diversifier,
@@ -112,13 +127,23 @@ class _LibSparkInterfaceImpl extends LibSparkInterface {
     sparkNameValidityBlocks: sparkNameValidityBlocks,
     name: name,
     additionalInfo: additionalInfo,
-    scalarHex: scalarHex,
+    proofInput: switch (proofInput.spendVersion) {
+      .chaumV1 => .chaumV1(scalarHex: proofInput.inputHex),
+      .chaumV2 => .chaumV2(ownershipDigest: proofInput.inputHex),
+    },
     privateKeyHex: privateKeyHex,
     spendKeyIndex: spendKeyIndex,
     diversifier: diversifier,
     isTestNet: isTestNet,
     hashFailSafe: hashFailSafe,
     ignoreProof: ignoreProof,
+  );
+
+  @override
+  Uint8List getSparkNameCommitment({
+    required Uint8List serializedSparkNameData,
+  }) => LibSpark.getSparkNameCommitment(
+    serializedSparkNameData: serializedSparkNameData,
   );
 
   @override
@@ -179,6 +204,67 @@ class _LibSparkInterfaceImpl extends LibSparkInterface {
   }
 
   @override
+  WrappedLibSparkCoin? identifyAndRecoverCoinByFullViewKey(
+    String serializedCoin, {
+    required String fullViewKeyHex,
+    required Uint8List context,
+    bool isTestNet = false,
+  }) {
+    final coin = LibSpark.identifyAndRecoverCoinByFullViewKey(
+      serializedCoin: serializedCoin,
+      fullViewKeyHex: fullViewKeyHex,
+      context: context,
+      isTestNet: isTestNet,
+    );
+
+    if (coin == null) return null;
+
+    return WrappedLibSparkCoin(
+      type: WrappedLibSparkCoinType.values.firstWhere(
+        (e) => e.value == coin.type.value,
+      ),
+
+      id: coin.id,
+      height: coin.height,
+      isUsed: coin.isUsed,
+      nonceHex: coin.nonceHex,
+      address: coin.address,
+      value: coin.value,
+      serial: coin.serial,
+      memo: coin.memo,
+      txHash: coin.txHash,
+      serialContext: coin.serialContext,
+      diversifier: coin.diversifier,
+      encryptedDiversifier: coin.encryptedDiversifier,
+      tag: coin.tag,
+      lTagHash: coin.lTagHash,
+      serializedCoin: coin.serializedCoin,
+    );
+  }
+
+  @override
+  Future<String> getAddressFromFullViewKey({
+    required String fullViewKeyHex,
+    required int index,
+    required int diversifier,
+    bool isTestNet = false,
+  }) => LibSpark.getAddressFromFullViewKey(
+    fullViewKeyHex: fullViewKeyHex,
+    index: index,
+    diversifier: diversifier,
+    isTestNet: isTestNet,
+  );
+
+  @override
+  String getFullViewKeyHexFromPrivateKeyData({
+    required String privateKeyHex,
+    required int index,
+  }) => LibSpark.getFullViewKeyHexFromPrivateKeyData(
+    privateKeyHex: privateKeyHex,
+    index: index,
+  );
+
+  @override
   ({
     int fee,
     List<Uint8List> outputScripts,
@@ -227,6 +313,8 @@ class _LibSparkInterfaceImpl extends LibSparkInterface {
     required List<({Uint8List blockHash, int setId})> idAndBlockHashes,
     required Uint8List txHash,
     required int additionalTxSize,
+    required LibSparkSpendVersion spendVersion,
+    Uint8List? extensionCommitment,
   }) => LibSpark.createSparkSendTransaction(
     index: index,
     privateKeyHex: privateKeyHex,
@@ -237,6 +325,11 @@ class _LibSparkInterfaceImpl extends LibSparkInterface {
     idAndBlockHashes: idAndBlockHashes,
     txHash: txHash,
     additionalTxSize: additionalTxSize,
+    spendVersion: switch (spendVersion) {
+      .chaumV1 => .chaumV1,
+      .chaumV2 => .chaumV2,
+    },
+    extensionCommitment: extensionCommitment,
   );
 
   @override
@@ -257,6 +350,7 @@ class _LibSparkInterfaceImpl extends LibSparkInterface {
     required int privateRecipientsCount,
     required int utxoNum,
     required int additionalTxSize,
+    required LibSparkSpendVersion spendVersion,
   }) => LibSpark.estimateSparkFee(
     privateKeyHex: privateKeyHex,
     sendAmount: sendAmount,
@@ -265,6 +359,10 @@ class _LibSparkInterfaceImpl extends LibSparkInterface {
     privateRecipientsCount: privateRecipientsCount,
     utxoNum: utxoNum,
     additionalTxSize: additionalTxSize,
+    spendVersion: switch (spendVersion) {
+      .chaumV1 => .chaumV1,
+      .chaumV2 => .chaumV2,
+    },
     index: index,
   );
 }

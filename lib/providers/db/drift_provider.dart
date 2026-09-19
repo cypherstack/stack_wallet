@@ -10,8 +10,11 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../db/drift/database.dart'; 
+import '../../db/drift/database.dart' show WalletDatabase, Drift;
+import '../../db/drift/shared_db/shared_database.dart' show SharedDrift;
 
 final pDrift = Provider.family<WalletDatabase, String>(
   (ref, walletId) => Drift.get(walletId),
 );
+
+final pSharedDrift = Provider((_) => SharedDrift.get());

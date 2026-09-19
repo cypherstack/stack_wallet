@@ -52,7 +52,7 @@ class Monero extends CryptonoteCurrency {
     }
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return csMonero.validateAddress(address, 0, csCoin: CsCoin.monero);
+        return csMonero.validateAddress(address, 0);
       default:
         throw Exception("Unsupported network: $network");
     }

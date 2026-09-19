@@ -21,10 +21,15 @@ FusionTorService _getFusionInterface() => throw Exception("TOR not enabled!");
 
 //END_OFF
 //ON
-TorService _getInterface() => _TorServiceImpl();
-FusionTorService _getFusionInterface() => _FusionTorServiceImpl();
+TorService _getInterface() => _TorServiceImpl.instance;
+FusionTorService _getFusionInterface() => _FusionTorServiceImpl.instance;
 
 class _TorServiceImpl extends TorService {
+  static _TorServiceImpl? _instance;
+  static _TorServiceImpl get instance => _instance ??= _TorServiceImpl._();
+
+  _TorServiceImpl._();
+
   Tor? _tor;
   String? _torDataDirPath;
   TorConnectionStatus _status = TorConnectionStatus.disconnected;
@@ -131,6 +136,12 @@ class _TorServiceImpl extends TorService {
 }
 
 class _FusionTorServiceImpl extends FusionTorService {
+  static _FusionTorServiceImpl? _instance;
+  static _FusionTorServiceImpl get instance =>
+      _instance ??= _FusionTorServiceImpl._();
+
+  _FusionTorServiceImpl._();
+
   Tor? _tor;
   String? _torDataDirPath;
 

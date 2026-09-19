@@ -11,11 +11,12 @@
 import 'dart:isolate';
 
 import 'package:compat/compat.dart' as lib_monero_compat;
-import 'package:hive_ce/src/hive_impl.dart';
 import 'package:hive_ce/hive.dart' show Box;
+import 'package:hive_ce/src/hive_impl.dart';
 import 'package:mutex/mutex.dart';
 
 import '../../app_config.dart';
+import '../../models/epicbox_server_model.dart';
 import '../../models/exchange/response_objects/trade.dart';
 import '../../models/node_model.dart';
 import '../../models/notification_model.dart';
@@ -52,6 +53,8 @@ class DB {
   static const String boxNameDBInfo = "dbInfo";
   static const String boxNamePrefs = "prefs";
   static const String boxNameOneTimeDialogsShown = "oneTimeDialogsShown";
+  static const String boxNameEpicBoxModels = "epicBoxModels";
+  static const String boxNamePrimaryEpicBox = "primaryEpicBox";
 
   String _boxNameTxCache({required CryptoCurrency currency}) =>
       "${currency.identifier}_txCache";
@@ -75,6 +78,8 @@ class DB {
   Box<dynamic>? _boxPrefs;
   Box<TradeWalletLookup>? _boxTradeLookup;
   Box<dynamic>? _boxDBInfo;
+  late final Box<EpicBoxServerModel> _boxEpicBoxModels;
+  late final Box<EpicBoxServerModel> _boxPrimaryEpicBoxes;
   // Box<String>? _boxDesktopData;
 
   final Map<String, Box<dynamic>> _walletBoxes = {};
@@ -114,6 +119,24 @@ class DB {
       _boxDBInfo = await hive.openBox<dynamic>(boxNameDBInfo);
     }
     await hive.openBox<String>(boxNameWalletsToDeleteOnStart);
+
+    if (hive.isBoxOpen(boxNameEpicBoxModels)) {
+      _boxEpicBoxModels = hive.box<EpicBoxServerModel>(boxNameEpicBoxModels);
+    } else {
+      _boxEpicBoxModels = await hive.openBox<EpicBoxServerModel>(
+        boxNameEpicBoxModels,
+      );
+    }
+
+    if (hive.isBoxOpen(boxNamePrimaryEpicBox)) {
+      _boxPrimaryEpicBoxes = hive.box<EpicBoxServerModel>(
+        boxNamePrimaryEpicBox,
+      );
+    } else {
+      _boxPrimaryEpicBoxes = await hive.openBox<EpicBoxServerModel>(
+        boxNamePrimaryEpicBox,
+      );
+    }
 
     if (hive.isBoxOpen(boxNamePrefs)) {
       _boxPrefs = hive.box<dynamic>(boxNamePrefs);

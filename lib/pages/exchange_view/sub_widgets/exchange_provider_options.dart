@@ -14,14 +14,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../models/exchange/aggregate_currency.dart';
 import '../../../providers/providers.dart';
 import '../../../services/exchange/change_now/change_now_exchange.dart';
+import '../../../services/exchange/cyphergoat/cyphergoat_exchange.dart';
 import '../../../services/exchange/exchange.dart';
+import '../../../services/exchange/exolix/exolix_exchange.dart';
+import '../../../services/exchange/lets_exchange/lets_exchange_exchange.dart';
 import '../../../services/exchange/nanswap/nanswap_exchange.dart';
 import '../../../services/exchange/trocador/trocador_exchange.dart';
+import '../../../services/exchange/wizard_swap/wizard_swap_exchange.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/prefs.dart';
 import '../../../utilities/util.dart';
 import '../../../widgets/rounded_white_container.dart';
-import 'exchange_provider_option.dart';
+import 'sorted_exchange_providers.dart';
 
 class ExchangeProviderOptions extends ConsumerStatefulWidget {
   const ExchangeProviderOptions({
@@ -91,49 +95,82 @@ class _ExchangeProviderOptionsState
       sendCurrency: sendCurrency,
       receiveCurrency: receivingCurrency,
     );
+    final showWizardSwap = exchangeSupported(
+      exchangeName: WizardSwapExchange.exchangeName,
+      sendCurrency: sendCurrency,
+      receiveCurrency: receivingCurrency,
+    );
+    final showExolix = exchangeSupported(
+      exchangeName: ExolixExchange.exchangeName,
+      sendCurrency: sendCurrency,
+      receiveCurrency: receivingCurrency,
+    );
+    final showCypherGoat = exchangeSupported(
+      exchangeName: CypherGoatExchange.exchangeName,
+      sendCurrency: sendCurrency,
+      receiveCurrency: receivingCurrency,
+    );
+    final showLetsExchange = exchangeSupported(
+      exchangeName: LetsExchangeExchange.exchangeName,
+      sendCurrency: sendCurrency,
+      receiveCurrency: receivingCurrency,
+    );
 
     return RoundedWhiteContainer(
       padding: isDesktop ? const EdgeInsets.all(0) : const EdgeInsets.all(12),
-      borderColor:
-          isDesktop
-              ? Theme.of(context).extension<StackColors>()!.background
-              : null,
-      child: Column(
-        children: [
-          if (showChangeNow)
-            ExchangeOption(
-              exchange: ChangeNowExchange.instance,
-              fixedRate: widget.fixedRate,
-              reversed: widget.reversed,
-            ),
-          if (showChangeNow && showTrocador)
-            isDesktop
-                ? Container(
-                  height: 1,
-                  color: Theme.of(context).extension<StackColors>()!.background,
-                )
-                : const SizedBox(height: 16),
-          if (showTrocador)
-            ExchangeOption(
-              fixedRate: widget.fixedRate,
-              reversed: widget.reversed,
-              exchange: TrocadorExchange.instance,
-            ),
-          if ((showChangeNow || showTrocador) && showNanswap)
-            isDesktop
-                ? Container(
-                  height: 1,
-                  color: Theme.of(context).extension<StackColors>()!.background,
-                )
-                : const SizedBox(height: 16),
-          if (showNanswap)
-            ExchangeOption(
-              fixedRate: widget.fixedRate,
-              reversed: widget.reversed,
-              exchange: NanswapExchange.instance,
-            ),
+      borderColor: isDesktop
+          ? Theme.of(context).extension<StackColors>()!.background
+          : null,
+      child: SortedExchangeProviders(
+        exchangees: [
+          if (showChangeNow) ChangeNowExchange.instance,
+          if (showExolix) ExolixExchange.instance,
+          if (showLetsExchange) LetsExchangeExchange.instance,
+          if (showTrocador) TrocadorExchange.instance,
+          if (showNanswap) NanswapExchange.instance,
+          if (showWizardSwap) WizardSwapExchange.instance,
+          if (showCypherGoat) CypherGoatExchange.instance,
         ],
+        fixedRate: widget.fixedRate,
+        reversed: widget.reversed,
       ),
+
+      // Column(
+      //   children: [
+      //     if (showChangeNow)
+      //       ExchangeOption(
+      //         exchange: ChangeNowExchange.instance,
+      //         fixedRate: widget.fixedRate,
+      //         reversed: widget.reversed,
+      //       ),
+      //     if (showChangeNow && showTrocador)
+      //       isDesktop
+      //           ? Container(
+      //             height: 1,
+      //             color: Theme.of(context).extension<StackColors>()!.background,
+      //           )
+      //           : const SizedBox(height: 16),
+      //     if (showTrocador)
+      //       ExchangeOption(
+      //         fixedRate: widget.fixedRate,
+      //         reversed: widget.reversed,
+      //         exchange: TrocadorExchange.instance,
+      //       ),
+      //     if ((showChangeNow || showTrocador) && showNanswap)
+      //       isDesktop
+      //           ? Container(
+      //             height: 1,
+      //             color: Theme.of(context).extension<StackColors>()!.background,
+      //           )
+      //           : const SizedBox(height: 16),
+      //     if (showNanswap)
+      //       ExchangeOption(
+      //         fixedRate: widget.fixedRate,
+      //         reversed: widget.reversed,
+      //         exchange: NanswapExchange.instance,
+      //       ),
+      //   ],
+      // ),
     );
   }
 }

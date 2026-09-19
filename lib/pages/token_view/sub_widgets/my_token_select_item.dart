@@ -15,7 +15,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../models/isar/models/ethereum/eth_contract.dart';
 import '../../../pages_desktop_specific/my_stack_view/wallet_view/desktop_token_view.dart';
-import '../../../providers/db/main_db_provider.dart';
 import '../../../providers/providers.dart';
 import '../../../services/ethereum/cached_eth_token_balance.dart';
 import '../../../themes/stack_colors.dart';
@@ -64,21 +63,20 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
       await showDialog<void>(
         barrierDismissible: false,
         context: context,
-        builder:
-            (context) => BasicDialog(
-              title: "Failed to load token data",
-              desktopHeight: double.infinity,
-              desktopWidth: 450,
-              rightButton: PrimaryButton(
-                label: "OK",
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  if (!isDesktop) {
-                    Navigator.of(context).pop();
-                  }
-                },
-              ),
-            ),
+        builder: (context) => BasicDialog(
+          title: "Failed to load token data",
+          desktopHeight: double.infinity,
+          desktopWidth: 450,
+          rightButton: PrimaryButton(
+            label: "OK",
+            onPressed: () {
+              Navigator.of(context).pop();
+              if (!isDesktop) {
+                Navigator.of(context).pop();
+              }
+            },
+          ),
+        ),
       );
       return false;
     }
@@ -153,10 +151,9 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
       padding: const EdgeInsets.all(0),
       child: MaterialButton(
         key: Key("walletListItemButtonKey_${widget.token.symbol}"),
-        padding:
-            isDesktop
-                ? const EdgeInsets.symmetric(horizontal: 28, vertical: 24)
-                : const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
+        padding: isDesktop
+            ? const EdgeInsets.symmetric(horizontal: 28, vertical: 24)
+            : const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(
@@ -181,17 +178,15 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
                         children: [
                           Text(
                             widget.token.name,
-                            style:
-                                isDesktop
-                                    ? STextStyles.desktopTextExtraSmall(
+                            style: isDesktop
+                                ? STextStyles.desktopTextExtraSmall(
+                                    context,
+                                  ).copyWith(
+                                    color: Theme.of(
                                       context,
-                                    ).copyWith(
-                                      color:
-                                          Theme.of(
-                                            context,
-                                          ).extension<StackColors>()!.textDark,
-                                    )
-                                    : STextStyles.titleBold12(context),
+                                    ).extension<StackColors>()!.textDark,
+                                  )
+                                : STextStyles.titleBold12(context),
                           ),
                           const Spacer(),
                           Text(
@@ -210,19 +205,17 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
                                         )),
                                       )
                                       .total,
-                                  ethContract: widget.token,
+                                  tokenContract: widget.token,
                                 ),
-                            style:
-                                isDesktop
-                                    ? STextStyles.desktopTextExtraSmall(
+                            style: isDesktop
+                                ? STextStyles.desktopTextExtraSmall(
+                                    context,
+                                  ).copyWith(
+                                    color: Theme.of(
                                       context,
-                                    ).copyWith(
-                                      color:
-                                          Theme.of(
-                                            context,
-                                          ).extension<StackColors>()!.textDark,
-                                    )
-                                    : STextStyles.itemSubtitle(context),
+                                    ).extension<StackColors>()!.textDark,
+                                  )
+                                : STextStyles.itemSubtitle(context),
                           ),
                         ],
                       ),
@@ -231,24 +224,22 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
                         children: [
                           Text(
                             widget.token.symbol,
-                            style:
-                                isDesktop
-                                    ? STextStyles.desktopTextExtraExtraSmall(
-                                      context,
-                                    )
-                                    : STextStyles.itemSubtitle(context),
+                            style: isDesktop
+                                ? STextStyles.desktopTextExtraExtraSmall(
+                                    context,
+                                  )
+                                : STextStyles.itemSubtitle(context),
                           ),
                           const Spacer(),
                           if (priceString != null)
                             Text(
                               "$priceString "
                               "${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
-                              style:
-                                  isDesktop
-                                      ? STextStyles.desktopTextExtraExtraSmall(
-                                        context,
-                                      )
-                                      : STextStyles.itemSubtitle(context),
+                              style: isDesktop
+                                  ? STextStyles.desktopTextExtraExtraSmall(
+                                      context,
+                                    )
+                                  : STextStyles.itemSubtitle(context),
                             ),
                         ],
                       ),

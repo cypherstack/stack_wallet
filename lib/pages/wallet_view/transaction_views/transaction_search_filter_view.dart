@@ -11,7 +11,6 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
 
 import '../../../models/transaction_filter.dart';
 import '../../../providers/global/locale_provider.dart';
@@ -21,9 +20,7 @@ import '../../../themes/theme_providers.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/amount/amount_formatter.dart';
 import '../../../utilities/amount/amount_input_formatter.dart';
-import '../../../utilities/assets.dart';
 import '../../../utilities/constants.dart';
-import '../../../utilities/format.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
@@ -60,9 +57,6 @@ class _TransactionSearchViewState
   bool _isActiveSentCheckbox = false;
   bool _isActiveTradeCheckbox = false;
 
-  String _fromDateString = "";
-  String _toDateString = "";
-
   final keywordTextFieldFocusNode = FocusNode();
   final amountTextFieldFocusNode = FocusNode();
 
@@ -79,19 +73,11 @@ class _TransactionSearchViewState
       _selectedFromDate = filterState.from;
       _keywordTextEditingController.text = filterState.keyword;
 
-      _fromDateString =
-          _selectedFromDate == null
-              ? ""
-              : Format.formatDate(_selectedFromDate!);
-      _toDateString =
-          _selectedToDate == null ? "" : Format.formatDate(_selectedToDate!);
-
-      final String amount =
-          filterState.amount == null
-              ? ""
-              : ref
-                  .read(pAmountFormatter(widget.coin))
-                  .format(filterState.amount!, withUnitName: false);
+      final String amount = filterState.amount == null
+          ? ""
+          : ref
+                .read(pAmountFormatter(widget.coin))
+                .format(filterState.amount!, withUnitName: false);
 
       _amountTextEditingController.text = amount;
     }
@@ -109,238 +95,8 @@ class _TransactionSearchViewState
     super.dispose();
   }
 
-  // The following two getters are not required if the
-  // date fields are to remain unclearable.
-  Widget get _dateFromText {
-    final isDateSelected = _fromDateString.isEmpty;
-    return Text(
-      isDateSelected ? "From..." : _fromDateString,
-      style: STextStyles.fieldLabel(context).copyWith(
-        color:
-            isDateSelected
-                ? Theme.of(context).extension<StackColors>()!.textSubtitle2
-                : Theme.of(context).extension<StackColors>()!.accentColorDark,
-      ),
-    );
-  }
-
-  Widget get _dateToText {
-    final isDateSelected = _toDateString.isEmpty;
-    return Text(
-      isDateSelected ? "To..." : _toDateString,
-      style: STextStyles.fieldLabel(context).copyWith(
-        color:
-            isDateSelected
-                ? Theme.of(context).extension<StackColors>()!.textSubtitle2
-                : Theme.of(context).extension<StackColors>()!.accentColorDark,
-      ),
-    );
-  }
-
   DateTime? _selectedFromDate = DateTime(2007);
   DateTime? _selectedToDate = DateTime.now();
-
-  Widget _buildDateRangePicker() {
-    const middleSeparatorPadding = 2.0;
-    const middleSeparatorWidth = 12.0;
-    final isDesktop = Util.isDesktop;
-
-    final width =
-        isDesktop
-            ? null
-            : (MediaQuery.of(context).size.width -
-                    (middleSeparatorWidth +
-                        (2 * middleSeparatorPadding) +
-                        (2 * Constants.size.standardPadding))) /
-                2;
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Expanded(
-          child: GestureDetector(
-            key: const Key("transactionSearchViewFromDatePickerKey"),
-            onTap: () async {
-              // check and hide keyboard
-              if (FocusScope.of(context).hasFocus) {
-                FocusScope.of(context).unfocus();
-                await Future<void>.delayed(const Duration(milliseconds: 125));
-              }
-
-              if (mounted) {
-                final date = await showSWDatePicker(context);
-                if (date != null) {
-                  _selectedFromDate = date;
-
-                  // flag to adjust date so from date is always before to date
-                  final flag =
-                      _selectedToDate != null &&
-                      !_selectedFromDate!.isBefore(_selectedToDate!);
-                  if (flag) {
-                    _selectedToDate = DateTime.fromMillisecondsSinceEpoch(
-                      _selectedFromDate!.millisecondsSinceEpoch,
-                    );
-                  }
-
-                  setState(() {
-                    if (flag) {
-                      _toDateString =
-                          _selectedToDate == null
-                              ? ""
-                              : Format.formatDate(_selectedToDate!);
-                    }
-                    _fromDateString =
-                        _selectedFromDate == null
-                            ? ""
-                            : Format.formatDate(_selectedFromDate!);
-                  });
-                }
-              }
-            },
-            child: Container(
-              width: width,
-              decoration: BoxDecoration(
-                color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultBG,
-                borderRadius: BorderRadius.circular(
-                  Constants.size.circularBorderRadius,
-                ),
-                border: Border.all(
-                  color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textFieldDefaultBG,
-                  width: 1,
-                ),
-              ),
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: isDesktop ? 17 : 12,
-                ),
-                child: Row(
-                  children: [
-                    SvgPicture.asset(
-                      Assets.svg.calendar,
-                      height: 20,
-                      width: 20,
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.textSubtitle2,
-                    ),
-                    const SizedBox(width: 10),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: FittedBox(child: _dateFromText),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: middleSeparatorPadding,
-          ),
-          child: Container(
-            width: middleSeparatorWidth,
-            // height: 1,
-            // color: CFColors.smoke,
-          ),
-        ),
-        Expanded(
-          child: GestureDetector(
-            key: const Key("transactionSearchViewToDatePickerKey"),
-            onTap: () async {
-              // check and hide keyboard
-              if (FocusScope.of(context).hasFocus) {
-                FocusScope.of(context).unfocus();
-                await Future<void>.delayed(const Duration(milliseconds: 125));
-              }
-
-              if (mounted) {
-                final date = await showSWDatePicker(context);
-                if (date != null) {
-                  _selectedToDate = date;
-
-                  // flag to adjust date so from date is always before to date
-                  final flag =
-                      _selectedFromDate != null &&
-                      !_selectedToDate!.isAfter(_selectedFromDate!);
-                  if (flag) {
-                    _selectedFromDate = DateTime.fromMillisecondsSinceEpoch(
-                      _selectedToDate!.millisecondsSinceEpoch,
-                    );
-                  }
-
-                  setState(() {
-                    if (flag) {
-                      _fromDateString =
-                          _selectedFromDate == null
-                              ? ""
-                              : Format.formatDate(_selectedFromDate!);
-                    }
-                    _toDateString =
-                        _selectedToDate == null
-                            ? ""
-                            : Format.formatDate(_selectedToDate!);
-                  });
-                }
-              }
-            },
-            child: Container(
-              width: width,
-              decoration: BoxDecoration(
-                color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultBG,
-                borderRadius: BorderRadius.circular(
-                  Constants.size.circularBorderRadius,
-                ),
-                border: Border.all(
-                  color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textFieldDefaultBG,
-                  width: 1,
-                ),
-              ),
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: isDesktop ? 17 : 12,
-                ),
-                child: Row(
-                  children: [
-                    SvgPicture.asset(
-                      Assets.svg.calendar,
-                      height: 20,
-                      width: 20,
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.textSubtitle2,
-                    ),
-                    const SizedBox(width: 10),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: FittedBox(child: _dateToText),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-        if (isDesktop) const SizedBox(width: 24),
-      ],
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -356,11 +112,13 @@ class _TransactionSearchViewState
     } else {
       return Background(
         child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.background,
           appBar: AppBar(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(
+              context,
+            ).extension<StackColors>()!.background,
             leading: AppBarBackButton(
               onPressed: () async {
                 if (FocusScope.of(context).hasFocus) {
@@ -472,14 +230,9 @@ class _TransactionSearchViewState
                                 children: [
                                   Text(
                                     "Sent",
-                                    style:
-                                        isDesktop
-                                            ? STextStyles.desktopTextSmall(
-                                              context,
-                                            )
-                                            : STextStyles.itemSubtitle12(
-                                              context,
-                                            ),
+                                    style: isDesktop
+                                        ? STextStyles.desktopTextSmall(context)
+                                        : STextStyles.itemSubtitle12(context),
                                   ),
                                   if (isDesktop) const SizedBox(height: 4),
                                 ],
@@ -530,14 +283,9 @@ class _TransactionSearchViewState
                                 children: [
                                   Text(
                                     "Received",
-                                    style:
-                                        isDesktop
-                                            ? STextStyles.desktopTextSmall(
-                                              context,
-                                            )
-                                            : STextStyles.itemSubtitle12(
-                                              context,
-                                            ),
+                                    style: isDesktop
+                                        ? STextStyles.desktopTextSmall(context)
+                                        : STextStyles.itemSubtitle12(context),
                                   ),
                                   if (isDesktop) const SizedBox(height: 4),
                                 ],
@@ -588,14 +336,9 @@ class _TransactionSearchViewState
                                 children: [
                                   Text(
                                     "Trades",
-                                    style:
-                                        isDesktop
-                                            ? STextStyles.desktopTextSmall(
-                                              context,
-                                            )
-                                            : STextStyles.itemSubtitle12(
-                                              context,
-                                            ),
+                                    style: isDesktop
+                                        ? STextStyles.desktopTextSmall(context)
+                                        : STextStyles.itemSubtitle12(context),
                                   ),
                                   if (isDesktop) const SizedBox(height: 4),
                                 ],
@@ -617,25 +360,35 @@ class _TransactionSearchViewState
           child: FittedBox(
             child: Text(
               "Date",
-              style:
-                  isDesktop
-                      ? STextStyles.labelExtraExtraSmall(context)
-                      : STextStyles.smallMed12(context),
+              style: isDesktop
+                  ? STextStyles.labelExtraExtraSmall(context)
+                  : STextStyles.smallMed12(context),
             ),
           ),
         ),
         SizedBox(height: isDesktop ? 10 : 8),
-        _buildDateRangePicker(),
+        Padding(
+          padding: isDesktop ? const .only(right: 32) : .zero,
+          child: StackDateRangePicker(
+            fromDate: _selectedFromDate,
+            toDate: _selectedToDate,
+            onChanged: (from, to) {
+              setState(() {
+                _selectedFromDate = from;
+                _selectedToDate = to;
+              });
+            },
+          ),
+        ),
         SizedBox(height: isDesktop ? 32 : 24),
         Align(
           alignment: Alignment.centerLeft,
           child: FittedBox(
             child: Text(
               "Amount",
-              style:
-                  isDesktop
-                      ? STextStyles.labelExtraExtraSmall(context)
-                      : STextStyles.smallMed12(context),
+              style: isDesktop
+                  ? STextStyles.labelExtraExtraSmall(context)
+                  : STextStyles.smallMed12(context),
             ),
           ),
         ),
@@ -653,13 +406,12 @@ class _TransactionSearchViewState
               controller: _amountTextEditingController,
               focusNode: amountTextFieldFocusNode,
               onChanged: (_) => setState(() {}),
-              keyboardType:
-                  Util.isDesktop
-                      ? null
-                      : const TextInputType.numberWithOptions(
-                        signed: false,
-                        decimal: true,
-                      ),
+              keyboardType: Util.isDesktop
+                  ? null
+                  : const TextInputType.numberWithOptions(
+                      signed: false,
+                      decimal: true,
+                    ),
               inputFormatters: [
                 AmountInputFormatter(
                   decimals: widget.coin.fractionDigits,
@@ -677,50 +429,47 @@ class _TransactionSearchViewState
                 //         ? newValue
                 //         : oldValue),
               ],
-              style:
-                  isDesktop
-                      ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textDark,
-                        height: 1.8,
-                      )
-                      : STextStyles.field(context),
-              decoration: standardInputDecoration(
-                "Enter ${widget.coin.ticker} amount...",
-                keywordTextFieldFocusNode,
-                context,
-                desktopMed: isDesktop,
-              ).copyWith(
-                contentPadding:
-                    isDesktop
+              style: isDesktop
+                  ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textDark,
+                      height: 1.8,
+                    )
+                  : STextStyles.field(context),
+              decoration:
+                  standardInputDecoration(
+                    "Enter ${widget.coin.ticker} amount...",
+                    keywordTextFieldFocusNode,
+                    context,
+                    desktopMed: isDesktop,
+                  ).copyWith(
+                    contentPadding: isDesktop
                         ? const EdgeInsets.symmetric(
-                          vertical: 10,
-                          horizontal: 16,
-                        )
+                            vertical: 10,
+                            horizontal: 16,
+                          )
                         : null,
-                suffixIcon:
-                    _amountTextEditingController.text.isNotEmpty
+                    suffixIcon: _amountTextEditingController.text.isNotEmpty
                         ? Padding(
-                          padding: const EdgeInsets.only(right: 0),
-                          child: UnconstrainedBox(
-                            child: Row(
-                              children: [
-                                TextFieldIconButton(
-                                  child: const XIcon(),
-                                  onTap: () async {
-                                    setState(() {
-                                      _amountTextEditingController.text = "";
-                                    });
-                                  },
-                                ),
-                              ],
+                            padding: const EdgeInsets.only(right: 0),
+                            child: UnconstrainedBox(
+                              child: Row(
+                                children: [
+                                  TextFieldIconButton(
+                                    child: const XIcon(),
+                                    onTap: () async {
+                                      setState(() {
+                                        _amountTextEditingController.text = "";
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        )
+                          )
                         : null,
-              ),
+                  ),
             ),
           ),
         ),
@@ -730,10 +479,9 @@ class _TransactionSearchViewState
           child: FittedBox(
             child: Text(
               "Keyword",
-              style:
-                  isDesktop
-                      ? STextStyles.labelExtraExtraSmall(context)
-                      : STextStyles.smallMed12(context),
+              style: isDesktop
+                  ? STextStyles.labelExtraExtraSmall(context)
+                  : STextStyles.smallMed12(context),
             ),
           ),
         ),
@@ -750,51 +498,48 @@ class _TransactionSearchViewState
               key: const Key("transactionSearchViewKeywordFieldKey"),
               controller: _keywordTextEditingController,
               focusNode: keywordTextFieldFocusNode,
-              style:
-                  isDesktop
-                      ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textDark,
-                        height: 1.8,
-                      )
-                      : STextStyles.field(context),
+              style: isDesktop
+                  ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textDark,
+                      height: 1.8,
+                    )
+                  : STextStyles.field(context),
               onChanged: (_) => setState(() {}),
-              decoration: standardInputDecoration(
-                "Type keyword...",
-                keywordTextFieldFocusNode,
-                context,
-                desktopMed: isDesktop,
-              ).copyWith(
-                contentPadding:
-                    isDesktop
+              decoration:
+                  standardInputDecoration(
+                    "Type keyword...",
+                    keywordTextFieldFocusNode,
+                    context,
+                    desktopMed: isDesktop,
+                  ).copyWith(
+                    contentPadding: isDesktop
                         ? const EdgeInsets.symmetric(
-                          vertical: 10,
-                          horizontal: 16,
-                        )
+                            vertical: 10,
+                            horizontal: 16,
+                          )
                         : null,
-                suffixIcon:
-                    _keywordTextEditingController.text.isNotEmpty
+                    suffixIcon: _keywordTextEditingController.text.isNotEmpty
                         ? Padding(
-                          padding: const EdgeInsets.only(right: 0),
-                          child: UnconstrainedBox(
-                            child: Row(
-                              children: [
-                                TextFieldIconButton(
-                                  child: const XIcon(),
-                                  onTap: () async {
-                                    setState(() {
-                                      _keywordTextEditingController.text = "";
-                                    });
-                                  },
-                                ),
-                              ],
+                            padding: const EdgeInsets.only(right: 0),
+                            child: UnconstrainedBox(
+                              child: Row(
+                                children: [
+                                  TextFieldIconButton(
+                                    child: const XIcon(),
+                                    onTap: () async {
+                                      setState(() {
+                                        _keywordTextEditingController.text = "";
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        )
+                          )
                         : null,
-              ),
+                  ),
             ),
           ),
         ),
@@ -887,14 +632,13 @@ class _TransactionSearchViewState
     final amountText = _amountTextEditingController.text;
     Amount? amount;
     if (amountText.isNotEmpty && !(amountText == "," || amountText == ".")) {
-      amount =
-          amountText.contains(",")
-              ? Decimal.parse(
-                amountText.replaceFirst(",", "."),
-              ).toAmount(fractionDigits: widget.coin.fractionDigits)
-              : Decimal.parse(
-                amountText,
-              ).toAmount(fractionDigits: widget.coin.fractionDigits);
+      amount = amountText.contains(",")
+          ? Decimal.parse(
+              amountText.replaceFirst(",", "."),
+            ).toAmount(fractionDigits: widget.coin.fractionDigits)
+          : Decimal.parse(
+              amountText,
+            ).toAmount(fractionDigits: widget.coin.fractionDigits);
     }
 
     final TransactionFilter filter = TransactionFilter(

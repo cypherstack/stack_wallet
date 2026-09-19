@@ -138,24 +138,23 @@ class NanswapExchange extends Exchange {
       }
 
       return ExchangeResponse(
-        value:
-            response.value!
-                .where((e) => filter.contains(e.id))
-                .map(
-                  (e) => Currency(
-                    exchangeName: exchangeName,
-                    ticker: e.id,
-                    name: e.name,
-                    network: e.network,
-                    image: e.image,
-                    isFiat: false,
-                    rateType: SupportedRateType.estimated,
-                    isStackCoin: AppConfig.isStackCoin(e.id),
-                    tokenContract: null,
-                    isAvailable: true,
-                  ),
-                )
-                .toList(),
+        value: response.value!
+            .where((e) => filter.contains(e.id))
+            .map(
+              (e) => Currency(
+                exchangeName: exchangeName,
+                ticker: e.id,
+                name: e.name,
+                network: e.network,
+                image: e.image,
+                isFiat: false,
+                rateType: SupportedRateType.estimated,
+                isStackCoin: AppConfig.isStackCoin(e.id),
+                tokenContract: null,
+                isAvailable: true,
+              ),
+            )
+            .toList(),
       );
     } on ExchangeException catch (e) {
       return ExchangeResponse(exception: e);
@@ -391,7 +390,7 @@ class NanswapExchange extends Exchange {
           uuid: trade.uuid,
           tradeId: t.id,
           rateType: trade.rateType,
-          direction: trade.rateType,
+          direction: trade.direction,
           timestamp: trade.timestamp,
           updatedAt: DateTime.now(),
           payInCurrency: t.from,

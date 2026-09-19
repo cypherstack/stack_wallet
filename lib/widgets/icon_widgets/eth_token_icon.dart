@@ -8,6 +8,8 @@
  *
  */
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -18,6 +20,7 @@ import '../../services/exchange/change_now/change_now_exchange.dart';
 import '../../services/exchange/exchange_data_loading_service.dart';
 import '../../themes/coin_icon_provider.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../loading_indicator.dart';
 
 class EthTokenIcon extends ConsumerStatefulWidget {
   const EthTokenIcon({
@@ -41,18 +44,14 @@ class _EthTokenIconState extends ConsumerState<EthTokenIcon> {
     super.initState();
 
     ExchangeDataLoadingService.instance.isar.then((isar) async {
-      final currency =
-          await isar.currencies
-              .where()
-              .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
-              .filter()
-              .tokenContractEqualTo(
-                widget.contractAddress,
-                caseSensitive: false,
-              )
-              .and()
-              .imageIsNotEmpty()
-              .findFirst();
+      final currency = await isar.currencies
+          .where()
+          .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
+          .filter()
+          .tokenContractEqualTo(widget.contractAddress, caseSensitive: false)
+          .and()
+          .imageIsNotEmpty()
+          .findFirst();
 
       if (mounted) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -69,8 +68,8 @@ class _EthTokenIconState extends ConsumerState<EthTokenIcon> {
   @override
   Widget build(BuildContext context) {
     if (imageUrl == null || imageUrl!.isEmpty) {
-      return SvgPicture.asset(
-        ref.watch(coinIconProvider(Ethereum(CryptoCurrencyNetwork.main))),
+      return SvgPicture.file(
+        File(ref.watch(coinIconProvider(Ethereum(.main)))),
         width: widget.size,
         height: widget.size,
       );
@@ -79,6 +78,7 @@ class _EthTokenIconState extends ConsumerState<EthTokenIcon> {
         imageUrl!,
         width: widget.size,
         height: widget.size,
+        placeholderBuilder: (_) => const LoadingIndicator(),
       );
     }
   }

@@ -11,7 +11,6 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
 
 import '../../../app_config.dart';
 import '../../../models/exchange/aggregate_currency.dart';
@@ -24,7 +23,6 @@ import '../../../themes/stack_colors.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/amount/amount_formatter.dart';
 import '../../../utilities/amount/amount_unit.dart';
-import '../../../utilities/assets.dart';
 import '../../../utilities/enums/exchange_rate_type_enum.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/text_styles.dart';
@@ -37,6 +35,8 @@ import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/dialogs/basic_dialog.dart';
 import '../../../widgets/exchange/trocador/trocador_kyc_info_button.dart';
 import '../../../widgets/exchange/trocador/trocador_rating_type_enum.dart';
+import '../../../widgets/icon_widgets/exchange_icon.dart';
+import '../../../widgets/loading_indicator.dart';
 
 class ExchangeOption extends ConsumerStatefulWidget {
   const ExchangeOption({
@@ -66,18 +66,16 @@ class _ExchangeOptionState extends ConsumerState<ExchangeOption> {
       efCurrencyPairProvider.select((value) => value.receive),
     );
     final reversed = ref.watch(efReversedProvider);
-    final amount =
-        reversed
-            ? ref.watch(efReceiveAmountProvider)
-            : ref.watch(efSendAmountProvider);
+    final amount = reversed
+        ? ref.watch(efReceiveAmountProvider)
+        : ref.watch(efSendAmountProvider);
 
     final data = ref.watch(efEstimatesListProvider(widget.exchange.name));
     final estimates = data?.item1.value;
 
-    final pair =
-        sendCurrency != null && receivingCurrency != null
-            ? (from: sendCurrency, to: receivingCurrency)
-            : null;
+    final pair = sendCurrency != null && receivingCurrency != null
+        ? (from: sendCurrency, to: receivingCurrency)
+        : null;
 
     return AnimatedSize(
       duration: const Duration(milliseconds: 500),
@@ -86,7 +84,7 @@ class _ExchangeOptionState extends ConsumerState<ExchangeOption> {
         builder: (_) {
           if (ref.watch(efRefreshingProvider)) {
             // show loading
-            return _ProviderOption(
+            return ExchProviderOption(
               exchange: widget.exchange,
               estimate: null,
               pair: pair,
@@ -108,10 +106,9 @@ class _ExchangeOptionState extends ConsumerState<ExchangeOption> {
 
                         int decimals;
                         try {
-                          decimals =
-                              AppConfig.getCryptoCurrencyForTicker(
-                                receivingCurrency.ticker,
-                              )!.fractionDigits;
+                          decimals = AppConfig.getCryptoCurrencyForTicker(
+                            receivingCurrency.ticker,
+                          )!.fractionDigits;
                         } catch (_) {
                           decimals = 8; // some reasonable alternative
                         }
@@ -161,23 +158,21 @@ class _ExchangeOptionState extends ConsumerState<ExchangeOption> {
 
                         return ConditionalParent(
                           condition: i > 0,
-                          builder:
-                              (child) => Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  isDesktop
-                                      ? Container(
-                                        height: 1,
-                                        color:
-                                            Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .background,
-                                      )
-                                      : const SizedBox(height: 16),
-                                  child,
-                                ],
-                              ),
-                          child: _ProviderOption(
+                          builder: (child) => Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              isDesktop
+                                  ? Container(
+                                      height: 1,
+                                      color: Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.background,
+                                    )
+                                  : const SizedBox(height: 16),
+                              child,
+                            ],
+                          ),
+                          child: ExchProviderOption(
                             key: Key(widget.exchange.name + e.exchangeProvider),
                             exchange: widget.exchange,
                             pair: pair,
@@ -209,26 +204,27 @@ class _ExchangeOptionState extends ConsumerState<ExchangeOption> {
                   } else if (data?.item1.value == null) {
                     final rateType =
                         ref.watch(efRateTypeProvider) ==
-                                ExchangeRateType.estimated
-                            ? "estimated"
-                            : "fixed";
+                            ExchangeRateType.estimated
+                        ? "estimated"
+                        : "fixed";
                     message ??= "Pair unavailable on $rateType rate flow";
                   }
 
-                  return _ProviderOption(
+                  return ExchProviderOption(
                     exchange: widget.exchange,
                     estimate: null,
                     pair: pair,
                     rateString: message ?? "Failed to fetch rate",
-                    rateColor:
-                        Theme.of(context).extension<StackColors>()!.textError,
+                    rateColor: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textError,
                   );
                 },
               );
             }
           } else {
             // show n/a
-            return _ProviderOption(
+            return ExchProviderOption(
               exchange: widget.exchange,
               estimate: null,
               pair: pair,
@@ -241,8 +237,8 @@ class _ExchangeOptionState extends ConsumerState<ExchangeOption> {
   }
 }
 
-class _ProviderOption extends ConsumerStatefulWidget {
-  const _ProviderOption({
+class ExchProviderOption extends ConsumerStatefulWidget {
+  const ExchProviderOption({
     super.key,
     required this.exchange,
     required this.estimate,
@@ -262,10 +258,10 @@ class _ProviderOption extends ConsumerStatefulWidget {
   final Color? rateColor;
 
   @override
-  ConsumerState<_ProviderOption> createState() => _ProviderOptionState();
+  ConsumerState<ExchProviderOption> createState() => _ProviderOptionState();
 }
 
-class _ProviderOptionState extends ConsumerState<_ProviderOption> {
+class _ProviderOptionState extends ConsumerState<ExchProviderOption> {
   final isDesktop = Util.isDesktop;
 
   late final String _id;
@@ -335,9 +331,8 @@ class _ProviderOptionState extends ConsumerState<_ProviderOption> {
 
     return ConditionalParent(
       condition: isDesktop,
-      builder:
-          (child) =>
-              MouseRegion(cursor: SystemMouseCursors.click, child: child),
+      builder: (child) =>
+          MouseRegion(cursor: SystemMouseCursors.click, child: child),
       child: GestureDetector(
         onTap: () {
           ref.read(efExchangeProvider.notifier).state = widget.exchange;
@@ -347,8 +342,9 @@ class _ProviderOptionState extends ConsumerState<_ProviderOption> {
         child: Container(
           color: Colors.transparent,
           child: Padding(
-            padding:
-                isDesktop ? const EdgeInsets.all(16) : const EdgeInsets.all(0),
+            padding: isDesktop
+                ? const EdgeInsets.all(16)
+                : const EdgeInsets.all(0),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -358,18 +354,18 @@ class _ProviderOptionState extends ConsumerState<_ProviderOption> {
                   child: Padding(
                     padding: EdgeInsets.only(top: isDesktop ? 20.0 : 15.0),
                     child: Radio(
-                      activeColor:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.radioButtonIconEnabled,
+                      activeColor: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.radioButtonIconEnabled,
                       value: _id,
                       groupValue: groupValue,
                       onChanged: (_) {
                         ref.read(efExchangeProvider.notifier).state =
                             widget.exchange;
                         ref
-                            .read(efExchangeProviderNameProvider.notifier)
-                            .state = widget.estimate?.exchangeProvider ??
+                                .read(efExchangeProviderNameProvider.notifier)
+                                .state =
+                            widget.estimate?.exchangeProvider ??
                             widget.exchange.name;
                       },
                     ),
@@ -383,47 +379,27 @@ class _ProviderOptionState extends ConsumerState<_ProviderOption> {
                     height: isDesktop ? 32 : 24,
                     child:
                         widget.estimate?.exchangeProviderLogo != null &&
-                                widget
-                                    .estimate!
-                                    .exchangeProviderLogo!
-                                    .isNotEmpty
-                            ? ClipRRect(
-                              borderRadius: BorderRadius.circular(5),
-                              child: Image.network(
-                                widget.estimate!.exchangeProviderLogo!,
-                                loadingBuilder: (
-                                  context,
-                                  child,
-                                  loadingProgress,
-                                ) {
-                                  if (loadingProgress == null) {
-                                    return child;
-                                  } else {
-                                    return const Center(
-                                      child: CircularProgressIndicator(),
-                                    );
-                                  }
-                                },
-                                errorBuilder: (context, error, stackTrace) {
-                                  return SvgPicture.asset(
-                                    Assets.exchange.getIconFor(
-                                      exchangeName: widget.exchange.name,
-                                    ),
-                                    width: isDesktop ? 32 : 24,
-                                    height: isDesktop ? 32 : 24,
-                                  );
-                                },
-                                width: isDesktop ? 32 : 24,
-                                height: isDesktop ? 32 : 24,
-                              ),
-                            )
-                            : SvgPicture.asset(
-                              Assets.exchange.getIconFor(
-                                exchangeName: widget.exchange.name,
-                              ),
+                            widget.estimate!.exchangeProviderLogo!.isNotEmpty
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(5),
+                            child: Image.network(
+                              widget.estimate!.exchangeProviderLogo!,
+                              loadingBuilder:
+                                  (context, child, loadingProgress) {
+                                    if (loadingProgress == null) {
+                                      return child;
+                                    } else {
+                                      return const LoadingIndicator();
+                                    }
+                                  },
+                              errorBuilder: (context, error, stackTrace) {
+                                return ExchangeIcon(exchange: widget.exchange);
+                              },
                               width: isDesktop ? 32 : 24,
                               height: isDesktop ? 32 : 24,
                             ),
+                          )
+                        : ExchangeIcon(exchange: widget.exchange),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -435,55 +411,54 @@ class _ProviderOptionState extends ConsumerState<_ProviderOption> {
                     children: [
                       ConditionalParent(
                         condition: _warnings.isNotEmpty,
-                        builder:
-                            (child) => Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                child,
-                                CustomTextButton(
-                                  text: _warnings.first.value,
-                                  onTap: () {
-                                    _showNoSparkWarning();
-                                  },
-                                ),
-                              ],
+                        builder: (child) => Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            child,
+                            CustomTextButton(
+                              text: _warnings.first.value,
+                              onTap: () {
+                                _showNoSparkWarning();
+                              },
                             ),
+                          ],
+                        ),
                         child: Text(
                           widget.estimate?.exchangeProvider ??
                               widget.exchange.name,
                           style: STextStyles.titleBold12(context).copyWith(
-                            color:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textDark2,
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textDark2,
                           ),
                         ),
                       ),
                       widget.loadingString
                           ? AnimatedText(
-                            stringsToLoopThrough: const [
-                              "Loading",
-                              "Loading.",
-                              "Loading..",
-                              "Loading...",
-                            ],
-                            style: STextStyles.itemSubtitle12(context).copyWith(
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.textSubtitle1,
-                            ),
-                          )
+                              stringsToLoopThrough: const [
+                                "Loading",
+                                "Loading.",
+                                "Loading..",
+                                "Loading...",
+                              ],
+                              style: STextStyles.itemSubtitle12(context)
+                                  .copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.textSubtitle1,
+                                  ),
+                            )
                           : Text(
-                            widget.rateString,
-                            style: STextStyles.itemSubtitle12(context).copyWith(
-                              color:
-                                  widget.rateColor ??
-                                  Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.textSubtitle1,
+                              widget.rateString,
+                              style: STextStyles.itemSubtitle12(context)
+                                  .copyWith(
+                                    color:
+                                        widget.rateColor ??
+                                        Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textSubtitle1,
+                                  ),
                             ),
-                          ),
                     ],
                   ),
                 ),

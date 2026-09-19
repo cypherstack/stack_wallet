@@ -13,6 +13,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
 import '../../../../providers/global/secure_store_provider.dart';
@@ -21,6 +22,7 @@ import '../../../../route_generator.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/clipboard_interface.dart';
+import '../../../../utilities/logger.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
@@ -52,6 +54,11 @@ class _DeleteWalletKeysPopup extends ConsumerState<DeleteWalletKeysPopup> {
   late final List<String> _words;
   late final ClipboardInterface _clipboardInterface;
 
+  static const _recoveryPhraseInfo =
+      "Please write down your recovery phrase in the correct order and save it "
+      "to keep your funds secure. "
+      "You will be shown your recovery phrase on the next screen.";
+
   @override
   void initState() {
     _walletId = widget.walletId;
@@ -72,9 +79,7 @@ class _DeleteWalletKeysPopup extends ConsumerState<DeleteWalletKeysPopup> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Padding(
-                padding: const EdgeInsets.only(
-                  left: 32,
-                ),
+                padding: const EdgeInsets.only(left: 32),
                 child: Text(
                   "Wallet keys",
                   style: STextStyles.desktopH3(context),
@@ -82,51 +87,37 @@ class _DeleteWalletKeysPopup extends ConsumerState<DeleteWalletKeysPopup> {
               ),
               DesktopDialogCloseButton(
                 onPressedOverride: () {
-                  Navigator.of(
-                    context,
-                    rootNavigator: true,
-                  ).pop();
+                  Navigator.of(context, rootNavigator: true).pop();
                 },
               ),
             ],
           ),
-          const SizedBox(
-            height: 28,
-          ),
+          const SizedBox(height: 28),
           Text(
             "Recovery phrase",
             style: STextStyles.desktopTextMedium(context),
           ),
-          const SizedBox(
-            height: 8,
-          ),
+          const SizedBox(height: 8),
           Center(
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 32,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 32),
               child: Text(
-                "Please write down your recovery phrase in the correct order and "
-                "save it to keep your funds secure. You will be shown your recovery phrase on the next screen.",
+                _recoveryPhraseInfo,
                 style: STextStyles.desktopTextExtraExtraSmall(context),
                 textAlign: TextAlign.center,
               ),
             ),
           ),
-          const SizedBox(
-            height: 24,
-          ),
+          const SizedBox(height: 24),
           Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 32,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 32),
             child: RawMaterialButton(
               hoverColor: Colors.transparent,
               onPressed: () async {
                 await _clipboardInterface.setData(
                   ClipboardData(text: _words.join(" ")),
                 );
-                if (mounted) {
+                if (context.mounted) {
                   unawaited(
                     showFloatingFlushBar(
                       type: FlushBarType.info,
@@ -140,19 +131,15 @@ class _DeleteWalletKeysPopup extends ConsumerState<DeleteWalletKeysPopup> {
               child: MnemonicTable(
                 words: widget.words,
                 isDesktop: true,
-                itemBorderColor: Theme.of(context)
-                    .extension<StackColors>()!
-                    .buttonBackSecondary,
+                itemBorderColor: Theme.of(
+                  context,
+                ).extension<StackColors>()!.buttonBackSecondary,
               ),
             ),
           ),
-          const SizedBox(
-            height: 24,
-          ),
+          const SizedBox(height: 24),
           Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 32,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Row(
               children: [
                 Expanded(
@@ -162,9 +149,7 @@ class _DeleteWalletKeysPopup extends ConsumerState<DeleteWalletKeysPopup> {
                       await Navigator.of(context).push(
                         RouteGenerator.getRoute(
                           builder: (context) {
-                            return ConfirmDelete(
-                              walletId: _walletId,
-                            );
+                            return ConfirmDelete(walletId: _walletId);
                           },
                           settings: const RouteSettings(
                             name: "/desktopConfirmDelete",
@@ -177,9 +162,7 @@ class _DeleteWalletKeysPopup extends ConsumerState<DeleteWalletKeysPopup> {
               ],
             ),
           ),
-          const SizedBox(
-            height: 32,
-          ),
+          const SizedBox(height: 32),
         ],
       ),
     );
@@ -187,10 +170,7 @@ class _DeleteWalletKeysPopup extends ConsumerState<DeleteWalletKeysPopup> {
 }
 
 class ConfirmDelete extends ConsumerStatefulWidget {
-  const ConfirmDelete({
-    super.key,
-    required this.walletId,
-  });
+  const ConfirmDelete({super.key, required this.walletId});
 
   final String walletId;
 
@@ -207,9 +187,7 @@ class _ConfirmDeleteState extends ConsumerState<ConfirmDelete> {
         children: [
           const Row(
             mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              DesktopDialogCloseButton(),
-            ],
+            children: [DesktopDialogCloseButton()],
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -238,12 +216,22 @@ class _ConfirmDeleteState extends ConsumerState<ConfirmDelete> {
                     buttonHeight: ButtonHeight.xl,
                     label: "Continue",
                     onPressed: () async {
-                      await ref.read(pWallets).deleteWallet(
-                            ref.read(pWalletInfo(widget.walletId)),
-                            ref.read(secureStoreProvider),
-                          );
+                      try {
+                        await ref
+                            .read(pWallets)
+                            .deleteWallet(
+                              ref.read(pWalletInfo(widget.walletId)),
+                              ref.read(secureStoreProvider),
+                            );
+                      } catch (e, s) {
+                        Logging.instance.f(
+                          "Wallet deletion errors",
+                          error: e,
+                          stackTrace: s,
+                        );
+                      }
 
-                      if (mounted) {
+                      if (context.mounted) {
                         Navigator.of(context, rootNavigator: true).pop(true);
                       }
                     },

@@ -19,6 +19,10 @@ class Xelis extends ElectrumCurrency {
         _id = "xelisTestNet";
         _name = "tXelis";
         _ticker = "XET";
+      case CryptoCurrencyNetwork.stage:
+        _id = "xelisStageNet";
+        _name = "sXelis";
+        _ticker = "XET";
       default:
         throw Exception("Unsupported network: $network");
     }
@@ -79,6 +83,22 @@ class Xelis extends ElectrumCurrency {
           isPrimary: isPrimary,
         );
 
+      case CryptoCurrencyNetwork.test:
+        return NodeModel(
+          host: "stagenet-node.xelis.io",
+          port: 443,
+          name: DefaultNodes.defaultName,
+          id: DefaultNodes.buildId(this),
+          useSSL: true,
+          enabled: true,
+          coinName: identifier,
+          isFailover: true,
+          isDown: false,
+          torEnabled: false,
+          clearnetEnabled: true,
+          isPrimary: isPrimary,
+        );
+
       default:
         throw Exception("Unsupported network: $network");
     }
@@ -93,7 +113,7 @@ class Xelis extends ElectrumCurrency {
   @override
   bool validateAddress(String address) {
     try {
-      return libXelis.isAddressValid(address: address);
+      return libXelis.isAddressValid(address: address, network: network);
     } catch (_) {
       return false;
     }
@@ -133,7 +153,11 @@ class Xelis extends ElectrumCurrency {
   Uri defaultBlockExplorer(String txid) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return Uri.parse("https://explorer.xelis.io/txs/$txid");
+        return Uri.parse("https://explorer.xelis.io/tx/$txid");
+      case CryptoCurrencyNetwork.test:
+        return Uri.parse("https://testnet-explorer.xelis.io/tx/$txid");
+      case CryptoCurrencyNetwork.stage:
+        return Uri.parse("https://stagenet-explorer.xelis.io/tx/$txid");
       default:
         throw Exception(
           "Unsupported network for defaultBlockExplorer(): $network",

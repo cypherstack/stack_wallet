@@ -33,3 +33,8 @@
 
 # required for flutter file_picker
 -keep class androidx.lifecycle.DefaultLifecycleObserver
+
+# required for flutter_secure_storage
+-dontwarn com.google.errorprone.annotations.**
+-dontwarn javax.annotation.Nullable
+-dontwarn javax.annotation.concurrent.GuardedBy

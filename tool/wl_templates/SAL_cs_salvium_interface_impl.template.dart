@@ -555,6 +555,10 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
 
   @override
   String getSeed(WrappedWallet wallet) => wallet.actual.getSeed();
+
+  @override
+  Future<void> close(WrappedWallet wallet, {bool save = false}) =>
+      wallet.actual.close(save: save);
 }
 
 //END_ON

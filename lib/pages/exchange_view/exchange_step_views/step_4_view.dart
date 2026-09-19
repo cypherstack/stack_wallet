@@ -11,17 +11,14 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../../app_config.dart';
 import '../../../models/exchange/incomplete_exchange.dart';
-import '../../../notifications/show_flush_bar.dart';
 import '../../../providers/providers.dart';
 import '../../../route_generator.dart';
-import '../../../services/wallets.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/amount/amount_formatter.dart';
@@ -31,15 +28,17 @@ import '../../../utilities/constants.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/models/tx_data.dart';
 import '../../../wallets/wallet/impl/firo_wallet.dart';
-import '../../../wallets/wallet/intermediate/external_wallet.dart';
-import '../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../widgets/custom_buttons/simple_copy_button.dart';
+import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/desktop/secondary_button.dart';
+import '../../../widgets/detail_item.dart';
 import '../../../widgets/qr.dart';
 import '../../../widgets/rounded_container.dart';
 import '../../../widgets/rounded_white_container.dart';
@@ -76,26 +75,6 @@ class _Step4ViewState extends ConsumerState<Step4View> {
 
   Timer? _statusTimer;
 
-  bool isWalletCoinAndCanSendWithoutWalletOpened(
-    String ticker,
-    Wallets walletsInstance,
-  ) {
-    try {
-      final coin = AppConfig.getCryptoCurrencyForTicker(ticker);
-      return walletsInstance.wallets
-          .where(
-            (e) =>
-                e.info.coin == coin &&
-                (e is! ExternalWallet ||
-                    e is MwebInterface), // ltc mweb is external but swaps
-            // should not use mweb, hence the odd logic check here
-          )
-          .isNotEmpty;
-    } catch (_) {
-      return false;
-    }
-  }
-
   Future<void> _updateStatus() async {
     final statusResponse = await ref
         .read(efExchangeProvider)
@@ -117,15 +96,69 @@ class _Step4ViewState extends ConsumerState<Step4View> {
     }
   }
 
+  void _showQr() {
+    showDialog<dynamic>(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) {
+        return StackDialogBase(
+          child: Column(
+            children: [
+              const SizedBox(height: 8),
+              Center(
+                child: Text(
+                  "Send ${model.sendTicker} to this address",
+                  style: STextStyles.pageTitleH2(context),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Center(
+                child: QR(
+                  // TODO: grab coin uri scheme from somewhere
+                  // data: "${coin.uriScheme}:$receivingAddress",
+                  data: model.trade!.payInAddress,
+                  size: MediaQuery.of(context).size.width / 2,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  const Spacer(),
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: Theme.of(context)
+                          .extension<StackColors>()!
+                          .getSecondaryEnabledButtonStyle(context),
+                      child: Text(
+                        "Cancel",
+                        style: STextStyles.button(context).copyWith(
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.buttonTextSecondary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   void initState() {
     model = widget.model;
     clipboard = widget.clipboard;
 
-    isWalletCoinAndCanSend = isWalletCoinAndCanSendWithoutWalletOpened(
-      model.trade!.payInCurrency,
-      ref.read(pWallets),
-    );
+    isWalletCoinAndCanSend =
+        Util.isWalletCoinAndCanSendWithoutWalletOpenedIgnoringXMR(
+          model.trade!.payInCurrency,
+          ref.read(pWallets).wallets,
+        );
 
     _statusTimer = Timer.periodic(const Duration(seconds: 60), (_) {
       _updateStatus();
@@ -162,8 +195,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
 
     return await showModalBottomSheet<bool?>(
       context: context,
-      backgroundColor:
-          Theme.of(context).extension<StackColors>()!.backgroundAppBar,
+      backgroundColor: Theme.of(
+        context,
+      ).extension<StackColors>()!.backgroundAppBar,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(Constants.size.circularBorderRadius * 3),
@@ -261,14 +295,14 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                 "${model.trade!.payInCurrency.toUpperCase()}/"
                 "${model.trade!.payOutCurrency.toUpperCase()} exchange",
           ),
+          requireChaumV2: true,
         );
       } else {
-        final memo =
-            wallet.info.coin is Stellar
-                ? model.trade!.payInExtraId.isNotEmpty
-                    ? model.trade!.payInExtraId
-                    : null
-                : null;
+        final memo = wallet.info.coin is Stellar
+            ? model.trade!.payInExtraId.isNotEmpty
+                  ? model.trade!.payInExtraId
+                  : null
+            : null;
         txDataFuture = wallet.prepareSend(
           txData: TxData(
             recipients: [recipient],
@@ -297,14 +331,13 @@ class _Step4ViewState extends ConsumerState<Step4View> {
             Navigator.of(context).push(
               RouteGenerator.getRoute(
                 shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-                builder:
-                    (_) => ConfirmChangeNowSendView(
-                      txData: txData,
-                      walletId: tuple.item1,
-                      routeOnSuccessName: HomeView.routeName,
-                      trade: model.trade!,
-                      shouldSendPublicFiroFunds: firoPublicSend,
-                    ),
+                builder: (_) => ConfirmChangeNowSendView(
+                  txData: txData,
+                  walletId: tuple.item1,
+                  routeOnSuccessName: HomeView.routeName,
+                  trade: model.trade!,
+                  shouldSendPublicFiroFunds: firoPublicSend,
+                ),
                 settings: const RouteSettings(
                   name: ConfirmChangeNowSendView.routeName,
                 ),
@@ -335,10 +368,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                   child: Text(
                     "Ok",
                     style: STextStyles.button(context).copyWith(
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.buttonTextSecondary,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.buttonTextSecondary,
                     ),
                   ),
                   onPressed: () {
@@ -362,8 +394,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
       },
       child: Background(
         child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.background,
           appBar: AppBar(
             leading: Padding(
               padding: const EdgeInsets.all(10),
@@ -375,10 +408,12 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                   Assets.svg.x,
                   width: 24,
                   height: 24,
-                  color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()!.topNavIconPrimary,
+                  colorFilter: ColorFilter.mode(
+                    Theme.of(
+                      context,
+                    ).extension<StackColors>()!.topNavIconPrimary,
+                    .srcIn,
+                  ),
                 ),
                 onPressed: _close,
               ),
@@ -405,297 +440,60 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                               StepRow(count: 4, current: 3, width: width),
                               const SizedBox(height: 14),
                               Text(
-                                "Send ${model.sendTicker.toUpperCase()} to the address below",
+                                "Send ${model.sendTicker.toUpperCase()} "
+                                "to the address below",
                                 style: STextStyles.pageTitleH1(context),
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                "Send ${model.sendTicker.toUpperCase()} to the address below. Once it is received, ${model.trade!.exchangeName} will send the ${model.receiveTicker.toUpperCase()} to the recipient address you provided. You can find this trade details and check its status in the list of trades.",
+                                "Send ${model.sendTicker.toUpperCase()} "
+                                "to the address below. Once it is received, "
+                                "${model.trade!.exchangeName} will send the "
+                                "${model.receiveTicker.toUpperCase()} to the "
+                                "recipient address you provided. You can find"
+                                " this trade details and check its status in "
+                                "the list of trades.",
                                 style: STextStyles.itemSubtitle(context),
                               ),
                               const SizedBox(height: 12),
-                              RoundedContainer(
-                                color:
-                                    Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .warningBackground,
-                                child: RichText(
-                                  text: TextSpan(
-                                    text:
-                                        "You must send at least ${model.sendAmount.toString()} ${model.sendTicker}. ",
-                                    style: STextStyles.label700(
-                                      context,
-                                    ).copyWith(
-                                      color:
-                                          Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .warningForeground,
-                                    ),
-                                    children: [
-                                      TextSpan(
-                                        text:
-                                            "If you send less than ${model.sendAmount.toString()} ${model.sendTicker}, your transaction may not be converted and it may not be refunded.",
-                                        style: STextStyles.label(
-                                          context,
-                                        ).copyWith(
-                                          color:
-                                              Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .warningForeground,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                              _WarningInfo(model: model),
+                              const SizedBox(height: 8),
+                              DetailItem(
+                                title: "Amount",
+                                detail:
+                                    "${model.sendAmount.toString()} "
+                                    "${model.sendTicker.toUpperCase()}",
+                                button: SimpleCopyButton(
+                                  data: model.sendAmount.toString(),
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              RoundedWhiteContainer(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          "Amount",
-                                          style: STextStyles.itemSubtitle(
-                                            context,
-                                          ),
-                                        ),
-                                        GestureDetector(
-                                          onTap: () async {
-                                            final data = ClipboardData(
-                                              text: model.sendAmount.toString(),
-                                            );
-                                            await clipboard.setData(data);
-                                            if (context.mounted) {
-                                              unawaited(
-                                                showFloatingFlushBar(
-                                                  type: FlushBarType.info,
-                                                  message:
-                                                      "Copied to clipboard",
-                                                  context: context,
-                                                ),
-                                              );
-                                            }
-                                          },
-                                          child: Row(
-                                            children: [
-                                              SvgPicture.asset(
-                                                Assets.svg.copy,
-                                                color:
-                                                    Theme.of(context)
-                                                        .extension<
-                                                          StackColors
-                                                        >()!
-                                                        .infoItemIcons,
-                                                width: 10,
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Text(
-                                                "Copy",
-                                                style: STextStyles.link2(
-                                                  context,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      "${model.sendAmount.toString()} ${model.sendTicker.toUpperCase()}",
-                                      style: STextStyles.itemSubtitle12(
-                                        context,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              RoundedWhiteContainer(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          "Send ${model.sendTicker.toUpperCase()} to this address",
-                                          style: STextStyles.itemSubtitle(
-                                            context,
-                                          ),
-                                        ),
-                                        GestureDetector(
-                                          onTap: () async {
-                                            final data = ClipboardData(
-                                              text: model.trade!.payInAddress,
-                                            );
-                                            await clipboard.setData(data);
-                                            if (context.mounted) {
-                                              unawaited(
-                                                showFloatingFlushBar(
-                                                  type: FlushBarType.info,
-                                                  message:
-                                                      "Copied to clipboard",
-                                                  context: context,
-                                                ),
-                                              );
-                                            }
-                                          },
-                                          child: Row(
-                                            children: [
-                                              SvgPicture.asset(
-                                                Assets.svg.copy,
-                                                color:
-                                                    Theme.of(context)
-                                                        .extension<
-                                                          StackColors
-                                                        >()!
-                                                        .infoItemIcons,
-                                                width: 10,
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Text(
-                                                "Copy",
-                                                style: STextStyles.link2(
-                                                  context,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      model.trade!.payInAddress,
-                                      style: STextStyles.itemSubtitle12(
-                                        context,
-                                      ),
-                                    ),
-                                  ],
+                              DetailItem(
+                                title:
+                                    "Send "
+                                    "${model.sendTicker.toUpperCase()}"
+                                    " to this address",
+                                detail: model.trade!.payInAddress,
+                                button: SimpleCopyButton(
+                                  data: model.trade!.payInAddress,
                                 ),
                               ),
                               const SizedBox(height: 6),
                               if (model.trade!.payInExtraId.isNotEmpty)
-                                RoundedWhiteContainer(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            "Memo",
-                                            style: STextStyles.itemSubtitle(
-                                              context,
-                                            ),
-                                          ),
-                                          GestureDetector(
-                                            onTap: () async {
-                                              final data = ClipboardData(
-                                                text: model.trade!.payInExtraId,
-                                              );
-                                              await clipboard.setData(data);
-                                              if (context.mounted) {
-                                                unawaited(
-                                                  showFloatingFlushBar(
-                                                    type: FlushBarType.info,
-                                                    message:
-                                                        "Copied to clipboard",
-                                                    context: context,
-                                                  ),
-                                                );
-                                              }
-                                            },
-                                            child: Row(
-                                              children: [
-                                                SvgPicture.asset(
-                                                  Assets.svg.copy,
-                                                  color:
-                                                      Theme.of(context)
-                                                          .extension<
-                                                            StackColors
-                                                          >()!
-                                                          .infoItemIcons,
-                                                  width: 10,
-                                                ),
-                                                const SizedBox(width: 4),
-                                                Text(
-                                                  "Copy",
-                                                  style: STextStyles.link2(
-                                                    context,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        model.trade!.payInExtraId,
-                                        style: STextStyles.itemSubtitle12(
-                                          context,
-                                        ),
-                                      ),
-                                    ],
+                                DetailItem(
+                                  title: "Memo",
+                                  detail: model.trade!.payInExtraId,
+                                  button: SimpleCopyButton(
+                                    data: model.trade!.payInExtraId,
                                   ),
                                 ),
                               if (model.trade!.payInExtraId.isNotEmpty)
                                 const SizedBox(height: 6),
-                              RoundedWhiteContainer(
-                                child: Row(
-                                  children: [
-                                    Text(
-                                      "Trade ID",
-                                      style: STextStyles.itemSubtitle(context),
-                                    ),
-                                    const Spacer(),
-                                    Row(
-                                      children: [
-                                        Text(
-                                          model.trade!.tradeId,
-                                          style: STextStyles.itemSubtitle12(
-                                            context,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 10),
-                                        GestureDetector(
-                                          onTap: () async {
-                                            final data = ClipboardData(
-                                              text: model.trade!.tradeId,
-                                            );
-                                            await clipboard.setData(data);
-                                            if (context.mounted) {
-                                              unawaited(
-                                                showFloatingFlushBar(
-                                                  type: FlushBarType.info,
-                                                  message:
-                                                      "Copied to clipboard",
-                                                  context: context,
-                                                ),
-                                              );
-                                            }
-                                          },
-                                          child: SvgPicture.asset(
-                                            Assets.svg.copy,
-                                            color:
-                                                Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .infoItemIcons,
-                                            width: 12,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
+                              DetailItem(
+                                title: "Trade ID",
+                                detail: model.trade!.tradeId,
+                                button: SimpleCopyButton(
+                                  data: model.trade!.tradeId,
                                 ),
                               ),
                               const SizedBox(height: 6),
@@ -710,198 +508,28 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                     ),
                                     Text(
                                       _statusString,
-                                      style: STextStyles.itemSubtitle(
-                                        context,
-                                      ).copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .colorForStatus(_statusString),
-                                      ),
+                                      style: STextStyles.itemSubtitle(context)
+                                          .copyWith(
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .colorForStatus(_statusString),
+                                          ),
                                     ),
                                   ],
                                 ),
                               ),
                               const Spacer(),
                               const SizedBox(height: 12),
-                              TextButton(
-                                onPressed: () {
-                                  showDialog<dynamic>(
-                                    context: context,
-                                    barrierDismissible: true,
-                                    builder: (_) {
-                                      return StackDialogBase(
-                                        child: Column(
-                                          children: [
-                                            const SizedBox(height: 8),
-                                            Center(
-                                              child: Text(
-                                                "Send ${model.sendTicker} to this address",
-                                                style: STextStyles.pageTitleH2(
-                                                  context,
-                                                ),
-                                              ),
-                                            ),
-                                            const SizedBox(height: 24),
-                                            Center(
-                                              child: QR(
-                                                // TODO: grab coin uri scheme from somewhere
-                                                // data: "${coin.uriScheme}:$receivingAddress",
-                                                data: model.trade!.payInAddress,
-                                                size:
-                                                    MediaQuery.of(
-                                                      context,
-                                                    ).size.width /
-                                                    2,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 24),
-                                            Row(
-                                              children: [
-                                                const Spacer(),
-                                                Expanded(
-                                                  child: TextButton(
-                                                    onPressed:
-                                                        () =>
-                                                            Navigator.of(
-                                                              context,
-                                                            ).pop(),
-                                                    style: Theme.of(context)
-                                                        .extension<
-                                                          StackColors
-                                                        >()!
-                                                        .getSecondaryEnabledButtonStyle(
-                                                          context,
-                                                        ),
-                                                    child: Text(
-                                                      "Cancel",
-                                                      style: STextStyles.button(
-                                                        context,
-                                                      ).copyWith(
-                                                        color:
-                                                            Theme.of(context)
-                                                                .extension<
-                                                                  StackColors
-                                                                >()!
-                                                                .buttonTextSecondary,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                                style: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .getPrimaryEnabledButtonStyle(context),
-                                child: Text(
-                                  "Show QR Code",
-                                  style: STextStyles.button(context),
-                                ),
+                              PrimaryButton(
+                                label: "Show QR Code",
+                                onPressed: _showQr,
                               ),
                               if (isWalletCoinAndCanSend)
                                 const SizedBox(height: 12),
                               if (isWalletCoinAndCanSend)
-                                Builder(
-                                  builder: (context) {
-                                    String buttonTitle =
-                                        "Send from ${AppConfig.appName}";
-
-                                    final tuple =
-                                        ref
-                                            .read(
-                                              exchangeSendFromWalletIdStateProvider
-                                                  .state,
-                                            )
-                                            .state;
-                                    if (tuple != null &&
-                                        model.sendTicker.toLowerCase() ==
-                                            tuple.item2.ticker.toLowerCase()) {
-                                      final walletName =
-                                          ref
-                                              .read(pWallets)
-                                              .getWallet(tuple.item1)
-                                              .info
-                                              .name;
-                                      buttonTitle = "Send from $walletName";
-                                    }
-
-                                    return TextButton(
-                                      onPressed:
-                                          tuple != null &&
-                                                  model.sendTicker
-                                                          .toLowerCase() ==
-                                                      tuple.item2.ticker
-                                                          .toLowerCase()
-                                              ? () async {
-                                                await _confirmSend(tuple);
-                                              }
-                                              : () {
-                                                Navigator.of(context).push(
-                                                  RouteGenerator.getRoute(
-                                                    shouldUseMaterialRoute:
-                                                        RouteGenerator
-                                                            .useMaterialPageRoute,
-                                                    builder: (
-                                                      BuildContext context,
-                                                    ) {
-                                                      final coin = AppConfig
-                                                          .coins
-                                                          .firstWhere(
-                                                            (e) =>
-                                                                e.ticker
-                                                                    .toLowerCase() ==
-                                                                model
-                                                                    .trade!
-                                                                    .payInCurrency
-                                                                    .toLowerCase(),
-                                                          );
-
-                                                      return SendFromView(
-                                                        coin: coin,
-                                                        amount: model.sendAmount
-                                                            .toAmount(
-                                                              fractionDigits:
-                                                                  coin.fractionDigits,
-                                                            ),
-                                                        address:
-                                                            model
-                                                                .trade!
-                                                                .payInAddress,
-                                                        trade: model.trade!,
-                                                      );
-                                                    },
-                                                    settings:
-                                                        const RouteSettings(
-                                                          name:
-                                                              SendFromView
-                                                                  .routeName,
-                                                        ),
-                                                  ),
-                                                );
-                                              },
-                                      style: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .getSecondaryEnabledButtonStyle(
-                                            context,
-                                          ),
-                                      child: Text(
-                                        buttonTitle,
-                                        style: STextStyles.button(
-                                          context,
-                                        ).copyWith(
-                                          color:
-                                              Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .buttonTextSecondary,
-                                        ),
-                                      ),
-                                    );
-                                  },
+                                _SendFromButton(
+                                  model: model,
+                                  confirmSend: _confirmSend,
                                 ),
                             ],
                           ),
@@ -915,6 +543,101 @@ class _Step4ViewState extends ConsumerState<Step4View> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _WarningInfo extends StatelessWidget {
+  const _WarningInfo({super.key, required this.model});
+  final IncompleteExchangeModel model;
+
+  @override
+  Widget build(BuildContext context) {
+    return RoundedContainer(
+      color: Theme.of(context).extension<StackColors>()!.warningBackground,
+      child: RichText(
+        text: TextSpan(
+          text:
+              "You must send at least "
+              "${model.sendAmount.toString()} ${model.sendTicker}. ",
+          style: STextStyles.label700(context).copyWith(
+            color: Theme.of(
+              context,
+            ).extension<StackColors>()!.warningForeground,
+          ),
+          children: [
+            TextSpan(
+              text:
+                  "If you send less than "
+                  "${model.sendAmount.toString()} ${model.sendTicker},"
+                  " your transaction may not be converted and it may not be"
+                  " refunded.",
+              style: STextStyles.label(context).copyWith(
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.warningForeground,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SendFromButton extends ConsumerWidget {
+  const _SendFromButton({
+    super.key,
+    required this.model,
+    required this.confirmSend,
+  });
+
+  final IncompleteExchangeModel model;
+  final Future<void> Function(Tuple2<String, CryptoCurrency> tuple) confirmSend;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    String buttonTitle = "Send from ${AppConfig.appName}";
+
+    final tuple = ref.read(exchangeSendFromWalletIdStateProvider.state).state;
+    if (tuple != null &&
+        model.sendTicker.toLowerCase() == tuple.item2.ticker.toLowerCase()) {
+      final walletName = ref.read(pWallets).getWallet(tuple.item1).info.name;
+      buttonTitle = "Send from $walletName";
+    }
+
+    return SecondaryButton(
+      label: buttonTitle,
+      onPressed: () async {
+        if (tuple != null &&
+            model.sendTicker.toLowerCase() ==
+                tuple.item2.ticker.toLowerCase()) {
+          await confirmSend(tuple);
+        } else {
+          await Navigator.of(context).push(
+            RouteGenerator.getRoute(
+              shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
+              builder: (BuildContext context) {
+                final coin = AppConfig.coins.firstWhere(
+                  (e) =>
+                      e.ticker.toLowerCase() ==
+                      model.trade!.payInCurrency.toLowerCase(),
+                );
+
+                return SendFromView(
+                  coin: coin,
+                  amount: model.sendAmount.toAmount(
+                    fractionDigits: coin.fractionDigits,
+                  ),
+                  address: model.trade!.payInAddress,
+                  trade: model.trade!,
+                );
+              },
+              settings: const RouteSettings(name: SendFromView.routeName),
+            ),
+          );
+        }
+      },
     );
   }
 }

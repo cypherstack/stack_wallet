@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:ethereum_addresses/ethereum_addresses.dart';
 import 'package:isar_community/isar.dart';
+import 'package:wallet/wallet.dart' as eth_wallet;
 import 'package:web3dart/web3dart.dart' as web3dart;
 
 import '../../../../dto/ethereum/eth_token_tx_dto.dart';
@@ -110,10 +111,9 @@ class EthTokenWallet extends Wallet {
       inputs: List.unmodifiable(inputs),
       outputs: List.unmodifiable(outputs),
       version: -1,
-      type:
-          addressTo == myAddress
-              ? TransactionType.sentToSelf
-              : TransactionType.outgoing,
+      type: addressTo == myAddress
+          ? TransactionType.sentToSelf
+          : TransactionType.outgoing,
       subType: TransactionSubType.ethToken,
       otherData: jsonEncode(otherData),
     );
@@ -131,12 +131,24 @@ class EthTokenWallet extends Wallet {
   FilterOperation? get receivingAddressFilterOperation =>
       ethWallet.receivingAddressFilterOperation;
 
+  bool _unverifiedAndUntestedHackFlagThatMightFixAnIssue = true;
+
+  @override
+  Future<void> refresh() async {
+    if (_unverifiedAndUntestedHackFlagThatMightFixAnIssue) {
+      await ethWallet.refresh();
+      _unverifiedAndUntestedHackFlagThatMightFixAnIssue = false;
+    }
+
+    return super.refresh();
+  }
+
   @override
   Future<void> init() async {
     try {
       await super.init();
 
-      final contractAddress = web3dart.EthereumAddress.fromHex(
+      final contractAddress = eth_wallet.EthereumAddress.fromHex(
         tokenContract.address,
       );
 
@@ -144,7 +156,7 @@ class EthTokenWallet extends Wallet {
       try {
         _tokenContract = await _updateTokenABI(
           forContract: tokenContract,
-          usingContractAddress: contractAddress.hex,
+          usingContractAddress: contractAddress.eip55With0x,
         );
       } catch (e, s) {
         Logging.instance.w(
@@ -173,7 +185,7 @@ class EthTokenWallet extends Wallet {
       // Some failure, try for proxy contract
       final contractAddressResponse =
           await EthereumAPI.getProxyTokenImplementationAddress(
-            contractAddress.hex,
+            contractAddress.eip55With0x,
           );
 
       if (contractAddressResponse.value != null) {
@@ -217,11 +229,10 @@ class EthTokenWallet extends Wallet {
 
     // double check balance after internalSharedPrepareSend call to ensure
     // balance is up to date
-    final info =
-        await mainDB.isar.tokenWalletInfo
-            .where()
-            .walletIdTokenAddressEqualTo(walletId, tokenContract.address)
-            .findFirst();
+    final info = await mainDB.isar.tokenWalletInfo
+        .where()
+        .walletIdTokenAddressEqualTo(walletId, tokenContract.address)
+        .findFirst();
     final availableBalance =
         info?.getCachedBalance().spendable ??
         Amount.zeroWith(fractionDigits: tokenContract.decimals);
@@ -232,15 +243,15 @@ class EthTokenWallet extends Wallet {
     final tx = web3dart.Transaction.callContract(
       contract: _deployedContract,
       function: _sendFunction,
-      parameters: [web3dart.EthereumAddress.fromHex(address), amount.raw],
+      parameters: [eth_wallet.EthereumAddress.fromHex(address), amount.raw],
       maxGas: txData.ethEIP1559Fee?.gasLimit ?? kEthereumTokenMinGasLimit,
       nonce: prep.nonce,
-      maxFeePerGas: web3dart.EtherAmount.fromBigInt(
-        web3dart.EtherUnit.wei,
+      maxFeePerGas: eth_wallet.EtherAmount.fromBigInt(
+        eth_wallet.EtherUnit.wei,
         prep.maxBaseFee,
       ),
-      maxPriorityFeePerGas: web3dart.EtherAmount.fromBigInt(
-        web3dart.EtherUnit.wei,
+      maxPriorityFeePerGas: eth_wallet.EtherAmount.fromBigInt(
+        eth_wallet.EtherUnit.wei,
         prep.priorityFee,
       ),
     );
@@ -302,11 +313,10 @@ class EthTokenWallet extends Wallet {
   @override
   Future<void> updateBalance() async {
     try {
-      final info =
-          await mainDB.isar.tokenWalletInfo
-              .where()
-              .walletIdTokenAddressEqualTo(walletId, tokenContract.address)
-              .findFirst();
+      final info = await mainDB.isar.tokenWalletInfo
+          .where()
+          .walletIdTokenAddressEqualTo(walletId, tokenContract.address)
+          .findFirst();
       final response = await EthereumAPI.getWalletTokenBalance(
         address: (await getCurrentReceivingAddress())!.value,
         contractAddress: tokenContract.address,

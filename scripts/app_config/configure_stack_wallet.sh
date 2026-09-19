@@ -14,20 +14,18 @@ NEW_PUBSPEC_NAME="stackwallet"
 PUBSPEC_FILE="${APP_PROJECT_ROOT_DIR}/pubspec.yaml"
 
 # String replacements.
-if [[ "$(uname)" == 'Darwin' ]]; then
-  # macos specific sed
-  sed -i '' "s/name: PLACEHOLDER/name: ${NEW_PUBSPEC_NAME}/g" "${PUBSPEC_FILE}"
-  sed -i '' "s/description: PLACEHOLDER/description: ${NEW_NAME}/g" "${PUBSPEC_FILE}"
-else
-  sed -i "s/name: PLACEHOLDER/name: ${NEW_PUBSPEC_NAME}/g" "${PUBSPEC_FILE}"
-  sed -i "s/description: PLACEHOLDER/description: ${NEW_NAME}/g" "${PUBSPEC_FILE}"
-fi
+sed -i.bak \
+  -e "s/name: PLACEHOLDER/name: ${NEW_PUBSPEC_NAME}/g" \
+  -e "s/description: PLACEHOLDER/description: ${NEW_NAME}/g" \
+  "${PUBSPEC_FILE}"
+rm -f "${PUBSPEC_FILE}.bak"
 
 dart "${APP_PROJECT_ROOT_DIR}/tool/process_pubspec_deps.dart" \
       "${PUBSPEC_FILE}" \
       MWC \
       MWEBD \
       XMR \
+      WOW \
       SAL \
       TOR \
       EPIC \
@@ -41,12 +39,27 @@ dart "${APP_PROJECT_ROOT_DIR}/tool/gen_interfaces.dart" \
       MWC \
       MWEBD \
       XMR \
+      WOW \
       SAL \
       TOR \
       EPIC \
       FIRO \
       XEL \
       FROST
+
+
+MWEBD_EXE_SHA256=""
+if  [[ "$1" == "windows" ]]; then
+  if [[ "${MWEBD_FETCH:-0}" == "1" ]]; then
+    dart "${APP_PROJECT_ROOT_DIR}/tool/build_standalone_mwebd_windows.dart" --fetch
+  else
+    dart "${APP_PROJECT_ROOT_DIR}/tool/build_standalone_mwebd_windows.dart"
+  fi
+  MWEBD_EXE_SHA256="$(sha256sum "${APP_PROJECT_ROOT_DIR}/assets/windows/mwebd.exe" | awk '{print $1}')"
+  dart "${APP_PROJECT_ROOT_DIR}/tool/process_pubspec_deps.dart" \
+        "${PUBSPEC_FILE}" MWEBDEXE
+fi
+
 
 export INCLUDE_EPIC_SO="ON"
 export INCLUDE_MWC_SO="ON"
@@ -71,10 +84,14 @@ const _appDataDirName = "stackwallet";
 const _shortDescriptionText = "An open-source, multicoin wallet for everyone";
 const _commitHash = "$BUILT_COMMIT_HASH";
 
+const _mwebdExeHash = "$MWEBD_EXE_SHA256";
+
 const Set<AppFeature> _features = {
   AppFeature.themeSelection,
   AppFeature.buy,
   AppFeature.tor,
+  AppFeature.shopinBit,
+  AppFeature.cakePay,
   AppFeature.swap
 };
 
@@ -91,11 +108,11 @@ final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Dogecoin(CryptoCurrencyNetwork.main),
   Ecash(CryptoCurrencyNetwork.main),
   Epiccash(CryptoCurrencyNetwork.main),
-  if (!Platform.isMacOS) Mimblewimblecoin(CryptoCurrencyNetwork.main),
   Ethereum(CryptoCurrencyNetwork.main),
   Fact0rn(CryptoCurrencyNetwork.main),
   Firo(CryptoCurrencyNetwork.main),
   Litecoin(CryptoCurrencyNetwork.main),
+  if (!Platform.isMacOS) Mimblewimblecoin(CryptoCurrencyNetwork.main),
   Nano(CryptoCurrencyNetwork.main),
   Namecoin(CryptoCurrencyNetwork.main),
   Particl(CryptoCurrencyNetwork.main),

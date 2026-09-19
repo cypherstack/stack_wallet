@@ -26,17 +26,16 @@ import '../../../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
 import '../../../wallets/isar/models/wallet_info.dart';
 import '../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
-import '../../../wallets/wallet/impl/monero_wallet.dart';
-import '../../../wallets/wallet/impl/wownero_wallet.dart';
 import '../../../wallets/wallet/impl/xelis_wallet.dart';
+import '../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../wallets/wallet/wallet.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../widgets/desktop/desktop_scaffold.dart';
 import '../../../widgets/desktop/primary_button.dart';
+import '../../../widgets/options.dart';
 import '../../../widgets/stack_text_field.dart';
-import '../../../widgets/toggle.dart';
 import '../../home_view/home_view.dart';
 import 'confirm_recovery_dialog.dart';
 import 'sub_widgets/restore_failed_dialog.dart';
@@ -68,13 +67,13 @@ class _RestoreViewOnlyWalletViewState
     extends ConsumerState<RestoreViewOnlyWalletView> {
   late final TextEditingController addressController;
   late final TextEditingController viewKeyController;
+  late final TextEditingController sparkViewKeyController;
 
-  late String _currentDropDownValue;
+  late ViewOnlyWalletType _walletType;
 
   bool _enableRestoreButton = false;
-  bool _addressOnly = false;
-
   bool _buttonLock = false;
+  late String _currentDropDownValue;
 
   Future<void> _requestRestore() async {
     if (_buttonLock) return;
@@ -107,12 +106,9 @@ class _RestoreViewOnlyWalletViewState
       WalletInfoKeys.isViewOnlyKey: true,
     };
 
-    final ViewOnlyWalletType viewOnlyWalletType;
+    ViewOnlyWalletType viewOnlyWalletType = _walletType;
     if (widget.coin is Bip39HDCurrency) {
-      viewOnlyWalletType =
-          _addressOnly
-              ? ViewOnlyWalletType.addressOnly
-              : ViewOnlyWalletType.xPub;
+      // already set above
     } else if (widget.coin is CryptonoteCurrency) {
       viewOnlyWalletType = ViewOnlyWalletType.cryptonote;
     } else {
@@ -120,8 +116,7 @@ class _RestoreViewOnlyWalletViewState
         "Unsupported view only wallet currency type found: ${widget.coin.runtimeType}",
       );
     }
-    otherDataJson[WalletInfoKeys.viewOnlyTypeIndexKey] =
-        viewOnlyWalletType.index;
+    otherDataJson[WalletInfoKeys.viewOnlyTypeIndexKey] = _walletType.index;
 
     if (!Platform.isLinux && !Util.isDesktop) await WakelockPlus.enable();
 
@@ -131,6 +126,7 @@ class _RestoreViewOnlyWalletViewState
         name: widget.walletName,
         restoreHeight: widget.restoreBlockHeight,
         otherDataJsonString: jsonEncode(otherDataJson),
+        overrideAddressType: viewOnlyWalletType == .spark ? .spark : null,
       );
 
       bool isRestoring = true;
@@ -192,6 +188,16 @@ class _RestoreViewOnlyWalletViewState
             ],
           );
           break;
+
+        case ViewOnlyWalletType.spark:
+          if (sparkViewKeyController.text.isEmpty) {
+            throw Exception("Spark View Key is empty");
+          }
+          viewOnlyData = SparkViewOnlyWalletData(
+            walletId: info.walletId,
+            viewKey: sparkViewKeyController.text,
+          );
+          break;
       }
 
       var node = ref
@@ -216,25 +222,21 @@ class _RestoreViewOnlyWalletViewState
         );
 
         // TODO: extract interface with isRestore param
-        switch (wallet.runtimeType) {
-          case const (EpiccashWallet):
-            await (wallet as EpiccashWallet).init(isRestore: true);
-            break;
-          
-          case const (MimblewimblecoinWallet):
-            await (wallet as MimblewimblecoinWallet).init(isRestore: true);
+        switch (wallet) {
+          case EpiccashWallet():
+            await wallet.init(isRestore: true);
             break;
 
-          case const (MoneroWallet):
-            await (wallet as MoneroWallet).init(isRestore: true);
+          case MimblewimblecoinWallet():
+            await wallet.init(isRestore: true);
             break;
 
-          case const (WowneroWallet):
-            await (wallet as WowneroWallet).init(isRestore: true);
+          case CryptonoteWallet():
+            await wallet.init(isRestore: true);
             break;
 
-          case const (XelisWallet):
-            await (wallet as XelisWallet).init(isRestore: true);
+          case XelisWallet():
+            await wallet.init(isRestore: true);
             break;
 
           default:
@@ -314,12 +316,15 @@ class _RestoreViewOnlyWalletViewState
     super.initState();
     addressController = TextEditingController();
     viewKeyController = TextEditingController();
+    sparkViewKeyController = TextEditingController();
 
     if (widget.coin is Bip39HDCurrency) {
-      _currentDropDownValue =
-          (widget.coin as Bip39HDCurrency)
-              .supportedHardenedDerivationPaths
-              .last;
+      _currentDropDownValue = (widget.coin as Bip39HDCurrency)
+          .supportedHardenedDerivationPaths
+          .last;
+      _walletType = ViewOnlyWalletType.xPub;
+    } else if (widget.coin is CryptonoteCurrency) {
+      _walletType = ViewOnlyWalletType.cryptonote;
     }
   }
 
@@ -327,6 +332,7 @@ class _RestoreViewOnlyWalletViewState
   void dispose() {
     addressController.dispose();
     viewKeyController.dispose();
+    sparkViewKeyController.dispose();
     super.dispose();
   }
 
@@ -338,28 +344,27 @@ class _RestoreViewOnlyWalletViewState
 
     return MasterScaffold(
       isDesktop: isDesktop,
-      appBar:
-          isDesktop
-              ? const DesktopAppBar(
-                isCompactHeight: false,
-                leading: AppBarBackButton(),
-                trailing: ExitToMyStackButton(),
-              )
-              : AppBar(
-                leading: AppBarBackButton(
-                  onPressed: () async {
-                    if (FocusScope.of(context).hasFocus) {
-                      FocusScope.of(context).unfocus();
-                      await Future<void>.delayed(
-                        const Duration(milliseconds: 50),
-                      );
-                    }
-                    if (context.mounted) {
-                      Navigator.of(context).pop();
-                    }
-                  },
-                ),
+      appBar: isDesktop
+          ? const DesktopAppBar(
+              isCompactHeight: false,
+              leading: AppBarBackButton(),
+              trailing: ExitToMyStackButton(),
+            )
+          : AppBar(
+              leading: AppBarBackButton(
+                onPressed: () async {
+                  if (FocusScope.of(context).hasFocus) {
+                    FocusScope.of(context).unfocus();
+                    await Future<void>.delayed(
+                      const Duration(milliseconds: 50),
+                    );
+                  }
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                  }
+                },
               ),
+            ),
       body: Container(
         color: Theme.of(context).extension<StackColors>()!.background,
         child: LayoutBuilder(
@@ -384,32 +389,34 @@ class _RestoreViewOnlyWalletViewState
                         SizedBox(height: isDesktop ? 0 : 4),
                         Text(
                           "Enter view only details",
-                          style:
-                              isDesktop
-                                  ? STextStyles.desktopH2(context)
-                                  : STextStyles.pageTitleH1(context),
+                          style: isDesktop
+                              ? STextStyles.desktopH2(context)
+                              : STextStyles.pageTitleH1(context),
                         ),
                         if (isElectrumX) SizedBox(height: isDesktop ? 24 : 16),
                         if (isElectrumX)
                           SizedBox(
                             height: isDesktop ? 56 : 48,
-                            width: isDesktop ? 490 : null,
-                            child: Toggle(
+                            width: isDesktop ? 490 : double.infinity,
+                            child: Options(
                               key: UniqueKey(),
-                              onText: "Extended pub key",
-                              offText: "Single address",
-                              onColor:
-                                  Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.popupBG,
-                              offColor:
-                                  Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textFieldDefaultBG,
-                              isOn: _addressOnly,
+                              texts: [
+                                "Single address",
+                                "Extended pub key",
+                                if (widget.coin is Firo)
+                                  isDesktop ? "Spark View Key" : "View Key",
+                              ],
+                              onColor: Theme.of(
+                                context,
+                              ).extension<StackColors>()!.popupBG,
+                              offColor: Theme.of(
+                                context,
+                              ).extension<StackColors>()!.textFieldDefaultBG,
+                              selectedIndex: _walletType.index - 1,
                               onValueChanged: (value) {
                                 setState(() {
-                                  _addressOnly = value;
+                                  _walletType =
+                                      ViewOnlyWalletType.values[value + 1];
                                 });
                               },
                               decoration: BoxDecoration(
@@ -421,7 +428,8 @@ class _RestoreViewOnlyWalletViewState
                             ),
                           ),
                         SizedBox(height: isDesktop ? 24 : 16),
-                        if (!isElectrumX || _addressOnly)
+                        if (!isElectrumX ||
+                            _walletType == ViewOnlyWalletType.addressOnly)
                           FullTextField(
                             key: const Key("viewOnlyAddressRestoreFieldKey"),
                             label: "Address",
@@ -442,7 +450,8 @@ class _RestoreViewOnlyWalletViewState
                             },
                           ),
                         if (!isElectrumX) SizedBox(height: isDesktop ? 16 : 12),
-                        if (isElectrumX && !_addressOnly)
+                        if (isElectrumX &&
+                            _walletType == ViewOnlyWalletType.xPub)
                           DropdownButtonHideUnderline(
                             child: DropdownButton2<String>(
                               value: _currentDropDownValue,
@@ -469,10 +478,9 @@ class _RestoreViewOnlyWalletViewState
                               isExpanded: true,
                               buttonStyleData: ButtonStyleData(
                                 decoration: BoxDecoration(
-                                  color:
-                                      Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textFieldDefaultBG,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textFieldDefaultBG,
                                   borderRadius: BorderRadius.circular(
                                     Constants.size.circularBorderRadius,
                                   ),
@@ -485,10 +493,9 @@ class _RestoreViewOnlyWalletViewState
                                     Assets.svg.chevronDown,
                                     width: 12,
                                     height: 6,
-                                    color:
-                                        Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textFieldActiveSearchIconRight,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textFieldActiveSearchIconRight,
                                   ),
                                 ),
                               ),
@@ -496,10 +503,9 @@ class _RestoreViewOnlyWalletViewState
                                 offset: const Offset(0, -10),
                                 elevation: 0,
                                 decoration: BoxDecoration(
-                                  color:
-                                      Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textFieldDefaultBG,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textFieldDefaultBG,
                                   borderRadius: BorderRadius.circular(
                                     Constants.size.circularBorderRadius,
                                   ),
@@ -513,9 +519,11 @@ class _RestoreViewOnlyWalletViewState
                               ),
                             ),
                           ),
-                        if (isElectrumX && !_addressOnly)
+                        if (isElectrumX &&
+                            _walletType == ViewOnlyWalletType.xPub)
                           SizedBox(height: isDesktop ? 16 : 12),
-                        if (!isElectrumX || !_addressOnly)
+                        if (!isElectrumX ||
+                            _walletType == ViewOnlyWalletType.xPub)
                           FullTextField(
                             key: const Key("viewOnlyKeyRestoreFieldKey"),
                             label:
@@ -534,6 +542,21 @@ class _RestoreViewOnlyWalletViewState
                                       addressController.text.isNotEmpty;
                                 });
                               }
+                            },
+                          ),
+                        if (_walletType == ViewOnlyWalletType.spark)
+                          SizedBox(height: isDesktop ? 16 : 12),
+                        if (_walletType == ViewOnlyWalletType.spark)
+                          FullTextField(
+                            key: const Key(
+                              "viewOnlySparkViewKeyRestoreFieldKey",
+                            ),
+                            label: "Spark View Key",
+                            controller: sparkViewKeyController,
+                            onChanged: (value) {
+                              setState(() {
+                                _enableRestoreButton = value.isNotEmpty;
+                              });
                             },
                           ),
                         if (!isDesktop) const Spacer(),

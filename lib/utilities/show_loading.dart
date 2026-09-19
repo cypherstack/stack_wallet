@@ -16,22 +16,15 @@ import '../themes/stack_colors.dart';
 import '../widgets/custom_loading_overlay.dart';
 import 'logger.dart';
 
-Future<T> minWaitFuture<T>(
-  Future<T> future, {
-  required Duration delay,
-}) async {
-  final results = await Future.wait(
-    [
-      future,
-      Future<dynamic>.delayed(delay),
-    ],
-  );
+Future<T> minWaitFuture<T>(Future<T> future, {required Duration delay}) async {
+  final results = await Future.wait([future, Future<dynamic>.delayed(delay)]);
 
   return results.first as T;
 }
 
 Future<T?> showLoading<T>({
-  required Future<T> whileFuture,
+  Future<T>? whileFuture,
+  Future<T> Function()? whileFutureAlt,
   required BuildContext context,
   required String message,
   String? subMessage,
@@ -40,6 +33,12 @@ Future<T?> showLoading<T>({
   void Function(Exception)? onException,
   Duration? delay,
 }) async {
+  assert(
+    (whileFuture != null || whileFutureAlt != null) &&
+        !(whileFuture != null && whileFutureAlt != null) &&
+        !(whileFuture == null && whileFutureAlt == null),
+  );
+
   unawaited(
     showDialog<void>(
       context: context,
@@ -47,10 +46,9 @@ Future<T?> showLoading<T>({
       builder: (_) => WillPopScope(
         onWillPop: () async => false,
         child: Container(
-          color: Theme.of(context)
-              .extension<StackColors>()!
-              .overlay
-              .withOpacity(opaqueBG ? 1.0 : 0.6),
+          color: Theme.of(
+            context,
+          ).extension<StackColors>()!.overlay.withOpacity(opaqueBG ? 1.0 : 0.6),
           child: CustomLoadingOverlay(
             message: message,
             subMessage: subMessage,
@@ -66,9 +64,12 @@ Future<T?> showLoading<T>({
 
   try {
     if (delay != null) {
-      result = await minWaitFuture(whileFuture, delay: delay);
+      result = await minWaitFuture(
+        whileFutureAlt?.call() ?? whileFuture!,
+        delay: delay,
+      );
     } else {
-      result = await whileFuture;
+      result = await (whileFutureAlt?.call() ?? whileFuture!);
     }
   } catch (e, s) {
     Logging.instance.w("showLoading caught: ", error: e, stackTrace: s);

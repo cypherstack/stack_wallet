@@ -5,8 +5,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:mutex/mutex.dart';
 
 import '../utilities/logger.dart';
-import '../wallets/wallet/intermediate/lib_monero_wallet.dart';
-import '../wl_gen/interfaces/cs_monero_interface.dart';
+import '../wallets/wallet/intermediate/cryptonote_wallet.dart';
+import '../wl_gen/interfaces/cs_monero_interface.dart'
+    show CsRecipient, CsOutput;
 
 enum ChurnStatus { waiting, running, failed, success }
 
@@ -16,7 +17,7 @@ class ChurningService extends ChangeNotifier {
 
   ChurningService({required this.wallet});
 
-  final LibMoneroWallet wallet;
+  final CryptonoteWallet wallet;
   String get walletId => wallet.walletId;
 
   int rounds = 1; // default
@@ -31,9 +32,9 @@ class ChurningService extends ChangeNotifier {
   bool done = false;
   Object? lastSeenError;
 
-  bool _canChurn() {
+  Future<bool> _canChurn() async {
     if (wallet.wallet != null &&
-        csMonero.getUnlockedBalance(wallet.wallet!, accountIndex: kAccount)! >
+        await wallet.internalGetUnlockedBalance(accountIndex: kAccount) >
             BigInt.zero) {
       return true;
     } else {
@@ -50,7 +51,7 @@ class ChurningService extends ChangeNotifier {
 
     final outputs = wallet.wallet == null
         ? <CsOutput>[]
-        : await csMonero.getOutputs(wallet.wallet!, refresh: true);
+        : await wallet.internalGetOutputs(refresh: true);
     final required = wallet.cryptoCurrency.minConfirms;
 
     int lowestNumberOfConfirms = required;
@@ -120,7 +121,7 @@ class ChurningService extends ChangeNotifier {
     bool complete() => !continuous && roundsCompleted >= roundsToDo;
 
     while (!complete() && _running) {
-      if (_canChurn()) {
+      if (await _canChurn()) {
         waitingForUnlockedBalance = ChurnStatus.success;
         makingChurnTransaction = ChurnStatus.running;
         notifyListeners();
@@ -185,27 +186,25 @@ class ChurningService extends ChangeNotifier {
   }
 
   Future<void> _churnTxSimple() async {
-    final address = csMonero.getAddress(
-      wallet.wallet!,
+    final address = await wallet.internalGetAddress(
       accountIndex: kAccount,
       addressIndex: 0,
     );
 
     final height = await wallet.chainHeight;
 
-    final pending = await csMonero.createTx(
-      wallet.wallet!,
+    final pending = await wallet.internalCreateTx(
       output: CsRecipient(
         address,
         BigInt.zero, // Doesn't matter if `sweep` is true
       ),
-      priority: csMonero.getTxPriorityNormal(),
+      priority: wallet.getTxPriorityNormal(),
       accountIndex: kAccount,
       sweep: true,
       minConfirms: wallet.cryptoCurrency.minConfirms,
       currentHeight: height,
     );
 
-    await csMonero.commitTx(wallet.wallet!, pending);
+    await wallet.internalCommitTx(pending);
   }
 }

@@ -13,9 +13,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar_community/isar.dart';
+
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
-import '../../wallet_view/sub_widgets/no_transactions_found.dart';
-import '../../wallet_view/transaction_views/tx_v2/transaction_v2_list_item.dart';
 import '../../../providers/db/main_db_provider.dart';
 import '../../../providers/global/wallets_provider.dart';
 import '../../../themes/stack_colors.dart';
@@ -23,12 +22,11 @@ import '../../../utilities/constants.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import '../../../widgets/loading_indicator.dart';
+import '../../wallet_view/sub_widgets/no_transactions_found.dart';
+import '../../wallet_view/transaction_views/tx_v2/transaction_v2_list_item.dart';
 
 class TokenTransactionsList extends ConsumerStatefulWidget {
-  const TokenTransactionsList({
-    super.key,
-    required this.walletId,
-  });
+  const TokenTransactionsList({super.key, required this.walletId});
 
   final String walletId;
 
@@ -48,23 +46,15 @@ class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
 
   BorderRadius get _borderRadiusFirst {
     return BorderRadius.only(
-      topLeft: Radius.circular(
-        Constants.size.circularBorderRadius,
-      ),
-      topRight: Radius.circular(
-        Constants.size.circularBorderRadius,
-      ),
+      topLeft: Radius.circular(Constants.size.circularBorderRadius),
+      topRight: Radius.circular(Constants.size.circularBorderRadius),
     );
   }
 
   BorderRadius get _borderRadiusLast {
     return BorderRadius.only(
-      bottomLeft: Radius.circular(
-        Constants.size.circularBorderRadius,
-      ),
-      bottomRight: Radius.circular(
-        Constants.size.circularBorderRadius,
-      ),
+      bottomLeft: Radius.circular(Constants.size.circularBorderRadius),
+      bottomRight: Radius.circular(Constants.size.circularBorderRadius),
     );
   }
 
@@ -75,22 +65,20 @@ class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
         .getWallet(widget.walletId)
         .cryptoCurrency
         .minConfirms;
-    _query =
-        ref.read(mainDBProvider).isar.transactionV2s.buildQuery<TransactionV2>(
-              whereClauses: [
-                IndexWhereClause.equalTo(
-                  indexName: 'walletId',
-                  value: [widget.walletId],
-                ),
-              ],
-              filter: ref.read(pCurrentTokenWallet)!.transactionFilterOperation,
-              sortBy: [
-                const SortProperty(
-                  property: "timestamp",
-                  sort: Sort.desc,
-                ),
-              ],
-            );
+    _query = ref
+        .read(mainDBProvider)
+        .isar
+        .transactionV2s
+        .buildQuery<TransactionV2>(
+          whereClauses: [
+            IndexWhereClause.equalTo(
+              indexName: 'walletId',
+              value: [widget.walletId],
+            ),
+          ],
+          filter: ref.read(pCurrentTokenWallet)!.transactionFilterOperation,
+          sortBy: [const SortProperty(property: "timestamp", sort: Sort.desc)],
+        );
 
     _subscription = _query.watch().listen((event) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -110,8 +98,9 @@ class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
 
   @override
   Widget build(BuildContext context) {
-    final wallet =
-        ref.watch(pWallets.select((value) => value.getWallet(widget.walletId)));
+    final wallet = ref.watch(
+      pWallets.select((value) => value.getWallet(widget.walletId)),
+    );
 
     return FutureBuilder(
       future: _query.findAll(),
@@ -125,22 +114,14 @@ class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
           return const Column(
             children: [
               Spacer(),
-              Center(
-                child: LoadingIndicator(
-                  height: 50,
-                  width: 50,
-                ),
-              ),
-              Spacer(
-                flex: 4,
-              ),
+              Center(child: LoadingIndicator(height: 50, width: 50)),
+              Spacer(flex: 4),
             ],
           );
         }
         if (_transactions.isEmpty) {
           return const NoTransActionsFound();
         } else {
-          _transactions.sort((a, b) => b.timestamp - a.timestamp);
           return RefreshIndicator(
             onRefresh: () async {
               if (!ref.read(pCurrentTokenWallet)!.refreshMutex.isLocked) {
@@ -171,9 +152,9 @@ class _TransactionsListState extends ConsumerState<TokenTransactionsList> {
                       return Container(
                         width: double.infinity,
                         height: 2,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .background,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.background,
                       );
                     },
                     itemCount: _transactions.length,

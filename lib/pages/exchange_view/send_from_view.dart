@@ -92,13 +92,12 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    final walletIds =
-        ref
-            .watch(pWallets)
-            .wallets
-            .where((e) => e.info.coin == coin)
-            .map((e) => e.walletId)
-            .toList();
+    final walletIds = ref
+        .watch(pWallets)
+        .wallets
+        .where((e) => e.info.coin == coin)
+        .map((e) => e.walletId)
+        .toList();
 
     final isDesktop = Util.isDesktop;
 
@@ -107,8 +106,9 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
       builder: (child) {
         return Background(
           child: Scaffold(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(
+              context,
+            ).extension<StackColors>()!.background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () {
@@ -125,41 +125,35 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
       },
       child: ConditionalParent(
         condition: isDesktop,
-        builder:
-            (child) => DesktopDialog(
-              maxHeight: double.infinity,
-              child: Column(
+        builder: (child) => DesktopDialog(
+          maxHeight: double.infinity,
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(left: 32),
-                        child: Text(
-                          "Send from ${AppConfig.prefix}",
-                          style: STextStyles.desktopH3(context),
-                        ),
-                      ),
-                      DesktopDialogCloseButton(
-                        onPressedOverride:
-                            Navigator.of(
-                              context,
-                              rootNavigator: widget.shouldPopRoot,
-                            ).pop,
-                      ),
-                    ],
-                  ),
                   Padding(
-                    padding: const EdgeInsets.only(
-                      left: 32,
-                      right: 32,
-                      bottom: 32,
+                    padding: const EdgeInsets.only(left: 32),
+                    child: Text(
+                      "Send from ${AppConfig.prefix}",
+                      style: STextStyles.desktopH3(context),
                     ),
-                    child: child,
+                  ),
+                  DesktopDialogCloseButton(
+                    onPressedOverride: Navigator.of(
+                      context,
+                      rootNavigator: widget.shouldPopRoot,
+                    ).pop,
                   ),
                 ],
               ),
-            ),
+              Padding(
+                padding: const EdgeInsets.only(left: 32, right: 32, bottom: 32),
+                child: child,
+              ),
+            ],
+          ),
+        ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
@@ -167,10 +161,9 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
               children: [
                 Text(
                   "You need to send ${ref.watch(pAmountFormatter(coin)).format(amount)}",
-                  style:
-                      isDesktop
-                          ? STextStyles.desktopTextExtraExtraSmall(context)
-                          : STextStyles.itemSubtitle(context),
+                  style: isDesktop
+                      ? STextStyles.desktopTextExtraExtraSmall(context)
+                      : STextStyles.itemSubtitle(context),
                 ),
               ],
             ),
@@ -245,15 +238,11 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
           builder: (context) {
             return ConditionalParent(
               condition: Util.isDesktop,
-              builder:
-                  (child) => DesktopDialog(
-                    maxWidth: 400,
-                    maxHeight: double.infinity,
-                    child: Padding(
-                      padding: const EdgeInsets.all(32),
-                      child: child,
-                    ),
-                  ),
+              builder: (child) => DesktopDialog(
+                maxWidth: 400,
+                maxHeight: double.infinity,
+                child: Padding(padding: const EdgeInsets.all(32), child: child),
+              ),
               child: BuildingTransactionDialog(
                 coin: coin,
                 isSpark:
@@ -269,10 +258,9 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
         ),
       );
 
-      // Currently CwBasedInterface wallets (xmr/wow) shouldn't even have
-      // access to this screen but this is needed to get past an error that
-      // would occur only to lead to another error which is why xmr/wow wallets
-      // don't have access to this screen currently
+      // Currently most external wallets need to fully sync before they can
+      // which will cause errors and things and stuff
+      // TODO come back to this some day
       if (wallet is ExternalWallet) {
         await wallet.init();
         await wallet.open();
@@ -292,12 +280,11 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
 
       // if not firo then do normal send
       if (shouldSendPublicFiroFunds == null) {
-        final memo =
-            coin is Stellar
-                ? trade.payInExtraId.isNotEmpty
-                    ? trade.payInExtraId
-                    : null
-                : null;
+        final memo = coin is Stellar || coin is Solana
+            ? trade.payInExtraId.isNotEmpty
+                  ? trade.payInExtraId
+                  : null
+            : null;
         txDataFuture = wallet.prepareSend(
           txData: TxData(
             recipients: [recipient],
@@ -318,9 +305,19 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
         } else {
           txDataFuture = firoWallet.prepareSendSpark(
             txData: TxData(
-              recipients: [recipient],
-              // feeRateType: FeeRateType.average,
+              recipients: recipient.addressType == .spark ? null : [recipient],
+              sparkRecipients: recipient.addressType == .spark
+                  ? [
+                      (
+                        address: recipient.address,
+                        amount: recipient.amount,
+                        memo: "",
+                        isChange: false,
+                      ),
+                    ]
+                  : null,
             ),
+            requireChaumV2: true,
           );
         }
       }
@@ -346,18 +343,16 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
           await Navigator.of(context).push(
             RouteGenerator.getRoute(
               shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-              builder:
-                  (_) => ConfirmChangeNowSendView(
-                    txData: txData,
-                    walletId: walletId,
-                    routeOnSuccessName:
-                        Util.isDesktop
-                            ? DesktopExchangeView.routeName
-                            : HomeView.routeName,
-                    trade: trade,
-                    shouldSendPublicFiroFunds: shouldSendPublicFiroFunds,
-                    fromDesktopStep4: widget.fromDesktopStep4,
-                  ),
+              builder: (_) => ConfirmChangeNowSendView(
+                txData: txData,
+                walletId: walletId,
+                routeOnSuccessName: Util.isDesktop
+                    ? DesktopExchangeView.routeName
+                    : HomeView.routeName,
+                trade: trade,
+                shouldSendPublicFiroFunds: shouldSendPublicFiroFunds,
+                fromDesktopStep4: widget.fromDesktopStep4,
+              ),
               settings: const RouteSettings(
                 name: ConfirmChangeNowSendView.routeName,
               ),
@@ -369,7 +364,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
       Logging.instance.e("$e\n$s", error: e, stackTrace: s);
       if (mounted) {
         // pop building dialog
-        Navigator.of(context).pop();
+        Navigator.of(context, rootNavigator: Util.isDesktop).pop();
 
         await showDialog<dynamic>(
           context: context,
@@ -386,10 +381,9 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                 child: Text(
                   "Ok",
                   style: STextStyles.button(context).copyWith(
-                    color:
-                        Theme.of(
-                          context,
-                        ).extension<StackColors>()!.buttonTextSecondary,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.buttonTextSecondary,
                   ),
                 ),
                 onPressed: () {
@@ -422,161 +416,86 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
       padding: const EdgeInsets.all(0),
       child: ConditionalParent(
         condition: isFiro,
-        builder:
-            (child) => Expandable(
-              header: Container(
-                color: Colors.transparent,
-                child: Padding(padding: const EdgeInsets.all(12), child: child),
-              ),
-              body: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (!trade.exchangeName.startsWith(
-                    TrocadorExchange.exchangeName,
-                  ))
-                    MaterialButton(
-                      splashColor:
-                          Theme.of(context).extension<StackColors>()!.highlight,
-                      key: Key(
-                        "walletsSheetItemButtonFiroPrivateKey_$walletId",
+        builder: (child) => Expandable(
+          header: Container(
+            color: Colors.transparent,
+            child: Padding(padding: const EdgeInsets.all(12), child: child),
+          ),
+          body: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (!trade.exchangeName.startsWith(TrocadorExchange.exchangeName))
+                MaterialButton(
+                  splashColor: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.highlight,
+                  key: Key("walletsSheetItemButtonFiroPrivateKey_$walletId"),
+                  padding: const EdgeInsets.all(0),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
+                    ),
+                  ),
+                  onPressed: () async {
+                    if (mounted) {
+                      unawaited(_send(shouldSendPublicFiroFunds: false));
+                    }
+                  },
+                  child: Container(
+                    color: Colors.transparent,
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        top: 6,
+                        left: 16,
+                        right: 16,
+                        bottom: 6,
                       ),
-                      padding: const EdgeInsets.all(0),
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          Constants.size.circularBorderRadius,
-                        ),
-                      ),
-                      onPressed: () async {
-                        if (mounted) {
-                          unawaited(_send(shouldSendPublicFiroFunds: false));
-                        }
-                      },
-                      child: Container(
-                        color: Colors.transparent,
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                            top: 6,
-                            left: 16,
-                            right: 16,
-                            bottom: 6,
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Use private balance",
-                                    style: STextStyles.itemSubtitle(context),
-                                  ),
-                                  Text(
-                                    ref
-                                        .watch(pAmountFormatter(coin))
-                                        .format(
-                                          ref
-                                              .watch(
-                                                pWalletBalanceTertiary(
-                                                  walletId,
-                                                ),
-                                              )
-                                              .spendable,
-                                        ),
-                                    style: STextStyles.itemSubtitle(context),
-                                  ),
-                                ],
+                              Text(
+                                "Use private balance",
+                                style: STextStyles.itemSubtitle(context),
                               ),
-                              SvgPicture.asset(
-                                Assets.svg.chevronRight,
-                                height: 14,
-                                width: 7,
-                                color:
-                                    Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.infoItemLabel,
+                              Text(
+                                ref
+                                    .watch(pAmountFormatter(coin))
+                                    .format(
+                                      ref
+                                          .watch(
+                                            pWalletBalanceTertiary(walletId),
+                                          )
+                                          .spendable,
+                                    ),
+                                style: STextStyles.itemSubtitle(context),
                               ),
                             ],
                           ),
-                        ),
-                      ),
-                    ),
-                  MaterialButton(
-                    splashColor:
-                        Theme.of(context).extension<StackColors>()!.highlight,
-                    key: Key("walletsSheetItemButtonFiroPublicKey_$walletId"),
-                    padding: const EdgeInsets.all(0),
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                        Constants.size.circularBorderRadius,
-                      ),
-                    ),
-                    onPressed: () async {
-                      if (mounted) {
-                        unawaited(_send(shouldSendPublicFiroFunds: true));
-                      }
-                    },
-                    child: Container(
-                      color: Colors.transparent,
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                          top: 6,
-                          left: 16,
-                          right: 16,
-                          bottom: 6,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Use public balance",
-                                  style: STextStyles.itemSubtitle(context),
-                                ),
-                                Text(
-                                  ref
-                                      .watch(pAmountFormatter(coin))
-                                      .format(
-                                        ref
-                                            .watch(pWalletBalance(walletId))
-                                            .spendable,
-                                      ),
-                                  style: STextStyles.itemSubtitle(context),
-                                ),
-                              ],
-                            ),
-                            SvgPicture.asset(
-                              Assets.svg.chevronRight,
-                              height: 14,
-                              width: 7,
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.infoItemLabel,
-                            ),
-                          ],
-                        ),
+                          SvgPicture.asset(
+                            Assets.svg.chevronRight,
+                            height: 14,
+                            width: 7,
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.infoItemLabel,
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                  const SizedBox(height: 6),
-                ],
-              ),
-            ),
-        child: ConditionalParent(
-          condition: !isFiro,
-          builder:
-              (child) => MaterialButton(
-                splashColor:
-                    Theme.of(context).extension<StackColors>()!.highlight,
-                key: Key("walletsSheetItemButtonKey_$walletId"),
-                padding: const EdgeInsets.all(8),
+                ),
+              MaterialButton(
+                splashColor: Theme.of(
+                  context,
+                ).extension<StackColors>()!.highlight,
+                key: Key("walletsSheetItemButtonFiroPublicKey_$walletId"),
+                padding: const EdgeInsets.all(0),
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(
@@ -585,11 +504,77 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                 ),
                 onPressed: () async {
                   if (mounted) {
-                    unawaited(_send());
+                    unawaited(_send(shouldSendPublicFiroFunds: true));
                   }
                 },
-                child: child,
+                child: Container(
+                  color: Colors.transparent,
+                  child: Padding(
+                    padding: const EdgeInsets.only(
+                      top: 6,
+                      left: 16,
+                      right: 16,
+                      bottom: 6,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Use public balance",
+                              style: STextStyles.itemSubtitle(context),
+                            ),
+                            Text(
+                              ref
+                                  .watch(pAmountFormatter(coin))
+                                  .format(
+                                    ref
+                                        .watch(pWalletBalance(walletId))
+                                        .spendable,
+                                  ),
+                              style: STextStyles.itemSubtitle(context),
+                            ),
+                          ],
+                        ),
+                        SvgPicture.asset(
+                          Assets.svg.chevronRight,
+                          height: 14,
+                          width: 7,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.infoItemLabel,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
+              const SizedBox(height: 6),
+            ],
+          ),
+        ),
+        child: ConditionalParent(
+          condition: !isFiro,
+          builder: (child) => MaterialButton(
+            splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+            key: Key("walletsSheetItemButtonKey_$walletId"),
+            padding: const EdgeInsets.all(8),
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(
+                Constants.size.circularBorderRadius,
+              ),
+            ),
+            onPressed: () async {
+              if (mounted) {
+                unawaited(_send());
+              }
+            },
+            child: child,
+          ),
           child: Row(
             children: [
               Container(

@@ -22,18 +22,20 @@ import '../../../../../themes/stack_colors.dart';
 import '../../../../../themes/theme_providers.dart';
 import '../../../../../utilities/assets.dart';
 import '../../../../../utilities/enums/stack_restoring_status.dart';
+import '../../../../../utilities/logger.dart';
 import '../../../../../utilities/text_styles.dart';
 import '../../../../../utilities/util.dart';
+import '../../../../../wallets/wallet/impl/epiccash_wallet.dart';
+import '../../../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
+import '../../../../../wallets/wallet/impl/xelis_wallet.dart';
+import '../../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../../../widgets/loading_indicator.dart';
 import '../../../../../widgets/rounded_container.dart';
 import '../sub_views/recovery_phrase_view.dart';
 import 'restoring_item_card.dart';
 
 class RestoringWalletCard extends ConsumerStatefulWidget {
-  const RestoringWalletCard({
-    super.key,
-    required this.provider,
-  });
+  const RestoringWalletCard({super.key, required this.provider});
 
   final ChangeNotifierProvider<WalletRestoreState> provider;
 
@@ -45,13 +47,78 @@ class RestoringWalletCard extends ConsumerStatefulWidget {
 class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
   late final ChangeNotifierProvider<WalletRestoreState> provider;
 
+  Future<void> _retry() async {
+    final wallet = ref.read(provider).wallet!;
+    try {
+      ref
+          .read(stackRestoringUIStateProvider)
+          .update(
+            walletId: wallet.walletId,
+            restoringStatus: StackRestoringStatus.restoring,
+          );
+
+      switch (wallet) {
+        case EpiccashWallet():
+          await wallet.init(isRestore: true);
+          break;
+
+        case MimblewimblecoinWallet():
+          await wallet.init(isRestore: true);
+          break;
+
+        case CryptonoteWallet():
+          await wallet.init(isRestore: true);
+          await wallet.open();
+          break;
+
+        case XelisWallet():
+          await wallet.init(isRestore: true);
+          break;
+
+        default:
+          await wallet.init();
+      }
+
+      await wallet.recover(isRescan: true);
+
+      final address = await wallet.getCurrentReceivingAddress();
+
+      await wallet.exit();
+
+      if (mounted) {
+        ref
+            .read(stackRestoringUIStateProvider)
+            .update(
+              walletId: wallet.walletId,
+              restoringStatus: StackRestoringStatus.success,
+              address: address?.value,
+            );
+      }
+    } catch (e, s) {
+      Logging.instance.e(
+        "retry SWB single wallet tapped",
+        error: e,
+        stackTrace: s,
+      );
+      if (mounted) {
+        ref
+            .read(stackRestoringUIStateProvider)
+            .update(
+              walletId: wallet.walletId,
+              restoringStatus: StackRestoringStatus.failed,
+            );
+      }
+    }
+  }
+
   Widget _getIconForState(StackRestoringStatus state) {
     switch (state) {
       case StackRestoringStatus.waiting:
         return SvgPicture.asset(
           Assets.svg.loader,
-          color:
-              Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
+          color: Theme.of(
+            context,
+          ).extension<StackColors>()!.buttonBackSecondary,
         );
       case StackRestoringStatus.restoring:
         return const LoadingIndicator();
@@ -81,8 +148,9 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
   @override
   Widget build(BuildContext context) {
     final coin = ref.watch(provider.select((value) => value.coin));
-    final restoringStatus =
-        ref.watch(provider.select((value) => value.restoringState));
+    final restoringStatus = ref.watch(
+      provider.select((value) => value.restoringState),
+    );
     return !Util.isDesktop
         ? RestoringItemCard(
             left: SizedBox(
@@ -93,9 +161,7 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                 color: ref.watch(pCoinColor(coin)),
                 child: Center(
                   child: SvgPicture.file(
-                    File(
-                      ref.watch(coinIconProvider(coin)),
-                    ),
+                    File(ref.watch(coinIconProvider(coin))),
                     height: 20,
                     width: 20,
                   ),
@@ -103,36 +169,7 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
               ),
             ),
             onRightTapped: restoringStatus == StackRestoringStatus.failed
-                ? () async {
-                    final wallet = ref.read(provider).wallet!;
-
-                    ref.read(stackRestoringUIStateProvider).update(
-                          walletId: wallet.walletId,
-                          restoringStatus: StackRestoringStatus.restoring,
-                        );
-
-                    try {
-                      await wallet.recover(isRescan: true);
-
-                      if (mounted) {
-                        final address =
-                            await wallet.getCurrentReceivingAddress();
-
-                        ref.read(stackRestoringUIStateProvider).update(
-                              walletId: wallet.walletId,
-                              restoringStatus: StackRestoringStatus.success,
-                              address: address!.value,
-                            );
-                      }
-                    } catch (_) {
-                      if (mounted) {
-                        ref.read(stackRestoringUIStateProvider).update(
-                              walletId: wallet.walletId,
-                              restoringStatus: StackRestoringStatus.failed,
-                            );
-                      }
-                    }
-                  }
+                ? _retry
                 : null,
             right: SizedBox(
               width: 20,
@@ -149,30 +186,27 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                     style: STextStyles.errorSmall(context),
                   )
                 : ref.watch(provider.select((value) => value.address)) != null
-                    ? Text(
-                        ref.watch(provider.select((value) => value.address))!,
-                        style: STextStyles.infoSmall(context),
-                      )
-                    : null,
+                ? Text(
+                    ref.watch(provider.select((value) => value.address))!,
+                    style: STextStyles.infoSmall(context),
+                  )
+                : null,
             button: restoringStatus == StackRestoringStatus.failed
                 ? Container(
                     height: 20,
                     decoration: BoxDecoration(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .buttonBackSecondary,
-                      borderRadius: BorderRadius.circular(
-                        1000,
-                      ),
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.buttonBackSecondary,
+                      borderRadius: BorderRadius.circular(1000),
                     ),
                     child: RawMaterialButton(
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      splashColor:
-                          Theme.of(context).extension<StackColors>()!.highlight,
+                      splashColor: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.highlight,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          1000,
-                        ),
+                        borderRadius: BorderRadius.circular(1000),
                       ),
                       onPressed: () async {
                         final mnemonic = ref.read(provider).mnemonic;
@@ -193,9 +227,9 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                         child: Text(
                           "Show recovery phrase",
                           style: STextStyles.infoSmall(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .accentColorDark,
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.accentColorDark,
                           ),
                         ),
                       ),
@@ -216,11 +250,7 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                   color: ref.watch(pCoinColor(coin)),
                   child: Center(
                     child: SvgPicture.file(
-                      File(
-                        ref.watch(
-                          coinIconProvider(coin),
-                        ),
-                      ),
+                      File(ref.watch(coinIconProvider(coin))),
                       height: 20,
                       width: 20,
                     ),
@@ -228,60 +258,7 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                 ),
               ),
               onRightTapped: restoringStatus == StackRestoringStatus.failed
-                  ? () async {
-                      final wallet = ref.read(provider).wallet!;
-
-                      ref.read(stackRestoringUIStateProvider).update(
-                            walletId: wallet.walletId,
-                            restoringStatus: StackRestoringStatus.restoring,
-                          );
-
-                      try {
-                        // final mnemonicList = await manager.mnemonic;
-                        // int maxUnusedAddressGap = 20;
-                        // if (coin is Firo) {
-                        //   maxUnusedAddressGap = 50;
-                        // }
-                        // const maxNumberOfIndexesToCheck = 1000;
-                        //
-                        // if (mnemonicList.isEmpty) {
-                        //   await manager.recoverFromMnemonic(
-                        //     mnemonic: ref.read(provider).mnemonic!,
-                        //     mnemonicPassphrase:
-                        //         ref.read(provider).mnemonicPassphrase!,
-                        //     maxUnusedAddressGap: maxUnusedAddressGap,
-                        //     maxNumberOfIndexesToCheck:
-                        //         maxNumberOfIndexesToCheck,
-                        //     height: ref.read(provider).height ?? 0,
-                        //   );
-                        // } else {
-                        //   await manager.fullRescan(
-                        //     maxUnusedAddressGap,
-                        //     maxNumberOfIndexesToCheck,
-                        //   );
-                        // }
-
-                        await wallet.recover(isRescan: true);
-
-                        if (mounted) {
-                          final address =
-                              await wallet.getCurrentReceivingAddress();
-
-                          ref.read(stackRestoringUIStateProvider).update(
-                                walletId: wallet.walletId,
-                                restoringStatus: StackRestoringStatus.success,
-                                address: address!.value,
-                              );
-                        }
-                      } catch (_) {
-                        if (mounted) {
-                          ref.read(stackRestoringUIStateProvider).update(
-                                walletId: wallet.walletId,
-                                restoringStatus: StackRestoringStatus.failed,
-                              );
-                        }
-                      }
-                    }
+                  ? _retry
                   : null,
               right: SizedBox(
                 width: 20,
@@ -298,31 +275,27 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                       style: STextStyles.errorSmall(context),
                     )
                   : ref.watch(provider.select((value) => value.address)) != null
-                      ? Text(
-                          ref.watch(provider.select((value) => value.address))!,
-                          style: STextStyles.infoSmall(context),
-                        )
-                      : null,
+                  ? Text(
+                      ref.watch(provider.select((value) => value.address))!,
+                      style: STextStyles.infoSmall(context),
+                    )
+                  : null,
               button: restoringStatus == StackRestoringStatus.failed
                   ? Container(
                       height: 20,
                       decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .buttonBackSecondary,
-                        borderRadius: BorderRadius.circular(
-                          1000,
-                        ),
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.buttonBackSecondary,
+                        borderRadius: BorderRadius.circular(1000),
                       ),
                       child: RawMaterialButton(
                         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        splashColor: Theme.of(context)
-                            .extension<StackColors>()!
-                            .highlight,
+                        splashColor: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.highlight,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            1000,
-                          ),
+                          borderRadius: BorderRadius.circular(1000),
                         ),
                         onPressed: () async {
                           final mnemonic = ref.read(provider).mnemonic;
@@ -343,9 +316,9 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                           child: Text(
                             "Show recovery phrase",
                             style: STextStyles.infoSmall(context).copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .accentColorDark,
+                              color: Theme.of(
+                                context,
+                              ).extension<StackColors>()!.accentColorDark,
                             ),
                           ),
                         ),

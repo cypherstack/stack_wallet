@@ -5,14 +5,14 @@ import 'package:compat/compat.dart' as lib_monero_compat;
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
-import '../../../wl_gen/interfaces/cs_monero_interface.dart';
 import '../../../wl_gen/interfaces/cs_salvium_interface.dart'
     show WrappedWallet;
+import '../../../wl_gen/interfaces/cs_wownero_interface.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../models/tx_data.dart';
-import '../intermediate/lib_monero_wallet.dart';
+import '../intermediate/lib_wownero_wallet.dart';
 
-class WowneroWallet extends LibMoneroWallet {
+class WowneroWallet extends LibWowneroWallet {
   WowneroWallet(CryptoCurrencyNetwork network)
     : super(Wownero(network), lib_monero_compat.WalletType.wownero);
 
@@ -66,7 +66,7 @@ class WowneroWallet extends LibMoneroWallet {
           // unsure why this delay?
           await Future<void>.delayed(const Duration(milliseconds: 500));
         } catch (e) {
-          approximateFee = await csMonero.estimateFee(
+          approximateFee = await csWownero.estimateFee(
             feeRate.toInt(),
             amount.raw,
             wallet: wallet!,
@@ -86,19 +86,13 @@ class WowneroWallet extends LibMoneroWallet {
   }
 
   @override
-  bool walletExists(String path) =>
-      csMonero.walletExists(path, csCoin: CsCoin.wownero);
+  bool walletExists(String path) => csWownero.walletExists(path);
 
   @override
   Future<WrappedWallet> loadWallet({
     required String path,
     required String password,
-  }) => csMonero.loadWallet(
-    walletId,
-    path: path,
-    password: password,
-    csCoin: CsCoin.wownero,
-  );
+  }) => csWownero.loadWallet(walletId, path: path, password: password);
 
   @override
   Future<WrappedWallet> getCreatedWallet({
@@ -106,8 +100,7 @@ class WowneroWallet extends LibMoneroWallet {
     required String password,
     required int wordCount,
     required String seedOffset,
-  }) => csMonero.getCreatedWallet(
-    csCoin: CsCoin.wownero,
+  }) => csWownero.getCreatedWallet(
     path: path,
     password: password,
     wordCount: wordCount,
@@ -121,13 +114,12 @@ class WowneroWallet extends LibMoneroWallet {
     required String mnemonic,
     required String seedOffset,
     int height = 0,
-  }) => csMonero.getRestoredWallet(
+  }) => csWownero.getRestoredWallet(
     path: path,
     password: password,
     mnemonic: mnemonic,
     height: height,
     seedOffset: seedOffset,
-    csCoin: CsCoin.wownero,
     walletId: walletId,
   );
 
@@ -138,9 +130,8 @@ class WowneroWallet extends LibMoneroWallet {
     required String address,
     required String privateViewKey,
     int height = 0,
-  }) => csMonero.getRestoredFromViewKeyWallet(
+  }) => csWownero.getRestoredFromViewKeyWallet(
     walletId: walletId,
-    csCoin: CsCoin.wownero,
     path: path,
     password: password,
     address: address,

@@ -19,6 +19,7 @@ import 'package:isar_community/isar.dart';
 
 import '../../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../../models/isar/models/contact_entry.dart';
+import '../../../../models/isar/models/contract.dart';
 import '../../../../models/isar/models/isar_models.dart';
 import '../../../../models/transaction_filter.dart';
 import '../../../../providers/global/address_book_service_provider.dart';
@@ -33,6 +34,7 @@ import '../../../../utilities/format.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/coins/ethereum.dart';
+import '../../../../wallets/crypto_currency/coins/solana.dart';
 import '../../../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
@@ -52,8 +54,11 @@ import '../transaction_search_filter_view.dart';
 import 'transaction_v2_card.dart';
 import 'transaction_v2_details_view.dart' as tvd;
 
-typedef _GroupedTransactions =
-    ({String label, DateTime startDate, List<TransactionV2> transactions});
+typedef _GroupedTransactions = ({
+  String label,
+  DateTime startDate,
+  List<TransactionV2> transactions,
+});
 
 class AllTransactionsV2View extends ConsumerStatefulWidget {
   const AllTransactionsV2View({
@@ -106,14 +111,13 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
     // debugPrint("FILTER: $filter");
 
     final contacts = ref.read(addressBookServiceProvider).contacts;
-    final notes =
-        ref
-            .read(mainDBProvider)
-            .isar
-            .transactionNotes
-            .where()
-            .walletIdEqualTo(walletId)
-            .findAllSync();
+    final notes = ref
+        .read(mainDBProvider)
+        .isar
+        .transactionNotes
+        .where()
+        .walletIdEqualTo(walletId)
+        .findAllSync();
 
     return transactions.where((tx) {
       if (!filter.sent && !filter.received) {
@@ -159,25 +163,23 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
     bool contains = false;
 
     // check if address book name contains
-    contains |=
-        contacts
-            .where(
-              (e) =>
-                  e.addresses
-                      .map((e) => e.address)
-                      .toSet()
-                      .intersection(tx.associatedAddresses())
-                      .isNotEmpty &&
-                  e.name.toLowerCase().contains(keyword),
-            )
-            .isNotEmpty;
+    contains |= contacts
+        .where(
+          (e) =>
+              e.addresses
+                  .map((e) => e.address)
+                  .toSet()
+                  .intersection(tx.associatedAddresses())
+                  .isNotEmpty &&
+              e.name.toLowerCase().contains(keyword),
+        )
+        .isNotEmpty;
 
     // check if address contains
-    contains |=
-        tx
-            .associatedAddresses()
-            .where((e) => e.toLowerCase().contains(keyword))
-            .isNotEmpty;
+    contains |= tx
+        .associatedAddresses()
+        .where((e) => e.toLowerCase().contains(keyword))
+        .isNotEmpty;
 
     TransactionNote? note;
     final matchingNotes = notes.where((e) => e.txid == tx.txid);
@@ -214,14 +216,13 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
     }
     text = text.toLowerCase();
     final contacts = ref.read(addressBookServiceProvider).contacts;
-    final notes =
-        ref
-            .read(mainDBProvider)
-            .isar
-            .transactionNotes
-            .where()
-            .walletIdEqualTo(walletId)
-            .findAllSync();
+    final notes = ref
+        .read(mainDBProvider)
+        .isar
+        .transactionNotes
+        .where()
+        .walletIdEqualTo(walletId)
+        .findAllSync();
 
     return transactions
         .where((tx) => _isKeywordMatch(tx, text, contacts, notes))
@@ -258,94 +259,90 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
     return MasterScaffold(
       background: Theme.of(context).extension<StackColors>()!.background,
       isDesktop: isDesktop,
-      appBar:
-          isDesktop
-              ? DesktopAppBar(
-                isCompactHeight: true,
-                background: Theme.of(context).extension<StackColors>()!.popupBG,
-                leading: Row(
-                  children: [
-                    const SizedBox(width: 32),
-                    AppBarIconButton(
-                      size: 32,
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.textFieldDefaultBG,
-                      shadows: const [],
-                      icon: SvgPicture.asset(
-                        Assets.svg.arrowLeft,
-                        width: 18,
-                        height: 18,
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.topNavIconPrimary,
-                      ),
-                      onPressed: Navigator.of(context).pop,
+      appBar: isDesktop
+          ? DesktopAppBar(
+              isCompactHeight: true,
+              background: Theme.of(context).extension<StackColors>()!.popupBG,
+              leading: Row(
+                children: [
+                  const SizedBox(width: 32),
+                  AppBarIconButton(
+                    size: 32,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldDefaultBG,
+                    shadows: const [],
+                    icon: SvgPicture.asset(
+                      Assets.svg.arrowLeft,
+                      width: 18,
+                      height: 18,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.topNavIconPrimary,
                     ),
-                    const SizedBox(width: 12),
-                    Text("Transactions", style: STextStyles.desktopH3(context)),
-                  ],
-                ),
-              )
-              : AppBar(
-                backgroundColor:
-                    Theme.of(context).extension<StackColors>()!.background,
-                leading: AppBarBackButton(
-                  onPressed: () async {
-                    if (FocusScope.of(context).hasFocus) {
-                      FocusScope.of(context).unfocus();
-                      await Future<void>.delayed(
-                        const Duration(milliseconds: 75),
-                      );
-                    }
-                    if (context.mounted) {
-                      Navigator.of(context).pop();
-                    }
-                  },
-                ),
-                title: Text(
-                  "Transactions",
-                  style: STextStyles.navBarTitle(context),
-                ),
-                actions: [
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      top: 10,
-                      bottom: 10,
-                      right: 20,
-                    ),
-                    child: AspectRatio(
-                      aspectRatio: 1,
-                      child: AppBarIconButton(
-                        key: const Key("transactionSearchFilterViewButton"),
-                        size: 36,
-                        shadows: const [],
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.background,
-                        icon: SvgPicture.asset(
-                          Assets.svg.filter,
-                          color:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.accentColorDark,
-                          width: 20,
-                          height: 20,
-                        ),
-                        onPressed: () {
-                          Navigator.of(context).pushNamed(
-                            TransactionSearchFilterView.routeName,
-                            arguments: ref.read(pWalletCoin(walletId)),
-                          );
-                        },
-                      ),
-                    ),
+                    onPressed: Navigator.of(context).pop,
                   ),
+                  const SizedBox(width: 12),
+                  Text("Transactions", style: STextStyles.desktopH3(context)),
                 ],
               ),
+            )
+          : AppBar(
+              backgroundColor: Theme.of(
+                context,
+              ).extension<StackColors>()!.background,
+              leading: AppBarBackButton(
+                onPressed: () async {
+                  if (FocusScope.of(context).hasFocus) {
+                    FocusScope.of(context).unfocus();
+                    await Future<void>.delayed(
+                      const Duration(milliseconds: 75),
+                    );
+                  }
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                  }
+                },
+              ),
+              title: Text(
+                "Transactions",
+                style: STextStyles.navBarTitle(context),
+              ),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.only(
+                    top: 10,
+                    bottom: 10,
+                    right: 20,
+                  ),
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: AppBarIconButton(
+                      key: const Key("transactionSearchFilterViewButton"),
+                      size: 36,
+                      shadows: const [],
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.background,
+                      icon: SvgPicture.asset(
+                        Assets.svg.filter,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.accentColorDark,
+                        width: 20,
+                        height: 20,
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(
+                          TransactionSearchFilterView.routeName,
+                          arguments: ref.read(pWalletCoin(walletId)),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
       body: Padding(
         padding: EdgeInsets.only(
           left: isDesktop ? 20 : 12,
@@ -378,57 +375,57 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                               _searchString = value;
                             });
                           },
-                          style:
-                              isDesktop
-                                  ? STextStyles.desktopTextExtraSmall(
-                                    context,
-                                  ).copyWith(
-                                    color:
-                                        Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textFieldActiveText,
-                                    height: 1.8,
-                                  )
-                                  : STextStyles.field(context),
-                          decoration: standardInputDecoration(
-                            "Search...",
-                            searchFieldFocusNode,
-                            context,
-                            desktopMed: isDesktop,
-                          ).copyWith(
-                            prefixIcon: Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: isDesktop ? 12 : 10,
-                                vertical: isDesktop ? 18 : 16,
-                              ),
-                              child: SvgPicture.asset(
-                                Assets.svg.search,
-                                width: isDesktop ? 20 : 16,
-                                height: isDesktop ? 20 : 16,
-                              ),
-                            ),
-                            suffixIcon:
-                                _searchController.text.isNotEmpty
+                          style: isDesktop
+                              ? STextStyles.desktopTextExtraSmall(
+                                  context,
+                                ).copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textFieldActiveText,
+                                  height: 1.8,
+                                )
+                              : STextStyles.field(context),
+                          decoration:
+                              standardInputDecoration(
+                                "Search...",
+                                searchFieldFocusNode,
+                                context,
+                                desktopMed: isDesktop,
+                              ).copyWith(
+                                prefixIcon: Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: isDesktop ? 12 : 10,
+                                    vertical: isDesktop ? 18 : 16,
+                                  ),
+                                  child: SvgPicture.asset(
+                                    Assets.svg.search,
+                                    width: isDesktop ? 20 : 16,
+                                    height: isDesktop ? 20 : 16,
+                                  ),
+                                ),
+                                suffixIcon: _searchController.text.isNotEmpty
                                     ? Padding(
-                                      padding: const EdgeInsets.only(right: 0),
-                                      child: UnconstrainedBox(
-                                        child: Row(
-                                          children: [
-                                            TextFieldIconButton(
-                                              child: const XIcon(),
-                                              onTap: () async {
-                                                setState(() {
-                                                  _searchController.text = "";
-                                                  _searchString = "";
-                                                });
-                                              },
-                                            ),
-                                          ],
+                                        padding: const EdgeInsets.only(
+                                          right: 0,
                                         ),
-                                      ),
-                                    )
+                                        child: UnconstrainedBox(
+                                          child: Row(
+                                            children: [
+                                              TextFieldIconButton(
+                                                child: const XIcon(),
+                                                onTap: () async {
+                                                  setState(() {
+                                                    _searchController.text = "";
+                                                    _searchString = "";
+                                                  });
+                                                },
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      )
                                     : null,
-                          ),
+                              ),
                         ),
                       ),
                     ),
@@ -441,10 +438,9 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                       label: "Filter",
                       icon: SvgPicture.asset(
                         Assets.svg.filter,
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.accentColorDark,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.accentColorDark,
                         width: 20,
                         height: 20,
                       ),
@@ -480,39 +476,38 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
             Expanded(
               child: Consumer(
                 builder: (_, ref, __) {
-                  final criteria =
-                      ref.watch(transactionFilterProvider.state).state;
+                  final criteria = ref
+                      .watch(transactionFilterProvider.state)
+                      .state;
 
                   return FutureBuilder(
-                    future:
-                        ref
-                            .watch(mainDBProvider)
-                            .isar
-                            .transactionV2s
-                            .buildQuery<TransactionV2>(
-                              whereClauses: [
-                                IndexWhereClause.equalTo(
-                                  indexName: 'walletId',
-                                  value: [widget.walletId],
-                                ),
-                              ],
-                              filter:
-                                  widget.contractAddress == null
-                                      ? ref
-                                          .watch(pWallets)
-                                          .getWallet(widget.walletId)
-                                          .transactionFilterOperation
-                                      : ref
-                                          .read(pCurrentTokenWallet)!
-                                          .transactionFilterOperation,
-                              sortBy: [
-                                const SortProperty(
-                                  property: "timestamp",
-                                  sort: Sort.desc,
-                                ),
-                              ],
-                            )
-                            .findAll(),
+                    future: ref
+                        .watch(mainDBProvider)
+                        .isar
+                        .transactionV2s
+                        .buildQuery<TransactionV2>(
+                          whereClauses: [
+                            IndexWhereClause.equalTo(
+                              indexName: 'walletId',
+                              value: [widget.walletId],
+                            ),
+                          ],
+                          filter: widget.contractAddress == null
+                              ? ref
+                                    .watch(pWallets)
+                                    .getWallet(widget.walletId)
+                                    .transactionFilterOperation
+                              : ref
+                                    .read(pCurrentTokenWallet)!
+                                    .transactionFilterOperation,
+                          sortBy: [
+                            const SortProperty(
+                              property: "timestamp",
+                              sort: Sort.desc,
+                            ),
+                          ],
+                        )
+                        .findAll(),
                     builder: (_, AsyncSnapshot<List<TransactionV2>> snapshot) {
                       if (snapshot.connectionState == ConnectionState.done &&
                           snapshot.hasData) {
@@ -553,27 +548,26 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                                       child: ListView.separated(
                                         shrinkWrap: true,
                                         primary: false,
-                                        separatorBuilder:
-                                            (context, _) => Container(
+                                        separatorBuilder: (context, _) =>
+                                            Container(
                                               height: 1,
-                                              color:
-                                                  Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .background,
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .background,
                                             ),
                                         itemCount: month.transactions.length,
-                                        itemBuilder:
-                                            (context, index) => Padding(
-                                              padding: const EdgeInsets.all(4),
-                                              child: DesktopTransactionCardRow(
-                                                key: Key(
-                                                  "transactionCard_key_${month.transactions[index].txid}",
-                                                ),
-                                                transaction:
-                                                    month.transactions[index],
-                                                walletId: walletId,
-                                              ),
+                                        itemBuilder: (context, index) => Padding(
+                                          padding: const EdgeInsets.all(4),
+                                          child: DesktopTransactionCardRow(
+                                            key: Key(
+                                              "transactionCard_key_"
+                                              "${month.transactions[index].txid}",
                                             ),
+                                            transaction:
+                                                month.transactions[index],
+                                            walletId: walletId,
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   if (!isDesktop)
@@ -785,8 +779,9 @@ class TransactionFilterOptionBarItem extends StatelessWidget {
       child: Container(
         height: 32,
         decoration: BoxDecoration(
-          color:
-              Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
+          color: Theme.of(
+            context,
+          ).extension<StackColors>()!.buttonBackSecondary,
           borderRadius: BorderRadius.circular(1000),
         ),
         child: Padding(
@@ -802,8 +797,9 @@ class TransactionFilterOptionBarItem extends StatelessWidget {
                     label,
                     textAlign: TextAlign.center,
                     style: STextStyles.labelExtraExtraSmall(context).copyWith(
-                      color:
-                          Theme.of(context).extension<StackColors>()!.textDark,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textDark,
                     ),
                   ),
                 ),
@@ -842,38 +838,40 @@ class _DesktopTransactionCardRowState
   late final TransactionV2 _transaction;
   late final String walletId;
   late final int minConfirms;
-  late final EthContract? ethContract;
+  late final Contract? contract;
 
-  bool get isTokenTx => ethContract != null;
+  bool get isTokenTx => contract != null;
 
   String whatIsIt(TransactionV2 tx, int height) => tx.statusLabel(
     currentChainHeight: height,
     minConfirms: minConfirms,
-    minCoinbaseConfirms:
-        ref
-            .read(pWallets)
-            .getWallet(widget.walletId)
-            .cryptoCurrency
-            .minCoinbaseConfirms,
+    minCoinbaseConfirms: ref
+        .read(pWallets)
+        .getWallet(widget.walletId)
+        .cryptoCurrency
+        .minCoinbaseConfirms,
   );
 
   @override
   void initState() {
     walletId = widget.walletId;
-    minConfirms =
-        ref
-            .read(pWallets)
-            .getWallet(widget.walletId)
-            .cryptoCurrency
-            .minConfirms;
+    minConfirms = ref
+        .read(pWallets)
+        .getWallet(widget.walletId)
+        .cryptoCurrency
+        .minConfirms;
     _transaction = widget.transaction;
 
-    if (_transaction.subType == TransactionSubType.ethToken) {
-      ethContract = ref
+    if (_transaction.subType == TransactionSubType.splToken) {
+      contract = ref
+          .read(mainDBProvider)
+          .getSolContractSync(_transaction.contractAddress!);
+    } else if (_transaction.subType == TransactionSubType.ethToken) {
+      contract = ref
           .read(mainDBProvider)
           .getEthContractSync(_transaction.contractAddress!);
     } else {
-      ethContract = null;
+      contract = null;
     }
 
     super.initState();
@@ -897,10 +895,9 @@ class _DesktopTransactionCardRowState
     )) {
       price = ref.watch(
         priceAnd24hChangeNotifierProvider.select(
-          (value) =>
-              isTokenTx
-                  ? value.getTokenPrice(_transaction.contractAddress!)?.value
-                  : value.getPrice(coin)?.value,
+          (value) => isTokenTx
+              ? value.getTokenPrice(_transaction.contractAddress!)?.value
+              : value.getPrice(coin)?.value,
         ),
       );
     }
@@ -921,7 +918,7 @@ class _DesktopTransactionCardRowState
     final currentHeight = ref.watch(pWalletChainHeight(walletId));
 
     final Amount amount;
-    final fractionDigits = ethContract?.decimals ?? coin.fractionDigits;
+    final fractionDigits = contract?.decimals ?? coin.fractionDigits;
     if (_transaction.subType == TransactionSubType.cashFusion) {
       amount = _transaction.getAmountReceivedInThisWallet(
         fractionDigits: fractionDigits,
@@ -931,7 +928,7 @@ class _DesktopTransactionCardRowState
         case TransactionType.outgoing:
           amount = _transaction.getAmountSentFromThisWallet(
             fractionDigits: fractionDigits,
-            subtractFee: coin is! Ethereum,
+            subtractFee: !(coin is Ethereum || coin is Solana),
           );
           break;
 
@@ -963,7 +960,7 @@ class _DesktopTransactionCardRowState
         case TransactionType.unknown:
           amount = _transaction.getAmountSentFromThisWallet(
             fractionDigits: fractionDigits,
-            subtractFee: coin is! Ethereum,
+            subtractFee: !(coin is Ethereum || coin is Solana),
           );
           break;
       }
@@ -987,16 +984,15 @@ class _DesktopTransactionCardRowState
           if (Util.isDesktop) {
             await showDialog<void>(
               context: context,
-              builder:
-                  (context) => DesktopDialog(
-                    maxHeight: MediaQuery.of(context).size.height - 64,
-                    maxWidth: 580,
-                    child: tvd.TransactionV2DetailsView(
-                      transaction: _transaction,
-                      coin: coin,
-                      walletId: walletId,
-                    ),
-                  ),
+              builder: (context) => DesktopDialog(
+                maxHeight: MediaQuery.of(context).size.height - 64,
+                maxWidth: 640,
+                child: tvd.TransactionV2DetailsView(
+                  transaction: _transaction,
+                  coin: coin,
+                  walletId: walletId,
+                ),
+              ),
             );
           } else {
             unawaited(
@@ -1021,11 +1017,12 @@ class _DesktopTransactionCardRowState
                 flex: 3,
                 child: Text(
                   whatIsIt(_transaction, currentHeight),
-                  style: STextStyles.desktopTextExtraExtraSmall(
-                    context,
-                  ).copyWith(
-                    color: Theme.of(context).extension<StackColors>()!.textDark,
-                  ),
+                  style: STextStyles.desktopTextExtraExtraSmall(context)
+                      .copyWith(
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textDark,
+                      ),
                 ),
               ),
               if (kDebugMode)
@@ -1045,29 +1042,47 @@ class _DesktopTransactionCardRowState
               ),
               Expanded(
                 flex: 6,
-                child: Text(
-                  "$prefix${ref.watch(pAmountFormatter(coin)).format(amount, ethContract: ethContract)}",
-                  style: STextStyles.desktopTextExtraExtraSmall(
-                    context,
-                  ).copyWith(
-                    color: Theme.of(context).extension<StackColors>()!.textDark,
-                  ),
+                child: Builder(
+                  builder: (context) {
+                    final formattedAmount = ref
+                        .watch(pAmountFormatter(coin))
+                        .format(amount, tokenContract: contract);
+
+                    return Text(
+                      "$prefix$formattedAmount",
+                      style: STextStyles.desktopTextExtraExtraSmall(context)
+                          .copyWith(
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textDark,
+                          ),
+                    );
+                  },
                 ),
               ),
               if (price != null)
                 Expanded(
                   flex: 4,
-                  child: Text(
-                    "$prefix${(amount.decimal * price).toAmount(fractionDigits: 2).fiatString(locale: locale)} $baseCurrency",
-                    style: STextStyles.desktopTextExtraExtraSmall(context),
+                  child: Builder(
+                    builder: (context) {
+                      final formattedFiat = (amount.decimal * price!)
+                          .toAmount(fractionDigits: 2)
+                          .fiatString(locale: locale);
+
+                      return Text(
+                        "$prefix$formattedFiat $baseCurrency",
+                        style: STextStyles.desktopTextExtraExtraSmall(context),
+                      );
+                    },
                   ),
                 ),
               SvgPicture.asset(
                 Assets.svg.circleInfo,
                 width: 20,
                 height: 20,
-                color:
-                    Theme.of(context).extension<StackColors>()!.textSubtitle2,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.textSubtitle2,
               ),
             ],
           ),

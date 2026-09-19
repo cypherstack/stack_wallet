@@ -11,7 +11,9 @@ import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
-import '../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
+import '../../../../wallets/wallet/impl/epiccash_wallet.dart';
+import '../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
+import '../../../../wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -21,7 +23,6 @@ import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/icon_widgets/x_icon.dart';
 import '../../../../widgets/stack_text_field.dart';
 import '../../../../widgets/textfield_icon_button.dart';
-import '../../../../wl_gen/interfaces/cs_monero_interface.dart';
 
 class EditRefreshHeightView extends ConsumerStatefulWidget {
   const EditRefreshHeightView({super.key, required this.walletId});
@@ -49,16 +50,21 @@ class _EditRefreshHeightViewState extends ConsumerState<EditRefreshHeightView> {
       try {
         final newHeight = int.tryParse(_controller.text);
         if (newHeight != null && newHeight >= 0) {
-          await ref
-              .read(pWalletInfo(widget.walletId))
-              .updateRestoreHeight(
-                newRestoreHeight: newHeight,
-                isar: ref.read(mainDBProvider).isar,
-              );
-          final wallet =
-              ref.read(pWallets).getWallet(widget.walletId) as LibMoneroWallet?;
-          if (wallet?.wallet != null) {
-            csMonero.setRefreshFromBlockHeight(wallet!.wallet!, newHeight);
+          final wallet = ref.read(pWallets).getWallet(widget.walletId);
+
+          if (wallet is EpiccashWallet) {
+            await wallet.updateRestoreHeight(newHeight);
+          } else {
+            await ref
+                .read(pWalletInfo(widget.walletId))
+                .updateRestoreHeight(
+                  newRestoreHeight: newHeight,
+                  isar: ref.read(mainDBProvider).isar,
+                );
+          }
+
+          if (wallet is CryptonoteWallet && wallet.wallet != null) {
+            wallet.setRefreshFromBlockHeight(newHeight);
           }
         } else {
           errMessage = "Invalid height: ${_controller.text}";
@@ -96,12 +102,21 @@ class _EditRefreshHeightViewState extends ConsumerState<EditRefreshHeightView> {
   void initState() {
     super.initState();
     _controller = TextEditingController();
-    final wallet =
-        ref.read(pWallets).getWallet(widget.walletId) as LibMoneroWallet?;
-    if (wallet?.wallet != null) {
-      _controller.text = csMonero
-          .getRefreshFromBlockHeight(wallet!.wallet!)
+    final wallet = ref.read(pWallets).getWallet(widget.walletId);
+    if (wallet is EpiccashWallet) {
+      _controller.text = ref
+          .read(pWalletInfo(widget.walletId))
+          .epicData!
+          .restoreHeight
           .toString();
+    } else if (wallet is CryptonoteWallet && wallet.wallet != null) {
+      wallet.getRefreshFromBlockHeight().then((height) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _controller.text = height.toString();
+          }
+        });
+      });
     } else {
       _controller.text = ref
           .read(pWalletInfo(widget.walletId))

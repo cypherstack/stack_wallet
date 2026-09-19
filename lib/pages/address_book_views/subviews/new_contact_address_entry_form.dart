@@ -71,6 +71,7 @@ class _NewContactAddressEntryFormState
       //         .state)
       //     .state = false;
       final qrResult = await ref.read(pBarcodeScanner).scan(context: context);
+      if (qrResult.rawContent == null) return;
 
       // Future<void>.delayed(
       //   const Duration(seconds: 2),
@@ -82,7 +83,7 @@ class _NewContactAddressEntryFormState
       // );
 
       final paymentData = AddressUtils.parsePaymentUri(
-        qrResult.rawContent,
+        qrResult.rawContent!,
         logging: Logging.instance,
       );
 
@@ -93,18 +94,19 @@ class _NewContactAddressEntryFormState
 
         addressLabelController.text =
             paymentData.label ?? addressLabelController.text;
-        ref.read(addressEntryDataProvider(widget.id)).addressLabel =
-            addressLabelController.text.isEmpty
-                ? null
-                : addressLabelController.text;
+        ref
+            .read(addressEntryDataProvider(widget.id))
+            .addressLabel = addressLabelController.text.isEmpty
+            ? null
+            : addressLabelController.text;
 
         // now check for non standard encoded basic address
       } else if (ref.read(addressEntryDataProvider(widget.id)).coin != null) {
         if (ref
             .read(addressEntryDataProvider(widget.id))
             .coin!
-            .validateAddress(qrResult.rawContent)) {
-          addressController.text = qrResult.rawContent;
+            .validateAddress(qrResult.rawContent!)) {
+          addressController.text = qrResult.rawContent!;
           ref.read(addressEntryDataProvider(widget.id)).address =
               qrResult.rawContent;
         }
@@ -140,13 +142,10 @@ class _NewContactAddressEntryFormState
 
   @override
   void initState() {
-    addressLabelController =
-        TextEditingController()
-          ..text =
-              ref.read(addressEntryDataProvider(widget.id)).addressLabel ?? "";
-    addressController =
-        TextEditingController()
-          ..text = ref.read(addressEntryDataProvider(widget.id)).address ?? "";
+    addressLabelController = TextEditingController()
+      ..text = ref.read(addressEntryDataProvider(widget.id)).addressLabel ?? "";
+    addressController = TextEditingController()
+      ..text = ref.read(addressEntryDataProvider(widget.id)).address ?? "";
     addressLabelFocusNode = FocusNode();
     addressFocusNode = FocusNode();
     coins = [...AppConfig.coins];
@@ -177,15 +176,15 @@ class _NewContactAddressEntryFormState
       coins = [...AppConfig.coins];
       coins.removeWhere((e) => e is Firo && e.network.isTestNet);
 
-      final showTestNet =
-          ref.read(prefsChangeNotifierProvider).showTestNetCoins;
+      final showTestNet = ref
+          .read(prefsChangeNotifierProvider)
+          .showTestNetCoins;
       if (showTestNet) {
         coins = coins.toList();
       } else {
-        coins =
-            coins
-                .where((e) => e.network != CryptoCurrencyNetwork.test)
-                .toList();
+        coins = coins
+            .where((e) => e.network != CryptoCurrencyNetwork.test)
+            .toList();
       }
     }
 
@@ -202,10 +201,9 @@ class _NewContactAddressEntryFormState
                 offset: const Offset(0, -10),
                 elevation: 0,
                 decoration: BoxDecoration(
-                  color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textFieldDefaultBG,
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldDefaultBG,
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),
@@ -249,14 +247,14 @@ class _NewContactAddressEntryFormState
                           const SizedBox(width: 12),
                           Text(
                             coin.prettyName,
-                            style: STextStyles.desktopTextExtraExtraSmall(
-                              context,
-                            ).copyWith(
-                              color:
-                                  Theme.of(
+                            style:
+                                STextStyles.desktopTextExtraExtraSmall(
+                                  context,
+                                ).copyWith(
+                                  color: Theme.of(
                                     context,
                                   ).extension<StackColors>()!.textDark,
-                            ),
+                                ),
                           ),
                         ],
                       ),
@@ -279,8 +277,9 @@ class _NewContactAddressEntryFormState
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   child: RawMaterialButton(
-                    splashColor:
-                        Theme.of(context).extension<StackColors>()!.highlight,
+                    splashColor: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.highlight,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(
                         Constants.size.circularBorderRadius,
@@ -308,48 +307,47 @@ class _NewContactAddressEntryFormState
                                 ) ==
                                 null
                             ? Text(
-                              "Select cryptocurrency",
-                              style: STextStyles.fieldLabel(context),
-                            )
+                                "Select cryptocurrency",
+                                style: STextStyles.fieldLabel(context),
+                              )
                             : Row(
-                              children: [
-                                SvgPicture.file(
-                                  File(
-                                    ref.watch(
-                                      coinIconProvider(
-                                        ref.watch(
+                                children: [
+                                  SvgPicture.file(
+                                    File(
+                                      ref.watch(
+                                        coinIconProvider(
+                                          ref.watch(
+                                            addressEntryDataProvider(
+                                              widget.id,
+                                            ).select((value) => value.coin),
+                                          )!,
+                                        ),
+                                      ),
+                                    ),
+                                    height: 20,
+                                    width: 20,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    ref
+                                        .watch(
                                           addressEntryDataProvider(
                                             widget.id,
                                           ).select((value) => value.coin),
-                                        )!,
-                                      ),
-                                    ),
+                                        )!
+                                        .prettyName,
+                                    style: STextStyles.itemSubtitle12(context),
                                   ),
-                                  height: 20,
-                                  width: 20,
-                                ),
-                                const SizedBox(width: 12),
-                                Text(
-                                  ref
-                                      .watch(
-                                        addressEntryDataProvider(
-                                          widget.id,
-                                        ).select((value) => value.coin),
-                                      )!
-                                      .prettyName,
-                                  style: STextStyles.itemSubtitle12(context),
-                                ),
-                              ],
-                            ),
+                                ],
+                              ),
                         if (!isDesktop)
                           SvgPicture.asset(
                             Assets.svg.chevronDown,
                             width: 8,
                             height: 4,
-                            color:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textSubtitle2,
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textSubtitle2,
                           ),
                       ],
                     ),
@@ -369,33 +367,35 @@ class _NewContactAddressEntryFormState
             focusNode: addressLabelFocusNode,
             controller: addressLabelController,
             style: STextStyles.field(context),
-            decoration: standardInputDecoration(
-              "Enter address label",
-              addressLabelFocusNode,
-              context,
-            ).copyWith(
-              labelStyle: isDesktop ? STextStyles.fieldLabel(context) : null,
-              suffixIcon:
-                  addressLabelController.text.isNotEmpty
-                      ? Padding(
-                        padding: const EdgeInsets.only(right: 0),
-                        child: UnconstrainedBox(
-                          child: Row(
-                            children: [
-                              TextFieldIconButton(
-                                child: const XIcon(),
-                                onTap: () async {
-                                  setState(() {
-                                    addressLabelController.text = "";
-                                  });
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
+            decoration:
+                standardInputDecoration(
+                  "Enter address label",
+                  addressLabelFocusNode,
+                  context,
+                ).copyWith(
+                  labelStyle: isDesktop
+                      ? STextStyles.fieldLabel(context)
                       : null,
-            ),
+                  suffixIcon: addressLabelController.text.isNotEmpty
+                      ? Padding(
+                          padding: const EdgeInsets.only(right: 0),
+                          child: UnconstrainedBox(
+                            child: Row(
+                              children: [
+                                TextFieldIconButton(
+                                  child: const XIcon(),
+                                  onTap: () async {
+                                    setState(() {
+                                      addressLabelController.text = "";
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      : null,
+                ),
             onChanged: (newValue) {
               ref.read(addressEntryDataProvider(widget.id)).addressLabel =
                   newValue;
@@ -413,76 +413,87 @@ class _NewContactAddressEntryFormState
             focusNode: addressFocusNode,
             controller: addressController,
             style: STextStyles.field(context),
-            decoration: standardInputDecoration(
-              "Paste address",
-              addressFocusNode,
-              context,
-            ).copyWith(
-              labelStyle: isDesktop ? STextStyles.fieldLabel(context) : null,
-              suffixIcon: UnconstrainedBox(
-                child: Row(
-                  children: [
-                    if (ref.watch(
-                          addressEntryDataProvider(
-                            widget.id,
-                          ).select((value) => value.address),
-                        ) !=
-                        null)
-                      TextFieldIconButton(
-                        key: const Key("addAddressBookClearAddressButtonKey"),
-                        onTap: () async {
-                          addressController.text = "";
-                          ref
-                              .read(addressEntryDataProvider(widget.id))
-                              .address = null;
-                        },
-                        child: const XIcon(),
-                      ),
-                    if (ref.watch(
-                          addressEntryDataProvider(
-                            widget.id,
-                          ).select((value) => value.address),
-                        ) ==
-                        null)
-                      TextFieldIconButton(
-                        key: const Key("addAddressPasteAddressButtonKey"),
-                        onTap: () async {
-                          final ClipboardData? data = await widget.clipboard
-                              .getData(Clipboard.kTextPlain);
-
-                          if (data?.text != null && data!.text!.isNotEmpty) {
-                            String content = data.text!.trim();
-                            if (content.contains("\n")) {
-                              content = content.substring(
-                                0,
-                                content.indexOf("\n"),
-                              );
-                            }
-                            addressController.text = content;
-                            ref
-                                .read(addressEntryDataProvider(widget.id))
-                                .address = content.isEmpty ? null : content;
-                          }
-                        },
-                        child: const ClipboardIcon(),
-                      ),
-                    if (!Util.isDesktop &&
-                        ref.watch(
+            decoration:
+                standardInputDecoration(
+                  "Paste address",
+                  addressFocusNode,
+                  context,
+                ).copyWith(
+                  labelStyle: isDesktop
+                      ? STextStyles.fieldLabel(context)
+                      : null,
+                  suffixIcon: UnconstrainedBox(
+                    child: Row(
+                      children: [
+                        if (ref.watch(
+                              addressEntryDataProvider(
+                                widget.id,
+                              ).select((value) => value.address),
+                            ) !=
+                            null)
+                          TextFieldIconButton(
+                            key: const Key(
+                              "addAddressBookClearAddressButtonKey",
+                            ),
+                            onTap: () async {
+                              addressController.text = "";
+                              ref
+                                      .read(addressEntryDataProvider(widget.id))
+                                      .address =
+                                  null;
+                            },
+                            child: const XIcon(),
+                          ),
+                        if (ref.watch(
                               addressEntryDataProvider(
                                 widget.id,
                               ).select((value) => value.address),
                             ) ==
                             null)
-                      TextFieldIconButton(
-                        key: const Key("addAddressBookEntryScanQrButtonKey"),
-                        onTap: _onQrTapped,
-                        child: const QrCodeIcon(),
-                      ),
-                    const SizedBox(width: 8),
-                  ],
+                          TextFieldIconButton(
+                            key: const Key("addAddressPasteAddressButtonKey"),
+                            onTap: () async {
+                              final ClipboardData? data = await widget.clipboard
+                                  .getData(Clipboard.kTextPlain);
+
+                              if (data?.text != null &&
+                                  data!.text!.isNotEmpty) {
+                                String content = data.text!.trim();
+                                if (content.contains("\n")) {
+                                  content = content.substring(
+                                    0,
+                                    content.indexOf("\n"),
+                                  );
+                                }
+                                addressController.text = content;
+                                ref
+                                    .read(addressEntryDataProvider(widget.id))
+                                    .address = content.isEmpty
+                                    ? null
+                                    : content;
+                              }
+                            },
+                            child: const ClipboardIcon(),
+                          ),
+                        if (!Util.isDesktop &&
+                            ref.watch(
+                                  addressEntryDataProvider(
+                                    widget.id,
+                                  ).select((value) => value.address),
+                                ) ==
+                                null)
+                          TextFieldIconButton(
+                            key: const Key(
+                              "addAddressBookEntryScanQrButtonKey",
+                            ),
+                            onTap: _onQrTapped,
+                            child: const QrCodeIcon(),
+                          ),
+                        const SizedBox(width: 8),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            ),
             key: const Key("addAddressBookEntryViewAddressField"),
             readOnly: false,
             autocorrect: false,
@@ -517,8 +528,9 @@ class _NewContactAddressEntryFormState
                     "Invalid address",
                     textAlign: TextAlign.left,
                     style: STextStyles.label(context).copyWith(
-                      color:
-                          Theme.of(context).extension<StackColors>()!.textError,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.textError,
                     ),
                   ),
                 ],

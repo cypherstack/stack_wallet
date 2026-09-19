@@ -42,6 +42,7 @@ import '../../../../widgets/textfield_icon_button.dart';
 import '../../../../widgets/toggle.dart';
 import '../../../../wl_gen/interfaces/cs_monero_interface.dart';
 import '../../../../wl_gen/interfaces/cs_salvium_interface.dart';
+import '../../../../wl_gen/interfaces/cs_wownero_interface.dart';
 import '../../create_or_restore_wallet_view/sub_widgets/coin_image.dart';
 import '../restore_view_only_wallet_view.dart';
 import '../restore_wallet_view.dart';
@@ -177,7 +178,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
     }
 
     if (mounted) {
-      final date = await showSWDatePicker(context);
+      final date = (await showSWDatePicker(context))?.first;
       if (date != null) {
         _restoreFromDate = date;
         _dateController.text = Format.formatDate(date);
@@ -186,7 +187,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
   }
 
   Future<void> chooseDesktopDate() async {
-    final date = await showSWDatePicker(context);
+    final date = (await showSWDatePicker(context))?.first;
     if (date != null) {
       _restoreFromDate = date;
       _dateController.text = Format.formatDate(date);
@@ -213,10 +214,10 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
       int height = 0;
       if (date != null) {
         if (widget.coin is Monero) {
-          height = csMonero.getHeightByDate(date, csCoin: CsCoin.monero);
+          height = csMonero.getHeightByDate(date);
         }
         if (widget.coin is Wownero) {
-          height = csMonero.getHeightByDate(date, csCoin: CsCoin.wownero);
+          height = csWownero.getHeightByDate(date);
         }
         if (widget.coin is Salvium) {
           height = csSalvium.getHeightByDate(

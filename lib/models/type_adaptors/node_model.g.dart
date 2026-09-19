@@ -32,13 +32,14 @@ class NodeModelAdapter extends TypeAdapter<NodeModel> {
       clearnetEnabled: fields[12] as bool? ?? true,
       forceNoTor: fields[13] as bool? ?? false,
       isPrimary: fields[14] as bool? ?? false,
+      nodeApiSecret: fields[15] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, NodeModel obj) {
     writer
-      ..writeByte(15)
+      ..writeByte(16)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -68,7 +69,9 @@ class NodeModelAdapter extends TypeAdapter<NodeModel> {
       ..writeByte(13)
       ..write(obj.forceNoTor)
       ..writeByte(14)
-      ..write(obj.isPrimary);
+      ..write(obj.isPrimary)
+      ..writeByte(15)
+      ..write(obj.nodeApiSecret);
   }
 
   @override

@@ -137,7 +137,7 @@ class Dogecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           privHDPrefix: 0x02fac398,
           pubHDPrefix: 0x02facafd,
           bech32Hrp: "doge",
-          messagePrefix: '\x18Dogecoin Signed Message:\n',
+          messagePrefix: '\x19Dogecoin Signed Message:\n',
           minFee: BigInt.from(1), // Not used in stack wallet currently
           minOutput: dustLimit.raw, // Not used in stack wallet currently
           feePerKb: BigInt.from(1), // Not used in stack wallet currently
@@ -150,7 +150,7 @@ class Dogecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           privHDPrefix: 0x04358394,
           pubHDPrefix: 0x043587cf,
           bech32Hrp: "tdge",
-          messagePrefix: "\x18Dogecoin Signed Message:\n",
+          messagePrefix: "\x19Dogecoin Signed Message:\n",
           minFee: BigInt.from(1), // Not used in stack wallet currently
           minOutput: dustLimit.raw, // Not used in stack wallet currently
           feePerKb: BigInt.from(1), // Not used in stack wallet currently

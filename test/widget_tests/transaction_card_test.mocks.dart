@@ -521,6 +521,19 @@ class MockPrefs extends _i1.Mock implements _i13.Prefs {
           as ({bool enabled, int minutes}));
 
   @override
+  bool get privacyScreen =>
+      (super.noSuchMethod(Invocation.getter(#privacyScreen), returnValue: false)
+          as bool);
+
+  @override
+  bool get disableScreenShots =>
+      (super.noSuchMethod(
+            Invocation.getter(#disableScreenShots),
+            returnValue: false,
+          )
+          as bool);
+
+  @override
   set lastUnlockedTimeout(int? lastUnlockedTimeout) => super.noSuchMethod(
     Invocation.setter(#lastUnlockedTimeout, lastUnlockedTimeout),
     returnValueForMissingStub: null,
@@ -750,6 +763,18 @@ class MockPrefs extends _i1.Mock implements _i13.Prefs {
       );
 
   @override
+  set privacyScreen(bool? privacyScreen) => super.noSuchMethod(
+    Invocation.setter(#privacyScreen, privacyScreen),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  set disableScreenShots(bool? disableScreenShots) => super.noSuchMethod(
+    Invocation.setter(#disableScreenShots, disableScreenShots),
+    returnValueForMissingStub: null,
+  );
+
+  @override
   bool get hasListeners =>
       (super.noSuchMethod(Invocation.getter(#hasListeners), returnValue: false)
           as bool);
@@ -764,13 +789,12 @@ class MockPrefs extends _i1.Mock implements _i13.Prefs {
           as _i10.Future<void>);
 
   @override
-  _i10.Future<void> incrementCurrentNotificationIndex() =>
+  _i10.Future<int> incrementCurrentNotificationIndex() =>
       (super.noSuchMethod(
             Invocation.method(#incrementCurrentNotificationIndex, []),
-            returnValue: _i10.Future<void>.value(),
-            returnValueForMissingStub: _i10.Future<void>.value(),
+            returnValue: _i10.Future<int>.value(0),
           )
-          as _i10.Future<void>);
+          as _i10.Future<int>);
 
   @override
   _i10.Future<bool> isExternalCallsSet() =>
@@ -906,6 +930,14 @@ class MockPriceService extends _i1.Mock implements _i21.PriceService {
   _i10.Future<Set<String>> get tokenContractAddressesToCheck =>
       (super.noSuchMethod(
             Invocation.getter(#tokenContractAddressesToCheck),
+            returnValue: _i10.Future<Set<String>>.value(<String>{}),
+          )
+          as _i10.Future<Set<String>>);
+
+  @override
+  _i10.Future<Set<String>> get solTokenContractAddressesToCheck =>
+      (super.noSuchMethod(
+            Invocation.getter(#solTokenContractAddressesToCheck),
             returnValue: _i10.Future<Set<String>>.value(<String>{}),
           )
           as _i10.Future<Set<String>>);
@@ -1643,6 +1675,50 @@ class MockMainDB extends _i1.Mock implements _i3.MainDB {
   _i10.Future<void> putEthContracts(List<_i28.EthContract>? contracts) =>
       (super.noSuchMethod(
             Invocation.method(#putEthContracts, [contracts]),
+            returnValue: _i10.Future<void>.value(),
+            returnValueForMissingStub: _i10.Future<void>.value(),
+          )
+          as _i10.Future<void>);
+
+  @override
+  _i8.QueryBuilder<_i28.SolContract, _i28.SolContract, _i8.QWhere>
+  getSolContracts() =>
+      (super.noSuchMethod(
+            Invocation.method(#getSolContracts, []),
+            returnValue:
+                _FakeQueryBuilder_7<
+                  _i28.SolContract,
+                  _i28.SolContract,
+                  _i8.QWhere
+                >(this, Invocation.method(#getSolContracts, [])),
+          )
+          as _i8.QueryBuilder<_i28.SolContract, _i28.SolContract, _i8.QWhere>);
+
+  @override
+  _i10.Future<_i28.SolContract?> getSolContract(String? tokenMint) =>
+      (super.noSuchMethod(
+            Invocation.method(#getSolContract, [tokenMint]),
+            returnValue: _i10.Future<_i28.SolContract?>.value(),
+          )
+          as _i10.Future<_i28.SolContract?>);
+
+  @override
+  _i28.SolContract? getSolContractSync(String? tokenMint) =>
+      (super.noSuchMethod(Invocation.method(#getSolContractSync, [tokenMint]))
+          as _i28.SolContract?);
+
+  @override
+  _i10.Future<int> putSolContract(_i28.SolContract? token) =>
+      (super.noSuchMethod(
+            Invocation.method(#putSolContract, [token]),
+            returnValue: _i10.Future<int>.value(0),
+          )
+          as _i10.Future<int>);
+
+  @override
+  _i10.Future<void> putSolContracts(List<_i28.SolContract>? tokens) =>
+      (super.noSuchMethod(
+            Invocation.method(#putSolContracts, [tokens]),
             returnValue: _i10.Future<void>.value(),
             returnValueForMissingStub: _i10.Future<void>.value(),
           )

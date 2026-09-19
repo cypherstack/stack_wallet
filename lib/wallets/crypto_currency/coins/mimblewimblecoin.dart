@@ -101,6 +101,7 @@ class Mimblewimblecoin extends Bip39Currency {
           torEnabled: true,
           clearnetEnabled: true,
           isPrimary: true,
+          nodeApiSecret: '11ne3EAUtOXVKwhxm84U',
         );
 
       default:

@@ -1,28 +1,27 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../models/isar/models/ethereum/eth_contract.dart';
+
+import '../../models/isar/models/contract.dart';
 import '../../providers/global/locale_provider.dart';
 import '../../providers/global/prefs_provider.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
 import 'amount.dart';
 import 'amount_unit.dart';
-import '../../wallets/crypto_currency/crypto_currency.dart';
 
 final pAmountUnit = Provider.family<AmountUnit, CryptoCurrency>(
   (ref, coin) => ref.watch(
-    prefsChangeNotifierProvider.select(
-      (value) => value.amountUnit(coin),
-    ),
+    prefsChangeNotifierProvider.select((value) => value.amountUnit(coin)),
   ),
 );
 final pMaxDecimals = Provider.family<int, CryptoCurrency>(
   (ref, coin) => ref.watch(
-    prefsChangeNotifierProvider.select(
-      (value) => value.maxDecimals(coin),
-    ),
+    prefsChangeNotifierProvider.select((value) => value.maxDecimals(coin)),
   ),
 );
 
-final pAmountFormatter =
-    Provider.family<AmountFormatter, CryptoCurrency>((ref, coin) {
+final pAmountFormatter = Provider.family<AmountFormatter, CryptoCurrency>((
+  ref,
+  coin,
+) {
   final locale = ref.watch(
     localeServiceChangeNotifierProvider.select((value) => value.locale),
   );
@@ -51,7 +50,7 @@ class AmountFormatter {
   String format(
     Amount amount, {
     String? overrideUnit,
-    EthContract? ethContract,
+    Contract? tokenContract,
     bool withUnitName = true,
     bool indicatePrecisionLoss = true,
   }) {
@@ -63,19 +62,16 @@ class AmountFormatter {
       withUnitName: withUnitName,
       indicatePrecisionLoss: indicatePrecisionLoss,
       overrideUnit: overrideUnit,
-      tokenContract: ethContract,
+      tokenContract: tokenContract,
     );
   }
 
-  Amount? tryParse(
-    String string, {
-    EthContract? ethContract,
-  }) {
+  Amount? tryParse(String string, {Contract? tokenContract}) {
     return unit.tryParse(
       string,
       locale: locale,
       coin: coin,
-      tokenContract: ethContract,
+      tokenContract: tokenContract,
     );
   }
 }

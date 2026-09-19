@@ -67,20 +67,19 @@ class BitcoincashWallet<T extends ElectrumXCurrencyInterface>
 
   @override
   Future<List<Address>> fetchAddressesForElectrumXScan() async {
-    final allAddresses =
-        await mainDB
-            .getAddresses(walletId)
-            .filter()
-            .not()
-            .typeEqualTo(AddressType.nonWallet)
-            .and()
-            .group(
-              (q) => q
-                  .subTypeEqualTo(AddressSubType.receiving)
-                  .or()
-                  .subTypeEqualTo(AddressSubType.change),
-            )
-            .findAll();
+    final allAddresses = await mainDB
+        .getAddresses(walletId)
+        .filter()
+        .not()
+        .typeEqualTo(AddressType.nonWallet)
+        .and()
+        .group(
+          (q) => q
+              .subTypeEqualTo(AddressSubType.receiving)
+              .or()
+              .subTypeEqualTo(AddressSubType.change),
+        )
+        .findAll();
     return allAddresses;
   }
 
@@ -103,17 +102,15 @@ class BitcoincashWallet<T extends ElectrumXCurrencyInterface>
     final List<Address> allAddressesOld =
         await fetchAddressesForElectrumXScan();
 
-    final Set<String> receivingAddresses =
-        allAddressesOld
-            .where((e) => e.subType == AddressSubType.receiving)
-            .map((e) => convertAddressString(e.value))
-            .toSet();
+    final Set<String> receivingAddresses = allAddressesOld
+        .where((e) => e.subType == AddressSubType.receiving)
+        .map((e) => convertAddressString(e.value))
+        .toSet();
 
-    final Set<String> changeAddresses =
-        allAddressesOld
-            .where((e) => e.subType == AddressSubType.change)
-            .map((e) => convertAddressString(e.value))
-            .toSet();
+    final Set<String> changeAddresses = allAddressesOld
+        .where((e) => e.subType == AddressSubType.change)
+        .map((e) => convertAddressString(e.value))
+        .toSet();
 
     final allAddressesSet = {...receivingAddresses, ...changeAddresses};
 
@@ -389,7 +386,7 @@ class BitcoincashWallet<T extends ElectrumXCurrencyInterface>
 
   @override
   int estimateTxFee({required int vSize, required BigInt feeRatePerKB}) {
-    return vSize * (feeRatePerKB.toInt() / 1000).ceil();
+    return (feeRatePerKB * BigInt.from(vSize) ~/ BigInt.from(1000)).toInt();
   }
 
   @override

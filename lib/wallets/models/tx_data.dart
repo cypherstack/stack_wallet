@@ -1,3 +1,6 @@
+import 'dart:typed_data';
+
+import 'package:solana/encoder.dart' show Instruction;
 import 'package:tezart/tezart.dart' as tezart;
 import 'package:web3dart/web3dart.dart' as web3dart;
 
@@ -7,6 +10,7 @@ import '../../models/isar/models/isar_models.dart';
 import '../../models/paynym/paynym_account_lite.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/enums/fee_rate_type_enum.dart';
+import '../../utilities/extensions/impl/uint8_list.dart';
 import '../../widgets/eth_fee_form.dart';
 import '../../wl_gen/interfaces/cs_monero_interface.dart'
     show CsPendingTransaction;
@@ -66,6 +70,10 @@ class TxData {
   final web3dart.Transaction? web3dartTransaction;
   final int? nonce;
   final BigInt? chainId;
+
+  // Solana token-specific.
+  final List<Instruction>? solInstructions;
+
   // wownero and monero specific
   final CsPendingTransaction? pendingTransaction;
 
@@ -79,6 +87,7 @@ class TxData {
   final List<({String address, Amount amount, String memo, bool isChange})>?
   sparkRecipients;
   final List<TxData>? sparkMints;
+  final List<TxData>? sparkSpends;
   final List<SparkCoin>? usedSparkCoins;
   final ({
     String additionalInfo,
@@ -87,6 +96,8 @@ class TxData {
     int validBlocks,
   })?
   sparkNameInfo;
+  final Uint8List? vExtraData;
+  final int? overrideVersion;
 
   // xelis specific
   final String? otherData;
@@ -101,6 +112,9 @@ class TxData {
   final TxType type;
 
   final bool salviumStakeTx;
+
+  // Generic OP_RETURN data (hex string) - for Rosen Bridge and other protocols
+  final String? opReturnData;
 
   TxData({
     this.feeRateType,
@@ -125,17 +139,22 @@ class TxData {
     this.web3dartTransaction,
     this.nonce,
     this.chainId,
+    this.solInstructions,
     this.pendingTransaction,
     this.pendingSalviumTransaction,
     this.tezosOperationsList,
     this.sparkRecipients,
     this.otherData,
     this.sparkMints,
+    this.sparkSpends,
     this.usedSparkCoins,
     this.tempTx,
     this.ignoreCachedBalanceChecks = false,
     this.opNameState,
     this.sparkNameInfo,
+    this.vExtraData,
+    this.overrideVersion,
+    this.opReturnData,
     this.type = TxType.regular,
     this.salviumStakeTx = false,
   });
@@ -250,6 +269,7 @@ class TxData {
     String? noteOnChain,
     String? memo,
     String? otherData,
+    String? opReturnData,
     Set<BaseInput>? utxos,
     List<BaseInput>? usedUTXOs,
     List<TxRecipient>? recipients,
@@ -261,6 +281,7 @@ class TxData {
     web3dart.Transaction? web3dartTransaction,
     int? nonce,
     BigInt? chainId,
+    List<Instruction>? solInstructions,
     CsPendingTransaction? pendingTransaction,
     CsPendingTransaction? pendingSalviumTransaction,
     int? jMintValue,
@@ -273,6 +294,7 @@ class TxData {
     List<({String address, Amount amount, String memo, bool isChange})>?
     sparkRecipients,
     List<TxData>? sparkMints,
+    List<TxData>? sparkSpends,
     List<SparkCoin>? usedSparkCoins,
     TransactionV2? tempTx,
     bool? ignoreCachedBalanceChecks,
@@ -284,6 +306,8 @@ class TxData {
       int validBlocks,
     })?
     sparkNameInfo,
+    Uint8List? vExtraData,
+    int? overrideVersion,
     TxType? type,
   }) {
     return TxData(
@@ -310,18 +334,23 @@ class TxData {
       web3dartTransaction: web3dartTransaction ?? this.web3dartTransaction,
       nonce: nonce ?? this.nonce,
       chainId: chainId ?? this.chainId,
+      solInstructions: solInstructions ?? this.solInstructions,
       pendingTransaction: pendingTransaction ?? this.pendingTransaction,
       pendingSalviumTransaction:
           pendingSalviumTransaction ?? this.pendingSalviumTransaction,
       tezosOperationsList: tezosOperationsList ?? this.tezosOperationsList,
       sparkRecipients: sparkRecipients ?? this.sparkRecipients,
       sparkMints: sparkMints ?? this.sparkMints,
+      sparkSpends: sparkSpends ?? this.sparkSpends,
       usedSparkCoins: usedSparkCoins ?? this.usedSparkCoins,
       tempTx: tempTx ?? this.tempTx,
       ignoreCachedBalanceChecks:
           ignoreCachedBalanceChecks ?? this.ignoreCachedBalanceChecks,
       opNameState: opNameState ?? this.opNameState,
       sparkNameInfo: sparkNameInfo ?? this.sparkNameInfo,
+      vExtraData: vExtraData ?? this.vExtraData,
+      overrideVersion: overrideVersion ?? this.overrideVersion,
+      opReturnData: opReturnData ?? this.opReturnData,
       type: type ?? this.type,
     );
   }
@@ -350,17 +379,22 @@ class TxData {
       'web3dartTransaction: $web3dartTransaction, '
       'nonce: $nonce, '
       'chainId: $chainId, '
+      'solInstructions: $solInstructions, '
       'pendingTransaction: $pendingTransaction, '
       'pendingSalviumTransaction: $pendingSalviumTransaction, '
       'tezosOperationsList: $tezosOperationsList, '
       'sparkRecipients: $sparkRecipients, '
       'sparkMints: $sparkMints, '
+      'sparkSpends: $sparkSpends, '
       'usedSparkCoins: $usedSparkCoins, '
       'otherData: $otherData, '
       'tempTx: $tempTx, '
       'ignoreCachedBalanceChecks: $ignoreCachedBalanceChecks, '
       'opNameState: $opNameState, '
       'sparkNameInfo: $sparkNameInfo, '
+      'vExtraData: ${vExtraData?.toHex}, '
+      'overrideVersion: $overrideVersion, '
+      'opReturnData: $opReturnData, '
       'type: $type, '
       '}';
 }

@@ -12,12 +12,15 @@ class DetailItem extends StatelessWidget {
     required this.title,
     required this.detail,
     this.button,
+    this.titleStyle,
     this.overrideDetailTextColor,
     this.showEmptyDetail = true,
     this.horizontal = false,
     this.disableSelectableText = false,
     this.borderColor,
     this.expandDetail = false,
+    this.detailPlaceholder,
+    this.noPadding = false,
   });
 
   final String title;
@@ -29,6 +32,9 @@ class DetailItem extends StatelessWidget {
   final Color? overrideDetailTextColor;
   final Color? borderColor;
   final bool expandDetail;
+  final String? detailPlaceholder;
+  final TextStyle? titleStyle;
+  final bool noPadding;
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +47,7 @@ class DetailItem extends StatelessWidget {
     }
 
     if (detail.isEmpty && showEmptyDetail) {
-      _detail = "$title will appear here";
+      _detail = detailPlaceholder ?? "$title will appear here";
       detailStyle = detailStyle.copyWith(
         color: Theme.of(context).extension<StackColors>()!.textSubtitle3,
       );
@@ -51,14 +57,17 @@ class DetailItem extends StatelessWidget {
       horizontal: horizontal,
       borderColor: borderColor,
       expandDetail: expandDetail,
-      title:
-          disableSelectableText
-              ? Text(title, style: STextStyles.itemSubtitle(context))
-              : SelectableText(title, style: STextStyles.itemSubtitle(context)),
-      detail:
-          disableSelectableText
-              ? Text(_detail, style: detailStyle)
-              : SelectableText(_detail, style: detailStyle),
+      noPadding: noPadding,
+      title: disableSelectableText
+          ? Text(title, style: titleStyle ?? STextStyles.itemSubtitle(context))
+          : SelectableText(
+              title,
+              style: titleStyle ?? STextStyles.itemSubtitle(context),
+            ),
+      detail: disableSelectableText
+          ? Text(_detail, style: detailStyle)
+          : SelectableText(_detail, style: detailStyle),
+      button: button,
     );
   }
 }
@@ -72,6 +81,9 @@ class DetailItemBase extends StatelessWidget {
     this.horizontal = false,
     this.borderColor,
     this.expandDetail = false,
+    this.noPadding = false,
+    this.crossAxisAlignment,
+    this.mainAxisAlignment,
   });
 
   final Widget title;
@@ -80,53 +92,59 @@ class DetailItemBase extends StatelessWidget {
   final bool horizontal;
   final Color? borderColor;
   final bool expandDetail;
+  final bool noPadding;
+  final CrossAxisAlignment? crossAxisAlignment;
+  final MainAxisAlignment? mainAxisAlignment;
 
   @override
   Widget build(BuildContext context) {
     return ConditionalParent(
       condition: !Util.isDesktop || borderColor != null,
-      builder:
-          (child) => RoundedWhiteContainer(
-            padding:
-                Util.isDesktop
-                    ? const EdgeInsets.all(16)
-                    : const EdgeInsets.all(12),
-            borderColor: borderColor,
-            child: child,
-          ),
+      builder: (child) => RoundedWhiteContainer(
+        padding: noPadding
+            ? EdgeInsets.zero
+            : Util.isDesktop
+            ? const EdgeInsets.all(16)
+            : const EdgeInsets.all(12),
+        borderColor: borderColor,
+        child: child,
+      ),
       child: ConditionalParent(
         condition: Util.isDesktop && borderColor == null,
-        builder:
-            (child) => Padding(padding: const EdgeInsets.all(16), child: child),
-        child:
-            horizontal
-                ? Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    title,
-                    if (expandDetail) const SizedBox(width: 16),
-                    ConditionalParent(
-                      condition: expandDetail,
-                      builder: (child) => Expanded(child: child),
-                      child: detail,
-                    ),
-                  ],
-                )
-                : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [title, button ?? Container()],
-                    ),
-                    const SizedBox(height: 5),
-                    ConditionalParent(
-                      condition: expandDetail,
-                      builder: (child) => Expanded(child: child),
-                      child: detail,
-                    ),
-                  ],
-                ),
+        builder: (child) => Padding(
+          padding: noPadding ? EdgeInsets.zero : const EdgeInsets.all(16),
+          child: child,
+        ),
+        child: horizontal
+            ? Row(
+                mainAxisAlignment: mainAxisAlignment ?? .spaceBetween,
+                crossAxisAlignment: crossAxisAlignment ?? .center,
+                children: [
+                  title,
+                  if (expandDetail) const SizedBox(width: 16),
+                  ConditionalParent(
+                    condition: expandDetail,
+                    builder: (child) => Expanded(child: child),
+                    child: detail,
+                  ),
+                ],
+              )
+            : Column(
+                mainAxisAlignment: mainAxisAlignment ?? .start,
+                crossAxisAlignment: crossAxisAlignment ?? .start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [title, button ?? Container()],
+                  ),
+                  const SizedBox(height: 5),
+                  ConditionalParent(
+                    condition: expandDetail,
+                    builder: (child) => Expanded(child: child),
+                    child: detail,
+                  ),
+                ],
+              ),
       ),
     );
   }

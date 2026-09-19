@@ -28,6 +28,7 @@ class PrimaryButton extends StatelessWidget {
     this.enabled = true,
     this.buttonHeight,
     this.iconSpacing = 10,
+    this.horizontalContentPadding,
   });
 
   final double? width;
@@ -38,6 +39,7 @@ class PrimaryButton extends StatelessWidget {
   final Widget? icon;
   final ButtonHeight? buttonHeight;
   final double? iconSpacing;
+  final double? horizontalContentPadding;
 
   TextStyle getStyle(bool isDesktop, BuildContext context) {
     if (isDesktop) {
@@ -54,9 +56,9 @@ class PrimaryButton extends StatelessWidget {
           return STextStyles.desktopTextExtraExtraSmall(context).copyWith(
             color: enabled
                 ? Theme.of(context).extension<StackColors>()!.buttonTextPrimary
-                : Theme.of(context)
-                    .extension<StackColors>()!
-                    .buttonTextPrimaryDisabled,
+                : Theme.of(
+                    context,
+                  ).extension<StackColors>()!.buttonTextPrimaryDisabled,
           );
 
         case ButtonHeight.m:
@@ -64,9 +66,9 @@ class PrimaryButton extends StatelessWidget {
           return STextStyles.desktopTextExtraSmall(context).copyWith(
             color: enabled
                 ? Theme.of(context).extension<StackColors>()!.buttonTextPrimary
-                : Theme.of(context)
-                    .extension<StackColors>()!
-                    .buttonTextPrimaryDisabled,
+                : Theme.of(
+                    context,
+                  ).extension<StackColors>()!.buttonTextPrimaryDisabled,
           );
 
         case ButtonHeight.xl:
@@ -81,17 +83,17 @@ class PrimaryButton extends StatelessWidget {
           fontSize: 10,
           color: enabled
               ? Theme.of(context).extension<StackColors>()!.buttonTextPrimary
-              : Theme.of(context)
-                  .extension<StackColors>()!
-                  .buttonTextPrimaryDisabled,
+              : Theme.of(
+                  context,
+                ).extension<StackColors>()!.buttonTextPrimaryDisabled,
         );
       }
       return STextStyles.button(context).copyWith(
         color: enabled
             ? Theme.of(context).extension<StackColors>()!.buttonTextPrimary
-            : Theme.of(context)
-                .extension<StackColors>()!
-                .buttonTextPrimaryDisabled,
+            : Theme.of(
+                context,
+              ).extension<StackColors>()!.buttonTextPrimaryDisabled,
       );
     }
   }
@@ -145,37 +147,34 @@ class PrimaryButton extends StatelessWidget {
       textButton: TextButton(
         onPressed: enabled ? onPressed : null,
         style: enabled
-            ? Theme.of(context)
-                .extension<StackColors>()!
-                .getPrimaryEnabledButtonStyle(context)
+            ? Theme.of(
+                context,
+              ).extension<StackColors>()!.getPrimaryEnabledButtonStyle(context)
             : Theme.of(context)
-                .extension<StackColors>()!
-                .getPrimaryDisabledButtonStyle(context),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (icon != null) icon!,
-            if (icon != null && label != null)
-              SizedBox(
-                width: iconSpacing,
-              ),
-            if (label != null)
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    label!,
-                    style: getStyle(isDesktop, context),
-                  ),
-                  if (buttonHeight != null && buttonHeight == ButtonHeight.s)
-                    const SizedBox(
-                      height: 2,
-                    ),
-                ],
-              ),
-          ],
+                  .extension<StackColors>()!
+                  .getPrimaryDisabledButtonStyle(context),
+        child: Padding(
+          padding: horizontalContentPadding == null
+              ? .zero
+              : .symmetric(horizontal: horizontalContentPadding!),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (icon != null) icon!,
+              if (icon != null && label != null) SizedBox(width: iconSpacing),
+              if (label != null)
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(label!, style: getStyle(isDesktop, context)),
+                    if (buttonHeight != null && buttonHeight == ButtonHeight.s)
+                      const SizedBox(height: 2),
+                  ],
+                ),
+            ],
+          ),
         ),
       ),
     );

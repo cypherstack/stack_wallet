@@ -80,8 +80,7 @@ class _BuySparkNameViewState extends ConsumerState<BuySparkNameView> {
         Logging.instance.t(
           "Found address that already has a spark name. Generating next address...",
         );
-        myAddress = await wallet.generateNextSparkAddress();
-        await ref.read(mainDBProvider).updateOrPutAddresses([myAddress]);
+        myAddress = await wallet.generateNextSparkAddress(saveToDB: true);
       }
 
       addressController.text = myAddress!.value;

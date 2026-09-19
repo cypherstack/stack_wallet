@@ -215,8 +215,9 @@ class _RestoreFrostMsWalletViewState
         }
 
         final qrResult = await ref.read(pBarcodeScanner).scan(context: context);
+        if (qrResult.rawContent == null) return;
 
-        configFieldController.text = qrResult.rawContent;
+        configFieldController.text = qrResult.rawContent!;
 
         setState(() {
           _configEmpty = configFieldController.text.isEmpty;

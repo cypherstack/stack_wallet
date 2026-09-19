@@ -8,6 +8,8 @@
  *
  */
 
+import 'dart:io';
+
 import 'package:decimal/decimal.dart';
 import 'package:isar_community/isar.dart';
 import 'package:tuple/tuple.dart';
@@ -59,6 +61,7 @@ class MainDB {
         AddressSchema,
         AddressLabelSchema,
         EthContractSchema,
+        SolContractSchema,
         TransactionBlockExplorerSchema,
         StackThemeSchema,
         ContactEntrySchema,
@@ -69,13 +72,15 @@ class MainDB {
         WalletInfoMetaSchema,
         TokenWalletInfoSchema,
         FrostWalletInfoSchema,
+        WalletSolanaTokenInfoSchema,
       ],
       directory: (await StackFileSystem.applicationIsarDirectory()).path,
       // inspector: kDebugMode,
       inspector: false,
       name: "wallet_data",
-      maxSizeMiB: 512,
+      maxSizeMiB: Platform.isWindows ? 1024 : 512,
     );
+
     return true;
   }
 
@@ -328,6 +333,14 @@ class MainDB {
 
         if (storedUtxo != null) {
           // update
+          // Preserve user-set flags, but allow a fresh auto-freeze (e.g. firo
+          // masternode collateral detected after registration) unless the
+          // user deliberately unfroze this utxo before. Never auto-unfreeze:
+          // a flaky network check must not unlock coins.
+          final applyAutoBlock =
+              utxo.isBlocked &&
+              !storedUtxo.isBlocked &&
+              !storedUtxo.userUnfroze;
           set.remove(utxo);
           set.add(
             storedUtxo.copyWith(
@@ -336,6 +349,12 @@ class MainDB {
               blockTime: utxo.blockTime,
               blockHeight: utxo.blockHeight,
               blockHash: utxo.blockHash,
+              // passing null keeps the stored value
+              isBlocked: applyAutoBlock ? true : null,
+              blockedReason: applyAutoBlock ? utxo.blockedReason : null,
+              name: applyAutoBlock && storedUtxo.name.isEmpty
+                  ? utxo.name
+                  : null,
             ),
           );
         } else {
@@ -443,18 +462,16 @@ class MainDB {
 
   //
   Future<void> deleteWalletBlockchainData(String walletId) async {
-    final transactionCount = await getTransactions(walletId).count();
-    final transactionCountV2 = await isar.transactionV2s
-        .where()
-        .walletIdEqualTo(walletId)
-        .count();
-    final addressCount = await getAddresses(walletId).count();
-    final utxoCount = await getUTXOs(walletId).count();
-    // final lelantusCoinCount =
-    //     await isar.lelantusCoins.where().walletIdEqualTo(walletId).count();
-
     await isar.writeTxn(() async {
-      const paginateLimit = 50;
+      final transactionCount = await getTransactions(walletId).count();
+      final transactionCountV2 = await isar.transactionV2s
+          .where()
+          .walletIdEqualTo(walletId)
+          .count();
+      final addressCount = await getAddresses(walletId).count();
+      final utxoCount = await getUTXOs(walletId).count();
+
+      const paginateLimit = 100;
 
       // transactions
       for (int i = 0; i < transactionCount; i += paginateLimit) {
@@ -620,5 +637,27 @@ class MainDB {
   Future<void> putEthContracts(List<EthContract> contracts) =>
       isar.writeTxn(() async {
         await isar.ethContracts.putAll(contracts);
+      });
+
+  // ========== Solana =========================================================
+
+  // Solana tokens.
+
+  QueryBuilder<SolContract, SolContract, QWhere> getSolContracts() =>
+      isar.solContracts.where();
+
+  Future<SolContract?> getSolContract(String tokenMint) =>
+      isar.solContracts.where().addressEqualTo(tokenMint).findFirst();
+
+  SolContract? getSolContractSync(String tokenMint) =>
+      isar.solContracts.where().addressEqualTo(tokenMint).findFirstSync();
+
+  Future<int> putSolContract(SolContract token) => isar.writeTxn(() async {
+    return await isar.solContracts.put(token);
+  });
+
+  Future<void> putSolContracts(List<SolContract> tokens) =>
+      isar.writeTxn(() async {
+        await isar.solContracts.putAll(tokens);
       });
 }

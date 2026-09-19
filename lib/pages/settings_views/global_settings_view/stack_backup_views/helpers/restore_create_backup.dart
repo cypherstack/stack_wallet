@@ -11,8 +11,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
+import 'package:drift/drift.dart';
+import 'package:flutter/material.dart';
 import 'package:isar_community/isar.dart';
 import 'package:stack_wallet_backup/stack_wallet_backup.dart';
 import 'package:tuple/tuple.dart';
@@ -20,6 +21,7 @@ import 'package:uuid/uuid.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../../../../app_config.dart';
+import '../../../../../db/drift/shared_db/shared_database.dart';
 import '../../../../../db/hive/db.dart';
 import '../../../../../db/isar/main_db.dart';
 import '../../../../../models/exchange/change_now/exchange_transaction.dart';
@@ -31,8 +33,11 @@ import '../../../../../models/node_model.dart';
 import '../../../../../models/stack_restoring_ui_state.dart';
 import '../../../../../models/trade_wallet_lookup.dart';
 import '../../../../../models/wallet_restore_state.dart';
+import '../../../../../notifications/show_flush_bar.dart';
 import '../../../../../services/address_book_service.dart';
+import '../../../../../services/cakepay/cakepay_service.dart';
 import '../../../../../services/node_service.dart';
+import '../../../../../services/shopinbit/shopinbit_service.dart';
 import '../../../../../services/trade_notes_service.dart';
 import '../../../../../services/trade_sent_from_stack_service.dart';
 import '../../../../../services/trade_service.dart';
@@ -51,11 +56,8 @@ import '../../../../../wallets/isar/models/wallet_info.dart';
 import '../../../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import '../../../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
-import '../../../../../wallets/wallet/impl/monero_wallet.dart';
-import '../../../../../wallets/wallet/impl/wownero_wallet.dart';
 import '../../../../../wallets/wallet/impl/xelis_wallet.dart';
-import '../../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
-import '../../../../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
+import '../../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../../../wallets/wallet/wallet.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/private_key_interface.dart';
@@ -92,6 +94,36 @@ String createAutoBackupFilename(String dirPath, DateTime date) {
       "_${date.minute}_${date.second}.swb";
 }
 
+bool validateFail(
+  BuildContext context,
+  String pathToSave,
+  String passphrase,
+  String repeatPassphrase,
+) {
+  for (final e in [
+    [pathToSave.isEmpty, "Directory not chosen"],
+    if (!pathToSave.startsWith("content://"))
+      [!(Directory(pathToSave).existsSync()), "Directory does not exist"],
+    [passphrase.isEmpty, "A passphrase is required"],
+    [passphrase != repeatPassphrase, "Passphrase does not match"],
+  ]) {
+    if (e[0] as bool) {
+      if (context.mounted) {
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message: e[1] as String,
+            context: context,
+          ),
+        );
+      }
+      return true;
+    }
+  }
+
+  return false;
+}
+
 abstract class SWB {
   static Completer<void>? _cancelCompleter;
 
@@ -116,10 +148,11 @@ abstract class SWB {
   static bool _checkShouldCancel(
     PreRestoreState? revertToState,
     SecureStorageInterface secureStorageInterface,
+    ShopInBitService shopinbitService,
   ) {
     if (_shouldCancelRestore) {
       if (revertToState != null) {
-        _revert(revertToState, secureStorageInterface);
+        _revert(revertToState, secureStorageInterface, shopinbitService);
       } else {
         _cancelCompleter!.complete();
         _shouldCancelRestore = false;
@@ -131,88 +164,42 @@ abstract class SWB {
     }
   }
 
-  static Future<bool> encryptStackWalletWithPassphrase(
-    String fileToSave,
+  static Future<String> encryptStackWalletWithPassphrase(
     String passphrase,
     String plaintext,
   ) async {
-    try {
-      final File backupFile = File(fileToSave);
-      if (!backupFile.existsSync()) {
-        final String jsonBackup = plaintext;
-        final Uint8List content = Uint8List.fromList(utf8.encode(jsonBackup));
-        final Uint8List encryptedContent = await encryptWithPassphrase(
-          passphrase,
-          content,
-        );
-        backupFile.writeAsStringSync(
-          Format.uint8listToString(encryptedContent),
-        );
-      }
-      Logging.instance.d(backupFile.absolute);
-      return true;
-    } catch (e, s) {
-      Logging.instance.e("$e\n$s", error: e, stackTrace: s);
-      return false;
-    }
+    final String jsonBackup = plaintext;
+    final Uint8List content = Uint8List.fromList(utf8.encode(jsonBackup));
+    final Uint8List encryptedContent = await encryptWithPassphrase(
+      passphrase,
+      content,
+    );
+    return Format.uint8listToString(encryptedContent);
   }
 
-  static Future<bool> encryptStackWalletWithADK(
-    String fileToSave,
+  static Future<String> encryptStackWalletWithADK(
     String adk,
     String plaintext,
     int adkVersion,
   ) async {
-    try {
-      final File backupFile = File(fileToSave);
-      if (!backupFile.existsSync()) {
-        final String jsonBackup = plaintext;
-        final Uint8List content = Uint8List.fromList(utf8.encode(jsonBackup));
-        final Uint8List encryptedContent = await encryptWithAdk(
-          Format.stringToUint8List(adk),
-          content,
-          version: adkVersion,
-        );
-        backupFile.writeAsStringSync(
-          Format.uint8listToString(encryptedContent),
-        );
-      }
-      Logging.instance.d(backupFile.absolute);
-      return true;
-    } catch (e, s) {
-      Logging.instance.e("$e\n$s", error: e, stackTrace: s);
-      return false;
-    }
-  }
-
-  static Future<String?> decryptStackWalletWithPassphrase(
-    Tuple2<String, String> data,
-  ) async {
-    try {
-      final String fileToRestore = data.item1;
-      final String passphrase = data.item2;
-      final File backupFile = File(fileToRestore);
-      final String encryptedText = await backupFile.readAsString();
-      return await decryptStackWalletStringWithPassphrase(
-        Tuple2(encryptedText, passphrase),
-      );
-    } catch (e, s) {
-      Logging.instance.e("$e\n$s", error: e, stackTrace: s);
-      return null;
-    }
+    final String jsonBackup = plaintext;
+    final Uint8List content = Uint8List.fromList(utf8.encode(jsonBackup));
+    final Uint8List encryptedContent = await encryptWithAdk(
+      Format.stringToUint8List(adk),
+      content,
+      version: adkVersion,
+    );
+    return Format.uint8listToString(encryptedContent);
   }
 
   static Future<String?> decryptStackWalletStringWithPassphrase(
-    Tuple2<String, String> data,
+    ({String passphrase, String encryptedText}) data,
   ) async {
     try {
-      final encryptedText = data.item1;
-      final passphrase = data.item2;
-
-      final encryptedBytes = Format.stringToUint8List(encryptedText);
+      final encryptedBytes = Format.stringToUint8List(data.encryptedText);
 
       final decryptedContent = await decryptWithPassphrase(
-        passphrase,
+        data.passphrase,
         encryptedBytes,
       );
 
@@ -252,6 +239,23 @@ abstract class SWB {
       } catch (e, s) {
         Logging.instance.e("", error: e, stackTrace: s);
       }
+
+      Logging.instance.i("SWB backing up cakepay orders");
+      final cakepayOrderIds = await CakePayService.instance.getOrderIds();
+      backupJson["cakepayOrderIds"] = cakepayOrderIds;
+
+      Logging.instance.i("SWB backing up shopin bit info");
+      final sharedDB = SharedDrift.get();
+      final shopinBitCustomerKeys =
+          await (sharedDB.select(sharedDB.shopInBitSettings)
+                ..orderBy([(t) => OrderingTerm.desc(t.lastUsedAt)]))
+              .map((row) => row.customerKey)
+              .get();
+
+      backupJson["shopinBit"] = {
+        if (shopinBitCustomerKeys.isNotEmpty)
+          "shopinBitCustomerKeys": shopinBitCustomerKeys,
+      };
 
       Logging.instance.d("SWB backing up prefs");
 
@@ -429,6 +433,7 @@ abstract class SWB {
       mnemonicPassphrase: mnemonicPassphrase,
     );
     Wallet? wallet;
+    bool didExit = false;
     try {
       String? serializedKeys;
       String? multisigConfig;
@@ -473,25 +478,21 @@ abstract class SWB {
         viewOnlyData: viewOnlyData,
       );
 
-      switch (wallet.runtimeType) {
-        case const (EpiccashWallet):
-          await (wallet as EpiccashWallet).init(isRestore: true);
+      switch (wallet) {
+        case EpiccashWallet():
+          await wallet.init(isRestore: true);
           break;
 
-        case const (MimblewimblecoinWallet):
-          await (wallet as MimblewimblecoinWallet).init(isRestore: true);
+        case MimblewimblecoinWallet():
+          await wallet.init(isRestore: true);
           break;
 
-        case const (MoneroWallet):
-          await (wallet as MoneroWallet).init(isRestore: true);
+        case CryptonoteWallet():
+          await wallet.init(isRestore: true);
           break;
 
-        case const (WowneroWallet):
-          await (wallet as WowneroWallet).init(isRestore: true);
-          break;
-
-        case const (XelisWallet):
-          await (wallet as XelisWallet).init(isRestore: true);
+        case XelisWallet():
+          await wallet.init(isRestore: true);
           break;
 
         default:
@@ -501,8 +502,7 @@ abstract class SWB {
       int restoreHeight = walletbackup['restoreHeight'] as int? ?? 0;
       if (restoreHeight <= 0) {
         if (wallet is EpiccashWallet ||
-            wallet is LibMoneroWallet ||
-            wallet is LibSalviumWallet ||
+            wallet is CryptonoteWallet ||
             wallet is MimblewimblecoinWallet) {
           restoreHeight = 0;
         } else {
@@ -572,11 +572,14 @@ abstract class SWB {
 
       await restoringFuture;
 
+      final currentAddress = await wallet.getCurrentReceivingAddress();
+
+      await wallet.exit();
+      didExit = true;
+
       Logging.instance.i(
         "SWB restored: ${info.walletId} ${info.name} ${info.coin.prettyName}",
       );
-
-      final currentAddress = await wallet.getCurrentReceivingAddress();
       uiState?.update(
         walletId: info.walletId,
         restoringStatus: StackRestoringStatus.success,
@@ -587,7 +590,11 @@ abstract class SWB {
         mnemonicPassphrase: mnemonicPassphrase,
       );
     } catch (e, s) {
-      Logging.instance.i("", error: e, stackTrace: s);
+      Logging.instance.e(
+        "${wallet?.runtimeType} _asyncRestore failed",
+        error: e,
+        stackTrace: s,
+      );
       uiState?.update(
         walletId: info.walletId,
         restoringStatus: StackRestoringStatus.failed,
@@ -596,7 +603,9 @@ abstract class SWB {
       );
       return false;
     } finally {
-      await wallet?.exit();
+      if (!didExit) {
+        await wallet?.exit();
+      }
     }
     return true;
   }
@@ -606,6 +615,7 @@ abstract class SWB {
     StackRestoringUIState? uiState,
     Map<String, String> oldToNewWalletIdMap,
     SecureStorageInterface secureStorageInterface,
+    ShopInBitService shopinbitService,
   ) async {
     final Map<String, dynamic> prefs =
         validJSON["prefs"] as Map<String, dynamic>;
@@ -620,6 +630,9 @@ abstract class SWB {
         validJSON["tradeNotes"] as Map<String, dynamic>?;
 
     uiState?.preferences = StackRestoringStatus.restoring;
+
+    Logging.instance.d("SWB restoring cakepay order ids and shop in bit info");
+    await _restoreCakepayAndShopinBitInfo(validJSON, shopinbitService);
 
     Logging.instance.d("SWB restoring prefs");
     await _restorePrefs(prefs);
@@ -685,6 +698,7 @@ abstract class SWB {
     String jsonBackup,
     StackRestoringUIState? uiState,
     SecureStorageInterface secureStorageInterface,
+    ShopInBitService shopinbitService,
   ) async {
     if (!Platform.isLinux) await WakelockPlus.enable();
 
@@ -724,7 +738,7 @@ abstract class SWB {
 
     // basic cancel check here
     // no reverting required yet as nothing has been written to store
-    if (_checkShouldCancel(null, secureStorageInterface)) {
+    if (_checkShouldCancel(null, secureStorageInterface, shopinbitService)) {
       return false;
     }
 
@@ -733,10 +747,15 @@ abstract class SWB {
       uiState,
       oldToNewWalletIdMap,
       secureStorageInterface,
+      shopinbitService,
     );
 
     // check if cancel was requested and restore previous state
-    if (_checkShouldCancel(preRestoreState, secureStorageInterface)) {
+    if (_checkShouldCancel(
+      preRestoreState,
+      secureStorageInterface,
+      shopinbitService,
+    )) {
       return false;
     }
 
@@ -753,7 +772,11 @@ abstract class SWB {
 
     for (final walletbackup in wallets) {
       // check if cancel was requested and restore previous state
-      if (_checkShouldCancel(preRestoreState, secureStorageInterface)) {
+      if (_checkShouldCancel(
+        preRestoreState,
+        secureStorageInterface,
+        shopinbitService,
+      )) {
         return false;
       }
 
@@ -809,13 +832,21 @@ abstract class SWB {
       // final failovers = nodeService.failoverNodesFor(coin: coin);
 
       // check if cancel was requested and restore previous state
-      if (_checkShouldCancel(preRestoreState, secureStorageInterface)) {
+      if (_checkShouldCancel(
+        preRestoreState,
+        secureStorageInterface,
+        shopinbitService,
+      )) {
         return false;
       }
 
       managers.add(Tuple2(walletbackup, info));
       // check if cancel was requested and restore previous state
-      if (_checkShouldCancel(preRestoreState, secureStorageInterface)) {
+      if (_checkShouldCancel(
+        preRestoreState,
+        secureStorageInterface,
+        shopinbitService,
+      )) {
         return false;
       }
 
@@ -828,7 +859,11 @@ abstract class SWB {
     }
 
     // check if cancel was requested and restore previous state
-    if (_checkShouldCancel(preRestoreState, secureStorageInterface)) {
+    if (_checkShouldCancel(
+      preRestoreState,
+      secureStorageInterface,
+      shopinbitService,
+    )) {
       return false;
     }
 
@@ -839,7 +874,11 @@ abstract class SWB {
     // start restoring wallets
     for (final tuple in managers) {
       // check if cancel was requested and restore previous state
-      if (_checkShouldCancel(preRestoreState, secureStorageInterface)) {
+      if (_checkShouldCancel(
+        preRestoreState,
+        secureStorageInterface,
+        shopinbitService,
+      )) {
         return false;
       }
       final bools = await _asyncRestore(
@@ -853,13 +892,21 @@ abstract class SWB {
     }
 
     // check if cancel was requested and restore previous state
-    if (_checkShouldCancel(preRestoreState, secureStorageInterface)) {
+    if (_checkShouldCancel(
+      preRestoreState,
+      secureStorageInterface,
+      shopinbitService,
+    )) {
       return false;
     }
 
     for (final Future<bool> status in restoreStatuses) {
       // check if cancel was requested and restore previous state
-      if (_checkShouldCancel(preRestoreState, secureStorageInterface)) {
+      if (_checkShouldCancel(
+        preRestoreState,
+        secureStorageInterface,
+        shopinbitService,
+      )) {
         return false;
       }
       await status;
@@ -867,7 +914,11 @@ abstract class SWB {
 
     if (!Platform.isLinux) await WakelockPlus.disable();
     // check if cancel was requested and restore previous state
-    if (_checkShouldCancel(preRestoreState, secureStorageInterface)) {
+    if (_checkShouldCancel(
+      preRestoreState,
+      secureStorageInterface,
+      shopinbitService,
+    )) {
       return false;
     }
 
@@ -885,6 +936,7 @@ abstract class SWB {
   static Future<void> _revert(
     PreRestoreState revertToState,
     SecureStorageInterface secureStorageInterface,
+    ShopInBitService shopinbitService,
   ) async {
     final Map<String, dynamic> prefs =
         revertToState.validJSON["prefs"] as Map<String, dynamic>;
@@ -897,6 +949,12 @@ abstract class SWB {
         revertToState.validJSON["tradeTxidLookupData"] as List?;
     final Map<String, dynamic>? tradeNotes =
         revertToState.validJSON["tradeNotes"] as Map<String, dynamic>?;
+
+    // cakepay and shopinbit
+    await _restoreCakepayAndShopinBitInfo(
+      revertToState.validJSON,
+      shopinbitService,
+    );
 
     // prefs
     await _restorePrefs(prefs);
@@ -1097,6 +1155,28 @@ abstract class SWB {
     Logging.instance.d("Revert SWB complete");
   }
 
+  static Future<void> _restoreCakepayAndShopinBitInfo(
+    Map<String, dynamic> backupJson,
+    ShopInBitService shopinbitService,
+  ) async {
+    final cakepayOrderIds = (backupJson["cakepayOrderIds"] as List? ?? [])
+        .cast<String>();
+    for (final orderId in cakepayOrderIds) {
+      await CakePayService.instance.addOrderId(orderId);
+    }
+
+    final json = backupJson["shopinBit"] as Map? ?? {};
+
+    if (json.isEmpty) return;
+
+    final shopinBitCustomerKeys = json["shopinBitCustomerKeys"] as List?;
+    if (shopinBitCustomerKeys != null && shopinBitCustomerKeys.isNotEmpty) {
+      for (final key in shopinBitCustomerKeys.cast<String>()) {
+        await shopinbitService.recoverCustomerKey(key);
+      }
+    }
+  }
+
   static Future<void> _restorePrefs(Map<String, dynamic> prefs) async {
     final _prefs = Prefs.instance;
     await _prefs.init();
@@ -1247,7 +1327,8 @@ abstract class SWB {
       TradeWalletLookup lookup = TradeWalletLookup.fromJson(json);
       // update walletIds
       final List<String> walletIds = lookup.walletIds
-          .map((e) => oldToNewWalletIdMap[e]!)
+          // fallback to e as that wallet may have been deleted in the past
+          .map((e) => oldToNewWalletIdMap[e] ?? e)
           .toList();
       lookup = lookup.copyWith(walletIds: walletIds);
 

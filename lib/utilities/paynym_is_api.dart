@@ -65,10 +65,16 @@ class PaynymIsApi {
     // debugPrint("Paynym response code: ${response.code}");
     // debugPrint("Paynym response body: ${response.body}");
 
-    return Tuple2(
-      jsonDecode(response.body) as Map<String, dynamic>,
-      response.code,
-    );
+    Map<String, dynamic> parsedBody;
+    try {
+      final bodyStr = response.body.trim();
+      parsedBody = bodyStr.isEmpty
+          ? {}
+          : jsonDecode(bodyStr) as Map<String, dynamic>;
+    } catch (_) {
+      parsedBody = {};
+    }
+    return Tuple2(parsedBody, response.code);
   }
 
   // ### `/api/v1/create`
@@ -357,10 +363,15 @@ class PaynymIsApi {
     switch (result.item2) {
       case 200:
         message = "Payment code successfully claimed";
-        value = PaynymClaim.fromMap(result.item1);
+        if (result.item1.isNotEmpty) {
+          value = PaynymClaim.fromMap(result.item1);
+        }
         break;
       case 400:
         message = "Bad request";
+        break;
+      case 401:
+        message = "Unauthorized token or signature";
         break;
       default:
         message = result.item1["message"] as String? ?? "Unknown error";

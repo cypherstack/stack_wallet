@@ -1,3 +1,7 @@
+import 'dart:math';
+
+import '../../utilities/dynamic_object.dart';
+
 export '../generated/libepiccash_interface_impl.dart';
 
 abstract class LibEpicCashInterface {
@@ -7,24 +11,30 @@ abstract class LibEpicCashInterface {
   bool txTypeIsReceiveCancelled(Enum value);
   bool txTypeIsSentCancelled(Enum value);
 
-  Future<String> initializeNewWallet({
+  Future<DynamicObject> initializeNewWallet({
     required String config,
     required String mnemonic,
     required String password,
     required String name,
+    required String epicBoxConfig,
   });
 
-  Future<String> openWallet({required String config, required String password});
+  Future<DynamicObject> openWallet({
+    required String config,
+    required String password,
+    required String epicboxConfig,
+  });
 
-  Future<void> recoverWallet({
+  Future<DynamicObject> recoverWallet({
     required String config,
     required String password,
     required String mnemonic,
     required String name,
+    required String epicBoxConfig,
   });
 
   Future<({String commitId, String slateId})> txHttpSend({
-    required String wallet,
+    required DynamicObject wallet,
     required int selectionStrategyIsAll,
     required int minimumConfirmations,
     required String message,
@@ -32,40 +42,51 @@ abstract class LibEpicCashInterface {
     required String address,
   });
 
-  Future<({String commitId, String slateId})> createTransaction({
-    required String wallet,
+  Future<({String commitId, String slateId, String slateJson})>
+  createTransaction({
+    required DynamicObject wallet,
     required int amount,
     required String address,
     required int secretKeyIndex,
-    required String epicboxConfig,
     required int minimumConfirmations,
     required String note,
+    bool returnSlate = false,
+  });
+
+  Future<({String slateId, String commitId, String slateJson})> txReceive({
+    required DynamicObject wallet,
+    required String slateJson,
+  });
+
+  Future<({String slateId, String commitId, String slateJson})> txFinalize({
+    required DynamicObject wallet,
+    required String slateJson,
   });
 
   Future<String> cancelTransaction({
-    required String wallet,
+    required DynamicObject wallet,
     required String transactionId,
   });
 
   Future<List<EpicTransaction>> getTransactions({
-    required String wallet,
+    required DynamicObject wallet,
     required int refreshFromNode,
   });
 
-  void startEpicboxListener({
-    required String wallet,
-    required String epicboxConfig,
-  });
+  Future<void> startEpicboxListener({required DynamicObject wallet});
 
-  void stopEpicboxListener();
+  Future<void> stopEpicboxListener({required DynamicObject wallet});
 
-  bool validateSendAddress({required String address});
+  Future<bool> isEpicboxListenerRunning({required DynamicObject wallet});
+
+  Future<bool> validateSendAddress({required String address});
+
+  bool validateSendAddressSync({required String address});
 
   Future<({int fee, bool strategyUseAll, int total})> getTransactionFees({
-    required String wallet,
+    required DynamicObject wallet,
     required int amount,
     required int minimumConfirmations,
-    required int available,
   });
 
   Future<
@@ -77,26 +98,35 @@ abstract class LibEpicCashInterface {
     })
   >
   getWalletBalances({
-    required String wallet,
+    required DynamicObject wallet,
     required int refreshFromNode,
     required int minimumConfirmations,
   });
 
   Future<String> getAddressInfo({
-    required String wallet,
+    required DynamicObject wallet,
     required int index,
     required String epicboxConfig,
   });
 
   Future<int> scanOutputs({
-    required String wallet,
+    required DynamicObject wallet,
     required int startHeight,
     required int numberOfBlocks,
   });
 
   Future<int> getChainHeight({required String config});
 
-  Future<String> deleteWallet({required String wallet, required String config});
+  Future<void> close({required DynamicObject wallet});
+
+  Future<String> deleteWallet({required String config});
+
+  void updateEpicboxConfig({
+    required DynamicObject wallet,
+    required String epicBoxConfig,
+  });
+
+  void updateConfig({required DynamicObject wallet, required String config});
 
   String getPluginVersion();
 }
@@ -141,6 +171,24 @@ class EpicTransaction {
     this.kernelLookupMinHeight,
     this.paymentProof,
   });
+
+  @override
+  String toString() {
+    return 'EpicTransaction('
+        'id: $id, '
+        'txSlateId: $txSlateId, '
+        'type: $txType, '
+        'confirmed: $confirmed, '
+        'inputs: $numInputs, '
+        'outputs: $numOutputs, '
+        'credited: $amountCredited, '
+        'debited: $amountDebited, '
+        'fee: $fee, '
+        'created: $creationTs, '
+        'confirmed: $confirmationTs, '
+        'messages: ${messages?.length ?? 0}'
+        ')';
+  }
 }
 
 class EpicMessage {
@@ -155,6 +203,15 @@ class EpicMessage {
     this.message,
     this.messageSig,
   });
+
+  @override
+  String toString() {
+    return 'EpicMessage('
+        'id: $id, '
+        'publicKey: ${publicKey.substring(0, 8)}..., '
+        'message: ${message != null ? '"${message!.substring(0, min(20, message!.length))}..."' : 'null'}'
+        ')';
+  }
 }
 
 class BadHttpAddressException implements Exception {}

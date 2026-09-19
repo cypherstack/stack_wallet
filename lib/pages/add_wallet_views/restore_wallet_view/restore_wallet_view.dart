@@ -40,13 +40,13 @@ import '../../../utilities/logger.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../wallets/crypto_currency/coins/ethereum.dart';
+import '../../../wallets/crypto_currency/coins/solana.dart';
 import '../../../wallets/isar/models/wallet_info.dart';
 import '../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
-import '../../../wallets/wallet/impl/monero_wallet.dart';
-import '../../../wallets/wallet/impl/salvium_wallet.dart';
-import '../../../wallets/wallet/impl/wownero_wallet.dart';
 import '../../../wallets/wallet/impl/xelis_wallet.dart';
+import '../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../wallets/wallet/intermediate/external_wallet.dart';
 import '../../../wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
 import '../../../wallets/wallet/supporting/mimblewimblecoin_wallet_info_extension.dart';
@@ -61,6 +61,7 @@ import '../../../widgets/table_view/table_view.dart';
 import '../../../widgets/table_view/table_view_cell.dart';
 import '../../../widgets/table_view/table_view_row.dart';
 import '../../../wl_gen/interfaces/cs_monero_interface.dart';
+import '../../../wl_gen/interfaces/cs_wownero_interface.dart';
 import '../../../wl_gen/interfaces/lib_xelis_interface.dart';
 import '../../home_view/home_view.dart';
 import '../add_token_view/edit_wallet_tokens_view.dart';
@@ -189,7 +190,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       }
     }
     if (widget.coin is Wownero) {
-      final wowneroWordList = csMonero.getWowneroWordList(
+      final wowneroWordList = csWownero.getWowneroWordList(
         "English",
         widget.seedWordsLength,
       );
@@ -342,35 +343,26 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           );
 
           // TODO: extract interface with isRestore param
-          switch (wallet.runtimeType) {
-            case const (EpiccashWallet):
-              await (wallet as EpiccashWallet).init(isRestore: true);
+          switch (wallet) {
+            case EpiccashWallet():
+              await wallet.init(isRestore: true);
               break;
 
-            case const (MimblewimblecoinWallet):
-              await (wallet as MimblewimblecoinWallet).init(isRestore: true);
+            case MimblewimblecoinWallet():
+              await wallet.init(isRestore: true);
               break;
 
-            case const (MoneroWallet):
-              await (wallet as MoneroWallet).init(isRestore: true);
+            case CryptonoteWallet():
+              await wallet.init(isRestore: true);
               break;
 
-            case const (WowneroWallet):
-              await (wallet as WowneroWallet).init(isRestore: true);
-              break;
-
-            case const (SalviumWallet):
-              await (wallet as SalviumWallet).init(isRestore: true);
-              break;
-
-            case const (XelisWallet):
-              await (wallet as XelisWallet).init(isRestore: true);
+            case XelisWallet():
+              await wallet.init(isRestore: true);
               break;
 
             default:
               await wallet.init();
           }
-
           await wallet.recover(isRescan: false);
 
           if (wallet is ExternalWallet) {
@@ -422,7 +414,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                       (route) => false,
                     ),
                   );
-                  if (info.coin is Ethereum) {
+                  if (info.coin is Ethereum || info.coin is Solana) {
                     unawaited(
                       Navigator.of(context).pushNamed(
                         EditWalletTokensView.routeName,
@@ -621,7 +613,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
     try {
       final qrResult = await ref.read(pBarcodeScanner).scan(context: context);
 
-      final results = AddressUtils.decodeQRSeedData(qrResult.rawContent);
+      final results = AddressUtils.decodeQRSeedData(qrResult.rawContent ?? "");
 
       if (results["mnemonic"] != null) {
         final list = (results["mnemonic"] as List)
@@ -871,6 +863,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                             child: Column(
                                               children: [
                                                 TextFormField(
+                                                  enableIMEPersonalizedLearning:
+                                                      false,
                                                   obscureText: _hideSeedWords,
                                                   autocorrect: !isDesktop,
                                                   enableSuggestions: !isDesktop,
@@ -1017,6 +1011,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                             child: Column(
                                               children: [
                                                 TextFormField(
+                                                  enableIMEPersonalizedLearning:
+                                                      false,
                                                   obscureText: _hideSeedWords,
                                                   autocorrect: !isDesktop,
                                                   enableSuggestions: !isDesktop,
@@ -1158,6 +1154,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                     vertical: 4,
                                   ),
                                   child: TextFormField(
+                                    enableIMEPersonalizedLearning: false,
                                     obscureText: _hideSeedWords,
                                     autocorrect: !isDesktop,
                                     enableSuggestions: !isDesktop,

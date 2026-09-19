@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../providers/progress_report/xelis_table_progress_provider.dart';
+import '../../utilities/dynamic_object.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 
 export '../generated/lib_xelis_interface_impl.dart';
@@ -18,7 +19,10 @@ abstract class LibXelisInterface {
 
   Stream<XelisTableProgressState> createProgressReportStream();
 
-  bool isAddressValid({required String address});
+  bool isAddressValid({
+    required String address,
+    required CryptoCurrencyNetwork network,
+  });
 
   bool validateSeedWord(String word);
 
@@ -32,7 +36,7 @@ abstract class LibXelisInterface {
 
   Future<void> updateTables({
     required String precomputedTablesPath,
-    required bool l1Low,
+    required bool stack_l1Low,
   });
 
   Future<String> getSeed(OpaqueXelisWallet wallet);
@@ -46,7 +50,7 @@ abstract class LibXelisInterface {
     String? seed,
     String? privateKey,
     String? precomputedTablesPath,
-    bool? l1Low,
+    bool? stack_l1Low,
   });
 
   Future<OpaqueXelisWallet> openXelisWallet(
@@ -56,7 +60,7 @@ abstract class LibXelisInterface {
     required String password,
     required CryptoCurrencyNetwork network,
     String? precomputedTablesPath,
-    bool? l1Low,
+    bool? stack_l1Low,
   });
 
   String getAddress(OpaqueXelisWallet wallet);
@@ -225,6 +229,8 @@ enum XelisTableSize {
   low,
   full;
 
+  // TODO: add more granular table size management interface
+  // for now, just patching the old system into the new FFI API
   bool get isLow => this == XelisTableSize.low;
 
   static XelisTableSize get platformDefault {
@@ -294,7 +300,10 @@ final class NewAsset extends Event {
   // final xelis_sdk.AssetData asset;
   final String name;
   final int decimals;
-  final int? maxSupply;
+
+  // if used in later, this will probably need to be deconstructed in order
+  // to keep conditional import of xelis working
+  final DynamicObject? maxSupply;
 
   NewAsset(this.name, this.decimals, this.maxSupply);
 }

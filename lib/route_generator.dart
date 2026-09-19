@@ -15,8 +15,10 @@ import 'package:tuple/tuple.dart';
 
 import 'app_config.dart';
 import 'db/drift/database.dart';
+import 'db/drift/shared_db/shared_database.dart';
 import 'models/add_wallet_list_entity/add_wallet_list_entity.dart';
 import 'models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
+import 'models/add_wallet_list_entity/sub_classes/sol_token_entity.dart';
 import 'models/buy/response_objects/quote.dart';
 import 'models/exchange/incomplete_exchange.dart';
 import 'models/exchange/response_objects/trade.dart';
@@ -28,6 +30,9 @@ import 'models/keys/key_data_interface.dart';
 import 'models/keys/view_only_wallet_data.dart';
 import 'models/paynym/paynym_account_lite.dart';
 import 'models/send_view_auto_fill_data.dart';
+import 'models/shopinbit/shopinbit_enums.dart';
+import 'models/shopinbit/shopinbit_request_draft.dart';
+import 'pages/add_wallet_views/add_token_view/add_custom_solana_token_view.dart';
 import 'pages/add_wallet_views/add_token_view/add_custom_token_view.dart';
 import 'pages/add_wallet_views/add_token_view/edit_wallet_tokens_view.dart';
 import 'pages/add_wallet_views/add_wallet_view/add_wallet_view.dart';
@@ -42,6 +47,7 @@ import 'pages/add_wallet_views/new_wallet_recovery_phrase_warning_view/new_walle
 import 'pages/add_wallet_views/restore_wallet_view/restore_options_view/restore_options_view.dart';
 import 'pages/add_wallet_views/restore_wallet_view/restore_view_only_wallet_view.dart';
 import 'pages/add_wallet_views/restore_wallet_view/restore_wallet_view.dart';
+import 'pages/add_wallet_views/select_wallet_for_sol_token_view.dart';
 import 'pages/add_wallet_views/select_wallet_for_token_view.dart';
 import 'pages/add_wallet_views/verify_recovery_phrase_view/verify_recovery_phrase_view.dart';
 import 'pages/address_book_views/address_book_view.dart';
@@ -54,13 +60,20 @@ import 'pages/address_book_views/subviews/edit_contact_name_emoji_view.dart';
 import 'pages/buy_view/buy_in_wallet_view.dart';
 import 'pages/buy_view/buy_quote_preview.dart';
 import 'pages/buy_view/buy_view.dart';
+import 'pages/cakepay/cakepay_card_detail_view.dart';
+import 'pages/cakepay/cakepay_confirm_send_view.dart';
+import 'pages/cakepay/cakepay_order_view.dart';
+import 'pages/cakepay/cakepay_orders_view.dart';
+import 'pages/cakepay/cakepay_send_from_view.dart';
+import 'pages/cakepay/cakepay_vendors_view.dart';
 import 'pages/cashfusion/cashfusion_view.dart';
 import 'pages/cashfusion/fusion_progress_view.dart';
 import 'pages/churning/churning_progress_view.dart';
 import 'pages/churning/churning_view.dart';
 import 'pages/coin_control/coin_control_view.dart';
 import 'pages/coin_control/utxo_details_view.dart';
-import 'pages/exchange_view/choose_from_stack_view.dart';
+import 'pages/epic_finalize_view/epic_finalize_view.dart';
+import 'pages/exchange_view/choose_address_from_stack_view.dart';
 import 'pages/exchange_view/edit_trade_note_view.dart';
 import 'pages/exchange_view/exchange_step_views/step_1_view.dart';
 import 'pages/exchange_view/exchange_step_views/step_2_view.dart';
@@ -74,6 +87,9 @@ import 'pages/generic/single_field_edit_view.dart';
 import 'pages/home_view/home_view.dart';
 import 'pages/intro_view.dart';
 import 'pages/manage_favorites_view/manage_favorites_view.dart';
+import 'pages/masternodes/create_masternode_view.dart';
+import 'pages/masternodes/masternode_details_view.dart';
+import 'pages/masternodes/masternodes_home_view.dart';
 import 'pages/monkey/monkey_view.dart';
 import 'pages/namecoin_names/buy_domain_view.dart';
 import 'pages/namecoin_names/confirm_name_transaction_view.dart';
@@ -93,10 +109,12 @@ import 'pages/receive_view/addresses/edit_address_label_view.dart';
 import 'pages/receive_view/addresses/wallet_addresses_view.dart';
 import 'pages/receive_view/generate_receiving_uri_qr_code_view.dart';
 import 'pages/receive_view/receive_view.dart';
+import 'pages/receive_view/sol_token_receive_view.dart';
 import 'pages/salvium_stake/salvium_create_stake_view.dart';
 import 'pages/send_view/confirm_transaction_view.dart';
 import 'pages/send_view/frost_ms/frost_send_view.dart';
 import 'pages/send_view/send_view.dart';
+import 'pages/send_view/sol_token_send_view.dart';
 import 'pages/send_view/token_send_view.dart';
 import 'pages/settings_views/global_settings_view/about_view.dart';
 import 'pages/settings_views/global_settings_view/advanced_views/advanced_settings_view.dart';
@@ -135,6 +153,8 @@ import 'pages/settings_views/global_settings_view/syncing_preferences_views/sync
 import 'pages/settings_views/global_settings_view/syncing_preferences_views/syncing_preferences_view.dart';
 import 'pages/settings_views/global_settings_view/syncing_preferences_views/wallet_syncing_options_view.dart';
 import 'pages/settings_views/global_settings_view/tor_settings/tor_settings_view.dart';
+import 'pages/settings_views/wallet_settings_view/epicbox_settings/add_edit_epicbox_mobile_view.dart';
+import 'pages/settings_views/wallet_settings_view/epicbox_settings/manage_epicbox_view.dart';
 import 'pages/settings_views/wallet_settings_view/frost_ms/frost_ms_options_view.dart';
 import 'pages/settings_views/wallet_settings_view/frost_ms/frost_participants_view.dart';
 import 'pages/settings_views/wallet_settings_view/frost_ms/initiate_resharing/complete_reshare_config_view.dart';
@@ -150,8 +170,25 @@ import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_setting
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/rbf_settings_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/rename_wallet_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/spark_info.dart';
+import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/spark_view_key_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/wallet_settings_wallet_settings_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/xpub_view.dart';
+import 'pages/shopinbit/shopinbit_car_fee_view.dart';
+import 'pages/shopinbit/shopinbit_car_research_payment_view.dart';
+import 'pages/shopinbit/shopinbit_offer_view.dart';
+import 'pages/shopinbit/shopinbit_order_created.dart';
+import 'pages/shopinbit/shopinbit_payment_view.dart';
+import 'pages/shopinbit/shopinbit_send_from_view.dart';
+import 'pages/shopinbit/shopinbit_settings_view.dart';
+import 'pages/shopinbit/shopinbit_setup_view.dart';
+import 'pages/shopinbit/shopinbit_shipping_view.dart';
+import 'pages/shopinbit/shopinbit_step_2.dart';
+import 'pages/shopinbit/shopinbit_step_3.dart';
+import 'pages/shopinbit/shopinbit_step_4.dart';
+import 'pages/shopinbit/shopinbit_ticket_detail.dart';
+import 'pages/shopinbit/shopinbit_tickets_view.dart';
+import 'pages/signing/signing_view.dart';
+import 'pages/signing/sub_widgets/address_list.dart';
 import 'pages/spark_names/buy_spark_name_view.dart';
 import 'pages/spark_names/confirm_spark_name_transaction_view.dart';
 import 'pages/spark_names/spark_names_home_view.dart';
@@ -159,6 +196,8 @@ import 'pages/spark_names/sub_widgets/spark_name_details.dart';
 import 'pages/special/firo_rescan_recovery_error_dialog.dart';
 import 'pages/stack_privacy_calls.dart';
 import 'pages/token_view/my_tokens_view.dart';
+import 'pages/token_view/sol_token_view.dart';
+import 'pages/token_view/solana_token_contract_details_view.dart';
 import 'pages/token_view/token_contract_details_view.dart';
 import 'pages/token_view/token_view.dart';
 import 'pages/wallet_view/transaction_views/all_transactions_view.dart';
@@ -185,6 +224,7 @@ import 'pages_desktop_specific/desktop_exchange/desktop_exchange_view.dart';
 import 'pages_desktop_specific/desktop_home_view.dart';
 import 'pages_desktop_specific/mweb_utxos_view.dart';
 import 'pages_desktop_specific/my_stack_view/my_stack_view.dart';
+import 'pages_desktop_specific/my_stack_view/wallet_view/desktop_sol_token_view.dart';
 import 'pages_desktop_specific/my_stack_view/wallet_view/desktop_token_view.dart';
 import 'pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
 import 'pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/delete_wallet_keys_popup.dart';
@@ -200,6 +240,9 @@ import 'pages_desktop_specific/password/create_password_view.dart';
 import 'pages_desktop_specific/password/delete_password_warning_view.dart';
 import 'pages_desktop_specific/password/forgot_password_desktop_view.dart';
 import 'pages_desktop_specific/password/forgotten_passphrase_restore_from_swb.dart';
+import 'pages_desktop_specific/services/cakepay/desktop_gift_cards_view.dart';
+import 'pages_desktop_specific/services/desktop_services_view.dart';
+import 'pages_desktop_specific/services/shopin_bit/desktop_shopinbit_view.dart';
 import 'pages_desktop_specific/settings/desktop_settings_view.dart';
 import 'pages_desktop_specific/settings/settings_menu/advanced_settings/advanced_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/appearance_settings/appearance_settings.dart';
@@ -213,13 +256,18 @@ import 'pages_desktop_specific/settings/settings_menu/security_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/syncing_preferences_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/tor_settings/tor_settings.dart';
 import 'pages_desktop_specific/spark_coins/spark_coins_view.dart';
+import 'services/cakepay/src/models/card.dart';
+import 'services/cakepay/src/models/order.dart';
 import 'services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import 'services/shopinbit/src/models/car_research.dart';
+import 'services/shopinbit/src/models/payment.dart';
 import 'utilities/amount/amount.dart';
 import 'utilities/enums/add_wallet_type_enum.dart';
 import 'wallets/crypto_currency/crypto_currency.dart';
 import 'wallets/crypto_currency/intermediate/frost_currency.dart';
 import 'wallets/models/tx_data.dart';
+import 'wallets/wallet/impl/firo_wallet.dart';
 import 'wallets/wallet/wallet.dart';
 import 'wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import 'widgets/choose_coin_view.dart';
@@ -364,6 +412,16 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
+      case DesktopSolTokenView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => DesktopSolTokenView(walletId: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
       case SelectWalletForTokenView.routeName:
         if (args is EthTokenEntity) {
           return getRoute(
@@ -374,10 +432,28 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
+      case SelectWalletForSolTokenView.routeName:
+        if (args is SolTokenEntity) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => SelectWalletForSolTokenView(entity: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
       case AddCustomTokenView.routeName:
         return getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
           builder: (_) => const AddCustomTokenView(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case AddCustomSolanaTokenView.routeName:
+        final walletId = args is String ? args : null;
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => AddCustomSolanaTokenView(walletId: walletId),
           settings: RouteSettings(name: settings.name),
         );
 
@@ -404,6 +480,19 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
+      case SolanaTokenContractDetailsView.routeName:
+        if (args is Tuple2<String, String>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => SolanaTokenContractDetailsView(
+              tokenMint: args.item1,
+              walletId: args.item2,
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
       case SingleFieldEditView.routeName:
         if (args is Tuple2<String, String>) {
           return getRoute(
@@ -422,6 +511,26 @@ class RouteGenerator {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => MonkeyView(walletId: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case SigningView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => SigningView(walletId: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case CompactAddressListView.routeName:
+        if (args is String) {
+          return getRoute<Address>(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => CompactAddressListView(walletId: args),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -822,6 +931,41 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
+      case MasternodesHomeView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => MasternodesHomeView(walletId: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case CreateMasternodeView.routeName:
+        if (args is Map<String, dynamic>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => CreateMasternodeView(
+              firoWalletId: args['walletId'] as String,
+              collateralTxid: args['collateralTxid'] as String,
+              collateralVout: args['collateralVout'] as int,
+              collateralAddress: args['collateralAddress'] as String,
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case MasternodeDetailsView.routeName:
+        if (args is MasternodeInfo) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => MasternodeDetailsView(node: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
       case BuySparkNameView.routeName:
         if (args is ({String walletId, String name})) {
           return getRoute(
@@ -915,6 +1059,207 @@ class RouteGenerator {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => DesktopChurningView(walletId: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ShopInBitSetupView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const ShopInBitSetupView(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case CakePayVendorsView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const CakePayVendorsView(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case CakePayCardDetailView.routeName:
+        if (args is CakePayCard) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => CakePayCardDetailView(card: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case CakePayOrderView.routeName:
+        if (args is CakePayOrder) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => CakePayOrderView(order: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case CakePayOrdersView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const CakePayOrdersView(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case CakePaySendFromView.routeName:
+        if (args is Map<String, dynamic>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => CakePaySendFromView(
+              address: args['address'] as String,
+              orderId: args['orderId'] as String,
+              coin: args['coin'] as CryptoCurrency?,
+              amount: args['amount'] as Amount?,
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case CakePayConfirmSendView.routeName:
+        return _routeError("${settings.name} should be pushed directly");
+
+      case ShopInBitStep2.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const ShopInBitStep2(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case ShopInBitStep3.routeName:
+        if (args is ({ShopInBitCategory category, String customerKey})) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ShopInBitStep3(
+              category: args.category,
+              customerKey: args.customerKey,
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ShopInBitStep4.routeName:
+        if (args is ShopInBitCategory) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ShopInBitStep4(category: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ShopInBitOrderCreated.routeName:
+        if (args is int) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ShopInBitOrderCreated(apiTicketId: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ShopInBitTicketsView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const ShopInBitTicketsView(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case ShopInBitSettingsView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const ShopInBitSettingsView(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case ShopInBitTicketDetail.routeName:
+        if (args is int) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ShopInBitTicketDetail(apiTicketId: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ShopInBitOfferView.routeName:
+        if (args is int) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ShopInBitOfferView(apiTicketId: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ShopInBitShippingView.routeName:
+        if (args
+            is ({
+              ShopInBitTicket ticket,
+              List<Map<String, dynamic>> countries,
+            })) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ShopInBitShippingView(
+              ticket: args.ticket,
+              countries: args.countries,
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ShopInBitCarFeeView.routeName:
+        if (args is ShopinbitRequestDraft) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ShopInBitCarFeeView(draft: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ShopInBitCarResearchPaymentView.routeName:
+        if (args is ({CarResearchInvoice invoice, String customerKey})) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ShopInBitCarResearchPaymentView(
+              invoice: args.invoice,
+              customerKey: args.customerKey,
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ShopInBitPaymentView.routeName:
+        if (args is ({int apiTicketId, PaymentInfo paymentInfo})) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ShopInBitPaymentView(
+              apiTicketId: args.apiTicketId,
+              paymentInfo: args.paymentInfo,
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ShopInBitSendFromView.routeName:
+        if (args is Tuple4<CryptoCurrency, Amount, String, int>) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ShopInBitSendFromView(
+              coin: args.item1,
+              amount: args.item2,
+              address: args.item3,
+              apiTicketId: args.item4,
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1331,6 +1676,35 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
+      case ManageEpicboxView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ManageEpicboxView(walletId: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case AddEditEpicboxMobileView.routeName:
+        if (args
+            is ({
+              AddEditEpicboxMobileViewType viewType,
+              String? epicBoxId,
+              String routeOnSuccessOrDelete,
+            })) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => AddEditEpicboxMobileView(
+              viewType: args.viewType,
+              epicBoxId: args.epicBoxId,
+              routeOnSuccessOrDelete: args.routeOnSuccessOrDelete,
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
       case WalletBackupView.routeName:
         if (args is ({String walletId, List<String> mnemonic})) {
           return getRoute(
@@ -1694,6 +2068,16 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
+      case EpicFinalizeView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => EpicFinalizeView(walletId: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
       case WalletAddressesView.routeName:
         if (args is String) {
           return getRoute(
@@ -1762,6 +2146,28 @@ class RouteGenerator {
               coin: args.item2,
               tokenContract: args.item3,
             ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case SolTokenSendView.routeName:
+        if (args is (String, String)) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) =>
+                SolTokenSendView(walletId: args.$1, tokenMint: args.$2),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case SolTokenReceiveView.routeName:
+        if (args is (String, String)) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) =>
+                SolTokenReceiveView(walletId: args.$1, tokenMint: args.$2),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1965,11 +2371,11 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
-      case ChooseFromStackView.routeName:
+      case ChooseAddressFromStackView.routeName:
         if (args is CryptoCurrency) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => ChooseFromStackView(coin: args),
+            builder: (_) => ChooseAddressFromStackView(coin: args),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -2159,6 +2565,27 @@ class RouteGenerator {
         return getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
           builder: (_) => const DesktopSettingsView(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case DesktopServicesView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const DesktopServicesView(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case DesktopShopInBitView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const DesktopShopInBitView(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case DesktopGiftCardsView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const DesktopGiftCardsView(),
           settings: RouteSettings(name: settings.name),
         );
 
@@ -2506,14 +2933,44 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
+      case SolTokenView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => SolTokenView(walletId: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        } else if (args is ({String walletId, bool popPrevious})) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => SolTokenView(
+              walletId: args.walletId,
+              popPrevious: args.popPrevious,
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
       // == End of desktop specific routes =====================================
+
+      case SparkViewKeyView.routeName:
+        if (args is (String, String)) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) =>
+                SparkViewKeyView(walletId: args.$1, sparkViewKeyHex: args.$2),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       default:
         return _routeError("");
     }
   }
 
-  static Route<dynamic> getRoute({
+  static Route<T> getRoute<T>({
     bool shouldUseMaterialRoute = useMaterialPageRoute,
     required Widget Function(BuildContext) builder,
     String? title,
@@ -2522,14 +2979,14 @@ class RouteGenerator {
     bool fullscreenDialog = false,
   }) {
     if (shouldUseMaterialRoute) {
-      return MaterialPageRoute(
+      return MaterialPageRoute<T>(
         builder: builder,
         settings: settings,
         maintainState: maintainState,
         fullscreenDialog: fullscreenDialog,
       );
     } else {
-      return CupertinoPageRoute(
+      return CupertinoPageRoute<T>(
         builder: builder,
         settings: settings,
         title: title,
@@ -2539,7 +2996,7 @@ class RouteGenerator {
     }
   }
 
-  static Route<dynamic> createSlideTransitionRoute(Widget viewToInsert) {
+  static Route<T> createSlideTransitionRoute<T>(Widget viewToInsert) {
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) => viewToInsert,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -2557,7 +3014,7 @@ class RouteGenerator {
     );
   }
 
-  static Route<dynamic> _routeError(String message) {
+  static Route<T> _routeError<T>(String message) {
     // Replace with robust ErrorView page
     final Widget errorView = Scaffold(
       appBar: AppBar(
@@ -2571,7 +3028,7 @@ class RouteGenerator {
       ),
     );
 
-    return getRoute(
+    return getRoute<T>(
       shouldUseMaterialRoute: useMaterialPageRoute,
       builder: (_) => errorView,
     );

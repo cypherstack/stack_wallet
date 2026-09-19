@@ -80,8 +80,8 @@ class _FinalizeViewState extends ConsumerState<FinalizeView> {
 
       if (mounted) {
         final qrResult = await ref.read(pBarcodeScanner).scan(context: context);
-        if (qrResult.rawContent.isNotEmpty && qrResult.rawContent != "null") {
-          _slateController.text = qrResult.rawContent;
+        if (qrResult.rawContent != null && qrResult.rawContent!.isNotEmpty) {
+          _slateController.text = qrResult.rawContent!;
           setState(() {
             _slateToggleFlag = _slateController.text.isNotEmpty;
           });
@@ -156,14 +156,12 @@ class _FinalizeViewState extends ConsumerState<FinalizeView> {
         if (ex != null) {
           await showDialog<void>(
             context: context,
-            builder:
-                (context) => StackOkDialog(
-                  desktopPopRootNavigator: Util.isDesktop,
-                  title: "Slatepack finalize error",
-                  message:
-                      ex?.toString() ?? "Unexpected result without exception",
-                  maxWidth: Util.isDesktop ? 400 : null,
-                ),
+            builder: (context) => StackOkDialog(
+              desktopPopRootNavigator: Util.isDesktop,
+              title: "Slatepack finalize error",
+              message: ex?.toString() ?? "Unexpected result without exception",
+              maxWidth: Util.isDesktop ? 400 : null,
+            ),
           );
         } else {
           setState(() {
@@ -201,45 +199,45 @@ class _FinalizeViewState extends ConsumerState<FinalizeView> {
 
     return ConditionalParent(
       condition: !Util.isDesktop,
-      builder:
-          (child) => Background(
-            child: Scaffold(
-              backgroundColor:
-                  Theme.of(context).extension<StackColors>()!.background,
-              appBar: AppBar(
-                leading: AppBarBackButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-                title: Text(
-                  "Finalize slatepack",
-                  style: STextStyles.navBarTitle(context),
-                ),
-              ),
-              body: SafeArea(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return SingleChildScrollView(
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minHeight: constraints.maxHeight,
-                        ),
-                        child: IntrinsicHeight(
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: Constants.size.standardPadding,
-                            ),
-                            child: child,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
+      builder: (child) => Background(
+        child: Scaffold(
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.background,
+          appBar: AppBar(
+            leading: AppBarBackButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            title: Text(
+              "Finalize slatepack",
+              style: STextStyles.navBarTitle(context),
             ),
           ),
+          body: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: IntrinsicHeight(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: Constants.size.standardPadding,
+                        ),
+                        child: child,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -268,61 +266,61 @@ class _FinalizeViewState extends ConsumerState<FinalizeView> {
               },
               focusNode: _slateFocusNode,
               style: STextStyles.field(context),
-              decoration: standardInputDecoration(
-                "Enter Final Slatepack Message",
-                _slateFocusNode,
-                context,
-                desktopMed: true,
-              ).copyWith(
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12, // Adjust vertical padding for better alignment
-                ),
-                suffixIcon: Padding(
-                  padding:
-                      _slateController.text.isEmpty
+              decoration:
+                  standardInputDecoration(
+                    "Enter Final Slatepack Message",
+                    _slateFocusNode,
+                    context,
+                    desktopMed: true,
+                  ).copyWith(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical:
+                          12, // Adjust vertical padding for better alignment
+                    ),
+                    suffixIcon: Padding(
+                      padding: _slateController.text.isEmpty
                           ? const EdgeInsets.only(right: 8)
                           : const EdgeInsets.only(right: 0),
-                  child: UnconstrainedBox(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _slateToggleFlag
-                            ? TextFieldIconButton(
-                              key: const Key(
-                                "slateFinalizeClearFieldButtonKey",
+                      child: UnconstrainedBox(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            _slateToggleFlag
+                                ? TextFieldIconButton(
+                                    key: const Key(
+                                      "slateFinalizeClearFieldButtonKey",
+                                    ),
+                                    onTap: () {
+                                      _slateController.text = "";
+                                      setState(() {
+                                        _slateToggleFlag = false;
+                                      });
+                                    },
+                                    child: const XIcon(),
+                                  )
+                                : TextFieldIconButton(
+                                    key: const Key(
+                                      "slateFinalizePasteFieldButtonKey",
+                                    ),
+                                    onTap: _pasteSlatepack,
+                                    child: _slateController.text.isEmpty
+                                        ? const ClipboardIcon()
+                                        : const XIcon(),
+                                  ),
+                            if (_slateController.text.isEmpty)
+                              TextFieldIconButton(
+                                semanticsLabel:
+                                    "Scan QR Button. Opens Camera For Scanning QR Code.",
+                                key: const Key("sendViewScanQrButtonKey"),
+                                onTap: _scanQr,
+                                child: const QrCodeIcon(),
                               ),
-                              onTap: () {
-                                _slateController.text = "";
-                                setState(() {
-                                  _slateToggleFlag = false;
-                                });
-                              },
-                              child: const XIcon(),
-                            )
-                            : TextFieldIconButton(
-                              key: const Key(
-                                "slateFinalizePasteFieldButtonKey",
-                              ),
-                              onTap: _pasteSlatepack,
-                              child:
-                                  _slateController.text.isEmpty
-                                      ? const ClipboardIcon()
-                                      : const XIcon(),
-                            ),
-                        if (_slateController.text.isEmpty)
-                          TextFieldIconButton(
-                            semanticsLabel:
-                                "Scan QR Button. Opens Camera For Scanning QR Code.",
-                            key: const Key("sendViewScanQrButtonKey"),
-                            onTap: _scanQr,
-                            child: const QrCodeIcon(),
-                          ),
-                      ],
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
             ),
           ),
           Util.isDesktop ? const SizedBox(height: 24) : const Spacer(),

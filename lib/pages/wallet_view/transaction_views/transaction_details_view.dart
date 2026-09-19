@@ -97,7 +97,9 @@ class _TransactionDetailsViewState
   void initState() {
     isDesktop = Util.isDesktop;
     _transaction = widget.transaction;
-    isTokenTx = _transaction.subType == TransactionSubType.ethToken;
+    isTokenTx =
+        _transaction.subType == TransactionSubType.ethToken ||
+        _transaction.subType == TransactionSubType.splToken;
     walletId = widget.walletId;
 
     minConfirms = ref
@@ -518,7 +520,7 @@ class _TransactionDetailsViewState
                                               : CrossAxisAlignment.start,
                                           children: [
                                             SelectableText(
-                                              "$amountPrefix${ref.watch(pAmountFormatter(coin)).format(amount, ethContract: ethContract)}",
+                                              "$amountPrefix${ref.watch(pAmountFormatter(coin)).format(amount, tokenContract: ethContract)}",
                                               style: isDesktop
                                                   ? STextStyles.desktopTextExtraExtraSmall(
                                                       context,

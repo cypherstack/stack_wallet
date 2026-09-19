@@ -11,11 +11,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../models/isar/models/ethereum/eth_contract.dart';
+import '../../models/isar/models/contract.dart';
 import '../../providers/providers.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
+import '../../wallets/crypto_currency/coins/solana.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../coin_ticker_tag.dart';
 import '../custom_buttons/blue_text_button.dart';
@@ -39,14 +40,25 @@ class WalletInfoRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final wallet = ref.watch(pWallets).getWallet(walletId);
-
-    EthContract? contract;
+    Contract? contract;
     if (contractAddress != null) {
-      contract = ref.watch(
-        mainDBProvider.select(
-          (value) => value.getEthContractSync(contractAddress!),
-        ),
-      );
+      if (wallet.info.coin is Solana) {
+        // Solana token.
+        final solContract = ref.watch(
+          mainDBProvider.select(
+            (value) => value.getSolContractSync(contractAddress!),
+          ),
+        );
+        contract = solContract;
+      } else {
+        // Ethereum token.
+        final ethContract = ref.watch(
+          mainDBProvider.select(
+            (value) => value.getEthContractSync(contractAddress!),
+          ),
+        );
+        contract = ethContract;
+      }
     }
 
     if (Util.isDesktop) {
@@ -67,37 +79,38 @@ class WalletInfoRow extends ConsumerWidget {
                     const SizedBox(width: 12),
                     contract != null
                         ? Row(
-                          children: [
-                            Text(
-                              contract.name,
-                              style: STextStyles.desktopTextExtraSmall(
-                                context,
-                              ).copyWith(
-                                color:
-                                    Theme.of(
+                            children: [
+                              Text(
+                                contract.name,
+                                style:
+                                    STextStyles.desktopTextExtraSmall(
+                                      context,
+                                    ).copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.textDark,
+                                    ),
+                              ),
+                              const SizedBox(width: 4),
+                              CoinTickerTag(
+                                ticker: ref.watch(
+                                  pWalletCoin(walletId).select((s) => s.ticker),
+                                ),
+                              ),
+                            ],
+                          )
+                        : Expanded(
+                            child: Text(
+                              wallet.info.name,
+                              overflow: TextOverflow.ellipsis,
+                              style: STextStyles.desktopTextExtraSmall(context)
+                                  .copyWith(
+                                    color: Theme.of(
                                       context,
                                     ).extension<StackColors>()!.textDark,
-                              ),
+                                  ),
                             ),
-                            const SizedBox(width: 4),
-                            CoinTickerTag(
-                              ticker: ref.watch(
-                                pWalletCoin(walletId).select((s) => s.ticker),
-                              ),
-                            ),
-                          ],
-                        )
-                        : Text(
-                          wallet.info.name,
-                          style: STextStyles.desktopTextExtraSmall(
-                            context,
-                          ).copyWith(
-                            color:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textDark,
                           ),
-                        ),
                   ],
                 ),
               ),

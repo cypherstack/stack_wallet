@@ -21,6 +21,7 @@ import '../../../themes/stack_colors.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
+import '../../../wallets/isar/providers/solana/current_sol_token_wallet_provider.dart';
 import '../../../widgets/animated_widgets/rotating_arrows.dart';
 
 /// [eventBus] should only be set during testing
@@ -112,13 +113,24 @@ class _RefreshButtonState extends ConsumerState<WalletRefreshButton> {
           splashColor: Theme.of(context).extension<StackColors>()!.highlight,
           onPressed: () {
             if (widget.tokenContractAddress == null) {
-              final wallet = ref.read(pWallets).getWallet(widget.walletId);
-              final isRefreshing = wallet.refreshMutex.isLocked;
-              if (!isRefreshing) {
-                _spinController.repeat?.call();
-                wallet.refresh().then((_) => _spinController.stop?.call());
+              // Solana token - check if there's a current Solana token wallet.
+              final solanaTokenWallet = ref.read(pCurrentSolanaTokenWallet);
+              if (solanaTokenWallet != null) {
+                if (!solanaTokenWallet.refreshMutex.isLocked) {
+                  _spinController.repeat?.call();
+                  solanaTokenWallet.refresh().then((_) => _spinController.stop?.call());
+                }
+              } else {
+                // Fall back to refreshing the parent Solana wallet.
+                final wallet = ref.read(pWallets).getWallet(widget.walletId);
+                final isRefreshing = wallet.refreshMutex.isLocked;
+                if (!isRefreshing) {
+                  _spinController.repeat?.call();
+                  wallet.refresh().then((_) => _spinController.stop?.call());
+                }
               }
             } else {
+              // Ethereum token.
               if (!ref.read(pCurrentTokenWallet)!.refreshMutex.isLocked) {
                 ref.read(pCurrentTokenWallet)!.refresh();
               }

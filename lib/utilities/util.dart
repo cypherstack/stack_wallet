@@ -17,6 +17,13 @@ import 'package:flutter/material.dart';
 import 'package:intl/number_symbols.dart';
 import 'package:intl/number_symbols_data.dart';
 
+import '../app_config.dart';
+import '../wallets/wallet/impl/monero_wallet.dart';
+import '../wallets/wallet/intermediate/external_wallet.dart';
+import '../wallets/wallet/wallet.dart';
+import '../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
+import '../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
+
 abstract class Util {
   static const isArmLinux = bool.fromEnvironment("IS_ARM");
   static final isTestEnv = Platform.environment["FLUTTER_TEST"] == "true";
@@ -84,13 +91,38 @@ abstract class Util {
       final pretty = encoder.convert(json);
       result = pretty;
     } else {
-      result = dynamic.toString();
+      result = json.toString();
     }
 
     if (debugTitle != null) {
       log("$debugTitle\n$result");
     } else {
       log(result);
+    }
+  }
+
+  // not sure of a better place to put this for now. Kind of a dirty hacked
+  // function anyways...
+  static bool isWalletCoinAndCanSendWithoutWalletOpenedIgnoringXMR(
+    String ticker,
+    List<Wallet> wallets,
+  ) {
+    try {
+      final coin = AppConfig.getCryptoCurrencyForTicker(ticker);
+      return wallets
+          .where(
+            (e) =>
+                ((e is ViewOnlyOptionInterface && !e.isViewOnly) ||
+                    e is! ViewOnlyOptionInterface) &&
+                e.info.coin == coin &&
+                (e is MoneroWallet ||
+                    (e is! ExternalWallet ||
+                        e is MwebInterface)), // ltc mweb is external but swaps
+            // should not use mweb, hence the odd logic check here
+          )
+          .isNotEmpty;
+    } catch (_) {
+      return false;
     }
   }
 }

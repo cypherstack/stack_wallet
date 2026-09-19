@@ -1,382 +1,207 @@
-// import 'package:flutter/material.dart';
-// import 'package:flutter_test/flutter_test.dart';
-// import 'package:mockingjay/mockingjay.dart' as mockingjay;
-import 'package:mockito/annotations.dart';
-// import 'package:mockito/mockito.dart';
-// import 'package:stackwallet/pages/onboarding_view/create_pin_view.dart';
-// import 'package:stackwallet/pages/onboarding_view/helpers/create_wallet_type.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/mockito.dart';
+import 'package:stackwallet/models/isar/stack_theme.dart';
+import 'package:stackwallet/pages/home_view/home_view.dart';
+import 'package:stackwallet/pages/pinpad_views/create_pin_view.dart';
+import 'package:stackwallet/pages/pinpad_views/lock_screen_view.dart';
+import 'package:stackwallet/providers/global/prefs_provider.dart';
+import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_service.dart';
+import 'package:stackwallet/utilities/biometrics.dart';
+import 'package:stackwallet/utilities/prefs.dart';
+import 'package:stackwallet/widgets/custom_pin_put/pin_keyboard.dart';
 
-import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/services/wallets_service.dart';
-// import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-// import 'package:stackwallet/utilities/misc_global_constants.dart';
-// import 'package:stackwallet/widgets/custom_buttons/gradient_button.dart';
-// import 'package:stackwallet/widgets/custom_pin_put/custom_pin_put.dart';
-// import 'package:stackwallet/widgets/custom_pin_put/pin_keyboard.dart';
-// import 'package:provider/provider.dart';
-//
-// import 'create_pin_view_screen_test.mocks.dart';
+import '../../sample_data/theme_json.dart';
+import '../../widget_tests/custom_loading_overlay_test.mocks.dart';
+import '../../widget_tests/node_options_sheet_test.mocks.dart';
+import '../../widget_tests/support/platform_test_overrides.dart';
 
-@GenerateMocks([], customMocks: [
-  MockSpec<WalletsService>(),
-  MockSpec<NodeService>(),
-])
+class SpyBiometrics extends Biometrics {
+  SpyBiometrics({this.result = false});
+
+  final bool result;
+  int calls = 0;
+
+  @override
+  Future<bool> authenticate({
+    required String cancelButtonText,
+    required String localizedReason,
+    required String title,
+  }) async {
+    calls += 1;
+    return result;
+  }
+}
+
 void main() {
-//   testWidgets("CreatePinView builds correctly", (tester) async {
-//     await tester.pumpWidget(
-//       MaterialApp(
-//         home: CreatePinView(
-//           type: CreateWalletType.NEW,
-//           walletName: "My Firo Wallet",
-//           useTestNet: false,
-//         ),
-//       ),
-//     );
-//
-//     expect(find.byKey(Key("onboardingAppBarBackButton")), findsOneWidget);
-//     expect(find.byKey(Key("onboardingAppBarBackButtonChevronSvg")),
-//         findsOneWidget);
-//
-//     final imageFinder = find.byType(Image);
-//     expect(imageFinder, findsOneWidget);
-//
-//     final imageSource =
-//         ((imageFinder.evaluate().single.widget as Image).image as AssetImage)
-//             .assetName;
-//     expect(imageSource, "assets/images/logo.png");
-//
-//     expect(find.text("Create a PIN"), findsOneWidget);
-//
-//     expect(find.byType(CustomPinPut), findsOneWidget);
-//   });
-//
-//   testWidgets("back button test", (tester) async {
-//     final navigator = mockingjay.MockNavigator();
-//
-//     mockingjay.when(() => navigator.pop()).thenAnswer((_) async => {});
-//
-//     await tester.pumpWidget(
-//       MaterialApp(
-//         home: mockingjay.MockNavigatorProvider(
-//           navigator: navigator,
-//           child: CreatePinView(
-//             type: CreateWalletType.NEW,
-//             walletName: "My Firo Wallet",
-//             useTestNet: false,
-//           ),
-//         ),
-//       ),
-//     );
-//
-//     await tester.tap(find.byKey(Key("onboardingAppBarBackButton")));
-//     await tester.pumpAndSettle();
-//
-//     mockingjay.verify(() => navigator.pop()).called(1);
-//   });
-//
-//   testWidgets("Entering unmatched PINs", (tester) async {
-//     await tester.pumpWidget(
-//       MaterialApp(
-//         home: CreatePinView(
-//           type: CreateWalletType.NEW,
-//           walletName: "My Firo Wallet",
-//           useTestNet: false,
-//         ),
-//       ),
-//     );
-//
-//     await tester.tap(find.byWidgetPredicate(
-//         (widget) => widget is NumberKey && widget.number == "1"));
-//     await tester.pumpAndSettle(Duration(milliseconds: 100));
-//     await tester.tap(find.byWidgetPredicate(
-//         (widget) => widget is NumberKey && widget.number == "2"));
-//     await tester.pumpAndSettle(Duration(milliseconds: 100));
-//     await tester.tap(find.byWidgetPredicate(
-//         (widget) => widget is NumberKey && widget.number == "3"));
-//     await tester.pumpAndSettle(Duration(milliseconds: 100));
-//     await tester
-//         .tap(find.byWidgetPredicate((widget) => widget is BackspaceKey));
-//     await tester.pumpAndSettle(Duration(milliseconds: 100));
-//     await tester.tap(find.byWidgetPredicate(
-//         (widget) => widget is NumberKey && widget.number == "6"));
-//     await tester.pumpAndSettle(Duration(milliseconds: 100));
-//     await tester.tap(find.byWidgetPredicate(
-//         (widget) => widget is NumberKey && widget.number == "4"));
-//     await tester.pumpAndSettle(Duration(seconds: 1));
-//
-//     expect(find.text("Confirm PIN"), findsOneWidget);
-//
-//     await tester.tap(find.byWidgetPredicate(
-//         (widget) => widget is NumberKey && widget.number == "7"));
-//     await tester.pumpAndSettle(Duration(milliseconds: 100));
-//     await tester.tap(find.byWidgetPredicate(
-//         (widget) => widget is NumberKey && widget.number == "9"));
-//     await tester.pumpAndSettle(Duration(milliseconds: 100));
-//     await tester.tap(find.byWidgetPredicate(
-//         (widget) => widget is NumberKey && widget.number == "8"));
-//     await tester.pumpAndSettle(Duration(milliseconds: 100));
-//     await tester.tap(find.byWidgetPredicate(
-//         (widget) => widget is NumberKey && widget.number == "5"));
-//     await tester.pumpAndSettle(Duration(seconds: 2));
-//
-//     expect(find.text("Create a PIN"), findsOneWidget);
-//   });
-//
-//   testWidgets("Entering matched PINs on a new wallet", (tester) async {
-//     final navigator = mockingjay.MockNavigator();
-//     final walletsService = MockWalletsService();
-//     final wallet =  MockManager();
-//     final nodeService = MockNodeService();
-//
-//     final store = FakeSecureStorage();
-//
-//     mockingjay
-//         .when(() => navigator.push(mockingjay.any()))
-//         .thenAnswer((_) async => {});
-//
-//     when(walletsService.addNewWalletName("My Firo Wallet", "main"))
-//         .thenAnswer((_) async => true);
-//     when(walletsService.getWalletId("My Firo Wallet"))
-//         .thenAnswer((_) async => "walletID");
-//
-//     when(nodeService.reInit()).thenAnswer((_) => {});
-//     when(
-//       nodeService.createNode(
-//         name: CampfireConstants.defaultNodeName,
-//         ipAddress: CampfireConstants.defaultIpAddress,
-//         port: CampfireConstants.defaultPort.toString(),
-//         useSSL: CampfireConstants.defaultUseSSL,
-//       ),
-//     ).thenAnswer((_) async => true);
-//
-//     when(manager.initializeWallet()).thenAnswer((_) async => true);
-//
-//     await tester.pumpWidget(
-//       MaterialApp(
-//         home: mockingjay.MockNavigatorProvider(
-//           navigator: navigator,
-//           child: MultiProvider(
-//             // home: MultiProvider(
-//             providers: [
-//               ChangeNotifierProvider<WalletsService>(
-//                 create: (_) => walletsService,
-//               ),
-//               ChangeNotifierProvider<Manager>(
-//                 create: (_) => manager,
-//               ),
-//               ChangeNotifierProvider<NodeService>(
-//                 create: (_) => nodeService,
-//               ),
-//             ],
-//             child: CreatePinView(
-//               type: CreateWalletType.NEW,
-//               walletName: "My Firo Wallet",
-//               useTestNet: false,
-//               secureStore: store,
-//             ),
-//           ),
-//         ),
-//       ),
-//     );
-//
-//     await tester.tap(find.byWidgetPredicate(
-//         (widget) => widget is NumberKey && widget.number == "1"));
-//     await tester.pumpAndSettle(Duration(milliseconds: 100));
-//     await tester.tap(find.byWidgetPredicate(
-//         (widget) => widget is NumberKey && widget.number == "2"));
-//     await tester.pumpAndSettle(Duration(milliseconds: 100));
-//     await tester.tap(find.byWidgetPredicate(
-//         (widget) => widget is NumberKey && widget.number == "3"));
-//     await tester.pumpAndSettle(Duration(milliseconds: 100));
-//     await tester.tap(find.byWidgetPredicate(
-//         (widget) => widget is NumberKey && widget.number == "4"));
-//     await tester.pumpAndSettle(Duration(seconds: 1));
-//
-//     expect(find.text("Confirm PIN"), findsOneWidget);
-//
-//     await tester.tap(find.byWidgetPredicate(
-//         (widget) => widget is NumberKey && widget.number == "1"));
-//     await tester.pumpAndSettle(Duration(milliseconds: 100));
-//     await tester.tap(find.byWidgetPredicate(
-//         (widget) => widget is NumberKey && widget.number == "2"));
-//     await tester.pumpAndSettle(Duration(milliseconds: 100));
-//     await tester.tap(find.byWidgetPredicate(
-//         (widget) => widget is NumberKey && widget.number == "3"));
-//     await tester.pumpAndSettle(Duration(milliseconds: 100));
-//     await tester.tap(find.byWidgetPredicate(
-//         (widget) => widget is NumberKey && widget.number == "4"));
-//     await tester.pump(Duration(seconds: 2));
-//
-//     expect(find.byType(CircularProgressIndicator), findsOneWidget);
-//
-//     await tester.pump(Duration(seconds: 20));
-//
-//     mockingjay.verify(() => navigator.push(mockingjay.any())).called(1);
-//   });
-//
-//   testWidgets("Wallet init fails on entering matched PINs", (tester) async {
-//     final navigator = mockingjay.MockNavigator();
-//     final walletsService = MockWalletsService();
-//     final wallet =  MockManager();
-//     final nodeService = MockNodeService();
-//
-//     final store = FakeSecureStorage();
-//
-//     mockingjay.when(() => navigator.pop()).thenAnswer((_) async => {});
-//
-//     when(walletsService.addNewWalletName("My Firo Wallet", "main"))
-//         .thenAnswer((_) async => true);
-//     when(walletsService.getWalletId("My Firo Wallet"))
-//         .thenAnswer((_) async => "walletID");
-//
-//     when(nodeService.reInit()).thenAnswer((_) => {});
-//     when(
-//       nodeService.createNode(
-//         name: CampfireConstants.defaultNodeNameTestNet,
-//         ipAddress: CampfireConstants.defaultIpAddressTestNet,
-//         port: CampfireConstants.defaultPortTestNet.toString(),
-//         useSSL: CampfireConstants.defaultUseSSLTestNet,
-//       ),
-//     ).thenAnswer((_) async => true);
-//
-//     when(manager.initializeWallet()).thenAnswer((_) async => false);
-//     when(manager.exitCurrentWallet()).thenAnswer((_) async => {});
-//     when(walletsService.deleteWallet("My Firo Wallet"))
-//         .thenAnswer((_) async => 0);
-//
-//     await tester.pumpWidget(
-//       MaterialApp(
-//         home: mockingjay.MockNavigatorProvider(
-//           navigator: navigator,
-//           child: MultiProvider(
-//             // home: MultiProvider(
-//             providers: [
-//               ChangeNotifierProvider<WalletsService>(
-//                 create: (_) => walletsService,
-//               ),
-//               ChangeNotifierProvider<Manager>(
-//                 create: (_) => manager,
-//               ),
-//               ChangeNotifierProvider<NodeService>(
-//                 create: (_) => nodeService,
-//               ),
-//             ],
-//             child: CreatePinView(
-//               type: CreateWalletType.NEW,
-//               walletName: "My Firo Wallet",
-//               useTestNet: true,
-//               secureStore: store,
-//             ),
-//           ),
-//         ),
-//       ),
-//     );
-//
-//     await tester.tap(find.byWidgetPredicate(
-//         (widget) => widget is NumberKey && widget.number == "1"));
-//     await tester.pumpAndSettle(Duration(milliseconds: 100));
-//     await tester.tap(find.byWidgetPredicate(
-//         (widget) => widget is NumberKey && widget.number == "2"));
-//     await tester.pumpAndSettle(Duration(milliseconds: 100));
-//     await tester.tap(find.byWidgetPredicate(
-//         (widget) => widget is NumberKey && widget.number == "3"));
-//     await tester.pumpAndSettle(Duration(milliseconds: 100));
-//     await tester.tap(find.byWidgetPredicate(
-//         (widget) => widget is NumberKey && widget.number == "4"));
-//     await tester.pumpAndSettle(Duration(seconds: 1));
-//
-//     expect(find.text("Confirm PIN"), findsOneWidget);
-//
-//     await tester.tap(find.byWidgetPredicate(
-//         (widget) => widget is NumberKey && widget.number == "1"));
-//     await tester.pumpAndSettle(Duration(milliseconds: 100));
-//     await tester.tap(find.byWidgetPredicate(
-//         (widget) => widget is NumberKey && widget.number == "2"));
-//     await tester.pumpAndSettle(Duration(milliseconds: 100));
-//     await tester.tap(find.byWidgetPredicate(
-//         (widget) => widget is NumberKey && widget.number == "3"));
-//     await tester.pumpAndSettle(Duration(milliseconds: 100));
-//     await tester.tap(find.byWidgetPredicate(
-//         (widget) => widget is NumberKey && widget.number == "4"));
-//     await tester.pump(Duration(seconds: 2));
-//
-//     expect(
-//         find.text(
-//             "Failed to connect to network. Check your internet connection."),
-//         findsOneWidget);
-//     expect(find.text("OK"), findsOneWidget);
-//
-//     await tester.tap(find.byType(GradientButton));
-//     await tester.pump(Duration(seconds: 1));
-//
-//     mockingjay.verify(() => navigator.pop()).called(4);
-//   });
-//
-//   testWidgets("Entering matched PINs on a restore", (tester) async {
-//     final navigator = mockingjay.MockNavigator();
-//     final walletsService = MockWalletsService();
-//
-//     final store = FakeSecureStorage();
-//
-//     mockingjay
-//         .when(() => navigator.push(mockingjay.any()))
-//         .thenAnswer((_) async => {});
-//
-//     when(walletsService.addNewWalletName("My Firo Wallet", "main"))
-//         .thenAnswer((_) async => true);
-//     when(walletsService.getWalletId("My Firo Wallet"))
-//         .thenAnswer((_) async => "walletID");
-//
-//     await tester.pumpWidget(
-//       MaterialApp(
-//         home: mockingjay.MockNavigatorProvider(
-//           navigator: navigator,
-//           child: MultiProvider(
-//             // home: MultiProvider(
-//             providers: [
-//               ChangeNotifierProvider<WalletsService>(
-//                 create: (_) => walletsService,
-//               ),
-//             ],
-//             child: CreatePinView(
-//               type: CreateWalletType.RESTORE,
-//               walletName: "My Firo Wallet",
-//               useTestNet: false,
-//               secureStore: store,
-//             ),
-//           ),
-//         ),
-//       ),
-//     );
-//
-//     await tester.tap(find.byWidgetPredicate(
-//         (widget) => widget is NumberKey && widget.number == "1"));
-//     await tester.pumpAndSettle(Duration(milliseconds: 100));
-//     await tester.tap(find.byWidgetPredicate(
-//         (widget) => widget is NumberKey && widget.number == "2"));
-//     await tester.pumpAndSettle(Duration(milliseconds: 100));
-//     await tester.tap(find.byWidgetPredicate(
-//         (widget) => widget is NumberKey && widget.number == "3"));
-//     await tester.pumpAndSettle(Duration(milliseconds: 100));
-//     await tester.tap(find.byWidgetPredicate(
-//         (widget) => widget is NumberKey && widget.number == "4"));
-//     await tester.pumpAndSettle(Duration(seconds: 1));
-//
-//     expect(find.text("Confirm PIN"), findsOneWidget);
-//
-//     await tester.tap(find.byWidgetPredicate(
-//         (widget) => widget is NumberKey && widget.number == "1"));
-//     await tester.pumpAndSettle(Duration(milliseconds: 100));
-//     await tester.tap(find.byWidgetPredicate(
-//         (widget) => widget is NumberKey && widget.number == "2"));
-//     await tester.pumpAndSettle(Duration(milliseconds: 100));
-//     await tester.tap(find.byWidgetPredicate(
-//         (widget) => widget is NumberKey && widget.number == "3"));
-//     await tester.pumpAndSettle(Duration(milliseconds: 100));
-//     await tester.tap(find.byWidgetPredicate(
-//         (widget) => widget is NumberKey && widget.number == "4"));
-//     await tester.pumpAndSettle(Duration(seconds: 6));
-//
-//     mockingjay.verify(() => navigator.push(mockingjay.any())).called(1);
-//   });
+  ThemeData buildTheme() {
+    return ThemeData(
+      extensions: [
+        StackColors.fromStackColorTheme(
+          StackTheme.fromJson(json: lightThemeJsonMap),
+        ),
+      ],
+    );
+  }
+
+  void stubPrefs(MockPrefs prefs) {
+    when(prefs.randomizePIN).thenReturn(false);
+    when(prefs.hasPin).thenReturn(false);
+  }
+
+  Future<void> pumpCreatePinView(
+    WidgetTester tester, {
+    required MockPrefs prefs,
+    required SpyBiometrics biometrics,
+    required List<Override> overrides,
+  }) async {
+    final mockThemeService = MockThemeService();
+    final theme = StackTheme.fromJson(json: lightThemeJsonMap);
+
+    when(mockThemeService.getTheme(themeId: 'light')).thenReturn(theme);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          pThemeService.overrideWithValue(mockThemeService),
+          prefsChangeNotifierProvider.overrideWithValue(prefs),
+          ...overrides,
+        ],
+        child: MaterialApp(
+          theme: buildTheme(),
+          routes: {
+            HomeView.routeName: (_) => const Scaffold(body: Text('home route')),
+          },
+          home: CreatePinView(biometrics: biometrics),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+  }
+
+  Future<void> tapDigit(WidgetTester tester, String digit) async {
+    await tester.tap(
+      find.byWidgetPredicate(
+        (widget) => widget is NumberKey && widget.number == digit,
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 250));
+  }
+
+  Future<void> enterPin(WidgetTester tester, String pin) async {
+    for (final digit in pin.split('')) {
+      await tapDigit(tester, digit);
+    }
+  }
+
+  Future<void> submitCurrentPin(WidgetTester tester) async {
+    await tester.tap(find.byType(SubmitKey));
+    await tester.pump();
+  }
+
+  testWidgets('matching PIN persists through fake secure storage seam', (
+    tester,
+  ) async {
+    final prefs = MockPrefs();
+    final biometrics = SpyBiometrics();
+    final platformOverrides = await createPlatformTestOverrides();
+
+    stubPrefs(prefs);
+
+    await pumpCreatePinView(
+      tester,
+      prefs: prefs,
+      biometrics: biometrics,
+      overrides: platformOverrides.overrides,
+    );
+
+    expect(find.text('Create a PIN'), findsOneWidget);
+
+    await enterPin(tester, '1234');
+    await submitCurrentPin(tester);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Confirm PIN'), findsOneWidget);
+
+    await enterPin(tester, '1234');
+    await submitCurrentPin(tester);
+    await tester.pumpAndSettle(const Duration(milliseconds: 300));
+
+    expect(await platformOverrides.secureStorage.read(key: kPinKey), '1234');
+    expect(platformOverrides.secureStorage.writes, 1);
+    expect(biometrics.calls, 0);
+
+    verify(prefs.useBiometrics = false).called(1);
+    verify(prefs.hasPin = true).called(1);
+    expect(find.text('home route'), findsOneWidget);
+  });
+
+  testWidgets('short PIN submission is blocked before confirmation page', (
+    tester,
+  ) async {
+    final prefs = MockPrefs();
+    final biometrics = SpyBiometrics();
+    final platformOverrides = await createPlatformTestOverrides();
+
+    stubPrefs(prefs);
+
+    await pumpCreatePinView(
+      tester,
+      prefs: prefs,
+      biometrics: biometrics,
+      overrides: platformOverrides.overrides,
+    );
+
+    await enterPin(tester, '123');
+    await submitCurrentPin(tester);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Create a PIN'), findsOneWidget);
+    expect(find.text('Confirm PIN'), findsNothing);
+    expect(await platformOverrides.secureStorage.read(key: kPinKey), isNull);
+    expect(platformOverrides.secureStorage.writes, 0);
+    expect(biometrics.calls, 0);
+
+    verifyNever(prefs.useBiometrics = false);
+    verifyNever(prefs.hasPin = true);
+  });
+
+  testWidgets('mismatched confirmation resets flow without storage writes', (
+    tester,
+  ) async {
+    final prefs = MockPrefs();
+    final biometrics = SpyBiometrics();
+    final platformOverrides = await createPlatformTestOverrides();
+
+    stubPrefs(prefs);
+
+    await pumpCreatePinView(
+      tester,
+      prefs: prefs,
+      biometrics: biometrics,
+      overrides: platformOverrides.overrides,
+    );
+
+    await enterPin(tester, '1234');
+    await submitCurrentPin(tester);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Confirm PIN'), findsOneWidget);
+
+    await enterPin(tester, '9876');
+    await submitCurrentPin(tester);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Create a PIN'), findsOneWidget);
+    expect(find.text('Confirm PIN'), findsNothing);
+    expect(await platformOverrides.secureStorage.read(key: kPinKey), isNull);
+    expect(platformOverrides.secureStorage.writes, 0);
+    expect(biometrics.calls, 0);
+
+    verifyNever(prefs.useBiometrics = false);
+    verifyNever(prefs.hasPin = true);
+  });
 }

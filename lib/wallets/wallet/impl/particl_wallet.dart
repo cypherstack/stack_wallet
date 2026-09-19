@@ -45,18 +45,17 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
 
   @override
   Future<List<Address>> fetchAddressesForElectrumXScan() async {
-    final allAddresses =
-        await mainDB
-            .getAddresses(walletId)
-            .filter()
-            .not()
-            .group(
-              (q) => q
-                  .typeEqualTo(AddressType.nonWallet)
-                  .or()
-                  .subTypeEqualTo(AddressSubType.nonWallet),
-            )
-            .findAll();
+    final allAddresses = await mainDB
+        .getAddresses(walletId)
+        .filter()
+        .not()
+        .group(
+          (q) => q
+              .typeEqualTo(AddressType.nonWallet)
+              .or()
+              .subTypeEqualTo(AddressSubType.nonWallet),
+        )
+        .findAll();
     return allAddresses;
   }
 
@@ -74,34 +73,40 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
     String? blockedReason;
     String? utxoLabel;
 
+    // Only check the specific output this UTXO corresponds to, not all outputs.
+    final vout = jsonUTXO["tx_pos"] as int;
     final outputs = jsonTX["vout"] as List? ?? [];
 
-    for (final output in outputs) {
-      if (output is Map) {
-        if (output['ct_fee'] != null) {
-          // Blind output, ignore for now.
+    // Use Map<dynamic, dynamic>? because ElectrumX returns _Map<dynamic,dynamic>.
+    Map<dynamic, dynamic>? output;
+    for (final o in outputs) {
+      if (o is Map && o["n"] == vout) {
+        output = o;
+        break;
+      }
+    }
+
+    if (output != null) {
+      if (output['ct_fee'] != null) {
+        blocked = true;
+        blockedReason = "Blind output.";
+        utxoLabel = "Unsupported output type.";
+      } else if (output['rangeproof'] != null) {
+        blocked = true;
+        blockedReason = "Confidential output.";
+        utxoLabel = "Unsupported output type.";
+      } else if (output['data_hex'] != null) {
+        blocked = true;
+        blockedReason = "Data output.";
+        utxoLabel = "Unsupported output type.";
+      } else if (output['scriptPubKey'] != null) {
+        if (output['scriptPubKey']?['asm'] is String &&
+            (output['scriptPubKey']['asm'] as String).contains(
+              "OP_ISCOINSTAKE",
+            )) {
           blocked = true;
-          blockedReason = "Blind output.";
+          blockedReason = "Spending staking";
           utxoLabel = "Unsupported output type.";
-        } else if (output['rangeproof'] != null) {
-          // Private RingCT output, ignore for now.
-          blocked = true;
-          blockedReason = "Confidential output.";
-          utxoLabel = "Unsupported output type.";
-        } else if (output['data_hex'] != null) {
-          // Data output, ignore for now.
-          blocked = true;
-          blockedReason = "Data output.";
-          utxoLabel = "Unsupported output type.";
-        } else if (output['scriptPubKey'] != null) {
-          if (output['scriptPubKey']?['asm'] is String &&
-              (output['scriptPubKey']['asm'] as String).contains(
-                "OP_ISCOINSTAKE",
-              )) {
-            blocked = true;
-            blockedReason = "Spending staking";
-            utxoLabel = "Unsupported output type.";
-          }
         }
       }
     }
@@ -115,7 +120,7 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
 
   @override
   int estimateTxFee({required int vSize, required BigInt feeRatePerKB}) {
-    return vSize * (feeRatePerKB.toInt() / 1000).ceil();
+    return (feeRatePerKB * BigInt.from(vSize) ~/ BigInt.from(1000)).toInt();
   }
 
   @override
@@ -140,16 +145,14 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
         await fetchAddressesForElectrumXScan();
 
     // Separate receiving and change addresses.
-    final Set<String> receivingAddresses =
-        allAddressesOld
-            .where((e) => e.subType == AddressSubType.receiving)
-            .map((e) => e.value)
-            .toSet();
-    final Set<String> changeAddresses =
-        allAddressesOld
-            .where((e) => e.subType == AddressSubType.change)
-            .map((e) => e.value)
-            .toSet();
+    final Set<String> receivingAddresses = allAddressesOld
+        .where((e) => e.subType == AddressSubType.receiving)
+        .map((e) => e.value)
+        .toSet();
+    final Set<String> changeAddresses = allAddressesOld
+        .where((e) => e.subType == AddressSubType.change)
+        .map((e) => e.value)
+        .toSet();
 
     // Remove duplicates.
     final allAddressesSet = {...receivingAddresses, ...changeAddresses};
@@ -163,11 +166,10 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
     final List<Map<String, dynamic>> allTransactions = [];
     for (final txHash in allTxHashes) {
       // Check for duplicates by searching for tx by tx_hash in db.
-      final storedTx =
-          await mainDB.isar.transactionV2s
-              .where()
-              .txidWalletIdEqualTo(txHash["tx_hash"] as String, walletId)
-              .findFirst();
+      final storedTx = await mainDB.isar.transactionV2s
+          .where()
+          .txidWalletIdEqualTo(txHash["tx_hash"] as String, walletId)
+          .findFirst();
 
       if (storedTx == null ||
           storedTx.height == null ||
@@ -241,17 +243,12 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
           addresses.addAll(prevOut.addresses);
         }
 
-        InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
-          scriptSigHex: map["scriptSig"]?["hex"] as String?,
-          scriptSigAsm: map["scriptSig"]?["asm"] as String?,
-          sequence: map["sequence"] as int?,
+        InputV2 input = InputV2.fromElectrumxJson(
+          json: map,
           outpoint: outpoint,
-          valueStringSats: valueStringSats,
           addresses: addresses,
-          witness: map["witness"] as String?,
+          valueStringSats: valueStringSats,
           coinbase: coinbase,
-          innerRedeemScriptAsm: map["innerRedeemscriptAsm"] as String?,
-          // Need addresses before we can know if the wallet owns this input.
           walletOwns: false,
         );
 
@@ -382,31 +379,28 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
 
       switch (sd.derivePathType) {
         case DerivePathType.bip44:
-          data =
-              bitcoindart
-                  .P2PKH(
-                    data: bitcoindart.PaymentData(pubkey: pubKey),
-                    network: convertedNetwork,
-                  )
-                  .data;
+          data = bitcoindart
+              .P2PKH(
+                data: bitcoindart.PaymentData(pubkey: pubKey),
+                network: convertedNetwork,
+              )
+              .data;
           break;
 
         case DerivePathType.bip49:
-          final p2wpkh =
-              bitcoindart
-                  .P2WPKH(
-                    data: bitcoindart.PaymentData(pubkey: pubKey),
-                    network: convertedNetwork,
-                  )
-                  .data;
+          final p2wpkh = bitcoindart
+              .P2WPKH(
+                data: bitcoindart.PaymentData(pubkey: pubKey),
+                network: convertedNetwork,
+              )
+              .data;
           redeem = p2wpkh.output;
-          data =
-              bitcoindart
-                  .P2SH(
-                    data: bitcoindart.PaymentData(redeem: p2wpkh),
-                    network: convertedNetwork,
-                  )
-                  .data;
+          data = bitcoindart
+              .P2SH(
+                data: bitcoindart.PaymentData(redeem: p2wpkh),
+                network: convertedNetwork,
+              )
+              .data;
           break;
 
         case DerivePathType.bip84:
@@ -414,13 +408,12 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
           //   prevOut: coinlib.OutPoint.fromHex(sd.utxo.txid, sd.utxo.vout),
           //   publicKey: keys.publicKey,
           // );
-          data =
-              bitcoindart
-                  .P2WPKH(
-                    data: bitcoindart.PaymentData(pubkey: pubKey),
-                    network: convertedNetwork,
-                  )
-                  .data;
+          data = bitcoindart
+              .P2WPKH(
+                data: bitcoindart.PaymentData(pubkey: pubKey),
+                network: convertedNetwork,
+              )
+              .data;
           break;
 
         case DerivePathType.bip86:
@@ -462,17 +455,16 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
 
       tempInputs.add(
         InputV2.isarCantDoRequiredInDefaultConstructor(
-          scriptSigHex: txb.inputs.first.script?.toHex,
+          scriptSigHex: txb.inputs[i].script?.toHex,
           scriptSigAsm: null,
           sequence: 0xffffffff - 1,
           outpoint: OutpointV2.isarCantDoRequiredInDefaultConstructor(
             txid: insAndKeys[i].utxo.txid,
             vout: insAndKeys[i].utxo.vout,
           ),
-          addresses:
-              insAndKeys[i].utxo.address == null
-                  ? []
-                  : [insAndKeys[i].utxo.address!],
+          addresses: insAndKeys[i].utxo.address == null
+              ? []
+              : [insAndKeys[i].utxo.address!],
           valueStringSats: insAndKeys[i].utxo.value.toString(),
           witness: null,
           innerRedeemScriptAsm: null,
@@ -520,6 +512,7 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
           ),
           witnessValue: insAndKeys[i].utxo.value,
           redeemScript: extraData[i].redeem,
+          isParticl: true,
           overridePrefix: cryptoCurrency.networkParams.bech32Hrp,
         );
       }
@@ -535,30 +528,8 @@ class ParticlWallet<T extends ElectrumXCurrencyInterface>
     final builtTx = txb.build(cryptoCurrency.networkParams.bech32Hrp);
     final vSize = builtTx.virtualSize();
 
-    // Strip trailing 0x00 bytes from hex.
-    //
-    // This is done to match the previous particl_wallet implementation.
-    // TODO: [prio=low] Rework Particl tx construction so as to obviate this.
-    String hexString = builtTx.toHex(isParticl: true).toString();
-    if (hexString.length % 2 != 0) {
-      // Ensure the string has an even length.
-      Logging.instance.e(
-        "Hex string has odd length, which is unexpected.",
-        stackTrace: StackTrace.current,
-      );
-      throw Exception("Invalid hex string length.");
-    }
-    // int maxStrips = 3; // Strip up to 3 0x00s (match previous particl_wallet).
-    while (hexString.endsWith('00') && hexString.length > 2) {
-      hexString = hexString.substring(0, hexString.length - 2);
-      // maxStrips--;
-      // if (maxStrips <= 0) {
-      //   break;
-      // }
-    }
-
     return txData.copyWith(
-      raw: hexString,
+      raw: builtTx.toHex(isParticl: true),
       vSize: vSize,
       tempTx: null,
       //  builtTx.getId() requires an isParticl flag as well but the lib does not support that yet

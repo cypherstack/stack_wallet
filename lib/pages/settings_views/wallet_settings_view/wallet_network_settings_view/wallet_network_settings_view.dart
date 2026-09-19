@@ -39,11 +39,11 @@ import '../../../../wallets/crypto_currency/coins/mimblewimblecoin.dart';
 import '../../../../wallets/crypto_currency/coins/monero.dart';
 import '../../../../wallets/crypto_currency/coins/salvium.dart';
 import '../../../../wallets/crypto_currency/coins/wownero.dart';
+import '../../../../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
-import '../../../../wallets/wallet/impl/salvium_wallet.dart';
-import '../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
+import '../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../../../widgets/animated_text.dart';
@@ -154,6 +154,13 @@ class _WalletNetworkSettingsViewState
             // pop rescanning dialog
             Navigator.of(context, rootNavigator: isDesktop).pop();
 
+            final String message;
+            if (wallet is CryptonoteWallet || wallet is EpiccashWallet) {
+              message = "Rescan started";
+            } else {
+              message = "Rescan completed";
+            }
+
             // show success
             await showDialog<dynamic>(
               context: context,
@@ -164,7 +171,7 @@ class _WalletNetworkSettingsViewState
                 builder: (child) =>
                     DesktopDialog(maxHeight: 150, maxWidth: 500, child: child),
                 child: StackDialog(
-                  title: "Rescan completed",
+                  title: message,
                   rightButton: TextButton(
                     style: Theme.of(context)
                         .extension<StackColors>()!
@@ -333,16 +340,9 @@ class _WalletNetworkSettingsViewState
 
     final coin = ref.watch(pWalletCoin(widget.walletId));
 
-    if (coin is Salvium) {
+    if (coin is CryptonoteCurrency) {
       final double highestPercent =
-          (ref.read(pWallets).getWallet(widget.walletId) as SalviumWallet)
-              .highestPercentCached;
-      if (_percent < highestPercent) {
-        _percent = highestPercent.clamp(0.0, 1.0);
-      }
-    } else if (coin is Monero || coin is Wownero) {
-      final double highestPercent =
-          (ref.read(pWallets).getWallet(widget.walletId) as LibMoneroWallet)
+          (ref.read(pWallets).getWallet(widget.walletId) as CryptonoteWallet)
               .highestPercentCached;
       if (_percent < highestPercent) {
         _percent = highestPercent.clamp(0.0, 1.0);
@@ -387,11 +387,8 @@ class _WalletNetworkSettingsViewState
               ),
               title: Text("Network", style: STextStyles.navBarTitle(context)),
               actions: [
-                if (ref.watch(pWalletCoin(widget.walletId)) is! Epiccash &&
-                        ref.watch(pWalletCoin(widget.walletId))
-                            is! Mimblewimblecoin ||
-                    ref.watch(pWalletCoin(widget.walletId))
-                        is! Mimblewimblecoin)
+                if (ref.watch(pWalletCoin(widget.walletId))
+                    is! Mimblewimblecoin)
                   Padding(
                     padding: const EdgeInsets.only(
                       top: 10,
@@ -991,7 +988,6 @@ class _WalletNetworkSettingsViewState
               ),
             ),
           if (isDesktop &&
-              ref.watch(pWalletCoin(widget.walletId)) is! Epiccash &&
               ref.watch(pWalletCoin(widget.walletId)) is! Mimblewimblecoin)
             RoundedWhiteContainer(
               borderColor: isDesktop

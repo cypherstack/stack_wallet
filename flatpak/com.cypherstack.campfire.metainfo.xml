@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.cypherstack.campfire</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-only</project_license>
+  <name>Campfire</name>
+  <summary>Your privacy. Your wallet. Your Firo.</summary>
+  <description>
+    <p>
+      Campfire is an open-source, non-custodial Firo wallet.
+    </p>
+  </description>
+  <url type="homepage">https://campfireprivacy.com</url>
+  <url type="bugtracker">https://github.com/cypherstack/stack_wallet/issues</url>
+  <content_rating type="oars-1.1"/>
+</component>

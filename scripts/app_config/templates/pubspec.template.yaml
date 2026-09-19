@@ -14,8 +14,8 @@ description: PLACEHOLDER
 version: PLACEHOLDER_V+PLACEHOLDER_B
 
 environment:
-  sdk: ">=3.9.0 <4.0.0"
-  flutter: ^3.29.0
+  sdk: ">=3.12.0 <4.0.0"
+  flutter: ^3.44.9
 
 dependencies:
   flutter:
@@ -30,17 +30,21 @@ dependencies:
 # %%END_ENABLE_FROST%%
 
 # %%ENABLE_XEL%%
+#  xelis_dart_sdk: 0.35.1
+##   git:
+##     url: https://github.com/xelis-project/xelis-dart-sdk.git
+##     ref: f1da98f8bad8b9ad3645661a23f9efb83e44b0c9
 #  xelis_flutter:
 #    git:
-#      url: https://github.com/cypherstack/xelis-flutter-ffi.git
-#      ref: 5dd5c50713160fa15fb06ff44886ae035eed62fd
+#      url: https://github.com/xelis-project/xelis-flutter-ffi.git
+#      ref: 3e5ac06c22956a9113a88a2d38ba82f8787be1c6
 # %%END_ENABLE_XEL%%
 
 # %%ENABLE_FIRO%%
 #  flutter_libsparkmobile:
 #    git:
 #      url: https://github.com/cypherstack/flutter_libsparkmobile.git
-#      ref: 84a139a25ab1691762002fafcae351e3d444a5c7
+#      ref: e017e62766908e9714c5309761183e8be8b37799
 # %%END_ENABLE_FIRO%%
 
 # %%ENABLE_EPIC%%
@@ -61,17 +65,22 @@ dependencies:
 # %%END_ENABLE_TOR%%
 
 # %%ENABLE_XMR%%
-#  cs_monero: 1.1.1
-#  cs_monero_flutter_libs: 1.1.1
+#  cs_monero: 3.2.0
+#  cs_monero_flutter_libs: 2.0.1
 # %%END_ENABLE_XMR%%
+
+# %%ENABLE_WOW%%
+#  cs_wownero: 2.0.0
+#  cs_wownero_flutter_libs: 2.0.3
+# %%END_ENABLE_WOW%%
 
 # %%ENABLE_SAL%%
 #  cs_salvium: ^2.0.0
-#  cs_salvium_flutter_libs: ^2.0.0
+#  cs_salvium_flutter_libs: ^3.0.1
 # %%END_ENABLE_SAL%%
 
 # %%ENABLE_MWEBD%%
-#  flutter_mwebd: ^0.0.1-pre.8
+#  flutter_mwebd: 0.0.1-pre.11
 # %%END_ENABLE_MWEBD%%
 
   monero_rpc: ^2.0.0
@@ -86,7 +95,7 @@ dependencies:
   bitcoindart:
     git:
       url: https://github.com/cypherstack/bitcoindart.git
-      ref: af6d6c27edfe2e7cc35772ed2684eb4cc826f0e4
+      ref: ea33b1f5d6a701791359a2e180f73866dc667732
 
   stack_wallet_backup:
     git:
@@ -96,15 +105,15 @@ dependencies:
   bip47:
     git:
       url: https://github.com/cypherstack/bip47.git
-      ref: a6e7941b98a43a613708b1a12564bc17e712cfc7
+      ref: bdc0c0788d1d6dfb04863a793955f848ba1624a8
 
   fusiondart:
     git:
       url: https://github.com/cypherstack/fusiondart.git
-      ref: 540d0bc7dc27a97d45d63f412f26818a7f3b8b51
+      ref: 14427bcbbe1e754bce4a1b93cdb0a31ce56d792b
 
   # Utility plugins
-  http: ^0.13.0
+  http: ^1.6.0
   local_auth: ^2.3.0
   permission_handler: ^12.0.0+1
   flutter_local_notifications: ^17.2.2
@@ -120,21 +129,27 @@ dependencies:
   bip39:
     git:
       url: https://github.com/cypherstack/stack-bip39.git
-      ref: 0cd6d54e2860bea68fc50c801cb9db2a760192fb
+      ref: 20bc8ca0bf0a30c6965977a26c41475a9e862020
   bitbox:
     git:
-      url: https://github.com/PiRK/bitbox-flutter.git
-      ref: 50bf29957514a5712466ba37590a851212a244bf
-  bip32: ^2.0.0
+      url: https://github.com/cypherstack/bitbox-flutter.git
+      ref: 4c3c1aadae089dd1ace705aedf012e1c89fe53ad
+  bip32:
+    git:
+      url: https://github.com/cypherstack/bip32-dart
+      ref: 9a7e9b9bad9872c69dd1383d6b2e6090f85148fc
   bech32:
     git:
       url: https://github.com/cypherstack/bech32.git
-      ref: b6d2a5b4cd17311d917787c0f9505f04932659b1
+      ref: 6a3388ff8f62c1fa5e624bb7f36c8e71fe53428d
   bs58check: ^1.0.2
 
   # Eth Plugins
-  web3dart: 2.6.1
-  ethereum_addresses: 1.0.2
+  web3dart: 3.0.1
+  ethereum_addresses:
+    git:
+      url: https://github.com/cypherstack/dart-ethereum_address
+      ref: 6a5d3d69e54c175ae44b44040fb2743c9b6405a6
 
   # Storage plugins
   flutter_secure_storage: ^8.0.0
@@ -144,22 +159,18 @@ dependencies:
 
   # UI/Component plugins
   flutter_native_splash: ^2.2.4
-  google_fonts: ^4.0.4
+  google_fonts: ^6.3.2
   url_launcher: ^6.0.5
   flutter_svg: ^2.0.7
-  flutter_feather_icons: ^2.0.0+1
-  decimal: ^2.1.0
+  decimal: ^3.2.4
   event_bus: ^2.0.0
-  uuid: ^3.0.5
+  uuid: ^4.5.2
   crypto: ^3.0.2
-  mobile_scanner: ^7.0.1
   image: ^4.3.0
   wakelock_plus: ^1.2.8
-  intl: ^0.17.0
-  devicelocale:
-    git:
-      url: https://github.com/cypherstack/flutter-devicelocale
-      ref: ba7d7d87a3772e972adb1358a5ec9a111b514fce
+  intl: ^0.19.0
+  html: ^0.15.6
+  devicelocale: 0.9.1
   device_info_plus: ^10.1.2
   keyboard_dismisser: ^3.0.0
   another_flushbar: ^1.10.28
@@ -168,13 +179,10 @@ dependencies:
   qr_flutter: ^4.0.0
   share_plus: ^7.0.2
   emojis: ^0.9.9
-  pointycastle: ^3.6.0
+  pointycastle: ^4.0.0
   package_info_plus: ^8.0.2
-  lottie: ^2.3.2
-  file_picker:
-    git:
-      url: https://github.com/cypherstack/flutter_file_picker.git
-      ref: b2849e63e1d418ad8d943c886cd3f4ed20d0ff23
+  lottie: ^3.3.2
+  file_picker: ^10.3.3
   connectivity_plus: ^4.0.1
   isar_community: 3.3.0-dev.2
   isar_community_flutter_libs: 3.3.0-dev.2
@@ -183,32 +191,38 @@ dependencies:
   equatable: ^2.0.5
   async: ^2.10.0
   dart_bs58: ^1.0.1
-  dart_bs58check: ^3.0.2
+  dart_bs58check:
+    git:
+      url: https://github.com/cypherstack/dart-bs58check
+      ref: bed60e43e4e509ea45bb097e6caee9f8293ddf98
   hex: ^0.2.0
-  archive: ^3.6.1
+  archive: ^4.0.2
   desktop_drop: ^0.4.4
-  nanodart: ^2.0.0
+  nanodart:
+    git:
+      url: https://github.com/cypherstack/nanodart
+      ref: 1d3f30c8abd36d352a8b3147426308b77c77484e
   basic_utils: ^5.5.4
-  stellar_flutter_sdk: ^1.7.8
-  bip340: ^0.2.0
+  stellar_flutter_sdk: ^2.1.7
+#  bip340: ^0.2.0
 #  tezart: ^2.0.5
   tezart:
     git:
       url: https://github.com/cypherstack/tezart.git
-      ref: d000cc245e51d3ff50e6467960fb3d9159d5b2a9
+      ref: 84c563104f1a19c26e49bafccb7da404b210b666
   socks5_proxy: 1.0.3+dev.3
   convert: ^3.1.1
   flutter_hooks: ^0.20.3
   meta: ^1.9.1
   coinlib_flutter:
     git:
-      url: https://www.github.com/julian-CStack/coinlib
+      url: https://github.com/cypherstack/coinlib
       path: coinlib_flutter
-      ref: d212a8f974bf30be82ce486bf60d7135d80eb6a2
+      ref: f0e12dacb6d39e1cb340f0deae178d0fad1d6fd6
   electrum_adapter:
     git:
       url: https://github.com/cypherstack/electrum_adapter.git
-      ref: 794ab2d7b88b34d64a89518f9b9f41dcc235aca1
+      ref: b6fa44d015d3bfa06934b73219928c29ca48a290
   stream_channel: ^2.1.0
   solana:
     git: # TODO [prio=low]: Revert to official package once Tor support is merged upstream.
@@ -239,13 +253,24 @@ dependencies:
       ref: 3c0cba27868ebb5c7d65ebc30a8e6e5342186692
   namecoin:
     git:
-      url: https://github.com/Cyrix126/namecoin_dart
-      ref: 819b21164ef93cc0889049d4a8a1be2d0cc36a1b
+      url: https://github.com/cypherstack/namecoin_dart
+      ref: 73a29731ba493595fed331d92c7a4b5604fd6e23
   drift: ^2.28.2
   drift_flutter: ^0.2.7
   path: ^1.9.1
   mweb_client: ^0.2.0
   fixnum: ^1.1.1
+  saf_util: ^0.11.0
+  saf_stream: ^0.12.3
+  unorm_dart: ^0.3.2
+  qr_code_scanner_plus: ^2.0.14
+  mobile_app_privacy:
+    git:
+      url: https://github.com/cypherstack/mobile_app_privacy
+      ref: v0.0.3
+
+  # required for web3dart to use EthereumAddress class...
+  wallet: 0.0.18
 
 dev_dependencies:
   flutter_test:
@@ -268,7 +293,11 @@ dev_dependencies:
 flutter_native_splash:
   image: assets/icon/splash.png
   color: "F7F7F7"
-  android_disable_fullscreen: true
+  color_dark_ios: "2A2D34"
+  color_dark_android: "2A2D34"
+  android_12:
+    color: "F7F7F7"
+    color_dark: "2A2D34"
 
 dependency_overrides:
   logger:
@@ -282,23 +311,23 @@ dependency_overrides:
   # needed for dart 3.5+ (at least for now)
   win32: ^5.5.4
 
-  # namecoin names lib needs to be updated
+  # coinlib_flutter requires this
   coinlib:
     git:
-      url: https://www.github.com/julian-CStack/coinlib
+      url: https://github.com/cypherstack/coinlib
       path: coinlib
-      ref: d212a8f974bf30be82ce486bf60d7135d80eb6a2
-
-  coinlib_flutter:
-    git:
-      url: https://www.github.com/julian-CStack/coinlib
-      path: coinlib_flutter
-      ref: d212a8f974bf30be82ce486bf60d7135d80eb6a2
+      ref: f0e12dacb6d39e1cb340f0deae178d0fad1d6fd6
 
   bip47:
     git:
       url: https://github.com/cypherstack/bip47.git
-      ref: a6e7941b98a43a613708b1a12564bc17e712cfc7
+      ref: bdc0c0788d1d6dfb04863a793955f848ba1624a8
+
+  # bip47 pins a different bitcoindart commit; override to ours
+  bitcoindart:
+    git:
+      url: https://github.com/cypherstack/bitcoindart.git
+      ref: ea33b1f5d6a701791359a2e180f73866dc667732
 
   # required for dart 3, at least until a fix is merged upstream
   wakelock_windows:
@@ -307,16 +336,40 @@ dependency_overrides:
       ref: 2a9bca63a540771f241d688562351482b2cf234c
       path: wakelock_windows
 
-  # required override for nanodart
+  # required override for solana, etc
   bip39:
     git:
       url: https://github.com/cypherstack/stack-bip39.git
-      ref: 0cd6d54e2860bea68fc50c801cb9db2a760192fb
+      ref: 20bc8ca0bf0a30c6965977a26c41475a9e862020
 
-  crypto: 3.0.2
-  analyzer: ^8.2.0
-  pinenacl: ^0.6.0
-  http: ^0.13.0
+  # required to override solana's lower version
+  decimal: ^3.2.4
+
+  # pin analyzer below 8.4.0 to avoid source_gen 3.1.0 incompatibility (getInvocation() removed in 8.4.0+)
+  analyzer: ">=8.2.0 <8.4.0"
+
+  # xelis override
+  json_rpc_2: ^4.0.0
+  freezed: ^3.1.0
+  freezed_annotation: ^3.1.0
+
+# %%ENABLE_ISAR%%
+#  isar_community:
+#    git:
+#      url: https://github.com/isar-community/isar-community.git
+#      path: packages/isar_community
+#      ref: 39ea19ff035518aef4d0e776206d96a428f57789
+#  isar_community_flutter_libs:
+#    git:
+#      url: https://github.com/isar-community/isar-community.git
+#      path: packages/isar_community_flutter_libs
+#      ref: 39ea19ff035518aef4d0e776206d96a428f57789
+#  isar_community_generator:
+#    git:
+#      url: https://github.com/isar-community/isar-community.git
+#      path: packages/isar_community_generator
+#      ref: 39ea19ff035518aef4d0e776206d96a428f57789
+# %%END_ENABLE_ISAR%%
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -364,6 +417,10 @@ flutter:
 
     # default themes_testing
     - assets/default_themes/
+
+# %%ENABLE_MWEBDEXE%%
+#    - assets/windows/mwebd.exe
+# %%END_ENABLE_MWEBDEXE%%
 
 import_sorter:
   comments: false # Optional, defaults to true

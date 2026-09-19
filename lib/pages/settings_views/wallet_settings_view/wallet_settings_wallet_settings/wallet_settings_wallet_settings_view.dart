@@ -22,8 +22,9 @@ import '../../../../utilities/logger.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/isar/models/wallet_info.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
-import '../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
-import '../../../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
+import '../../../../wallets/wallet/impl/bitcoin_wallet.dart';
+import '../../../../wallets/wallet/impl/epiccash_wallet.dart';
+import '../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
@@ -88,6 +89,37 @@ class _WalletSettingsWalletSettingsViewState
     }
   }
 
+  bool _switchLegacyToggledLock = false; // Mutex.
+  Future<void> _switchLegacyToggled() async {
+    if (_switchLegacyToggledLock) {
+      return;
+    }
+    _switchLegacyToggledLock = true; // Lock mutex.
+
+    try {
+      // Toggle enableLegacyAddresses in wallet info.
+      await ref
+          .read(pWalletInfo(widget.walletId))
+          .updateOtherData(
+            newEntries: {
+              WalletInfoKeys.enableLegacyAddresses: !ref
+                  .read(pWalletInfo(widget.walletId))
+                  .isLegacyAddressesEnabled,
+            },
+            isar: ref.read(mainDBProvider).isar,
+          );
+    } catch (e, s) {
+      Logging.instance.f(
+        "Failed to update enableLegacyAddresses for wallet",
+        error: e,
+        stackTrace: s,
+      );
+    } finally {
+      // ensure _switchLegacyToggledLock is set to false no matter what
+      _switchLegacyToggledLock = false;
+    }
+  }
+
   bool _switchReuseAddressToggledLock = false; // Mutex.
   Future<void> _switchReuseAddressToggled() async {
     if (_switchReuseAddressToggledLock) {
@@ -103,7 +135,9 @@ class _WalletSettingsWalletSettingsViewState
             return StackDialog(
               title: "Warning!",
               message:
-                  "Reusing addresses reduces your privacy and security.  Are you sure you want to reuse addresses by default?",
+                  "Reusing addresses reduces your privacy and "
+                  "security.  Are you sure you want to reuse "
+                  "addresses by default?",
               leftButton: TextButton(
                 style: Theme.of(context)
                     .extension<StackColors>()!
@@ -156,8 +190,9 @@ class _WalletSettingsWalletSettingsViewState
             return StackDialog(
               title: "Notice",
               message:
-                  "Activating MWEB requires synchronizing on-chain MWEB related data. "
-                  "This currently requires about 800 MB of storage.",
+                  "Activating MWEB requires synchronizing on-chain MWEB "
+                  "related data. This currently requires about "
+                  "800 MB of storage.",
               leftButton: SecondaryButton(
                 onPressed: () {
                   Navigator.of(context).pop(false);
@@ -261,7 +296,6 @@ class _WalletSettingsWalletSettingsViewState
                   RoundedWhiteContainer(
                     padding: const EdgeInsets.all(0),
                     child: RawMaterialButton(
-                      // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(
                           Constants.size.circularBorderRadius,
@@ -331,7 +365,6 @@ class _WalletSettingsWalletSettingsViewState
                     RoundedWhiteContainer(
                       padding: const EdgeInsets.all(0),
                       child: RawMaterialButton(
-                        // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
                         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(
@@ -381,7 +414,6 @@ class _WalletSettingsWalletSettingsViewState
                     RoundedWhiteContainer(
                       padding: const EdgeInsets.all(0),
                       child: RawMaterialButton(
-                        // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
                         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(
@@ -476,6 +508,56 @@ class _WalletSettingsWalletSettingsViewState
                         ),
                       ),
                     ),
+                  if (wallet is BitcoinWallet) const SizedBox(height: 8),
+                  if (wallet is BitcoinWallet)
+                    RoundedWhiteContainer(
+                      padding: const EdgeInsets.all(0),
+                      child: RawMaterialButton(
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
+                          ),
+                        ),
+                        onPressed: _switchLegacyToggled,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12.0,
+                            vertical: 20,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Enable legacy addresses",
+                                style: STextStyles.titleBold12(context),
+                                textAlign: TextAlign.left,
+                              ),
+                              SizedBox(
+                                height: 20,
+                                width: 40,
+                                child: IgnorePointer(
+                                  child: DraggableSwitch(
+                                    value:
+                                        ref.watch(
+                                              pWalletInfo(
+                                                widget.walletId,
+                                              ).select(
+                                                (value) => value.otherData,
+                                              ),
+                                            )[WalletInfoKeys
+                                                .enableLegacyAddresses]
+                                            as bool? ??
+                                        false,
+                                    onChanged: (_) => (),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   if (wallet is SparkInterface && !wallet.isViewOnly)
                     const SizedBox(height: 8),
                   if (wallet is SparkInterface && !wallet.isViewOnly)
@@ -510,9 +592,9 @@ class _WalletSettingsWalletSettingsViewState
                         ),
                       ),
                     ),
-                  if (wallet is LibMoneroWallet || wallet is LibSalviumWallet)
+                  if (wallet is CryptonoteWallet || wallet is EpiccashWallet)
                     const SizedBox(height: 8),
-                  if (wallet is LibMoneroWallet || wallet is LibSalviumWallet)
+                  if (wallet is CryptonoteWallet || wallet is EpiccashWallet)
                     RoundedWhiteContainer(
                       padding: const EdgeInsets.all(0),
                       child: RawMaterialButton(
@@ -548,7 +630,6 @@ class _WalletSettingsWalletSettingsViewState
                   RoundedWhiteContainer(
                     padding: const EdgeInsets.all(0),
                     child: RawMaterialButton(
-                      // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(
                           Constants.size.circularBorderRadius,
@@ -560,65 +641,60 @@ class _WalletSettingsWalletSettingsViewState
                         showDialog<void>(
                           barrierDismissible: true,
                           context: context,
-                          builder:
-                              (_) => StackDialog(
-                                title:
-                                    "Do you want to delete ${ref.read(pWalletName(widget.walletId))}?",
-                                leftButton: TextButton(
-                                  style: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .getSecondaryEnabledButtonStyle(context),
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                  child: Text(
-                                    "Cancel",
-                                    style: STextStyles.button(context).copyWith(
-                                      color:
-                                          Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .accentColorDark,
-                                    ),
-                                  ),
-                                ),
-                                rightButton: TextButton(
-                                  style: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .getPrimaryEnabledButtonStyle(context),
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                    Navigator.push(
-                                      context,
-                                      RouteGenerator.getRoute(
-                                        shouldUseMaterialRoute:
-                                            RouteGenerator.useMaterialPageRoute,
-                                        builder:
-                                            (_) => LockscreenView(
-                                              routeOnSuccessArguments:
-                                                  widget.walletId,
-                                              showBackButton: true,
-                                              routeOnSuccess:
-                                                  DeleteWalletWarningView
-                                                      .routeName,
-                                              biometricsCancelButtonString:
-                                                  "CANCEL",
-                                              biometricsLocalizedReason:
-                                                  "Authenticate to delete wallet",
-                                              biometricsAuthenticationTitle:
-                                                  "Delete wallet",
-                                            ),
-                                        settings: const RouteSettings(
-                                          name: "/deleteWalletLockscreen",
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  child: Text(
-                                    "Delete",
-                                    style: STextStyles.button(context),
-                                  ),
+                          builder: (_) => StackDialog(
+                            title:
+                                "Do you want to delete "
+                                "${ref.read(pWalletName(widget.walletId))}?",
+                            leftButton: TextButton(
+                              style: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .getSecondaryEnabledButtonStyle(context),
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              child: Text(
+                                "Cancel",
+                                style: STextStyles.button(context).copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.accentColorDark,
                                 ),
                               ),
+                            ),
+                            rightButton: TextButton(
+                              style: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .getPrimaryEnabledButtonStyle(context),
+                              onPressed: () {
+                                Navigator.pop(context);
+                                Navigator.push(
+                                  context,
+                                  RouteGenerator.getRoute(
+                                    shouldUseMaterialRoute:
+                                        RouteGenerator.useMaterialPageRoute,
+                                    builder: (_) => LockscreenView(
+                                      routeOnSuccessArguments: widget.walletId,
+                                      showBackButton: true,
+                                      routeOnSuccess:
+                                          DeleteWalletWarningView.routeName,
+                                      biometricsCancelButtonString: "CANCEL",
+                                      biometricsLocalizedReason:
+                                          "Authenticate to delete wallet",
+                                      biometricsAuthenticationTitle:
+                                          "Delete wallet",
+                                    ),
+                                    settings: const RouteSettings(
+                                      name: "/deleteWalletLockscreen",
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                "Delete",
+                                style: STextStyles.button(context),
+                              ),
+                            ),
+                          ),
                         );
                       },
                       child: Padding(

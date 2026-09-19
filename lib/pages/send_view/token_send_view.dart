@@ -163,9 +163,10 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
       // );
 
       Logging.instance.d("qrResult content: ${qrResult.rawContent}");
+      if (qrResult.rawContent == null) return;
 
       final paymentData = AddressUtils.parsePaymentUri(
-        qrResult.rawContent,
+        qrResult.rawContent!,
         logging: Logging.instance,
       );
 
@@ -206,7 +207,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
 
         // now check for non standard encoded basic address
       } else {
-        _address = qrResult.rawContent.split("\n").first.trim();
+        _address = qrResult.rawContent!.split("\n").first.trim();
         sendToController.text = _address ?? "";
 
         _updatePreviewButtonState(_address, _amountToSend);
@@ -249,24 +250,22 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
       locale: ref.read(localeServiceChangeNotifierProvider).locale,
     );
     if (baseAmount != null) {
-      final _price =
-          ref
-              .read(priceAnd24hChangeNotifierProvider)
-              .getTokenPrice(tokenContract.address)
-              ?.value;
+      final _price = ref
+          .read(priceAnd24hChangeNotifierProvider)
+          .getTokenPrice(tokenContract.address)
+          ?.value;
 
       if (_price == null || _price == Decimal.zero) {
         _amountToSend = Amount.zero;
       } else {
-        _amountToSend =
-            baseAmount <= Amount.zero
-                ? Amount.zero
-                : Amount.fromDecimal(
-                  (baseAmount.decimal / _price).toDecimal(
-                    scaleOnInfinitePrecision: tokenContract.decimals,
-                  ),
-                  fractionDigits: tokenContract.decimals,
-                );
+        _amountToSend = baseAmount <= Amount.zero
+            ? Amount.zero
+            : Amount.fromDecimal(
+                (baseAmount.decimal / _price).toDecimal(
+                  scaleOnInfinitePrecision: tokenContract.decimals,
+                ),
+                fractionDigits: tokenContract.decimals,
+              );
       }
       if (_cachedAmountToSend != null && _cachedAmountToSend == _amountToSend) {
         return;
@@ -296,7 +295,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
     if (!_cryptoAmountChangeLock) {
       final cryptoAmount = ref
           .read(pAmountFormatter(coin))
-          .tryParse(cryptoAmountController.text, ethContract: tokenContract);
+          .tryParse(cryptoAmountController.text, tokenContract: tokenContract);
       if (cryptoAmount != null) {
         _amountToSend = cryptoAmount;
         if (_cachedAmountToSend != null &&
@@ -305,11 +304,10 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
         }
         _cachedAmountToSend = _amountToSend;
 
-        final price =
-            ref
-                .read(priceAnd24hChangeNotifierProvider)
-                .getTokenPrice(tokenContract.address)
-                ?.value;
+        final price = ref
+            .read(priceAnd24hChangeNotifierProvider)
+            .getTokenPrice(tokenContract.address)
+            ?.value;
 
         if (price != null && price > Decimal.zero) {
           baseAmountController.text = (_amountToSend!.decimal * price)
@@ -496,8 +494,9 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
               address: _address!,
               amount: amount,
               isChange: false,
-              addressType:
-                  tokenWallet.cryptoCurrency.getAddressType(_address!)!,
+              addressType: tokenWallet.cryptoCurrency.getAddressType(
+                _address!,
+              )!,
             ),
           ],
           feeRateType: ref.read(feeRateTypeMobileStateProvider),
@@ -518,14 +517,13 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
           Navigator.of(context).push(
             RouteGenerator.getRoute(
               shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-              builder:
-                  (_) => ConfirmTransactionView(
-                    txData: txData,
-                    walletId: walletId,
-                    isTokenTx: true,
-                    onSuccess: clearSendForm,
-                    routeOnSuccessName: TokenView.routeName,
-                  ),
+              builder: (_) => ConfirmTransactionView(
+                txData: txData,
+                walletId: walletId,
+                isTokenTx: true,
+                onSuccess: clearSendForm,
+                routeOnSuccessName: TokenView.routeName,
+              ),
               settings: const RouteSettings(
                 name: ConfirmTransactionView.routeName,
               ),
@@ -555,10 +553,9 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                   child: Text(
                     "Ok",
                     style: STextStyles.button(context).copyWith(
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(
+                        context,
+                      ).extension<StackColors>()!.accentColorDark,
                     ),
                   ),
                   onPressed: () {
@@ -699,10 +696,9 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                           children: [
                             Container(
                               decoration: BoxDecoration(
-                                color:
-                                    Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.popupBG,
+                                color: Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.popupBG,
                                 borderRadius: BorderRadius.circular(
                                   Constants.size.circularBorderRadius,
                                 ),
@@ -750,7 +746,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                                     )),
                                                   )
                                                   .spendable,
-                                              ethContract: tokenContract,
+                                              tokenContract: tokenContract,
                                               withUnitName: false,
                                               indicatePrecisionLoss: true,
                                             );
@@ -776,7 +772,8 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                                           )),
                                                         )
                                                         .spendable,
-                                                    ethContract: tokenContract,
+                                                    tokenContract:
+                                                        tokenContract,
                                                   ),
                                               style: STextStyles.titleBold12(
                                                 context,
@@ -835,85 +832,90 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                 },
                                 focusNode: _addressFocusNode,
                                 style: STextStyles.field(context),
-                                decoration: standardInputDecoration(
-                                  "Enter ${tokenContract.symbol} address",
-                                  _addressFocusNode,
-                                  context,
-                                ).copyWith(
-                                  contentPadding: const EdgeInsets.only(
-                                    left: 16,
-                                    top: 6,
-                                    bottom: 8,
-                                    right: 5,
-                                  ),
-                                  suffixIcon: Padding(
-                                    padding:
-                                        sendToController.text.isEmpty
+                                decoration:
+                                    standardInputDecoration(
+                                      "Enter ${tokenContract.symbol} address",
+                                      _addressFocusNode,
+                                      context,
+                                    ).copyWith(
+                                      contentPadding: const EdgeInsets.only(
+                                        left: 16,
+                                        top: 6,
+                                        bottom: 8,
+                                        right: 5,
+                                      ),
+                                      suffixIcon: Padding(
+                                        padding: sendToController.text.isEmpty
                                             ? const EdgeInsets.only(right: 8)
                                             : const EdgeInsets.only(right: 0),
-                                    child: UnconstrainedBox(
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceAround,
-                                        children: [
-                                          _addressToggleFlag
-                                              ? TextFieldIconButton(
-                                                key: const Key(
-                                                  "tokenSendViewClearAddressFieldButtonKey",
+                                        child: UnconstrainedBox(
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceAround,
+                                            children: [
+                                              _addressToggleFlag
+                                                  ? TextFieldIconButton(
+                                                      key: const Key(
+                                                        "tokenSendViewClearAddressFieldButtonKey",
+                                                      ),
+                                                      onTap: () {
+                                                        sendToController.text =
+                                                            "";
+                                                        _address = "";
+                                                        _updatePreviewButtonState(
+                                                          _address,
+                                                          _amountToSend,
+                                                        );
+                                                        setState(() {
+                                                          _addressToggleFlag =
+                                                              false;
+                                                        });
+                                                      },
+                                                      child: const XIcon(),
+                                                    )
+                                                  : TextFieldIconButton(
+                                                      key: const Key(
+                                                        "tokenSendViewPasteAddressFieldButtonKey",
+                                                      ),
+                                                      onTap:
+                                                          _onTokenSendViewPasteAddressFieldButtonPressed,
+                                                      child:
+                                                          sendToController
+                                                              .text
+                                                              .isEmpty
+                                                          ? const ClipboardIcon()
+                                                          : const XIcon(),
+                                                    ),
+                                              if (sendToController.text.isEmpty)
+                                                TextFieldIconButton(
+                                                  key: const Key(
+                                                    "sendViewAddressBookButtonKey",
+                                                  ),
+                                                  onTap: () {
+                                                    Navigator.of(
+                                                      context,
+                                                    ).pushNamed(
+                                                      AddressBookView.routeName,
+                                                      arguments: widget.coin,
+                                                    );
+                                                  },
+                                                  child:
+                                                      const AddressBookIcon(),
                                                 ),
-                                                onTap: () {
-                                                  sendToController.text = "";
-                                                  _address = "";
-                                                  _updatePreviewButtonState(
-                                                    _address,
-                                                    _amountToSend,
-                                                  );
-                                                  setState(() {
-                                                    _addressToggleFlag = false;
-                                                  });
-                                                },
-                                                child: const XIcon(),
-                                              )
-                                              : TextFieldIconButton(
-                                                key: const Key(
-                                                  "tokenSendViewPasteAddressFieldButtonKey",
+                                              if (sendToController.text.isEmpty)
+                                                TextFieldIconButton(
+                                                  key: const Key(
+                                                    "sendViewScanQrButtonKey",
+                                                  ),
+                                                  onTap:
+                                                      _onTokenSendViewScanQrButtonPressed,
+                                                  child: const QrCodeIcon(),
                                                 ),
-                                                onTap:
-                                                    _onTokenSendViewPasteAddressFieldButtonPressed,
-                                                child:
-                                                    sendToController
-                                                            .text
-                                                            .isEmpty
-                                                        ? const ClipboardIcon()
-                                                        : const XIcon(),
-                                              ),
-                                          if (sendToController.text.isEmpty)
-                                            TextFieldIconButton(
-                                              key: const Key(
-                                                "sendViewAddressBookButtonKey",
-                                              ),
-                                              onTap: () {
-                                                Navigator.of(context).pushNamed(
-                                                  AddressBookView.routeName,
-                                                  arguments: widget.coin,
-                                                );
-                                              },
-                                              child: const AddressBookIcon(),
-                                            ),
-                                          if (sendToController.text.isEmpty)
-                                            TextFieldIconButton(
-                                              key: const Key(
-                                                "sendViewScanQrButtonKey",
-                                              ),
-                                              onTap:
-                                                  _onTokenSendViewScanQrButtonPressed,
-                                              child: const QrCodeIcon(),
-                                            ),
-                                        ],
+                                            ],
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ),
                               ),
                             ),
                             Builder(
@@ -935,14 +937,12 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                       child: Text(
                                         error,
                                         textAlign: TextAlign.left,
-                                        style: STextStyles.label(
-                                          context,
-                                        ).copyWith(
-                                          color:
-                                              Theme.of(context)
+                                        style: STextStyles.label(context)
+                                            .copyWith(
+                                              color: Theme.of(context)
                                                   .extension<StackColors>()!
                                                   .textError,
-                                        ),
+                                            ),
                                       ),
                                     ),
                                   );
@@ -977,23 +977,21 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                               autocorrect: Util.isDesktop ? false : true,
                               enableSuggestions: Util.isDesktop ? false : true,
                               style: STextStyles.smallMed14(context).copyWith(
-                                color:
-                                    Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.textDark,
+                                color: Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.textDark,
                               ),
                               key: const Key(
                                 "amountInputFieldCryptoTextFieldKey",
                               ),
                               controller: cryptoAmountController,
                               focusNode: _cryptoFocus,
-                              keyboardType:
-                                  Util.isDesktop
-                                      ? null
-                                      : const TextInputType.numberWithOptions(
-                                        signed: false,
-                                        decimal: true,
-                                      ),
+                              keyboardType: Util.isDesktop
+                                  ? null
+                                  : const TextInputType.numberWithOptions(
+                                      signed: false,
+                                      decimal: true,
+                                    ),
                               textAlign: TextAlign.right,
                               inputFormatters: [
                                 AmountInputFormatter(
@@ -1026,14 +1024,12 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                       ref
                                           .watch(pAmountUnit(coin))
                                           .unitForContract(tokenContract),
-                                      style: STextStyles.smallMed14(
-                                        context,
-                                      ).copyWith(
-                                        color:
-                                            Theme.of(context)
+                                      style: STextStyles.smallMed14(context)
+                                          .copyWith(
+                                            color: Theme.of(context)
                                                 .extension<StackColors>()!
                                                 .accentColorDark,
-                                      ),
+                                          ),
                                     ),
                                   ),
                                 ),
@@ -1044,26 +1040,25 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                             if (Prefs.instance.externalCalls)
                               TextField(
                                 autocorrect: Util.isDesktop ? false : true,
-                                enableSuggestions:
-                                    Util.isDesktop ? false : true,
+                                enableSuggestions: Util.isDesktop
+                                    ? false
+                                    : true,
                                 style: STextStyles.smallMed14(context).copyWith(
-                                  color:
-                                      Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textDark,
+                                  color: Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.textDark,
                                 ),
                                 key: const Key(
                                   "amountInputFieldFiatTextFieldKey",
                                 ),
                                 controller: baseAmountController,
                                 focusNode: _baseFocus,
-                                keyboardType:
-                                    Util.isDesktop
-                                        ? null
-                                        : const TextInputType.numberWithOptions(
-                                          signed: false,
-                                          decimal: true,
-                                        ),
+                                keyboardType: Util.isDesktop
+                                    ? null
+                                    : const TextInputType.numberWithOptions(
+                                        signed: false,
+                                        decimal: true,
+                                      ),
                                 textAlign: TextAlign.right,
                                 inputFormatters: [
                                   AmountInputFormatter(
@@ -1098,14 +1093,12 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                             (value) => value.currency,
                                           ),
                                         ),
-                                        style: STextStyles.smallMed14(
-                                          context,
-                                        ).copyWith(
-                                          color:
-                                              Theme.of(context)
+                                        style: STextStyles.smallMed14(context)
+                                            .copyWith(
+                                              color: Theme.of(context)
                                                   .extension<StackColors>()!
                                                   .accentColorDark,
-                                        ),
+                                            ),
                                       ),
                                     ),
                                   ),
@@ -1124,41 +1117,42 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                               ),
                               child: TextField(
                                 autocorrect: Util.isDesktop ? false : true,
-                                enableSuggestions:
-                                    Util.isDesktop ? false : true,
+                                enableSuggestions: Util.isDesktop
+                                    ? false
+                                    : true,
                                 controller: noteController,
                                 focusNode: _noteFocusNode,
                                 style: STextStyles.field(context),
                                 onChanged: (_) => setState(() {}),
-                                decoration: standardInputDecoration(
-                                  "Type something...",
-                                  _noteFocusNode,
-                                  context,
-                                ).copyWith(
-                                  suffixIcon:
-                                      noteController.text.isNotEmpty
+                                decoration:
+                                    standardInputDecoration(
+                                      "Type something...",
+                                      _noteFocusNode,
+                                      context,
+                                    ).copyWith(
+                                      suffixIcon: noteController.text.isNotEmpty
                                           ? Padding(
-                                            padding: const EdgeInsets.only(
-                                              right: 0,
-                                            ),
-                                            child: UnconstrainedBox(
-                                              child: Row(
-                                                children: [
-                                                  TextFieldIconButton(
-                                                    child: const XIcon(),
-                                                    onTap: () async {
-                                                      setState(() {
-                                                        noteController.text =
-                                                            "";
-                                                      });
-                                                    },
-                                                  ),
-                                                ],
+                                              padding: const EdgeInsets.only(
+                                                right: 0,
                                               ),
-                                            ),
-                                          )
+                                              child: UnconstrainedBox(
+                                                child: Row(
+                                                  children: [
+                                                    TextFieldIconButton(
+                                                      child: const XIcon(),
+                                                      onTap: () async {
+                                                        setState(() {
+                                                          noteController.text =
+                                                              "";
+                                                        });
+                                                      },
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            )
                                           : null,
-                                ),
+                                    ),
                               ),
                             ),
                             const SizedBox(height: 12),
@@ -1172,8 +1166,9 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                               children: [
                                 TextField(
                                   autocorrect: Util.isDesktop ? false : true,
-                                  enableSuggestions:
-                                      Util.isDesktop ? false : true,
+                                  enableSuggestions: Util.isDesktop
+                                      ? false
+                                      : true,
                                   controller: feeController,
                                   readOnly: true,
                                   textInputAction: TextInputAction.none,
@@ -1183,10 +1178,9 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                     horizontal: 12,
                                   ),
                                   child: RawMaterialButton(
-                                    splashColor:
-                                        Theme.of(
-                                          context,
-                                        ).extension<StackColors>()!.highlight,
+                                    splashColor: Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.highlight,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(
                                         Constants.size.circularBorderRadius,
@@ -1201,19 +1195,21 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                             top: Radius.circular(20),
                                           ),
                                         ),
-                                        builder:
-                                            (_) => TransactionFeeSelectionSheet(
+                                        builder: (_) =>
+                                            TransactionFeeSelectionSheet(
                                               walletId: walletId,
                                               isToken: true,
-                                              amount: (Decimal.tryParse(
-                                                        cryptoAmountController
-                                                            .text,
-                                                      ) ??
-                                                      Decimal.zero)
-                                                  .toAmount(
-                                                    fractionDigits:
-                                                        tokenContract.decimals,
-                                                  ),
+                                              amount:
+                                                  (Decimal.tryParse(
+                                                            cryptoAmountController
+                                                                .text,
+                                                          ) ??
+                                                          Decimal.zero)
+                                                      .toAmount(
+                                                        fractionDigits:
+                                                            tokenContract
+                                                                .decimals,
+                                                      ),
                                               updateChosen: (String fee) {
                                                 if (fee == "custom") {
                                                   if (!isCustomFee.value) {
@@ -1317,28 +1313,24 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                             TextButton(
                               onPressed:
                                   ref
-                                          .watch(
-                                            previewTokenTxButtonStateProvider
-                                                .state,
-                                          )
-                                          .state
-                                      ? _previewTransaction
-                                      : null,
+                                      .watch(
+                                        previewTokenTxButtonStateProvider.state,
+                                      )
+                                      .state
+                                  ? _previewTransaction
+                                  : null,
                               style:
                                   ref
-                                          .watch(
-                                            previewTokenTxButtonStateProvider
-                                                .state,
-                                          )
-                                          .state
-                                      ? Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .getPrimaryEnabledButtonStyle(context)
-                                      : Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .getPrimaryDisabledButtonStyle(
-                                            context,
-                                          ),
+                                      .watch(
+                                        previewTokenTxButtonStateProvider.state,
+                                      )
+                                      .state
+                                  ? Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .getPrimaryEnabledButtonStyle(context)
+                                  : Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .getPrimaryDisabledButtonStyle(context),
                               child: Text(
                                 "Preview",
                                 style: STextStyles.button(context),

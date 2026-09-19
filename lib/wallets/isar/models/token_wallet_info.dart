@@ -38,11 +38,15 @@ class TokenWalletInfo implements IsarId {
   // token balance cache
   Balance getCachedBalance() {
     if (cachedBalanceJsonString == null) {
+      final amount = Amount(
+        rawValue: BigInt.zero,
+        fractionDigits: tokenFractionDigits,
+      );
       return Balance(
-        total: Amount.zeroWith(fractionDigits: tokenFractionDigits),
-        spendable: Amount.zeroWith(fractionDigits: tokenFractionDigits),
-        blockedTotal: Amount.zeroWith(fractionDigits: tokenFractionDigits),
-        pendingSpendable: Amount.zeroWith(fractionDigits: tokenFractionDigits),
+        total: amount,
+        spendable: amount,
+        blockedTotal: amount,
+        pendingSpendable: amount,
       );
     }
     return Balance.fromJson(cachedBalanceJsonString!, tokenFractionDigits);

@@ -50,6 +50,7 @@ class AddressCard extends ConsumerStatefulWidget {
     required this.coin,
     this.onPressed,
     this.clipboard = const ClipboardWrapper(),
+    this.compact = false,
   });
 
   final int addressId;
@@ -57,6 +58,7 @@ class AddressCard extends ConsumerStatefulWidget {
   final CryptoCurrency coin;
   final ClipboardInterface clipboard;
   final VoidCallback? onPressed;
+  final bool compact;
 
   @override
   ConsumerState<AddressCard> createState() => _AddressCardState();
@@ -142,11 +144,10 @@ class _AddressCardState extends ConsumerState<AddressCard> {
 
   @override
   void initState() {
-    address =
-        MainDB.instance.isar.addresses
-            .where()
-            .idEqualTo(widget.addressId)
-            .findFirstSync()!;
+    address = MainDB.instance.isar.addresses
+        .where()
+        .idEqualTo(widget.addressId)
+        .findFirstSync()!;
 
     label = MainDB.instance.getAddressLabelSync(widget.walletId, address.value);
     Id? id = label?.id;
@@ -155,12 +156,11 @@ class _AddressCardState extends ConsumerState<AddressCard> {
         walletId: widget.walletId,
         addressString: address.value,
         value: "",
-        tags:
-            address.subType == AddressSubType.receiving
-                ? ["receiving"]
-                : address.subType == AddressSubType.change
-                ? ["change"]
-                : null,
+        tags: address.subType == AddressSubType.receiving
+            ? ["receiving"]
+            : address.subType == AddressSubType.change
+            ? ["change"]
+            : null,
       );
       id = MainDB.instance.putAddressLabelSync(label!);
     }
@@ -181,20 +181,19 @@ class _AddressCardState extends ConsumerState<AddressCard> {
           }
 
           return ConditionalParent(
-            condition: isDesktop,
-            builder:
-                (child) => Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SvgPicture.file(
-                      File(ref.watch(coinIconProvider(widget.coin))),
-                      width: 32,
-                      height: 32,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(child: child),
-                  ],
+            condition: isDesktop && !widget.compact,
+            builder: (child) => Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SvgPicture.file(
+                  File(ref.watch(coinIconProvider(widget.coin))),
+                  width: 32,
+                  height: 32,
                 ),
+                const SizedBox(width: 12),
+                Expanded(child: child),
+              ],
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -230,129 +229,124 @@ class _AddressCardState extends ConsumerState<AddressCard> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    CustomTextButton(
-                      text: "Copy address",
-                      onTap: () {
-                        widget.clipboard
-                            .setData(ClipboardData(text: address.value))
-                            .then((value) {
-                              if (context.mounted) {
-                                unawaited(
-                                  showFloatingFlushBar(
-                                    type: FlushBarType.info,
-                                    message: "Copied to clipboard",
-                                    context: context,
-                                  ),
-                                );
-                              }
-                            });
-                      },
-                    ),
-                    const SizedBox(width: 16),
-                    CustomTextButton(
-                      text: "Show QR code",
-                      onTap: () async {
-                        await showDialog<void>(
-                          context: context,
-                          builder: (_) {
-                            return StackDialogBase(
-                              child: Column(
-                                children: [
-                                  if (label!.value.isNotEmpty)
+                if (!widget.compact) const SizedBox(height: 10),
+                if (!widget.compact)
+                  Row(
+                    children: [
+                      CustomTextButton(
+                        text: "Copy address",
+                        onTap: () {
+                          widget.clipboard
+                              .setData(ClipboardData(text: address.value))
+                              .then((value) {
+                                if (context.mounted) {
+                                  unawaited(
+                                    showFloatingFlushBar(
+                                      type: FlushBarType.info,
+                                      message: "Copied to clipboard",
+                                      context: context,
+                                    ),
+                                  );
+                                }
+                              });
+                        },
+                      ),
+                      const SizedBox(width: 16),
+                      CustomTextButton(
+                        text: "Show QR code",
+                        onTap: () async {
+                          await showDialog<void>(
+                            context: context,
+                            builder: (_) {
+                              return StackDialogBase(
+                                child: Column(
+                                  children: [
+                                    if (label!.value.isNotEmpty)
+                                      Text(
+                                        label!.value,
+                                        style: STextStyles.w600_18(context),
+                                      ),
+                                    if (label!.value.isNotEmpty)
+                                      const SizedBox(height: 8),
                                     Text(
-                                      label!.value,
-                                      style: STextStyles.w600_18(context),
+                                      address.value,
+                                      style: STextStyles.w500_16(context)
+                                          .copyWith(
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textSubtitle1,
+                                          ),
                                     ),
-                                  if (label!.value.isNotEmpty)
-                                    const SizedBox(height: 8),
-                                  Text(
-                                    address.value,
-                                    style: STextStyles.w500_16(
-                                      context,
-                                    ).copyWith(
-                                      color:
-                                          Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .textSubtitle1,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Center(
-                                    child: RepaintBoundary(
-                                      key: _qrKey,
-                                      child: QR(
-                                        data: AddressUtils.buildUriString(
-                                          widget.coin.uriScheme,
-                                          address.value,
-                                          {},
+                                    const SizedBox(height: 16),
+                                    Center(
+                                      child: RepaintBoundary(
+                                        key: _qrKey,
+                                        child: QR(
+                                          data: AddressUtils.buildUriString(
+                                            widget.coin.uriScheme,
+                                            address.value,
+                                            {},
+                                          ),
+                                          size: 220,
                                         ),
-                                        size: 220,
                                       ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Row(
-                                    children: [
-                                      if (!isDesktop)
-                                        Expanded(
-                                          child: SecondaryButton(
-                                            label: "Share",
-                                            buttonHeight:
-                                                isDesktop
-                                                    ? ButtonHeight.l
-                                                    : null,
-                                            icon: SvgPicture.asset(
-                                              Assets.svg.share,
-                                              width: 14,
-                                              height: 14,
-                                              color:
-                                                  Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .buttonTextSecondary,
-                                            ),
-                                            onPressed: () async {
-                                              await _capturePng(false);
-                                            },
-                                          ),
-                                        ),
-                                      if (isDesktop)
-                                        Expanded(
-                                          child: PrimaryButton(
-                                            buttonHeight:
-                                                isDesktop
-                                                    ? ButtonHeight.l
-                                                    : null,
-                                            onPressed: () async {
-                                              // TODO: add save functionality instead of share
-                                              // save works on linux at the moment
-                                              await _capturePng(true);
-                                            },
-                                            label: "Save",
-                                            icon: SvgPicture.asset(
-                                              Assets.svg.arrowDown,
-                                              width: 20,
-                                              height: 20,
-                                              color:
-                                                  Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .buttonTextPrimary,
+                                    const SizedBox(height: 16),
+                                    Row(
+                                      children: [
+                                        if (!isDesktop)
+                                          Expanded(
+                                            child: SecondaryButton(
+                                              label: "Share",
+                                              buttonHeight: isDesktop
+                                                  ? ButtonHeight.l
+                                                  : null,
+                                              icon: SvgPicture.asset(
+                                                Assets.svg.share,
+                                                width: 14,
+                                                height: 14,
+                                                color: Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .buttonTextSecondary,
+                                              ),
+                                              onPressed: () async {
+                                                await _capturePng(false);
+                                              },
                                             ),
                                           ),
-                                        ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    ),
-                  ],
-                ),
+                                        if (isDesktop)
+                                          Expanded(
+                                            child: PrimaryButton(
+                                              buttonHeight: isDesktop
+                                                  ? ButtonHeight.l
+                                                  : null,
+                                              onPressed: () async {
+                                                // TODO: add save functionality instead of share
+                                                // save works on linux at the moment
+                                                await _capturePng(true);
+                                              },
+                                              label: "Save",
+                                              icon: SvgPicture.asset(
+                                                Assets.svg.arrowDown,
+                                                width: 20,
+                                                height: 20,
+                                                color: Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .buttonTextPrimary,
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 // if (label!.tags != null && label!.tags!.isNotEmpty)
                 //   Wrap(
                 //     spacing: 10,

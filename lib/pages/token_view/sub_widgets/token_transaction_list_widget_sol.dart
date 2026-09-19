@@ -1,0 +1,194 @@
+/*
+ * This file is part of Stack Wallet.
+ *
+ * Copyright (c) 2025 Cypher Stack
+ * All Rights Reserved.
+ * The code is distributed under GPLv3 license, see LICENSE file for details.
+ *
+ */
+
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:isar_community/isar.dart';
+
+import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import '../../../providers/db/main_db_provider.dart';
+import '../../../providers/global/wallets_provider.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/constants.dart';
+import '../../../utilities/util.dart';
+import '../../../wallets/isar/providers/solana/current_sol_token_wallet_provider.dart';
+import '../../../widgets/loading_indicator.dart';
+import '../../wallet_view/sub_widgets/no_transactions_found.dart';
+import '../../wallet_view/transaction_views/tx_v2/transaction_v2_list_item.dart';
+
+/// Solana-specific transaction list widget.
+///
+/// Displays transactions for a Solana token using the Solana token wallet provider.
+class SolanaTokenTransactionsList extends ConsumerStatefulWidget {
+  const SolanaTokenTransactionsList({super.key, required this.walletId});
+
+  final String walletId;
+
+  @override
+  ConsumerState<SolanaTokenTransactionsList> createState() =>
+      _SolanaTransactionsListState();
+}
+
+class _SolanaTransactionsListState
+    extends ConsumerState<SolanaTokenTransactionsList> {
+  late final int minConfirms;
+
+  bool _hasLoaded = false;
+  List<TransactionV2> _transactions = [];
+
+  late final StreamSubscription<List<TransactionV2>> _subscription;
+  late final Query<TransactionV2> _query;
+
+  BorderRadius get _borderRadiusFirst {
+    return BorderRadius.only(
+      topLeft: Radius.circular(Constants.size.circularBorderRadius),
+      topRight: Radius.circular(Constants.size.circularBorderRadius),
+    );
+  }
+
+  BorderRadius get _borderRadiusLast {
+    return BorderRadius.only(
+      bottomLeft: Radius.circular(Constants.size.circularBorderRadius),
+      bottomRight: Radius.circular(Constants.size.circularBorderRadius),
+    );
+  }
+
+  @override
+  void initState() {
+    minConfirms = ref
+        .read(pWallets)
+        .getWallet(widget.walletId)
+        .cryptoCurrency
+        .minConfirms;
+    _query = ref
+        .read(mainDBProvider)
+        .isar
+        .transactionV2s
+        .buildQuery<TransactionV2>(
+          whereClauses: [
+            IndexWhereClause.equalTo(
+              indexName: 'walletId',
+              value: [widget.walletId],
+            ),
+          ],
+          filter: ref
+              .read(pCurrentSolanaTokenWallet)!
+              .transactionFilterOperation,
+          sortBy: [const SortProperty(property: "timestamp", sort: Sort.desc)],
+        );
+
+    _subscription = _query.watch().listen((event) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+          _transactions = event;
+        });
+      });
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final wallet = ref.watch(
+      pWallets.select((value) => value.getWallet(widget.walletId)),
+    );
+
+    return FutureBuilder(
+      future: _query.findAll(),
+      builder: (fbContext, AsyncSnapshot<List<TransactionV2>> snapshot) {
+        if (snapshot.connectionState == ConnectionState.done &&
+            snapshot.hasData) {
+          _transactions = snapshot.data!;
+          _hasLoaded = true;
+        }
+        if (!_hasLoaded) {
+          return const Column(
+            children: [
+              Spacer(),
+              Center(child: LoadingIndicator(height: 50, width: 50)),
+              Spacer(flex: 4),
+            ],
+          );
+        }
+
+        if (_transactions.isEmpty) {
+          return const NoTransActionsFound();
+        } else {
+          return RefreshIndicator(
+            onRefresh: () async {
+              if (!ref.read(pCurrentSolanaTokenWallet)!.refreshMutex.isLocked) {
+                unawaited(ref.read(pCurrentSolanaTokenWallet)!.refresh());
+              }
+            },
+            child: Util.isDesktop
+                ? ListView.separated(
+                    itemBuilder: (context, index) {
+                      BorderRadius? radius;
+                      if (_transactions.length == 1) {
+                        radius = BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
+                        );
+                      } else if (index == _transactions.length - 1) {
+                        radius = _borderRadiusLast;
+                      } else if (index == 0) {
+                        radius = _borderRadiusFirst;
+                      }
+                      final tx = _transactions[index];
+                      return TxListItem(
+                        tx: tx,
+                        coin: wallet.info.coin,
+                        radius: radius,
+                      );
+                    },
+                    separatorBuilder: (context, index) {
+                      return Container(
+                        width: double.infinity,
+                        height: 2,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.background,
+                      );
+                    },
+                    itemCount: _transactions.length,
+                  )
+                : ListView.builder(
+                    itemCount: _transactions.length,
+                    itemBuilder: (context, index) {
+                      BorderRadius? radius;
+                      if (_transactions.length == 1) {
+                        radius = BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
+                        );
+                      } else if (index == _transactions.length - 1) {
+                        radius = _borderRadiusLast;
+                      } else if (index == 0) {
+                        radius = _borderRadiusFirst;
+                      }
+                      final tx = _transactions[index];
+                      return TxListItem(
+                        tx: tx,
+                        coin: wallet.info.coin,
+                        radius: radius,
+                      );
+                    },
+                  ),
+          );
+        }
+      },
+    );
+  }
+}

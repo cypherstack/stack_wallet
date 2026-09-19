@@ -9,5 +9,15 @@
  */
 
 abstract class Contract {
-  // for possible future use
+  /// Token/contract address (mint address for Solana, contract address for Ethereum).
+  String get address;
+
+  /// Token name.
+  String get name;
+
+  /// Token symbol.
+  String get symbol;
+
+  /// Token decimals.
+  int get decimals;
 }

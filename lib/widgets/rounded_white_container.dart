@@ -9,14 +9,16 @@
  */
 
 import 'package:flutter/material.dart';
+
 import '../themes/stack_colors.dart';
+import '../utilities/util.dart';
 import 'rounded_container.dart';
 
 class RoundedWhiteContainer extends StatelessWidget {
   const RoundedWhiteContainer({
     super.key,
     this.child,
-    this.padding = const EdgeInsets.all(12),
+    this.padding,
     this.radiusMultiplier = 1.0,
     this.width,
     this.height,
@@ -27,7 +29,7 @@ class RoundedWhiteContainer extends StatelessWidget {
   });
 
   final Widget? child;
-  final EdgeInsets padding;
+  final EdgeInsets? padding;
   final double radiusMultiplier;
   final double? width;
   final double? height;
@@ -40,7 +42,7 @@ class RoundedWhiteContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return RoundedContainer(
       color: Theme.of(context).extension<StackColors>()!.popupBG,
-      padding: padding,
+      padding: padding ?? (Util.isDesktop ? const .all(16) : const .all(12)),
       radiusMultiplier: radiusMultiplier,
       width: width,
       height: height,

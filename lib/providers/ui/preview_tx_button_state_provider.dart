@@ -11,6 +11,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../utilities/amount/amount.dart';
+import '../../utilities/enums/epic_transaction_method.dart';
 import '../../utilities/enums/mwc_transaction_method.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
@@ -22,48 +23,75 @@ final pValidSparkSendToAddress = StateProvider.autoDispose<bool>((_) => false);
 
 final pIsExchangeAddress = StateProvider<bool>((_) => false);
 
+final pOpReturnData = StateProvider.autoDispose<String?>((_) => null);
+
 // MWC Transaction Method Provider.
 final pSelectedMwcTransactionMethod = StateProvider<MwcTransactionMethod>(
   (_) => MwcTransactionMethod.slatepack,
 );
 
+// Epic Cash Transaction Method Provider.
+final pSelectedEpicTransactionMethod = StateProvider<EpicTransactionMethod>(
+  (_) => EpicTransactionMethod.epicbox,
+);
+
 final pIsSlatepack = Provider.family<bool, String>((ref, walletId) {
-  if (ref.watch(pWalletCoin(walletId)) is Mimblewimblecoin) {
+  final coin = ref.watch(pWalletCoin(walletId));
+  if (coin is Mimblewimblecoin) {
     return ref.watch(pSelectedMwcTransactionMethod) ==
         MwcTransactionMethod.slatepack;
+  }
+  if (coin is Epiccash) {
+    return ref.watch(pSelectedEpicTransactionMethod) ==
+        EpicTransactionMethod.slatepack;
   }
 
   return false;
 });
 
-final pPreviewTxButtonEnabled = Provider.autoDispose
-    .family<bool, CryptoCurrency>((ref, coin) {
-      final amount = ref.watch(pSendAmount) ?? Amount.zero;
+final pPreviewTxButtonEnabled = Provider.autoDispose.family<bool, CryptoCurrency>(
+  (ref, coin) {
+    final amount = ref.watch(pSendAmount) ?? Amount.zero;
+    final opReturnData = ref.watch(pOpReturnData);
 
-      // For MWC slatepack transactions, address validation is not required.
-      if (coin is Mimblewimblecoin) {
-        final selectedMethod = ref.watch(pSelectedMwcTransactionMethod);
-        if (selectedMethod == MwcTransactionMethod.slatepack) {
-          return amount > Amount.zero;
-        }
+    if (coin is! Firo && opReturnData != null) {
+      return false;
+    }
+
+    // For MWC slatepack transactions, address validation is not required.
+    if (coin is Mimblewimblecoin) {
+      final selectedMethod = ref.watch(pSelectedMwcTransactionMethod);
+      if (selectedMethod == MwcTransactionMethod.slatepack) {
+        return amount > Amount.zero;
       }
+    }
 
-      if (coin is Firo) {
-        final firoType = ref.watch(publicPrivateBalanceStateProvider);
-        switch (firoType) {
-          case BalanceType.private:
-            return (ref.watch(pValidSendToAddress) ||
-                    ref.watch(pValidSparkSendToAddress)) &&
-                !ref.watch(pIsExchangeAddress) &&
-                amount > Amount.zero;
-
-          case BalanceType.public:
-            return ref.watch(pValidSendToAddress) && amount > Amount.zero;
-        }
-      } else {
-        return ref.watch(pValidSendToAddress) && amount > Amount.zero;
+    // For Epic Cash slatepack transactions, address validation is not required.
+    if (coin is Epiccash) {
+      final selectedMethod = ref.watch(pSelectedEpicTransactionMethod);
+      if (selectedMethod == EpicTransactionMethod.slatepack) {
+        return amount > Amount.zero;
       }
-    });
+    }
+
+    if (coin is Firo) {
+      final firoType = ref.watch(publicPrivateBalanceStateProvider);
+      switch (firoType) {
+        case BalanceType.private:
+          return (ref.watch(pValidSendToAddress) ||
+                  ref.watch(pValidSparkSendToAddress)) &&
+              !ref.watch(pIsExchangeAddress) &&
+              opReturnData == null &&
+              amount > Amount.zero;
+
+        case BalanceType.public:
+          return ref.watch(pValidSendToAddress) && amount > Amount.zero;
+      }
+    } else {
+      return ref.watch(pValidSendToAddress) && amount > Amount.zero;
+    }
+  },
+);
 
 final previewTokenTxButtonStateProvider = StateProvider.autoDispose<bool>((_) {
   return false;

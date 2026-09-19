@@ -329,6 +329,22 @@ class MockElectrumXClient extends _i1.Mock implements _i5.ElectrumXClient {
           as _i8.Future<Map<String, dynamic>>);
 
   @override
+  _i8.Future<List<Map<String, dynamic>>> getBatchTransactions({
+    required List<String>? txHashes,
+    String? requestID,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#getBatchTransactions, [], {
+              #txHashes: txHashes,
+              #requestID: requestID,
+            }),
+            returnValue: _i8.Future<List<Map<String, dynamic>>>.value(
+              <Map<String, dynamic>>[],
+            ),
+          )
+          as _i8.Future<List<Map<String, dynamic>>>);
+
+  @override
   _i8.Future<Map<String, dynamic>> getLelantusAnonymitySet({
     String? groupId = '1',
     String? blockhash = '',
@@ -660,6 +676,22 @@ class MockCachedElectrumXClient extends _i1.Mock
             ),
           )
           as _i8.Future<Map<String, dynamic>>);
+
+  @override
+  _i8.Future<List<Map<String, dynamic>>> getBatchTransactions({
+    required List<String>? txHashes,
+    required _i2.CryptoCurrency? cryptoCurrency,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#getBatchTransactions, [], {
+              #txHashes: txHashes,
+              #cryptoCurrency: cryptoCurrency,
+            }),
+            returnValue: _i8.Future<List<Map<String, dynamic>>>.value(
+              <Map<String, dynamic>>[],
+            ),
+          )
+          as _i8.Future<List<Map<String, dynamic>>>);
 
   @override
   _i8.Future<void> clearSharedTransactionCache({

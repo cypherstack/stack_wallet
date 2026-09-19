@@ -20,11 +20,14 @@ class StackDialogBase extends StatelessWidget {
     this.child,
     this.padding = const EdgeInsets.all(24),
     this.keyboardPaddingAmount = 0,
+    this.width,
   });
 
   final EdgeInsets padding;
   final Widget? child;
   final double keyboardPaddingAmount;
+
+  final double? width;
 
   @override
   Widget build(BuildContext context) {
@@ -37,22 +40,25 @@ class StackDialogBase extends StatelessWidget {
           bottom: 16 + keyboardPaddingAmount,
         ),
         child: Column(
-          mainAxisAlignment:
-              !Util.isDesktop
-                  ? MainAxisAlignment.end
-                  : MainAxisAlignment.center,
+          mainAxisAlignment: !Util.isDesktop
+              ? MainAxisAlignment.end
+              : MainAxisAlignment.center,
           children: [
             Flexible(
-              child: SingleChildScrollView(
-                child: Material(
-                  borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color:
-                          Theme.of(context).extension<StackColors>()!.popupBG,
-                      borderRadius: BorderRadius.circular(20),
+              child: SizedBox(
+                width: width,
+                child: SingleChildScrollView(
+                  child: Material(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.popupBG,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Padding(padding: padding, child: child),
                     ),
-                    child: Padding(padding: padding, child: child),
                   ),
                 ),
               ),
@@ -72,6 +78,8 @@ class StackDialog extends StatelessWidget {
     this.icon,
     required this.title,
     this.message,
+    this.width,
+    this.padding = const EdgeInsets.all(24),
   });
 
   final Widget? leftButton;
@@ -82,9 +90,14 @@ class StackDialog extends StatelessWidget {
   final String title;
   final String? message;
 
+  final double? width;
+  final EdgeInsets padding;
+
   @override
   Widget build(BuildContext context) {
     return StackDialogBase(
+      width: width,
+      padding: padding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -119,7 +132,9 @@ class StackDialog extends StatelessWidget {
                 leftButton == null
                     ? const Spacer()
                     : Expanded(child: leftButton!),
-                const SizedBox(width: 8),
+                Util.isDesktop
+                    ? const SizedBox(width: 16)
+                    : const SizedBox(width: 8),
                 rightButton == null
                     ? const Spacer()
                     : Expanded(child: rightButton!),
@@ -199,30 +214,26 @@ class StackOkDialog extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: TextButton(
-                    onPressed:
-                        !Util.isDesktop
-                            ? () {
-                              Navigator.of(context).pop();
-                              onOkPressed?.call("OK");
+                    onPressed: !Util.isDesktop
+                        ? () {
+                            Navigator.of(context).pop();
+                            onOkPressed?.call("OK");
+                          }
+                        : () {
+                            if (desktopPopRootNavigator) {
+                              Navigator.of(context, rootNavigator: true).pop();
+                            } else {
+                              int count = 0;
+                              Navigator.of(
+                                context,
+                              ).popUntil((_) => count++ >= 2);
+                              // onOkPressed?.call("OK");
                             }
-                            : () {
-                              if (desktopPopRootNavigator) {
-                                Navigator.of(
-                                  context,
-                                  rootNavigator: true,
-                                ).pop();
-                              } else {
-                                int count = 0;
-                                Navigator.of(
-                                  context,
-                                ).popUntil((_) => count++ >= 2);
-                                // onOkPressed?.call("OK");
-                              }
-                            },
+                          },
                     style: Theme.of(context)
                         .extension<StackColors>()!
                         .getPrimaryEnabledButtonStyle(context),
-                    child: Text("Ok", style: STextStyles.button(context)),
+                    child: Text("OK", style: STextStyles.button(context)),
                   ),
                 ),
               ],

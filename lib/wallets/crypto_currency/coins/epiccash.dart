@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/node_model.dart';
 import '../../../utilities/default_nodes.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
+import '../../../utilities/enums/epic_transaction_method.dart';
 import '../../../wl_gen/interfaces/libepiccash_interface.dart';
 import '../crypto_currency.dart';
 import '../intermediate/bip39_currency.dart';
@@ -62,7 +65,7 @@ class Epiccash extends Bip39Currency {
       }
     }
 
-    return libEpic.validateSendAddress(address: address);
+    return libEpic.validateSendAddressSync(address: address);
   }
 
   @override
@@ -70,11 +73,11 @@ class Epiccash extends Bip39Currency {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
-          host: "http://epiccash.stackwallet.com",
+          host: "https://epic.stackwallet.com",
           port: 3413,
           name: DefaultNodes.defaultName,
           id: DefaultNodes.buildId(this),
-          useSSL: false,
+          useSSL: true,
           enabled: true,
           coinName: identifier,
           isFailover: true,
@@ -125,6 +128,42 @@ class Epiccash extends Bip39Currency {
         throw Exception(
           "Unsupported network for defaultBlockExplorer(): $network",
         );
+    }
+  }
+
+  /// Check if data is a slate JSON.
+  bool isSlateJson(String data) {
+    try {
+      final parsed = jsonDecode(data);
+      // Check for common slate fields.
+      return parsed is Map &&
+          (parsed.containsKey('id') || parsed.containsKey('slate_id')) &&
+          (parsed.containsKey('amount') ||
+              parsed.containsKey('participant_data'));
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Check if address is Epicbox format.
+  bool isEpicboxAddress(String address) {
+    return address.contains('@');
+  }
+
+  /// Check if address is HTTP format.
+  bool isHttpAddress(String address) {
+    return address.startsWith('http://') || address.startsWith('https://');
+  }
+
+  /// Detect transaction type based on address/data format.
+  EpicTransactionMethod getTransactionMethod(String addressOrData) {
+    if (isSlateJson(addressOrData)) {
+      return EpicTransactionMethod.slatepack;
+    } else if (isEpicboxAddress(addressOrData) ||
+        isHttpAddress(addressOrData)) {
+      return EpicTransactionMethod.epicbox;
+    } else {
+      throw Exception("Unknown EpicTransactionMethod found!");
     }
   }
 

@@ -19,19 +19,18 @@ class Balance {
   final Amount blockedTotal;
   final Amount pendingSpendable;
 
-  Balance({
+  const Balance({
     required this.total,
     required this.spendable,
     required this.blockedTotal,
     required this.pendingSpendable,
   });
 
-  factory Balance.zeroFor({required CryptoCurrency currency}) {
-    final amount = Amount(
-      rawValue: BigInt.zero,
-      fractionDigits: currency.fractionDigits,
-    );
+  factory Balance.zeroFor({required CryptoCurrency currency}) =>
+      .zeroWith(fractionDigits: currency.fractionDigits);
 
+  factory Balance.zeroWith({required int fractionDigits}) {
+    final amount = Amount.zeroWith(fractionDigits: fractionDigits);
     return Balance(
       total: amount,
       spendable: amount,
@@ -41,11 +40,11 @@ class Balance {
   }
 
   String toJsonIgnoreCoin() => jsonEncode({
-        "total": total.toJsonString(),
-        "spendable": spendable.toJsonString(),
-        "blockedTotal": blockedTotal.toJsonString(),
-        "pendingSpendable": pendingSpendable.toJsonString(),
-      });
+    "total": total.toJsonString(),
+    "spendable": spendable.toJsonString(),
+    "blockedTotal": blockedTotal.toJsonString(),
+    "pendingSpendable": pendingSpendable.toJsonString(),
+  });
 
   // need to fall back to parsing from int due to cached balances being previously
   // stored as int values instead of Amounts
@@ -82,11 +81,11 @@ class Balance {
   }
 
   Map<String, dynamic> toMap() => {
-        "total": total,
-        "spendable": spendable,
-        "blockedTotal": blockedTotal,
-        "pendingSpendable": pendingSpendable,
-      };
+    "total": total,
+    "spendable": spendable,
+    "blockedTotal": blockedTotal,
+    "pendingSpendable": pendingSpendable,
+  };
 
   @override
   String toString() {

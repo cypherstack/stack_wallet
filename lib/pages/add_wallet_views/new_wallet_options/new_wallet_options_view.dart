@@ -22,24 +22,23 @@ import '../../../widgets/desktop/desktop_scaffold.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_text_field.dart';
+import '../../../widgets/toggle.dart';
 import '../create_or_restore_wallet_view/sub_widgets/coin_image.dart';
 import '../new_wallet_recovery_phrase_warning_view/new_wallet_recovery_phrase_warning_view.dart';
 import '../restore_wallet_view/restore_options_view/sub_widgets/mobile_mnemonic_length_selector.dart';
 import '../restore_wallet_view/sub_widgets/mnemonic_word_count_select_sheet.dart';
 
-final pNewWalletOptions = StateProvider<
-    ({
-      String mnemonicPassphrase,
-      int mnemonicWordsCount,
-      bool convertToViewOnly,
-    })?>(
-  (ref) => null,
-);
+final pNewWalletOptions =
+    StateProvider<
+      ({
+        String mnemonicPassphrase,
+        int mnemonicWordsCount,
+        bool convertToViewOnly,
+        bool convertToViewOnlySpark,
+      })?
+    >((ref) => null);
 
-enum NewWalletOptions {
-  Default,
-  Advanced;
-}
+enum NewWalletOptions { Default, Advanced }
 
 class NewWalletOptionsView extends ConsumerStatefulWidget {
   const NewWalletOptionsView({
@@ -66,6 +65,7 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
   NewWalletOptions _selectedOptions = NewWalletOptions.Default;
 
   bool _convertToViewOnly = false;
+  bool _firoFlag = true;
 
   @override
   void initState() {
@@ -94,17 +94,15 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
           leading: AppBarBackButton(),
           trailing: ExitToMyStackButton(),
         ),
-        body: SizedBox(
-          width: 480,
-          child: child,
-        ),
+        body: SizedBox(width: 480, child: child),
       ),
       child: ConditionalParent(
         condition: !Util.isDesktop,
         builder: (child) => Background(
           child: Scaffold(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(
+              context,
+            ).extension<StackColors>()!.background,
             appBar: AppBar(
               leading: const AppBarBackButton(),
               title: Text(
@@ -135,20 +133,10 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
         ),
         child: Column(
           children: [
-            if (Util.isDesktop)
-              const Spacer(
-                flex: 10,
-              ),
+            if (Util.isDesktop) const Spacer(flex: 10),
+            if (!Util.isDesktop) const SizedBox(height: 16),
             if (!Util.isDesktop)
-              const SizedBox(
-                height: 16,
-              ),
-            if (!Util.isDesktop)
-              CoinImage(
-                coin: widget.coin,
-                height: 100,
-                width: 100,
-              ),
+              CoinImage(coin: widget.coin, height: 100, width: 100),
             if (Util.isDesktop)
               Text(
                 "Wallet options",
@@ -157,9 +145,7 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
                     ? STextStyles.desktopH2(context)
                     : STextStyles.pageTitleH1(context),
               ),
-            SizedBox(
-              height: Util.isDesktop ? 32 : 16,
-            ),
+            SizedBox(height: Util.isDesktop ? 32 : 16),
             DropdownButtonHideUnderline(
               child: DropdownButton2<NewWalletOptions>(
                 value: _selectedOptions,
@@ -187,34 +173,29 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
                     Assets.svg.chevronDown,
                     width: 12,
                     height: 6,
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFieldActiveSearchIconRight,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldActiveSearchIconRight,
                   ),
                 ),
                 dropdownStyleData: DropdownStyleData(
                   offset: const Offset(0, -10),
                   elevation: 0,
                   decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFieldDefaultBG,
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),
                   ),
                 ),
                 menuItemStyleData: const MenuItemStyleData(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 ),
               ),
             ),
-            const SizedBox(
-              height: 24,
-            ),
+            const SizedBox(height: 24),
             if (_selectedOptions == NewWalletOptions.Advanced)
               Column(
                 children: [
@@ -238,8 +219,9 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
                         onChanged: (value) {
                           if (value is int) {
                             ref
-                                .read(mnemonicWordCountStateProvider.state)
-                                .state = value;
+                                    .read(mnemonicWordCountStateProvider.state)
+                                    .state =
+                                value;
                           }
                         },
                         isExpanded: true,
@@ -257,9 +239,9 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
                           offset: const Offset(0, -10),
                           elevation: 0,
                           decoration: BoxDecoration(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textFieldDefaultBG,
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textFieldDefaultBG,
                             borderRadius: BorderRadius.circular(
                               Constants.size.circularBorderRadius,
                             ),
@@ -293,30 +275,28 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
                       },
                     ),
                   if (widget.coin.hasMnemonicPassphraseSupport)
-                    const SizedBox(
-                      height: 24,
-                    ),
+                    const SizedBox(height: 24),
                   if (widget.coin.hasMnemonicPassphraseSupport)
                     RoundedWhiteContainer(
                       child: Center(
                         child: Text(
                           "You may add a BIP39 passphrase. This is optional. "
-                          "You will need BOTH your seed and your passphrase to recover the wallet.",
+                          "You will need BOTH your seed and your passphrase to "
+                          "recover the wallet.",
                           style: Util.isDesktop
-                              ? STextStyles.desktopTextExtraSmall(context)
-                                  .copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textSubtitle1,
+                              ? STextStyles.desktopTextExtraSmall(
+                                  context,
+                                ).copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.textSubtitle1,
                                 )
                               : STextStyles.itemSubtitle(context),
                         ),
                       ),
                     ),
                   if (widget.coin.hasMnemonicPassphraseSupport)
-                    const SizedBox(
-                      height: 8,
-                    ),
+                    const SizedBox(height: 8),
                   if (widget.coin.hasMnemonicPassphraseSupport)
                     ClipRRect(
                       borderRadius: BorderRadius.circular(
@@ -327,89 +307,122 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
                         focusNode: passwordFocusNode,
                         controller: passwordController,
                         style: Util.isDesktop
-                            ? STextStyles.desktopTextMedium(context).copyWith(
-                                height: 2,
-                              )
+                            ? STextStyles.desktopTextMedium(
+                                context,
+                              ).copyWith(height: 2)
                             : STextStyles.field(context),
                         obscureText: hidePassword,
                         enableSuggestions: false,
                         autocorrect: false,
-                        decoration: standardInputDecoration(
-                          "BIP39 passphrase",
-                          passwordFocusNode,
-                          context,
-                        ).copyWith(
-                          suffixIcon: UnconstrainedBox(
-                            child: ConditionalParent(
-                              condition: Util.isDesktop,
-                              builder: (child) => SizedBox(
-                                height: 70,
-                                child: child,
-                              ),
-                              child: Row(
-                                children: [
-                                  SizedBox(
-                                    width: Util.isDesktop ? 24 : 16,
+                        decoration:
+                            standardInputDecoration(
+                              "BIP39 passphrase",
+                              passwordFocusNode,
+                              context,
+                            ).copyWith(
+                              suffixIcon: UnconstrainedBox(
+                                child: ConditionalParent(
+                                  condition: Util.isDesktop,
+                                  builder: (child) =>
+                                      SizedBox(height: 70, child: child),
+                                  child: Row(
+                                    children: [
+                                      SizedBox(width: Util.isDesktop ? 24 : 16),
+                                      GestureDetector(
+                                        key: const Key(
+                                          "mnemonicPassphraseFieldShowPasswordButtonKey",
+                                        ),
+                                        onTap: () async {
+                                          setState(() {
+                                            hidePassword = !hidePassword;
+                                          });
+                                        },
+                                        child: SvgPicture.asset(
+                                          hidePassword
+                                              ? Assets.svg.eye
+                                              : Assets.svg.eyeSlash,
+                                          color: Theme.of(
+                                            context,
+                                          ).extension<StackColors>()!.textDark3,
+                                          width: Util.isDesktop ? 24 : 16,
+                                          height: Util.isDesktop ? 24 : 16,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                    ],
                                   ),
-                                  GestureDetector(
-                                    key: const Key(
-                                      "mnemonicPassphraseFieldShowPasswordButtonKey",
-                                    ),
-                                    onTap: () async {
-                                      setState(() {
-                                        hidePassword = !hidePassword;
-                                      });
-                                    },
-                                    child: SvgPicture.asset(
-                                      hidePassword
-                                          ? Assets.svg.eye
-                                          : Assets.svg.eyeSlash,
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textDark3,
-                                      width: Util.isDesktop ? 24 : 16,
-                                      height: Util.isDesktop ? 24 : 16,
-                                    ),
-                                  ),
-                                  const SizedBox(
-                                    width: 12,
-                                  ),
-                                ],
+                                ),
                               ),
                             ),
+                      ),
+                    ),
+                  if (widget.coin is ViewOnlyOptionCurrencyInterface)
+                    const SizedBox(height: 24),
+                  if (widget.coin is ViewOnlyOptionCurrencyInterface)
+                    CheckboxTextButton(
+                      label:
+                          "Convert to view only wallet. "
+                          "You will only be shown the seed phrase once. "
+                          "Save it somewhere. "
+                          "If you lose it you will lose access to any funds in"
+                          " this wallet.",
+                      onChanged: (value) {
+                        _convertToViewOnly = value;
+                        if (mounted && widget.coin is Firo) {
+                          setState(() {});
+                        }
+                      },
+                    ),
+                  if (_convertToViewOnly &&
+                      widget.coin is ViewOnlyOptionCurrencyInterface &&
+                      widget.coin is Firo)
+                    const SizedBox(height: 24),
+                  if (_convertToViewOnly &&
+                      widget.coin is ViewOnlyOptionCurrencyInterface &&
+                      widget.coin is Firo)
+                    SizedBox(
+                      height: 48,
+                      child: Toggle(
+                        key: UniqueKey(),
+                        onColor: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.popupBG,
+                        offColor: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.textFieldDefaultBG,
+                        onText: "Spark",
+                        offText: "XPub",
+                        isOn: !_firoFlag,
+                        onValueChanged: (value) {
+                          FocusManager.instance.primaryFocus?.unfocus();
+                          setState(() {
+                            _firoFlag = !value;
+                          });
+                        },
+                        decoration: BoxDecoration(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
                           ),
                         ),
                       ),
                     ),
-                  if (widget.coin is ViewOnlyOptionCurrencyInterface)
-                    const SizedBox(
-                      height: 24,
-                    ),
-                  if (widget.coin is ViewOnlyOptionCurrencyInterface)
-                    CheckboxTextButton(
-                      label: "Convert to view only wallet. "
-                          "You will only be shown the seed phrase once. "
-                          "Save it somewhere. "
-                          "If you lose it you will lose access to any funds in this wallet.",
-                      onChanged: (value) {
-                        _convertToViewOnly = value;
-                      },
-                    ),
                 ],
               ),
             if (!Util.isDesktop) const Spacer(),
-            SizedBox(
-              height: Util.isDesktop ? 32 : 16,
-            ),
+            SizedBox(height: Util.isDesktop ? 32 : 16),
             PrimaryButton(
               label: "Continue",
               onPressed: () {
                 if (_selectedOptions == NewWalletOptions.Advanced) {
                   ref.read(pNewWalletOptions.notifier).state = (
-                    mnemonicWordsCount:
-                        ref.read(mnemonicWordCountStateProvider.state).state,
+                    mnemonicWordsCount: ref
+                        .read(mnemonicWordCountStateProvider.state)
+                        .state,
                     mnemonicPassphrase: passwordController.text,
                     convertToViewOnly: _convertToViewOnly,
+                    convertToViewOnlySpark:
+                        widget.coin is Firo && _convertToViewOnly && _firoFlag,
                   );
                 } else {
                   ref.read(pNewWalletOptions.notifier).state = null;
@@ -417,21 +430,12 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
 
                 Navigator.of(context).pushNamed(
                   NewWalletRecoveryPhraseWarningView.routeName,
-                  arguments: Tuple2(
-                    widget.walletName,
-                    widget.coin,
-                  ),
+                  arguments: Tuple2(widget.walletName, widget.coin),
                 );
               },
             ),
-            if (!Util.isDesktop)
-              const SizedBox(
-                height: 16,
-              ),
-            if (Util.isDesktop)
-              const Spacer(
-                flex: 15,
-              ),
+            if (!Util.isDesktop) const SizedBox(height: 16),
+            if (Util.isDesktop) const Spacer(flex: 15),
           ],
         ),
       ),

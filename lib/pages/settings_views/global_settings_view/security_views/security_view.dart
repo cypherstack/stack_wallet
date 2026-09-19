@@ -8,6 +8,8 @@
  *
  */
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -61,54 +63,50 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
   Future<void> _createDuressPin() async {
     final result = await showDialog<bool>(
       context: context,
-      builder:
-          (context) => StackDialogBase(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      builder: (context) => StackDialogBase(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Enable duress PIN", style: STextStyles.pageTitleH2(context)),
+            const SizedBox(height: 8),
+            Row(
               children: [
-                Text(
-                  "Enable duress PIN",
-                  style: STextStyles.pageTitleH2(context),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        "When unlocking the app with a duress PIN, only wallets"
-                        " marked as visible in duress mode will be loaded and"
-                        " shown. Be aware that providing a duress PIN instead"
-                        " of your real PIN to law enforcement, border agents,"
-                        " or other authorities may be considered deception and"
-                        " could carry legal consequences depending on your"
-                        " jurisdiction. Use with care and according to your"
-                        " threat model.",
-                        style: STextStyles.smallMed14(context),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Expanded(
-                      child: SecondaryButton(
-                        label: "Cancel",
-                        onPressed: () => Navigator.of(context).pop(false),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: PrimaryButton(
-                        label: "Ok",
-                        onPressed: () => Navigator.of(context).pop(true),
-                      ),
-                    ),
-                  ],
+                Flexible(
+                  child: Text(
+                    "When unlocking the app with a duress PIN, only wallets"
+                    " marked as visible in duress mode will be loaded and"
+                    " shown. Be aware that providing a duress PIN instead"
+                    " of your real PIN to law enforcement, border agents,"
+                    " or other authorities may be considered deception and"
+                    " could carry legal consequences depending on your"
+                    " jurisdiction. Use with care and according to your"
+                    " threat model.",
+                    style: STextStyles.smallMed14(context),
+                  ),
                 ),
               ],
             ),
-          ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: SecondaryButton(
+                    label: "Cancel",
+                    onPressed: () => Navigator.of(context).pop(false),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: PrimaryButton(
+                    label: "Ok",
+                    onPressed: () => Navigator.of(context).pop(true),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
 
     if (result == true && mounted) {
@@ -116,14 +114,13 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
         context,
         RouteGenerator.getRoute(
           shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-          builder:
-              (_) => const LockscreenView(
-                showBackButton: true,
-                routeOnSuccess: CreateDuressPinView.routeName,
-                biometricsCancelButtonString: "CANCEL",
-                biometricsLocalizedReason: "Authenticate to create duress PIN",
-                biometricsAuthenticationTitle: "Create duress PIN",
-              ),
+          builder: (_) => const LockscreenView(
+            showBackButton: true,
+            routeOnSuccess: CreateDuressPinView.routeName,
+            biometricsCancelButtonString: "CANCEL",
+            biometricsLocalizedReason: "Authenticate to create duress PIN",
+            biometricsAuthenticationTitle: "Create duress PIN",
+          ),
           settings: const RouteSettings(name: "/createDuressPinLockscreen"),
         ),
       );
@@ -133,66 +130,62 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
   Future<void> _deleteDuressPin() async {
     await showDialog<void>(
       context: context,
-      builder:
-          (context) => StackDialogBase(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      builder: (context) => StackDialogBase(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Disable duress PIN", style: STextStyles.pageTitleH2(context)),
+            const SizedBox(height: 8),
+            Row(
               children: [
-                Text(
-                  "Disable duress PIN",
-                  style: STextStyles.pageTitleH2(context),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        "Your duress pin will be deleted. "
-                        "You will be asked to create a PIN when you enable this again. "
-                        "Are you sure you want to continue?",
+                Flexible(
+                  child: Text(
+                    "Your duress pin will be deleted. "
+                    "You will be asked to create a PIN when you enable this again. "
+                    "Are you sure you want to continue?",
 
-                        style: STextStyles.smallMed14(context),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Expanded(
-                      child: SecondaryButton(
-                        label: "Cancel",
-                        onPressed: Navigator.of(context).pop,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: PrimaryButton(
-                        label: "Ok",
-                        onPressed: () async {
-                          try {
-                            await ref
-                                .read(secureStoreProvider)
-                                .delete(key: kDuressPinKey);
-                          } catch (e, s) {
-                            Logging.instance.f(
-                              "dpin delete failed!!",
-                              error: e,
-                              stackTrace: s,
-                            );
-                          }
-
-                          if (context.mounted) {
-                            Navigator.of(context).pop();
-                          }
-                        },
-                      ),
-                    ),
-                  ],
+                    style: STextStyles.smallMed14(context),
+                  ),
                 ),
               ],
             ),
-          ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: SecondaryButton(
+                    label: "Cancel",
+                    onPressed: Navigator.of(context).pop,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: PrimaryButton(
+                    label: "Ok",
+                    onPressed: () async {
+                      try {
+                        await ref
+                            .read(secureStoreProvider)
+                            .delete(key: kDuressPinKey);
+                      } catch (e, s) {
+                        Logging.instance.f(
+                          "dpin delete failed!!",
+                          error: e,
+                          stackTrace: s,
+                        );
+                      }
+
+                      if (context.mounted) {
+                        Navigator.of(context).pop();
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
 
     ref.read(prefsChangeNotifierProvider).hasDuressPin = false;
@@ -235,15 +228,14 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                         RouteGenerator.getRoute(
                           shouldUseMaterialRoute:
                               RouteGenerator.useMaterialPageRoute,
-                          builder:
-                              (_) => const LockscreenView(
-                                showBackButton: true,
-                                routeOnSuccess: ChangePinView.routeName,
-                                biometricsCancelButtonString: "CANCEL",
-                                biometricsLocalizedReason:
-                                    "Authenticate to change PIN",
-                                biometricsAuthenticationTitle: "Change PIN",
-                              ),
+                          builder: (_) => const LockscreenView(
+                            showBackButton: true,
+                            routeOnSuccess: ChangePinView.routeName,
+                            biometricsCancelButtonString: "CANCEL",
+                            biometricsLocalizedReason:
+                                "Authenticate to change PIN",
+                            biometricsAuthenticationTitle: "Change PIN",
+                          ),
                           settings: const RouteSettings(
                             name: "/changepinlockscreen",
                           ),
@@ -312,8 +304,9 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                                   ),
                                   onValueChanged: (newValue) {
                                     ref
-                                        .read(prefsChangeNotifierProvider)
-                                        .useBiometrics = newValue;
+                                            .read(prefsChangeNotifierProvider)
+                                            .useBiometrics =
+                                        newValue;
                                   },
                                 ),
                               ),
@@ -358,8 +351,9 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                                   ),
                                   onValueChanged: (newValue) {
                                     ref
-                                        .read(prefsChangeNotifierProvider)
-                                        .randomizePIN = newValue;
+                                            .read(prefsChangeNotifierProvider)
+                                            .randomizePIN =
+                                        newValue;
                                   },
                                 ),
                               ),
@@ -405,8 +399,9 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                                   ),
                                   onValueChanged: (newValue) {
                                     ref
-                                        .read(prefsChangeNotifierProvider)
-                                        .autoPin = newValue;
+                                            .read(prefsChangeNotifierProvider)
+                                            .autoPin =
+                                        newValue;
                                   },
                                 ),
                               ),
@@ -417,6 +412,100 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                     },
                   ),
                 ),
+                const SizedBox(height: 8),
+                RoundedWhiteContainer(
+                  child: Consumer(
+                    builder: (_, ref, __) {
+                      return RawMaterialButton(
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
+                          ),
+                        ),
+                        onPressed: null,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Cover in background",
+                                style: STextStyles.titleBold12(context),
+                                textAlign: TextAlign.left,
+                              ),
+                              SizedBox(
+                                height: 20,
+                                width: 40,
+                                child: DraggableSwitchButton(
+                                  isOn: ref.watch(
+                                    prefsChangeNotifierProvider.select(
+                                      (value) => value.privacyScreen,
+                                    ),
+                                  ),
+                                  onValueChanged: (newValue) {
+                                    ref
+                                            .read(prefsChangeNotifierProvider)
+                                            .privacyScreen =
+                                        newValue;
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                if (Platform.isAndroid) const SizedBox(height: 8),
+                if (Platform.isAndroid)
+                  RoundedWhiteContainer(
+                    child: Consumer(
+                      builder: (_, ref, __) {
+                        return RawMaterialButton(
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              Constants.size.circularBorderRadius,
+                            ),
+                          ),
+                          onPressed: null,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "Disable screenshots",
+                                  style: STextStyles.titleBold12(context),
+                                  textAlign: TextAlign.left,
+                                ),
+                                SizedBox(
+                                  height: 20,
+                                  width: 40,
+                                  child: DraggableSwitchButton(
+                                    isOn: ref.watch(
+                                      prefsChangeNotifierProvider.select(
+                                        (value) => value.disableScreenShots,
+                                      ),
+                                    ),
+                                    onValueChanged: (newValue) {
+                                      ref
+                                              .read(prefsChangeNotifierProvider)
+                                              .disableScreenShots =
+                                          newValue;
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 if (!ref.watch(pDuress)) const SizedBox(height: 8),
                 if (!ref.watch(pDuress))
                   RoundedWhiteContainer(
@@ -508,8 +597,9 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                                     ),
                                     onChanged: (newValue) {
                                       ref
-                                          .read(prefsChangeNotifierProvider)
-                                          .biometricsDuress = newValue;
+                                              .read(prefsChangeNotifierProvider)
+                                              .biometricsDuress =
+                                          newValue;
                                     },
                                   ),
                                 ),
@@ -536,17 +626,15 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                         RouteGenerator.getRoute(
                           shouldUseMaterialRoute:
                               RouteGenerator.useMaterialPageRoute,
-                          builder:
-                              (_) => const LockscreenView(
-                                showBackButton: true,
-                                routeOnSuccess:
-                                    AutoLockTimeoutSettingsView.routeName,
-                                biometricsCancelButtonString: "CANCEL",
-                                biometricsLocalizedReason:
-                                    "Authenticate to change auto lock settings",
-                                biometricsAuthenticationTitle:
-                                    "Auto lock settings",
-                              ),
+                          builder: (_) => const LockscreenView(
+                            showBackButton: true,
+                            routeOnSuccess:
+                                AutoLockTimeoutSettingsView.routeName,
+                            biometricsCancelButtonString: "CANCEL",
+                            biometricsLocalizedReason:
+                                "Authenticate to change auto lock settings",
+                            biometricsAuthenticationTitle: "Auto lock settings",
+                          ),
                           settings: const RouteSettings(
                             name: "/autoLockTimeoutSettingsLockScreen",
                           ),

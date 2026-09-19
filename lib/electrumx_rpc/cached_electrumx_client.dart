@@ -26,15 +26,13 @@ class CachedElectrumXClient {
     required ElectrumXClient electrumXClient,
   }) => CachedElectrumXClient(electrumXClient: electrumXClient);
 
-  String base64ToHex(String source) =>
-      base64Decode(
-        LineSplitter.split(source).join(),
-      ).map((e) => e.toRadixString(16).padLeft(2, '0')).join();
+  String base64ToHex(String source) => base64Decode(
+    LineSplitter.split(source).join(),
+  ).map((e) => e.toRadixString(16).padLeft(2, '0')).join();
 
-  String base64ToReverseHex(String source) =>
-      base64Decode(
-        LineSplitter.split(source).join(),
-      ).reversed.map((e) => e.toRadixString(16).padLeft(2, '0')).join();
+  String base64ToReverseHex(String source) => base64Decode(
+    LineSplitter.split(source).join(),
+  ).reversed.map((e) => e.toRadixString(16).padLeft(2, '0')).join();
 
   /// Call electrumx getTransaction on a per coin basis, storing the result in local db if not already there.
   ///
@@ -67,6 +65,55 @@ class CachedElectrumXClient {
         // Logging.instance.log("using cached result");
         return Map<String, dynamic>.from(cachedTx);
       }
+    } catch (e, s) {
+      Logging.instance.e(
+        "Failed to process CachedElectrumX.getTransaction(): ",
+        error: e,
+        stackTrace: s,
+      );
+      rethrow;
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getBatchTransactions({
+    required List<String> txHashes,
+    required CryptoCurrency cryptoCurrency,
+  }) async {
+    try {
+      final box = await DB.instance.getTxCacheBox(currency: cryptoCurrency);
+
+      final List<Map<String, dynamic>> result = [];
+      final List<String> needsFetching = [];
+
+      for (final txHash in txHashes) {
+        final cachedTx = box.get(txHash) as Map?;
+        if (cachedTx == null) {
+          needsFetching.add(txHash);
+        } else {
+          result.add(Map<String, dynamic>.from(cachedTx));
+        }
+      }
+
+      if (needsFetching.isNotEmpty) {
+        final txns = await electrumXClient.getBatchTransactions(
+          txHashes: needsFetching,
+        );
+
+        for (final tx in txns) {
+          tx.remove("hex");
+          tx.remove("lelantusData");
+          tx.remove("sparkData");
+
+          if (tx["confirmations"] != null &&
+              tx["confirmations"] as int > minCacheConfirms) {
+            await box.put(tx["txid"] as String, tx);
+          }
+
+          result.add(tx);
+        }
+      }
+
+      return result;
     } catch (e, s) {
       Logging.instance.e(
         "Failed to process CachedElectrumX.getTransaction(): ",

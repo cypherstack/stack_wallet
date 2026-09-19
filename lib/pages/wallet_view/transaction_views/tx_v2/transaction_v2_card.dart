@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import '../../../../models/isar/models/contract.dart';
 import '../../../../models/isar/models/isar_models.dart';
 import '../../../../providers/db/main_db_provider.dart';
 import '../../../../providers/global/locale_provider.dart';
@@ -43,28 +44,26 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
   late final String unit;
   late final CryptoCurrency coin;
   late final TransactionType txType;
-  late final EthContract? tokenContract;
+  late final Contract? tokenContract;
 
   bool get isTokenTx => tokenContract != null;
 
   String whatIsIt(CryptoCurrency coin, int currentHeight) =>
       _transaction.isCancelled && coin is Ethereum
-          ? "Failed"
-          : _transaction.statusLabel(
-            currentChainHeight: currentHeight,
-            minConfirms:
-                ref
-                    .read(pWallets)
-                    .getWallet(walletId)
-                    .cryptoCurrency
-                    .minConfirms,
-            minCoinbaseConfirms:
-                ref
-                    .read(pWallets)
-                    .getWallet(walletId)
-                    .cryptoCurrency
-                    .minCoinbaseConfirms,
-          );
+      ? "Failed"
+      : _transaction.statusLabel(
+          currentChainHeight: currentHeight,
+          minConfirms: ref
+              .read(pWallets)
+              .getWallet(walletId)
+              .cryptoCurrency
+              .minConfirms,
+          minCoinbaseConfirms: ref
+              .read(pWallets)
+              .getWallet(walletId)
+              .cryptoCurrency
+              .minCoinbaseConfirms,
+        );
 
   @override
   void initState() {
@@ -76,6 +75,12 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
       tokenContract = ref
           .read(mainDBProvider)
           .getEthContractSync(_transaction.contractAddress!);
+
+      unit = tokenContract!.symbol;
+    } else if (_transaction.subType == TransactionSubType.splToken) {
+      tokenContract = ref
+          .read(mainDBProvider)
+          .getSolContractSync(_transaction.contractAddress!);
 
       unit = tokenContract!.symbol;
     } else {
@@ -115,10 +120,9 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
     )) {
       price = ref.watch(
         priceAnd24hChangeNotifierProvider.select(
-          (value) =>
-              isTokenTx
-                  ? value.getTokenPrice(tokenContract!.address)?.value
-                  : value.getPrice(coin)?.value,
+          (value) => isTokenTx
+              ? value.getTokenPrice(tokenContract!.address)?.value
+              : value.getPrice(coin)?.value,
         ),
       );
     }
@@ -196,16 +200,15 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
             if (Util.isDesktop) {
               await showDialog<void>(
                 context: context,
-                builder:
-                    (context) => DesktopDialog(
-                      maxHeight: MediaQuery.of(context).size.height - 64,
-                      maxWidth: 580,
-                      child: tvd.TransactionV2DetailsView(
-                        transaction: _transaction,
-                        coin: coin,
-                        walletId: walletId,
-                      ),
-                    ),
+                builder: (context) => DesktopDialog(
+                  maxHeight: MediaQuery.of(context).size.height - 64,
+                  maxWidth: 640,
+                  child: tvd.TransactionV2DetailsView(
+                    transaction: _transaction,
+                    coin: coin,
+                    walletId: walletId,
+                  ),
+                ),
               );
             } else {
               unawaited(
@@ -246,15 +249,14 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
                                       coin.minConfirms,
                                       coin.minCoinbaseConfirms,
                                     ),
-                                builder:
-                                    (child) => Row(
-                                      children: [
-                                        child,
+                                builder: (child) => Row(
+                                  children: [
+                                    child,
 
-                                        const SizedBox(width: 10),
-                                        const CoinTickerTag(ticker: "INSTANT"),
-                                      ],
-                                    ),
+                                    const SizedBox(width: 10),
+                                    const CoinTickerTag(ticker: "INSTANT"),
+                                  ],
+                                ),
                                 child: Text(
                                   whatIsIt(coin, currentHeight),
                                   style: STextStyles.itemSubtitle12(context),
@@ -267,9 +269,16 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
                             child: FittedBox(
                               fit: BoxFit.scaleDown,
                               child: Builder(
-                                builder: (_) {
+                                builder: (context) {
+                                  final formattedAmount = ref
+                                      .watch(pAmountFormatter(coin))
+                                      .format(
+                                        amount,
+                                        tokenContract: tokenContract,
+                                      );
+
                                   return Text(
-                                    "$prefix${ref.watch(pAmountFormatter(coin)).format(amount, ethContract: tokenContract)}",
+                                    "$prefix$formattedAmount",
                                     style: STextStyles.itemSubtitle12(context),
                                   );
                                 },
@@ -298,9 +307,14 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
                               child: FittedBox(
                                 fit: BoxFit.scaleDown,
                                 child: Builder(
-                                  builder: (_) {
+                                  builder: (context) {
+                                    final formattedFiat =
+                                        (amount.decimal * price!)
+                                            .toAmount(fractionDigits: 2)
+                                            .fiatString(locale: locale);
+
                                     return Text(
-                                      "$prefix${Amount.fromDecimal(amount.decimal * price!, fractionDigits: 2).fiatString(locale: locale)} $baseCurrency",
+                                      "$prefix$formattedFiat $baseCurrency",
                                       style: STextStyles.label(context),
                                     );
                                   },

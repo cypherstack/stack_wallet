@@ -17,7 +17,6 @@ import '../../models/isar/models/blockchain_data/address.dart';
 import '../../models/isar/models/contact_entry.dart';
 import '../../pages/address_book_views/subviews/add_address_book_entry_view.dart';
 import '../../pages/address_book_views/subviews/address_book_filter_view.dart';
-import '../../providers/db/main_db_provider.dart';
 import '../../providers/global/address_book_service_provider.dart';
 import '../../providers/providers.dart';
 import '../../providers/ui/address_book_providers/address_book_filter_provider.dart';
@@ -99,17 +98,18 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
 
     // if (widget.coin == null) {
     final coins = AppConfig.coins.toList();
-    coins.removeWhere(
-      (e) => e is Firo && e.network.isTestNet,
-    );
+    coins.removeWhere((e) => e is Firo && e.network.isTestNet);
 
-    final bool showTestNet =
-        ref.read(prefsChangeNotifierProvider).showTestNetCoins;
+    final bool showTestNet = ref
+        .read(prefsChangeNotifierProvider)
+        .showTestNetCoins;
 
     if (showTestNet) {
       ref.read(addressBookFilterProvider).addAll(coins, false);
     } else {
-      ref.read(addressBookFilterProvider).addAll(
+      ref
+          .read(addressBookFilterProvider)
+          .addAll(
             coins.where((e) => e.network != CryptoCurrencyNetwork.test),
             false,
           );
@@ -123,12 +123,10 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
       final wallets = ref.read(pWallets).wallets;
       for (final wallet in wallets) {
         final String addressString;
-        if (wallet is SparkInterface) {
+        if (wallet is SparkInterface &&
+            !(wallet.isViewOnly && wallet.viewOnlyType != .spark)) {
           Address? address = await wallet.getCurrentReceivingSparkAddress();
-          if (address == null) {
-            address = await wallet.generateNextSparkAddress();
-            await ref.read(mainDBProvider).updateOrPutAddresses([address]);
-          }
+          address ??= await wallet.generateNextSparkAddress(saveToDB: true);
           addressString = address.value;
         } else {
           final address = await wallet.getCurrentReceivingAddress();
@@ -166,8 +164,9 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    final contacts =
-        ref.watch(addressBookServiceProvider.select((value) => value.contacts));
+    final contacts = ref.watch(
+      addressBookServiceProvider.select((value) => value.contacts),
+    );
 
     final allContacts = contacts
         .where(
@@ -176,8 +175,9 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
               element.addresses
                   .where(
                     (e) => ref.watch(
-                      addressBookFilterProvider
-                          .select((value) => value.coins.contains(e.coin)),
+                      addressBookFilterProvider.select(
+                        (value) => value.coins.contains(e.coin),
+                      ),
                     ),
                   )
                   .isNotEmpty,
@@ -194,8 +194,9 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
               element.addresses
                   .where(
                     (e) => ref.watch(
-                      addressBookFilterProvider
-                          .select((value) => value.coins.contains(e.coin)),
+                      addressBookFilterProvider.select(
+                        (value) => value.coins.contains(e.coin),
+                      ),
                     ),
                   )
                   .isNotEmpty,
@@ -213,22 +214,13 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
         isCompactHeight: true,
         leading: Row(
           children: [
-            const SizedBox(
-              width: 24,
-            ),
-            Text(
-              "Address Book",
-              style: STextStyles.desktopH3(context),
-            ),
+            const SizedBox(width: 24),
+            Text("Address Book", style: STextStyles.desktopH3(context)),
           ],
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.only(
-          left: 24,
-          right: 24,
-          bottom: 24,
-        ),
+        padding: const EdgeInsets.only(left: 24, right: 24, bottom: 24),
         child: DesktopAddressBookScaffold(
           controlsLeft: ClipRRect(
             borderRadius: BorderRadius.circular(
@@ -245,43 +237,44 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                 });
               },
               style: STextStyles.field(context),
-              decoration: standardInputDecoration(
-                "Search",
-                _searchFocusNode,
-                context,
-              ).copyWith(
-                prefixIcon: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 20,
-                  ),
-                  child: SvgPicture.asset(
-                    Assets.svg.search,
-                    width: 16,
-                    height: 16,
-                  ),
-                ),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? Padding(
-                        padding: const EdgeInsets.only(right: 0),
-                        child: UnconstrainedBox(
-                          child: Row(
-                            children: [
-                              TextFieldIconButton(
-                                child: const XIcon(),
-                                onTap: () async {
-                                  setState(() {
-                                    _searchController.text = "";
-                                    _searchTerm = "";
-                                  });
-                                },
+              decoration:
+                  standardInputDecoration(
+                    "Search",
+                    _searchFocusNode,
+                    context,
+                  ).copyWith(
+                    prefixIcon: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 20,
+                      ),
+                      child: SvgPicture.asset(
+                        Assets.svg.search,
+                        width: 16,
+                        height: 16,
+                      ),
+                    ),
+                    suffixIcon: _searchController.text.isNotEmpty
+                        ? Padding(
+                            padding: const EdgeInsets.only(right: 0),
+                            child: UnconstrainedBox(
+                              child: Row(
+                                children: [
+                                  TextFieldIconButton(
+                                    child: const XIcon(),
+                                    onTap: () async {
+                                      setState(() {
+                                        _searchController.text = "";
+                                        _searchTerm = "";
+                                      });
+                                    },
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        ),
-                      )
-                    : null,
-              ),
+                            ),
+                          )
+                        : null,
+                  ),
             ),
           ),
           controlsRight: Row(
@@ -293,24 +286,22 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                 buttonHeight: ButtonHeight.l,
                 icon: SvgPicture.asset(
                   Assets.svg.filter,
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .buttonTextSecondary,
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.buttonTextSecondary,
                 ),
                 onPressed: selectCryptocurrency,
               ),
-              const SizedBox(
-                width: 20,
-              ),
+              const SizedBox(width: 20),
               PrimaryButton(
                 width: 184,
                 label: "Add new",
                 buttonHeight: ButtonHeight.l,
                 icon: SvgPicture.asset(
                   Assets.svg.circlePlus,
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .buttonTextPrimary,
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.buttonTextPrimary,
                 ),
                 onPressed: newContact,
               ),
@@ -326,10 +317,7 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
           lowerLabel: favorites.isEmpty
               ? null
               : Padding(
-                  padding: const EdgeInsets.only(
-                    top: 20,
-                    bottom: 12,
-                  ),
+                  padding: const EdgeInsets.only(top: 20, bottom: 12),
                   child: Text(
                     "All contacts",
                     style: STextStyles.smallMed12(context),
@@ -337,15 +325,15 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                 ),
           favorites: favorites.isEmpty
               ? contacts.isNotEmpty
-                  ? null
-                  : RoundedWhiteContainer(
-                      child: Center(
-                        child: Text(
-                          "Your favorite contacts will appear here",
-                          style: STextStyles.itemSubtitle(context),
+                    ? null
+                    : RoundedWhiteContainer(
+                        child: Center(
+                          child: Text(
+                            "Your favorite contacts will appear here",
+                            style: STextStyles.itemSubtitle(context),
+                          ),
                         ),
-                      ),
-                    )
+                      )
               : RoundedWhiteContainer(
                   padding: const EdgeInsets.all(0),
                   child: Column(
@@ -355,9 +343,9 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                           children: [
                             if (i > 0)
                               Container(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .background,
+                                color: Theme.of(
+                                  context,
+                                ).extension<StackColors>()!.background,
                                 height: 1,
                               ),
                             Padding(
@@ -406,15 +394,15 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                 ),
           all: allContacts.isEmpty
               ? contacts.isNotEmpty
-                  ? null
-                  : RoundedWhiteContainer(
-                      child: Center(
-                        child: Text(
-                          "Your contacts will appear here",
-                          style: STextStyles.itemSubtitle(context),
+                    ? null
+                    : RoundedWhiteContainer(
+                        child: Center(
+                          child: Text(
+                            "Your contacts will appear here",
+                            style: STextStyles.itemSubtitle(context),
+                          ),
                         ),
-                      ),
-                    )
+                      )
               : Column(
                   children: [
                     RoundedWhiteContainer(
@@ -426,9 +414,9 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                               children: [
                                 if (i > 0)
                                   Container(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .background,
+                                    color: Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.background,
                                     height: 1,
                                   ),
                                 Padding(
@@ -481,9 +469,7 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                 ),
           details: currentContactId == null
               ? Container()
-              : DesktopContactDetails(
-                  contactId: currentContactId!,
-                ),
+              : DesktopContactDetails(contactId: currentContactId!),
         ),
       ),
     );

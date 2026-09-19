@@ -24,14 +24,12 @@ import '../../../providers/global/wallets_provider.dart';
 import '../../../route_generator.dart';
 import '../../../services/exchange/exchange_response.dart';
 import '../../../services/notifications_api.dart';
-import '../../../services/wallets.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/enums/exchange_rate_type_enum.dart';
 import '../../../utilities/text_styles.dart';
-import '../../../wallets/wallet/intermediate/external_wallet.dart';
-import '../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
+import '../../../utilities/util.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/custom_loading_overlay.dart';
 import '../../../widgets/desktop/desktop_dialog.dart';
@@ -80,19 +78,18 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
       showDialog<void>(
         context: context,
         barrierDismissible: false,
-        builder:
-            (_) => WillPopScope(
-              onWillPop: () async => false,
-              child: Container(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.overlay.withOpacity(0.6),
-                child: const CustomLoadingOverlay(
-                  message: "Creating a trade",
-                  eventBus: null,
-                ),
-              ),
+        builder: (_) => WillPopScope(
+          onWillPop: () async => false,
+          child: Container(
+            color: Theme.of(
+              context,
+            ).extension<StackColors>()!.overlay.withOpacity(0.6),
+            child: const CustomLoadingOverlay(
+              message: "Creating a trade",
+              eventBus: null,
             ),
+          ),
+        ),
       ),
     );
 
@@ -100,18 +97,21 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
         .read(efExchangeProvider)
         .createTrade(
           from: ref.read(desktopExchangeModelProvider)!.sendTicker,
-          fromNetwork:
-              ref.read(desktopExchangeModelProvider)!.sendCurrency.network,
+          fromNetwork: ref
+              .read(desktopExchangeModelProvider)!
+              .sendCurrency
+              .network,
           to: ref.read(desktopExchangeModelProvider)!.receiveTicker,
-          toNetwork:
-              ref.read(desktopExchangeModelProvider)!.receiveCurrency.network,
+          toNetwork: ref
+              .read(desktopExchangeModelProvider)!
+              .receiveCurrency
+              .network,
           fixedRate:
               ref.read(desktopExchangeModelProvider)!.rateType !=
               ExchangeRateType.estimated,
-          amount:
-              ref.read(desktopExchangeModelProvider)!.reversed
-                  ? ref.read(desktopExchangeModelProvider)!.receiveAmount
-                  : ref.read(desktopExchangeModelProvider)!.sendAmount,
+          amount: ref.read(desktopExchangeModelProvider)!.reversed
+              ? ref.read(desktopExchangeModelProvider)!.receiveAmount
+              : ref.read(desktopExchangeModelProvider)!.sendAmount,
           addressTo: ref.read(desktopExchangeModelProvider)!.recipientAddress!,
           extraId: null,
           addressRefund: ref.read(desktopExchangeModelProvider)!.refundAddress!,
@@ -138,11 +138,10 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
           showDialog<void>(
             context: context,
             barrierDismissible: true,
-            builder:
-                (_) => SimpleDesktopDialog(
-                  title: "Failed to create trade",
-                  message: message ?? "",
-                ),
+            builder: (_) => SimpleDesktopDialog(
+              title: "Failed to create trade",
+              message: message ?? "",
+            ),
           ),
         );
       }
@@ -222,47 +221,26 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
 
     showDialog<void>(
       context: context,
-      builder:
-          (context) => Navigator(
-            initialRoute: SendFromView.routeName,
-            onGenerateRoute: RouteGenerator.generateRoute,
-            onGenerateInitialRoutes: (_, __) {
-              return [
-                FadePageRoute(
-                  SendFromView(
-                    coin: coin,
-                    trade: trade,
-                    amount: amount,
-                    address: address,
-                    shouldPopRoot: true,
-                    fromDesktopStep4: true,
-                  ),
-                  const RouteSettings(name: SendFromView.routeName),
-                ),
-              ];
-            },
-          ),
+      builder: (context) => Navigator(
+        initialRoute: SendFromView.routeName,
+        onGenerateRoute: RouteGenerator.generateRoute,
+        onGenerateInitialRoutes: (_, __) {
+          return [
+            FadePageRoute(
+              SendFromView(
+                coin: coin,
+                trade: trade,
+                amount: amount,
+                address: address,
+                shouldPopRoot: true,
+                fromDesktopStep4: true,
+              ),
+              const RouteSettings(name: SendFromView.routeName),
+            ),
+          ];
+        },
+      ),
     );
-  }
-
-  bool isWalletCoinAndCanSendWithoutWalletOpened(
-    String ticker,
-    Wallets walletsInstance,
-  ) {
-    try {
-      final coin = AppConfig.getCryptoCurrencyForTicker(ticker);
-      return walletsInstance.wallets
-          .where(
-            (e) =>
-                e.info.coin == coin &&
-                (e is! ExternalWallet ||
-                    e is MwebInterface), // ltc mweb is external but swaps
-            // should not use mweb, hence the odd logic check here
-          )
-          .isNotEmpty;
-    } catch (_) {
-      return false;
-    }
   }
 
   @override
@@ -281,10 +259,11 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
       // set to true anyways to show back button
       canSendFromStack = true;
     } else {
-      canSendFromStack = isWalletCoinAndCanSendWithoutWalletOpened(
-        model?.sendTicker ?? "",
-        ref.read(pWallets),
-      );
+      canSendFromStack =
+          Util.isWalletCoinAndCanSendWithoutWalletOpenedIgnoringXMR(
+            model?.sendTicker ?? "",
+            ref.read(pWallets).wallets,
+          );
     }
 
     return Column(
@@ -297,10 +276,10 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
               children: [
                 currentStep != 4
                     ? AppBarBackButton(
-                      isCompact: true,
-                      iconSize: 23,
-                      onPressed: onBack,
-                    )
+                        isCompact: true,
+                        iconSize: 23,
+                        onPressed: onBack,
+                      )
                     : const SizedBox(width: 32),
                 Text(
                   "Exchange ${model?.sendTicker.toUpperCase()} to ${model?.receiveTicker.toUpperCase()}",
@@ -345,39 +324,36 @@ class _StepScaffoldState extends ConsumerState<StepScaffold> {
             children: [
               canSendFromStack
                   ? Expanded(
-                    child: AnimatedCrossFade(
-                      duration: const Duration(milliseconds: 250),
-                      crossFadeState:
-                          currentStep == 4
-                              ? CrossFadeState.showSecond
-                              : CrossFadeState.showFirst,
-                      firstChild: SecondaryButton(
-                        label: "Back",
-                        buttonHeight: ButtonHeight.l,
-                        onPressed: onBack,
+                      child: AnimatedCrossFade(
+                        duration: const Duration(milliseconds: 250),
+                        crossFadeState: currentStep == 4
+                            ? CrossFadeState.showSecond
+                            : CrossFadeState.showFirst,
+                        firstChild: SecondaryButton(
+                          label: "Back",
+                          buttonHeight: ButtonHeight.l,
+                          onPressed: onBack,
+                        ),
+                        secondChild: SecondaryButton(
+                          label: "Send from ${AppConfig.appName}",
+                          buttonHeight: ButtonHeight.l,
+                          onPressed: sendFromStack,
+                        ),
                       ),
-                      secondChild: SecondaryButton(
-                        label: "Send from ${AppConfig.appName}",
-                        buttonHeight: ButtonHeight.l,
-                        onPressed: sendFromStack,
-                      ),
-                    ),
-                  )
+                    )
                   : const Spacer(),
               const SizedBox(width: 16),
               Expanded(
                 child: AnimatedCrossFade(
                   duration: const Duration(milliseconds: 250),
-                  crossFadeState:
-                      currentStep == 4
-                          ? CrossFadeState.showSecond
-                          : CrossFadeState.showFirst,
+                  crossFadeState: currentStep == 4
+                      ? CrossFadeState.showSecond
+                      : CrossFadeState.showFirst,
                   firstChild: AnimatedCrossFade(
                     duration: const Duration(milliseconds: 250),
-                    crossFadeState:
-                        currentStep == 3
-                            ? CrossFadeState.showSecond
-                            : CrossFadeState.showFirst,
+                    crossFadeState: currentStep == 3
+                        ? CrossFadeState.showSecond
+                        : CrossFadeState.showFirst,
                     firstChild: PrimaryButton(
                       label: "Next",
                       enabled: currentStep != 2 ? true : enableNext,

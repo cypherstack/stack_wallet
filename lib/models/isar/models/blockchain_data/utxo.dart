@@ -94,6 +94,14 @@ class UTXO {
         (isCoinbase ? minimumCoinbaseConfirms : minimumConfirms);
   }
 
+  /// A lingering [blockedReason] on an unblocked utxo means the wallet
+  /// auto-froze it previously and the user deliberately unfroze it. Used to
+  /// prevent auto re-freezing in [MainDB.updateUTXOs]. Relies on the
+  /// freeze/unfreeze toggles only flipping [isBlocked] and never clearing
+  /// [blockedReason].
+  @ignore
+  bool get userUnfroze => !isBlocked && blockedReason != null;
+
   // fuzzy
   bool _isMonero() {
     return keyImage != null;

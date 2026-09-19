@@ -44,6 +44,12 @@ class DesktopAttentionDeleteWallet extends ConsumerStatefulWidget {
 
 class _DesktopAttentionDeleteWallet
     extends ConsumerState<DesktopAttentionDeleteWallet> {
+  static const _deleteWarning =
+      "You are going to permanently delete your wallet.\n\nIf you delete your"
+      " wallet, the only way you can have access to your funds is by using your"
+      " backup key.\n\n${AppConfig.appName} does not keep nor is able to "
+      "restore your backup key or your wallet.\n\nPLEASE SAVE YOUR BACKUP KEY.";
+
   @override
   Widget build(BuildContext context) {
     return DesktopDialog(
@@ -68,25 +74,19 @@ class _DesktopAttentionDeleteWallet
                 Text("Attention!", style: STextStyles.desktopH2(context)),
                 const SizedBox(height: 16),
                 RoundedContainer(
-                  color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()!.snackBarBackError,
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.snackBarBackError,
                   child: Padding(
                     padding: const EdgeInsets.all(10.0),
                     child: Text(
-                      "You are going to permanently delete your wallet.\n\nIf you delete your wallet, "
-                      "the only way you can have access to your funds is by using your backup key."
-                      "\n\n${AppConfig.appName} does not keep nor is able to restore your backup key or your wallet."
-                      "\n\nPLEASE SAVE YOUR BACKUP KEY.",
-                      style: STextStyles.desktopTextExtraExtraSmall(
-                        context,
-                      ).copyWith(
-                        color:
-                            Theme.of(
+                      _deleteWarning,
+                      style: STextStyles.desktopTextExtraExtraSmall(context)
+                          .copyWith(
+                            color: Theme.of(
                               context,
                             ).extension<StackColors>()!.snackBarTextError,
-                      ),
+                          ),
                     ),
                   ),
                 ),
@@ -119,51 +119,46 @@ class _DesktopAttentionDeleteWallet
                             if (context.mounted) {
                               await Navigator.of(context).push(
                                 MaterialPageRoute<void>(
-                                  builder:
-                                      (builder) => DesktopDialog(
-                                        maxWidth: 614,
-                                        maxHeight: double.infinity,
-                                        child: Column(
+                                  builder: (builder) => DesktopDialog(
+                                    maxWidth: 614,
+                                    maxHeight: double.infinity,
+                                    child: Column(
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
                                           children: [
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                        left: 32,
-                                                      ),
-                                                  child: Text(
-                                                    "Wallet keys",
-                                                    style:
-                                                        STextStyles.desktopH3(
-                                                          context,
-                                                        ),
-                                                  ),
-                                                ),
-                                                DesktopDialogCloseButton(
-                                                  onPressedOverride: () {
-                                                    Navigator.of(
-                                                      context,
-                                                      rootNavigator: true,
-                                                    ).pop();
-                                                  },
-                                                ),
-                                              ],
-                                            ),
                                             Padding(
-                                              padding: const EdgeInsets.all(32),
-                                              child:
-                                                  DeleteViewOnlyWalletKeysView(
-                                                    walletId: widget.walletId,
-                                                    data: data,
-                                                  ),
+                                              padding: const EdgeInsets.only(
+                                                left: 32,
+                                              ),
+                                              child: Text(
+                                                "Wallet keys",
+                                                style: STextStyles.desktopH3(
+                                                  context,
+                                                ),
+                                              ),
+                                            ),
+                                            DesktopDialogCloseButton(
+                                              onPressedOverride: () {
+                                                Navigator.of(
+                                                  context,
+                                                  rootNavigator: true,
+                                                ).pop();
+                                              },
                                             ),
                                           ],
                                         ),
-                                      ),
+                                        Padding(
+                                          padding: const EdgeInsets.all(32),
+                                          child: DeleteViewOnlyWalletKeysView(
+                                            walletId: widget.walletId,
+                                            data: data,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
                               );
                             }
@@ -182,7 +177,8 @@ class _DesktopAttentionDeleteWallet
                           }
                         } on BadDecryption catch (e, s) {
                           Logging.instance.f(
-                            "Desktop wallet delete error. Showing decryption error continue dialog.",
+                            "Desktop wallet delete error. "
+                            "Showing decryption error continue dialog.",
                             error: e,
                             stackTrace: s,
                           );
@@ -220,6 +216,10 @@ class ErrorLoadingKeysDialog extends StatelessWidget {
 
   final String walletId;
 
+  static const _errorInfoExtra =
+      "Could not retrieve wallet keys/mnemonic phrase/seed.\n\n"
+      "Are you certain you would like to continue with wallet deletion?";
+
   @override
   Widget build(BuildContext context) {
     return DesktopDialog(
@@ -251,8 +251,7 @@ class ErrorLoadingKeysDialog extends StatelessWidget {
               children: [
                 RoundedWhiteContainer(
                   child: Text(
-                    "Could not retrieve wallet keys/mnemonic phrase/seed.\n\n"
-                    "Are you certain you would like to continue with wallet deletion?",
+                    _errorInfoExtra,
                     style: STextStyles.label(context).copyWith(fontSize: 16),
                   ),
                 ),

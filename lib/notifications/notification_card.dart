@@ -21,11 +21,8 @@ import '../themes/coin_icon_provider.dart';
 import '../themes/stack_colors.dart';
 import '../themes/theme_providers.dart';
 import '../utilities/format.dart';
-import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
-import '../widgets/conditional_parent.dart';
-import '../widgets/rounded_container.dart';
-import '../widgets/rounded_white_container.dart';
+import 'notification_card_layout.dart';
 
 class NotificationCard extends ConsumerWidget {
   const NotificationCard({
@@ -40,9 +37,6 @@ class NotificationCard extends ConsumerWidget {
     return Format.extractDateFrom(date.millisecondsSinceEpoch ~/ 1000);
   }
 
-  static const double mobileIconSize = 24;
-  static const double desktopIconSize = 30;
-
   String coinIconPath(IThemeAssets assets, WidgetRef ref) {
     try {
       final coin =
@@ -56,137 +50,36 @@ class NotificationCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDesktop = Util.isDesktop;
+    final double iconSize = isDesktop
+        ? NotificationCardLayout.desktopIconSize
+        : NotificationCardLayout.mobileIconSize;
+    final iconFile = File(coinIconPath(ref.watch(themeAssetsProvider), ref));
 
-    return Stack(
-      children: [
-        RoundedWhiteContainer(
-          padding: isDesktop
-              ? const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 10,
-                )
-              : const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              notification.changeNowId == null
-                  ? SvgPicture.file(
-                      File(
-                        coinIconPath(
-                          ref.watch(
-                            themeAssetsProvider,
-                          ),
-                          ref,
-                        ),
-                      ),
-                      width: isDesktop ? desktopIconSize : mobileIconSize,
-                      height: isDesktop ? desktopIconSize : mobileIconSize,
-                    )
-                  : Container(
-                      width: isDesktop ? desktopIconSize : mobileIconSize,
-                      height: isDesktop ? desktopIconSize : mobileIconSize,
-                      decoration: BoxDecoration(
-                        color: Colors.transparent,
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: SvgPicture.file(
-                        File(
-                          coinIconPath(
-                            ref.watch(
-                              themeAssetsProvider,
-                            ),
-                            ref,
-                          ),
-                        ),
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark,
-                        width: isDesktop ? desktopIconSize : mobileIconSize,
-                        height: isDesktop ? desktopIconSize : mobileIconSize,
-                      ),
-                    ),
-              const SizedBox(
-                width: 12,
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    ConditionalParent(
-                      condition: isDesktop && !notification.read,
-                      builder: (child) => Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          child,
-                          Text(
-                            "New",
-                            style:
-                                STextStyles.desktopTextExtraExtraSmall(context)
-                                    .copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .accentColorGreen,
-                            ),
-                          ),
-                        ],
-                      ),
-                      child: Text(
-                        notification.title,
-                        style: isDesktop
-                            ? STextStyles.desktopTextExtraExtraSmall(context)
-                                .copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark,
-                              )
-                            : STextStyles.titleBold12(context),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 2,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          notification.description,
-                          style: isDesktop
-                              ? STextStyles.desktopTextExtraExtraSmall(context)
-                                  .copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textSubtitle1,
-                                )
-                              : STextStyles.label(context),
-                        ),
-                        Text(
-                          extractPrettyDateString(notification.date),
-                          style: isDesktop
-                              ? STextStyles.desktopTextExtraExtraSmall(context)
-                                  .copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textSubtitle1,
-                                )
-                              : STextStyles.label(context),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        if (notification.read)
-          Positioned.fill(
-            child: RoundedContainer(
+    final Widget icon = notification.changeNowId == null
+        ? SvgPicture.file(iconFile, width: iconSize, height: iconSize)
+        : Container(
+            width: iconSize,
+            height: iconSize,
+            decoration: BoxDecoration(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: SvgPicture.file(
+              iconFile,
               color: Theme.of(context)
                   .extension<StackColors>()!
-                  .background
-                  .withOpacity(0.5),
+                  .accentColorDark,
+              width: iconSize,
+              height: iconSize,
             ),
-          ),
-      ],
+          );
+
+    return NotificationCardLayout(
+      icon: icon,
+      title: notification.title,
+      body: notification.description,
+      dateString: extractPrettyDateString(notification.date),
+      read: notification.read,
     );
   }
 }

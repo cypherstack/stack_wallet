@@ -23,6 +23,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:keyboard_dismisser/keyboard_dismisser.dart';
 import 'package:logger/logger.dart';
+import 'package:mobile_app_privacy/mobile_app_privacy.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:window_size/window_size.dart';
 
@@ -32,6 +33,7 @@ import 'db/hive/db.dart';
 import 'db/isar/main_db.dart';
 import 'db/special_migrations.dart';
 import 'db/sqlite/firo_cache.dart';
+import 'models/epicbox_server_model.dart';
 import 'models/exchange/change_now/exchange_transaction.dart';
 import 'models/exchange/change_now/exchange_transaction_status.dart';
 import 'models/exchange/response_objects/trade.dart';
@@ -39,6 +41,7 @@ import 'models/models.dart';
 import 'models/node_model.dart';
 import 'models/notification_model.dart';
 import 'models/trade_wallet_lookup.dart';
+import 'pages/already_running_view.dart';
 import 'pages/campfire_migrate_view.dart';
 import 'pages/home_view/home_view.dart';
 import 'pages/intro_view.dart';
@@ -76,6 +79,7 @@ import 'wallets/isar/providers/all_wallets_info_provider.dart';
 import 'wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import 'widgets/crypto_notifications.dart';
 import 'wl_gen/interfaces/cs_monero_interface.dart';
+import 'wl_gen/interfaces/cs_wownero_interface.dart';
 import 'wl_gen/interfaces/lib_xelis_interface.dart';
 
 final openedFromSWBFileStringStateProvider = StateProvider<String?>(
@@ -153,6 +157,9 @@ void main(List<String> args) async {
   // node model adapter
   DB.instance.hive.registerAdapter(NodeModelAdapter());
 
+  // epicbox server model adapter
+  DB.instance.hive.registerAdapter(EpicBoxServerModelAdapter());
+
   if (!DB.instance.hive.isAdapterRegistered(
     lib_monero_compat.WalletInfoAdapter().typeId,
   )) {
@@ -161,17 +168,68 @@ void main(List<String> args) async {
 
   DB.instance.hive.registerAdapter(lib_monero_compat.WalletTypeAdapter());
 
-  if (AppConfig.coins.whereType<Monero>().isNotEmpty ||
-      AppConfig.coins.whereType<Wownero>().isNotEmpty) {
+  if (AppConfig.coins.whereType<Monero>().isNotEmpty) {
     csMonero.setUseCsMoneroLoggerInternal(kDebugMode);
+  }
+  if (AppConfig.coins.whereType<Wownero>().isNotEmpty) {
+    csWownero.setUseCsWowneroLoggerInternal(kDebugMode);
   }
 
   DB.instance.hive.init(
     (await StackFileSystem.applicationHiveDirectory()).path,
   );
 
-  await DB.instance.hive.openBox<dynamic>(DB.boxNameDBInfo);
-  await DB.instance.hive.openBox<dynamic>(DB.boxNamePrefs);
+  try {
+    await DB.instance.hive.openBox<dynamic>(DB.boxNameDBInfo);
+    await DB.instance.hive.openBox<dynamic>(DB.boxNamePrefs);
+  } on FileSystemException catch (e) {
+    if (e.osError?.errorCode == 11 || e.message.contains('lock failed')) {
+      // Another instance already holds the Hive database lock.
+      // Try to bootstrap just enough of the theme system (Isar is independent
+      // of Hive) so the error screen looks like a real Stack Wallet screen.
+      Widget errorApp;
+      try {
+        await StackFileSystem.initThemesDir();
+        await MainDB.instance.initMainDB();
+        ThemeService.instance.init(MainDB.instance);
+        errorApp = const ProviderScope(child: AlreadyRunningApp());
+      } catch (_) {
+        // Isar is also unavailable (e.g., another error). Fall back to a
+        // minimal but still Inter-font styled screen.
+        errorApp = MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(fontFamily: GoogleFonts.inter().fontFamily),
+          home: Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    AppConfig.appName,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'is already running.\n'
+                    'Close the other window and try again.',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(fontSize: 16),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }
+      runApp(errorApp);
+      return;
+    }
+    rethrow;
+  }
   await Prefs.instance.init();
 
   await Logging.instance.initialize(
@@ -202,7 +260,7 @@ void main(List<String> args) async {
           .logsStream(CryptoCurrencyNetwork.main)
           .then(
             (stream) =>
-                stream.listen((line) => print("[MWEBD: MAINNET]: $line")),
+                stream.listen((line) => debugPrint("[MWEBD: MAINNET]: $line")),
           ),
     );
     unawaited(
@@ -210,7 +268,7 @@ void main(List<String> args) async {
           .logsStream(CryptoCurrencyNetwork.test)
           .then(
             (stream) =>
-                stream.listen((line) => print("[MWEBD: TESTNET]: $line")),
+                stream.listen((line) => debugPrint("[MWEBD: TESTNET]: $line")),
           ),
     );
   }
@@ -325,6 +383,10 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     with WidgetsBindingObserver {
   static const platform = MethodChannel("STACK_WALLET_RESTORE");
 
+  final _mobileAppPrivacy = Platform.isAndroid || Platform.isIOS
+      ? MobileAppPrivacy()
+      : null;
+
   // late final Wallets _wallets;
   // late final Prefs _prefs;
   late final NotificationsService _notificationsService;
@@ -382,6 +444,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       unawaited(ref.read(baseCurrenciesProvider).update());
 
       await _nodeService.updateDefaults();
+      await _nodeService.updateDefaultEpicBoxes();
       await _notificationsService.init(
         nodeService: _nodeService,
         tradesService: _tradesService,
@@ -454,6 +517,11 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ref.read(pDuress.notifier).state = false;
       });
+    }
+
+    if (Platform.isAndroid &&
+        ref.read(prefsChangeNotifierProvider).disableScreenShots) {
+      unawaited(_mobileAppPrivacy?.setFlagSecure(true));
     }
 
     String themeId;
@@ -551,7 +619,18 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     debugPrint("didChangeAppLifecycleState: ${state.name}");
-    if (state == AppLifecycleState.resumed) {}
+
+    if (state == AppLifecycleState.resumed) {
+      await _mobileAppPrivacy?.disableOverlay();
+    } else {
+      if (ref.read(prefsChangeNotifierProvider).privacyScreen) {
+        await _mobileAppPrivacy?.enableOverlay(
+          color: ref.read(themeProvider).popupBG, // only android, ios uses blur
+          blurInsteadOfColor: true, // ignored on android
+        );
+      }
+    }
+
     switch (state) {
       case AppLifecycleState.inactive:
         break;
@@ -607,7 +686,10 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
   @override
   Future<AppExitResponse> didRequestAppExit() async {
     debugPrint("didRequestAppExit called");
-    if (Platform.isMacOS) {
+    if (Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
+      // Monero will cause app to stop responding if in the middle of doing
+      // things like a scan on the c++ side of things.
+
       // On macOS, mwebd fails to shut down, hanging the app on close.
       //
       // Exiting is a hack fix for this issue.
@@ -687,6 +769,13 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     //   Logging.instance.log("shouldShowLockscreenOnResumeStateProvider set to: $next",
     //       addToDebugMessagesDB: false);
     // });
+
+    if (Platform.isAndroid) {
+      ref.listen(
+        prefsChangeNotifierProvider.select((s) => s.disableScreenShots),
+        (_, next) => _mobileAppPrivacy?.setFlagSecure(next),
+      );
+    }
 
     final colorScheme = ref.watch(colorProvider.state).state;
 

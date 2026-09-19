@@ -7,15 +7,19 @@ import 'package:isar_community/isar.dart';
 import 'package:socks5_proxy/socks_client.dart';
 import 'package:solana/dto.dart';
 import 'package:solana/solana.dart';
-import 'package:tuple/tuple.dart';
 
 import '../../../app_config.dart';
 import '../../../exceptions/wallet/node_tor_mismatch_config_exception.dart';
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart' as isar;
+import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
+import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
+import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/isar/models/isar_models.dart';
 import '../../../models/node_model.dart';
 import '../../../models/paymint/fee_object_model.dart';
+import '../../../services/event_bus/events/global/updated_in_background_event.dart';
+import '../../../services/event_bus/global_event_bus.dart';
 import '../../../services/node_service.dart';
 import '../../../services/tor_service.dart';
 import '../../../utilities/amount/amount.dart';
@@ -33,7 +37,15 @@ class SolanaWallet extends Bip39Wallet<Solana> {
 
   NodeModel? _solNode;
 
-  RpcClient? _rpcClient; // The Solana RpcClient.
+  RpcClient? _rpcClient;
+
+  RpcClient? getRpcClient() {
+    return _rpcClient;
+  }
+
+  Future<Ed25519HDKeyPair> getKeyPair() async {
+    return _getKeyPair();
+  }
 
   Future<Ed25519HDKeyPair> _getKeyPair() async {
     return Ed25519HDKeyPair.fromMnemonic(
@@ -57,19 +69,23 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   }
 
   Future<BigInt> _getCurrentBalanceInLamports() async {
-    _checkClient();
+    checkClient();
     final balance = await _rpcClient?.getBalance((await _getKeyPair()).address);
     return BigInt.from(balance!.value);
   }
 
-  Future<BigInt?> _getEstimatedNetworkFee(Amount transferAmount) async {
-    _checkClient();
+  Future<BigInt?> _getEstimatedNetworkFee(
+    Amount transferAmount,
+    String? memo,
+  ) async {
+    checkClient();
     final latestBlockhash = await _rpcClient?.getLatestBlockhash();
     final pubKey = (await _getKeyPair()).publicKey;
 
     final compiledMessage =
         Message(
           instructions: [
+            if (memo != null) MemoInstruction(signers: const [], memo: memo),
             SystemInstruction.transfer(
               fundingAccount: pubKey,
               recipientAccount: pubKey,
@@ -91,8 +107,23 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   }
 
   @override
+  int get isarTransactionVersion => 2;
+
+  @override
+  FilterOperation? get transactionFilterOperation => FilterGroup.not(
+    const FilterCondition.equalTo(
+      property: r"subType",
+      value: TransactionSubType.splToken,
+    ),
+  );
+
+  @override
   FilterOperation? get changeAddressFilterOperation =>
-      throw UnimplementedError();
+      FilterGroup.and(standardChangeAddressFilters);
+
+  @override
+  FilterOperation? get receivingAddressFilterOperation =>
+      FilterGroup.and(standardReceivingAddressFilters);
 
   @override
   Future<void> checkSaveInitialReceivingAddress() async {
@@ -116,7 +147,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   @override
   Future<TxData> prepareSend({required TxData txData}) async {
     try {
-      _checkClient();
+      checkClient();
 
       if (txData.recipients == null || txData.recipients!.length != 1) {
         throw Exception("$runtimeType prepareSend requires 1 recipient");
@@ -128,7 +159,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
         throw Exception("Insufficient available balance");
       }
 
-      final feeAmount = await _getEstimatedNetworkFee(sendAmount);
+      final feeAmount = await _getEstimatedNetworkFee(sendAmount, txData.memo);
       if (feeAmount == null) {
         throw Exception(
           "Failed to get fees, please check your node connection.",
@@ -177,7 +208,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   @override
   Future<TxData> confirmSend({required TxData txData}) async {
     try {
-      _checkClient();
+      checkClient();
 
       final keyPair = await _getKeyPair();
       final recipientAccount = txData.recipients!.first;
@@ -186,6 +217,8 @@ class SolanaWallet extends Bip39Wallet<Solana> {
       );
       final message = Message(
         instructions: [
+          if (txData.memo != null)
+            MemoInstruction(signers: const [], memo: txData.memo!),
           SystemInstruction.transfer(
             fundingAccount: keyPair.publicKey,
             recipientAccount: recipientPubKey,
@@ -203,6 +236,52 @@ class SolanaWallet extends Bip39Wallet<Solana> {
       );
 
       final txid = await _rpcClient?.signAndSendTransaction(message, [keyPair]);
+
+      // Persist pending transaction immediately so UI shows "Sending" status.
+      if (txid != null) {
+        final senderAddress = keyPair.address;
+        final isToSelf = senderAddress == recipientAccount.address;
+
+        final tempTx = TransactionV2(
+          walletId: walletId,
+          blockHash: null, // CRITICAL: indicates pending.
+          hash: txid,
+          txid: txid,
+          timestamp: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+          height: null, // CRITICAL: indicates pending.
+          inputs: [
+            InputV2.isarCantDoRequiredInDefaultConstructor(
+              scriptSigHex: null,
+              scriptSigAsm: null,
+              sequence: null,
+              outpoint: null,
+              addresses: [senderAddress],
+              valueStringSats: txData.amount!.raw.toString(),
+              witness: null,
+              innerRedeemScriptAsm: null,
+              coinbase: null,
+              walletOwns: true,
+            ),
+          ],
+          outputs: [
+            OutputV2.isarCantDoRequiredInDefaultConstructor(
+              scriptPubKeyHex: "00",
+              valueStringSats: txData.amount!.raw.toString(),
+              addresses: [recipientAccount.address],
+              walletOwns: isToSelf,
+            ),
+          ],
+          version: -1,
+          type: isToSelf
+              ? isar.TransactionType.sentToSelf
+              : isar.TransactionType.outgoing,
+          subType: isar.TransactionSubType.none,
+          otherData: jsonEncode({"overrideFee": txData.fee!.toJsonString()}),
+        );
+
+        await mainDB.updateOrPutTransactionV2s([tempTx]);
+      }
+
       return txData.copyWith(txid: txid);
     } catch (e, s) {
       Logging.instance.e(
@@ -216,7 +295,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
 
   @override
   Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate) async {
-    _checkClient();
+    checkClient();
 
     if (info.cachedBalance.spendable.raw == BigInt.zero) {
       return Amount(
@@ -225,35 +304,62 @@ class SolanaWallet extends Bip39Wallet<Solana> {
       );
     }
 
-    final fee = await _getEstimatedNetworkFee(amount);
-    if (fee == null) {
-      throw Exception("Failed to get fees, please check your node connection.");
-    }
-
-    return Amount(rawValue: fee, fractionDigits: cryptoCurrency.fractionDigits);
+    // The feeRate parameter contains the total fee amount to use.
+    // For Solana, this is already calculated based on priority tier.
+    // Simply return it as the fee estimate.
+    return Amount(
+      rawValue: feeRate,
+      fractionDigits: cryptoCurrency.fractionDigits,
+    );
   }
 
   @override
   Future<FeeObject> get fees async {
-    _checkClient();
+    checkClient();
 
-    final fee = await _getEstimatedNetworkFee(
+    final baseFee = await _getEstimatedNetworkFee(
       Amount.fromDecimal(
-        Decimal.one, // 1 SOL
+        Decimal.one, // 1 SOL.
         fractionDigits: cryptoCurrency.fractionDigits,
       ),
+      null, // ?
     );
-    if (fee == null) {
+    if (baseFee == null) {
       throw Exception("Failed to get fees, please check your node connection.");
     }
+
+    // Differentiate fees by tier using multipliers:
+    // Base fee is typically around 5000 lamports.
+    // Slow: minimum 5000 lamports.
+    // Average: base fee * 1.5 (but not less than slow).
+    // Fast: base fee * 2.0 (but not less than average).
+    // Ensure all fees stay within bounds: 5000-1000000 lamports.
+    const minFeeBig = 5000;
+    const maxFeeBig = 1000000;
+
+    // Calculate tier fees with multipliers.
+    final slowFee = baseFee; // Use base fee for slow.
+    final averageFee = (baseFee * BigInt.from(3)) ~/ BigInt.from(2); // 1.5x.
+    final fastFee = baseFee * BigInt.from(2); // 2.0x.
+
+    // Clamp all fees to the allowed range.
+    final _clamp = (BigInt value) {
+      if (value < BigInt.from(minFeeBig)) return BigInt.from(minFeeBig);
+      if (value > BigInt.from(maxFeeBig)) return BigInt.from(maxFeeBig);
+      return value;
+    };
+
+    final clampedSlow = _clamp(slowFee);
+    final clampedAverage = _clamp(averageFee);
+    final clampedFast = _clamp(fastFee);
 
     return FeeObject(
       numberOfBlocksFast: 1,
       numberOfBlocksAverage: 1,
       numberOfBlocksSlow: 1,
-      fast: fee,
-      medium: fee,
-      slow: fee,
+      fast: clampedFast,
+      medium: clampedAverage,
+      slow: clampedSlow,
     );
   }
 
@@ -261,7 +367,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   Future<bool> pingCheck() async {
     String? health;
     try {
-      _checkClient();
+      checkClient();
       health = await _rpcClient?.getHealth();
       return health != null;
     } catch (e, s) {
@@ -271,10 +377,6 @@ class SolanaWallet extends Bip39Wallet<Solana> {
       return Future.value(false);
     }
   }
-
-  @override
-  FilterOperation? get receivingAddressFilterOperation =>
-      FilterGroup.and(standardReceivingAddressFilters);
 
   @override
   Future<void> recover({required bool isRescan}) async {
@@ -300,7 +402,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
 
   @override
   Future<void> updateBalance() async {
-    _checkClient();
+    checkClient();
     try {
       final address = await getCurrentReceivingAddress();
 
@@ -350,7 +452,7 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   @override
   Future<void> updateChainHeight() async {
     try {
-      _checkClient();
+      checkClient();
 
       final int blockHeight = await _rpcClient?.getSlot() ?? 0;
       // TODO [prio=low]: Revisit null condition.
@@ -391,100 +493,192 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   @override
   Future<void> updateTransactions() async {
     try {
-      _checkClient();
+      checkClient();
 
       final transactionsList = await _rpcClient?.getTransactionsList(
         (await _getKeyPair()).publicKey,
         encoding: Encoding.jsonParsed,
       );
-      final txsList = List<Tuple2<isar.Transaction, Address>>.empty(
-        growable: true,
-      );
 
       final myAddress = (await getCurrentReceivingAddress())!;
 
-      // TODO [prio=low]: Revisit null assertion below.
-
-      for (final tx in transactionsList!) {
-        final senderAddress =
-            (tx.transaction as ParsedTransaction).message.accountKeys[0].pubkey;
-        var receiverAddress =
-            (tx.transaction as ParsedTransaction).message.accountKeys[1].pubkey;
-        var txType = isar.TransactionType.unknown;
-        final txAmount = Amount(
-          rawValue: BigInt.from(
-            tx.meta!.postBalances[1] - tx.meta!.preBalances[1],
-          ),
-          fractionDigits: cryptoCurrency.fractionDigits,
-        );
-
-        if ((senderAddress == myAddress.value) &&
-            (receiverAddress == "11111111111111111111111111111111")) {
-          // The account that is only 1's are System Program accounts which
-          // means there is no receiver except the sender,
-          // see: https://explorer.solana.com/address/11111111111111111111111111111111
-          txType = isar.TransactionType.sentToSelf;
-          receiverAddress = senderAddress;
-        } else if (senderAddress == myAddress.value) {
-          txType = isar.TransactionType.outgoing;
-        } else if (receiverAddress == myAddress.value) {
-          txType = isar.TransactionType.incoming;
-        }
-
-        final transaction = isar.Transaction(
-          walletId: walletId,
-          txid: (tx.transaction as ParsedTransaction).signatures[0],
-          timestamp: tx.blockTime!,
-          type: txType,
-          subType: isar.TransactionSubType.none,
-          amount: tx.meta!.postBalances[1] - tx.meta!.preBalances[1],
-          amountString: txAmount.toJsonString(),
-          fee: tx.meta!.fee,
-          height: tx.slot,
-          isCancelled: false,
-          isLelantus: false,
-          slateId: null,
-          otherData: null,
-          inputs: [],
-          outputs: [],
-          nonce: null,
-          numberOfMessages: 0,
-        );
-
-        final txAddress = Address(
-          walletId: walletId,
-          value: receiverAddress,
-          publicKey: List<int>.empty(),
-          derivationIndex: 0,
-          derivationPath: DerivationPath()..value = _addressDerivationPath,
-          type: AddressType.solana,
-          subType: txType == isar.TransactionType.outgoing
-              ? AddressSubType.unknown
-              : AddressSubType.receiving,
-        );
-
-        txsList.add(Tuple2(transaction, txAddress));
+      if (transactionsList == null) {
+        return;
       }
-      await mainDB.addNewTransactionData(txsList, walletId);
+
+      final txns = <TransactionV2>[];
+      int skippedCount = 0;
+
+      for (final tx in transactionsList) {
+        try {
+          // Skip transactions without metadata.
+          if (tx.meta == null) {
+            skippedCount++;
+            continue;
+          }
+
+          if (tx.transaction is! ParsedTransaction) {
+            skippedCount++;
+            continue;
+          }
+
+          final parsedTx = tx.transaction as ParsedTransaction;
+          final txid = parsedTx.signatures.isNotEmpty
+              ? parsedTx.signatures[0]
+              : null;
+
+          if (parsedTx.signatures.length > 1) {
+            Logging.instance.w(
+              "SOL $walletId found tx with "
+              "${parsedTx.signatures.length} signatures",
+            );
+          }
+
+          if (txid == null) {
+            skippedCount++;
+            continue;
+          }
+
+          final systemTransfers = parsedTx.message.instructions
+              .map((e) => e.toJson())
+              .where(
+                (e) =>
+                    e.containsKey("parsed") &&
+                    e["program"] == "system" &&
+                    e["parsed"]["type"] == "transfer",
+              );
+
+          if (systemTransfers.length != 1) {
+            Logging.instance.w(
+              "SOL $walletId found tx with "
+              "${systemTransfers.length} system transfer! Skipping...",
+            );
+            skippedCount++;
+            continue;
+          }
+          final transfer = systemTransfers.first;
+          final lamports = BigInt.parse(
+            transfer["parsed"]["info"]["lamports"].toString(),
+          );
+          final senderAddress = transfer["parsed"]["info"]["source"] as String;
+          final receiverAddress =
+              transfer["parsed"]["info"]["destination"] as String;
+
+          final isar.TransactionType txType;
+
+          if ((senderAddress == myAddress.value) &&
+              (receiverAddress == senderAddress)) {
+            txType = isar.TransactionType.sentToSelf;
+          } else if (senderAddress == myAddress.value) {
+            txType = isar.TransactionType.outgoing;
+          } else if (receiverAddress == myAddress.value) {
+            txType = isar.TransactionType.incoming;
+          } else {
+            // probably should never get here? If so, then this fragile parsing
+            // is broken which isn't surprising...
+            txType = isar.TransactionType.unknown;
+          }
+
+          // check for memo
+          final memos = parsedTx.message.instructions
+              .map((e) => e.toJson())
+              .where(
+                (e) => e["parsed"] is String && e["program"] == "spl-memo",
+              );
+          final String? memo = memos.isEmpty
+              ? null
+              : memos.first["parsed"] as String;
+
+          // Create TransactionV2 object.
+          final txn = TransactionV2(
+            walletId: walletId,
+            blockHash: null,
+            hash: txid,
+            txid: txid,
+            timestamp:
+                tx.blockTime ?? DateTime.now().millisecondsSinceEpoch ~/ 1000,
+            height: tx.slot,
+            inputs: [
+              InputV2.isarCantDoRequiredInDefaultConstructor(
+                scriptSigHex: null,
+                scriptSigAsm: null,
+                sequence: null,
+                outpoint: null,
+                addresses: [senderAddress],
+                valueStringSats: lamports.toString(),
+                witness: null,
+                innerRedeemScriptAsm: null,
+                coinbase: null,
+                walletOwns: senderAddress == myAddress.value,
+              ),
+            ],
+            outputs: [
+              OutputV2.isarCantDoRequiredInDefaultConstructor(
+                scriptPubKeyHex: "00",
+                valueStringSats: lamports.toString(),
+                addresses: [receiverAddress],
+                walletOwns: receiverAddress == myAddress.value,
+              ),
+            ],
+            version: tx.version?.version?.toInt() ?? -1,
+            type: txType,
+            subType: isar.TransactionSubType.none,
+            otherData: jsonEncode({
+              TxV2OdKeys.overrideFee: tx.meta!.fee.toString(),
+              if (memo != null) TxV2OdKeys.memo: memo,
+            }),
+          );
+
+          txns.add(txn);
+        } catch (e, s) {
+          Logging.instance.w(
+            "$runtimeType updateTransactions: Failed to parse transaction",
+            error: e,
+            stackTrace: s,
+          );
+          skippedCount++;
+          continue;
+        }
+      }
+
+      // Persist all transactions if any were parsed.
+      if (txns.isNotEmpty) {
+        await mainDB.updateOrPutTransactionV2s(txns);
+        Logging.instance.i(
+          "$runtimeType updateTransactions: Synced ${txns.length} transactions (skipped $skippedCount)",
+        );
+      }
     } on NodeTorMismatchConfigException {
       rethrow;
     } catch (e, s) {
       Logging.instance.e(
-        "Error occurred in solana_wallet.dart while getting"
-        " transactions for solana: $e\n$s",
+        "$runtimeType updateTransactions failed: ",
+        error: e,
+        stackTrace: s,
       );
     }
   }
 
   @override
   Future<bool> updateUTXOs() async {
-    // No UTXOs in Solana
     return false;
   }
 
-  /// Make sure the Solana RpcClient uses Tor if it's enabled.
-  ///
-  void _checkClient() {
+  Future<void> updateSolanaTokens(List<String> mintAddresses) async {
+    await info.updateSolanaCustomTokenMintAddresses(
+      newMintAddresses: mintAddresses,
+      isar: mainDB.isar,
+    );
+
+    GlobalEventBus.instance.fire(
+      UpdatedInBackgroundEvent(
+        "Solana custom tokens updated for: $walletId ${info.name}",
+        walletId,
+      ),
+    );
+  }
+
+  void checkClient() {
     final node = getCurrentNode();
 
     final netOption = TorPlainNetworkOption.fromNodeData(

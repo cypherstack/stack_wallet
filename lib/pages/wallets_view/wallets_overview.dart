@@ -15,7 +15,7 @@ import 'package:isar_community/isar.dart';
 
 import '../../app_config.dart';
 import '../../models/add_wallet_list_entity/sub_classes/coin_entity.dart';
-import '../../models/isar/models/ethereum/eth_contract.dart';
+import '../../models/isar/models/contract.dart';
 import '../../pages_desktop_specific/my_stack_view/dialogs/desktop_expanding_wallet_card.dart';
 import '../../providers/providers.dart';
 import '../../services/event_bus/events/wallet_added_event.dart';
@@ -59,7 +59,7 @@ class WalletsOverview extends ConsumerStatefulWidget {
   ConsumerState<WalletsOverview> createState() => _EthWalletsOverviewState();
 }
 
-typedef WalletListItemData = ({Wallet wallet, List<EthContract> contracts});
+typedef WalletListItemData = ({Wallet wallet, List<Contract> contracts});
 
 class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
   final isDesktop = Util.isDesktop;
@@ -99,14 +99,12 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
         term,
       );
 
-      final List<EthContract> contracts = [];
+      final List<Contract> contracts = [];
 
       for (final contract in entry.value.contracts) {
         if (_elementContains(contract.name, term)) {
           contracts.add(contract);
         } else if (_elementContains(contract.symbol, term)) {
-          contracts.add(contract);
-        } else if (_elementContains(contract.type.name, term)) {
           contracts.add(contract);
         } else if (_elementContains(contract.address, term)) {
           contracts.add(contract);
@@ -133,7 +131,7 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
 
     if (widget.coin is Ethereum) {
       for (final data in walletsData) {
-        final List<EthContract> contracts = [];
+        final List<Contract> contracts = [];
         final contractAddresses = ref.read(
           pWalletTokenAddresses(data.walletId),
         );
@@ -147,6 +145,31 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
           // add it to list if it exists in DB
           if (contract != null) {
             contracts.add(contract);
+          }
+        }
+
+        // add tuple to list
+        wallets[data.walletId] = (
+          wallet: ref.read(pWallets).getWallet(data.walletId),
+          contracts: contracts,
+        );
+      }
+    } else if (widget.coin is Solana) {
+      for (final data in walletsData) {
+        final List<Contract> contracts = [];
+        final tokenMintAddresses = ref.read(
+          pWalletTokenAddresses(data.walletId),
+        );
+
+        // fetch each token
+        for (final tokenAddress in tokenMintAddresses) {
+          final token = ref
+              .read(mainDBProvider)
+              .getSolContractSync(tokenAddress);
+
+          // add it to list if it exists in DB
+          if (token != null) {
+            contracts.add(token);
           }
         }
 
@@ -326,6 +349,7 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
                           data: entry,
                           navigatorState: widget.navigatorState!,
                         );
+                        // }
                       } else {
                         return MasterWalletCard(
                           key: Key(wallet.walletId),

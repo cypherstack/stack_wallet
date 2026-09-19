@@ -32,7 +32,8 @@ import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/stack_file_system.dart';
-import '../../../wl_gen/interfaces/cs_monero_interface.dart';
+import '../../../wl_gen/interfaces/cs_monero_interface.dart'
+    show CsWalletListener, CsOutput, CsRecipient, CsPendingTransaction;
 import '../../../wl_gen/interfaces/cs_salvium_interface.dart';
 import '../../crypto_currency/intermediate/cryptonote_currency.dart';
 import '../../isar/models/wallet_info.dart';
@@ -48,8 +49,6 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
     implements MultiAddressInterface<T> {
   @override
   int get isarTransactionVersion => 2;
-
-  WrappedWallet? wallet;
 
   LibSalviumWallet(super.currency) {
     final bus = GlobalEventBus.instance;
@@ -131,8 +130,6 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
   bool _txRefreshLock = false;
   int _lastCheckedHeight = -1;
   int _txCount = 0;
-  int currentKnownChainHeight = 0;
-  double highestPercentCached = 0;
 
   Future<WrappedWallet> loadWallet({
     required String path,
@@ -166,7 +163,8 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
 
   bool walletExists(String path);
 
-  String getTxKeyFor({required String txid}) {
+  @override
+  Future<String> getTxKeyFor({required String txid}) async {
     if (wallet == null) {
       throw Exception("Cannot get tx key in uninitialized libSalviumWallet");
     }
@@ -274,6 +272,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
     return newReceivingAddress;
   }
 
+  @override
   Future<CWKeyData?> getKeys() async {
     if (wallet == null) {
       return null;
@@ -298,6 +297,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
     }
   }
 
+  @override
   Future<(String, String)>
   hackToCreateNewViewOnlyWalletDataFromNewlyCreatedWalletThisFunctionShouldNotBeCalledUnlessYouKnowWhatYouAreDoing() async {
     final path = await pathForWallet(name: walletId);
@@ -350,10 +350,14 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
           key: Wallet.mnemonicPassphraseKey(walletId: walletId),
           value: "",
         );
+
+        this.wallet = wallet;
+        await updateNode();
+        await csSalvium.close(wallet, save: true);
+        this.wallet = null;
       } catch (e, s) {
         Logging.instance.f("", error: e, stackTrace: s);
       }
-      await updateNode();
     }
 
     return super.init();
@@ -528,9 +532,9 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
       csSalvium.startListeners(wallet!);
       csSalvium.startAutoSaving(wallet!);
 
-      // _setSyncStatus(ConnectedSyncStatus());
+      _setSyncStatus(ConnectedSyncStatus());
     } catch (e, s) {
-      // _setSyncStatus(FailedSyncStatus());
+      _setSyncStatus(FailedSyncStatus());
       Logging.instance.e(
         "Exception caught in $runtimeType.updateNode(): ",
         error: e,
@@ -1407,6 +1411,102 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
       );
       rethrow;
     }
+  }
+
+  @override
+  Future<int> getRefreshFromBlockHeight() async => wallet == null
+      ? throw Exception(
+          "Cannot getRefreshFromBlockHeight when wallet is not open",
+        )
+      : csSalvium.getRefreshFromBlockHeight(wallet!);
+
+  @override
+  int getTxPriorityHigh() => csSalvium.getTxPriorityHigh();
+
+  @override
+  int getTxPriorityMedium() => csSalvium.getTxPriorityMedium();
+
+  @override
+  int getTxPriorityNormal() => csSalvium.getTxPriorityNormal();
+
+  @override
+  Future<void> internalCommitTx(CsPendingTransaction tx) {
+    if (wallet == null) {
+      throw Exception("Cannot internalCommitTx when wallet is not open");
+    }
+
+    return csSalvium.commitTx(wallet!, tx);
+  }
+
+  @override
+  Future<CsPendingTransaction> internalCreateTx({
+    required CsRecipient output,
+    required int priority,
+    required bool sweep,
+    List<StandardInput>? preferredInputs,
+    required int accountIndex,
+    required int minConfirms,
+    required int currentHeight,
+  }) {
+    if (wallet == null) {
+      throw Exception("Cannot internalCommitTx when wallet is not open");
+    }
+    return csSalvium.createTx(
+      wallet!,
+      output: output,
+      priority: priority,
+      sweep: sweep,
+      accountIndex: accountIndex,
+      minConfirms: minConfirms,
+      currentHeight: currentHeight,
+      preferredInputs: preferredInputs,
+    );
+  }
+
+  @override
+  Future<String> internalGetAddress({
+    required int accountIndex,
+    required int addressIndex,
+  }) async {
+    if (wallet == null) {
+      throw Exception("Cannot internalCommitTx when wallet is not open");
+    }
+    return csSalvium.getAddress(
+      wallet!,
+      accountIndex: accountIndex,
+      addressIndex: addressIndex,
+    );
+  }
+
+  @override
+  Future<List<CsOutput>> internalGetOutputs({
+    bool refresh = false,
+    bool includeSpent = false,
+  }) {
+    if (wallet == null) {
+      throw Exception("Cannot internalCommitTx when wallet is not open");
+    }
+    return csSalvium.getOutputs(
+      wallet!,
+      refresh: refresh,
+      includeSpent: includeSpent,
+    );
+  }
+
+  @override
+  Future<BigInt> internalGetUnlockedBalance({int accountIndex = 0}) async {
+    if (wallet == null) {
+      throw Exception("Cannot internalCommitTx when wallet is not open");
+    }
+    return csSalvium.getUnlockedBalance(wallet!, accountIndex: accountIndex)!;
+  }
+
+  @override
+  void setRefreshFromBlockHeight(int newHeight) {
+    if (wallet == null) {
+      throw Exception("Cannot internalCommitTx when wallet is not open");
+    }
+    csSalvium.setRefreshFromBlockHeight(wallet!, newHeight);
   }
 
   // ============== View only ==================================================

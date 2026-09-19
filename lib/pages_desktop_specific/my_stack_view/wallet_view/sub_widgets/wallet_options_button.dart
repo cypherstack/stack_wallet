@@ -14,9 +14,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../../pages/pinpad_views/pinpad_dialog.dart';
 import '../../../../pages/settings_views/wallet_settings_view/frost_ms/frost_ms_options_view.dart';
 import '../../../../pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/change_representative_view.dart';
 import '../../../../pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/edit_refresh_height_view.dart';
+import '../../../../pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/spark_view_key_view.dart';
 import '../../../../pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/xpub_view.dart';
 import '../../../../providers/global/wallets_provider.dart';
 import '../../../../route_generator.dart';
@@ -29,11 +31,14 @@ import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/intermediate/frost_currency.dart';
 import '../../../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
-import '../../../../wallets/wallet/intermediate/lib_monero_wallet.dart';
-import '../../../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
+import '../../../../wallets/wallet/impl/epiccash_wallet.dart';
+import '../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../addresses/desktop_wallet_addresses_view.dart';
+import '../../../password/request_desktop_auth_dialog.dart';
+import '../../../settings/settings_menu/epicbox_settings/desktop_manage_epicbox_dialog.dart';
 import 'desktop_delete_wallet_dialog.dart';
 
 enum _WalletOptions {
@@ -42,7 +47,9 @@ enum _WalletOptions {
   changeRepresentative,
   showXpub,
   frostOptions,
-  refreshFromHeight;
+  refreshFromHeight,
+  showSparkKey,
+  epicBoxSettings;
 
   String get prettyName {
     switch (this) {
@@ -58,28 +65,46 @@ enum _WalletOptions {
         return "FROST settings";
       case _WalletOptions.refreshFromHeight:
         return "Refresh height";
+      case _WalletOptions.showSparkKey:
+        return "Show Spark View Key";
+      case _WalletOptions.epicBoxSettings:
+        return "Epic Box settings";
     }
   }
 }
 
 class WalletOptionsButton extends ConsumerWidget {
-  const WalletOptionsButton({
-    super.key,
-    required this.walletId,
-  });
+  const WalletOptionsButton({super.key, required this.walletId});
 
   final String walletId;
+
+  Future<void> _auth(
+    BuildContext context,
+    String message,
+    VoidCallback onAuth,
+  ) async {
+    final verified = await showDialog<String?>(
+      context: context,
+      builder: (context) => Util.isDesktop
+          ? RequestDesktopAuthDialog(title: message)
+          : PinpadDialog(
+              biometricsAuthenticationTitle: message,
+              biometricsLocalizedReason: "Authenticate to show view key",
+              biometricsCancelButtonString: "CANCEL",
+            ),
+      barrierDismissible: !Util.isDesktop,
+    );
+
+    if (verified == "verified success" && context.mounted) {
+      onAuth();
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return RawMaterialButton(
-      constraints: const BoxConstraints(
-        minHeight: 32,
-        minWidth: 32,
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(1000),
-      ),
+      constraints: const BoxConstraints(minHeight: 32, minWidth: 32),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(1000)),
       onPressed: () async {
         final func = await showDialog<_WalletOptions?>(
           context: context,
@@ -103,6 +128,9 @@ class WalletOptionsButton extends ConsumerWidget {
               },
               onRefreshHeightPressed: () async {
                 Navigator.of(context).pop(_WalletOptions.refreshFromHeight);
+              },
+              onEpicBoxSettingsPressed: () async {
+                Navigator.of(context).pop(_WalletOptions.epicBoxSettings);
               },
               walletId: walletId,
             );
@@ -145,43 +173,81 @@ class WalletOptionsButton extends ConsumerWidget {
                 }
               }
               break;
-            case _WalletOptions.showXpub:
-              final xpubData = await showLoading(
-                delay: const Duration(milliseconds: 800),
-                whileFuture: (ref.read(pWallets).getWallet(walletId)
-                        as ExtendedKeysInterface)
-                    .getXPubs(),
-                context: context,
-                message: "Loading xpubs",
-                rootNavigator: Util.isDesktop,
-              );
+            case _WalletOptions.showSparkKey:
+              await _auth(context, "Show Spark view key", () async {
+                final wallet =
+                    ref.read(pWallets).getWallet(walletId) as SparkInterface;
+                final sparkViewKeyHex = wallet.sparkViewKey!;
 
-              if (context.mounted) {
-                final result = await showDialog<bool?>(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (context) => Navigator(
-                    initialRoute: XPubView.routeName,
-                    onGenerateRoute: RouteGenerator.generateRoute,
-                    onGenerateInitialRoutes: (_, __) {
-                      return [
-                        RouteGenerator.generateRoute(
-                          RouteSettings(
-                            name: XPubView.routeName,
-                            arguments: (walletId, xpubData),
+                if (context.mounted) {
+                  final result = await showDialog<bool?>(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) => Navigator(
+                      initialRoute: SparkViewKeyView.routeName,
+                      onGenerateRoute: RouteGenerator.generateRoute,
+                      onGenerateInitialRoutes: (_, __) {
+                        return [
+                          RouteGenerator.generateRoute(
+                            RouteSettings(
+                              name: SparkViewKeyView.routeName,
+                              arguments: (walletId, sparkViewKeyHex),
+                            ),
                           ),
-                        ),
-                      ];
-                    },
-                  ),
-                );
+                        ];
+                      },
+                    ),
+                  );
 
-                if (result == true) {
-                  if (context.mounted) {
-                    Navigator.of(context).pop();
+                  if (result == true) {
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                    }
                   }
                 }
-              }
+              });
+
+              break;
+            case _WalletOptions.showXpub:
+              await _auth(context, "Show xpub(s)", () async {
+                final xpubData = await showLoading(
+                  delay: const Duration(milliseconds: 800),
+                  whileFuture:
+                      (ref.read(pWallets).getWallet(walletId)
+                              as ExtendedKeysInterface)
+                          .getXPubs(),
+                  context: context,
+                  message: "Loading xpubs",
+                  rootNavigator: Util.isDesktop,
+                );
+
+                if (context.mounted) {
+                  final result = await showDialog<bool?>(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) => Navigator(
+                      initialRoute: XPubView.routeName,
+                      onGenerateRoute: RouteGenerator.generateRoute,
+                      onGenerateInitialRoutes: (_, __) {
+                        return [
+                          RouteGenerator.generateRoute(
+                            RouteSettings(
+                              name: XPubView.routeName,
+                              arguments: (walletId, xpubData),
+                            ),
+                          ),
+                        ];
+                      },
+                    ),
+                  );
+
+                  if (result == true) {
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                    }
+                  }
+                }
+              });
               break;
             case _WalletOptions.changeRepresentative:
               final result = await showDialog<bool?>(
@@ -224,9 +290,8 @@ class WalletOptionsButton extends ConsumerWidget {
                 unawaited(
                   showDialog(
                     context: context,
-                    builder: (context) => EditRefreshHeightView(
-                      walletId: walletId,
-                    ),
+                    builder: (context) =>
+                        EditRefreshHeightView(walletId: walletId),
                   ),
                 );
               } else {
@@ -238,23 +303,30 @@ class WalletOptionsButton extends ConsumerWidget {
                 );
               }
               break;
+
+            case _WalletOptions.epicBoxSettings:
+              unawaited(
+                showDialog(
+                  context: context,
+                  builder: (context) =>
+                      DesktopManageEpicBoxDialog(walletId: walletId),
+                ),
+              );
+              break;
           }
         }
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          vertical: 19,
-          horizontal: 32,
-        ),
+        padding: const EdgeInsets.symmetric(vertical: 19, horizontal: 32),
         child: Row(
           children: [
             SvgPicture.asset(
               Assets.svg.ellipsis,
               width: 20,
               height: 20,
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .buttonTextSecondary,
+              color: Theme.of(
+                context,
+              ).extension<StackColors>()!.buttonTextSecondary,
             ),
           ],
         ),
@@ -272,6 +344,7 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
     required this.onChangeRepPressed,
     required this.onFrostMSWalletOptionsPressed,
     required this.onRefreshHeightPressed,
+    required this.onEpicBoxSettingsPressed,
     required this.walletId,
   });
 
@@ -281,6 +354,7 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
   final VoidCallback onChangeRepPressed;
   final VoidCallback onFrostMSWalletOptionsPressed;
   final VoidCallback onRefreshHeightPressed;
+  final VoidCallback onEpicBoxSettingsPressed;
   final String walletId;
 
   @override
@@ -290,15 +364,16 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
     final wallet = ref.watch(pWallets).getWallet(walletId);
     bool xpubEnabled = wallet is ExtendedKeysInterface;
 
-    if (wallet is ViewOnlyOptionInterface && wallet.isViewOnly) {
-      xpubEnabled = false;
-    }
-
     final bool canChangeRep = coin is NanoCurrency;
 
     final bool isFrost = coin is FrostCurrency;
-    final bool isMoneroWow = wallet is LibMoneroWallet || wallet is LibSalviumWallet;
+    final bool isCN = wallet is CryptonoteWallet;
+    bool isSpark = wallet is SparkInterface;
 
+    if (wallet is ViewOnlyOptionInterface && wallet.isViewOnly) {
+      xpubEnabled = false;
+      isSpark = false;
+    }
     return Stack(
       children: [
         Positioned(
@@ -339,23 +414,21 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
                           Expanded(
                             child: Text(
                               _WalletOptions.addressList.prettyName,
-                              style: STextStyles.desktopTextExtraExtraSmall(
-                                context,
-                              ).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark,
-                              ),
+                              style:
+                                  STextStyles.desktopTextExtraExtraSmall(
+                                    context,
+                                  ).copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.textDark,
+                                  ),
                             ),
                           ),
                         ],
                       ),
                     ),
                   ),
-                  if (canChangeRep)
-                    const SizedBox(
-                      height: 8,
-                    ),
+                  if (canChangeRep) const SizedBox(height: 8),
                   if (canChangeRep)
                     TransparentButton(
                       onPressed: onChangeRepPressed,
@@ -376,23 +449,21 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
                             Expanded(
                               child: Text(
                                 _WalletOptions.changeRepresentative.prettyName,
-                                style: STextStyles.desktopTextExtraExtraSmall(
-                                  context,
-                                ).copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textDark,
-                                ),
+                                style:
+                                    STextStyles.desktopTextExtraExtraSmall(
+                                      context,
+                                    ).copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.textDark,
+                                    ),
                               ),
                             ),
                           ],
                         ),
                       ),
                     ),
-                  if (isFrost)
-                    const SizedBox(
-                      height: 8,
-                    ),
+                  if (isFrost) const SizedBox(height: 8),
                   if (isFrost)
                     TransparentButton(
                       onPressed: onFrostMSWalletOptionsPressed,
@@ -413,24 +484,23 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
                             Expanded(
                               child: Text(
                                 _WalletOptions.frostOptions.prettyName,
-                                style: STextStyles.desktopTextExtraExtraSmall(
-                                  context,
-                                ).copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textDark,
-                                ),
+                                style:
+                                    STextStyles.desktopTextExtraExtraSmall(
+                                      context,
+                                    ).copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.textDark,
+                                    ),
                               ),
                             ),
                           ],
                         ),
                       ),
                     ),
-                  if (isMoneroWow)
-                    const SizedBox(
-                      height: 8,
-                    ),
-                  if (isMoneroWow)
+                  if (isCN || wallet is EpiccashWallet)
+                    const SizedBox(height: 8),
+                  if (isCN || wallet is EpiccashWallet)
                     TransparentButton(
                       onPressed: onRefreshHeightPressed,
                       child: Padding(
@@ -450,23 +520,56 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
                             Expanded(
                               child: Text(
                                 _WalletOptions.refreshFromHeight.prettyName,
-                                style: STextStyles.desktopTextExtraExtraSmall(
-                                  context,
-                                ).copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textDark,
-                                ),
+                                style:
+                                    STextStyles.desktopTextExtraExtraSmall(
+                                      context,
+                                    ).copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.textDark,
+                                    ),
                               ),
                             ),
                           ],
                         ),
                       ),
                     ),
-                  if (xpubEnabled)
-                    const SizedBox(
-                      height: 8,
+                  if (wallet is EpiccashWallet) const SizedBox(height: 8),
+                  if (wallet is EpiccashWallet)
+                    TransparentButton(
+                      onPressed: onEpicBoxSettingsPressed,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            SvgPicture.asset(
+                              Assets.svg.node,
+                              width: 20,
+                              height: 20,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFieldActiveSearchIconLeft,
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Text(
+                                _WalletOptions.epicBoxSettings.prettyName,
+                                style:
+                                    STextStyles.desktopTextExtraExtraSmall(
+                                      context,
+                                    ).copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.textDark,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
+                  if (xpubEnabled) const SizedBox(height: 8),
                   if (xpubEnabled)
                     TransparentButton(
                       onPressed: onShowXpubPressed,
@@ -487,22 +590,58 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
                             Expanded(
                               child: Text(
                                 _WalletOptions.showXpub.prettyName,
-                                style: STextStyles.desktopTextExtraExtraSmall(
-                                  context,
-                                ).copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textDark,
-                                ),
+                                style:
+                                    STextStyles.desktopTextExtraExtraSmall(
+                                      context,
+                                    ).copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.textDark,
+                                    ),
                               ),
                             ),
                           ],
                         ),
                       ),
                     ),
-                  const SizedBox(
-                    height: 8,
-                  ),
+                  if (isSpark) const SizedBox(height: 8),
+                  if (isSpark)
+                    TransparentButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(_WalletOptions.showSparkKey);
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            SvgPicture.asset(
+                              Assets.svg.eye,
+                              width: 20,
+                              height: 20,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFieldActiveSearchIconLeft,
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Text(
+                                _WalletOptions.showSparkKey.prettyName,
+                                style:
+                                    STextStyles.desktopTextExtraExtraSmall(
+                                      context,
+                                    ).copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.textDark,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 8),
                   TransparentButton(
                     onPressed: onDeletePressed,
                     child: Padding(
@@ -522,13 +661,14 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
                           Expanded(
                             child: Text(
                               _WalletOptions.deleteWallet.prettyName,
-                              style: STextStyles.desktopTextExtraExtraSmall(
-                                context,
-                              ).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark,
-                              ),
+                              style:
+                                  STextStyles.desktopTextExtraExtraSmall(
+                                    context,
+                                  ).copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.textDark,
+                                  ),
                             ),
                           ),
                         ],
@@ -546,11 +686,7 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
 }
 
 class TransparentButton extends StatelessWidget {
-  const TransparentButton({
-    super.key,
-    required this.child,
-    this.onPressed,
-  });
+  const TransparentButton({super.key, required this.child, this.onPressed});
 
   final Widget child;
   final VoidCallback? onPressed;
@@ -558,10 +694,7 @@ class TransparentButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RawMaterialButton(
-      constraints: const BoxConstraints(
-        minHeight: 32,
-        minWidth: 32,
-      ),
+      constraints: const BoxConstraints(minHeight: 32, minWidth: 32),
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(

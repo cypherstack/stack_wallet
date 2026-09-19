@@ -8,180 +8,319 @@
  *
  */
 
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app_config.dart';
 import '../../../providers/providers.dart';
 import '../../../themes/stack_colors.dart';
+import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
 
-class HomeViewButtonBar extends ConsumerStatefulWidget {
+const double _fadeWidth = 64;
+const double _fadeRampDistance = _fadeWidth;
+const Duration _fadeDuration = Duration(milliseconds: 200);
+
+enum _FadeEdge { left, right }
+
+class HomeViewButtonBar extends StatefulWidget {
   const HomeViewButtonBar({super.key});
 
   @override
-  ConsumerState<HomeViewButtonBar> createState() => _HomeViewButtonBarState();
+  State<HomeViewButtonBar> createState() => _HomeViewButtonBarState();
 }
 
-class _HomeViewButtonBarState extends ConsumerState<HomeViewButtonBar> {
-  // final DateTime _lastRefreshed = DateTime.now();
-  // final Duration _refreshInterval = const Duration(hours: 1);
+class _HomeViewButtonBarState extends State<HomeViewButtonBar> {
+  double _leftProximity = 0;
+  double _rightProximity = 0;
 
-  @override
-  void initState() {
-    // ref.read(exchangeFormStateProvider).setOnError(
-    //       onError: (String message) => showDialog<dynamic>(
-    //         context: context,
-    //         barrierDismissible: true,
-    //         builder: (_) => StackDialog(
-    //           title: "Exchange API Call Failed",
-    //           message: message,
-    //         ),
-    //       ),
-    //     );
-    super.initState();
+  void _updateEdges(ScrollMetrics metrics) {
+    final double leftProximity = clampDouble(
+      metrics.extentBefore / _fadeRampDistance,
+      0,
+      1,
+    );
+    final double rightProximity = clampDouble(
+      metrics.extentAfter / _fadeRampDistance,
+      0,
+      1,
+    );
+    if (leftProximity == _leftProximity && rightProximity == _rightProximity) {
+      return;
+    }
+    setState(() {
+      _leftProximity = leftProximity;
+      _rightProximity = rightProximity;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final selectedIndex = ref.watch(homeViewPageIndexStateProvider.state).state;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        Expanded(
-          child: TextButton(
-            style: selectedIndex == 0
-                ? Theme.of(context)
-                    .extension<StackColors>()!
-                    .getPrimaryEnabledButtonStyle(context)!
-                    .copyWith(
-                      minimumSize:
-                          MaterialStateProperty.all<Size>(const Size(46, 36)),
-                    )
-                : Theme.of(context)
-                    .extension<StackColors>()!
-                    .getSecondaryEnabledButtonStyle(context)!
-                    .copyWith(
-                      minimumSize:
-                          MaterialStateProperty.all<Size>(const Size(46, 36)),
-                    ),
-            onPressed: () {
-              FocusScope.of(context).unfocus();
-              if (selectedIndex != 0) {
-                ref.read(homeViewPageIndexStateProvider.state).state = 0;
-              }
-            },
-            child: Text(
-              "Wallets",
-              style: STextStyles.button(context).copyWith(
-                fontSize: 14,
-                color: selectedIndex == 0
-                    ? Theme.of(context)
-                        .extension<StackColors>()!
-                        .buttonTextPrimary
-                    : Theme.of(context)
-                        .extension<StackColors>()!
-                        .buttonTextSecondary,
+    return NotificationListener<ScrollMetricsNotification>(
+      onNotification: (notification) {
+        _updateEdges(notification.metrics);
+        return false;
+      },
+      child: NotificationListener<ScrollNotification>(
+        onNotification: (notification) {
+          _updateEdges(notification.metrics);
+          return false;
+        },
+        child: Stack(
+          children: [
+            const RepaintBoundary(child: _HomeViewButtonBarContent()),
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              child: _EdgeFadeStrip(edge: .left, proximity: _leftProximity),
+            ),
+            Positioned(
+              right: 0,
+              top: 0,
+              bottom: 0,
+              child: _EdgeFadeStrip(edge: .right, proximity: _rightProximity),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EdgeFadeStrip extends StatelessWidget {
+  const _EdgeFadeStrip({required this.edge, required this.proximity});
+
+  static const int _rampSamples = 8;
+
+  static final List<double> _ramp = [
+    for (int i = 0; i <= _rampSamples; i++)
+      1 - Curves.easeInOutSine.transform(i / _rampSamples),
+  ];
+
+  final _FadeEdge edge;
+  final double proximity;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color background = Theme.of(
+      context,
+    ).extension<StackColors>()!.background;
+    final (Alignment begin, Alignment end) = switch (edge) {
+      .left => (.centerLeft, .centerRight),
+      .right => (.centerRight, .centerLeft),
+    };
+
+    return RepaintBoundary(
+      child: IgnorePointer(
+        child: TweenAnimationBuilder<double>(
+          tween: Tween<double>(end: proximity > 0 ? 1 : 0),
+          duration: _fadeDuration,
+          curve: Curves.easeOut,
+          builder: (context, timeStrength, _) {
+            final double strength = timeStrength * proximity;
+            if (strength == 0) {
+              return const SizedBox(width: _fadeWidth);
+            }
+            return SizedBox(
+              width: _fadeWidth,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: begin,
+                    end: end,
+                    colors: [
+                      for (final double factor in _ramp)
+                        background.withValues(alpha: strength * factor),
+                    ],
+                  ),
+                ),
               ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _HomeViewButtonBarContent extends StatelessWidget {
+  const _HomeViewButtonBarContent();
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        scrollDirection: .horizontal,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minWidth: constraints.maxWidth),
+          child: IntrinsicWidth(
+            child: Row(
+              spacing: 8,
+              children: [
+                const Expanded(
+                  child: _HomeViewTopMenuButton(index: 0, label: "Wallets"),
+                ),
+                if (AppConfig.hasFeature(.swap) && Constants.enableExchange)
+                  const Expanded(
+                    child: _HomeViewTopMenuButton(index: 1, label: "Swap"),
+                  ),
+                if (AppConfig.hasFeature(AppFeature.buy) &&
+                    Constants.enableExchange)
+                  const Expanded(
+                    child: _HomeViewTopMenuButton(index: 2, label: "Buy"),
+                  ),
+                if (AppConfig.hasFeature(.cakePay) && Constants.enableExchange)
+                  const Expanded(
+                    child: _HomeViewTopMenuButton(
+                      index: 3,
+                      label: "Gift cards",
+                    ),
+                  ),
+                if (AppConfig.hasFeature(.shopinBit) &&
+                    Constants.enableExchange)
+                  const Expanded(
+                    child: _HomeViewTopMenuButton(index: 4, label: "Services"),
+                  ),
+              ],
             ),
           ),
         ),
-        if (AppConfig.hasFeature(AppFeature.swap))
-          const SizedBox(
-            width: 8,
-          ),
-        if (AppConfig.hasFeature(AppFeature.swap))
-          Expanded(
-            child: TextButton(
-              style: selectedIndex == 1
-                  ? Theme.of(context)
-                      .extension<StackColors>()!
-                      .getPrimaryEnabledButtonStyle(context)!
-                      .copyWith(
-                        minimumSize:
-                            MaterialStateProperty.all<Size>(const Size(46, 36)),
-                      )
-                  : Theme.of(context)
-                      .extension<StackColors>()!
-                      .getSecondaryEnabledButtonStyle(context)!
-                      .copyWith(
-                        minimumSize:
-                            MaterialStateProperty.all<Size>(const Size(46, 36)),
-                      ),
-              onPressed: () async {
-                FocusScope.of(context).unfocus();
-                if (selectedIndex != 1) {
-                  ref.read(homeViewPageIndexStateProvider.state).state = 1;
-                }
-                // DateTime now = DateTime.now();
-                // if (ref.read(prefsChangeNotifierProvider).externalCalls) {
-                //   print("loading?");
-                // await ExchangeDataLoadingService().loadAll(ref);
-                // }
-                // if (now.difference(_lastRefreshed) > _refreshInterval) {
-                //   await ExchangeDataLoadingService().loadAll(ref);
-                // }
-              },
-              child: Text(
-                "Swap",
-                style: STextStyles.button(context).copyWith(
-                  fontSize: 14,
-                  color: selectedIndex == 1
-                      ? Theme.of(context)
-                          .extension<StackColors>()!
-                          .buttonTextPrimary
-                      : Theme.of(context)
-                          .extension<StackColors>()!
-                          .buttonTextSecondary,
+      ),
+    );
+  }
+}
+
+class _HomeViewTopMenuButton extends ConsumerStatefulWidget {
+  const _HomeViewTopMenuButton({
+    super.key,
+    required this.index,
+    required this.label,
+  });
+
+  final int index;
+  final String label;
+
+  @override
+  ConsumerState<_HomeViewTopMenuButton> createState() =>
+      _HomeViewTopMenuButtonState();
+}
+
+class _HomeViewTopMenuButtonState
+    extends ConsumerState<_HomeViewTopMenuButton> {
+  static const Duration _revealDuration = Duration(milliseconds: 250);
+
+  void _scheduleReveal({required bool animate}) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _revealIfCovered(animate: animate);
+      }
+    });
+  }
+
+  void _revealIfCovered({required bool animate}) {
+    final RenderObject? renderObject = context.findRenderObject();
+    final ScrollableState? scrollable = Scrollable.maybeOf(
+      context,
+      axis: .horizontal,
+    );
+    if (renderObject == null || !renderObject.attached || scrollable == null) {
+      return;
+    }
+    final RenderAbstractViewport? viewport = RenderAbstractViewport.maybeOf(
+      renderObject,
+    );
+    final ScrollPosition position = scrollable.position;
+    if (viewport == null || !position.hasContentDimensions) {
+      return;
+    }
+
+    // The window of offsets that keeps this button _fadeWidth clear
+    // of both viewport edges.
+    final double lower =
+        viewport.getOffsetToReveal(renderObject, 1).offset + _fadeWidth;
+    final double upper =
+        viewport.getOffsetToReveal(renderObject, 0).offset - _fadeWidth;
+
+    double target = upper < lower
+        ? viewport.getOffsetToReveal(renderObject, 0.5).offset
+        : clampDouble(position.pixels, lower, upper);
+    target = clampDouble(
+      target,
+      position.minScrollExtent,
+      position.maxScrollExtent,
+    );
+
+    if ((target - position.pixels).abs() < 1) {
+      return;
+    }
+
+    if (animate) {
+      position.animateTo(
+        target,
+        duration: _revealDuration,
+        curve: Curves.easeOutCubic,
+      );
+    } else {
+      position.jumpTo(target);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (ref.read(homeViewPageIndexStateProvider) == widget.index) {
+      _scheduleReveal(animate: false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isSelected = ref.watch(
+      homeViewPageIndexStateProvider.select((index) => index == widget.index),
+    );
+
+    ref.listen(
+      homeViewPageIndexStateProvider.select((index) => index == widget.index),
+      (previous, next) {
+        if (next) {
+          _scheduleReveal(animate: true);
+        }
+      },
+    );
+
+    final StackColors colors = Theme.of(context).extension<StackColors>()!;
+    return TextButton(
+      style:
+          (isSelected
+                  ? colors.getPrimaryEnabledButtonStyle(context)!
+                  : colors.getSecondaryEnabledButtonStyle(context)!)
+              .copyWith(
+                minimumSize: MaterialStateProperty.all<Size>(
+                  const Size(46, 36),
                 ),
               ),
-            ),
+      onPressed: () {
+        FocusScope.of(context).unfocus();
+        if (!isSelected) {
+          ref.read(homeViewPageIndexStateProvider.state).state = widget.index;
+        }
+      },
+      child: Padding(
+        padding: const .symmetric(horizontal: 8),
+        child: Text(
+          widget.label,
+          style: STextStyles.button(context).copyWith(
+            fontSize: 14,
+            color: isSelected
+                ? colors.buttonTextPrimary
+                : colors.buttonTextSecondary,
           ),
-        if (AppConfig.hasFeature(AppFeature.buy))
-          const SizedBox(
-            width: 8,
-          ),
-        if (AppConfig.hasFeature(AppFeature.buy))
-          Expanded(
-            child: TextButton(
-              style: selectedIndex == 2
-                  ? Theme.of(context)
-                      .extension<StackColors>()!
-                      .getPrimaryEnabledButtonStyle(context)!
-                      .copyWith(
-                        minimumSize:
-                            MaterialStateProperty.all<Size>(const Size(46, 36)),
-                      )
-                  : Theme.of(context)
-                      .extension<StackColors>()!
-                      .getSecondaryEnabledButtonStyle(context)!
-                      .copyWith(
-                        minimumSize:
-                            MaterialStateProperty.all<Size>(const Size(46, 36)),
-                      ),
-              onPressed: () async {
-                FocusScope.of(context).unfocus();
-                if (selectedIndex != 2) {
-                  ref.read(homeViewPageIndexStateProvider.state).state = 2;
-                }
-                // await BuyDataLoadingService().loadAll(ref);
-              },
-              child: Text(
-                "Buy",
-                style: STextStyles.button(context).copyWith(
-                  fontSize: 14,
-                  color: selectedIndex == 2
-                      ? Theme.of(context)
-                          .extension<StackColors>()!
-                          .buttonTextPrimary
-                      : Theme.of(context)
-                          .extension<StackColors>()!
-                          .buttonTextSecondary,
-                ),
-              ),
-            ),
-          ),
-      ],
+        ),
+      ),
     );
   }
 }

@@ -7,6 +7,7 @@ import 'package:mutex/mutex.dart';
 import '../../db/isar/main_db.dart';
 import '../../models/isar/models/blockchain_data/address.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
+import '../../models/isar/models/solana/sol_contract.dart';
 import '../../models/keys/view_only_wallet_data.dart';
 import '../../models/node_model.dart';
 import '../../models/paymint/fee_object_model.dart';
@@ -48,6 +49,7 @@ import 'impl/salvium_wallet.dart';
 import 'impl/solana_wallet.dart';
 import 'impl/stellar_wallet.dart';
 import 'impl/sub_wallets/eth_token_wallet.dart';
+import 'impl/sub_wallets/solana_token_wallet.dart';
 import 'impl/tezos_wallet.dart';
 import 'impl/wownero_wallet.dart';
 import 'impl/xelis_wallet.dart';
@@ -244,11 +246,10 @@ abstract class Wallet<T extends CryptoCurrency> {
     required NodeService nodeService,
     required Prefs prefs,
   }) async {
-    final walletInfo =
-        await mainDB.isar.walletInfo
-            .where()
-            .walletIdEqualTo(walletId)
-            .findFirst();
+    final walletInfo = await mainDB.isar.walletInfo
+        .where()
+        .walletIdEqualTo(walletId)
+        .findFirst();
 
     Logging.instance.i(
       "Wallet.load loading"
@@ -285,6 +286,20 @@ abstract class Wallet<T extends CryptoCurrency> {
     wallet.mainDB = ethWallet.mainDB;
 
     return wallet.._walletId = ethWallet.info.walletId;
+  }
+
+  static Wallet loadSolTokenWallet({
+    required SolanaWallet solWallet,
+    required SolContract contract,
+  }) {
+    final Wallet wallet = SolanaTokenWallet(solWallet, contract);
+
+    wallet.prefs = solWallet.prefs;
+    wallet.nodeService = solWallet.nodeService;
+    wallet.secureStorageInterface = solWallet.secureStorageInterface;
+    wallet.mainDB = solWallet.mainDB;
+
+    return wallet.._walletId = solWallet.info.walletId;
   }
 
   //============================================================================
@@ -438,10 +453,9 @@ abstract class Wallet<T extends CryptoCurrency> {
     final bool hasNetwork = await pingCheck();
 
     if (_isConnected != hasNetwork) {
-      final NodeConnectionStatus status =
-          hasNetwork
-              ? NodeConnectionStatus.connected
-              : NodeConnectionStatus.disconnected;
+      final NodeConnectionStatus status = hasNetwork
+          ? NodeConnectionStatus.connected
+          : NodeConnectionStatus.disconnected;
       if (!doNotFireRefreshEvents) {
         GlobalEventBus.instance.fire(
           NodeConnectionStatusChangedEvent(status, walletId, cryptoCurrency),
@@ -756,11 +770,10 @@ abstract class Wallet<T extends CryptoCurrency> {
           // Check if there's another wallet of this coin on the sync list.
           final List<String> walletIds = [];
           for (final id in prefs.walletIdsSyncOnStartup) {
-            final wallet =
-                mainDB.isar.walletInfo
-                    .where()
-                    .walletIdEqualTo(id)
-                    .findFirstSync()!;
+            final wallet = mainDB.isar.walletInfo
+                .where()
+                .walletIdEqualTo(id)
+                .findFirstSync()!;
 
             if (wallet.coin == cryptoCurrency) {
               walletIds.add(id);

@@ -33,6 +33,7 @@ Microsoft.Windows*
 .pub/
 /build/
 android/app/.cxx
+android/build/
 
 # Web related
 lib/generated_plugin_registrant.dart
@@ -70,10 +71,6 @@ secp256k1.dll
 /lib/app_config.g.dart
 /android/app/src/main/app_icon-playstore.png
 
-# Dart generated files (Freezed, Riverpod, GoRouter etc..)
-lib/**/*.g.dart
-lib/**/*.freezed.dart
-
 ## other generated project files
 
 pubspec.yaml
@@ -85,6 +82,7 @@ pubspec.yaml
 /android/app/src/main/profile/AndroidManifest.xml
 /android/app/src/main/kotlin/com/cypherstack/stackwallet/MainActivity.kt
 /android/app/src/main/res/**/ic_launcher.png
+/android/app/src/main/res/**/splash.png
 
 /ios/Runner/Info.plist
 /ios/Runner.xcodeproj/project.pbxproj
@@ -122,3 +120,6 @@ lib/wl_gen/generated/
 /linux/flutter/generated_plugins.cmake
 /windows/flutter/generated_plugins.cmake
 /macos/Flutter/GeneratedPluginRegistrant.swift
+
+/assets/windows/mwebd.exe
+/tool/build

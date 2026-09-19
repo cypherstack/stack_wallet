@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Stack Duo
+Comment=An open-source, multicoin wallet for everyone
+Exec=stack_duo
+Icon=stack_duo
+Type=Application
+Categories=Finance;

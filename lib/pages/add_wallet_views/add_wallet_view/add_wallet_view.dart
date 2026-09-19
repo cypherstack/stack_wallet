@@ -20,13 +20,16 @@ import '../../../db/isar/main_db.dart';
 import '../../../models/add_wallet_list_entity/add_wallet_list_entity.dart';
 import '../../../models/add_wallet_list_entity/sub_classes/coin_entity.dart';
 import '../../../models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
+import '../../../models/add_wallet_list_entity/sub_classes/sol_token_entity.dart';
 import '../../../models/isar/models/ethereum/eth_contract.dart';
+import '../../../models/isar/models/solana/sol_contract.dart';
 import '../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import '../../../providers/providers.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/default_eth_tokens.dart';
+import '../../../utilities/default_sol_tokens.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
@@ -40,6 +43,7 @@ import '../../../widgets/icon_widgets/x_icon.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_text_field.dart';
 import '../../../widgets/textfield_icon_button.dart';
+import '../add_token_view/add_custom_solana_token_view.dart';
 import '../add_token_view/add_custom_token_view.dart';
 import '../add_token_view/sub_widgets/add_custom_token_selector.dart';
 import 'sub_widgets/add_wallet_text.dart';
@@ -68,6 +72,7 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
   final List<AddWalletListEntity> coinEntities = [];
   final List<AddWalletListEntity> coinTestnetEntities = [];
   final List<EthTokenEntity> tokenEntities = [];
+  final List<SolTokenEntity> solTokenEntities = [];
 
   final bool isDesktop = Util.isDesktop;
 
@@ -84,6 +89,8 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
             e.name.toLowerCase().contains(lowercaseTerm) ||
             e.cryptoCurrency.identifier.toLowerCase().contains(lowercaseTerm) ||
             (e is EthTokenEntity &&
+                e.token.address.toLowerCase().contains(lowercaseTerm)) ||
+            (e is SolTokenEntity &&
                 e.token.address.toLowerCase().contains(lowercaseTerm)),
       );
     }
@@ -125,6 +132,38 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
     }
   }
 
+  Future<void> _addSolToken() async {
+    SolContract? token;
+    if (isDesktop) {
+      token = await showDialog(
+        context: context,
+        builder:
+            (context) => const DesktopDialog(
+              maxWidth: 580,
+              maxHeight: 500,
+              child: AddCustomSolanaTokenView(),
+            ),
+      );
+    } else {
+      token = await Navigator.of(
+        context,
+      ).pushNamed(AddCustomSolanaTokenView.routeName);
+    }
+
+    if (token != null) {
+      await MainDB.instance.putSolContract(token);
+      if (mounted) {
+        setState(() {
+          if (solTokenEntities
+              .where((e) => e.token.address == token!.address)
+              .isEmpty) {
+            solTokenEntities.add(SolTokenEntity(token!));
+          }
+        });
+      }
+    }
+  }
+
   @override
   void initState() {
     _searchFieldController = TextEditingController();
@@ -151,6 +190,25 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
       }
 
       tokenEntities.addAll(contracts.map((e) => EthTokenEntity(e)));
+    }
+
+    if (AppConfig.coins.whereType<Solana>().isNotEmpty) {
+      final contracts = MainDB.instance
+          .getSolContracts()
+          .sortByName()
+          .findAllSync();
+
+      if (contracts.isEmpty) {
+        contracts.addAll(DefaultSolTokens.list);
+        MainDB.instance
+            .putSolContracts(contracts)
+            .then(
+              (value) =>
+                  ref.read(priceAnd24hChangeNotifierProvider).updatePrice(),
+            );
+      }
+
+      solTokenEntities.addAll(contracts.map((e) => SolTokenEntity(e)));
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -296,12 +354,22 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                                 ),
                               if (tokenEntities.isNotEmpty)
                                 ExpandingSubListItem(
-                                  title: "Tokens",
+                                  title: "Ethereum tokens",
                                   entities: filter(_searchTerm, tokenEntities),
                                   initialState: ExpandableState.expanded,
                                   animationDurationMultiplier: 0.5,
                                   trailing: AddCustomTokenSelector(
                                     addFunction: _addToken,
+                                  ),
+                                ),
+                              if (solTokenEntities.isNotEmpty)
+                                ExpandingSubListItem(
+                                  title: "Solana tokens",
+                                  entities: filter(_searchTerm, solTokenEntities),
+                                  initialState: ExpandableState.expanded,
+                                  animationDurationMultiplier: 0.5,
+                                  trailing: AddCustomTokenSelector(
+                                    addFunction: _addSolToken,
                                   ),
                                 ),
                             ],
@@ -427,8 +495,14 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                               ),
                             if (tokenEntities.isNotEmpty)
                               ExpandingSubListItem(
-                                title: "Tokens",
+                                title: "Ethereum tokens",
                                 entities: filter(_searchTerm, tokenEntities),
+                                initialState: ExpandableState.expanded,
+                              ),
+                            if (solTokenEntities.isNotEmpty)
+                              ExpandingSubListItem(
+                                title: "Solana tokens",
+                                entities: filter(_searchTerm, solTokenEntities),
                                 initialState: ExpandableState.expanded,
                               ),
                           ],

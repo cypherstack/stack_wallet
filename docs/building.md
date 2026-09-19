@@ -4,7 +4,7 @@ Here you will find instructions on how to install the necessary tools for buildi
 
 ## Prerequisites
 
-- The only OS supported for building Android and Linux desktop is Ubuntu 20.04.  Windows builds require using Ubuntu 20.04 on WSL2.  macOS builds for itself and iOS.  Advanced users may also be able to build on other Debian-based distributions like Linux Mint.
+- The only OS supported for building Android and Linux desktop is Ubuntu 24.04.  Windows builds require using Ubuntu 24.04 on WSL2.  macOS builds for itself and iOS.  Advanced users may also be able to build on other Debian-based distributions like Linux Mint.
 - Android setup ([Android Studio](https://developer.android.com/studio) and subsequent dependencies)
 - 100 GB of storage
 - Install go: [https://go.dev/doc/install](https://go.dev/doc/install)
@@ -12,6 +12,9 @@ Here you will find instructions on how to install the necessary tools for buildi
 ## Linux host
 
 The following instructions are for building and running on a Linux host.  Alternatively, see the [Mac](#mac-host) and/or [Windows](#windows-host) section.  This entire section (except for the Android Studio section) needs to be completed in WSL if building on a Windows host.
+
+### Flutter
+Install Flutter 3.38.5 by [following their guide](https://docs.flutter.dev/get-started/install/linux/desktop?tab=download#install-the-flutter-sdk).  Run `flutter doctor` in a terminal to confirm its installation.
 
 ### Android Studio
 Install Android Studio.  Follow instructions here [https://developer.android.com/studio/install#linux](https://developer.android.com/studio/install#linux) or install via snap:
@@ -21,7 +24,7 @@ sudo apt install -y openjdk-11-jdk
 sudo snap install android-studio --classic
 ```
 
-Use `Tools > SDK Manager` to install:
+Use `Tools > SDK Manager` and navigate to `Languages & Frameworks > Android SDK > SDK tools` to install:
  - `SDK Tools > Android SDK command line tools`
  - `SDK Tools > CMake`
 and for Android builds,
@@ -40,18 +43,7 @@ sudo apt-get install libc6:i386 libncurses5:i386 libstdc++6:i386 lib32z1 libbz2-
 ### Build dependencies
 Install basic dependencies
 ```
-sudo apt-get install libssl-dev curl unzip automake build-essential file pkg-config git python3 libtool libtinfo6 cmake libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm g++ gcc gperf libopencv-dev python3-typogrify xsltproc valac gobject-introspection meson
-```
-
-For Ubuntu 20.04,
-```
-sudo apt-get install valac python3-pip
-pip3 install --upgrade meson==0.64.1 markdown==3.4.1 markupsafe==2.1.1 jinja2==3.1.2 pygments==2.13.0 toml==0.10.2 typogrify==2.0.7 tomli==2.0.1
-```
-
-For Ubuntu 24.04,
-```
-sudo apt install pipx libgcrypt20-dev libglib2.0-dev libsecret-1-dev
+sudo apt-get install libssl-dev curl unzip automake build-essential file pkg-config git python3 libtool libtinfo6 cmake libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm lld g++ gcc gperf libopencv-dev python3-typogrify xsltproc valac gobject-introspection meson pipx libgcrypt20-dev libglib2.0-dev libsecret-1-dev
 pipx install meson==0.64.1 markdown==3.4.1 markupsafe==2.1.1 jinja2==3.1.2 pygments==2.13.0 toml==0.10.2 typogrify==2.0.7 tomli==2.0.1
 ```
 
@@ -59,8 +51,8 @@ Install [Rust](https://www.rust-lang.org/tools/install) via [rustup.rs](https://
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source ~/.bashrc
-rustup install 1.85.1 1.81.0
-rustup default 1.85.1
+rustup install 1.89.0 1.85.1 1.81.0
+rustup default 1.89.0
 cargo install cargo-ndk
 ```
 
@@ -72,21 +64,12 @@ rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-andro
 
 Linux desktop specific dependencies:
 ```
-sudo apt-get install clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev meson python3-pip libgirepository1.0-dev valac xsltproc docbook-xsl
+sudo apt-get install clang cmake lld ninja-build pkg-config libgtk-3-dev liblzma-dev meson python3-pip libgirepository1.0-dev valac xsltproc docbook-xsl
 pip3 install --upgrade meson==0.64.1 markdown==3.4.1 markupsafe==2.1.1 jinja2==3.1.2 pygments==2.13.0 toml==0.10.2 typogrify==2.0.7 tomli==2.0.1
 ```
 
 ### Flutter
-Install Flutter 3.29.2 by [following their guide](https://docs.flutter.dev/get-started/install/linux/desktop?tab=download#install-the-flutter-sdk).  You can also clone https://github.com/flutter/flutter, check out the `3.29.2` tag, and add its `flutter/bin` folder to your PATH as in
-```sh
-FLUTTER_DIR="$HOME/development/flutter"
-git clone https://github.com/flutter/flutter.git "$FLUTTER_DIR"
-cd "$FLUTTER_DIR"
-git checkout 3.29.2
-echo 'export PATH="$PATH:'"$FLUTTER_DIR"'/bin"' >> "$HOME/.profile"
-source "$HOME/.profile"
-flutter precache
-```
+Install Flutter 3.38.5 by [following their guide](https://docs.flutter.dev/install/manual).
 
 Run `flutter doctor` in a terminal to confirm its installation.
 
@@ -95,7 +78,7 @@ After installing the prerequisites listed above, download the code and init the 
 ```
 git clone https://github.com/cypherstack/stack_wallet.git
 cd stack_wallet
-git submodule update --init --recursive
+git submodule foreach 'git fetch --tags' && git submodule update --init --recursive
 ```
 
 Build the secure storage dependencies in order to target Linux (not needed for Windows or other platforms):
@@ -158,18 +141,29 @@ cd scripts
 ```
 
 #### Building plugins and configure for Windows
+*This step is only necessary inside WSL2 for building on a Windows host.*
+
 Install dependencies like MXE:
 ```
 cd scripts/windows
 ./deps.sh
 ```
 
-install go in WSL [https://go.dev/doc/install](https://go.dev/doc/install) (follow linux instructions) and ensure you have `x86_64-w64-mingw32-gcc` 
+Upgrade the version of cmake >= 3.31.6, the default version of ubuntu 24.04 (3.28.1) will be too low to build libepiccash.
+You can use pip to install a specific version
+```
+sudo apt remove cmake
+pip install cmake==3.31.6
+```
 
-and use `scripts/build_app.sh` to build plugins:
+install go in WSL [https://go.dev/doc/install](https://go.dev/doc/install) (follow linux instructions) and ensure you have `mingw-w64` package installed to get the `x86_64-w64-mingw32-gcc` compiler.
+
+go version should be at least 1.24
+
+and use `scripts/build_app.sh` to build plugins: (see the [Build script section](#build-script-build_appsh) to understand the arguments)
 ```
 cd ..
-./build_app.sh -a stack_wallet -p windows -v 2.1.0 -b 210
+./build_app.sh -a stack_wallet -p windows -v 2.4.4 -b 301
 ```
 
 ### Running
@@ -212,12 +206,12 @@ brew install brotli cairo coreutils gdbm gettext glib gmp libevent libidn2 libng
 ```
 <!-- TODO: determine which of the above list are not needed at all. -->
 
-Download and install [Rust](https://www.rust-lang.org/tools/install).  [Rustup](https://rustup.rs/) is recommended for Rust setup.  Use `rustc` to confirm successful installation.  Install toolchains 1.81.0 and 1.85.1 and `cbindgen` and `cargo-lipo` too.  You will also have to add the platform target(s) `aarch64-apple-ios` and/or `aarch64-apple-darwin`.  You can use the command(s):
+Download and install [Rust](https://www.rust-lang.org/tools/install).  [Rustup](https://rustup.rs/) is recommended for Rust setup.  Use `rustc` to confirm successful installation.  Install toolchains 1.81.0, 1.85.1, and 1.89.0 as well as `cbindgen` and `cargo-lipo` too.  You will also have to add the platform target(s) `aarch64-apple-ios` and/or `aarch64-apple-darwin`.  You can use the command(s):
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source ~/.bashrc 
-rustup install 1.85.1 1.81.0
-rustup default 1.85.1
+rustup install 1.89.0 1.85.1 1.81.0
+rustup default 1.89.0
 cargo install cargo-ndk
 cargo install cbindgen cargo-lipo
 rustup target add aarch64-apple-ios aarch64-apple-darwin
@@ -226,7 +220,7 @@ rustup target add aarch64-apple-ios aarch64-apple-darwin
 Optionally download [Android Studio](https://developer.android.com/studio) as an IDE and activate its Dart and Flutter plugins.  VS Code may work as an alternative, but this is not recommended.
 
 ### Flutter
-Install [Flutter](https://docs.flutter.dev/get-started/install) 3.29.2 on your Mac host by following [these instructions](https://docs.flutter.dev/get-started/install/macos).  Run `flutter doctor` in a terminal to confirm its installation.
+Install 3.38.5 on your Mac host by [following their guide](https://docs.flutter.dev/install/manual).  Run `flutter doctor` in a terminal to confirm its installation.
 
 ### Build plugins and configure
 #### Building plugins for iOS 
@@ -269,17 +263,33 @@ flutter run macos
 ## Windows host
 
 ### Visual Studio
-Visual Studio is required for Windows development with the Flutter SDK.  Download it at https://visualstudio.microsoft.com/downloads/ and install the "Desktop development with C++", "Linux development with C++", and "Visual C++ build tools" workloads.  You may also need the Windows 10, 11, and/or Universal SDK workloads depending on your Windows version.
+Visual Studio 2022 is required for Windows development with the Flutter SDK.  Download it at https://learn.microsoft.com/en-us/visualstudio/releases/2022/release-history and install the "Desktop development with C++", "Linux development with C++", and "Visual C++ build tools" workloads.  You may also need the Windows 10, 11, and/or Universal SDK workloads depending on your Windows version.
 
 ### Build plugins in WSL2
-Set up Ubuntu 20.04 in WSL2.  Follow the entire Linux host section in the WSL2 Ubuntu 20.04 host to get set up to build.  The Android Studio section may be skipped in WSL (it's only needed on the Windows host).
+Set up Ubuntu 24.04 in WSL2.  Follow the entire Linux host section in the WSL2 Ubuntu 24.04 host to get set up to build.  The Android Studio section may be skipped in WSL (it's only needed on the Windows host).
 
 Install the following libraries:
 ```
-sudo apt-get install libgtk2.0-dev
+sudo apt-get install libgtk2.0-dev nasm mingw-w64
 ```
 
-The WSL2 host may optionally be navigated to the `stack_wallet` repository on the Windows host in order to build the plugins in-place and skip the next section in which you copy the `dll`s from WSL2 to Windows.  Then build windows `dll` libraries by running the following script on the WSL2 Ubuntu 20.04 host:
+The WSL2 host may optionally be navigated to the `stack_wallet` repository on the Windows host in order to build the plugins in-place and skip the next section in which you copy the `dll`s from WSL2 to Windows.
+
+In this case, you need to enable "metadata" in your wsl setup to be able to modify files on your Windows filesystem.
+Add this content to your /etc/wsl.conf in WSL.
+```
+[automount]
+options = "metadata"
+```
+Then restart the wsl from Windows
+```
+wsl --shutdown
+wsl
+```
+
+https://stackoverflow.com/questions/46610256/chmod-wsl-bash-doesnt-work/50856772#50856772
+
+Then build windows `dll` libraries by running the following script on the WSL2 Ubuntu 24.04 host:
 
 - `stack_wallet/scripts/windows/build_all.sh`
 
@@ -292,24 +302,13 @@ If the DLLs were built on the WSL filesystem instead of on Windows, copy the res
 Frostdart will be built by the Windows host later.
 
 ### Install Flutter on Windows host
-Install Flutter 3.29.2 on your Windows host (not in WSL2) by [following their guide](https://docs.flutter.dev/get-started/install/windows/desktop?tab=download#install-the-flutter-sdk) or by cloning https://github.com/flutter/flutter, checking out the `3.29.2` tag, and adding its `flutter/bin` folder to your PATH as in
-```bat
-@echo off
-set "FLUTTER_DIR=%USERPROFILE%\development\flutter"
-git clone https://github.com/flutter/flutter.git "%FLUTTER_DIR%"
-cd /d "%FLUTTER_DIR%"
-git checkout 3.29.2
-setx PATH "%PATH%;%FLUTTER_DIR%\bin"
-echo Flutter setup completed. Please restart your command prompt.
-```
-
-Run `flutter doctor` in PowerShell to confirm its installation.
+Install Flutter 3.38.5 on your Windows host (not in WSL2) by [following their guide](https://docs.flutter.dev/install/manual).  Run `flutter doctor` in PowerShell to confirm its installation.
 
 ### Rust
 Install [Rust](https://www.rust-lang.org/tools/install) on the Windows host (not in WSL2).  Download the installer from [rustup.rs](https://rustup.rs), make sure it works on the commandline (you may need to open a new terminal), and install the following versions:
 ```
-rustup install 1.85.1 1.81.0
-rustup default 1.85.1
+rustup install 1.89.0 1.85.1 1.81.0
+rustup default 1.89.0
 cargo install cargo-ndk
 ```
 
@@ -321,11 +320,27 @@ Enable Developer Mode for symlink support,
 start ms-settings:developers
 ```
 
-You may need to install NuGet and CppWinRT / C++/WinRT SDKs version `2.0.210806.1`:
+Or enable it automatically from powershell:
 ```
-winget install 9WZDNCRDMDM3 # NuGet, can also use Microsoft.NuGet
-winget install Microsoft.Windows.CppWinRT -Version 2.0.210806.1
+PS C:\WINDOWS\system32> reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1"
 ```
+
+
+Install NuGet:
+```
+winget install 9WZDNCRDMDM3 --accept-package-agreements # NuGet, can also use Microsoft.NuGet
+```
+
+Then restart your terminal and add a source to nuget:
+```
+nuget sources add -Name "nuget.org" -Source "https://api.nuget.org/v3/index.json" 
+```
+
+Install and CppWinRT / C++/WinRT SDKs version `2.0.210806.1` with the help of nuget:
+```
+nuget install Microsoft.Windows.CppWinRT --Version 2.0.210806.1
+```
+
 or [download the package](https://www.nuget.org/packages/Microsoft.Windows.CppWinRT/2.0.210806.1) and [manually install it](https://github.com/Baseflow/flutter-permission-handler/issues/1025#issuecomment-1518576722) by placing it in `flutter/bin` with [nuget.exe](https://dist.nuget.org/win-x86-commandline/latest/nuget.exe) and installing by running `nuget install Microsoft.Windows.CppWinRT -Version 2.0.210806.1` in the root `stack_wallet` folder. 
 <!-- TODO: script this NuGet and WinCppRT installation -->
 
@@ -334,16 +349,18 @@ or [download the package](https://www.nuget.org/packages/Microsoft.Windows.CppWi
 Certain test wallet parameter and API key template files must be created in order to run Stack Wallet on Windows.  These can be created by script using PowerShell on the Windows host as in
 ```
 cd scripts
-./prebuild.ps1
+powershell -ExecutionPolicy Bypass -File prebuild.ps1
 cd .. // When finished go back to the root directory.
 ```
+
+
 or manually by creating the files referenced in that script with the specified content. 
 
 ### Build frostdart
 
 In PowerShell on the Windows host, navigate to the `stack_wallet` folder:
 ```
-cd crypto_plugins/frostdart
+cd crypto_plugins/frostdart/scripts/windows
 ./build_all.bat
 cd .. // When finished go back to the root directory.
 ```
@@ -353,6 +370,7 @@ cd .. // When finished go back to the root directory.
 Run the following commands:
 ```
 flutter pub get
+dart run coinlib:build_windows
 flutter run -d windows
 ```
 

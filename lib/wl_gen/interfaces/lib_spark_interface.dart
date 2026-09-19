@@ -4,6 +4,34 @@ import 'package:logger/logger.dart';
 
 export '../generated/lib_spark_interface_impl.dart';
 
+enum LibSparkSpendVersion {
+  chaumV1(transactionType: 9),
+  chaumV2(transactionType: 11);
+
+  const LibSparkSpendVersion({required this.transactionType});
+
+  static const int baseTransactionVersion = 3;
+  final int transactionType;
+
+  int get transactionVersion =>
+      baseTransactionVersion | (transactionType << 16);
+
+  bool get allowsMultipleInputs => this == chaumV2;
+}
+
+final class LibSparkNameProofInput {
+  const LibSparkNameProofInput.chaumV1({required String scalarHex})
+    : spendVersion = .chaumV1,
+      inputHex = scalarHex;
+
+  const LibSparkNameProofInput.chaumV2({required String ownershipDigest})
+    : spendVersion = .chaumV2,
+      inputHex = ownershipDigest;
+
+  final LibSparkSpendVersion spendVersion;
+  final String inputHex;
+}
+
 abstract class LibSparkInterface {
   const LibSparkInterface();
 
@@ -14,8 +42,8 @@ abstract class LibSparkInterface {
   int get maxNameLength;
   int get maxAdditionalInfoLengthBytes;
   String get nameRegexString;
-  String get stage3DevelopmentFundAddressMainNet;
-  String get stage3DevelopmentFundAddressTestNet;
+  String get stage3CommunityFundAddressMainNet;
+  String get stage3CommunityFundAddressTestNet;
   List<int> get standardSparkNamesFee;
 
   void initSparkLogging(Level level);
@@ -31,17 +59,26 @@ abstract class LibSparkInterface {
     bool isTestNet = false,
   });
 
+  LibSparkSpendVersion getSpendVersionForBlockHeight({
+    required int nextBlockHeight,
+    required int chaumV2ActivationHeight,
+  });
+
   ({Uint8List script, int size}) createSparkNameScript({
     required int sparkNameValidityBlocks,
     required String name,
     required String additionalInfo,
-    required String scalarHex,
+    required LibSparkNameProofInput proofInput,
     required String privateKeyHex,
     required int spendKeyIndex,
     required int diversifier,
     required bool isTestNet,
     required int hashFailSafe,
     required bool ignoreProof,
+  });
+
+  Uint8List getSparkNameCommitment({
+    required Uint8List serializedSparkNameData,
   });
 
   List<({Uint8List scriptPubKey, int amount, bool subtractFeeFromAmount})>
@@ -59,6 +96,25 @@ abstract class LibSparkInterface {
     required final int index,
     required final Uint8List context,
     final bool isTestNet = false,
+  });
+
+  WrappedLibSparkCoin? identifyAndRecoverCoinByFullViewKey(
+    final String serializedCoin, {
+    required final String fullViewKeyHex,
+    required final Uint8List context,
+    final bool isTestNet = false,
+  });
+
+  Future<String> getAddressFromFullViewKey({
+    required String fullViewKeyHex,
+    required int index,
+    required int diversifier,
+    bool isTestNet = false,
+  });
+
+  String getFullViewKeyHexFromPrivateKeyData({
+    required String privateKeyHex,
+    required int index,
   });
 
   ({
@@ -109,6 +165,8 @@ abstract class LibSparkInterface {
     required List<({int setId, Uint8List blockHash})> idAndBlockHashes,
     required Uint8List txHash,
     required int additionalTxSize,
+    required LibSparkSpendVersion spendVersion,
+    Uint8List? extensionCommitment,
   });
 
   int estimateSparkFee({
@@ -128,6 +186,7 @@ abstract class LibSparkInterface {
     required int privateRecipientsCount,
     required int utxoNum,
     required int additionalTxSize,
+    required LibSparkSpendVersion spendVersion,
   });
 }
 

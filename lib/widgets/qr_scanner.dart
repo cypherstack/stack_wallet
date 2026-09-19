@@ -1,45 +1,81 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 
 import '../themes/stack_colors.dart';
-import '../utilities/logger.dart';
+import '../utilities/if_not_already.dart';
 import '../utilities/text_styles.dart';
 import 'background.dart';
 import 'custom_buttons/app_bar_icon_button.dart';
 
-class QrScanner extends ConsumerWidget {
+class QrScanner extends StatefulWidget {
   const QrScanner({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  State<QrScanner> createState() => _QrScannerState();
+}
+
+class _QrScannerState extends State<QrScanner> {
+  final GlobalKey qrKey = GlobalKey(debugLabel: "QR Scan Key");
+
+  QRViewController? controller;
+
+  StreamSubscription<Barcode>? sub;
+
+  late final Future<void> Function(String?) _onScanned;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _onScanned = IfNotAlreadyAsync<String>.withArgs((data) async {
+      await sub?.cancel();
+      if (mounted) {
+        Navigator.of(context).pop(data);
+      }
+    }).execute;
+  }
+
+  // In order to get hot reload to work we need to pause the camera if the platform
+  // is android, or resume the camera if the platform is iOS.
+  @override
+  void reassemble() {
+    super.reassemble();
+    if (Platform.isAndroid) {
+      controller!.pauseCamera();
+    } else if (Platform.isIOS) {
+      controller!.resumeCamera();
+    }
+  }
+
+  @override
+  void dispose() {
+    sub?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.backgroundAppBar,
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.backgroundAppBar,
           leading: const AppBarBackButton(),
           title: Text("Scan QR code", style: STextStyles.navBarTitle(context)),
         ),
-        body: MobileScanner(
-          onDetect: (capture) {
-            final data =
-                ((capture.raw as Map?)?["data"] as List?)?.firstOrNull as Map?;
-
-            final value =
-                data?["rawValue"] as String? ??
-                data?["displayValue"] as String?;
-
-            Navigator.of(context).pop(value);
-          },
-          onDetectError: (error, stackTrace) {
-            Logging.instance.w(
-              "Mobile scanner",
-              error: error,
-              stackTrace: stackTrace,
-            );
-            Navigator.of(context).pop();
+        body: QRView(
+          key: qrKey,
+          onQRViewCreated: (QRViewController p1) {
+            sub?.cancel();
+            controller = p1;
+            sub = controller!.scannedDataStream.listen((data) {
+              _onScanned(data.code);
+            });
           },
         ),
       ),

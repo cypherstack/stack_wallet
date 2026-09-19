@@ -17,15 +17,13 @@ import '../services/tor_service.dart';
 import 'logger.dart';
 import 'prefs.dart';
 
-Future<bool> _testMwcMqsNodeConnection(Uri uri) async {
+Future<bool> _testMwcMqsNodeConnection(Uri uri, {String? apiSecret}) async {
   final HTTP client = HTTP();
   try {
     final headers = {'Content-Type': 'application/json'};
 
-    if (uri.toString() == 'https://mwc713.mwc.mw/v1/version') {
-      const username = 'mwcmain';
-      const password = '11ne3EAUtOXVKwhxm84U';
-      final credentials = base64Encode(utf8.encode('$username:$password'));
+    if (apiSecret != null) {
+      final credentials = base64Encode(utf8.encode('mwcmain:$apiSecret'));
       headers['Authorization'] = 'Basic $credentials';
     }
     final response = await client
@@ -80,7 +78,7 @@ Future<NodeFormData?> testMwcNodeConnection(NodeFormData data) async {
   uri = uri.replace(port: data.port);
 
   try {
-    if (await _testMwcMqsNodeConnection(uri)) {
+    if (await _testMwcMqsNodeConnection(uri, apiSecret: data.apiSecret)) {
       return data;
     } else {
       return null;

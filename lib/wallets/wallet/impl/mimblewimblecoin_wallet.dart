@@ -41,8 +41,14 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     : super(Mimblewimblecoin(network));
 
   final syncMutex = Mutex();
+  final _walletOpenMutex = Mutex();
   NodeModel? _mimblewimblecoinNode;
   Timer? timer;
+
+  static bool _mwcLogsInitialized = false;
+
+  // Process-scoped Rust pointer; do not persist.
+  String? _walletHandle;
 
   double highestPercent = 0;
   Future<double> get getSyncPercent async {
@@ -75,12 +81,8 @@ class MimblewimblecoinWallet extends Bip39Wallet {
       value: stringConfig,
     );
 
-    // Restart MWCMQS listener with new configuration if wallet has a handle.
     try {
-      final handle = await secureStorageInterface.read(
-        key: '${walletId}_wallet',
-      );
-      if (handle != null && handle.isNotEmpty) {
+      if (_walletHandle != null) {
         await stopSlatepackListener();
         await startSlatepackListener();
         Logging.instance.i(
@@ -95,32 +97,40 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   }
 
   Future<String> _ensureWalletOpen() async {
-    final existing = await secureStorageInterface.read(
-      key: '${walletId}_wallet',
-    );
-    if (existing != null && existing.isNotEmpty) return existing;
+    return await _walletOpenMutex.protect(() async {
+      final cached = _walletHandle;
+      if (cached != null && cached.isNotEmpty) return cached;
 
-    final config = await _getRealConfig();
-    final password = await secureStorageInterface.read(
-      key: '${walletId}_password',
-    );
-    if (password == null) {
-      throw Exception('Wallet password not found');
-    }
-    final opened = await libMwc.openWallet(config: config, password: password);
-    await secureStorageInterface.write(
-      key: '${walletId}_wallet',
-      value: opened,
-    );
-    return opened;
+      final config = await _getRealConfig();
+      if (!_mwcLogsInitialized) {
+        try {
+          await libMwc.initLogs(config: config);
+          _mwcLogsInitialized = true;
+        } catch (e, s) {
+          Logging.instance.w("libMwc.initLogs failed: $e\n$s");
+        }
+      }
+      final password = await secureStorageInterface.read(
+        key: '${walletId}_password',
+      );
+      if (password == null) {
+        throw Exception('Wallet password not found');
+      }
+      final opened = await libMwc
+          .openWallet(config: config, password: password)
+          .timeout(
+            const Duration(seconds: 60),
+            onTimeout: () => throw TimeoutException('openWallet timed out'),
+          );
+      _walletHandle = opened;
+      return opened;
+    });
   }
 
   /// Returns an empty String on success, error message on failure.
   Future<String> cancelPendingTransactionAndPost(String txSlateId) async {
     try {
-      final String wallet = (await secureStorageInterface.read(
-        key: '${walletId}_wallet',
-      ))!;
+      final String wallet = await _ensureWalletOpen();
 
       final result = await libMwc.cancelTransaction(
         wallet: wallet,
@@ -253,9 +263,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   /// Decode a slatepack.
   Future<SlatepackDecodeResult> decodeSlatepack(String slatepack) async {
     try {
-      final handle = await secureStorageInterface.read(
-        key: '${walletId}_wallet',
-      );
+      final handle = _walletHandle;
       final result = handle != null
           ? await libMwc.decodeSlatepackWithWallet(
               wallet: handle,
@@ -346,13 +354,10 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   /// Start MWCMQS listener for automatic transaction processing.
   Future<void> startSlatepackListener() async {
     try {
-      await _ensureWalletOpen();
+      final wallet = await _ensureWalletOpen();
       final mwcmqsConfig = await getMwcMqsConfig();
-      final wallet = await secureStorageInterface.read(
-        key: '${walletId}_wallet',
-      );
       libMwc.startMwcMqsListener(
-        wallet: wallet!,
+        wallet: wallet,
         mwcmqsConfig: mwcmqsConfig.toString(),
       );
     } catch (e, s) {
@@ -409,10 +414,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   >
   analyzeSlatepack(String slatepack) async {
     try {
-      // Get wallet handle if available
-      final wallet = await secureStorageInterface.read(
-        key: '${walletId}_wallet',
-      );
+      final wallet = _walletHandle;
 
       // Decode the slatepack
       final decoded = wallet != null
@@ -563,6 +565,17 @@ class MimblewimblecoinWallet extends Bip39Wallet {
 
   // ================= Private =================================================
 
+  Future<void> _ensureApiSecret(String walletDir) async {
+    final file = File('$walletDir/.api_secret');
+    final secret = _mimblewimblecoinNode?.nodeApiSecret;
+    if (secret != null) {
+      await Directory(walletDir).create(recursive: true);
+      await file.writeAsString(secret);
+    } else if (await file.exists()) {
+      await file.delete();
+    }
+  }
+
   Future<String> _getConfig() async {
     if (_mimblewimblecoinNode == null) {
       await updateNode();
@@ -597,11 +610,11 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     int satoshiAmount, {
     bool ifErrorEstimateFee = false,
   }) async {
-    final wallet = await secureStorageInterface.read(key: '${walletId}_wallet');
+    final wallet = await _ensureWalletOpen();
     try {
       final available = info.cachedBalance.spendable.raw.toInt();
       final transactionFees = await libMwc.getTransactionFees(
-        wallet: wallet!,
+        wallet: wallet,
         amount: satoshiAmount,
         minimumConfirmations: cryptoCurrency.minConfirms,
         available: available,
@@ -625,13 +638,13 @@ class MimblewimblecoinWallet extends Bip39Wallet {
 
   Future<void> _startSync() async {
     Logging.instance.i("request start sync");
-    final wallet = await secureStorageInterface.read(key: '${walletId}_wallet');
+    final wallet = await _ensureWalletOpen();
     const int refreshFromNode = 1;
     if (!syncMutex.isLocked) {
       await syncMutex.protect(() async {
         // How does getWalletBalances start syncing????
         await libMwc.getWalletBalances(
-          wallet: wallet!,
+          wallet: wallet,
           refreshFromNode: refreshFromNode,
           minimumConfirmations: 10,
         );
@@ -650,10 +663,10 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     })
   >
   _allWalletBalances() async {
-    final wallet = await secureStorageInterface.read(key: '${walletId}_wallet');
+    final wallet = await _ensureWalletOpen();
     const refreshFromNode = 0;
     return await libMwc.getWalletBalances(
-      wallet: wallet!,
+      wallet: wallet,
       refreshFromNode: refreshFromNode,
       minimumConfirmations: cryptoCurrency.minConfirms,
     );
@@ -718,10 +731,10 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     int index,
     MwcMqsConfigModel mwcmqsConfig,
   ) async {
-    final wallet = await secureStorageInterface.read(key: '${walletId}_wallet');
+    final wallet = await _ensureWalletOpen();
 
     final walletAddress = await libMwc.getAddressInfo(
-      wallet: wallet!,
+      wallet: wallet,
       index: index,
     );
 
@@ -744,9 +757,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     try {
       //First stop the current listener
       libMwc.stopMwcMqsListener();
-      final wallet = await secureStorageInterface.read(
-        key: '${walletId}_wallet',
-      );
+      final wallet = await _ensureWalletOpen();
 
       // max number of blocks to scan per loop iteration
       const scanChunkSize = 10000;
@@ -766,7 +777,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
         );
 
         final int nextScannedBlock = await libMwc.scanOutputs(
-          wallet: wallet!,
+          wallet: wallet,
           startHeight: lastScannedBlock,
           numberOfBlocks: scanChunkSize,
         );
@@ -798,10 +809,10 @@ class MimblewimblecoinWallet extends Bip39Wallet {
 
   Future<void> _listenToMwcmqs() async {
     Logging.instance.i("STARTING WALLET LISTENER ....");
-    final wallet = await secureStorageInterface.read(key: '${walletId}_wallet');
+    final wallet = await _ensureWalletOpen();
     final MwcMqsConfigModel mwcmqsConfig = await getMwcMqsConfig();
     libMwc.startMwcMqsListener(
-      wallet: wallet!,
+      wallet: wallet,
       mwcmqsConfig: mwcmqsConfig.toString(),
     );
   }
@@ -855,22 +866,19 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   @override
   Future<void> init({bool? isRestore}) async {
     if (isRestore != true) {
-      String? encodedWallet = await secureStorageInterface.read(
-        key: "${walletId}_wallet",
+      // Password presence is the durable "wallet provisioned" marker; the
+      // old wallet-handle marker was process-scoped.
+      final existingPassword = await secureStorageInterface.read(
+        key: '${walletId}_password',
       );
 
-      // check if should create a new wallet
-      if (encodedWallet == null) {
+      if (existingPassword == null) {
         await updateNode();
         final mnemonicString = await getMnemonic();
 
         final String password = generatePassword();
         final String stringConfig = await _getConfig();
         final MwcMqsConfigModel mwcmqsConfig = await getMwcMqsConfig();
-        //if (!_logsInitialized) {
-        //    await libMwc.initLogs(config: stringConfig);
-        //    _logsInitialized = true; // Set flag to true after initializing
-        //  }
         await secureStorageInterface.write(
           key: '${walletId}_config',
           value: stringConfig,
@@ -894,14 +902,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
         );
 
         //Open wallet
-        encodedWallet = await libMwc.openWallet(
-          config: stringConfig,
-          password: password,
-        );
-        await secureStorageInterface.write(
-          key: '${walletId}_wallet',
-          value: encodedWallet,
-        );
+        await _ensureWalletOpen();
         //Store MwcMqs address info
         await _generateAndStoreReceivingAddressForIndex(0);
 
@@ -926,23 +927,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
         );
       } else {
         try {
-          final config = await _getRealConfig();
-          //if (!_logsInitialized) {
-          //  await libMwc.initLogs(config: config);
-          //  _logsInitialized = true; // Set flag to true after initializing
-          //}
-          final password = await secureStorageInterface.read(
-            key: '${walletId}_password',
-          );
-
-          final walletOpen = await libMwc.openWallet(
-            config: config,
-            password: password!,
-          );
-          await secureStorageInterface.write(
-            key: '${walletId}_wallet',
-            value: walletOpen,
-          );
+          await _ensureWalletOpen();
 
           await updateNode();
         } catch (e, s) {
@@ -958,9 +943,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   @override
   Future<TxData> confirmSend({required TxData txData}) async {
     try {
-      final wallet = await secureStorageInterface.read(
-        key: '${walletId}_wallet',
-      );
+      final wallet = await _ensureWalletOpen();
       final MwcMqsConfigModel mwcmqsConfig = await getMwcMqsConfig();
 
       // TODO determine whether it is worth sending change to a change address.
@@ -983,7 +966,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
       if (receiverAddress.startsWith("http://") ||
           receiverAddress.startsWith("https://")) {
         transaction = await libMwc.txHttpSend(
-          wallet: wallet!,
+          wallet: wallet,
           selectionStrategyIsAll: 0,
           minimumConfirmations: cryptoCurrency.minConfirms,
           message: txData.noteOnChain ?? "",
@@ -992,7 +975,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
         );
       } else if (receiverAddress.startsWith("mwcmqs://")) {
         transaction = await libMwc.createTransaction(
-          wallet: wallet!,
+          wallet: wallet,
           amount: txData.recipients!.first.amount.raw.toInt(),
           address: txData.recipients!.first.address,
           secretKeyIndex: 0,
@@ -1144,14 +1127,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
           );
 
           //Open Wallet
-          final walletOpen = await libMwc.openWallet(
-            config: stringConfig,
-            password: password,
-          );
-          await secureStorageInterface.write(
-            key: '${walletId}_wallet',
-            value: walletOpen,
-          );
+          await _ensureWalletOpen();
 
           await _generateAndStoreReceivingAddressForIndex(
             mimblewimblecoinData.receivingIndex,
@@ -1317,9 +1293,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   @override
   Future<void> updateTransactions() async {
     try {
-      final wallet = await secureStorageInterface.read(
-        key: '${walletId}_wallet',
-      );
+      final wallet = await _ensureWalletOpen();
       const refreshFromNode = 1;
 
       final myAddresses = await mainDB
@@ -1335,7 +1309,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
       final myAddressesSet = myAddresses.toSet();
 
       final transactions = await libMwc.getTransactions(
-        wallet: wallet!,
+        wallet: wallet,
         refreshFromNode: refreshFromNode,
       );
 
@@ -1487,6 +1461,9 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   Future<void> updateNode() async {
     _mimblewimblecoinNode = getCurrentNode();
 
+    final walletDir = await _currentWalletDirPath();
+    await _ensureApiSecret(walletDir);
+
     // TODO: [prio=low] move this out of secure storage if secure storage not needed
     final String stringConfig = await _getConfig();
     await secureStorageInterface.write(
@@ -1505,7 +1482,8 @@ class MimblewimblecoinWallet extends Bip39Wallet {
             NodeFormData()
               ..host = node!.host
               ..useSSL = node.useSSL
-              ..port = node.port,
+              ..port = node.port
+              ..apiSecret = node.nodeApiSecret,
           ) !=
           null;
     } catch (e, s) {
@@ -1570,8 +1548,12 @@ Future<String> deleteMimblewimblecoinWallet({
   required String walletId,
   required SecureStorageInterface secureStore,
 }) async {
-  final wallet = await secureStore.read(key: '${walletId}_wallet');
+  await secureStore.delete(key: '${walletId}_wallet');
+
   String? config = await secureStore.read(key: '${walletId}_config');
+  if (config == null) {
+    return "Tried to delete non existent mimblewimblecoin wallet file with walletId=$walletId";
+  }
   if (Platform.isIOS) {
     final Directory appDir = await StackFileSystem.applicationRootDirectory();
 
@@ -1579,20 +1561,17 @@ Future<String> deleteMimblewimblecoinWallet({
     final String name = walletId.trim();
     final walletDir = '$path/$name';
 
-    final editConfig = jsonDecode(config as String);
+    final editConfig = jsonDecode(config);
 
     editConfig["wallet_dir"] = walletDir;
     config = jsonEncode(editConfig);
   }
 
-  if (wallet == null) {
-    return "Tried to delete non existent mimblewimblecoin wallet file with walletId=$walletId";
-  } else {
-    try {
-      return libMwc.deleteWallet(wallet: wallet, config: config!);
-    } catch (e, s) {
-      Logging.instance.e("$e\n$s");
-      return "deleteMimblewimblecoinWallet($walletId) failed...";
-    }
+  try {
+    // Rust deleteWallet ignores the handle param.
+    return libMwc.deleteWallet(wallet: "", config: config);
+  } catch (e, s) {
+    Logging.instance.e("$e\n$s");
+    return "deleteMimblewimblecoinWallet($walletId) failed...";
   }
 }

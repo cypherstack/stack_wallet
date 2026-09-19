@@ -16,10 +16,15 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:isar_community/isar.dart';
 
+import '../../models/input.dart';
+import '../../models/isar/models/isar_models.dart';
 import '../../models/isar/models/transaction_note.dart';
+import '../../models/isar/ordinal.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../pages_desktop_specific/coin_control/desktop_coin_control_use_dialog.dart';
+import '../../pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
 import '../../providers/providers.dart';
 import '../../providers/wallet/public_private_balance_state_provider.dart';
@@ -37,10 +42,14 @@ import '../../wallets/crypto_currency/coins/ethereum.dart';
 import '../../wallets/crypto_currency/coins/mimblewimblecoin.dart';
 import '../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
+import '../../wallets/isar/providers/solana/current_sol_token_wallet_provider.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/models/tx_data.dart';
+import '../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
 import '../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
+import '../../wallets/wallet/impl/solana_wallet.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
@@ -57,6 +66,7 @@ import '../../widgets/textfield_icon_button.dart';
 import '../../wl_gen/interfaces/libepiccash_interface.dart';
 import '../pinpad_views/lock_screen_view.dart';
 import '../wallet_view/wallet_view.dart';
+import 'sub_widgets/epic_slatepack_dialog.dart';
 import 'sub_widgets/mwc_slatepack_dialog.dart';
 import 'sub_widgets/sending_transaction_dialog.dart';
 
@@ -66,7 +76,7 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
     required this.txData,
     required this.walletId,
     required this.onSuccess,
-    this.routeOnSuccessName = WalletView.routeName,
+    this.routeOnSuccessName,
     this.isTradeTransaction = false,
     this.isPaynymTransaction = false,
     this.isPaynymNotificationTransaction = false,
@@ -78,7 +88,7 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
 
   final TxData txData;
   final String walletId;
-  final String routeOnSuccessName;
+  final String? routeOnSuccessName;
   final bool isTradeTransaction;
   final bool isPaynymTransaction;
   final bool isPaynymNotificationTransaction;
@@ -102,6 +112,42 @@ class _ConfirmTransactionViewState
 
   late final FocusNode _onChainNoteFocusNode;
   late final TextEditingController onChainNoteController;
+
+  bool _spendsOrdinal = false;
+
+  Future<void> _checkForOrdinalSpend(
+    bool updateStateInPostFrameCallback,
+  ) async {
+    final db = ref.read(mainDBProvider);
+    final wallet = ref.read(pWallets).getWallet(walletId);
+    if (wallet is! OrdinalsInterface) return;
+
+    final usedUtxos = widget.txData.usedUTXOs;
+    if (usedUtxos == null || usedUtxos.isEmpty) return;
+
+    for (final input in usedUtxos) {
+      if (input is! StandardInput) continue;
+      final ordinal = await db.isar.ordinals
+          .where()
+          .filter()
+          .walletIdEqualTo(walletId)
+          .and()
+          .utxoTXIDEqualTo(input.utxo.txid)
+          .and()
+          .utxoVOUTEqualTo(input.utxo.vout)
+          .findFirst();
+      if (ordinal != null) {
+        if (updateStateInPostFrameCallback) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) setState(() => _spendsOrdinal = true);
+          });
+        } else {
+          if (mounted) setState(() => _spendsOrdinal = true);
+        }
+        return;
+      }
+    }
+  }
 
   /// Handle MWC slatepack creation for manual exchange.
   Future<void> _handleMwcSlatepackCreation(
@@ -172,7 +218,86 @@ class _ConfirmTransactionViewState
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Slatepack Creation Failed'),
-            content: Text('Failed to create slatepack: $e'),
+            content: Text(errorMessage),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    }
+  }
+
+  /// Handle Epic Cash slate creation for manual exchange.
+  Future<void> _handleEpicSlatepackCreation(
+    BuildContext context,
+    EpiccashWallet wallet,
+  ) async {
+    try {
+      // Close the progress dialog first.
+      Navigator.of(context).pop();
+
+      // Get recipient information from txData.
+      final recipient = widget.txData.recipients?.first;
+      if (recipient == null) {
+        throw Exception('No recipient found in transaction data');
+      }
+
+      // Create slatepack.
+      final slatepackResult = await wallet.createSlatepack(
+        amount: recipient.amount,
+        recipientAddress: recipient.address.isNotEmpty
+            ? recipient.address
+            : null,
+        message: onChainNoteController.text.isNotEmpty
+            ? onChainNoteController.text
+            : null,
+      );
+
+      if (!slatepackResult.success || slatepackResult.slatepack == null) {
+        throw Exception(slatepackResult.error ?? 'Failed to create slate');
+      }
+
+      // Show slatepack dialog.
+      if (context.mounted) {
+        await showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) =>
+              EpicSlatepackDialog(slatepackResult: slatepackResult),
+        );
+
+        // After slatepack dialog is closed, navigate back to wallet.
+        if (context.mounted) {
+          widget.onSuccess.call();
+          if (widget.onSuccessInsteadOfRouteOnSuccess == null) {
+            Navigator.of(
+              context,
+            ).popUntil(ModalRoute.withName(routeOnSuccessName));
+          } else {
+            widget.onSuccessInsteadOfRouteOnSuccess!.call();
+          }
+        }
+      }
+    } catch (e, s) {
+      Logging.instance.e('Failed to create Epic Cash slate: $e\n$s');
+
+      if (context.mounted) {
+        // Show user-friendly error message.
+        final errorMessage = e.toString().contains('insufficient funds')
+            ? 'Insufficient funds for this transaction'
+            : e.toString().contains('wallet not open')
+            ? 'Wallet not accessible. Please restart the app.'
+            : 'Failed to create slate: ${e.toString()}';
+
+        await showDialog<void>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Slate Creation Failed'),
+            content: Text(errorMessage),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -190,10 +315,23 @@ class _ConfirmTransactionViewState
     final coin = wallet.info.coin;
 
     final sendProgressController = ProgressAndSuccessController();
+    var isSendingDialogOpen = true;
+
+    void closeSendingDialog() {
+      if (!context.mounted || !isSendingDialogOpen) {
+        return;
+      }
+      final navigator = Navigator.of(context, rootNavigator: true);
+      if (navigator.canPop()) {
+        navigator.pop();
+      }
+      isSendingDialogOpen = false;
+    }
 
     unawaited(
       showDialog<dynamic>(
         context: context,
+        useRootNavigator: true,
         useSafeArea: false,
         barrierDismissible: false,
         builder: (context) {
@@ -202,7 +340,7 @@ class _ConfirmTransactionViewState
             controller: sendProgressController,
           );
         },
-      ),
+      ).whenComplete(() => isSendingDialogOpen = false),
     );
 
     final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
@@ -214,9 +352,17 @@ class _ConfirmTransactionViewState
 
     try {
       if (widget.isTokenTx) {
-        txDataFuture = ref
-            .read(pCurrentTokenWallet)!
-            .confirmSend(txData: widget.txData);
+        if (wallet is SolanaWallet) {
+          // For Solana tokens, use the Solana token wallet.
+          txDataFuture = ref
+              .read(pCurrentSolanaTokenWallet)!
+              .confirmSend(txData: widget.txData);
+        } else {
+          // For Ethereum tokens, use the Ethereum token wallet.
+          txDataFuture = ref
+              .read(pCurrentTokenWallet)!
+              .confirmSend(txData: widget.txData);
+        }
       } else if (widget.isPaynymNotificationTransaction) {
         txDataFuture = (wallet as PaynymInterface).broadcastNotificationTx(
           txData: widget.txData,
@@ -255,6 +401,7 @@ class _ConfirmTransactionViewState
                 context,
                 wallet as MimblewimblecoinWallet,
               );
+              closeSendingDialog();
               return; // Exit early, don't continue with normal transaction flow.
             } else {
               // Handle MWCMQS or HTTP transactions normally.
@@ -265,11 +412,29 @@ class _ConfirmTransactionViewState
               );
             }
           } else if (coin is Epiccash) {
-            txDataFuture = wallet.confirmSend(
-              txData: widget.txData.copyWith(
-                noteOnChain: onChainNoteController.text,
-              ),
-            );
+            // Check if this is a slatepack transaction (manual exchange).
+            final epicOtherDataMap = widget.txData.otherData != null
+                ? jsonDecode(widget.txData.otherData!)
+                : null;
+            final epicTransactionMethod =
+                epicOtherDataMap?['transactionMethod'] as String?;
+
+            if (epicTransactionMethod == 'slatepack') {
+              // Handle slatepack creation instead of direct send.
+              await _handleEpicSlatepackCreation(
+                context,
+                wallet as EpiccashWallet,
+              );
+              closeSendingDialog();
+              return; // Exit early, don't continue with normal transaction flow.
+            } else {
+              // Handle Epicbox transactions normally.
+              txDataFuture = wallet.confirmSend(
+                txData: widget.txData.copyWith(
+                  noteOnChain: onChainNoteController.text,
+                ),
+              );
+            }
           } else {
             txDataFuture = wallet.confirmSend(txData: widget.txData);
           }
@@ -277,15 +442,17 @@ class _ConfirmTransactionViewState
       }
 
       final results = await Future.wait([txDataFuture, time]);
+      final confirmedTx = results.first as TxData;
 
       sendProgressController.triggerSuccess?.call();
       await Future<void>.delayed(const Duration(seconds: 5));
 
-      if (wallet is FiroWallet &&
-          (results.first as TxData).sparkMints != null) {
-        txids.addAll((results.first as TxData).sparkMints!.map((e) => e.txid!));
+      if (wallet is FiroWallet && confirmedTx.sparkMints != null) {
+        txids.addAll(confirmedTx.sparkMints!.map((e) => e.txid!));
+      } else if (wallet is FiroWallet && confirmedTx.sparkSpends != null) {
+        txids.addAll(confirmedTx.sparkSpends!.map((e) => e.txid!));
       } else {
-        txids.add((results.first as TxData).txid!);
+        txids.add(confirmedTx.txid!);
       }
       if (coin is! Ethereum) {
         ref.refresh(desktopUseUTXOs);
@@ -301,14 +468,19 @@ class _ConfirmTransactionViewState
       }
 
       if (widget.isTokenTx) {
-        unawaited(ref.read(pCurrentTokenWallet)!.refresh());
+        if (wallet is SolanaWallet) {
+          unawaited(ref.read(pCurrentSolanaTokenWallet)!.refresh());
+        } else {
+          unawaited(ref.read(pCurrentTokenWallet)!.refresh());
+        }
       } else {
         unawaited(wallet.refresh());
       }
 
+      closeSendingDialog();
+
       widget.onSuccess.call();
 
-      // pop back to wallet
       if (context.mounted) {
         if (widget.onSuccessInsteadOfRouteOnSuccess == null) {
           Navigator.of(
@@ -321,7 +493,7 @@ class _ConfirmTransactionViewState
     } on BadHttpAddressException catch (_) {
       if (context.mounted) {
         // pop building dialog
-        Navigator.of(context).pop();
+        closeSendingDialog();
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.warning,
@@ -337,7 +509,7 @@ class _ConfirmTransactionViewState
       Logging.instance.e(message, error: e, stackTrace: s);
       // pop sending dialog
       if (context.mounted) {
-        Navigator.of(context).pop();
+        closeSendingDialog();
 
         await showDialog<void>(
           context: context,
@@ -410,9 +582,13 @@ class _ConfirmTransactionViewState
 
   @override
   void initState() {
+    super.initState();
+
     isDesktop = Util.isDesktop;
     walletId = widget.walletId;
-    routeOnSuccessName = widget.routeOnSuccessName;
+    routeOnSuccessName =
+        widget.routeOnSuccessName ??
+        (Util.isDesktop ? DesktopWalletView.routeName : WalletView.routeName);
     _noteFocusNode = FocusNode();
     noteController = TextEditingController();
     noteController.text = widget.txData.note ?? "";
@@ -421,7 +597,7 @@ class _ConfirmTransactionViewState
     onChainNoteController = TextEditingController();
     onChainNoteController.text = widget.txData.noteOnChain ?? "";
 
-    super.initState();
+    _checkForOrdinalSpend(true);
   }
 
   @override
@@ -439,18 +615,25 @@ class _ConfirmTransactionViewState
     final coin = ref.watch(pWalletCoin(walletId));
 
     final String unit;
+    final wallet = ref.watch(pWallets).getWallet(walletId);
     if (widget.isTokenTx) {
-      unit = ref.watch(
-        pCurrentTokenWallet.select((value) => value!.tokenContract.symbol),
-      );
+      if (wallet is SolanaWallet) {
+        // For Solana tokens, use the Solana token wallet provider or TxData as fallback.
+        unit = ref.watch(
+          pCurrentSolanaTokenWallet.select((value) => value!.tokenSymbol),
+        );
+      } else {
+        // For Ethereum tokens, use the Ethereum token wallet provider.
+        unit = ref.watch(
+          pCurrentTokenWallet.select((value) => value!.tokenContract.symbol),
+        );
+      }
     } else {
       unit = coin.ticker;
     }
 
     final Amount? fee;
     final Amount amountWithoutChange;
-
-    final wallet = ref.watch(pWallets).getWallet(walletId);
 
     if (wallet is FiroWallet) {
       switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
@@ -546,8 +729,7 @@ class _ConfirmTransactionViewState
                 AppBarBackButton(
                   size: 40,
                   iconSize: 24,
-                  onPressed: () =>
-                      Navigator.of(context, rootNavigator: true).pop(),
+                  onPressed: () => Navigator.of(context).pop(),
                 ),
                 Text(
                   "Confirm $unit transaction",
@@ -582,7 +764,11 @@ class _ConfirmTransactionViewState
                         Text(
                           widget.isPaynymTransaction
                               ? widget.txData.paynymAccountLite!.nymName
-                              : widget.txData.recipients?.first.address ??
+                              : widget
+                                        .txData
+                                        .recipients
+                                        ?.firstOrNull
+                                        ?.address ??
                                     widget
                                         .txData
                                         .sparkRecipients!
@@ -604,10 +790,15 @@ class _ConfirmTransactionViewState
                               .watch(pAmountFormatter(coin))
                               .format(
                                 amountWithoutChange,
-                                ethContract: widget.isTokenTx
+                                tokenContract:
+                                    widget.isTokenTx && wallet is! SolanaWallet
                                     ? ref
                                           .watch(pCurrentTokenWallet)!
                                           .tokenContract
+                                    : widget.isTokenTx && wallet is SolanaWallet
+                                    ? ref
+                                          .watch(pCurrentSolanaTokenWallet)!
+                                          .solContract
                                     : null,
                               ),
                           style: STextStyles.itemSubtitle12(context),
@@ -794,17 +985,34 @@ class _ConfirmTransactionViewState
 
                                 if (externalCalls) {
                                   final price = widget.isTokenTx
-                                      ? ref
-                                            .read(
-                                              priceAnd24hChangeNotifierProvider,
-                                            )
-                                            .getTokenPrice(
+                                      ? (wallet is SolanaWallet
+                                            ? // For Solana tokens, use tokenMint from provider or TxData.
                                               ref
-                                                  .read(pCurrentTokenWallet)!
-                                                  .tokenContract
-                                                  .address,
-                                            )
-                                            ?.value
+                                                  .read(
+                                                    priceAnd24hChangeNotifierProvider,
+                                                  )
+                                                  .getTokenPrice(
+                                                    ref
+                                                        .read(
+                                                          pCurrentSolanaTokenWallet,
+                                                        )!
+                                                        .tokenMint,
+                                                  )
+                                                  ?.value
+                                            : // For Ethereum tokens, use contract address.
+                                              ref
+                                                  .read(
+                                                    priceAnd24hChangeNotifierProvider,
+                                                  )
+                                                  .getTokenPrice(
+                                                    ref
+                                                        .read(
+                                                          pCurrentTokenWallet,
+                                                        )!
+                                                        .tokenContract
+                                                        .address,
+                                                  )
+                                                  ?.value)
                                       : ref
                                             .read(
                                               priceAnd24hChangeNotifierProvider,
@@ -832,12 +1040,21 @@ class _ConfirmTransactionViewState
                                           .watch(pAmountFormatter(coin))
                                           .format(
                                             amountWithoutChange,
-                                            ethContract: widget.isTokenTx
+                                            tokenContract:
+                                                widget.isTokenTx &&
+                                                    wallet is! SolanaWallet
                                                 ? ref
                                                       .watch(
                                                         pCurrentTokenWallet,
                                                       )!
                                                       .tokenContract
+                                                : widget.isTokenTx &&
+                                                      wallet is SolanaWallet
+                                                ? ref
+                                                      .watch(
+                                                        pCurrentSolanaTokenWallet,
+                                                      )!
+                                                      .solContract
                                                 : null,
                                           ),
                                       style:
@@ -897,7 +1114,11 @@ class _ConfirmTransactionViewState
                               // TODO: [prio=med] spark transaction specifics - better handling
                               widget.isPaynymTransaction
                                   ? widget.txData.paynymAccountLite!.nymName
-                                  : widget.txData.recipients?.first.address ??
+                                  : widget
+                                            .txData
+                                            .recipients
+                                            ?.firstOrNull
+                                            ?.address ??
                                         widget
                                             .txData
                                             .sparkRecipients!
@@ -1031,7 +1252,7 @@ class _ConfirmTransactionViewState
                   children: [
                     if (coin is Epiccash || coin is Mimblewimblecoin)
                       Text(
-                        "On chain Note (optional)",
+                        "On chain Note",
                         style: STextStyles.smallMed12(context),
                         textAlign: TextAlign.left,
                       ),
@@ -1268,6 +1489,40 @@ class _ConfirmTransactionViewState
                   ),
                 ),
               ),
+            if (_spendsOrdinal)
+              Padding(
+                padding: isDesktop
+                    ? const EdgeInsets.symmetric(horizontal: 32, vertical: 8)
+                    : const EdgeInsets.symmetric(vertical: 8),
+                child: RoundedContainer(
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.warningBackground,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.warning_amber_rounded,
+                        color: Theme.of(
+                          context,
+                        ).extension<StackColors>()!.warningForeground,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          "This transaction spends a UTXO containing "
+                          "an ordinal inscription.",
+                          style: STextStyles.smallMed12(context).copyWith(
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.warningForeground,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             SizedBox(height: isDesktop ? 28 : 16),
             Padding(
               padding: isDesktop
@@ -1296,7 +1551,10 @@ class _ConfirmTransactionViewState
                                 right: 32,
                                 bottom: 32,
                               ),
-                              child: DesktopAuthSend(coin: coin),
+                              child: DesktopAuthSend(
+                                coin: coin,
+                                tokenTicker: widget.isTokenTx ? unit : null,
+                              ),
                             ),
                           ],
                         ),
@@ -1316,9 +1574,9 @@ class _ConfirmTransactionViewState
                       }
                     }
                   } else {
-                    final unlocked = await Navigator.push(
+                    final unlocked = await Navigator.push<bool>(
                       context,
-                      RouteGenerator.getRoute(
+                      RouteGenerator.getRoute<bool>(
                         shouldUseMaterialRoute:
                             RouteGenerator.useMaterialPageRoute,
                         builder: (_) => const LockscreenView(

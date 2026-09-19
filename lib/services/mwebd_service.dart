@@ -6,6 +6,7 @@ import 'dart:math';
 import 'package:mutex/mutex.dart';
 import 'package:mweb_client/mweb_client.dart';
 
+import '../utilities/dynamic_object.dart';
 import '../utilities/logger.dart';
 import '../utilities/prefs.dart';
 import '../utilities/stack_file_system.dart';
@@ -24,10 +25,7 @@ final class MwebdService {
     CryptoCurrencyNetwork.test4 => throw UnimplementedError(),
   };
 
-  final Map<
-    CryptoCurrencyNetwork,
-    ({OpaqueMwebdServer server, MwebClient client})
-  >
+  final Map<CryptoCurrencyNetwork, ({DynamicObject server, MwebClient client})>
   _map = {};
 
   late final StreamSubscription<TorConnectionStatusChangedEvent>
@@ -178,9 +176,9 @@ final class MwebdService {
   }
 
   /// Get server status. Returns null if no server was initialized.
-  Future<Status?> getServerStatus(CryptoCurrencyNetwork net) {
-    return _updateLock.protect(() {
-      return mwebdServerInterface.getServerStatus(_map[net]?.server);
+  Future<StatusResponse?> getServerStatus(CryptoCurrencyNetwork net) {
+    return _updateLock.protect(() async {
+      return _map[net]?.client.status(StatusRequest());
     });
   }
 
@@ -205,11 +203,15 @@ final class MwebdService {
         "${Platform.pathSeparator}logs"
         "${Platform.pathSeparator}debug.log";
 
+    final file = File(path);
+
+    if (await file.exists()) {
+      offset = await file.length();
+    }
+
     Future<void> poll() async {
       if (!controller.isClosed) {
-        final file = File(path);
-
-        if (!file.existsSync()) {
+        if (!(await file.exists())) {
           return;
         }
 

@@ -25,6 +25,9 @@ class PriceService extends ChangeNotifier {
   Future<Set<String>> get tokenContractAddressesToCheck async =>
       (await MainDB.instance.getEthContracts().addressProperty().findAll())
           .toSet();
+  Future<Set<String>> get solTokenContractAddressesToCheck async =>
+      (await MainDB.instance.getSolContracts().addressProperty().findAll())
+          .toSet();
   final Duration updateInterval = const Duration(seconds: 60);
 
   Timer? _timer;
@@ -66,6 +69,22 @@ class PriceService extends ChangeNotifier {
       );
 
       for (final map in tokenPriceMap.entries) {
+        if (_cachedTokenPrices[map.key] != map.value) {
+          _cachedTokenPrices[map.key] = map.value;
+          shouldNotify = true;
+        }
+      }
+    }
+
+    final _solTokenContractAddressesToCheck = await solTokenContractAddressesToCheck;
+
+    if (_solTokenContractAddressesToCheck.isNotEmpty) {
+      final solTokenPriceMap = await _priceAPI.getPricesAnd24hChangeForSolTokens(
+        contractAddresses: _solTokenContractAddressesToCheck,
+        baseCurrency: baseTicker,
+      );
+
+      for (final map in solTokenPriceMap.entries) {
         if (_cachedTokenPrices[map.key] != map.value) {
           _cachedTokenPrices[map.key] = map.value;
           shouldNotify = true;

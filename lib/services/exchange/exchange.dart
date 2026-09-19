@@ -15,11 +15,14 @@ import '../../models/exchange/response_objects/range.dart';
 import '../../models/exchange/response_objects/trade.dart';
 import '../../models/isar/exchange_cache/currency.dart';
 import 'change_now/change_now_exchange.dart';
+import 'cyphergoat/cyphergoat_exchange.dart';
 import 'exchange_response.dart';
-import 'majestic_bank/majestic_bank_exchange.dart';
+import 'exolix/exolix_exchange.dart';
+import 'lets_exchange/lets_exchange_exchange.dart';
 import 'nanswap/nanswap_exchange.dart';
 import 'simpleswap/simpleswap_exchange.dart';
 import 'trocador/trocador_exchange.dart';
+import 'wizard_swap/wizard_swap_exchange.dart';
 
 abstract class Exchange {
   static Exchange get defaultExchange => ChangeNowExchange.instance;
@@ -36,6 +39,14 @@ abstract class Exchange {
         return TrocadorExchange.instance;
       case NanswapExchange.exchangeName:
         return NanswapExchange.instance;
+      case WizardSwapExchange.exchangeName:
+        return WizardSwapExchange.instance;
+      case ExolixExchange.exchangeName:
+        return ExolixExchange.instance;
+      case LetsExchangeExchange.exchangeName:
+        return LetsExchangeExchange.instance;
+      case CypherGoatExchange.exchangeName:
+        return CypherGoatExchange.instance;
       default:
         final split = name.split(" ");
         if (split.length >= 2) {
@@ -108,6 +119,7 @@ abstract class Exchange {
   static List<Exchange> get exchangesWithTorSupport => [
     // MajesticBankExchange.instance,
     TrocadorExchange.instance,
+    ExolixExchange.instance, // Maybe??
     NanswapExchange.instance, // Maybe??
   ];
 

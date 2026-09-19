@@ -7,28 +7,37 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
+import 'package:saf_stream/saf_stream.dart';
+import 'package:saf_util/saf_util.dart';
 
 import '../../app_config.dart';
 import '../../models/isar/models/blockchain_data/utxo.dart';
 import '../../models/isar/ordinal.dart';
 import '../../networking/http.dart';
 import '../../notifications/show_flush_bar.dart';
+import '../../pages/send_view/confirm_transaction_view.dart';
 import '../../providers/db/main_db_provider.dart';
 import '../../providers/global/prefs_provider.dart';
+import '../../providers/global/wallets_provider.dart';
+import '../../route_generator.dart';
 import '../../services/tor_service.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
+import '../../utilities/fs.dart';
 import '../../utilities/show_loading.dart';
-import '../../utilities/stack_file_system.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/ordinal_image.dart';
 import '../../widgets/rounded_white_container.dart';
+import 'widgets/dialogs.dart';
 
 class OrdinalDetailsView extends ConsumerStatefulWidget {
   const OrdinalDetailsView({
@@ -210,6 +219,18 @@ class _OrdinalImageGroup extends ConsumerWidget {
 
   static const _spacing = 12.0;
 
+  Future<String?> _getDocsDir() async {
+    try {
+      if (Platform.isAndroid) {
+        return await FS.pickDirectory();
+      }
+
+      return (await getApplicationDocumentsDirectory()).path;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<String> _savePngToFile(WidgetRef ref) async {
     final HTTP client = HTTP();
 
@@ -230,21 +251,36 @@ class _OrdinalImageGroup extends ConsumerWidget {
 
     final bytes = response.bodyBytes;
 
-    final dir = Platform.isAndroid
-        ? await StackFileSystem.wtfAndroidDocumentsPath()
-        : await getApplicationDocumentsDirectory();
-    final filePath = path.join(
-      dir.path,
-      "ordinal_${ordinal.inscriptionNumber}.png",
-    );
-
-    final File imgFile = File(filePath);
-
-    if (imgFile.existsSync()) {
-      throw Exception("File already exists");
+    final dirPath = await _getDocsDir();
+    if (dirPath == null) {
+      throw Exception("Failed to get directory path to save ordinal image");
     }
 
-    await imgFile.writeAsBytes(bytes);
+    final fileName = "ordinal_${ordinal.inscriptionNumber}.png";
+
+    final filePath = path.join(dirPath, fileName);
+
+    if (Platform.isAndroid) {
+      if (await SafUtil().exists(filePath, false)) {
+        throw Exception("File already exists");
+      }
+
+      await SafStream().writeFileBytes(
+        dirPath,
+        fileName,
+        "png",
+        Uint8List.fromList(bytes),
+      );
+    } else {
+      final File imgFile = File(filePath);
+
+      if (imgFile.existsSync()) {
+        throw Exception("File already exists");
+      }
+
+      await imgFile.writeAsBytes(bytes);
+    }
+
     return filePath;
   }
 
@@ -269,12 +305,7 @@ class _OrdinalImageGroup extends ConsumerWidget {
             aspectRatio: 1,
             child: Container(
               color: Colors.transparent,
-              child: Image.network(
-                ordinal.content, // Use the preview URL as the image source
-                fit: BoxFit.cover,
-                filterQuality:
-                    FilterQuality.none, // Set the filter mode to nearest
-              ),
+              child: OrdinalImage(url: ordinal.content),
             ),
           ),
         ),
@@ -325,33 +356,129 @@ class _OrdinalImageGroup extends ConsumerWidget {
                 },
               ),
             ),
-            // const SizedBox(
-            //   width: _spacing,
-            // ),
-            // Expanded(
-            //   child: PrimaryButton(
-            //     label: "Send",
-            //     icon: SvgPicture.asset(
-            //       Assets.svg.send,
-            //       width: 10,
-            //       height: 10,
-            //       color: Theme.of(context)
-            //           .extension<StackColors>()!
-            //           .buttonTextPrimary,
-            //     ),
-            //     buttonHeight: ButtonHeight.l,
-            //     iconSpacing: 4,
-            //     onPressed: () async {
-            //       final response = await showDialog<String?>(
-            //         context: context,
-            //         builder: (_) => const SendOrdinalUnfreezeDialog(),
-            //       );
-            //       if (response == "unfreeze") {
-            //         // TODO: unfreeze and go to send ord screen
-            //       }
-            //     },
-            //   ),
-            // ),
+            const SizedBox(width: _spacing),
+            Expanded(
+              child: PrimaryButton(
+                label: "Send",
+                icon: SvgPicture.asset(
+                  Assets.svg.send,
+                  width: 10,
+                  height: 10,
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.buttonTextPrimary,
+                ),
+                buttonHeight: ButtonHeight.l,
+                iconSpacing: 4,
+                onPressed: () async {
+                  final utxo = ordinal.getUTXO(ref.read(mainDBProvider));
+                  if (utxo == null) {
+                    unawaited(
+                      showFloatingFlushBar(
+                        type: FlushBarType.warning,
+                        message: "Could not find ordinal UTXO",
+                        context: context,
+                      ),
+                    );
+                    return;
+                  }
+
+                  // Step 1: Confirm unfreeze
+                  if (utxo.isBlocked) {
+                    final unfreezeResponse = await showDialog<String?>(
+                      context: context,
+                      builder: (_) => const SendOrdinalUnfreezeDialog(),
+                    );
+                    if (unfreezeResponse != "unfreeze") return;
+                  }
+
+                  if (!context.mounted) return;
+
+                  // Step 2: Get recipient address
+                  final address = await showDialog<String?>(
+                    context: context,
+                    builder: (_) => OrdinalRecipientAddressDialog(
+                      inscriptionNumber: ordinal.inscriptionNumber,
+                    ),
+                  );
+                  if (address == null || address.isEmpty) return;
+
+                  // Validate address
+                  final wallet = ref.read(pWallets).getWallet(walletId);
+                  if (!wallet.cryptoCurrency.validateAddress(address)) {
+                    if (context.mounted) {
+                      unawaited(
+                        showFloatingFlushBar(
+                          type: FlushBarType.warning,
+                          message: "Invalid address",
+                          context: context,
+                        ),
+                      );
+                    }
+                    return;
+                  }
+
+                  if (!context.mounted) return;
+
+                  // Step 3: Prepare the transaction
+                  final OrdinalsInterface? ordinalsWallet =
+                      wallet is OrdinalsInterface ? wallet : null;
+                  if (ordinalsWallet == null) {
+                    unawaited(
+                      showFloatingFlushBar(
+                        type: FlushBarType.warning,
+                        message: "Wallet does not support ordinals",
+                        context: context,
+                      ),
+                    );
+                    return;
+                  }
+
+                  bool didError = false;
+                  final txData = await showLoading(
+                    whileFuture: ordinalsWallet.prepareOrdinalSend(
+                      ordinalUtxo: utxo,
+                      recipientAddress: address,
+                    ),
+                    context: context,
+                    rootNavigator: true,
+                    message: "Preparing transaction...",
+                    onException: (e) {
+                      didError = true;
+                      String msg = e.toString();
+                      while (msg.isNotEmpty && msg.startsWith("Exception:")) {
+                        msg = msg.substring(10).trim();
+                      }
+                      if (context.mounted) {
+                        showFloatingFlushBar(
+                          type: FlushBarType.warning,
+                          message: msg,
+                          context: context,
+                        );
+                      }
+                    },
+                  );
+
+                  if (didError || txData == null || !context.mounted) return;
+
+                  // Step 4: Navigate to confirm transaction view
+                  await Navigator.of(context).push(
+                    RouteGenerator.getRoute<void>(
+                      shouldUseMaterialRoute:
+                          RouteGenerator.useMaterialPageRoute,
+                      builder: (_) => ConfirmTransactionView(
+                        walletId: walletId,
+                        txData: txData,
+                        onSuccess: () {},
+                      ),
+                      settings: const RouteSettings(
+                        name: ConfirmTransactionView.routeName,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
           ],
         ),
       ],

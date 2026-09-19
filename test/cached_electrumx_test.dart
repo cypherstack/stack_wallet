@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hive_test/hive_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stackwallet/electrumx_rpc/cached_electrumx_client.dart';
@@ -8,13 +7,14 @@ import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
 import 'cached_electrumx_test.mocks.dart';
+import 'hive/hive_ce_test_utils.dart';
 // import 'sample_data/get_anonymity_set_sample_data.dart';
 
 @GenerateMocks([ElectrumXClient, Prefs])
 void main() {
   group("tests using mock hive", () {
     setUp(() async {
-      await setUpTestHive();
+      await setUpHiveCeTest();
       // await Hive.openBox<dynamic>(
       //     DB.instance.boxNameUsedSerialsCache(coin: Coin.firo));
       // await Hive.openBox<dynamic>(DB.instance.boxNameSetCache(coin: Coin.firo));
@@ -117,24 +117,17 @@ void main() {
 
     test("getTransaction throws", () async {
       final client = MockElectrumXClient();
-      when(
-        client.getTransaction(
-          txHash: "some hash",
-        ),
-      ).thenThrow(Exception());
+      when(client.getTransaction(txHash: "some hash")).thenThrow(Exception());
 
-      final cachedClient = CachedElectrumXClient(
-        electrumXClient: client,
-      );
+      final cachedClient = CachedElectrumXClient(electrumXClient: client);
 
       expect(
-          () async => await cachedClient.getTransaction(
-                txHash: "some hash",
-                cryptoCurrency: Firo(
-                  CryptoCurrencyNetwork.main,
-                ),
-              ),
-          throwsA(isA<Exception>()));
+        () async => await cachedClient.getTransaction(
+          txHash: "some hash",
+          cryptoCurrency: Firo(CryptoCurrencyNetwork.main),
+        ),
+        throwsA(isA<Exception>()),
+      );
     });
 
     test("clearSharedTransactionCache", () async {
@@ -145,9 +138,7 @@ void main() {
       bool didThrow = false;
       try {
         await cachedClient.clearSharedTransactionCache(
-          cryptoCurrency: Firo(
-            CryptoCurrencyNetwork.main,
-          ),
+          cryptoCurrency: Firo(CryptoCurrencyNetwork.main),
         );
       } catch (_) {
         didThrow = true;
@@ -157,7 +148,7 @@ void main() {
     });
 
     tearDown(() async {
-      await tearDownTestHive();
+      await tearDownHiveCeTest();
     });
   });
 
@@ -172,8 +163,9 @@ void main() {
       clearnetEnabled: true,
     );
 
-    final client =
-        CachedElectrumXClient.from(electrumXClient: MockElectrumXClient());
+    final client = CachedElectrumXClient.from(
+      electrumXClient: MockElectrumXClient(),
+    );
 
     expect(client, isA<CachedElectrumXClient>());
   });
