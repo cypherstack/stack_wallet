@@ -32,6 +32,16 @@ import '../wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../wallet_mixin_interfaces/spark_interface.dart';
 import 'firo_transaction_type.dart';
 
+enum MasternodeStatus {
+  active("ACTIVE"),
+  banned("BANNED"),
+  revoked("REVOKED");
+
+  const MasternodeStatus(this.label);
+
+  final String label;
+}
+
 class MasternodeInfo {
   final String proTxHash;
   final String collateralHash;
@@ -71,11 +81,17 @@ class MasternodeInfo {
     required this.pubKeyOperator,
   });
 
+  MasternodeStatus get status {
+    if (revocationReason != 0) return MasternodeStatus.revoked;
+    if (poseBanHeight != -1) return MasternodeStatus.banned;
+    return MasternodeStatus.active;
+  }
+
   Map<String, String> pretty() {
     return {
       "ProTx Hash": proTxHash,
       "IP:Port": "$serviceAddr:$servicePort",
-      "Status": revocationReason == 0 ? "Active" : "Revoked",
+      "Status": status.label,
       "Registered Height": registeredHeight.toString(),
       "Last Paid Height": lastPaidHeight.toString(),
       "Payout Address": payoutAddress,
