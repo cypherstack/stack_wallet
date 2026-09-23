@@ -108,8 +108,7 @@ class _MasternodeCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: switch (status) {
                 MasternodeStatus.active => stack.accentColorGreen,
-                MasternodeStatus.banned => stack.accentColorOrange,
-                MasternodeStatus.revoked => stack.accentColorRed,
+                MasternodeStatus.banned => stack.accentColorRed,
               },
               borderRadius: BorderRadius.circular(8),
             ),

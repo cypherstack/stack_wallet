@@ -34,8 +34,7 @@ import 'firo_transaction_type.dart';
 
 enum MasternodeStatus {
   active("ACTIVE"),
-  banned("BANNED"),
-  revoked("REVOKED");
+  banned("BANNED");
 
   const MasternodeStatus(this.label);
 
@@ -82,8 +81,9 @@ class MasternodeInfo {
   });
 
   MasternodeStatus get status {
-    if (revocationReason != 0) return MasternodeStatus.revoked;
-    if (poseBanHeight != -1) return MasternodeStatus.banned;
+    if (revocationReason != 0 || poseBanHeight != -1) {
+      return MasternodeStatus.banned;
+    }
     return MasternodeStatus.active;
   }
 
