@@ -68,16 +68,15 @@ class _MasternodeCard extends StatelessWidget {
         ),
       );
     } else {
-      await Navigator.of(
-        context,
-      ).pushNamed(MasternodeDetailsView.routeName, arguments: node);
+      await Navigator.of(context)
+          .pushNamed(MasternodeDetailsView.routeName, arguments: node);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final stack = Theme.of(context).extension<StackColors>()!;
-    final isActive = node.revocationReason == 0;
+    final status = node.status;
 
     return RoundedWhiteContainer(
       padding: const EdgeInsets.all(16),
@@ -97,9 +96,8 @@ class _MasternodeCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   "Last paid height: ${node.lastPaidHeight}",
-                  style: STextStyles.baseXS(
-                    context,
-                  ).copyWith(color: stack.textSubtitle1),
+                  style: STextStyles.baseXS(context)
+                      .copyWith(color: stack.textSubtitle1),
                 ),
               ],
             ),
@@ -108,14 +106,17 @@ class _MasternodeCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: isActive ? stack.accentColorGreen : stack.accentColorRed,
+              color: switch (status) {
+                MasternodeStatus.active => stack.accentColorGreen,
+                MasternodeStatus.banned => stack.accentColorOrange,
+                MasternodeStatus.revoked => stack.accentColorRed,
+              },
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
-              isActive ? "ACTIVE" : "REVOKED",
-              style: STextStyles.w600_12(
-                context,
-              ).copyWith(color: stack.textWhite),
+              status.label,
+              style: STextStyles.w600_12(context)
+                  .copyWith(color: stack.textWhite),
             ),
           ),
         ],
