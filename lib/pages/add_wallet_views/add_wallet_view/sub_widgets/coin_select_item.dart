@@ -139,44 +139,45 @@ class _CoinSelectItemState extends ConsumerState<CoinSelectItem> {
           child: Row(
             children: [
               if (widget.entity is EthTokenEntity &&
-                  (widget.entity as EthTokenEntity).token.address.toLowerCase() ==
+                  (widget.entity as EthTokenEntity).token.address
+                          .toLowerCase() ==
                       DefaultTokens.rsFiro.address)
                 SvgPicture.asset(Assets.svg.rsFiro, width: 26, height: 26)
               else
                 tokenImageUri != null
-                  ? tokenImageUri!.toLowerCase().endsWith(".svg")
-                        ? SvgPicture.network(
-                            tokenImageUri!,
-                            width: 26,
-                            height: 26,
-                            placeholderBuilder: (_) =>
-                                const AppIcon(width: 26, height: 26),
-                          )
-                        : Image.network(
-                            tokenImageUri!,
-                            width: 26,
-                            height: 26,
-                            errorBuilder: (_, _, _) => SvgPicture.file(
-                              File(
-                                ref.watch(
-                                  coinIconProvider(
-                                    widget.entity.cryptoCurrency,
-                                  ),
-                                ),
-                              ),
+                    ? tokenImageUri!.toLowerCase().endsWith(".svg")
+                          ? SvgPicture.network(
+                              tokenImageUri!,
                               width: 26,
                               height: 26,
-                            ),
-                          )
-                  : SvgPicture.file(
-                      File(
-                        ref.watch(
-                          coinIconProvider(widget.entity.cryptoCurrency),
+                              placeholderBuilder: (_) =>
+                                  const AppIcon(width: 26, height: 26),
+                            )
+                          : Image.network(
+                              tokenImageUri!,
+                              width: 26,
+                              height: 26,
+                              errorBuilder: (_, _, _) => SvgPicture.file(
+                                File(
+                                  ref.watch(
+                                    coinIconProvider(
+                                      widget.entity.cryptoCurrency,
+                                    ),
+                                  ),
+                                ),
+                                width: 26,
+                                height: 26,
+                              ),
+                            )
+                    : SvgPicture.file(
+                        File(
+                          ref.watch(
+                            coinIconProvider(widget.entity.cryptoCurrency),
+                          ),
                         ),
+                        width: 26,
+                        height: 26,
                       ),
-                      width: 26,
-                      height: 26,
-                    ),
               SizedBox(width: isDesktop ? 12 : 10),
               Text(
                 "${widget.entity.name} (${widget.entity.ticker})",
@@ -193,9 +194,9 @@ class _CoinSelectItemState extends ConsumerState<CoinSelectItem> {
                     height: 24,
                     child: SvgPicture.asset(
                       Assets.svg.check,
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
                     ),
                   ),
                 ),

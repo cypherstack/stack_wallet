@@ -55,18 +55,14 @@ class _AddTokenListElementState extends ConsumerState<AddTokenListElement> {
     super.initState();
 
     ExchangeDataLoadingService.instance.isar.then((isar) async {
-      final currency =
-          await isar.currencies
-              .where()
-              .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
-              .filter()
-              .tokenContractEqualTo(
-                widget.data.token.address,
-                caseSensitive: false,
-              )
-              .and()
-              .imageIsNotEmpty()
-              .findFirst();
+      final currency = await isar.currencies
+          .where()
+          .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
+          .filter()
+          .tokenContractEqualTo(widget.data.token.address, caseSensitive: false)
+          .and()
+          .imageIsNotEmpty()
+          .findFirst();
 
       if (mounted) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -87,10 +83,9 @@ class _AddTokenListElementState extends ConsumerState<AddTokenListElement> {
 
     return RoundedWhiteContainer(
       padding: EdgeInsets.all(isDesktop ? 16 : 12),
-      borderColor:
-          isDesktop
-              ? Theme.of(context).extension<StackColors>()!.backgroundAppBar
-              : null,
+      borderColor: isDesktop
+          ? Theme.of(context).extension<StackColors>()!.backgroundAppBar
+          : null,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -106,40 +101,36 @@ class _AddTokenListElementState extends ConsumerState<AddTokenListElement> {
                 )
               else
                 currency != null
-                  ? SvgPicture.network(
-                    currency!.image,
-                    width: iconSize,
-                    height: iconSize,
-                    placeholderBuilder:
-                        (_) => AppIcon(width: iconSize, height: iconSize),
-                  )
-                  : AppIcon(width: iconSize, height: iconSize),
+                    ? SvgPicture.network(
+                        currency!.image,
+                        width: iconSize,
+                        height: iconSize,
+                        placeholderBuilder: (_) =>
+                            AppIcon(width: iconSize, height: iconSize),
+                      )
+                    : AppIcon(width: iconSize, height: iconSize),
               const SizedBox(width: 12),
               ConditionalParent(
                 condition: isDesktop,
-                builder:
-                    (child) => Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        child,
-                        const SizedBox(height: 2),
-                        Text(
-                          widget.data.token.symbol,
-                          style: STextStyles.desktopTextExtraExtraSmall(
-                            context,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
+                builder: (child) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    child,
+                    const SizedBox(height: 2),
+                    Text(
+                      widget.data.token.symbol,
+                      style: STextStyles.desktopTextExtraExtraSmall(context),
+                      overflow: TextOverflow.ellipsis,
                     ),
+                  ],
+                ),
                 child: Text(
                   isDesktop
                       ? mainLabel
                       : "$mainLabel (${widget.data.token.symbol})",
-                  style:
-                      isDesktop
-                          ? STextStyles.desktopTextSmall(context)
-                          : STextStyles.w600_14(context),
+                  style: isDesktop
+                      ? STextStyles.desktopTextSmall(context)
+                      : STextStyles.w600_14(context),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -148,21 +139,20 @@ class _AddTokenListElementState extends ConsumerState<AddTokenListElement> {
           const SizedBox(width: 4),
           isDesktop
               ? Checkbox(
-                value: widget.data.selected,
-                onChanged:
-                    (newValue) =>
-                        setState(() => widget.data.selected = newValue!),
-              )
+                  value: widget.data.selected,
+                  onChanged: (newValue) =>
+                      setState(() => widget.data.selected = newValue!),
+                )
               : SizedBox(
-                height: 20,
-                width: 40,
-                child: DraggableSwitchButton(
-                  isOn: widget.data.selected,
-                  onValueChanged: (newValue) {
-                    widget.data.selected = newValue;
-                  },
+                  height: 20,
+                  width: 40,
+                  child: DraggableSwitchButton(
+                    isOn: widget.data.selected,
+                    onValueChanged: (newValue) {
+                      widget.data.selected = newValue;
+                    },
+                  ),
                 ),
-              ),
         ],
       ),
     );
