@@ -20,6 +20,7 @@ import '../../../../services/exchange/change_now/change_now_exchange.dart';
 import '../../../../services/exchange/exchange_data_loading_service.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
+import '../../../../utilities/default_eth_tokens.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../widgets/app_icon.dart';
@@ -95,7 +96,16 @@ class _AddTokenListElementState extends ConsumerState<AddTokenListElement> {
         children: [
           Row(
             children: [
-              currency != null
+              if (widget.data.token is EthContract &&
+                  widget.data.token.address.toLowerCase() ==
+                      DefaultTokens.rsFiro.address)
+                SvgPicture.asset(
+                  Assets.svg.rsFiro,
+                  width: iconSize,
+                  height: iconSize,
+                )
+              else
+                currency != null
                   ? SvgPicture.network(
                     currency!.image,
                     width: iconSize,
