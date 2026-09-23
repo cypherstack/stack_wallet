@@ -75,7 +75,14 @@ const ({String light, String dark})? _appIconAsset = (
 
 final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Firo(CryptoCurrencyNetwork.main),
+  Ethereum(CryptoCurrencyNetwork.main),
 ]);
+
+final List<EthContract> _defaultEthTokens = [
+  DefaultTokens.rsFiro,
+  DefaultTokens.usdc,
+  DefaultTokens.usdt,
+];
 
 final ({String from, String fromFuzzyNet, String to, String toFuzzyNet})
 _swapDefaults = (

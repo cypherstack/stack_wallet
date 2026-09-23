@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar_community/isar.dart';
 
+import '../../../app_config.dart';
 import '../../../db/isar/main_db.dart';
 import '../../../models/isar/models/ethereum/eth_contract.dart';
 import '../../../models/isar/models/solana/sol_contract.dart';
@@ -25,7 +26,6 @@ import '../../../providers/global/wallets_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/constants.dart';
-import '../../../utilities/default_eth_tokens.dart';
 import '../../../utilities/default_sol_tokens.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
@@ -268,7 +268,7 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
           .findAllSync();
 
       if (contracts.isEmpty) {
-        contracts.addAll(DefaultTokens.list);
+        contracts.addAll(AppConfig.defaultEthTokens);
         MainDB.instance
             .putEthContracts(contracts)
             .then(

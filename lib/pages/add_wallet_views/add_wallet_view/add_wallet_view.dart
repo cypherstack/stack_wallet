@@ -28,7 +28,6 @@ import '../../../providers/providers.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/constants.dart';
-import '../../../utilities/default_eth_tokens.dart';
 import '../../../utilities/default_sol_tokens.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
@@ -180,7 +179,7 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
           MainDB.instance.getEthContracts().sortByName().findAllSync();
 
       if (contracts.isEmpty) {
-        contracts.addAll(DefaultTokens.list);
+        contracts.addAll(AppConfig.defaultEthTokens);
         MainDB.instance
             .putEthContracts(contracts)
             .then(
