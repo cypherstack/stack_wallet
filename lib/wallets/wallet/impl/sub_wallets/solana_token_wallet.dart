@@ -655,8 +655,7 @@ class SolanaTokenWallet extends Wallet {
         return;
       }
 
-      final tokenApi = SolanaTokenAPI();
-      tokenApi.initializeRpcClient(rpcClient);
+      final tokenApi = SolanaTokenAPI(rpcClient: rpcClient);
 
       final balanceResponse = await tokenApi.getTokenAccountBalance(
         senderTokenAccount,
@@ -814,9 +813,6 @@ class SolanaTokenWallet extends Wallet {
   }) async {
     final ownerPubkey = Ed25519HDPublicKey.fromBase58(ownerAddress);
     final mintPubkey = Ed25519HDPublicKey.fromBase58(mint);
-
-    final tokenApi = SolanaTokenAPI();
-    tokenApi.initializeRpcClient(rpcClient);
 
     String tokenProgramId;
     try {

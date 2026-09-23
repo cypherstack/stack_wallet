@@ -27,8 +27,10 @@ import '../../../utilities/assets.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/default_eth_tokens.dart';
 import '../../../utilities/default_sol_tokens.dart';
+import '../../../utilities/logger.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
+import '../../../wallets/isar/providers/solana/discovered_sol_tokens_provider.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/wallet/impl/ethereum_wallet.dart';
 import '../../../wallets/wallet/impl/solana_wallet.dart';
@@ -80,6 +82,13 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
   final List<AddTokenListElementData> tokenEntities = [];
 
   final bool isDesktop = Util.isDesktop;
+  bool _isDiscoveringSolanaTokens = false;
+
+  String get _submitLabel => _isDiscoveringSolanaTokens
+      ? "Discovering..."
+      : widget.contractsToMarkSelected != null
+      ? "Save"
+      : "Next";
 
   List<AddTokenListElementData> filter(
     String text,
@@ -100,11 +109,13 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
   }
 
   Future<void> onNextPressed() async {
-    final selectedTokens =
-        tokenEntities
-            .where((e) => e.selected)
-            .map((e) => e.token.address)
-            .toList();
+    if (_isDiscoveringSolanaTokens) {
+      return;
+    }
+    final selectedTokens = tokenEntities
+        .where((e) => e.selected)
+        .map((e) => e.token.address)
+        .toList();
 
     final wallet = ref.read(pWallets).getWallet(widget.walletId);
 
@@ -177,7 +188,9 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
               tokenEntities.add(
                 AddTokenListElementData(contract!)..selected = true,
               );
-              tokenEntities.sort((a, b) => a.token.name.compareTo(b.token.name));
+              tokenEntities.sort(
+                (a, b) => a.token.name.compareTo(b.token.name),
+              );
             }
           });
         }
@@ -199,9 +212,7 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
         ),
       );
     } else {
-      final result = await Navigator.of(
-        context,
-      ).pushNamed(
+      final result = await Navigator.of(context).pushNamed(
         AddCustomSolanaTokenView.routeName,
         arguments: widget.walletId,
       );
@@ -228,9 +239,7 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
           if (tokenEntities
               .where((e) => e.token.address == token!.address)
               .isEmpty) {
-            tokenEntities.add(
-              AddTokenListElementData(token!)..selected = true,
-            );
+            tokenEntities.add(AddTokenListElementData(token!)..selected = true);
             tokenEntities.sort((a, b) => a.token.name.compareTo(b.token.name));
           }
         });
@@ -240,6 +249,8 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
 
   @override
   void initState() {
+    super.initState();
+
     _searchFieldController = TextEditingController();
     _searchFocusNode = FocusNode();
 
@@ -291,7 +302,69 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
       e.selected = shouldMarkAsSelectedContracts.contains(e.token.address);
     }
 
-    super.initState();
+    if (wallet is SolanaWallet) {
+      _isDiscoveringSolanaTokens = true;
+      unawaited(_loadDiscoveredTokens(wallet));
+    }
+  }
+
+  /// Discover the SPL tokens held by [wallet] and merge them into the list.
+  ///
+  /// Only tokens new to the stored catalog are selected automatically;
+  /// existing user selections are left unchanged.
+  Future<void> _loadDiscoveredTokens(SolanaWallet wallet) async {
+    // Captured while still mounted; context is not safe to use after an await.
+    final container = ProviderScope.containerOf(context, listen: false);
+    try {
+      final address = await wallet.getCurrentReceivingAddress();
+      if (address == null || !mounted) {
+        return;
+      }
+
+      final discovered = await readDiscoveredSolanaTokens(
+        container,
+        walletId: widget.walletId,
+        walletAddress: address.value,
+      );
+
+      if (discovered.isEmpty || !mounted) {
+        return;
+      }
+
+      final newContracts = newDiscoveredSolanaContracts(
+        knownContracts: tokenEntities
+            .map((entry) => entry.token)
+            .whereType<SolContract>(),
+        discoveredContracts: discovered,
+      );
+
+      if (newContracts.isNotEmpty) {
+        await MainDB.instance.putSolContracts(newContracts);
+      }
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        for (var index = 0; index < newContracts.length; index++) {
+          tokenEntities.insert(
+            index,
+            AddTokenListElementData(newContracts[index])..selected = true,
+          );
+        }
+      });
+    } catch (e, s) {
+      Logging.instance.w(
+        "Failed to load discovered Solana tokens for ${widget.walletId}",
+        error: e,
+        stackTrace: s,
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isDiscoveringSolanaTokens = false);
+      }
+    }
   }
 
   @override
@@ -366,10 +439,11 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
                   height: 70,
                   width: 480,
                   child: PrimaryButton(
-                    label: widget.contractsToMarkSelected != null
-                        ? "Save"
-                        : "Next",
-                    onPressed: onNextPressed,
+                    label: _submitLabel,
+                    enabled: !_isDiscoveringSolanaTokens,
+                    onPressed: _isDiscoveringSolanaTokens
+                        ? null
+                        : onNextPressed,
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -420,9 +494,14 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
                       const SizedBox(width: 16),
                       Expanded(
                         child: PrimaryButton(
-                          label: "Done",
+                          label: _isDiscoveringSolanaTokens
+                              ? "Discovering..."
+                              : "Done",
                           buttonHeight: ButtonHeight.l,
-                          onPressed: onNextPressed,
+                          enabled: !_isDiscoveringSolanaTokens,
+                          onPressed: _isDiscoveringSolanaTokens
+                              ? null
+                              : onNextPressed,
                         ),
                       ),
                     ],
@@ -625,10 +704,11 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
                     ),
                     const SizedBox(height: 16),
                     PrimaryButton(
-                      label: widget.contractsToMarkSelected != null
-                          ? "Save"
-                          : "Next",
-                      onPressed: onNextPressed,
+                      label: _submitLabel,
+                      enabled: !_isDiscoveringSolanaTokens,
+                      onPressed: _isDiscoveringSolanaTokens
+                          ? null
+                          : onNextPressed,
                     ),
                   ],
                 ),
