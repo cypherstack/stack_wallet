@@ -24,6 +24,7 @@ import '../services/mixins/wallet_db.dart';
 import '../services/wallets_service.dart';
 import '../utilities/amount/amount.dart';
 import '../utilities/constants.dart';
+import '../utilities/default_eth_tokens.dart';
 import '../utilities/flutter_secure_storage_interface.dart';
 import '../utilities/logger.dart';
 import '../utilities/prefs.dart';
@@ -379,9 +380,8 @@ class DbVersionMigrator with WalletDB {
         final mwcMigrationWalletsService = WalletsService();
         final mwcMigrationWalletNames =
             await mwcMigrationWalletsService.walletNames;
-        final mwcIdentifier = Mimblewimblecoin(
-          CryptoCurrencyNetwork.main,
-        ).identifier;
+        final mwcIdentifier = Mimblewimblecoin(CryptoCurrencyNetwork.main)
+            .identifier;
         for (final walletId in mwcMigrationWalletNames.keys) {
           if (mwcMigrationWalletNames[walletId]!.coinIdentifier ==
               mwcIdentifier) {
@@ -398,6 +398,31 @@ class DbVersionMigrator with WalletDB {
 
         // try to continue migrating
         return await migrate(16, secureStore: secureStore);
+
+      case 16:
+        if (AppConfig.defaultEthTokens.contains(DefaultTokens.rsFiro)) {
+          final db = MainDB.instance;
+          await db.initMainDB();
+          if (await db.getEthContracts().isEmpty()) {
+            await db.putEthContracts(AppConfig.defaultEthTokens);
+          } else if (await db
+              .getEthContracts()
+              .filter()
+              .addressEqualTo(
+                DefaultTokens.rsFiro.address,
+                caseSensitive: false,
+              )
+              .isEmpty()) {
+            await db.putEthContract(DefaultTokens.rsFiro);
+          }
+        }
+
+        await DB.instance.put<dynamic>(
+          boxName: DB.boxNameDBInfo,
+          key: "hive_data_version",
+          value: 17,
+        );
+        return await migrate(17, secureStore: secureStore);
 
       default:
         // finally return
