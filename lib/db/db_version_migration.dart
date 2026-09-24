@@ -403,16 +403,15 @@ class DbVersionMigrator with WalletDB {
         if (AppConfig.defaultEthTokens.contains(DefaultTokens.rsFiro)) {
           final db = MainDB.instance;
           await db.initMainDB();
-          if (await db.getEthContracts().isEmpty()) {
-            await db.putEthContracts(AppConfig.defaultEthTokens);
-          } else if (await db
-              .getEthContracts()
-              .filter()
-              .addressEqualTo(
-                DefaultTokens.rsFiro.address,
-                caseSensitive: false,
-              )
-              .isEmpty()) {
+          if (await db.getEthContracts().isNotEmpty() &&
+              await db
+                  .getEthContracts()
+                  .filter()
+                  .addressEqualTo(
+                    DefaultTokens.rsFiro.address,
+                    caseSensitive: false,
+                  )
+                  .isEmpty()) {
             await db.putEthContract(DefaultTokens.rsFiro);
           }
         }

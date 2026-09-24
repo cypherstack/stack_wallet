@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isar_community/isar.dart';
-import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/db/db_version_migration.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
@@ -37,12 +36,8 @@ void main() {
     await migrate(16);
     expect(Constants.currentDataVersion, 17);
     expect(info.get('hive_data_version'), 17);
-    expect(
-      await db.getEthContracts().addressProperty().findAll(),
-      unorderedEquals(AppConfig.defaultEthTokens.map((token) => token.address)),
-    );
+    expect(await db.getEthContracts().isEmpty(), isTrue);
 
-    await isar.writeTxn(() => isar.ethContracts.clear());
     final custom = DefaultTokens.usdc.copyWith(name: 'Custom token');
     await db.putEthContract(custom);
     await migrate(16);
