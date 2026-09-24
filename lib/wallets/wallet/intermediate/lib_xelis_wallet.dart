@@ -8,7 +8,6 @@ import 'package:mutex/mutex.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/stack_file_system.dart';
-import '../../../utilities/xelis_storage.dart';
 import '../../../wl_gen/interfaces/lib_xelis_interface.dart';
 import '../../crypto_currency/intermediate/electrum_currency.dart';
 import '../wallet_mixin_interfaces/mnemonic_interface.dart';
@@ -324,8 +323,10 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
 
   static Future<bool> checkWalletExists(String walletId) async {
     final xelisDir = await StackFileSystem.applicationXelisDirectory();
-    // Opening must reject the same aliases and unexpected files as deletion.
-    return await xelisWalletDirectory(xelisDir, walletId) != null;
+    final walletDir = Directory(
+      "${xelisDir.path}${Platform.pathSeparator}$walletId",
+    );
+    return await walletDir.exists();
   }
 
   @override
