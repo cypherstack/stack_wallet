@@ -1631,8 +1631,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: c393e8d1be93cce013f53fe16ec44080b2fdefdd
-      resolved-ref: c393e8d1be93cce013f53fe16ec44080b2fdefdd
+      ref: "0f07a82569854c1830a66ae86daa9308b382617a"
+      resolved-ref: "0f07a82569854c1830a66ae86daa9308b382617a"
       url: "https://github.com/cypherstack/mobile_app_privacy"
     source: git
     version: "0.0.4"

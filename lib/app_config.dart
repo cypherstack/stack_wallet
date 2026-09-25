@@ -1,6 +1,8 @@
 // ignore: unused_import
 import 'dart:io';
 
+import 'models/isar/models/ethereum/eth_contract.dart';
+import 'utilities/default_eth_tokens.dart';
 import 'wallets/crypto_currency/crypto_currency.dart';
 import 'wallets/crypto_currency/intermediate/frost_currency.dart';
 
@@ -27,6 +29,8 @@ abstract class AppConfig {
   static ({String light, String dark})? get appIconAsset => _appIconAsset;
 
   static List<CryptoCurrency> get coins => _supportedCoins;
+
+  static List<EthContract> get defaultEthTokens => _defaultEthTokens;
 
   static ({String from, String fromFuzzyNet, String to, String toFuzzyNet})
   get swapDefaults => _swapDefaults;
