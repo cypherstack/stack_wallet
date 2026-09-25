@@ -14,14 +14,19 @@ import 'package:flutter_svg/svg.dart';
 import 'package:isar_community/isar.dart';
 
 import '../../models/isar/models/isar_models.dart';
+import '../../models/keys/view_only_wallet_data.dart';
 import '../../pages/receive_view/addresses/address_details_view.dart';
 import '../../providers/db/main_db_provider.dart';
+import '../../providers/global/wallets_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/text_styles.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_app_bar.dart';
 import '../../widgets/desktop/desktop_scaffold.dart';
+import '../../widgets/generate_address_button.dart';
 import 'sub_widgets/desktop_address_list.dart';
 
 final desktopSelectedAddressId = StateProvider.autoDispose<Id?>((ref) => null);
@@ -73,6 +78,21 @@ class _DesktopWalletAddressesViewState
 
   @override
   Widget build(BuildContext context) {
+    final wallet = ref.watch(
+      pWallets.select((value) => value.getWallet(widget.walletId)),
+    );
+
+    final bool canGen;
+    if (wallet is ViewOnlyOptionInterface &&
+        wallet.isViewOnly &&
+        // Neither type carries an xpub, so no further address can be derived.
+        (wallet.viewOnlyType == ViewOnlyWalletType.addressOnly ||
+            wallet.viewOnlyType == ViewOnlyWalletType.spark)) {
+      canGen = false;
+    } else {
+      canGen = wallet is MultiAddressInterface;
+    }
+
     return DesktopScaffold(
       appBar: DesktopAppBar(
         background: Theme.of(context).extension<StackColors>()!.popupBG,
@@ -82,25 +102,33 @@ class _DesktopWalletAddressesViewState
               const SizedBox(width: 32),
               AppBarIconButton(
                 size: 32,
-                color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultBG,
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.textFieldDefaultBG,
                 shadows: const [],
                 icon: SvgPicture.asset(
                   Assets.svg.arrowLeft,
                   width: 18,
                   height: 18,
-                  color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()!.topNavIconPrimary,
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.topNavIconPrimary,
                 ),
                 onPressed: Navigator.of(context).pop,
               ),
               const SizedBox(width: 12),
               Text("Address list", style: STextStyles.desktopH3(context)),
               const Spacer(),
+              if (canGen)
+                SizedBox(
+                  width: 200,
+                  child: GenerateAddressButton(
+                    buttonHeight: ButtonHeight.l,
+                    generateAddress: (wallet as MultiAddressInterface)
+                        .generateNewReceivingAddress,
+                  ),
+                ),
+              const SizedBox(width: 32),
             ],
           ),
         ),
@@ -135,10 +163,9 @@ class _DesktopWalletAddressesViewState
                                   "currentDesktopAddressDetails_key_${ref.watch(desktopSelectedAddressId.state).state}",
                                 ),
                                 walletId: widget.walletId,
-                                addressId:
-                                    ref
-                                        .watch(desktopSelectedAddressId.state)
-                                        .state!,
+                                addressId: ref
+                                    .watch(desktopSelectedAddressId.state)
+                                    .state!,
                               ),
                             ),
                           ),
