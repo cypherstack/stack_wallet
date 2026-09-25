@@ -80,6 +80,8 @@ final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   BitcoinFrost(CryptoCurrencyNetwork.test4),
 ]);
 
+const List<EthContract> _defaultEthTokens = [];
+
 final ({String from, String fromFuzzyNet, String to, String toFuzzyNet})
 _swapDefaults = (
   from: "BTC",

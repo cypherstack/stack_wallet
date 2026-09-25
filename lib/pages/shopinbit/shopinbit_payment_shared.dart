@@ -20,9 +20,7 @@ import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import 'shopinbit_send_from_view.dart';
 
-final String kShopInBitUsdtContractAddress = DefaultTokens.list
-    .firstWhere((t) => t.symbol == "USDT")
-    .address;
+final String kShopInBitUsdtContractAddress = DefaultTokens.usdt.address;
 
 // Address + amount pulled out of one of the API's payment_links entries.
 class ShopInBitPaymentTarget {
