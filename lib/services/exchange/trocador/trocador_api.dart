@@ -318,8 +318,7 @@ abstract class TrocadorAPI {
         String error = map["error"] as String? ?? json.toString();
         if (error ==
             "trade could not be generated, some unknown error happened") {
-          error =
-              "This trade couldn't be completed. Please select another provider.";
+          error = "This trade couldn't be completed. Please select another provider.";
         }
 
         Logging.instance.e(

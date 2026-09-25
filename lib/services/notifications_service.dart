@@ -109,7 +109,7 @@ class NotificationsService extends ChangeNotifier {
     _timer = Timer.periodic(notificationRefreshInterval, (_) {
       Logging.instance.d("Periodic notifications update check");
       if (prefs.externalCalls) {
-        _checkTrades();
+        unawaited(_checkTrades());
       }
       _checkTransactions();
     });
@@ -159,21 +159,20 @@ class NotificationsService extends ChangeNotifier {
               torEnabled: node.torEnabled,
               clearnetEnabled: node.clearnetEnabled,
             );
-            final failovers =
-                nodeService
-                    .failoverNodesFor(currency: coin)
-                    .map(
-                      (e) => ElectrumXNode(
-                        address: e.host,
-                        port: e.port,
-                        name: e.name,
-                        id: e.id,
-                        useSSL: e.useSSL,
-                        torEnabled: node.torEnabled,
-                        clearnetEnabled: node.clearnetEnabled,
-                      ),
-                    )
-                    .toList();
+            final failovers = nodeService
+                .failoverNodesFor(currency: coin)
+                .map(
+                  (e) => ElectrumXNode(
+                    address: e.host,
+                    port: e.port,
+                    name: e.name,
+                    id: e.id,
+                    useSSL: e.useSSL,
+                    torEnabled: node.torEnabled,
+                    clearnetEnabled: node.clearnetEnabled,
+                  ),
+                )
+                .toList();
 
             final client = ElectrumXClient.from(
               node: eNode,
@@ -233,7 +232,7 @@ class NotificationsService extends ChangeNotifier {
     }
   }
 
-  void _checkTrades() async {
+  Future<void> _checkTrades() async {
     for (final notification in _watchedChangeNowTradeNotifications) {
       final id = notification.changeNowId!;
 
@@ -243,7 +242,7 @@ class NotificationsService extends ChangeNotifier {
       );
 
       if (trades.isEmpty) {
-        return;
+        continue;
       }
       final oldTrade = trades.first;
       late final ExchangeResponse<Trade> response;
@@ -252,11 +251,11 @@ class NotificationsService extends ChangeNotifier {
         final exchange = Exchange.fromName(oldTrade.exchangeName);
         response = await exchange.updateTrade(oldTrade);
       } catch (_) {
-        return;
+        continue;
       }
 
       if (response.value == null) {
-        return;
+        continue;
       }
 
       final trade = response.value!;
@@ -371,11 +370,10 @@ class NotificationsService extends ChangeNotifier {
   }
 
   Future<void> markAsRead(int id, bool shouldNotifyListeners) async {
-    final model =
-        DB.instance.get<NotificationModel>(
-          boxName: DB.boxNameNotifications,
-          key: id,
-        )!;
+    final model = DB.instance.get<NotificationModel>(
+      boxName: DB.boxNameNotifications,
+      key: id,
+    )!;
     await DB.instance.put<NotificationModel>(
       boxName: DB.boxNameNotifications,
       key: model.id,

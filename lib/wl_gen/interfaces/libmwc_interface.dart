@@ -141,8 +141,6 @@ abstract class LibMwcInterface {
   Future<String> deleteWallet({required String wallet, required String config});
 
   Future<String> initLogs({required String config});
-
-  String getPluginVersion();
 }
 
 class MwcTransaction {

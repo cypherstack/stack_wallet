@@ -64,8 +64,7 @@ class Peercoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
     String coinType;
     switch (networkParams.wifPrefix) {
       case 183: // PPC mainnet wif.
-        coinType =
-            "6"; // according to https://github.com/satoshilabs/slips/blob/master/slip-0044.md
+        coinType = "6"; // according to https://github.com/satoshilabs/slips/blob/master/slip-0044.md
         break;
       case 239: // PPC testnet wif.
         coinType = "1";
@@ -165,11 +164,10 @@ class Peercoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
         return (address: addr, addressType: AddressType.p2pkh);
 
       case DerivePathType.bip49:
-        final p2wpkhScript =
-            coinlib.P2WPKHAddress.fromPublicKey(
-              publicKey,
-              hrp: networkParams.bech32Hrp,
-            ).program.script;
+        final p2wpkhScript = coinlib.P2WPKHAddress.fromPublicKey(
+          publicKey,
+          hrp: networkParams.bech32Hrp,
+        ).program.script;
 
         final addr = coinlib.P2SHAddress.fromRedeemScript(
           p2wpkhScript,
@@ -266,5 +264,5 @@ class Peercoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   int get transactionVersion => 3;
 
   @override
-  BigInt get defaultFeeRate => BigInt.from(5000);
+  BigInt get defaultFeeRate => BigInt.from(10000);
 }

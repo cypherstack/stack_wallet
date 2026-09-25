@@ -1,6 +1,8 @@
 // ignore: unused_import
 import 'dart:io';
 
+import 'models/isar/models/ethereum/eth_contract.dart';
+import 'utilities/default_eth_tokens.dart';
 import 'wallets/crypto_currency/crypto_currency.dart';
 import 'wallets/crypto_currency/intermediate/frost_currency.dart';
 
@@ -28,6 +30,8 @@ abstract class AppConfig {
 
   static List<CryptoCurrency> get coins => _supportedCoins;
 
+  static List<EthContract> get defaultEthTokens => _defaultEthTokens;
+
   static ({String from, String fromFuzzyNet, String to, String toFuzzyNet})
   get swapDefaults => _swapDefaults;
 
@@ -42,7 +46,7 @@ abstract class AppConfig {
   }
 
   static CryptoCurrency? getCryptoCurrencyForTicker(
-    final String ticker, {
+    String ticker, {
     bool caseInsensitive = true,
   }) {
     final _ticker = caseInsensitive ? ticker.toLowerCase() : ticker;
@@ -76,7 +80,7 @@ abstract class AppConfig {
 
   /// Fuzzy logic. Use with caution!!
   @Deprecated("dangerous")
-  static CryptoCurrency getCryptoCurrencyByPrettyName(final String prettyName) {
+  static CryptoCurrency getCryptoCurrencyByPrettyName(String prettyName) {
     // trocador hack
     const hackSplitter = " (Mainnet";
     final name = prettyName.contains(hackSplitter)

@@ -43,15 +43,14 @@ class _RegisterMasternodeFormState
   final _ipAndPortController = TextEditingController();
   final _operatorPubKeyController = TextEditingController();
   final _votingAddressController = TextEditingController();
-  final _operatorRewardController = TextEditingController(text: "0");
   final _payoutAddressController = TextEditingController();
 
   TextStyle _getStyle(BuildContext context) {
     return Util.isDesktop
         ? STextStyles.desktopTextExtraExtraSmall(context).copyWith(
-            color: Theme.of(
-              context,
-            ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .textFieldActiveSearchIconRight,
           )
         : STextStyles.smallMed12(context);
   }
@@ -62,7 +61,6 @@ class _RegisterMasternodeFormState
 
   void _validate() {
     if (mounted) {
-      final percent = double.tryParse(_operatorRewardController.text);
       setState(() {
         _enableCreateButton = [
           _ipAndPortController.text
@@ -72,8 +70,6 @@ class _RegisterMasternodeFormState
                   .length ==
               2,
           _operatorPubKeyController.text.trim().isNotEmpty,
-          percent != null && !percent.isNegative,
-          percent != null && percent <= 100.0,
           _payoutAddressController.text.trim().isNotEmpty,
         ].every((e) => e);
       });
@@ -88,14 +84,6 @@ class _RegisterMasternodeFormState
     final votingAddress = _votingAddressController.text.trim();
     final payoutAddress = _payoutAddressController.text.trim();
 
-    // according to https://github.com/cypherstack/stack_wallet/blob/c898a70f808ed5490b8dd23571f5f162d9e38158/lib/wallets/wallet/impl/firo_wallet.dart#L1064
-    // this should be a percent of 10000
-    final operatorPercent = double.parse(_operatorRewardController.text);
-    final operatorReward = (10000 * (operatorPercent / 100)).round().clamp(
-      0,
-      10000,
-    );
-
     final wallet =
         ref.read(pWallets).getWallet(widget.firoWalletId) as FiroWallet;
 
@@ -104,7 +92,6 @@ class _RegisterMasternodeFormState
       port,
       operatorPubKey,
       votingAddress,
-      operatorReward,
       payoutAddress,
       collateralTxid: widget.collateralTxid,
       collateralVout: widget.collateralVout,
@@ -161,7 +148,6 @@ class _RegisterMasternodeFormState
     _ipAndPortController.dispose();
     _operatorPubKeyController.dispose();
     _votingAddressController.dispose();
-    _operatorRewardController.dispose();
     _payoutAddressController.dispose();
     super.dispose();
   }
@@ -189,23 +175,20 @@ class _RegisterMasternodeFormState
                     children: [
                       Text(
                         "Masternode collateral",
-                        style: STextStyles.w500_12(
-                          context,
-                        ).copyWith(color: stack.textSubtitle1),
+                        style: STextStyles.w500_12(context)
+                            .copyWith(color: stack.textSubtitle1),
                       ),
                       const SizedBox(height: 4),
                       SelectableText(
                         widget.collateralAddress,
-                        style: STextStyles.w500_14(
-                          context,
-                        ).copyWith(color: stack.textDark),
+                        style: STextStyles.w500_14(context)
+                            .copyWith(color: stack.textDark),
                       ),
                       const SizedBox(height: 4),
                       SelectableText(
                         "${widget.collateralTxid}:${widget.collateralVout}",
-                        style: STextStyles.w500_12(
-                          context,
-                        ).copyWith(color: stack.textSubtitle1),
+                        style: STextStyles.w500_12(context)
+                            .copyWith(color: stack.textSubtitle1),
                       ),
                     ],
                   ),
@@ -244,16 +227,6 @@ class _RegisterMasternodeFormState
           showPasteClearButton: true,
           maxLines: 1,
           labelText: "Defaults to owner address",
-          onChangedComprehensive: (_) => _validate(),
-        ),
-        SizedBox(height: Util.isDesktop ? 24 : 16),
-
-        SelectableText("Operator reward (%)", style: _getStyle(context)),
-        SizedBox(height: Util.isDesktop ? 10 : 8),
-        AdaptiveTextField(
-          controller: _operatorRewardController,
-          showPasteClearButton: true,
-          maxLines: 1,
           onChangedComprehensive: (_) => _validate(),
         ),
         SizedBox(height: Util.isDesktop ? 24 : 16),

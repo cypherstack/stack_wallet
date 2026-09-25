@@ -13,19 +13,22 @@ void main() {
 
   test("Valid wowrpc scheme node uri", () {
     expect(
-      NodeQrUtil.decodeUri(
-        "wowrpc://nodo:password@10.0.0.10:18083",
-      ),
+      NodeQrUtil.decodeUri("wowrpc://nodo:password@10.0.0.10:18083"),
       isA<WowneroNodeQrData>(),
     );
+  });
+
+  test("Node uri requires an explicit port", () {
+    expect(() => NodeQrUtil.decodeUri("xmrrpc://bob.onion:0"), throwsException);
+    expect(() => NodeQrUtil.decodeUri("xmrrpc://bob.onion"), throwsException);
+    expect(() => NodeQrUtil.decodeUri("wowrpc://bob.onion"), throwsException);
+    expect(NodeQrUtil.decodeUri("xmrrpc://bob.onion:18083").port, 18083);
   });
 
   test("Invalid authority node uri", () {
     String? message;
     try {
-      NodeQrUtil.decodeUri(
-        "nodo:password@bob.onion:18083?label=Nodo Tor Node",
-      );
+      NodeQrUtil.decodeUri("nodo:password@bob.onion:18083?label=Nodo Tor Node");
     } catch (e) {
       message = e.toString();
     }
@@ -77,18 +80,14 @@ void main() {
   test("encoding to string", () {
     const validString =
         "xmrrpc://nodo:password@bob.onion:18083?label=Nodo+Tor+Node";
-    final data = NodeQrUtil.decodeUri(
-      validString,
-    );
+    final data = NodeQrUtil.decodeUri(validString);
     expect(data.encode(), validString);
   });
 
   test("normal to string", () {
     const validString =
         "xmrrpc://nodo:password@bob.onion:18083?label=Nodo+Tor+Node";
-    final data = NodeQrUtil.decodeUri(
-      validString,
-    );
+    final data = NodeQrUtil.decodeUri(validString);
     expect(
       data.toString(),
       "MoneroNodeQrData {"
@@ -100,5 +99,15 @@ void main() {
       "label: Nodo Tor Node"
       "}",
     );
+  });
+
+  test("node port validation", () {
+    expect(isValidNodePort(null), false);
+    expect(isValidNodePort(0), false);
+    expect(isValidNodePort(-1), false);
+    expect(isValidNodePort(65536), false);
+    expect(isValidNodePort(1), true);
+    expect(isValidNodePort(18081), true);
+    expect(isValidNodePort(65535), true);
   });
 }

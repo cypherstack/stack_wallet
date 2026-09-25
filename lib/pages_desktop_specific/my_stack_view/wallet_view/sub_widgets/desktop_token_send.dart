@@ -27,11 +27,14 @@ import '../../../../providers/wallet/desktop_fee_providers.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/address_utils.dart';
 import '../../../../utilities/amount/amount.dart';
+import '../../../../utilities/amount/amount_field_relocalization.dart';
 import '../../../../utilities/amount/amount_formatter.dart';
 import '../../../../utilities/amount/amount_input_formatter.dart';
 import '../../../../utilities/amount/amount_unit.dart';
 import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/constants.dart';
+import '../../../../utilities/enums/fee_rate_type_enum.dart';
+import '../../../../utilities/integer_input.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
@@ -54,6 +57,9 @@ import '../../../../widgets/textfield_icon_button.dart';
 import '../../../desktop_home_view.dart';
 import 'address_book_address_chooser/address_book_address_chooser.dart';
 import 'desktop_send_fee_form.dart';
+
+Amount? parseDesktopTokenFiatAmount(String value, {required String locale}) =>
+    Amount.tryParseFiatString(value, locale: locale);
 
 class DesktopTokenSend extends ConsumerStatefulWidget {
   const DesktopTokenSend({
@@ -102,9 +108,18 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
   bool _cryptoAmountChangeLock = false;
   late VoidCallback onCryptoAmountChanged;
 
-  EthEIP1559Fee? ethFee;
+  final _ethFee = ValueNotifier<EthEIP1559Fee?>(null);
+
+  ({bool isValid, int? value}) get _nonceInput =>
+      parseOptionalIntegerInput(nonceController.text, minimum: 0);
+
+  bool get _nonceIsValid => _nonceInput.isValid;
 
   Future<void> previewSend() async {
+    final nonceInput = _nonceInput;
+    if (!nonceInput.isValid) return;
+    final nonce = nonceInput.value;
+
     final tokenWallet = ref.read(pCurrentTokenWallet)!;
 
     final Amount amount = _amountToSend!;
@@ -148,9 +163,8 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
                     child: Text(
                       "You are about to send your entire balance. Would you like to continue?",
                       textAlign: TextAlign.left,
-                      style: STextStyles.desktopTextExtraExtraSmall(
-                        context,
-                      ).copyWith(fontSize: 18),
+                      style: STextStyles.desktopTextExtraExtraSmall(context)
+                          .copyWith(fontSize: 18),
                     ),
                   ),
                   const SizedBox(height: 40),
@@ -242,8 +256,8 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
             ),
           ],
           feeRateType: ref.read(feeRateTypeDesktopStateProvider),
-          nonce: int.tryParse(nonceController.text),
-          ethEIP1559Fee: ethFee,
+          nonce: nonce,
+          ethEIP1559Fee: _ethFee.value,
         ),
       );
 
@@ -307,9 +321,8 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
                         child: SelectableText(
                           e.toString(),
                           textAlign: TextAlign.left,
-                          style: STextStyles.desktopTextExtraExtraSmall(
-                            context,
-                          ).copyWith(fontSize: 18),
+                          style: STextStyles.desktopTextExtraExtraSmall(context)
+                              .copyWith(fontSize: 18),
                         ),
                       ),
                       const SizedBox(height: 40),
@@ -348,16 +361,23 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
     nonceController.text = "";
     _address = "";
     _addressToggleFlag = false;
+    _syncFeeAmount(null);
     if (mounted) {
       setState(() {});
     }
+  }
+
+  void _syncFeeAmount(Amount? amount) {
+    final tokenDecimals = ref.read(pCurrentTokenWallet)!.tokenContract.decimals;
+    ref.read(sendAmountProvider.notifier).state =
+        amount ?? Amount.zeroWith(fractionDigits: tokenDecimals);
   }
 
   void _cryptoAmountChanged() async {
     if (!_cryptoAmountChangeLock) {
       final cryptoAmount = ref
           .read(pAmountFormatter(coin))
-          .tryParse(
+          .tryParseEditable(
             cryptoAmountController.text,
             tokenContract: ref.read(pCurrentTokenWallet)!.tokenContract,
           );
@@ -376,13 +396,14 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
             ?.value;
 
         if (price != null && price > Decimal.zero) {
-          final String fiatAmountString =
-              Amount.fromDecimal(
-                _amountToSend!.decimal * price,
-                fractionDigits: 2,
-              ).fiatString(
-                locale: ref.read(localeServiceChangeNotifierProvider).locale,
-              );
+          final fiatAmount = Amount.fromDecimal(
+            _amountToSend!.decimal * price,
+            fractionDigits: 2,
+          );
+          final fiatAmountString = Amount.formatEditableDecimal(
+            fiatAmount.decimal,
+            locale: ref.read(localeServiceChangeNotifierProvider).locale,
+          );
 
           baseAmountController.text = fiatAmountString;
         }
@@ -397,7 +418,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
   }
 
   String? _updateInvalidAddressText(String address) {
-    if (_data != null && _data!.contactLabel == address) {
+    if (_data != null && _data.contactLabel == address) {
       return null;
     }
     if (address.isNotEmpty &&
@@ -460,17 +481,26 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
 
         // autofill amount field
         if (paymentData.amount != null) {
-          final Amount amount = Decimal.parse(paymentData.amount!).toAmount(
+          final amount = Amount.tryParseCanonicalAmount(
+            paymentData.amount!,
             fractionDigits: ref
                 .read(pCurrentTokenWallet)!
                 .tokenContract
                 .decimals,
+            truncateOverprecision: true,
           );
-          cryptoAmountController.text = ref
-              .read(pAmountFormatter(coin))
-              .format(amount, withUnitName: false);
-
-          _amountToSend = amount;
+          if (amount != null) {
+            cryptoAmountController.text = ref
+                .read(pAmountFormatter(coin))
+                .formatEditable(amount);
+            _amountToSend = amount;
+            _syncFeeAmount(amount);
+          } else {
+            cryptoAmountController.clear();
+            _amountToSend = null;
+            _cachedAmountToSend = null;
+            _syncFeeAmount(null);
+          }
         }
 
         _updatePreviewButtonState(_address, _amountToSend);
@@ -523,15 +553,12 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
         .tokenContract
         .decimals;
 
-    if (baseAmountString.isNotEmpty &&
-        baseAmountString != "." &&
-        baseAmountString != ",") {
-      final baseAmount = baseAmountString.contains(",")
-          ? Decimal.parse(
-              baseAmountString.replaceFirst(",", "."),
-            ).toAmount(fractionDigits: 2)
-          : Decimal.parse(baseAmountString).toAmount(fractionDigits: 2);
+    final baseAmount = parseDesktopTokenFiatAmount(
+      baseAmountString,
+      locale: ref.read(localeServiceChangeNotifierProvider).locale,
+    );
 
+    if (baseAmount != null) {
       final Decimal? _price = ref
           .read(priceAnd24hChangeNotifierProvider)
           .getTokenPrice(ref.read(pCurrentTokenWallet)!.tokenContract.address)
@@ -553,17 +580,14 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
 
       final amountString = ref
           .read(pAmountFormatter(coin))
-          .format(
-            _amountToSend!,
-            withUnitName: false,
-            tokenContract: ref.read(pCurrentTokenWallet)!.tokenContract,
-          );
+          .formatEditable(_amountToSend!);
 
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = amountString;
       _cryptoAmountChangeLock = false;
     } else {
       _amountToSend = Decimal.zero.toAmount(fractionDigits: tokenDecimals);
+      _cachedAmountToSend = null;
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = "";
       _cryptoAmountChangeLock = false;
@@ -573,19 +597,17 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
   }
 
   Future<void> sendAllTapped() async {
+    final tokenWallet = ref.read(pCurrentTokenWallet)!;
+    final balance = ref.read(
+      pTokenBalance((
+        walletId: walletId,
+        contractAddress: tokenWallet.tokenContract.address,
+      )),
+    );
     cryptoAmountController.text = ref
-        .read(
-          pTokenBalance((
-            walletId: walletId,
-            contractAddress: ref
-                .read(pCurrentTokenWallet)!
-                .tokenContract
-                .address,
-          )),
-        )
-        .spendable
-        .decimal
-        .toStringAsFixed(ref.read(pCurrentTokenWallet)!.tokenContract.decimals);
+        .read(pAmountFormatter(coin))
+        .formatEditable(balance.spendable);
+    _syncFeeAmount(balance.spendable);
   }
 
   @override
@@ -611,11 +633,17 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
     cryptoAmountController.addListener(onCryptoAmountChanged);
 
     if (_data != null) {
-      if (_data!.amount != null) {
-        cryptoAmountController.text = _data!.amount!.toString();
+      if (_data.amount != null) {
+        final amount = _data.amount!.toAmount(
+          fractionDigits: ref.read(pCurrentTokenWallet)!.tokenContract.decimals,
+        );
+        cryptoAmountController.text = ref
+            .read(pAmountFormatter(coin))
+            .formatEditable(amount);
+        _syncFeeAmount(amount);
       }
-      sendToController.text = _data!.contactLabel;
-      _address = _data!.address;
+      sendToController.text = _data.contactLabel;
+      _address = _data.address;
       _addressToggleFlag = true;
     }
 
@@ -649,6 +677,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
   @override
   void dispose() {
     cryptoAmountController.removeListener(onCryptoAmountChanged);
+    _ethFee.dispose();
 
     sendToController.dispose();
     cryptoAmountController.dispose();
@@ -668,6 +697,18 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
     debugPrint("BUILD: $runtimeType");
 
     final tokenContract = ref.watch(pCurrentTokenWallet)!.tokenContract;
+    listenForAmountRelocalization(
+      ref.listen,
+      controllers: [cryptoAmountController, baseAmountController],
+      onRelocalized: _cryptoAmountChanged,
+    );
+    final isCustomFee = ref.watch(feeRateTypeDesktopStateProvider).isCustom;
+    // ethFee is checked in the ValueListenableBuilder around the preview
+    // button so fee keystrokes don't rebuild this whole view.
+    final previewEnabled = ref
+        .watch(previewTokenTxButtonStateProvider.state)
+        .state;
+    final needsEthFee = isCustomFee;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -677,9 +718,9 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
           Text(
             "Send from",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldActiveSearchIconRight,
             ),
             textAlign: TextAlign.left,
           ),
@@ -689,9 +730,9 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
             Text(
               "Amount",
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldActiveSearchIconRight,
               ),
               textAlign: TextAlign.left,
             ),
@@ -720,6 +761,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
           textAlign: TextAlign.right,
           inputFormatters: [
             AmountInputFormatter(
+              controller: cryptoAmountController,
               decimals: tokenContract.decimals,
               unit: ref.watch(pAmountUnit(coin)),
               locale: ref.watch(
@@ -747,9 +789,9 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
             ),
             hintText: "0",
             hintStyle: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldDefaultText,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldDefaultText,
             ),
             prefixIcon: FittedBox(
               fit: BoxFit.scaleDown,
@@ -758,9 +800,9 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
                 child: Text(
                   ref.watch(pAmountUnit(coin)).unitForContract(tokenContract),
                   style: STextStyles.smallMed14(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.accentColorDark,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
                   ),
                 ),
               ),
@@ -792,6 +834,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
             textAlign: TextAlign.right,
             inputFormatters: [
               AmountInputFormatter(
+                controller: baseAmountController,
                 decimals: 2,
                 locale: ref.watch(
                   localeServiceChangeNotifierProvider.select(
@@ -815,9 +858,9 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
               ),
               hintText: "0",
               hintStyle: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldDefaultText,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldDefaultText,
               ),
               prefixIcon: FittedBox(
                 fit: BoxFit.scaleDown,
@@ -830,9 +873,9 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
                       ),
                     ),
                     style: STextStyles.smallMed14(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
                     ),
                   ),
                 ),
@@ -843,9 +886,9 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
         Text(
           "Send to",
           style: STextStyles.desktopTextExtraSmall(context).copyWith(
-            color: Theme.of(
-              context,
-            ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .textFieldActiveSearchIconRight,
           ),
           textAlign: TextAlign.left,
         ),
@@ -882,9 +925,9 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
             },
             focusNode: _addressFocusNode,
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldActiveText,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldActiveText,
               height: 1.8,
             ),
             decoration:
@@ -1021,9 +1064,9 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
                     error,
                     textAlign: TextAlign.left,
                     style: STextStyles.label(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textError,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textError,
                     ),
                   ),
                 ),
@@ -1036,18 +1079,20 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
           walletId: walletId,
           isToken: true,
           onCustomFeeSliderChanged: (value) => {},
-          onCustomFeeOptionChanged: (value) {
-            ethFee = null;
+          onCustomFeeOptionChanged: () {
+            _ethFee.value = null;
           },
-          onCustomEip1559FeeOptionChanged: (value) => ethFee = value,
+          onCustomEip1559FeeOptionChanged: (value) {
+            _ethFee.value = value;
+          },
         ),
         const SizedBox(height: 20),
         Text(
           "Nonce",
           style: STextStyles.desktopTextExtraSmall(context).copyWith(
-            color: Theme.of(
-              context,
-            ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .textFieldActiveSearchIconRight,
           ),
           textAlign: TextAlign.left,
         ),
@@ -1064,12 +1109,13 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
             readOnly: false,
             autocorrect: false,
             enableSuggestions: false,
-            keyboardType: const TextInputType.numberWithOptions(),
+            keyboardType: TextInputType.number,
             focusNode: _nonceFocusNode,
+            onChanged: (_) => setState(() {}),
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldActiveText,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldActiveText,
               height: 1.8,
             ),
             decoration:
@@ -1088,14 +1134,29 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
                 ),
           ),
         ),
+        if (!_nonceIsValid)
+          Padding(
+            padding: const EdgeInsets.only(top: 6, left: 12),
+            child: Text(
+              "Enter a non-negative whole number",
+              style: STextStyles.errorSmall(context),
+            ),
+          ),
         const SizedBox(height: 36),
-        PrimaryButton(
-          buttonHeight: ButtonHeight.l,
-          label: "Preview send",
-          enabled: ref.watch(previewTokenTxButtonStateProvider.state).state,
-          onPressed: ref.watch(previewTokenTxButtonStateProvider.state).state
-              ? previewSend
-              : null,
+        ValueListenableBuilder<EthEIP1559Fee?>(
+          valueListenable: _ethFee,
+          builder: (context, ethFee, _) {
+            final enabled =
+                previewEnabled &&
+                _nonceIsValid &&
+                (!needsEthFee || ethFee != null);
+            return PrimaryButton(
+              buttonHeight: ButtonHeight.l,
+              label: "Preview send",
+              enabled: enabled,
+              onPressed: enabled ? previewSend : null,
+            );
+          },
         ),
       ],
     );

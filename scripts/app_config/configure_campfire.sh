@@ -40,8 +40,6 @@ dart "${APP_PROJECT_ROOT_DIR}/tool/gen_interfaces.dart" \
       TOR \
       FIRO
 
-export INCLUDE_EPIC_SO="OFF"
-export INCLUDE_MWC_SO="OFF"
 
 pushd "${APP_PROJECT_ROOT_DIR}"
 BUILT_COMMIT_HASH=$(git log -1 --pretty=format:"%H")
@@ -77,7 +75,14 @@ const ({String light, String dark})? _appIconAsset = (
 
 final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Firo(CryptoCurrencyNetwork.main),
+  Ethereum(CryptoCurrencyNetwork.main),
 ]);
+
+final List<EthContract> _defaultEthTokens = [
+  DefaultTokens.rsFiro,
+  DefaultTokens.usdc,
+  DefaultTokens.usdt,
+];
 
 final ({String from, String fromFuzzyNet, String to, String toFuzzyNet})
 _swapDefaults = (

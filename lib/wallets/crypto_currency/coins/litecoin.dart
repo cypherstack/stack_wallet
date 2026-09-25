@@ -52,6 +52,9 @@ class Litecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   int get minConfirms => 1;
 
   @override
+  int get mwebPegoutMaturity => 6;
+
+  @override
   bool get torSupport => true;
 
   @override
@@ -169,11 +172,10 @@ class Litecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
         return (address: addr, addressType: AddressType.p2pkh);
 
       case DerivePathType.bip49:
-        final p2wpkhScript =
-            coinlib.P2WPKHAddress.fromPublicKey(
-              publicKey,
-              hrp: networkParams.bech32Hrp,
-            ).program.script;
+        final p2wpkhScript = coinlib.P2WPKHAddress.fromPublicKey(
+          publicKey,
+          hrp: networkParams.bech32Hrp,
+        ).program.script;
 
         final addr = coinlib.P2SHAddress.fromRedeemScript(
           p2wpkhScript,

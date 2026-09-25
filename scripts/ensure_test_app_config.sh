@@ -55,7 +55,7 @@ final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Fact0rn(CryptoCurrencyNetwork.main),
   Firo(CryptoCurrencyNetwork.main),
   Litecoin(CryptoCurrencyNetwork.main),
-  if (!Platform.isMacOS) Mimblewimblecoin(CryptoCurrencyNetwork.main),
+  Mimblewimblecoin(CryptoCurrencyNetwork.main),
   Nano(CryptoCurrencyNetwork.main),
   Namecoin(CryptoCurrencyNetwork.main),
   Particl(CryptoCurrencyNetwork.main),
@@ -79,6 +79,15 @@ final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Stellar(CryptoCurrencyNetwork.test),
   Xelis(CryptoCurrencyNetwork.test),
 ]);
+
+final List<EthContract> _defaultEthTokens = [
+  DefaultTokens.usdc,
+  DefaultTokens.usdt,
+  DefaultTokens.shib,
+  DefaultTokens.link,
+  DefaultTokens.uni,
+  DefaultTokens.rsFiro,
+];
 
 final ({String from, String fromFuzzyNet, String to, String toFuzzyNet})
 _swapDefaults = (

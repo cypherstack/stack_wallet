@@ -9,8 +9,6 @@ set(BINARY_NAME "place_holder")
 # https://wiki.gnome.org/HowDoI/ChooseApplicationID
 set(APPLICATION_ID "com.place.holder")
 
-set(INCLUDE_EPIC_SO INCLUDE_EPIC_SO_FLAG)
-set(INCLUDE_MWC_SO INCLUDE_MWC_SO_FLAG)
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.
@@ -154,16 +152,6 @@ install(FILES "${FLUTTER_ICU_DATA_FILE}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}
 install(FILES "${FLUTTER_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
   COMPONENT Runtime)
 
-if(INCLUDE_EPIC_SO)
-  install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../crypto_plugins/flutter_libepiccash/linux/bin/x86_64-unknown-linux-gnu/release/libepic_cash_wallet.so" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
-    COMPONENT Runtime)
-endif()
-
-if(INCLUDE_MWC_SO)
-  install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../crypto_plugins/flutter_libmwc/linux/bin/x86_64-unknown-linux-gnu/release/libmwc_wallet.so" DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
-    COMPONENT Runtime)
-endif()
-
 if(USE_SYSTEM_SECURE_STORAGE_DEPS)
   file(GLOB JSONCPP_SO_FILES "${JSONCPP_LIBDIR}/libjsoncpp.so*")
   install(FILES ${JSONCPP_SO_FILES} DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
@@ -192,6 +180,12 @@ foreach(bundled_library ${PLUGIN_BUNDLED_LIBRARIES})
     DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
     COMPONENT Runtime)
 endforeach(bundled_library)
+
+# Copy the native assets provided by the build.dart from all packages.
+set(NATIVE_ASSETS_DIR "${PROJECT_BUILD_DIR}native_assets/linux/")
+install(DIRECTORY "${NATIVE_ASSETS_DIR}"
+  DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+  COMPONENT Runtime)
 
 # Fully re-copy the assets directory on each build to avoid having stale files
 # from a previous install.

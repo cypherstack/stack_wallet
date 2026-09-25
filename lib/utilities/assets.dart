@@ -117,6 +117,8 @@ class _SVG {
 
   final coinControl = const _COIN_CONTROL();
 
+  String get rsFiro => "assets/svg/rsfiro.svg";
+
   String get peers => "assets/svg/peers.svg";
   String get fusing => "assets/svg/fusing.svg";
   String get upFromLine => "assets/svg/up-from-line.svg";
