@@ -21,6 +21,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../app_config.dart';
 import '../../models/exchange/change_now/cn_exchange_transaction_status.dart';
+import '../../models/exchange/response_objects/trade.dart';
 import '../../models/isar/models/blockchain_data/transaction.dart';
 import '../../models/isar/stack_theme.dart';
 import '../../notifications/show_flush_bar.dart';
@@ -44,6 +45,7 @@ import '../../utilities/assets.dart';
 import '../../utilities/clipboard_interface.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/format.dart';
+import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
@@ -59,8 +61,10 @@ import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../wallet_view/transaction_views/edit_note_view.dart';
 import '../wallet_view/transaction_views/transaction_details_view.dart' as tdv;
+import 'delete_trade_confirmation_dialog.dart';
 import 'edit_trade_note_view.dart';
 import 'send_from_view.dart';
+import 'trade_operation_guard.dart';
 
 class TradeDetailsView extends ConsumerStatefulWidget {
   const TradeDetailsView({
@@ -89,34 +93,88 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
   late final ClipboardInterface clipboard;
   late final Transaction? transactionIfSentFromStack;
   late final String? walletId;
+  final _operationGuard = TradeOperationGuard();
 
   @override
-  initState() {
+  void initState() {
+    super.initState();
     tradeId = widget.tradeId;
     clipboard = widget.clipboard;
     transactionIfSentFromStack = widget.transactionIfSentFromStack;
     walletId = widget.walletId;
 
     if (ref.read(prefsChangeNotifierProvider).externalCalls) {
-      WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-        final trade = ref
-            .read(tradesServiceProvider)
-            .trades
-            .firstWhere((e) => e.tradeId == tradeId);
-
-        if (mounted && trade.exchangeName != "Majestic Bank") {
-          final exchange = Exchange.fromName(trade.exchangeName);
-          final response = await exchange.updateTrade(trade);
-
-          if (mounted && response.value != null) {
-            await ref
-                .read(tradesServiceProvider)
-                .edit(trade: response.value!, shouldNotifyListeners: true);
-          }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!_operationGuard.deletionRequested) {
+          _operationGuard.trackStatusRefresh(_refreshTrade());
         }
       });
     }
-    super.initState();
+  }
+
+  Future<void> _refreshTrade() async {
+    try {
+      final tradesService = ref.read(tradesServiceProvider);
+      final trade = tradesService.get(tradeId);
+      if (!mounted || trade == null || trade.exchangeName == "Majestic Bank") {
+        return;
+      }
+
+      final exchange = Exchange.fromName(trade.exchangeName);
+      final response = await exchange.updateTrade(trade);
+
+      if (!mounted ||
+          _operationGuard.deletionRequested ||
+          response.value == null ||
+          tradesService.get(tradeId) == null) {
+        return;
+      }
+
+      await tradesService.edit(
+        trade: response.value!,
+        shouldNotifyListeners: true,
+      );
+    } catch (e, s) {
+      Logging.instance.e("Failed to refresh trade", error: e, stackTrace: s);
+    }
+  }
+
+  Future<void> _deleteTrade(Trade trade) async {
+    final shouldDelete = await showDeleteTradeConfirmationDialog(
+      context: context,
+      isTerminalStatus: trade.isTerminalStatus,
+    );
+    if (!shouldDelete || !mounted) {
+      return;
+    }
+
+    final tradesService = ref.read(tradesServiceProvider);
+    setState(() {});
+
+    try {
+      final deleted = await _operationGuard.deleteAfterRefresh(
+        () => tradesService.delete(trade: trade, shouldNotifyListeners: true),
+      );
+      if (deleted && mounted) {
+        // Desktop hosts this view in a nested Navigator that owns a single
+        // route; popping that one empties it and leaves the hosting dialog's
+        // barrier on screen. The root navigator owns the visible route in
+        // every host, mobile included.
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+    } catch (e, s) {
+      Logging.instance.e("Failed to delete trade", error: e, stackTrace: s);
+      if (mounted) {
+        setState(() {});
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message: "Failed to delete trade. Please try again.",
+            context: context,
+          ),
+        );
+      }
+    }
   }
 
   String _fetchIconAssetForStatus(String statusString, IThemeAssets assets) {
@@ -166,10 +224,11 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
         transactionIfSentFromStack != null && walletId != null;
 
     final trade = ref.watch(
-      tradesServiceProvider.select(
-        (value) => value.trades.firstWhere((e) => e.tradeId == tradeId),
-      ),
+      tradesServiceProvider.select((value) => value.get(tradeId)),
     );
+    if (trade == null) {
+      return const SizedBox.shrink();
+    }
 
     final bool hasTx =
         sentFromStack ||
@@ -214,6 +273,8 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
             trade.status == "wait" ||
             trade.status == "Waiting");
 
+    void deleteTrade() => unawaited(_deleteTrade(trade));
+
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(
@@ -234,6 +295,36 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
               "Trade details",
               style: STextStyles.navBarTitle(context),
             ),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(top: 10, bottom: 10, right: 10),
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: AppBarIconButton(
+                    key: const Key("tradeDetailsViewDeleteTradeButtonKey"),
+                    size: 36,
+                    shadows: const [],
+                    color: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.background,
+                    icon: SvgPicture.asset(
+                      Assets.svg.trash,
+                      colorFilter: ColorFilter.mode(
+                        Theme.of(
+                          context,
+                        ).extension<StackColors>()!.accentColorDark,
+                        BlendMode.srcIn,
+                      ),
+                      width: 20,
+                      height: 20,
+                    ),
+                    onPressed: _operationGuard.deletionRequested
+                        ? null
+                        : deleteTrade,
+                  ),
+                ),
+              ),
+            ],
           ),
           body: SafeArea(
             child: Padding(
@@ -297,6 +388,13 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                         );
                       },
                     ),
+                  const SizedBox(height: 16),
+                  SecondaryButton(
+                    label: "Delete trade",
+                    buttonHeight: ButtonHeight.l,
+                    enabled: !_operationGuard.deletionRequested,
+                    onPressed: deleteTrade,
+                  ),
                   const SizedBox(height: 32),
                 ],
               ),
