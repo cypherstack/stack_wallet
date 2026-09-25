@@ -1,12 +1,7 @@
-import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../providers/global/locale_provider.dart';
 import '../../../providers/global/wallets_provider.dart';
-import '../../../utilities/amount/amount.dart';
-import '../../../utilities/amount/amount_field_relocalization.dart';
-import '../../../utilities/amount/amount_input_formatter.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/if_not_already.dart';
 import '../../../utilities/logger.dart';
@@ -48,7 +43,6 @@ class _RegisterMasternodeFormState
   final _ipAndPortController = TextEditingController();
   final _operatorPubKeyController = TextEditingController();
   final _votingAddressController = TextEditingController();
-  final _operatorRewardController = TextEditingController(text: "0");
   final _payoutAddressController = TextEditingController();
 
   TextStyle _getStyle(BuildContext context) {
@@ -65,17 +59,8 @@ class _RegisterMasternodeFormState
 
   bool _enableCreateButton = false;
 
-  // Parse as a 2-decimal Amount so pasted overprecision ("0.001") is
-  // rejected instead of silently rounding to zero basis points.
-  Decimal? get _operatorRewardPercent => Amount.tryParseEditableAmount(
-    _operatorRewardController.text,
-    locale: ref.read(localeServiceChangeNotifierProvider).locale,
-    fractionDigits: 2,
-  )?.decimal;
-
   void _validate() {
     if (mounted) {
-      final percent = _operatorRewardPercent;
       setState(() {
         _enableCreateButton = [
           _ipAndPortController.text
@@ -85,7 +70,6 @@ class _RegisterMasternodeFormState
                   .length ==
               2,
           _operatorPubKeyController.text.trim().isNotEmpty,
-          percent != null && percent <= Decimal.fromInt(100),
           _payoutAddressController.text.trim().isNotEmpty,
         ].every((e) => e);
       });
@@ -100,18 +84,6 @@ class _RegisterMasternodeFormState
     final votingAddress = _votingAddressController.text.trim();
     final payoutAddress = _payoutAddressController.text.trim();
 
-    // according to https://github.com/cypherstack/stack_wallet/blob/c898a70f808ed5490b8dd23571f5f162d9e38158/lib/wallets/wallet/impl/firo_wallet.dart#L1064
-    // this should be a percent of 10000
-    final operatorPercent = _operatorRewardPercent;
-    if (operatorPercent == null) {
-      throw Exception("Invalid operator reward");
-    }
-    final operatorReward = (operatorPercent * Decimal.fromInt(100))
-        .round()
-        .toBigInt()
-        .toInt()
-        .clamp(0, 10000);
-
     final wallet =
         ref.read(pWallets).getWallet(widget.firoWalletId) as FiroWallet;
 
@@ -120,7 +92,6 @@ class _RegisterMasternodeFormState
       port,
       operatorPubKey,
       votingAddress,
-      operatorReward,
       payoutAddress,
       collateralTxid: widget.collateralTxid,
       collateralVout: widget.collateralVout,
@@ -177,7 +148,6 @@ class _RegisterMasternodeFormState
     _ipAndPortController.dispose();
     _operatorPubKeyController.dispose();
     _votingAddressController.dispose();
-    _operatorRewardController.dispose();
     _payoutAddressController.dispose();
     super.dispose();
   }
@@ -185,12 +155,6 @@ class _RegisterMasternodeFormState
   @override
   Widget build(BuildContext context) {
     final stack = Theme.of(context).extension<StackColors>()!;
-
-    listenForAmountRelocalization(
-      ref.listen,
-      controllers: [_operatorRewardController],
-      onRelocalized: _validate,
-    );
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -263,28 +227,6 @@ class _RegisterMasternodeFormState
           showPasteClearButton: true,
           maxLines: 1,
           labelText: "Defaults to owner address",
-          onChangedComprehensive: (_) => _validate(),
-        ),
-        SizedBox(height: Util.isDesktop ? 24 : 16),
-
-        SelectableText("Operator reward (%)", style: _getStyle(context)),
-        SizedBox(height: Util.isDesktop ? 10 : 8),
-        AdaptiveTextField(
-          controller: _operatorRewardController,
-          showPasteClearButton: true,
-          maxLines: 1,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          inputFormatters: [
-            AmountInputFormatter(
-              controller: _operatorRewardController,
-              decimals: 2,
-              locale: ref.watch(
-                localeServiceChangeNotifierProvider.select(
-                  (value) => value.locale,
-                ),
-              ),
-            ),
-          ],
           onChangedComprehensive: (_) => _validate(),
         ),
         SizedBox(height: Util.isDesktop ? 24 : 16),

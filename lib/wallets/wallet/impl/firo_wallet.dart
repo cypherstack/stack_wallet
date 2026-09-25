@@ -970,7 +970,6 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     int port,
     String operatorPubKey,
     String votingAddress,
-    int operatorReward,
     String payoutAddress, {
     required String collateralTxid,
     required int collateralVout,
@@ -1131,9 +1130,7 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     }
 
     // nOperatorReward (16 bit)
-    if (operatorReward < 0 || operatorReward > 10000) {
-      throw Exception("Invalid operator reward: $operatorReward");
-    }
+    const operatorReward = 0;
     registrationTx.add(
       (ByteData(
         2,
