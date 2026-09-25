@@ -10,11 +10,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar_community/isar.dart';
 import 'package:tuple/tuple.dart';
 
-import '../../../db/isar/main_db.dart';
-import '../../../models/isar/models/isar_models.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
@@ -25,6 +22,8 @@ import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/loading_indicator.dart';
 import 'address_card.dart';
 import 'address_details_view.dart';
+import 'address_tag_data.dart';
+import 'address_tag_filter.dart';
 
 class WalletAddressesView extends ConsumerStatefulWidget {
   const WalletAddressesView({super.key, required this.walletId});
@@ -42,106 +41,10 @@ class _WalletAddressesViewState extends ConsumerState<WalletAddressesView> {
   final bool isDesktop = Util.isDesktop;
 
   final String _searchString = "";
+  String? _selectedTag;
 
   // late final TextEditingController _searchController;
   // final searchFieldFocusNode = FocusNode();
-
-  Future<List<int>> _search(String term) async {
-    if (term.isEmpty) {
-      return MainDB.instance
-          .getAddresses(widget.walletId)
-          .filter()
-          .group(
-            (q) => q
-                .subTypeEqualTo(AddressSubType.change)
-                .or()
-                .subTypeEqualTo(AddressSubType.receiving)
-                .or()
-                .subTypeEqualTo(AddressSubType.paynymReceive)
-                .or()
-                .subTypeEqualTo(AddressSubType.paynymNotification),
-          )
-          .and()
-          .not()
-          .typeEqualTo(AddressType.nonWallet)
-          .and()
-          .group(
-            (q) => q
-                .group(
-                  (q2) => q2
-                      .typeEqualTo(AddressType.frostMS)
-                      .and()
-                      .zSafeFrostEqualTo(true),
-                )
-                .or()
-                .not()
-                .typeEqualTo(AddressType.frostMS),
-          )
-          .sortByDerivationIndex()
-          .idProperty()
-          .findAll();
-    }
-
-    final labels =
-        await MainDB.instance
-            .getAddressLabels(widget.walletId)
-            .filter()
-            .group(
-              (q) => q
-                  .valueContains(term, caseSensitive: false)
-                  .or()
-                  .addressStringContains(term, caseSensitive: false)
-                  .or()
-                  .group(
-                    (q) => q.tagsIsNotNull().and().tagsElementContains(
-                      term,
-                      caseSensitive: false,
-                    ),
-                  ),
-            )
-            .findAll();
-
-    if (labels.isEmpty) {
-      return [];
-    }
-
-    return MainDB.instance
-        .getAddresses(widget.walletId)
-        .filter()
-        .anyOf<AddressLabel, Address>(
-          labels,
-          (q, e) => q.valueEqualTo(e.addressString),
-        )
-        .group(
-          (q) => q
-              .subTypeEqualTo(AddressSubType.change)
-              .or()
-              .subTypeEqualTo(AddressSubType.receiving)
-              .or()
-              .subTypeEqualTo(AddressSubType.paynymReceive)
-              .or()
-              .subTypeEqualTo(AddressSubType.paynymNotification),
-        )
-        .and()
-        .not()
-        .typeEqualTo(AddressType.nonWallet)
-        .and()
-        .group(
-          (q) => q
-              .group(
-                (q2) => q2
-                    .typeEqualTo(AddressType.frostMS)
-                    .and()
-                    .zSafeFrostEqualTo(true),
-              )
-              .or()
-              .not()
-              .typeEqualTo(AddressType.frostMS),
-        )
-        .sortByDerivationIndex()
-        .idProperty()
-        .findAll();
-  }
 
   // @override
   // void initState() {
@@ -160,33 +63,56 @@ class _WalletAddressesViewState extends ConsumerState<WalletAddressesView> {
   @override
   Widget build(BuildContext context) {
     final coin = ref.watch(pWalletCoin(widget.walletId));
+    final tags = ref
+        .watch(walletAddressTagsProvider(widget.walletId))
+        .when(
+          data: (value) => value,
+          error: (_, __) => const <String>[],
+          loading: () => const <String>[],
+        );
+    final selectedTag = reconcileSelectedAddressTag(_selectedTag, tags);
+    if (selectedTag != _selectedTag) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _selectedTag != selectedTag) {
+          setState(() => _selectedTag = selectedTag);
+        }
+      });
+    }
+    final ids = ref.watch(
+      filteredWalletAddressIdsProvider(
+        WalletAddressFilter(
+          walletId: widget.walletId,
+          searchTerm: _searchString,
+          tag: selectedTag,
+        ),
+      ),
+    );
 
     return ConditionalParent(
       condition: !isDesktop,
-      builder:
-          (child) => Background(
-            child: Scaffold(
-              backgroundColor:
-                  Theme.of(context).extension<StackColors>()!.background,
-              appBar: AppBar(
-                backgroundColor:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()!.backgroundAppBar,
-                leading: AppBarBackButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-                titleSpacing: 0,
-                title: Text(
-                  "Wallet addresses",
-                  style: STextStyles.navBarTitle(context),
-                ),
-              ),
-              body: Padding(padding: const EdgeInsets.all(16), child: child),
+      builder: (child) => Background(
+        child: Scaffold(
+          backgroundColor: Theme.of(
+            context,
+          ).extension<StackColors>()!.background,
+          appBar: AppBar(
+            backgroundColor: Theme.of(
+              context,
+            ).extension<StackColors>()!.backgroundAppBar,
+            leading: AppBarBackButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            titleSpacing: 0,
+            title: Text(
+              "Wallet addresses",
+              style: STextStyles.navBarTitle(context),
             ),
           ),
+          body: Padding(padding: const EdgeInsets.all(16), child: child),
+        ),
+      ),
       child: SafeArea(
         child: Column(
           children: [
@@ -258,38 +184,41 @@ class _WalletAddressesViewState extends ConsumerState<WalletAddressesView> {
             // SizedBox(
             //   height: isDesktop ? 20 : 16,
             // ),
+            if (tags.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: AddressTagFilter(
+                  tags: tags,
+                  selectedTag: selectedTag,
+                  onSelected: (tag) => setState(() => _selectedTag = tag),
+                ),
+              ),
             Expanded(
-              child: FutureBuilder(
-                future: _search(_searchString),
-                builder: (context, AsyncSnapshot<List<int>> snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done &&
-                      snapshot.data != null) {
-                    // listview
-                    return ListView.separated(
-                      itemCount: snapshot.data!.length,
-                      separatorBuilder: (_, __) => Container(height: 10),
-                      itemBuilder:
-                          (_, index) => AddressCard(
-                            walletId: widget.walletId,
-                            addressId: snapshot.data![index],
-                            coin: coin,
-                            onPressed: () {
-                              Navigator.of(context).pushNamed(
-                                AddressDetailsView.routeName,
-                                arguments: Tuple2(
-                                  snapshot.data![index],
-                                  widget.walletId,
-                                ),
-                              );
-                            },
-                          ),
-                    );
-                  } else {
-                    return const Center(
-                      child: LoadingIndicator(height: 200, width: 200),
-                    );
-                  }
-                },
+              child: ids.when(
+                data: (addressIds) => ListView.separated(
+                  itemCount: addressIds.length,
+                  separatorBuilder: (_, __) => Container(height: 10),
+                  itemBuilder: (_, index) => AddressCard(
+                    walletId: widget.walletId,
+                    addressId: addressIds[index],
+                    coin: coin,
+                    onPressed: () {
+                      Navigator.of(context).pushNamed(
+                        AddressDetailsView.routeName,
+                        arguments: Tuple2(addressIds[index], widget.walletId),
+                      );
+                    },
+                  ),
+                ),
+                error: (_, __) => Center(
+                  child: Text(
+                    "Couldn't load addresses",
+                    style: STextStyles.w500_14(context),
+                  ),
+                ),
+                loading: () => const Center(
+                  child: LoadingIndicator(height: 200, width: 200),
+                ),
               ),
             ),
           ],

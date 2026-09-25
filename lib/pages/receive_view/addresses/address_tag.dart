@@ -24,15 +24,22 @@ class AddressTag extends StatelessWidget {
   Widget build(BuildContext context) {
     return RoundedContainer(
       radiusMultiplier: 0.5,
-      padding: const EdgeInsets.symmetric(
-        vertical: 5,
-        horizontal: 7,
-      ),
+      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 7),
       color: Theme.of(context).extension<StackColors>()!.buttonBackPrimary,
-      child: Text(
-        tag.capitalize(),
-        style: STextStyles.w500_14(context).copyWith(
-          color: Theme.of(context).extension<StackColors>()!.buttonTextPrimary,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 200),
+        child: Tooltip(
+          message: tag,
+          child: Text(
+            tag.capitalize(),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: STextStyles.w500_14(context).copyWith(
+              color: Theme.of(
+                context,
+              ).extension<StackColors>()!.buttonTextPrimary,
+            ),
+          ),
         ),
       ),
     );
