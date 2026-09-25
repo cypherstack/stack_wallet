@@ -688,6 +688,13 @@ class Prefs extends ChangeNotifier {
             value: "onWalletClose",
           );
           break;
+        case BackupFrequencyType.afterChanges:
+          DB.instance.put<dynamic>(
+            boxName: DB.boxNamePrefs,
+            key: "backupFrequencyType",
+            value: "afterChanges",
+          );
+          break;
       }
       _backupFrequencyType = backupFrequencyType;
       notifyListeners();
@@ -709,6 +716,8 @@ class Prefs extends ChangeNotifier {
         return BackupFrequencyType.everyAppStart;
       case "onWalletClose":
         return BackupFrequencyType.afterClosingAWallet;
+      case "afterChanges":
+        return BackupFrequencyType.afterChanges;
       default:
         throw Exception("Invalid Backup Frequency type found in prefs!");
     }

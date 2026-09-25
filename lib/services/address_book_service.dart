@@ -8,12 +8,19 @@
  *
  */
 
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+
 import '../db/isar/main_db.dart';
 import '../models/isar/models/contact_entry.dart';
 
 class AddressBookService extends ChangeNotifier {
+  AddressBookService({this.requestAutoBackup});
+
+  final void Function()? requestAutoBackup;
+
   ContactEntry getContactById(String id) {
     final ContactEntry? contactEntry = MainDB.instance.getContactEntry(id: id);
     if (contactEntry == null) {
@@ -66,15 +73,28 @@ class AddressBookService extends ChangeNotifier {
     } else {
       await MainDB.instance.putContactEntry(contactEntry: contact);
       notifyListeners();
+      requestAutoBackup?.call();
       return true;
     }
   }
 
   /// Edit contact
   Future<bool> editContact(ContactEntry editedContact) async {
+    // The address book views rewrite the "default" self contact on every open.
+    // An identical write is not a user edit, so it must not notify listeners or
+    // trigger an auto backup.
+    final existing = MainDB.instance.getContactEntry(
+      id: editedContact.customId,
+    );
+    if (existing != null &&
+        jsonEncode(existing.toMap()) == jsonEncode(editedContact.toMap())) {
+      return true;
+    }
+
     // over write the contact with edited version
     await MainDB.instance.putContactEntry(contactEntry: editedContact);
     notifyListeners();
+    requestAutoBackup?.call();
     return true;
   }
 
@@ -82,5 +102,6 @@ class AddressBookService extends ChangeNotifier {
   Future<void> removeContact(String id) async {
     await MainDB.instance.deleteContactEntry(id: id);
     notifyListeners();
+    requestAutoBackup?.call();
   }
 }
