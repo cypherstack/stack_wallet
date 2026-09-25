@@ -26,6 +26,7 @@ import '../../notifications/show_flush_bar.dart';
 import '../../pages_desktop_specific/coin_control/desktop_coin_control_use_dialog.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
+import '../../providers/global/address_book_service_provider.dart';
 import '../../providers/providers.dart';
 import '../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../route_generator.dart';
@@ -66,8 +67,10 @@ import '../../widgets/textfield_icon_button.dart';
 import '../../wl_gen/interfaces/libepiccash_interface.dart';
 import '../pinpad_views/lock_screen_view.dart';
 import '../wallet_view/wallet_view.dart';
+import 'save_recipient.dart';
 import 'sub_widgets/epic_slatepack_dialog.dart';
 import 'sub_widgets/mwc_slatepack_dialog.dart';
+import 'sub_widgets/save_recipient_controls.dart';
 import 'sub_widgets/sending_transaction_dialog.dart';
 
 class ConfirmTransactionView extends ConsumerStatefulWidget {
@@ -80,6 +83,7 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
     this.isTradeTransaction = false,
     this.isPaynymTransaction = false,
     this.isPaynymNotificationTransaction = false,
+    this.isRbfTransaction = false,
     this.isTokenTx = false,
     this.onSuccessInsteadOfRouteOnSuccess,
   });
@@ -92,6 +96,7 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
   final bool isTradeTransaction;
   final bool isPaynymTransaction;
   final bool isPaynymNotificationTransaction;
+  final bool isRbfTransaction;
   final bool isTokenTx;
   final VoidCallback? onSuccessInsteadOfRouteOnSuccess;
   final VoidCallback onSuccess;
@@ -106,6 +111,11 @@ class _ConfirmTransactionViewState
   late final String walletId;
   late final String routeOnSuccessName;
   late final bool isDesktop;
+
+  late final SaveRecipientOption _saveRecipient;
+
+  late final FocusNode _saveRecipientFocusNode;
+  late final TextEditingController saveRecipientNameController;
 
   late final FocusNode _noteFocusNode;
   late final TextEditingController noteController;
@@ -150,7 +160,9 @@ class _ConfirmTransactionViewState
   }
 
   /// Handle MWC slatepack creation for manual exchange.
-  Future<void> _handleMwcSlatepackCreation(
+  ///
+  /// Returns whether the slatepack was created.
+  Future<bool> _handleMwcSlatepackCreation(
     BuildContext context,
     MimblewimblecoinWallet wallet,
   ) async {
@@ -203,6 +215,8 @@ class _ConfirmTransactionViewState
           }
         }
       }
+
+      return true;
     } catch (e, s) {
       Logging.instance.e('Failed to create MWC slatepack: $e\n$s');
 
@@ -228,11 +242,15 @@ class _ConfirmTransactionViewState
           ),
         );
       }
+
+      return false;
     }
   }
 
   /// Handle Epic Cash slate creation for manual exchange.
-  Future<void> _handleEpicSlatepackCreation(
+  ///
+  /// Returns whether the slate was created.
+  Future<bool> _handleEpicSlatepackCreation(
     BuildContext context,
     EpiccashWallet wallet,
   ) async {
@@ -282,6 +300,8 @@ class _ConfirmTransactionViewState
           }
         }
       }
+
+      return true;
     } catch (e, s) {
       Logging.instance.e('Failed to create Epic Cash slate: $e\n$s');
 
@@ -307,6 +327,39 @@ class _ConfirmTransactionViewState
           ),
         );
       }
+
+      return false;
+    }
+  }
+
+  Future<void> _saveRecipientAfterSend(String coinIdentifier) async {
+    final address = _saveRecipient.addressToSave;
+    if (address == null) {
+      return;
+    }
+
+    try {
+      final addressBookService = ref.read(addressBookServiceProvider);
+      final outcome = await saveRecipient(
+        address: address,
+        coinIdentifier: coinIdentifier,
+        name: saveRecipientNameController.text,
+        existingContacts: addressBookService.contacts,
+        addContact: addressBookService.addContact,
+      );
+      if (outcome.result == SaveRecipientResult.failed) {
+        Logging.instance.w(
+          'Transaction sent, but recipient could not be saved',
+          error: outcome.error,
+          stackTrace: outcome.stackTrace,
+        );
+      }
+    } catch (error, stackTrace) {
+      Logging.instance.w(
+        'Transaction sent, but recipient could not be saved',
+        error: error,
+        stackTrace: stackTrace,
+      );
     }
   }
 
@@ -397,10 +450,13 @@ class _ConfirmTransactionViewState
 
             if (transactionMethod == 'slatepack') {
               // Handle slatepack creation instead of direct send.
-              await _handleMwcSlatepackCreation(
+              final created = await _handleMwcSlatepackCreation(
                 context,
                 wallet as MimblewimblecoinWallet,
               );
+              if (created) {
+                await _saveRecipientAfterSend(coin.identifier);
+              }
               closeSendingDialog();
               return; // Exit early, don't continue with normal transaction flow.
             } else {
@@ -421,10 +477,13 @@ class _ConfirmTransactionViewState
 
             if (epicTransactionMethod == 'slatepack') {
               // Handle slatepack creation instead of direct send.
-              await _handleEpicSlatepackCreation(
+              final created = await _handleEpicSlatepackCreation(
                 context,
                 wallet as EpiccashWallet,
               );
+              if (created) {
+                await _saveRecipientAfterSend(coin.identifier);
+              }
               closeSendingDialog();
               return; // Exit early, don't continue with normal transaction flow.
             } else {
@@ -466,6 +525,8 @@ class _ConfirmTransactionViewState
               TransactionNote(walletId: walletId, txid: txid, value: note),
             );
       }
+
+      await _saveRecipientAfterSend(coin.identifier);
 
       if (widget.isTokenTx) {
         if (wallet is SolanaWallet) {
@@ -589,6 +650,17 @@ class _ConfirmTransactionViewState
     routeOnSuccessName =
         widget.routeOnSuccessName ??
         (Util.isDesktop ? DesktopWalletView.routeName : WalletView.routeName);
+    _saveRecipient = SaveRecipientOption(
+      address: savableRecipientAddress(
+        txData: widget.txData,
+        isTradeTransaction: widget.isTradeTransaction,
+        isPaynymTransaction: widget.isPaynymTransaction,
+        isPaynymNotificationTransaction: widget.isPaynymNotificationTransaction,
+        isRbfTransaction: widget.isRbfTransaction,
+      ),
+    );
+    _saveRecipientFocusNode = FocusNode();
+    saveRecipientNameController = TextEditingController();
     _noteFocusNode = FocusNode();
     noteController = TextEditingController();
     noteController.text = widget.txData.note ?? "";
@@ -602,9 +674,11 @@ class _ConfirmTransactionViewState
 
   @override
   void dispose() {
+    saveRecipientNameController.dispose();
     noteController.dispose();
     onChainNoteController.dispose();
 
+    _saveRecipientFocusNode.dispose();
     _noteFocusNode.dispose();
     _onChainNoteFocusNode.dispose();
     super.dispose();
@@ -613,6 +687,7 @@ class _ConfirmTransactionViewState
   @override
   Widget build(BuildContext context) {
     final coin = ref.watch(pWalletCoin(walletId));
+    final canSaveRecipient = _saveRecipient.isOffered;
 
     final String unit;
     final wallet = ref.watch(pWallets).getWallet(walletId);
@@ -899,6 +974,18 @@ class _ConfirmTransactionViewState
                             style: STextStyles.itemSubtitle12(context),
                           ),
                         ],
+                      ),
+                    ),
+                  if (canSaveRecipient) const SizedBox(height: 12),
+                  if (canSaveRecipient)
+                    RoundedWhiteContainer(
+                      child: SaveRecipientControls(
+                        enabled: _saveRecipient.enabled,
+                        isDesktop: false,
+                        onChanged: (value) =>
+                            setState(() => _saveRecipient.enabled = value),
+                        controller: saveRecipientNameController,
+                        focusNode: _saveRecipientFocusNode,
                       ),
                     ),
                 ],
@@ -1374,6 +1461,16 @@ class _ConfirmTransactionViewState
                       ),
                     ),
                     const SizedBox(height: 20),
+                    if (canSaveRecipient)
+                      SaveRecipientControls(
+                        enabled: _saveRecipient.enabled,
+                        isDesktop: true,
+                        onChanged: (value) =>
+                            setState(() => _saveRecipient.enabled = value),
+                        controller: saveRecipientNameController,
+                        focusNode: _saveRecipientFocusNode,
+                      ),
+                    if (canSaveRecipient) const SizedBox(height: 12),
                   ],
                 ),
               ),
