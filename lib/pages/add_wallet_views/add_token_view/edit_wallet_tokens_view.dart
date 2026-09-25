@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar_community/isar.dart';
 
+import '../../../app_config.dart';
 import '../../../db/isar/main_db.dart';
 import '../../../models/isar/models/ethereum/eth_contract.dart';
 import '../../../models/isar/models/solana/sol_contract.dart';
@@ -25,7 +26,6 @@ import '../../../providers/global/wallets_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/constants.dart';
-import '../../../utilities/default_eth_tokens.dart';
 import '../../../utilities/default_sol_tokens.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
@@ -100,11 +100,10 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
   }
 
   Future<void> onNextPressed() async {
-    final selectedTokens =
-        tokenEntities
-            .where((e) => e.selected)
-            .map((e) => e.token.address)
-            .toList();
+    final selectedTokens = tokenEntities
+        .where((e) => e.selected)
+        .map((e) => e.token.address)
+        .toList();
 
     final wallet = ref.read(pWallets).getWallet(widget.walletId);
 
@@ -119,13 +118,11 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
         Navigator.of(context).pop(42);
       } else {
         if (isDesktop) {
-          Navigator.of(
-            context,
-          ).popUntil(ModalRoute.withName(DesktopHomeView.routeName));
+          Navigator.of(context)
+              .popUntil(ModalRoute.withName(DesktopHomeView.routeName));
         } else {
-          await Navigator.of(
-            context,
-          ).pushNamedAndRemoveUntil(HomeView.routeName, (route) => false);
+          await Navigator.of(context)
+              .pushNamedAndRemoveUntil(HomeView.routeName, (route) => false);
         }
         if (mounted) {
           unawaited(
@@ -160,9 +157,8 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
           ),
         );
       } else {
-        final result = await Navigator.of(
-          context,
-        ).pushNamed(AddCustomTokenView.routeName);
+        final result = await Navigator.of(context)
+            .pushNamed(AddCustomTokenView.routeName);
         contract = result as EthContract?;
       }
 
@@ -177,7 +173,9 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
               tokenEntities.add(
                 AddTokenListElementData(contract!)..selected = true,
               );
-              tokenEntities.sort((a, b) => a.token.name.compareTo(b.token.name));
+              tokenEntities.sort(
+                (a, b) => a.token.name.compareTo(b.token.name),
+              );
             }
           });
         }
@@ -199,9 +197,7 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
         ),
       );
     } else {
-      final result = await Navigator.of(
-        context,
-      ).pushNamed(
+      final result = await Navigator.of(context).pushNamed(
         AddCustomSolanaTokenView.routeName,
         arguments: widget.walletId,
       );
@@ -228,9 +224,7 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
           if (tokenEntities
               .where((e) => e.token.address == token!.address)
               .isEmpty) {
-            tokenEntities.add(
-              AddTokenListElementData(token!)..selected = true,
-            );
+            tokenEntities.add(AddTokenListElementData(token!)..selected = true);
             tokenEntities.sort((a, b) => a.token.name.compareTo(b.token.name));
           }
         });
@@ -268,7 +262,7 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
           .findAllSync();
 
       if (contracts.isEmpty) {
-        contracts.addAll(DefaultTokens.list);
+        contracts.addAll(AppConfig.defaultEthTokens);
         MainDB.instance
             .putEthContracts(contracts)
             .then(
@@ -448,9 +442,8 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
                       _searchTerm = value;
                     });
                   },
-                  style: STextStyles.desktopTextMedium(
-                    context,
-                  ).copyWith(height: 2),
+                  style: STextStyles.desktopTextMedium(context)
+                      .copyWith(height: 2),
                   decoration:
                       standardInputDecoration(
                         "Search",
@@ -516,9 +509,9 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
     } else {
       return Background(
         child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
             leading: AppBarBackButton(
               onPressed: () {
@@ -533,14 +526,14 @@ class _EditWalletTokensViewState extends ConsumerState<EditWalletTokensView> {
                   child: AppBarIconButton(
                     size: 36,
                     shadows: const [],
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.background,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .background,
                     icon: SvgPicture.asset(
                       Assets.svg.circlePlusFilled,
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.topNavIconPrimary,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .topNavIconPrimary,
                       width: 20,
                       height: 20,
                     ),

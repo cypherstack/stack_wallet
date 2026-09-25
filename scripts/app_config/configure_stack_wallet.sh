@@ -135,6 +135,15 @@ final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Xelis(CryptoCurrencyNetwork.test),
 ]);
 
+final List<EthContract> _defaultEthTokens = [
+  DefaultTokens.usdc,
+  DefaultTokens.usdt,
+  DefaultTokens.shib,
+  DefaultTokens.link,
+  DefaultTokens.uni,
+  DefaultTokens.rsFiro,
+];
+
 final ({String from, String fromFuzzyNet, String to, String toFuzzyNet})
 _swapDefaults = (
   from: "BTC",
