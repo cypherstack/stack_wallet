@@ -62,9 +62,9 @@ class _EditNoteViewState extends ConsumerState<EditTradeNoteView> {
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           leading: AppBarBackButton(
             onPressed: () async {
               if (FocusScope.of(context).hasFocus) {

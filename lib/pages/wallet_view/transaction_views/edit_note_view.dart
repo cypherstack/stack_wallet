@@ -77,9 +77,9 @@ class _EditNoteViewState extends ConsumerState<EditNoteView> {
         appBar: isDesktop
             ? null
             : AppBar(
-                backgroundColor: Theme.of(
-                  context,
-                ).extension<StackColors>()!.background,
+                backgroundColor: Theme.of(context)
+                    .extension<StackColors>()!
+                    .background,
                 leading: AppBarBackButton(
                   onPressed: () async {
                     if (FocusScope.of(context).hasFocus) {
@@ -131,9 +131,9 @@ class _EditNoteViewState extends ConsumerState<EditNoteView> {
                     controller: _noteController,
                     style: isDesktop
                         ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textFieldActiveText,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textFieldActiveText,
                             height: 1.8,
                           )
                         : STextStyles.field(context),
