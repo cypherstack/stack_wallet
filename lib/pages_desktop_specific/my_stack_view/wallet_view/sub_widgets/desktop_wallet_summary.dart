@@ -33,6 +33,7 @@ import '../../../../wallets/isar/providers/eth/token_balance_provider.dart';
 import '../../../../wallets/isar/providers/solana/current_sol_token_wallet_provider.dart';
 import '../../../../wallets/isar/providers/solana/sol_token_balance_provider.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../widgets/hideable_balance.dart';
 import 'desktop_balance_toggle_button.dart';
 
 class DesktopWalletSummary extends ConsumerStatefulWidget {
@@ -171,20 +172,33 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
               children: [
                 FittedBox(
                   fit: BoxFit.scaleDown,
-                  child: SelectableText(
-                    ref
-                        .watch(pAmountFormatter(coin))
-                        .format(balanceToShow, tokenContract: tokenContract),
-                    style: STextStyles.desktopH3(context),
+                  child: HideableBalance(
+                    iconColor: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textDark,
+                    iconSize: 24,
+                    child: SelectableText(
+                      ref
+                          .watch(pAmountFormatter(coin))
+                          .format(balanceToShow, tokenContract: tokenContract),
+                      style: STextStyles.desktopH3(context),
+                    ),
                   ),
                 ),
                 if (externalCalls && price != null)
-                  SelectableText(
-                    "${Amount.fromDecimal(price.value * balanceToShow.decimal, fractionDigits: 2).fiatString(locale: locale)} $baseCurrency",
-                    style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textSubtitle1,
+                  HideableBalance(
+                    iconColor: Theme.of(
+                      context,
+                    ).extension<StackColors>()!.textSubtitle1,
+                    iconSize: 16,
+                    child: SelectableText(
+                      "${Amount.fromDecimal(price.value * balanceToShow.decimal, fractionDigits: 2).fiatString(locale: locale)} $baseCurrency",
+                      style: STextStyles.desktopTextExtraSmall(context)
+                          .copyWith(
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.textSubtitle1,
+                          ),
                     ),
                   ),
                 // if (coin is Firo)

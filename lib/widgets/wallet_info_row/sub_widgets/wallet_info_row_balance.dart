@@ -23,6 +23,7 @@ import '../../../wallets/crypto_currency/coins/solana.dart';
 import '../../../wallets/isar/providers/eth/token_balance_provider.dart';
 import '../../../wallets/isar/providers/solana/sol_token_balance_provider.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../hideable_balance.dart';
 
 class WalletInfoRowBalance extends ConsumerWidget {
   const WalletInfoRowBalance({
@@ -88,15 +89,26 @@ class WalletInfoRowBalance extends ConsumerWidget {
       }
     }
 
-    return Text(
-      ref
-          .watch(pAmountFormatter(info.coin))
-          .format(totalBalance, tokenContract: contract),
-      style: Util.isDesktop
-          ? STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(context).extension<StackColors>()!.textSubtitle1,
-            )
-          : STextStyles.itemSubtitle(context),
+    return HideableBalance(
+      // These rows live in sorted/filtered lists; keep reveal state pinned to
+      // the balance being shown rather than to the row's position.
+      key: ValueKey("hideBalance_${walletId}_${contractAddress}_$balanceType"),
+      iconColor: Util.isDesktop
+          ? Theme.of(context).extension<StackColors>()!.textSubtitle1
+          : Theme.of(context).extension<StackColors>()!.infoItemLabel,
+      iconSize: 16,
+      child: Text(
+        ref
+            .watch(pAmountFormatter(info.coin))
+            .format(totalBalance, tokenContract: contract),
+        style: Util.isDesktop
+            ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                color: Theme.of(
+                  context,
+                ).extension<StackColors>()!.textSubtitle1,
+              )
+            : STextStyles.itemSubtitle(context),
+      ),
     );
   }
 }
