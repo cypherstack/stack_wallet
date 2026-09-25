@@ -37,6 +37,7 @@ import '../../../utilities/stack_file_system.dart';
 import '../../../wl_gen/interfaces/cs_monero_interface.dart';
 import '../../../wl_gen/interfaces/cs_salvium_interface.dart'
     show WrappedWallet;
+import '../../crypto_currency/coins/monero.dart';
 import '../../crypto_currency/intermediate/cryptonote_currency.dart';
 import '../../isar/models/wallet_info.dart';
 import '../../models/tx_data.dart';
@@ -110,6 +111,8 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
 
   final lib_monero_compat.WalletType compatType;
 
+  int getNetworkType() => moneroNetworkType(cryptoCurrency.network);
+
   lib_monero_compat.SyncStatus? get syncStatus => _syncStatus;
   lib_monero_compat.SyncStatus? _syncStatus;
   int _syncedCount = 0;
@@ -138,6 +141,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
   Future<WrappedWallet> loadWallet({
     required String path,
     required String password,
+    required int network,
   });
 
   Future<WrappedWallet> getCreatedWallet({
@@ -145,6 +149,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     required String password,
     required int wordCount,
     required String seedOffset,
+    required int network,
   });
 
   Future<WrappedWallet> getRestoredWallet({
@@ -152,6 +157,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     required String password,
     required String mnemonic,
     required String seedOffset,
+    required int network,
     int height = 0,
   });
 
@@ -160,6 +166,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     required String password,
     required String address,
     required String privateViewKey,
+    required int network,
     int height = 0,
   });
 
@@ -209,7 +216,11 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         throw Exception("Password not found $e, $s");
       }
 
-      wallet = await loadWallet(path: path, password: password);
+      wallet = await loadWallet(
+        path: path,
+        password: password,
+        network: getNetworkType(),
+      );
 
       _setListener();
 
@@ -329,7 +340,11 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     } catch (e, s) {
       throw Exception("Password not found $e, $s");
     }
-    wallet = await loadWallet(path: path, password: password);
+    wallet = await loadWallet(
+      path: path,
+      password: password,
+      network: getNetworkType(),
+    );
     return (
       await csMonero.getAddress(wallet!),
       await csMonero.getPrivateViewKey(wallet!),
@@ -355,6 +370,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
           password: password,
           wordCount: wordCount,
           seedOffset: "", // default for non restored wallets for now
+          network: getNetworkType(),
         );
 
         await info.updateRestoreHeight(
@@ -438,6 +454,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
             mnemonic: mnemonic,
             height: height,
             seedOffset: seedOffset,
+            network: getNetworkType(),
           );
 
           if (this.wallet != null) {
@@ -1575,6 +1592,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
           address: data.address,
           privateViewKey: data.privateViewKey,
           height: height,
+          network: getNetworkType(),
         );
 
         if (this.wallet == null) {
