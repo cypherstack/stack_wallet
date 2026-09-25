@@ -164,7 +164,12 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
           ),
         ),
         const SizedBox(height: 10),
-        if (!isCustomFee)
+        if (cryptoCurrency is Xelis)
+          const Padding(
+            padding: EdgeInsets.all(10),
+            child: Text('Calculated when reviewing'),
+          )
+        else if (!isCustomFee)
           Padding(
             padding: const EdgeInsets.all(10),
             child: (feeSelectionResult?.$2 == null)
