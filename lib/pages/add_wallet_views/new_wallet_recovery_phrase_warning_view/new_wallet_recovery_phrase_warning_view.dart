@@ -170,6 +170,7 @@ class _NewWalletRecoveryPhraseWarningViewState
       }
 
       final txTracker = TransactionNotificationTracker(walletId: info.walletId);
+      await txTracker.markInitialized();
 
       String? mnemonicPassphrase;
       String? mnemonic;
