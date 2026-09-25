@@ -1023,8 +1023,7 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     bool isUsableOwner(Address? address) =>
         address != null &&
         address.value != collateralAddress &&
-        address.value != payoutAddress &&
-        address.value != votingAddress;
+        address.value != payoutAddress;
 
     Address? ownerAddress = await getCurrentReceivingAddress();
     const maxOwnerAttempts = 32;
@@ -1034,8 +1033,8 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     }
     if (ownerAddress == null || !isUsableOwner(ownerAddress)) {
       throw Exception(
-        "Could not derive owner address distinct from collateral, payout "
-        "and voting addresses.",
+        "Could not derive owner address distinct from collateral and payout "
+        "addresses.",
       );
     }
 
