@@ -1020,20 +1020,22 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
       );
     }
 
+    bool isUsableOwner(Address? address) =>
+        address != null &&
+        address.value != collateralAddress &&
+        address.value != payoutAddress &&
+        address.value != votingAddress;
+
     Address? ownerAddress = await getCurrentReceivingAddress();
     const maxOwnerAttempts = 32;
-    for (
-      var i = 0;
-      i < maxOwnerAttempts &&
-          (ownerAddress == null || ownerAddress.value == collateralAddress);
-      i++
-    ) {
+    for (var i = 0; i < maxOwnerAttempts && !isUsableOwner(ownerAddress); i++) {
       await generateNewReceivingAddress();
       ownerAddress = await getCurrentReceivingAddress();
     }
-    if (ownerAddress == null || ownerAddress.value == collateralAddress) {
+    if (ownerAddress == null || !isUsableOwner(ownerAddress)) {
       throw Exception(
-        "Could not derive owner address distinct from collateral address.",
+        "Could not derive owner address distinct from collateral, payout "
+        "and voting addresses.",
       );
     }
 
