@@ -15,6 +15,7 @@ import 'dart:ui';
 
 import 'package:coinlib_flutter/coinlib_flutter.dart';
 import 'package:compat/compat.dart' as lib_monero_compat;
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -77,6 +78,7 @@ import 'wallets/crypto_currency/crypto_currency.dart';
 import 'wallets/isar/providers/all_wallets_info_provider.dart';
 import 'wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import 'widgets/crypto_notifications.dart';
+import 'widgets/sensitive_wallet_content.dart';
 import 'wl_gen/interfaces/cs_monero_interface.dart';
 import 'wl_gen/interfaces/cs_wownero_interface.dart';
 import 'wl_gen/interfaces/lib_xelis_interface.dart';
@@ -104,6 +106,10 @@ void main(List<String> args) async {
   GoogleFonts.config.allowRuntimeFetching = false;
   if (Platform.isIOS) {
     Util.isIpad = await Util.getIsIPad;
+  }
+  if (Platform.isAndroid) {
+    final sdkInt = (await DeviceInfoPlugin().androidInfo).version.sdkInt;
+    SensitiveWalletContent.hostFiltered = sdkInt >= 34;
   }
   Screen? screen;
   if (Platform.isLinux || (Util.isDesktop && !Platform.isIOS)) {
