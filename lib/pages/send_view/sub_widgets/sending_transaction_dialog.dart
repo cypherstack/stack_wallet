@@ -59,6 +59,13 @@ class _RestoringDialogState extends ConsumerState<SendingTransactionDialog> {
   Widget build(BuildContext context) {
     final assetPath = ref.watch(coinImageSecondaryProvider(widget.coin));
 
+    return ValueListenableBuilder(
+      valueListenable: widget.controller.message,
+      builder: (context, message, _) => _build(context, assetPath, message),
+    );
+  }
+
+  Widget _build(BuildContext context, String assetPath, String? message) {
     if (Util.isDesktop) {
       return DesktopDialog(
         maxHeight: assetPath.endsWith(".gif") ? double.infinity : null,
@@ -77,6 +84,9 @@ class _RestoringDialogState extends ConsumerState<SendingTransactionDialog> {
                   : ProgressAndSuccess(
                       controller: _progressAndSuccessController!,
                     ),
+              if (message != null) const SizedBox(height: 24),
+              if (message != null)
+                Text(message, style: STextStyles.desktopTextSmall(context)),
             ],
           ),
         ),
@@ -98,12 +108,20 @@ class _RestoringDialogState extends ConsumerState<SendingTransactionDialog> {
                       textAlign: TextAlign.center,
                       style: STextStyles.pageTitleH2(context),
                     ),
+                    if (message != null) const SizedBox(height: 8),
+                    if (message != null)
+                      Text(
+                        message,
+                        textAlign: TextAlign.center,
+                        style: STextStyles.smallMed14(context),
+                      ),
                     const SizedBox(height: 32),
                   ],
                 ),
               )
             : StackDialog(
                 title: "Sending transaction",
+                message: message,
                 icon: ProgressAndSuccess(
                   controller: _progressAndSuccessController!,
                 ),
@@ -115,6 +133,8 @@ class _RestoringDialogState extends ConsumerState<SendingTransactionDialog> {
 
 class ProgressAndSuccessController {
   VoidCallback? triggerSuccess;
+
+  final ValueNotifier<String?> message = ValueNotifier(null);
 }
 
 class ProgressAndSuccess extends StatefulWidget {

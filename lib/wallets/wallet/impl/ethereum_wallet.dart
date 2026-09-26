@@ -150,6 +150,35 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
     return web3.Web3Client(node.host, client);
   }
 
+  /// Signs [tx] and returns the raw signed transaction hex, 0x-prefixed with
+  /// the EIP-1559 type byte, for flows where a third party broadcasts.
+  Future<String> signWeb3TransactionToHex({
+    required web3.Transaction tx,
+    required BigInt chainId,
+  }) async {
+    if (_credentials == null) {
+      await _initCredentials();
+    }
+    // Fill the defaults Web3Client.signTransaction applies.
+    final complete = tx.copyWith(
+      value: tx.value ?? eth_wallet.EtherAmount.zero(),
+      data: tx.data ?? Uint8List(0),
+    );
+    var signed = web3.signTransactionRaw(
+      complete,
+      _credentials!,
+      chainId: chainId.toInt(),
+    );
+    if (tx.isEIP1559) {
+      signed = web3.prependTransactionType(0x02, signed);
+    }
+    return web3.bytesToHex(signed, include0x: true, padToEvenLength: true);
+  }
+
+  /// The transaction id of the signed transaction hex [raw].
+  String txidOfSignedHex(String raw) =>
+      web3.bytesToHex(web3.keccak256(web3.hexToBytes(raw)), include0x: true);
+
   Amount estimateEthFee(BigInt feeRate, int gasLimit, int decimals) {
     final gweiAmount = feeRate.toDecimal() / (Decimal.ten.pow(9).toDecimal());
     final fee =
@@ -671,11 +700,20 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
       cryptoCurrency.fractionDigits,
     );
 
-    return txData.copyWith(
-      nonce: tx.nonce,
-      web3dartTransaction: tx,
-      fee: feeEstimate,
-      chainId: prep.chainId,
+    final raw = await signWeb3TransactionToHex(tx: tx, chainId: prep.chainId);
+    final txid = txidOfSignedHex(raw);
+
+    return _prepareTempTx(
+      txData.copyWith(
+        nonce: tx.nonce,
+        web3dartTransaction: tx,
+        fee: feeEstimate,
+        chainId: prep.chainId,
+        raw: raw,
+        txid: txid,
+        txHash: txid,
+      ),
+      (await getCurrentReceivingAddress())!.value,
     );
   }
 

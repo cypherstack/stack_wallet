@@ -14,10 +14,12 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:opencryptopay/opencryptopay.dart';
 
 import '../../../../models/isar/models/contact_entry.dart';
 import '../../../../models/paynym/paynym_account_lite.dart';
 import '../../../../models/send_view_auto_fill_data.dart';
+import '../../../../pages/open_crypto_pay/open_crypto_pay_send_handler.dart';
 import '../../../../pages/send_view/confirm_transaction_view.dart';
 import '../../../../pages/send_view/sub_widgets/building_transaction_dialog.dart';
 import '../../../../providers/providers.dart';
@@ -115,6 +117,16 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
       parseOptionalIntegerInput(nonceController.text, minimum: 0);
 
   bool get _nonceIsValid => _nonceInput.isValid;
+
+  late final OpenCryptoPaySendHandler _openCryptoPay;
+
+  void _openCryptoPaySetValidAddress(String address) {
+    _address = address;
+    _updatePreviewButtonState(_address, _amountToSend);
+    setState(() {
+      _addressToggleFlag = sendToController.text.isNotEmpty;
+    });
+  }
 
   Future<void> previewSend() async {
     final nonceInput = _nonceInput;
@@ -282,6 +294,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
                 txData: txData,
                 walletId: walletId,
                 onSuccess: clearSendForm,
+                openCryptoPayHandler: _openCryptoPay,
                 isTokenTx: true,
                 routeOnSuccessName: DesktopHomeView.routeName,
               ),
@@ -460,6 +473,12 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
 
       Logging.instance.d("qrResult content: $qrResult");
 
+      if (OpenCryptoPayController.isOpenCryptoPayUri(qrResult)) {
+        if (!mounted) return;
+        unawaited(_openCryptoPay.handle(context, qrResult));
+        return;
+      }
+
       final paymentData = AddressUtils.parsePaymentUri(
         qrResult,
         logging: Logging.instance,
@@ -536,6 +555,11 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
       String content = data.text!.trim();
       if (content.contains("\n")) {
         content = content.substring(0, content.indexOf("\n"));
+      }
+      if (OpenCryptoPayController.isOpenCryptoPayUri(content)) {
+        if (!mounted) return;
+        unawaited(_openCryptoPay.handle(context, content));
+        return;
       }
 
       sendToController.text = content;
@@ -647,6 +671,23 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
       _address = _data.address;
       _addressToggleFlag = true;
     }
+
+    final tokenContract = ref.read(pCurrentTokenWallet)?.tokenContract;
+    _openCryptoPay = OpenCryptoPaySendHandler(
+      coin: coin,
+      sendToController: sendToController,
+      onAmountReceived: (parsed) {
+        cryptoAmountController.text = ref
+            .read(pAmountFormatter(coin))
+            .formatEditable(parsed);
+        _amountToSend = parsed;
+        _updatePreviewButtonState(_address, parsed);
+      },
+      setValidAddress: _openCryptoPaySetValidAddress,
+      tokenSymbol: tokenContract?.symbol,
+      tokenDecimals: tokenContract?.decimals,
+      tokenContractAddress: tokenContract?.address,
+    );
 
     _cryptoFocus.addListener(() {
       if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
