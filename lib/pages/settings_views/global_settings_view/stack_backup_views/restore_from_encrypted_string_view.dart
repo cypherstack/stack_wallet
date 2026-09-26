@@ -23,6 +23,7 @@ import '../../../../utilities/text_styles.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/loading_indicator.dart';
+import '../../../../widgets/sensitive_wallet_content.dart';
 import '../../../../widgets/stack_text_field.dart';
 import '../../../home_view/home_view.dart';
 import 'helpers/restore_create_backup.dart';
@@ -110,54 +111,57 @@ class _RestoreFromEncryptedStringViewState
                               borderRadius: BorderRadius.circular(
                                 Constants.size.circularBorderRadius,
                               ),
-                              child: TextField(
-                                key: const Key(
-                                  "restoreFromFilePasswordFieldKey",
-                                ),
-                                focusNode: passwordFocusNode,
-                                controller: passwordController,
-                                style: STextStyles.field(context),
-                                obscureText: hidePassword,
-                                enableSuggestions: false,
-                                autocorrect: false,
-                                decoration:
-                                    standardInputDecoration(
-                                      "Enter password",
-                                      passwordFocusNode,
-                                      context,
-                                    ).copyWith(
-                                      suffixIcon: UnconstrainedBox(
-                                        child: Row(
-                                          children: [
-                                            const SizedBox(width: 16),
-                                            GestureDetector(
-                                              key: const Key(
-                                                "restoreFromFilePasswordFieldShowPasswordButtonKey",
+                              child: SensitiveWalletContent(
+                                sensitive: !hidePassword,
+                                child: TextField(
+                                  key: const Key(
+                                    "restoreFromFilePasswordFieldKey",
+                                  ),
+                                  focusNode: passwordFocusNode,
+                                  controller: passwordController,
+                                  style: STextStyles.field(context),
+                                  obscureText: hidePassword,
+                                  enableSuggestions: false,
+                                  autocorrect: false,
+                                  decoration:
+                                      standardInputDecoration(
+                                        "Enter password",
+                                        passwordFocusNode,
+                                        context,
+                                      ).copyWith(
+                                        suffixIcon: UnconstrainedBox(
+                                          child: Row(
+                                            children: [
+                                              const SizedBox(width: 16),
+                                              GestureDetector(
+                                                key: const Key(
+                                                  "restoreFromFilePasswordFieldShowPasswordButtonKey",
+                                                ),
+                                                onTap: () async {
+                                                  setState(() {
+                                                    hidePassword = !hidePassword;
+                                                  });
+                                                },
+                                                child: SvgPicture.asset(
+                                                  hidePassword
+                                                      ? Assets.svg.eye
+                                                      : Assets.svg.eyeSlash,
+                                                  color: Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .textDark3,
+                                                  width: 16,
+                                                  height: 16,
+                                                ),
                                               ),
-                                              onTap: () async {
-                                                setState(() {
-                                                  hidePassword = !hidePassword;
-                                                });
-                                              },
-                                              child: SvgPicture.asset(
-                                                hidePassword
-                                                    ? Assets.svg.eye
-                                                    : Assets.svg.eyeSlash,
-                                                color: Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .textDark3,
-                                                width: 16,
-                                                height: 16,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 12),
-                                          ],
+                                              const SizedBox(width: 12),
+                                            ],
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                onChanged: (newValue) {
-                                  setState(() {});
-                                },
+                                  onChanged: (newValue) {
+                                    setState(() {});
+                                  },
+                                ),
                               ),
                             ),
                             const SizedBox(height: 16),

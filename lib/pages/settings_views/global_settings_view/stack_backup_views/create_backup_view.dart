@@ -34,6 +34,7 @@ import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/progress_bar.dart';
+import '../../../../widgets/sensitive_wallet_content.dart';
 import '../../../../widgets/stack_dialog.dart';
 import '../../../../widgets/stack_text_field.dart';
 import 'helpers/restore_create_backup.dart';
@@ -385,87 +386,90 @@ class _RestoreFromFileViewState extends ConsumerState<CreateBackupView> {
               borderRadius: BorderRadius.circular(
                 Constants.size.circularBorderRadius,
               ),
-              child: TextField(
-                key: const Key("createBackupPasswordFieldKey1"),
-                focusNode: passwordFocusNode,
-                controller: passwordController,
-                style: STextStyles.field(context),
-                obscureText: hidePassword,
-                enableSuggestions: false,
-                autocorrect: false,
-                decoration:
-                    standardInputDecoration(
-                      "Create passphrase",
-                      passwordFocusNode,
-                      context,
-                    ).copyWith(
-                      labelStyle: isDesktop
-                          ? STextStyles.fieldLabel(context)
-                          : null,
-                      suffixIcon: UnconstrainedBox(
-                        child: Row(
-                          children: [
-                            const SizedBox(width: 16),
-                            GestureDetector(
-                              key: const Key(
-                                "createBackupPasswordFieldShowPasswordButtonKey",
+              child: SensitiveWalletContent(
+                sensitive: !hidePassword,
+                child: TextField(
+                  key: const Key("createBackupPasswordFieldKey1"),
+                  focusNode: passwordFocusNode,
+                  controller: passwordController,
+                  style: STextStyles.field(context),
+                  obscureText: hidePassword,
+                  enableSuggestions: false,
+                  autocorrect: false,
+                  decoration:
+                      standardInputDecoration(
+                        "Create passphrase",
+                        passwordFocusNode,
+                        context,
+                      ).copyWith(
+                        labelStyle: isDesktop
+                            ? STextStyles.fieldLabel(context)
+                            : null,
+                        suffixIcon: UnconstrainedBox(
+                          child: Row(
+                            children: [
+                              const SizedBox(width: 16),
+                              GestureDetector(
+                                key: const Key(
+                                  "createBackupPasswordFieldShowPasswordButtonKey",
+                                ),
+                                onTap: () async {
+                                  setState(() {
+                                    hidePassword = !hidePassword;
+                                  });
+                                },
+                                child: SvgPicture.asset(
+                                  hidePassword
+                                      ? Assets.svg.eye
+                                      : Assets.svg.eyeSlash,
+                                  color: Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.textDark3,
+                                  width: 16,
+                                  height: 16,
+                                ),
                               ),
-                              onTap: () async {
-                                setState(() {
-                                  hidePassword = !hidePassword;
-                                });
-                              },
-                              child: SvgPicture.asset(
-                                hidePassword
-                                    ? Assets.svg.eye
-                                    : Assets.svg.eyeSlash,
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textDark3,
-                                width: 16,
-                                height: 16,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                          ],
+                              const SizedBox(width: 12),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                onChanged: (newValue) {
-                  if (newValue.isEmpty) {
+                  onChanged: (newValue) {
+                    if (newValue.isEmpty) {
+                      setState(() {
+                        passwordFeedback = "";
+                      });
+                      return;
+                    }
+                    final result = zxcvbn.evaluate(newValue);
+                    String suggestionsAndTips = "";
+                    for (final sug in result.feedback.suggestions!.toSet()) {
+                      suggestionsAndTips += "$sug\n";
+                    }
+                    suggestionsAndTips += result.feedback.warning!;
+                    String feedback =
+                        // "Password Strength: ${((result.score! / 4.0) * 100).toInt()}%\n"
+                        suggestionsAndTips;
+
+                    passwordStrength = result.score! / 4;
+
+                    // hack fix to format back string returned from zxcvbn
+                    if (feedback.contains("phrasesNo need")) {
+                      feedback = feedback.replaceFirst(
+                        "phrasesNo need",
+                        "phrases\nNo need",
+                      );
+                    }
+
+                    if (feedback.endsWith("\n")) {
+                      feedback = feedback.substring(0, feedback.length - 2);
+                    }
+
                     setState(() {
-                      passwordFeedback = "";
+                      passwordFeedback = feedback;
                     });
-                    return;
-                  }
-                  final result = zxcvbn.evaluate(newValue);
-                  String suggestionsAndTips = "";
-                  for (final sug in result.feedback.suggestions!.toSet()) {
-                    suggestionsAndTips += "$sug\n";
-                  }
-                  suggestionsAndTips += result.feedback.warning!;
-                  String feedback =
-                      // "Password Strength: ${((result.score! / 4.0) * 100).toInt()}%\n"
-                      suggestionsAndTips;
-
-                  passwordStrength = result.score! / 4;
-
-                  // hack fix to format back string returned from zxcvbn
-                  if (feedback.contains("phrasesNo need")) {
-                    feedback = feedback.replaceFirst(
-                      "phrasesNo need",
-                      "phrases\nNo need",
-                    );
-                  }
-
-                  if (feedback.endsWith("\n")) {
-                    feedback = feedback.substring(0, feedback.length - 2);
-                  }
-
-                  setState(() {
-                    passwordFeedback = feedback;
-                  });
-                },
+                  },
+                ),
               ),
             ),
             if (passwordFocusNode.hasFocus ||
@@ -515,56 +519,59 @@ class _RestoreFromFileViewState extends ConsumerState<CreateBackupView> {
               borderRadius: BorderRadius.circular(
                 Constants.size.circularBorderRadius,
               ),
-              child: TextField(
-                key: const Key("createBackupPasswordFieldKey2"),
-                focusNode: passwordRepeatFocusNode,
-                controller: passwordRepeatController,
-                style: STextStyles.field(context),
-                obscureText: hidePassword,
-                enableSuggestions: false,
-                autocorrect: false,
-                decoration:
-                    standardInputDecoration(
-                      "Confirm passphrase",
-                      passwordRepeatFocusNode,
-                      context,
-                    ).copyWith(
-                      labelStyle: isDesktop
-                          ? STextStyles.fieldLabel(context)
-                          : null,
-                      suffixIcon: UnconstrainedBox(
-                        child: Row(
-                          children: [
-                            const SizedBox(width: 16),
-                            GestureDetector(
-                              key: const Key(
-                                "createBackupPasswordFieldShowPasswordButtonKey",
+              child: SensitiveWalletContent(
+                sensitive: !hidePassword,
+                child: TextField(
+                  key: const Key("createBackupPasswordFieldKey2"),
+                  focusNode: passwordRepeatFocusNode,
+                  controller: passwordRepeatController,
+                  style: STextStyles.field(context),
+                  obscureText: hidePassword,
+                  enableSuggestions: false,
+                  autocorrect: false,
+                  decoration:
+                      standardInputDecoration(
+                        "Confirm passphrase",
+                        passwordRepeatFocusNode,
+                        context,
+                      ).copyWith(
+                        labelStyle: isDesktop
+                            ? STextStyles.fieldLabel(context)
+                            : null,
+                        suffixIcon: UnconstrainedBox(
+                          child: Row(
+                            children: [
+                              const SizedBox(width: 16),
+                              GestureDetector(
+                                key: const Key(
+                                  "createBackupPasswordFieldShowPasswordButtonKey",
+                                ),
+                                onTap: () async {
+                                  setState(() {
+                                    hidePassword = !hidePassword;
+                                  });
+                                },
+                                child: SvgPicture.asset(
+                                  hidePassword
+                                      ? Assets.svg.eye
+                                      : Assets.svg.eyeSlash,
+                                  color: Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.textDark3,
+                                  width: 16,
+                                  height: 16,
+                                ),
                               ),
-                              onTap: () async {
-                                setState(() {
-                                  hidePassword = !hidePassword;
-                                });
-                              },
-                              child: SvgPicture.asset(
-                                hidePassword
-                                    ? Assets.svg.eye
-                                    : Assets.svg.eyeSlash,
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textDark3,
-                                width: 16,
-                                height: 16,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                          ],
+                              const SizedBox(width: 12),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                onChanged: (newValue) {
-                  setState(() {});
-                  // TODO: ? check if passwords match?
-                },
+                  onChanged: (newValue) {
+                    setState(() {});
+                    // TODO: ? check if passwords match?
+                  },
+                ),
               ),
             ),
             const SizedBox(height: 16),

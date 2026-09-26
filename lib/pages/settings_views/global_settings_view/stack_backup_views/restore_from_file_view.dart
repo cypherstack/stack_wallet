@@ -33,6 +33,7 @@ import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/loading_indicator.dart';
+import '../../../../widgets/sensitive_wallet_content.dart';
 import '../../../../widgets/stack_text_field.dart';
 import 'helpers/restore_create_backup.dart';
 import 'helpers/swb_file_system.dart';
@@ -226,55 +227,58 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
               borderRadius: BorderRadius.circular(
                 Constants.size.circularBorderRadius,
               ),
-              child: TextField(
-                key: const Key("restoreFromFilePasswordFieldKey"),
-                focusNode: passwordFocusNode,
-                controller: passwordController,
-                style: STextStyles.field(context),
-                obscureText: hidePassword,
-                enableSuggestions: false,
-                autocorrect: false,
-                decoration:
-                    standardInputDecoration(
-                      "Enter passphrase",
-                      passwordFocusNode,
-                      context,
-                    ).copyWith(
-                      labelStyle: isDesktop
-                          ? STextStyles.fieldLabel(context)
-                          : null,
-                      suffixIcon: UnconstrainedBox(
-                        child: Row(
-                          children: [
-                            const SizedBox(width: 16),
-                            GestureDetector(
-                              key: const Key(
-                                "restoreFromFilePasswordFieldShowPasswordButtonKey",
+              child: SensitiveWalletContent(
+                sensitive: !hidePassword,
+                child: TextField(
+                  key: const Key("restoreFromFilePasswordFieldKey"),
+                  focusNode: passwordFocusNode,
+                  controller: passwordController,
+                  style: STextStyles.field(context),
+                  obscureText: hidePassword,
+                  enableSuggestions: false,
+                  autocorrect: false,
+                  decoration:
+                      standardInputDecoration(
+                        "Enter passphrase",
+                        passwordFocusNode,
+                        context,
+                      ).copyWith(
+                        labelStyle: isDesktop
+                            ? STextStyles.fieldLabel(context)
+                            : null,
+                        suffixIcon: UnconstrainedBox(
+                          child: Row(
+                            children: [
+                              const SizedBox(width: 16),
+                              GestureDetector(
+                                key: const Key(
+                                  "restoreFromFilePasswordFieldShowPasswordButtonKey",
+                                ),
+                                onTap: () async {
+                                  setState(() {
+                                    hidePassword = !hidePassword;
+                                  });
+                                },
+                                child: SvgPicture.asset(
+                                  hidePassword
+                                      ? Assets.svg.eye
+                                      : Assets.svg.eyeSlash,
+                                  color: Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.textDark3,
+                                  width: 16,
+                                  height: 16,
+                                ),
                               ),
-                              onTap: () async {
-                                setState(() {
-                                  hidePassword = !hidePassword;
-                                });
-                              },
-                              child: SvgPicture.asset(
-                                hidePassword
-                                    ? Assets.svg.eye
-                                    : Assets.svg.eyeSlash,
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textDark3,
-                                width: 16,
-                                height: 16,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                          ],
+                              const SizedBox(width: 12),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                onChanged: (newValue) {
-                  setState(() {});
-                },
+                  onChanged: (newValue) {
+                    setState(() {});
+                  },
+                ),
               ),
             ),
             const SizedBox(height: 16),
