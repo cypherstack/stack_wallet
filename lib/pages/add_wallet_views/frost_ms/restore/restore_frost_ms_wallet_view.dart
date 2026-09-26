@@ -35,6 +35,7 @@ import '../../../../widgets/frost_mascot.dart';
 import '../../../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../../../widgets/icon_widgets/qrcode_icon.dart';
 import '../../../../widgets/icon_widgets/x_icon.dart';
+import '../../../../widgets/sensitive_wallet_content.dart';
 import '../../../../widgets/stack_dialog.dart';
 import '../../../../widgets/stack_text_field.dart';
 import '../../../../widgets/textfield_icon_button.dart';
@@ -422,82 +423,84 @@ class _RestoreFrostMsWalletViewState
               borderRadius: BorderRadius.circular(
                 Constants.size.circularBorderRadius,
               ),
-              child: TextField(
-                key: const Key("frMyNameTextFieldKey"),
-                controller: keysFieldController,
-                onChanged: (_) {
-                  setState(() {
-                    _keysEmpty = keysFieldController.text.isEmpty;
-                  });
-                },
-                focusNode: keysFocusNode,
-                readOnly: false,
-                autocorrect: false,
-                enableSuggestions: false,
-                style: STextStyles.field(context),
-                decoration:
-                    standardInputDecoration(
-                      "Keys",
-                      keysFocusNode,
-                      context,
-                    ).copyWith(
-                      contentPadding: const EdgeInsets.only(
-                        left: 16,
-                        top: 6,
-                        bottom: 8,
-                        right: 5,
-                      ),
-                      suffixIcon: Padding(
-                        padding: _keysEmpty
-                            ? const EdgeInsets.only(right: 8)
-                            : const EdgeInsets.only(right: 0),
-                        child: UnconstrainedBox(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              !_keysEmpty
-                                  ? TextFieldIconButton(
-                                      semanticsLabel:
-                                          "Clear Button. Clears The Keys Field.",
-                                      key: const Key("frMyNameClearButtonKey"),
-                                      onTap: () {
-                                        keysFieldController.text = "";
+              child: SensitiveWalletContent(
+                child: TextField(
+                  key: const Key("frMyNameTextFieldKey"),
+                  controller: keysFieldController,
+                  onChanged: (_) {
+                    setState(() {
+                      _keysEmpty = keysFieldController.text.isEmpty;
+                    });
+                  },
+                  focusNode: keysFocusNode,
+                  readOnly: false,
+                  autocorrect: false,
+                  enableSuggestions: false,
+                  style: STextStyles.field(context),
+                  decoration:
+                      standardInputDecoration(
+                        "Keys",
+                        keysFocusNode,
+                        context,
+                      ).copyWith(
+                        contentPadding: const EdgeInsets.only(
+                          left: 16,
+                          top: 6,
+                          bottom: 8,
+                          right: 5,
+                        ),
+                        suffixIcon: Padding(
+                          padding: _keysEmpty
+                              ? const EdgeInsets.only(right: 8)
+                              : const EdgeInsets.only(right: 0),
+                          child: UnconstrainedBox(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                !_keysEmpty
+                                    ? TextFieldIconButton(
+                                        semanticsLabel:
+                                            "Clear Button. Clears The Keys Field.",
+                                        key: const Key("frMyNameClearButtonKey"),
+                                        onTap: () {
+                                          keysFieldController.text = "";
 
-                                        setState(() {
-                                          _keysEmpty = true;
-                                        });
-                                      },
-                                      child: const XIcon(),
-                                    )
-                                  : TextFieldIconButton(
-                                      semanticsLabel:
-                                          "Paste Button. Pastes From Clipboard To Keys Field.",
-                                      key: const Key("frKeysPasteButtonKey"),
-                                      onTap: () async {
-                                        final ClipboardData? data =
-                                            await Clipboard.getData(
-                                              Clipboard.kTextPlain,
-                                            );
-                                        if (data?.text != null &&
-                                            data!.text!.isNotEmpty) {
-                                          keysFieldController.text = data.text!
-                                              .trim();
-                                        }
+                                          setState(() {
+                                            _keysEmpty = true;
+                                          });
+                                        },
+                                        child: const XIcon(),
+                                      )
+                                    : TextFieldIconButton(
+                                        semanticsLabel:
+                                            "Paste Button. Pastes From Clipboard To Keys Field.",
+                                        key: const Key("frKeysPasteButtonKey"),
+                                        onTap: () async {
+                                          final ClipboardData? data =
+                                              await Clipboard.getData(
+                                                Clipboard.kTextPlain,
+                                              );
+                                          if (data?.text != null &&
+                                              data!.text!.isNotEmpty) {
+                                            keysFieldController.text = data.text!
+                                                .trim();
+                                          }
 
-                                        setState(() {
-                                          _keysEmpty =
-                                              keysFieldController.text.isEmpty;
-                                        });
-                                      },
-                                      child: _keysEmpty
-                                          ? const ClipboardIcon()
-                                          : const XIcon(),
-                                    ),
-                            ],
+                                          setState(() {
+                                            _keysEmpty =
+                                                keysFieldController.text.isEmpty;
+                                          });
+                                        },
+                                        child: _keysEmpty
+                                            ? const ClipboardIcon()
+                                            : const XIcon(),
+                                      ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
+                ),
               ),
             ),
             const SizedBox(height: 16),

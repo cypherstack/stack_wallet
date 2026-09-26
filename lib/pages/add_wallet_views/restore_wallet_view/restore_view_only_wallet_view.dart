@@ -35,6 +35,7 @@ import '../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../widgets/desktop/desktop_scaffold.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/options.dart';
+import '../../../widgets/sensitive_wallet_content.dart';
 import '../../../widgets/stack_text_field.dart';
 import '../../home_view/home_view.dart';
 import 'confirm_recovery_dialog.dart';
@@ -524,40 +525,45 @@ class _RestoreViewOnlyWalletViewState
                           SizedBox(height: isDesktop ? 16 : 12),
                         if (!isElectrumX ||
                             _walletType == ViewOnlyWalletType.xPub)
-                          FullTextField(
-                            key: const Key("viewOnlyKeyRestoreFieldKey"),
-                            label:
-                                "${isElectrumX ? "Extended" : "Private View"} Key",
-                            controller: viewKeyController,
-                            onChanged: (value) {
-                              if (isElectrumX) {
-                                addressController.text = "";
-                                setState(() {
-                                  _enableRestoreButton = value.isNotEmpty;
-                                });
-                              } else {
-                                setState(() {
-                                  _enableRestoreButton =
-                                      value.isNotEmpty &&
-                                      addressController.text.isNotEmpty;
-                                });
-                              }
-                            },
+                          SensitiveWalletContent(
+                            sensitive: !isElectrumX,
+                            child: FullTextField(
+                              key: const Key("viewOnlyKeyRestoreFieldKey"),
+                              label:
+                                  "${isElectrumX ? "Extended" : "Private View"} Key",
+                              controller: viewKeyController,
+                              onChanged: (value) {
+                                if (isElectrumX) {
+                                  addressController.text = "";
+                                  setState(() {
+                                    _enableRestoreButton = value.isNotEmpty;
+                                  });
+                                } else {
+                                  setState(() {
+                                    _enableRestoreButton =
+                                        value.isNotEmpty &&
+                                        addressController.text.isNotEmpty;
+                                  });
+                                }
+                              },
+                            ),
                           ),
                         if (_walletType == ViewOnlyWalletType.spark)
                           SizedBox(height: isDesktop ? 16 : 12),
                         if (_walletType == ViewOnlyWalletType.spark)
-                          FullTextField(
-                            key: const Key(
-                              "viewOnlySparkViewKeyRestoreFieldKey",
+                          SensitiveWalletContent(
+                            child: FullTextField(
+                              key: const Key(
+                                "viewOnlySparkViewKeyRestoreFieldKey",
+                              ),
+                              label: "Spark View Key",
+                              controller: sparkViewKeyController,
+                              onChanged: (value) {
+                                setState(() {
+                                  _enableRestoreButton = value.isNotEmpty;
+                                });
+                              },
                             ),
-                            label: "Spark View Key",
-                            controller: sparkViewKeyController,
-                            onChanged: (value) {
-                              setState(() {
-                                _enableRestoreButton = value.isNotEmpty;
-                              });
-                            },
                           ),
                         if (!isDesktop) const Spacer(),
                         SizedBox(height: isDesktop ? 24 : 16),
