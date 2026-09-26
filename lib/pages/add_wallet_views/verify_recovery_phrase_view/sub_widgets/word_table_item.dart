@@ -14,6 +14,7 @@ import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
+import '../../../../widgets/sensitive_wallet_content.dart';
 
 class WordTableItem extends ConsumerWidget {
   const WordTableItem({
@@ -61,28 +62,30 @@ class WordTableItem extends ConsumerWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              word,
-              textAlign: TextAlign.center,
-              style: isDesktop
-                  ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color: selectedWord == word
-                          ? Theme.of(context)
-                              .extension<StackColors>()!
-                              .textSelectedWordTableItem
-                          : Theme.of(context)
-                              .extension<StackColors>()!
-                              .textDark,
-                    )
-                  : STextStyles.baseXS(context).copyWith(
-                      color: selectedWord == word
-                          ? Theme.of(context)
-                              .extension<StackColors>()!
-                              .textSelectedWordTableItem
-                          : Theme.of(context)
-                              .extension<StackColors>()!
-                              .textDark,
-                    ),
+            SensitiveWalletContent(
+              child: Text(
+                word,
+                textAlign: TextAlign.center,
+                style: isDesktop
+                    ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                        color: selectedWord == word
+                            ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .textSelectedWordTableItem
+                            : Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark,
+                      )
+                    : STextStyles.baseXS(context).copyWith(
+                        color: selectedWord == word
+                            ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .textSelectedWordTableItem
+                            : Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark,
+                      ),
+              ),
             ),
           ],
         ),

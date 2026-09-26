@@ -57,6 +57,7 @@ import '../../../widgets/desktop/desktop_scaffold.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../../widgets/icon_widgets/qrcode_icon.dart';
+import '../../../widgets/sensitive_wallet_content.dart';
 import '../../../widgets/table_view/table_view.dart';
 import '../../../widgets/table_view/table_view_cell.dart';
 import '../../../widgets/table_view/table_view_row.dart';
@@ -862,89 +863,92 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                             flex: 1,
                                             child: Column(
                                               children: [
-                                                TextFormField(
-                                                  enableIMEPersonalizedLearning:
-                                                      false,
-                                                  obscureText: _hideSeedWords,
-                                                  autocorrect: !isDesktop,
-                                                  enableSuggestions: !isDesktop,
-                                                  textCapitalization:
-                                                      TextCapitalization.none,
-                                                  key: Key(
-                                                    "restoreMnemonicFormField_$i",
-                                                  ),
-                                                  decoration:
-                                                      _getInputDecorationFor(
+                                                SensitiveWalletContent(
+                                                  sensitive: !_hideSeedWords,
+                                                  child: TextFormField(
+                                                    enableIMEPersonalizedLearning:
+                                                        false,
+                                                    obscureText: _hideSeedWords,
+                                                    autocorrect: !isDesktop,
+                                                    enableSuggestions: !isDesktop,
+                                                    textCapitalization:
+                                                        TextCapitalization.none,
+                                                    key: Key(
+                                                      "restoreMnemonicFormField_$i",
+                                                    ),
+                                                    decoration:
+                                                        _getInputDecorationFor(
+                                                          _inputStatuses[i * 4 +
+                                                              j -
+                                                              1],
+                                                          "${i * 4 + j}",
+                                                        ),
+                                                    autovalidateMode:
+                                                        AutovalidateMode
+                                                            .onUserInteraction,
+                                                    selectionControls:
+                                                        i * 4 + j - 1 == 1
+                                                        ? textSelectionControls
+                                                        : null,
+                                                    // focusNode:
+                                                    //     _focusNodes[i * 4 + j - 1],
+                                                    onChanged: (value) {
+                                                      final FormInputStatus
+                                                      formInputStatus;
+
+                                                      if (value.isEmpty) {
+                                                        formInputStatus =
+                                                            FormInputStatus.empty;
+                                                      } else if (_isValidMnemonicWord(
+                                                        value
+                                                            .trim()
+                                                            .toLowerCase(),
+                                                      )) {
+                                                        formInputStatus =
+                                                            FormInputStatus.valid;
+                                                      } else {
+                                                        formInputStatus =
+                                                            FormInputStatus
+                                                                .invalid;
+                                                      }
+
+                                                      // if (formInputStatus ==
+                                                      //     FormInputStatus.valid) {
+                                                      //   if (i * 4 + j <
+                                                      //       _focusNodes.length) {
+                                                      //     _focusNodes[i * 4 + j]
+                                                      //         .requestFocus();
+                                                      //   } else if (i * 4 + j ==
+                                                      //       _focusNodes.length) {
+                                                      //     _focusNodes[i * 4 + j - 1]
+                                                      //         .unfocus();
+                                                      //   }
+                                                      // }
+                                                      setState(() {
                                                         _inputStatuses[i * 4 +
+                                                                j -
+                                                                1] =
+                                                            formInputStatus;
+                                                      });
+                                                    },
+                                                    controller:
+                                                        _controllers[i * 4 +
                                                             j -
                                                             1],
-                                                        "${i * 4 + j}",
-                                                      ),
-                                                  autovalidateMode:
-                                                      AutovalidateMode
-                                                          .onUserInteraction,
-                                                  selectionControls:
-                                                      i * 4 + j - 1 == 1
-                                                      ? textSelectionControls
-                                                      : null,
-                                                  // focusNode:
-                                                  //     _focusNodes[i * 4 + j - 1],
-                                                  onChanged: (value) {
-                                                    final FormInputStatus
-                                                    formInputStatus;
-
-                                                    if (value.isEmpty) {
-                                                      formInputStatus =
-                                                          FormInputStatus.empty;
-                                                    } else if (_isValidMnemonicWord(
-                                                      value
-                                                          .trim()
-                                                          .toLowerCase(),
-                                                    )) {
-                                                      formInputStatus =
-                                                          FormInputStatus.valid;
-                                                    } else {
-                                                      formInputStatus =
-                                                          FormInputStatus
-                                                              .invalid;
-                                                    }
-
-                                                    // if (formInputStatus ==
-                                                    //     FormInputStatus.valid) {
-                                                    //   if (i * 4 + j <
-                                                    //       _focusNodes.length) {
-                                                    //     _focusNodes[i * 4 + j]
-                                                    //         .requestFocus();
-                                                    //   } else if (i * 4 + j ==
-                                                    //       _focusNodes.length) {
-                                                    //     _focusNodes[i * 4 + j - 1]
-                                                    //         .unfocus();
-                                                    //   }
-                                                    // }
-                                                    setState(() {
-                                                      _inputStatuses[i * 4 +
-                                                              j -
-                                                              1] =
-                                                          formInputStatus;
-                                                    });
-                                                  },
-                                                  controller:
-                                                      _controllers[i * 4 +
-                                                          j -
-                                                          1],
-                                                  style:
-                                                      STextStyles.field(
-                                                        context,
-                                                      ).copyWith(
-                                                        color: Theme.of(context)
-                                                            .extension<
-                                                              StackColors
-                                                            >()!
-                                                            .textRestore,
-                                                        fontSize: isDesktop
-                                                            ? 16
-                                                            : 14,
-                                                      ),
+                                                    style:
+                                                        STextStyles.field(
+                                                          context,
+                                                        ).copyWith(
+                                                          color: Theme.of(context)
+                                                              .extension<
+                                                                StackColors
+                                                              >()!
+                                                              .textRestore,
+                                                          fontSize: isDesktop
+                                                              ? 16
+                                                              : 14,
+                                                        ),
+                                                  ),
                                                 ),
                                                 if (_inputStatuses[i * 4 +
                                                         j -
@@ -1010,67 +1014,70 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                             flex: 1,
                                             child: Column(
                                               children: [
-                                                TextFormField(
-                                                  enableIMEPersonalizedLearning:
-                                                      false,
-                                                  obscureText: _hideSeedWords,
-                                                  autocorrect: !isDesktop,
-                                                  enableSuggestions: !isDesktop,
-                                                  textCapitalization:
-                                                      TextCapitalization.none,
-                                                  key: Key(
-                                                    "restoreMnemonicFormField_$i",
+                                                SensitiveWalletContent(
+                                                  sensitive: !_hideSeedWords,
+                                                  child: TextFormField(
+                                                    enableIMEPersonalizedLearning:
+                                                        false,
+                                                    obscureText: _hideSeedWords,
+                                                    autocorrect: !isDesktop,
+                                                    enableSuggestions: !isDesktop,
+                                                    textCapitalization:
+                                                        TextCapitalization.none,
+                                                    key: Key(
+                                                      "restoreMnemonicFormField_$i",
+                                                    ),
+                                                    decoration:
+                                                        _getInputDecorationFor(
+                                                          _inputStatuses[i],
+                                                          "${i + 1}",
+                                                        ),
+                                                    autovalidateMode:
+                                                        AutovalidateMode
+                                                            .onUserInteraction,
+                                                    selectionControls: i == 1
+                                                        ? textSelectionControls
+                                                        : null,
+                                                    onChanged: (value) {
+                                                      final FormInputStatus
+                                                      formInputStatus;
+
+                                                      if (value.isEmpty) {
+                                                        formInputStatus =
+                                                            FormInputStatus.empty;
+                                                      } else if (_isValidMnemonicWord(
+                                                        value
+                                                            .trim()
+                                                            .toLowerCase(),
+                                                      )) {
+                                                        formInputStatus =
+                                                            FormInputStatus.valid;
+                                                      } else {
+                                                        formInputStatus =
+                                                            FormInputStatus
+                                                                .invalid;
+                                                      }
+
+                                                      setState(() {
+                                                        _inputStatuses[i] =
+                                                            formInputStatus;
+                                                      });
+                                                    },
+                                                    controller: _controllers[i],
+                                                    style:
+                                                        STextStyles.field(
+                                                          context,
+                                                        ).copyWith(
+                                                          color: Theme.of(context)
+                                                              .extension<
+                                                                StackColors
+                                                              >()!
+                                                              .overlay,
+                                                          fontSize: isDesktop
+                                                              ? 16
+                                                              : 14,
+                                                        ),
                                                   ),
-                                                  decoration:
-                                                      _getInputDecorationFor(
-                                                        _inputStatuses[i],
-                                                        "${i + 1}",
-                                                      ),
-                                                  autovalidateMode:
-                                                      AutovalidateMode
-                                                          .onUserInteraction,
-                                                  selectionControls: i == 1
-                                                      ? textSelectionControls
-                                                      : null,
-                                                  onChanged: (value) {
-                                                    final FormInputStatus
-                                                    formInputStatus;
-
-                                                    if (value.isEmpty) {
-                                                      formInputStatus =
-                                                          FormInputStatus.empty;
-                                                    } else if (_isValidMnemonicWord(
-                                                      value
-                                                          .trim()
-                                                          .toLowerCase(),
-                                                    )) {
-                                                      formInputStatus =
-                                                          FormInputStatus.valid;
-                                                    } else {
-                                                      formInputStatus =
-                                                          FormInputStatus
-                                                              .invalid;
-                                                    }
-
-                                                    setState(() {
-                                                      _inputStatuses[i] =
-                                                          formInputStatus;
-                                                    });
-                                                  },
-                                                  controller: _controllers[i],
-                                                  style:
-                                                      STextStyles.field(
-                                                        context,
-                                                      ).copyWith(
-                                                        color: Theme.of(context)
-                                                            .extension<
-                                                              StackColors
-                                                            >()!
-                                                            .overlay,
-                                                        fontSize: isDesktop
-                                                            ? 16
-                                                            : 14,
-                                                      ),
                                                 ),
                                                 if (_inputStatuses[i] ==
                                                     FormInputStatus.invalid)
@@ -1153,55 +1160,58 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                   padding: const EdgeInsets.symmetric(
                                     vertical: 4,
                                   ),
-                                  child: TextFormField(
-                                    enableIMEPersonalizedLearning: false,
-                                    obscureText: _hideSeedWords,
-                                    autocorrect: !isDesktop,
-                                    enableSuggestions: !isDesktop,
-                                    textCapitalization: TextCapitalization.none,
-                                    key: Key("restoreMnemonicFormField_$i"),
-                                    decoration: _getInputDecorationFor(
-                                      _inputStatuses[i - 1],
-                                      "$i",
-                                    ),
-                                    autovalidateMode:
-                                        AutovalidateMode.onUserInteraction,
-                                    selectionControls: i == 1
-                                        ? textSelectionControls
-                                        : null,
-                                    // focusNode: _focusNodes[i - 1],
-                                    onChanged: (value) {
-                                      final FormInputStatus formInputStatus;
+                                  child: SensitiveWalletContent(
+                                    sensitive: !_hideSeedWords,
+                                    child: TextFormField(
+                                      enableIMEPersonalizedLearning: false,
+                                      obscureText: _hideSeedWords,
+                                      autocorrect: !isDesktop,
+                                      enableSuggestions: !isDesktop,
+                                      textCapitalization: TextCapitalization.none,
+                                      key: Key("restoreMnemonicFormField_$i"),
+                                      decoration: _getInputDecorationFor(
+                                        _inputStatuses[i - 1],
+                                        "$i",
+                                      ),
+                                      autovalidateMode:
+                                          AutovalidateMode.onUserInteraction,
+                                      selectionControls: i == 1
+                                          ? textSelectionControls
+                                          : null,
+                                      // focusNode: _focusNodes[i - 1],
+                                      onChanged: (value) {
+                                        final FormInputStatus formInputStatus;
 
-                                      if (value.isEmpty) {
-                                        formInputStatus = FormInputStatus.empty;
-                                      } else if (_isValidMnemonicWord(
-                                        value.trim().toLowerCase(),
-                                      )) {
-                                        formInputStatus = FormInputStatus.valid;
-                                      } else {
-                                        formInputStatus =
-                                            FormInputStatus.invalid;
-                                      }
+                                        if (value.isEmpty) {
+                                          formInputStatus = FormInputStatus.empty;
+                                        } else if (_isValidMnemonicWord(
+                                          value.trim().toLowerCase(),
+                                        )) {
+                                          formInputStatus = FormInputStatus.valid;
+                                        } else {
+                                          formInputStatus =
+                                              FormInputStatus.invalid;
+                                        }
 
-                                      // if (formInputStatus ==
-                                      //     FormInputStatus.valid) {
-                                      //   if (i < _focusNodes.length) {
-                                      //     _focusNodes[i].requestFocus();
-                                      //   } else if (i == _focusNodes.length) {
-                                      //     _focusNodes[i - 1].unfocus();
-                                      //   }
-                                      // }
-                                      setState(() {
-                                        _inputStatuses[i - 1] = formInputStatus;
-                                      });
-                                    },
-                                    controller: _controllers[i - 1],
-                                    style: STextStyles.field(context).copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textRestore,
-                                      fontSize: isDesktop ? 16 : 14,
+                                        // if (formInputStatus ==
+                                        //     FormInputStatus.valid) {
+                                        //   if (i < _focusNodes.length) {
+                                        //     _focusNodes[i].requestFocus();
+                                        //   } else if (i == _focusNodes.length) {
+                                        //     _focusNodes[i - 1].unfocus();
+                                        //   }
+                                        // }
+                                        setState(() {
+                                          _inputStatuses[i - 1] = formInputStatus;
+                                        });
+                                      },
+                                      controller: _controllers[i - 1],
+                                      style: STextStyles.field(context).copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).extension<StackColors>()!.textRestore,
+                                        fontSize: isDesktop ? 16 : 14,
+                                      ),
                                     ),
                                   ),
                                 ),
