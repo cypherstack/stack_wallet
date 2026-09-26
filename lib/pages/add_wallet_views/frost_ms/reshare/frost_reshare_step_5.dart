@@ -182,6 +182,7 @@ class _FrostReshareStep5State extends ConsumerState<FrostReshareStep5> {
           const SizedBox(height: 12),
           DetailItem(
             title: "Keys",
+            sensitive: true,
             detail: serializedKeys,
             button:
                 Util.isDesktop

@@ -36,6 +36,7 @@ class ViewOnlyWalletDataWidget extends StatelessWidget {
             ),
             DetailItem(
               title: "Private view key",
+              sensitive: true,
               detail: e.privateViewKey,
               button: Util.isDesktop
                   ? IconCopyButton(
@@ -86,6 +87,7 @@ class ViewOnlyWalletDataWidget extends StatelessWidget {
           children: [
             DetailItem(
               title: "View Key",
+              sensitive: true,
               detail: e.viewKey,
               button: Util.isDesktop
                   ? IconCopyButton(

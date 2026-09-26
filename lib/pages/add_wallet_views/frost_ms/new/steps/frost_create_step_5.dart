@@ -100,6 +100,7 @@ class _FrostCreateStep5State extends ConsumerState<FrostCreateStep5> {
           const SizedBox(height: 12),
           DetailItem(
             title: "Keys",
+            sensitive: true,
             detail: serializedKeys,
             button: Util.isDesktop
                 ? tvd.IconCopyButton(data: serializedKeys)

@@ -17,6 +17,7 @@ import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/detail_item.dart';
 import '../../../../widgets/qr.dart';
 import '../../../../widgets/rounded_white_container.dart';
+import '../../../../widgets/sensitive_wallet_content.dart';
 
 class CNWalletKeys extends StatefulWidget {
   const CNWalletKeys({
@@ -39,6 +40,10 @@ class _CNWalletKeysState extends State<CNWalletKeys> {
 
   String _current(String key) =>
       widget.cwKeyData.keys.firstWhere((e) => e.label == key).key;
+
+  bool get _isPrivateKey => widget.cwKeyData.keys
+      .firstWhere((e) => e.label == _currentDropDownValue)
+      .isPrivate;
 
   Future<void> _copy() async {
     await widget.clipboardInterface.setData(
@@ -170,9 +175,12 @@ class _CNWalletKeysState extends State<CNWalletKeys> {
             borderColor: Util.isDesktop
                 ? Theme.of(context).extension<StackColors>()!.textFieldDefaultBG
                 : null,
-            child: SelectableText(
-              _current(_currentDropDownValue),
-              style: STextStyles.w500_14(context),
+            child: SensitiveWalletContent(
+              sensitive: _isPrivateKey,
+              child: SelectableText(
+                _current(_currentDropDownValue),
+                style: STextStyles.w500_14(context),
+              ),
             ),
           ),
           SizedBox(

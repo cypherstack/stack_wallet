@@ -28,6 +28,7 @@ import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/detail_item.dart';
 import '../../../../widgets/qr.dart';
 import '../../../../widgets/rounded_white_container.dart';
+import '../../../../widgets/sensitive_wallet_content.dart';
 
 class WalletXPrivs extends ConsumerStatefulWidget {
   const WalletXPrivs({
@@ -190,9 +191,11 @@ class WalletXPrivsState extends ConsumerState<WalletXPrivs> {
             borderColor: Util.isDesktop
                 ? Theme.of(context).extension<StackColors>()!.textFieldDefaultBG
                 : null,
-            child: SelectableText(
-              _current(_currentDropDownValue),
-              style: STextStyles.w500_14(context),
+            child: SensitiveWalletContent(
+              child: SelectableText(
+                _current(_currentDropDownValue),
+                style: STextStyles.w500_14(context),
+              ),
             ),
           ),
           SizedBox(

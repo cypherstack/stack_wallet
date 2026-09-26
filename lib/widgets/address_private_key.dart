@@ -11,6 +11,7 @@ import '../utilities/util.dart';
 import '../wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import 'custom_buttons/blue_text_button.dart';
 import 'detail_item.dart';
+import 'sensitive_wallet_content.dart';
 
 class AddressPrivateKey extends ConsumerStatefulWidget {
   /// The [walletId] MUST be the id of a [Bip39HDWallet]!
@@ -91,9 +92,11 @@ class _AddressPrivateKeyState extends ConsumerState<AddressPrivateKey> {
         "Private key (WIF)",
         style: STextStyles.itemSubtitle(context),
       ),
-      detail: SelectableText(
-        _private ?? "*" * 52, // 52 is approx length
-        style: STextStyles.w500_14(context),
+      detail: SensitiveWalletContent(
+        child: SelectableText(
+          _private ?? "*" * 52, // 52 is approx length
+          style: STextStyles.w500_14(context),
+        ),
       ),
     );
   }

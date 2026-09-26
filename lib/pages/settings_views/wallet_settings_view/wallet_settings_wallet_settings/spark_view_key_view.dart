@@ -28,6 +28,7 @@ import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/qr.dart';
 import '../../../../widgets/rounded_white_container.dart';
+import '../../../../widgets/sensitive_wallet_content.dart';
 
 class SparkViewKeyView extends ConsumerStatefulWidget {
   const SparkViewKeyView({
@@ -165,9 +166,11 @@ class _SparkViewKeyViewState extends ConsumerState<SparkViewKeyView> {
                       context,
                     ).extension<StackColors>()!.textFieldDefaultBG
                   : null,
-              child: SelectableText(
-                widget.sparkViewKeyHex,
-                style: STextStyles.w500_14(context),
+              child: SensitiveWalletContent(
+                child: SelectableText(
+                  widget.sparkViewKeyHex,
+                  style: STextStyles.w500_14(context),
+                ),
               ),
             ),
             SizedBox(height: Util.isDesktop ? 12 : 16),

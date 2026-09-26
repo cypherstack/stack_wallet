@@ -330,6 +330,7 @@ class _FrostKeys extends StatelessWidget {
                   const SizedBox(height: 16),
                   DetailItem(
                     title: "Keys",
+                    sensitive: true,
                     detail: frostWalletData!.keys,
                     button:
                         Util.isDesktop
@@ -362,6 +363,7 @@ class _FrostKeys extends StatelessWidget {
                   if (prevGen)
                     DetailItem(
                       title: "Previous keys",
+                      sensitive: true,
                       detail: frostWalletData!.prevGen!.keys,
                       button:
                           Util.isDesktop
