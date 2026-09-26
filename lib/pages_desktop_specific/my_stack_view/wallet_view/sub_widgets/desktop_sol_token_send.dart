@@ -305,6 +305,14 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
         // pop building dialog
         Navigator.of(context, rootNavigator: true).pop();
 
+        final feeOk = await _openCryptoPay.preparedFeeMeetsMinimum(
+          context,
+          tokenWallet,
+          address: _address,
+          fee: txData.fee,
+        );
+        if (!feeOk || !mounted) return;
+
         unawaited(
           showDialog(
             context: context,

@@ -546,6 +546,14 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
         // pop building dialog
         Navigator.of(context).pop();
 
+        final feeOk = await _openCryptoPay.preparedFeeMeetsMinimum(
+          context,
+          tokenWallet,
+          address: _address,
+          fee: txData.fee,
+        );
+        if (!feeOk || !mounted) return;
+
         unawaited(
           Navigator.of(context).push(
             RouteGenerator.getRoute(

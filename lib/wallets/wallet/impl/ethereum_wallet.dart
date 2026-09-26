@@ -87,7 +87,6 @@ Future<List<TransactionV2>> findReplacedPendingEthereumTransactions({
 
 // Eth can not use tor with web3dart
 
-@visibleForTesting
 ({BigInt maxFeePerGas, BigInt maxPriorityFeePerGas}) resolveEip1559FeeCaps({
   required BigInt baseFee,
   required BigInt priorityFeePerGas,

@@ -17,15 +17,19 @@ import '../../app_config.dart';
 import '../../networking/http.dart';
 import '../../services/tor_service.dart';
 import '../../utilities/amount/amount.dart';
+import '../../utilities/enums/fee_rate_type_enum.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/prefs.dart';
 import '../../utilities/show_loading.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../wallets/wallet/wallet.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/dialogs/basic_dialog.dart';
+import '../../widgets/eth_fee_form.dart';
 import '../../widgets/stack_dialog.dart';
+import 'open_crypto_pay_send_fee.dart';
 
 /// Map a wallet [CryptoCurrency] (plus optional token symbol) to the
 /// library's [CryptoCoin] descriptor.
@@ -88,6 +92,7 @@ class OpenCryptoPaySendHandler {
 
   /// Whether a proof submission got no answer, so the provider may hold it.
   bool _deliveryUnconfirmed = false;
+  bool _feeCheckInFlight = false;
 
   Future<void> showQuoteExpiredError(
     BuildContext context, {
@@ -106,6 +111,77 @@ class OpenCryptoPaySendHandler {
 
   bool isActivePaymentFor(String? recipientAddress) =>
       _session?.isActivePaymentFor(recipientAddress) ?? false;
+
+  /// The fee to build the transaction with: the given one, raised to the
+  /// payment request's minimum when below it. Null when the send must stop.
+  /// [feeRateApplies] is false when the send builds its own fee.
+  Future<OpenCryptoPaySendFee?> sendFee(
+    BuildContext context,
+    Wallet wallet, {
+    required String? address,
+    required Amount amount,
+    required FeeRateType feeRateType,
+    int? satsPerVByte,
+    EthEIP1559Fee? ethFee,
+    bool feeRateApplies = true,
+  }) async {
+    final chosen = (
+      feeRateType: feeRateType,
+      satsPerVByte: satsPerVByte,
+      ethFee: ethFee,
+    );
+    final session = _minFeeSessionFor(address);
+    if (!feeRateApplies || session == null) return chosen;
+    // A second Preview tap during the check is ignored.
+    if (_feeCheckInFlight) return null;
+    _feeCheckInFlight = true;
+    try {
+      return await openCryptoPaySendFee(
+        context,
+        wallet,
+        amount: amount,
+        minFee: session.minFee,
+        chosen: chosen,
+        confirm: _confirm,
+        unmet: _notify,
+      );
+    } finally {
+      _feeCheckInFlight = false;
+    }
+  }
+
+  /// Whether a prepared transaction's fee reaches the payment request's
+  /// minimum, for sends that build their own fee.
+  Future<bool> preparedFeeMeetsMinimum(
+    BuildContext context,
+    Wallet wallet, {
+    required String? address,
+    required Amount? fee,
+  }) async {
+    final session = _minFeeSessionFor(address);
+    if (session == null) return true;
+    return openCryptoPayPreparedFeeMeetsMinimum(
+      context,
+      wallet,
+      minFee: session.minFee,
+      fee: fee,
+      unmet: _notify,
+    );
+  }
+
+  /// The active payment session for [address] when it carries a minimum fee.
+  OpenCryptoPaySession? _minFeeSessionFor(String? address) {
+    final session = _session;
+    if (session == null ||
+        session.minFee <= 0 ||
+        !session.isActivePaymentFor(address)) {
+      return null;
+    }
+    return session;
+  }
+
+  Future<void> _notify(BuildContext context, String title, String message) =>
+      _showError(context: context, title: title, message: message);
 
   Future<bool> _confirm(
     BuildContext context,

@@ -486,6 +486,19 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
     //   }
     // }
 
+    final feeRateType = ref.read(feeRateTypeMobileStateProvider);
+    if (!mounted) return;
+    final fee = await _openCryptoPay.sendFee(
+      context,
+      tokenWallet,
+      address: _address,
+      amount: amount,
+      feeRateType: feeRateType,
+      ethFee: _ethFee.value,
+    );
+    if (!mounted) return;
+    if (fee == null) return;
+
     try {
       bool wasCancelled = false;
 
@@ -527,9 +540,9 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
               )!,
             ),
           ],
-          feeRateType: ref.read(feeRateTypeMobileStateProvider),
+          feeRateType: fee.feeRateType,
           note: noteController.text,
-          ethEIP1559Fee: _ethFee.value,
+          ethEIP1559Fee: fee.ethFee,
         ),
       );
 
