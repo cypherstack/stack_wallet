@@ -70,6 +70,7 @@ import '../pinpad_views/lock_screen_view.dart';
 import '../wallet_view/wallet_view.dart';
 import 'sub_widgets/epic_slatepack_dialog.dart';
 import 'sub_widgets/mwc_slatepack_dialog.dart';
+import 'sub_widgets/open_crypto_pay_business_details.dart';
 import 'sub_widgets/sending_transaction_dialog.dart';
 
 class ConfirmTransactionView extends ConsumerStatefulWidget {
@@ -779,6 +780,8 @@ class _ConfirmTransactionViewState
 
     final String unit;
     final wallet = ref.watch(pWallets).getWallet(walletId);
+    final businessDetails =
+        _activeOcp?.businessDetails ?? const <BusinessDetail>[];
     if (widget.isTokenTx) {
       if (wallet is SolanaWallet) {
         // For Solana tokens, use the Solana token wallet provider or TxData as fallback.
@@ -933,6 +936,13 @@ class _ConfirmTransactionViewState
                       ],
                     ),
                   ),
+                  if (businessDetails.isNotEmpty) const SizedBox(height: 12),
+                  if (businessDetails.isNotEmpty)
+                    RoundedWhiteContainer(
+                      child: OpenCryptoPayBusinessDetails(
+                        details: businessDetails,
+                      ),
+                    ),
                   const SizedBox(height: 12),
                   RoundedWhiteContainer(
                     child: Row(
@@ -1281,6 +1291,20 @@ class _ConfirmTransactionViewState
                           ],
                         ),
                       ),
+                      if (businessDetails.isNotEmpty)
+                        Container(
+                          height: 1,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
+                        ),
+                      if (businessDetails.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: OpenCryptoPayBusinessDetails(
+                            details: businessDetails,
+                          ),
+                        ),
                       if (widget.isPaynymTransaction)
                         Container(
                           height: 1,

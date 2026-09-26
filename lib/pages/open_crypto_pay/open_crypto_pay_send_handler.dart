@@ -40,6 +40,8 @@ CryptoCoin cryptoCoinFor(CryptoCurrency currency, {String? tokenSymbol}) =>
       displayName: tokenSymbol ?? currency.prettyName,
     );
 
+typedef BusinessDetail = ({String label, String value, Uri? uri});
+
 const _tokenMismatchTitle = "Different token";
 const _tokenMismatchMessage =
     "The payment request is for a token with a different contract address "
@@ -108,6 +110,29 @@ class OpenCryptoPaySendHandler {
   bool get requiresBroadcast => _session?.requiresBroadcast ?? true;
 
   bool get isQuoteExpired => _session?.isQuoteExpired ?? false;
+
+  List<BusinessDetail> get businessDetails {
+    final details = _session?.details;
+    if (details == null) return const [];
+    final recipient = details.recipient;
+    BusinessDetail? detail(String label, String? value, {Uri? uri}) =>
+        value == null || value.isEmpty
+        ? null
+        : (label: label, value: value, uri: uri);
+    final legalName = details.legalName;
+    return [
+      legalName == null
+          ? detail("Name", details.displayName)
+          : detail("Legal name", legalName),
+      if (recipient != null) ...[
+        detail("Postal address", recipient.postalAddress),
+        detail("Phone number", recipient.phone, uri: recipient.phoneUri),
+        detail("Email", recipient.mail, uri: recipient.mailUri),
+        detail("Website", recipient.website, uri: recipient.websiteUri),
+        detail("Registration number", recipient.registrationNumber),
+      ],
+    ].nonNulls.toList();
+  }
 
   bool isActivePaymentFor(String? recipientAddress) =>
       _session?.isActivePaymentFor(recipientAddress) ?? false;
