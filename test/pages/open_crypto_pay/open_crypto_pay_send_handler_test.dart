@@ -664,6 +664,209 @@ void main() {
     );
   });
 
+  group("OpenCryptoPaySendHandler.confirmSend", () {
+    final dialogTitle = find.textContaining(" changed");
+
+    Future<_HandlerSetup> pendingPayment(
+      WidgetTester tester,
+      _Harness harness, {
+      bool withAmount = true,
+      String? quoteExpiration,
+      List<Uri>? requests,
+    }) async {
+      final setup = _makeHandler(
+        harness: harness,
+        coin: Bitcoin(CryptoCurrencyNetwork.main),
+        client: _mockOcpServer(
+          paymentInfo: _paymentInfoJson(
+            quoteExpiration: quoteExpiration ?? _futureExpiration(),
+          ),
+          txDetails: _btcDetailsJson(hint: _hashHint, withAmount: withAmount),
+          onRequest: requests?.add,
+        ),
+      );
+      await _handle(tester, harness, setup.handler);
+      return setup;
+    }
+
+    testWidgets("passes silently without a pending payment", (tester) async {
+      final harness = await _pumpHarness(tester);
+      final setup = _makeHandler(
+        harness: harness,
+        coin: Bitcoin(CryptoCurrencyNetwork.main),
+        client: _mockOcpServer(paymentInfo: const {}),
+      );
+
+      final fut = setup.handler.confirmSend(
+        harness.context,
+        "bc1qother",
+        _btc(1),
+      );
+      await tester.pump();
+      expect(dialogTitle, findsNothing);
+      expect(await fut, isTrue);
+    });
+
+    testWidgets("passes silently for the quoted recipient and amount", (
+      tester,
+    ) async {
+      final harness = await _pumpHarness(tester);
+      final setup = await pendingPayment(tester, harness);
+
+      final fut = setup.handler.confirmSend(
+        harness.context,
+        _btcAddress,
+        _btc(1947),
+      );
+      await tester.pump();
+      expect(dialogTitle, findsNothing);
+      expect(await fut, isTrue);
+      expect(setup.handler.isActivePaymentFor(_btcAddress), isTrue);
+    });
+
+    testWidgets("an open-amount request binds only the recipient", (
+      tester,
+    ) async {
+      final harness = await _pumpHarness(tester);
+      final setup = await pendingPayment(tester, harness, withAmount: false);
+      expect(setup.amount.text, isEmpty);
+
+      final fut = setup.handler.confirmSend(
+        harness.context,
+        _btcAddress,
+        _btc(99999),
+      );
+      await tester.pump();
+      expect(dialogTitle, findsNothing);
+      expect(await fut, isTrue);
+    });
+
+    testWidgets("another amount asks and keeps the payment on Continue", (
+      tester,
+    ) async {
+      final harness = await _pumpHarness(tester);
+      final setup = await pendingPayment(tester, harness);
+
+      var fut = setup.handler.confirmSend(
+        harness.context,
+        _btcAddress,
+        _btc(1948),
+      );
+      await tester.pump();
+      expect(dialogTitle, findsOneWidget);
+      expect(find.text("Amount changed"), findsOneWidget);
+      expect(
+        find.textContaining("asked for a different amount."),
+        findsOneWidget,
+      );
+      await _tapButton(tester, "Cancel");
+      expect(await fut, isFalse);
+      expect(setup.handler.isActivePaymentFor(_btcAddress), isTrue);
+
+      fut = setup.handler.confirmSend(harness.context, _btcAddress, _btc(1948));
+      await tester.pump();
+      await _tapButton(tester, "Continue");
+      expect(await fut, isTrue);
+      expect(setup.handler.isActivePaymentFor(_btcAddress), isTrue);
+    });
+
+    testWidgets("another recipient asks and marks the request overridden", (
+      tester,
+    ) async {
+      final harness = await _pumpHarness(tester);
+      final setup = await pendingPayment(tester, harness);
+      expect(setup.handler.quoteOverridden, isFalse);
+
+      final fut = setup.handler.confirmSend(
+        harness.context,
+        "bc1qother",
+        _btc(1947),
+      );
+      await tester.pump();
+      expect(dialogTitle, findsOneWidget);
+      expect(find.text("Recipient changed"), findsOneWidget);
+      expect(
+        find.textContaining("asked for a different recipient."),
+        findsOneWidget,
+      );
+      await _tapButton(tester, "Continue");
+      expect(await fut, isTrue);
+
+      expect(setup.handler.quoteOverridden, isTrue);
+      expect(setup.handler.isActivePaymentFor(_btcAddress), isTrue);
+    });
+
+    testWidgets("reset drops the request without a network call", (
+      tester,
+    ) async {
+      final requests = <Uri>[];
+      final harness = await _pumpHarness(tester);
+      final setup = await pendingPayment(tester, harness, requests: requests);
+      final requestsBefore = requests.length;
+
+      setup.handler.reset();
+
+      expect(setup.handler.quoteOverridden, isFalse);
+      expect(setup.handler.isActivePaymentFor(_btcAddress), isFalse);
+      expect(
+        await setup.handler.submitProof(harness.context, "some_txid"),
+        isTrue,
+      );
+      expect(requests.length, requestsBefore);
+
+      final fut = setup.handler.confirmSend(
+        harness.context,
+        "bc1qother",
+        _btc(1),
+      );
+      await tester.pump();
+      expect(dialogTitle, findsNothing);
+      expect(await fut, isTrue);
+    });
+
+    testWidgets("both changed names recipient and amount", (tester) async {
+      final harness = await _pumpHarness(tester);
+      final setup = await pendingPayment(tester, harness);
+
+      final fut = setup.handler.confirmSend(
+        harness.context,
+        "bc1qother",
+        _btc(1948),
+      );
+      await tester.pump();
+      expect(find.text("Recipient and amount changed"), findsOneWidget);
+      expect(
+        find.textContaining("asked for a different recipient and amount."),
+        findsOneWidget,
+      );
+      await _tapButton(tester, "Cancel");
+      expect(await fut, isFalse);
+    });
+
+    testWidgets("an expired request does not ask", (tester) async {
+      final harness = await _pumpHarness(tester);
+      final setup = await pendingPayment(
+        tester,
+        harness,
+        quoteExpiration: DateTime.now()
+            .toUtc()
+            .add(const Duration(seconds: 2))
+            .toIso8601String(),
+      );
+      await tester.pump(const Duration(seconds: 3));
+      expect(setup.handler.isQuoteExpired, isTrue);
+
+      final fut = setup.handler.confirmSend(
+        harness.context,
+        _btcAddress,
+        _btc(1948),
+      );
+      await tester.pump();
+      expect(dialogTitle, findsNothing);
+      expect(await fut, isTrue);
+    });
+  });
+
   group("OpenCryptoPaySendHandler.sendFee", () {
     const title = "High network fee";
 

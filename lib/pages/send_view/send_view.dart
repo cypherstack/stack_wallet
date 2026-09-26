@@ -1223,6 +1223,7 @@ class _SendViewState extends ConsumerState<SendView> {
   }
 
   void clearSendForm() {
+    _openCryptoPay.reset();
     if (!mounted) {
       return;
     }

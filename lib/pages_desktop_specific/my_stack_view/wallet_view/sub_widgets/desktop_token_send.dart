@@ -382,6 +382,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
   }
 
   void clearSendForm() {
+    _openCryptoPay.reset();
     sendToController.text = "";
     cryptoAmountController.text = "";
     baseAmountController.text = "";

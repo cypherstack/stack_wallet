@@ -500,11 +500,13 @@ class _ConfirmTransactionViewState
             context: context,
           ),
         );
+        _discardOverriddenRequest();
         return;
       }
     } catch (e, s) {
       const message = "Broadcast transaction failed";
       Logging.instance.e(message, error: e, stackTrace: s);
+      _discardOverriddenRequest();
       // pop sending dialog
       if (context.mounted) {
         closeSendingDialog();
@@ -704,6 +706,7 @@ class _ConfirmTransactionViewState
     if (results.first != true) {
       // The handler showed the error and retained the payment for retry.
       sendingDialog.close();
+      _discardOverriddenRequest();
       // Pick up a transaction the provider may have broadcast anyway.
       _refreshAfterSend(wallet);
       return;
@@ -774,6 +777,51 @@ class _ConfirmTransactionViewState
     super.dispose();
   }
 
+  /// After a failed send that overrode the payment request, drop the request
+  /// and clear the send form so the code can be scanned again.
+  void _discardOverriddenRequest() {
+    final handler = widget.openCryptoPayHandler;
+    if (handler == null || !handler.quoteOverridden) return;
+    handler.reset();
+    // Every send view clears its form in onSuccess.
+    widget.onSuccess.call();
+  }
+
+  /// Fee and amount sent to recipients, following the Firo balance type.
+  ({Amount? fee, Amount amount}) _feeAndAmount(Wallet wallet) {
+    if (wallet is FiroWallet) {
+      switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
+        case BalanceType.public:
+          if (widget.txData.sparkMints != null) {
+            return (
+              fee: widget.txData.sparkMints!
+                  .map((e) => e.fee!)
+                  .reduce((value, element) => value += element),
+              amount: widget.txData.sparkMints!
+                  .map((e) => e.amountSpark!)
+                  .reduce((value, element) => value += element),
+            );
+          }
+          return (
+            fee: widget.txData.fee,
+            amount: widget.txData.amountWithoutChange!,
+          );
+
+        case BalanceType.private:
+          final zero = Amount.zeroWith(
+            fractionDigits: wallet.cryptoCurrency.fractionDigits,
+          );
+          return (
+            fee: widget.txData.fee,
+            amount:
+                (widget.txData.amountWithoutChange ?? zero) +
+                (widget.txData.amountSparkWithoutChange ?? zero),
+          );
+      }
+    }
+    return (fee: widget.txData.fee, amount: widget.txData.amountWithoutChange!);
+  }
+
   @override
   Widget build(BuildContext context) {
     final coin = ref.watch(pWalletCoin(walletId));
@@ -798,42 +846,9 @@ class _ConfirmTransactionViewState
       unit = coin.ticker;
     }
 
-    final Amount? fee;
-    final Amount amountWithoutChange;
-
-    if (wallet is FiroWallet) {
-      switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
-        case BalanceType.public:
-          if (widget.txData.sparkMints != null) {
-            fee = widget.txData.sparkMints!
-                .map((e) => e.fee!)
-                .reduce((value, element) => value += element);
-            amountWithoutChange = widget.txData.sparkMints!
-                .map((e) => e.amountSpark!)
-                .reduce((value, element) => value += element);
-          } else {
-            fee = widget.txData.fee;
-            amountWithoutChange = widget.txData.amountWithoutChange!;
-          }
-          break;
-
-        case BalanceType.private:
-          fee = widget.txData.fee;
-          amountWithoutChange =
-              (widget.txData.amountWithoutChange ??
-                  Amount.zeroWith(
-                    fractionDigits: wallet.cryptoCurrency.fractionDigits,
-                  )) +
-              (widget.txData.amountSparkWithoutChange ??
-                  Amount.zeroWith(
-                    fractionDigits: wallet.cryptoCurrency.fractionDigits,
-                  ));
-          break;
-      }
-    } else {
-      fee = widget.txData.fee;
-      amountWithoutChange = widget.txData.amountWithoutChange!;
-    }
+    final feeAndAmount = _feeAndAmount(wallet);
+    final fee = feeAndAmount.fee;
+    final amountWithoutChange = feeAndAmount.amount;
 
     return ConditionalParent(
       condition: !isDesktop,
@@ -1699,6 +1714,15 @@ class _ConfirmTransactionViewState
                 label: "Send",
                 buttonHeight: isDesktop ? ButtonHeight.l : null,
                 onPressed: () async {
+                  final handler = widget.openCryptoPayHandler;
+                  if (handler != null) {
+                    final proceed = await handler.confirmSend(
+                      context,
+                      _recipientAddress,
+                      _feeAndAmount(wallet).amount,
+                    );
+                    if (!proceed || !context.mounted) return;
+                  }
                   if (isDesktop) {
                     final unlocked = await showDialog<bool?>(
                       context: context,

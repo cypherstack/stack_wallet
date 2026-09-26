@@ -613,6 +613,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
   }
 
   void clearSendForm() {
+    _openCryptoPay.reset();
     sendToController.text = "";
     cryptoAmountController.text = "";
     baseAmountController.text = "";

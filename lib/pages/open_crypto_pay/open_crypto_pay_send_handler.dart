@@ -18,6 +18,7 @@ import '../../networking/http.dart';
 import '../../services/tor_service.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/enums/fee_rate_type_enum.dart';
+import '../../utilities/extensions/extensions.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/prefs.dart';
 import '../../utilities/show_loading.dart';
@@ -30,6 +31,23 @@ import '../../widgets/dialogs/basic_dialog.dart';
 import '../../widgets/eth_fee_form.dart';
 import '../../widgets/stack_dialog.dart';
 import 'open_crypto_pay_send_fee.dart';
+
+({String title, String message}) _quoteMismatchText({
+  required bool sameRecipient,
+  required bool sameAmount,
+}) {
+  final changed = switch ((sameRecipient, sameAmount)) {
+    (false, false) => "recipient and amount",
+    (false, true) => "recipient",
+    _ => "amount",
+  };
+  return (
+    title: "${changed.capitalize()} changed",
+    message:
+        "The payment request asked for a different $changed. "
+        "The seller may not recognize this payment.",
+  );
+}
 
 /// Map a wallet [CryptoCurrency] (plus optional token symbol) to the
 /// library's [CryptoCoin] descriptor.
@@ -91,10 +109,23 @@ class OpenCryptoPaySendHandler {
 
   final OpenCryptoPayController _controller;
   OpenCryptoPaySession? _session;
+  Amount? _quotedAmount;
+  bool _quoteOverridden = false;
 
   /// Whether a proof submission got no answer, so the provider may hold it.
   bool _deliveryUnconfirmed = false;
   bool _feeCheckInFlight = false;
+
+  /// Whether the user chose to send despite a recipient or amount that
+  /// differs from the payment request.
+  bool get quoteOverridden => _quoteOverridden;
+
+  void reset() {
+    _session = null;
+    _quotedAmount = null;
+    _quoteOverridden = false;
+    _deliveryUnconfirmed = false;
+  }
 
   Future<void> showQuoteExpiredError(
     BuildContext context, {
@@ -136,6 +167,30 @@ class OpenCryptoPaySendHandler {
 
   bool isActivePaymentFor(String? recipientAddress) =>
       _session?.isActivePaymentFor(recipientAddress) ?? false;
+
+  /// Whether sending [amount] to [address] may proceed. A pending payment
+  /// request with another recipient or amount asks for confirmation.
+  Future<bool> confirmSend(
+    BuildContext context,
+    String? address,
+    Amount amount,
+  ) async {
+    final session = _session;
+    if (session == null || session.isCompleted || session.isQuoteExpired) {
+      return true;
+    }
+    final sameRecipient = session.isActivePaymentFor(address);
+    final sameAmount = _quotedAmount == null || amount == _quotedAmount;
+    if (sameRecipient && sameAmount) return true;
+    if (!context.mounted) return false;
+    final text = _quoteMismatchText(
+      sameRecipient: sameRecipient,
+      sameAmount: sameAmount,
+    );
+    final proceed = await _confirm(context, text.title, text.message);
+    if (proceed) _quoteOverridden = true;
+    return proceed;
+  }
 
   /// The fee to build the transaction with: the given one, raised to the
   /// payment request's minimum when below it. Null when the send must stop.
@@ -316,6 +371,8 @@ class OpenCryptoPaySendHandler {
     final quoted = rawAmount == null
         ? null
         : Amount(rawValue: rawAmount, fractionDigits: _fractionDigits);
+    _quotedAmount = quoted;
+    _quoteOverridden = false;
     if (quoted != null) onAmountReceived(quoted);
 
     setValidAddress(address);

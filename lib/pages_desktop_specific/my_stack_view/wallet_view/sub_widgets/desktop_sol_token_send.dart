@@ -398,6 +398,7 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
   }
 
   void clearSendForm() {
+    _openCryptoPay.reset();
     sendToController.text = "";
     cryptoAmountController.text = "";
     baseAmountController.text = "";
