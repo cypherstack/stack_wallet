@@ -13,6 +13,7 @@ import '../../../widgets/desktop/desktop_dialog.dart';
 import '../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/desktop/secondary_button.dart';
+import '../../../widgets/sensitive_wallet_content.dart';
 import '../../../widgets/stack_dialog.dart';
 import '../../../widgets/stack_text_field.dart';
 import '../new_wallet_options/new_wallet_options_view.dart';
@@ -124,59 +125,62 @@ class _VerifyMnemonicPassphraseDialogState
               borderRadius: BorderRadius.circular(
                 Constants.size.circularBorderRadius,
               ),
-              child: TextField(
-                key: const Key("mnemonicPassphraseFieldKey1"),
-                focusNode: passwordFocusNode,
-                controller: passwordController,
-                style: Util.isDesktop
-                    ? STextStyles.desktopTextMedium(context).copyWith(
-                        height: 2,
-                      )
-                    : STextStyles.field(context),
-                obscureText: hidePassword,
-                enableSuggestions: false,
-                autocorrect: false,
-                decoration: standardInputDecoration(
-                  "Enter your BIP39 passphrase",
-                  passwordFocusNode,
-                  context,
-                ).copyWith(
-                  suffixIcon: UnconstrainedBox(
-                    child: ConditionalParent(
-                      condition: Util.isDesktop,
-                      builder: (child) => SizedBox(
-                        height: 70,
-                        child: child,
-                      ),
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            width: Util.isDesktop ? 24 : 16,
-                          ),
-                          GestureDetector(
-                            key: const Key(
-                              "mnemonicPassphraseFieldShowPasswordButtonKey",
-                            ),
-                            onTap: () async {
-                              setState(() {
-                                hidePassword = !hidePassword;
-                              });
-                            },
-                            child: SvgPicture.asset(
-                              hidePassword
-                                  ? Assets.svg.eye
-                                  : Assets.svg.eyeSlash,
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textDark3,
+              child: SensitiveWalletContent(
+                sensitive: !hidePassword,
+                child: TextField(
+                  key: const Key("mnemonicPassphraseFieldKey1"),
+                  focusNode: passwordFocusNode,
+                  controller: passwordController,
+                  style: Util.isDesktop
+                      ? STextStyles.desktopTextMedium(context).copyWith(
+                          height: 2,
+                        )
+                      : STextStyles.field(context),
+                  obscureText: hidePassword,
+                  enableSuggestions: false,
+                  autocorrect: false,
+                  decoration: standardInputDecoration(
+                    "Enter your BIP39 passphrase",
+                    passwordFocusNode,
+                    context,
+                  ).copyWith(
+                    suffixIcon: UnconstrainedBox(
+                      child: ConditionalParent(
+                        condition: Util.isDesktop,
+                        builder: (child) => SizedBox(
+                          height: 70,
+                          child: child,
+                        ),
+                        child: Row(
+                          children: [
+                            SizedBox(
                               width: Util.isDesktop ? 24 : 16,
-                              height: Util.isDesktop ? 24 : 16,
                             ),
-                          ),
-                          const SizedBox(
-                            width: 12,
-                          ),
-                        ],
+                            GestureDetector(
+                              key: const Key(
+                                "mnemonicPassphraseFieldShowPasswordButtonKey",
+                              ),
+                              onTap: () async {
+                                setState(() {
+                                  hidePassword = !hidePassword;
+                                });
+                              },
+                              child: SvgPicture.asset(
+                                hidePassword
+                                    ? Assets.svg.eye
+                                    : Assets.svg.eyeSlash,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark3,
+                                width: Util.isDesktop ? 24 : 16,
+                                height: Util.isDesktop ? 24 : 16,
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 12,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),

@@ -37,6 +37,7 @@ import '../../../../widgets/desktop/desktop_scaffold.dart';
 import '../../../../widgets/expandable.dart';
 import '../../../../widgets/icon_widgets/x_icon.dart';
 import '../../../../widgets/rounded_white_container.dart';
+import '../../../../widgets/sensitive_wallet_content.dart';
 import '../../../../widgets/stack_text_field.dart';
 import '../../../../widgets/textfield_icon_button.dart';
 import '../../../../widgets/toggle.dart';
@@ -665,60 +666,63 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),
-                    child: TextField(
-                      key: const Key("mnemonicPassphraseFieldKey1"),
-                      focusNode: widget.pwFocusNode,
-                      controller: widget.pwController,
-                      style: Util.isDesktop
-                          ? STextStyles.desktopTextMedium(
+                    child: SensitiveWalletContent(
+                      sensitive: !_hidePassword,
+                      child: TextField(
+                        key: const Key("mnemonicPassphraseFieldKey1"),
+                        focusNode: widget.pwFocusNode,
+                        controller: widget.pwController,
+                        style: Util.isDesktop
+                            ? STextStyles.desktopTextMedium(
+                                context,
+                              ).copyWith(height: 2)
+                            : STextStyles.field(context),
+                        obscureText: _hidePassword,
+                        enableSuggestions: false,
+                        autocorrect: false,
+                        decoration:
+                            standardInputDecoration(
+                              widget.coin is CryptonoteCurrency
+                                  ? "Seed Offset"
+                                  : "BIP39 passphrase",
+                              widget.pwFocusNode,
                               context,
-                            ).copyWith(height: 2)
-                          : STextStyles.field(context),
-                      obscureText: _hidePassword,
-                      enableSuggestions: false,
-                      autocorrect: false,
-                      decoration:
-                          standardInputDecoration(
-                            widget.coin is CryptonoteCurrency
-                                ? "Seed Offset"
-                                : "BIP39 passphrase",
-                            widget.pwFocusNode,
-                            context,
-                          ).copyWith(
-                            suffixIcon: UnconstrainedBox(
-                              child: ConditionalParent(
-                                condition: Util.isDesktop,
-                                builder: (child) =>
-                                    SizedBox(height: 70, child: child),
-                                child: Row(
-                                  children: [
-                                    SizedBox(width: Util.isDesktop ? 24 : 16),
-                                    GestureDetector(
-                                      key: const Key(
-                                        "mnemonicPassphraseFieldShowPasswordButtonKey",
+                            ).copyWith(
+                              suffixIcon: UnconstrainedBox(
+                                child: ConditionalParent(
+                                  condition: Util.isDesktop,
+                                  builder: (child) =>
+                                      SizedBox(height: 70, child: child),
+                                  child: Row(
+                                    children: [
+                                      SizedBox(width: Util.isDesktop ? 24 : 16),
+                                      GestureDetector(
+                                        key: const Key(
+                                          "mnemonicPassphraseFieldShowPasswordButtonKey",
+                                        ),
+                                        onTap: () async {
+                                          setState(() {
+                                            _hidePassword = !_hidePassword;
+                                          });
+                                        },
+                                        child: SvgPicture.asset(
+                                          _hidePassword
+                                              ? Assets.svg.eye
+                                              : Assets.svg.eyeSlash,
+                                          color: Theme.of(
+                                            context,
+                                          ).extension<StackColors>()!.textDark3,
+                                          width: Util.isDesktop ? 24 : 16,
+                                          height: Util.isDesktop ? 24 : 16,
+                                        ),
                                       ),
-                                      onTap: () async {
-                                        setState(() {
-                                          _hidePassword = !_hidePassword;
-                                        });
-                                      },
-                                      child: SvgPicture.asset(
-                                        _hidePassword
-                                            ? Assets.svg.eye
-                                            : Assets.svg.eyeSlash,
-                                        color: Theme.of(
-                                          context,
-                                        ).extension<StackColors>()!.textDark3,
-                                        width: Util.isDesktop ? 24 : 16,
-                                        height: Util.isDesktop ? 24 : 16,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                  ],
+                                      const SizedBox(width: 12),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8),

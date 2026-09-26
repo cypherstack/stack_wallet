@@ -21,6 +21,7 @@ import '../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../widgets/desktop/desktop_scaffold.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/rounded_white_container.dart';
+import '../../../widgets/sensitive_wallet_content.dart';
 import '../../../widgets/stack_text_field.dart';
 import '../../../widgets/toggle.dart';
 import '../create_or_restore_wallet_view/sub_widgets/coin_image.dart';
@@ -302,58 +303,61 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
                       borderRadius: BorderRadius.circular(
                         Constants.size.circularBorderRadius,
                       ),
-                      child: TextField(
-                        key: const Key("mnemonicPassphraseFieldKey1"),
-                        focusNode: passwordFocusNode,
-                        controller: passwordController,
-                        style: Util.isDesktop
-                            ? STextStyles.desktopTextMedium(
+                      child: SensitiveWalletContent(
+                        sensitive: !hidePassword,
+                        child: TextField(
+                          key: const Key("mnemonicPassphraseFieldKey1"),
+                          focusNode: passwordFocusNode,
+                          controller: passwordController,
+                          style: Util.isDesktop
+                              ? STextStyles.desktopTextMedium(
+                                  context,
+                                ).copyWith(height: 2)
+                              : STextStyles.field(context),
+                          obscureText: hidePassword,
+                          enableSuggestions: false,
+                          autocorrect: false,
+                          decoration:
+                              standardInputDecoration(
+                                "BIP39 passphrase",
+                                passwordFocusNode,
                                 context,
-                              ).copyWith(height: 2)
-                            : STextStyles.field(context),
-                        obscureText: hidePassword,
-                        enableSuggestions: false,
-                        autocorrect: false,
-                        decoration:
-                            standardInputDecoration(
-                              "BIP39 passphrase",
-                              passwordFocusNode,
-                              context,
-                            ).copyWith(
-                              suffixIcon: UnconstrainedBox(
-                                child: ConditionalParent(
-                                  condition: Util.isDesktop,
-                                  builder: (child) =>
-                                      SizedBox(height: 70, child: child),
-                                  child: Row(
-                                    children: [
-                                      SizedBox(width: Util.isDesktop ? 24 : 16),
-                                      GestureDetector(
-                                        key: const Key(
-                                          "mnemonicPassphraseFieldShowPasswordButtonKey",
+                              ).copyWith(
+                                suffixIcon: UnconstrainedBox(
+                                  child: ConditionalParent(
+                                    condition: Util.isDesktop,
+                                    builder: (child) =>
+                                        SizedBox(height: 70, child: child),
+                                    child: Row(
+                                      children: [
+                                        SizedBox(width: Util.isDesktop ? 24 : 16),
+                                        GestureDetector(
+                                          key: const Key(
+                                            "mnemonicPassphraseFieldShowPasswordButtonKey",
+                                          ),
+                                          onTap: () async {
+                                            setState(() {
+                                              hidePassword = !hidePassword;
+                                            });
+                                          },
+                                          child: SvgPicture.asset(
+                                            hidePassword
+                                                ? Assets.svg.eye
+                                                : Assets.svg.eyeSlash,
+                                            color: Theme.of(
+                                              context,
+                                            ).extension<StackColors>()!.textDark3,
+                                            width: Util.isDesktop ? 24 : 16,
+                                            height: Util.isDesktop ? 24 : 16,
+                                          ),
                                         ),
-                                        onTap: () async {
-                                          setState(() {
-                                            hidePassword = !hidePassword;
-                                          });
-                                        },
-                                        child: SvgPicture.asset(
-                                          hidePassword
-                                              ? Assets.svg.eye
-                                              : Assets.svg.eyeSlash,
-                                          color: Theme.of(
-                                            context,
-                                          ).extension<StackColors>()!.textDark3,
-                                          width: Util.isDesktop ? 24 : 16,
-                                          height: Util.isDesktop ? 24 : 16,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                    ],
+                                        const SizedBox(width: 12),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
+                        ),
                       ),
                     ),
                   if (widget.coin is ViewOnlyOptionCurrencyInterface)
