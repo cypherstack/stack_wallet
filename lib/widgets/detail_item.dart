@@ -5,6 +5,7 @@ import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
 import 'conditional_parent.dart';
 import 'rounded_white_container.dart';
+import 'sensitive_wallet_content.dart';
 
 class DetailItem extends StatelessWidget {
   const DetailItem({
@@ -21,6 +22,7 @@ class DetailItem extends StatelessWidget {
     this.expandDetail = false,
     this.detailPlaceholder,
     this.noPadding = false,
+    this.sensitive = false,
   });
 
   final String title;
@@ -35,6 +37,7 @@ class DetailItem extends StatelessWidget {
   final String? detailPlaceholder;
   final TextStyle? titleStyle;
   final bool noPadding;
+  final bool sensitive;
 
   @override
   Widget build(BuildContext context) {
@@ -64,9 +67,12 @@ class DetailItem extends StatelessWidget {
               title,
               style: titleStyle ?? STextStyles.itemSubtitle(context),
             ),
-      detail: disableSelectableText
-          ? Text(_detail, style: detailStyle)
-          : SelectableText(_detail, style: detailStyle),
+      detail: SensitiveWalletContent(
+        sensitive: sensitive,
+        child: disableSelectableText
+            ? Text(_detail, style: detailStyle)
+            : SelectableText(_detail, style: detailStyle),
+      ),
       button: button,
     );
   }
