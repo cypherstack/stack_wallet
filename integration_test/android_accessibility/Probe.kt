@@ -89,34 +89,42 @@ class ProbeChecks(private val scope: String) {
         }
         checkPhase("recreated")
     }
+    private fun hasSecret(text: String) = text.contains("seed-probe") || text.contains("private-probe")
+
     private fun checkPhase(phase: String) {
         val tool = ToolProbeService.instance!!
         val nonTool = NonToolProbeService.instance!!
-        val protected = Build.VERSION.SDK_INT >= 34 && scope != "none"
-        await("$phase: tool cannot read the seed/input") {
+        val fields = scope == "fields"
+        val protected = fields || (Build.VERSION.SDK_INT >= 34 && scope != "none")
+        val guarded = if (fields) listOf(tool, nonTool) else listOf(nonTool)
+        await("$phase: tool cannot read the page") {
             val tree = tool.tree()
-            tree.contains("seed-probe") && tree.contains("private-probe") && tree.contains("public-probe")
+            tree.contains("public-probe") && (fields || (tree.contains("seed-probe") && tree.contains("private-probe")))
         }
-        if (protected) check(nonTool.events.none { it.contains("private-probe") || it.contains("seed-probe") }) {
-            "$phase: non-tool received a secret during startup or recreation"
+        if (protected) for (service in guarded) check(service.events.none(::hasSecret)) {
+            "$phase: ${service.javaClass.simpleName} received a secret during startup or recreation"
         }
         tool.events.clear()
         nonTool.events.clear()
-        await("$phase: no positive-control input events for tool") {
-            tool.events.any { it.contains("private-probe") }
+        if (fields) {
+            Thread.sleep(2500)
+        } else {
+            await("$phase: no positive-control input events for tool") {
+                tool.events.any { it.contains("private-probe") }
+            }
         }
         repeat(20) {
-            val tree = nonTool.tree()
-            if (protected) {
-                check(!tree.contains("seed-probe") && !tree.contains("private-probe")) {
-                    "$phase: non-tool can query secrets"
-                }
-                check(nonTool.events.none { it.contains("private-probe") || it.contains("seed-probe") }) {
-                    "$phase: non-tool received secret events"
-                }
-            } else {
-                check(tree.contains("seed-probe") && tree.contains("private-probe")) {
-                    "$phase: baseline/older-API positive control failed"
+            for (service in guarded) {
+                val tree = service.tree()
+                val name = service.javaClass.simpleName
+                if (protected) {
+                    check(!hasSecret(tree)) { "$phase: $name can query secrets" }
+                    check(service.events.none(::hasSecret)) { "$phase: $name received secret events" }
+                    if (fields) check(tree.contains("public-probe")) { "$phase: $name lost public UI" }
+                } else {
+                    check(tree.contains("seed-probe") && tree.contains("private-probe")) {
+                        "$phase: baseline/older-API positive control failed"
+                    }
                 }
             }
             Thread.sleep(100)

@@ -10,7 +10,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--flutter', default='flutter')
 parser.add_argument('--adb', default='adb')
 parser.add_argument('--device', required=True)
-parser.add_argument('--scope', choices=['host', 'none'], default='host')
+parser.add_argument('--scope', choices=['host', 'none', 'fields'], default='host')
 parser.add_argument('--work-dir')
 args = parser.parse_args()
 if not args.device.startswith('emulator-'):
@@ -32,9 +32,10 @@ if not app.exists():
     run([args.flutter, 'create', '--empty', '--platforms=android', '--org',
          'com.cypherstack', '--project-name', 'accessibility_probe', str(app)])
 shutil.copyfile(here / 'main.dart', app / 'lib/main.dart')
+shutil.copyfile(repo / 'lib/widgets/sensitive_wallet_content.dart', app / 'lib/sensitive_wallet_content.dart')
 activity = (repo / 'scripts/app_config/templates/android/app/src/main/kotlin/com/cypherstack/stackwallet/MainActivity.kt').read_text()
 activity = activity.replace('package com.place.holder', f'package {package}')
-if args.scope == 'none':
+if args.scope != 'host':
     start = activity.index('    override fun provideRootLayout')
     end = activity.index('    var openPath:', start)
     activity = activity[:start] + activity[end:]
@@ -69,7 +70,8 @@ for cls, xml_name in [('ToolProbeService', 'tool'), ('NonToolProbeService', 'non
 services += '<receiver android:name=".ProbeReceiver" android:exported="true" />'
 manifest = manifest.replace('</application>', start_marker + services + end_marker + '</application>')
 manifest_path.write_text(manifest)
-run([args.flutter, 'build', 'apk', '--debug', '--target-platform', 'android-x64'], cwd=app)
+run([args.flutter, 'build', 'apk', '--debug', '--target-platform', 'android-x64',
+     f'--dart-define=HOST_FILTERED={str(args.scope != "fields").lower()}'], cwd=app)
 adb('install', '-r', str(app / 'build/app/outputs/flutter-apk/app-debug.apk'))
 old_services = adb('shell', 'settings', 'get', 'secure', 'enabled_accessibility_services', capture=True).stdout.strip()
 old_enabled = adb('shell', 'settings', 'get', 'secure', 'accessibility_enabled', capture=True).stdout.strip()

@@ -2,7 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-void main() => runApp(const MaterialApp(home: Probe()));
+import 'sensitive_wallet_content.dart';
+
+void main() {
+  SensitiveWalletContent.hostFiltered = const bool.fromEnvironment(
+    'HOST_FILTERED',
+  );
+  runApp(const MaterialApp(home: Probe()));
+}
 
 class Probe extends StatefulWidget {
   const Probe({super.key});
@@ -35,8 +42,10 @@ class _ProbeState extends State<Probe> {
     body: Column(
       children: [
         const Text('public-probe'),
-        const Text('seed-probe'),
-        TextField(controller: controller, autofocus: true),
+        const SensitiveWalletContent(child: Text('seed-probe')),
+        SensitiveWalletContent(
+          child: TextField(controller: controller, autofocus: true),
+        ),
       ],
     ),
   );
