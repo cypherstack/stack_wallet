@@ -34,6 +34,8 @@ import '../../../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../../../providers/ui/preview_tx_button_state_provider.dart';
 import '../../../../providers/wallet/desktop_fee_providers.dart';
 import '../../../../providers/wallet/public_private_balance_state_provider.dart';
+import '../../../../services/openalias/open_alias.dart';
+import '../../../../services/openalias/open_alias_service.dart';
 import '../../../../services/spark_names_service.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/address_utils.dart';
@@ -78,6 +80,7 @@ import '../../../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../../../widgets/icon_widgets/qrcode_icon.dart';
 import '../../../../widgets/icon_widgets/x_icon.dart';
 import '../../../../widgets/mwc_txs_method_toggle.dart';
+import '../../../../widgets/open_alias_dialog.dart';
 import '../../../../widgets/rounded_container.dart';
 import '../../../../widgets/stack_text_field.dart';
 import '../../../../widgets/textfield_icon_button.dart';
@@ -109,6 +112,42 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   late final String walletId;
   late final CryptoCurrency coin;
   late final ClipboardInterface clipboard;
+
+  OpenAliasRecipient? _openAlias;
+  OpenAliasRecipient? get _acceptedOpenAlias =>
+      _openAlias?.address == _address &&
+          _openAlias?.address == sendToController.text
+      ? _openAlias
+      : null;
+
+  Future<void> _useOpenAlias() async {
+    final originalText = sendToController.text;
+    final result = await showDialog<OpenAliasRecipient>(
+      context: context,
+      builder: (_) => OpenAliasDialog(
+        initialInput: originalText.contains('.') || originalText.contains('@')
+            ? originalText
+            : '',
+        resolve: (input) => OpenAliasService().resolve(
+          input,
+          validateAddress: coin.validateAddress,
+        ),
+      ),
+    );
+    if (!mounted ||
+        result == null ||
+        widget.walletId != walletId ||
+        sendToController.text != originalText) {
+      return;
+    }
+    setState(() {
+      _address = result.address;
+      sendToController.text = result.address;
+      _openAlias = result;
+      _addressToggleFlag = true;
+      _setValidAddressProviders(result.address);
+    });
+  }
 
   late TextEditingController sendToController;
   late TextEditingController cryptoAmountController;
@@ -723,6 +762,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         txDataFuture = wallet.prepareSend(
           txData: TxData(
             xelisSendAll: coin is Xelis && _xelisSendAll,
+            openAliasRecipient: _acceptedOpenAlias,
             recipients: [
               TxRecipient(
                 address: _address!,
@@ -859,6 +899,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   }
 
   void clearSendForm() {
+    _openAlias = null;
     if (!mounted) {
       return;
     }
@@ -1283,6 +1324,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     isEpiccash = coin is Epiccash;
 
     sendToController = TextEditingController();
+    sendToController.addListener(() {
+      if (_openAlias != null && sendToController.text != _openAlias!.address) {
+        setState(() => _openAlias = null);
+      }
+    });
     cryptoAmountController = TextEditingController();
     baseAmountController = TextEditingController();
     memoController = TextEditingController();
@@ -1802,14 +1848,21 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         if (!isPaynymSend &&
             !((isMimblewimblecoin || isEpiccash) &&
                 ref.watch(pIsSlatepack(widget.walletId))))
-          Text(
-            "Send to",
-            style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .textFieldActiveSearchIconRight,
-            ),
-            textAlign: TextAlign.left,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Send to",
+                style: STextStyles.desktopTextExtraSmall(context).copyWith(
+                  color: Theme.of(
+                    context,
+                  ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+                ),
+                textAlign: TextAlign.left,
+              ),
+              if (coin is Monero)
+                CustomTextButton(text: "Use OpenAlias", onTap: _useOpenAlias),
+            ],
           ),
         if (!isPaynymSend &&
             !((isMimblewimblecoin || isEpiccash) &&
@@ -2054,6 +2107,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               }
             },
           ),
+        if (_acceptedOpenAlias != null)
+          OpenAliasAttribution(recipient: _acceptedOpenAlias!),
         // OP_RETURN metadata info (green, public mode only, with tooltip)
         Builder(
           builder: (context) {

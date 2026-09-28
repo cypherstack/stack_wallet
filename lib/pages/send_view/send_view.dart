@@ -29,6 +29,8 @@ import '../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../providers/ui/preview_tx_button_state_provider.dart';
 import '../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../route_generator.dart';
+import '../../services/openalias/open_alias.dart';
+import '../../services/openalias/open_alias_service.dart';
 import '../../services/spark_names_service.dart';
 import '../../themes/coin_icon_provider.dart';
 import '../../themes/stack_colors.dart';
@@ -77,6 +79,7 @@ import '../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../widgets/icon_widgets/qrcode_icon.dart';
 import '../../widgets/icon_widgets/x_icon.dart';
 import '../../widgets/mwc_txs_method_toggle.dart';
+import '../../widgets/open_alias_dialog.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../../widgets/stack_text_field.dart';
@@ -123,6 +126,42 @@ class _SendViewState extends ConsumerState<SendView> {
   late final String walletId;
   late final CryptoCurrency coin;
   late final ClipboardInterface clipboard;
+
+  OpenAliasRecipient? _openAlias;
+  OpenAliasRecipient? get _acceptedOpenAlias =>
+      _openAlias?.address == _address &&
+          _openAlias?.address == sendToController.text
+      ? _openAlias
+      : null;
+
+  Future<void> _useOpenAlias() async {
+    final originalText = sendToController.text;
+    final result = await showDialog<OpenAliasRecipient>(
+      context: context,
+      builder: (_) => OpenAliasDialog(
+        initialInput: originalText.contains('.') || originalText.contains('@')
+            ? originalText
+            : '',
+        resolve: (input) => OpenAliasService().resolve(
+          input,
+          validateAddress: coin.validateAddress,
+        ),
+      ),
+    );
+    if (!mounted ||
+        result == null ||
+        widget.walletId != walletId ||
+        sendToController.text != originalText) {
+      return;
+    }
+    setState(() {
+      _address = result.address;
+      sendToController.text = result.address;
+      _openAlias = result;
+      _addressToggleFlag = true;
+      _setValidAddressProviders(result.address);
+    });
+  }
 
   late TextEditingController sendToController;
   late TextEditingController cryptoAmountController;
@@ -1096,6 +1135,7 @@ class _SendViewState extends ConsumerState<SendView> {
         txDataFuture = wallet.prepareSend(
           txData: TxData(
             xelisSendAll: coin is Xelis && _xelisSendAll,
+            openAliasRecipient: _acceptedOpenAlias,
             recipients: [
               TxRecipient(
                 address: _address!,
@@ -1205,6 +1245,7 @@ class _SendViewState extends ConsumerState<SendView> {
   }
 
   void clearSendForm() {
+    _openAlias = null;
     if (!mounted) {
       return;
     }
@@ -1330,6 +1371,11 @@ class _SendViewState extends ConsumerState<SendView> {
     );
 
     sendToController = TextEditingController();
+    sendToController.addListener(() {
+      if (_openAlias != null && sendToController.text != _openAlias!.address) {
+        setState(() => _openAlias = null);
+      }
+    });
     cryptoAmountController = TextEditingController();
     baseAmountController = TextEditingController();
     noteController = TextEditingController();
@@ -1721,21 +1767,11 @@ class _SendViewState extends ConsumerState<SendView> {
                                     style: STextStyles.smallMed12(context),
                                     textAlign: TextAlign.left,
                                   ),
-                                  // if (coin is Monero)
-                                  //   CustomTextButton(
-                                  //     text: "Use OpenAlias",
-                                  //     onTap: () async {
-                                  //       await showModalBottomSheet(
-                                  //         context: context,
-                                  //         builder: (context) =>
-                                  //             OpenAliasBottomSheet(
-                                  //           onSelected: (address) {
-                                  //             sendToController.text = address;
-                                  //           },
-                                  //         ),
-                                  //       );
-                                  //     },
-                                  //   ),
+                                  if (coin is Monero)
+                                    CustomTextButton(
+                                      text: "Use OpenAlias",
+                                      onTap: _useOpenAlias,
+                                    ),
                                 ],
                               ),
                             if (!isSlatepackMode) const SizedBox(height: 8),
@@ -2079,6 +2115,10 @@ class _SendViewState extends ConsumerState<SendView> {
                                 }
                               },
                             ),
+                            if (_acceptedOpenAlias != null)
+                              OpenAliasAttribution(
+                                recipient: _acceptedOpenAlias!,
+                              ),
                             if (isFiro || isMwebEnabled)
                               const SizedBox(height: 12),
                             if (isFiro || isMwebEnabled)

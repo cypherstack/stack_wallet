@@ -7,6 +7,7 @@ import 'package:web3dart/web3dart.dart' as web3dart;
 import '../../models/input.dart';
 import '../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../models/isar/models/isar_models.dart';
+import '../../services/openalias/open_alias.dart';
 import '../../models/paynym/paynym_account_lite.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/enums/fee_rate_type_enum.dart';
@@ -54,6 +55,12 @@ class TxData {
   final String? memo;
 
   final List<TxRecipient>? recipients;
+  final OpenAliasRecipient? _openAliasRecipient;
+  OpenAliasRecipient? get openAliasRecipient =>
+      recipients?.length == 1 &&
+          recipients!.single.address == _openAliasRecipient?.address
+      ? _openAliasRecipient
+      : null;
   final Set<BaseInput>? utxos;
   final List<BaseInput>? usedUTXOs;
 
@@ -133,6 +140,7 @@ class TxData {
     this.noteOnChain,
     this.memo,
     this.recipients,
+    this._openAliasRecipient,
     this.utxos,
     this.usedUTXOs,
     this.changeAddress,
@@ -282,6 +290,7 @@ class TxData {
     Set<BaseInput>? utxos,
     List<BaseInput>? usedUTXOs,
     List<TxRecipient>? recipients,
+    OpenAliasRecipient? openAliasRecipient,
     String? frostMSConfig,
     List<String>? frostSigners,
     String? changeAddress,
@@ -336,6 +345,7 @@ class TxData {
       utxos: utxos ?? this.utxos,
       usedUTXOs: usedUTXOs ?? this.usedUTXOs,
       recipients: recipients ?? this.recipients,
+      openAliasRecipient: openAliasRecipient ?? this.openAliasRecipient,
       frostMSConfig: frostMSConfig ?? this.frostMSConfig,
       frostSigners: frostSigners ?? this.frostSigners,
       changeAddress: changeAddress ?? this.changeAddress,
