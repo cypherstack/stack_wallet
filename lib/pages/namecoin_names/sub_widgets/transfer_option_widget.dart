@@ -71,10 +71,9 @@ class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
     FocusScope.of(context).unfocus();
     await Future<void>.delayed(const Duration(milliseconds: 100));
 
+    bool wasCancelled = false;
     try {
       final wallet = ref.read(pWallets).getWallet(walletId) as NamecoinWallet;
-
-      bool wasCancelled = false;
 
       if (mounted) {
         if (Util.isDesktop) {
@@ -194,7 +193,7 @@ class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
         stackTrace: s,
       );
 
-      if (mounted) {
+      if (mounted && !wasCancelled) {
         String err = e.toString();
         if (err.startsWith("Exception: ")) {
           err = err.replaceFirst("Exception: ", "");
