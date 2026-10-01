@@ -126,7 +126,14 @@ class SendPreviewAttempt {
         'OpenAlias did not return a valid recipient for this wallet.',
       );
     }
-    return ResolvedSendRecipient(recipient.address, recipient);
+    return ResolvedSendRecipient(
+      recipient.address,
+      OpenAliasRecipient(
+        domain: recipient.domain,
+        address: recipient.address,
+        displayAlias: displayOpenAlias(source),
+      ),
+    );
   }
 }
 

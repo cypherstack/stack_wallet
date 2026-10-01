@@ -16,6 +16,9 @@ void main() {
     );
     expect(normalizeOpenAlias('Dan_M@_Pay.Example'), 'dan_m._pay.example');
   });
+  test('displays aliases as entered, without case or root dot', () {
+    expect(displayOpenAlias(' Dan@CypherStack.com. '), 'dan@cypherstack.com');
+  });
   for (final name in [
     'example',
     'https://example.org',

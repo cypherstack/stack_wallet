@@ -1,8 +1,19 @@
 class OpenAliasRecipient {
   final String domain;
   final String address;
+  // The alias as the user entered it, e.g. user@example.com.
+  final String displayAlias;
 
-  const OpenAliasRecipient({required this.domain, required this.address});
+  const OpenAliasRecipient({
+    required this.domain,
+    required this.address,
+    String? displayAlias,
+  }) : displayAlias = displayAlias ?? domain;
+}
+
+String displayOpenAlias(String input) {
+  final name = input.trim().toLowerCase();
+  return name.endsWith('.') ? name.substring(0, name.length - 1) : name;
 }
 
 class OpenAliasException implements Exception {

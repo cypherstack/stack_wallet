@@ -800,7 +800,7 @@ class _ConfirmTransactionViewState
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            widget.txData.openAliasRecipient!.domain,
+                            widget.txData.openAliasRecipient!.displayAlias,
                             style: STextStyles.itemSubtitle12(context),
                           ),
                         ],
@@ -1185,7 +1185,7 @@ class _ConfirmTransactionViewState
                               ),
                               const SizedBox(height: 2),
                               SelectableText(
-                                widget.txData.openAliasRecipient!.domain,
+                                widget.txData.openAliasRecipient!.displayAlias,
                                 style:
                                     STextStyles.desktopTextExtraExtraSmall(
                                       context,
