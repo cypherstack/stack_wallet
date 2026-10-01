@@ -5,11 +5,20 @@ import 'dns_proxy_connection.dart';
 import 'open_alias.dart';
 
 class DohOpenAlias {
+  static const directConnectTimeout = Duration(seconds: 5);
+  static const directLookupTimeout = Duration(seconds: 12);
+
+  final Duration? connectTimeout;
+  final Duration? lookupTimeout;
+
+  const DohOpenAlias({this.connectTimeout, this.lookupTimeout});
+
   Future<List<String>> lookup(
     String domain, {
     required ({InternetAddress host, int port})? proxyInfo,
   }) async {
-    final client = HttpClient()..connectionTimeout = const Duration(seconds: 5);
+    final client = HttpClient()
+      ..connectionTimeout = connectTimeout ?? directConnectTimeout;
     final tunnels = <DnsProxyConnection>[];
     try {
       if (proxyInfo != null) {
@@ -22,7 +31,7 @@ class DohOpenAlias {
       return await _request(
         client,
         domain,
-      ).timeout(const Duration(seconds: 12));
+      ).timeout(lookupTimeout ?? directLookupTimeout);
     } on OpenAliasException {
       rethrow;
     } catch (_) {

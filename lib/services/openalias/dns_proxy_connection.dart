@@ -6,6 +6,8 @@ import 'package:async/async.dart';
 import 'dns_proxy_socket.dart';
 
 class DnsProxyConnection {
+  static const proxyConnectTimeout = Duration(seconds: 5);
+
   RawSocket? _transport;
   DnsProxySocket? _socket;
   final _result = Completer<Socket>();
@@ -43,7 +45,7 @@ class DnsProxyConnection {
       final raw = await RawSocket.connect(
         host,
         port,
-        timeout: const Duration(seconds: 5),
+        timeout: proxyConnectTimeout,
       );
       _transport = raw;
       if (_cancelled) throw const SocketException('DNS connection cancelled');
