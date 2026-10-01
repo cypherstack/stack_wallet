@@ -93,9 +93,12 @@ List<String> decodeAuthenticatedDns(Object? body, String domain) {
   if (body is! Map<String, dynamic>) {
     throw const OpenAliasException('Invalid DNS response.');
   }
+  if (body['Status'] == 3) {
+    throw OpenAliasException('No OpenAlias record exists for $domain.');
+  }
   if (body['Status'] != 0) {
-    throw const OpenAliasException(
-      'DNS lookup failed or no record exists. No address was accepted.',
+    throw OpenAliasException(
+      'The DNS lookup for $domain failed. No address was accepted.',
     );
   }
   if (body['AD'] != true || body['CD'] != false || body['TC'] != false) {
