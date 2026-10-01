@@ -7,6 +7,9 @@ import 'open_alias.dart';
 class DohOpenAlias {
   static const directConnectTimeout = Duration(seconds: 5);
   static const directLookupTimeout = Duration(seconds: 12);
+  // Over Tor the connection also waits for the exit stream and TLS via Tor.
+  static const torConnectTimeout = Duration(seconds: 10);
+  static const torLookupTimeout = Duration(seconds: 20);
 
   final Duration? connectTimeout;
   final Duration? lookupTimeout;
@@ -17,8 +20,10 @@ class DohOpenAlias {
     String domain, {
     required ({InternetAddress host, int port})? proxyInfo,
   }) async {
+    final viaTor = proxyInfo != null;
     final client = HttpClient()
-      ..connectionTimeout = connectTimeout ?? directConnectTimeout;
+      ..connectionTimeout =
+          connectTimeout ?? (viaTor ? torConnectTimeout : directConnectTimeout);
     final tunnels = <DnsProxyConnection>[];
     try {
       if (proxyInfo != null) {
@@ -28,10 +33,9 @@ class DohOpenAlias {
           return ConnectionTask.fromSocket(task.socket, task.cancel);
         };
       }
-      return await _request(
-        client,
-        domain,
-      ).timeout(lookupTimeout ?? directLookupTimeout);
+      return await _request(client, domain).timeout(
+        lookupTimeout ?? (viaTor ? torLookupTimeout : directLookupTimeout),
+      );
     } on OpenAliasException {
       rethrow;
     } catch (_) {
