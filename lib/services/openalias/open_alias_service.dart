@@ -34,8 +34,9 @@ class OpenAliasService {
     final domain = normalizeOpenAlias(input);
     if (!_externalCalls()) {
       throw const OpenAliasException(
-        'OpenAlias requires external lookups. '
-        'Enable external calls in privacy settings to continue.',
+        'OpenAlias lookups are off in Incognito mode. To use OpenAlias, '
+        'switch ${AppConfig.prefix} Experience to Easy Crypto in Advanced '
+        'settings.',
       );
     }
     final useTor = _useTor();
