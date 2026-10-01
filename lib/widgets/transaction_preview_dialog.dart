@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../services/openalias/open_alias.dart';
 import '../themes/stack_colors.dart';
 import '../utilities/text_styles.dart';
 import 'desktop/desktop_dialog.dart';
@@ -51,6 +52,10 @@ void showTransactionFailedDialog(
   Object error, {
   required bool isDesktop,
 }) {
+  // No transaction was built when the recipient could not be resolved.
+  final title = error is OpenAliasException
+      ? 'OpenAlias lookup failed'
+      : 'Transaction failed';
   unawaited(
     showDialog<void>(
       context: context,
@@ -58,7 +63,7 @@ void showTransactionFailedDialog(
       builder: (context) {
         if (!isDesktop) {
           return StackDialog(
-            title: 'Transaction failed',
+            title: title,
             message: error.toString(),
             rightButton: TextButton(
               style: Theme.of(context)
@@ -87,10 +92,7 @@ void showTransactionFailedDialog(
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Transaction failed',
-                      style: STextStyles.desktopH3(context),
-                    ),
+                    Text(title, style: STextStyles.desktopH3(context)),
                     const DesktopDialogCloseButton(),
                   ],
                 ),

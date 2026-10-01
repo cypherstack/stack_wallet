@@ -412,7 +412,8 @@ void main() {
       await h.finish(tester);
       expect(h.wallet.prepared, isEmpty);
       expect(find.byType(ConfirmTransactionView), findsNothing);
-      expect(find.text('Transaction failed'), findsOneWidget);
+      expect(find.text('OpenAlias lookup failed'), findsOneWidget);
+      expect(find.text('Transaction failed'), findsNothing);
       expect(find.text('DNSSEC verification failed.'), findsOneWidget);
       await tester.tap(find.text('Ok'));
       await tester.pumpAndSettle();
@@ -458,6 +459,7 @@ void main() {
         expect(h.wallet.prepared, isEmpty);
         expect(find.byType(ConfirmTransactionView), findsNothing);
         expect(find.text('Transaction failed'), findsNothing);
+        expect(find.text('OpenAlias lookup failed'), findsNothing);
         expect(h.navigator.currentState!.canPop(), isTrue);
       });
     }
