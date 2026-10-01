@@ -85,6 +85,23 @@ void main() {
     );
     expect(select(records).address, 'valid');
   });
+  test('follows CNAMEs to underscore names', () {
+    final records = decodeAuthenticatedDns(
+      reply(
+        answers: [
+          {
+            'name': 'alice.example.',
+            'type': 5,
+            'TTL': 60,
+            'data': '_oa.pay.example.',
+          },
+          txt('_oa.pay.example.', 'oa1:xmr recipient_address=valid;'),
+        ],
+      ),
+      'alice.example',
+    );
+    expect(select(records).address, 'valid');
+  });
   test('rejects CNAME loops and CNAME/TXT ambiguity', () {
     for (final answers in [
       [
