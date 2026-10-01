@@ -127,7 +127,7 @@ void main() {
     final proxy = await _StalledTlsProxy.start();
     addTearDown(proxy.close);
     final failed = expectLater(
-      const DohOpenAlias().lookup(
+      const DohOpenAlias(lookupTimeout: Duration(seconds: 1)).lookup(
         'alice.example',
         proxyInfo: (
           host: InternetAddress.loopbackIPv4,
@@ -138,7 +138,7 @@ void main() {
     );
     final peer = await proxy.nextPeer();
     await peer.clientHello.future.timeout(const Duration(seconds: 2));
-    await failed.timeout(const Duration(seconds: 8));
+    await failed.timeout(const Duration(seconds: 4));
     await peer.disconnected.future.timeout(const Duration(seconds: 2));
   });
 
