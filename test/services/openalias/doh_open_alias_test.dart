@@ -102,6 +102,30 @@ void main() {
     );
     expect(select(records).address, 'valid');
   });
+  test('reports malformed answer names as invalid responses', () {
+    expect(
+      () => decodeAuthenticatedDns(
+        reply(
+          answers: [
+            {
+              'name': 'alice.example.',
+              'type': 5,
+              'TTL': 60,
+              'data': 'pay..example.',
+            },
+          ],
+        ),
+        'alice.example',
+      ),
+      throwsA(
+        isA<OpenAliasException>().having(
+          (e) => e.message,
+          'message',
+          'Invalid DNS response.',
+        ),
+      ),
+    );
+  });
   test('rejects CNAME loops and CNAME/TXT ambiguity', () {
     for (final answers in [
       [

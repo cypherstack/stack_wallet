@@ -69,7 +69,11 @@ String _dnsName(Object? value) {
   if (value is! String || value.contains('@')) {
     throw const OpenAliasException('Invalid DNS response.');
   }
-  return normalizeOpenAlias(value);
+  try {
+    return normalizeOpenAlias(value);
+  } on OpenAliasException {
+    throw const OpenAliasException('Invalid DNS response.');
+  }
 }
 
 List<String> decodeAuthenticatedDns(Object? body, String domain) {
