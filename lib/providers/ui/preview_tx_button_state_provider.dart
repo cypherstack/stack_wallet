@@ -10,6 +10,7 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../services/openalias/open_alias_service.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/enums/epic_transaction_method.dart';
 import '../../utilities/enums/mwc_transaction_method.dart';
@@ -49,50 +50,64 @@ final pIsSlatepack = Provider.family<bool, String>((ref, walletId) {
   return false;
 });
 
-final pPreviewTxButtonEnabled = Provider.autoDispose.family<bool, CryptoCurrency>(
-  (ref, coin) {
-    final amount = ref.watch(pSendAmount) ?? Amount.zero;
-    final opReturnData = ref.watch(pOpReturnData);
+final pPreviewTxButtonEnabled = Provider.autoDispose
+    .family<bool, CryptoCurrency>((ref, coin) {
+      final amount = ref.watch(pSendAmount) ?? Amount.zero;
+      final opReturnData = ref.watch(pOpReturnData);
 
-    if (coin is! Firo && opReturnData != null) {
-      return false;
-    }
-
-    // For MWC slatepack transactions, address validation is not required.
-    if (coin is Mimblewimblecoin) {
-      final selectedMethod = ref.watch(pSelectedMwcTransactionMethod);
-      if (selectedMethod == MwcTransactionMethod.slatepack) {
-        return amount > Amount.zero;
+      if (coin is! Firo && opReturnData != null) {
+        return false;
       }
-    }
 
-    // For Epic Cash slatepack transactions, address validation is not required.
-    if (coin is Epiccash) {
-      final selectedMethod = ref.watch(pSelectedEpicTransactionMethod);
-      if (selectedMethod == EpicTransactionMethod.slatepack) {
-        return amount > Amount.zero;
+      // For MWC slatepack transactions, address validation is not required.
+      if (coin is Mimblewimblecoin) {
+        final selectedMethod = ref.watch(pSelectedMwcTransactionMethod);
+        if (selectedMethod == MwcTransactionMethod.slatepack) {
+          return amount > Amount.zero;
+        }
       }
-    }
 
-    if (coin is Firo) {
-      final firoType = ref.watch(publicPrivateBalanceStateProvider);
-      switch (firoType) {
-        case BalanceType.private:
-          return (ref.watch(pValidSendToAddress) ||
-                  ref.watch(pValidSparkSendToAddress)) &&
-              !ref.watch(pIsExchangeAddress) &&
-              opReturnData == null &&
-              amount > Amount.zero;
-
-        case BalanceType.public:
-          return ref.watch(pValidSendToAddress) && amount > Amount.zero;
+      // For Epic Cash slatepack transactions, address validation is not required.
+      if (coin is Epiccash) {
+        final selectedMethod = ref.watch(pSelectedEpicTransactionMethod);
+        if (selectedMethod == EpicTransactionMethod.slatepack) {
+          return amount > Amount.zero;
+        }
       }
-    } else {
-      return ref.watch(pValidSendToAddress) && amount > Amount.zero;
-    }
-  },
-);
+
+      if (coin is Firo) {
+        final firoType = ref.watch(publicPrivateBalanceStateProvider);
+        switch (firoType) {
+          case BalanceType.private:
+            return (ref.watch(pValidSendToAddress) ||
+                    ref.watch(pValidSparkSendToAddress)) &&
+                !ref.watch(pIsExchangeAddress) &&
+                opReturnData == null &&
+                amount > Amount.zero;
+
+          case BalanceType.public:
+            return ref.watch(pValidSendToAddress) && amount > Amount.zero;
+        }
+      } else {
+        return ref.watch(pValidSendToAddress) && amount > Amount.zero;
+      }
+    });
 
 final previewTokenTxButtonStateProvider = StateProvider.autoDispose<bool>((_) {
   return false;
 });
+
+// Alias eligibility is supplied by the individual send screen rather than
+// stored in the shared literal-address validation provider.
+final pPreviewTxButtonEnabledForDestination = Provider.autoDispose
+    .family<bool, ({CryptoCurrency coin, bool isAlias})>((ref, input) {
+      if (input.coin is Monero && input.isAlias) {
+        return (ref.watch(pSendAmount) ?? Amount.zero) > Amount.zero &&
+            ref.watch(pOpReturnData) == null;
+      }
+      return ref.watch(pPreviewTxButtonEnabled(input.coin));
+    });
+
+final pSendOpenAliasService = Provider<OpenAliasService>(
+  (_) => OpenAliasService(),
+);
