@@ -127,7 +127,7 @@ void main() {
     final proxy = await _StalledTlsProxy.start();
     addTearDown(proxy.close);
     final failed = expectLater(
-      DohOpenAlias().lookup(
+      const DohOpenAlias().lookup(
         'alice.example',
         proxyInfo: (
           host: InternetAddress.loopbackIPv4,
@@ -194,7 +194,7 @@ void main() {
       });
       try {
         await expectLater(
-          DohOpenAlias().lookup(
+          const DohOpenAlias().lookup(
             'alice.example',
             proxyInfo: (host: InternetAddress.loopbackIPv4, port: server.port),
           ),

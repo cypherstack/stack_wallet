@@ -22,7 +22,7 @@ class OpenAliasService {
        _lookup = lookup ?? _lookupDns;
 
   static Future<List<String>> _lookupDns(String domain, bool useTor) =>
-      DohOpenAlias().lookup(
+      const DohOpenAlias().lookup(
         domain,
         proxyInfo: useTor ? TorService.sharedInstance.getProxyInfo() : null,
       );
