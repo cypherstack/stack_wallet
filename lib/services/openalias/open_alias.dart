@@ -139,7 +139,9 @@ OpenAliasRecipient selectOpenAliasRecipient({
     addresses.add(address);
   }
   if (addresses.isEmpty) {
-    throw const OpenAliasException('No Monero OpenAlias record was found.');
+    throw OpenAliasException(
+      'No Monero OpenAlias record was found for $domain.',
+    );
   }
   if (addresses.length != 1) {
     throw const OpenAliasException(

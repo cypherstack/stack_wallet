@@ -102,6 +102,26 @@ void main() {
     );
     expect(select(records).address, 'valid');
   });
+  test('names the alias when no record exists or the lookup fails', () {
+    for (final (status, message) in [
+      (3, 'No OpenAlias record exists for alice.example.'),
+      (2, 'The DNS lookup for alice.example failed. No address was accepted.'),
+    ]) {
+      expect(
+        () => decodeAuthenticatedDns({
+          ...reply(),
+          'Status': status,
+        }, 'alice.example'),
+        throwsA(
+          isA<OpenAliasException>().having(
+            (e) => e.message,
+            'message',
+            message,
+          ),
+        ),
+      );
+    }
+  });
   test('reports malformed answer names as invalid responses', () {
     expect(
       () => decodeAuthenticatedDns(

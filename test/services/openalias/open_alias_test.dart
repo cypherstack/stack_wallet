@@ -16,6 +16,18 @@ void main() {
     );
     expect(normalizeOpenAlias('Dan_M@_Pay.Example'), 'dan_m._pay.example');
   });
+  test('names the alias when it has no Monero record', () {
+    expect(
+      () => select(['oa1:btc recipient_address=valid;']),
+      throwsA(
+        isA<OpenAliasException>().having(
+          (e) => e.message,
+          'message',
+          'No Monero OpenAlias record was found for alice.example.',
+        ),
+      ),
+    );
+  });
   test('displays aliases as entered, without case or root dot', () {
     expect(displayOpenAlias(' Dan@CypherStack.com. '), 'dan@cypherstack.com');
   });
