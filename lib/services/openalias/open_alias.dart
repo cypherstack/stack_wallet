@@ -27,7 +27,8 @@ String normalizeOpenAlias(String input) {
   }
   name = name.replaceAll('@', '.');
   if (name.endsWith('.')) name = name.substring(0, name.length - 1);
-  final label = RegExp(r'^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$');
+  // Underscores are valid in DNS names (RFC 2181), e.g. _service labels.
+  final label = RegExp(r'^[a-z0-9_](?:[a-z0-9_-]{0,61}[a-z0-9_])?$');
   if (name.length > 253 ||
       !name.contains('.') ||
       !name.split('.').every(label.hasMatch) ||

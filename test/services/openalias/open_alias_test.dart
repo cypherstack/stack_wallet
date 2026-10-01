@@ -14,6 +14,7 @@ void main() {
       normalizeOpenAlias('xn--bcher-kva.example'),
       'xn--bcher-kva.example',
     );
+    expect(normalizeOpenAlias('Dan_M@_Pay.Example'), 'dan_m._pay.example');
   });
   for (final name in [
     'example',
