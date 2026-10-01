@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../providers/global/wallets_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -31,14 +33,16 @@ class _SigningViewState extends ConsumerState<SigningView> {
     // keep auto dispose providers alive
     ref.listen(pSignIsValid, (_, __) {});
     ref.listen(pVerifyIsValid, (_, __) {});
+    final wallet = ref.watch(pWallets).getWallet(widget.walletId);
+    final viewOnly = wallet is ViewOnlyOptionInterface && wallet.isViewOnly;
 
     return ConditionalParent(
       condition: !Util.isDesktop,
       builder: (child) => Background(
         child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
             leading: AppBarBackButton(
               onPressed: () {
@@ -46,20 +50,21 @@ class _SigningViewState extends ConsumerState<SigningView> {
               },
             ),
             title: Text(
-              "Sign / Verify",
+              viewOnly ? "Verify message" : "Sign / Verify",
               style: STextStyles.navBarTitle(context),
             ),
           ),
-          body: SafeArea(child: child),
+          body: SafeArea(child: SingleChildScrollView(child: child)),
         ),
       ),
       child: CustomTabView(
-        titles: const ["Sign message", "Verify message"],
+        titles: [if (!viewOnly) "Sign message", "Verify message"],
         children: [
-          SignMessageForm(
-            key: const Key("_SignMessageFormKey"),
-            walletId: widget.walletId,
-          ),
+          if (!viewOnly)
+            SignMessageForm(
+              key: const Key("_SignMessageFormKey"),
+              walletId: widget.walletId,
+            ),
           VerifyMessageForm(
             key: const Key("_VerifyMessageFormKey"),
             walletId: widget.walletId,
