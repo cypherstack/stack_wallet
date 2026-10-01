@@ -24,6 +24,22 @@ void main() {
     }
     expect(calls, 0);
   });
+  test('Incognito mode points to the setting that allows lookups', () async {
+    final service = OpenAliasService(
+      externalCalls: () => false,
+      lookup: (_, _) async => [],
+    );
+    await expectLater(
+      service.resolve('alice.example', validateAddress: (_) => true),
+      throwsA(
+        isA<OpenAliasException>().having(
+          (e) => e.message,
+          'message',
+          contains('Experience to Easy Crypto in Advanced settings'),
+        ),
+      ),
+    );
+  });
   test(
     'Tor policy is passed to the lookup and a changed policy rejects results',
     () async {
