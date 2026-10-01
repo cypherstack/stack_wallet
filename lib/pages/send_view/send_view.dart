@@ -1644,106 +1644,118 @@ class _SendViewState extends ConsumerState<SendView> {
                                       height: 22,
                                     ),
                                     const SizedBox(width: 6),
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          ref.watch(pWalletName(walletId)),
-                                          style: STextStyles.titleBold12(
-                                            context,
-                                          ).copyWith(fontSize: 14),
-                                          overflow: TextOverflow.ellipsis,
-                                          maxLines: 1,
-                                        ),
-                                        // const SizedBox(
-                                        //   height: 2,
-                                        // ),
-                                        if (isFiro || isMwebEnabled)
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
                                           Text(
-                                            "${balType.name.capitalize()} balance",
-                                            style: STextStyles.label(context)
-                                                .copyWith(fontSize: 10),
+                                            ref.watch(pWalletName(walletId)),
+                                            style: STextStyles.titleBold12(
+                                              context,
+                                            ).copyWith(fontSize: 14),
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 1,
                                           ),
-                                        if (coin is! Firo)
-                                          Text(
-                                            "Available balance",
-                                            style: STextStyles.label(context)
-                                                .copyWith(fontSize: 10),
-                                          ),
-                                      ],
+                                          // const SizedBox(
+                                          //   height: 2,
+                                          // ),
+                                          if (isFiro || isMwebEnabled)
+                                            Text(
+                                              "${balType.name.capitalize()} balance",
+                                              style: STextStyles.label(context)
+                                                  .copyWith(fontSize: 10),
+                                            ),
+                                          if (coin is! Firo)
+                                            Text(
+                                              "Available balance",
+                                              style: STextStyles.label(context)
+                                                  .copyWith(fontSize: 10),
+                                            ),
+                                        ],
+                                      ),
                                     ),
-                                    const Spacer(),
-                                    Builder(
-                                      builder: (context) {
-                                        final Amount amount;
-                                        if (showPrivateBalance) {
-                                          switch (balType) {
-                                            case BalanceType.public:
-                                              amount = ref
-                                                  .read(
-                                                    pWalletBalance(walletId),
-                                                  )
-                                                  .spendable;
-                                              break;
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Builder(
+                                        builder: (context) {
+                                          final Amount amount;
+                                          if (showPrivateBalance) {
+                                            switch (balType) {
+                                              case BalanceType.public:
+                                                amount = ref
+                                                    .read(
+                                                      pWalletBalance(walletId),
+                                                    )
+                                                    .spendable;
+                                                break;
 
-                                            case BalanceType.private:
-                                              amount = ref
-                                                  .read(
-                                                    isMwebEnabled
-                                                        ? pWalletBalanceSecondary(
-                                                            walletId,
-                                                          )
-                                                        : pWalletBalanceTertiary(
-                                                            walletId,
-                                                          ),
-                                                  )
-                                                  .spendable;
-                                              break;
+                                              case BalanceType.private:
+                                                amount = ref
+                                                    .read(
+                                                      isMwebEnabled
+                                                          ? pWalletBalanceSecondary(
+                                                              walletId,
+                                                            )
+                                                          : pWalletBalanceTertiary(
+                                                              walletId,
+                                                            ),
+                                                    )
+                                                    .spendable;
+                                                break;
+                                            }
+                                          } else {
+                                            amount = ref
+                                                .read(pWalletBalance(walletId))
+                                                .spendable;
                                           }
-                                        } else {
-                                          amount = ref
-                                              .read(pWalletBalance(walletId))
-                                              .spendable;
-                                        }
 
-                                        return GestureDetector(
-                                          onTap: () {
-                                            cryptoAmountController.text = ref
-                                                .read(pAmountFormatter(coin))
-                                                .formatEditable(amount);
-                                          },
-                                          child: Container(
-                                            color: Colors.transparent,
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.end,
-                                              children: [
-                                                Text(
-                                                  ref
-                                                      .watch(
-                                                        pAmountFormatter(coin),
-                                                      )
-                                                      .format(amount),
-                                                  style:
-                                                      STextStyles.titleBold12(
-                                                        context,
-                                                      ).copyWith(fontSize: 10),
-                                                  textAlign: TextAlign.right,
-                                                ),
-                                                if (price != null)
+                                          return GestureDetector(
+                                            onTap: () {
+                                              cryptoAmountController.text = ref
+                                                  .read(pAmountFormatter(coin))
+                                                  .formatEditable(amount);
+                                            },
+                                            child: Container(
+                                              color: Colors.transparent,
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.end,
+                                                children: [
                                                   Text(
-                                                    "${(amount.decimal * price).toAmount(fractionDigits: 2).fiatString(locale: locale)} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
-                                                    style: STextStyles.subtitle(
-                                                      context,
-                                                    ).copyWith(fontSize: 8),
+                                                    ref
+                                                        .watch(
+                                                          pAmountFormatter(
+                                                            coin,
+                                                          ),
+                                                        )
+                                                        .format(amount),
+                                                    style:
+                                                        STextStyles.titleBold12(
+                                                          context,
+                                                        ).copyWith(
+                                                          fontSize: 10,
+                                                        ),
                                                     textAlign: TextAlign.right,
                                                   ),
-                                              ],
+                                                  if (price != null)
+                                                    Text(
+                                                      "${(amount.decimal * price).toAmount(fractionDigits: 2).fiatString(locale: locale)} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
+                                                      style:
+                                                          STextStyles.subtitle(
+                                                            context,
+                                                          ).copyWith(
+                                                            fontSize: 8,
+                                                          ),
+                                                      textAlign:
+                                                          TextAlign.right,
+                                                    ),
+                                                ],
+                                              ),
                                             ),
-                                          ),
-                                        );
-                                      },
+                                          );
+                                        },
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -1770,20 +1782,14 @@ class _SendViewState extends ConsumerState<SendView> {
                             ],
 
                             if (!isSlatepackMode)
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    isPaynymSend
-                                        ? "Send to PayNym address"
-                                        : coin is Monero
-                                        ? "Send to address or OpenAlias"
-                                        : "Send to",
-                                    style: STextStyles.smallMed12(context),
-                                    textAlign: TextAlign.left,
-                                  ),
-                                ],
+                              Text(
+                                isPaynymSend
+                                    ? "Send to PayNym address"
+                                    : coin is Monero
+                                    ? "Send to address or OpenAlias"
+                                    : "Send to",
+                                style: STextStyles.smallMed12(context),
+                                textAlign: TextAlign.left,
                               ),
                             if (!isSlatepackMode) const SizedBox(height: 8),
                             if (isPaynymSend)

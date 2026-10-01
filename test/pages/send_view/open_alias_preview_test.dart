@@ -34,7 +34,9 @@ import 'package:stackwallet/wallets/wallet/wallet.dart';
 
 import '../../sample_data/theme_json.dart';
 
-const literal = 'literal-monero-recipient';
+const literal =
+    '4AeRgkWZsMJhAWKMeCZ3h4ZSPnAcW5VBtRFyLd6gBEf6GgJU2FH'
+    'XDA6i1DnQTd6h8R3VU5AkbGcWSNhtSwNNPgaD48gp4nn';
 Amount amount(int value) =>
     Amount(rawValue: BigInt.from(value), fractionDigits: 12);
 
@@ -162,12 +164,20 @@ class _Harness {
     WidgetTester tester, {
     SendViewAutoFillData? autofill,
   }) async {
-    tester.view.physicalSize = Size(desktop ? 1200 : 600, 1600);
+    final size = desktop ? const Size(1200, 900) : const Size(390, 844);
+    final previousLayout = Util.debugIsDesktopOverride;
+    final previousWidth = Util.screenWidth;
+    Util.debugIsDesktopOverride = desktop;
+    tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
-    Util.screenWidth = desktop ? 1200 : 600;
+    Util.screenWidth = size.width;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    addTearDown(() => Util.screenWidth = null);
+    addTearDown(() {
+      Util.debugIsDesktopOverride = previousLayout;
+      Util.screenWidth = previousWidth;
+    });
+    expect(Util.isDesktop, desktop);
     final theme = StackTheme.fromJson(json: lightThemeJsonMap);
     container = ProviderContainer(
       overrides: [
@@ -317,7 +327,7 @@ class _Harness {
 
 void main() {
   for (final desktop in [false, true]) {
-    final layout = desktop ? 'desktop' : 'mobile';
+    final layout = desktop ? 'desktop 1200x900' : 'mobile 390x844';
     testWidgets(
       '$layout resolves on Preview and shows each prepared recipient',
       (tester) async {

@@ -33,6 +33,10 @@ abstract class Util {
   static double? screenWidth;
   static bool? isIpad;
 
+  /// Overrides layout selection in debug builds for host-independent tests.
+  @visibleForTesting
+  static bool? debugIsDesktopOverride;
+
   static NumberSymbols? getSymbolsFor({required String locale}) {
     return _numberSymbolsCache.putIfAbsent(locale, () {
       final exactSymbols = numberFormatSymbols[locale];
@@ -84,6 +88,15 @@ abstract class Util {
   }
 
   static bool get isDesktop {
+    bool? override;
+    assert(() {
+      override = debugIsDesktopOverride;
+      return true;
+    }());
+    if (override != null) {
+      return override!;
+    }
+
     // special check for running on linux based phones
     if (Platform.isLinux && screenWidth != null && screenWidth! < 800) {
       return false;
