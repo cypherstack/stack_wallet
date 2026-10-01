@@ -64,6 +64,7 @@ void main() {
       expect(calls, 2);
       expect(prepared.map((e) => e.destination), ['literal', 'literal']);
       expect(prepared.last.alias!.domain, 'alice.example');
+      expect(prepared.last.alias!.displayAlias, 'alice@example');
       expect(errors, isEmpty);
     },
   );

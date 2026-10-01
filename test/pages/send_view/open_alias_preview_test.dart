@@ -352,8 +352,9 @@ void main() {
           h.wallet.prepared.single.openAliasRecipient!.domain,
           'alice.example',
         );
+        expect(find.text('alice.example'), findsNothing);
         expect(find.byType(ConfirmTransactionView), findsOneWidget);
-        expect(find.text('alice.example'), findsOneWidget);
+        expect(find.text('alice@example'), findsOneWidget);
         expect(find.text(literal), findsOneWidget);
         h.navigator.currentState!.pop();
         await tester.pumpAndSettle();
@@ -367,7 +368,7 @@ void main() {
           'second-recipient',
         );
         expect(find.text('second-recipient'), findsOneWidget);
-        expect(find.text('alice.example'), findsOneWidget);
+        expect(find.text('alice@example'), findsOneWidget);
         // Final send receives the prepared transaction, without another lookup.
         h.auth.approveNext = true;
         await tester.ensureVisible(find.text('Send'));
