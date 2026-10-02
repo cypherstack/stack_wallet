@@ -24,9 +24,11 @@ import '../../../../models/isar/models/contact_entry.dart';
 import '../../../../models/mwc_slatepack_models.dart';
 import '../../../../models/paynym/paynym_account_lite.dart';
 import '../../../../models/send_view_auto_fill_data.dart';
+import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages/send_view/confirm_transaction_view.dart';
 import '../../../../pages/send_view/sub_widgets/building_transaction_dialog.dart';
 import '../../../../pages/send_view/sub_widgets/epic_slatepack_dialog.dart';
+import '../../../../pages/send_view/sub_widgets/multi_recipient_summary.dart';
 import '../../../../pages/send_view/sub_widgets/mwc_slatepack_dialog.dart';
 import '../../../../pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import '../../../../providers/providers.dart';
@@ -133,6 +135,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
   Amount? _cachedAmountToSend;
   String? _address;
+
+  /// Set while sending to the recipients of a multi-recipient payment URI.
+  List<SendRecipient>? _multiRecipients;
 
   bool _addressToggleFlag = false;
 
@@ -721,14 +726,18 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         final memo = hasOptionalMemo ? memoController.text : null;
         txDataFuture = wallet.prepareSend(
           txData: TxData(
-            recipients: [
-              TxRecipient(
-                address: _address!,
-                amount: amount,
-                isChange: false,
-                addressType: wallet.cryptoCurrency.getAddressType(_address!)!,
-              ),
-            ],
+            recipients:
+                _multiRecipients?.toTxRecipients(wallet.cryptoCurrency) ??
+                [
+                  TxRecipient(
+                    address: _address!,
+                    amount: amount,
+                    isChange: false,
+                    addressType: wallet.cryptoCurrency.getAddressType(
+                      _address!,
+                    )!,
+                  ),
+                ],
             memo: memo,
             feeRateType: feeRateType,
             satsPerVByte: satsPerVByte,
@@ -862,6 +871,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     nonceController.text = "";
     _address = "";
     _addressToggleFlag = false;
+    _multiRecipients = null;
     _syncFeeAmount(null);
     _setOpReturnData(null);
     setState(() {});
@@ -939,6 +949,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       final paymentData = AddressUtils.parsePaymentUri(
         qrCodeData,
         logging: Logging.instance,
+        allowMultipleRecipients: true,
       );
 
       if (paymentData != null &&
@@ -965,7 +976,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   }
 
   void _setValidAddressProviders(String? address) {
-    if (isPaynymSend) {
+    if (_multiRecipients != null) {
+      ref.read(pValidSendToAddress.notifier).state = _multiRecipients!
+          .allValidFor(coin);
+    } else if (isPaynymSend) {
       ref.read(pValidSendToAddress.notifier).state = true;
     } else {
       final wallet = ref.read(pWallets).getWallet(walletId);
@@ -997,8 +1011,49 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     }
   }
 
+  void _applyMultiRecipientUri(PaymentUriData paymentData) {
+    final recipients = parseUriRecipients(paymentData, coin);
+    if (recipients == null) {
+      showFloatingFlushBar(
+        type: FlushBarType.warning,
+        message: "Invalid payment request amounts",
+        context: context,
+      );
+      return;
+    }
+
+    _note = paymentData.message;
+    _setOpReturnData(null);
+    _address = null;
+    sendToController.text = "";
+    final total = recipients.total;
+    cryptoAmountController.text = ref
+        .read(pAmountFormatter(coin))
+        .formatEditable(total);
+    ref.read(pSendAmount.notifier).state = total;
+    _syncFeeAmount(total);
+
+    setState(() {
+      _multiRecipients = recipients;
+      _addressToggleFlag = false;
+    });
+    _setValidAddressProviders(_address);
+  }
+
+  void _clearMultiRecipients() {
+    clearSendForm();
+    _note = null;
+    _setValidAddressProviders(_address);
+  }
+
   void _applyUri(PaymentUriData paymentData) {
     try {
+      if (paymentData.isMultiRecipient) {
+        _applyMultiRecipientUri(paymentData);
+        return;
+      }
+      _multiRecipients = null;
+
       // auto fill address
       _address = paymentData.address;
       sendToController.text = _address!;
@@ -1082,6 +1137,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         final paymentData = AddressUtils.parsePaymentUri(
           content,
           logging: Logging.instance,
+          allowMultipleRecipients: true,
         );
         if (paymentData != null &&
             paymentData.coin?.uriScheme == coin.uriScheme) {
@@ -1620,7 +1676,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               ),
               textAlign: TextAlign.left,
             ),
-            if (coin is! Ethereum && coin is! Tezos)
+            if (coin is! Ethereum && coin is! Tezos && _multiRecipients == null)
               CustomTextButton(
                 text: _getSendAllTitle(
                   showCoinControl,
@@ -1632,6 +1688,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         ),
         const SizedBox(height: 10),
         TextField(
+          readOnly: _multiRecipients != null,
           autocorrect: Util.isDesktop ? false : true,
           enableSuggestions: Util.isDesktop ? false : true,
           style: STextStyles.smallMed14(context).copyWith(
@@ -1693,6 +1750,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         if (Prefs.instance.externalCalls) const SizedBox(height: 10),
         if (Prefs.instance.externalCalls)
           TextField(
+            readOnly: _multiRecipients != null,
             autocorrect: Util.isDesktop ? false : true,
             enableSuggestions: Util.isDesktop ? false : true,
             style: STextStyles.smallMed14(context).copyWith(
@@ -1794,9 +1852,16 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             !((isMimblewimblecoin || isEpiccash) &&
                 ref.watch(pIsSlatepack(widget.walletId))))
           const SizedBox(height: 10),
+        if (_multiRecipients != null)
+          MultiRecipientSummary(
+            coin: coin,
+            recipients: _multiRecipients!,
+            onClear: _clearMultiRecipients,
+          ),
         if (!isPaynymSend &&
             !((isMimblewimblecoin || isEpiccash) &&
-                ref.watch(pIsSlatepack(widget.walletId))))
+                ref.watch(pIsSlatepack(widget.walletId))) &&
+            _multiRecipients == null)
           ClipRRect(
             borderRadius: BorderRadius.circular(
               Constants.size.circularBorderRadius,
@@ -1827,6 +1892,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   final parsed = AddressUtils.parsePaymentUri(
                     trimmed,
                     logging: Logging.instance,
+                    allowMultipleRecipients: true,
                   );
                   if (parsed != null) {
                     _setOpReturnData(parsed.additionalParams['op_return']);
