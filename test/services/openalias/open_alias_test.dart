@@ -12,6 +12,8 @@ void main() {
   });
   test('displays aliases as entered, without case or root dot', () {
     expect(displayOpenAlias(' Dan@CypherStack.com. '), 'dan@cypherstack.com');
+    const recipient = OpenAliasRecipient(domain: 'a.example', address: 'x');
+    expect(recipient.displayAlias, 'a.example');
   });
   for (final name in [
     'example',
@@ -24,6 +26,7 @@ void main() {
     'K.example',
     '127.0.0.1',
     'a.onion',
+    'a.localhost',
     'a.org\u0000',
   ]) {
     test('rejects invalid alias $name', () {
