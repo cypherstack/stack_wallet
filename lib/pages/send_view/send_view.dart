@@ -24,6 +24,7 @@ import '../../models/isar/models/isar_models.dart';
 import '../../models/mwc_slatepack_models.dart';
 import '../../models/paynym/paynym_account_lite.dart';
 import '../../models/send_view_auto_fill_data.dart';
+import '../../notifications/show_flush_bar.dart';
 import '../../providers/providers.dart';
 import '../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../providers/ui/preview_tx_button_state_provider.dart';
@@ -87,6 +88,7 @@ import 'confirm_transaction_view.dart';
 import 'sub_widgets/building_transaction_dialog.dart';
 import 'sub_widgets/dual_balance_selection_sheet.dart';
 import 'sub_widgets/epic_slatepack_dialog.dart';
+import 'sub_widgets/multi_recipient_summary.dart';
 import 'sub_widgets/mwc_slatepack_dialog.dart';
 import 'sub_widgets/transaction_fee_selection_sheet.dart';
 
@@ -148,6 +150,9 @@ class _SendViewState extends ConsumerState<SendView> {
   Amount? _cachedAmountToSend;
   String? _address;
 
+  /// Set while sending to the recipients of a multi-recipient payment URI.
+  List<SendRecipient>? _multiRecipients;
+
   bool _addressToggleFlag = false;
 
   bool _isFiroExWarningDisplayed = false;
@@ -157,8 +162,49 @@ class _SendViewState extends ConsumerState<SendView> {
 
   Set<StandardInput> selectedUTXOs = {};
 
+  void _applyMultiRecipientUri(PaymentUriData paymentData) {
+    final recipients = parseUriRecipients(paymentData, coin);
+    if (recipients == null) {
+      showFloatingFlushBar(
+        type: FlushBarType.warning,
+        message: "Invalid payment request amounts",
+        context: context,
+      );
+      return;
+    }
+
+    if (paymentData.message != null) {
+      noteController.text = paymentData.message!;
+    }
+    _setOpReturnData(null);
+    _address = null;
+    sendToController.text = "";
+    final total = recipients.total;
+    cryptoAmountController.text = ref
+        .read(pAmountFormatter(coin))
+        .formatEditable(total);
+    ref.read(pSendAmount.notifier).state = total;
+
+    setState(() {
+      _multiRecipients = recipients;
+      _addressToggleFlag = false;
+    });
+    _setValidAddressProviders(_address);
+  }
+
+  void _clearMultiRecipients() {
+    clearSendForm();
+    _setValidAddressProviders(_address);
+  }
+
   void _applyUri(PaymentUriData paymentData) {
     try {
+      if (paymentData.isMultiRecipient) {
+        _applyMultiRecipientUri(paymentData);
+        return;
+      }
+      _multiRecipients = null;
+
       // auto fill address
       _address = paymentData.address.trim();
 
@@ -260,6 +306,7 @@ class _SendViewState extends ConsumerState<SendView> {
         final paymentData = AddressUtils.parsePaymentUri(
           content,
           logging: Logging.instance,
+          allowMultipleRecipients: true,
         );
 
         if (paymentData != null &&
@@ -328,6 +375,7 @@ class _SendViewState extends ConsumerState<SendView> {
       final paymentData = AddressUtils.parsePaymentUri(
         qrResult.rawContent!,
         logging: Logging.instance,
+        allowMultipleRecipients: true,
       );
 
       if (paymentData != null &&
@@ -496,7 +544,10 @@ class _SendViewState extends ConsumerState<SendView> {
   late Amount _currentFee;
 
   void _setValidAddressProviders(String? address) {
-    if (isPaynymSend) {
+    if (_multiRecipients != null) {
+      ref.read(pValidSendToAddress.notifier).state = _multiRecipients!
+          .allValidFor(coin);
+    } else if (isPaynymSend) {
       ref.read(pValidSendToAddress.notifier).state = true;
     } else {
       final wallet = ref.read(pWallets).getWallet(walletId);
@@ -1077,14 +1128,18 @@ class _SendViewState extends ConsumerState<SendView> {
         final memo = coin is Stellar ? memoController.text : null;
         txDataFuture = wallet.prepareSend(
           txData: TxData(
-            recipients: [
-              TxRecipient(
-                address: _address!,
-                amount: amount,
-                isChange: false,
-                addressType: wallet.cryptoCurrency.getAddressType(_address!)!,
-              ),
-            ],
+            recipients:
+                _multiRecipients?.toTxRecipients(wallet.cryptoCurrency) ??
+                [
+                  TxRecipient(
+                    address: _address!,
+                    amount: amount,
+                    isChange: false,
+                    addressType: wallet.cryptoCurrency.getAddressType(
+                      _address!,
+                    )!,
+                  ),
+                ],
             memo: memo,
             feeRateType: feeRateType,
             satsPerVByte: satsPerVByte,
@@ -1193,6 +1248,7 @@ class _SendViewState extends ConsumerState<SendView> {
     memoController.text = "";
     _address = "";
     _addressToggleFlag = false;
+    _multiRecipients = null;
     _setOpReturnData(null);
     setState(() {});
   }
@@ -1722,7 +1778,15 @@ class _SendViewState extends ConsumerState<SendView> {
                                 readOnly: true,
                                 style: STextStyles.fieldLabel(context),
                               ),
-                            if (!isPaynymSend && !isSlatepackMode)
+                            if (_multiRecipients != null)
+                              MultiRecipientSummary(
+                                coin: coin,
+                                recipients: _multiRecipients!,
+                                onClear: _clearMultiRecipients,
+                              ),
+                            if (!isPaynymSend &&
+                                !isSlatepackMode &&
+                                _multiRecipients == null)
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(
                                   Constants.size.circularBorderRadius,
@@ -1755,6 +1819,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                           AddressUtils.parsePaymentUri(
                                             trimmed,
                                             logging: Logging.instance,
+                                            allowMultipleRecipients: true,
                                           );
                                       if (parsed != null) {
                                         _applyUri(parsed);
@@ -2190,7 +2255,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                   style: STextStyles.smallMed12(context),
                                   textAlign: TextAlign.left,
                                 ),
-                                if (coin is! Ethereum && coin is! Tezos)
+                                if (coin is! Ethereum &&
+                                    coin is! Tezos &&
+                                    _multiRecipients == null)
                                   CustomTextButton(
                                     text: _getSendAllTitle(
                                       showCoinControl,
@@ -2203,6 +2270,7 @@ class _SendViewState extends ConsumerState<SendView> {
                             ),
                             const SizedBox(height: 8),
                             TextField(
+                              readOnly: _multiRecipients != null,
                               autocorrect: Util.isDesktop ? false : true,
                               enableSuggestions: Util.isDesktop ? false : true,
                               style: STextStyles.smallMed14(context).copyWith(
@@ -2271,6 +2339,7 @@ class _SendViewState extends ConsumerState<SendView> {
                               const SizedBox(height: 8),
                             if (Prefs.instance.externalCalls)
                               TextField(
+                                readOnly: _multiRecipients != null,
                                 autocorrect: Util.isDesktop ? false : true,
                                 enableSuggestions: Util.isDesktop
                                     ? false
