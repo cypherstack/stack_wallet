@@ -1,8 +1,11 @@
 import 'dart:async';
 
+import 'package:doh_resolver/doh_resolver.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stackwallet/services/openalias/open_alias.dart';
 import 'package:stackwallet/services/openalias/open_alias_service.dart';
+
+import 'open_alias_test_fixtures.dart';
 
 void main() {
   test('privacy restrictions prevent any network lookup', () async {
@@ -14,7 +17,7 @@ void main() {
         supportsTor: () => policy.$3,
         lookup: (_, _) async {
           calls++;
-          return [];
+          return authenticatedTxt('alice.example', []);
         },
       );
       await expectLater(
@@ -27,7 +30,7 @@ void main() {
   test('Incognito mode points to the setting that allows lookups', () async {
     final service = OpenAliasService(
       externalCalls: () => false,
-      lookup: (_, _) async => [],
+      lookup: (_, _) async => authenticatedTxt('alice.example', []),
     );
     await expectLater(
       service.resolve('alice.example', validateAddress: (_) => true),
@@ -44,7 +47,7 @@ void main() {
     'Tor policy is passed to the lookup and a changed policy rejects results',
     () async {
       var tor = true;
-      final pending = Completer<List<String>>();
+      final pending = Completer<AuthenticatedTxtResult>();
       final service = OpenAliasService(
         externalCalls: () => true,
         useTor: () => tor,
@@ -60,7 +63,9 @@ void main() {
         validateAddress: (_) => true,
       );
       tor = false;
-      pending.complete(['oa1:xmr recipient_address=valid;']);
+      pending.complete(
+        authenticatedTxt('alice.example', ['oa1:xmr recipient_address=valid;']),
+      );
       await expectLater(future, throwsA(isA<OpenAliasException>()));
     },
   );
@@ -69,7 +74,10 @@ void main() {
       externalCalls: () => true,
       useTor: () => false,
       supportsTor: () => true,
-      lookup: (_, _) async => ['oa1:xmr recipient_address=valid;'],
+      lookup: (_, _) async => authenticatedTxt('alice.example', [
+        'oa1:xmr recipient_address=valid;',
+      ]),
+      trustedValidators: testValidators,
     );
     final result = await service.resolve(
       'alice.example',

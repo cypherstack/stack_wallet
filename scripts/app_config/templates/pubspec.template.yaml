@@ -121,6 +121,10 @@ dependencies:
 
   # Utility plugins
   http: ^1.6.0
+  openalias: ^0.2.0
+  doh_resolver: ^0.3.0
+  dnssec_resolver: ^0.1.0
+  socks_socket: ^1.4.0
   local_auth: ^2.3.0
   permission_handler: ^13.0.1
   flutter_local_notifications: ^22.3.0

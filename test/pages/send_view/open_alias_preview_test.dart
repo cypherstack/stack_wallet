@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:doh_resolver/doh_resolver.dart';
 import 'package:flutter/material.dart';
 import 'package:stackwallet/models/send_view_auto_fill_data.dart';
 import 'package:stackwallet/services/openalias/open_alias.dart';
@@ -34,6 +35,7 @@ import 'package:stackwallet/wallets/wallet/intermediate/cryptonote_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
 
 import '../../sample_data/theme_json.dart';
+import '../../services/openalias/open_alias_test_fixtures.dart';
 
 const literal =
     '4AeRgkWZsMJhAWKMeCZ3h4ZSPnAcW5VBtRFyLd6gBEf6GgJU2FH'
@@ -163,7 +165,7 @@ class _Harness {
   final identity = ValueNotifier('wallet');
   final visible = ValueNotifier(true);
   final auth = _AuthObserver();
-  final lookups = <Completer<List<String>>>[];
+  final lookups = <Completer<AuthenticatedTxtResult>>[];
   int get calls => lookups.length;
   _Harness(this.desktop);
 
@@ -209,11 +211,12 @@ class _Harness {
           OpenAliasService(
             externalCalls: () => true,
             useTor: () => false,
+            trustedValidators: testValidators,
             lookup: (domain, _) {
               if (domain != 'alice.example') {
                 throw StateError('Unexpected lookup: $domain');
               }
-              final pending = Completer<List<String>>();
+              final pending = Completer<AuthenticatedTxtResult>();
               lookups.add(pending);
               return pending.future;
             },
@@ -333,8 +336,11 @@ class _Harness {
     expect(tester.takeException(), isNull);
   }
 
-  void succeed([String destination = literal]) =>
-      lookups.last.complete(['oa1:xmr recipient_address=$destination;']);
+  void succeed([String destination = literal]) => lookups.last.complete(
+    authenticatedTxt('alice.example', [
+      'oa1:xmr recipient_address=$destination;',
+    ]),
+  );
 }
 
 void main() {
