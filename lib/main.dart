@@ -89,11 +89,11 @@ final openedFromSWBFileStringStateProvider = StateProvider<String?>(
 // runs the MyApp widget and checks for new users, caching the value in the
 // miscellaneous box for later use
 void main(List<String> args) async {
+  WidgetsFlutterBinding.ensureInitialized();
   // talker.info('initializing Rust lib ...');
   if (AppConfig.coins.whereType<Xelis>().isNotEmpty) {
     await libXelis.initRustLib();
   }
-  WidgetsFlutterBinding.ensureInitialized();
 
   if (Util.isDesktop && args.length == 2 && args.first == "-d") {
     StackFileSystem.setDesktopOverrideDir(args.last);

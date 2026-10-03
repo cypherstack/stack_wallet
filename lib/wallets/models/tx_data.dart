@@ -14,6 +14,7 @@ import '../../utilities/extensions/impl/uint8_list.dart';
 import '../../widgets/eth_fee_form.dart';
 import '../../wl_gen/interfaces/cs_monero_interface.dart'
     show CsPendingTransaction;
+import '../../wl_gen/interfaces/xelis_types.dart';
 import '../isar/models/spark_coin.dart';
 import 'name_op_state.dart';
 import 'tx_recipient.dart';
@@ -101,6 +102,8 @@ class TxData {
 
   // xelis specific
   final String? otherData;
+  final XelisPreparedTransaction? xelisPreparedTransaction;
+  final bool xelisSendAll;
 
   final TransactionV2? tempTx;
 
@@ -146,6 +149,8 @@ class TxData {
     this.tezosOperationsList,
     this.sparkRecipients,
     this.otherData,
+    this.xelisPreparedTransaction,
+    this.xelisSendAll = false,
     this.sparkMints,
     this.sparkSpends,
     this.usedSparkCoins,
@@ -259,6 +264,8 @@ class TxData {
       : null;
 
   TxData copyWith({
+    XelisPreparedTransaction? xelisPreparedTransaction,
+    bool? xelisSendAll,
     FeeRateType? feeRateType,
     BigInt? feeRateAmount,
     int? satsPerVByte,
@@ -339,6 +346,9 @@ class TxData {
       chainId: chainId ?? this.chainId,
       solInstructions: solInstructions ?? this.solInstructions,
       pendingTransaction: pendingTransaction ?? this.pendingTransaction,
+      xelisPreparedTransaction:
+          xelisPreparedTransaction ?? this.xelisPreparedTransaction,
+      xelisSendAll: xelisSendAll ?? this.xelisSendAll,
       pendingSalviumTransaction:
           pendingSalviumTransaction ?? this.pendingSalviumTransaction,
       tezosOperationsList: tezosOperationsList ?? this.tezosOperationsList,

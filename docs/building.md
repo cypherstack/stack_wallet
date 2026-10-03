@@ -4,6 +4,10 @@ Here you will find instructions on how to install the necessary tools for buildi
 
 ## Prerequisites
 
+- Xelis requires Flutter 3.47.2 and Rustup. Its native wallet library is
+  built automatically through Native Assets, using Rust 1.94.1.
+  Android builds require NDK r28 or newer.
+
 - The only OS supported for building Android and Linux desktop is Ubuntu 24.04.  Windows builds require using Ubuntu 24.04 on WSL2.  macOS builds for itself and iOS.  Advanced users may also be able to build on other Debian-based distributions like Linux Mint.
 - Android setup ([Android Studio](https://developer.android.com/studio) and subsequent dependencies)
 - 100 GB of storage
@@ -14,7 +18,7 @@ Here you will find instructions on how to install the necessary tools for buildi
 The following instructions are for building and running on a Linux host.  Alternatively, see the [Mac](#mac-host) and/or [Windows](#windows-host) section.  This entire section (except for the Android Studio section) needs to be completed in WSL if building on a Windows host.
 
 ### Flutter
-Install Flutter 3.38.5 by [following their guide](https://docs.flutter.dev/get-started/install/linux/desktop?tab=download#install-the-flutter-sdk).  Run `flutter doctor` in a terminal to confirm its installation.
+Install Flutter 3.47.2 by [following their guide](https://docs.flutter.dev/get-started/install/linux/desktop?tab=download#install-the-flutter-sdk).  Run `flutter doctor` in a terminal to confirm its installation.
 
 ### Android Studio
 Install Android Studio.  Follow instructions here [https://developer.android.com/studio/install#linux](https://developer.android.com/studio/install#linux) or install via snap:
@@ -69,7 +73,7 @@ pip3 install --upgrade meson==0.64.1 markdown==3.4.1 markupsafe==2.1.1 jinja2==3
 ```
 
 ### Flutter
-Install Flutter 3.38.5 by [following their guide](https://docs.flutter.dev/install/manual).
+Install Flutter 3.47.2 by [following their guide](https://docs.flutter.dev/install/manual).
 
 Run `flutter doctor` in a terminal to confirm its installation.
 
@@ -220,7 +224,7 @@ rustup target add aarch64-apple-ios aarch64-apple-darwin
 Optionally download [Android Studio](https://developer.android.com/studio) as an IDE and activate its Dart and Flutter plugins.  VS Code may work as an alternative, but this is not recommended.
 
 ### Flutter
-Install 3.38.5 on your Mac host by [following their guide](https://docs.flutter.dev/install/manual).  Run `flutter doctor` in a terminal to confirm its installation.
+Install Flutter 3.47.2 on your Mac host by [following their guide](https://docs.flutter.dev/install/manual).  Run `flutter doctor` in a terminal to confirm its installation.
 
 ### Build plugins and configure
 #### Building plugins for iOS 
@@ -300,7 +304,7 @@ If the DLL was built on the WSL filesystem instead of on Windows, copy `stack_wa
 Frostdart will be built by the Windows host later.
 
 ### Install Flutter on Windows host
-Install Flutter 3.38.5 on your Windows host (not in WSL2) by [following their guide](https://docs.flutter.dev/install/manual).  Run `flutter doctor` in PowerShell to confirm its installation.
+Install Flutter 3.47.2 on your Windows host (not in WSL2) by [following their guide](https://docs.flutter.dev/install/manual).  Run `flutter doctor` in PowerShell to confirm its installation.
 
 ### Rust
 Install [Rust](https://www.rust-lang.org/tools/install) on the Windows host (not in WSL2).  Download the installer from [rustup.rs](https://rustup.rs), make sure it works on the commandline (you may need to open a new terminal), and install the following versions:
@@ -362,6 +366,20 @@ flutter pub get
 dart run coinlib:build_windows
 flutter run -d windows
 ```
+
+## Xelis devnet test
+
+To validate Xelis transfers locally, provide a `xelis_daemon` 1.25
+executable built for your host OS. The test starts an isolated temporary
+devnet node; no running node is required.
+
+```sh
+flutter test test/wallets/xelis_local_transfer_test.dart \
+  --dart-define=XELIS_LOCAL_DAEMON=/absolute/path/to/xelis_daemon
+```
+
+This test is skipped when `XELIS_LOCAL_DAEMON` is not set.
+The daemon is not required to build the app.
 
 # Troubleshooting
 
