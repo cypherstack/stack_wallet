@@ -31,7 +31,7 @@ const kTrocadorRefCode = "9eHm9BkQfS";
 abstract class TrocadorAPI {
   static const String authority = "api.trocador.app";
   static const String onionAuthority =
-      "trocadorfyhlu27aefre5u7zri66gudtzdyelymftvr4yjwcxhfaqsid.onion";
+      "65bsisadnxvw4kfz7h7a3jwcyenrhluuj3kd5toslfzxbk5q4m3wy6qd.onion";
 
   static const String markup = "1";
   static const String minKYCRating = "C";
