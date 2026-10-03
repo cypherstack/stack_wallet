@@ -32,6 +32,7 @@ import '../../../wallets/wallet/impl/sub_wallets/eth_token_wallet.dart';
 import '../../../wallets/wallet/wallet.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/dialogs/basic_dialog.dart';
+import '../../../widgets/hideable_balance.dart';
 import '../../../widgets/icon_widgets/eth_token_icon.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../token_view.dart';
@@ -189,33 +190,48 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
                                 : STextStyles.titleBold12(context),
                           ),
                           const Spacer(),
-                          Text(
-                            ref
-                                .watch(
-                                  pAmountFormatter(
-                                    Ethereum(CryptoCurrencyNetwork.main),
-                                  ),
-                                )
-                                .format(
-                                  ref
-                                      .watch(
-                                        pTokenBalance((
-                                          walletId: widget.walletId,
-                                          contractAddress: widget.token.address,
-                                        )),
-                                      )
-                                      .total,
-                                  tokenContract: widget.token,
-                                ),
-                            style: isDesktop
-                                ? STextStyles.desktopTextExtraSmall(
+                          HideableBalance(
+                            key: ValueKey(
+                              "hideBalance_${widget.walletId}_"
+                              "${widget.token.address}",
+                            ),
+                            iconColor: isDesktop
+                                ? Theme.of(
                                     context,
-                                  ).copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.textDark,
+                                  ).extension<StackColors>()!.textDark
+                                : Theme.of(
+                                    context,
+                                  ).extension<StackColors>()!.infoItemLabel,
+                            iconSize: 16,
+                            child: Text(
+                              ref
+                                  .watch(
+                                    pAmountFormatter(
+                                      Ethereum(CryptoCurrencyNetwork.main),
+                                    ),
                                   )
-                                : STextStyles.itemSubtitle(context),
+                                  .format(
+                                    ref
+                                        .watch(
+                                          pTokenBalance((
+                                            walletId: widget.walletId,
+                                            contractAddress:
+                                                widget.token.address,
+                                          )),
+                                        )
+                                        .total,
+                                    tokenContract: widget.token,
+                                  ),
+                              style: isDesktop
+                                  ? STextStyles.desktopTextExtraSmall(
+                                      context,
+                                    ).copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).extension<StackColors>()!.textDark,
+                                    )
+                                  : STextStyles.itemSubtitle(context),
+                            ),
                           ),
                         ],
                       ),
