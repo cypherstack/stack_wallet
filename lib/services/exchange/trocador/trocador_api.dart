@@ -31,18 +31,17 @@ const kTrocadorRefCode = "9eHm9BkQfS";
 abstract class TrocadorAPI {
   static const String authority = "api.trocador.app";
   static const String onionAuthority =
-      "trocadorfyhlu27aefre5u7zri66gudtzdyelymftvr4yjwcxhfaqsid.onion";
+      "65bsisadnxvw4kfz7h7a3jwcyenrhluuj3kd5toslfzxbk5q4m3wy6qd.onion";
 
   static const String markup = "1";
   static const String minKYCRating = "C";
   static HTTP client = HTTP();
 
-  static Uri _buildUri({
-    required String method,
-    required bool isOnion,
-    Map<String, String>? params,
-  }) {
-    return isOnion
+  static bool get _useTor =>
+      AppConfig.hasFeature(AppFeature.tor) && Prefs.instance.useTor;
+
+  static Uri _buildUri({required String method, Map<String, String>? params}) {
+    return _useTor
         ? Uri.http(onionAuthority, method, params)
         : Uri.https(authority, method, params);
   }
@@ -57,11 +56,7 @@ abstract class TrocadorAPI {
           "Content-Type": "application/json",
           "API-KEY": kTrocadorApiKey,
         },
-        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
-            ? null
-            : Prefs.instance.useTor
-            ? TorService.sharedInstance.getProxyInfo()
-            : null,
+        proxyInfo: _useTor ? TorService.sharedInstance.getProxyInfo() : null,
       );
 
       code = response.code;
@@ -87,14 +82,8 @@ abstract class TrocadorAPI {
   }
 
   /// fetch all supported coins
-  static Future<ExchangeResponse<List<TrocadorCoin>>> getCoins({
-    required bool isOnion,
-  }) async {
-    final uri = _buildUri(
-      isOnion: isOnion,
-      method: "coins",
-      params: {"ref": kTrocadorRefCode},
-    );
+  static Future<ExchangeResponse<List<TrocadorCoin>>> getCoins() async {
+    final uri = _buildUri(method: "coins", params: {"ref": kTrocadorRefCode});
 
     try {
       final json = await _makeGetRequest(uri);
@@ -122,11 +111,9 @@ abstract class TrocadorAPI {
 
   /// get trade info
   static Future<ExchangeResponse<TrocadorTrade>> getTrade({
-    required bool isOnion,
     required String tradeId,
   }) async {
     final uri = _buildUri(
-      isOnion: isOnion,
       method: "trade",
       params: {"ref": kTrocadorRefCode, "id": tradeId},
     );
@@ -149,7 +136,6 @@ abstract class TrocadorAPI {
 
   /// get standard/floating rate
   static Future<ExchangeResponse<TrocadorRate>> getNewStandardRate({
-    required bool isOnion,
     required String fromTicker,
     required String fromNetwork,
     required String toTicker,
@@ -168,12 +154,11 @@ abstract class TrocadorAPI {
       "markup": markup,
     };
 
-    return await _getNewRate(isOnion: isOnion, params: params);
+    return await _getNewRate(params: params);
   }
 
   /// get fixed rate/payment rate
   static Future<ExchangeResponse<TrocadorRate>> getNewPaymentRate({
-    required bool isOnion,
     required String fromTicker,
     required String fromNetwork,
     required String toTicker,
@@ -192,14 +177,13 @@ abstract class TrocadorAPI {
       "markup": markup,
     };
 
-    return await _getNewRate(isOnion: isOnion, params: params);
+    return await _getNewRate(params: params);
   }
 
   static Future<ExchangeResponse<TrocadorRate>> _getNewRate({
-    required bool isOnion,
     required Map<String, String> params,
   }) async {
-    final uri = _buildUri(isOnion: isOnion, method: "new_rate", params: params);
+    final uri = _buildUri(method: "new_rate", params: params);
 
     try {
       final json = await _makeGetRequest(uri);
@@ -219,7 +203,6 @@ abstract class TrocadorAPI {
 
   /// create new floating rate/standard trade
   static Future<ExchangeResponse<TrocadorTradeNew>> createNewStandardRateTrade({
-    required bool isOnion,
     required String? rateId,
     required String fromTicker,
     required String fromNetwork,
@@ -255,11 +238,10 @@ abstract class TrocadorAPI {
       params["id"] = rateId;
     }
 
-    return await _getNewTrade(isOnion: isOnion, params: params);
+    return await _getNewTrade(params: params);
   }
 
   static Future<ExchangeResponse<TrocadorTradeNew>> createNewPaymentRateTrade({
-    required bool isOnion,
     required String? rateId,
     required String fromTicker,
     required String fromNetwork,
@@ -295,18 +277,13 @@ abstract class TrocadorAPI {
       params["id"] = rateId;
     }
 
-    return await _getNewTrade(isOnion: isOnion, params: params);
+    return await _getNewTrade(params: params);
   }
 
   static Future<ExchangeResponse<TrocadorTradeNew>> _getNewTrade({
-    required bool isOnion,
     required Map<String, String> params,
   }) async {
-    final uri = _buildUri(
-      isOnion: isOnion,
-      method: "new_trade",
-      params: params,
-    );
+    final uri = _buildUri(method: "new_trade", params: params);
 
     try {
       final json = await _makeGetRequest(uri);
