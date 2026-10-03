@@ -11,6 +11,7 @@ import '../../../../../pages_desktop_specific/desktop_home_view.dart';
 import '../../../../../providers/frost_wallet/frost_wallet_providers.dart';
 import '../../../../../providers/global/secure_store_provider.dart';
 import '../../../../../providers/providers.dart';
+import '../../../../../services/transaction_notification_tracker.dart';
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../utilities/assets.dart';
 import '../../../../../utilities/logger.dart';
@@ -141,6 +142,9 @@ class _FrostCreateStep5State extends ConsumerState<FrostCreateStep5> {
                   coin: data.info.frostCurrency,
                   name: data.info.walletName,
                 );
+                await TransactionNotificationTracker(
+                  walletId: info.walletId,
+                ).markInitialized();
 
                 final wallet = await Wallet.create(
                   walletInfo: info,

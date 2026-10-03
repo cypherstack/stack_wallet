@@ -10,51 +10,16 @@
 
 import 'dart:async';
 
-import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../providers/providers.dart';
+import '../services/event_bus/events/global/crypto_notification_event.dart';
 import '../services/notifications_api.dart';
 import '../themes/coin_icon_provider.dart';
-import '../wallets/crypto_currency/crypto_currency.dart';
-
-abstract class CryptoNotificationsEventBus {
-  static final instance = EventBus();
-}
-
-class CryptoNotificationEvent {
-  final String title;
-  final String walletId;
-  final String walletName;
-  final DateTime date;
-  final bool shouldWatchForUpdates;
-  final CryptoCurrency coin;
-  final String? txid;
-  final int? confirmations;
-  final int? requiredConfirmations;
-  final String? changeNowId;
-  final String? payload;
-
-  CryptoNotificationEvent({
-    required this.title,
-    required this.walletId,
-    required this.walletName,
-    required this.date,
-    required this.shouldWatchForUpdates,
-    required this.coin,
-    this.txid,
-    this.confirmations,
-    this.requiredConfirmations,
-    this.changeNowId,
-    this.payload,
-  });
-}
 
 class CryptoNotifications extends ConsumerStatefulWidget {
-  const CryptoNotifications({
-    super.key,
-    required this.child,
-  });
+  const CryptoNotifications({super.key, required this.child});
 
   final Widget child;
 
@@ -89,17 +54,22 @@ class _CryptoNotificationsState extends ConsumerState<CryptoNotifications> {
     NotificationApi.notificationsService = ref.read(notificationsProvider);
     _streamSubscription = CryptoNotificationsEventBus.instance
         .on<CryptoNotificationEvent>()
-        .listen(
-      (event) async {
-        unawaited(_showNotification(event));
-      },
-    );
+        .listen((event) async {
+          try {
+            await _showNotification(event);
+            event.completeDelivery();
+          } catch (error, stackTrace) {
+            event.failDelivery(error, stackTrace);
+          }
+        });
+    CryptoNotificationsEventBus.registerListener();
 
     super.initState();
   }
 
   @override
   void dispose() {
+    CryptoNotificationsEventBus.unregisterListener();
     _streamSubscription?.cancel();
     super.dispose();
   }
