@@ -3,6 +3,7 @@ package com.place.holder
 import androidx.annotation.NonNull;
 import io.flutter.embedding.android.FlutterFragmentActivity
 import android.content.Intent
+import android.content.Context
 import android.os.Bundle
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -13,8 +14,19 @@ import 	java.nio.charset.Charset
 import android.os.Build
 import android.view.ViewTreeObserver
 import android.view.WindowManager
+import android.view.View
+import android.widget.FrameLayout
 class MainActivity: FlutterFragmentActivity() {
     private val CHANNEL = "STACK_WALLET_RESTORE"
+
+    override fun provideRootLayout(context: Context): FrameLayout {
+        return super.provideRootLayout(context).apply {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                // FlutterView inherits this, so only isAccessibilityTool services can read it.
+                setAccessibilityDataSensitive(View.ACCESSIBILITY_DATA_SENSITIVE_YES)
+            }
+        }
+    }
 
     var openPath: String? = null
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
