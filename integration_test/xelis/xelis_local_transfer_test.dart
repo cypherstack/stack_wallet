@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
 import 'package:xelis_wallet_flutter/xelis_wallet_flutter.dart' as xwf;
 
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
@@ -25,11 +26,19 @@ class LocalTransferWallet extends XelisWallet {
 class LocalRpcHttp extends HttpOverrides {}
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   const executable = String.fromEnvironment('XELIS_LOCAL_DAEMON');
-  test(
+  testWidgets(
     'real normal and maximum transfers confirm reviewed hashes and balances',
-    () async {
+    (tester) async {
+      if (!(Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+        fail('The devnet scenario requires a desktop host.');
+      }
+      if (executable.isEmpty || !File(executable).existsSync()) {
+        fail(
+          'Set XELIS_LOCAL_DAEMON to an existing host xelis_daemon executable.',
+        );
+      }
       final root = await Directory.systemTemp.createTemp(
         'stack_xelis_local_transfer_',
       );
@@ -352,7 +361,7 @@ void main() {
         }
       }
     },
-    skip: executable.isEmpty,
+
     timeout: const Timeout(Duration(minutes: 5)),
   );
 }

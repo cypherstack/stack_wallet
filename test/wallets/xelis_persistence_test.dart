@@ -9,7 +9,6 @@ import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/models/notification_model.dart';
 import 'package:stackwallet/models/trade_wallet_lookup.dart';
 import 'package:stackwallet/services/wallets.dart';
-import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
@@ -117,8 +116,6 @@ class PersistenceNative extends Fake implements LibXelisInterface {
     return snapshot;
   }
 }
-
-class OfflineNodes extends Fake implements NodeService {}
 
 class PersistenceWallet extends XelisWallet {
   PersistenceWallet(PersistenceNative native, this.testWalletId)
@@ -257,79 +254,6 @@ void main() {
     );
     expect(tx.getConfirmations(wallet.info.cachedChainHeight), 2);
   });
-
-  test(
-    'native Stack factory restores exported recovery data and reloads',
-    () async {
-      await libXelis.initRustLib();
-      final secrets = MemorySecrets();
-      final prefs = SessionPrefs();
-      final nodes = OfflineNodes();
-      final opened = <XelisWallet>[];
-      addTearDown(() async {
-        for (final item in opened.reversed) {
-          await item.exit();
-        }
-      });
-      Future<XelisWallet> create(
-        String id, {
-        String? seed,
-        String? password,
-      }) async {
-        final result = await Wallet.create(
-          walletInfo: WalletInfo(
-            walletId: id,
-            name: 'native-restore-fixture',
-            mainAddressType: AddressType.xelis,
-            coinName: 'xelisTestNet',
-          ),
-          mainDB: MainDB.instance,
-          secureStorageInterface: secrets,
-          nodeService: nodes,
-          prefs: prefs,
-          mnemonic: seed,
-          mnemonicPassphrase: password,
-        ) as XelisWallet;
-        opened.add(result);
-        await result.init(isRestore: seed != null);
-        return result;
-      }
-
-      final original = await create('native-original');
-      final seed = await original.getMnemonic();
-      final password = await original.getMnemonicPassphrase();
-      final address = original.info.cachedReceivingAddress;
-      expect(seed.split(' ').length, 25);
-      expect(address, isNotEmpty);
-      await original.exit();
-      opened.remove(original);
-
-      final restored = await create(
-        'native-restored',
-        seed: seed,
-        password: password,
-      );
-      expect(restored.info.cachedReceivingAddress, address);
-      expect((await restored.getCurrentReceivingAddress())!.value, address);
-      expect((await restored.getMnemonic()) == seed, isTrue);
-      expect(await libXelis.getXelisBalanceRaw(restored.wallet!), BigInt.zero);
-      await restored.exit();
-      opened.remove(restored);
-
-      final reloaded = await Wallet.load(
-        walletId: 'native-restored',
-        mainDB: MainDB.instance,
-        secureStorageInterface: secrets,
-        nodeService: nodes,
-        prefs: prefs,
-      ) as XelisWallet;
-      opened.add(reloaded);
-      await reloaded.init();
-      expect(reloaded.info.cachedReceivingAddress, address);
-      expect((await reloaded.getMnemonic()) == seed, isTrue);
-      expect(await libXelis.getXelisBalanceRaw(reloaded.wallet!), BigInt.zero);
-    },
-  );
 
   for (final destination in ['other', 'own']) {
     test(

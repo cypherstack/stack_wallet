@@ -367,19 +367,26 @@ dart run coinlib:build_windows
 flutter run -d windows
 ```
 
-## Xelis devnet test
+## Xelis tests
 
-To validate Xelis transfers locally, provide a `xelis_daemon` 1.25
-executable built for your host OS. The test starts an isolated temporary
-devnet node; no running node is required.
+Run on a configured desktop target (`windows`, `linux`, or `macos`) with
+the application's native plugin dependencies:
 
 ```sh
-flutter test test/wallets/xelis_local_transfer_test.dart \
+flutter test integration_test/xelis/xelis_adapter_test.dart -d windows
+flutter test integration_test/xelis/xelis_restore_test.dart -d windows
+flutter test integration_test/xelis/xelis_swb_test.dart -d windows
+```
+
+The transfer test starts a temporary devnet node using a host `xelis_daemon`
+1.25 executable:
+
+```sh
+flutter test integration_test/xelis/xelis_local_transfer_test.dart -d windows \
   --dart-define=XELIS_LOCAL_DAEMON=/absolute/path/to/xelis_daemon
 ```
 
-This test is skipped when `XELIS_LOCAL_DAEMON` is not set.
-The daemon is not required to build the app.
+Missing `XELIS_LOCAL_DAEMON` or an invalid path fails the test.
 
 # Troubleshooting
 

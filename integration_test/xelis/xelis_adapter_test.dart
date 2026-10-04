@@ -1,16 +1,17 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
 import 'package:path/path.dart' as path;
 
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wl_gen/interfaces/lib_xelis_interface.dart';
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
-  test(
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  testWidgets(
     'Stack adapter opens native storage and exposes typed zero state',
-    () async {
+    (tester) async {
       await libXelis.initRustLib();
       final root = await Directory.systemTemp.createTemp(
         'stack_xelis_adapter_',
@@ -49,9 +50,6 @@ void main() {
           ),
           isFalse,
         );
-        final seed = await libXelis.getSeed(wallet);
-        expect(seed.split(' '), hasLength(25));
-        expect(seed.split(' ').every(libXelis.validateSeedWord), isTrue);
         final runtime = await libXelis.subscribeRuntimeEvents(wallet);
         final business = await libXelis.subscribeBusinessEvents(wallet);
         await runtime.cancel();

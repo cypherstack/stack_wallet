@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
 import 'package:isar_community/isar.dart';
 // Test-only substitution of the existing wakelock plugin's platform layer.
 // ignore: depend_on_referenced_packages
@@ -28,8 +29,7 @@ import 'package:stackwallet/wallets/wallet/impl/xelis_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:stackwallet/wl_gen/interfaces/lib_xelis_interface.dart';
 
-import '../support/isar_test_utils.dart';
-import 'support/xelis_test_fakes.dart';
+import '../../test/wallets/support/xelis_test_fakes.dart';
 
 class UnusedShopService extends Fake implements ShopInBitService {}
 
@@ -39,11 +39,14 @@ class TestWakelock extends WakelockPlusPlatformInterface {
 }
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  test(
+  testWidgets(
     'encrypted SWB restores native Xelis with duplicate ID and notes',
-    () async {
+    (tester) async {
+      if (!(Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+        fail('Run this storage scenario on a desktop host.');
+      }
       final root = await Directory.systemTemp.createTemp('stack_xelis_swb_');
       StackFileSystem.setDesktopOverrideDir(root.path);
       final opened = <Wallet>[];
@@ -75,7 +78,7 @@ void main() {
       addTearDown(
         () => WakelockPlusPlatformInterface.instance = previousWakelock,
       );
-      await initializeTestIsar();
+
       await MainDB.instance.initMainDB();
       final hive = DB.instance.hive..init('${root.path}/hive');
       hive.registerAdapter(NodeModelAdapter());
