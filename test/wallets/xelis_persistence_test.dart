@@ -31,6 +31,9 @@ class PersistenceNative extends Fake implements LibXelisInterface {
   BigInt balance = BigInt.zero;
   BigInt daemonTopoheight = BigInt.from(100);
   Object? balanceFailure;
+  Object? historyFailure;
+  int balanceReads = 0;
+  Future<void> Function()? afterHistoryRead;
   List<TransactionEntryWrapper> history = [];
   int historyReads = 0;
   Completer<void>? historyStarted;
@@ -95,6 +98,7 @@ class PersistenceNative extends Fake implements LibXelisInterface {
   String getAddress(OpaqueXelisWallet wallet) => address;
   @override
   Future<BigInt> getXelisBalanceRaw(OpaqueXelisWallet wallet) async {
+    balanceReads++;
     if (balanceFailure != null) throw balanceFailure!;
     return balance;
   }
@@ -107,7 +111,10 @@ class PersistenceNative extends Fake implements LibXelisInterface {
     historyReads++;
     if (!(historyStarted?.isCompleted ?? true)) historyStarted!.complete();
     await historyRelease?.future;
-    return history;
+    if (historyFailure != null) throw historyFailure!;
+    final snapshot = List<TransactionEntryWrapper>.of(history);
+    await afterHistoryRead?.call();
+    return snapshot;
   }
 }
 
@@ -182,24 +189,27 @@ void main() {
       ),
     ]);
   });
-  TransactionEntryWrapper entry(String hash, {int? height}) =>
-      TransactionEntryWrapper(
-        hash: hash,
-        timestamp: DateTime.fromMillisecondsSinceEpoch(1000),
-        topoheight: height == null ? null : BigInt.from(height),
-        entryType: OutgoingEntryWrapper(
-          nonce: BigInt.one,
-          fee: BigInt.from(7),
-          transfers: [
-            (
-              destination: 'other',
-              amount: BigInt.from(200),
-              asset: 'xel',
-              extraData: null,
-            ),
-          ],
+  TransactionEntryWrapper entry(
+    String hash, {
+    int? height,
+    String destination = 'other',
+  }) => TransactionEntryWrapper(
+    hash: hash,
+    timestamp: DateTime.fromMillisecondsSinceEpoch(1000),
+    topoheight: height == null ? null : BigInt.from(height),
+    entryType: OutgoingEntryWrapper(
+      nonce: BigInt.one,
+      fee: BigInt.from(7),
+      transfers: [
+        (
+          destination: destination,
+          amount: BigInt.from(200),
+          asset: 'xel',
+          extraData: null,
         ),
-      );
+      ],
+    ),
+  );
 
   test('concurrent refreshes share one history and balance update', () async {
     native.historyStarted = Completer<void>();
@@ -210,7 +220,7 @@ void main() {
     expect(native.historyReads, 1);
     native.historyRelease!.complete();
     await Future.wait([first, second]);
-    expect(native.historyReads, 2);
+    expect(native.historyReads, 1);
   });
 
   test('ordinary blocks advance confirmations without HistorySynced', () async {
@@ -320,6 +330,118 @@ void main() {
       expect(await libXelis.getXelisBalanceRaw(reloaded.wallet!), BigInt.zero);
     },
   );
+
+  for (final destination in ['other', 'own']) {
+    test(
+      'full refresh reserves pending debit and fee to $destination',
+      () async {
+        native.balance = BigInt.from(1000);
+        native.history = [entry('pending', destination: destination)];
+        await wallet.refresh();
+        expect(native.historyReads, 1);
+        expect(native.balanceReads, 1);
+        expect(wallet.info.cachedBalance.blockedTotal.raw, BigInt.from(207));
+        expect(wallet.info.cachedBalance.spendable.raw, BigInt.from(793));
+        native.history = [
+          entry('pending', height: 10, destination: destination),
+        ];
+        native.balance = BigInt.from(destination == 'own' ? 993 : 793);
+        await wallet.updateBalance();
+        expect(native.historyReads, 2);
+        expect(wallet.info.cachedBalance.blockedTotal.raw, BigInt.zero);
+        expect(wallet.info.cachedBalance.spendable.raw, native.balance);
+      },
+    );
+  }
+
+  test(
+    'confirmation during refresh is reconciled by the queued balance read',
+    () async {
+      native.balance = BigInt.from(1000);
+      native.history = [entry('pending')];
+      Future<void>? independentUpdate;
+      native.afterHistoryRead = () async {
+        native.afterHistoryRead = null;
+        native.balance = BigInt.from(793);
+        native.history = [entry('pending', height: 10)];
+        // This update must wait for the snapshot write, then read fresh state.
+        independentUpdate = wallet.updateBalance();
+      };
+      await wallet.refresh();
+      await independentUpdate;
+      expect(native.historyReads, 2);
+      expect(wallet.info.cachedBalance.total.raw, BigInt.from(793));
+      expect(wallet.info.cachedBalance.blockedTotal.raw, BigInt.zero);
+      await wallet.refresh();
+      expect((await isar.transactionV2s.where().findFirst())!.height, 10);
+    },
+  );
+
+  test('full refresh reconciles disappeared transactions', () async {
+    native.history = [entry('disappeared')];
+    await wallet.refresh();
+    expect(await isar.transactionV2s.count(), 1);
+    native.history = [];
+    await wallet.refresh();
+    expect(await isar.transactionV2s.count(), 0);
+    expect(wallet.info.cachedBalance.blockedTotal.raw, BigInt.zero);
+  });
+
+  for (final invalidateSession in [true, false]) {
+    test('refresh drops snapshot after '
+        '${invalidateSession ? 'session invalidation' : 'shutdown'}', () async {
+      native.balance = BigInt.from(1000);
+      native.history = [entry('stale')];
+      native.historyStarted = Completer<void>();
+      native.historyRelease = Completer<void>();
+      final refreshing = wallet.refresh();
+      await native.historyStarted!.future;
+      Future<void>? closing;
+      if (invalidateSession) {
+        wallet.sessionGeneration++;
+      } else {
+        wallet.prefs = SessionPrefs();
+        closing = wallet.exit();
+      }
+      native.historyRelease!.complete();
+      await refreshing;
+      await closing;
+      expect(await isar.transactionV2s.count(), 0);
+      expect(wallet.info.cachedBalance.total.raw, BigInt.zero);
+    });
+  }
+
+  test(
+    'history read failure preserves the previously stored balance',
+    () async {
+      native.balance = BigInt.from(1000);
+      await wallet.updateBalance();
+      native.balance = BigInt.zero;
+      native.historyFailure = StateError('fixture history failure');
+      await expectLater(wallet.updateBalance(), throwsStateError);
+      expect(wallet.info.cachedBalance.total.raw, BigInt.from(1000));
+    },
+  );
+
+  for (final failHistory in [false, true]) {
+    test('failed full refresh preserves both persisted projections '
+        '(history failure: $failHistory)', () async {
+      native.balance = BigInt.from(1000);
+      native.history = [entry('existing', height: 10)];
+      await wallet.refresh();
+      native.balance = BigInt.zero;
+      native.history = [];
+      final failure = StateError('fixture read failure');
+      if (failHistory) {
+        native.historyFailure = failure;
+      } else {
+        native.balanceFailure = failure;
+      }
+      await wallet.refresh();
+      expect(wallet.info.cachedBalance.total.raw, BigInt.from(1000));
+      expect((await isar.transactionV2s.where().findFirst())!.txid, 'existing');
+    });
+  }
 
   test('shutdown waits for an in-flight native rescan', () async {
     wallet.prefs = SessionPrefs();

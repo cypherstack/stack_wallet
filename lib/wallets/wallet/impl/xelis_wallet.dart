@@ -243,7 +243,17 @@ class XelisWallet extends LibXelisWallet<Xelis> {
     // A read includes a genuine zero and propagates storage errors. Never turn
     // an error into zero or keep the old balance merely because it disappeared.
     final raw = await xelis.getXelisBalanceRaw(handle);
+    if (!isCurrentSession(handle, generation)) return;
     final history = await xelis.allHistory(handle);
+    await _persistBalance(handle, generation, raw, history);
+  });
+
+  Future<void> _persistBalance(
+    OpaqueXelisWallet handle,
+    int generation,
+    BigInt raw,
+    List<TransactionEntryWrapper> history,
+  ) async {
     if (!isCurrentSession(handle, generation)) return;
     final address = xelis.getAddress(handle);
     final reserved = history
@@ -266,7 +276,7 @@ class XelisWallet extends LibXelisWallet<Xelis> {
       ),
       isar: mainDB.isar,
     );
-  });
+  }
 
   @override
   Future<void> updateChainHeight({int? topoheight}) async {
@@ -295,6 +305,20 @@ class XelisWallet extends LibXelisWallet<Xelis> {
     final generation = sessionGeneration;
     if (handle == null || exitInProgress) return [];
     final entries = objTransactions ?? await xelis.allHistory(handle);
+    return _persistTransactions(
+      handle,
+      generation,
+      entries,
+      reconcile: objTransactions == null || isRescan,
+    );
+  });
+
+  Future<List<String>> _persistTransactions(
+    OpaqueXelisWallet handle,
+    int generation,
+    List<TransactionEntryWrapper> entries, {
+    required bool reconcile,
+  }) async {
     if (!isCurrentSession(handle, generation)) return [];
     final address = xelis.getAddress(handle);
     final transactions = entries
@@ -313,7 +337,7 @@ class XelisWallet extends LibXelisWallet<Xelis> {
         if (existing != null) tx.id = existing.id;
       }
       await mainDB.isar.transactionV2s.putAll(transactions);
-      if (objTransactions == null || isRescan) {
+      if (reconcile) {
         // Reconcile disappeared pending entries and reorganized confirmations.
         // Keep addresses and user notes; their lifetime is not chain-dependent.
         await mainDB.isar.transactionV2s.deleteAll(
@@ -322,7 +346,24 @@ class XelisWallet extends LibXelisWallet<Xelis> {
       }
     });
     return transactions.map((tx) => tx.txid).toList();
-  });
+  }
+
+  Future<void> _refreshHistoryAndBalance(
+    OpaqueXelisWallet handle,
+    int generation,
+  ) => _balanceMutex.protect(
+    () => _historyMutex.protect(() async {
+      if (!isCurrentSession(handle, generation)) return;
+      // Read balance before history, as in updateBalance. Serialize both writes
+      // to avoid overwriting an independent update with this snapshot.
+      final raw = await xelis.getXelisBalanceRaw(handle);
+      if (!isCurrentSession(handle, generation)) return;
+      final history = await xelis.allHistory(handle);
+      if (!isCurrentSession(handle, generation)) return;
+      await _persistTransactions(handle, generation, history, reconcile: true);
+      await _persistBalance(handle, generation, raw, history);
+    }),
+  );
 
   TransactionV2? _project(TransactionEntryWrapper tx, String ownAddress) =>
       projectXelisTransaction(
@@ -585,9 +626,7 @@ class XelisWallet extends LibXelisWallet<Xelis> {
         final generation = sessionGeneration;
         if (handle == null || exitInProgress) return;
         try {
-          await updateTransactions();
-          if (!isCurrentSession(handle, generation)) return;
-          await updateBalance();
+          await _refreshHistoryAndBalance(handle, generation);
           if (!isCurrentSession(handle, generation)) return;
           if (await xelis.isOnline(handle)) {
             if (!isCurrentSession(handle, generation)) return;
