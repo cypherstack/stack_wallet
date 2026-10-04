@@ -8,7 +8,6 @@ void main() {
   const xel = 'native-asset';
   project(EntryWrapper entry, {BigInt? height}) => projectXelisTransaction(
     tx: TransactionEntryWrapper(
-      Object(),
       entryType: entry,
       hash: 'hash',
       timestamp: DateTime.fromMillisecondsSinceEpoch(123000),

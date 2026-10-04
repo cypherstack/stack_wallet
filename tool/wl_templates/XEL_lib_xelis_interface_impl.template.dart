@@ -438,7 +438,6 @@ XelisPreparedTransaction _prepared(
 
 TransactionEntryWrapper _confirmed(xwf.XelisWalletTransactionEntry tx) =>
     TransactionEntryWrapper(
-      tx,
       entryType: _entry(tx.entry),
       hash: tx.hash,
       timestamp: DateTime.fromMillisecondsSinceEpoch(
@@ -450,7 +449,6 @@ TransactionEntryWrapper _confirmed(xwf.XelisWalletTransactionEntry tx) =>
 
 TransactionEntryWrapper _pending(xwf.XelisWalletPendingTransaction tx) =>
     TransactionEntryWrapper(
-      tx,
       entryType: _entry(tx.entry),
       hash: tx.hash,
       timestamp: DateTime.fromMillisecondsSinceEpoch(

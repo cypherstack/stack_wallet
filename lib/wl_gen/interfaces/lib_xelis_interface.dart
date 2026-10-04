@@ -132,9 +132,6 @@ final class XelisEventSubscription {
   final Future<void> Function() cancel;
 }
 
-// =============================================================================
-// ============== stupid =======================================================
-
 final class OpaqueXelisWallet {
   final Object _value;
   const OpaqueXelisWallet(this._value);
@@ -142,27 +139,18 @@ final class OpaqueXelisWallet {
 }
 
 class TransactionEntryWrapper {
-  final Object _value;
-
   final EntryWrapper entryType;
 
   final String hash;
   final DateTime? timestamp;
   final BigInt? topoheight;
 
-  TransactionEntryWrapper(
-    this._value, {
+  TransactionEntryWrapper({
     required this.entryType,
     required this.hash,
     required this.timestamp,
     required this.topoheight,
   });
-
-  T getValue<T>() => _value is T
-      ? _value as T
-      : throw Exception(
-          "Type mismatch: ${_value.runtimeType} is not ${T.runtimeType}",
-        );
 }
 
 sealed class EntryWrapper {
@@ -234,16 +222,10 @@ class XelisActionEntryWrapper extends EntryWrapper {
   final BigInt? nonce;
 }
 
-// =============================================================================
-
-// =============================================================================
-// ============== moved from lib_xelis_wallet.dart =============================
 enum XelisTableSize {
   low,
   full;
 
-  // TODO: add more granular table size management interface
-  // for now, just patching the old system into the new FFI API
   bool get isLow => this == XelisTableSize.low;
 
   static XelisTableSize get platformDefault {
@@ -369,5 +351,3 @@ final class XelisChannelClosed extends Event {
   final Object failure;
   final bool isRuntime;
 }
-
-// =============================================================================

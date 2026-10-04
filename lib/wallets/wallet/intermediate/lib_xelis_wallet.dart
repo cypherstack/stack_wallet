@@ -335,16 +335,8 @@ abstract class LibXelisWallet<T extends ElectrumCurrency>
       await Future<void>.delayed(const Duration(milliseconds: 500));
     }
 
-    try {
-      await init();
-      await connect();
-    } catch (e) {
-      // Logging.instance.log(
-      //   "Failed to start sync: $e",
-      //   level: LogLevel.Error,
-      // );
-      rethrow;
-    }
+    await init();
+    await connect();
     unawaited(refresh());
   }
 

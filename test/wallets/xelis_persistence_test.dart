@@ -184,7 +184,6 @@ void main() {
   });
   TransactionEntryWrapper entry(String hash, {int? height}) =>
       TransactionEntryWrapper(
-        Object(),
         hash: hash,
         timestamp: DateTime.fromMillisecondsSinceEpoch(1000),
         topoheight: height == null ? null : BigInt.from(height),
