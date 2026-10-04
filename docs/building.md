@@ -4,8 +4,8 @@ Here you will find instructions on how to install the necessary tools for buildi
 
 ## Prerequisites
 
-- Xelis requires Flutter 3.47.2 and Rustup. Its native wallet library is
-  built automatically through Native Assets, using Rust 1.94.1.
+- Xelis requires Flutter 3.47 or newer and Rustup. Native Assets builds the
+  native wallet library and installs its pinned Rust toolchain automatically.
   Android builds require NDK r28 or newer.
 
 - The only OS supported for building Android and Linux desktop is Ubuntu 24.04.  Windows builds require using Ubuntu 24.04 on WSL2.  macOS builds for itself and iOS.  Advanced users may also be able to build on other Debian-based distributions like Linux Mint.

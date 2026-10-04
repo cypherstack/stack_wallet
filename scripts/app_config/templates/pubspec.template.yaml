@@ -39,7 +39,7 @@ dependencies:
 #  xelis_wallet_flutter:
 #    git:
 #      url: https://github.com/xelis-project/xelis-wallet-flutter.git
-#      ref: 69e48e7da2efd69439f045592337b1f7c27a646e # v0.4.0
+#      ref: dc953e2f2e960b7ffbf636fc72ed2142a71ef963 # v0.4.1
 # %%END_ENABLE_XEL%%
 
 # %%ENABLE_FIRO%%

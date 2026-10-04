@@ -2669,11 +2669,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "69e48e7da2efd69439f045592337b1f7c27a646e"
-      resolved-ref: "69e48e7da2efd69439f045592337b1f7c27a646e"
+      ref: dc953e2f2e960b7ffbf636fc72ed2142a71ef963
+      resolved-ref: dc953e2f2e960b7ffbf636fc72ed2142a71ef963
       url: "https://github.com/xelis-project/xelis-wallet-flutter.git"
     source: git
-    version: "0.4.0"
+    version: "0.4.1"
   xml:
     dependency: transitive
     description:
