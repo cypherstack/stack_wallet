@@ -16,6 +16,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/number_symbols.dart';
 import 'package:intl/number_symbols_data.dart';
+import 'package:platform/platform.dart' as platform;
 
 import '../app_config.dart';
 import '../wallets/wallet/impl/monero_wallet.dart';
@@ -30,6 +31,7 @@ abstract class Util {
 
   static final Map<String, NumberSymbols?> _numberSymbolsCache = {};
 
+  static platform.Platform layoutPlatform = const platform.LocalPlatform();
   static double? screenWidth;
   static bool? isIpad;
 
@@ -84,8 +86,9 @@ abstract class Util {
   }
 
   static bool get isDesktop {
+    final p = layoutPlatform;
     // special check for running on linux based phones
-    if (Platform.isLinux && screenWidth != null && screenWidth! < 800) {
+    if (p.isLinux && screenWidth != null && screenWidth! < 800) {
       return false;
     }
 
@@ -93,7 +96,7 @@ abstract class Util {
       return true;
     }
 
-    return Platform.isLinux || Platform.isMacOS || Platform.isWindows;
+    return p.isLinux || p.isMacOS || p.isWindows;
   }
 
   static Future<bool> get getIsIPad async {
