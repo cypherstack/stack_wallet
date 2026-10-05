@@ -46,7 +46,7 @@ dependencies:
 #  flutter_libsparkmobile:
 #    git:
 #      url: https://github.com/cypherstack/flutter_libsparkmobile.git
-#      ref: fe505c29f5dbb5dd94fb986e509506be9e2f37e7
+#      ref: 3fdcb21160a39c051a0e73d7ae04f987134ecd5f
 # %%END_ENABLE_FIRO%%
 
 # %%ENABLE_EPIC%%

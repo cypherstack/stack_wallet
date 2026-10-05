@@ -149,15 +149,13 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
   }
 
   void _onSparkCoinsPressed() {
-    Navigator.of(
-      context,
-    ).pushNamed(SparkCoinsView.routeName, arguments: widget.walletId);
+    Navigator.of(context)
+        .pushNamed(SparkCoinsView.routeName, arguments: widget.walletId);
   }
 
   void _onMwebUtxosPressed() {
-    Navigator.of(
-      context,
-    ).pushNamed(MwebUtxosView.routeName, arguments: widget.walletId);
+    Navigator.of(context)
+        .pushNamed(MwebUtxosView.routeName, arguments: widget.walletId);
   }
 
   Future<void> _onAnonymizeAllPressed() async {
@@ -230,9 +228,8 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
       shouldPop = true;
       if (context.mounted) {
         Navigator.of(context, rootNavigator: true).pop();
-        Navigator.of(
-          context,
-        ).popUntil(ModalRoute.withName(DesktopWalletView.routeName));
+        Navigator.of(context)
+            .popUntil(ModalRoute.withName(DesktopWalletView.routeName));
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.info,
@@ -253,9 +250,8 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
       shouldPop = true;
       if (mounted) {
         Navigator.of(context, rootNavigator: true).pop();
-        Navigator.of(
-          context,
-        ).popUntil(ModalRoute.withName(DesktopWalletView.routeName));
+        Navigator.of(context)
+            .popUntil(ModalRoute.withName(DesktopWalletView.routeName));
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.success,
@@ -268,9 +264,8 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
       shouldPop = true;
       if (mounted) {
         Navigator.of(context, rootNavigator: true).pop();
-        Navigator.of(
-          context,
-        ).popUntil(ModalRoute.withName(DesktopWalletView.routeName));
+        Navigator.of(context)
+            .popUntil(ModalRoute.withName(DesktopWalletView.routeName));
         await showDialog<dynamic>(
           context: context,
           builder: (_) => DesktopDialog(
@@ -345,51 +340,43 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
       ) {
         ref.read(myPaynymAccountStateProvider.state).state = account.value!;
 
-        await Navigator.of(
-          context,
-        ).pushNamed(PaynymHomeView.routeName, arguments: widget.walletId);
+        await Navigator.of(context)
+            .pushNamed(PaynymHomeView.routeName, arguments: widget.walletId);
       } else {
-        await Navigator.of(
-          context,
-        ).pushNamed(PaynymClaimView.routeName, arguments: widget.walletId);
+        await Navigator.of(context)
+            .pushNamed(PaynymClaimView.routeName, arguments: widget.walletId);
       }
     }
   }
 
   Future<void> _onMonkeyPressed() async {
-    await (Navigator.of(
-      context,
-    ).pushNamed(MonkeyView.routeName, arguments: widget.walletId));
+    await (Navigator.of(context)
+        .pushNamed(MonkeyView.routeName, arguments: widget.walletId));
   }
 
   void _onOrdinalsPressed() {
-    Navigator.of(
-      context,
-    ).pushNamed(DesktopOrdinalsView.routeName, arguments: widget.walletId);
+    Navigator.of(context)
+        .pushNamed(DesktopOrdinalsView.routeName, arguments: widget.walletId);
   }
 
   void _onFusionPressed() {
-    Navigator.of(
-      context,
-    ).pushNamed(DesktopCashFusionView.routeName, arguments: widget.walletId);
+    Navigator.of(context)
+        .pushNamed(DesktopCashFusionView.routeName, arguments: widget.walletId);
   }
 
   void _onChurnPressed() {
-    Navigator.of(
-      context,
-    ).pushNamed(DesktopChurningView.routeName, arguments: widget.walletId);
+    Navigator.of(context)
+        .pushNamed(DesktopChurningView.routeName, arguments: widget.walletId);
   }
 
   void _onNamesPressed() {
-    Navigator.of(
-      context,
-    ).pushNamed(NamecoinNamesHomeView.routeName, arguments: widget.walletId);
+    Navigator.of(context)
+        .pushNamed(NamecoinNamesHomeView.routeName, arguments: widget.walletId);
   }
 
   void _onSparkNamesPressed() {
-    Navigator.of(
-      context,
-    ).pushNamed(SparkNamesHomeView.routeName, arguments: widget.walletId);
+    Navigator.of(context)
+        .pushNamed(SparkNamesHomeView.routeName, arguments: widget.walletId);
   }
 
   Future<void> _onSalviumStakePressed() async {
@@ -430,8 +417,9 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
       context: context,
       builder: (context) => DesktopDialog(
         maxWidth: 580,
-        maxHeight: double.infinity,
+        maxHeight: null,
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -446,9 +434,11 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
                 const DesktopDialogCloseButton(),
               ],
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
-              child: SigningView(walletId: widget.walletId),
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: SigningView(walletId: widget.walletId),
+              ),
             ),
             const SizedBox(height: 32),
           ],
@@ -458,9 +448,8 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
   }
 
   void _onMasternodesPressed() {
-    Navigator.of(
-      context,
-    ).pushNamed(MasternodesHomeView.routeName, arguments: widget.walletId);
+    Navigator.of(context)
+        .pushNamed(MasternodesHomeView.routeName, arguments: widget.walletId);
   }
 
   List<(WalletFeature, String, FutureOr<void> Function())> _getOptions(
@@ -502,7 +491,8 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
           _onSalviumStakePressed,
         ),
 
-      if (wallet is SignVerifyInterface && !isViewOnly)
+      if (wallet is SignVerifyInterface &&
+          (!isViewOnly || wallet is SparkInterface))
         (WalletFeature.sign, Assets.svg.pencil, _onSignPressed),
 
       if (!isViewOnly && wallet is FiroWallet)
@@ -619,9 +609,9 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
               Assets.svg.bars,
               height: 20,
               width: 20,
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.buttonTextSecondary,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .buttonTextSecondary,
             ),
             onPressed: () => _onMorePressed([
               ...options.sublist(options.length - count),
@@ -648,17 +638,17 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
                         ),
                         height: 20,
                         width: 20,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.buttonTextSecondary,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .buttonTextSecondary,
                       )
                     : SvgPicture.asset(
                         option.$2,
                         height: 20,
                         width: 20,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.buttonTextSecondary,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .buttonTextSecondary,
                       ),
                 onPressed: () => option.$3(),
               ),
