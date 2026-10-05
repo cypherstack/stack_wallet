@@ -263,11 +263,23 @@ class EthTokenWallet extends Wallet {
       gasLimit,
       cryptoCurrency.fractionDigits,
     );
-    return txData.copyWith(
-      fee: feeEstimate,
-      web3dartTransaction: tx,
+    final raw = await ethWallet.signWeb3TransactionToHex(
+      tx: tx,
       chainId: prep.chainId,
-      nonce: tx.nonce,
+    );
+    final txid = ethWallet.txidOfSignedHex(raw);
+
+    return _prepareTempTx(
+      txData.copyWith(
+        fee: feeEstimate,
+        web3dartTransaction: tx,
+        chainId: prep.chainId,
+        nonce: tx.nonce,
+        raw: raw,
+        txid: txid,
+        txHash: txid,
+      ),
+      (await ethWallet.getCurrentReceivingAddress())!.value,
     );
   }
 

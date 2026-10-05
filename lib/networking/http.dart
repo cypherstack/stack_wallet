@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart';
+import 'package:http/io_client.dart';
 import 'package:socks5_proxy/socks_client.dart';
 
 import '../utilities/logger.dart';
@@ -267,5 +269,29 @@ class HTTP {
       cancelOnError: true,
     );
     return completer.future;
+  }
+}
+
+/// HTTP client class that can be used with libraries that
+/// accept an http.Client
+class StackClient extends BaseClient {
+  StackClient({required this.proxyInfo});
+
+  final ({InternetAddress host, int port})? Function() proxyInfo;
+
+  @override
+  Future<StreamedResponse> send(BaseRequest request) async {
+    final httpClient = HttpClient();
+    final proxy = proxyInfo();
+    if (proxy != null) {
+      SocksTCPClient.assignToHttpClient(httpClient, [
+        ProxySettings(proxy.host, proxy.port),
+      ]);
+    }
+    try {
+      return await IOClient(httpClient).send(request);
+    } finally {
+      httpClient.close();
+    }
   }
 }

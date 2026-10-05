@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:opencryptopay/opencryptopay.dart';
 
 import '../../models/isar/models/isar_models.dart';
 import '../../models/send_view_auto_fill_data.dart';
@@ -57,6 +58,7 @@ import '../../widgets/stack_dialog.dart';
 import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
 import '../address_book_views/address_book_view.dart';
+import '../open_crypto_pay/open_crypto_pay_send_handler.dart';
 import '../token_view/token_view.dart';
 import 'confirm_transaction_view.dart';
 import 'sub_widgets/building_transaction_dialog.dart';
@@ -120,12 +122,27 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
 
   final _ethFee = ValueNotifier<EthEIP1559Fee?>(null);
 
+  late final OpenCryptoPaySendHandler _openCryptoPay;
+
+  void _openCryptoPaySetValidAddress(String address) {
+    _address = address;
+    _updatePreviewButtonState(_address, _amountToSend);
+    setState(() {
+      _addressToggleFlag = sendToController.text.isNotEmpty;
+    });
+  }
+
   void _onTokenSendViewPasteAddressFieldButtonPressed() async {
     final ClipboardData? data = await clipboard.getData(Clipboard.kTextPlain);
     if (data?.text != null && data!.text!.isNotEmpty) {
       String content = data.text!.trim();
       if (content.contains("\n")) {
         content = content.substring(0, content.indexOf("\n"));
+      }
+      if (OpenCryptoPayController.isOpenCryptoPayUri(content)) {
+        if (!mounted) return;
+        unawaited(_openCryptoPay.handle(context, content));
+        return;
       }
       sendToController.text = content.trim();
       _address = content.trim();
@@ -162,6 +179,12 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
 
       Logging.instance.d("qrResult content: ${qrResult.rawContent}");
       if (qrResult.rawContent == null) return;
+
+      if (OpenCryptoPayController.isOpenCryptoPayUri(qrResult.rawContent)) {
+        if (!mounted) return;
+        unawaited(_openCryptoPay.handle(context, qrResult.rawContent!));
+        return;
+      }
 
       final paymentData = AddressUtils.parsePaymentUri(
         qrResult.rawContent!,
@@ -463,6 +486,19 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
     //   }
     // }
 
+    final feeRateType = ref.read(feeRateTypeMobileStateProvider);
+    if (!mounted) return;
+    final fee = await _openCryptoPay.sendFee(
+      context,
+      tokenWallet,
+      address: _address,
+      amount: amount,
+      feeRateType: feeRateType,
+      ethFee: _ethFee.value,
+    );
+    if (!mounted) return;
+    if (fee == null) return;
+
     try {
       bool wasCancelled = false;
 
@@ -504,9 +540,9 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
               )!,
             ),
           ],
-          feeRateType: ref.read(feeRateTypeMobileStateProvider),
+          feeRateType: fee.feeRateType,
           note: noteController.text,
-          ethEIP1559Fee: _ethFee.value,
+          ethEIP1559Fee: fee.ethFee,
         ),
       );
 
@@ -527,6 +563,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                 walletId: walletId,
                 isTokenTx: true,
                 onSuccess: clearSendForm,
+                openCryptoPayHandler: _openCryptoPay,
                 routeOnSuccessName: TokenView.routeName,
               ),
               settings: const RouteSettings(
@@ -576,6 +613,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
   }
 
   void clearSendForm() {
+    _openCryptoPay.reset();
     sendToController.text = "";
     cryptoAmountController.text = "";
     baseAmountController.text = "";
@@ -621,6 +659,22 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
       _address = _data.address.trim();
       _addressToggleFlag = true;
     }
+
+    _openCryptoPay = OpenCryptoPaySendHandler(
+      coin: coin,
+      sendToController: sendToController,
+      onAmountReceived: (parsed) {
+        cryptoAmountController.text = ref
+            .read(pAmountFormatter(coin))
+            .formatEditable(parsed);
+        _amountToSend = parsed;
+        _updatePreviewButtonState(_address, parsed);
+      },
+      setValidAddress: _openCryptoPaySetValidAddress,
+      tokenSymbol: tokenContract.symbol,
+      tokenDecimals: tokenContract.decimals,
+      tokenContractAddress: tokenContract.address,
+    );
 
     super.initState();
   }

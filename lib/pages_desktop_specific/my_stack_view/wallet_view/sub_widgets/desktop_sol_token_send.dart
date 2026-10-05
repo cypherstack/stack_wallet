@@ -14,11 +14,13 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:opencryptopay/opencryptopay.dart';
 
 import '../../../../models/isar/models/contact_entry.dart';
 import '../../../../models/isar/models/solana/sol_contract.dart';
 import '../../../../models/paynym/paynym_account_lite.dart';
 import '../../../../models/send_view_auto_fill_data.dart';
+import '../../../../pages/open_crypto_pay/open_crypto_pay_send_handler.dart';
 import '../../../../pages/send_view/confirm_transaction_view.dart';
 import '../../../../pages/send_view/sub_widgets/building_transaction_dialog.dart';
 import '../../../../providers/providers.dart';
@@ -46,6 +48,7 @@ import '../../../../widgets/desktop/qr_code_scanner_dialog.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/icon_widgets/addressbook_icon.dart';
 import '../../../../widgets/icon_widgets/clipboard_icon.dart';
+import '../../../../widgets/icon_widgets/qrcode_icon.dart';
 import '../../../../widgets/icon_widgets/x_icon.dart';
 import '../../../../widgets/stack_text_field.dart';
 import '../../../../widgets/textfield_icon_button.dart';
@@ -116,6 +119,16 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
 
   bool _cryptoAmountChangeLock = false;
   late VoidCallback onCryptoAmountChanged;
+
+  late final OpenCryptoPaySendHandler _openCryptoPay;
+
+  void _openCryptoPaySetValidAddress(String address) {
+    _address = address;
+    _updatePreviewButtonState(_address, _amountToSend);
+    setState(() {
+      _addressToggleFlag = sendToController.text.isNotEmpty;
+    });
+  }
 
   Future<void> pasteMemo() async {
     if (memoController.text.isNotEmpty) {
@@ -292,6 +305,14 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
         // pop building dialog
         Navigator.of(context, rootNavigator: true).pop();
 
+        final feeOk = await _openCryptoPay.preparedFeeMeetsMinimum(
+          context,
+          tokenWallet,
+          address: _address,
+          fee: txData.fee,
+        );
+        if (!feeOk || !mounted) return;
+
         unawaited(
           showDialog(
             context: context,
@@ -302,6 +323,7 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
                 txData: txData,
                 walletId: walletId,
                 onSuccess: clearSendForm,
+                openCryptoPayHandler: _openCryptoPay,
                 isTokenTx: true,
                 routeOnSuccessName: DesktopHomeView.routeName,
               ),
@@ -376,6 +398,7 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
   }
 
   void clearSendForm() {
+    _openCryptoPay.reset();
     sendToController.text = "";
     cryptoAmountController.text = "";
     baseAmountController.text = "";
@@ -484,6 +507,12 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
 
       Logging.instance.d("qrResult content: $qrResult");
 
+      if (OpenCryptoPayController.isOpenCryptoPayUri(qrResult)) {
+        if (!mounted) return;
+        unawaited(_openCryptoPay.handle(context, qrResult));
+        return;
+      }
+
       final paymentData = AddressUtils.parsePaymentUri(
         qrResult,
         logging: Logging.instance,
@@ -556,6 +585,11 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
       String content = data.text!.trim();
       if (content.contains("\n")) {
         content = content.substring(0, content.indexOf("\n"));
+      }
+      if (OpenCryptoPayController.isOpenCryptoPayUri(content)) {
+        if (!mounted) return;
+        unawaited(_openCryptoPay.handle(context, content));
+        return;
       }
 
       sendToController.text = content;
@@ -669,6 +703,24 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
       _address = _data!.address;
       _addressToggleFlag = true;
     }
+
+    final tokenWallet = ref.read(pCurrentSolanaTokenWallet);
+    _openCryptoPay = OpenCryptoPaySendHandler(
+      coin: coin,
+      sendToController: sendToController,
+      onAmountReceived: (parsed) {
+        cryptoAmountController.text = Amount.formatEditableDecimal(
+          parsed.decimal,
+          locale: ref.read(localeServiceChangeNotifierProvider).locale,
+        );
+        _amountToSend = parsed;
+        _updatePreviewButtonState(_address, parsed);
+      },
+      setValidAddress: _openCryptoPaySetValidAddress,
+      tokenSymbol: tokenWallet?.tokenSymbol,
+      tokenDecimals: tokenWallet?.tokenDecimals,
+      tokenContractAddress: tokenWallet?.tokenMint,
+    );
 
     super.initState();
   }
@@ -1043,6 +1095,13 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
                                 }
                               },
                               child: const AddressBookIcon(),
+                            ),
+                          if (sendToController.text.isEmpty)
+                            TextFieldIconButton(
+                              semanticsLabel: "Scan QR Button. Opens Camera For Scanning QR Code.",
+                              key: const Key("sendViewScanQrButtonKey"),
+                              onTap: scanQr,
+                              child: const QrCodeIcon(),
                             ),
                         ],
                       ),

@@ -18,6 +18,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar_community/isar.dart';
 
+import '../../db/drift/database.dart';
 import '../../models/input.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../models/isar/models/transaction_note.dart';
@@ -37,10 +38,9 @@ import '../../utilities/constants.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
-import '../../wallets/crypto_currency/coins/epiccash.dart';
-import '../../wallets/crypto_currency/coins/ethereum.dart';
-import '../../wallets/crypto_currency/coins/mimblewimblecoin.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/crypto_currency/intermediate/nano_currency.dart';
+import '../../wallets/isar/models/spark_coin.dart';
 import '../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import '../../wallets/isar/providers/solana/current_sol_token_wallet_provider.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
@@ -49,6 +49,7 @@ import '../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
 import '../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../wallets/wallet/impl/solana_wallet.dart';
+import '../../wallets/wallet/wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import '../../widgets/background.dart';
@@ -64,10 +65,12 @@ import '../../widgets/stack_dialog.dart';
 import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
 import '../../wl_gen/interfaces/libepiccash_interface.dart';
+import '../open_crypto_pay/open_crypto_pay_send_handler.dart';
 import '../pinpad_views/lock_screen_view.dart';
 import '../wallet_view/wallet_view.dart';
 import 'sub_widgets/epic_slatepack_dialog.dart';
 import 'sub_widgets/mwc_slatepack_dialog.dart';
+import 'sub_widgets/open_crypto_pay_business_details.dart';
 import 'sub_widgets/sending_transaction_dialog.dart';
 
 class ConfirmTransactionView extends ConsumerStatefulWidget {
@@ -82,6 +85,7 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
     this.isPaynymNotificationTransaction = false,
     this.isTokenTx = false,
     this.onSuccessInsteadOfRouteOnSuccess,
+    this.openCryptoPayHandler,
   });
 
   static const String routeName = "/confirmTransactionView";
@@ -95,6 +99,7 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
   final bool isTokenTx;
   final VoidCallback? onSuccessInsteadOfRouteOnSuccess;
   final VoidCallback onSuccess;
+  final OpenCryptoPaySendHandler? openCryptoPayHandler;
 
   @override
   ConsumerState<ConfirmTransactionView> createState() =>
@@ -195,9 +200,8 @@ class _ConfirmTransactionViewState
         if (context.mounted) {
           widget.onSuccess.call();
           if (widget.onSuccessInsteadOfRouteOnSuccess == null) {
-            Navigator.of(
-              context,
-            ).popUntil(ModalRoute.withName(routeOnSuccessName));
+            Navigator.of(context)
+                .popUntil(ModalRoute.withName(routeOnSuccessName));
           } else {
             widget.onSuccessInsteadOfRouteOnSuccess!.call();
           }
@@ -274,9 +278,8 @@ class _ConfirmTransactionViewState
         if (context.mounted) {
           widget.onSuccess.call();
           if (widget.onSuccessInsteadOfRouteOnSuccess == null) {
-            Navigator.of(
-              context,
-            ).popUntil(ModalRoute.withName(routeOnSuccessName));
+            Navigator.of(context)
+                .popUntil(ModalRoute.withName(routeOnSuccessName));
           } else {
             widget.onSuccessInsteadOfRouteOnSuccess!.call();
           }
@@ -310,38 +313,38 @@ class _ConfirmTransactionViewState
     }
   }
 
+  /// Firo private (spark) sends carry the recipient in sparkRecipients.
+  String? get _recipientAddress =>
+      widget.txData.recipients?.firstOrNull?.address ??
+      widget.txData.sparkRecipients?.firstOrNull?.address;
+
+  OpenCryptoPaySendHandler? get _activeOcp {
+    final ocp = widget.openCryptoPayHandler;
+    return ocp != null && ocp.isActivePaymentFor(_recipientAddress)
+        ? ocp
+        : null;
+  }
+
   Future<void> _attemptSend(BuildContext context) async {
     final wallet = ref.read(pWallets).getWallet(walletId);
     final coin = wallet.info.coin;
 
-    final sendProgressController = ProgressAndSuccessController();
-    var isSendingDialogOpen = true;
+    final ocp = _activeOcp;
 
-    void closeSendingDialog() {
-      if (!context.mounted || !isSendingDialogOpen) {
-        return;
-      }
-      final navigator = Navigator.of(context, rootNavigator: true);
-      if (navigator.canPop()) {
-        navigator.pop();
-      }
-      isSendingDialogOpen = false;
+    if (ocp != null && ocp.isQuoteExpired) {
+      // Abort before anything is broadcast or submitted (both proof types).
+      await ocp.showQuoteExpiredError(context, paymentNotSent: true);
+      return;
     }
 
-    unawaited(
-      showDialog<dynamic>(
-        context: context,
-        useRootNavigator: true,
-        useSafeArea: false,
-        barrierDismissible: false,
-        builder: (context) {
-          return SendingTransactionDialog(
-            coin: coin,
-            controller: sendProgressController,
-          );
-        },
-      ).whenComplete(() => isSendingDialogOpen = false),
-    );
+    if (ocp != null && !ocp.requiresBroadcast) {
+      // Signed-hex proof type: the provider broadcasts the transaction.
+      return await _submitOpenCryptoPayHexProof(context, ocp, wallet);
+    }
+
+    final sendingDialog = _showSendingDialog(context, coin);
+    final sendProgressController = sendingDialog.controller;
+    final closeSendingDialog = sendingDialog.close;
 
     final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
 
@@ -444,9 +447,6 @@ class _ConfirmTransactionViewState
       final results = await Future.wait([txDataFuture, time]);
       final confirmedTx = results.first as TxData;
 
-      sendProgressController.triggerSuccess?.call();
-      await Future<void>.delayed(const Duration(seconds: 5));
-
       if (wallet is FiroWallet && confirmedTx.sparkMints != null) {
         txids.addAll(confirmedTx.sparkMints!.map((e) => e.txid!));
       } else if (wallet is FiroWallet && confirmedTx.sparkSpends != null) {
@@ -454,42 +454,40 @@ class _ConfirmTransactionViewState
       } else {
         txids.add(confirmedTx.txid!);
       }
+
+      if (ocp != null && txids.isNotEmpty && context.mounted) {
+        // Broadcast (txid) proof type: submit the txid to the
+        // OpenCryptoPay provider.
+        final proof = ocp.submitProof(context, txids.first);
+        final done = await Future.any([
+          proof,
+          Future<bool?>.delayed(const Duration(seconds: 2)),
+        ]);
+        if (done == null) {
+          sendProgressController.message.value = "Notifying the seller...";
+        }
+        await proof;
+      }
+
+      sendProgressController.triggerSuccess?.call();
+      await Future<void>.delayed(const Duration(seconds: 5));
+
       if (coin is! Ethereum) {
         ref.refresh(desktopUseUTXOs);
       }
 
       // save note
       for (final txid in txids) {
-        await ref
-            .read(mainDBProvider)
-            .putTransactionNote(
-              TransactionNote(walletId: walletId, txid: txid, value: note),
-            );
+        await _saveNote(txid: txid, note: note);
       }
 
-      if (widget.isTokenTx) {
-        if (wallet is SolanaWallet) {
-          unawaited(ref.read(pCurrentSolanaTokenWallet)!.refresh());
-        } else {
-          unawaited(ref.read(pCurrentTokenWallet)!.refresh());
-        }
-      } else {
-        unawaited(wallet.refresh());
-      }
+      _refreshAfterSend(wallet);
 
       closeSendingDialog();
 
       widget.onSuccess.call();
 
-      if (context.mounted) {
-        if (widget.onSuccessInsteadOfRouteOnSuccess == null) {
-          Navigator.of(
-            context,
-          ).popUntil(ModalRoute.withName(routeOnSuccessName));
-        } else {
-          widget.onSuccessInsteadOfRouteOnSuccess!.call();
-        }
-      }
+      _navigateOnSuccess(context);
     } on BadHttpAddressException catch (_) {
       if (context.mounted) {
         // pop building dialog
@@ -502,11 +500,13 @@ class _ConfirmTransactionViewState
             context: context,
           ),
         );
+        _discardOverriddenRequest();
         return;
       }
     } catch (e, s) {
       const message = "Broadcast transaction failed";
       Logging.instance.e(message, error: e, stackTrace: s);
+      _discardOverriddenRequest();
       // pop sending dialog
       if (context.mounted) {
         closeSendingDialog();
@@ -563,9 +563,9 @@ class _ConfirmTransactionViewState
                   child: Text(
                     "Ok",
                     style: STextStyles.button(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
                     ),
                   ),
                   onPressed: () {
@@ -578,6 +578,173 @@ class _ConfirmTransactionViewState
         );
       }
     }
+  }
+
+  /// Show the modal [SendingTransactionDialog] used while a send/submit is
+  /// in flight. Returns its progress controller and a close callback.
+  ({ProgressAndSuccessController controller, VoidCallback close})
+  _showSendingDialog(BuildContext context, CryptoCurrency coin) {
+    final sendProgressController = ProgressAndSuccessController();
+    var isSendingDialogOpen = true;
+
+    void closeSendingDialog() {
+      if (!context.mounted || !isSendingDialogOpen) {
+        return;
+      }
+      final navigator = Navigator.of(context, rootNavigator: true);
+      if (navigator.canPop()) {
+        navigator.pop();
+      }
+      isSendingDialogOpen = false;
+    }
+
+    unawaited(
+      showDialog<dynamic>(
+        context: context,
+        useRootNavigator: true,
+        useSafeArea: false,
+        barrierDismissible: false,
+        builder: (context) {
+          return SendingTransactionDialog(
+            coin: coin,
+            controller: sendProgressController,
+          );
+        },
+      ).whenComplete(() => isSendingDialogOpen = false),
+    );
+
+    return (controller: sendProgressController, close: closeSendingDialog);
+  }
+
+  Future<void> _saveNote({required String txid, required String note}) => ref
+      .read(mainDBProvider)
+      .putTransactionNote(
+        TransactionNote(walletId: walletId, txid: txid, value: note),
+      );
+
+  /// Marks the inputs of a signed transaction handed to the provider as used.
+  Future<void> _markInputsAsUsed() async {
+    final db = ref.read(mainDBProvider);
+
+    final utxos = widget.txData.usedUTXOs
+        ?.whereType<StandardInput>()
+        .map((e) => e.utxo.copyWith(used: true))
+        .toList();
+    if (utxos != null && utxos.isNotEmpty) {
+      await db.putUTXOs(utxos);
+    }
+
+    // Spark coins already carry isUsed: true from prepare time.
+    final sparkCoins = widget.txData.usedSparkCoins;
+    if (sparkCoins != null && sparkCoins.isNotEmpty) {
+      await db.isar.writeTxn(() => db.isar.sparkCoins.putAll(sparkCoins));
+    }
+
+    final mwebUtxos = widget.txData.usedUTXOs
+        ?.whereType<MwebInput>()
+        .map((e) => e.utxo.copyWith(used: true))
+        .toList();
+    if (mwebUtxos != null && mwebUtxos.isNotEmpty) {
+      final drift = Drift.get(walletId);
+      await drift.transaction(() async {
+        for (final utxo in mwebUtxos) {
+          await drift.update(drift.mwebUtxos).replace(utxo);
+        }
+      });
+    }
+  }
+
+  void _refreshAfterSend(Wallet wallet) {
+    if (widget.isTokenTx) {
+      if (wallet is SolanaWallet) {
+        unawaited(ref.read(pCurrentSolanaTokenWallet)!.refresh());
+      } else {
+        unawaited(ref.read(pCurrentTokenWallet)!.refresh());
+      }
+    } else {
+      unawaited(wallet.refresh());
+    }
+  }
+
+  void _navigateOnSuccess(BuildContext context) {
+    if (!context.mounted) return;
+    if (widget.onSuccessInsteadOfRouteOnSuccess == null) {
+      Navigator.of(context).popUntil(ModalRoute.withName(routeOnSuccessName));
+    } else {
+      widget.onSuccessInsteadOfRouteOnSuccess!.call();
+    }
+  }
+
+  /// OpenCryptoPay signed-hex proof type: submit the signed transaction hex
+  /// to the provider, who broadcasts it itself.
+  Future<void> _submitOpenCryptoPayHexProof(
+    BuildContext context,
+    OpenCryptoPaySendHandler ocp,
+    Wallet wallet,
+  ) async {
+    final hex = widget.txData.raw;
+    if (hex == null) {
+      await showDialog<void>(
+        context: context,
+        builder: (_) => StackOkDialog(
+          title: "Cannot complete OpenCryptoPay payment",
+          message:
+              "This payment requires submitting a signed transaction, "
+              "which is not supported for this coin.",
+          desktopPopRootNavigator: Util.isDesktop,
+          maxWidth: Util.isDesktop ? 450 : null,
+        ),
+      );
+      return;
+    }
+
+    final sendingDialog = _showSendingDialog(context, wallet.info.coin);
+
+    final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
+
+    final results = await Future.wait([ocp.submitProof(context, hex), time]);
+    if (results.first != true) {
+      // The handler showed the error and retained the payment for retry.
+      sendingDialog.close();
+      _discardOverriddenRequest();
+      // Pick up a transaction the provider may have broadcast anyway.
+      _refreshAfterSend(wallet);
+      return;
+    }
+
+    // The provider holds the signed transaction, so the payment is complete
+    // even if recording it locally fails.
+    try {
+      await _markInputsAsUsed();
+      if (widget.txData.tempTx != null) {
+        await wallet.updateSentCachedTxData(txData: widget.txData);
+      }
+      final txid = widget.txData.tempTx?.txid;
+      if (txid != null) {
+        await _saveNote(txid: txid, note: noteController.text);
+      }
+    } catch (e, s) {
+      Logging.instance.e(
+        "Failed to record the submitted OpenCryptoPay transaction",
+        error: e,
+        stackTrace: s,
+      );
+    }
+
+    if (wallet.info.coin is! Ethereum) {
+      ref.refresh(desktopUseUTXOs);
+    }
+
+    _refreshAfterSend(wallet);
+
+    sendingDialog.controller.triggerSuccess?.call();
+    await Future<void>.delayed(const Duration(seconds: 5));
+
+    sendingDialog.close();
+
+    widget.onSuccess.call();
+
+    _navigateOnSuccess(context);
   }
 
   @override
@@ -610,12 +777,59 @@ class _ConfirmTransactionViewState
     super.dispose();
   }
 
+  /// After a failed send that overrode the payment request, drop the request
+  /// and clear the send form so the code can be scanned again.
+  void _discardOverriddenRequest() {
+    final handler = widget.openCryptoPayHandler;
+    if (handler == null || !handler.quoteOverridden) return;
+    handler.reset();
+    // Every send view clears its form in onSuccess.
+    widget.onSuccess.call();
+  }
+
+  /// Fee and amount sent to recipients, following the Firo balance type.
+  ({Amount? fee, Amount amount}) _feeAndAmount(Wallet wallet) {
+    if (wallet is FiroWallet) {
+      switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
+        case BalanceType.public:
+          if (widget.txData.sparkMints != null) {
+            return (
+              fee: widget.txData.sparkMints!
+                  .map((e) => e.fee!)
+                  .reduce((value, element) => value += element),
+              amount: widget.txData.sparkMints!
+                  .map((e) => e.amountSpark!)
+                  .reduce((value, element) => value += element),
+            );
+          }
+          return (
+            fee: widget.txData.fee,
+            amount: widget.txData.amountWithoutChange!,
+          );
+
+        case BalanceType.private:
+          final zero = Amount.zeroWith(
+            fractionDigits: wallet.cryptoCurrency.fractionDigits,
+          );
+          return (
+            fee: widget.txData.fee,
+            amount:
+                (widget.txData.amountWithoutChange ?? zero) +
+                (widget.txData.amountSparkWithoutChange ?? zero),
+          );
+      }
+    }
+    return (fee: widget.txData.fee, amount: widget.txData.amountWithoutChange!);
+  }
+
   @override
   Widget build(BuildContext context) {
     final coin = ref.watch(pWalletCoin(walletId));
 
     final String unit;
     final wallet = ref.watch(pWallets).getWallet(walletId);
+    final businessDetails =
+        _activeOcp?.businessDetails ?? const <BusinessDetail>[];
     if (widget.isTokenTx) {
       if (wallet is SolanaWallet) {
         // For Solana tokens, use the Solana token wallet provider or TxData as fallback.
@@ -632,54 +846,21 @@ class _ConfirmTransactionViewState
       unit = coin.ticker;
     }
 
-    final Amount? fee;
-    final Amount amountWithoutChange;
-
-    if (wallet is FiroWallet) {
-      switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
-        case BalanceType.public:
-          if (widget.txData.sparkMints != null) {
-            fee = widget.txData.sparkMints!
-                .map((e) => e.fee!)
-                .reduce((value, element) => value += element);
-            amountWithoutChange = widget.txData.sparkMints!
-                .map((e) => e.amountSpark!)
-                .reduce((value, element) => value += element);
-          } else {
-            fee = widget.txData.fee;
-            amountWithoutChange = widget.txData.amountWithoutChange!;
-          }
-          break;
-
-        case BalanceType.private:
-          fee = widget.txData.fee;
-          amountWithoutChange =
-              (widget.txData.amountWithoutChange ??
-                  Amount.zeroWith(
-                    fractionDigits: wallet.cryptoCurrency.fractionDigits,
-                  )) +
-              (widget.txData.amountSparkWithoutChange ??
-                  Amount.zeroWith(
-                    fractionDigits: wallet.cryptoCurrency.fractionDigits,
-                  ));
-          break;
-      }
-    } else {
-      fee = widget.txData.fee;
-      amountWithoutChange = widget.txData.amountWithoutChange!;
-    }
+    final feeAndAmount = _feeAndAmount(wallet);
+    final fee = feeAndAmount.fee;
+    final amountWithoutChange = feeAndAmount.amount;
 
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(
         child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             leading: AppBarBackButton(
               onPressed: () async {
                 // if (FocusScope.of(context).hasFocus) {
@@ -764,21 +945,19 @@ class _ConfirmTransactionViewState
                         Text(
                           widget.isPaynymTransaction
                               ? widget.txData.paynymAccountLite!.nymName
-                              : widget
-                                        .txData
-                                        .recipients
-                                        ?.firstOrNull
-                                        ?.address ??
-                                    widget
-                                        .txData
-                                        .sparkRecipients!
-                                        .first
-                                        .address,
+                              : _recipientAddress!,
                           style: STextStyles.itemSubtitle12(context),
                         ),
                       ],
                     ),
                   ),
+                  if (businessDetails.isNotEmpty) const SizedBox(height: 12),
+                  if (businessDetails.isNotEmpty)
+                    RoundedWhiteContainer(
+                      child: OpenCryptoPayBusinessDetails(
+                        details: businessDetails,
+                      ),
+                    ),
                   const SizedBox(height: 12),
                   RoundedWhiteContainer(
                     child: Row(
@@ -913,18 +1092,18 @@ class _ConfirmTransactionViewState
                 ),
                 child: RoundedWhiteContainer(
                   padding: const EdgeInsets.all(0),
-                  borderColor: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.background,
+                  borderColor: Theme.of(context)
+                      .extension<StackColors>()!
+                      .background,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Container(
                         decoration: BoxDecoration(
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.background,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
                           borderRadius: BorderRadius.only(
                             topLeft: Radius.circular(
                               Constants.size.circularBorderRadius,
@@ -1091,9 +1270,9 @@ class _ConfirmTransactionViewState
                       ),
                       Container(
                         height: 1,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.background,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .background,
                       ),
                       Padding(
                         padding: const EdgeInsets.all(12),
@@ -1114,34 +1293,39 @@ class _ConfirmTransactionViewState
                               // TODO: [prio=med] spark transaction specifics - better handling
                               widget.isPaynymTransaction
                                   ? widget.txData.paynymAccountLite!.nymName
-                                  : widget
-                                            .txData
-                                            .recipients
-                                            ?.firstOrNull
-                                            ?.address ??
-                                        widget
-                                            .txData
-                                            .sparkRecipients!
-                                            .first
-                                            .address,
+                                  : _recipientAddress!,
                               style:
                                   STextStyles.desktopTextExtraExtraSmall(
                                     context,
                                   ).copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.textDark,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark,
                                   ),
                             ),
                           ],
                         ),
                       ),
+                      if (businessDetails.isNotEmpty)
+                        Container(
+                          height: 1,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
+                        ),
+                      if (businessDetails.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: OpenCryptoPayBusinessDetails(
+                            details: businessDetails,
+                          ),
+                        ),
                       if (widget.isPaynymTransaction)
                         Container(
                           height: 1,
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.background,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
                         ),
                       if (widget.isPaynymTransaction)
                         Padding(
@@ -1163,9 +1347,9 @@ class _ConfirmTransactionViewState
                                     STextStyles.desktopTextExtraExtraSmall(
                                       context,
                                     ).copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textDark,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark,
                                     ),
                               ),
                             ],
@@ -1174,9 +1358,9 @@ class _ConfirmTransactionViewState
                       if (coin is Ethereum)
                         Container(
                           height: 1,
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.background,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
                         ),
                       if (coin is Ethereum)
                         Padding(
@@ -1198,9 +1382,9 @@ class _ConfirmTransactionViewState
                                     STextStyles.desktopTextExtraExtraSmall(
                                       context,
                                     ).copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textDark,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark,
                                     ),
                               ),
                             ],
@@ -1331,9 +1515,9 @@ class _ConfirmTransactionViewState
                         focusNode: _noteFocusNode,
                         style: STextStyles.desktopTextExtraSmall(context)
                             .copyWith(
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textFieldActiveText,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFieldActiveText,
                               height: 1.8,
                             ),
                         onChanged: (_) => setState(() {}),
@@ -1393,9 +1577,9 @@ class _ConfirmTransactionViewState
                     horizontal: 16,
                     vertical: 18,
                   ),
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldDefaultBG,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultBG,
                   child: SelectableText(
                     ref.watch(pAmountFormatter(coin)).format(fee!),
                     style: STextStyles.itemSubtitle(context),
@@ -1424,9 +1608,9 @@ class _ConfirmTransactionViewState
                     horizontal: 16,
                     vertical: 18,
                   ),
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldDefaultBG,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultBG,
                   child: SelectableText(
                     "~${fee!.raw.toInt() ~/ widget.txData.vSize!}",
                     style: STextStyles.itemSubtitle(context),
@@ -1444,22 +1628,21 @@ class _ConfirmTransactionViewState
                   padding: isDesktop
                       ? const EdgeInsets.symmetric(horizontal: 16, vertical: 18)
                       : const EdgeInsets.all(12),
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.snackBarBackSuccess,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .snackBarBackSuccess,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         isDesktop ? "Total amount to send" : "Total amount",
                         style: isDesktop
-                            ? STextStyles.desktopTextExtraExtraSmall(
-                                context,
-                              ).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textConfirmTotalAmount,
-                              )
+                            ? STextStyles.desktopTextExtraExtraSmall(context)
+                                  .copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textConfirmTotalAmount,
+                                  )
                             : STextStyles.titleBold12(context).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
@@ -1471,13 +1654,12 @@ class _ConfirmTransactionViewState
                             .watch(pAmountFormatter(coin))
                             .format(amountWithoutChange + fee!),
                         style: isDesktop
-                            ? STextStyles.desktopTextExtraExtraSmall(
-                                context,
-                              ).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textConfirmTotalAmount,
-                              )
+                            ? STextStyles.desktopTextExtraExtraSmall(context)
+                                  .copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textConfirmTotalAmount,
+                                  )
                             : STextStyles.itemSubtitle12(context).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
@@ -1495,16 +1677,16 @@ class _ConfirmTransactionViewState
                     ? const EdgeInsets.symmetric(horizontal: 32, vertical: 8)
                     : const EdgeInsets.symmetric(vertical: 8),
                 child: RoundedContainer(
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.warningBackground,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .warningBackground,
                   child: Row(
                     children: [
                       Icon(
                         Icons.warning_amber_rounded,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.warningForeground,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .warningForeground,
                         size: 20,
                       ),
                       const SizedBox(width: 8),
@@ -1513,9 +1695,9 @@ class _ConfirmTransactionViewState
                           "This transaction spends a UTXO containing "
                           "an ordinal inscription.",
                           style: STextStyles.smallMed12(context).copyWith(
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.warningForeground,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .warningForeground,
                           ),
                         ),
                       ),
@@ -1532,6 +1714,15 @@ class _ConfirmTransactionViewState
                 label: "Send",
                 buttonHeight: isDesktop ? ButtonHeight.l : null,
                 onPressed: () async {
+                  final handler = widget.openCryptoPayHandler;
+                  if (handler != null) {
+                    final proceed = await handler.confirmSend(
+                      context,
+                      _recipientAddress,
+                      _feeAndAmount(wallet).amount,
+                    );
+                    if (!proceed || !context.mounted) return;
+                  }
                   if (isDesktop) {
                     final unlocked = await showDialog<bool?>(
                       context: context,
