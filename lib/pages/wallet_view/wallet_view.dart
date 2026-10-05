@@ -446,9 +446,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
     if (publicBalance <= Amount.zero) {
       shouldPop = true;
       if (mounted) {
-        Navigator.of(
-          context,
-        ).popUntil(ModalRoute.withName(WalletView.routeName));
+        Navigator.of(context)
+            .popUntil(ModalRoute.withName(WalletView.routeName));
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.info,
@@ -468,9 +467,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
       }
       shouldPop = true;
       if (mounted) {
-        Navigator.of(
-          context,
-        ).popUntil(ModalRoute.withName(WalletView.routeName));
+        Navigator.of(context)
+            .popUntil(ModalRoute.withName(WalletView.routeName));
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.success,
@@ -482,9 +480,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
     } catch (e) {
       shouldPop = true;
       if (mounted) {
-        Navigator.of(
-          context,
-        ).popUntil(ModalRoute.withName(WalletView.routeName));
+        Navigator.of(context)
+            .popUntil(ModalRoute.withName(WalletView.routeName));
         await showDialog<dynamic>(
           context: context,
           builder: (_) => StackOkDialog(
@@ -519,13 +516,12 @@ class _WalletViewState extends ConsumerState<WalletView> {
               child,
               Background(
                 child: CustomLoadingOverlay(
-                  message:
-                      "Migration in progress\nThis could take a while\nPlease don't leave this screen",
+                  message: "Migration in progress\nThis could take a while\nPlease don't leave this screen",
                   subMessage: "This only needs to run once per wallet",
                   eventBus: null,
-                  textColor: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textDark,
+                  textColor: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textDark,
                   actionButton: SecondaryButton(
                     label: "Cancel",
                     onPressed: () async {
@@ -568,9 +564,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
           child: Stack(
             children: [
               Scaffold(
-                backgroundColor: Theme.of(
-                  context,
-                ).extension<StackColors>()!.background,
+                backgroundColor: Theme.of(context)
+                    .extension<StackColors>()!
+                    .background,
                 appBar: AppBar(
                   leading: AppBarBackButton(
                     onPressed: () {
@@ -623,9 +619,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
                           key: const Key("walletViewRadioButton"),
                           size: 36,
                           shadows: const [],
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.background,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
                           icon: _buildNetworkIcon(_currentSyncStatus),
                           onPressed: () {
                             Navigator.of(context).pushNamed(
@@ -649,14 +645,13 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       child: AspectRatio(
                         aspectRatio: 1,
                         child: AppBarIconButton(
-                          semanticsLabel:
-                              "Notifications Button. Takes To Notifications Page.",
+                          semanticsLabel: "Notifications Button. Takes To Notifications Page.",
                           key: const Key("walletViewAlertsButton"),
                           size: 36,
                           shadows: const [],
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.background,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
                           icon:
                               ref.watch(
                                 notificationsProvider.select(
@@ -768,14 +763,14 @@ class _WalletViewState extends ConsumerState<WalletView> {
                           key: const Key("walletViewSettingsButton"),
                           size: 36,
                           shadows: const [],
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.background,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
                           icon: SvgPicture.asset(
                             Assets.svg.bars,
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.accentColorDark,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorDark,
                             width: 20,
                             height: 20,
                           ),
@@ -799,9 +794,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
                 ),
                 body: SafeArea(
                   child: Container(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.background,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .background,
                     child: Column(
                       children: [
                         const SizedBox(height: 10),
@@ -849,8 +844,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                         context: context,
                                         builder: (context) => StackDialog(
                                           title: "Attention!",
-                                          message:
-                                              "You're about to privatize all of your public funds.",
+                                          message: "You're about to privatize all of your public funds.",
                                           leftButton: TextButton(
                                             onPressed: () {
                                               Navigator.of(context).pop();
@@ -912,9 +906,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                 "Transactions",
                                 style: STextStyles.itemSubtitle(context)
                                     .copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textDark3,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark3,
                                     ),
                               ),
                               CustomTextButton(
@@ -1139,9 +1133,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
                           Assets.svg.monkey,
                           height: 20,
                           width: 20,
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.bottomNavIconIcon,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .bottomNavIconIcon,
                         ),
                         label: "MonKey",
                         onTap: () {
@@ -1151,17 +1145,18 @@ class _WalletViewState extends ConsumerState<WalletView> {
                           );
                         },
                       ),
-                    if (wallet is SignVerifyInterface && !viewOnly)
+                    if (wallet is SignVerifyInterface &&
+                        (!viewOnly || wallet is SparkInterface))
                       WalletNavigationBarItemData(
                         icon: SvgPicture.asset(
                           Assets.svg.pencil,
                           height: 20,
                           width: 20,
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.bottomNavIconIcon,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .bottomNavIconIcon,
                         ),
-                        label: "Sign/Verify",
+                        label: viewOnly ? "Verify message" : "Sign/Verify",
                         onTap: () {
                           Navigator.of(context).pushNamed(
                             SigningView.routeName,
@@ -1213,9 +1208,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
                           height: 20,
                           width: 20,
                           colorFilter: ColorFilter.mode(
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.bottomNavIconIcon,
+                            Theme.of(context)
+                                .extension<StackColors>()!
+                                .bottomNavIconIcon,
                             BlendMode.srcIn,
                           ),
                         ),

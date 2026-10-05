@@ -130,6 +130,43 @@ bool shouldSubtractSparkFeeFromAmount({
 
 void initSparkLogging(Level level) => libSpark.initSparkLogging(level);
 
+({String? proof, String? error}) _createSparkAddressOwnershipProof(
+  ({String message, String privateKeyHex, int spendKeyIndex, int diversifier})
+  args,
+) {
+  try {
+    return (
+      proof: libSpark.createSparkAddressOwnershipProof(
+        message: args.message,
+        privateKeyHex: args.privateKeyHex,
+        spendKeyIndex: args.spendKeyIndex,
+        diversifier: args.diversifier,
+      ),
+      error: null,
+    );
+  } catch (e) {
+    return (proof: null, error: e.toString());
+  }
+}
+
+({bool? valid, String? error}) _verifySparkAddressOwnershipProof(
+  ({String message, String address, String proof, bool isTestNet}) args,
+) {
+  try {
+    return (
+      valid: libSpark.verifySparkAddressOwnershipProof(
+        message: args.message,
+        address: args.address,
+        proof: args.proof,
+        isTestNet: args.isTestNet,
+      ),
+      error: null,
+    );
+  } catch (e) {
+    return (valid: null, error: e.toString());
+  }
+}
+
 abstract class _SparkIsolate {
   static Isolate? _isolate;
   static SendPort? _sendPort;
@@ -189,6 +226,8 @@ Future<R> computeWithLibSparkLogging<M, R>(
 
 mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     on Bip39HDWallet<T>, ElectrumXInterface<T> {
+  static const _sparkNameLookAheadCount = 100;
+
   Address? _currentSparkAddress;
 
   String? _viewKeyHex;
@@ -226,13 +265,15 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       );
     }
 
-    final sparkAddress =
-        await computeWithLibSparkLogging(_getAddressFromFullViewKey, (
-          fullViewKeyHex: _viewKeyHex!,
-          index: sparkIndex,
-          diversifier: diversifier,
-          isTestNet: isTestNet,
-        ));
+    final sparkAddress = await computeWithLibSparkLogging(
+      _getAddressFromFullViewKey,
+      (
+        fullViewKeyHex: _viewKeyHex!,
+        index: sparkIndex,
+        diversifier: diversifier,
+        isTestNet: isTestNet,
+      ),
+    );
 
     return Address(
       walletId: walletId,
@@ -1349,9 +1390,8 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       }
       for (final transaction in transactions) {
         if (transaction.usedSparkCoins!.length > 1) {
-          final transactionVersion = btc.Transaction.fromHex(
-            transaction.raw!,
-          ).version;
+          final transactionVersion = btc.Transaction.fromHex(transaction.raw!)
+              .version;
           if (!isChaumV2SparkTransactionVersion(transactionVersion)) {
             throw Exception(
               "Refusing to broadcast a multi-input Chaum V1 transaction.",
@@ -1872,12 +1912,10 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       // some look ahead
       // TODO revisit this and clean up (track pre gen'd addresses instead of
       //  generating every time) arbitrary number of addresses
-      const lookAheadCount = 100;
-
       // force unwrap optional should be fine here. If not then the
       // eclosing function is being called somewhere it probably shouldn't be.
       int diversifier = _currentSparkAddress!.derivationIndex;
-      final maxDiversifier = diversifier + lookAheadCount;
+      final maxDiversifier = diversifier + _sparkNameLookAheadCount;
 
       while (diversifier < maxDiversifier) {
         // change address check
@@ -2913,6 +2951,106 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     );
 
     return txData;
+  }
+
+  @override
+  Future<String> signMessage(String message, {required Address address}) {
+    if (address.type == AddressType.spark) {
+      return createSparkAddressOwnershipProof(
+        address: address.value,
+        message: message,
+      );
+    }
+    return super.signMessage(message, address: address);
+  }
+
+  @override
+  Future<bool> verifyMessage(
+    String message, {
+    required String address,
+    required String signature,
+  }) async {
+    if (!validateSparkAddress(address: address, isTestNet: false) &&
+        !validateSparkAddress(address: address, isTestNet: true)) {
+      return super.verifyMessage(
+        message,
+        address: address,
+        signature: signature,
+      );
+    }
+    final result = await computeWithLibSparkLogging(
+      _verifySparkAddressOwnershipProof,
+      (
+        message: message,
+        address: address,
+        proof: signature,
+        isTestNet: isTestNet,
+      ),
+    );
+    if (result.error != null) throw Exception(result.error);
+    return result.valid!;
+  }
+
+  Future<String> createSparkAddressOwnershipProof({
+    required String address,
+    required String message,
+  }) async {
+    if (isViewOnly) {
+      throw Exception(
+        "Cannot create an ownership proof from a view only wallet",
+      );
+    }
+
+    if (message.trim().isEmpty) {
+      throw Exception("Message must not be blank");
+    }
+
+    Address? sparkAddress = await mainDB.getAddress(walletId, address);
+    if (sparkAddress == null) {
+      final currentDiversifier =
+          (await getCurrentReceivingSparkAddress())?.derivationIndex;
+      if (currentDiversifier != null) {
+        var diversifier = currentDiversifier;
+        final maxDiversifier = diversifier + _sparkNameLookAheadCount;
+        while (diversifier < maxDiversifier) {
+          if (diversifier == libSpark.sparkChange) {
+            diversifier++;
+          }
+          final candidate = await _generateSparkAddress(diversifier++);
+          if (candidate.value == address) {
+            sparkAddress = candidate;
+            break;
+          }
+        }
+      }
+    }
+    if (sparkAddress == null || sparkAddress.type != AddressType.spark) {
+      throw Exception("Spark address does not belong to this wallet");
+    }
+    if (sparkAddress.derivationIndex < 0) {
+      throw Exception("Spark address diversifier is unavailable");
+    }
+
+    final root = await getRootHDNode();
+    final privateKeyHex = root
+        .derivePath(sparkDerivationPath)
+        .privateKey
+        .data
+        .toHex;
+
+    final result = await computeWithLibSparkLogging(
+      _createSparkAddressOwnershipProof,
+      (
+        message: message,
+        privateKeyHex: privateKeyHex,
+        spendKeyIndex: sparkIndex,
+        diversifier: sparkAddress.derivationIndex,
+      ),
+    );
+    if (result.error != null) {
+      throw Exception(result.error);
+    }
+    return result.proof!;
   }
 
   @override
