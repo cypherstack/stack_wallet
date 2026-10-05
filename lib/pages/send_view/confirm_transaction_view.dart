@@ -37,9 +37,7 @@ import '../../utilities/constants.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
-import '../../wallets/crypto_currency/coins/epiccash.dart';
-import '../../wallets/crypto_currency/coins/ethereum.dart';
-import '../../wallets/crypto_currency/coins/mimblewimblecoin.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import '../../wallets/isar/providers/solana/current_sol_token_wallet_provider.dart';
@@ -67,6 +65,7 @@ import '../../wl_gen/interfaces/libepiccash_interface.dart';
 import '../pinpad_views/lock_screen_view.dart';
 import '../wallet_view/wallet_view.dart';
 import 'sub_widgets/epic_slatepack_dialog.dart';
+import 'sub_widgets/multi_recipient.dart';
 import 'sub_widgets/mwc_slatepack_dialog.dart';
 import 'sub_widgets/sending_transaction_dialog.dart';
 import 'sub_widgets/split_transaction_warning.dart';
@@ -83,6 +82,7 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
     this.isPaynymNotificationTransaction = false,
     this.isTokenTx = false,
     this.onSuccessInsteadOfRouteOnSuccess,
+    this.recipientLabels,
   });
 
   static const String routeName = "/confirmTransactionView";
@@ -96,6 +96,10 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
   final bool isTokenTx;
   final VoidCallback? onSuccessInsteadOfRouteOnSuccess;
   final VoidCallback onSuccess;
+
+  /// The payment request's names for the recipients of a transaction with
+  /// several recipients, in order.
+  final List<String?>? recipientLabels;
 
   @override
   ConsumerState<ConfirmTransactionView> createState() =>
@@ -623,6 +627,11 @@ class _ConfirmTransactionViewState
   @override
   Widget build(BuildContext context) {
     final coin = ref.watch(pWalletCoin(walletId));
+    final sentRecipients = [
+      for (final e in widget.txData.recipients ?? <TxRecipient>[])
+        if (!e.isChange) e,
+    ];
+    final hasMultipleRecipients = sentRecipients.length > 1;
 
     final String unit;
     final wallet = ref.watch(pWallets).getWallet(walletId);
@@ -767,25 +776,36 @@ class _ConfirmTransactionViewState
                         Text(
                           widget.isPaynymTransaction
                               ? "PayNym recipient"
+                              : hasMultipleRecipients
+                              ? "Recipients"
                               : "Recipient",
                           style: STextStyles.smallMed12(context),
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          widget.isPaynymTransaction
-                              ? widget.txData.paynymAccountLite!.nymName
-                              : widget
-                                        .txData
-                                        .recipients
-                                        ?.firstOrNull
-                                        ?.address ??
-                                    widget
-                                        .txData
-                                        .sparkRecipients!
-                                        .first
-                                        .address,
-                          style: STextStyles.itemSubtitle12(context),
-                        ),
+                        if (hasMultipleRecipients)
+                          RecipientAmountList(
+                            coin: coin,
+                            recipients: sentRecipients,
+                            labels: widget.recipientLabels,
+                            labelStyle: STextStyles.smallMed12(context),
+                            valueStyle: STextStyles.itemSubtitle12(context),
+                          )
+                        else
+                          Text(
+                            widget.isPaynymTransaction
+                                ? widget.txData.paynymAccountLite!.nymName
+                                : widget
+                                          .txData
+                                          .recipients
+                                          ?.firstOrNull
+                                          ?.address ??
+                                      widget
+                                          .txData
+                                          .sparkRecipients!
+                                          .first
+                                          .address,
+                            style: STextStyles.itemSubtitle12(context),
+                          ),
                       ],
                     ),
                   ),
@@ -1120,29 +1140,48 @@ class _ConfirmTransactionViewState
                               ),
                             ),
                             const SizedBox(height: 2),
-                            SelectableText(
-                              // TODO: [prio=med] spark transaction specifics - better handling
-                              widget.isPaynymTransaction
-                                  ? widget.txData.paynymAccountLite!.nymName
-                                  : widget
-                                            .txData
-                                            .recipients
-                                            ?.firstOrNull
-                                            ?.address ??
-                                        widget
-                                            .txData
-                                            .sparkRecipients!
-                                            .first
-                                            .address,
-                              style:
-                                  STextStyles.desktopTextExtraExtraSmall(
-                                    context,
-                                  ).copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textDark,
-                                  ),
-                            ),
+                            if (hasMultipleRecipients)
+                              RecipientAmountList(
+                                coin: coin,
+                                recipients: sentRecipients,
+                                labels: widget.recipientLabels,
+                                labelStyle:
+                                    STextStyles.desktopTextExtraExtraSmall(
+                                      context,
+                                    ),
+                                valueStyle:
+                                    STextStyles.desktopTextExtraExtraSmall(
+                                      context,
+                                    ).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark,
+                                    ),
+                              )
+                            else
+                              SelectableText(
+                                // TODO: [prio=med] spark transaction specifics - better handling
+                                widget.isPaynymTransaction
+                                    ? widget.txData.paynymAccountLite!.nymName
+                                    : widget
+                                              .txData
+                                              .recipients
+                                              ?.firstOrNull
+                                              ?.address ??
+                                          widget
+                                              .txData
+                                              .sparkRecipients!
+                                              .first
+                                              .address,
+                                style:
+                                    STextStyles.desktopTextExtraExtraSmall(
+                                      context,
+                                    ).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark,
+                                    ),
+                              ),
                           ],
                         ),
                       ),

@@ -17,6 +17,7 @@ import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../widgets/custom_buttons/blue_text_button.dart';
+import '../../../widgets/desktop/qr_code_scanner_dialog.dart';
 import '../../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../../widgets/icon_widgets/qrcode_icon.dart';
 import '../../../widgets/icon_widgets/x_icon.dart';
@@ -31,14 +32,21 @@ import '../../../widgets/textfield_icon_button.dart';
 //   );
 // });
 
-final pRecipient =
-    StateProvider.family<({String address, Amount? amount})?, int>(
-      (ref, index) => null,
-    );
+/// A recipient entered on a send screen. [label] is a payment request's
+/// name for [address].
+typedef RecipientData = ({String address, Amount? amount, String? label});
+
+/// A recipient form: the sending wallet and the form's index on its screen.
+typedef RecipientId = ({String walletId, int index});
+
+final pRecipient = StateProvider.family<RecipientData?, RecipientId>(
+  (ref, id) => null,
+);
 
 class Recipient extends ConsumerStatefulWidget {
   const Recipient({
     super.key,
+    required this.walletId,
     required this.index,
     required this.displayNumber,
     required this.coin,
@@ -46,8 +54,10 @@ class Recipient extends ConsumerStatefulWidget {
     this.onChanged,
     required this.addAnotherRecipientTapped,
     required this.sendAllTapped,
+    this.onMultiRecipientUri,
   });
 
+  final String walletId;
   final int index;
   final int displayNumber;
   final CryptoCurrency coin;
@@ -56,6 +66,10 @@ class Recipient extends ConsumerStatefulWidget {
   final VoidCallback? onChanged;
   final VoidCallback addAnotherRecipientTapped;
   final String Function() sendAllTapped;
+
+  /// Called with a scanned or pasted payment request for several recipients,
+  /// which are rejected if this is null.
+  final void Function(PaymentUriData paymentData)? onMultiRecipientUri;
 
   @override
   ConsumerState<Recipient> createState() => _RecipientState();
@@ -70,17 +84,77 @@ class _RecipientState extends ConsumerState<Recipient> {
 
   bool get isSingle => widget.remove == null;
 
-  void _updateRecipientData() {
+  RecipientId get _id => (walletId: widget.walletId, index: widget.index);
+
+  void _updateRecipientData({String? label}) {
     final address = addressController.text;
     final amount = ref
         .read(pAmountFormatter(widget.coin))
         .tryParseEditable(amountController.text);
+    final previous = ref.read(pRecipient(_id));
 
-    ref.read(pRecipient(widget.index).notifier).state = (
+    ref.read(pRecipient(_id).notifier).state = (
       address: address,
       amount: amount,
+      // A payment request's name only applies to the address it gave.
+      label: label ?? (previous?.address == address ? previous?.label : null),
     );
     widget.onChanged?.call();
+  }
+
+  /// Fills in the address, and any amount and name, from scanned, pasted, or
+  /// typed [input], which may be a payment request.
+  void _applyAddressInput(String input) {
+    final paymentData = AddressUtils.parsePaymentUri(
+      input,
+      logging: Logging.instance,
+      allowMultipleRecipients: widget.onMultiRecipientUri != null,
+    );
+
+    if (paymentData != null &&
+        paymentData.coin?.uriScheme == widget.coin.uriScheme) {
+      if (paymentData.isMultiRecipient) {
+        // Keep this recipient as it was, and let the screen offer to replace
+        // every recipient with the request's.
+        addressController.text = ref.read(pRecipient(_id))?.address ?? "";
+        setState(() {
+          _addressIsEmpty = addressController.text.isEmpty;
+        });
+        widget.onMultiRecipientUri!(paymentData);
+        return;
+      }
+
+      addressController.text = paymentData.address.trim();
+
+      if (paymentData.amount != null) {
+        final amount = Amount.tryParseCanonicalAmount(
+          paymentData.amount!,
+          fractionDigits: widget.coin.fractionDigits,
+          truncateOverprecision: true,
+        );
+        if (amount != null) {
+          amountController.text = ref
+              .read(pAmountFormatter(widget.coin))
+              .formatEditable(amount);
+        } else {
+          amountController.clear();
+        }
+      }
+
+      setState(() {
+        _addressIsEmpty = addressController.text.isEmpty;
+      });
+      _updateRecipientData(label: paymentData.label);
+    } else {
+      if (addressController.text != input) {
+        addressController.text = input;
+      }
+
+      setState(() {
+        _addressIsEmpty = addressController.text.isEmpty;
+      });
+      _updateRecipientData();
+    }
   }
 
   void _cryptoAmountChanged() async {
@@ -89,8 +163,8 @@ class _RecipientState extends ConsumerState<Recipient> {
           .read(pAmountFormatter(widget.coin))
           .tryParseEditable(amountController.text);
       if (cryptoAmount != null) {
-        if (ref.read(pRecipient(widget.index))?.amount != null &&
-            ref.read(pRecipient(widget.index))?.amount == cryptoAmount) {
+        if (ref.read(pRecipient(_id))?.amount != null &&
+            ref.read(pRecipient(_id))?.amount == cryptoAmount) {
           return;
         }
 
@@ -121,49 +195,25 @@ class _RecipientState extends ConsumerState<Recipient> {
         await Future<void>.delayed(const Duration(milliseconds: 75));
       }
 
+      if (Util.isDesktop) {
+        if (!mounted) return;
+        final qrCodeData = await showDialog<String>(
+          context: context,
+          builder: (context) => const QrCodeScannerDialog(),
+        );
+        if (qrCodeData == null || !mounted) return;
+
+        _applyAddressInput(qrCodeData.trim());
+        return;
+      }
+
       final qrResult = await ref.read(pBarcodeScanner).scan(context: context);
 
       Logging.instance.d("qrResult content: ${qrResult.rawContent}");
 
-      if (qrResult.rawContent == null) return;
+      if (qrResult.rawContent == null || !mounted) return;
 
-      final paymentData = AddressUtils.parsePaymentUri(
-        qrResult.rawContent!,
-        logging: Logging.instance,
-      );
-
-      Logging.instance.d("qrResult parsed: $paymentData");
-
-      if (paymentData != null &&
-          paymentData.coin?.uriScheme == widget.coin.uriScheme) {
-        // auto fill address
-
-        addressController.text = paymentData.address.trim();
-
-        // autofill amount field
-        if (paymentData.amount != null) {
-          final amount = Amount.tryParseCanonicalAmount(
-            paymentData.amount!,
-            fractionDigits: widget.coin.fractionDigits,
-            truncateOverprecision: true,
-          );
-          if (amount != null) {
-            amountController.text = ref
-                .read(pAmountFormatter(widget.coin))
-                .formatEditable(amount);
-          } else {
-            amountController.clear();
-          }
-        }
-      } else {
-        addressController.text = qrResult.rawContent!.trim();
-      }
-
-      setState(() {
-        _addressIsEmpty = addressController.text.isEmpty;
-      });
-
-      _updateRecipientData();
+      _applyAddressInput(qrResult.rawContent!.trim());
     } on PlatformException catch (e, s) {
       if (mounted) {
         try {
@@ -195,13 +245,13 @@ class _RecipientState extends ConsumerState<Recipient> {
     amountController = TextEditingController();
     // baseController = TextEditingController();
 
-    final amount = ref.read(pRecipient(widget.index))?.amount;
+    final amount = ref.read(pRecipient(_id))?.amount;
     if (amount != null) {
       amountController.text = ref
           .read(pAmountFormatter(widget.coin))
           .formatEditable(amount);
     }
-    addressController.text = ref.read(pRecipient(widget.index))?.address ?? "";
+    addressController.text = ref.read(pRecipient(_id))?.address ?? "";
 
     _addressIsEmpty = addressController.text.isEmpty;
 
@@ -235,6 +285,19 @@ class _RecipientState extends ConsumerState<Recipient> {
       localeServiceChangeNotifierProvider.select((value) => value.locale),
     );
     listenForAmountRelocalization(ref.listen, controllers: [amountController]);
+    // Keep the amount, rather than the number typed, when the unit changes.
+    ref.listen<AmountFormatter>(pAmountFormatter(widget.coin), (
+      previous,
+      next,
+    ) {
+      final amount = ref.read(pRecipient(_id))?.amount;
+      if (previous?.unit != next.unit && amount != null) {
+        amountController.text = next.formatEditable(amount);
+      }
+    });
+
+    final label = ref.watch(pRecipient(_id).select((e) => e?.label));
+    final address = addressController.text.trim();
 
     return RoundedContainer(
       color: Colors.transparent,
@@ -246,10 +309,15 @@ class _RecipientState extends ConsumerState<Recipient> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                isSingle ? "Send to" : "Recipient ${widget.displayNumber}",
-                style: STextStyles.smallMed12(context),
-                textAlign: TextAlign.left,
+              Flexible(
+                child: Text(
+                  isSingle
+                      ? "Send to"
+                      : label ?? "Recipient ${widget.displayNumber}",
+                  style: STextStyles.smallMed12(context),
+                  textAlign: TextAlign.left,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
               CustomTextButton(
                 text: isSingle ? "Add another recipient" : "Remove",
@@ -272,7 +340,14 @@ class _RecipientState extends ConsumerState<Recipient> {
               enableSuggestions: false,
               focusNode: addressFocusNode,
               style: STextStyles.field(context),
-              onChanged: (_) {
+              onChanged: (newValue) {
+                final previous = ref.read(pRecipient(_id))?.address ?? "";
+                // More than one character at once was pasted, and may be a
+                // payment request.
+                if ((newValue.length - previous.length).abs() > 1) {
+                  _applyAddressInput(newValue.trim());
+                  return;
+                }
                 _updateRecipientData();
                 setState(() {
                   _addressIsEmpty = addressController.text.isEmpty;
@@ -334,14 +409,7 @@ class _RecipientState extends ConsumerState<Recipient> {
                                           );
                                         }
 
-                                        addressController.text = content.trim();
-
-                                        setState(() {
-                                          _addressIsEmpty =
-                                              addressController.text.isEmpty;
-                                        });
-
-                                        _updateRecipientData();
+                                        _applyAddressInput(content.trim());
                                       }
                                     },
                                     child: _addressIsEmpty
@@ -364,6 +432,16 @@ class _RecipientState extends ConsumerState<Recipient> {
                   ),
             ),
           ),
+          if (address.isNotEmpty && !widget.coin.validateAddress(address))
+            Padding(
+              padding: const EdgeInsets.only(left: 12, top: 4),
+              child: Text(
+                "Invalid address",
+                style: STextStyles.label(context).copyWith(
+                  color: Theme.of(context).extension<StackColors>()!.textError,
+                ),
+              ),
+            ),
           SizedBox(height: isSingle ? 12 : 8),
           if (isSingle)
             Row(
