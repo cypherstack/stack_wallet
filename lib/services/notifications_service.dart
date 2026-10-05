@@ -341,10 +341,10 @@ class NotificationsService extends ChangeNotifier {
     );
     if (notification.shouldWatchForUpdates) {
       if (notification.txid != null) {
-        _addWatchedTxNotification(notification);
+        await _addWatchedTxNotification(notification);
       }
       if (notification.changeNowId != null) {
-        _addWatchedTradeNotification(notification);
+        await _addWatchedTradeNotification(notification);
       }
     }
     if (shouldNotifyListeners) {
