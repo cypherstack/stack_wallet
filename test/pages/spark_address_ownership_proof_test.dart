@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
+import 'package:platform/platform.dart' as platform;
 import 'package:stackwallet/db/drift/database.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
@@ -63,6 +64,20 @@ class _LabelDB extends Mock implements MainDB {
 }
 
 void main() {
+  setUp(() {
+    final previousPlatform = Util.layoutPlatform;
+    final previousWidth = Util.screenWidth;
+    final previousIsIpad = Util.isIpad;
+    addTearDown(() {
+      Util.layoutPlatform = previousPlatform;
+      Util.screenWidth = previousWidth;
+      Util.isIpad = previousIsIpad;
+    });
+    Util.layoutPlatform = platform.FakePlatform(operatingSystem: 'android');
+    Util.screenWidth = null;
+    Util.isIpad = false;
+  });
+
   setUpAll(() async {
     final directory = await Directory.systemTemp.createTemp('spark-proof-ui-');
     StackFileSystem.setDesktopOverrideDir(directory.path);
@@ -81,9 +96,10 @@ void main() {
     testWidgets(
       '${desktop ? "desktop" : "mobile"} proof layout and exact message',
       (tester) async {
-        final oldWidth = Util.screenWidth;
+        Util.layoutPlatform = platform.FakePlatform(
+          operatingSystem: desktop ? 'macos' : 'android',
+        );
         Util.screenWidth = desktop ? 1000 : 390;
-        addTearDown(() => Util.screenWidth = oldWidth);
         await tester.binding.setSurfaceSize(
           Size(desktop ? 1000 : 390, desktop ? 600 : 844),
         );
@@ -186,14 +202,9 @@ void main() {
     testWidgets('ownership action layout on ${ipad ? "iPad" : "small phone"}', (
       tester,
     ) async {
-      final oldWidth = Util.screenWidth;
-      final oldIpad = Util.isIpad;
+      Util.layoutPlatform = platform.FakePlatform(operatingSystem: 'ios');
       Util.screenWidth = ipad ? 1024 : 320;
       Util.isIpad = ipad;
-      addTearDown(() {
-        Util.screenWidth = oldWidth;
-        Util.isIpad = oldIpad;
-      });
       final size = Size(ipad ? 1024 : 320, ipad ? 768 : 568);
       await tester.binding.setSurfaceSize(size);
       addTearDown(() => tester.binding.setSurfaceSize(null));
