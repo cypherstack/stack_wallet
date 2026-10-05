@@ -19,6 +19,8 @@ class AdaptiveTextField extends StatefulWidget {
     this.focusNode,
     this.style,
     this.autocorrect,
+    this.smartDashesType,
+    this.smartQuotesType,
     this.desktopMed = false,
     this.readOnly = false,
     this.enabled = true,
@@ -35,6 +37,7 @@ class AdaptiveTextField extends StatefulWidget {
     this.maxLines,
     this.inputFormatters,
     this.showPasteClearButton = false,
+    this.trimPastedText = true,
     this.keyboardType,
   });
 
@@ -46,6 +49,8 @@ class AdaptiveTextField extends StatefulWidget {
   final FocusNode? focusNode;
   final TextStyle? style;
   final bool? autocorrect;
+  final SmartDashesType? smartDashesType;
+  final SmartQuotesType? smartQuotesType;
   final bool desktopMed;
   final EdgeInsets? contentPadding;
   final int? minLines;
@@ -62,6 +67,8 @@ class AdaptiveTextField extends StatefulWidget {
 
   /// This will be ignored if [suffixIcons] is not null!
   final bool showPasteClearButton;
+
+  final bool trimPastedText;
 
   /// If this is not null, [showPasteClearButton] will be ignored.
   final List<Widget>? suffixIcons;
@@ -148,6 +155,8 @@ class _AdaptiveTextFieldState extends State<AdaptiveTextField> {
             readOnly: widget.readOnly,
             enabled: widget.enabled,
             autocorrect: widget.autocorrect,
+            smartDashesType: widget.smartDashesType,
+            smartQuotesType: widget.smartQuotesType,
             enableSuggestions: widget.enableSuggestions,
             onSubmitted: widget.onSubmitted,
             keyboardType: widget.keyboardType,
@@ -201,7 +210,9 @@ class _AdaptiveTextFieldState extends State<AdaptiveTextField> {
                                   await Clipboard.getData(Clipboard.kTextPlain);
                               if (data?.text != null &&
                                   data!.text!.isNotEmpty) {
-                                final content = data.text!.trim();
+                                final content = widget.trimPastedText
+                                    ? data.text!.trim()
+                                    : data.text!;
                                 // Setting controller.text directly skips
                                 // inputFormatters, so run them here as a
                                 // paste into the (empty) field would.
