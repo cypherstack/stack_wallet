@@ -9,7 +9,14 @@
  */
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../services/address_book_service.dart';
 
-final addressBookServiceProvider =
-    ChangeNotifierProvider<AddressBookService>((ref) => AddressBookService());
+import '../../services/address_book_service.dart';
+import 'auto_swb_service_provider.dart';
+
+final addressBookServiceProvider = ChangeNotifierProvider<AddressBookService>(
+  (ref) => AddressBookService(
+    requestAutoBackup: ref
+        .read(autoSWBServiceProvider)
+        .requestBackupAfterChange,
+  ),
+);
