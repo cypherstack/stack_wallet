@@ -71,6 +71,7 @@ import 'utilities/enums/backup_frequency_type.dart';
 import 'utilities/flutter_secure_storage_interface.dart';
 import 'utilities/logger.dart';
 import 'utilities/prefs.dart';
+import 'utilities/socks5_proxy_cancel_leak.dart';
 import 'utilities/stack_file_system.dart';
 import 'utilities/util.dart';
 import 'wallets/crypto_currency/crypto_currency.dart';
@@ -94,6 +95,8 @@ void main(List<String> args) async {
     await libXelis.initRustLib();
   }
   WidgetsFlutterBinding.ensureInitialized();
+
+  PlatformDispatcher.instance.onError = handleSocks5ProxyCancelLeak;
 
   if (Util.isDesktop && args.length == 2 && args.first == "-d") {
     StackFileSystem.setDesktopOverrideDir(args.last);
