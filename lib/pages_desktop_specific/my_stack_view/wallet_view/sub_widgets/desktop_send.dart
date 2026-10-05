@@ -1010,6 +1010,16 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         _note = paymentData.label;
       }
 
+      // firo-qt treats message as the spark memo when paying a spark address
+      if (coin is Firo &&
+          paymentData.message != null &&
+          SparkInterface.validateSparkAddress(
+            address: _address!,
+            isTestNet: coin.network.isTestNet,
+          )) {
+        memoController.text = paymentData.message!;
+      }
+
       // autofill amount field
       if (paymentData.amount != null) {
         final amount = Amount.tryParseCanonicalAmount(
