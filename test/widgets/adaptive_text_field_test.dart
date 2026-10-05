@@ -9,6 +9,44 @@ import "package:stackwallet/widgets/textfield_icon_button.dart";
 import "../sample_data/theme_json.dart";
 
 void main() {
+  testWidgets("message paste preserves exact whitespace", (tester) async {
+    final controller = TextEditingController();
+    addTearDown(controller.dispose);
+    const message = " challenge\n ";
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    messenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+      return call.method == "Clipboard.getData"
+          ? <String, dynamic>{"text": message}
+          : null;
+    });
+    addTearDown(
+      () => messenger.setMockMethodCallHandler(SystemChannels.platform, null),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(
+          extensions: [
+            StackColors.fromStackColorTheme(
+              StackTheme.fromJson(json: lightThemeJsonMap),
+            ),
+          ],
+        ),
+        home: Scaffold(
+          body: AdaptiveTextField(
+            controller: controller,
+            showPasteClearButton: true,
+            trimPastedText: false,
+            maxLines: 5,
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.byType(TextFieldIconButton));
+    await tester.pump();
+    expect(controller.text, message);
+  });
+
   testWidgets("paste trims whitespace and runs input formatters", (
     tester,
   ) async {

@@ -1023,8 +1023,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: fe505c29f5dbb5dd94fb986e509506be9e2f37e7
-      resolved-ref: fe505c29f5dbb5dd94fb986e509506be9e2f37e7
+      ref: "3fdcb21160a39c051a0e73d7ae04f987134ecd5f"
+      resolved-ref: "3fdcb21160a39c051a0e73d7ae04f987134ecd5f"
       url: "https://github.com/cypherstack/flutter_libsparkmobile.git"
     source: git
     version: "0.2.0"
@@ -1823,7 +1823,7 @@ packages:
     source: hosted
     version: "2.2.1"
   path_provider_platform_interface:
-    dependency: transitive
+    dependency: "direct dev"
     description:
       name: path_provider_platform_interface
       sha256: "88f5779f72ba699763fa3a3b06aa4bf6de76c8e5de842cf6f29e2e06476c2334"
@@ -1903,7 +1903,7 @@ packages:
     source: hosted
     version: "0.6.0"
   platform:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: platform
       sha256: "5d6b1b0036a5f331ebc77c850ebc8506cbc1e9416c27e59b439f917a902a4984"
@@ -2135,10 +2135,10 @@ packages:
     dependency: "direct main"
     description:
       name: socks5_proxy
-      sha256: e0cba6917cd374de6f6cb0ce081e50e6efc24c61644b8e9f20c8bf8b91bb0b75
+      sha256: "80fa31a9ebfc0dc8de7b0e568c8d8927b65558ef2c7591cbee5afac814fb8f74"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.3+dev.3"
+    version: "2.1.1"
   socks_socket:
     dependency: transitive
     description:

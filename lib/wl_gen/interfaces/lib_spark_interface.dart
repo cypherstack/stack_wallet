@@ -77,6 +77,20 @@ abstract class LibSparkInterface {
     required bool ignoreProof,
   });
 
+  String createSparkAddressOwnershipProof({
+    required String message,
+    required String privateKeyHex,
+    required int spendKeyIndex,
+    required int diversifier,
+  });
+
+  bool verifySparkAddressOwnershipProof({
+    required String message,
+    required String address,
+    required String proof,
+    required bool isTestNet,
+  });
+
   Uint8List getSparkNameCommitment({
     required Uint8List serializedSparkNameData,
   });

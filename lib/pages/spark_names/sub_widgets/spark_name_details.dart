@@ -7,6 +7,7 @@ import '../../../providers/db/drift_provider.dart';
 import '../../../providers/db/main_db_provider.dart';
 import '../../../providers/global/wallets_provider.dart';
 import '../../../themes/stack_colors.dart';
+import '../../../utilities/show_loading.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
@@ -19,6 +20,8 @@ import '../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/dialogs/s_dialog.dart';
 import '../../../widgets/rounded_container.dart';
+import '../../../widgets/textfields/adaptive_text_field.dart';
+import '../../signing/signing_view.dart';
 import '../../wallet_view/transaction_views/transaction_details_view.dart'
     as tvd;
 import '../buy_spark_name_view.dart';
@@ -131,6 +134,34 @@ class _SparkNameDetailsViewState extends ConsumerState<SparkNameDetailsView> {
     }
   }
 
+  Future<void> _proveOwnership() async {
+    if (_lock) return;
+    _lock = true;
+    try {
+      if (Util.isDesktop) {
+        await showDialog<void>(
+          context: context,
+          builder: (context) => Padding(
+            padding: MediaQuery.viewInsetsOf(context),
+            child: SDialog(
+              child: SparkAddressOwnershipProofView(
+                walletId: widget.walletId,
+                address: name.address,
+              ),
+            ),
+          ),
+        );
+      } else {
+        await Navigator.of(context).pushNamed(
+          SparkAddressOwnershipProofView.routeName,
+          arguments: (walletId: widget.walletId, address: name.address),
+        );
+      }
+    } finally {
+      _lock = false;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -227,9 +258,9 @@ class _SparkNameDetailsViewState extends ConsumerState<SparkNameDetailsView> {
                   child: RoundedContainer(
                     padding: EdgeInsets.zero,
                     color: Colors.transparent,
-                    borderColor: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultBG,
+                    borderColor: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
                     child: child,
                   ),
                 ),
@@ -283,9 +314,9 @@ class _SparkNameDetailsViewState extends ConsumerState<SparkNameDetailsView> {
                           Text(
                             "Address",
                             style: STextStyles.w500_14(context).copyWith(
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textSubtitle1,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textSubtitle1,
                             ),
                           ),
                           Util.isDesktop
@@ -320,9 +351,9 @@ class _SparkNameDetailsViewState extends ConsumerState<SparkNameDetailsView> {
                                       : const EdgeInsets.all(12),
                                   color: Util.isDesktop
                                       ? Colors.transparent
-                                      : Theme.of(
-                                          context,
-                                        ).extension<StackColors>()!.popupBG,
+                                      : Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .popupBG,
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     crossAxisAlignment:
@@ -382,17 +413,16 @@ class _SparkNameDetailsViewState extends ConsumerState<SparkNameDetailsView> {
                           Text(
                             "Expiry",
                             style: STextStyles.w500_14(context).copyWith(
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textSubtitle1,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textSubtitle1,
                             ),
                           ),
                           const SizedBox(height: 4),
                           SelectableText(
                             message,
-                            style: STextStyles.w500_14(
-                              context,
-                            ).copyWith(color: color),
+                            style: STextStyles.w500_14(context)
+                                .copyWith(color: color),
                           ),
                         ],
                       ),
@@ -422,9 +452,9 @@ class _SparkNameDetailsViewState extends ConsumerState<SparkNameDetailsView> {
                       Text(
                         "Additional info",
                         style: STextStyles.w500_14(context).copyWith(
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.textSubtitle1,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textSubtitle1,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -435,9 +465,203 @@ class _SparkNameDetailsViewState extends ConsumerState<SparkNameDetailsView> {
                     ],
                   ),
                 ),
+                if (!_isViewOnlyWallet) ...[
+                  const _Div(),
+                  Padding(
+                    padding: Util.isDesktop
+                        ? const EdgeInsets.all(16)
+                        : EdgeInsets.zero,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: Util.isDesktop ? 70 : 48,
+                      ),
+                      child: TextButton(
+                        style: Theme.of(context)
+                            .extension<StackColors>()!
+                            .getPrimaryEnabledButtonStyle(context),
+                        onPressed: _proveOwnership,
+                        child: Text(
+                          "Prove address ownership",
+                          textAlign: TextAlign.center,
+                          style: Util.isDesktop
+                              ? STextStyles.desktopButtonEnabled(context)
+                              : STextStyles.button(context),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ],
             );
           },
+        ),
+      ),
+    );
+  }
+}
+
+class SparkAddressOwnershipProofView extends ConsumerStatefulWidget {
+  const SparkAddressOwnershipProofView({
+    super.key,
+    required this.walletId,
+    required this.address,
+  });
+
+  final String walletId;
+  final String address;
+
+  static const routeName = "/sparkAddressOwnershipProof";
+
+  @override
+  ConsumerState<SparkAddressOwnershipProofView> createState() =>
+      _SparkAddressOwnershipProofViewState();
+}
+
+class _SparkAddressOwnershipProofViewState
+    extends ConsumerState<SparkAddressOwnershipProofView> {
+  final _messageController = TextEditingController();
+
+  String _proof = "";
+  bool _isGenerating = false;
+
+  @override
+  void dispose() {
+    _messageController.dispose();
+    super.dispose();
+  }
+
+  void _onMessageChanged(String message) {
+    setState(() {
+      _proof = "";
+    });
+  }
+
+  Future<void> _generateProof() async {
+    if (_isGenerating || _messageController.text.trim().isEmpty) {
+      return;
+    }
+
+    final message = _messageController.text;
+    setState(() => _isGenerating = true);
+    Exception? exception;
+    final proof = await showLoading(
+      whileFuture:
+          (ref.read(pWallets).getWallet(widget.walletId) as SparkInterface)
+              .createSparkAddressOwnershipProof(
+                address: widget.address,
+                message: message,
+              ),
+      context: context,
+      message: "Creating proof...",
+      onException: (e) => exception = e,
+    );
+
+    if (!mounted) return;
+    setState(() => _isGenerating = false);
+
+    if (exception != null) {
+      await showSignVerifyError(exception!, context: context);
+    } else if (proof != null && _messageController.text == message) {
+      setState(() => _proof = proof);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final canGenerate =
+        !_isGenerating && _messageController.text.trim().isNotEmpty;
+
+    return ConditionalParent(
+      condition: !Util.isDesktop,
+      builder: (child) => Background(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: AppBar(
+            leading: const AppBarBackButton(),
+            title: Text(
+              "Prove address ownership",
+              style: STextStyles.navBarTitle(context),
+            ),
+          ),
+          body: SafeArea(child: SingleChildScrollView(child: child)),
+        ),
+      ),
+      child: SizedBox(
+        width: Util.isDesktop ? 580 : null,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (Util.isDesktop)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 32),
+                      child: Text(
+                        "Prove address ownership",
+                        style: STextStyles.desktopH3(context),
+                      ),
+                    ),
+                  ),
+                  const DesktopDialogCloseButton(),
+                ],
+              ),
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                Util.isDesktop ? 32 : 16,
+                Util.isDesktop ? 10 : 16,
+                Util.isDesktop ? 32 : 16,
+                Util.isDesktop ? 32 : 16,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text("Spark address", style: STextStyles.w500_14(context)),
+                  const SizedBox(height: 8),
+                  SelectableText(
+                    widget.address,
+                    style: STextStyles.w500_14(context),
+                  ),
+                  const SizedBox(height: 20),
+                  Text("Message", style: STextStyles.w500_14(context)),
+                  const SizedBox(height: 8),
+                  AdaptiveTextField(
+                    controller: _messageController,
+                    minLines: 3,
+                    maxLines: 5,
+                    autocorrect: false,
+                    smartDashesType: SmartDashesType.disabled,
+                    smartQuotesType: SmartQuotesType.disabled,
+                    enableSuggestions: false,
+                    readOnly: _isGenerating,
+                    onChangedComprehensive: _onMessageChanged,
+                  ),
+                  if (_proof.isNotEmpty) ...[
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text("Proof", style: STextStyles.w500_14(context)),
+                        Util.isDesktop
+                            ? tvd.IconCopyButton(data: _proof)
+                            : SimpleCopyButton(data: _proof),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    SelectableText(_proof, style: STextStyles.w500_14(context)),
+                  ],
+                  const SizedBox(height: 24),
+                  PrimaryButton(
+                    label: "Create proof",
+                    enabled: canGenerate,
+                    onPressed: canGenerate ? _generateProof : null,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
