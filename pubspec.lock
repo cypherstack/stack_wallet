@@ -1631,11 +1631,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "0f07a82569854c1830a66ae86daa9308b382617a"
-      resolved-ref: "0f07a82569854c1830a66ae86daa9308b382617a"
+      ref: e60766bc420861b9e8c804627d84cbd570b04ff6
+      resolved-ref: e60766bc420861b9e8c804627d84cbd570b04ff6
       url: "https://github.com/cypherstack/mobile_app_privacy"
     source: git
-    version: "0.0.4"
+    version: "0.0.5"
   mockingjay:
     dependency: "direct dev"
     description:
