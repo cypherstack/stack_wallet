@@ -12,6 +12,10 @@
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="false"
         android:fullBackupContent="false">
+        <!-- Protect the entire Flutter activity from non-tool accessibility services on Android 14+. -->
+        <meta-data
+            android:name="com.cypherstack.mobile_app_privacy.ACCESSIBILITY_DATA_SENSITIVE"
+            android:value="true"/>
         <activity
             android:name=".MainActivity"
             android:screenOrientation="portrait"
