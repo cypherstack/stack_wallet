@@ -140,6 +140,32 @@ class _LibSparkInterfaceImpl extends LibSparkInterface {
   );
 
   @override
+  String createSparkAddressOwnershipProof({
+    required String message,
+    required String privateKeyHex,
+    required int spendKeyIndex,
+    required int diversifier,
+  }) => LibSpark.createSparkAddressOwnershipProof(
+    message: message,
+    privateKeyHex: privateKeyHex,
+    spendKeyIndex: spendKeyIndex,
+    diversifier: diversifier,
+  );
+
+  @override
+  bool verifySparkAddressOwnershipProof({
+    required String message,
+    required String address,
+    required String proof,
+    required bool isTestNet,
+  }) => LibSpark.verifySparkAddressOwnershipProof(
+    message: message,
+    address: address,
+    proof: proof,
+    isTestNet: isTestNet,
+  );
+
+  @override
   Uint8List getSparkNameCommitment({
     required Uint8List serializedSparkNameData,
   }) => LibSpark.getSparkNameCommitment(

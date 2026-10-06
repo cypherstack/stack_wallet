@@ -23,6 +23,17 @@ abstract class FiroCacheCoordinator {
     }
   }
 
+  /// Terminal shutdown for a desktop reset, followed by process exit.
+  static Future<void> close() async {
+    await Future.wait(_workers.values.map((worker) => worker.close()));
+    for (final db in [
+      ..._FiroCache._setCacheDB.values,
+      ..._FiroCache._usedTagsCacheDB.values,
+    ]) {
+      db.close();
+    }
+  }
+
   static Future<void> clearSharedCache(
     CryptoCurrencyNetwork network, {
     bool clearOnlyUsedTagsCache = false,
@@ -42,12 +53,12 @@ abstract class FiroCacheCoordinator {
       "${dir.path}/${_FiroCache.sparkUsedTagsCacheFileName(network)}",
     );
 
-    final setSize =
-        (await setCacheFile.exists()) ? await setCacheFile.length() : 0;
-    final tagsSize =
-        (await usedTagsCacheFile.exists())
-            ? await usedTagsCacheFile.length()
-            : 0;
+    final setSize = (await setCacheFile.exists())
+        ? await setCacheFile.length()
+        : 0;
+    final tagsSize = (await usedTagsCacheFile.exists())
+        ? await usedTagsCacheFile.length()
+        : 0;
 
     Logging.instance.d("Spark cache used tags size: $tagsSize");
     Logging.instance.d("Spark cache anon set size: $setSize");
@@ -91,8 +102,7 @@ abstract class FiroCacheCoordinator {
     void Function(int countFetched, int totalCount)? progressUpdated,
   ) async {
     await _setLocks[network]!.protect(() async {
-      const sectorSize =
-          1500; // chosen as a somewhat decent value. Could be changed in the future if wanted/needed
+      const sectorSize = 1500; // chosen as a somewhat decent value. Could be changed in the future if wanted/needed
       final prevMeta = await FiroCacheCoordinator.getLatestSetInfoForGroupId(
         groupId,
         network,
@@ -141,10 +151,9 @@ abstract class FiroCacheCoordinator {
         coins.addAll(data);
       }
 
-      final result =
-          coins
-              .map((e) => RawSparkCoin.fromRPCResponse(e as List, groupId))
-              .toList();
+      final result = coins
+          .map((e) => RawSparkCoin.fromRPCResponse(e as List, groupId))
+          .toList();
 
       await _workers[network]!.runTask(
         FCTask(
@@ -224,17 +233,16 @@ abstract class FiroCacheCoordinator {
     String? afterBlockHash,
     required CryptoCurrencyNetwork network,
   }) async {
-    final resultSet =
-        afterBlockHash == null
-            ? await _Reader._getSetCoinsForGroupId(
-              groupId,
-              db: _FiroCache.setCacheDB(network),
-            )
-            : await _Reader._getSetCoinsForGroupIdAndBlockHash(
-              groupId,
-              afterBlockHash,
-              db: _FiroCache.setCacheDB(network),
-            );
+    final resultSet = afterBlockHash == null
+        ? await _Reader._getSetCoinsForGroupId(
+            groupId,
+            db: _FiroCache.setCacheDB(network),
+          )
+        : await _Reader._getSetCoinsForGroupIdAndBlockHash(
+            groupId,
+            afterBlockHash,
+            db: _FiroCache.setCacheDB(network),
+          );
 
     return resultSet
         .map(

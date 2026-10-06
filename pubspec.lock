@@ -1023,8 +1023,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: fe505c29f5dbb5dd94fb986e509506be9e2f37e7
-      resolved-ref: fe505c29f5dbb5dd94fb986e509506be9e2f37e7
+      ref: "3fdcb21160a39c051a0e73d7ae04f987134ecd5f"
+      resolved-ref: "3fdcb21160a39c051a0e73d7ae04f987134ecd5f"
       url: "https://github.com/cypherstack/flutter_libsparkmobile.git"
     source: git
     version: "0.2.0"
@@ -1631,11 +1631,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "0f07a82569854c1830a66ae86daa9308b382617a"
-      resolved-ref: "0f07a82569854c1830a66ae86daa9308b382617a"
+      ref: e60766bc420861b9e8c804627d84cbd570b04ff6
+      resolved-ref: e60766bc420861b9e8c804627d84cbd570b04ff6
       url: "https://github.com/cypherstack/mobile_app_privacy"
     source: git
-    version: "0.0.4"
+    version: "0.0.5"
   mockingjay:
     dependency: "direct dev"
     description:
@@ -1823,7 +1823,7 @@ packages:
     source: hosted
     version: "2.2.1"
   path_provider_platform_interface:
-    dependency: transitive
+    dependency: "direct dev"
     description:
       name: path_provider_platform_interface
       sha256: "88f5779f72ba699763fa3a3b06aa4bf6de76c8e5de842cf6f29e2e06476c2334"
@@ -1903,7 +1903,7 @@ packages:
     source: hosted
     version: "0.6.0"
   platform:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: platform
       sha256: "5d6b1b0036a5f331ebc77c850ebc8506cbc1e9416c27e59b439f917a902a4984"

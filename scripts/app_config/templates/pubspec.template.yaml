@@ -21,6 +21,7 @@ dependencies:
   flutter:
     sdk: flutter
   ffi: ^2.0.1
+  platform: ^3.1.6
   mutex: ^3.0.0
   web_socket_channel: ^2.4.0
 
@@ -46,7 +47,7 @@ dependencies:
 #  flutter_libsparkmobile:
 #    git:
 #      url: https://github.com/cypherstack/flutter_libsparkmobile.git
-#      ref: fe505c29f5dbb5dd94fb986e509506be9e2f37e7
+#      ref: 3fdcb21160a39c051a0e73d7ae04f987134ecd5f
 # %%END_ENABLE_FIRO%%
 
 # %%ENABLE_EPIC%%
@@ -272,7 +273,7 @@ dependencies:
   mobile_app_privacy:
     git:
       url: https://github.com/cypherstack/mobile_app_privacy
-      ref: 0f07a82569854c1830a66ae86daa9308b382617a
+      ref: e60766bc420861b9e8c804627d84cbd570b04ff6
 
   # required for web3dart to use EthereumAddress class...
   wallet: 0.0.18
@@ -282,6 +283,7 @@ dev_dependencies:
     sdk: flutter
   integration_test:
       sdk: flutter
+  path_provider_platform_interface: ^2.1.2
   build_runner: ^2.15.1
   flutter_launcher_icons: ^0.13.1
   hive_ce_generator: ^1.11.1
