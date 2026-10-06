@@ -118,6 +118,16 @@ class Wallets {
     _wallets.remove(walletId);
     await wallet?.exit();
 
+    if (info.coin is Xelis) {
+      // Remove unlocked native storage before forgetting its password.
+      // The precomputed tables belong to all Xelis wallets.
+      final root = await StackFileSystem.applicationXelisDirectory();
+      final directory = Directory(
+        "${root.path}${Platform.pathSeparator}$walletId",
+      );
+      if (await directory.exists()) await directory.delete(recursive: true);
+    }
+
     await secureStorage.delete(key: Wallet.mnemonicKey(walletId: walletId));
     await secureStorage.delete(
       key: Wallet.mnemonicPassphraseKey(walletId: walletId),

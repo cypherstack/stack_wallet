@@ -3,8 +3,10 @@ import 'package:flutter/foundation.dart';
 import '../../providers/progress_report/xelis_table_progress_provider.dart';
 import '../../utilities/dynamic_object.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
+import 'xelis_types.dart';
 
 export '../generated/lib_xelis_interface_impl.dart';
+export 'xelis_types.dart';
 
 abstract class LibXelisInterface {
   const LibXelisInterface();
@@ -26,7 +28,14 @@ abstract class LibXelisInterface {
 
   bool validateSeedWord(String word);
 
-  Stream<Event> eventsStream(OpaqueXelisWallet wallet);
+  Future<XelisEventSubscription> subscribeRuntimeEvents(
+    OpaqueXelisWallet wallet,
+  );
+  Future<XelisEventSubscription> subscribeBusinessEvents(
+    OpaqueXelisWallet wallet,
+  );
+
+  Future<void> closeWallet(OpaqueXelisWallet wallet);
 
   Future<void> onlineMode(
     OpaqueXelisWallet wallet, {
@@ -35,6 +44,11 @@ abstract class LibXelisInterface {
   Future<void> offlineMode(OpaqueXelisWallet wallet);
 
   Future<void> updateTables({
+    required String precomputedTablesPath,
+    required bool stack_l1Low,
+  });
+
+  Future<bool> hasTables({
     required String precomputedTablesPath,
     required bool stack_l1Low,
   });
@@ -65,49 +79,58 @@ abstract class LibXelisInterface {
 
   String getAddress(OpaqueXelisWallet wallet);
 
-  Future<String> getDaemonInfo(OpaqueXelisWallet wallet);
+  Future<XelisDaemonSnapshot> getDaemonInfo(OpaqueXelisWallet wallet);
 
   Future<bool> isOnline(OpaqueXelisWallet wallet);
+  Future<bool> isSyncing(OpaqueXelisWallet wallet);
 
   Future<void> rescan(OpaqueXelisWallet wallet, {required BigInt topoheight});
 
-  Future<List<TransactionEntryWrapper>> allHistory(OpaqueXelisWallet wallet);
-
-  Future<void> broadcastTransaction(
+  Future<List<TransactionEntryWrapper>> allHistory(
     OpaqueXelisWallet wallet, {
-    required String txHash,
+    BigInt? minTopoheight,
   });
 
-  Future<String> estimateFees(
+  Future<XelisBroadcastOutcome> broadcastTransaction(
     OpaqueXelisWallet wallet, {
-    required List<WrappedTransfer> transfers,
+    required XelisPreparedTransaction transaction,
   });
 
-  Future<String> createTransfersTransaction(
+  Future<BigInt> estimateFees(
     OpaqueXelisWallet wallet, {
-    required List<WrappedTransfer> transfers,
+    required List<XelisTransfer> transfers,
   });
 
-  Future<String> formatCoin(
+  Future<XelisPreparedTransaction> prepareTransfers(
     OpaqueXelisWallet wallet, {
-    required BigInt atomicAmount,
-    String? assetHash,
+    required List<XelisTransfer> transfers,
   });
 
-  Future<int> getAssetDecimals(
+  Future<XelisPreparedTransaction> prepareTransferAll(
     OpaqueXelisWallet wallet, {
-    required String asset,
+    required String destination,
+  });
+
+  Future<void> discardPreparedTransaction(
+    OpaqueXelisWallet wallet, {
+    required XelisPreparedTransaction transaction,
   });
 
   Future<BigInt> getXelisBalanceRaw(OpaqueXelisWallet wallet);
 
-  Future<bool> hasXelisBalance(OpaqueXelisWallet wallet);
-
-  Future<bool> testDaemonConnection(String endPoint, bool useSSL);
+  Future<bool> testDaemonConnection(
+    String endPoint,
+    bool useSSL,
+    CryptoCurrencyNetwork network,
+  );
 }
 
-// =============================================================================
-// ============== stupid =======================================================
+final class XelisEventSubscription {
+  const XelisEventSubscription({required this.events, required this.cancel});
+
+  final Stream<Event> events;
+  final Future<void> Function() cancel;
+}
 
 final class OpaqueXelisWallet {
   final Object _value;
@@ -115,59 +138,19 @@ final class OpaqueXelisWallet {
   T get<T>() => _value as T;
 }
 
-class WrappedTransfer {
-  final double floatAmount;
-  final String strAddress;
-  final String assetHash;
-  final String? extraData;
-
-  const WrappedTransfer({
-    required this.floatAmount,
-    required this.strAddress,
-    required this.assetHash,
-    this.extraData,
-  });
-
-  @override
-  int get hashCode =>
-      floatAmount.hashCode ^
-      strAddress.hashCode ^
-      assetHash.hashCode ^
-      extraData.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is WrappedTransfer &&
-          runtimeType == other.runtimeType &&
-          floatAmount == other.floatAmount &&
-          strAddress == other.strAddress &&
-          assetHash == other.assetHash &&
-          extraData == other.extraData;
-}
-
 class TransactionEntryWrapper {
-  final Object _value;
-
   final EntryWrapper entryType;
 
   final String hash;
   final DateTime? timestamp;
-  final int topoheight;
+  final BigInt? topoheight;
 
-  TransactionEntryWrapper(
-    this._value, {
+  TransactionEntryWrapper({
     required this.entryType,
     required this.hash,
     required this.timestamp,
     required this.topoheight,
   });
-
-  T getValue<T>() => _value is T
-      ? _value as T
-      : throw Exception(
-          "Type mismatch: ${_value.runtimeType} is not ${T.runtimeType}",
-        );
 }
 
 sealed class EntryWrapper {
@@ -175,13 +158,13 @@ sealed class EntryWrapper {
 }
 
 class CoinbaseEntryWrapper extends EntryWrapper {
-  final int reward;
+  final BigInt reward;
   const CoinbaseEntryWrapper({required this.reward});
 }
 
 class BurnEntryWrapper extends EntryWrapper {
-  final int amount;
-  final int fee;
+  final BigInt amount;
+  final BigInt fee;
   final String asset;
 
   const BurnEntryWrapper({
@@ -193,19 +176,19 @@ class BurnEntryWrapper extends EntryWrapper {
 
 class IncomingEntryWrapper extends EntryWrapper {
   final String from;
-  final List<({int amount, String asset, Map<String, dynamic>? extraData})>
+  final List<({BigInt amount, String asset, Map<String, dynamic>? extraData})>
   transfers;
 
   const IncomingEntryWrapper({required this.from, required this.transfers});
 }
 
 class OutgoingEntryWrapper extends EntryWrapper {
-  final int nonce;
-  final int fee;
+  final BigInt nonce;
+  final BigInt fee;
   final List<
     ({
       String destination,
-      int amount,
+      BigInt amount,
       String asset,
       Map<String, dynamic>? extraData,
     })
@@ -221,16 +204,28 @@ class OutgoingEntryWrapper extends EntryWrapper {
 
 class UnknownEntryWrapper extends EntryWrapper {}
 
-// =============================================================================
+/// Passive history of non-transfer actions. Only exact XEL movements and fees
+/// are projected; this does not enable these actions in Stack's send UI.
+class XelisActionEntryWrapper extends EntryWrapper {
+  const XelisActionEntryWrapper({
+    required this.kind,
+    required this.spent,
+    required this.received,
+    required this.fee,
+    this.nonce,
+  });
 
-// =============================================================================
-// ============== moved from lib_xelis_wallet.dart =============================
+  final String kind;
+  final BigInt spent;
+  final BigInt received;
+  final BigInt fee;
+  final BigInt? nonce;
+}
+
 enum XelisTableSize {
   low,
   full;
 
-  // TODO: add more granular table size management interface
-  // for now, just patching the old system into the new FFI API
   bool get isLow => this == XelisTableSize.low;
 
   static XelisTableSize get platformDefault {
@@ -291,7 +286,7 @@ sealed class Event {
 }
 
 final class NewTopoheight extends Event {
-  final int height;
+  final BigInt height;
 
   const NewTopoheight(this.height);
 }
@@ -317,13 +312,13 @@ final class NewTransaction extends Event {
 final class BalanceChanged extends Event {
   // final xelis_sdk.BalanceChangedEvent event;
   final String asset;
-  final int balance;
+  final BigInt balance;
 
   const BalanceChanged(this.asset, this.balance);
 }
 
 final class Rescan extends Event {
-  final int startTopoheight;
+  final BigInt startTopoheight;
 
   const Rescan(this.startTopoheight);
 }
@@ -337,8 +332,22 @@ final class Offline extends Event {
 }
 
 final class HistorySynced extends Event {
-  final int topoheight;
+  final BigInt topoheight;
   const HistorySynced(this.topoheight);
 }
 
-// =============================================================================
+final class XelisStateInvalidated extends Event {
+  const XelisStateInvalidated({this.failure});
+  final Object? failure;
+}
+
+final class XelisSyncIssue extends Event {
+  const XelisSyncIssue(this.failure);
+  final Object failure;
+}
+
+final class XelisChannelClosed extends Event {
+  const XelisChannelClosed(this.failure, {required this.isRuntime});
+  final Object failure;
+  final bool isRuntime;
+}

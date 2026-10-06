@@ -167,6 +167,10 @@ abstract class Wallet<T extends CryptoCurrency> {
       prefs: prefs,
     );
 
+    if (wallet is XelisWallet) {
+      wallet.allowNewWallet = mnemonic == null;
+    }
+
     if (wallet is ViewOnlyOptionInterface && walletInfo.isViewOnly) {
       await secureStorageInterface.write(
         key: getViewOnlyWalletDataSecStoreKey(walletId: walletInfo.walletId),
@@ -496,6 +500,10 @@ abstract class Wallet<T extends CryptoCurrency> {
   /// Broadcast transaction to network. On success update local wallet state to
   /// reflect updated balance, transactions, utxos, etc.
   Future<TxData> confirmSend({required TxData txData});
+
+  /// Releases a preparation when its review is abandoned. Wallets whose
+  /// preparations own native resources override this lifecycle hook.
+  Future<void> cancelSend({required TxData txData}) async {}
 
   /// Recover a wallet by scanning the blockchain. If called on a new wallet a
   /// normal recovery should occur. When called on an existing wallet and
