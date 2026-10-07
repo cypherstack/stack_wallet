@@ -24,10 +24,7 @@ class AddressTag extends StatelessWidget {
   Widget build(BuildContext context) {
     return RoundedContainer(
       radiusMultiplier: 0.5,
-      padding: const EdgeInsets.symmetric(
-        vertical: 5,
-        horizontal: 7,
-      ),
+      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 7),
       color: Theme.of(context).extension<StackColors>()!.buttonBackPrimary,
       child: Text(
         tag.capitalize(),
