@@ -91,10 +91,13 @@ class StartHeightPicker extends StatefulWidget {
       } else if (coin is Salvium) {
         height = csSalvium.getHeightByDate(date);
       } else if (coin is Epiccash || coin is Mimblewimblecoin) {
-        // Epic Cash and Mimblewimblecoin share a genesis timestamp and target
-        // block time. Seconds per block is deliberately overestimated so the
-        // result scans from slightly too early rather than skipping history.
-        const genesisEpochSeconds = 1565370278;
+        // Epic Cash and Mimblewimblecoin share a target block time but not a
+        // genesis timestamp. Seconds per block is deliberately overestimated
+        // so the result scans from slightly too early rather than skipping
+        // history.
+        final genesisEpochSeconds = coin is Epiccash
+            ? Epiccash.genesisBlockTime
+            : Mimblewimblecoin.genesisBlockTime;
         const overestimatedSecondsPerBlock = 61;
         height =
             (date.millisecondsSinceEpoch ~/ 1000 - genesisEpochSeconds) ~/

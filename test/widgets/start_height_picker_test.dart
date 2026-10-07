@@ -51,12 +51,23 @@ void main() {
   });
 
   group("StartHeightPicker.heightFromDate", () {
-    test("Mimblewimblecoin gets the same estimate Epic Cash does", () {
+    test("Epic Cash and Mimblewimblecoin count from their own genesis", () {
       final date = DateTime.utc(2024, 6, 1);
-      final height = StartHeightPicker.heightFromDate(mwc, date);
-      expect(height, isNotNull);
-      expect(height, greaterThan(0));
-      expect(height, StartHeightPicker.heightFromDate(epic, date));
+      final seconds = date.millisecondsSinceEpoch ~/ 1000;
+      expect(
+        StartHeightPicker.heightFromDate(epic, date),
+        (seconds - Epiccash.genesisBlockTime) ~/ 61,
+      );
+      expect(
+        StartHeightPicker.heightFromDate(mwc, date),
+        (seconds - Mimblewimblecoin.genesisBlockTime) ~/ 61,
+      );
+    });
+
+    test("a date before the MWC genesis maps to zero for MWC only", () {
+      final date = DateTime.utc(2019, 9, 1);
+      expect(StartHeightPicker.heightFromDate(mwc, date), 0);
+      expect(StartHeightPicker.heightFromDate(epic, date), greaterThan(0));
     });
 
     test("clamps dates before the genesis block to zero", () {
