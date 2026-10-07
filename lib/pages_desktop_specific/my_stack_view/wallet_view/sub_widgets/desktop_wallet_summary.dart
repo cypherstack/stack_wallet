@@ -182,9 +182,9 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
                   SelectableText(
                     "${Amount.fromDecimal(price.value * balanceToShow.decimal, fractionDigits: 2).fiatString(locale: locale)} $baseCurrency",
                     style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textSubtitle1,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textSubtitle1,
                     ),
                   ),
                 // if (coin is Firo)

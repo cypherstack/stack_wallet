@@ -78,53 +78,51 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
     }
     return ConditionalParent(
       condition: Util.isDesktop,
-      builder:
-          (child) => MouseRegion(
-            cursor: SystemMouseCursors.click,
-            onEnter: (_) {
-              setState(() {
-                _hovering = true;
-              });
-            },
-            onExit: (_) {
-              setState(() {
-                _hovering = false;
-              });
-            },
-            child: AnimatedScale(
-              duration: const Duration(milliseconds: 200),
-              scale: _hovering ? 1.05 : 1,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                decoration:
-                    _hovering
-                        ? BoxDecoration(
-                          color: Colors.transparent,
-                          borderRadius: BorderRadius.circular(
-                            Constants.size.circularBorderRadius,
-                          ),
-                          boxShadow: [
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.standardBoxShadow,
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.standardBoxShadow,
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.standardBoxShadow,
-                          ],
-                        )
-                        : BoxDecoration(
-                          color: Colors.transparent,
-                          borderRadius: BorderRadius.circular(
-                            Constants.size.circularBorderRadius,
-                          ),
-                        ),
-                child: child,
-              ),
-            ),
+      builder: (child) => MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) {
+          setState(() {
+            _hovering = true;
+          });
+        },
+        onExit: (_) {
+          setState(() {
+            _hovering = false;
+          });
+        },
+        child: AnimatedScale(
+          duration: const Duration(milliseconds: 200),
+          scale: _hovering ? 1.05 : 1,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            decoration: _hovering
+                ? BoxDecoration(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
+                    ),
+                    boxShadow: [
+                      Theme.of(context)
+                          .extension<StackColors>()!
+                          .standardBoxShadow,
+                      Theme.of(context)
+                          .extension<StackColors>()!
+                          .standardBoxShadow,
+                      Theme.of(context)
+                          .extension<StackColors>()!
+                          .standardBoxShadow,
+                    ],
+                  )
+                : BoxDecoration(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
+                    ),
+                  ),
+            child: child,
           ),
+        ),
+      ),
       child: GestureDetector(
         onTap: () async {
           final wallet = ref.read(pWallets).getWallet(walletId);
@@ -159,13 +157,11 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
 
           if (mounted) {
             if (Util.isDesktop) {
-              await Navigator.of(
-                context,
-              ).pushNamed(DesktopWalletView.routeName, arguments: walletId);
+              await Navigator.of(context)
+                  .pushNamed(DesktopWalletView.routeName, arguments: walletId);
             } else {
-              await Navigator.of(
-                context,
-              ).pushNamed(WalletView.routeName, arguments: walletId);
+              await Navigator.of(context)
+                  .pushNamed(WalletView.routeName, arguments: walletId);
             }
           }
         },
@@ -193,10 +189,9 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                           child: Text(
                             ref.watch(pWalletName(walletId)),
                             style: STextStyles.itemSubtitle12(context).copyWith(
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.textFavoriteCard,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFavoriteCard,
                             ),
                             overflow: TextOverflow.fade,
                           ),
@@ -215,15 +210,18 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
 
                       Amount total = balance.total;
                       if (coin is Firo) {
-                        total +=
-                            ref.watch(pWalletBalanceSecondary(walletId)).total;
-                        total +=
-                            ref.watch(pWalletBalanceTertiary(walletId)).total;
+                        total += ref
+                            .watch(pWalletBalanceSecondary(walletId))
+                            .total;
+                        total += ref
+                            .watch(pWalletBalanceTertiary(walletId))
+                            .total;
                       } else if (ref.watch(
                         pWalletInfo(walletId).select((s) => s.isMwebEnabled),
                       )) {
-                        total +=
-                            ref.watch(pWalletBalanceSecondary(walletId)).total;
+                        total += ref
+                            .watch(pWalletBalanceSecondary(walletId))
+                            .total;
                       }
 
                       Amount fiatTotal = Amount.zero;
@@ -245,10 +243,9 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                               ref.watch(pAmountFormatter(coin)).format(total),
                               style: STextStyles.titleBold12(context).copyWith(
                                 fontSize: 16,
-                                color:
-                                    Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textFavoriteCard,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textFavoriteCard,
                               ),
                             ),
                           ),
@@ -257,15 +254,13 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                           if (externalCalls && price != null)
                             Text(
                               "${fiatTotal.fiatString(locale: ref.watch(localeServiceChangeNotifierProvider.select((value) => value.locale)))} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
-                              style: STextStyles.itemSubtitle12(
-                                context,
-                              ).copyWith(
-                                fontSize: 10,
-                                color:
-                                    Theme.of(context)
+                              style: STextStyles.itemSubtitle12(context)
+                                  .copyWith(
+                                    fontSize: 10,
+                                    color: Theme.of(context)
                                         .extension<StackColors>()!
                                         .textFavoriteCard,
-                              ),
+                                  ),
                             ),
                         ],
                       );

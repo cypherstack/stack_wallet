@@ -86,14 +86,11 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
     final old = ref.read(tokenServiceStateProvider);
     // exit previous if there is one
     unawaited(old?.exit());
-    ref.read(tokenServiceStateProvider.state).state =
-        Wallet.loadTokenWallet(
-              ethWallet:
-                  ref.read(pWallets).getWallet(widget.walletId)
-                      as EthereumWallet,
-              contract: widget.token,
-            )
-            as EthTokenWallet;
+    ref.read(tokenServiceStateProvider.state).state = Wallet.loadTokenWallet(
+      ethWallet:
+          ref.read(pWallets).getWallet(widget.walletId) as EthereumWallet,
+      contract: widget.token,
+    ) as EthTokenWallet;
 
     final success = await showLoading<bool>(
       whileFuture: _loadTokenWallet(context, ref),
@@ -179,13 +176,12 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
                           Text(
                             widget.token.name,
                             style: isDesktop
-                                ? STextStyles.desktopTextExtraSmall(
-                                    context,
-                                  ).copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.textDark,
-                                  )
+                                ? STextStyles.desktopTextExtraSmall(context)
+                                      .copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textDark,
+                                      )
                                 : STextStyles.titleBold12(context),
                           ),
                           const Spacer(),
@@ -208,13 +204,12 @@ class _MyTokenSelectItemState extends ConsumerState<MyTokenSelectItem> {
                                   tokenContract: widget.token,
                                 ),
                             style: isDesktop
-                                ? STextStyles.desktopTextExtraSmall(
-                                    context,
-                                  ).copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.textDark,
-                                  )
+                                ? STextStyles.desktopTextExtraSmall(context)
+                                      .copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textDark,
+                                      )
                                 : STextStyles.itemSubtitle(context),
                           ),
                         ],

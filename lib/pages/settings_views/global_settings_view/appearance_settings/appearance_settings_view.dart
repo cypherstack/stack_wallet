@@ -59,10 +59,9 @@ class AppearanceSettingsView extends ConsumerWidget {
                             child: Consumer(
                               builder: (_, ref, __) {
                                 return RawMaterialButton(
-                                  splashColor:
-                                      Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.highlight,
+                                  splashColor: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .highlight,
                                   materialTapTargetSize:
                                       MaterialTapTargetSize.shrinkWrap,
                                   shape: RoundedRectangleBorder(
@@ -91,17 +90,19 @@ class AppearanceSettingsView extends ConsumerWidget {
                                           width: 40,
                                           child: DraggableSwitchButton(
                                             isOn: ref.watch(
-                                              prefsChangeNotifierProvider.select(
-                                                (value) =>
-                                                    value.showFavoriteWallets,
-                                              ),
+                                              prefsChangeNotifierProvider
+                                                  .select(
+                                                    (value) => value
+                                                        .showFavoriteWallets,
+                                                  ),
                                             ),
                                             onValueChanged: (newValue) {
                                               ref
-                                                  .read(
-                                                    prefsChangeNotifierProvider,
-                                                  )
-                                                  .showFavoriteWallets = newValue;
+                                                      .read(
+                                                        prefsChangeNotifierProvider,
+                                                      )
+                                                      .showFavoriteWallets =
+                                                  newValue;
                                             },
                                           ),
                                         ),
@@ -142,9 +143,8 @@ class AppearanceSettingsView extends ConsumerWidget {
                                 SecondaryButton(
                                   label: "Add more themes",
                                   onPressed: () {
-                                    Navigator.of(
-                                      context,
-                                    ).pushNamed(ManageThemesView.routeName);
+                                    Navigator.of(context)
+                                        .pushNamed(ManageThemesView.routeName);
                                   },
                                 ),
                               ],
