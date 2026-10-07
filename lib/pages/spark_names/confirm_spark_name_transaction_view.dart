@@ -215,9 +215,9 @@ class _ConfirmSparkNameTransactionViewState
                   child: Text(
                     "Ok",
                     style: STextStyles.button(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
                     ),
                   ),
                   onPressed: () {
@@ -264,13 +264,13 @@ class _ConfirmSparkNameTransactionViewState
       condition: !isDesktop,
       builder: (child) => Background(
         child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             leading: AppBarBackButton(
               onPressed: () async {
                 // if (FocusScope.of(context).hasFocus) {
@@ -477,18 +477,18 @@ class _ConfirmSparkNameTransactionViewState
                 ),
                 child: RoundedWhiteContainer(
                   padding: const EdgeInsets.all(0),
-                  borderColor: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.background,
+                  borderColor: Theme.of(context)
+                      .extension<StackColors>()!
+                      .background,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Container(
                         decoration: BoxDecoration(
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.background,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
                           borderRadius: BorderRadius.only(
                             topLeft: Radius.circular(
                               Constants.size.circularBorderRadius,
@@ -544,9 +544,9 @@ class _ConfirmSparkNameTransactionViewState
                                   STextStyles.desktopTextExtraExtraSmall(
                                     context,
                                   ).copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.textDark,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark,
                                   ),
                             ),
                           ],
@@ -554,9 +554,9 @@ class _ConfirmSparkNameTransactionViewState
                       ),
                       Container(
                         height: 1,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.background,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .background,
                       ),
                       Padding(
                         padding: const EdgeInsets.all(12),
@@ -577,9 +577,9 @@ class _ConfirmSparkNameTransactionViewState
                                   STextStyles.desktopTextExtraExtraSmall(
                                     context,
                                   ).copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.textDark,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark,
                                   ),
                             ),
                           ],
@@ -620,9 +620,9 @@ class _ConfirmSparkNameTransactionViewState
                         focusNode: _noteFocusNode,
                         style: STextStyles.desktopTextExtraSmall(context)
                             .copyWith(
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textFieldActiveText,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFieldActiveText,
                               height: 1.8,
                             ),
                         onChanged: (_) => setState(() {}),
@@ -683,9 +683,9 @@ class _ConfirmSparkNameTransactionViewState
                     horizontal: 16,
                     vertical: 18,
                   ),
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldDefaultBG,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultBG,
                   child: Builder(
                     builder: (context) {
                       final externalCalls = ref.watch(
@@ -751,9 +751,9 @@ class _ConfirmSparkNameTransactionViewState
                     horizontal: 16,
                     vertical: 18,
                   ),
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldDefaultBG,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultBG,
                   child: SelectableText(
                     widget.txData.recipients!.first.address,
                     style: STextStyles.itemSubtitle(context),
@@ -777,9 +777,9 @@ class _ConfirmSparkNameTransactionViewState
                     horizontal: 16,
                     vertical: 18,
                   ),
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldDefaultBG,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultBG,
                   child: SelectableText(
                     ref.watch(pAmountFormatter(coin)).format(fee!),
                     style: STextStyles.itemSubtitle(context),
@@ -806,9 +806,9 @@ class _ConfirmSparkNameTransactionViewState
                     horizontal: 16,
                     vertical: 18,
                   ),
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldDefaultBG,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultBG,
                   child: SelectableText(
                     "~${fee!.raw.toInt() ~/ widget.txData.vSize!}",
                     style: STextStyles.itemSubtitle(context),
@@ -825,22 +825,21 @@ class _ConfirmSparkNameTransactionViewState
                 padding: isDesktop
                     ? const EdgeInsets.symmetric(horizontal: 16, vertical: 18)
                     : const EdgeInsets.all(12),
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.snackBarBackSuccess,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .snackBarBackSuccess,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       isDesktop ? "Total amount to send" : "Total amount",
                       style: isDesktop
-                          ? STextStyles.desktopTextExtraExtraSmall(
-                              context,
-                            ).copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textConfirmTotalAmount,
-                            )
+                          ? STextStyles.desktopTextExtraExtraSmall(context)
+                                .copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textConfirmTotalAmount,
+                                )
                           : STextStyles.titleBold12(context).copyWith(
                               color: Theme.of(context)
                                   .extension<StackColors>()!
@@ -852,13 +851,12 @@ class _ConfirmSparkNameTransactionViewState
                           .watch(pAmountFormatter(coin))
                           .format(amountWithoutChange + fee!),
                       style: isDesktop
-                          ? STextStyles.desktopTextExtraExtraSmall(
-                              context,
-                            ).copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textConfirmTotalAmount,
-                            )
+                          ? STextStyles.desktopTextExtraExtraSmall(context)
+                                .copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textConfirmTotalAmount,
+                                )
                           : STextStyles.itemSubtitle12(context).copyWith(
                               color: Theme.of(context)
                                   .extension<StackColors>()!
