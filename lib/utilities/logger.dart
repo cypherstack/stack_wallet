@@ -29,6 +29,8 @@ class Logging {
 
   late final String logsDirPath;
 
+  bool _reportingSendFailure = false;
+
   SendPort get _sendPort {
     final port = IsolateNameServer.lookupPortByName(_kLoggerPortName);
     if (port == null) {
@@ -151,7 +153,26 @@ class Logging {
         toFile,
       ));
     } catch (e, s) {
-      t("Isolates suck", error: e, stackTrace: s);
+      // If reporting a failed send fails as well (e.g. the logger isolate
+      // is gone), let the outer call print instead of logging again, which
+      // would recurse until the stack overflows.
+      if (_reportingSendFailure) rethrow;
+      _reportingSendFailure = true;
+      try {
+        t("Isolates suck", error: e, stackTrace: s);
+      } catch (_) {
+        try {
+          // ignore: avoid_print
+          print(
+            "${level.name} [$time] $message"
+            ", ERROR: $error"
+            ", STRACE: $stackTrace"
+            ", LOGGING FAILED: $e",
+          );
+        } catch (_) {}
+      } finally {
+        _reportingSendFailure = false;
+      }
     }
   }
 
