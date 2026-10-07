@@ -577,7 +577,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                               .state,
                                         )
                                         .state;
+                                    final payInDecimal = model.payInDecimal;
                                     if (tuple == null ||
+                                        payInDecimal == null ||
                                         model.sendTicker.toLowerCase() !=
                                             tuple.item2.ticker.toLowerCase()) {
                                       return const SizedBox.shrink();
@@ -585,7 +587,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                                     return ExchangeCoinControlSelector(
                                       key: ValueKey(tuple.item1),
                                       walletId: tuple.item1,
-                                      amount: model.sendAmount.toAmount(
+                                      amount: payInDecimal.toAmount(
                                         fractionDigits:
                                             tuple.item2.fractionDigits,
                                       ),
