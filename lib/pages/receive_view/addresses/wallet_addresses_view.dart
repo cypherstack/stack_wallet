@@ -199,6 +199,7 @@ class _WalletAddressesViewState extends ConsumerState<WalletAddressesView> {
                   itemCount: addressIds.length,
                   separatorBuilder: (_, __) => Container(height: 10),
                   itemBuilder: (_, index) => AddressCard(
+                    key: ValueKey(addressIds[index]),
                     walletId: widget.walletId,
                     addressId: addressIds[index],
                     coin: coin,
