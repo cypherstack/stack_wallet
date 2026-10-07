@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_options_view/restore_options_view.dart';
-import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_options_view/sub_widgets/restore_from_date_picker.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/restore_options_view/sub_widgets/restore_options_next_button.dart';
 import 'package:stackwallet/providers/ui/verify_recovery_phrase/mnemonic_word_count_state_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -40,7 +39,7 @@ void main() {
       ),
     );
 
-    expect(find.byType(RestoreFromDatePicker), findsNothing);
+    expect(find.text("Choose start date"), findsNothing);
     expect(find.text("Block height"), findsOneWidget);
     expect(
       tester
