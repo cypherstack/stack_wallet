@@ -141,4 +141,24 @@ void main() {
     expect(wallet.feeFetches, 2);
     expect(find.byType(DesktopFeeItem), findsOneWidget);
   });
+
+  testWidgets("the amount is kept while no fee estimate is shown", (
+    tester,
+  ) async {
+    final wallet = _FeeWallet(failingFetches: 1);
+    final rebuild = await _pumpForm(tester, wallet);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(DesktopSendFeeForm)),
+    );
+    final amount = Amount(rawValue: BigInt.from(22000), fractionDigits: 8);
+    container.read(sendAmountProvider.notifier).state = amount;
+    await tester.pump();
+
+    rebuild(() {});
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.byType(DesktopFeeItem), findsOneWidget);
+    expect(container.read(sendAmountProvider), amount);
+  });
 }

@@ -108,6 +108,8 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
 
   @override
   Widget build(BuildContext context) {
+    // Keep the send amount alive for the fee estimates.
+    ref.listen(sendAmountProvider, (_, __) {});
     final isCustomFee = ref.watch(feeRateTypeDesktopStateProvider).isCustom;
     final locale = ref.watch(
       localeServiceChangeNotifierProvider.select((value) => value.locale),
