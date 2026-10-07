@@ -46,6 +46,7 @@ import '../../widgets/stack_dialog.dart';
 import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
 import '../pinpad_views/lock_screen_view.dart';
+import '../send_view/sub_widgets/fee_amount_with_rate.dart';
 import '../send_view/sub_widgets/sending_transaction_dialog.dart';
 
 class ConfirmSparkNameTransactionView extends ConsumerStatefulWidget {
@@ -259,6 +260,10 @@ class _ConfirmSparkNameTransactionViewState
 
     final fee = widget.txData.fee;
     final amountWithoutChange = widget.txData.amountWithoutChange!;
+    final feeRateVSize = widget.txData.fee == null ? null : widget.txData.vSize;
+    final feeRateLocale = ref.watch(
+      localeServiceChangeNotifierProvider.select((value) => value.locale),
+    );
 
     return ConditionalParent(
       condition: !isDesktop,
@@ -416,37 +421,29 @@ class _ConfirmSparkNameTransactionViewState
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          "Transaction fee",
-                          style: STextStyles.smallMed12(context),
+                        Expanded(
+                          child: Text(
+                            "Transaction fee",
+                            style: STextStyles.smallMed12(context),
+                          ),
                         ),
-                        SelectableText(
-                          ref.watch(pAmountFormatter(coin)).format(fee!),
-                          style: STextStyles.itemSubtitle12(context),
-                          textAlign: TextAlign.right,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: FeeAmountWithRate(
+                            formattedAmount: ref
+                                .watch(pAmountFormatter(coin))
+                                .format(fee!),
+                            feeSats: fee.raw.toInt(),
+                            vSize: feeRateVSize,
+                            locale: feeRateLocale,
+                            amountStyle: STextStyles.itemSubtitle12(context),
+                            rateStyle: STextStyles.smallMed12(context),
+                            alignment: WrapAlignment.end,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  if (widget.txData.fee != null && widget.txData.vSize != null)
-                    const SizedBox(height: 12),
-                  if (widget.txData.fee != null && widget.txData.vSize != null)
-                    RoundedWhiteContainer(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "sats/vByte",
-                            style: STextStyles.smallMed12(context),
-                          ),
-                          const SizedBox(height: 4),
-                          SelectableText(
-                            "~${fee.raw.toInt() ~/ widget.txData.vSize!}",
-                            style: STextStyles.itemSubtitle12(context),
-                          ),
-                        ],
-                      ),
-                    ),
                   if (widget.txData.note != null &&
                       widget.txData.note!.isNotEmpty)
                     const SizedBox(height: 12),
@@ -780,38 +777,15 @@ class _ConfirmSparkNameTransactionViewState
                   color: Theme.of(context)
                       .extension<StackColors>()!
                       .textFieldDefaultBG,
-                  child: SelectableText(
-                    ref.watch(pAmountFormatter(coin)).format(fee!),
-                    style: STextStyles.itemSubtitle(context),
-                  ),
-                ),
-              ),
-            if (isDesktop &&
-                widget.txData.fee != null &&
-                widget.txData.vSize != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 16, left: 32),
-                child: Text(
-                  "sats/vByte",
-                  style: STextStyles.desktopTextExtraExtraSmall(context),
-                ),
-              ),
-            if (isDesktop &&
-                widget.txData.fee != null &&
-                widget.txData.vSize != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 10, left: 32, right: 32),
-                child: RoundedContainer(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 18,
-                  ),
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .textFieldDefaultBG,
-                  child: SelectableText(
-                    "~${fee!.raw.toInt() ~/ widget.txData.vSize!}",
-                    style: STextStyles.itemSubtitle(context),
+                  child: FeeAmountWithRate(
+                    formattedAmount: ref
+                        .watch(pAmountFormatter(coin))
+                        .format(fee!),
+                    feeSats: fee.raw.toInt(),
+                    vSize: feeRateVSize,
+                    locale: feeRateLocale,
+                    amountStyle: STextStyles.itemSubtitle(context),
+                    rateStyle: STextStyles.desktopTextExtraExtraSmall(context),
                   ),
                 ),
               ),
