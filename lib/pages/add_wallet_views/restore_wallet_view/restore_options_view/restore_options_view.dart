@@ -52,7 +52,12 @@ import 'sub_widgets/restore_from_date_picker.dart';
 import 'sub_widgets/restore_options_next_button.dart';
 import 'sub_widgets/restore_options_platform_layout.dart';
 
-final _pIsUsingDate = StateProvider.autoDispose((_) => true);
+bool _supportsRestoreDate(CryptoCurrency coin) =>
+    coin is! Monero || coin.network == CryptoCurrencyNetwork.main;
+
+final _pIsUsingDate = StateProvider.autoDispose.family<bool, CryptoCurrency>(
+  (_, coin) => _supportsRestoreDate(coin),
+);
 
 class RestoreOptionsView extends ConsumerStatefulWidget {
   const RestoreOptionsView({
@@ -103,7 +108,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
     _blockHeightController.addListener(() {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          if (!ref.read(_pIsUsingDate)) {
+          if (!ref.read(_pIsUsingDate(widget.coin))) {
             setState(() {
               _hasBlockHeight = _blockHeightController.text.isNotEmpty;
             });
@@ -138,7 +143,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
 
       if (mounted) {
         int height = 0;
-        if (ref.read(_pIsUsingDate)) {
+        if (ref.read(_pIsUsingDate(widget.coin))) {
           height = getBlockHeightFromDate(_restoreFromDate);
         } else {
           height = int.tryParse(_blockHeightController.text) ?? 0;
@@ -213,7 +218,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
     try {
       int height = 0;
       if (date != null) {
-        if (widget.coin is Monero) {
+        if (widget.coin is Monero && _supportsRestoreDate(widget.coin)) {
           height = csMonero.getHeightByDate(date);
         }
         if (widget.coin is Wownero) {
@@ -357,7 +362,12 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
               SizedBox(height: isDesktop ? 32 : 12),
               RestoreOptionsNextButton(
                 isDesktop: isDesktop,
-                onPressed: ref.watch(_pIsUsingDate) || _hasBlockHeight
+                onPressed:
+                    (!_showViewOnlyOption &&
+                            coin is CryptonoteCurrency &&
+                            ref.watch(mnemonicWordCountStateProvider) != 25) ||
+                        ref.watch(_pIsUsingDate(widget.coin)) ||
+                        _hasBlockHeight
                     ? nextPressed
                     : null,
               ),
@@ -430,7 +440,9 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                ref.watch(_pIsUsingDate) ? "Choose start date" : "Block height",
+                ref.watch(_pIsUsingDate(widget.coin))
+                    ? "Choose start date"
+                    : "Block height",
                 style: Util.isDesktop
                     ? STextStyles.desktopTextExtraSmall(context).copyWith(
                         color: Theme.of(context)
@@ -440,14 +452,15 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                     : STextStyles.smallMed12(context),
                 textAlign: TextAlign.left,
               ),
-              CustomTextButton(
-                text: ref.watch(_pIsUsingDate)
-                    ? "Use block height"
-                    : "Use date",
-                onTap: () => ref.read(_pIsUsingDate.notifier).state = !ref.read(
-                  _pIsUsingDate,
+              if (_supportsRestoreDate(widget.coin))
+                CustomTextButton(
+                  text: ref.watch(_pIsUsingDate(widget.coin))
+                      ? "Use block height"
+                      : "Use date",
+                  onTap: () =>
+                      ref.read(_pIsUsingDate(widget.coin).notifier).state = !ref
+                          .read(_pIsUsingDate(widget.coin)),
                 ),
-              ),
             ],
           ),
         if (isCnAnd25 ||
@@ -457,7 +470,7 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
         if (isCnAnd25 ||
             widget.coin is Epiccash ||
             widget.coin is Mimblewimblecoin)
-          ref.watch(_pIsUsingDate)
+          ref.watch(_pIsUsingDate(widget.coin))
               ? RestoreFromDatePicker(
                   onTap: widget.dateChooserFunction,
                   controller: widget.dateController,
@@ -520,7 +533,7 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
           RoundedWhiteContainer(
             child: Center(
               child: Text(
-                ref.watch(_pIsUsingDate)
+                ref.watch(_pIsUsingDate(widget.coin))
                     ? "Choose the date you made the wallet (approximate is fine)"
                     : "Enter the initial block height of the wallet",
                 style: Util.isDesktop
@@ -791,7 +804,9 @@ class _ViewOnlyRestoreOptionState extends ConsumerState<ViewOnlyRestoreOption> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                ref.watch(_pIsUsingDate) ? "Choose start date" : "Block height",
+                ref.watch(_pIsUsingDate(widget.coin))
+                    ? "Choose start date"
+                    : "Block height",
                 style: Util.isDesktop
                     ? STextStyles.desktopTextExtraExtraSmall(context).copyWith(
                         color: Theme.of(context)
@@ -801,21 +816,21 @@ class _ViewOnlyRestoreOptionState extends ConsumerState<ViewOnlyRestoreOption> {
                     : STextStyles.smallMed12(context),
                 textAlign: TextAlign.left,
               ),
-              CustomTextButton(
-                text: ref.watch(_pIsUsingDate)
-                    ? "Use block height"
-                    : "Use date",
-                onTap: () {
-                  ref.read(_pIsUsingDate.notifier).state = !ref.read(
-                    _pIsUsingDate,
-                  );
-                },
-              ),
+              if (_supportsRestoreDate(widget.coin))
+                CustomTextButton(
+                  text: ref.watch(_pIsUsingDate(widget.coin))
+                      ? "Use block height"
+                      : "Use date",
+                  onTap: () {
+                    ref.read(_pIsUsingDate(widget.coin).notifier).state = !ref
+                        .read(_pIsUsingDate(widget.coin));
+                  },
+                ),
             ],
           ),
         if (showDateOption) SizedBox(height: Util.isDesktop ? 16 : 8),
         if (showDateOption)
-          ref.watch(_pIsUsingDate)
+          ref.watch(_pIsUsingDate(widget.coin))
               ? RestoreFromDatePicker(
                   onTap: widget.dateChooserFunction,
                   controller: widget.dateController,
@@ -873,7 +888,7 @@ class _ViewOnlyRestoreOptionState extends ConsumerState<ViewOnlyRestoreOption> {
           RoundedWhiteContainer(
             child: Center(
               child: Text(
-                ref.watch(_pIsUsingDate)
+                ref.watch(_pIsUsingDate(widget.coin))
                     ? "Choose the date you made the wallet (approximate is fine)"
                     : "Enter the initial block height of the wallet",
                 style: Util.isDesktop
