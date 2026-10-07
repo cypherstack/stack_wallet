@@ -263,9 +263,8 @@ class _RestoreViewOnlyWalletViewState
 
           if (mounted) {
             if (Util.isDesktop) {
-              Navigator.of(
-                context,
-              ).popUntil(ModalRoute.withName(DesktopHomeView.routeName));
+              Navigator.of(context)
+                  .popUntil(ModalRoute.withName(DesktopHomeView.routeName));
             } else {
               unawaited(
                 Navigator.of(
@@ -406,12 +405,12 @@ class _RestoreViewOnlyWalletViewState
                                 if (widget.coin is Firo)
                                   isDesktop ? "Spark View Key" : "View Key",
                               ],
-                              onColor: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.popupBG,
-                              offColor: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textFieldDefaultBG,
+                              onColor: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .popupBG,
+                              offColor: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFieldDefaultBG,
                               selectedIndex: _walletType.index - 1,
                               onValueChanged: (value) {
                                 setState(() {

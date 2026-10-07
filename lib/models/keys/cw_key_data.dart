@@ -8,11 +8,11 @@ class CWKeyData with KeyDataInterface {
     required String? publicSpendKey,
     required String? publicViewKey,
   }) : keys = List.unmodifiable([
-          (label: "Public View Key", key: publicViewKey),
-          (label: "Private View Key", key: privateViewKey),
-          (label: "Public Spend Key", key: publicSpendKey),
-          (label: "Private Spend Key", key: privateSpendKey),
-        ]);
+         (label: "Public View Key", key: publicViewKey),
+         (label: "Private View Key", key: privateViewKey),
+         (label: "Public Spend Key", key: publicSpendKey),
+         (label: "Private Spend Key", key: privateSpendKey),
+       ]);
 
   @override
   final String walletId;

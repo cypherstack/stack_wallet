@@ -131,9 +131,9 @@ class _DeleteWalletKeysPopup extends ConsumerState<DeleteWalletKeysPopup> {
               child: MnemonicTable(
                 words: widget.words,
                 isDesktop: true,
-                itemBorderColor: Theme.of(
-                  context,
-                ).extension<StackColors>()!.buttonBackSecondary,
+                itemBorderColor: Theme.of(context)
+                    .extension<StackColors>()!
+                    .buttonBackSecondary,
               ),
             ),
           ),

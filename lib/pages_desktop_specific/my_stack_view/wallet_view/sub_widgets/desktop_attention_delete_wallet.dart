@@ -74,18 +74,18 @@ class _DesktopAttentionDeleteWallet
                 Text("Attention!", style: STextStyles.desktopH2(context)),
                 const SizedBox(height: 16),
                 RoundedContainer(
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.snackBarBackError,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .snackBarBackError,
                   child: Padding(
                     padding: const EdgeInsets.all(10.0),
                     child: Text(
                       _deleteWarning,
                       style: STextStyles.desktopTextExtraExtraSmall(context)
                           .copyWith(
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.snackBarTextError,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .snackBarTextError,
                           ),
                     ),
                   ),
