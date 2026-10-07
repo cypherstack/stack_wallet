@@ -18,6 +18,10 @@ Future<void> _copyTree(Directory source, Directory destination) async {
 
 // What a rename from the legacy bind mount fails with inside Flatpak.
 Future<void> _crossDeviceRename(Directory source, String destination) async {
+  if (source.path.endsWith(".migrating")) {
+    await source.rename(destination);
+    return;
+  }
   throw FileSystemException(
     "Rename failed",
     source.path,
@@ -134,6 +138,54 @@ void main() {
     expect(await legacy.exists(), isFalse);
     expect(await Directory("${result.path}.migrating").exists(), isFalse);
   });
+
+  for (final published in [false, true]) {
+    test("resumes interrupted publication (published: $published)", () async {
+      final env = environment();
+      final legacy = Directory(path.join(env["HOME"]!, ".stackwallet"));
+      final wallet = File(path.join(legacy.path, "wallet"));
+      await legacy.create(recursive: true);
+      await wallet.writeAsString("keys");
+      final destination = path.join(env["XDG_DATA_HOME"]!, "stackwallet");
+
+      await FlatpakDataDirectory.resolve(
+        environment: env,
+        appDirectoryName: "stackwallet",
+        renameDirectory: (source, target) async {
+          if (source.path == legacy.path) {
+            return _crossDeviceRename(source, target);
+          }
+          expect(
+            await File(
+              path.join(legacy.path, FlatpakDataDirectory.legacyRemovalMarker),
+            ).exists(),
+            isTrue,
+          );
+          if (published) await source.rename(target);
+          throw const FileSystemException("interrupted publication");
+        },
+      );
+      expect(await wallet.readAsString(), "keys");
+
+      final result = await FlatpakDataDirectory.resolve(
+        environment: env,
+        appDirectoryName: "stackwallet",
+        renameDirectory: _crossDeviceRename,
+      );
+      expect(result!.path, destination);
+      expect(
+        await File(path.join(destination, "wallet")).readAsString(),
+        "keys",
+      );
+      expect(await legacy.exists(), isFalse);
+      expect(
+        await File(
+          path.join(destination, FlatpakDataDirectory.legacyRemovalMarker),
+        ).exists(),
+        isFalse,
+      );
+    });
+  }
 
   test("keeps legacy data when the copy does not verify", () async {
     final env = environment();

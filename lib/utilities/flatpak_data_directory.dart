@@ -124,7 +124,14 @@ abstract class FlatpakDataDirectory {
       await _verifyDirectoryCopy(legacy, temporary);
       await File(path.join(temporary.path, migrationMarker))
           .writeAsString("complete", flush: true);
-      await temporary.rename(destination.path);
+      final removalMarker = File(path.join(legacy.path, legacyRemovalMarker));
+      await removalMarker.writeAsString("removing", flush: true);
+      final copiedRemovalMarker = File(
+        path.join(temporary.path, legacyRemovalMarker),
+      );
+      if (await copiedRemovalMarker.exists())
+        await copiedRemovalMarker.delete();
+      await renameDirectory(temporary, destination.path);
       // Leave no second copy of the wallet data behind, e.g. one that a
       // desktop reset of the new root would not remove.
       await _removeLegacy(legacy, onError);
