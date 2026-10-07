@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../utilities/assets.dart';
 import '../../../../../utilities/text_styles.dart';
@@ -61,18 +62,14 @@ class _RestoreFromDatePickerState extends State<RestoreFromDatePicker> {
           suffixIcon: UnconstrainedBox(
             child: Row(
               children: [
-                const SizedBox(
-                  width: 16,
-                ),
+                const SizedBox(width: 16),
                 SvgPicture.asset(
                   Assets.svg.calendar,
                   color: Theme.of(context).extension<StackColors>()!.textDark3,
                   width: 16,
                   height: 16,
                 ),
-                const SizedBox(
-                  width: 12,
-                ),
+                const SizedBox(width: 12),
               ],
             ),
           ),
