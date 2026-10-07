@@ -80,9 +80,9 @@ class _CakePaySendFromViewState extends ConsumerState<CakePaySendFromView> {
       builder: (child) {
         return Background(
           child: Scaffold(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -208,9 +208,9 @@ class _CakePaySendFromCardState extends ConsumerState<_CakePaySendFromCard> {
               child: Text(
                 "Ok",
                 style: STextStyles.button(context).copyWith(
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.buttonTextSecondary,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .buttonTextSecondary,
                 ),
               ),
               onPressed: () => Navigator.of(context).pop(),
@@ -327,9 +327,9 @@ class _CakePaySendFromCardState extends ConsumerState<_CakePaySendFromCard> {
                 child: Text(
                   "Ok",
                   style: STextStyles.button(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.buttonTextSecondary,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .buttonTextSecondary,
                   ),
                 ),
                 onPressed: () => Navigator.of(context).pop(),

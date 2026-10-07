@@ -104,12 +104,12 @@ class _SolTokenSelectItemState extends ConsumerState<SolTokenSelectItem> {
       return;
     }
 
-    ref.read(solanaTokenServiceStateProvider.state).state =
-        Wallet.loadSolTokenWallet(
-              solWallet: solanaWallet,
-              contract: widget.token,
-            )
-            as SolanaTokenWallet;
+    ref
+        .read(solanaTokenServiceStateProvider.state)
+        .state = Wallet.loadSolTokenWallet(
+      solWallet: solanaWallet,
+      contract: widget.token,
+    ) as SolanaTokenWallet;
 
     final success = await showLoading<bool>(
       whileFuture: _loadTokenWallet(context, ref),
@@ -186,26 +186,24 @@ class _SolTokenSelectItemState extends ConsumerState<SolTokenSelectItem> {
                           Text(
                             widget.token.name,
                             style: isDesktop
-                                ? STextStyles.desktopTextExtraSmall(
-                                    context,
-                                  ).copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.textDark,
-                                  )
+                                ? STextStyles.desktopTextExtraSmall(context)
+                                      .copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textDark,
+                                      )
                                 : STextStyles.titleBold12(context),
                           ),
                           const Spacer(),
                           Text(
                             balanceString,
                             style: isDesktop
-                                ? STextStyles.desktopTextExtraSmall(
-                                    context,
-                                  ).copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.textDark,
-                                  )
+                                ? STextStyles.desktopTextExtraSmall(context)
+                                      .copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textDark,
+                                      )
                                 : STextStyles.itemSubtitle(context),
                           ),
                         ],

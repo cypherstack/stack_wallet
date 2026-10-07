@@ -92,8 +92,9 @@ class _DesktopPaynymSendDialogState
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: RoundedWhiteContainer(
-              borderColor:
-                  Theme.of(context).extension<StackColors>()!.background,
+              borderColor: Theme.of(context)
+                  .extension<StackColors>()!
+                  .background,
               // Theme.of(context).extension<StackColors>()!.textSubtitle4,
               child: Row(
                 children: [
@@ -116,10 +117,9 @@ class _DesktopPaynymSendDialogState
                       Text(
                         "Available balance",
                         style: STextStyles.baseXS(context).copyWith(
-                          color:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textSubtitle1,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textSubtitle1,
                         ),
                       ),
                     ],
@@ -146,10 +146,9 @@ class _DesktopPaynymSendDialogState
                           Text(
                             "${(ref.watch(pWalletBalance(widget.walletId)).spendable.decimal * price).toAmount(fractionDigits: 2).fiatString(locale: locale)} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
                             style: STextStyles.baseXS(context).copyWith(
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.textSubtitle1,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textSubtitle1,
                             ),
                             textAlign: TextAlign.right,
                           ),
