@@ -286,9 +286,9 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                 buttonHeight: ButtonHeight.l,
                 icon: SvgPicture.asset(
                   Assets.svg.filter,
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.buttonTextSecondary,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .buttonTextSecondary,
                 ),
                 onPressed: selectCryptocurrency,
               ),
@@ -299,9 +299,9 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                 buttonHeight: ButtonHeight.l,
                 icon: SvgPicture.asset(
                   Assets.svg.circlePlus,
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.buttonTextPrimary,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .buttonTextPrimary,
                 ),
                 onPressed: newContact,
               ),
@@ -343,9 +343,9 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                           children: [
                             if (i > 0)
                               Container(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.background,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .background,
                                 height: 1,
                               ),
                             Padding(
@@ -414,9 +414,9 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                               children: [
                                 if (i > 0)
                                   Container(
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.background,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .background,
                                     height: 1,
                                   ),
                                 Padding(

@@ -31,14 +31,12 @@ class NotificationCardLayout extends StatelessWidget {
     final colors = Theme.of(context).extension<StackColors>()!;
 
     final TextStyle titleStyle = isDesktop
-        ? STextStyles.desktopTextExtraExtraSmall(
-            context,
-          ).copyWith(color: colors.textDark)
+        ? STextStyles.desktopTextExtraExtraSmall(context)
+              .copyWith(color: colors.textDark)
         : STextStyles.titleBold12(context);
     final TextStyle subStyle = isDesktop
-        ? STextStyles.desktopTextExtraExtraSmall(
-            context,
-          ).copyWith(color: colors.textSubtitle1)
+        ? STextStyles.desktopTextExtraExtraSmall(context)
+              .copyWith(color: colors.textSubtitle1)
         : STextStyles.label(context);
 
     return Stack(

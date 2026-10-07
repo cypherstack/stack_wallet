@@ -432,9 +432,8 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
         );
       }
       if (context.mounted) {
-        await Navigator.of(
-          context,
-        ).pushNamed(ShopInBitOfferView.routeName, arguments: _id);
+        await Navigator.of(context)
+            .pushNamed(ShopInBitOfferView.routeName, arguments: _id);
       }
     }
 
@@ -443,9 +442,9 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
             padding: .only(bottom: isDesktop ? 12 : 8),
             child: RoundedWhiteContainer(
               borderColor: isDesktop
-                  ? Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultBG
+                  ? Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG
                   : null,
               child: ConditionalParent(
                 condition: Util.isDesktop,
@@ -559,9 +558,9 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
                           ? STextStyles.desktopTextExtraSmall(context)
                           : STextStyles.field(context))
                       .copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textDark,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark,
                       ),
               decoration: InputDecoration(
                 hintText: "Type a message...",
@@ -585,9 +584,9 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
                 Assets.svg.send,
                 width: 24,
                 height: 24,
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.accentColorBlue,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .accentColorBlue,
               ),
             ),
         ],
@@ -600,9 +599,9 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
             padding: EdgeInsets.only(bottom: isDesktop ? 12 : 8),
             child: RoundedWhiteContainer(
               borderColor: isDesktop
-                  ? Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultBG
+                  ? Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG
                   : null,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -698,9 +697,9 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
         condition: !isDesktop,
         builder: (child) => Background(
           child: Scaffold(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () => Navigator.of(context).pop(),

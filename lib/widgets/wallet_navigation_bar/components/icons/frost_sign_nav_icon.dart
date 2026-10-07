@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 
@@ -25,9 +26,7 @@ class FrostSignNavIcon extends ConsumerWidget {
             .extension<StackColors>()!
             .bottomNavIconIcon
             .withOpacity(0.4),
-        borderRadius: BorderRadius.circular(
-          24,
-        ),
+        borderRadius: BorderRadius.circular(24),
       ),
       child: Padding(
         padding: const EdgeInsets.all(6.0),

@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../themes/stack_colors.dart';
 
 class STextStyles {
@@ -467,7 +468,7 @@ class STextStyles {
     }
   }
 
-// Desktop
+  // Desktop
 
   static TextStyle desktopH1(BuildContext context) {
     switch (_theme(context).themeId) {

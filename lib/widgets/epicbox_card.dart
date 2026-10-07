@@ -107,18 +107,18 @@ class _EpicBoxCardState extends ConsumerState<EpicBoxCard> {
       status = "Testing...";
     } else if (_testResult == true) {
       status = isPrimary ? "Connected" : "Reachable";
-      statusColor = Theme.of(
-        context,
-      ).extension<StackColors>()!.accentColorGreen;
+      statusColor = Theme.of(context)
+          .extension<StackColors>()!
+          .accentColorGreen;
     } else if (_testResult == false) {
       status = "Unreachable";
       statusColor = Theme.of(context).extension<StackColors>()!.accentColorRed;
     } else {
       status = isPrimary ? "Selected" : "";
       if (isPrimary) {
-        statusColor = Theme.of(
-          context,
-        ).extension<StackColors>()!.accentColorBlue;
+        statusColor = Theme.of(context)
+            .extension<StackColors>()!
+            .accentColorBlue;
       }
     }
 
@@ -142,9 +142,9 @@ class _EpicBoxCardState extends ConsumerState<EpicBoxCard> {
                 height: isDesktop ? 40 : 24,
                 decoration: BoxDecoration(
                   color: epicBox.isDefault
-                      ? Theme.of(
-                          context,
-                        ).extension<StackColors>()!.buttonBackSecondary
+                      ? Theme.of(context)
+                            .extension<StackColors>()!
+                            .buttonBackSecondary
                       : Theme.of(context)
                             .extension<StackColors>()!
                             .infoItemIcons
@@ -157,12 +157,12 @@ class _EpicBoxCardState extends ConsumerState<EpicBoxCard> {
                     height: isDesktop ? 18 : 11,
                     width: isDesktop ? 20 : 14,
                     color: epicBox.isDefault
-                        ? Theme.of(
-                            context,
-                          ).extension<StackColors>()!.accentColorDark
-                        : Theme.of(
-                            context,
-                          ).extension<StackColors>()!.infoItemIcons,
+                        ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorDark
+                        : Theme.of(context)
+                              .extension<StackColors>()!
+                              .infoItemIcons,
                   ),
                 ),
               ),
@@ -191,9 +191,9 @@ class _EpicBoxCardState extends ConsumerState<EpicBoxCard> {
                     : Assets.svg.chevronDown,
                 width: 12,
                 height: 6,
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textSubtitle1,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textSubtitle1,
               ),
             ],
           ),
