@@ -306,9 +306,9 @@ class _HomeViewState extends ConsumerState<HomeView> {
           key: _key,
           appBar: AppBar(
             automaticallyImplyLeading: false,
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.backgroundAppBar,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .backgroundAppBar,
             title: Row(
               children: [
                 GestureDetector(
@@ -343,11 +343,10 @@ class _HomeViewState extends ConsumerState<HomeView> {
                     key: const Key("walletsViewAlertsButton"),
                     size: 36,
                     shadows: const [],
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.backgroundAppBar,
-                    icon:
-                        ref.watch(pAnyGlobalUnreadNotifications)
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .backgroundAppBar,
+                    icon: ref.watch(pAnyGlobalUnreadNotifications)
                         ? SvgPicture.file(
                             File(
                               ref.watch(
@@ -358,60 +357,58 @@ class _HomeViewState extends ConsumerState<HomeView> {
                             ),
                             width: 20,
                             height: 20,
-                            color:
-                                ref.watch(pAnyGlobalUnreadNotifications)
+                            color: ref.watch(pAnyGlobalUnreadNotifications)
                                 ? null
-                                : Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.topNavIconPrimary,
+                                : Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .topNavIconPrimary,
                           )
                         : SvgPicture.asset(
                             Assets.svg.bell,
                             width: 20,
                             height: 20,
-                            color:
-                                ref.watch(pAnyGlobalUnreadNotifications)
+                            color: ref.watch(pAnyGlobalUnreadNotifications)
                                 ? null
-                                : Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.topNavIconPrimary,
+                                : Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .topNavIconPrimary,
                           ),
                     onPressed: () {
                       // reset unread state
                       ref.refresh(unreadNotificationsStateProvider);
 
-                      Navigator.of(
-                        context,
-                      ).pushNamed(NotificationsView.routeName).then((_) {
-                        final Set<int> unreadNotificationIds = ref
-                            .read(unreadNotificationsStateProvider.state)
-                            .state;
-                        if (unreadNotificationIds.isEmpty) return;
+                      Navigator.of(context)
+                          .pushNamed(NotificationsView.routeName)
+                          .then((_) {
+                            final Set<int> unreadNotificationIds = ref
+                                .read(unreadNotificationsStateProvider.state)
+                                .state;
+                            if (unreadNotificationIds.isEmpty) return;
 
-                        final List<Future<void>> futures = [];
-                        for (
-                          int i = 0;
-                          i < unreadNotificationIds.length - 1;
-                          i++
-                        ) {
-                          futures.add(
-                            ref
-                                .read(notificationsProvider)
-                                .markAsRead(
-                                  unreadNotificationIds.elementAt(i),
-                                  false,
-                                ),
-                          );
-                        }
+                            final List<Future<void>> futures = [];
+                            for (
+                              int i = 0;
+                              i < unreadNotificationIds.length - 1;
+                              i++
+                            ) {
+                              futures.add(
+                                ref
+                                    .read(notificationsProvider)
+                                    .markAsRead(
+                                      unreadNotificationIds.elementAt(i),
+                                      false,
+                                    ),
+                              );
+                            }
 
-                        // wait for multiple to update if any
-                        Future.wait(futures).then((_) {
-                          // only notify listeners once
-                          ref
-                              .read(notificationsProvider)
-                              .markAsRead(unreadNotificationIds.last, true);
-                        });
-                      });
+                            // wait for multiple to update if any
+                            Future.wait(futures).then((_) {
+                              // only notify listeners once
+                              ref
+                                  .read(notificationsProvider)
+                                  .markAsRead(unreadNotificationIds.last, true);
+                            });
+                          });
                     },
                   ),
                 ),
@@ -425,23 +422,22 @@ class _HomeViewState extends ConsumerState<HomeView> {
                     key: const Key("walletsViewSettingsButton"),
                     size: 36,
                     shadows: const [],
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.backgroundAppBar,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .backgroundAppBar,
                     icon: SvgPicture.asset(
                       Assets.svg.gear,
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.topNavIconPrimary,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .topNavIconPrimary,
                       width: 20,
                       height: 20,
                     ),
                     onPressed: () {
                       //todo: check if print needed
                       // debugPrint("main view settings tapped");
-                      Navigator.of(
-                        context,
-                      ).pushNamed(GlobalSettingsView.routeName);
+                      Navigator.of(context)
+                          .pushNamed(GlobalSettingsView.routeName);
                     },
                   ),
                 ),
@@ -455,9 +451,9 @@ class _HomeViewState extends ConsumerState<HomeView> {
                     ref.watch(prefsChangeNotifierProvider).enableExchange)
                   Container(
                     decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.backgroundAppBar,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .backgroundAppBar,
                       boxShadow:
                           Theme.of(context)
                                   .extension<StackColors>()!

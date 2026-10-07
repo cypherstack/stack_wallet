@@ -21,9 +21,7 @@ import '../../../../../widgets/rounded_container.dart';
 import '../../../../../widgets/stack_dialog.dart';
 
 class CancelStackRestoreDialog extends StatelessWidget {
-  const CancelStackRestoreDialog({
-    super.key,
-  });
+  const CancelStackRestoreDialog({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -34,16 +32,12 @@ class CancelStackRestoreDialog extends StatelessWidget {
       child: !Util.isDesktop
           ? StackDialog(
               title: "Cancel restore process",
-              message:
-                  "Cancelling will revert any changes that may have been applied",
+              message: "Cancelling will revert any changes that may have been applied",
               leftButton: TextButton(
                 style: Theme.of(context)
                     .extension<StackColors>()!
                     .getSecondaryEnabledButtonStyle(context),
-                child: Text(
-                  "Back",
-                  style: STextStyles.itemSubtitle12(context),
-                ),
+                child: Text("Back", style: STextStyles.itemSubtitle12(context)),
                 onPressed: () {
                   Navigator.of(context).pop(false);
                 },

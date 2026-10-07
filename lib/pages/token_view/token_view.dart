@@ -53,10 +53,9 @@ class _TokenViewState extends ConsumerState<TokenView> {
 
   @override
   void initState() {
-    initialSyncStatus =
-        ref.read(pCurrentTokenWallet)!.refreshMutex.isLocked
-            ? WalletSyncStatus.syncing
-            : WalletSyncStatus.synced;
+    initialSyncStatus = ref.read(pCurrentTokenWallet)!.refreshMutex.isLocked
+        ? WalletSyncStatus.syncing
+        : WalletSyncStatus.synced;
     super.initState();
   }
 
@@ -80,8 +79,9 @@ class _TokenViewState extends ConsumerState<TokenView> {
       },
       child: Background(
         child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
             leading: AppBarBackButton(
               onPressed: () {
@@ -135,10 +135,9 @@ class _TokenViewState extends ConsumerState<TokenView> {
                   child: AppBarIconButton(
                     icon: SvgPicture.asset(
                       Assets.svg.verticalEllipsis,
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.topNavIconPrimary,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .topNavIconPrimary,
                     ),
                     onPressed: () {
                       // todo: context menu
@@ -181,10 +180,9 @@ class _TokenViewState extends ConsumerState<TokenView> {
                         Text(
                           "Transactions",
                           style: STextStyles.itemSubtitle(context).copyWith(
-                            color:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textDark3,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark3,
                           ),
                         ),
                         CustomTextButton(

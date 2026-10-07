@@ -62,11 +62,10 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
     unawaited(
       showDialog<void>(
         context: context,
-        builder:
-            (context) => WillPopScope(
-              onWillPop: () async => canPop,
-              child: const LoadingIndicator(width: 200),
-            ),
+        builder: (context) => WillPopScope(
+          onWillPop: () async => canPop,
+          child: const LoadingIndicator(width: 200),
+        ),
       ),
     );
 
@@ -110,47 +109,45 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
       // show info pop up
       await showDialog<void>(
         context: context,
-        builder:
-            (context) => ConfirmPaynymConnectDialog(
-              nymName: widget.accountLite.nymName,
-              locale: ref.read(localeServiceChangeNotifierProvider).locale,
-              onConfirmPressed: () {
-                Navigator.of(context, rootNavigator: true).pop();
-                unawaited(
-                  showDialog(
-                    context: context,
-                    builder:
-                        (context) => DesktopDialog(
-                          maxHeight: MediaQuery.of(context).size.height - 64,
-                          maxWidth: 580,
-                          child: ConfirmTransactionView(
-                            walletId: widget.walletId,
-                            isPaynymNotificationTransaction: true,
-                            txData: preparedTx,
-                            onSuccess: () {
-                              // do nothing extra
-                            },
-                            onSuccessInsteadOfRouteOnSuccess: () {
-                              Navigator.of(context, rootNavigator: true).pop();
-                              Navigator.of(context, rootNavigator: true).pop();
-                              unawaited(
-                                showFloatingFlushBar(
-                                  type: FlushBarType.success,
-                                  message:
-                                      "Connection initiated to ${widget.accountLite.nymName}",
-                                  iconAsset: Assets.svg.copy,
-                                  context: context,
-                                ),
-                              );
-                            },
-                          ),
+        builder: (context) => ConfirmPaynymConnectDialog(
+          nymName: widget.accountLite.nymName,
+          locale: ref.read(localeServiceChangeNotifierProvider).locale,
+          onConfirmPressed: () {
+            Navigator.of(context, rootNavigator: true).pop();
+            unawaited(
+              showDialog(
+                context: context,
+                builder: (context) => DesktopDialog(
+                  maxHeight: MediaQuery.of(context).size.height - 64,
+                  maxWidth: 580,
+                  child: ConfirmTransactionView(
+                    walletId: widget.walletId,
+                    isPaynymNotificationTransaction: true,
+                    txData: preparedTx,
+                    onSuccess: () {
+                      // do nothing extra
+                    },
+                    onSuccessInsteadOfRouteOnSuccess: () {
+                      Navigator.of(context, rootNavigator: true).pop();
+                      Navigator.of(context, rootNavigator: true).pop();
+                      unawaited(
+                        showFloatingFlushBar(
+                          type: FlushBarType.success,
+                          message:
+                              "Connection initiated to ${widget.accountLite.nymName}",
+                          iconAsset: Assets.svg.copy,
+                          context: context,
                         ),
+                      );
+                    },
                   ),
-                );
-              },
-              amount: preparedTx.amount! + preparedTx.fee!,
-              coin: ref.read(pWalletCoin(widget.walletId)),
-            ),
+                ),
+              ),
+            );
+          },
+          amount: preparedTx.amount! + preparedTx.fee!,
+          coin: ref.read(pWalletCoin(widget.walletId)),
+        ),
       );
     }
   }
@@ -158,11 +155,10 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
   Future<void> _onSend() async {
     await showDialog<void>(
       context: context,
-      builder:
-          (context) => DesktopPaynymSendDialog(
-            walletId: widget.walletId,
-            accountLite: widget.accountLite,
-          ),
+      builder: (context) => DesktopPaynymSendDialog(
+        walletId: widget.walletId,
+        accountLite: widget.accountLite,
+      ),
     );
   }
 
@@ -209,14 +205,12 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
                                   const SizedBox(height: 2),
                                   Text(
                                     "Connected",
-                                    style: STextStyles.desktopTextSmall(
-                                      context,
-                                    ).copyWith(
-                                      color:
-                                          Theme.of(context)
+                                    style: STextStyles.desktopTextSmall(context)
+                                        .copyWith(
+                                          color: Theme.of(context)
                                               .extension<StackColors>()!
                                               .accentColorGreen,
-                                    ),
+                                        ),
                                   ),
                                 ],
                               );
@@ -249,10 +243,9 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
                                   Assets.svg.circleArrowUpRight,
                                   width: 16,
                                   height: 16,
-                                  color:
-                                      Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .buttonTextPrimary,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .buttonTextPrimary,
                                 ),
                                 iconSpacing: 6,
                                 onPressed: _onSend,
@@ -265,10 +258,9 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
                                   Assets.svg.circlePlusFilled,
                                   width: 16,
                                   height: 16,
-                                  color:
-                                      Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .buttonTextPrimary,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .buttonTextPrimary,
                                 ),
                                 iconSpacing: 6,
                                 onPressed: _onConnectPressed,
@@ -287,12 +279,14 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
                     kDisableFollowing
                         ? const Spacer()
                         : Expanded(
-                          child: PaynymFollowToggleButton(
-                            walletId: widget.walletId,
-                            paymentCodeStringToFollow: widget.accountLite.code,
-                            style: PaynymFollowToggleButtonStyle.detailsDesktop,
+                            child: PaynymFollowToggleButton(
+                              walletId: widget.walletId,
+                              paymentCodeStringToFollow:
+                                  widget.accountLite.code,
+                              style:
+                                  PaynymFollowToggleButtonStyle.detailsDesktop,
+                            ),
                           ),
-                        ),
                   ],
                 ),
                 if (_showInsufficientFundsInfo)
@@ -301,24 +295,21 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
                     children: [
                       const SizedBox(height: 24),
                       RoundedContainer(
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.warningBackground,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .warningBackground,
                         child: Text(
                           "Adding a PayNym to your contacts requires a one-time "
                           "transaction fee for creating the record on the "
                           "blockchain. Please deposit more "
                           "${ref.watch(pWalletCoin(widget.walletId)).ticker} "
                           "into your wallet and try again.",
-                          style: STextStyles.desktopTextExtraExtraSmall(
-                            context,
-                          ).copyWith(
-                            color:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.warningForeground,
-                          ),
+                          style: STextStyles.desktopTextExtraExtraSmall(context)
+                              .copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .warningForeground,
+                              ),
                         ),
                       ),
                     ],
@@ -348,14 +339,12 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
                         constraints: const BoxConstraints(minHeight: 100),
                         child: Text(
                           widget.accountLite.code,
-                          style: STextStyles.desktopTextExtraExtraSmall(
-                            context,
-                          ).copyWith(
-                            color:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textDark,
-                          ),
+                          style: STextStyles.desktopTextExtraExtraSmall(context)
+                              .copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark,
+                              ),
                         ),
                       ),
                     ),

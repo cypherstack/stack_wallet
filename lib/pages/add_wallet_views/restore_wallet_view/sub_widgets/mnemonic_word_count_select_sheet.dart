@@ -49,10 +49,9 @@ class MnemonicWordCountSelectSheet extends ConsumerWidget {
                 Center(
                   child: Container(
                     decoration: BoxDecoration(
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.textFieldDefaultBG,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldDefaultBG,
                       borderRadius: BorderRadius.circular(
                         Constants.size.circularBorderRadius,
                       ),
@@ -79,16 +78,16 @@ class MnemonicWordCountSelectSheet extends ConsumerWidget {
                         children: [
                           GestureDetector(
                             onTap: () {
-                              final state =
-                                  ref
-                                      .read(
-                                        mnemonicWordCountStateProvider.state,
-                                      )
-                                      .state;
+                              final state = ref
+                                  .read(mnemonicWordCountStateProvider.state)
+                                  .state;
                               if (state != lengthOptions[i]) {
                                 ref
-                                    .read(mnemonicWordCountStateProvider.state)
-                                    .state = lengthOptions[i];
+                                        .read(
+                                          mnemonicWordCountStateProvider.state,
+                                        )
+                                        .state =
+                                    lengthOptions[i];
                               }
 
                               Navigator.of(context).pop();
@@ -105,25 +104,24 @@ class MnemonicWordCountSelectSheet extends ConsumerWidget {
                                     width: 20,
                                     height: 20,
                                     child: Radio(
-                                      activeColor:
-                                          Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .radioButtonIconEnabled,
+                                      activeColor: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .radioButtonIconEnabled,
                                       value: lengthOptions[i],
-                                      groupValue:
-                                          ref
-                                              .watch(
-                                                mnemonicWordCountStateProvider
-                                                    .state,
-                                              )
-                                              .state,
+                                      groupValue: ref
+                                          .watch(
+                                            mnemonicWordCountStateProvider
+                                                .state,
+                                          )
+                                          .state,
                                       onChanged: (x) {
                                         ref
-                                            .read(
-                                              mnemonicWordCountStateProvider
-                                                  .state,
-                                            )
-                                            .state = lengthOptions[i];
+                                                .read(
+                                                  mnemonicWordCountStateProvider
+                                                      .state,
+                                                )
+                                                .state =
+                                            lengthOptions[i];
                                         Navigator.of(context).pop();
                                       },
                                     ),

@@ -16,16 +16,10 @@ import '../../utilities/constants.dart';
 import '../../utilities/extensions/extensions.dart';
 import '../../utilities/text_styles.dart';
 
-enum FusionOption {
-  continuous,
-  custom;
-}
+enum FusionOption { continuous, custom }
 
 class FusionRoundCountSelectSheet extends HookWidget {
-  const FusionRoundCountSelectSheet({
-    super.key,
-    required this.currentOption,
-  });
+  const FusionRoundCountSelectSheet({super.key, required this.currentOption});
 
   final FusionOption currentOption;
 
@@ -41,9 +35,7 @@ class FusionRoundCountSelectSheet extends HookWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).extension<StackColors>()!.popupBG,
-          borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(20),
-          ),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Padding(
           padding: const EdgeInsets.only(
@@ -70,9 +62,7 @@ class FusionRoundCountSelectSheet extends HookWidget {
                   height: 4,
                 ),
               ),
-              const SizedBox(
-                height: 36,
-              ),
+              const SizedBox(height: 36),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -81,9 +71,7 @@ class FusionRoundCountSelectSheet extends HookWidget {
                     style: STextStyles.pageTitleH2(context),
                     textAlign: TextAlign.left,
                   ),
-                  const SizedBox(
-                    height: 20,
-                  ),
+                  const SizedBox(height: 20),
                   for (int i = 0; i < FusionOption.values.length; i++)
                     Column(
                       children: [
@@ -117,9 +105,7 @@ class FusionRoundCountSelectSheet extends HookWidget {
                                 ),
                                 //   ],
                                 // ),
-                                const SizedBox(
-                                  width: 12,
-                                ),
+                                const SizedBox(width: 12),
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -128,9 +114,7 @@ class FusionRoundCountSelectSheet extends HookWidget {
                                       style: STextStyles.titleBold12(context),
                                       textAlign: TextAlign.left,
                                     ),
-                                    const SizedBox(
-                                      height: 2,
-                                    ),
+                                    const SizedBox(height: 2),
                                     Text(
                                       FusionOption.values[i] ==
                                               FusionOption.continuous
@@ -138,10 +122,10 @@ class FusionRoundCountSelectSheet extends HookWidget {
                                           : "Stop after a set number of fusions",
                                       style: STextStyles.itemSubtitle12(context)
                                           .copyWith(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textDark3,
-                                      ),
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textDark3,
+                                          ),
                                       textAlign: TextAlign.left,
                                     ),
                                   ],
@@ -150,14 +134,10 @@ class FusionRoundCountSelectSheet extends HookWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(
-                          height: 16,
-                        ),
+                        const SizedBox(height: 16),
                       ],
                     ),
-                  const SizedBox(
-                    height: 16,
-                  ),
+                  const SizedBox(height: 16),
                 ],
               ),
             ],

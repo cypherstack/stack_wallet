@@ -63,11 +63,7 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
     final wallet = ref.read(pWallets).getWallet(widget.walletId);
     await Navigator.of(context).pushNamed(
       SendView.routeName,
-      arguments: Tuple3(
-        wallet.walletId,
-        wallet.info.coin,
-        widget.accountLite,
-      ),
+      arguments: Tuple3(wallet.walletId, wallet.info.coin, widget.accountLite),
     );
   }
 
@@ -78,9 +74,7 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
         context: context,
         builder: (context) => WillPopScope(
           onWillPop: () async => canPop,
-          child: const LoadingIndicator(
-            width: 200,
-          ),
+          child: const LoadingIndicator(width: 200),
         ),
       ),
     );
@@ -122,10 +116,8 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
 
       await showDialog<void>(
         context: context,
-        builder: (context) => StackOkDialog(
-          title: "Error",
-          message: e.toString(),
-        ),
+        builder: (context) =>
+            StackOkDialog(title: "Error", message: e.toString()),
       );
       return;
     }
@@ -196,9 +188,7 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                           paymentCodeString: widget.accountLite.code,
                           size: 36,
                         ),
-                        const SizedBox(
-                          width: 12,
-                        ),
+                        const SizedBox(width: 12),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -207,8 +197,9 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                               style: STextStyles.w600_14(context),
                             ),
                             FutureBuilder(
-                              future:
-                                  wallet.hasConnected(widget.accountLite.code),
+                              future: wallet.hasConnected(
+                                widget.accountLite.code,
+                              ),
                               builder: (context, AsyncSnapshot<bool> snapshot) {
                                 if (snapshot.connectionState ==
                                         ConnectionState.done &&
@@ -217,17 +208,15 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      const SizedBox(
-                                        height: 2,
-                                      ),
+                                      const SizedBox(height: 2),
                                       Text(
                                         "Connected",
                                         style: STextStyles.w500_12(context)
                                             .copyWith(
-                                          color: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .accentColorGreen,
-                                        ),
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .accentColorGreen,
+                                            ),
                                       ),
                                     ],
                                   );
@@ -292,9 +281,7 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const SizedBox(
-                        height: 24,
-                      ),
+                      const SizedBox(height: 24),
                       RoundedContainer(
                         color: Theme.of(context)
                             .extension<StackColors>()!
@@ -340,13 +327,10 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                       children: [
                         Text(
                           "PayNym address",
-                          style: STextStyles.infoSmall(context).copyWith(
-                            fontSize: 12,
-                          ),
+                          style: STextStyles.infoSmall(context)
+                              .copyWith(fontSize: 12),
                         ),
-                        const SizedBox(
-                          height: 6,
-                        ),
+                        const SizedBox(height: 6),
                         Text(
                           widget.accountLite.code,
                           style: STextStyles.infoSmall(context).copyWith(
@@ -356,16 +340,12 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                             fontSize: 12,
                           ),
                         ),
-                        const SizedBox(
-                          height: 6,
-                        ),
+                        const SizedBox(height: 6),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(
-                  width: 20,
-                ),
+                const SizedBox(width: 20),
                 QR(
                   padding: const EdgeInsets.all(0),
                   size: 100,
@@ -375,11 +355,7 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.only(
-              left: 24,
-              right: 24,
-              bottom: 24,
-            ),
+            padding: const EdgeInsets.only(left: 24, right: 24, bottom: 24),
             child: Row(
               children: [
                 kDisableFollowing
@@ -391,9 +367,7 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                           style: PaynymFollowToggleButtonStyle.detailsPopup,
                         ),
                       ),
-                const SizedBox(
-                  width: 12,
-                ),
+                const SizedBox(width: 12),
                 Expanded(
                   child: SecondaryButton(
                     label: "Copy",
@@ -409,9 +383,7 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                     ),
                     onPressed: () async {
                       await Clipboard.setData(
-                        ClipboardData(
-                          text: widget.accountLite.code,
-                        ),
+                        ClipboardData(text: widget.accountLite.code),
                       );
                       unawaited(
                         showFloatingFlushBar(
