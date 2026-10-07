@@ -69,6 +69,7 @@ import '../wallet_view/wallet_view.dart';
 import 'sub_widgets/epic_slatepack_dialog.dart';
 import 'sub_widgets/mwc_slatepack_dialog.dart';
 import 'sub_widgets/sending_transaction_dialog.dart';
+import 'sub_widgets/split_transaction_warning.dart';
 
 class ConfirmTransactionView extends ConsumerStatefulWidget {
   const ConfirmTransactionView({
@@ -451,7 +452,7 @@ class _ConfirmTransactionViewState
       } else if (wallet is FiroWallet && confirmedTx.sparkSpends != null) {
         txids.addAll(confirmedTx.sparkSpends!.map((e) => e.txid!));
       } else {
-        txids.add(confirmedTx.txid!);
+        txids.addAll(confirmedTx.txids);
       }
       if (coin is! Ethereum) {
         ref.refresh(desktopUseUTXOs);
@@ -1494,6 +1495,15 @@ class _ConfirmTransactionViewState
                       ),
                     ],
                   ),
+                ),
+              ),
+            if (widget.txData.txids.length > 1)
+              Padding(
+                padding: isDesktop
+                    ? const .symmetric(horizontal: 32, vertical: 16)
+                    : const .symmetric(vertical: 8),
+                child: SplitTransactionWarning(
+                  transactionCount: widget.txData.txids.length,
                 ),
               ),
             if (_spendsOrdinal)

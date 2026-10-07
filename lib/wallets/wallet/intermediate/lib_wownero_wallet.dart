@@ -1374,6 +1374,7 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
             return txData.copyWith(
               fee: realFee,
               pendingTransaction: pendingTransaction,
+              txids: pendingTransaction.txids,
             );
           });
         } catch (e) {
@@ -1404,9 +1405,9 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
         await csWownero.commitTx(wallet!, txData.pendingTransaction!);
 
         Logging.instance.d(
-          "transaction ${txData.pendingTransaction!.txid} has been sent",
+          "transactions ${txData.pendingTransaction!.txids} have been sent",
         );
-        return txData.copyWith(txid: txData.pendingTransaction!.txid);
+        return txData.copyWith(txids: txData.pendingTransaction!.txids);
       } catch (e, s) {
         Logging.instance.e(
           "${info.name} ${compatType.name.toLowerCase()} confirmSend: ",
