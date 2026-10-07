@@ -149,12 +149,35 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
     }
 
     final tradesService = ref.read(tradesServiceProvider);
+    final notesService = ref.read(tradeNoteServiceProvider);
+    final lookupService = ref.read(tradeSentFromStackLookupProvider);
     setState(() {});
 
     try {
-      final deleted = await _operationGuard.deleteAfterRefresh(
-        () => tradesService.delete(trade: trade, shouldNotifyListeners: true),
-      );
+      final deleted = await _operationGuard.deleteAfterRefresh(() async {
+        await tradesService.delete(trade: trade, shouldNotifyListeners: true);
+
+        // Notes and txid lookups are keyed by trade id rather than uuid, so
+        // keep them if another copy of this trade is still stored.
+        if (tradesService.trades.any((e) => e.tradeId == trade.tradeId)) {
+          return;
+        }
+        try {
+          await notesService.delete(tradeId: trade.tradeId);
+          final lookups = lookupService.all
+              .where((e) => e.tradeId == trade.tradeId)
+              .toList();
+          for (final lookup in lookups) {
+            await lookupService.delete(tradeWalletLookup: lookup);
+          }
+        } catch (e, s) {
+          Logging.instance.w(
+            "Failed to remove data for deleted trade",
+            error: e,
+            stackTrace: s,
+          );
+        }
+      });
       if (deleted && mounted) {
         // Desktop hosts this view in a nested Navigator that owns a single
         // route; popping that one empties it and leaves the hosting dialog's
