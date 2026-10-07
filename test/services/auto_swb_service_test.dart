@@ -103,6 +103,23 @@ void main() {
     expect(service.status, AutoSWBStatus.idle);
   });
 
+  test('does not run a queued change backup after disabling backups', () async {
+    final firstBackup = Completer<void>();
+    var backups = 0;
+    backupRunner = () async {
+      backups++;
+      if (backups == 1) await firstBackup.future;
+    };
+    final runningBackup = service.doBackup();
+    await _flushTimers();
+    service.requestBackupAfterChange();
+    await _flushTimers();
+    shouldBackup = false;
+    firstBackup.complete();
+    await runningBackup;
+    expect(backups, 1);
+  });
+
   test('recovers after a backup failure', () async {
     var backups = 0;
     backupRunner = () async {

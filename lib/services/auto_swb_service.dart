@@ -26,7 +26,7 @@ enum AutoSWBStatus { idle, backingUp, error }
 class AutoSWBService extends ChangeNotifier {
   Timer? _timer;
   Timer? _debounceTimer;
-  bool _backupPending = false;
+  final _pendingBackups = <bool Function()?>{};
   bool _isDisposed = false;
 
   AutoSWBStatus _status = AutoSWBStatus.idle;
@@ -72,22 +72,23 @@ class AutoSWBService extends ChangeNotifier {
       Logging.instance.d(
         "AutoSWBService.requestBackup() debounce fired, running doBackup()",
       );
-      unawaited(doBackup());
+      unawaited(doBackup(onlyIf: onlyIf));
     });
   }
 
   /// Attempt a backup.
-  Future<void> doBackup() async {
-    if (_isDisposed) return;
+  Future<void> doBackup({bool Function()? onlyIf}) async {
+    if (_isDisposed || !(onlyIf?.call() ?? true)) return;
     if (_status == AutoSWBStatus.backingUp) {
-      _backupPending = true;
+      _pendingBackups.add(onlyIf);
       return;
     }
 
     do {
-      _backupPending = false;
+      _pendingBackups.clear();
       await _doBackupOnce();
-    } while (_backupPending && !_isDisposed);
+    } while (!_isDisposed &&
+        _pendingBackups.any((condition) => condition?.call() ?? true));
   }
 
   Future<void> _doBackupOnce() async {
@@ -232,7 +233,7 @@ class AutoSWBService extends ChangeNotifier {
   @override
   void dispose() {
     _isDisposed = true;
-    _backupPending = false;
+    _pendingBackups.clear();
     _debounceTimer?.cancel();
     _debounceTimer = null;
     stopPeriodicBackupTimer(shouldNotifyListeners: false);
