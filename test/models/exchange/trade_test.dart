@@ -37,6 +37,33 @@ void main() {
       }
     });
 
+    test("recognizes LetsExchange aml_check_failed", () {
+      expect(Trade.isTerminalStatusValue("aml_check_failed"), isTrue);
+      expect(Trade.isTerminalStatusValue("AML-check-failed"), isTrue);
+    });
+
+    test("handles free-form statuses", () {
+      for (final status in [
+        "Not_Found",
+        "Refunded to sender",
+        "Expired: no deposit received",
+        "failed (timeout)",
+      ]) {
+        expect(Trade.isTerminalStatusValue(status), isTrue, reason: status);
+      }
+      for (final status in [
+        "",
+        "Refund pending",
+        "refunding",
+        "Finishing",
+        "Awaiting deposit",
+        "errored-retrying",
+        "successor",
+      ]) {
+        expect(Trade.isTerminalStatusValue(status), isFalse, reason: status);
+      }
+    });
+
     test("exposes terminal status on a trade", () {
       expect(_tradeWithStatus(" Finished ").isTerminalStatus, isTrue);
       expect(_tradeWithStatus("refund").isTerminalStatus, isFalse);
