@@ -209,6 +209,7 @@ class TestMoneroWallet extends MoneroWallet {
   Future<WrappedWallet> loadWallet({
     required String path,
     required String password,
+    int network = 0,
   }) async {
     calls.add("loadWallet");
     return WrappedWallet(fakeNative);

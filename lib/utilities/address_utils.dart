@@ -222,7 +222,9 @@ class AddressUtils {
     // (e.g. "monero") must not be accepted here as a wallet uri; only the
     // "<uriScheme>_wallet" form is valid.
     final possibleCoins = AppConfig.coins.where(
-      (e) => "${e.uriScheme}_wallet" == scheme,
+      (e) =>
+          "${e.uriScheme}_wallet" == scheme &&
+          e.network == CryptoCurrencyNetwork.main,
     );
 
     if (preferredCoin != null &&
