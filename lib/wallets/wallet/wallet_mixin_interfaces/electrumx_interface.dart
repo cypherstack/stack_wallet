@@ -11,6 +11,7 @@ import '../../../db/drift/database.dart';
 import '../../../electrumx_rpc/cached_electrumx_client.dart';
 import '../../../electrumx_rpc/electrumx_client.dart';
 import '../../../models/coinlib/exp2pkh_address.dart';
+import '../../../models/coinlib/p2sh_p2wpkh_input.dart';
 import '../../../models/input.dart';
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
@@ -471,16 +472,12 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           sequence: sequence,
         );
 
-      // TODO: fix this as it is (probably) wrong!
       case DerivePathType.bip49:
-        throw Exception("TODO p2sh");
-      // return coinlib.P2SHMultisigInput(
-      //   prevOut: prevOut,
-      //   program: coinlib.MultisigProgram.decompile(
-      //     input.redeemScript!,
-      //   ),
-      //   sequence: sequence,
-      // );
+        return P2shP2wpkhInput(
+          prevOut: prevOut,
+          publicKey: input.key!.publicKey,
+          sequence: sequence,
+        );
 
       case DerivePathType.bip84:
         return coinlib.P2WPKHInput(
