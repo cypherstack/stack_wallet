@@ -724,8 +724,34 @@ abstract class SWB {
     SecureStorageInterface secureStorageInterface,
     ShopInBitService shopinbitService,
   ) async {
-    if (!Platform.isLinux) await WakelockPlus.enable();
+    if (Platform.isLinux) {
+      return _restoreStackWalletJSON(
+        jsonBackup,
+        uiState,
+        secureStorageInterface,
+        shopinbitService,
+      );
+    }
 
+    await WakelockPlus.enable();
+    try {
+      return await _restoreStackWalletJSON(
+        jsonBackup,
+        uiState,
+        secureStorageInterface,
+        shopinbitService,
+      );
+    } finally {
+      await WakelockPlus.disable();
+    }
+  }
+
+  static Future<bool?> _restoreStackWalletJSON(
+    String jsonBackup,
+    StackRestoringUIState? uiState,
+    SecureStorageInterface secureStorageInterface,
+    ShopInBitService shopinbitService,
+  ) async {
     Logging.instance.d("SWB creating temp backup");
     final preRestoreJSON = await createStackWalletJSON(
       secureStorage: secureStorageInterface,
@@ -937,7 +963,6 @@ abstract class SWB {
       await status;
     }
 
-    if (!Platform.isLinux) await WakelockPlus.disable();
     // check if cancel was requested and restore previous state
     if (_checkShouldCancel(
       preRestoreState,
