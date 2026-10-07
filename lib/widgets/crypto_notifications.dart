@@ -13,6 +13,7 @@ import 'dart:async';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../providers/providers.dart';
 import '../services/notifications_api.dart';
 import '../themes/coin_icon_provider.dart';
@@ -51,10 +52,7 @@ class CryptoNotificationEvent {
 }
 
 class CryptoNotifications extends ConsumerStatefulWidget {
-  const CryptoNotifications({
-    super.key,
-    required this.child,
-  });
+  const CryptoNotifications({super.key, required this.child});
 
   final Widget child;
 
@@ -89,11 +87,9 @@ class _CryptoNotificationsState extends ConsumerState<CryptoNotifications> {
     NotificationApi.notificationsService = ref.read(notificationsProvider);
     _streamSubscription = CryptoNotificationsEventBus.instance
         .on<CryptoNotificationEvent>()
-        .listen(
-      (event) async {
-        unawaited(_showNotification(event));
-      },
-    );
+        .listen((event) async {
+          unawaited(_showNotification(event));
+        });
 
     super.initState();
   }

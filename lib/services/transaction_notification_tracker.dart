@@ -16,7 +16,8 @@ class TransactionNotificationTracker {
   TransactionNotificationTracker({required this.walletId});
 
   List<String> get pendings {
-    final notifiedPendingTransactions = DB.instance.get<dynamic>(
+    final notifiedPendingTransactions =
+        DB.instance.get<dynamic>(
           boxName: walletId,
           key: "notifiedPendingTransactions",
         ) as Map? ??
@@ -25,7 +26,8 @@ class TransactionNotificationTracker {
   }
 
   bool wasNotifiedPending(String txid) {
-    final notifiedPendingTransactions = DB.instance.get<dynamic>(
+    final notifiedPendingTransactions =
+        DB.instance.get<dynamic>(
           boxName: walletId,
           key: "notifiedPendingTransactions",
         ) as Map? ??
@@ -34,7 +36,8 @@ class TransactionNotificationTracker {
   }
 
   Future<void> addNotifiedPending(String txid) async {
-    final notifiedPendingTransactions = DB.instance.get<dynamic>(
+    final notifiedPendingTransactions =
+        DB.instance.get<dynamic>(
           boxName: walletId,
           key: "notifiedPendingTransactions",
         ) as Map? ??
@@ -48,7 +51,8 @@ class TransactionNotificationTracker {
   }
 
   List<String> get confirmeds {
-    final notifiedConfirmedTransactions = DB.instance.get<dynamic>(
+    final notifiedConfirmedTransactions =
+        DB.instance.get<dynamic>(
           boxName: walletId,
           key: "notifiedConfirmedTransactions",
         ) as Map? ??
@@ -57,7 +61,8 @@ class TransactionNotificationTracker {
   }
 
   bool wasNotifiedConfirmed(String txid) {
-    final notifiedConfirmedTransactions = DB.instance.get<dynamic>(
+    final notifiedConfirmedTransactions =
+        DB.instance.get<dynamic>(
           boxName: walletId,
           key: "notifiedConfirmedTransactions",
         ) as Map? ??
@@ -66,7 +71,8 @@ class TransactionNotificationTracker {
   }
 
   Future<void> addNotifiedConfirmed(String txid) async {
-    final notifiedConfirmedTransactions = DB.instance.get<dynamic>(
+    final notifiedConfirmedTransactions =
+        DB.instance.get<dynamic>(
           boxName: walletId,
           key: "notifiedConfirmedTransactions",
         ) as Map? ??
@@ -80,12 +86,14 @@ class TransactionNotificationTracker {
   }
 
   Future<void> deleteTransaction(String txid) async {
-    final notifiedPendingTransactions = DB.instance.get<dynamic>(
+    final notifiedPendingTransactions =
+        DB.instance.get<dynamic>(
           boxName: walletId,
           key: "notifiedPendingTransactions",
         ) as Map? ??
         {};
-    final notifiedConfirmedTransactions = DB.instance.get<dynamic>(
+    final notifiedConfirmedTransactions =
+        DB.instance.get<dynamic>(
           boxName: walletId,
           key: "notifiedConfirmedTransactions",
         ) as Map? ??
