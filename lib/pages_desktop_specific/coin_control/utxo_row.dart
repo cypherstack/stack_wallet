@@ -16,6 +16,7 @@ import '../../db/isar/main_db.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../pages/coin_control/utxo_details_view.dart';
 import '../../providers/global/wallets_provider.dart';
+import '../../providers/wallet/address_label_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
@@ -106,6 +107,14 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
         if (snapshot.hasData) {
           utxo = snapshot.data!;
         }
+        final addressLabel = utxo.address == null
+            ? null
+            : ref.watch(
+                pAddressLabel((
+                  walletId: widget.walletId,
+                  address: utxo.address!,
+                )),
+              );
 
         return RoundedContainer(
           borderColor: widget.compact && widget.compactWithBorder
@@ -191,18 +200,38 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
                       ],
                     );
                   },
-                  child: Text(
-                    utxo.name.isNotEmpty
-                        ? utxo.name
-                        : utxo.address ?? utxo.txid,
-                    textAlign: widget.compact
-                        ? TextAlign.left
-                        : TextAlign.center,
-                    style: STextStyles.w500_12(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textSubtitle1,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: widget.compact
+                        ? CrossAxisAlignment.start
+                        : CrossAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        utxo.name.isNotEmpty
+                            ? utxo.name
+                            : utxo.address ?? utxo.txid,
+                        textAlign: widget.compact
+                            ? TextAlign.left
+                            : TextAlign.center,
+                        style: STextStyles.w500_12(context).copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textSubtitle1,
+                        ),
+                      ),
+                      if (addressLabel != null && addressLabel.value.isNotEmpty)
+                        Text(
+                          addressLabel.value,
+                          textAlign: widget.compact
+                              ? TextAlign.left
+                              : TextAlign.center,
+                          style: STextStyles.w500_12(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textSubtitle1,
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ),
