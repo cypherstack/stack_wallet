@@ -852,9 +852,9 @@ class MimblewimblecoinWallet extends Bip39Wallet {
 
   int _calculateRestoreHeightFrom({required DateTime date}) {
     final int secondsSinceEpoch = date.millisecondsSinceEpoch ~/ 1000;
-    const int mimblewimblecoinFirstBlock = 1573462800;
     const double overestimateSecondsPerBlock = 61;
-    final int chosenSeconds = secondsSinceEpoch - mimblewimblecoinFirstBlock;
+    final int chosenSeconds =
+        secondsSinceEpoch - Mimblewimblecoin.genesisBlockTime;
     final int approximateHeight = chosenSeconds ~/ overestimateSecondsPerBlock;
     int height = approximateHeight;
     if (height < 0) {

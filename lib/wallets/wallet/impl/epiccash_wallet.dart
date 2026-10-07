@@ -763,9 +763,8 @@ class EpiccashWallet extends Bip39Wallet {
   // TODO: make more robust estimate of date maybe using https://explorer.epic.tech/api-index
   int _calculateRestoreHeightFrom({required DateTime date}) {
     final int secondsSinceEpoch = date.millisecondsSinceEpoch ~/ 1000;
-    const int epicCashFirstBlock = 1565370278;
     const double overestimateSecondsPerBlock = 61;
-    final int chosenSeconds = secondsSinceEpoch - epicCashFirstBlock;
+    final int chosenSeconds = secondsSinceEpoch - Epiccash.genesisBlockTime;
     final int approximateHeight = chosenSeconds ~/ overestimateSecondsPerBlock;
     int height = approximateHeight;
     if (height < 0) {
