@@ -569,7 +569,13 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
   }
 
   @override
-  Future<void> updateTransactions() async {
+  Future<void> updateTransactions() => updateTransactionsWithNotifications(
+    _updateTransactions,
+    initialSyncComplete: () async =>
+        wallet != null && await csMonero.isSynced(wallet!),
+  );
+
+  Future<void> _updateTransactions() async {
     if (wallet == null) {
       return;
     }

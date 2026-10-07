@@ -42,6 +42,23 @@ void main() {
     },
   );
 
+  test(
+    "pending deliveries survive a new tracker and remain wallet scoped",
+    () async {
+      final tracker = TransactionNotificationTracker(walletId: "wallet");
+      await tracker.queuePending(["first", "second"]);
+      final reopened = TransactionNotificationTracker(walletId: "wallet");
+      expect(reopened.pendingTxids, {"first", "second"});
+      expect(
+        TransactionNotificationTracker(walletId: "other").pendingTxids,
+        isEmpty,
+      );
+      await reopened.recordDelivered("first");
+      expect(tracker.pendingTxids, {"second"});
+      expect(tracker.deliveredTxids, {"first"});
+    },
+  );
+
   test("bounds the delivered transaction ledger", () async {
     final tracker = TransactionNotificationTracker(walletId: "existing-1");
 

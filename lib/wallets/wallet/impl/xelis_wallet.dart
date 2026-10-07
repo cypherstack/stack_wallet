@@ -318,35 +318,39 @@ class XelisWallet extends LibXelisWallet<Xelis> {
     int generation,
     List<TransactionEntryWrapper> entries, {
     required bool reconcile,
-  }) async {
-    if (!isCurrentSession(handle, generation)) return [];
-    final address = xelis.getAddress(handle);
-    final transactions = entries
-        .map((tx) => _project(tx, address))
-        .whereType<TransactionV2>()
-        .toList();
-    await mainDB.isar.writeTxn(() async {
-      if (!isCurrentSession(handle, generation)) return;
-      final stored = await mainDB.isar.transactionV2s
-          .where()
-          .walletIdEqualTo(walletId)
-          .findAll();
-      final byHash = {for (final tx in stored) tx.txid: tx};
-      for (final tx in transactions) {
-        final existing = byHash.remove(tx.txid);
-        if (existing != null) tx.id = existing.id;
-      }
-      await mainDB.isar.transactionV2s.putAll(transactions);
-      if (reconcile) {
-        // Reconcile disappeared pending entries and reorganized confirmations.
-        // Keep addresses and user notes; their lifetime is not chain-dependent.
-        await mainDB.isar.transactionV2s.deleteAll(
-          byHash.values.map((tx) => tx.id).toList(),
-        );
-      }
-    });
-    return transactions.map((tx) => tx.txid).toList();
-  }
+  }) => updateTransactionsWithNotifications(
+    () async {
+      if (!isCurrentSession(handle, generation)) return [];
+      final address = xelis.getAddress(handle);
+      final transactions = entries
+          .map((tx) => _project(tx, address))
+          .whereType<TransactionV2>()
+          .toList();
+      await mainDB.isar.writeTxn(() async {
+        if (!isCurrentSession(handle, generation)) return;
+        final stored = await mainDB.isar.transactionV2s
+            .where()
+            .walletIdEqualTo(walletId)
+            .findAll();
+        final byHash = {for (final tx in stored) tx.txid: tx};
+        for (final tx in transactions) {
+          final existing = byHash.remove(tx.txid);
+          if (existing != null) tx.id = existing.id;
+        }
+        await mainDB.isar.transactionV2s.putAll(transactions);
+        if (reconcile) {
+          // Reconcile disappeared pending entries and reorganized confirmations.
+          // Keep addresses and user notes; their lifetime is not chain-dependent.
+          await mainDB.isar.transactionV2s.deleteAll(
+            byHash.values.map((tx) => tx.id).toList(),
+          );
+        }
+      });
+      return transactions.map((tx) => tx.txid).toList();
+    },
+    initialSyncComplete: () async =>
+        isCurrentSession(handle, generation) && !await xelis.isSyncing(handle),
+  );
 
   Future<void> _refreshHistoryAndBalance(
     OpaqueXelisWallet handle,

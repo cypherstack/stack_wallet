@@ -721,7 +721,7 @@ class SolanaTokenWallet extends Wallet {
   Future<void> refresh() async {
     await parentSolanaWallet.refresh();
     await updateBalance();
-    await updateTransactions();
+    await updateTransactionsWithNotifications(updateTransactions);
   }
 
   @override

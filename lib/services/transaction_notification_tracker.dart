@@ -15,6 +15,8 @@ import '../db/hive/db.dart';
 abstract interface class TransactionNotificationStore {
   bool get isInitialized;
   Set<String> get deliveredTxids;
+  Set<String> get pendingTxids;
+  Future<void> queuePending(Iterable<String> txids);
   Future<void> markInitialized();
   Future<void> recordDelivered(String txid);
 }
@@ -94,6 +96,25 @@ class TransactionNotificationTracker implements TransactionNotificationStore {
   @override
   Set<String> get deliveredTxids => pendings.toSet();
 
+  @override
+  Set<String> get pendingTxids => Set<String>.from(
+    DB.instance.get<dynamic>(
+          boxName: DB.boxNamePrefs,
+          key: _key("pendingDelivery"),
+        ) as List? ??
+        const [],
+  );
+
+  Future<void> _savePending(Set<String> txids) => DB.instance.put<dynamic>(
+    boxName: DB.boxNamePrefs,
+    key: _key("pendingDelivery"),
+    value: txids.toList(),
+  );
+
+  @override
+  Future<void> queuePending(Iterable<String> txids) =>
+      _savePending(pendingTxids..addAll(txids));
+
   bool wasNotifiedPending(String txid) {
     final notifiedPendingTransactions =
         DB.instance.get<dynamic>(
@@ -118,7 +139,10 @@ class TransactionNotificationTracker implements TransactionNotificationStore {
   }
 
   @override
-  Future<void> recordDelivered(String txid) => addNotifiedPending(txid);
+  Future<void> recordDelivered(String txid) async {
+    await addNotifiedPending(txid);
+    await _savePending(pendingTxids..remove(txid));
+  }
 
   @override
   Future<void> markInitialized() => DB.instance.put<dynamic>(

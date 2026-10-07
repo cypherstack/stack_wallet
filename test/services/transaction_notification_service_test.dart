@@ -21,8 +21,16 @@ class _MemoryNotificationStore implements TransactionNotificationStore {
   Set<String> get deliveredTxids => delivered;
 
   @override
+  final Set<String> pendingTxids = {};
+
+  @override
+  Future<void> queuePending(Iterable<String> txids) async =>
+      pendingTxids.addAll(txids);
+
+  @override
   Future<void> recordDelivered(String txid) async {
     delivered.add(txid);
+    pendingTxids.remove(txid);
   }
 
   @override
@@ -132,25 +140,22 @@ void main() {
     expect(store.delivered, isEmpty);
   });
 
-  test(
-    "upgrade scan still notifies for transactions absent before refresh",
-    () async {
-      final store = _MemoryNotificationStore(isInitialized: false);
+  test("an uninitialized wallet establishes a silent baseline with existing history", () async {
+    final store = _MemoryNotificationStore(isInitialized: false);
 
-      await serviceFor(store).notifyNewIncomingTransactions(
-        knownTxids: {"known"},
-        transactions: [_transaction("known"), _transaction("new")],
-        coin: bitcoin,
-        walletId: "wallet-id",
-        walletName: "Existing wallet",
-        chainHeight: 10,
-        supportsConfirmationUpdates: true,
-      );
+    await serviceFor(store).notifyNewIncomingTransactions(
+      knownTxids: {"known"},
+      transactions: [_transaction("known"), _transaction("new")],
+      coin: bitcoin,
+      walletId: "wallet-id",
+      walletName: "Existing wallet",
+      chainHeight: 10,
+      supportsConfirmationUpdates: true,
+    );
 
-      expect(notifications.map((event) => event.txid), ["new"]);
-      expect(store.isInitialized, isTrue);
-    },
-  );
+    expect(notifications, isEmpty);
+    expect(store.isInitialized, isTrue);
+  });
 
   test("records delivery only after the notification succeeds", () async {
     final store = _MemoryNotificationStore();
@@ -188,8 +193,9 @@ void main() {
       notificationSink: (_) => Future<void>.error(Exception("delivery")),
     );
 
+    var knownTxids = <String>{};
     Future<void> notify() => service.notifyNewIncomingTransactions(
-      knownTxids: const {},
+      knownTxids: knownTxids,
       transactions: [_transaction("new")],
       coin: bitcoin,
       walletId: "wallet-id",
@@ -200,6 +206,7 @@ void main() {
 
     await expectLater(notify(), throwsException);
     expect(store.delivered, isEmpty);
+    knownTxids = {"new"};
     await expectLater(notify(), throwsException);
     expect(store.delivered, isEmpty);
   });
@@ -220,6 +227,82 @@ void main() {
 
     await expectLater(future, throwsStateError);
     expect(store.delivered, isEmpty);
+  });
+
+  test("queues the whole batch before attempting delivery", () async {
+    final store = _MemoryNotificationStore();
+    final txs = [_transaction("first"), _transaction("second")];
+    Future<void> notify(
+      TransactionNotificationService service,
+      Set<String> known,
+    ) => service.notifyNewIncomingTransactions(
+      knownTxids: known,
+      transactions: txs,
+      coin: bitcoin,
+      walletId: "wallet-id",
+      walletName: "wallet",
+      chainHeight: 10,
+      supportsConfirmationUpdates: false,
+    );
+    await expectLater(
+      notify(
+        serviceFor(
+          store,
+          notificationSink: (_) async {
+            throw StateError("offline");
+          },
+        ),
+        {},
+      ),
+      throwsStateError,
+    );
+    expect(store.pendingTxids, {"first", "second"});
+    await notify(serviceFor(store), {"first", "second"});
+    expect(notifications.map((event) => event.txid), ["first", "second"]);
+    expect(store.pendingTxids, isEmpty);
+  });
+
+  test(
+    "restored history stays silent through the end of initial sync",
+    () async {
+      final store = _MemoryNotificationStore(isInitialized: false);
+      final service = serviceFor(store);
+      Future<void> scan(Set<String> known, List<String> txids, bool synced) =>
+          service.notifyNewIncomingTransactions(
+            knownTxids: known,
+            transactions: txids.map((id) => _transaction(id)),
+            coin: bitcoin,
+            walletId: "wallet-id",
+            walletName: "wallet",
+            chainHeight: 10,
+            supportsConfirmationUpdates: false,
+            initialSyncComplete: synced,
+          );
+      await scan({}, [], false);
+      await scan({}, ["old"], false);
+      await scan({"old"}, ["old", "last-old"], true);
+      expect(notifications, isEmpty);
+      expect(store.isInitialized, isTrue);
+      await scan({"old", "last-old"}, ["old", "last-old", "new"], true);
+      expect(notifications.single.txid, "new");
+    },
+  );
+
+  test("formats token notifications using token metadata", () async {
+    await serviceFor(_MemoryNotificationStore()).notifyNewIncomingTransactions(
+      knownTxids: {},
+      transactions: [_transaction("token")],
+      coin: bitcoin,
+      walletId: "wallet-id",
+      walletName: "wallet",
+      chainHeight: 10,
+      supportsConfirmationUpdates: false,
+      fractionDigits: 6,
+      ticker: "USDC",
+      currencyName: "USD Coin",
+    );
+    expect(notifications.single.payload, "100.000000 USDC");
+    expect(notifications.single.title, "Incoming USD Coin transaction");
   });
 
   test("watches confirmations only for supported wallets", () async {

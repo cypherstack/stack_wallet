@@ -546,7 +546,13 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
   }
 
   @override
-  Future<void> updateTransactions() async {
+  Future<void> updateTransactions() => updateTransactionsWithNotifications(
+    _updateTransactions,
+    initialSyncComplete: () async =>
+        wallet != null && await csSalvium.isSynced(wallet!),
+  );
+
+  Future<void> _updateTransactions() async {
     if (wallet == null) {
       return;
     }

@@ -6,7 +6,6 @@ import 'package:mutex/mutex.dart';
 
 import '../../db/isar/main_db.dart';
 import '../../models/isar/models/blockchain_data/address.dart';
-import '../../models/isar/models/blockchain_data/transaction.dart';
 import '../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
 import '../../models/isar/models/solana/sol_contract.dart';
@@ -705,56 +704,22 @@ abstract class Wallet<T extends CryptoCurrency> {
         await (this as SparkInterface).refreshSparkData((0.3, 0.6));
       }
 
-      // Capture known transaction IDs before updating so we can detect new ones.
-      final knownTxids = await mainDB.isar.transactionV2s
-          .where()
-          .walletIdEqualTo(walletId)
-          .txidProperty()
-          .findAll();
-      final knownTxidSet = knownTxids.toSet();
-
       if (this is NamecoinWallet) {
         await updateUTXOs();
         _fireRefreshPercentChange(0.6);
         await (this as NamecoinWallet).checkAutoRegisterNameNewOutputs();
         _fireRefreshPercentChange(0.70);
-        await updateTransactions();
+        await updateTransactionsWithNotifications(updateTransactions);
       } else {
-        final fetchFuture = updateTransactions();
+        final fetchFuture = updateTransactionsWithNotifications(
+          updateTransactions,
+        );
         _fireRefreshPercentChange(0.6);
         final utxosRefreshFuture = updateUTXOs();
         _fireRefreshPercentChange(0.65);
         await utxosRefreshFuture;
         _fireRefreshPercentChange(0.70);
         await fetchFuture;
-      }
-
-      // Check for new incoming transactions and fire notification events.
-      try {
-        final incomingTransactions = await mainDB.isar.transactionV2s
-            .where()
-            .walletIdEqualTo(walletId)
-            .filter()
-            .typeEqualTo(TransactionType.incoming)
-            .findAll();
-        final service = TransactionNotificationService(
-          store: TransactionNotificationTracker(walletId: walletId),
-        );
-        await service.notifyNewIncomingTransactions(
-          knownTxids: knownTxidSet,
-          transactions: incomingTransactions,
-          coin: cryptoCurrency,
-          walletId: walletId,
-          walletName: info.name,
-          chainHeight: info.cachedChainHeight,
-          supportsConfirmationUpdates: this is ElectrumXInterface,
-        );
-      } catch (e, s) {
-        Logging.instance.w(
-          "Transaction notification check failed: $e",
-          error: e,
-          stackTrace: s,
-        );
       }
 
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
@@ -793,6 +758,57 @@ abstract class Wallet<T extends CryptoCurrency> {
       );
     }
   }
+
+  final _transactionNotificationMutex = Mutex();
+
+  @protected
+  Future<R> updateTransactionsWithNotifications<R>(
+    Future<R> Function() update, {
+    Future<bool> Function()? initialSyncComplete,
+  }) => _transactionNotificationMutex.protect(() async {
+    // ignore: experimental_member_use
+    final query = mainDB.isar.transactionV2s.buildQuery<TransactionV2>(
+      whereClauses: [
+        IndexWhereClause.equalTo(indexName: 'walletId', value: [walletId]),
+      ],
+      filter: transactionFilterOperation,
+    );
+    final known = (await query.findAll()).map((tx) => tx.txid).toSet();
+    final result = await update();
+    try {
+      final ethToken = this is EthTokenWallet ? this as EthTokenWallet : null;
+      final solToken = this is SolanaTokenWallet
+          ? this as SolanaTokenWallet
+          : null;
+      final tokenAddress =
+          ethToken?.tokenContract.address ?? solToken?.tokenMint;
+      final tracker = TransactionNotificationTracker(
+        walletId: tokenAddress == null ? walletId : '$walletId:$tokenAddress',
+      );
+      await TransactionNotificationService(store: tracker)
+          .notifyNewIncomingTransactions(
+            knownTxids: known,
+            transactions: await query.findAll(),
+            coin: cryptoCurrency,
+            walletId: walletId,
+            walletName: info.name,
+            chainHeight: info.cachedChainHeight,
+            supportsConfirmationUpdates: this is ElectrumXInterface,
+            initialSyncComplete: await initialSyncComplete?.call() ?? true,
+            fractionDigits:
+                ethToken?.tokenContract.decimals ?? solToken?.tokenDecimals,
+            ticker: ethToken?.tokenContract.symbol ?? solToken?.tokenSymbol,
+            currencyName: ethToken?.tokenContract.name ?? solToken?.tokenName,
+          );
+    } catch (e, s) {
+      Logging.instance.w(
+        'Transaction notification check failed',
+        error: e,
+        stackTrace: s,
+      );
+    }
+    return result;
+  });
 
   Future<void> exit() async {
     Logging.instance.i("exit called on $walletId");
