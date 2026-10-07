@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as path;
 import 'package:stackwallet/utilities/flatpak_data_directory.dart';
+import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 
 // The -d override is process wide and can only be set once, so this file
@@ -55,6 +56,13 @@ void main() {
 
     expect(root.path, override.path);
   }, skip: Platform.isLinux ? false : "Linux only");
+
+  test("logs follow the -d data directory", () async {
+    final logs = await StackFileSystem.applicationLogsDirectory(Prefs.instance);
+
+    expect(logs.path, path.join(override.path, "logs"));
+    expect(await logs.exists(), isTrue);
+  });
 
   test("-d cannot be changed once set", () {
     expect(

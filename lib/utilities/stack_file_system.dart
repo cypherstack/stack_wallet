@@ -249,6 +249,16 @@ abstract class StackFileSystem {
       }
     }
 
+    // Keep logs with a -d data directory instead of the shared documents
+    // directory, which every instance would otherwise write to.
+    if (_overrideDesktopDirPath != null) {
+      final dir = Directory(path.join(_overrideDesktopDirPath!, "logs"));
+      if (!dir.existsSync()) {
+        await dir.create(recursive: true);
+      }
+      return dir;
+    }
+
     final appDocsDir = await getApplicationDocumentsDirectory();
     const logsDirName = "${AppConfig.prefix}_Logs";
     final Directory logsDir;
