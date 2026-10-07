@@ -11,21 +11,15 @@ typedef SaveRecipientOutcome = ({
   StackTrace? stackTrace,
 });
 
-/// Confirm screen state behind the optional "save recipient to contacts" step.
-///
-/// The address book records who was paid, so saving is opt-in: [enabled] starts
-/// off and [addressToSave] stays null until the user turns it on.
 class SaveRecipientOption {
   SaveRecipientOption({required this.address});
 
-  /// The address this send may offer to save, or null if it may not offer one.
   final String? address;
 
-  bool enabled = false;
+  bool enabled = true;
 
   bool get isOffered => address != null;
 
-  /// The address to persist once the send succeeds, or null if none should be.
   String? get addressToSave => enabled ? address : null;
 }
 
