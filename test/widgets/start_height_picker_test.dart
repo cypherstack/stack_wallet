@@ -1,3 +1,4 @@
+import 'package:stackwallet/widgets/date_picker/restore_from_date_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
@@ -25,6 +26,48 @@ void main() {
 
   tearDown(() {
     Util.screenWidth = null;
+  });
+
+  testWidgets('remounting date mode retains the visible selection', (
+    tester,
+  ) async {
+    final controller = StartHeightPickerController();
+    final nav = GlobalKey<NavigatorState>();
+    Widget app(bool visible) => MaterialApp(
+      navigatorKey: nav,
+      theme: ThemeData(extensions: [StackColors.fromStackColorTheme(theme)]),
+      home: Scaffold(
+        body: visible
+            ? StartHeightPicker(coin: mwc, controller: controller)
+            : const SizedBox(),
+      ),
+    );
+    await tester.pumpWidget(app(true));
+    tester
+        .widget<RestoreFromDatePicker>(find.byType(RestoreFromDatePicker))
+        .onTap();
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pumpAndSettle();
+    expect(find.byType(Dialog), findsOneWidget);
+    nav.currentState!.pop([DateTime(2024, 6, 1)]);
+    await tester.pumpAndSettle();
+    final selected = tester
+        .widget<RestoreFromDatePicker>(find.byType(RestoreFromDatePicker))
+        .controller
+        .text;
+    expect(selected, isNotEmpty);
+    expect(controller.height, greaterThan(0));
+    await tester.pumpWidget(app(false));
+    await tester.pumpWidget(app(true));
+    expect(
+      tester
+          .widget<RestoreFromDatePicker>(find.byType(RestoreFromDatePicker))
+          .controller
+          .text,
+      selected,
+    );
+    await tester.pumpWidget(const SizedBox());
+    controller.dispose();
   });
 
   group("StartHeightPicker.isSupported", () {

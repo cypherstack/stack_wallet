@@ -138,7 +138,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
       }
 
       if (mounted) {
-        final height = _heightController.height ?? 0;
+        final height = _showsHeightPicker ? _heightController.height ?? 0 : 0;
         switch (_restoreMode) {
           case 0: // Seed
             await Navigator.of(context).pushNamed(
@@ -378,17 +378,28 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
   // 0 = Seed, 1 = View Only, 2 = URI (Monero only)
   int _restoreMode = 0;
 
+  bool get _showsHeightPicker => _restoreMode == 0
+      ? (coin is CryptonoteCurrency &&
+                ref.read(mnemonicWordCountStateProvider) == 25) ||
+            coin is Epiccash ||
+            coin is Mimblewimblecoin
+      : StartHeightPicker.isSupported(coin);
+
   bool get _canProceed {
     if (_restoreMode == 2 && _uriData == null) {
       return false;
     }
     // Date mode is permissive: no date chosen means scan from the start.
-    return _heightController.isUsingDate || _heightController.height != null;
+    return !_showsHeightPicker ||
+        (StartHeightPicker.supportsDate(coin) &&
+            _heightController.isUsingDate) ||
+        _heightController.height != null;
   }
 
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType with ${coin.identifier} $walletName");
+    ref.watch(mnemonicWordCountStateProvider);
 
     return MasterScaffold(
       isDesktop: isDesktop,
