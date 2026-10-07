@@ -10,6 +10,7 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+
 import '../db/isar/main_db.dart';
 import '../models/isar/models/contact_entry.dart';
 

@@ -349,9 +349,9 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                                   const SizedBox(width: 16),
                                   SvgPicture.asset(
                                     Assets.svg.folder,
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.textDark3,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark3,
                                     width: 16,
                                     height: 16,
                                   ),
@@ -383,9 +383,9 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                       "Create a passphrase",
                       style: STextStyles.desktopTextExtraSmall(context)
                           .copyWith(
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textDark3,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark3,
                           ),
                       textAlign: TextAlign.left,
                     ),
@@ -428,9 +428,9 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                                     hidePassword
                                         ? Assets.svg.eye
                                         : Assets.svg.eyeSlash,
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.textDark3,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark3,
                                     width: 16,
                                     height: 16,
                                   ),
@@ -507,19 +507,19 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                       width: 512,
                       height: 5,
                       fillColor: passwordStrength < 0.51
-                          ? Theme.of(
-                              context,
-                            ).extension<StackColors>()!.accentColorRed
+                          ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorRed
                           : passwordStrength < 1
-                          ? Theme.of(
-                              context,
-                            ).extension<StackColors>()!.accentColorYellow
-                          : Theme.of(
-                              context,
-                            ).extension<StackColors>()!.accentColorGreen,
-                      backgroundColor: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.buttonBackSecondary,
+                          ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorYellow
+                          : Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorGreen,
+                      backgroundColor: Theme.of(context)
+                          .extension<StackColors>()!
+                          .buttonBackSecondary,
                       percent: passwordStrength < 0.25
                           ? 0.03
                           : passwordStrength,
@@ -562,9 +562,9 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                                     hidePassword
                                         ? Assets.svg.eye
                                         : Assets.svg.eyeSlash,
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.textDark3,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark3,
                                     width: 16,
                                     height: 16,
                                   ),
@@ -650,18 +650,18 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                           Assets.svg.chevronDown,
                           width: 10,
                           height: 5,
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.textDark3,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textDark3,
                         ),
                       ),
                       dropdownStyleData: DropdownStyleData(
                         offset: const Offset(0, -10),
                         elevation: 0,
                         decoration: BoxDecoration(
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.textFieldDefaultBG,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textFieldDefaultBG,
                           borderRadius: BorderRadius.circular(
                             Constants.size.circularBorderRadius,
                           ),

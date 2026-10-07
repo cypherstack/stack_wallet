@@ -170,9 +170,8 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
             passwordRepeatController.text = "";
 
             if (!Util.isDesktop) {
-              Navigator.of(
-                context,
-              ).popUntil(ModalRoute.withName(AutoBackupView.routeName));
+              Navigator.of(context)
+                  .popUntil(ModalRoute.withName(AutoBackupView.routeName));
             }
           }
         } else {
@@ -243,9 +242,9 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
       condition: !isDesktop,
       builder: (child) => Background(
         child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
             leading: AppBarBackButton(
               onPressed: () {
@@ -325,9 +324,9 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                       const SizedBox(width: 16),
                       SvgPicture.asset(
                         Assets.svg.folder,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textDark3,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark3,
                         width: 16,
                         height: 16,
                       ),
@@ -394,9 +393,9 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                               hidePassword
                                   ? Assets.svg.eye
                                   : Assets.svg.eyeSlash,
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textDark3,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textDark3,
                               width: 16,
                               height: 16,
                             ),
@@ -473,15 +472,15 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                 fillColor: passwordStrength < 0.51
                     ? Theme.of(context).extension<StackColors>()!.accentColorRed
                     : passwordStrength < 1
-                    ? Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorYellow
-                    : Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorGreen,
-                backgroundColor: Theme.of(
-                  context,
-                ).extension<StackColors>()!.buttonBackSecondary,
+                    ? Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorYellow
+                    : Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorGreen,
+                backgroundColor: Theme.of(context)
+                    .extension<StackColors>()!
+                    .buttonBackSecondary,
                 percent: passwordStrength < 0.25 ? 0.03 : passwordStrength,
               ),
             ),
@@ -524,9 +523,9 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                               hidePassword
                                   ? Assets.svg.eye
                                   : Assets.svg.eyeSlash,
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textDark3,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textDark3,
                               width: 16,
                               height: 16,
                             ),
@@ -547,9 +546,9 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
             "Auto Backup frequency",
             style: isDesktop
                 ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textDark3,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textDark3,
                   )
                 : STextStyles.smallMed12(context),
           ),
@@ -604,18 +603,18 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                     Assets.svg.chevronDown,
                     width: 10,
                     height: 5,
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textDark3,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textDark3,
                   ),
                 ),
                 dropdownStyleData: DropdownStyleData(
                   offset: const Offset(0, -10),
                   elevation: 0,
                   decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultBG,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),
@@ -637,9 +636,9 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                 ),
                 Positioned.fill(
                   child: RawMaterialButton(
-                    splashColor: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.highlight,
+                    splashColor: Theme.of(context)
+                        .extension<StackColors>()!
+                        .highlight,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(
                         Constants.size.circularBorderRadius,
@@ -676,9 +675,9 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                             padding: const EdgeInsets.only(right: 4.0),
                             child: SvgPicture.asset(
                               Assets.svg.chevronDown,
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textSubtitle2,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textSubtitle2,
                               width: 12,
                               height: 6,
                             ),
