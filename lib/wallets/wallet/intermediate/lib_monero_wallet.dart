@@ -1676,7 +1676,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         );
 
         if (this.wallet != null) {
-          await exit();
+          await _exitNative();
         }
         this.wallet = wallet;
 
@@ -1700,7 +1700,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
           isar: mainDB.isar,
         );
 
-        await updateNode();
+        await _updateNode(() => _lifecycle.allowsNodeUpdates);
         _setListener();
 
         await csMonero.rescanBlockchain(this.wallet!);

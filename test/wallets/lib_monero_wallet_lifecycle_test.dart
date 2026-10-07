@@ -5,6 +5,9 @@
 
 import 'dart:io';
 
+import 'package:stackwallet/models/keys/cryptonote_key_restore_data.dart';
+import 'package:stackwallet/wallets/wallet/wallet.dart';
+
 import 'package:compat/compat.dart' as lib_monero_compat;
 import 'package:cs_monero/cs_monero.dart' as cs;
 import 'package:flutter_test/flutter_test.dart';
@@ -65,6 +68,9 @@ class FakeCsWallet implements cs.Wallet {
 
   @override
   Future<void> save() async => calls.add("save");
+
+  @override
+  Future<void> rescanBlockchain() async => calls.add("rescanBlockchain");
 
   @override
   bool isClosed() => false;
@@ -209,6 +215,22 @@ class TestMoneroWallet extends MoneroWallet {
   }
 
   @override
+  Future<WrappedWallet> getRestoredFromKeysWallet({
+    required String path,
+    required String password,
+    required String address,
+    required String privateViewKey,
+    required String privateSpendKey,
+    int height = 0,
+  }) async {
+    calls.add("restoreFromKeys");
+    return WrappedWallet(fakeNative);
+  }
+
+  @override
+  bool get isViewOnly => false;
+
+  @override
   Future<Address?> getCurrentReceivingAddress() async => Address(
     walletId: _id,
     derivationIndex: 0,
@@ -298,6 +320,39 @@ void main() {
     wallets.add(wallet);
     return wallet;
   }
+
+  test(
+    "key recovery replaces an open wallet without closing its lifecycle",
+    () async {
+      final wallet = makeWallet();
+      await isar.writeTxn(() async => isar.walletInfo.put(wallet.info));
+      await wallet.open();
+      wallet.calls.clear();
+      await wallet.secureStorageInterface.write(
+        key: Wallet.keysRestoreDataKey(walletId: wallet.walletId),
+        value: const CryptonoteKeyRestoreData(
+          address: kAddress,
+          privateViewKey: "view-key",
+          privateSpendKey: "spend-key",
+        ).toJsonEncodedString(),
+      );
+
+      await wallet.recover(isRescan: false).timeout(const Duration(seconds: 5));
+      expect(
+        wallet.calls,
+        containsAllInOrder([
+          "restoreFromKeys",
+          "stopSyncing",
+          "connect:node.example:18081:clearnet",
+          "rescanBlockchain",
+          "startSyncing",
+        ]),
+      );
+      final connects = wallet.connectCount;
+      await wallet.updateNode();
+      expect(wallet.connectCount, connects + 1);
+    },
+  );
 
   test(
     "a wallet that was never opened ignores Tor preference changes",
