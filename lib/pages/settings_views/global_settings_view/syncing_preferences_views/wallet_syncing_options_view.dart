@@ -27,6 +27,7 @@ import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/custom_buttons/draggable_switch_button.dart';
+import '../../../../widgets/hideable_balance.dart';
 import '../../../../widgets/rounded_white_container.dart';
 
 class WalletSyncingOptionsView extends ConsumerWidget {
@@ -150,22 +151,31 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                                             ),
                                           ),
                                           const SizedBox(height: 2),
-                                          Text(
-                                            ref
-                                                .watch(
-                                                  pAmountFormatter(info.coin),
-                                                )
-                                                .format(
-                                                  ref
-                                                      .watch(
-                                                        pWalletBalance(
-                                                          info.walletId,
-                                                        ),
-                                                      )
-                                                      .total,
-                                                ),
-                                            style: STextStyles.itemSubtitle(
-                                              context,
+                                          HideableBalance(
+                                            key: ValueKey(
+                                              "hideBalance_${info.walletId}",
+                                            ),
+                                            iconColor: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .infoItemLabel,
+                                            iconSize: 16,
+                                            child: Text(
+                                              ref
+                                                  .watch(
+                                                    pAmountFormatter(info.coin),
+                                                  )
+                                                  .format(
+                                                    ref
+                                                        .watch(
+                                                          pWalletBalance(
+                                                            info.walletId,
+                                                          ),
+                                                        )
+                                                        .total,
+                                                  ),
+                                              style: STextStyles.itemSubtitle(
+                                                context,
+                                              ),
                                             ),
                                           ),
                                         ],
