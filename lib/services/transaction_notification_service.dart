@@ -70,7 +70,7 @@ class TransactionNotificationService {
         date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
         shouldWatchForUpdates:
             supportsConfirmationUpdates &&
-            (tx.height == null || tx.height! <= 0),
+            tx.getConfirmations(chainHeight) < coin.minConfirms,
         coin: coin,
         txid: tx.txid,
         confirmations: tx.getConfirmations(chainHeight),

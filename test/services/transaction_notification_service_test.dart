@@ -96,6 +96,33 @@ void main() {
         },
   );
 
+  for (final (coin, height, shouldWatch) in <(CryptoCurrency, int?, bool)>[
+    (Dash(CryptoCurrencyNetwork.main), 10, true),
+    (Dash(CryptoCurrencyNetwork.main), 5, false),
+    (Namecoin(CryptoCurrencyNetwork.main), 10, true),
+    (Namecoin(CryptoCurrencyNetwork.main), 9, false),
+    (Bitcoin(CryptoCurrencyNetwork.main), null, true),
+    (Bitcoin(CryptoCurrencyNetwork.main), 10, false),
+    (Bitcoincash(CryptoCurrencyNetwork.main), null, false),
+  ]) {
+    test(
+      "${coin.ticker} height $height watches until fully confirmed",
+      () async {
+        await serviceFor(_MemoryNotificationStore())
+            .notifyNewIncomingTransactions(
+              knownTxids: {},
+              transactions: [_transaction("new", height: height)],
+              coin: coin,
+              walletId: "wallet-id",
+              walletName: "wallet",
+              chainHeight: 10,
+              supportsConfirmationUpdates: true,
+            );
+        expect(notifications.single.shouldWatchForUpdates, shouldWatch);
+      },
+    );
+  }
+
   test("notifies only new incoming transactions", () async {
     final store = _MemoryNotificationStore()..delivered.add("notified");
 
