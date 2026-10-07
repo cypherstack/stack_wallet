@@ -201,7 +201,10 @@ class AddressUtils {
   /// Parses a wallet URI and returns a Map.
   ///
   /// Returns null on failure to parse.
-  static Map<String, dynamic>? _parseWalletUri(String uri) {
+  static Map<String, dynamic>? _parseWalletUri(
+    String uri,
+    CryptoCurrency? preferredCoin,
+  ) {
     final Map<String, dynamic> parsedData = {};
 
     final separatorIndex = uri.indexOf(":");
@@ -222,11 +225,13 @@ class AddressUtils {
       (e) => "${e.uriScheme}_wallet" == scheme,
     );
 
-    if (possibleCoins.length != 1) {
-      return null;
+    if (preferredCoin != null &&
+        "${preferredCoin.uriScheme}_wallet" == scheme) {
+      parsedData["coin"] = preferredCoin;
+    } else {
+      if (possibleCoins.length != 1) return null;
+      parsedData["coin"] = possibleCoins.first;
     }
-
-    parsedData["coin"] = possibleCoins.first;
 
     return parsedData;
   }
@@ -505,9 +510,10 @@ class WalletUriData {
 
   factory WalletUriData.fromUriString(
     String uri, {
+    CryptoCurrency? preferredCoin,
     bool Function(String address)? addressValidator,
   }) {
-    final map = AddressUtils._parseWalletUri(uri);
+    final map = AddressUtils._parseWalletUri(uri, preferredCoin);
 
     if (map == null) {
       throw const FormatException("Invalid wallet URI");

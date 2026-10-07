@@ -66,6 +66,7 @@ abstract class CsMoneroInterface {
     required String privateViewKey,
     required String privateSpendKey,
     int height = 0,
+    int network = 0,
   });
 
   Future<String> getTxKey(WrappedWallet wallet, String txid);
