@@ -29,6 +29,7 @@ import '../../../utilities/text_styles.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../widgets/desktop/desktop_dialog.dart';
 import '../../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../../widgets/hideable_balance.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../wallet_view/sub_widgets/desktop_send.dart';
 
@@ -127,32 +128,38 @@ class _DesktopPaynymSendDialogState
                   const Spacer(),
                   Container(
                     color: Colors.transparent,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          ref
-                              .watch(pAmountFormatter(coin))
-                              .format(
-                                ref
-                                    .watch(pWalletBalance(widget.walletId))
-                                    .spendable,
-                              ),
-                          style: STextStyles.titleBold12(context),
-                          textAlign: TextAlign.right,
-                        ),
-                        if (price != null) const SizedBox(height: 2),
-                        if (price != null)
+                    child: HideableBalance(
+                      iconColor: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textDark,
+                      iconSize: 16,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
                           Text(
-                            "${(ref.watch(pWalletBalance(widget.walletId)).spendable.decimal * price).toAmount(fractionDigits: 2).fiatString(locale: locale)} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
-                            style: STextStyles.baseXS(context).copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textSubtitle1,
-                            ),
+                            ref
+                                .watch(pAmountFormatter(coin))
+                                .format(
+                                  ref
+                                      .watch(pWalletBalance(widget.walletId))
+                                      .spendable,
+                                ),
+                            style: STextStyles.titleBold12(context),
                             textAlign: TextAlign.right,
                           ),
-                      ],
+                          if (price != null) const SizedBox(height: 2),
+                          if (price != null)
+                            Text(
+                              "${(ref.watch(pWalletBalance(widget.walletId)).spendable.decimal * price).toAmount(fractionDigits: 2).fiatString(locale: locale)} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
+                              style: STextStyles.baseXS(context).copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textSubtitle1,
+                              ),
+                              textAlign: TextAlign.right,
+                            ),
+                        ],
+                      ),
                     ),
                   ),
                 ],

@@ -28,6 +28,7 @@ import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../widgets/hideable_balance.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../../pages_desktop_specific/desktop_home_view.dart';
@@ -389,13 +390,21 @@ class _CakePaySendFromCardState extends ConsumerState<_CakePaySendFromCard> {
                     style: STextStyles.titleBold12(context),
                   ),
                   const SizedBox(height: 2),
-                  Text(
-                    ref
-                        .watch(pAmountFormatter(coin))
-                        .format(
-                          ref.watch(pWalletBalance(widget.walletId)).spendable,
-                        ),
-                    style: STextStyles.itemSubtitle(context),
+                  HideableBalance(
+                    iconColor: Theme.of(context)
+                        .extension<StackColors>()!
+                        .infoItemLabel,
+                    iconSize: 16,
+                    child: Text(
+                      ref
+                          .watch(pAmountFormatter(coin))
+                          .format(
+                            ref
+                                .watch(pWalletBalance(widget.walletId))
+                                .spendable,
+                          ),
+                      style: STextStyles.itemSubtitle(context),
+                    ),
                   ),
                 ],
               ),

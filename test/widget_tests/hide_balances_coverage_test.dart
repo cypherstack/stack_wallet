@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
+import 'package:stackwallet/pages/send_view/sub_widgets/dual_balance_selection_sheet.dart';
 import 'package:stackwallet/pages/wallet_view/sub_widgets/wallet_balance_toggle_sheet.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
@@ -74,6 +75,7 @@ void main() {
         pWalletName(walletId).overrideWithValue("some wallet"),
         pWalletCoin(walletId).overrideWithValue(coin),
         pWalletBalance(walletId).overrideWithValue(balance),
+        pWalletBalanceSecondary(walletId).overrideWithValue(balance),
         pWalletIsFavourite(walletId).overrideWithValue(false),
       ],
       child: MaterialApp(
@@ -126,6 +128,16 @@ void main() {
     await expectMasking(
       tester,
       () => const ManagedFavorite(walletId: walletId),
+      find.text(formatted),
+    );
+  });
+
+  testWidgets("the send balance selection sheet masks its balances", (
+    tester,
+  ) async {
+    await expectMasking(
+      tester,
+      () => const DualBalanceSelectionSheet(walletId: walletId),
       find.text(formatted),
     );
   });

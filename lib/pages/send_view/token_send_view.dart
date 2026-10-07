@@ -48,6 +48,7 @@ import '../../widgets/animated_text.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/eth_fee_form.dart';
+import '../../widgets/hideable_balance.dart';
 import '../../widgets/icon_widgets/addressbook_icon.dart';
 import '../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../widgets/icon_widgets/eth_token_icon.dart';
@@ -767,42 +768,50 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                       },
                                       child: Container(
                                         color: Colors.transparent,
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.end,
-                                          children: [
-                                            Text(
-                                              ref
-                                                  .watch(pAmountFormatter(coin))
-                                                  .format(
-                                                    ref
-                                                        .watch(
-                                                          pTokenBalance((
-                                                            walletId:
-                                                                widget.walletId,
-                                                            contractAddress:
-                                                                tokenContract
-                                                                    .address,
-                                                          )),
-                                                        )
-                                                        .spendable,
-                                                    tokenContract:
-                                                        tokenContract,
-                                                  ),
-                                              style: STextStyles.titleBold12(
-                                                context,
-                                              ).copyWith(fontSize: 10),
-                                              textAlign: TextAlign.right,
-                                            ),
-                                            if (price != null)
+                                        child: HideableBalance(
+                                          iconColor: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textDark,
+                                          iconSize: 16,
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.end,
+                                            children: [
                                               Text(
-                                                "${(ref.watch(pTokenBalance((walletId: widget.walletId, contractAddress: tokenContract.address))).spendable.decimal * price).toAmount(fractionDigits: 2).fiatString(locale: locale)} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
-                                                style: STextStyles.subtitle(
+                                                ref
+                                                    .watch(
+                                                      pAmountFormatter(coin),
+                                                    )
+                                                    .format(
+                                                      ref
+                                                          .watch(
+                                                            pTokenBalance((
+                                                              walletId: widget
+                                                                  .walletId,
+                                                              contractAddress:
+                                                                  tokenContract
+                                                                      .address,
+                                                            )),
+                                                          )
+                                                          .spendable,
+                                                      tokenContract:
+                                                          tokenContract,
+                                                    ),
+                                                style: STextStyles.titleBold12(
                                                   context,
-                                                ).copyWith(fontSize: 8),
+                                                ).copyWith(fontSize: 10),
                                                 textAlign: TextAlign.right,
                                               ),
-                                          ],
+                                              if (price != null)
+                                                Text(
+                                                  "${(ref.watch(pTokenBalance((walletId: widget.walletId, contractAddress: tokenContract.address))).spendable.decimal * price).toAmount(fractionDigits: 2).fiatString(locale: locale)} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
+                                                  style: STextStyles.subtitle(
+                                                    context,
+                                                  ).copyWith(fontSize: 8),
+                                                  textAlign: TextAlign.right,
+                                                ),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ),

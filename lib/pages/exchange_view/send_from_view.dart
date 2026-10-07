@@ -43,6 +43,7 @@ import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/expandable.dart';
+import '../../widgets/hideable_balance.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../home_view/home_view.dart';
@@ -463,17 +464,23 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                                 "Use private balance",
                                 style: STextStyles.itemSubtitle(context),
                               ),
-                              Text(
-                                ref
-                                    .watch(pAmountFormatter(coin))
-                                    .format(
-                                      ref
-                                          .watch(
-                                            pWalletBalanceTertiary(walletId),
-                                          )
-                                          .spendable,
-                                    ),
-                                style: STextStyles.itemSubtitle(context),
+                              HideableBalance(
+                                iconColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .infoItemLabel,
+                                iconSize: 16,
+                                child: Text(
+                                  ref
+                                      .watch(pAmountFormatter(coin))
+                                      .format(
+                                        ref
+                                            .watch(
+                                              pWalletBalanceTertiary(walletId),
+                                            )
+                                            .spendable,
+                                      ),
+                                  style: STextStyles.itemSubtitle(context),
+                                ),
                               ),
                             ],
                           ),
@@ -527,15 +534,21 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                               "Use public balance",
                               style: STextStyles.itemSubtitle(context),
                             ),
-                            Text(
-                              ref
-                                  .watch(pAmountFormatter(coin))
-                                  .format(
-                                    ref
-                                        .watch(pWalletBalance(walletId))
-                                        .spendable,
-                                  ),
-                              style: STextStyles.itemSubtitle(context),
+                            HideableBalance(
+                              iconColor: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .infoItemLabel,
+                              iconSize: 16,
+                              child: Text(
+                                ref
+                                    .watch(pAmountFormatter(coin))
+                                    .format(
+                                      ref
+                                          .watch(pWalletBalance(walletId))
+                                          .spendable,
+                                    ),
+                                style: STextStyles.itemSubtitle(context),
+                              ),
                             ),
                           ],
                         ),
@@ -605,13 +618,19 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                     ),
                     if (!isFiro) const SizedBox(height: 2),
                     if (!isFiro)
-                      Text(
-                        ref
-                            .watch(pAmountFormatter(coin))
-                            .format(
-                              ref.watch(pWalletBalance(walletId)).spendable,
-                            ),
-                        style: STextStyles.itemSubtitle(context),
+                      HideableBalance(
+                        iconColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .infoItemLabel,
+                        iconSize: 16,
+                        child: Text(
+                          ref
+                              .watch(pAmountFormatter(coin))
+                              .format(
+                                ref.watch(pWalletBalance(walletId)).spendable,
+                              ),
+                          style: STextStyles.itemSubtitle(context),
+                        ),
                       ),
                   ],
                 ),
