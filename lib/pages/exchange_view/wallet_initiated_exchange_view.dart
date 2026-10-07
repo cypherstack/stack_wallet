@@ -114,7 +114,7 @@ class _WalletInitiatedExchangeViewState
               color: Theme.of(context)
                   .extension<StackColors>()!
                   .overlay
-                  .withOpacity(0.6),
+                  .withValues(alpha: 0.6),
               child: const CustomLoadingOverlay(
                 message: "Updating exchange data",
                 subMessage: "This could take a few minutes",

@@ -196,7 +196,7 @@ class WalletSummaryInfo extends ConsumerWidget {
                         color: Theme.of(context)
                             .extension<StackColors>()!
                             .textFavoriteCard
-                            .withOpacity(0.7),
+                            .withValues(alpha: 0.7),
                       ),
                     ),
                   ),

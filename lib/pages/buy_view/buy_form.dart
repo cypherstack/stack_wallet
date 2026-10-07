@@ -880,7 +880,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                       ? Theme.of(context)
                             .extension<StackColors>()!
                             .currencyListItemBG
-                            .withOpacity(_hovering1 ? 0.3 : 0)
+                            .withValues(alpha: _hovering1 ? 0.3 : 0)
                       : Theme.of(context)
                             .extension<StackColors>()!
                             .textFieldDefaultBG,
@@ -946,7 +946,7 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                       ? Theme.of(context)
                             .extension<StackColors>()!
                             .currencyListItemBG
-                            .withOpacity(_hovering2 ? 0.3 : 0)
+                            .withValues(alpha: _hovering2 ? 0.3 : 0)
                       : Theme.of(context)
                             .extension<StackColors>()!
                             .textFieldDefaultBG,

@@ -257,7 +257,7 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                         : Theme.of(context)
                               .extension<StackColors>()!
                               .infoItemIcons
-                              .withOpacity(0.2),
+                              .withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(100),
                   ),
                   child: Center(

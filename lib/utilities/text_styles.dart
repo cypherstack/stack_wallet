@@ -719,7 +719,7 @@ class STextStyles {
     switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
-          color: _theme(context).textDark.withOpacity(0.8),
+          color: _theme(context).textDark.withValues(alpha: 0.8),
           fontWeight: FontWeight.w500,
           fontSize: 16,
           height: 20.8 / 16,
@@ -743,7 +743,7 @@ class STextStyles {
     switch (_theme(context).themeId) {
       default:
         return GoogleFonts.inter(
-          color: _theme(context).textDark.withOpacity(0.5),
+          color: _theme(context).textDark.withValues(alpha: 0.5),
           fontWeight: FontWeight.w500,
           fontSize: 16,
           height: 20.8 / 16,

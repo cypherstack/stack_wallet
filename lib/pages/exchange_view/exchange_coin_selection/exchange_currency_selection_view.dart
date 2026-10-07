@@ -79,7 +79,7 @@ class _ExchangeCurrencySelectionViewState
             color: Theme.of(context)
                 .extension<StackColors>()!
                 .overlay
-                .withOpacity(0.6),
+                .withValues(alpha: 0.6),
             child: const CustomLoadingOverlay(
               message: "Loading currencies",
               eventBus: null,

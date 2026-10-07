@@ -24,7 +24,7 @@ class FinalizeNavIcon extends StatelessWidget {
         color: Theme.of(context)
             .extension<StackColors>()!
             .bottomNavIconIcon
-            .withOpacity(0.4),
+            .withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(24),
       ),
       child: Padding(

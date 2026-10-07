@@ -74,7 +74,7 @@ class _BuyViewState extends ConsumerState<BuyView> {
               color: Theme.of(context)
                   .extension<StackColors>()!
                   .overlay
-                  .withOpacity(0.7),
+                  .withValues(alpha: 0.7),
               height: MediaQuery.of(context).size.height,
               width: MediaQuery.of(context).size.width,
               child: const StackDialog(

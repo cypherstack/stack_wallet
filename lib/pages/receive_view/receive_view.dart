@@ -228,7 +228,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                 color: Theme.of(context)
                     .extension<StackColors>()!
                     .overlay
-                    .withOpacity(0.5),
+                    .withValues(alpha: 0.5),
                 child: const CustomLoadingOverlay(
                   message: "Generating address",
                   eventBus: null,
@@ -310,7 +310,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                 color: Theme.of(context)
                     .extension<StackColors>()!
                     .overlay
-                    .withOpacity(0.5),
+                    .withValues(alpha: 0.5),
                 child: const CustomLoadingOverlay(
                   message: "Generating address",
                   eventBus: null,

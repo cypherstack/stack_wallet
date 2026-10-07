@@ -118,7 +118,7 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                                         decoration: BoxDecoration(
                                           color: ref
                                               .watch(pCoinColor(info.coin))
-                                              .withOpacity(0.5),
+                                              .withValues(alpha: 0.5),
                                           borderRadius: BorderRadius.circular(
                                             Constants.size.circularBorderRadius,
                                           ),

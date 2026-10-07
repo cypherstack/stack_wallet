@@ -537,7 +537,7 @@ class _WalletNetworkSettingsViewState
                       color: Theme.of(context)
                           .extension<StackColors>()!
                           .accentColorGreen
-                          .withOpacity(0.2),
+                          .withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(_iconSize),
                     ),
                     child: Center(
@@ -600,7 +600,7 @@ class _WalletNetworkSettingsViewState
                       color: Theme.of(context)
                           .extension<StackColors>()!
                           .accentColorYellow
-                          .withOpacity(0.2),
+                          .withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(_iconSize),
                     ),
                     child: Center(
@@ -700,7 +700,7 @@ class _WalletNetworkSettingsViewState
                       color: Theme.of(context)
                           .extension<StackColors>()!
                           .accentColorRed
-                          .withOpacity(0.2),
+                          .withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(_iconSize),
                     ),
                     child: Center(
@@ -848,7 +848,7 @@ class _WalletNetworkSettingsViewState
                         color: Theme.of(context)
                             .extension<StackColors>()!
                             .accentColorGreen
-                            .withOpacity(0.2),
+                            .withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(_iconSize),
                       ),
                       child: Center(
@@ -872,7 +872,7 @@ class _WalletNetworkSettingsViewState
                         color: Theme.of(context)
                             .extension<StackColors>()!
                             .textDark
-                            .withOpacity(0.08),
+                            .withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(_iconSize),
                       ),
                       child: Center(

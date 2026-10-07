@@ -55,7 +55,7 @@ class _PaynymCardButtonState extends ConsumerState<PaynymCardButton> {
             ? Theme.of(context)
                   .extension<StackColors>()!
                   .accentColorDark
-                  .withOpacity(0.08)
+                  .withValues(alpha: 0.08)
             : Colors.transparent,
         child: RawMaterialButton(
           padding: const EdgeInsets.all(0),

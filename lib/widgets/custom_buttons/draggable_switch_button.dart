@@ -51,7 +51,7 @@ class DraggableSwitchButtonState extends State<DraggableSwitchButton> {
         Theme.of(context)
             .extension<StackColors>()!
             .switchBGOn
-            .withOpacity(alpha),
+            .withValues(alpha: alpha),
         Theme.of(context).extension<StackColors>()!.switchBGOff,
       );
     }
@@ -64,7 +64,7 @@ class DraggableSwitchButtonState extends State<DraggableSwitchButton> {
         Theme.of(context)
             .extension<StackColors>()!
             .switchCircleOn
-            .withOpacity(alpha),
+            .withValues(alpha: alpha),
         Theme.of(context).extension<StackColors>()!.switchCircleOff,
       );
     }

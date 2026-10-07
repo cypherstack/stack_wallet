@@ -24,7 +24,7 @@ class DesktopExchangeStepsIndicator extends StatelessWidget {
       return Theme.of(context)
           .extension<StackColors>()!
           .accentColorBlue
-          .withOpacity(0.5);
+          .withValues(alpha: 0.5);
     } else {
       return Theme.of(context).extension<StackColors>()!.textSubtitle3;
     }
@@ -65,7 +65,7 @@ class DesktopExchangeStepsIndicator extends StatelessWidget {
                         color: Theme.of(context)
                             .extension<StackColors>()!
                             .accentColorBlue
-                            .withOpacity(0.5),
+                            .withValues(alpha: 0.5),
                       ),
                 ),
                 crossFadeState: currentStep == 1
@@ -114,7 +114,7 @@ class DesktopExchangeStepsIndicator extends StatelessWidget {
                           color: Theme.of(context)
                               .extension<StackColors>()!
                               .accentColorBlue
-                              .withOpacity(0.5),
+                              .withValues(alpha: 0.5),
                         ),
                   ),
                   crossFadeState: currentStep == 2 && currentStep > 1
@@ -168,7 +168,7 @@ class DesktopExchangeStepsIndicator extends StatelessWidget {
                           color: Theme.of(context)
                               .extension<StackColors>()!
                               .accentColorBlue
-                              .withOpacity(0.5),
+                              .withValues(alpha: 0.5),
                         ),
                   ),
                   crossFadeState: currentStep == 3 && currentStep > 2
