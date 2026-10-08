@@ -49,21 +49,23 @@ abstract class EthereumAPI {
   static HTTP client = const HTTP();
 
   static Future<dynamic> _rpc(String method, List<Object> params) async {
-    final response = await client.post(
-      url: Uri.parse(stackBaseServer),
-      headers: const {'content-type': 'application/json'},
-      body: jsonEncode({
-        'jsonrpc': '2.0',
-        'method': method,
-        'params': params,
-        'id': 1,
-      }),
-      proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
-          ? null
-          : Prefs.instance.useTor
-          ? TorService.sharedInstance.getProxyInfo()
-          : null,
-    );
+    final response = await client
+        .post(
+          url: Uri.parse(stackBaseServer),
+          headers: const {'content-type': 'application/json'},
+          body: jsonEncode({
+            'jsonrpc': '2.0',
+            'method': method,
+            'params': params,
+            'id': 1,
+          }),
+          proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+              ? null
+              : Prefs.instance.useTor
+              ? TorService.sharedInstance.getProxyInfo()
+              : null,
+        )
+        .timeout(const Duration(seconds: 30));
     if (response.code != 200) {
       throw EthApiException(
         '$method failed with status code: ${response.code}',

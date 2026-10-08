@@ -11,7 +11,9 @@ import 'package:stackwallet/exceptions/electrumx/no_such_transaction.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/notification_model.dart';
 import 'package:stackwallet/models/trade_wallet_lookup.dart';
+import 'package:stackwallet/networking/http.dart';
 import 'package:stackwallet/exceptions/json_rpc/json_rpc_exception.dart';
+import 'package:stackwallet/services/ethereum/ethereum_api.dart';
 import 'package:stackwallet/services/trade_service.dart';
 import 'package:stackwallet/models/exchange/change_now/cn_exchange_transaction_status.dart';
 import 'package:stackwallet/services/exchange/exchange.dart';
@@ -1045,6 +1047,121 @@ void main() {
     },
   );
 
+  for (final method in ['eth_getTransactionReceipt', 'eth_blockNumber']) {
+    testWidgets('a stalled Rosen $method cannot block later providers', (
+      tester,
+    ) async {
+      late Directory directory;
+      late Box<Trade> trades;
+      late Box<NotificationModel> watched;
+      final bridge = _rosenRequest(
+        false,
+        suffix: '-receipt',
+      ).copyWith(payInTxid: '0x${'aa' * 32}', status: 'Confirming');
+      final legacy = _rosenRequest(
+        false,
+        suffix: '-legacy',
+      ).copyWith(exchangeName: ChangeNowExchange.exchangeName);
+      await tester.runAsync(() async {
+        directory = await Directory.systemTemp.createTemp('rosen-receipt-');
+        final hive = DB.instance.hive;
+        hive.init(directory.path);
+        if (!hive.isAdapterRegistered(Trade.typeId)) {
+          hive.registerAdapter(TradeAdapter());
+        }
+        final adapter = NotificationModelAdapter();
+        if (!hive.isAdapterRegistered(adapter.typeId)) {
+          hive.registerAdapter(adapter);
+        }
+        trades = await hive.openBox<Trade>(DB.boxNameTradesV2);
+        watched = await hive.openBox<NotificationModel>(
+          DB.boxNameWatchedTrades,
+        );
+        for (final trade in [bridge, legacy]) {
+          await trades.put(trade.uuid, trade);
+          final id = watched.length + 1;
+          await watched.put(
+            id,
+            NotificationModel(
+              id: id,
+              title: trade.status,
+              description: '',
+              iconAssetName: '',
+              date: DateTime.now(),
+              walletId: '',
+              read: false,
+              shouldWatchForUpdates: true,
+              coinName: '',
+              changeNowId: trade.tradeId,
+            ),
+          );
+        }
+      });
+      final receipt = _PausedReceiptHttp(method);
+      final previousClient = EthereumAPI.client;
+      EthereumAPI.client = receipt;
+      final service = NotificationsService.instance;
+      final tradeService = TradesService();
+      await service.init(
+        nodeService: _NotificationNodeService(),
+        tradesService: tradeService,
+        prefs: _NotificationPrefs(),
+      );
+      final http = RosenTestHttp((url) {
+        if (url.host == 'app.rosen.tech') return {'items': <Object>[]};
+        expectSync(url.host, 'api.changenow.io');
+        expectSync(url.queryParameters['id'], legacy.tradeId);
+        return {
+          'id': legacy.tradeId,
+          'status': 'waiting',
+          'actionsAvailable': false,
+        };
+      });
+      try {
+        await http.run(() async {
+          service.startCheckingWatchedNotifications();
+          await tester.pump();
+          expect(receipt.paused, isTrue);
+          expect(
+            http.requests.where((url) => url.host == 'api.changenow.io'),
+            isEmpty,
+          );
+          await tester.pump(const Duration(seconds: 29));
+          expect(
+            http.requests.where((url) => url.host == 'api.changenow.io'),
+            isEmpty,
+          );
+          await tester.pump(const Duration(seconds: 1));
+          expect(
+            http.requests.where((url) => url.host == 'api.changenow.io'),
+            hasLength(1),
+          );
+          expect(receipt.release.isCompleted, isFalse);
+          expect(trades.get(bridge.uuid)!.toMap(), bridge.toMap());
+          expect(watched.get(1)!.shouldWatchForUpdates, isTrue);
+        });
+      } finally {
+        service.stopCheckingWatchedTransactions();
+        receipt.release.complete(
+          Response(
+            utf8.encode(
+              jsonEncode({'jsonrpc': '2.0', 'id': 1, 'result': null}),
+            ),
+            200,
+          ),
+        );
+        await tester.pump();
+        EthereumAPI.client = previousClient;
+        tradeService.dispose();
+        await tester.runAsync(() async {
+          await watched.close();
+          await trades.close();
+          await directory.delete(recursive: true);
+        });
+      }
+    });
+  }
+
   test(
     'Rosen refresh retains the request and rejects funded or stale saves',
     () async {
@@ -1485,6 +1602,44 @@ class _NotificationPrefs extends _FundingPrefs {
 }
 
 class _NotificationNodeService extends Fake implements NodeService {}
+
+class _PausedReceiptHttp extends HTTP {
+  _PausedReceiptHttp(this.method);
+
+  final String method;
+  final release = Completer<Response>();
+  bool paused = false;
+
+  @override
+  Future<Response> post({
+    required Uri url,
+    Map<String, String>? headers,
+    Object? body,
+    Encoding? encoding,
+    required ({InternetAddress host, int port})? proxyInfo,
+  }) async {
+    final rpc = jsonDecode(body! as String) as Map;
+    if (rpc['method'] == method) {
+      paused = true;
+      return release.future;
+    }
+    expectSync(rpc['method'], 'eth_getTransactionReceipt');
+    return Response(
+      utf8.encode(
+        jsonEncode({
+          'jsonrpc': '2.0',
+          'id': rpc['id'],
+          'result': {
+            'transactionHash': (rpc['params'] as List).single,
+            'status': '0x0',
+            'blockNumber': '0x1',
+          },
+        }),
+      ),
+      200,
+    );
+  }
+}
 
 class _PausedRecoveryClient extends Fake implements web3.Web3Client {
   final entered = Completer<void>();
