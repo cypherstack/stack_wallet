@@ -412,9 +412,6 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     _sendFocusNode.unfocus();
 
     ref.read(efRateTypeProvider.notifier).state = newType;
-    if (newType == ExchangeRateType.estimated) {
-      ref.read(efReversedProvider.notifier).state = false;
-    }
     update();
   }
 
@@ -857,8 +854,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       }
     });
     _receiveFocusNode.addListener(() {
-      if (_receiveFocusNode.hasFocus &&
-          ref.read(efRateTypeProvider) == ExchangeRateType.fixed) {
+      if (_receiveFocusNode.hasFocus) {
         final reversed = ref.read(efReversedProvider);
         WidgetsBinding.instance.addPostFrameCallback((_) {
           ref.read(efReversedProvider.notifier).state = true;

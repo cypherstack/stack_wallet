@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -8,11 +9,13 @@ import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/exceptions/electrumx/no_such_transaction.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
+import 'package:stackwallet/models/notification_model.dart';
 import 'package:stackwallet/models/trade_wallet_lookup.dart';
 import 'package:stackwallet/exceptions/json_rpc/json_rpc_exception.dart';
 import 'package:stackwallet/services/trade_service.dart';
 import 'package:stackwallet/models/exchange/change_now/cn_exchange_transaction_status.dart';
 import 'package:stackwallet/services/exchange/exchange.dart';
+import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
 import 'package:stackwallet/services/exchange/rosen/rosen_api.dart';
 import 'package:stackwallet/services/exchange/rosen/rosen_exchange.dart';
 import 'package:stackwallet/services/exchange/rosen/rosen_funding.dart';
@@ -21,6 +24,9 @@ import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/default_eth_tokens.dart';
 import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/utilities/prefs.dart';
+import 'package:stackwallet/services/node_service.dart';
+import 'package:stackwallet/services/notifications_service.dart';
+import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/exceptions/exchange/exchange_exception.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
@@ -943,6 +949,103 @@ void main() {
   });
 
   test(
+    'bridge recovery cannot delay existing provider notifications',
+    () async {
+      final directory = await Directory.systemTemp.createTemp(
+        'rosen-notifications-',
+      );
+      final hive = DB.instance.hive;
+      hive.init(directory.path);
+      if (!hive.isAdapterRegistered(Trade.typeId))
+        hive.registerAdapter(TradeAdapter());
+      final notificationAdapter = NotificationModelAdapter();
+      if (!hive.isAdapterRegistered(notificationAdapter.typeId)) {
+        hive.registerAdapter(notificationAdapter);
+      }
+      final trades = await hive.openBox<Trade>(DB.boxNameTradesV2);
+      final watched = await hive.openBox<NotificationModel>(
+        DB.boxNameWatchedTrades,
+      );
+      final client = _PausedRecoveryClient();
+      final wallet = _FundingWallet(
+        client: client,
+        walletId: 'notification-recovery-wallet',
+      );
+      Wallets.sharedInstance.addWallet(wallet);
+      final bridge = _rosenRequest(false, suffix: '-notification');
+      const txid =
+          '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+      await trades.put(
+        bridge.uuid,
+        bridge.copyWith(
+          payInTxid: txid,
+          other: jsonEncode({
+            ...jsonDecode(bridge.other!) as Map,
+            RosenFunding.fundingKey: {
+              'state': RosenFunding.submittingState,
+              'walletId': wallet.walletId,
+              'txid': txid,
+              'raw': '0x02',
+            },
+          }),
+        ),
+      );
+      final legacy = bridge.copyWith(
+        tradeId: 'legacy-swap',
+        exchangeName: ChangeNowExchange.exchangeName,
+      );
+      await trades.put('legacy-swap', legacy);
+      await watched.put(
+        1,
+        NotificationModel(
+          id: 1,
+          title: 'Waiting',
+          description: '',
+          iconAssetName: '',
+          date: DateTime.now(),
+          walletId: '',
+          read: false,
+          shouldWatchForUpdates: true,
+          coinName: '',
+          changeNowId: legacy.tradeId,
+        ),
+      );
+      final service = NotificationsService.instance;
+      final tradeService = TradesService();
+      await service.init(
+        nodeService: _NotificationNodeService(),
+        tradesService: tradeService,
+        prefs: _NotificationPrefs(),
+      );
+      final http = RosenTestHttp((url) {
+        expect(url.host, 'api.changenow.io');
+        expect(url.queryParameters['id'], legacy.tradeId);
+        return {
+          'id': legacy.tradeId,
+          'status': 'waiting',
+          'actionsAvailable': false,
+        };
+      });
+      try {
+        await http.run(() async {
+          service.startCheckingWatchedNotifications();
+          await client.entered.future.timeout(const Duration(seconds: 1));
+          expect(http.requests, hasLength(1));
+          expect(client.release.isCompleted, isFalse);
+        });
+      } finally {
+        service.stopCheckingWatchedTransactions();
+        client.release.complete(BigInt.two);
+        await client.disposed.future.timeout(const Duration(seconds: 1));
+        tradeService.dispose();
+        await watched.close();
+        await trades.close();
+        await directory.delete(recursive: true);
+      }
+    },
+  );
+
+  test(
     'Rosen refresh retains the request and rejects funded or stale saves',
     () async {
       final directory = await Directory.systemTemp.createTemp('rosen-refresh-');
@@ -1374,6 +1477,28 @@ class _FundingWalletInfo extends Fake implements WalletInfo {
 class _FundingPrefs extends Fake implements Prefs {
   @override
   bool get useTor => false;
+}
+
+class _NotificationPrefs extends _FundingPrefs {
+  @override
+  bool get externalCalls => true;
+}
+
+class _NotificationNodeService extends Fake implements NodeService {}
+
+class _PausedRecoveryClient extends Fake implements web3.Web3Client {
+  final entered = Completer<void>();
+  final release = Completer<BigInt>();
+  final disposed = Completer<void>();
+
+  @override
+  Future<BigInt> getChainId() {
+    entered.complete();
+    return release.future;
+  }
+
+  @override
+  Future<void> dispose() async => disposed.complete();
 }
 
 String _fundingState(Trade trade) =>

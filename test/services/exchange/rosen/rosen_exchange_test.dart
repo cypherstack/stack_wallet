@@ -131,6 +131,29 @@ void main() {
       }
 
       test(
+        'reverse estimates are rejected only by Rosen before any request',
+        () async {
+          await http.run(() async {
+            final response = await exchange.getEstimates(
+              from,
+              fromNetwork,
+              to,
+              toNetwork,
+              Decimal.fromInt(100),
+              false,
+              true,
+            );
+            expect(response.value, isNull);
+            expect(
+              response.exception?.message,
+              contains('using the send amount'),
+            );
+            expect(http.requests, isEmpty);
+          });
+        },
+      );
+
+      test(
         'range, quote and trade preserve the route and exact amounts',
         () async {
           await http.run(() async {

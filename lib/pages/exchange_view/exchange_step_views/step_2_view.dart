@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app_config.dart';
 import '../../../models/exchange/incomplete_exchange.dart';
 import '../../../providers/providers.dart';
+import '../../../route_generator.dart';
 import '../../../services/exchange/rosen/rosen_exchange.dart';
 import '../../../services/exchange/rosen/rosen_funding.dart';
 import '../../../themes/stack_colors.dart';
@@ -364,7 +365,10 @@ class _Step2ViewState extends ConsumerState<Step2View> {
 
                                         final value =
                                             await Navigator.of(context).push(
-                                              MaterialPageRoute<dynamic>(
+                                              RouteGenerator.getRoute<dynamic>(
+                                                shouldUseMaterialRoute:
+                                                    RouteGenerator
+                                                        .useMaterialPageRoute,
                                                 settings: const RouteSettings(
                                                   name:
                                                       ChooseAddressFromStackView
