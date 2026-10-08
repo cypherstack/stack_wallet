@@ -24,6 +24,8 @@ import '../wallets/crypto_currency/crypto_currency.dart';
 import '../wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 import 'exchange/exchange.dart';
 import 'exchange/exchange_response.dart';
+import 'exchange/rosen/rosen_exchange.dart';
+import 'exchange/rosen/rosen_funding.dart';
 import 'node_service.dart';
 import 'notifications_api.dart';
 import 'trade_service.dart';
@@ -106,6 +108,7 @@ class NotificationsService extends ChangeNotifier {
   void startCheckingWatchedNotifications() {
     stopCheckingWatchedTransactions();
 
+    if (prefs.externalCalls) unawaited(_checkTrades());
     _timer = Timer.periodic(notificationRefreshInterval, (_) {
       Logging.instance.d("Periodic notifications update check");
       if (prefs.externalCalls) {
@@ -233,6 +236,24 @@ class NotificationsService extends ChangeNotifier {
   }
 
   Future<void> _checkTrades() async {
+    for (final trade in tradesService.trades) {
+      if (trade.exchangeName != RosenExchange.exchangeName) continue;
+      try {
+        final walletId = RosenFunding.fundingWalletId(trade);
+        if (walletId == null) continue;
+        await RosenFunding.recoverFundingIntent(
+          wallet: Wallets.sharedInstance.getWallet(walletId),
+          trade: trade,
+        );
+      } catch (e, s) {
+        Logging.instance.e(
+          'Rosen funding recovery remains pending',
+          error: e,
+          stackTrace: s,
+        );
+      }
+    }
+
     for (final notification in _watchedChangeNowTradeNotifications) {
       final id = notification.changeNowId!;
 

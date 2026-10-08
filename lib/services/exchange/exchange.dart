@@ -20,6 +20,7 @@ import 'exchange_response.dart';
 import 'exolix/exolix_exchange.dart';
 import 'lets_exchange/lets_exchange_exchange.dart';
 import 'nanswap/nanswap_exchange.dart';
+import 'rosen/rosen_exchange.dart';
 import 'simpleswap/simpleswap_exchange.dart';
 import 'trocador/trocador_exchange.dart';
 import 'wizard_swap/wizard_swap_exchange.dart';
@@ -37,6 +38,8 @@ abstract class Exchange {
       //   return MajesticBankExchange.instance;
       case TrocadorExchange.exchangeName:
         return TrocadorExchange.instance;
+      case RosenExchange.exchangeName:
+        return RosenExchange.instance;
       case NanswapExchange.exchangeName:
         return NanswapExchange.instance;
       case WizardSwapExchange.exchangeName:

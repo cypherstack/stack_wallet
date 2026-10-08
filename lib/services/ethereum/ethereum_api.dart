@@ -46,7 +46,77 @@ abstract class EthereumAPI {
   static String get stackBaseServer =>
       Ethereum(CryptoCurrencyNetwork.main).defaultNode(isPrimary: true).host;
 
-  static HTTP client = HTTP();
+  static HTTP client = const HTTP();
+
+  static Future<dynamic> _rpc(String method, List<Object> params) async {
+    final response = await client.post(
+      url: Uri.parse(stackBaseServer),
+      headers: const {'content-type': 'application/json'},
+      body: jsonEncode({
+        'jsonrpc': '2.0',
+        'method': method,
+        'params': params,
+        'id': 1,
+      }),
+      proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
+          ? null
+          : Prefs.instance.useTor
+          ? TorService.sharedInstance.getProxyInfo()
+          : null,
+    );
+    if (response.code != 200) {
+      throw EthApiException(
+        '$method failed with status code: ${response.code}',
+      );
+    }
+    final decoded = jsonDecode(response.body);
+    if (decoded is! Map ||
+        decoded['jsonrpc'] != '2.0' ||
+        decoded['id'] != 1 ||
+        decoded['error'] != null ||
+        !decoded.containsKey('result')) {
+      throw const FormatException('Invalid Ethereum RPC response.');
+    }
+    return decoded['result'];
+  }
+
+  static int _hexInt(Object? value) {
+    if (value is! String || !RegExp(r'^0x[0-9a-fA-F]+$').hasMatch(value)) {
+      throw const FormatException('Invalid Ethereum block number.');
+    }
+    return int.parse(value.substring(2), radix: 16);
+  }
+
+  static Future<bool?> getTransactionReceiptStatus(
+    String txid, {
+    required int confirmations,
+  }) async {
+    if (confirmations <= 0) {
+      throw ArgumentError.value(confirmations, 'confirmations');
+    }
+    if (!RegExp(r'^(0x)?[0-9a-fA-F]{64}$').hasMatch(txid)) {
+      throw const FormatException('Invalid Ethereum transaction ID.');
+    }
+    final normalized = txid.startsWith('0x')
+        ? txid.toLowerCase()
+        : '0x${txid.toLowerCase()}';
+    final result = await _rpc('eth_getTransactionReceipt', [normalized]);
+    if (result == null) return null;
+    if (result is! Map) {
+      throw const FormatException('Invalid Ethereum receipt response.');
+    }
+    if (result['transactionHash'] is! String ||
+        (result['transactionHash'] as String).toLowerCase() != normalized) {
+      throw const FormatException('Ethereum receipt transaction mismatch.');
+    }
+    if (result['status'] == '0x1') return true;
+    if (result['status'] != '0x0') {
+      throw const FormatException('Invalid Ethereum receipt status.');
+    }
+    final receiptHeight = _hexInt(result['blockNumber']);
+    final chainHeight = _hexInt(await _rpc('eth_blockNumber', const []));
+    return chainHeight - receiptHeight + 1 >= confirmations ? false : null;
+  }
 
   static Future<EthereumResponse<List<EthTxDTO>>> getEthTransactions({
     required String address,

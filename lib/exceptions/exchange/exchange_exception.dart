@@ -10,7 +10,12 @@
 
 import '../sw_exception.dart';
 
-enum ExchangeExceptionType { generic, serializeResponseError, orderNotFound }
+enum ExchangeExceptionType {
+  generic,
+  serializeResponseError,
+  orderNotFound,
+  quoteChanged,
+}
 
 class ExchangeException extends SWException {
   ExchangeExceptionType type;

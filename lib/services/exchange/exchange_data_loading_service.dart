@@ -29,6 +29,7 @@ import 'cyphergoat/cyphergoat_exchange.dart';
 import 'exolix/exolix_exchange.dart';
 import 'lets_exchange/lets_exchange_exchange.dart';
 import 'nanswap/nanswap_exchange.dart';
+import 'rosen/rosen_exchange.dart';
 import 'trocador/trocador_exchange.dart';
 import 'wizard_swap/wizard_swap_exchange.dart';
 
@@ -47,14 +48,13 @@ class ExchangeDataLoadingService {
   VoidCallback? onLoadingError;
   VoidCallback? onLoadingComplete;
 
-  static const int cacheVersion = 1;
+  static const int cacheVersion = 2;
 
   static int get currentCacheVersion =>
       DB.instance.get<dynamic>(
-            boxName: DB.boxNameDBInfo,
-            key: "exchange_data_cache_version",
-          )
-          as int? ??
+        boxName: DB.boxNameDBInfo,
+        key: "exchange_data_cache_version",
+      ) as int? ??
       0;
 
   Future<void> _updateCurrentCacheVersion(int version) async {
@@ -130,7 +130,7 @@ class ExchangeDataLoadingService {
     if (contract != null) {
       currencies = await (await isar).currencies
           .filter()
-          .tokenContractEqualTo(contract)
+          .tokenContractEqualTo(contract, caseSensitive: fuzzyNet != "eth")
           .and()
           .group(
             (q) => rateType == ExchangeRateType.fixed
@@ -222,6 +222,7 @@ class ExchangeDataLoadingService {
         // Add to this list when adding an exchange which doesn't supports Tor.
         if (!Prefs.instance.useTor) {
           futures.add(_loadChangeNowCurrencies());
+          futures.add(loadRosenCurrencies());
         }
 
         // wait for all loading futures to complete
@@ -242,6 +243,22 @@ class ExchangeDataLoadingService {
       }
       _locked = false;
     }
+  }
+
+  Future<void> loadRosenCurrencies() async {
+    final response = await RosenExchange.instance.getAllCurrencies(false);
+    if (response.value == null) {
+      Logging.instance.w("loadRosenCurrencies: $response");
+      return;
+    }
+    final db = await isar;
+    await db.writeTxn(() async {
+      await db.currencies
+          .where()
+          .exchangeNameEqualTo(RosenExchange.exchangeName)
+          .deleteAll();
+      await db.currencies.putAll(response.value!);
+    });
   }
 
   Future<void> _loadChangeNowCurrencies() async {

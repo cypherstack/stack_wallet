@@ -19,6 +19,7 @@ import '../../../services/exchange/exchange.dart';
 import '../../../services/exchange/exolix/exolix_exchange.dart';
 import '../../../services/exchange/lets_exchange/lets_exchange_exchange.dart';
 import '../../../services/exchange/nanswap/nanswap_exchange.dart';
+import '../../../services/exchange/rosen/rosen_exchange.dart';
 import '../../../services/exchange/trocador/trocador_exchange.dart';
 import '../../../services/exchange/wizard_swap/wizard_swap_exchange.dart';
 import '../../../themes/stack_colors.dart';
@@ -80,6 +81,11 @@ class _ExchangeProviderOptionsState
       efCurrencyPairProvider.select((value) => value.receive),
     );
 
+    final showRosen = exchangeSupported(
+      exchangeName: RosenExchange.exchangeName,
+      sendCurrency: sendCurrency,
+      receiveCurrency: receivingCurrency,
+    );
     final showChangeNow = exchangeSupported(
       exchangeName: ChangeNowExchange.exchangeName,
       sendCurrency: sendCurrency,
@@ -123,6 +129,7 @@ class _ExchangeProviderOptionsState
           : null,
       child: SortedExchangeProviders(
         exchangees: [
+          if (showRosen) RosenExchange.instance,
           if (showChangeNow) ChangeNowExchange.instance,
           if (showExolix) ExolixExchange.instance,
           if (showLetsExchange) LetsExchangeExchange.instance,

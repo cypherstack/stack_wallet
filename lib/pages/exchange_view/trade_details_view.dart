@@ -33,6 +33,8 @@ import '../../services/exchange/exchange.dart';
 import '../../services/exchange/exolix/exolix_exchange.dart';
 import '../../services/exchange/lets_exchange/lets_exchange_exchange.dart';
 import '../../services/exchange/nanswap/nanswap_exchange.dart';
+import '../../services/exchange/rosen/rosen_exchange.dart';
+import '../../services/exchange/rosen/rosen_funding.dart';
 import '../../services/exchange/simpleswap/simpleswap_exchange.dart';
 import '../../services/exchange/trocador/trocador_exchange.dart';
 import '../../services/exchange/wizard_swap/wizard_swap_exchange.dart';
@@ -43,10 +45,12 @@ import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/clipboard_interface.dart';
 import '../../utilities/constants.dart';
+import '../../utilities/default_eth_tokens.dart';
 import '../../utilities/format.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../wallets/isar/providers/all_wallets_info_provider.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -171,8 +175,11 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
       ),
     );
 
+    final isRosen = trade.exchangeName == RosenExchange.exchangeName;
+    final fundingNeedsAttention = isRosen && RosenFunding.needsAttention(trade);
     final bool hasTx =
         sentFromStack ||
+        (isRosen && trade.payInTxid.isNotEmpty) ||
         !(trade.status == "New" ||
             trade.status == "new" ||
             trade.status == "wait" ||
@@ -201,30 +208,78 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
 
     final isDesktop = Util.isDesktop;
 
+    final walletIds = ref
+        .watch(pAllWalletsInfo)
+        .map((wallet) => wallet.walletId)
+        .toSet();
+    final wallets = ref
+        .read(pWallets)
+        .wallets
+        .where((wallet) => walletIds.contains(wallet.walletId))
+        .toList();
+    final canSendFromStack = isRosen
+        ? wallets.any((wallet) => RosenFunding.canFund(wallet, trade))
+        : AppConfig.isStackCoin(trade.payInCurrency) &&
+              Util.isWalletCoinAndCanSendWithoutWalletOpenedIgnoringXMR(
+                trade.payInCurrency,
+                wallets,
+              );
+    final awaitingDeposit = const {
+      "new",
+      "wait",
+      "waiting",
+    }.contains(trade.status.toLowerCase());
     final showSendFromStackButton =
-        !hasTx &&
-        AppConfig.isStackCoin(trade.payInCurrency) &&
-        Util.isWalletCoinAndCanSendWithoutWalletOpenedIgnoringXMR(
-          trade.payInCurrency,
-          ref.read(pWallets).wallets,
-        ) &&
-        (trade.status == "New" ||
-            trade.status == "new" ||
-            trade.status == "waiting" ||
-            trade.status == "wait" ||
-            trade.status == "Waiting");
+        !hasTx && canSendFromStack && awaitingDeposit;
+    final String rosenFundingMessage;
+    if (canSendFromStack) {
+      rosenFundingMessage = RosenExchange.isFiro(trade)
+          ? "Send from your transparent FIRO balance using the button below. "
+                "Stack Wallet includes the required Rosen Bridge data."
+          : "Send from an Ethereum wallet holding rsFIRO using the button "
+                "below. ETH is required for network fees.";
+    } else {
+      rosenFundingMessage = RosenExchange.isFiro(trade)
+          ? "No spendable transparent FIRO wallet is available. Add or "
+                "restore one to fund this swap from Stack Wallet."
+          : "No spendable Ethereum mainnet wallet is available. Add or "
+                "restore one holding rsFIRO and ETH to fund this swap from "
+                "Stack Wallet.";
+    }
+
+    void sendFromStack() {
+      CryptoCurrency coin;
+      try {
+        coin = isRosen
+            ? RosenFunding.sourceCoin(trade)
+            : AppConfig.getCryptoCurrencyForTicker(trade.payInCurrency)!;
+      } catch (_) {
+        coin = AppConfig.getCryptoCurrencyByPrettyName(trade.payInCurrency);
+      }
+      final amount = Amount.fromDecimal(
+        sendAmount,
+        fractionDigits: isRosen
+            ? DefaultTokens.rsFiro.decimals
+            : coin.fractionDigits,
+      );
+
+      Navigator.of(context).pushNamed(
+        SendFromView.routeName,
+        arguments: Tuple4(coin, amount, trade.payInAddress, trade),
+      );
+    }
 
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(
         child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             leading: AppBarBackButton(
               onPressed: () async {
                 Navigator.of(context).pop();
@@ -259,9 +314,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   RoundedWhiteContainer(
-                    borderColor: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.backgroundAppBar,
+                    borderColor: Theme.of(context)
+                        .extension<StackColors>()!
+                        .backgroundAppBar,
                     padding: const EdgeInsets.all(0),
                     child: ListView(
                       primary: false,
@@ -274,28 +329,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     SecondaryButton(
                       label: "Send from ${AppConfig.prefix}",
                       buttonHeight: ButtonHeight.l,
-                      onPressed: () {
-                        CryptoCurrency coin;
-                        try {
-                          coin = AppConfig.getCryptoCurrencyForTicker(
-                            trade.payInCurrency,
-                          )!;
-                        } catch (_) {
-                          coin = AppConfig.getCryptoCurrencyByPrettyName(
-                            trade.payInCurrency,
-                          );
-                        }
-                        final amount = Amount.fromDecimal(
-                          sendAmount,
-                          fractionDigits: coin.fractionDigits,
-                        );
-                        final address = trade.payInAddress;
-
-                        Navigator.of(context).pushNamed(
-                          SendFromView.routeName,
-                          arguments: Tuple4(coin, amount, address, trade),
-                        );
-                      },
+                      onPressed: sendFromStack,
                     ),
                   const SizedBox(height: 32),
                 ],
@@ -315,9 +349,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
               child: Container(
                 decoration: isDesktop
                     ? BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.backgroundAppBar,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .backgroundAppBar,
                         borderRadius: BorderRadius.vertical(
                           top: Radius.circular(
                             Constants.size.circularBorderRadius,
@@ -371,7 +405,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                       trade.payInCurrency,
                                     )!;
                                 final amount = sendAmount.toAmount(
-                                  fractionDigits: coin.fractionDigits,
+                                  fractionDigits: isRosen
+                                      ? DefaultTokens.rsFiro.decimals
+                                      : coin.fractionDigits,
                                 );
                                 text = ref
                                     .watch(pAmountFormatter(coin))
@@ -436,26 +472,39 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                   SelectableText(
                     trade.status,
                     style: STextStyles.itemSubtitle(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.colorForStatus(trade.status),
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .colorForStatus(trade.status),
                     ),
                   ),
                 ],
               ),
             ),
-            if (!sentFromStack && !hasTx)
+            if (fundingNeedsAttention)
               isDesktop ? const _Divider() : const SizedBox(height: 12),
-            if (!sentFromStack && !hasTx)
+            if (fundingNeedsAttention)
+              RoundedWhiteContainer(
+                child: Text(
+                  "The saved deposit could not be safely submitted. Stack "
+                  "Wallet will keep checking it and may only retry the "
+                  "exact signed transaction when safe. Do not "
+                  "start another Rosen deposit from this wallet until this "
+                  "one is resolved.",
+                  style: STextStyles.itemSubtitle(context),
+                ),
+              ),
+            if (!isRosen && !sentFromStack && !hasTx)
+              isDesktop ? const _Divider() : const SizedBox(height: 12),
+            if (!isRosen && !sentFromStack && !hasTx)
               RoundedContainer(
                 padding: isDesktop
                     ? const EdgeInsets.all(16)
                     : const EdgeInsets.all(12),
                 color: isDesktop
                     ? Theme.of(context).extension<StackColors>()!.popupBG
-                    : Theme.of(
-                        context,
-                      ).extension<StackColors>()!.warningBackground,
+                    : Theme.of(context)
+                          .extension<StackColors>()!
+                          .warningBackground,
                 child: ConditionalParent(
                   condition: isDesktop,
                   builder: (child) => Column(
@@ -481,9 +530,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                     STextStyles.desktopTextExtraExtraSmall(
                                       context,
                                     ).copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textDark,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark,
                                     ),
                               ),
                             ],
@@ -500,39 +549,44 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       text:
                           "You must send at least ${sendAmount.toStringAsFixed(trade.payInCurrency.toLowerCase() == "xmr" ? 12 : 8)} ${trade.payInCurrency.toUpperCase()}. ",
                       style: isDesktop
-                          ? STextStyles.desktopTextExtraExtraSmall(
-                              context,
-                            ).copyWith(
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.accentColorRed,
-                            )
+                          ? STextStyles.desktopTextExtraExtraSmall(context)
+                                .copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .accentColorRed,
+                                )
                           : STextStyles.label(context).copyWith(
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.warningForeground,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .warningForeground,
                             ),
                       children: [
                         TextSpan(
                           text:
                               "If you send less than ${sendAmount.toStringAsFixed(trade.payInCurrency.toLowerCase() == "xmr" ? 12 : 8)} ${trade.payInCurrency.toUpperCase()}, your transaction may not be converted and it may not be refunded.",
                           style: isDesktop
-                              ? STextStyles.desktopTextExtraExtraSmall(
-                                  context,
-                                ).copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.accentColorRed,
-                                )
+                              ? STextStyles.desktopTextExtraExtraSmall(context)
+                                    .copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorRed,
+                                    )
                               : STextStyles.label(context).copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.warningForeground,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .warningForeground,
                                 ),
                         ),
                       ],
                     ),
                   ),
+                ),
+              ),
+            if (isRosen && !hasTx && awaitingDeposit)
+              RoundedWhiteContainer(
+                child: Text(
+                  rosenFundingMessage,
+                  style: STextStyles.itemSubtitle(context),
                 ),
               ),
             if (sentFromStack)
@@ -555,9 +609,11 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     CustomTextButton(
                       text: "View transaction",
                       onTap: () {
-                        final coin = AppConfig.getCryptoCurrencyForTicker(
-                          trade.payInCurrency,
-                        )!;
+                        final coin = isRosen
+                            ? RosenFunding.sourceCoin(trade)
+                            : AppConfig.getCryptoCurrencyForTicker(
+                                trade.payInCurrency,
+                              )!;
 
                         if (isDesktop) {
                           Navigator.of(context).push(
@@ -629,9 +685,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                   ],
                 ),
               ),
-            if (!sentFromStack && !hasTx)
+            if (!isRosen && !sentFromStack && !hasTx)
               isDesktop ? const _Divider() : const SizedBox(height: 12),
-            if (!sentFromStack && !hasTx)
+            if (!isRosen && !sentFromStack && !hasTx)
               RoundedWhiteContainer(
                 padding: isDesktop
                     ? const EdgeInsets.all(16)
@@ -670,9 +726,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                       Assets.svg.copy,
                                       width: 12,
                                       height: 12,
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.infoItemIcons,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .infoItemIcons,
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
@@ -766,9 +822,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                             Assets.svg.qrcode,
                             width: 12,
                             height: 12,
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.infoItemIcons,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .infoItemIcons,
                           ),
                           const SizedBox(width: 4),
                           Text(
@@ -818,9 +874,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                       Assets.svg.copy,
                                       width: 12,
                                       height: 12,
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.infoItemIcons,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .infoItemIcons,
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
@@ -894,9 +950,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                     Assets.svg.pencil,
                                     width: 10,
                                     height: 10,
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.infoItemIcons,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .infoItemIcons,
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
@@ -972,9 +1028,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                       Assets.svg.pencil,
                                       width: 10,
                                       height: 10,
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.infoItemIcons,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .infoItemIcons,
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
@@ -1024,9 +1080,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                           ),
                           style: STextStyles.desktopTextExtraExtraSmall(context)
                               .copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textDark,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark,
                               ),
                         ),
                     ],
@@ -1129,9 +1185,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                           },
                           child: SvgPicture.asset(
                             Assets.svg.copy,
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.infoItemIcons,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .infoItemIcons,
                             width: 12,
                           ),
                         ),
@@ -1156,6 +1212,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       builder: (context) {
                         late final String url;
                         switch (trade.exchangeName) {
+                          case RosenExchange.exchangeName:
+                            url = "https://app.rosen.tech/events";
+                            break;
                           case ChangeNowExchange.exchangeName:
                             url =
                                 "https://changenow.io/exchange/txs/${trade.tradeId}";
@@ -1217,28 +1276,7 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
             if (!isDesktop && showSendFromStackButton)
               SecondaryButton(
                 label: "Send from ${AppConfig.prefix}",
-                onPressed: () {
-                  CryptoCurrency coin;
-                  try {
-                    coin = AppConfig.getCryptoCurrencyForTicker(
-                      trade.payInCurrency,
-                    )!;
-                  } catch (_) {
-                    coin = AppConfig.getCryptoCurrencyByPrettyName(
-                      trade.payInCurrency,
-                    );
-                  }
-                  final amount = Amount.fromDecimal(
-                    sendAmount,
-                    fractionDigits: coin.fractionDigits,
-                  );
-                  final address = trade.payInAddress;
-
-                  Navigator.of(context).pushNamed(
-                    SendFromView.routeName,
-                    arguments: Tuple4(coin, amount, address, trade),
-                  );
-                },
+                onPressed: sendFromStack,
               ),
           ],
         ),
