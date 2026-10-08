@@ -88,9 +88,9 @@ class _DesktopTokenViewState extends ConsumerState<DesktopSolTokenView> {
                   Assets.svg.arrowLeft,
                   width: 18,
                   height: 18,
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.topNavIconPrimary,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .topNavIconPrimary,
                 ),
                 onPressed: () {
                   ref.refresh(feeSheetSessionCacheProvider);
@@ -210,9 +210,9 @@ class _DesktopTokenViewState extends ConsumerState<DesktopSolTokenView> {
                   child: Text(
                     "My wallet",
                     style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textFieldActiveSearchIconLeft,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldActiveSearchIconLeft,
                     ),
                   ),
                 ),

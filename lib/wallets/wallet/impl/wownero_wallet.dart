@@ -51,8 +51,7 @@ class WowneroWallet extends LibWowneroWallet {
               recipients: [
                 // This address is only used for getting an approximate fee, never for sending
                 TxRecipient(
-                  address:
-                      "WW3iVcnoAY6K9zNdU4qmdvZELefx6xZz4PMpTwUifRkvMQckyadhSPYMVPJhBdYE8P9c27fg9RPmVaWNFx1cDaj61HnetqBiy",
+                  address: "WW3iVcnoAY6K9zNdU4qmdvZELefx6xZz4PMpTwUifRkvMQckyadhSPYMVPJhBdYE8P9c27fg9RPmVaWNFx1cDaj61HnetqBiy",
                   amount: amount,
                   isChange: false,
                   addressType: AddressType.cryptonote,
