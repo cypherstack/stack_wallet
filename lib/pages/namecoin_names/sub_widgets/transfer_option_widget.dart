@@ -360,8 +360,7 @@ class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
                         children: [
                           _addressController.text.isNotEmpty
                               ? TextFieldIconButton(
-                                  semanticsLabel:
-                                      "Clear Button. Clears The Address Field Input.",
+                                  semanticsLabel: "Clear Button. Clears The Address Field Input.",
                                   key: const Key(
                                     "nameTransferClearAddressFieldButtonKey",
                                   ),
@@ -374,8 +373,7 @@ class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
                                   child: const XIcon(),
                                 )
                               : TextFieldIconButton(
-                                  semanticsLabel:
-                                      "Paste Button. Pastes From Clipboard To Address Field Input.",
+                                  semanticsLabel: "Paste Button. Pastes From Clipboard To Address Field Input.",
                                   key: const Key(
                                     "nameTransferPasteAddressFieldButtonKey",
                                   ),
@@ -404,8 +402,7 @@ class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
                                 ),
                           if (_addressController.text.isEmpty)
                             TextFieldIconButton(
-                              semanticsLabel:
-                                  "Address Book Button. Opens Address Book For Address Field.",
+                              semanticsLabel: "Address Book Button. Opens Address Book For Address Field.",
                               key: const Key(
                                 "nameTransferAddressBookButtonKey",
                               ),
@@ -419,8 +416,7 @@ class _TransferOptionWidgetState extends ConsumerState<TransferOptionWidget> {
                             ),
                           if (_addressController.text.isEmpty)
                             TextFieldIconButton(
-                              semanticsLabel:
-                                  "Scan QR Button. Opens Camera For Scanning QR Code.",
+                              semanticsLabel: "Scan QR Button. Opens Camera For Scanning QR Code.",
                               key: const Key("nameTransferScanQrButtonKey"),
                               onTap: _scanQr,
                               child: const QrCodeIcon(),
