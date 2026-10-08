@@ -72,7 +72,13 @@ class AddressUtils {
         }
 
         // Parse query parameters.
-        result.addAll(_parseQueryParameters(u.queryParameters));
+        result.addAll(
+          _parseQueryParameters(
+            u.queryParameters,
+            // Monero URIs may list values for multiple recipients.
+            allowLists: result["scheme"] == "monero",
+          ),
+        );
 
         // Handle Monero-specific fragment (tx_description).
         if (u.fragment.isNotEmpty && result["scheme"] == "monero") {
@@ -92,7 +98,10 @@ class AddressUtils {
   }
 
   /// Helper method to parse and normalize query parameters.
-  static Map<String, String> _parseQueryParameters(Map<String, String> params) {
+  static Map<String, String> _parseQueryParameters(
+    Map<String, String> params, {
+    required bool allowLists,
+  }) {
     final Map<String, String> result = {};
     params.forEach((key, value) {
       final lowerKey = key.toLowerCase();
@@ -100,11 +109,12 @@ class AddressUtils {
         switch (lowerKey) {
           case 'amount':
           case 'tx_amount':
-            final normalized = _normalizeAmount(value);
-            if (normalized == null) {
+            final amounts = allowLists ? value.split(';') : [value];
+            final normalized = amounts.map(_normalizeAmount).toList();
+            if (normalized.contains(null)) {
               throw FormatException("Invalid payment URI amount: $value");
             }
-            result['amount'] = normalized;
+            result['amount'] = normalized.join(';');
             break;
           case 'label':
           case 'recipient_name':
@@ -133,10 +143,62 @@ class AddressUtils {
     return RegExp(r'^(\d+(\.\d+)?|\.\d+)$').hasMatch(trimmed) ? trimmed : null;
   }
 
+  /// Splits a Monero URI's `;` separated addresses, amounts, and recipient
+  /// names into individual recipients.
+  static List<PaymentUriRecipient> _parseMoneroRecipients({
+    required String address,
+    required String? amount,
+    required String? label,
+  }) {
+    final addresses = address.split(';').map((e) => e.trim()).toList();
+    if (addresses.length == 1) {
+      if (amount?.contains(';') == true) {
+        throw FormatException("Invalid payment URI amount: $amount");
+      }
+      return [
+        PaymentUriRecipient(address: address, amount: amount, label: label),
+      ];
+    }
+
+    if (addresses.contains("")) {
+      throw FormatException("Empty address in payment URI: $address");
+    }
+
+    final amounts = amount?.split(';');
+    if (amounts == null || amounts.length != addresses.length) {
+      throw const FormatException(
+        "Payment URI must have one amount per recipient",
+      );
+    }
+
+    final labels = label?.split(';');
+    if (labels != null && labels.length != addresses.length) {
+      throw const FormatException(
+        "Payment URI must have one name per recipient",
+      );
+    }
+
+    return [
+      for (int i = 0; i < addresses.length; i++)
+        PaymentUriRecipient(
+          address: addresses[i],
+          amount: amounts[i],
+          label: labels?[i].isNotEmpty == true ? labels![i] : null,
+        ),
+    ];
+  }
+
   /// Centralized method to handle various cryptocurrency URIs and return a common object.
   ///
+  /// Multi-recipient URIs are only returned when [allowMultipleRecipients] is
+  /// true, so callers that handle a single address never drop recipients.
+  ///
   /// Returns null on failure to parse
-  static PaymentUriData? parsePaymentUri(String uri, {Logging? logging}) {
+  static PaymentUriData? parsePaymentUri(
+    String uri, {
+    Logging? logging,
+    bool allowMultipleRecipients = false,
+  }) {
     // hacky check its not just a bcash, ecash, or xel address
     const cashAddrSchemes = {"bitcoincash", "bchtest", "ecash", "ectest"};
     final parsedUri = Uri.tryParse(uri);
@@ -158,13 +220,36 @@ class AddressUtils {
       // Filter out unrecognized parameters.
       final filteredParams = _filterParams(parsedData);
 
+      final amount = filteredParams['amount'] ?? filteredParams['tx_amount'];
+      final label = filteredParams['label'] ?? filteredParams['recipient_name'];
+
+      final List<PaymentUriRecipient> recipients;
+      if (scheme == "monero") {
+        recipients = _parseMoneroRecipients(
+          address: address,
+          amount: amount,
+          label: label,
+        );
+        if (recipients.length > 1 && !allowMultipleRecipients) {
+          throw const FormatException(
+            "Multiple recipients are not supported here",
+          );
+        }
+      } else {
+        recipients = [
+          PaymentUriRecipient(
+            address: cashAddrSchemes.contains(scheme)
+                ? "$scheme:$address".toLowerCase()
+                : address,
+            amount: amount,
+            label: label,
+          ),
+        ];
+      }
+
       return PaymentUriData(
         scheme: scheme,
-        address: cashAddrSchemes.contains(scheme)
-            ? "$scheme:$address".toLowerCase()
-            : address,
-        amount: filteredParams['amount'] ?? filteredParams['tx_amount'],
-        label: filteredParams['label'] ?? filteredParams['recipient_name'],
+        recipients: recipients,
         message: filteredParams['message'] ?? filteredParams['tx_description'],
         paymentId: filteredParams['tx_payment_id'],
         // Specific to Monero
@@ -378,14 +463,36 @@ class AddressUtils {
   }
 }
 
-class PaymentUriData {
+class PaymentUriRecipient {
   final String address;
-  final String? scheme;
   final String? amount;
   final String? label;
+
+  const PaymentUriRecipient({required this.address, this.amount, this.label});
+
+  @override
+  String toString() =>
+      "PaymentUriRecipient { "
+      "address: $address, "
+      "amount: $amount, "
+      "label: $label"
+      " }";
+}
+
+class PaymentUriData {
+  final String? scheme;
+
+  /// Always contains at least one recipient.
+  final List<PaymentUriRecipient> recipients;
   final String? message;
   final String? paymentId; // Specific to Monero.
   final Map<String, String> additionalParams;
+
+  String get address => recipients.first.address;
+  String? get amount => recipients.first.amount;
+  String? get label => recipients.first.label;
+
+  bool get isMultiRecipient => recipients.length > 1;
 
   CryptoCurrency? get coin => AddressUtils._getCryptoCurrencyByScheme(
     scheme ?? "", // empty will just return null
@@ -406,10 +513,8 @@ class PaymentUriData {
   }
 
   PaymentUriData({
-    required this.address,
+    required this.recipients,
     this.scheme,
-    this.amount,
-    this.label,
     this.message,
     this.paymentId,
     required this.additionalParams,
@@ -419,10 +524,8 @@ class PaymentUriData {
   String toString() =>
       "PaymentUriData { "
       "coin: $coin, "
-      "address: $address, "
-      "amount: $amount, "
+      "recipients: $recipients, "
       "scheme: $scheme, "
-      "label: $label, "
       "message: $message, "
       "paymentId: $paymentId, "
       "additionalParams: $additionalParams"
