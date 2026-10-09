@@ -15,8 +15,11 @@ void main() {
   );
   final validate = Monero(CryptoCurrencyNetwork.main).validateAddress;
   test('native DNSSEC and Monero address validation run in Flutter', () async {
-    final dns = await DnssecResolver(transport: IoDohTransport())
-        .lookupTxt('donate.getmonero.org');
+    final transport = IoDohTransport();
+    addTearDown(transport.close);
+    final dns = await DnssecResolver(
+      transport: transport,
+    ).lookupTxt('donate.getmonero.org');
     expect(dns.authentication, DnsAuthentication.locallyValidated);
     final record = dns.records
         .map((r) => r.text)
