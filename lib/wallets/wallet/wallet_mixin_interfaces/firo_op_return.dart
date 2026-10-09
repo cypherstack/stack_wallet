@@ -122,6 +122,7 @@ coinlib.Transaction firoTransactionFromHex(String raw) {
   return parsed.transaction;
 }
 
+// ponytail: pinned coinlib misreads legacy flags; replace after its decoder fix.
 _ParsedFiroTransaction _parseFiroTransaction(String raw) {
   try {
     final reader = coinlib.BytesReader(coinlib.hexToBytes(raw));

@@ -691,23 +691,32 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
     }
 
     try {
-      var signed = await client.signTransaction(
-        _credentials!,
-        txData.web3dartTransaction!,
-        chainId: txData.chainId!.toInt(),
-      );
-      if (txData.web3dartTransaction!.isEIP1559) {
-        signed = web3.prependTransactionType(0x02, signed);
-      }
-      final txid = web3.bytesToHex(web3.keccak256(signed), include0x: true);
-      if (beforeBroadcast != null) {
-        await beforeBroadcast(web3.bytesToHex(signed, include0x: true));
-      }
-      final response = await client.sendRawTransaction(signed);
-      if (response.toLowerCase() != txid) {
-        throw StateError(
-          'Ethereum node returned an unexpected transaction ID.',
+      final String txid;
+      if (beforeBroadcast == null) {
+        txid = await client.sendTransaction(
+          _credentials!,
+          txData.web3dartTransaction!,
+          chainId: txData.chainId!.toInt(),
         );
+      } else {
+        var signed = await client.signTransaction(
+          _credentials!,
+          txData.web3dartTransaction!,
+          chainId: txData.chainId!.toInt(),
+        );
+        if (txData.web3dartTransaction!.isEIP1559) {
+          signed = web3.prependTransactionType(0x02, signed);
+        }
+        txid = web3.bytesToHex(web3.keccak256(signed), include0x: true);
+        await beforeBroadcast(web3.bytesToHex(signed, include0x: true));
+        final response = await client
+            .sendRawTransaction(signed)
+            .timeout(const Duration(seconds: 30));
+        if (response.toLowerCase() != txid) {
+          throw StateError(
+            'Ethereum node returned an unexpected transaction ID.',
+          );
+        }
       }
 
       final data = (prepareTempTx ?? _prepareTempTx)(

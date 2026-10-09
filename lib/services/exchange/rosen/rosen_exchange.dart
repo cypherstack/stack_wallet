@@ -150,9 +150,6 @@ class RosenExchange extends Exchange {
         reversed: false,
         rateId: '${from.toLowerCase()}:${quote.fingerprint}',
         exchangeProvider: name,
-        warningMessage: from.toUpperCase() == 'FIRO'
-            ? 'Uses transparent FIRO only. Bridge fees are included; mining fees are additional.'
-            : 'Uses rsFIRO on Ethereum. ETH is required for gas; bridge fees are included.',
       ),
     ];
   });
@@ -471,8 +468,9 @@ class RosenExchange extends Exchange {
         final payoutTxid = event['paymentTxId'] as String?;
         final hasPayout = RosenProtocol.isTransactionId(payoutTxid);
         final status = RosenProtocol.swapStatus(
-          event['status'].toString(),
+          event['status'],
           payoutTxid,
+          flowStatuses: event['statuses'],
         );
         return trade.copyWith(
           status: status,

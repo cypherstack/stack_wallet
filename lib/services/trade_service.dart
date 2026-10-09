@@ -42,11 +42,24 @@ class TradesService extends ChangeNotifier {
     required Trade trade,
     required bool shouldNotifyListeners,
   }) async {
-    await DB.instance.put<Trade>(
-      boxName: DB.boxNameTradesV2,
-      key: trade.uuid,
-      value: trade,
-    );
+    if (trade.exchangeName == RosenExchange.exchangeName) {
+      final db = DB.instance;
+      await db.mutex.protect(() async {
+        final box = db.hive.box<Trade>(DB.boxNameTradesV2);
+        // Keep signed deposits, including newer backups of unfunded swaps.
+        final current = box.get(trade.uuid);
+        if (current == null ||
+            (current.payInTxid.isEmpty && trade.payInTxid.isNotEmpty)) {
+          await box.put(trade.uuid, trade);
+        }
+      });
+    } else {
+      await DB.instance.put<Trade>(
+        boxName: DB.boxNameTradesV2,
+        key: trade.uuid,
+        value: trade,
+      );
+    }
 
     if (shouldNotifyListeners) {
       notifyListeners();

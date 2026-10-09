@@ -10,6 +10,10 @@ rsFIRO deposits call the token's ERC20 `transfer(lockAddress, amount)` function 
 
 Bridge records use the existing swap persistence and polling. The exact signed transaction is journaled as submitting before broadcast. After restart, polling looks up its locally derived txid and, when absent and the saved fees are still current, resubmits only the same signed bytes before marking it broadcast. A rejected or ambiguous submission remains `Verifying`, is rechecked without rebuilding, and blocks another Rosen deposit from that wallet. It becomes `Failed` only when a sufficiently confirmed conflicting spend proves the saved transaction can no longer confirm. Polling matches the exact source transaction, source token, chains, destination, amount and encoded fees. `COMPLETED` requires a payout transaction ID before the swap becomes `Finished`; an unobserved transaction remains pending.
 
+The confirmation screen distinguishes a saved-but-unverified deposit from a successful broadcast. An accepted deposit that later disappears is rechecked and may only be resubmitted using its original signed bytes and still-valid fees. A rejected, malformed or unexpected-response deposit is checked for later observation but is not automatically resubmitted. A fee-mismatch deposit can be resubmitted only if its saved fees become valid again.
+
+For a permanently stuck deposit, do not delete its swap record or send another bridge deposit. Deleting a record cannot revoke signed bytes that might still reach the network. Contact support before creating a normal replacement transaction: FIRO must spend at least one of the **same transparent inputs**, and Ethereum must use the **same sender and nonce**. Once that conflicting transaction has 10 FIRO or 50 Ethereum confirmations, recovery can mark the saved deposit failed and release its wallet guard. A different input or nonce does not cancel the deposit. If the original deposit is found instead, it remains the active swap.
+
 ## Protocol and production configuration
 
 Verified on 2026-10-08 against the Rosen production app, configuration version **7.1.1**:

@@ -40,6 +40,7 @@ class RosenFunding {
   static const broadcastState = 'broadcast';
   static const needsAttentionState = 'needsAttention';
   static const failedState = 'failed';
+  static const _rpcTimeout = Duration(seconds: 30);
   static final Map<String, Mutex> _walletLocks = {};
 
   static Future<void> _saveFundingLookup({
@@ -105,12 +106,22 @@ class RosenFunding {
     eth.EthereumAddress contract,
     Uint8List data,
   ) async {
-    final result = await client.callRaw(
-      sender: sender,
-      contract: contract,
-      data: data,
-      atBlock: const web3.BlockNum.pending(),
-    );
+    final String result;
+    try {
+      result = await client
+          .callRaw(
+            sender: sender,
+            contract: contract,
+            data: data,
+            atBlock: const web3.BlockNum.pending(),
+          )
+          .timeout(_rpcTimeout);
+    } on RPCError catch (error) {
+      throw StateError(
+        'The pending rsFIRO transfer could not be validated. '
+        'Check your rsFIRO balance and try again. ${error.message}',
+      );
+    }
     if (RosenProtocol.tokenContract
             .function('transfer')
             .decodeReturnValues(result)
@@ -155,7 +166,7 @@ class RosenFunding {
           current.uuid,
           current.copyWith(
             payInTxid: txid,
-            status: 'Confirming',
+            status: 'Verifying',
             updatedAt: DateTime.now(),
             other: jsonEncode({
               ...data,
@@ -220,6 +231,41 @@ class RosenFunding {
         : funding['walletId'] as String?;
   }
 
+  static String? recoveryWalletId(Trade trade) {
+    final funding = _funding(trade);
+    return funding == null ||
+            funding['state'] == failedState ||
+            {
+              'finished',
+              'failed',
+              'exchanging',
+              'sending',
+            }.contains(trade.status.toLowerCase())
+        ? null
+        : funding['walletId'] as String?;
+  }
+
+  static Trade remapFundingWallet(Trade trade, Map<String, String> walletIds) {
+    if (trade.exchangeName != RosenExchange.exchangeName) return trade;
+    final funding = _funding(trade);
+    if (funding == null) return trade;
+    final walletId = funding['walletId'];
+    if (walletId is! String || walletId.isEmpty) {
+      throw const FormatException('Invalid Rosen funding wallet.');
+    }
+    final restoredId = walletIds[walletId] ?? walletId;
+    if (restoredId.isEmpty) {
+      throw const FormatException('Invalid restored Rosen funding wallet.');
+    }
+    if (restoredId == walletId) return trade;
+    return trade.copyWith(
+      other: jsonEncode({
+        ...jsonDecode(trade.other!) as Map<String, dynamic>,
+        fundingKey: {...funding, 'walletId': restoredId},
+      }),
+    );
+  }
+
   static bool needsAttention(Trade trade) =>
       _funding(trade)?['state'] == needsAttentionState;
 
@@ -227,7 +273,7 @@ class RosenFunding {
     final message = switch (error) {
       JsonRpcException() => error.message,
       RPCError() => '${error.message} ${error.data ?? ''}',
-      _ => '',
+      _ => error.toString(),
     }.toLowerCase();
     return const [
       'transaction was rejected by network rules',
@@ -286,14 +332,14 @@ class RosenFunding {
           scripthash: entry['scripthash'] as String,
         ));
       }
-      final height = await wallet.fetchChainHeight();
+      final height = await wallet.fetchChainHeight().timeout(_rpcTimeout);
       final seen = <String>{};
       var result = _FundingConflict.none;
       for (final scripthash
           in inputs.map((input) => input.scripthash).toSet()) {
-        final history = await wallet.electrumXClient.getHistory(
-          scripthash: scripthash,
-        );
+        final history = await wallet.electrumXClient
+            .getHistory(scripthash: scripthash)
+            .timeout(_rpcTimeout);
         for (final item in history) {
           final candidate = item['tx_hash'];
           final blockHeight = item['height'];
@@ -304,10 +350,12 @@ class RosenFunding {
             throw const FormatException('Invalid FIRO transaction history.');
           }
           if (!seen.add(candidate.toLowerCase())) continue;
-          final response = await wallet.electrumXClient.request(
-            command: 'blockchain.transaction.get',
-            args: [candidate, false],
-          );
+          final response = await wallet.electrumXClient
+              .request(
+                command: 'blockchain.transaction.get',
+                args: [candidate, false],
+              )
+              .timeout(_rpcTimeout);
           if (response is! String) {
             throw const FormatException('Invalid FIRO transaction response.');
           }
@@ -347,20 +395,21 @@ class RosenFunding {
     try {
       final sender = await ethereum.getMyWeb3Address();
       Future<_FundingConflict> pendingOrNone() async =>
-          await client.getTransactionCount(
-                sender,
-                atBlock: const web3.BlockNum.pending(),
-              ) >
+          await client
+                  .getTransactionCount(
+                    sender,
+                    atBlock: const web3.BlockNum.pending(),
+                  )
+                  .timeout(_rpcTimeout) >
               nonce
           ? _FundingConflict.pending
           : _FundingConflict.none;
-      final height = await client.getBlockNumber();
+      final height = await client.getBlockNumber().timeout(_rpcTimeout);
       final safeHeight = height - RosenApi.ethereumConfirmationWindow + 1;
       if (safeHeight < sourceHeight) return await pendingOrNone();
-      Future<int> countAt(int height) => client.getTransactionCount(
-        sender,
-        atBlock: web3.BlockNum.exact(height),
-      );
+      Future<int> countAt(int height) => client
+          .getTransactionCount(sender, atBlock: web3.BlockNum.exact(height))
+          .timeout(_rpcTimeout);
       if (await countAt(safeHeight) <= nonce) return await pendingOrNone();
 
       var low = sourceHeight >= RosenApi.ethereumConfirmationWindow - 1
@@ -385,10 +434,12 @@ class RosenFunding {
       final blockNumber = '0x${low.toRadixString(16)}';
       late final Map<String, dynamic> block;
       try {
-        block = await client.makeRPCCall<Map<String, dynamic>>(
-          'eth_getBlockByNumber',
-          [blockNumber, true],
-        );
+        block = await client
+            .makeRPCCall<Map<String, dynamic>>('eth_getBlockByNumber', [
+              blockNumber,
+              true,
+            ])
+            .timeout(_rpcTimeout);
       } on RPCError catch (error) {
         if (_historicalDataUnavailable(error)) {
           return _FundingConflict.unknown;
@@ -471,7 +522,7 @@ class RosenFunding {
           : 'Verifying';
       final sameReason =
           state != needsAttentionState || funding['reason'] == reason;
-      if (funding['state'] == broadcastState ||
+      if ((funding['state'] == broadcastState && (terminal || progressed)) ||
           (funding['state'] == state &&
               current.status == status &&
               sameReason)) {
@@ -505,7 +556,11 @@ class RosenFunding {
       throw StateError('This Rosen swap is no longer available.');
     }
     final funding = _funding(current);
-    if (funding == null || funding['state'] == broadcastState) return current;
+    if (funding == null ||
+        (funding['state'] == broadcastState &&
+            recoveryWalletId(current) == null)) {
+      return current;
+    }
     final walletId = funding['walletId'];
     final txid = funding['txid'];
     final raw = funding['raw'];
@@ -527,9 +582,12 @@ class RosenFunding {
       reason: reason,
     );
     if (wallet is EthereumWallet) {
+      if (wallet.prefs.useTor) {
+        throw StateError('Ethereum bridge funding is unavailable over Tor.');
+      }
       final client = wallet.getEthClient();
       try {
-        if (await client.getChainId() != BigInt.one) {
+        if (await client.getChainId().timeout(_rpcTimeout) != BigInt.one) {
           throw StateError('The Ethereum node must use mainnet.');
         }
       } finally {
@@ -540,29 +598,41 @@ class RosenFunding {
     Future<bool> transactionExists() async {
       if (wallet is FiroWallet) {
         try {
-          final found = await wallet.electrumXClient.request(
-            command: 'blockchain.transaction.get',
-            args: [txid, false],
-          );
+          final found = await wallet.electrumXClient
+              .request(
+                command: 'blockchain.transaction.get',
+                args: [txid, false],
+              )
+              .timeout(_rpcTimeout);
           if (found is! String ||
               firoTransactionFromHex(found).txid.toLowerCase() !=
                   txid.toLowerCase()) {
             throw StateError('FIRO node returned another transaction.');
           }
           return true;
-        } on NoSuchTransactionException {
-          return false;
+        } catch (error) {
+          if (error is NoSuchTransactionException ||
+              error.toString().contains(
+                'No such mempool or blockchain transaction',
+              )) {
+            return false;
+          }
+          rethrow;
         }
       }
       final client = (wallet as EthereumWallet).getEthClient();
       try {
-        final transaction = await client.getTransactionByHash(txid);
+        final transaction = await client
+            .getTransactionByHash(txid)
+            .timeout(_rpcTimeout);
         if (transaction != null &&
             transaction.hash.toLowerCase() != txid.toLowerCase()) {
           throw StateError('Ethereum node returned another transaction.');
         }
         if (transaction != null) return true;
-        final receipt = await client.getTransactionReceipt(txid);
+        final receipt = await client
+            .getTransactionReceipt(txid)
+            .timeout(_rpcTimeout);
         if (receipt == null) return false;
         if (web3
                 .bytesToHex(receipt.transactionHash, include0x: true)
@@ -579,6 +649,11 @@ class RosenFunding {
     if (funding['state'] == failedState) return current;
     if (await transactionExists()) {
       return mark(broadcastState);
+    }
+    if (funding['state'] == broadcastState) {
+      // Retry a dropped deposit only with its saved signed bytes.
+      final reopened = await mark(submittingState);
+      if (_funding(reopened)?['state'] != submittingState) return reopened;
     }
     final conflict = await _fundingConflict(
       wallet: wallet,
@@ -618,11 +693,11 @@ class RosenFunding {
 
     final int sourceHeight;
     if (wallet is FiroWallet) {
-      sourceHeight = await wallet.fetchChainHeight();
+      sourceHeight = await wallet.fetchChainHeight().timeout(_rpcTimeout);
     } else {
       final client = (wallet as EthereumWallet).getEthClient();
       try {
-        sourceHeight = await client.getBlockNumber();
+        sourceHeight = await client.getBlockNumber().timeout(_rpcTimeout);
       } finally {
         await client.dispose();
       }
@@ -647,9 +722,9 @@ class RosenFunding {
             txid.toLowerCase()) {
           throw const FormatException('FIRO funding journal hash mismatch.');
         }
-        response = await wallet.electrumXClient.broadcastTransaction(
-          rawTx: raw,
-        );
+        response = await wallet.electrumXClient
+            .broadcastTransaction(rawTx: raw)
+            .timeout(_rpcTimeout);
       } else {
         final bytes = raw.toUint8ListFromHex;
         if (web3
@@ -662,7 +737,9 @@ class RosenFunding {
         }
         final client = (wallet as EthereumWallet).getEthClient();
         try {
-          response = await client.sendRawTransaction(bytes);
+          response = await client
+              .sendRawTransaction(bytes)
+              .timeout(_rpcTimeout);
         } finally {
           await client.dispose();
         }
@@ -730,7 +807,14 @@ class RosenFunding {
     required Trade trade,
   }) async {
     // Refresh the persisted request if this screen holds an old quote.
-    final current = RosenExchange.currentUnfunded(trade);
+    final current = DB.instance.get<Trade>(
+      boxName: DB.boxNameTradesV2,
+      key: trade.uuid,
+    );
+    if (current == null) {
+      throw StateError('This Rosen swap is no longer available.');
+    }
+    RosenExchange.requireUnfunded(current);
     RosenExchange.validatedMetadata(current);
     if (!canFund(wallet, current)) {
       throw StateError('Choose a spendable wallet on the source network.');
@@ -959,7 +1043,7 @@ class RosenFunding {
             ),
             expectedFee: txData.fee!.raw,
           );
-          fundingHeight = await wallet.fetchChainHeight();
+          fundingHeight = await wallet.fetchChainHeight().timeout(_rpcTimeout);
           await RosenExchange.validateFunding(
             current,
             sourceHeight: fundingHeight,
@@ -969,11 +1053,13 @@ class RosenFunding {
             if (address == null) {
               throw StateError('Invalid FIRO bridge transaction input.');
             }
-            final utxos = await wallet.electrumXClient.getUTXOs(
-              scripthash: wallet.cryptoCurrency.addressToScriptHash(
-                address: address,
-              ),
-            );
+            final utxos = await wallet.electrumXClient
+                .getUTXOs(
+                  scripthash: wallet.cryptoCurrency.addressToScriptHash(
+                    address: address,
+                  ),
+                )
+                .timeout(_rpcTimeout);
             for (final utxo in utxos) {
               final value = BigInt.tryParse(utxo['value'].toString());
               if (value == null) {
@@ -1045,10 +1131,10 @@ class RosenFunding {
           ethereumNonce = tx.nonce;
           final client = ethereum.getEthClient();
           try {
-            if (await client.getChainId() != BigInt.one) {
+            if (await client.getChainId().timeout(_rpcTimeout) != BigInt.one) {
               throw StateError('The Ethereum node must use mainnet.');
             }
-            fundingHeight = await client.getBlockNumber();
+            fundingHeight = await client.getBlockNumber().timeout(_rpcTimeout);
             await RosenExchange.validateFunding(
               current,
               sourceHeight: fundingHeight,
@@ -1058,18 +1144,19 @@ class RosenFunding {
               throw StateError('Invalid rsFIRO bridge transaction sender.');
             }
             if (tx.nonce !=
-                await client.getTransactionCount(
-                  sender,
-                  atBlock: const web3.BlockNum.pending(),
-                )) {
+                await client
+                    .getTransactionCount(
+                      sender,
+                      atBlock: const web3.BlockNum.pending(),
+                    )
+                    .timeout(_rpcTimeout)) {
               throw StateError(
                 'The wallet nonce changed. Prepare this swap again.',
               );
             }
-            final ethBalance = await client.getBalance(
-              sender,
-              atBlock: const web3.BlockNum.pending(),
-            );
+            final ethBalance = await client
+                .getBalance(sender, atBlock: const web3.BlockNum.pending())
+                .timeout(_rpcTimeout);
             if (ethBalance.getInWei < txData.fee!.raw) {
               throw StateError(
                 'Insufficient ETH for the bridge transaction gas.',

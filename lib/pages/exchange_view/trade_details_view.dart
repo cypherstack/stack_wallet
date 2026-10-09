@@ -177,6 +177,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
 
     final isRosen = trade.exchangeName == RosenExchange.exchangeName;
     final fundingNeedsAttention = isRosen && RosenFunding.needsAttention(trade);
+    final replacement = RosenExchange.isFiro(trade)
+        ? "transparent FIRO inputs and waiting 10 confirmations"
+        : "Ethereum nonce and waiting 50 confirmations";
     final bool hasTx =
         sentFromStack ||
         (isRosen && trade.payInTxid.isNotEmpty) ||
@@ -489,7 +492,10 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                   "Wallet will keep checking it and may only retry the "
                   "exact signed transaction when safe. Do not "
                   "start another Rosen deposit from this wallet until this "
-                  "one is resolved.",
+                  "one is resolved. To cancel a permanently rejected deposit, "
+                  "contact support about replacing the same "
+                  "$replacement. "
+                  "Deleting this swap does not cancel its signed transaction.",
                   style: STextStyles.itemSubtitle(context),
                 ),
               ),

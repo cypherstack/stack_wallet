@@ -247,14 +247,15 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
   late final Amount amount;
   late final String address;
   late Trade trade;
-  bool _preparing = false;
+  Object? _preparation;
 
   Future<void> _send({
     bool? shouldSendPublicFiroFunds,
     bool refreshQuote = false,
   }) async {
-    if (_preparing) return;
-    _preparing = true;
+    if (_preparation != null) return;
+    final preparation = Object();
+    _preparation = preparation;
     final coin = ref.read(pWalletCoin(walletId));
 
     bool wasCancelled = false;
@@ -293,11 +294,9 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                     shouldSendPublicFiroFunds != true,
                 onCancel: () {
                   wasCancelled = true;
-                  // The mobile building dialog closes itself before this callback.
-                  if (Util.isDesktop) {
-                    closeBuildingDialog();
-                  } else {
-                    isBuildingDialogOpen = false;
+                  closeBuildingDialog();
+                  if (identical(_preparation, preparation)) {
+                    _preparation = null;
                   }
                 },
               ),
@@ -307,8 +306,12 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
       );
 
       if (refreshQuote) {
-        trade = await RosenFunding.refreshTrade(wallet: wallet, trade: trade);
-        if (!mounted) return;
+        final refreshed = await RosenFunding.refreshTrade(
+          wallet: wallet,
+          trade: trade,
+        );
+        if (wasCancelled || !mounted) return;
+        trade = refreshed;
         ref.read(tradesServiceProvider).refresh();
       }
       if (wasCancelled || !mounted) return;
@@ -320,6 +323,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
         await wallet.init();
         await wallet.open();
       }
+      if (wasCancelled || !mounted) return;
 
       final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
 
@@ -454,7 +458,9 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
       }
     } finally {
       closeBuildingDialog();
-      _preparing = false;
+      if (identical(_preparation, preparation)) {
+        _preparation = null;
+      }
     }
     if (mounted && refreshRequested) {
       unawaited(
@@ -680,7 +686,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                     if (!isFiro) const SizedBox(height: 2),
                     if (!isFiro)
                       Text(
-                        "${ref.watch(pAmountFormatter(coin)).format(ref.watch(pWalletBalance(walletId)).spendable)}${trade.exchangeName == RosenExchange.exchangeName ? "(network fees)" : ""}",
+                        "${ref.watch(pAmountFormatter(coin)).format(ref.watch(pWalletBalance(walletId)).spendable)}${trade.exchangeName == RosenExchange.exchangeName ? " (network fees)" : ""}",
                         style: STextStyles.itemSubtitle(context),
                       ),
                   ],

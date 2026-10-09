@@ -3,16 +3,23 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
+import 'package:isar_community/isar.dart';
+// Electrum's transitive dependency is the production error type under test.
+// ignore: depend_on_referenced_packages
+import 'package:json_rpc_2/json_rpc_2.dart' show RpcException;
 import 'package:stackwallet/db/hive/db.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
-import 'package:stackwallet/exceptions/electrumx/no_such_transaction.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/notification_model.dart';
 import 'package:stackwallet/models/trade_wallet_lookup.dart';
+import 'package:stackwallet/models/input.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
+import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/networking/http.dart';
-import 'package:stackwallet/exceptions/json_rpc/json_rpc_exception.dart';
 import 'package:stackwallet/services/ethereum/ethereum_api.dart';
 import 'package:stackwallet/services/trade_service.dart';
 import 'package:stackwallet/models/exchange/change_now/cn_exchange_transaction_status.dart';
@@ -26,6 +33,7 @@ import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/default_eth_tokens.dart';
 import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/utilities/prefs.dart';
+import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_service.dart';
 import 'package:stackwallet/services/wallets.dart';
@@ -35,6 +43,7 @@ import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/impl/ethereum_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
+import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/firo_op_return.dart';
 import 'package:wallet/wallet.dart' as eth;
 import 'package:web3dart/json_rpc.dart' show RPCError;
@@ -426,7 +435,7 @@ void main() {
 
       final stored = trades.get(trade.uuid)!;
       expect(stored.payInTxid, txid);
-      expect(stored.status, 'Confirming');
+      expect(stored.status, 'Verifying');
       expect((jsonDecode(stored.other!) as Map)[RosenFunding.fundingKey], {
         'walletId': 'wallet',
         'txid': txid,
@@ -470,6 +479,63 @@ void main() {
       if (lookups.isOpen) await lookups.close();
       await trades.close();
       await directory.delete(recursive: true);
+    }
+  });
+
+  test('restored bridge journals change only their cloned wallet ID', () {
+    for (final fromFiro in [true, false]) {
+      final request = _recoveryTrade(fromFiro, suffix: '-restored');
+      final funding = <String, Object>{
+        'walletId': 'original-wallet',
+        'txid': '11' * 32,
+        'raw': '0200',
+        'state': RosenFunding.submittingState,
+        'height': fromFiro ? 1378335 : 25992101,
+        if (fromFiro)
+          'inputs': [
+            {'txid': '22' * 32, 'vout': 1, 'scripthash': 'input-script'},
+          ]
+        else
+          'nonce': 7,
+      };
+      final data = <String, dynamic>{
+        ...jsonDecode(request.other!) as Map<String, dynamic>,
+        RosenFunding.fundingKey: funding,
+      };
+      final signed = request.copyWith(
+        payInTxid: funding['txid']! as String,
+        status: 'Verifying',
+        other: jsonEncode(data),
+      );
+      final restored = RosenFunding.remapFundingWallet(signed, {
+        'original-wallet': 'cloned-wallet',
+      });
+      expect(RosenFunding.fundingWalletId(restored), 'cloned-wallet');
+      expect(restored.toMap(), {...signed.toMap(), 'other': restored.other});
+      expect(jsonDecode(restored.other!), {
+        ...data,
+        RosenFunding.fundingKey: {...funding, 'walletId': 'cloned-wallet'},
+      });
+      expect(RosenFunding.remapFundingWallet(signed, {}), same(signed));
+      expect(
+        RosenFunding.remapFundingWallet(request, {
+          'original-wallet': 'cloned-wallet',
+        }),
+        same(request),
+      );
+      final otherProvider = signed.copyWith(
+        exchangeName: ChangeNowExchange.exchangeName,
+      );
+      expect(
+        RosenFunding.remapFundingWallet(otherProvider, {
+          'original-wallet': 'cloned-wallet',
+        }),
+        same(otherProvider),
+      );
+      expect(
+        () => RosenFunding.remapFundingWallet(signed, {'original-wallet': ''}),
+        throwsFormatException,
+      );
     }
   });
 
@@ -549,6 +615,38 @@ void main() {
         expect(_fundingState(recovered), RosenFunding.broadcastState);
         expect(lost.sentRaw, [raw]);
         expect(lost.lookups, 2);
+        expect(RosenFunding.fundingWalletId(recovered), isNull);
+        expect(
+          RosenFunding.recoveryWalletId(recovered),
+          'recovery-wallet-lost',
+        );
+        lost.known = false;
+        final restored = await RosenFunding.recoverFundingIntent(
+          wallet: _FundingWallet(
+            client: lost,
+            walletId: 'recovery-wallet-lost',
+          ),
+          trade: recovered,
+        );
+        expect(_fundingState(restored), RosenFunding.broadcastState);
+        expect(lost.sentRaw, [raw, raw]);
+        lost.known = false;
+        final progressed = restored.copyWith(status: 'Exchanging');
+        lost.onLookup = () => trades.put(progressed.uuid, progressed);
+        final progressedWallet = _FundingWallet(
+          client: lost,
+          walletId: 'recovery-wallet-lost',
+        );
+        expect(RosenFunding.recoveryWalletId(progressed), isNull);
+        expect(
+          (await RosenFunding.recoverFundingIntent(
+            wallet: progressedWallet,
+            trade: progressed,
+          )).status,
+          'Exchanging',
+        );
+        expect(trades.get(progressed.uuid)!.status, 'Exchanging');
+        expect(lost.sentRaw, [raw, raw]);
 
         final receiptOnly = _RecoveryClient(txid: txid, receiptKnown: true);
         final receiptRecovered = await journal('receipt', receiptOnly);
@@ -724,6 +822,18 @@ void main() {
         expect(_fundingState(firoRecovered), RosenFunding.broadcastState);
         expect(electrum.sentRaw, [firoRaw]);
         expect(electrum.lookups, 2);
+        electrum.known = false;
+        expect(RosenFunding.fundingWalletId(firoRecovered), isNull);
+        expect(
+          RosenFunding.recoveryWalletId(firoRecovered),
+          firoWallet.walletId,
+        );
+        final firoRestored = await RosenFunding.recoverFundingIntent(
+          wallet: firoWallet,
+          trade: firoRecovered,
+        );
+        expect(_fundingState(firoRestored), RosenFunding.broadcastState);
+        expect(electrum.sentRaw, [firoRaw, firoRaw]);
 
         final historyFiro = _recoveryTrade(true, suffix: 'firo-history');
         final historyElectrum = _RecoveryElectrumClient(
@@ -942,6 +1052,49 @@ void main() {
           throwsStateError,
         );
         expect(trades.get(stale.uuid)!.status, 'Verifying');
+        final droppedAtOldFees = _rosenRequest(
+          false,
+          suffix: 'dropped-at-old-fees',
+        );
+        final droppedClient = _RecoveryClient(txid: txid);
+        final droppedWallet = _FundingWallet(
+          client: droppedClient,
+          walletId: 'dropped-old-fees-wallet',
+        );
+        await trades.put(droppedAtOldFees.uuid, droppedAtOldFees);
+        await RosenFunding.recordFundingIntent(
+          trade: droppedAtOldFees,
+          walletId: droppedWallet.walletId,
+          txid: txid,
+          raw: raw,
+        );
+        final dropped = trades.get(droppedAtOldFees.uuid)!;
+        await trades.put(
+          dropped.uuid,
+          dropped.copyWith(
+            status: 'Confirming',
+            other: jsonEncode({
+              ...jsonDecode(dropped.other!) as Map,
+              RosenFunding.fundingKey: {
+                ...(jsonDecode(dropped.other!) as Map)[RosenFunding.fundingKey]
+                    as Map,
+                'state': RosenFunding.broadcastState,
+              },
+            }),
+          ),
+        );
+        await expectLater(
+          RosenFunding.recoverFundingIntent(
+            wallet: droppedWallet,
+            trade: dropped,
+          ),
+          throwsStateError,
+        );
+        expect(
+          _fundingState(trades.get(dropped.uuid)!),
+          RosenFunding.needsAttentionState,
+        );
+        expect(droppedClient.sentRaw, isEmpty);
       });
     } finally {
       await lookups.close();
@@ -958,8 +1111,9 @@ void main() {
       );
       final hive = DB.instance.hive;
       hive.init(directory.path);
-      if (!hive.isAdapterRegistered(Trade.typeId))
+      if (!hive.isAdapterRegistered(Trade.typeId)) {
         hive.registerAdapter(TradeAdapter());
+      }
       final notificationAdapter = NotificationModelAdapter();
       if (!hive.isAdapterRegistered(notificationAdapter.typeId)) {
         hive.registerAdapter(notificationAdapter);
@@ -967,6 +1121,9 @@ void main() {
       final trades = await hive.openBox<Trade>(DB.boxNameTradesV2);
       final watched = await hive.openBox<NotificationModel>(
         DB.boxNameWatchedTrades,
+      );
+      final watchedTransactions = await hive.openBox<NotificationModel>(
+        DB.boxNameWatchedTransactions,
       );
       final client = _PausedRecoveryClient();
       final wallet = _FundingWallet(
@@ -1014,6 +1171,10 @@ void main() {
       );
       final service = NotificationsService.instance;
       final tradeService = TradesService();
+      final previousInterval = NotificationsService.notificationRefreshInterval;
+      NotificationsService.notificationRefreshInterval = const Duration(
+        milliseconds: 1,
+      );
       await service.init(
         nodeService: _NotificationNodeService(),
         tradesService: tradeService,
@@ -1032,15 +1193,18 @@ void main() {
         await http.run(() async {
           service.startCheckingWatchedNotifications();
           await client.entered.future.timeout(const Duration(seconds: 1));
+          service.stopCheckingWatchedTransactions();
           expect(http.requests, hasLength(1));
           expect(client.release.isCompleted, isFalse);
         });
       } finally {
         service.stopCheckingWatchedTransactions();
+        NotificationsService.notificationRefreshInterval = previousInterval;
         client.release.complete(BigInt.two);
         await client.disposed.future.timeout(const Duration(seconds: 1));
         tradeService.dispose();
         await watched.close();
+        await watchedTransactions.close();
         await trades.close();
         await directory.delete(recursive: true);
       }
@@ -1054,6 +1218,7 @@ void main() {
       late Directory directory;
       late Box<Trade> trades;
       late Box<NotificationModel> watched;
+      late Box<NotificationModel> watchedTransactions;
       final bridge = _rosenRequest(
         false,
         suffix: '-receipt',
@@ -1076,6 +1241,9 @@ void main() {
         trades = await hive.openBox<Trade>(DB.boxNameTradesV2);
         watched = await hive.openBox<NotificationModel>(
           DB.boxNameWatchedTrades,
+        );
+        watchedTransactions = await hive.openBox<NotificationModel>(
+          DB.boxNameWatchedTransactions,
         );
         for (final trade in [bridge, legacy]) {
           await trades.put(trade.uuid, trade);
@@ -1120,7 +1288,8 @@ void main() {
       try {
         await http.run(() async {
           service.startCheckingWatchedNotifications();
-          await tester.pump();
+          await tester.pump(const Duration(seconds: 60));
+          service.stopCheckingWatchedTransactions();
           expect(receipt.paused, isTrue);
           expect(
             http.requests.where((url) => url.host == 'api.changenow.io'),
@@ -1155,6 +1324,7 @@ void main() {
         tradeService.dispose();
         await tester.runAsync(() async {
           await watched.close();
+          await watchedTransactions.close();
           await trades.close();
           await directory.delete(recursive: true);
         });
@@ -1301,24 +1471,610 @@ void main() {
       }
     },
   );
+
+  test(
+    'Rosen refresh reloads a stale screen and rejects a concurrent send',
+    () async {
+      final directory = await Directory.systemTemp.createTemp(
+        'rosen-stale-refresh-',
+      );
+      final hive = DB.instance.hive;
+      hive.init(directory.path);
+      if (!hive.isAdapterRegistered(Trade.typeId)) {
+        hive.registerAdapter(TradeAdapter());
+      }
+      final trades = await hive.openBox<Trade>(DB.boxNameTradesV2);
+      final stale = _rosenRequest(false);
+      final current = _recoveryTrade(false, suffix: '');
+      final wallet = _FundingWallet(client: _RecoveryClient(txid: '11' * 32));
+      final quoteRequested = Completer<void>();
+      final releaseQuote = Completer<void>();
+      var pause = false;
+      final http = RosenTestHttp((url) async {
+        expect(url.host, 'api.ergoplatform.com');
+        if (pause) {
+          quoteRequested.complete();
+          await releaseQuote.future;
+        }
+        return {
+          'items': [rosenFeeBox()],
+          'total': 1,
+        };
+      });
+      try {
+        await trades.put(current.uuid, current);
+        await http.run(() async {
+          final refreshed = await RosenFunding.refreshTrade(
+            wallet: wallet,
+            trade: stale,
+          );
+          expect(refreshed.payInAmount, current.payInAmount);
+          expect(refreshed.payOutAddress, current.payOutAddress);
+          expect(refreshed.payInTxid, isEmpty);
+          pause = true;
+          final refreshing = RosenFunding.refreshTrade(
+            wallet: wallet,
+            trade: stale,
+          );
+          await quoteRequested.future;
+          final funded = refreshed.copyWith(
+            payInTxid: '22' * 32,
+            status: 'Confirming',
+          );
+          await trades.put(funded.uuid, funded);
+          releaseQuote.complete();
+          await expectLater(refreshing, throwsStateError);
+          expect(trades.get(funded.uuid)!.toMap(), funded.toMap());
+        });
+      } finally {
+        if (!releaseQuote.isCompleted) releaseQuote.complete();
+        await trades.close();
+        await directory.delete(recursive: true);
+      }
+    },
+  );
+
+  test('Ethereum recovery does not bypass Tor', () async {
+    final directory = await Directory.systemTemp.createTemp(
+      'rosen-recovery-tor-',
+    );
+    final hive = DB.instance.hive;
+    hive.init(directory.path);
+    if (!hive.isAdapterRegistered(Trade.typeId)) {
+      hive.registerAdapter(TradeAdapter());
+    }
+    final trades = await hive.openBox<Trade>(DB.boxNameTradesV2);
+    final trade = _recoveryTrade(false, suffix: '-tor');
+    final wallet = _FundingWallet(useTor: true);
+    try {
+      await trades.put(
+        trade.uuid,
+        trade.copyWith(
+          payInTxid: '11' * 32,
+          other: jsonEncode({
+            ...jsonDecode(trade.other!) as Map,
+            RosenFunding.fundingKey: {
+              'walletId': wallet.walletId,
+              'txid': '11' * 32,
+              'raw': '0200',
+              'state': RosenFunding.submittingState,
+            },
+          }),
+        ),
+      );
+      await expectLater(
+        RosenFunding.recoverFundingIntent(wallet: wallet, trade: trade),
+        throwsA(
+          isA<StateError>().having(
+            (e) => e.message,
+            'message',
+            'Ethereum bridge funding is unavailable over Tor.',
+          ),
+        ),
+      );
+      expect(wallet.rpcAttempts, 0);
+      expect(
+        _fundingState(trades.get(trade.uuid)!),
+        RosenFunding.submittingState,
+      );
+    } finally {
+      await trades.close();
+      await directory.delete(recursive: true);
+    }
+  });
+
+  testWidgets(
+    'a stalled recovery RPC releases the wallet lock without submitting later',
+    (tester) async {
+      late Directory directory;
+      late Box<Trade> trades;
+      late Box<TradeWalletLookup> lookups;
+      final trade = _recoveryTrade(false, suffix: '-timeout');
+      final txid = '11' * 32;
+      final paused = _PausedRecoveryClient();
+      final wallet = _FundingWallet(
+        client: paused,
+        walletId: 'timed-out-wallet',
+      );
+      await tester.runAsync(() async {
+        directory = await Directory.systemTemp.createTemp(
+          'rosen-recovery-timeout-',
+        );
+        final hive = DB.instance.hive;
+        hive.init(directory.path);
+        if (!hive.isAdapterRegistered(Trade.typeId)) {
+          hive.registerAdapter(TradeAdapter());
+        }
+        final adapter = TradeWalletLookupAdapter();
+        if (!hive.isAdapterRegistered(adapter.typeId)) {
+          hive.registerAdapter(adapter);
+        }
+        trades = await hive.openBox<Trade>(DB.boxNameTradesV2);
+        lookups = await hive.openBox<TradeWalletLookup>(DB.boxNameTradeLookup);
+        await trades.put(trade.uuid, trade);
+        await RosenFunding.recordFundingIntent(
+          trade: trade,
+          walletId: wallet.walletId,
+          txid: txid,
+          raw: '0200',
+        );
+      });
+      Object? result;
+      final recovering =
+          RosenFunding.recoverFundingIntent(
+            wallet: wallet,
+            trade: trade,
+          ).then<void>(
+            (_) {
+              result = true;
+            },
+            onError: (Object e) {
+              result = e;
+            },
+          );
+      try {
+        await tester.pump();
+        expect(paused.entered.isCompleted, isTrue);
+        await tester.pump(const Duration(seconds: 30));
+        expect(result, isA<TimeoutException>());
+        expect(paused.release.isCompleted, isFalse);
+        expect(
+          _fundingState(trades.get(trade.uuid)!),
+          RosenFunding.submittingState,
+        );
+        final exact = _RecoveryClient(txid: txid)..known = true;
+        final recovered = await tester.runAsync(
+          () => RosenFunding.recoverFundingIntent(
+            wallet: _FundingWallet(client: exact, walletId: wallet.walletId),
+            trade: trade,
+          ),
+        );
+        expect(_fundingState(recovered!), RosenFunding.broadcastState);
+        expect(exact.sentRaw, isEmpty);
+      } finally {
+        if (!paused.release.isCompleted) paused.release.complete(BigInt.two);
+        await tester.pump();
+        await recovering;
+        await tester.runAsync(() async {
+          await lookups.close();
+          await trades.close();
+          await directory.delete(recursive: true);
+        });
+      }
+    },
+  );
+
+  for (final method in ['chain', 'height', 'nonce', 'balance', 'transfer']) {
+    testWidgets(
+      'a stalled $method check releases the Rosen confirmation lock',
+      (tester) async {
+        late Directory directory;
+        late Box<Trade> trades;
+        final trade = _recoveryTrade(false, suffix: '-confirm-$method');
+        final client = _ConfirmPausedClient(method);
+        final wallet = _FundingWallet(
+          client: client,
+          walletId: 'confirm-$method',
+        );
+        final amount = RosenProtocol.parseAmount(trade.payInAmount);
+        final prepared = TxData(
+          recipients: [
+            TxRecipient(
+              address: trade.payInAddress,
+              amount: Amount(rawValue: amount, fractionDigits: 8),
+              isChange: false,
+              addressType: Ethereum(CryptoCurrencyNetwork.main)
+                  .defaultAddressType,
+            ),
+          ],
+          fee: Amount(rawValue: BigInt.from(3600000), fractionDigits: 18),
+          chainId: BigInt.one,
+          nonce: 7,
+          web3dartTransaction: web3.Transaction(
+            to: eth.EthereumAddress.fromHex(DefaultTokens.rsFiro.address),
+            value: eth.EtherAmount.zero(),
+            data: RosenProtocol.transferData(
+              lockAddress: trade.payInAddress,
+              amount: amount,
+              metadata: RosenExchange.validatedMetadata(trade),
+            ).toUint8ListFromHex,
+            maxGas: 120000,
+            nonce: 7,
+            maxFeePerGas: eth.EtherAmount.inWei(BigInt.from(30)),
+            maxPriorityFeePerGas: eth.EtherAmount.inWei(BigInt.from(2)),
+          ),
+        );
+        await tester.runAsync(() async {
+          directory = await Directory.systemTemp.createTemp(
+            'rosen-confirm-rpc-',
+          );
+          final hive = DB.instance.hive;
+          hive.init(directory.path);
+          if (!hive.isAdapterRegistered(Trade.typeId)) {
+            hive.registerAdapter(TradeAdapter());
+          }
+          trades = await hive.openBox<Trade>(DB.boxNameTradesV2);
+          await trades.put(trade.uuid, trade);
+        });
+        Object? result;
+        final http = RosenTestHttp(
+          (url) => {
+            'items': [rosenFeeBox()],
+            'total': 1,
+          },
+        );
+        Future<void>? confirming;
+        try {
+          await http.run(() async {
+            confirming =
+                RosenFunding.confirmSend(
+                  wallet: wallet,
+                  trade: trade,
+                  txData: prepared,
+                ).then<void>(
+                  (_) {
+                    result = true;
+                  },
+                  onError: (Object error) {
+                    result = error;
+                  },
+                );
+            await tester.pump();
+            expect(client.entered, isTrue);
+            await tester.pump(const Duration(seconds: 30));
+            expect(result, isA<TimeoutException>());
+            expect(client.release.isCompleted, isFalse);
+            expect(client.sentRaw, isEmpty);
+            expect(trades.get(trade.uuid)!.toMap(), trade.toMap());
+            await tester.runAsync(
+              () => expectLater(
+                RosenFunding.confirmSend(
+                  wallet: wallet,
+                  trade: trade,
+                  txData: prepared.copyWith(chainId: BigInt.two),
+                ),
+                throwsStateError,
+              ),
+            );
+          });
+        } finally {
+          client.release.complete();
+          await tester.pump();
+          await confirming;
+          expect(client.sentRaw, isEmpty);
+          await tester.runAsync(() async {
+            await trades.close();
+            await directory.delete(recursive: true);
+          });
+        }
+      },
+    );
+  }
+
+  group('Rosen prepares, journals and submits the exact deposit', () {
+    late Directory directory;
+    late Box<Trade> trades;
+    late Box<TradeWalletLookup> lookups;
+    late Isar isar;
+    final http = RosenTestHttp((url) {
+      expect(url.host, 'api.ergoplatform.com');
+      return {
+        'items': [rosenFeeBox()],
+        'total': 1,
+      };
+    });
+    setUp(() async {
+      directory = await Directory.systemTemp.createTemp('rosen-send-');
+      final hive = DB.instance.hive;
+      hive.init(directory.path);
+      if (!hive.isAdapterRegistered(Trade.typeId)) {
+        hive.registerAdapter(TradeAdapter());
+      }
+      final adapter = TradeWalletLookupAdapter();
+      if (!hive.isAdapterRegistered(adapter.typeId)) {
+        hive.registerAdapter(adapter);
+      }
+      trades = await hive.openBox<Trade>(DB.boxNameTradesV2);
+      lookups = await hive.openBox<TradeWalletLookup>(DB.boxNameTradeLookup);
+      await HttpOverrides.runWithHttpOverrides(
+        () => Isar.initializeIsarCore(download: true),
+        _AssetDownloadHttp(),
+      );
+      isar = await Isar.open(
+        [EthContractSchema],
+        directory: directory.path,
+        inspector: false,
+      );
+      await MainDB.instance.initMainDB(mock: isar);
+    });
+    tearDown(() async {
+      await isar.close(deleteFromDisk: true);
+      await lookups.close();
+      if (trades.isOpen) await trades.close();
+      await directory.delete(recursive: true);
+    });
+
+    for (final fromFiro in [true, false]) {
+      for (final outcome in [
+        'success',
+        'response lost',
+        'local update failed',
+        'rejected',
+        'unknown',
+      ]) {
+        test(
+          '${fromFiro ? 'FIRO' : 'rsFIRO'} journals $outcome accurately',
+          () async {
+            final trade = _recoveryTrade(fromFiro, suffix: '-$outcome');
+            await trades.put(trade.uuid, trade);
+            final Wallet wallet;
+            final List<String> sentRaw;
+            final String txid;
+            if (fromFiro) {
+              final raw = _firoPrepared(trade).raw!;
+              final client = _RecoveryElectrumClient(
+                txid: firoTransactionFromHex(raw).txid,
+                raw: raw,
+                loseFirstResponse: outcome == 'response lost',
+                rpcFailure: outcome == 'rejected',
+                lookupFailure: outcome == 'unknown',
+                expectedScripthash: Firo(CryptoCurrencyNetwork.main)
+                    .addressToScriptHash(address: trade.payInAddress),
+              );
+              wallet = _FiroFundingWallet(
+                client,
+                trade,
+                afterBroadcastFailure: outcome == 'local update failed',
+                beforeBroadcastFailure: outcome == 'unknown',
+              );
+              txid = client.txid;
+              sentRaw = client.sentRaw;
+            } else {
+              const raw = '0x0200';
+              txid = web3.bytesToHex(
+                web3.keccak256(raw.toUint8ListFromHex),
+                include0x: true,
+              );
+              final client = _RecoveryClient(
+                txid: txid,
+                confirmedNonce: 7,
+                failures: outcome == 'rejected' ? 2 : 0,
+                loseFirstResponse: outcome == 'response lost',
+                rpcFailure: outcome == 'rejected',
+                rpcMessage: 'invalid sender',
+                lookupFailure: outcome == 'unknown',
+              );
+              wallet = _FundingWallet(
+                client: client,
+                signedRaw: raw,
+                afterBroadcastFailure: outcome == 'local update failed',
+                beforeBroadcastFailure: outcome == 'unknown',
+              );
+              sentRaw = client.sentRaw;
+            }
+            await http.run(() async {
+              final prepared = await RosenFunding.prepareSend(
+                wallet: wallet,
+                trade: trade,
+              );
+              expect(
+                prepared.amountWithoutChange!.raw,
+                RosenProtocol.parseAmount(trade.payInAmount),
+              );
+              if (fromFiro) {
+                expect(
+                  prepared.opReturnData,
+                  RosenExchange.validatedMetadata(trade),
+                );
+              } else {
+                expect(prepared.chainId, BigInt.one);
+                expect(prepared.nonce, 7);
+                expect(prepared.web3dartTransaction!.maxGas, 120000);
+                expect(prepared.fee!.raw, BigInt.from(3600000));
+                expect(
+                  (await MainDB.instance.getEthContracts().findAll())
+                      .single
+                      .address,
+                  DefaultTokens.rsFiro.address,
+                );
+              }
+              final sending = RosenFunding.confirmSend(
+                wallet: wallet,
+                trade: trade,
+                txData: prepared,
+              );
+              if (outcome == 'rejected') {
+                await expectLater(sending, throwsStateError);
+              } else {
+                final sent = await sending;
+                expect(sent.txid, txid);
+              }
+              final saved = trades.get(trade.uuid)!;
+              expect(saved.payInTxid, txid);
+              expect(lookups.get(saved.uuid)!.txid, txid);
+              if (outcome == 'unknown') {
+                expect(sentRaw, isEmpty);
+                expect(_fundingState(saved), RosenFunding.submittingState);
+                expect(saved.status, 'Verifying');
+              } else if (outcome == 'rejected') {
+                expect(sentRaw, isNotEmpty);
+                expect(_fundingState(saved), RosenFunding.needsAttentionState);
+                expect(saved.status, 'Verifying');
+              } else {
+                expect(
+                  sentRaw,
+                  everyElement(fromFiro ? prepared.raw : '0x0200'),
+                );
+                expect(_fundingState(saved), RosenFunding.broadcastState);
+                expect(saved.status, 'Confirming');
+              }
+            });
+          },
+        );
+      }
+    }
+
+    test('journal write failure prevents FIRO broadcast', () async {
+      final trade = _recoveryTrade(true, suffix: '-save-failure');
+      await trades.put(trade.uuid, trade);
+      final raw = _firoPrepared(trade).raw!;
+      final client = _RecoveryElectrumClient(
+        txid: firoTransactionFromHex(raw).txid,
+        raw: raw,
+        expectedScripthash: Firo(CryptoCurrencyNetwork.main)
+            .addressToScriptHash(address: trade.payInAddress),
+      );
+      final wallet = _FiroFundingWallet(
+        client,
+        trade,
+        beforeIntent: () => trades.close(),
+      );
+      await http.run(() async {
+        final prepared = await RosenFunding.prepareSend(
+          wallet: wallet,
+          trade: trade,
+        );
+        await expectLater(
+          RosenFunding.confirmSend(
+            wallet: wallet,
+            trade: trade,
+            txData: prepared,
+          ),
+          throwsA(isA<HiveError>()),
+        );
+        expect(client.sentRaw, isEmpty);
+      });
+    });
+
+    test(
+      'rsFIRO preflight adds balance guidance without dropping node details',
+      () async {
+        final trade = _recoveryTrade(false, suffix: '-token-revert');
+        await trades.put(trade.uuid, trade);
+        final client = _RecoveryClient(
+          txid: '11' * 32,
+          pendingTransferFailure: const RPCError(3, 'execution reverted', null),
+        );
+        await http.run(() async {
+          await expectLater(
+            RosenFunding.prepareSend(
+              wallet: _FundingWallet(client: client),
+              trade: trade,
+            ),
+            throwsA(
+              isA<StateError>().having(
+                (e) => e.message,
+                'message',
+                allOf(
+                  contains('Check your rsFIRO balance'),
+                  contains('execution reverted'),
+                ),
+              ),
+            ),
+          );
+          expect(client.sentRaw, isEmpty);
+          expect(trades.get(trade.uuid)!.payInTxid, isEmpty);
+        });
+      },
+    );
+  });
 }
 
 class _FundingWallet extends Fake implements EthereumWallet {
   _FundingWallet({
     bool viewOnly = false,
+    bool useTor = false,
     this.client,
     this.walletId = 'funding-wallet',
-  }) : info = _FundingWalletInfo(viewOnly);
+    this.signedRaw,
+    this.afterBroadcastFailure = false,
+    this.beforeBroadcastFailure = false,
+  }) : info = _FundingWalletInfo(viewOnly, walletId: walletId),
+       prefs = _FundingPrefs(useTor: useTor);
 
   @override
   final WalletInfo info;
   @override
   final Ethereum cryptoCurrency = Ethereum(CryptoCurrencyNetwork.main);
   @override
-  final Prefs prefs = _FundingPrefs();
+  final Prefs prefs;
   @override
   final String walletId;
   final web3.Web3Client? client;
+  final String? signedRaw;
+  final bool afterBroadcastFailure;
+  final bool beforeBroadcastFailure;
+
+  @override
+  MainDB get mainDB => MainDB.instance;
+  @override
+  NodeService get nodeService => _NotificationNodeService();
+  @override
+  SecureStorageInterface get secureStorageInterface => _FundingStorage();
+
+  @override
+  Future<void> updateTokenContracts(List<String> addresses) async {
+    (info as _FundingWalletInfo).tokenContractAddresses = addresses;
+  }
+
+  @override
+  Future<
+    ({
+      int nonce,
+      BigInt chainId,
+      BigInt maxFeePerGas,
+      BigInt maxPriorityFeePerGas,
+    })
+  >
+  internalSharedPrepareSend({
+    required TxData txData,
+    required eth.EthereumAddress myWeb3Address,
+  }) async => (
+    nonce: 7,
+    chainId: BigInt.one,
+    maxFeePerGas: BigInt.from(30),
+    maxPriorityFeePerGas: BigInt.from(2),
+  );
+
+  @override
+  Future<TxData> confirmSend({
+    required TxData txData,
+    TxData Function(TxData, String)? prepareTempTx,
+    Future<void> Function(String)? beforeBroadcast,
+  }) async {
+    await beforeBroadcast!(signedRaw!);
+    final trade = DB.instance
+        .values<Trade>(boxName: DB.boxNameTradesV2)
+        .singleWhere((trade) => trade.payInTxid.isNotEmpty);
+    expect(_fundingState(trade), RosenFunding.submittingState);
+    expect(trade.status, 'Verifying');
+    if (beforeBroadcastFailure) throw StateError('Network unavailable');
+    final txid = await client!.sendRawTransaction(
+      signedRaw!.toUint8ListFromHex,
+    );
+    if (afterBroadcastFailure) throw StateError('Local history update failed');
+    return txData.copyWith(txid: txid, txHash: txid);
+  }
 
   static final rpcBoundary = UnsupportedError('Funding test RPC boundary');
   int rpcAttempts = 0;
@@ -1353,6 +2109,8 @@ class _RecoveryClient extends Fake implements web3.Web3Client {
     this.knownAfterLookups,
     BigInt? chainId,
     this.receiptKnown = false,
+    this.lookupFailure = false,
+    this.pendingTransferFailure,
   }) : chainId = chainId ?? BigInt.one;
 
   final String txid;
@@ -1371,7 +2129,10 @@ class _RecoveryClient extends Fake implements web3.Web3Client {
   final int? knownAfterLookups;
   final BigInt chainId;
   final bool receiptKnown;
+  final bool lookupFailure;
+  final RPCError? pendingTransferFailure;
   bool known = false;
+  Future<void> Function()? onLookup;
   int lookups = 0;
   final sentRaw = <String>[];
 
@@ -1379,6 +2140,8 @@ class _RecoveryClient extends Fake implements web3.Web3Client {
   Future<web3.TransactionInformation?> getTransactionByHash(String hash) async {
     lookups++;
     expect(hash, txid);
+    await onLookup?.call();
+    if (lookupFailure) throw StateError('Node unavailable');
     if (!known && (knownAfterLookups == null || lookups < knownAfterLookups!)) {
       return null;
     }
@@ -1424,6 +2187,50 @@ class _RecoveryClient extends Fake implements web3.Web3Client {
 
   @override
   Future<int> getBlockNumber() async => 25992101;
+
+  @override
+  Future<List<dynamic>> call({
+    eth.EthereumAddress? sender,
+    required web3.DeployedContract contract,
+    required web3.ContractFunction function,
+    required List<dynamic> params,
+    web3.BlockNum? atBlock,
+  }) async {
+    expect(function.name, 'decimals');
+    return [BigInt.from(8)];
+  }
+
+  @override
+  Future<String> callRaw({
+    eth.EthereumAddress? sender,
+    required eth.EthereumAddress contract,
+    required Uint8List data,
+    web3.BlockNum? atBlock,
+  }) async {
+    expect(atBlock?.toBlockParam(), 'pending');
+    expect(contract.with0x.toLowerCase(), DefaultTokens.rsFiro.address);
+    if (pendingTransferFailure case final error?) throw error;
+    return '0x${'00' * 31}01';
+  }
+
+  @override
+  Future<BigInt> estimateGas({
+    eth.EthereumAddress? sender,
+    eth.EthereumAddress? to,
+    eth.EtherAmount? value,
+    BigInt? amountOfGas,
+    eth.EtherAmount? gasPrice,
+    eth.EtherAmount? maxPriorityFeePerGas,
+    eth.EtherAmount? maxFeePerGas,
+    Uint8List? data,
+    web3.BlockNum? atBlock,
+  }) async => BigInt.from(100000);
+
+  @override
+  Future<eth.EtherAmount> getBalance(
+    eth.EthereumAddress address, {
+    web3.BlockNum? atBlock,
+  }) async => eth.EtherAmount.inWei(BigInt.from(10000000));
 
   @override
   Future<int> getTransactionCount(
@@ -1513,6 +2320,8 @@ class _RecoveryElectrumClient extends Fake implements ElectrumXClient {
     this.rpcFailure = false,
     this.conflictTxid,
     this.conflictRaw,
+    this.lookupFailure = false,
+    this.expectedScripthash = 'input-script',
   });
 
   final String txid;
@@ -1521,6 +2330,8 @@ class _RecoveryElectrumClient extends Fake implements ElectrumXClient {
   final bool rpcFailure;
   final String? conflictTxid;
   final String? conflictRaw;
+  final bool lookupFailure;
+  final String expectedScripthash;
   bool conflictVisible = false;
   int conflictHeight = 1378335;
   bool known = false;
@@ -1549,7 +2360,10 @@ class _RecoveryElectrumClient extends Fake implements ElectrumXClient {
     }
     lookups++;
     expect(args, [txid, false]);
-    if (!known) throw NoSuchTransactionException('not found', txid);
+    if (lookupFailure) throw StateError('Node unavailable');
+    if (!known) {
+      throw RpcException(1, 'No such mempool or blockchain transaction');
+    }
     return raw;
   }
 
@@ -1558,10 +2372,21 @@ class _RecoveryElectrumClient extends Fake implements ElectrumXClient {
     required String scripthash,
     String? requestID,
   }) async {
-    expect(scripthash, 'input-script');
+    expect(scripthash, expectedScripthash);
     return [
       if (conflictVisible && conflictTxid != null)
         {'tx_hash': conflictTxid, 'height': conflictHeight},
+    ];
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getUTXOs({
+    required String scripthash,
+    String? requestID,
+  }) async {
+    expect(scripthash, expectedScripthash);
+    return [
+      {'tx_hash': '00' * 32, 'tx_pos': 0, 'value': 10000001000},
     ];
   }
 
@@ -1573,7 +2398,7 @@ class _RecoveryElectrumClient extends Fake implements ElectrumXClient {
     sentRaw.add(rawTx);
     if (rpcFailure) {
       conflictVisible = true;
-      throw JsonRpcException('transaction was rejected by network rules');
+      throw RpcException(1, 'transaction was rejected by network rules');
     }
     if (loseFirstResponse && !known) {
       known = true;
@@ -1585,15 +2410,123 @@ class _RecoveryElectrumClient extends Fake implements ElectrumXClient {
 }
 
 class _FundingWalletInfo extends Fake implements WalletInfo {
-  _FundingWalletInfo(this.isViewOnly);
+  _FundingWalletInfo(this.isViewOnly, {this.walletId = 'funding-wallet'});
 
   @override
   final bool isViewOnly;
+  @override
+  final String walletId;
+  @override
+  List<String> tokenContractAddresses = [];
+}
+
+class _FundingStorage extends Fake implements SecureStorageInterface {}
+
+class _AssetDownloadHttp extends HttpOverrides {}
+
+class _FiroFundingWallet extends _FiroRecoveryWallet {
+  _FiroFundingWallet(
+    super.electrumXClient,
+    this.trade, {
+    this.afterBroadcastFailure = false,
+    this.beforeBroadcastFailure = false,
+    this.beforeIntent,
+  });
+  final Trade trade;
+  final bool afterBroadcastFailure;
+  final bool beforeBroadcastFailure;
+  final Future<void> Function()? beforeIntent;
+
+  @override
+  Future<TxData> prepareSend({required TxData txData}) async {
+    expect(txData.opReturnData, RosenExchange.validatedMetadata(trade));
+    expect(txData.recipients!.single.address, trade.payInAddress);
+    return _firoPrepared(trade);
+  }
+
+  @override
+  Future<TxData> confirmSend({
+    required TxData txData,
+    Future<void> Function(String)? beforeBroadcast,
+  }) async {
+    await beforeIntent?.call();
+    await beforeBroadcast!(txData.raw!);
+    final saved = DB.instance.get<Trade>(
+      boxName: DB.boxNameTradesV2,
+      key: trade.uuid,
+    )!;
+    expect(saved.payInTxid, firoTransactionFromHex(txData.raw!).txid);
+    expect(_fundingState(saved), RosenFunding.submittingState);
+    expect(saved.status, 'Verifying');
+    if (beforeBroadcastFailure) throw StateError('Network unavailable');
+    final txid = await electrumXClient.broadcastTransaction(rawTx: txData.raw!);
+    if (afterBroadcastFailure) throw StateError('Local history update failed');
+    return txData.copyWith(txid: txid, txHash: txid);
+  }
+}
+
+TxData _firoPrepared(Trade trade) {
+  final amount = RosenProtocol.parseAmount(trade.payInAmount);
+  final metadata = RosenExchange.validatedMetadata(trade);
+  const signature =
+      '304402206687c87c5f80c4e2a4e63fed02b0de65bcd38b77255b1de3f375f5d7'
+      'a1b124c902202d5997a82c65d254e08ecc2ef7ba15995df3adfefa509b6ce0fdd'
+      '65642a4062f';
+  const publicKey =
+      '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798';
+  final raw = coinlib.Transaction(
+    version: 1,
+    inputs: [
+      coinlib.RawInput(
+        prevOut: coinlib.OutPoint(Uint8List(32), 0),
+        scriptSig: '47${signature}0121$publicKey'.toUint8ListFromHex,
+      ),
+    ],
+    outputs: [
+      coinlib.Output.fromScriptBytes(
+        amount,
+        RosenProtocol.firoScript(trade.payInAddress).toUint8ListFromHex,
+      ),
+      firoOpReturnOutput(metadata),
+    ],
+  ).toHex();
+  return TxData(
+    recipients: [
+      TxRecipient(
+        address: trade.payInAddress,
+        amount: Amount(rawValue: amount, fractionDigits: 8),
+        isChange: false,
+        addressType: Firo(CryptoCurrencyNetwork.main).defaultAddressType,
+      ),
+    ],
+    fee: Amount(rawValue: BigInt.from(1000), fractionDigits: 8),
+    raw: raw,
+    opReturnData: metadata,
+    usedUTXOs: [
+      StandardInput(
+        UTXO(
+          walletId: 'firo-recovery-wallet',
+          txid: '00' * 32,
+          vout: 0,
+          value: (amount + BigInt.from(1000)).toInt(),
+          name: '',
+          isBlocked: false,
+          blockedReason: null,
+          isCoinbase: false,
+          blockHash: null,
+          blockHeight: null,
+          blockTime: null,
+          address: trade.payInAddress,
+        ),
+      ),
+    ],
+  );
 }
 
 class _FundingPrefs extends Fake implements Prefs {
+  _FundingPrefs({this.useTor = false});
   @override
-  bool get useTor => false;
+  final bool useTor;
 }
 
 class _NotificationPrefs extends _FundingPrefs {
@@ -1654,6 +2587,65 @@ class _PausedRecoveryClient extends Fake implements web3.Web3Client {
 
   @override
   Future<void> dispose() async => disposed.complete();
+}
+
+class _ConfirmPausedClient extends _RecoveryClient {
+  _ConfirmPausedClient(this.method) : super(txid: '11' * 32, confirmedNonce: 7);
+  final String method;
+  final release = Completer<void>();
+  bool entered = false;
+  Future<void> pause(String operation) async {
+    if (operation == method) {
+      entered = true;
+      await release.future;
+    }
+  }
+
+  @override
+  Future<BigInt> getChainId() async {
+    await pause('chain');
+    return super.getChainId();
+  }
+
+  @override
+  Future<int> getBlockNumber() async {
+    await pause('height');
+    return super.getBlockNumber();
+  }
+
+  @override
+  Future<int> getTransactionCount(
+    eth.EthereumAddress address, {
+    web3.BlockNum? atBlock,
+  }) async {
+    await pause('nonce');
+    return super.getTransactionCount(address, atBlock: atBlock);
+  }
+
+  @override
+  Future<eth.EtherAmount> getBalance(
+    eth.EthereumAddress address, {
+    web3.BlockNum? atBlock,
+  }) async {
+    await pause('balance');
+    return super.getBalance(address, atBlock: atBlock);
+  }
+
+  @override
+  Future<String> callRaw({
+    eth.EthereumAddress? sender,
+    required eth.EthereumAddress contract,
+    required Uint8List data,
+    web3.BlockNum? atBlock,
+  }) async {
+    await pause('transfer');
+    return super.callRaw(
+      sender: sender,
+      contract: contract,
+      data: data,
+      atBlock: atBlock,
+    );
+  }
 }
 
 String _fundingState(Trade trade) =>

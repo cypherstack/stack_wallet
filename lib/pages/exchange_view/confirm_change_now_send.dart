@@ -174,7 +174,17 @@ class _ConfirmChangeNowSendViewState
       final sent = await txidFuture;
       broadcastTxid = sent.txids.join(", ");
       if (_isRosen) {
-        ref.read(tradesServiceProvider).refresh();
+        final service = ref.read(tradesServiceProvider);
+        service.refresh();
+        final saved = service.get(trade.tradeId);
+        if (saved == null || RosenFunding.fundingWalletId(saved) != null) {
+          closeSendingDialog();
+          if (mounted && context.mounted) {
+            setState(() {});
+            await _showRosenDepositStatus(saved ?? trade);
+          }
+          return;
+        }
       }
       await time;
 
@@ -218,7 +228,6 @@ class _ConfirmChangeNowSendViewState
         Navigator.of(context).popUntil(ModalRoute.withName(routeOnSuccessName));
       }
     } catch (e, s) {
-      if (broadcastTxid == null) _sending = false;
       Logging.instance.e(
         "Broadcast transaction failed: ",
         error: e,
@@ -228,6 +237,18 @@ class _ConfirmChangeNowSendViewState
       // pop sending dialog
       closeSendingDialog();
       if (!mounted || !context.mounted) return;
+
+      if (_isRosen) {
+        final service = ref.read(tradesServiceProvider);
+        final saved = service.get(trade.tradeId);
+        if (saved?.payInTxid.isNotEmpty == true || broadcastTxid != null) {
+          service.refresh();
+          setState(() {});
+          await _showRosenDepositStatus(saved ?? trade);
+          return;
+        }
+      }
+      if (broadcastTxid == null) _sending = false;
 
       if (broadcastTxid == null &&
           e is ExchangeException &&
@@ -271,6 +292,46 @@ class _ConfirmChangeNowSendViewState
     }
   }
 
+  Future<void> _showRosenDepositStatus(Trade saved) {
+    final failed = saved.status.toLowerCase() == "failed";
+    final needsAttention = RosenFunding.needsAttention(saved);
+    final submitted =
+        saved.payInTxid.isNotEmpty &&
+        RosenFunding.fundingWalletId(saved) == null;
+    return showDialog<void>(
+      context: context,
+      useSafeArea: false,
+      builder: (context) => StackDialog(
+        title: needsAttention
+            ? "Bridge deposit needs attention"
+            : failed
+            ? "Bridge deposit failed"
+            : submitted
+            ? "Bridge deposit submitted"
+            : "Bridge deposit pending verification",
+        message: needsAttention
+            ? "Your signed deposit was saved, but needs attention. "
+                  "Do not send again. Check this swap for recovery guidance."
+            : failed
+            ? "The saved deposit failed. Do not send this prepared transaction again. "
+                  "Check this swap for recovery guidance."
+            : submitted
+            ? "Your deposit was submitted, but saving local details failed. "
+                  "Do not send again. Check this swap in your swaps."
+            : "Your signed deposit was saved. Network acceptance is not confirmed. "
+                  "Stack Wallet will verify it and retry safely. "
+                  "Do not send again. Check this swap in your swaps.",
+        rightButton: TextButton(
+          style: Theme.of(context)
+              .extension<StackColors>()!
+              .getSecondaryEnabledButtonStyle(context),
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text("Ok", style: STextStyles.button(context)),
+        ),
+      ),
+    );
+  }
+
   Future<void> _refreshQuote() async {
     if (await showRosenQuoteChangedDialog(context) && mounted) {
       // Discard the prepared transaction; SendFrom rebuilds it for fresh review.
@@ -279,6 +340,7 @@ class _ConfirmChangeNowSendViewState
   }
 
   Future<void> _confirmSend() async {
+    if (_isRosen && _sending) return;
     if (_quoteChanged) {
       await _refreshQuote();
       return;
@@ -523,6 +585,7 @@ class _ConfirmChangeNowSendViewState
                         Expanded(
                           child: PrimaryButton(
                             label: _quoteChanged ? "Refresh quote" : "Send",
+                            enabled: !_isRosen || !_sending,
                             buttonHeight: isDesktop ? ButtonHeight.l : null,
                             onPressed: _confirmSend,
                           ),
@@ -836,6 +899,7 @@ class _ConfirmChangeNowSendViewState
             if (!isDesktop)
               PrimaryButton(
                 label: _quoteChanged ? "Refresh quote" : "Send",
+                enabled: !_isRosen || !_sending,
                 buttonHeight: isDesktop ? ButtonHeight.l : null,
                 onPressed: _confirmSend,
               ),

@@ -22,7 +22,6 @@ import 'package:stream_channel/stream_channel.dart';
 
 import '../app_config.dart';
 import '../exceptions/electrumx/no_such_transaction.dart';
-import '../exceptions/json_rpc/json_rpc_exception.dart';
 import '../models/electrumx_response/spark_models.dart';
 import '../services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import '../services/event_bus/events/global/tor_status_changed_event.dart';
@@ -369,7 +368,7 @@ class ElectrumXClient {
           );
         }
 
-        throw JsonRpcException(
+        throw Exception(
           "JSONRPC response\n"
           "     command: $command\n"
           "     error: ${response["error"]}\n"

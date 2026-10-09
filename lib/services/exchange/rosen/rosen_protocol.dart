@@ -22,13 +22,25 @@ class RosenProtocol {
   static bool isTransactionId(String? txid) =>
       txid != null && RegExp(r'^(0x)?[0-9a-fA-F]{64}$').hasMatch(txid);
 
-  static String swapStatus(String status, String? payoutTxid) =>
-      switch (status.toLowerCase()) {
-        'completed' ||
-        'successful' => isTransactionId(payoutTxid) ? 'Finished' : 'Sending',
-        'fraud' => 'Failed',
-        _ => 'Exchanging',
-      };
+  static String swapStatus(
+    Object? status,
+    String? payoutTxid, {
+    Object? flowStatuses,
+  }) {
+    final value = status is Map ? status['status'] : status;
+    final normalized = value is String ? value.toLowerCase() : '';
+    // Fraud belongs to one flow; a later flow can still complete this event.
+    final completed =
+        {'completed', 'successful'}.contains(normalized) ||
+        (normalized == 'multiple_flows' &&
+            flowStatuses is List &&
+            flowStatuses.contains('successful'));
+    return completed
+        ? isTransactionId(payoutTxid)
+              ? 'Finished'
+              : 'Sending'
+        : 'Exchanging';
+  }
 
   static BigInt parseAmount(String value) {
     if (!RegExp(r'^\d+(\.\d{1,8})?$').hasMatch(value)) {

@@ -72,11 +72,13 @@ void main() {
   );
 
   test(
-    'Ethereum rejects a node transaction ID that differs from its own',
+    'Rosen Ethereum rejects a node transaction ID that differs from its own',
     () async {
+      var journaled = false;
       final client = web3.Web3Client(
         'https://ethereum.invalid',
         MockClient((request) async {
+          expect(journaled, isTrue);
           final rpc = jsonDecode(request.body) as Map<String, dynamic>;
           return http.Response(
             jsonEncode({
@@ -94,6 +96,7 @@ void main() {
         _EthereumWallet(client).confirmSend(
           txData: _ethereumTxData(),
           prepareTempTx: (txData, _) => txData,
+          beforeBroadcast: (_) async => journaled = true,
         ),
         throwsA(
           isA<StateError>().having(
@@ -105,6 +108,42 @@ void main() {
       );
     },
   );
+
+  test('Ordinary Ethereum sends preserve the existing node response', () async {
+    final nodeTxid = '0x${'AB' * 32}';
+    var requests = 0;
+    var tempTxPrepared = false;
+    final client = web3.Web3Client(
+      'https://ethereum.invalid',
+      MockClient((request) async {
+        requests++;
+        final rpc = jsonDecode(request.body) as Map<String, dynamic>;
+        expect(rpc['method'], 'eth_sendRawTransaction');
+        expect((rpc['params'] as List).single, startsWith('0x02'));
+        return http.Response(
+          jsonEncode({'jsonrpc': '2.0', 'id': rpc['id'], 'result': nodeTxid}),
+          200,
+        );
+      }),
+    );
+    addTearDown(client.dispose);
+
+    final sent = await _EthereumWallet(client).confirmSend(
+      txData: _ethereumTxData().copyWith(note: 'existing send note'),
+      prepareTempTx: (txData, address) {
+        expect(txData.txid, nodeTxid);
+        expect(txData.txHash, nodeTxid);
+        expect(address, '0x9858effd232b4033e47d90003d41ec34ecaeda94');
+        tempTxPrepared = true;
+        return txData;
+      },
+    );
+    expect(requests, 1);
+    expect(tempTxPrepared, isTrue);
+    expect(sent.txid, nodeTxid);
+    expect(sent.txHash, nodeTxid);
+    expect(sent.note, 'existing send note');
+  });
 
   test('Electrum awaits the journal before broadcasting', () async {
     final entered = Completer<void>();
@@ -132,6 +171,102 @@ void main() {
     expect(client.calls, 1);
     expect(sent.txid, 'electrum-txid');
   });
+
+  for (final ethereum in [true, false]) {
+    for (final journal in [true, false]) {
+      testWidgets('${ethereum ? 'Ethereum' : 'Electrum'} '
+          '${journal ? 'bridge' : 'ordinary'} broadcast timeout scope', (
+        tester,
+      ) async {
+        final journalEntered = Completer<void>();
+        final journalRelease = Completer<void>();
+        final response = Completer<String>();
+        var journaled = false;
+        var requests = 0;
+        var txid = 'unreached';
+        final client = web3.Web3Client(
+          'https://ethereum.invalid',
+          MockClient((request) async {
+            requests++;
+            expectSync(journaled, journal);
+            final rpc = jsonDecode(request.body) as Map<String, dynamic>;
+            expectSync(rpc['method'], 'eth_sendRawTransaction');
+            final raw = (rpc['params'] as List).single as String;
+            txid = web3.bytesToHex(
+              web3.keccak256(raw.toUint8ListFromHex),
+              include0x: true,
+            );
+            return http.Response(
+              jsonEncode({
+                'jsonrpc': '2.0',
+                'id': rpc['id'],
+                'result': await response.future,
+              }),
+              200,
+            );
+          }),
+        );
+        addTearDown(client.dispose);
+        final ethereumWallet = _EthereumWallet(client);
+        final electrumWallet = _ElectrumWallet()
+          ..mainDB = MainDB.instance
+          ..electrumXClient = _ElectrumClient(() {
+            requests++;
+            expectSync(journaled, journal);
+            txid = 'electrum-txid';
+          }, response: response);
+        Future<void> beforeBroadcast(String raw) async {
+          journalEntered.complete();
+          await journalRelease.future;
+          journaled = true;
+        }
+
+        final sending = ethereum
+            ? ethereumWallet.confirmSend(
+                txData: _ethereumTxData(),
+                prepareTempTx: (txData, _) => txData,
+                beforeBroadcast: journal ? beforeBroadcast : null,
+              )
+            : electrumWallet.confirmSend(
+                txData: TxData(raw: '010203', usedUTXOs: []),
+                beforeBroadcast: journal ? beforeBroadcast : null,
+              );
+        Object? result;
+        final completed = sending.then<void>(
+          (_) => result = true,
+          onError: (Object error) => result = error,
+        );
+        try {
+          await tester.pump();
+          if (journal) {
+            expect(journalEntered.isCompleted, isTrue);
+            await tester.pump(const Duration(seconds: 31));
+            expect(result, isNull);
+            expect(requests, 0);
+            journalRelease.complete();
+            await tester.pump();
+          }
+          expect(requests, 1);
+          await tester.pump(const Duration(seconds: 29));
+          expect(result, isNull);
+          await tester.pump(const Duration(seconds: 1));
+          expect(response.isCompleted, isFalse);
+          expect(result, journal ? isA<TimeoutException>() : isNull);
+        } finally {
+          if (!journalRelease.isCompleted) journalRelease.complete();
+          response.complete(txid);
+          await tester.pump();
+          await completed;
+        }
+        final cacheUpdates = ethereum
+            ? ethereumWallet.cacheUpdates
+            : electrumWallet.cacheUpdates;
+        expect(cacheUpdates, journal ? 0 : 1);
+        expect(result, journal ? isA<TimeoutException>() : isTrue);
+        expect(requests, 1);
+      });
+    }
+  }
 }
 
 TxData _ethereumTxData() => TxData(
@@ -152,6 +287,7 @@ class _EthereumWallet extends EthereumWallet {
   _EthereumWallet(this.client) : super(CryptoCurrencyNetwork.main);
 
   final web3.Web3Client client;
+  int cacheUpdates = 0;
 
   @override
   web3.Web3Client getEthClient() => client;
@@ -176,22 +312,29 @@ class _EthereumWallet extends EthereumWallet {
   );
 
   @override
-  Future<TxData> updateSentCachedTxData({required TxData txData}) async =>
-      txData;
+  Future<TxData> updateSentCachedTxData({required TxData txData}) async {
+    cacheUpdates++;
+    return txData;
+  }
 }
 
 class _ElectrumWallet extends FiroWallet {
   _ElectrumWallet() : super(CryptoCurrencyNetwork.main);
 
+  int cacheUpdates = 0;
+
   @override
-  Future<TxData> updateSentCachedTxData({required TxData txData}) async =>
-      txData;
+  Future<TxData> updateSentCachedTxData({required TxData txData}) async {
+    cacheUpdates++;
+    return txData;
+  }
 }
 
 class _ElectrumClient extends Fake implements ElectrumXClient {
-  _ElectrumClient(this.beforeSend);
+  _ElectrumClient(this.beforeSend, {this.response});
 
   final void Function() beforeSend;
+  final Completer<String>? response;
   int calls = 0;
 
   @override
@@ -201,6 +344,6 @@ class _ElectrumClient extends Fake implements ElectrumXClient {
   }) async {
     beforeSend();
     calls++;
-    return 'electrum-txid';
+    return response == null ? 'electrum-txid' : await response!.future;
   }
 }

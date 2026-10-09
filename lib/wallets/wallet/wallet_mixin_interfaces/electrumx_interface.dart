@@ -1836,9 +1836,12 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       Logging.instance.d("confirmSend txData: $txData");
 
       if (beforeBroadcast != null) await beforeBroadcast(txData.raw!);
-      final txHash = await electrumXClient.broadcastTransaction(
+      final broadcasting = electrumXClient.broadcastTransaction(
         rawTx: txData.raw!,
       );
+      final txHash = await (beforeBroadcast == null
+          ? broadcasting
+          : broadcasting.timeout(const Duration(seconds: 30)));
       Logging.instance.d("Sent txHash: $txHash");
 
       txData = txData.copyWith(

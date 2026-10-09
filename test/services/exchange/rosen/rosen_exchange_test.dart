@@ -334,17 +334,35 @@ void main() {
               reason: mismatch.key,
             );
           }
-          for (final payout in [null, 'invalid', 'cd' * 32]) {
-            events = [
-              {...event, 'paymentTxId': payout},
-            ];
-            final result = await exchange.updateTrade(trade);
-            expect(result.exception, isNull);
-            expect(
-              result.value!.status,
-              payout == 'cd' * 32 ? 'Finished' : 'Sending',
-            );
-            expect(result.value!.payOutTxid, payout == 'cd' * 32 ? payout : '');
+          for (final status in [
+            'completed',
+            {
+              'status': 'COMPLETED',
+              'reason': 'Override',
+              'severity': 'success',
+            },
+            'MULTIPLE_FLOWS',
+          ]) {
+            for (final payout in [null, 'invalid', 'cd' * 32]) {
+              events = [
+                {
+                  ...event,
+                  'status': status,
+                  'statuses': ['fraud', 'successful'],
+                  'paymentTxId': payout,
+                },
+              ];
+              final result = await exchange.updateTrade(trade);
+              expect(result.exception, isNull);
+              expect(
+                result.value!.status,
+                payout == 'cd' * 32 ? 'Finished' : 'Sending',
+              );
+              expect(
+                result.value!.payOutTxid,
+                payout == 'cd' * 32 ? payout : '',
+              );
+            }
           }
           final finished = trade.copyWith(
             status: 'Finished',
@@ -363,6 +381,55 @@ void main() {
           });
           expect(concurrent.requests, hasLength(1));
           expect(trades.get(trade.uuid)!.payInTxid, trade.payInTxid);
+        });
+      });
+
+      test('polling follows successful overrides and later flows', () async {
+        await http.run(() async {
+          var trade = (await create(await estimate()))
+              .copyWith(payInTxid: 'ab' * 32, status: 'Confirming');
+          await trades.put(trade.uuid, trade);
+          final fees = jsonDecode(trade.other!) as Map;
+          final event = <String, dynamic>{
+            'sourceTxId': trade.payInTxid,
+            'fromChain': fromFiro ? 'firo' : 'ethereum',
+            'toChain': fromFiro ? 'ethereum' : 'firo',
+            'toAddress': destination,
+            'sourceChainTokenId': fromFiro
+                ? 'FIRO'
+                : DefaultTokens.rsFiro.address,
+            'bridgeFee': fees['bridgeFee'],
+            'networkFee': fees['networkFee'],
+            'amount': '10000000000',
+            'status': 'FRAUD',
+            'paymentTxId': null,
+          };
+          events = [event];
+          trade = (await exchange.updateTrade(trade)).value!;
+          expect(trade.status, 'Exchanging');
+          await trades.put(trade.uuid, trade);
+
+          for (final status in [
+            {
+              'status': 'COMPLETED',
+              'severity': 'success',
+              'reason': 'Override',
+            },
+            'MULTIPLE_FLOWS',
+          ]) {
+            events = [
+              {
+                ...event,
+                'status': status,
+                'statuses': ['fraud', 'successful'],
+                'paymentTxId': 'cd' * 32,
+              },
+            ];
+            final result = await exchange.getTrade(trade.tradeId);
+            expect(result.exception, isNull);
+            expect(result.value!.status, 'Finished');
+            expect(result.value!.payOutTxid, 'cd' * 32);
+          }
         });
       });
 

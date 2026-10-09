@@ -157,9 +157,11 @@ class _Step4ViewState extends ConsumerState<Step4View> {
   void initState() {
     model = widget.model;
     clipboard = widget.clipboard;
-    _statusString = model.trade!.status == "Waiting"
-        ? "Waiting for deposit"
-        : model.trade!.status;
+    if (_isRosen) {
+      _statusString = model.trade!.status == "Waiting"
+          ? "Waiting for deposit"
+          : model.trade!.status;
+    }
 
     isWalletCoinAndCanSend = _isRosen
         ? ref

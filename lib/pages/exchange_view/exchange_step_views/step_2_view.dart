@@ -241,8 +241,15 @@ class _Step2ViewState extends ConsumerState<Step2View> {
             .getWallet(tuple.item1)
             .getCurrentReceivingAddress()
             .then((value) {
-              _toController.text = value!.value;
+              if (!mounted || value == null) return;
+              _toController.text = value.value;
               model.recipientAddress = _toController.text;
+              setState(() {
+                enableNext =
+                    _toController.text.isNotEmpty &&
+                    (_refundController.text.isNotEmpty ||
+                        !ref.read(efExchangeProvider).supportsRefundAddress);
+              });
             });
       } else {
         if (model.sendTicker.toUpperCase() ==
@@ -252,8 +259,15 @@ class _Step2ViewState extends ConsumerState<Step2View> {
               .getWallet(tuple.item1)
               .getCurrentReceivingAddress()
               .then((value) {
-                _refundController.text = value!.value;
+                if (!mounted || value == null) return;
+                _refundController.text = value.value;
                 model.refundAddress = _refundController.text;
+                setState(() {
+                  enableNext =
+                      _toController.text.isNotEmpty &&
+                      (_refundController.text.isNotEmpty ||
+                          !ref.read(efExchangeProvider).supportsRefundAddress);
+                });
               });
         }
       }

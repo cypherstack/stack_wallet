@@ -152,8 +152,56 @@ void main() {
     expect(RosenProtocol.swapStatus('COMPLETED', 'invalid'), 'Sending');
     expect(RosenProtocol.swapStatus('COMPLETED', '0x${'11' * 32}'), 'Finished');
     expect(RosenProtocol.swapStatus('successful', '11' * 32), 'Finished');
-    expect(RosenProtocol.swapStatus('FRAUD', null), 'Failed');
+    expect(RosenProtocol.swapStatus('FRAUD', null), 'Exchanging');
     expect(RosenProtocol.swapStatus('unknown', null), 'Exchanging');
+  });
+
+  test('override and multiple-flow status require confirmed completion', () {
+    final payout = '11' * 32;
+    expect(
+      RosenProtocol.swapStatus({'status': 'COMPLETED'}, payout),
+      'Finished',
+    );
+    expect(
+      RosenProtocol.swapStatus({'status': 'COMPLETED'}, 'invalid'),
+      'Sending',
+    );
+    expect(
+      RosenProtocol.swapStatus(
+        'MULTIPLE_FLOWS',
+        payout,
+        flowStatuses: ['fraud', 'successful'],
+      ),
+      'Finished',
+    );
+    expect(
+      RosenProtocol.swapStatus(
+        'MULTIPLE_FLOWS',
+        null,
+        flowStatuses: ['fraud', 'successful'],
+      ),
+      'Sending',
+    );
+    for (final statuses in [
+      null,
+      ['fraud'],
+      ['processing'],
+      ['unknown'],
+    ]) {
+      expect(
+        RosenProtocol.swapStatus(
+          'MULTIPLE_FLOWS',
+          payout,
+          flowStatuses: statuses,
+        ),
+        'Exchanging',
+      );
+    }
+    expect(
+      RosenProtocol.swapStatus({'status': 'unknown'}, payout),
+      'Exchanging',
+    );
+    expect(RosenProtocol.swapStatus({'status': null}, payout), 'Exchanging');
   });
 
   test('amounts stay exact beyond floating-point precision', () {

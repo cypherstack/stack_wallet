@@ -108,7 +108,6 @@ class NotificationsService extends ChangeNotifier {
   void startCheckingWatchedNotifications() {
     stopCheckingWatchedTransactions();
 
-    if (prefs.externalCalls) unawaited(_checkTrades());
     _timer = Timer.periodic(notificationRefreshInterval, (_) {
       Logging.instance.d("Periodic notifications update check");
       if (prefs.externalCalls) {
@@ -308,7 +307,7 @@ class NotificationsService extends ChangeNotifier {
     for (final trade in tradesService.trades) {
       if (trade.exchangeName != RosenExchange.exchangeName) continue;
       try {
-        final walletId = RosenFunding.fundingWalletId(trade);
+        final walletId = RosenFunding.recoveryWalletId(trade);
         if (walletId == null) continue;
         await RosenFunding.recoverFundingIntent(
           wallet: Wallets.sharedInstance.getWallet(walletId),
