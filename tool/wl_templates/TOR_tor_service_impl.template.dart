@@ -115,8 +115,7 @@ class _TorServiceImpl extends TorService {
       return;
     }
 
-    _tor!.disable();
-    await _tor?.stop();
+    await _tor!.disable();
 
     _updateStatusAndFireEvent(
       status: TorConnectionStatus.disconnected,

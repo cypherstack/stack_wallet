@@ -1,8 +1,85 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
+import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
+class _RecordingLog extends Fake implements Logging {
+  final entries = <String>[];
+  @override
+  void d(
+    dynamic message, {
+    DateTime? time,
+    Object? error,
+    StackTrace? stackTrace,
+  }) {
+    entries.add('$message $error');
+  }
+
+  @override
+  void i(
+    dynamic message, {
+    DateTime? time,
+    Object? error,
+    StackTrace? stackTrace,
+  }) {
+    entries.add('$message $error');
+  }
+}
+
 void main() {
+  test('malformed seed QR does not expose mnemonic data in logs', () {
+    final log = _RecordingLog();
+    expect(
+      AddressUtils.decodeQRSeedData('{"mnemonic":["secret-seed"', logging: log),
+      isEmpty,
+    );
+    expect(log.entries.single, 'QR seed data parsing failed FormatException');
+  });
+
+  test('Monero payment URIs cannot erase hidden alias characters', () {
+    for (final character in [
+      '\ufeff',
+      '\u00a0',
+      '\u2003',
+      '\r',
+      '\n',
+      '\v',
+      '\f',
+      '\x7f',
+    ]) {
+      expect(
+        AddressUtils.parsePaymentUri('monero:${character}alice.example'),
+        isNull,
+      );
+      expect(
+        AddressUtils.parsePaymentUri('monero:alice.example$character'),
+        isNull,
+      );
+    }
+  });
+  test('pasted and typed aliases do not enter payment URI logs', () {
+    final log = _RecordingLog();
+    for (final input in [
+      'alice.example',
+      'Alice@Example',
+      '\u00a0alice.example',
+    ]) {
+      expect(AddressUtils.parsePaymentUri(input, logging: log), isNull);
+    }
+    expect(log.entries, isEmpty);
+  });
+  test('invalid payment URI logs do not expose recipient data', () {
+    final log = _RecordingLog();
+    expect(
+      AddressUtils.parsePaymentUri(
+        'monero:alice.example?amount=private-note',
+        logging: log,
+      ),
+      isNull,
+    );
+    expect(log.entries.single, 'Invalid payment URI FormatException');
+  });
+
   const String firoAddress = "a6ESWKz7szru5syLtYAPRhHLdKvMq3Yt1j";
 
   test("condense address", () {

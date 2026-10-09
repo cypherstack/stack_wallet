@@ -74,6 +74,7 @@ secp256k1.dll
 ## other generated project files
 
 pubspec.yaml
+pubspec_overrides.yaml
 
 /android/app/build.gradle
 /android/app/src/debug/AndroidManifest.xml

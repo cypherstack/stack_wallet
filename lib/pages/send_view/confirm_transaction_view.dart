@@ -789,6 +789,25 @@ class _ConfirmTransactionViewState
                       ],
                     ),
                   ),
+                  if (widget.txData.openAliasRecipient != null) ...[
+                    const SizedBox(height: 12),
+                    RoundedWhiteContainer(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            "OpenAlias",
+                            style: STextStyles.smallMed12(context),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            widget.txData.openAliasRecipient!.displayAlias,
+                            style: STextStyles.itemSubtitle12(context),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 12),
                   RoundedWhiteContainer(
                     child: Row(
@@ -1146,6 +1165,41 @@ class _ConfirmTransactionViewState
                           ],
                         ),
                       ),
+                      if (widget.txData.openAliasRecipient != null) ...[
+                        Container(
+                          height: 1,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "OpenAlias",
+                                style: STextStyles.desktopTextExtraExtraSmall(
+                                  context,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              SelectableText(
+                                widget.txData.openAliasRecipient!.displayAlias,
+                                style:
+                                    STextStyles.desktopTextExtraExtraSmall(
+                                      context,
+                                    ).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                       if (widget.isPaynymTransaction)
                         Container(
                           height: 1,

@@ -829,6 +829,24 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.2"
+  dnssec_resolver:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: main
+      resolved-ref: "5491d174bcfaa076ec6b49bcb37717a9287eb79a"
+      url: "https://github.com/cypherstack/dnssec_resolver.git"
+    source: git
+    version: "0.0.1"
+  doh_resolver:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: main
+      resolved-ref: e1d060d0c287f2bd00485d74848d1624ee6b5b00
+      url: "https://github.com/cypherstack/doh_resolver.git"
+    source: git
+    version: "0.0.1"
   drift:
     dependency: "direct main"
     description:
@@ -889,11 +907,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: b6fa44d015d3bfa06934b73219928c29ca48a290
-      resolved-ref: b6fa44d015d3bfa06934b73219928c29ca48a290
+      ref: main
+      resolved-ref: "76ffad6ecc1e31de47d9187fd39c831db0aa987f"
       url: "https://github.com/cypherstack/electrum_adapter.git"
     source: git
-    version: "3.0.2"
+    version: "4.0.1"
   emojis:
     dependency: "direct main"
     description:
@@ -1232,8 +1250,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "14427bcbbe1e754bce4a1b93cdb0a31ce56d792b"
-      resolved-ref: "14427bcbbe1e754bce4a1b93cdb0a31ce56d792b"
+      ref: main
+      resolved-ref: "7548bf1c6e79a82e991c3feb61c1908dfe324275"
       url: "https://github.com/cypherstack/fusiondart.git"
     source: git
     version: "1.0.0"
@@ -1750,6 +1768,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.5.0"
+  openalias:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: main
+      resolved-ref: b6af74eda9e5a627381bdfd0e96a604409b0b95e
+      url: "https://github.com/cypherstack/openalias.git"
+    source: git
+    version: "0.0.1"
   package_config:
     dependency: transitive
     description:
@@ -2140,13 +2167,13 @@ packages:
     source: hosted
     version: "2.1.1"
   socks_socket:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: socks_socket
-      sha256: "53bc7eae40a3aa16ea810b0e9de3bb23ba7beb0b40d09357b89190f2f44374cc"
+      sha256: "09149ed1278584554aeacc60c7aeec5bd80154e6ce1136f00d97485d09d5a338"
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.1"
+    version: "2.0.0"
   solana:
     dependency: "direct main"
     description:
@@ -2378,11 +2405,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "5586bfa3c48e495bc00f9b56fa18869daf768573"
-      resolved-ref: "5586bfa3c48e495bc00f9b56fa18869daf768573"
+      ref: "feat/bump-arti"
+      resolved-ref: "23ac35b417e38becf4189d90da29414ed2318824"
       url: "https://github.com/cypherstack/tor.git"
     source: git
-    version: "0.1.0"
+    version: "0.2.0"
   tuple:
     dependency: "direct main"
     description:

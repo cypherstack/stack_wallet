@@ -28,11 +28,13 @@ class BuildingTransactionDialog extends ConsumerStatefulWidget {
     required this.onCancel,
     required this.coin,
     required this.isSpark,
+    this.closeOnCancel = true,
   });
 
   final VoidCallback onCancel;
   final CryptoCurrency coin;
   final bool isSpark;
+  final bool closeOnCancel;
 
   @override
   ConsumerState<BuildingTransactionDialog> createState() =>
@@ -116,6 +118,9 @@ class _RestoringDialogState extends ConsumerState<BuildingTransactionDialog> {
                               style: STextStyles.itemSubtitle12(context),
                             ),
                             onPressed: () {
+                              if (widget.closeOnCancel) {
+                                Navigator.of(context).pop();
+                              }
                               onCancel.call();
                             },
                           ),
@@ -140,6 +145,9 @@ class _RestoringDialogState extends ConsumerState<BuildingTransactionDialog> {
                     style: STextStyles.itemSubtitle12(context),
                   ),
                   onPressed: () {
+                    if (widget.closeOnCancel) {
+                      Navigator.of(context).pop();
+                    }
                     onCancel.call();
                   },
                 ),
