@@ -40,6 +40,14 @@ class OpenAliasException implements Exception {
 
 String normalizeOpenAlias(String input) {
   try {
+    // Validate the original input before the package can normalize it. Unicode
+    // whitespace and format controls must not silently change alias identity.
+    if (input.codeUnits.any((unit) => unit > 0x7f)) {
+      throw const oa.OpenAliasException(
+        oa.OpenAliasError.invalidName,
+        'Use punycode for international domain names.',
+      );
+    }
     return oa.normalizeOpenAlias(input);
   } on oa.OpenAliasException catch (error) {
     throw OpenAliasException(error.message);
