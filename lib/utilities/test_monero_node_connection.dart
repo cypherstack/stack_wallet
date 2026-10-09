@@ -103,7 +103,9 @@ Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
       Logging.instance.w("$e\n$s", error: e, stackTrace: s);
       return MoneroNodeConnectionResponse(null, null, null, false);
     } finally {
-      await socket?.close();
+      // The probe is finished; close() could rethrow an already handled
+      // failure.
+      socket?.destroy();
     }
   } else {
     final httpClient = HttpClient();
