@@ -8,12 +8,7 @@ void main(List<String> args) {
     );
   }
   final workspace = Directory(args.single).absolute;
-  const packages = [
-    'socks_socket',
-    'doh_resolver',
-    'dnssec_resolver',
-    'openalias',
-  ];
+  const packages = ['doh_resolver', 'dnssec_resolver', 'openalias'];
   for (final package in packages) {
     if (!File('${workspace.path}/$package/pubspec.yaml').existsSync()) {
       throw ArgumentError('Missing package $package in ${workspace.path}');
