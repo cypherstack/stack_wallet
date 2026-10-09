@@ -24,6 +24,8 @@ import '../wallets/crypto_currency/crypto_currency.dart';
 import '../wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 import 'exchange/exchange.dart';
 import 'exchange/exchange_response.dart';
+import 'exchange/rosen/rosen_exchange.dart';
+import 'exchange/rosen/rosen_funding.dart';
 import 'node_service.dart';
 import 'notifications_api.dart';
 import 'trade_service.dart';
@@ -298,6 +300,25 @@ class NotificationsService extends ChangeNotifier {
         // update the trade in db
         // over write trade stored in db with updated version
         await tradesService.edit(trade: trade, shouldNotifyListeners: true);
+      }
+    }
+
+    // A stalled bridge node must not delay the existing provider updates.
+    for (final trade in tradesService.trades) {
+      if (trade.exchangeName != RosenExchange.exchangeName) continue;
+      try {
+        final walletId = RosenFunding.recoveryWalletId(trade);
+        if (walletId == null) continue;
+        await RosenFunding.recoverFundingIntent(
+          wallet: Wallets.sharedInstance.getWallet(walletId),
+          trade: trade,
+        );
+      } catch (e, s) {
+        Logging.instance.e(
+          'Rosen funding recovery remains pending',
+          error: e,
+          stackTrace: s,
+        );
       }
     }
   }
