@@ -46,7 +46,10 @@ class TxData {
 
   final String? raw;
 
-  final String? txid;
+  final List<String> txids;
+
+  /// Only available when this send contains exactly one transaction.
+  String? get txid => txids.length == 1 ? txids.single : null;
   final String? txHash;
 
   final String? note;
@@ -134,7 +137,8 @@ class TxData {
     this.fee,
     this.vSize,
     this.raw,
-    this.txid,
+    String? txid,
+    List<String>? txids,
     this.txHash,
     this.note,
     this.noteOnChain,
@@ -172,7 +176,7 @@ class TxData {
     this.opReturnData,
     this.type = TxType.regular,
     this.salviumStakeTx = false,
-  });
+  }) : txids = List.unmodifiable(txids ?? (txid == null ? <String>[] : [txid]));
 
   Amount? get amount {
     if (recipients != null && recipients!.isNotEmpty) {
@@ -281,6 +285,7 @@ class TxData {
     int? vSize,
     String? raw,
     String? txid,
+    List<String>? txids,
     String? txHash,
     String? note,
     String? noteOnChain,
@@ -336,7 +341,7 @@ class TxData {
       fee: fee ?? this.fee,
       vSize: vSize ?? this.vSize,
       raw: raw ?? this.raw,
-      txid: txid ?? this.txid,
+      txids: txids ?? (txid == null ? this.txids : [txid]),
       txHash: txHash ?? this.txHash,
       note: note ?? this.note,
       noteOnChain: noteOnChain ?? this.noteOnChain,
@@ -389,7 +394,7 @@ class TxData {
       'fee: $fee, '
       'vSize: $vSize, '
       'raw: $raw, '
-      'txid: $txid, '
+      'txids: $txids, '
       'txHash: $txHash, '
       'note: $note, '
       'noteOnChain: $noteOnChain, '

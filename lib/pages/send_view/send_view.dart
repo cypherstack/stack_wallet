@@ -1276,6 +1276,7 @@ class _SendViewState extends ConsumerState<SendView> {
     _address = "";
     _addressToggleFlag = false;
     _setOpReturnData(null);
+    _setValidAddressProviders("");
     setState(() {});
   }
 

@@ -1,4 +1,6 @@
 //ON
+import 'dart:ffi';
+
 import 'package:cs_wownero/cs_wownero.dart' as lib_wownero;
 import 'package:cs_wownero/src/deprecated/get_height_by_date.dart'
     as cs_wownero_deprecated;
@@ -391,7 +393,12 @@ class _CsWowneroInterfaceImpl extends CsWowneroInterface {
       pending,
       pending.amount,
       pending.fee,
-      pending.txid,
+      wow_wallet_ffi
+          .getPendingTransactionTxid(
+            Pointer<Void>.fromAddress(pending.pointerAddress),
+            separator: ';',
+          )
+          .split(';'),
     );
   }
 
@@ -443,7 +450,12 @@ class _CsWowneroInterfaceImpl extends CsWowneroInterface {
       pending,
       pending.amount,
       pending.fee,
-      pending.txid,
+      wow_wallet_ffi
+          .getPendingTransactionTxid(
+            Pointer<Void>.fromAddress(pending.pointerAddress),
+            separator: ';',
+          )
+          .split(';'),
     );
   }
 

@@ -106,9 +106,9 @@ class _SendFromViewState extends ConsumerState<SendFromView> {
       builder: (child) {
         return Background(
           child: Scaffold(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () {
@@ -225,9 +225,8 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
   Future<void> _send({bool? shouldSendPublicFiroFunds}) async {
     final coin = ref.read(pWalletCoin(walletId));
 
+    bool wasCancelled = false;
     try {
-      bool wasCancelled = false;
-
       final wallet = ref.read(pWallets).getWallet(walletId);
 
       unawaited(
@@ -362,7 +361,7 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
       }
     } catch (e, s) {
       Logging.instance.e("$e\n$s", error: e, stackTrace: s);
-      if (mounted) {
+      if (mounted && !wasCancelled) {
         // pop building dialog
         Navigator.of(context, rootNavigator: Util.isDesktop).pop();
 
@@ -381,9 +380,9 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                 child: Text(
                   "Ok",
                   style: STextStyles.button(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.buttonTextSecondary,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .buttonTextSecondary,
                   ),
                 ),
                 onPressed: () {
@@ -427,9 +426,9 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
             children: [
               if (!trade.exchangeName.startsWith(TrocadorExchange.exchangeName))
                 MaterialButton(
-                  splashColor: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.highlight,
+                  splashColor: Theme.of(context)
+                      .extension<StackColors>()!
+                      .highlight,
                   key: Key("walletsSheetItemButtonFiroPrivateKey_$walletId"),
                   padding: const EdgeInsets.all(0),
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -481,9 +480,9 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                             Assets.svg.chevronRight,
                             height: 14,
                             width: 7,
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.infoItemLabel,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .infoItemLabel,
                           ),
                         ],
                       ),
@@ -491,9 +490,9 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                   ),
                 ),
               MaterialButton(
-                splashColor: Theme.of(
-                  context,
-                ).extension<StackColors>()!.highlight,
+                splashColor: Theme.of(context)
+                    .extension<StackColors>()!
+                    .highlight,
                 key: Key("walletsSheetItemButtonFiroPublicKey_$walletId"),
                 padding: const EdgeInsets.all(0),
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -543,9 +542,9 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                           Assets.svg.chevronRight,
                           height: 14,
                           width: 7,
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.infoItemLabel,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .infoItemLabel,
                         ),
                       ],
                     ),

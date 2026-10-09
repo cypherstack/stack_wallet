@@ -892,6 +892,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     _addressToggleFlag = false;
     _syncFeeAmount(null);
     _setOpReturnData(null);
+    _setValidAddressProviders("");
     setState(() {});
   }
 
