@@ -83,8 +83,8 @@ class AddressUtils {
       rethrow;
     } catch (e, s) {
       Logging.instance.d(
-        "Exception caught in parseUri($uri): $e",
-        error: e,
+        "Payment URI parsing failed",
+        error: e.runtimeType.toString(),
         stackTrace: s,
       );
     }
@@ -140,10 +140,11 @@ class AddressUtils {
     // hacky check its not just a bcash, ecash, or xel address
     const cashAddrSchemes = {"bitcoincash", "bchtest", "ecash", "ectest"};
     final parsedUri = Uri.tryParse(uri);
-    final scheme = parsedUri?.scheme.toLowerCase();
-    if (parsedUri != null &&
-        (scheme == "xel" ||
-            (!parsedUri.hasQuery && cashAddrSchemes.contains(scheme)))) {
+    // Plain addresses and aliases are normal input, not failed payment URIs.
+    if (parsedUri == null || !parsedUri.hasScheme) return null;
+    final scheme = parsedUri.scheme.toLowerCase();
+    if (scheme == "xel" ||
+        (!parsedUri.hasQuery && cashAddrSchemes.contains(scheme))) {
       return null;
     }
 
@@ -153,7 +154,16 @@ class AddressUtils {
       // Normalize the URI scheme.
       final String scheme = parsedData['scheme'] ?? '';
       parsedData.remove('scheme');
-      final address = parsedData['address']!.trim();
+      final rawAddress = parsedData['address']!;
+      // Monero destinations are printable ASCII. Do not strip controls from an
+      // alias inside a payment URI before the alias validator can reject it.
+      if (scheme == 'monero' &&
+          rawAddress.codeUnits.any(
+            (unit) => unit > 126 || (unit < 32 && unit != 9),
+          )) {
+        throw const FormatException('Invalid characters in Monero recipient');
+      }
+      final address = rawAddress.trim();
 
       // Filter out unrecognized parameters.
       final filteredParams = _filterParams(parsedData);
@@ -171,7 +181,12 @@ class AddressUtils {
         additionalParams: filteredParams,
       );
     } catch (e, s) {
-      logging?.i("Invalid payment URI: $uri", error: e, stackTrace: s);
+      // URI text and exception messages can contain payment recipients/notes.
+      logging?.i(
+        "Invalid payment URI",
+        error: e.runtimeType.toString(),
+        stackTrace: s,
+      );
       return null;
     }
   }
@@ -220,14 +235,17 @@ class AddressUtils {
   }
 
   /// returns empty if bad data
-  static Map<String, dynamic> decodeQRSeedData(String data) {
+  static Map<String, dynamic> decodeQRSeedData(
+    String data, {
+    Logging? logging,
+  }) {
     Map<String, dynamic> result = {};
     try {
       result = Map<String, dynamic>.from(jsonDecode(data) as Map);
     } catch (e, s) {
-      Logging.instance.d(
-        "Exception caught in parseQRSeedData($data)",
-        error: e,
+      (logging ?? Logging.instance).d(
+        "QR seed data parsing failed",
+        error: e.runtimeType.toString(),
         stackTrace: s,
       );
     }

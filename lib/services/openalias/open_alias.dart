@@ -26,6 +26,7 @@ class OpenAliasRecipient {
 }
 
 String displayOpenAlias(String input) {
+  normalizeOpenAlias(input);
   final name = input.trim().toLowerCase();
   return name.endsWith('.') ? name.substring(0, name.length - 1) : name;
 }

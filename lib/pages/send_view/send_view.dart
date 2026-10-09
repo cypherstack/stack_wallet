@@ -29,6 +29,7 @@ import '../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../providers/ui/preview_tx_button_state_provider.dart';
 import '../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../route_generator.dart';
+import '../../services/openalias/open_alias.dart';
 import '../../services/openalias/send_preview.dart';
 import '../../services/openalias/send_recipient.dart';
 import '../../services/spark_names_service.dart';
@@ -302,10 +303,11 @@ class _SendViewState extends ConsumerState<SendView> {
   Future<void> _pasteAddress() async {
     final ClipboardData? data = await clipboard.getData(Clipboard.kTextPlain);
     if (data?.text != null && data!.text!.isNotEmpty) {
-      String content = data.text!.trim();
-      if (content.contains("\n")) {
-        content = content.substring(0, content.indexOf("\n")).trim();
-      }
+      String content = prepareSendRecipientInput(
+        data.text!,
+        supportsOpenAlias: coin is Monero,
+        validateAddress: coin.validateAddress,
+      );
 
       try {
         final paymentData = AddressUtils.parsePaymentUri(
@@ -373,7 +375,7 @@ class _SendViewState extends ConsumerState<SendView> {
       //       .state = true,
       // );
 
-      Logging.instance.d("qrResult content: ${qrResult.rawContent}");
+      Logging.instance.d("QR scan completed");
       if (qrResult.rawContent == null) return;
 
       final paymentData = AddressUtils.parsePaymentUri(
@@ -386,7 +388,11 @@ class _SendViewState extends ConsumerState<SendView> {
         _applyUri(paymentData);
       } else {
         _setOpReturnData(null);
-        _address = qrResult.rawContent!.split("\n").first.trim();
+        _address = prepareSendRecipientInput(
+          qrResult.rawContent!,
+          supportsOpenAlias: coin is Monero,
+          validateAddress: coin.validateAddress,
+        );
         sendToController.text = _address ?? "";
 
         _setValidAddressProviders(_address);
@@ -915,7 +921,10 @@ class _SendViewState extends ConsumerState<SendView> {
       onError: (error, stack) {
         Logging.instance.e(
           'Send preview failed',
-          error: error,
+          // Alias failures may contain a recipient's domain. Keep it out of logs.
+          error: error is OpenAliasException
+              ? 'OpenAlias lookup failed'
+              : error,
           stackTrace: stack,
         );
         showTransactionFailedDialog(context, error, isDesktop: false);
@@ -1036,12 +1045,16 @@ class _SendViewState extends ConsumerState<SendView> {
       final resolved = await attempt.resolve(
         supportsOpenAlias: coin is Monero,
         validateAddress: wallet.cryptoCurrency.validateAddress,
-        lookup: (input) => ref
-            .read(pSendOpenAliasService)
-            .resolve(
-              input,
-              validateAddress: wallet.cryptoCurrency.validateAddress,
-            ),
+        lookup: (input) {
+          final operation = ref
+              .read(pSendOpenAliasService)
+              .startResolve(
+                input,
+                validateAddress: wallet.cryptoCurrency.validateAddress,
+              );
+          attempt.onClose(operation.cancel);
+          return operation.result;
+        },
       );
       attempt.checkCurrent();
       final destination = resolved.destination;
@@ -1505,6 +1518,14 @@ class _SendViewState extends ConsumerState<SendView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
+    ref.listen(
+      prefsChangeNotifierProvider.select(
+        (prefs) => (prefs.externalCalls, prefs.useTor),
+      ),
+      (previous, next) {
+        if (previous != next) _preview.invalidate();
+      },
+    );
     ref.listen(pSendAmount, (previous, next) {
       if (previous != next) _preview.invalidate();
     });

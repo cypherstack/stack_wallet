@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:stackwallet/services/openalias/open_alias.dart';
 import 'package:stackwallet/services/openalias/send_preview.dart';
 
+import 'open_alias_test_fixtures.dart';
+
 void main() {
   late SendPreview preview;
   late List<ResolvedSendRecipient> prepared;
@@ -68,6 +70,22 @@ void main() {
       expect(errors, isEmpty);
     },
   );
+  test('confirmation preserves the validated DNS provenance', () async {
+    final dns = authenticatedTxt('alice.example', [
+      'oa1:xmr recipient_address=literal;',
+    ]);
+    await run(
+      pending: Future.value(
+        OpenAliasRecipient(
+          domain: 'alice.example',
+          address: 'literal',
+          dns: dns,
+        ),
+      ),
+    );
+    expect(prepared.single.alias!.dns, same(dns));
+  });
+
   test('lookup failures do not prepare', () async {
     await run(pending: Future.error(const OpenAliasException('DNSSEC failed')));
     expect(prepared, isEmpty);

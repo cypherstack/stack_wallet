@@ -23,7 +23,7 @@ class SendRecipient {
       try {
         return SendRecipient._(
           SendRecipientKind.openAlias,
-          normalizeOpenAlias(destination),
+          normalizeOpenAlias(input),
         );
       } on OpenAliasException {
         // Invalid input stays editable without initiating a lookup.
@@ -33,4 +33,19 @@ class SendRecipient {
   }
 
   bool get isAlias => kind == SendRecipientKind.openAlias;
+}
+
+// Pasted/scanned literal addresses retain the existing first-line cleanup.
+// Aliases must reach normalization unchanged so hidden input stays invalid.
+String prepareSendRecipientInput(
+  String input, {
+  required bool supportsOpenAlias,
+  required bool Function(String) validateAddress,
+}) {
+  final destination = input.trim().split('\n').first.trim();
+  // Payment URIs retain paste cleanup; a URI cannot be an OpenAlias.
+  if (Uri.tryParse(destination)?.hasScheme ?? false) return destination;
+  return supportsOpenAlias && !validateAddress(destination)
+      ? input
+      : destination;
 }

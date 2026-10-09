@@ -134,6 +134,14 @@ class _Prefs extends ChangeNotifier implements Prefs {
   String get currency => 'USD';
   @override
   bool get externalCalls => false;
+  bool _useTor = false;
+  @override
+  bool get useTor => _useTor;
+  void changeTor(bool value) {
+    _useTor = value;
+    notifyListeners();
+  }
+
   @override
   bool get enableCoinControl => false;
   @override
@@ -165,6 +173,7 @@ class _Harness {
   final identity = ValueNotifier('wallet');
   final visible = ValueNotifier(true);
   final auth = _AuthObserver();
+  final prefs = _Prefs();
   final lookups = <Completer<AuthenticatedTxtResult>>[];
   int get calls => lookups.length;
   _Harness(this.desktop);
@@ -203,7 +212,7 @@ class _Harness {
           pWalletName(id).overrideWithValue('Test wallet'),
           pWalletBalance(id).overrideWithValue(wallet.info.cachedBalance),
         ],
-        prefsChangeNotifierProvider.overrideWithValue(_Prefs()),
+        prefsChangeNotifierProvider.overrideWithValue(prefs),
         coinIconProvider(coin)
             .overrideWithValue('test/sample_data/light/assets/dummy.svg'),
         coinImageSecondaryProvider(coin).overrideWithValue('dummy.svg'),
@@ -346,6 +355,18 @@ class _Harness {
 void main() {
   for (final desktop in [false, true]) {
     final layout = desktop ? 'desktop 1200x900' : 'mobile 390x844';
+    testWidgets('$layout rejects aliases with hidden boundary characters', (
+      tester,
+    ) async {
+      final h = _Harness(desktop);
+      await h.mount(tester);
+      await h.setAmount(tester);
+      for (final value in ['\u00a0Alice@Example', 'Alice@Example\ufeff']) {
+        await h.enter(tester, value);
+        expect(h.enabled(tester), isFalse);
+        expect(h.calls, 0);
+      }
+    });
     testWidgets(
       '$layout resolves on Preview and shows each prepared recipient',
       (tester) async {
@@ -431,6 +452,7 @@ void main() {
     for (final change in [
       'edit away and back',
       'amount',
+      'privacy away and back',
       'cancel',
       'wallet',
       'dispose',
@@ -449,6 +471,9 @@ void main() {
             controller.text = 'Alice@Example';
           case 'amount':
             h.container.read(pSendAmount.notifier).state = amount(2);
+          case 'privacy away and back':
+            h.prefs.changeTor(true);
+            h.prefs.changeTor(false);
           case 'cancel':
             await tester.tap(find.text('Cancel'));
           case 'wallet':

@@ -69,6 +69,54 @@ void main() {
       await expectLater(future, throwsA(isA<OpenAliasException>()));
     },
   );
+  test(
+    'cancellation settles promptly and ignores a late successful lookup',
+    () async {
+      final pending = Completer<AuthenticatedTxtResult>();
+      final service = OpenAliasService(
+        externalCalls: () => true,
+        useTor: () => false,
+        trustedValidators: testValidators,
+        lookup: (_, _) => pending.future,
+      );
+      final operation = service.startResolve(
+        'alice.example',
+        validateAddress: (_) => true,
+      );
+      final result = expectLater(
+        operation.result,
+        throwsA(isA<OpenAliasException>()),
+      );
+      operation.cancel();
+      operation.cancel();
+      await result;
+      pending.complete(
+        authenticatedTxt('alice.example', ['oa1:xmr recipient_address=valid;']),
+      );
+      await Future<void>.delayed(Duration.zero);
+    },
+  );
+
+  test(
+    'caller mutations cannot extend the wallet validator allowlist',
+    () async {
+      final trusted = <DnsValidator>[];
+      final service = OpenAliasService(
+        externalCalls: () => true,
+        useTor: () => false,
+        trustedValidators: trusted,
+        lookup: (_, _) async => authenticatedTxt('alice.example', [
+          'oa1:xmr recipient_address=valid;',
+        ]),
+      );
+      trusted.addAll(testValidators);
+      await expectLater(
+        service.resolve('alice.example', validateAddress: (_) => true),
+        throwsA(isA<OpenAliasException>()),
+      );
+    },
+  );
+
   test('returns only a validated literal recipient', () async {
     final service = OpenAliasService(
       externalCalls: () => true,

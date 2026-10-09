@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
@@ -24,7 +25,7 @@ class OpenAliasService {
   final bool Function() _supportsTor;
   final List<DnsValidator> _trustedValidators;
   final ({InternetAddress host, int port}) Function() _torProxy;
-  late final Future<AuthenticatedTxtResult> Function(String, bool) _lookup;
+  final Future<AuthenticatedTxtResult> Function(String, bool)? _lookup;
 
   OpenAliasService({
     bool Function()? externalCalls,
@@ -37,13 +38,18 @@ class OpenAliasService {
        _useTor = useTor ?? (() => Prefs.instance.useTor),
        _supportsTor =
            supportsTor ?? (() => AppConfig.hasFeature(AppFeature.tor)),
-       _trustedValidators = trustedValidators ?? [DnssecResolver.validator],
-       _torProxy =
-           torProxy ?? (() => TorService.sharedInstance.getProxyInfo()) {
-    _lookup = lookup ?? _lookupDns;
-  }
+       // Keep the public injection parameter named lookup.
+       // ignore: prefer_initializing_formals
+       _lookup = lookup,
+       _trustedValidators = List.unmodifiable(
+         trustedValidators ?? [DnssecResolver.validator],
+       ),
+       _torProxy = torProxy ?? (() => TorService.sharedInstance.getProxyInfo());
 
-  Future<AuthenticatedTxtResult> _lookupDns(String domain, bool useTor) async {
+  DnsOperation<AuthenticatedTxtResult> _startLookupDns(
+    String domain,
+    bool useTor,
+  ) {
     final proxy = useTor ? _torProxy() : null;
     final transport = IoDohTransport(
       proxy: proxy == null
@@ -58,22 +64,38 @@ class OpenAliasService {
       connectionTimeout: useTor ? torConnectTimeout : directConnectTimeout,
       requestTimeout: useTor ? torRequestTimeout : directRequestTimeout,
     );
+    bool allowed() {
+      if (!_externalCalls() || _useTor() != useTor) return false;
+      if (useTor) {
+        if (!_supportsTor()) return false;
+        final current = _torProxy();
+        return current.host.address == proxy!.host.address &&
+            current.port == proxy.port;
+      }
+      return true;
+    }
+
     try {
-      return await DnssecResolver(
+      final operation = DnssecResolver(
         timeout: useTor ? torLookupTimeout : directLookupTimeout,
-        transport: OpenAliasDnsTransport(transport, () {
-          if (!_externalCalls() || _useTor() != useTor) return false;
-          if (useTor) {
-            if (!_supportsTor()) return false;
-            final current = _torProxy();
-            return current.host.address == proxy!.host.address &&
-                current.port == proxy.port;
-          }
-          return true;
-        }),
-      ).lookupTxt(domain);
-    } finally {
-      await transport.close();
+        transport: OpenAliasDnsTransport(transport, allowed),
+      ).startTxtLookup(domain);
+      return DnsOperation(
+        operation.result
+            .then((result) {
+              if (!allowed()) {
+                throw const OpenAliasException(
+                  'Privacy settings changed. Please look up the alias again.',
+                );
+              }
+              return result;
+            })
+            .whenComplete(transport.close),
+        operation.cancel,
+      );
+    } catch (_) {
+      unawaited(transport.close());
+      rethrow;
     }
   }
 
@@ -88,6 +110,46 @@ class OpenAliasService {
   Future<OpenAliasRecipient> resolve(
     String input, {
     required bool Function(String) validateAddress,
+  }) => startResolve(input, validateAddress: validateAddress).result;
+
+  // Cancellation owns the whole DNSSEC chain, including pending key requests.
+  DnsOperation<OpenAliasRecipient> startResolve(
+    String input, {
+    required bool Function(String) validateAddress,
+  }) {
+    final result = Completer<OpenAliasRecipient>();
+    DnsOperation<AuthenticatedTxtResult>? lookup;
+    _resolve(
+      input,
+      validateAddress: validateAddress,
+      startLookup: (domain, useTor) {
+        final injected = _lookup;
+        lookup = injected == null
+            ? _startLookupDns(domain, useTor)
+            : DnsOperation(injected(domain, useTor), () {});
+        return lookup!.result;
+      },
+    ).then(
+      (recipient) {
+        if (!result.isCompleted) result.complete(recipient);
+      },
+      onError: (Object error, StackTrace stack) {
+        if (!result.isCompleted) result.completeError(error, stack);
+      },
+    );
+    return DnsOperation(result.future, () {
+      if (result.isCompleted) return;
+      result.completeError(
+        const OpenAliasException('OpenAlias lookup cancelled.'),
+      );
+      lookup?.cancel();
+    });
+  }
+
+  Future<OpenAliasRecipient> _resolve(
+    String input, {
+    required bool Function(String) validateAddress,
+    required Future<AuthenticatedTxtResult> Function(String, bool) startLookup,
   }) async {
     final domain = normalizeOpenAlias(input);
     if (!_externalCalls()) {
@@ -108,8 +170,10 @@ class OpenAliasService {
         trustedValidators: _trustedValidators,
         validateAddress: validateAddress,
         lookup: (name) async {
-          final result = await _lookup(name, useTor);
-          if (_useTor() != useTor || !_externalCalls()) {
+          final result = await startLookup(name, useTor);
+          if (_useTor() != useTor ||
+              !_externalCalls() ||
+              (useTor && !_supportsTor())) {
             throw const OpenAliasException(
               'Privacy settings changed. Please look up the alias again.',
             );

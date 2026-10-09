@@ -243,6 +243,46 @@ void main() {
       );
     },
   );
+  test('cancelled lookup closes its pending Tor connection', () async {
+    final server = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
+    addTearDown(server.close);
+    final connected = Completer<void>();
+    final disconnected = Completer<void>();
+    server.listen((socket) {
+      addTearDown(socket.destroy);
+      socket.listen(
+        (_) {
+          if (!connected.isCompleted) connected.complete();
+          // Leave the SOCKS handshake pending until the lookup is cancelled.
+        },
+        onDone: () {
+          if (!disconnected.isCompleted) disconnected.complete();
+        },
+        onError: (Object _) {
+          if (!disconnected.isCompleted) disconnected.complete();
+        },
+      );
+    });
+    final service = OpenAliasService(
+      externalCalls: () => true,
+      useTor: () => true,
+      supportsTor: () => true,
+      torProxy: () => (host: InternetAddress.loopbackIPv4, port: server.port),
+    );
+    final operation = service.startResolve(
+      'alice.example',
+      validateAddress: (_) => true,
+    );
+    final rejected = expectLater(
+      operation.result,
+      throwsA(isA<OpenAliasException>()),
+    );
+    await connected.future.timeout(const Duration(seconds: 5));
+    operation.cancel();
+    await rejected;
+    await disconnected.future.timeout(const Duration(seconds: 5));
+  });
+
   test('each Tor lookup uses its own SOCKS isolation credentials', () async {
     final server = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
     addTearDown(server.close);
