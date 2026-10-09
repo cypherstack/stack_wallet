@@ -45,3 +45,12 @@ post_install do |installer|
     end
   end
 end
+
+# Hosted legacy framework archives flattened their version symlinks. Repair only
+# staged copies and retain CocoaPods' configured signing identity/permissions.
+require_relative '../scripts/macos/normalize_frameworks'
+post_integrate do |installer|
+  scripts = Dir[File.join(installer.sandbox.root.to_s, 'Target Support Files', 'Pods-Runner', 'Pods-Runner-frameworks.sh')]
+  raise 'Expected exactly one Runner framework embed script' unless scripts.length == 1
+  StackFrameworkPackaging.patch_embed_script(scripts.first)
+end
