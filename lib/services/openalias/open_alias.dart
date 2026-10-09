@@ -1,17 +1,28 @@
+import 'package:doh_resolver/doh_resolver.dart';
 import 'package:openalias/openalias.dart' as oa;
 
-class OpenAliasRecipient extends oa.OpenAliasRecipient {
+/// Stack Wallet presentation state for an OpenAlias recipient.
+///
+/// The package-owned [resolved] value retains authenticated DNS evidence. This
+/// wrapper deliberately does not subclass or recreate that non-forgeable type.
+class OpenAliasRecipient {
+  final String domain;
+  final String address;
   // The alias as the user entered it, e.g. user@example.com.
   final String displayAlias;
+  final oa.OpenAliasRecipient? resolved;
 
   const OpenAliasRecipient({
-    required super.domain,
-    required super.address,
-    super.application,
-    super.record,
-    super.dns,
+    required this.domain,
+    required this.address,
     String? displayAlias,
+    this.resolved,
   }) : displayAlias = displayAlias ?? domain;
+
+  String? get application => resolved?.application;
+  oa.OpenAliasRecord? get record => resolved?.record;
+  AuthenticatedTxtResult? get dns => resolved?.dns;
+  DnsAuthentication? get authentication => resolved?.authentication;
 }
 
 String displayOpenAlias(String input) {

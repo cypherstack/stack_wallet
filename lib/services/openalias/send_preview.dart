@@ -132,6 +132,7 @@ class SendPreviewAttempt {
         domain: recipient.domain,
         address: recipient.address,
         displayAlias: displayOpenAlias(source),
+        resolved: recipient.resolved,
       ),
     );
   }

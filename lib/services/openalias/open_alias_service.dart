@@ -120,9 +120,7 @@ class OpenAliasService {
       return OpenAliasRecipient(
         domain: recipient.domain,
         address: recipient.address,
-        application: recipient.application,
-        record: recipient.record,
-        dns: recipient.dns,
+        resolved: recipient,
       );
     } on OpenAliasException {
       rethrow;
