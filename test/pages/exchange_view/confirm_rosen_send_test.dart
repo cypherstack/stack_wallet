@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' show RpcException;
+import 'package:platform/platform.dart' as platform;
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
@@ -27,10 +28,12 @@ import 'package:stackwallet/services/price_service.dart';
 import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/themes/coin_image_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/amount/amount_unit.dart';
 import 'package:stackwallet/utilities/extensions/extensions.dart';
+import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
@@ -90,127 +93,152 @@ void main() {
     await trades.put(trade.uuid, trade);
   }
 
-  for (final outcome in ['uncertain', 'rejected', 'submitted']) {
-    testWidgets('saved $outcome deposit shows its verified submission state', (
-      tester,
-    ) async {
-      await tester.runAsync(setUpBoxes);
-      await tester.binding.setSurfaceSize(const Size(1000, 1200));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
-      addTearDown(() async {
-        await tester.pumpWidget(const SizedBox());
-        await tester.pump(const Duration(seconds: 10));
-        final closing = Future.wait([lookups.close(), trades.close()]);
-        for (var i = 0; i < 10; i++) {
-          await tester.runAsync(
-            () => Future<void>.delayed(const Duration(milliseconds: 20)),
+  for (final operatingSystem in ['android', 'macos']) {
+    for (final outcome in ['uncertain', 'rejected', 'submitted']) {
+      testWidgets(
+        '$operatingSystem saved $outcome deposit shows its verified submission state',
+        (tester) async {
+          final previousPlatform = Util.layoutPlatform;
+          final previousIsIpad = Util.isIpad;
+          addTearDown(() {
+            Util.layoutPlatform = previousPlatform;
+            Util.isIpad = previousIsIpad;
+          });
+          Util.layoutPlatform = platform.FakePlatform(
+            operatingSystem: operatingSystem,
           );
-          await tester.pump();
-        }
-        await tester.runAsync(() async {
-          await closing;
-          await directory.delete(recursive: true);
-        });
-      });
-      final txData = _prepared(trade);
-      final wallet = _FundingWallet(txData, outcome);
-      final observer = _UnlockObserver();
-      final stackTheme = StackTheme.fromJson(json: lightThemeJsonMap);
-      await http.run(() async {
-        await tester.pumpWidget(
-          ProviderScope(
-            overrides: [
-              pWallets.overrideWithValue(_Wallets(wallet)),
-              mainDBProvider.overrideWithValue(_FailingNotesDB()),
-              pWalletCoin(wallet.walletId)
-                  .overrideWithValue(wallet.cryptoCurrency),
-              pWalletName(wallet.walletId).overrideWithValue('Bridge wallet'),
-              pAmountFormatter(wallet.cryptoCurrency).overrideWithValue(
-                AmountFormatter(
-                  unit: AmountUnit.normal,
-                  locale: 'en_US',
-                  coin: wallet.cryptoCurrency,
-                  maxDecimals: 8,
+          Util.isIpad = false;
+          await tester.runAsync(setUpBoxes);
+          await tester.binding.setSurfaceSize(const Size(1000, 1200));
+          addTearDown(() => tester.binding.setSurfaceSize(null));
+          addTearDown(() async {
+            await tester.pumpWidget(const SizedBox());
+            await tester.pump(const Duration(seconds: 10));
+            final closing = Future.wait([lookups.close(), trades.close()]);
+            for (var i = 0; i < 10; i++) {
+              await tester.runAsync(
+                () => Future<void>.delayed(const Duration(milliseconds: 20)),
+              );
+              await tester.pump();
+            }
+            await tester.runAsync(() async {
+              await closing;
+              await directory.delete(recursive: true);
+            });
+          });
+          final txData = _prepared(trade);
+          final wallet = _FundingWallet(txData, outcome);
+          final observer = _UnlockObserver();
+          final stackTheme = StackTheme.fromJson(json: lightThemeJsonMap);
+          await http.run(() async {
+            await tester.pumpWidget(
+              ProviderScope(
+                overrides: [
+                  themeProvider.overrideWithValue(StateController(stackTheme)),
+                  pWallets.overrideWithValue(_Wallets(wallet)),
+                  mainDBProvider.overrideWithValue(_FailingNotesDB()),
+                  pWalletCoin(wallet.walletId)
+                      .overrideWithValue(wallet.cryptoCurrency),
+                  pWalletName(wallet.walletId)
+                      .overrideWithValue('Bridge wallet'),
+                  pAmountFormatter(wallet.cryptoCurrency).overrideWithValue(
+                    AmountFormatter(
+                      unit: AmountUnit.normal,
+                      locale: 'en_US',
+                      coin: wallet.cryptoCurrency,
+                      maxDecimals: 8,
+                    ),
+                  ),
+                  coinImageSecondaryProvider(wallet.cryptoCurrency)
+                      .overrideWithValue('firo.svg'),
+                  priceAnd24hChangeNotifierProvider.overrideWithValue(
+                    PriceService('USD'),
+                  ),
+                ],
+                child: MaterialApp(
+                  builder: (context, child) => MediaQuery(
+                    data: MediaQuery.of(context)
+                        .copyWith(textScaler: const TextScaler.linear(0.7)),
+                    child: child!,
+                  ),
+                  navigatorObservers: [observer],
+                  theme: ThemeData(
+                    extensions: [StackColors.fromStackColorTheme(stackTheme)],
+                  ),
+                  initialRoute: ConfirmChangeNowSendView.routeName,
+                  routes: {
+                    '/': (_) => const SizedBox.shrink(),
+                    ConfirmChangeNowSendView.routeName: (_) =>
+                        ConfirmChangeNowSendView(
+                          txData: txData,
+                          walletId: wallet.walletId,
+                          trade: trade,
+                        ),
+                  },
                 ),
               ),
-              coinImageSecondaryProvider(wallet.cryptoCurrency)
-                  .overrideWithValue('firo.svg'),
-              priceAnd24hChangeNotifierProvider.overrideWithValue(
-                PriceService('USD'),
+            );
+            await tester.tap(find.widgetWithText(PrimaryButton, 'Send'));
+            await tester.pump();
+            for (var i = 0; i < 10; i++) {
+              await tester.runAsync(
+                () => Future<void>.delayed(const Duration(milliseconds: 20)),
+              );
+              await tester.pump();
+            }
+            await tester.pump(const Duration(seconds: 3));
+            await tester.pump();
+            if (outcome == 'submitted') {
+              await tester.pump(const Duration(seconds: 5));
+              await tester.pump(const Duration(milliseconds: 500));
+            }
+            expect(wallet.attempted.isCompleted, isTrue);
+            final saved = trades.get(trade.uuid)!;
+            expect(saved.payInTxid, isNotEmpty);
+            expect(
+              RosenFunding.fundingWalletId(saved),
+              outcome == 'submitted' ? null : wallet.walletId,
+            );
+            expect(
+              find.text(
+                outcome == 'rejected'
+                    ? 'Bridge deposit needs attention'
+                    : outcome == 'submitted'
+                    ? 'Bridge deposit submitted'
+                    : 'Bridge deposit pending verification',
               ),
-            ],
-            child: MaterialApp(
-              builder: (context, child) => MediaQuery(
-                data: MediaQuery.of(context)
-                    .copyWith(textScaler: const TextScaler.linear(0.7)),
-                child: child!,
+              findsOneWidget,
+            );
+            expect(find.byType(SendingTransactionDialog), findsNothing);
+            expect(find.textContaining('Do not send again'), findsOneWidget);
+            expect(find.text('Broadcast transaction failed'), findsNothing);
+            final dialog = tester.widget<StackOkDialog>(
+              find.byType(StackOkDialog),
+            );
+            await tester.tap(
+              find.descendant(
+                of: find.byType(StackOkDialog),
+                matching: find.text('OK'),
               ),
-              navigatorObservers: [observer],
-              theme: ThemeData(
-                extensions: [StackColors.fromStackColorTheme(stackTheme)],
-              ),
-              home: ConfirmChangeNowSendView(
-                txData: txData,
-                walletId: wallet.walletId,
-                trade: trade,
-              ),
-            ),
-          ),
-        );
-        await tester.tap(find.widgetWithText(PrimaryButton, 'Send'));
-        await tester.pump();
-        for (var i = 0; i < 10; i++) {
-          await tester.runAsync(
-            () => Future<void>.delayed(const Duration(milliseconds: 20)),
-          );
-          await tester.pump();
-        }
-        await tester.pump(const Duration(seconds: 3));
-        await tester.pump();
-        if (outcome == 'submitted') {
-          await tester.pump(const Duration(seconds: 5));
-          await tester.pump(const Duration(milliseconds: 500));
-        }
-        expect(wallet.attempted.isCompleted, isTrue);
-        final saved = trades.get(trade.uuid)!;
-        expect(saved.payInTxid, isNotEmpty);
-        expect(
-          RosenFunding.fundingWalletId(saved),
-          outcome == 'submitted' ? null : wallet.walletId,
-        );
-        expect(
-          find.text(
-            outcome == 'rejected'
-                ? 'Bridge deposit needs attention'
-                : outcome == 'submitted'
-                ? 'Bridge deposit submitted'
-                : 'Bridge deposit pending verification',
-          ),
-          findsOneWidget,
-        );
-        expect(find.byType(SendingTransactionDialog), findsNothing);
-        expect(find.textContaining('Do not send again'), findsOneWidget);
-        expect(find.text('Broadcast transaction failed'), findsNothing);
-        final dialog = tester.widget<StackDialog>(find.byType(StackDialog));
-        await tester.tap(
-          find.descendant(
-            of: find.byType(StackDialog),
-            matching: find.text('Ok'),
-          ),
-        );
-        await tester.pump();
-        expect(dialog.title, startsWith('Bridge deposit'));
-        expect(
-          tester
-              .widget<PrimaryButton>(find.widgetWithText(PrimaryButton, 'Send'))
-              .enabled,
-          isFalse,
-        );
-        expect(wallet.confirmations, 1);
-        await tester.pumpWidget(const SizedBox());
-        await tester.pump(const Duration(seconds: 6));
-      });
-    });
+            );
+            await tester.pumpAndSettle();
+            expect(find.byType(ConfirmChangeNowSendView), findsOneWidget);
+            expect(dialog.title, startsWith('Bridge deposit'));
+            expect(
+              tester
+                  .widget<PrimaryButton>(
+                    find.widgetWithText(PrimaryButton, 'Send'),
+                  )
+                  .enabled,
+              isFalse,
+            );
+            expect(wallet.confirmations, 1);
+            await tester.pumpWidget(const SizedBox());
+            await tester.pump(const Duration(seconds: 6));
+          });
+        },
+      );
+    }
   }
 }
 
@@ -218,7 +246,9 @@ class _UnlockObserver extends NavigatorObserver {
   bool unlocked = false;
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    if (route is PopupRoute && !unlocked) {
+    if (!unlocked &&
+        (route is PopupRoute ||
+            route.settings.name == '/confirmsendlockscreen')) {
       unlocked = true;
       scheduleMicrotask(() => navigator!.pop(true));
     }

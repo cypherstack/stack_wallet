@@ -49,6 +49,7 @@ import 'package:wallet/wallet.dart' as eth;
 import 'package:web3dart/json_rpc.dart' show RPCError;
 import 'package:web3dart/web3dart.dart' as web3;
 
+import '../../support/isar_test_utils.dart';
 import 'rosen/rosen_test_utils.dart';
 
 void main() {
@@ -90,13 +91,7 @@ void main() {
         throwsA(isA<StateError>().having((e) => e.message, 'message', message));
 
     setUp(() async {
-      directory = await Directory.systemTemp.createTemp('rosen-guards-');
-      final hive = DB.instance.hive;
-      hive.init(directory.path);
-      if (!hive.isAdapterRegistered(Trade.typeId)) {
-        hive.registerAdapter(TradeAdapter());
-      }
-      trades = await hive.openBox<Trade>(DB.boxNameTradesV2);
+      (directory, trades) = await _openTrades();
       await trades.put(trade.uuid, trade);
     });
 
@@ -315,13 +310,7 @@ void main() {
   test(
     'a late swap poll cannot erase a bridge deposit or completion',
     () async {
-      final directory = await Directory.systemTemp.createTemp('rosen-trades-');
-      final db = DB.instance;
-      db.hive.init(directory.path);
-      if (!db.hive.isAdapterRegistered(Trade.typeId)) {
-        db.hive.registerAdapter(TradeAdapter());
-      }
-      final box = await db.hive.openBox<Trade>(DB.boxNameTradesV2);
+      final (directory, box) = await _openTrades();
       final service = TradesService();
       final waiting = Trade.fromMap({
         'uuid': 'rosen-test',
@@ -384,18 +373,8 @@ void main() {
   );
 
   test('Rosen records signed funding durably and idempotently', () async {
-    final directory = await Directory.systemTemp.createTemp('rosen-funding-');
-    final db = DB.instance;
-    db.hive.init(directory.path);
-    if (!db.hive.isAdapterRegistered(Trade.typeId)) {
-      db.hive.registerAdapter(TradeAdapter());
-    }
-    final lookupAdapter = TradeWalletLookupAdapter();
-    if (!db.hive.isAdapterRegistered(lookupAdapter.typeId)) {
-      db.hive.registerAdapter(lookupAdapter);
-    }
-    final trades = await db.hive.openBox<Trade>(DB.boxNameTradesV2);
-    final lookups = await db.hive.openBox<TradeWalletLookup>(
+    final (directory, trades) = await _openTrades();
+    final lookups = await DB.instance.hive.openBox<TradeWalletLookup>(
       DB.boxNameTradeLookup,
     );
     final trade = _rosenRequest(false);
@@ -540,18 +519,8 @@ void main() {
   });
 
   test('Rosen replays only the journaled chain transaction', () async {
-    final directory = await Directory.systemTemp.createTemp('rosen-recovery-');
-    final db = DB.instance;
-    db.hive.init(directory.path);
-    if (!db.hive.isAdapterRegistered(Trade.typeId)) {
-      db.hive.registerAdapter(TradeAdapter());
-    }
-    final lookupAdapter = TradeWalletLookupAdapter();
-    if (!db.hive.isAdapterRegistered(lookupAdapter.typeId)) {
-      db.hive.registerAdapter(lookupAdapter);
-    }
-    final trades = await db.hive.openBox<Trade>(DB.boxNameTradesV2);
-    final lookups = await db.hive.openBox<TradeWalletLookup>(
+    final (directory, trades) = await _openTrades();
+    final lookups = await DB.instance.hive.openBox<TradeWalletLookup>(
       DB.boxNameTradeLookup,
     );
     const raw = '0x0200';
@@ -715,67 +684,34 @@ void main() {
         expect(RosenFunding.fundingWalletId(malformedTrade), isNotNull);
         expect(malformedBlock.sentRaw, isEmpty);
 
-        final prunedState = _RecoveryClient(
-          txid: txid,
-          confirmedNonce: 8,
-          historicalStateUnavailableBefore: 25992052,
-        );
-        await expectLater(
-          journal('pruned-state', prunedState, nonce: 7),
-          throwsStateError,
-        );
-        final pruned = trades.get(
-          _recoveryTrade(false, suffix: 'pruned-state').uuid,
-        )!;
-        expect(_fundingState(pruned), RosenFunding.needsAttentionState);
-        expect(RosenFunding.fundingWalletId(pruned), isNotNull);
-        expect(prunedState.sentRaw, isEmpty);
-
-        final prunedExact = _RecoveryClient(
-          txid: txid,
-          confirmedNonce: 8,
-          historicalStateUnavailableBefore: 25992052,
-          knownAfterLookups: 2,
-        );
-        final prunedRecovered = await journal(
-          'pruned-exact',
-          prunedExact,
-          nonce: 7,
-        );
-        expect(_fundingState(prunedRecovered), RosenFunding.broadcastState);
-        expect(prunedExact.sentRaw, isEmpty);
-
-        final prunedBlock = _RecoveryClient(
-          txid: txid,
-          confirmedNonce: 8,
-          nonceTransitionHeight: 25992025,
-          blockRpcError: 'block history pruned',
-        );
-        await expectLater(
-          journal('pruned-block', prunedBlock, nonce: 7),
-          throwsStateError,
-        );
-        final blockMissing = trades.get(
-          _recoveryTrade(false, suffix: 'pruned-block').uuid,
-        )!;
-        expect(_fundingState(blockMissing), RosenFunding.needsAttentionState);
-        expect(RosenFunding.fundingWalletId(blockMissing), isNotNull);
-        expect(prunedBlock.sentRaw, isEmpty);
-
-        final prunedBlockExact = _RecoveryClient(
-          txid: txid,
-          confirmedNonce: 8,
-          nonceTransitionHeight: 25992025,
-          blockRpcError: 'block history pruned',
-          knownAfterLookups: 2,
-        );
-        final blockFound = await journal(
-          'pruned-block-exact',
-          prunedBlockExact,
-          nonce: 7,
-        );
-        expect(_fundingState(blockFound), RosenFunding.broadcastState);
-        expect(prunedBlockExact.sentRaw, isEmpty);
+        for (final history in ['state', 'block']) {
+          for (final exactKnown in [false, true]) {
+            final suffix = 'pruned-$history${exactKnown ? '-exact' : ''}';
+            final client = _RecoveryClient(
+              txid: txid,
+              confirmedNonce: 8,
+              historicalStateUnavailableBefore: history == 'state'
+                  ? 25992052
+                  : null,
+              nonceTransitionHeight: history == 'block' ? 25992025 : null,
+              blockRpcError: history == 'block' ? 'block history pruned' : null,
+              knownAfterLookups: exactKnown ? 2 : null,
+            );
+            final recovery = journal(suffix, client, nonce: 7);
+            if (exactKnown) {
+              final recovered = await recovery;
+              expect(_fundingState(recovered), RosenFunding.broadcastState);
+            } else {
+              await expectLater(recovery, throwsStateError);
+              final stored = trades.get(
+                _recoveryTrade(false, suffix: suffix).uuid,
+              )!;
+              expect(_fundingState(stored), RosenFunding.needsAttentionState);
+              expect(RosenFunding.fundingWalletId(stored), isNotNull);
+            }
+            expect(client.sentRaw, isEmpty);
+          }
+        }
 
         final unavailable = _RecoveryClient(
           txid: txid,
@@ -1106,19 +1042,8 @@ void main() {
   test(
     'bridge recovery cannot delay existing provider notifications',
     () async {
-      final directory = await Directory.systemTemp.createTemp(
-        'rosen-notifications-',
-      );
+      final (directory, trades) = await _openTrades();
       final hive = DB.instance.hive;
-      hive.init(directory.path);
-      if (!hive.isAdapterRegistered(Trade.typeId)) {
-        hive.registerAdapter(TradeAdapter());
-      }
-      final notificationAdapter = NotificationModelAdapter();
-      if (!hive.isAdapterRegistered(notificationAdapter.typeId)) {
-        hive.registerAdapter(notificationAdapter);
-      }
-      final trades = await hive.openBox<Trade>(DB.boxNameTradesV2);
       final watched = await hive.openBox<NotificationModel>(
         DB.boxNameWatchedTrades,
       );
@@ -1228,17 +1153,8 @@ void main() {
         suffix: '-legacy',
       ).copyWith(exchangeName: ChangeNowExchange.exchangeName);
       await tester.runAsync(() async {
-        directory = await Directory.systemTemp.createTemp('rosen-receipt-');
+        (directory, trades) = await _openTrades();
         final hive = DB.instance.hive;
-        hive.init(directory.path);
-        if (!hive.isAdapterRegistered(Trade.typeId)) {
-          hive.registerAdapter(TradeAdapter());
-        }
-        final adapter = NotificationModelAdapter();
-        if (!hive.isAdapterRegistered(adapter.typeId)) {
-          hive.registerAdapter(adapter);
-        }
-        trades = await hive.openBox<Trade>(DB.boxNameTradesV2);
         watched = await hive.openBox<NotificationModel>(
           DB.boxNameWatchedTrades,
         );
@@ -1335,13 +1251,7 @@ void main() {
   test(
     'Rosen refresh retains the request and rejects funded or stale saves',
     () async {
-      final directory = await Directory.systemTemp.createTemp('rosen-refresh-');
-      final db = DB.instance;
-      db.hive.init(directory.path);
-      if (!db.hive.isAdapterRegistered(Trade.typeId)) {
-        db.hive.registerAdapter(TradeAdapter());
-      }
-      final box = await db.hive.openBox<Trade>(DB.boxNameTradesV2);
+      final (directory, box) = await _openTrades();
       final service = TradesService();
       final changed = isA<ExchangeException>().having(
         (e) => e.type,
@@ -1475,15 +1385,7 @@ void main() {
   test(
     'Rosen refresh reloads a stale screen and rejects a concurrent send',
     () async {
-      final directory = await Directory.systemTemp.createTemp(
-        'rosen-stale-refresh-',
-      );
-      final hive = DB.instance.hive;
-      hive.init(directory.path);
-      if (!hive.isAdapterRegistered(Trade.typeId)) {
-        hive.registerAdapter(TradeAdapter());
-      }
-      final trades = await hive.openBox<Trade>(DB.boxNameTradesV2);
+      final (directory, trades) = await _openTrades();
       final stale = _rosenRequest(false);
       final current = _recoveryTrade(false, suffix: '');
       final wallet = _FundingWallet(client: _RecoveryClient(txid: '11' * 32));
@@ -1535,15 +1437,7 @@ void main() {
   );
 
   test('Ethereum recovery does not bypass Tor', () async {
-    final directory = await Directory.systemTemp.createTemp(
-      'rosen-recovery-tor-',
-    );
-    final hive = DB.instance.hive;
-    hive.init(directory.path);
-    if (!hive.isAdapterRegistered(Trade.typeId)) {
-      hive.registerAdapter(TradeAdapter());
-    }
-    final trades = await hive.openBox<Trade>(DB.boxNameTradesV2);
+    final (directory, trades) = await _openTrades();
     final trade = _recoveryTrade(false, suffix: '-tor');
     final wallet = _FundingWallet(useTor: true);
     try {
@@ -1597,19 +1491,8 @@ void main() {
         walletId: 'timed-out-wallet',
       );
       await tester.runAsync(() async {
-        directory = await Directory.systemTemp.createTemp(
-          'rosen-recovery-timeout-',
-        );
+        (directory, trades) = await _openTrades();
         final hive = DB.instance.hive;
-        hive.init(directory.path);
-        if (!hive.isAdapterRegistered(Trade.typeId)) {
-          hive.registerAdapter(TradeAdapter());
-        }
-        final adapter = TradeWalletLookupAdapter();
-        if (!hive.isAdapterRegistered(adapter.typeId)) {
-          hive.registerAdapter(adapter);
-        }
-        trades = await hive.openBox<Trade>(DB.boxNameTradesV2);
         lookups = await hive.openBox<TradeWalletLookup>(DB.boxNameTradeLookup);
         await trades.put(trade.uuid, trade);
         await RosenFunding.recordFundingIntent(
@@ -1705,15 +1588,7 @@ void main() {
           ),
         );
         await tester.runAsync(() async {
-          directory = await Directory.systemTemp.createTemp(
-            'rosen-confirm-rpc-',
-          );
-          final hive = DB.instance.hive;
-          hive.init(directory.path);
-          if (!hive.isAdapterRegistered(Trade.typeId)) {
-            hive.registerAdapter(TradeAdapter());
-          }
-          trades = await hive.openBox<Trade>(DB.boxNameTradesV2);
+          (directory, trades) = await _openTrades();
           await trades.put(trade.uuid, trade);
         });
         Object? result;
@@ -1784,22 +1659,10 @@ void main() {
       };
     });
     setUp(() async {
-      directory = await Directory.systemTemp.createTemp('rosen-send-');
+      (directory, trades) = await _openTrades();
       final hive = DB.instance.hive;
-      hive.init(directory.path);
-      if (!hive.isAdapterRegistered(Trade.typeId)) {
-        hive.registerAdapter(TradeAdapter());
-      }
-      final adapter = TradeWalletLookupAdapter();
-      if (!hive.isAdapterRegistered(adapter.typeId)) {
-        hive.registerAdapter(adapter);
-      }
-      trades = await hive.openBox<Trade>(DB.boxNameTradesV2);
       lookups = await hive.openBox<TradeWalletLookup>(DB.boxNameTradeLookup);
-      await HttpOverrides.runWithHttpOverrides(
-        () => Isar.initializeIsarCore(download: true),
-        _AssetDownloadHttp(),
-      );
+      await initializeTestIsar();
       isar = await Isar.open(
         [EthContractSchema],
         directory: directory.path,
@@ -1998,6 +1861,24 @@ void main() {
       },
     );
   });
+}
+
+Future<(Directory, Box<Trade>)> _openTrades() async {
+  final directory = await Directory.systemTemp.createTemp('rosen-trades-');
+  final hive = DB.instance.hive;
+  hive.init(directory.path);
+  if (!hive.isAdapterRegistered(Trade.typeId)) {
+    hive.registerAdapter(TradeAdapter());
+  }
+  final lookupAdapter = TradeWalletLookupAdapter();
+  if (!hive.isAdapterRegistered(lookupAdapter.typeId)) {
+    hive.registerAdapter(lookupAdapter);
+  }
+  final notificationAdapter = NotificationModelAdapter();
+  if (!hive.isAdapterRegistered(notificationAdapter.typeId)) {
+    hive.registerAdapter(notificationAdapter);
+  }
+  return (directory, await hive.openBox<Trade>(DB.boxNameTradesV2));
 }
 
 class _FundingWallet extends Fake implements EthereumWallet {
@@ -2421,8 +2302,6 @@ class _FundingWalletInfo extends Fake implements WalletInfo {
 }
 
 class _FundingStorage extends Fake implements SecureStorageInterface {}
-
-class _AssetDownloadHttp extends HttpOverrides {}
 
 class _FiroFundingWallet extends _FiroRecoveryWallet {
   _FiroFundingWallet(

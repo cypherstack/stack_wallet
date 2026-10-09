@@ -36,19 +36,6 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
 
   Timer? _statusTimer;
 
-  bool _isWalletCoinAndHasWallet(String ticker) {
-    try {
-      final coin = AppConfig.getCryptoCurrencyForTicker(ticker);
-      return ref
-          .read(pWallets)
-          .wallets
-          .where((e) => e.info.coin == coin)
-          .isNotEmpty;
-    } catch (_) {
-      return false;
-    }
-  }
-
   Future<void> _updateStatus() async {
     final trade = ref.read(desktopExchangeModelProvider)?.trade;
 
@@ -99,94 +86,65 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
         ? model.trade?.status ?? "New"
         : _statusString;
     final statusString = status == "Waiting" ? "Waiting for deposit" : status;
-    if (model.trade?.exchangeName == RosenExchange.exchangeName) {
-      final canFund = ref
-          .watch(pWallets)
-          .wallets
-          .any((wallet) => RosenFunding.canFund(wallet, model.trade!));
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            "Send with Rosen Bridge",
-            style: STextStyles.desktopTextMedium(context),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            "Send from ${AppConfig.appName} to include the required bridge data. Your pending bridge appears in your swaps.",
-            style: STextStyles.desktopTextExtraExtraSmall(context),
-          ),
-          const SizedBox(height: 20),
-          RoundedContainer(
-            color: Theme.of(context)
-                .extension<StackColors>()!
-                .warningBackground,
-            child: Text(
-              model.sendTicker.toLowerCase() == "firo"
-                  ? "Use your transparent FIRO balance. Stack Wallet adds the required Rosen Bridge data automatically."
-                  : "Use an Ethereum wallet holding rsFIRO and enough ETH for network fees.",
-              style: STextStyles.label(context),
-            ),
-          ),
-          const SizedBox(height: 20),
-          RoundedWhiteContainer(
-            child: Column(
-              children: [
-                DesktopStepItem(
-                  label: "Amount",
-                  value: "${model.sendAmount} ${model.sendTicker}",
-                ),
-                DesktopStepItem(label: "Trade ID", value: model.trade!.tradeId),
-                DesktopStepItem(label: "Status", value: statusString),
-              ],
-            ),
-          ),
-          if (!canFund)
-            Text(
-              "Add a ${model.sendTicker.toLowerCase() == "firo" ? "FIRO" : "Ethereum"} wallet to fund this swap.",
-              style: STextStyles.label(context),
-            ),
-        ],
-      );
-    }
+    final isRosen = model.trade?.exchangeName == RosenExchange.exchangeName;
+    final canFund =
+        isRosen &&
+        ref
+            .watch(pWallets)
+            .wallets
+            .any((wallet) => RosenFunding.canFund(wallet, model.trade!));
     return Column(
+      crossAxisAlignment: isRosen
+          ? CrossAxisAlignment.stretch
+          : CrossAxisAlignment.center,
       children: [
         Text(
-          "Send ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker.toUpperCase()))} to the address below",
+          isRosen
+              ? "Send with Rosen Bridge"
+              : "Send ${model.sendTicker.toUpperCase()} to the address below",
           style: STextStyles.desktopTextMedium(context),
         ),
         const SizedBox(height: 8),
         Text(
-          "Send ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker.toUpperCase()))} to the address below. Once it is received, ${ref.watch(desktopExchangeModelProvider.select((value) => value!.trade?.exchangeName))} will send the ${ref.watch(desktopExchangeModelProvider.select((value) => value!.receiveTicker.toUpperCase()))} to the recipient address you provided. You can find this trade details and check its status in the list of trades.",
+          isRosen
+              ? "Send from ${AppConfig.appName} to include the required bridge data. Your pending bridge appears in your swaps."
+              : "Send ${model.sendTicker.toUpperCase()} to the address below. Once it is received, ${model.trade?.exchangeName} will send the ${model.receiveTicker.toUpperCase()} to the recipient address you provided. You can find this trade details and check its status in the list of trades.",
           style: STextStyles.desktopTextExtraExtraSmall(context),
         ),
         const SizedBox(height: 20),
         RoundedContainer(
           color: Theme.of(context).extension<StackColors>()!.warningBackground,
-          child: RichText(
-            text: TextSpan(
-              text:
-                  "You must send at least ${ref.watch(desktopExchangeModelProvider.select((value) => value!.payInAmount))} ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker))}. ",
-              style: STextStyles.label700(context).copyWith(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .warningForeground,
-                fontSize: 14,
-              ),
-              children: [
-                TextSpan(
-                  text:
-                      "If you send less than ${ref.watch(desktopExchangeModelProvider.select((value) => value!.payInAmount))} ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker))}, your transaction may not be converted and it may not be refunded.",
-                  style: STextStyles.label(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .warningForeground,
-                    fontSize: 14,
+          child: isRosen
+              ? Text(
+                  model.sendTicker.toLowerCase() == "firo"
+                      ? "Use your transparent FIRO balance. Stack Wallet adds the required Rosen Bridge data automatically."
+                      : "Use an Ethereum wallet holding rsFIRO and enough ETH for network fees.",
+                  style: STextStyles.label(context),
+                )
+              : RichText(
+                  text: TextSpan(
+                    text:
+                        "You must send at least ${model.payInAmount} ${model.sendTicker}. ",
+                    style: STextStyles.label700(context).copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .warningForeground,
+                      fontSize: 14,
+                    ),
+                    children: [
+                      TextSpan(
+                        text:
+                            "If you send less than ${model.payInAmount} ${model.sendTicker}, your transaction may not be converted and it may not be refunded.",
+                        style: STextStyles.label(context).copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .warningForeground,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
-          ),
         ),
         const SizedBox(height: 20),
         RoundedWhiteContainer(
@@ -194,54 +152,36 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
           padding: const EdgeInsets.all(0),
           child: Column(
             children: [
-              DesktopStepItem(
-                vertical: true,
-                copyableValue: true,
-                label:
-                    "Send ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker.toUpperCase()))} to this address",
-                value:
-                    ref.watch(
-                      desktopExchangeModelProvider.select(
-                        (value) => value!.trade?.payInAddress,
-                      ),
-                    ) ??
-                    "Error",
-              ),
-              Container(
-                height: 1,
-                color: Theme.of(context).extension<StackColors>()!.background,
-              ),
-              if (ref.watch(
-                    desktopExchangeModelProvider.select(
-                      (value) => value!.trade?.payInExtraId,
-                    ),
-                  ) !=
-                  null)
+              if (!isRosen) ...[
                 DesktopStepItem(
                   vertical: true,
-                  label: "Memo",
-                  value:
-                      ref.watch(
-                        desktopExchangeModelProvider.select(
-                          (value) => value!.trade?.payInExtraId,
-                        ),
-                      ) ??
-                      "Error",
+                  copyableValue: true,
+                  label:
+                      "Send ${model.sendTicker.toUpperCase()} to this address",
+                  value: model.trade?.payInAddress ?? "Error",
                 ),
-              if (ref.watch(
-                    desktopExchangeModelProvider.select(
-                      (value) => value!.trade?.payInExtraId,
-                    ),
-                  ) !=
-                  null)
                 Container(
                   height: 1,
                   color: Theme.of(context).extension<StackColors>()!.background,
                 ),
+                if (model.trade?.payInExtraId != null) ...[
+                  DesktopStepItem(
+                    vertical: true,
+                    label: "Memo",
+                    value: model.trade?.payInExtraId ?? "Error",
+                  ),
+                  Container(
+                    height: 1,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .background,
+                  ),
+                ],
+              ],
               DesktopStepItem(
                 label: "Amount",
                 value:
-                    "${ref.watch(desktopExchangeModelProvider.select((value) => value!.payInAmount))} ${ref.watch(desktopExchangeModelProvider.select((value) => value!.sendTicker.toUpperCase()))}",
+                    "${model.payInAmount} ${isRosen ? model.sendTicker : model.sendTicker.toUpperCase()}",
               ),
               Container(
                 height: 1,
@@ -249,13 +189,7 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
               ),
               DesktopStepItem(
                 label: "Trade ID",
-                value:
-                    ref.watch(
-                      desktopExchangeModelProvider.select(
-                        (value) => value!.trade?.tradeId,
-                      ),
-                    ) ??
-                    "Error",
+                value: model.trade?.tradeId ?? "Error",
               ),
               Container(
                 height: 1,
@@ -285,6 +219,11 @@ class _DesktopStep4State extends ConsumerState<DesktopStep4> {
             ],
           ),
         ),
+        if (isRosen && !canFund)
+          Text(
+            "Add a ${model.sendTicker.toLowerCase() == "firo" ? "FIRO" : "Ethereum"} wallet to fund this swap.",
+            style: STextStyles.label(context),
+          ),
       ],
     );
   }

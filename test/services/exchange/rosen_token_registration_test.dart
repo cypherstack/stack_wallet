@@ -10,13 +10,15 @@ import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/wallet/impl/ethereum_wallet.dart';
 
+import '../../support/isar_test_utils.dart';
+
 void main() {
   test(
     'rsFIRO registration preserves catalog metadata and address casing',
     () async {
       final directory = await Directory.systemTemp.createTemp('rosen-token-');
       addTearDown(() => directory.delete(recursive: true));
-      await Isar.initializeIsarCore(download: true);
+      await initializeTestIsar();
       final isar = await Isar.open(
         [EthContractSchema],
         directory: directory.path,

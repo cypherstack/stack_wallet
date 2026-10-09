@@ -263,29 +263,14 @@ class _ConfirmChangeNowSendViewState
         useSafeArea: false,
         barrierDismissible: true,
         builder: (context) {
-          return StackDialog(
+          return StackOkDialog(
             title: broadcastTxid == null
                 ? "Broadcast transaction failed"
                 : "Transaction sent",
             message: broadcastTxid == null
                 ? e.toString()
                 : "Transaction(s) $broadcastTxid were sent, but saving their details failed: $e. Do not send again.",
-            rightButton: TextButton(
-              style: Theme.of(context)
-                  .extension<StackColors>()!
-                  .getSecondaryEnabledButtonStyle(context),
-              child: Text(
-                "Ok",
-                style: STextStyles.button(context).copyWith(
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .buttonTextSecondary,
-                ),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
+            desktopPopRootNavigator: true,
           );
         },
       );
@@ -301,7 +286,7 @@ class _ConfirmChangeNowSendViewState
     return showDialog<void>(
       context: context,
       useSafeArea: false,
-      builder: (context) => StackDialog(
+      builder: (context) => StackOkDialog(
         title: needsAttention
             ? "Bridge deposit needs attention"
             : failed
@@ -321,13 +306,7 @@ class _ConfirmChangeNowSendViewState
             : "Your signed deposit was saved. Network acceptance is not confirmed. "
                   "Stack Wallet will verify it and retry safely. "
                   "Do not send again. Check this swap in your swaps.",
-        rightButton: TextButton(
-          style: Theme.of(context)
-              .extension<StackColors>()!
-              .getSecondaryEnabledButtonStyle(context),
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text("Ok", style: STextStyles.button(context)),
-        ),
+        desktopPopRootNavigator: true,
       ),
     );
   }

@@ -432,25 +432,10 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
             useSafeArea: false,
             barrierDismissible: true,
             builder: (context) {
-              return StackDialog(
+              return StackOkDialog(
                 title: "Transaction failed",
                 message: e.toString(),
-                rightButton: TextButton(
-                  style: Theme.of(context)
-                      .extension<StackColors>()!
-                      .getSecondaryEnabledButtonStyle(context),
-                  child: Text(
-                    "Ok",
-                    style: STextStyles.button(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .buttonTextSecondary,
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
+                desktopPopRootNavigator: true,
               );
             },
           );
