@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:openalias/openalias.dart' as oa;
 import 'package:stackwallet/services/openalias/open_alias.dart';
 import 'package:stackwallet/services/openalias/send_preview.dart';
 
@@ -74,12 +75,18 @@ void main() {
     final dns = authenticatedTxt('alice.example', [
       'oa1:xmr recipient_address=literal;',
     ]);
+    final resolved = await oa.OpenAliasResolver(
+      lookup: (_) async => dns,
+      application: 'xmr',
+      validateAddress: (address) => address == 'literal',
+      trustedValidators: testValidators,
+    ).resolve('alice.example');
     await run(
       pending: Future.value(
         OpenAliasRecipient(
           domain: 'alice.example',
           address: 'literal',
-          dns: dns,
+          resolved: resolved,
         ),
       ),
     );
