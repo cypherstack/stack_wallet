@@ -27,9 +27,23 @@ void main(List<String> args) {
     throw StateError('Expected generated app dependency overrides');
   }
   final overrides = <String>[];
+  var skippingReplacedPackage = false;
+  final overrideKey = RegExp(r'^  ([A-Za-z0-9_]+):(?:\s.*)?$');
   for (final line in lines.skip(start + 1)) {
     if (line.isNotEmpty && !line.startsWith(' ') && !line.startsWith('#')) {
       break;
+    }
+    if (skippingReplacedPackage) {
+      final indentation = line.length - line.trimLeft().length;
+      if (line.trim().isNotEmpty && indentation > 2) {
+        continue;
+      }
+      skippingReplacedPackage = false;
+    }
+    final match = overrideKey.firstMatch(line);
+    if (match != null && packages.contains(match.group(1))) {
+      skippingReplacedPackage = true;
+      continue;
     }
     overrides.add(line);
   }
