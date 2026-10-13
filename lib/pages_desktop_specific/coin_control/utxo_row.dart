@@ -16,6 +16,7 @@ import '../../db/isar/main_db.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../pages/coin_control/utxo_details_view.dart';
 import '../../providers/global/wallets_provider.dart';
+import '../../providers/wallet/address_label_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
@@ -78,19 +79,17 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
   void _details() async {
     await showDialog<String?>(
       context: context,
-      builder:
-          (context) =>
-              UtxoDetailsView(utxoId: utxo.id, walletId: widget.walletId),
+      builder: (context) =>
+          UtxoDetailsView(utxoId: utxo.id, walletId: widget.walletId),
     );
   }
 
   @override
   void initState() {
-    utxo =
-        MainDB.instance.isar.utxos
-            .where()
-            .idEqualTo(widget.data.utxoId)
-            .findFirstSync()!;
+    utxo = MainDB.instance.isar.utxos
+        .where()
+        .idEqualTo(widget.data.utxoId)
+        .findFirstSync()!;
 
     stream = MainDB.instance.watchUTXO(id: utxo.id);
     super.initState();
@@ -108,23 +107,23 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
         if (snapshot.hasData) {
           utxo = snapshot.data!;
         }
+        final addressLabel = utxo.address == null
+            ? null
+            : ref.watch(
+                pAddressLabel((
+                  walletId: widget.walletId,
+                  address: utxo.address!,
+                )),
+              );
 
         return RoundedContainer(
-          borderColor:
-              widget.compact && widget.compactWithBorder
-                  ? Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldDefaultBG
-                  : null,
+          borderColor: widget.compact && widget.compactWithBorder
+              ? Theme.of(context).extension<StackColors>()!.textFieldDefaultBG
+              : null,
           color: Theme.of(context).extension<StackColors>()!.popupBG,
-          boxShadow:
-              widget.data.selected && widget.raiseOnSelected
-                  ? [
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()!.standardBoxShadow,
-                  ]
-                  : null,
+          boxShadow: widget.data.selected && widget.raiseOnSelected
+              ? [Theme.of(context).extension<StackColors>()!.standardBoxShadow]
+              : null,
           child: Row(
             children: [
               if (!(widget.compact && utxo.isBlocked))
@@ -143,21 +142,19 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
                 blocked: utxo.isBlocked,
                 status:
                     (coin is Namecoin
-                            ? (ref.watch(pWallets).getWallet(widget.walletId)
-                                    as NamecoinWallet)
-                                .checkUtxoConfirmed(
-                                  utxo,
-                                  ref.watch(
-                                    pWalletChainHeight(widget.walletId),
-                                  ),
-                                )
-                            : utxo.isConfirmed(
-                              ref.watch(pWalletChainHeight(widget.walletId)),
-                              coin.minConfirms,
-                              coin.minCoinbaseConfirms,
-                            ))
-                        ? UTXOStatusIconStatus.confirmed
-                        : UTXOStatusIconStatus.unconfirmed,
+                        ? (ref.watch(pWallets).getWallet(widget.walletId)
+                                  as NamecoinWallet)
+                              .checkUtxoConfirmed(
+                                utxo,
+                                ref.watch(pWalletChainHeight(widget.walletId)),
+                              )
+                        : utxo.isConfirmed(
+                            ref.watch(pWalletChainHeight(widget.walletId)),
+                            coin.minConfirms,
+                            coin.minCoinbaseConfirms,
+                          ))
+                    ? UTXOStatusIconStatus.confirmed
+                    : UTXOStatusIconStatus.unconfirmed,
                 background: Theme.of(context).extension<StackColors>()!.popupBG,
                 selected: false,
                 width: 32,
@@ -203,18 +200,38 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
                       ],
                     );
                   },
-                  child: Text(
-                    utxo.name.isNotEmpty
-                        ? utxo.name
-                        : utxo.address ?? utxo.txid,
-                    textAlign:
-                        widget.compact ? TextAlign.left : TextAlign.center,
-                    style: STextStyles.w500_12(context).copyWith(
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.textSubtitle1,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: widget.compact
+                        ? CrossAxisAlignment.start
+                        : CrossAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        utxo.name.isNotEmpty
+                            ? utxo.name
+                            : utxo.address ?? utxo.txid,
+                        textAlign: widget.compact
+                            ? TextAlign.left
+                            : TextAlign.center,
+                        style: STextStyles.w500_12(context).copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textSubtitle1,
+                        ),
+                      ),
+                      if (addressLabel != null && addressLabel.value.isNotEmpty)
+                        Text(
+                          addressLabel.value,
+                          textAlign: widget.compact
+                              ? TextAlign.left
+                              : TextAlign.center,
+                          style: STextStyles.w500_12(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textSubtitle1,
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ),
@@ -222,11 +239,11 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
               widget.compact
                   ? CustomTextButton(text: "Details", onTap: _details)
                   : SecondaryButton(
-                    width: 120,
-                    buttonHeight: ButtonHeight.xs,
-                    label: "Details",
-                    onPressed: _details,
-                  ),
+                      width: 120,
+                      buttonHeight: ButtonHeight.xs,
+                      label: "Details",
+                      onPressed: _details,
+                    ),
             ],
           ),
         );
