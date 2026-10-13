@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../models/paymint/fee_object_model.dart';
 import '../../../../pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import '../../../../providers/providers.dart';
 import '../../../../providers/ui/fee_rate_type_state_provider.dart';
@@ -56,6 +57,7 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
   ];
 
   late final CryptoCurrency cryptoCurrency;
+  Future<FeeObject>? _fees;
 
   bool get isEth => cryptoCurrency is Ethereum;
 
@@ -106,6 +108,8 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
 
   @override
   Widget build(BuildContext context) {
+    // Keep the send amount alive for the fee estimates.
+    ref.listen(sendAmountProvider, (_, __) {});
     final isCustomFee = ref.watch(feeRateTypeDesktopStateProvider).isCustom;
     final locale = ref.watch(
       localeServiceChangeNotifierProvider.select((value) => value.locale),
@@ -174,12 +178,15 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
             padding: const EdgeInsets.all(10),
             child: (feeSelectionResult?.$2 == null)
                 ? FutureBuilder(
-                    future: ref.watch(
-                      pWallets.select(
-                        (value) => value.getWallet(widget.walletId).fees,
-                      ),
-                    ),
+                    future: _fees ??= ref
+                        .read(pWallets)
+                        .getWallet(widget.walletId)
+                        .fees,
                     builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.done &&
+                          snapshot.hasError) {
+                        _fees = null;
+                      }
                       if (snapshot.connectionState == ConnectionState.done &&
                           snapshot.hasData) {
                         return DesktopFeeItem(

@@ -43,6 +43,7 @@ import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../pinpad_views/lock_screen_view.dart';
 import '../send_view/sub_widgets/sending_transaction_dialog.dart';
+import '../send_view/sub_widgets/split_transaction_warning.dart';
 import '../wallet_view/wallet_view.dart';
 
 class ConfirmChangeNowSendView extends ConsumerStatefulWidget {
@@ -114,7 +115,6 @@ class _ConfirmChangeNowSendViewState
 
     final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
 
-    late String txid;
     Future<TxData> txidFuture;
 
     final String note = widget.txData.note ?? "";
@@ -133,25 +133,27 @@ class _ConfirmChangeNowSendViewState
       sendProgressController.triggerSuccess?.call();
       await Future<void>.delayed(const Duration(seconds: 5));
 
-      txid = (results.first as TxData).txid!;
+      final confirmedTx = results.first as TxData;
+      for (final txid in confirmedTx.txids) {
+        await ref
+            .read(mainDBProvider)
+            .putTransactionNote(
+              TransactionNote(walletId: walletId, txid: txid, value: note),
+            );
+      }
 
-      // save note
-      await ref
-          .read(mainDBProvider)
-          .putTransactionNote(
-            TransactionNote(walletId: walletId, txid: txid, value: note),
-          );
-
-      await ref
-          .read(tradeSentFromStackLookupProvider)
-          .save(
-            tradeWalletLookup: TradeWalletLookup(
-              uuid: const Uuid().v1(),
-              txid: txid,
-              tradeId: trade.tradeId,
-              walletIds: [walletId],
-            ),
-          );
+      for (final txid in confirmedTx.txids) {
+        await ref
+            .read(tradeSentFromStackLookupProvider)
+            .save(
+              tradeWalletLookup: TradeWalletLookup(
+                uuid: const Uuid().v1(),
+                txid: txid,
+                tradeId: trade.tradeId,
+                walletIds: [walletId],
+              ),
+            );
+      }
 
       // pop back to wallet
       if (context.mounted) {
@@ -191,9 +193,9 @@ class _ConfirmChangeNowSendViewState
               child: Text(
                 "Ok",
                 style: STextStyles.button(context).copyWith(
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.buttonTextSecondary,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .buttonTextSecondary,
                 ),
               ),
               onPressed: () {
@@ -281,13 +283,13 @@ class _ConfirmChangeNowSendViewState
       builder: (child) {
         return Background(
           child: Scaffold(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             appBar: AppBar(
-              backgroundColor: Theme.of(
-                context,
-              ).extension<StackColors>()!.backgroundAppBar,
+              backgroundColor: Theme.of(context)
+                  .extension<StackColors>()!
+                  .backgroundAppBar,
               leading: AppBarBackButton(
                 onPressed: () async {
                   // if (FocusScope.of(context).hasFocus) {
@@ -355,9 +357,9 @@ class _ConfirmChangeNowSendViewState
                   children: [
                     RoundedWhiteContainer(
                       padding: const EdgeInsets.all(0),
-                      borderColor: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.background,
+                      borderColor: Theme.of(context)
+                          .extension<StackColors>()!
+                          .background,
                       child: child,
                     ),
                     const SizedBox(height: 16),
@@ -373,9 +375,9 @@ class _ConfirmChangeNowSendViewState
                     ),
                     const SizedBox(height: 10),
                     RoundedContainer(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textFieldDefaultBG,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldDefaultBG,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
@@ -388,22 +390,21 @@ class _ConfirmChangeNowSendViewState
                                 )
                                 .format(widget.txData.fee!),
                             style:
-                                STextStyles.desktopTextExtraExtraSmall(
-                                  context,
-                                ).copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.textDark,
-                                ),
+                                STextStyles.desktopTextExtraExtraSmall(context)
+                                    .copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark,
+                                    ),
                           ),
                         ],
                       ),
                     ),
                     const SizedBox(height: 16),
                     RoundedContainer(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.snackBarBackSuccess,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .snackBarBackSuccess,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -437,6 +438,13 @@ class _ConfirmChangeNowSendViewState
                         ],
                       ),
                     ),
+                    if (widget.txData.txids.length > 1)
+                      Padding(
+                        padding: const .only(top: 16),
+                        child: SplitTransactionWarning(
+                          transactionCount: widget.txData.txids.length,
+                        ),
+                      ),
                     const SizedBox(height: 16),
                     Row(
                       children: [
@@ -489,9 +497,9 @@ class _ConfirmChangeNowSendViewState
             ),
             isDesktop
                 ? Container(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.background,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .background,
                     height: 1,
                   )
                 : const SizedBox(height: 12),
@@ -510,9 +518,9 @@ class _ConfirmChangeNowSendViewState
             ),
             isDesktop
                 ? Container(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.background,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .background,
                     height: 1,
                   )
                 : const SizedBox(height: 12),
@@ -535,9 +543,9 @@ class _ConfirmChangeNowSendViewState
             ),
             isDesktop
                 ? Container(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.background,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .background,
                     height: 1,
                   )
                 : const SizedBox(height: 12),
@@ -589,9 +597,9 @@ class _ConfirmChangeNowSendViewState
                                   STextStyles.desktopTextExtraExtraSmall(
                                     context,
                                   ).copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.textSubtitle2,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textSubtitle2,
                                   ),
                             );
                           },
@@ -616,9 +624,9 @@ class _ConfirmChangeNowSendViewState
             ),
             isDesktop
                 ? Container(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.background,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .background,
                     height: 1,
                   )
                 : const SizedBox(height: 12),
@@ -644,9 +652,9 @@ class _ConfirmChangeNowSendViewState
             ),
             isDesktop
                 ? Container(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.background,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .background,
                     height: 1,
                   )
                 : const SizedBox(height: 12),
@@ -665,9 +673,9 @@ class _ConfirmChangeNowSendViewState
             ),
             isDesktop
                 ? Container(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.background,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .background,
                     height: 1,
                   )
                 : const SizedBox(height: 12),
@@ -687,18 +695,18 @@ class _ConfirmChangeNowSendViewState
             if (!isDesktop) const SizedBox(height: 12),
             if (!isDesktop)
               RoundedContainer(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.snackBarBackSuccess,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .snackBarBackSuccess,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       "Total amount",
                       style: STextStyles.titleBold12(context).copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textConfirmTotalAmount,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textConfirmTotalAmount,
                       ),
                     ),
                     Builder(
@@ -713,9 +721,9 @@ class _ConfirmChangeNowSendViewState
                         return Text(
                           ref.watch(pAmountFormatter(coin)).format(total),
                           style: STextStyles.itemSubtitle12(context).copyWith(
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textConfirmTotalAmount,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textConfirmTotalAmount,
                           ),
                           textAlign: TextAlign.right,
                         );
@@ -726,6 +734,13 @@ class _ConfirmChangeNowSendViewState
               ),
             if (!isDesktop) const SizedBox(height: 16),
             if (!isDesktop) const Spacer(),
+            if (!isDesktop && widget.txData.txids.length > 1)
+              Padding(
+                padding: const .only(bottom: 16),
+                child: SplitTransactionWarning(
+                  transactionCount: widget.txData.txids.length,
+                ),
+              ),
             if (!isDesktop)
               PrimaryButton(
                 label: "Send",

@@ -432,10 +432,10 @@ packages:
     dependency: "direct main"
     description:
       name: cs_monero
-      sha256: b174f40e1887eb589e1e9aa99de8e9d0bc97b543f2330d5e5e7b01a6d313a9c2
+      sha256: b59aa01fee0d963184ecb94e0d1febccc7ea64aa219c804553ba9a82c97a9059
       url: "https://pub.dev"
     source: hosted
-    version: "3.2.0"
+    version: "4.0.0"
   cs_monero_flutter_libs:
     dependency: "direct main"
     description:

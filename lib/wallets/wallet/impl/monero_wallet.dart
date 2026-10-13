@@ -14,6 +14,9 @@ class MoneroWallet extends LibMoneroWallet {
     : super(Monero(network), lib_monero_compat.WalletType.monero);
 
   @override
+  bool get supportsMultiRecipient => true;
+
+  @override
   Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate) async {
     if (wallet == null || syncStatus is! lib_monero_compat.SyncedSyncStatus) {
       return Amount.zeroWith(fractionDigits: cryptoCurrency.fractionDigits);
