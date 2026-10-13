@@ -101,6 +101,8 @@ class ConfirmationPrefs extends ChangeNotifier implements Prefs {
   @override
   String get currency => 'USD';
   @override
+  bool get hideBalances => false;
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
