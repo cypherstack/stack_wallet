@@ -55,6 +55,7 @@ class Recipient extends ConsumerStatefulWidget {
     required this.addAnotherRecipientTapped,
     required this.sendAllTapped,
     this.onMultiRecipientUri,
+    this.onMessage,
   });
 
   final String walletId;
@@ -71,6 +72,10 @@ class Recipient extends ConsumerStatefulWidget {
   /// which are rejected if this is null.
   final void Function(PaymentUriData paymentData)? onMultiRecipientUri;
 
+  /// Called with the message of a scanned or pasted payment request for this
+  /// recipient alone, which otherwise goes unused.
+  final void Function(String message)? onMessage;
+
   @override
   ConsumerState<Recipient> createState() => _RecipientState();
 }
@@ -86,7 +91,7 @@ class _RecipientState extends ConsumerState<Recipient> {
 
   RecipientId get _id => (walletId: widget.walletId, index: widget.index);
 
-  void _updateRecipientData({String? label}) {
+  void _updateRecipientData({String? label, bool replaceLabel = false}) {
     final address = addressController.text;
     final amount = ref
         .read(pAmountFormatter(widget.coin))
@@ -96,8 +101,11 @@ class _RecipientState extends ConsumerState<Recipient> {
     ref.read(pRecipient(_id).notifier).state = (
       address: address,
       amount: amount,
-      // A payment request's name only applies to the address it gave.
-      label: label ?? (previous?.address == address ? previous?.label : null),
+      // Importing a new request replaces its name, including an absent one.
+      // Ordinary edits keep the name only while the address stays the same.
+      label: replaceLabel
+          ? label
+          : (previous?.address == address ? previous?.label : null),
     );
     widget.onChanged?.call();
   }
@@ -144,7 +152,14 @@ class _RecipientState extends ConsumerState<Recipient> {
       setState(() {
         _addressIsEmpty = addressController.text.isEmpty;
       });
-      _updateRecipientData(label: paymentData.label);
+      final label = paymentData.label?.trim();
+      _updateRecipientData(
+        label: label == null || label.isEmpty ? null : label,
+        replaceLabel: true,
+      );
+      if (paymentData.message != null) {
+        widget.onMessage?.call(paymentData.message!);
+      }
     } else {
       if (addressController.text != input) {
         addressController.text = input;
@@ -194,9 +209,9 @@ class _RecipientState extends ConsumerState<Recipient> {
         FocusScope.of(context).unfocus();
         await Future<void>.delayed(const Duration(milliseconds: 75));
       }
+      if (!mounted) return;
 
       if (Util.isDesktop) {
-        if (!mounted) return;
         final qrCodeData = await showDialog<String>(
           context: context,
           builder: (context) => const QrCodeScannerDialog(),
@@ -311,9 +326,7 @@ class _RecipientState extends ConsumerState<Recipient> {
             children: [
               Flexible(
                 child: Text(
-                  isSingle
-                      ? "Send to"
-                      : label ?? "Recipient ${widget.displayNumber}",
+                  isSingle ? "Send to" : "Recipient ${widget.displayNumber}",
                   style: STextStyles.smallMed12(context),
                   textAlign: TextAlign.left,
                   overflow: TextOverflow.ellipsis,
@@ -327,6 +340,10 @@ class _RecipientState extends ConsumerState<Recipient> {
               ),
             ],
           ),
+          if (label != null) ...[
+            const SizedBox(height: 4),
+            PaymentRequestName(label),
+          ],
           const SizedBox(height: 8),
           ClipRRect(
             borderRadius: BorderRadius.circular(
@@ -342,9 +359,7 @@ class _RecipientState extends ConsumerState<Recipient> {
               style: STextStyles.field(context),
               onChanged: (newValue) {
                 final previous = ref.read(pRecipient(_id))?.address ?? "";
-                // More than one character at once was pasted, and may be a
-                // payment request.
-                if ((newValue.length - previous.length).abs() > 1) {
+                if (AddressUtils.mayBePaymentUri(newValue, previous)) {
                   _applyAddressInput(newValue.trim());
                   return;
                 }
@@ -399,6 +414,7 @@ class _RecipientState extends ConsumerState<Recipient> {
                                       final ClipboardData? data = await ref
                                           .read(pClipboard)
                                           .getData(Clipboard.kTextPlain);
+                                      if (!mounted) return;
                                       if (data?.text != null &&
                                           data!.text!.isNotEmpty) {
                                         String content = data.text!.trim();
@@ -515,6 +531,32 @@ class _RecipientState extends ConsumerState<Recipient> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// A recipient's name from a payment request, attributed to the request so
+/// it can't pass for a name the app, or the user, gave the address.
+class PaymentRequestName extends StatelessWidget {
+  const PaymentRequestName(this.name, {super.key, this.style});
+
+  final String name;
+
+  /// Defaults to [STextStyles.label].
+  final TextStyle? style;
+
+  @override
+  Widget build(BuildContext context) {
+    // One line of plain text: a line break or a control character in the
+    // name could otherwise put part of it where an app label would be.
+    final shown = name
+        .replaceAll(RegExp(r'[\s\p{Cc}\p{Cf}]+', unicode: true), ' ')
+        .trim();
+    return Text(
+      "Name in payment request: \"$shown\"",
+      style: style ?? STextStyles.label(context),
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
     );
   }
 }

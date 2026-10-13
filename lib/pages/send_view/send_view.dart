@@ -85,10 +85,10 @@ import '../../widgets/textfield_icon_button.dart';
 import '../address_book_views/address_book_view.dart';
 import '../coin_control/coin_control_view.dart';
 import 'confirm_transaction_view.dart';
+import 'frost_ms/recipient.dart';
 import 'sub_widgets/building_transaction_dialog.dart';
 import 'sub_widgets/dual_balance_selection_sheet.dart';
 import 'sub_widgets/epic_slatepack_dialog.dart';
-import 'frost_ms/recipient.dart';
 import 'sub_widgets/multi_recipient.dart';
 import 'sub_widgets/mwc_slatepack_dialog.dart';
 import 'sub_widgets/transaction_fee_selection_sheet.dart';
@@ -482,6 +482,7 @@ class _SendViewState extends ConsumerState<SendView> {
         FocusScope.of(context).unfocus();
         await Future<void>.delayed(const Duration(milliseconds: 75));
       }
+      if (!mounted) return;
 
       final qrResult = await ref.read(pBarcodeScanner).scan(context: context);
 
@@ -495,7 +496,7 @@ class _SendViewState extends ConsumerState<SendView> {
       // );
 
       Logging.instance.d("qrResult content: ${qrResult.rawContent}");
-      if (qrResult.rawContent == null) return;
+      if (qrResult.rawContent == null || !mounted) return;
 
       final paymentData = AddressUtils.parsePaymentUri(
         qrResult.rawContent!,
@@ -1945,6 +1946,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                 onAdd: _addRecipientForm,
                                 onRemove: _removeRecipientForm,
                                 onMultiRecipientUri: _replaceMultiRecipients,
+                                onMessage: (message) => setState(() {
+                                  noteController.text = message;
+                                }),
                               ),
                             if (!isPaynymSend &&
                                 !isSlatepackMode &&
@@ -1972,11 +1976,10 @@ class _SendViewState extends ConsumerState<SendView> {
                                   onChanged: (newValue) async {
                                     final trimmed = newValue.trim();
 
-                                    if ((trimmed.length -
-                                                    (_address?.length ?? 0))
-                                                .abs() >
-                                            1 ||
-                                        trimmed.contains(':')) {
+                                    if (AddressUtils.mayBePaymentUri(
+                                      trimmed,
+                                      _address ?? "",
+                                    )) {
                                       final parsed =
                                           AddressUtils.parsePaymentUri(
                                             trimmed,

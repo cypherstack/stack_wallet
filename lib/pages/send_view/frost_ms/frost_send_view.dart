@@ -413,6 +413,9 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                               ref.read(pWalletBalance(walletId)).spendable,
                             );
                       },
+                      onMessage: (message) => setState(() {
+                        noteController.text = message;
+                      }),
                     ),
                   ),
               ],

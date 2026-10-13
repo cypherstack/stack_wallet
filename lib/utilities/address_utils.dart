@@ -188,6 +188,12 @@ class AddressUtils {
     ];
   }
 
+  /// Whether [input], the new text of an address field whose text was
+  /// [previous], may be a payment URI worth parsing: several characters
+  /// changed at once, as when pasted, or it contains a scheme separator.
+  static bool mayBePaymentUri(String input, String previous) =>
+      (input.length - previous.length).abs() > 1 || input.contains(':');
+
   /// Centralized method to handle various cryptocurrency URIs and return a common object.
   ///
   /// Multi-recipient URIs are only returned when [allowMultipleRecipients] is

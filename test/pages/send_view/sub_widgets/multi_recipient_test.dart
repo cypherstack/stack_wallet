@@ -188,7 +188,8 @@ void main() {
       ),
     );
 
-    expect(find.text("Alice"), findsOneWidget);
+    expect(find.text('Name in payment request: "Alice"'), findsOneWidget);
+    expect(find.text("Recipient 1"), findsOneWidget);
     expect(find.text("Recipient 2"), findsOneWidget);
     expect(find.text("Recipient 3"), findsOneWidget);
     expect(find.text("1 XMR"), findsOneWidget);
@@ -223,6 +224,7 @@ void main() {
           onAdd: () => added++,
           onRemove: removed.add,
           onMultiRecipientUri: (_) {},
+          onMessage: (_) {},
         ),
       );
 

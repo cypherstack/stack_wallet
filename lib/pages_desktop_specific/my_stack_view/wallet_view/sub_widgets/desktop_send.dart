@@ -26,9 +26,9 @@ import '../../../../models/paynym/paynym_account_lite.dart';
 import '../../../../models/send_view_auto_fill_data.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages/send_view/confirm_transaction_view.dart';
+import '../../../../pages/send_view/frost_ms/recipient.dart';
 import '../../../../pages/send_view/sub_widgets/building_transaction_dialog.dart';
 import '../../../../pages/send_view/sub_widgets/epic_slatepack_dialog.dart';
-import '../../../../pages/send_view/frost_ms/recipient.dart';
 import '../../../../pages/send_view/sub_widgets/multi_recipient.dart';
 import '../../../../pages/send_view/sub_widgets/mwc_slatepack_dialog.dart';
 import '../../../../pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
@@ -165,6 +165,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         context: context,
         builder: (context) => const QrCodeScannerDialog(),
       );
+      if (!mounted) return;
       if (qrResult == null) {
         Logging.instance.w("Qr scanning cancelled");
       } else {
@@ -2019,6 +2020,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             onAdd: _addRecipientForm,
             onRemove: _removeRecipientForm,
             onMultiRecipientUri: _replaceMultiRecipients,
+            onMessage: (message) => _note = message,
           ),
         if (!isPaynymSend &&
             !((isMimblewimblecoin || isEpiccash) &&
@@ -2049,8 +2051,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               onChanged: (newValue) async {
                 final trimmed = newValue;
 
-                if ((trimmed.length - (_address?.length ?? 0)).abs() > 1 ||
-                    trimmed.contains(':')) {
+                if (AddressUtils.mayBePaymentUri(trimmed, _address ?? "")) {
                   final parsed = AddressUtils.parsePaymentUri(
                     trimmed,
                     logging: Logging.instance,

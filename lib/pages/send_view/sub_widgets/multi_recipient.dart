@@ -117,6 +117,7 @@ class RecipientForms extends StatelessWidget {
     required this.onAdd,
     required this.onRemove,
     required this.onMultiRecipientUri,
+    required this.onMessage,
   });
 
   final String walletId;
@@ -128,6 +129,9 @@ class RecipientForms extends StatelessWidget {
   final VoidCallback onAdd;
   final void Function(int index) onRemove;
   final void Function(PaymentUriData paymentData) onMultiRecipientUri;
+
+  /// Called with the message of a payment request for one recipient.
+  final void Function(String message) onMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -150,6 +154,7 @@ class RecipientForms extends StatelessWidget {
               // Send all is not offered with several recipients.
               sendAllTapped: () => "",
               onMultiRecipientUri: onMultiRecipientUri,
+              onMessage: onMessage,
             ),
           ),
         const SizedBox(height: 16),
@@ -194,17 +199,19 @@ class RecipientAmountList extends ConsumerWidget {
       child: Container(height: 1, color: colors.backgroundAppBar),
     );
 
+    final requestNames = labels ?? const <String?>[];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
         for (int i = 0; i < recipients.length; i++) ...[
           if (i > 0) divider,
-          Text(
-            (labels != null && i < labels!.length ? labels![i] : null) ??
-                "Recipient ${i + 1}",
-            style: labelStyle,
-          ),
+          Text("Recipient ${i + 1}", style: labelStyle),
+          if (i < requestNames.length && requestNames[i] != null) ...[
+            const SizedBox(height: 4),
+            PaymentRequestName(requestNames[i]!, style: labelStyle),
+          ],
           const SizedBox(height: 4),
           SelectableText(recipients[i].address, style: valueStyle),
           const SizedBox(height: 8),

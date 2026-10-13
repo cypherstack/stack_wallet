@@ -58,6 +58,7 @@ void main() {
   late ProviderContainer container;
   late List<PaymentUriData> multiRecipientUris;
   late _FakeScanner scanner;
+  late List<String> messages;
 
   /// Lays widgets out for desktop or mobile on any host platform.
   void useLayout({required bool desktop}) {
@@ -83,6 +84,7 @@ void main() {
     unit = StateProvider((_) => AmountUnit.normal);
     clipboard = FakeClipboard();
     multiRecipientUris = [];
+    messages = [];
     container = ProviderContainer(
       overrides: [
         pAmountUnit.overrideWithProvider(
@@ -142,6 +144,7 @@ void main() {
                 onMultiRecipientUri: handlesMultiRecipientUris
                     ? multiRecipientUris.add
                     : null,
+                onMessage: messages.add,
               ),
             ),
           ),
@@ -164,34 +167,104 @@ void main() {
       initial: (address: "address0", amount: xmr("1"), label: "Alice"),
     );
 
-    expect(find.text("Alice"), findsOneWidget);
+    expect(find.text('Name in payment request: "Alice"'), findsOneWidget);
+    expect(find.text("Recipient 1"), findsOneWidget);
     expect(find.text("Invalid address"), findsNothing);
 
     await tester.enterText(addressField(), "bad");
     await tester.pump();
 
-    expect(find.text("Alice"), findsNothing);
+    expect(find.text('Name in payment request: "Alice"'), findsNothing);
     expect(find.text("Recipient 1"), findsOneWidget);
     expect(find.text("Invalid address"), findsOneWidget);
     expect(recipient(), (address: "bad", amount: xmr("1"), label: null));
+  });
+
+  for (final (name, request, amount) in [
+    ("missing", "monero:address0?tx_amount=2", "2"),
+    ("empty", "monero:address0?tx_amount=2&recipient_name=", "2"),
+    ("whitespace", "monero:address0?tx_amount=2&recipient_name=%20%09%0A", "2"),
+    ("missing without an amount", "monero:address0", "1"),
+  ]) {
+    testWidgets("clears the previous request's name when $name", (
+      tester,
+    ) async {
+      await pumpRecipient(
+        tester,
+        initial: (address: "address0", amount: xmr("1"), label: "Alice"),
+      );
+
+      await tester.enterText(addressField(), request);
+      await tester.pump();
+
+      expect(recipient(), (
+        address: "address0",
+        amount: xmr(amount),
+        label: null,
+      ));
+      expect(text(tester, addressField()), "address0");
+      expect(text(tester, amountField()), amount);
+      expect(find.text('Name in payment request: "Alice"'), findsNothing);
+      expect(find.byType(PaymentRequestName), findsNothing);
+    });
+  }
+
+  testWidgets("replaces the name with the new request's trimmed name", (
+    tester,
+  ) async {
+    await pumpRecipient(
+      tester,
+      initial: (address: "address0", amount: xmr("1"), label: "Alice"),
+    );
+
+    await tester.enterText(
+      addressField(),
+      "monero:address0?recipient_name=%20Bob%20",
+    );
+    await tester.pump();
+
+    expect(recipient(), (address: "address0", amount: xmr("1"), label: "Bob"));
+    expect(find.text('Name in payment request: "Bob"'), findsOneWidget);
+    expect(find.text('Name in payment request: "Alice"'), findsNothing);
+  });
+
+  testWidgets("keeps the request's name when the amount is edited", (
+    tester,
+  ) async {
+    await pumpRecipient(
+      tester,
+      initial: (address: "address0", amount: xmr("1"), label: "Alice"),
+    );
+
+    await tester.enterText(amountField(), "2");
+    await tester.pump();
+
+    expect(recipient(), (
+      address: "address0",
+      amount: xmr("2"),
+      label: "Alice",
+    ));
+    expect(find.text('Name in payment request: "Alice"'), findsOneWidget);
   });
 
   testWidgets("keeps the amount when the display unit changes", (tester) async {
     container.read(unit.notifier).state = AmountUnit.milli;
     await pumpRecipient(
       tester,
-      initial: (address: "address0", amount: xmr("1"), label: null),
+      initial: (address: "address0", amount: xmr("1"), label: "Alice"),
     );
     expect(text(tester, amountField()), "1000");
 
     container.read(unit.notifier).state = AmountUnit.normal;
     await tester.pump();
     expect(text(tester, amountField()), "1");
+    expect(recipient()!.label, "Alice");
 
     // Editing the recipient afterwards must not read "1000" as XMR.
     await tester.enterText(addressField(), "address1");
     await tester.pump();
     expect(recipient()!.amount, xmr("1"));
+    expect(recipient()!.label, isNull);
   });
 
   testWidgets("fills the address, amount, and name from a pasted request", (
@@ -211,7 +284,7 @@ void main() {
 
     expect(text(tester, addressField()), "address5");
     expect(text(tester, amountField()), "0.25");
-    expect(find.text("Bob"), findsOneWidget);
+    expect(find.text('Name in payment request: "Bob"'), findsOneWidget);
     expect(recipient(), (
       address: "address5",
       amount: xmr("0.25"),
@@ -232,6 +305,50 @@ void main() {
     expect(recipient()!.amount, xmr("2"));
   });
 
+  testWidgets("passes a single request's message on", (tester) async {
+    await pumpRecipient(tester);
+
+    await tester.enterText(
+      addressField(),
+      "monero:address5?tx_amount=2&tx_description=Lunch",
+    );
+    await tester.pump();
+
+    expect(messages, ["Lunch"]);
+    expect(recipient()!.address, "address5");
+  });
+
+  testWidgets("shows a request's name on one line", (tester) async {
+    await pumpRecipient(
+      tester,
+      initial: (
+        address: "address0",
+        amount: xmr("1"),
+        label: "Alice\"\nYour wallet (change)\u202E",
+      ),
+    );
+
+    expect(find.text("Recipient 1"), findsOneWidget);
+    expect(
+      find.text('Name in payment request: "Alice" Your wallet (change)"'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets("parses a typed request of the same length as the address", (
+    tester,
+  ) async {
+    await pumpRecipient(
+      tester,
+      initial: (address: "address12", amount: xmr("1"), label: null),
+    );
+
+    await tester.enterText(addressField(), "monero:ab");
+    await tester.pump();
+
+    expect(recipient()!.address, "ab");
+  });
+
   const multiRecipientUri =
       "monero:address1;address2?tx_amount=1;2&recipient_name=A;B";
 
@@ -247,6 +364,7 @@ void main() {
     await tester.pump();
 
     expect(multiRecipientUris.single.recipients.length, 2);
+    expect(messages, isEmpty);
     // The recipient is left as it was until the screen replaces it.
     expect(text(tester, addressField()), "address0");
     expect(recipient(), (address: "address0", amount: xmr("1"), label: null));
