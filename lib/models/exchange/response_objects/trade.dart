@@ -290,6 +290,26 @@ class Trade {
     );
   }
 
+  static const Set<String> terminalStatuses = {
+    "finished",
+    "completed",
+    "success",
+    "failed",
+    "error",
+    "refunded",
+    "overdue",
+    "expired",
+    "closed",
+    "cancelled",
+    "canceled",
+    "not found",
+  };
+
+  static bool isTerminalStatusValue(String status) =>
+      terminalStatuses.contains(status.trim().toLowerCase());
+
+  bool get isTerminalStatus => isTerminalStatusValue(status);
+
   @override
   String toString() {
     return toMap().toString();
