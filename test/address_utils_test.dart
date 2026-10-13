@@ -298,4 +298,119 @@ void main() {
       expect(parsed?.message, "Some kind of message!");
     }
   });
+
+  group("Monero multi-recipient payment URIs", () {
+    const addressA = "4AdUndXHHZ6cfufTMvppY6JwXNouMBzSkbLYfpAV5Usx";
+    const addressB = "8BnERTpvL5MbCLtj5n9No7J5oE5hHiB3tVCK5cjSvCsx";
+
+    test("parses addresses, amounts, and names per recipient", () {
+      final result = AddressUtils.parsePaymentUri(
+        "monero:$addressA;$addressB?tx_amount=1.5;0.25"
+        "&recipient_name=Alice;Bob&tx_description=Dinner",
+        allowMultipleRecipients: true,
+      );
+
+      expect(result, isNotNull);
+      expect(result!.isMultiRecipient, isTrue);
+      expect(result.recipients.map((e) => e.address), [addressA, addressB]);
+      expect(result.recipients.map((e) => e.amount), ["1.5", "0.25"]);
+      expect(result.recipients.map((e) => e.label), ["Alice", "Bob"]);
+      expect(result.message, "Dinner");
+      expect(result.address, addressA);
+      expect(result.amount, "1.5");
+    });
+
+    test("names are optional", () {
+      final result = AddressUtils.parsePaymentUri(
+        "monero:$addressA;$addressB?tx_amount=1;2",
+        allowMultipleRecipients: true,
+      );
+
+      expect(result!.recipients.map((e) => e.label), [null, null]);
+    });
+
+    test("parses percent-encoded lists", () {
+      final result = AddressUtils.parsePaymentUri(
+        "monero:$addressA;$addressB?recipient_name=Page%3BTips"
+        "&tx_amount=0.09%3B0.01&tx_description=Great%20stream",
+        allowMultipleRecipients: true,
+      );
+
+      expect(result!.recipients.map((e) => e.address), [addressA, addressB]);
+      expect(result.recipients.map((e) => e.amount), ["0.09", "0.01"]);
+      expect(result.recipients.map((e) => e.label), ["Page", "Tips"]);
+      expect(result.message, "Great stream");
+    });
+
+    test("parses more than two recipients", () {
+      const addressC = "4C7oeS1rq4w7TxjdBdz2Z6rxDBsJtUpDjN9X8fKCnQsx";
+      final result = AddressUtils.parsePaymentUri(
+        "monero:$addressA;$addressB;$addressC?tx_amount=1;.5;0.000000000001"
+        "&recipient_name=Alice;;Carol",
+        allowMultipleRecipients: true,
+      );
+
+      expect(result!.recipients.map((e) => e.address), [
+        addressA,
+        addressB,
+        addressC,
+      ]);
+      expect(result.recipients.map((e) => e.amount), [
+        "1",
+        ".5",
+        "0.000000000001",
+      ]);
+      expect(result.recipients.map((e) => e.label), ["Alice", null, "Carol"]);
+    });
+
+    test("is rejected unless multiple recipients are allowed", () {
+      expect(
+        AddressUtils.parsePaymentUri(
+          "monero:$addressA;$addressB?tx_amount=1;2",
+        ),
+        isNull,
+      );
+    });
+
+    test("rejects malformed recipient lists", () {
+      for (final uri in [
+        "monero:$addressA;$addressB",
+        "monero:$addressA;$addressB?tx_amount=1",
+        "monero:$addressA;$addressB?tx_amount=1;2;3",
+        "monero:$addressA;$addressB?tx_amount=1;abc",
+        "monero:$addressA;$addressB?tx_amount=1;",
+        "monero:$addressA;$addressB?tx_amount=1;2&recipient_name=Alice",
+        "monero:$addressA;?tx_amount=1;2",
+        "monero:$addressA?tx_amount=1;2",
+      ]) {
+        expect(
+          AddressUtils.parsePaymentUri(uri, allowMultipleRecipients: true),
+          isNull,
+          reason: uri,
+        );
+      }
+    });
+
+    test("single recipient URIs are unchanged", () {
+      final result = AddressUtils.parsePaymentUri(
+        "monero:$addressA?tx_amount=1.5&recipient_name=Alice;Co",
+        allowMultipleRecipients: true,
+      );
+
+      expect(result!.isMultiRecipient, isFalse);
+      expect(result.address, addressA);
+      expect(result.amount, "1.5");
+      expect(result.label, "Alice;Co");
+    });
+
+    test("other schemes do not split recipients", () {
+      expect(
+        AddressUtils.parsePaymentUri(
+          "wownero:$addressA;$addressB?tx_amount=1;2",
+          allowMultipleRecipients: true,
+        ),
+        isNull,
+      );
+    });
+  });
 }
