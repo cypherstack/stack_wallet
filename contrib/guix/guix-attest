@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+# Copyright (c) Stack Wallet developers
+# Distributed under the MIT software license, see the accompanying
+# file COPYING or https://opensource.org/licenses/MIT.
+#
+# guix-attest — Collect SHA256SUMS from build outputs and GPG-sign them.
+#
+# Usage:  ./guix-attest [--signer <gpg-key-id>]
+#
+# Adapted from Bitcoin Core's contrib/guix/guix-attest.
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/libexec/prelude.bash"
+
+SIGNER="${SIGNER:-}"
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --signer)  SIGNER="$2"; shift 2 ;;
+        --help|-h)
+            echo "Usage: guix-attest [--signer <gpg-key-id>]"
+            echo ""
+            echo "Collects SHA256SUMS from the most recent guix-build output"
+            echo "and creates a GPG-signed attestation."
+            exit 0
+            ;;
+        *) die "Unknown option: $1" ;;
+    esac
+done
+
+################
+# Find output  #
+################
+
+# Find the most recent guix-build-* directory.
+BUILD_DIR="$(ls -dt "${SCRIPT_DIR}"/guix-build-* 2>/dev/null | head -1)"
+if [ -z "$BUILD_DIR" ] || [ ! -d "$BUILD_DIR" ]; then
+    die "No guix-build-* directory found. Run guix-build first."
+fi
+
+log_info "Using build output: ${BUILD_DIR}"
+
+################
+# Collect sums #
+################
+
+SUMS_FILE="${BUILD_DIR}/SHA256SUMS"
+
+if [ ! -s "$SUMS_FILE" ]; then
+    # Rebuild from .part files.
+    : > "$SUMS_FILE"
+    while IFS= read -r -d '' part; do
+        cat "$part" >> "$SUMS_FILE"
+    done < <(find "$BUILD_DIR" -name "SHA256SUMS.part" -print0 | sort -z)
+fi
+
+if [ ! -s "$SUMS_FILE" ]; then
+    die "No SHA256SUMS found. Build may have failed."
+fi
+
+log_info "SHA256SUMS:"
+cat "$SUMS_FILE"
+echo ""
+
+################
+# GPG sign     #
+################
+
+# Determine signer identity.
+if [ -z "$SIGNER" ]; then
+    # Try to get default GPG key.
+    SIGNER="$(gpg --list-secret-keys --keyid-format long 2>/dev/null \
+        | grep '^sec' | head -1 | awk '{print $2}' | cut -d'/' -f2)" || true
+fi
+
+if [ -z "$SIGNER" ]; then
+    log_error "No GPG key found. Specify --signer <key-id> or set SIGNER env var."
+    log_info "SHA256SUMS written to ${SUMS_FILE} (unsigned)"
+    exit 1
+fi
+
+log_info "Signing with GPG key: ${SIGNER}"
+
+# Create detached signature.
+SIG_FILE="${SUMS_FILE}.asc"
+gpg --detach-sign --armor --local-user "$SIGNER" --output "$SIG_FILE" "$SUMS_FILE"
+
+log_info "Attestation created:"
+log_info "  Checksums:  ${SUMS_FILE}"
+log_info "  Signature:  ${SIG_FILE}"
+
+# Also create an attestation directory for multi-signer workflows.
+ATTEST_DIR="${BUILD_DIR}/attestations"
+mkdir -p "${ATTEST_DIR}/${SIGNER}"
+cp "$SUMS_FILE" "${ATTEST_DIR}/${SIGNER}/SHA256SUMS"
+cp "$SIG_FILE" "${ATTEST_DIR}/${SIGNER}/SHA256SUMS.asc"
+
+log_info "  Attestation dir: ${ATTEST_DIR}/${SIGNER}/"
+log_info ""
+log_info "Share the attestations/ directory with other builders for verification."

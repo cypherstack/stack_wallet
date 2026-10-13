@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+# Copyright (c) Stack Wallet developers
+# Distributed under the MIT software license, see the accompanying
+# file COPYING or https://opensource.org/licenses/MIT.
+#
+# guix-clean — Remove build artifacts.  Preserves depends/ caches.
+#
+# Usage:  ./guix-clean [--all]
+#
+#   --all   Also remove depends/ caches (expensive to recreate)
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/libexec/prelude.bash"
+
+CLEAN_ALL=0
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --all)  CLEAN_ALL=1; shift ;;
+        --help|-h)
+            echo "Usage: guix-clean [--all]"
+            echo "  --all   Also remove depends/ caches"
+            exit 0
+            ;;
+        *) die "Unknown option: $1" ;;
+    esac
+done
+
+# Remove all guix-build-* output directories.
+BUILD_DIRS=("${SCRIPT_DIR}"/guix-build-*)
+if [ -e "${BUILD_DIRS[0]}" ]; then
+    log_info "Removing build output directories ..."
+    for d in "${BUILD_DIRS[@]}"; do
+        log_info "  Removing: $(basename "$d")"
+        rm -rf "$d"
+    done
+else
+    log_info "No build output directories to clean."
+fi
+
+# Remove downloaded archive files (but not the extracted caches).
+for f in "${BASE_CACHE}"/*.tar.{gz,xz} "${BASE_CACHE}"/rust-*.tar.gz; do
+    if [ -f "$f" ]; then
+        log_info "  Removing archive: $(basename "$f")"
+        rm -f "$f"
+    fi
+done
+
+if [ "$CLEAN_ALL" -eq 1 ]; then
+    log_info "Removing ALL dependency caches (--all) ..."
+    for d in "$PUB_CACHE_DIR" "$CARGO_CACHE_DIR" "$FLUTTER_SDK_DIR" "$RUST_DIR" \
+             "${BASE_CACHE}/pub-archives"; do
+        if [ -d "$d" ]; then
+            log_info "  Removing: $(basename "$d")"
+            rm -rf "$d"
+        fi
+    done
+fi
+
+log_info "Clean complete."
