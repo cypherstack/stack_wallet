@@ -15,7 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
 
-import '../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
+import '../models/node_form_data.dart';
 import '../pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
 import '../providers/global/active_wallet_provider.dart';
 import '../providers/global/secure_store_provider.dart';
@@ -27,7 +27,6 @@ import '../utilities/default_nodes.dart';
 import '../utilities/enums/sync_type_enum.dart';
 import '../utilities/test_node_connection.dart';
 import '../utilities/text_styles.dart';
-import '../utilities/tor_plain_net_option_enum.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import 'rounded_white_container.dart';
 
@@ -121,9 +120,9 @@ class NodeOptionsSheet extends ConsumerWidget {
                 Center(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textFieldDefaultBG,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldDefaultBG,
                       borderRadius: BorderRadius.circular(
                         Constants.size.circularBorderRadius,
                       ),
@@ -150,9 +149,9 @@ class NodeOptionsSheet extends ConsumerWidget {
                               node.id.startsWith(
                                 DefaultNodes.defaultNodeIdPrefix,
                               )
-                              ? Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textSubtitle4
+                              ? Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textSubtitle4
                               : Theme.of(context)
                                     .extension<StackColors>()!
                                     .infoItemIcons
@@ -168,12 +167,12 @@ class NodeOptionsSheet extends ConsumerWidget {
                                 node.id.startsWith(
                                   DefaultNodes.defaultNodeIdPrefix,
                                 )
-                                ? Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.accentColorDark
-                                : Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.infoItemIcons,
+                                ? Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .accentColorDark
+                                : Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .infoItemIcons,
                           ),
                         ),
                       ),
@@ -193,12 +192,12 @@ class NodeOptionsSheet extends ConsumerWidget {
                       SvgPicture.asset(
                         Assets.svg.network,
                         color: status == "Connected"
-                            ? Theme.of(
-                                context,
-                              ).extension<StackColors>()!.accentColorGreen
-                            : Theme.of(
-                                context,
-                              ).extension<StackColors>()!.buttonBackSecondary,
+                            ? Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorGreen
+                            : Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .buttonBackSecondary,
                         width: 18,
                       ),
                     ],
@@ -222,9 +221,9 @@ class NodeOptionsSheet extends ConsumerWidget {
                         child: Text(
                           "Details",
                           style: STextStyles.button(context).copyWith(
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.accentColorDark,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorDark,
                           ),
                         ),
                       ),
@@ -243,48 +242,43 @@ class NodeOptionsSheet extends ConsumerWidget {
                         onPressed: status == "Connected"
                             ? null
                             : () async {
-                                final pw = await node.getPassword(
+                                // Carry the saved certificate so an approved
+                                // node is not reviewed again, and keep a new
+                                // approval below.
+                                final nodeFormData = NodeFormData.fromNode(
+                                  node,
+                                );
+                                nodeFormData.password = await node.getPassword(
                                   ref.read(secureStoreProvider),
                                 );
                                 if (context.mounted) {
-                                  final TorPlainNetworkOption netOption;
-                                  if (node.torEnabled &&
-                                      !node.clearnetEnabled) {
-                                    netOption = TorPlainNetworkOption.tor;
-                                  } else if (node.clearnetEnabled &&
-                                      !node.torEnabled) {
-                                    netOption = TorPlainNetworkOption.clear;
-                                  } else {
-                                    netOption = TorPlainNetworkOption.both;
-                                  }
                                   final canConnect =
                                       await ref.read(
                                         testNodeConnectionProvider,
                                       )(
                                         context: context,
-                                        nodeFormData: NodeFormData()
-                                          ..name = node.name
-                                          ..host = node.host
-                                          ..login = node.loginName
-                                          ..password = pw
-                                          ..port = node.port
-                                          ..useSSL = node.useSSL
-                                          ..isFailover = node.isFailover
-                                          ..netOption = netOption
-                                          ..trusted = node.trusted,
+                                        nodeFormData: nodeFormData,
                                         cryptoCurrency: coin,
                                       );
                                   if (!canConnect) {
                                     return;
                                   }
 
-                                  await ref
-                                      .read(nodeServiceChangeNotifierProvider)
-                                      .setPrimaryNodeFor(
-                                        coin: coin,
-                                        node: node,
-                                        shouldNotifyListeners: true,
-                                      );
+                                  final service = ref.read(
+                                    nodeServiceChangeNotifierProvider,
+                                  );
+                                  await service.saveTrustedCertificate(
+                                    node,
+                                    nodeFormData,
+                                    shouldNotifyListeners: false,
+                                  );
+                                  await service.setPrimaryNodeFor(
+                                    coin: coin,
+                                    node:
+                                        service.getNodeById(id: node.id) ??
+                                        node,
+                                    shouldNotifyListeners: true,
+                                  );
 
                                   await _notifyWalletsOfUpdatedNode(ref);
                                 }

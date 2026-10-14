@@ -156,6 +156,7 @@ class NotificationsService extends ChangeNotifier {
               name: node.name,
               id: node.id,
               useSSL: node.useSSL,
+              trustedCertificatePem: node.trustedCertificatePem,
               torEnabled: node.torEnabled,
               clearnetEnabled: node.clearnetEnabled,
             );
@@ -168,6 +169,7 @@ class NotificationsService extends ChangeNotifier {
                     name: e.name,
                     id: e.id,
                     useSSL: e.useSSL,
+                    trustedCertificatePem: e.trustedCertificatePem,
                     torEnabled: node.torEnabled,
                     clearnetEnabled: node.clearnetEnabled,
                   ),

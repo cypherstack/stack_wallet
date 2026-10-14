@@ -13,6 +13,7 @@ class ClientManager {
 
   final Map<String, ElectrumClient> _map = {};
   final Map<String, TorPlainNetworkOption> _mapNet = {};
+  final Map<String, String?> _certificates = {};
   final Map<String, int> _heights = {};
   final Map<String, StreamSubscription<BlockHeader>> _subscriptions = {};
   final Map<String, Completer<int>> _heightCompleters = {};
@@ -42,6 +43,7 @@ class ClientManager {
     ElectrumClient client, {
     required CryptoCurrency cryptoCurrency,
     required TorPlainNetworkOption netType,
+    String? trustedCertificatePem,
   }) async {
     final key = _keyHelper(cryptoCurrency);
     if (_map[key] != null) {
@@ -60,6 +62,7 @@ class ClientManager {
       _mapNet[key] = netType;
     }
 
+    _certificates[key] = trustedCertificatePem;
     _heightCompleters[key] = Completer<int>();
     _subscriptions[key] = client.subscribeHeaders().listen(
       (event) {
@@ -69,11 +72,8 @@ class ClientManager {
           _heightCompleters[key]!.complete(event.height);
         }
       },
-      onError: (Object err, StackTrace s) => Logging.instance.e(
-        "ClientManager listen",
-        error: err,
-        stackTrace: s,
-      ),
+      onError: (Object err, StackTrace s) =>
+          Logging.instance.e("ClientManager listen", error: err, stackTrace: s),
     );
   }
 
@@ -81,32 +81,29 @@ class ClientManager {
     final key = _keyHelper(cryptoCurrency);
 
     if (_map[key] == null) {
-      throw Exception(
-        "No managed ElectrumClient for $key found.",
-      );
+      throw Exception("No managed ElectrumClient for $key found.");
     }
     if (_heightCompleters[key] == null) {
-      throw Exception(
-        "No managed _heightCompleters for $key found.",
-      );
+      throw Exception("No managed _heightCompleters for $key found.");
     }
 
     if (Prefs.instance.useTor) {
       if (_mapNet[key]! == TorPlainNetworkOption.clear) {
-        throw Exception(
-          "Non-TOR only client for $key found.",
-        );
+        throw Exception("Non-TOR only client for $key found.");
       }
     } else {
       if (_mapNet[key]! == TorPlainNetworkOption.tor) {
-        throw Exception(
-          "TOR only client for $key found.",
-        );
+        throw Exception("TOR only client for $key found.");
       }
     }
 
     return _heights[key] ?? await _heightCompleters[key]!.future;
   }
+
+  /// The certificate the managed connection for [cryptoCurrency] was opened
+  /// with, or null when it relies on the platform's trusted roots.
+  String? trustedCertificateFor(CryptoCurrency cryptoCurrency) =>
+      _certificates[_keyHelper(cryptoCurrency)];
 
   Future<(ElectrumClient?, TorPlainNetworkOption?)> remove({
     required CryptoCurrency cryptoCurrency,
@@ -116,6 +113,7 @@ class ClientManager {
     _subscriptions.remove(key);
     _heights.remove(key);
     _heightCompleters.remove(key);
+    _certificates.remove(key);
 
     return (_map.remove(key), _mapNet.remove(key));
   }
@@ -138,5 +136,6 @@ class ClientManager {
     _subscriptions.clear();
     _mapNet.clear();
     _map.clear();
+    _certificates.clear();
   }
 }

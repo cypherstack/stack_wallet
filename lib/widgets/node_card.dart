@@ -15,8 +15,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
 
+import '../models/node_form_data.dart';
 import '../notifications/show_flush_bar.dart';
-import '../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import '../pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
 import '../providers/global/active_wallet_provider.dart';
 import '../providers/global/secure_store_provider.dart';
@@ -28,7 +28,6 @@ import '../utilities/default_nodes.dart';
 import '../utilities/enums/sync_type_enum.dart';
 import '../utilities/test_node_connection.dart';
 import '../utilities/text_styles.dart';
-import '../utilities/tor_plain_net_option_enum.dart';
 import '../utilities/util.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import 'conditional_parent.dart';
@@ -167,24 +166,9 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                       text: "Connect",
                       enabled: _status == "Disconnected",
                       onTap: () async {
-                        final TorPlainNetworkOption netOption;
-                        if (_node.torEnabled && !_node.clearnetEnabled) {
-                          netOption = TorPlainNetworkOption.tor;
-                        } else if (_node.clearnetEnabled && !_node.torEnabled) {
-                          netOption = TorPlainNetworkOption.clear;
-                        } else {
-                          netOption = TorPlainNetworkOption.both;
-                        }
-
-                        final nodeFormData = NodeFormData()
-                          ..useSSL = _node.useSSL
-                          ..trusted = _node.trusted
-                          ..name = _node.name
-                          ..host = _node.host
-                          ..login = _node.loginName
-                          ..port = _node.port
-                          ..netOption = netOption
-                          ..isFailover = _node.isFailover;
+                        // Carry the saved certificate so an approved node is
+                        // not reviewed again, and keep a new approval below.
+                        final nodeFormData = NodeFormData.fromNode(_node);
                         nodeFormData.password = await _node.getPassword(
                           ref.read(secureStoreProvider),
                         );
@@ -211,13 +195,19 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                             return;
                           }
 
-                          await ref
-                              .read(nodeServiceChangeNotifierProvider)
-                              .setPrimaryNodeFor(
-                                coin: widget.coin,
-                                node: _node,
-                                shouldNotifyListeners: true,
-                              );
+                          final service = ref.read(
+                            nodeServiceChangeNotifierProvider,
+                          );
+                          await service.saveTrustedCertificate(
+                            _node,
+                            nodeFormData,
+                            shouldNotifyListeners: false,
+                          );
+                          await service.setPrimaryNodeFor(
+                            coin: widget.coin,
+                            node: service.getNodeById(id: _node.id) ?? _node,
+                            shouldNotifyListeners: true,
+                          );
 
                           await _notifyWalletsOfUpdatedNode(ref);
                         }
@@ -251,9 +241,9 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                   height: isDesktop ? 40 : 24,
                   decoration: BoxDecoration(
                     color: _node.id.startsWith(DefaultNodes.defaultNodeIdPrefix)
-                        ? Theme.of(
-                            context,
-                          ).extension<StackColors>()!.buttonBackSecondary
+                        ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .buttonBackSecondary
                         : Theme.of(context)
                               .extension<StackColors>()!
                               .infoItemIcons
@@ -267,12 +257,12 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                       width: isDesktop ? 20 : 14,
                       color:
                           _node.id.startsWith(DefaultNodes.defaultNodeIdPrefix)
-                          ? Theme.of(
-                              context,
-                            ).extension<StackColors>()!.accentColorDark
-                          : Theme.of(
-                              context,
-                            ).extension<StackColors>()!.infoItemIcons,
+                          ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorDark
+                          : Theme.of(context)
+                                .extension<StackColors>()!
+                                .infoItemIcons,
                     ),
                   ),
                 ),
@@ -290,12 +280,12 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                   SvgPicture.asset(
                     Assets.svg.network,
                     color: _status == "Connected"
-                        ? Theme.of(
-                            context,
-                          ).extension<StackColors>()!.accentColorGreen
-                        : Theme.of(
-                            context,
-                          ).extension<StackColors>()!.buttonBackSecondary,
+                        ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorGreen
+                        : Theme.of(context)
+                              .extension<StackColors>()!
+                              .buttonBackSecondary,
                     width: 20,
                     height: 20,
                   ),
@@ -306,9 +296,9 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                         : Assets.svg.chevronDown,
                     width: 12,
                     height: 6,
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textSubtitle1,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textSubtitle1,
                   ),
               ],
             ),

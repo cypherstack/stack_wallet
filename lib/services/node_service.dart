@@ -16,6 +16,7 @@ import 'package:http/http.dart';
 import '../app_config.dart';
 import '../db/hive/db.dart';
 import '../models/epicbox_server_model.dart';
+import '../models/node_form_data.dart';
 import '../models/node_model.dart';
 import '../utilities/default_epicboxes.dart';
 import '../utilities/default_nodes.dart';
@@ -108,6 +109,14 @@ class NodeService extends ChangeNotifier {
             loginName: savedNode.loginName,
             isPrimary: savedNode.isPrimary,
             forceNoTor: savedNode.forceNoTor,
+            trustedCertificatePem:
+                savedNode.sameEndpoint(
+                  host: defaultNode.host,
+                  port: defaultNode.port,
+                  useSSL: defaultNode.useSSL,
+                )
+                ? savedNode.trustedCertificatePem
+                : null,
           ),
         );
       }
@@ -198,9 +207,9 @@ class NodeService extends ChangeNotifier {
   }
 
   List<NodeModel> failoverNodesFor({required CryptoCurrency currency}) {
-    return getNodesFor(
-      currency,
-    ).where((e) => e.isFailover && !e.isDown).toList();
+    return getNodesFor(currency)
+        .where((e) => e.isFailover && !e.isDown)
+        .toList();
   }
 
   /// Adds a new node to the database.
@@ -230,6 +239,29 @@ class NodeService extends ChangeNotifier {
     if (shouldNotifyListeners) {
       notifyListeners();
     }
+  }
+
+  /// Persists the certificate approval a successful connection test left on
+  /// [formData] for [node]. The stored password is kept. Returns whether the
+  /// node was saved.
+  Future<bool> saveTrustedCertificate(
+    NodeModel node,
+    NodeFormData formData, {
+    bool shouldNotifyListeners = true,
+  }) async {
+    final pem = formData.trustedCertificatePem;
+    final current = getNodeById(id: node.id) ?? node;
+    if (pem == null || pem == current.trustedCertificatePem) return false;
+    await save(
+      current.copyWith(
+        loginName: current.loginName,
+        trusted: current.trusted,
+        trustedCertificatePem: pem,
+      ),
+      await current.getPassword(secureStorageInterface),
+      shouldNotifyListeners,
+    );
+    return true;
   }
 
   Future<void> delete(String id, bool shouldNotifyListeners) async {

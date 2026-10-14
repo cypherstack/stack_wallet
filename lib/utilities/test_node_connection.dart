@@ -20,6 +20,7 @@ import '../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
 import '../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../wallets/wallet/impl/solana_wallet.dart';
 import '../wl_gen/interfaces/lib_xelis_interface.dart';
+import '../widgets/tls_certificate_dialog.dart';
 import 'connection_check/electrum_connection_check.dart';
 import 'logger.dart';
 import 'test_epic_box_connection.dart';
@@ -220,12 +221,45 @@ Future<bool> testNodeConnection({
     case ElectrumXCurrencyInterface():
     case BitcoinFrost():
       try {
-        testPassed = await checkElectrumServer(
-          host: formData.host!,
-          port: formData.port!,
-          useSSL: formData.useSSL!,
-          overridePrefs: read(prefsChangeNotifierProvider),
-          overrideTorService: read(pTorService),
+        final prefs = read(prefsChangeNotifierProvider);
+        final torService = read(pTorService);
+        final useTor = prefs.useTor;
+        final torStatus = AppConfig.hasFeature(AppFeature.tor) && useTor
+            ? torService.status
+            : null;
+        testPassed = await testElectrumNodeConnection(
+          formData,
+          isActive: () =>
+              context.mounted &&
+              prefs.useTor == useTor &&
+              (torStatus == null || torService.status == torStatus),
+          onSuccess: onSuccess,
+          requestTrust: (certificate, host, port) =>
+              showBadX509CertificateDialog(certificate, host, port, context),
+          onTrustedRetryFailed: (error) async {
+            if (context.mounted) {
+              await showTrustedCertificateFailedDialog(
+                error,
+                formData.host!,
+                formData.port!,
+                context,
+              );
+            }
+          },
+          testConnection:
+              ({
+                required host,
+                required port,
+                required useSSL,
+                trustedCertificatePem,
+              }) => checkElectrumServer(
+                host: host,
+                port: port,
+                useSSL: useSSL,
+                trustedCertificatePem: trustedCertificatePem,
+                overridePrefs: prefs,
+                overrideTorService: torService,
+              ),
         );
       } catch (_) {
         testPassed = false;

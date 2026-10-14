@@ -62,9 +62,8 @@ void main() {
     when(wallets.wallets).thenReturn([]);
     when(prefs.syncType).thenReturn(SyncingType.currentWalletOnly);
     when(nodeService.getNodeById(id: node.id)).thenAnswer((_) => node);
-    when(
-      nodeService.getPrimaryNodeFor(currency: bitcoin),
-    ).thenAnswer((_) => primaryNode);
+    when(nodeService.getPrimaryNodeFor(currency: bitcoin))
+        .thenAnswer((_) => primaryNode);
   }
 
   Future<void> pumpSubject(
@@ -215,6 +214,15 @@ void main() {
         shouldNotifyListeners: true,
       ),
     ).thenAnswer((_) async {});
+    // Connect persists a certificate approval staged by the test before
+    // switching; the fake connection stages none.
+    when(
+      mockNodeService.saveTrustedCertificate(
+        node,
+        any,
+        shouldNotifyListeners: false,
+      ),
+    ).thenAnswer((_) async => false);
 
     await pumpSubject(
       tester,
