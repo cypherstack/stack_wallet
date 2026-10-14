@@ -889,11 +889,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: b6fa44d015d3bfa06934b73219928c29ca48a290
-      resolved-ref: b6fa44d015d3bfa06934b73219928c29ca48a290
+      ref: "69de4e880c855a682b4b6539b54ddec7d80558fc"
+      resolved-ref: "69de4e880c855a682b4b6539b54ddec7d80558fc"
       url: "https://github.com/cypherstack/electrum_adapter.git"
     source: git
-    version: "3.0.2"
+    version: "4.1.0"
   emojis:
     dependency: "direct main"
     description:
@@ -1232,8 +1232,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "14427bcbbe1e754bce4a1b93cdb0a31ce56d792b"
-      resolved-ref: "14427bcbbe1e754bce4a1b93cdb0a31ce56d792b"
+      ref: "7548bf1c6e79a82e991c3feb61c1908dfe324275"
+      resolved-ref: "7548bf1c6e79a82e991c3feb61c1908dfe324275"
       url: "https://github.com/cypherstack/fusiondart.git"
     source: git
     version: "1.0.0"
@@ -2143,10 +2143,10 @@ packages:
     dependency: transitive
     description:
       name: socks_socket
-      sha256: "53bc7eae40a3aa16ea810b0e9de3bb23ba7beb0b40d09357b89190f2f44374cc"
+      sha256: "536e0876f94d878c09d0673d69d20f61894becce4476f0abd45a50a2ff387cf9"
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.1"
+    version: "2.1.0"
   solana:
     dependency: "direct main"
     description:

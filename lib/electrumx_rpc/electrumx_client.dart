@@ -31,6 +31,7 @@ import '../utilities/amount/amount.dart';
 import '../utilities/extensions/impl/string.dart';
 import '../utilities/logger.dart';
 import '../utilities/prefs.dart';
+import '../utilities/tls_certificate.dart';
 import '../utilities/tor_plain_net_option_enum.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import '../wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
@@ -51,6 +52,7 @@ class ElectrumXNode {
     required this.useSSL,
     required this.torEnabled,
     required this.clearnetEnabled,
+    this.trustedCertificatePem,
   });
   final String address;
   final int port;
@@ -59,6 +61,7 @@ class ElectrumXNode {
   final bool useSSL;
   final bool torEnabled;
   final bool clearnetEnabled;
+  final String? trustedCertificatePem;
 
   factory ElectrumXNode.from(ElectrumXNode node) {
     return ElectrumXNode(
@@ -69,6 +72,7 @@ class ElectrumXNode {
       useSSL: node.useSSL,
       torEnabled: node.torEnabled,
       clearnetEnabled: node.clearnetEnabled,
+      trustedCertificatePem: node.trustedCertificatePem,
     );
   }
 
@@ -90,6 +94,7 @@ class ElectrumXClient {
 
   bool get useSSL => _useSSL;
   late bool _useSSL;
+  final String? trustedCertificatePem;
 
   // StreamChannel<dynamic>? get electrumAdapterChannel => _electrumAdapterChannel;
   StreamChannel<dynamic>? _electrumAdapterChannel;
@@ -132,6 +137,7 @@ class ElectrumXClient {
     ),
     TorService? torService,
     EventBus? globalEventBusForTesting,
+    this.trustedCertificatePem,
   }) {
     _prefs = prefs;
     _torService = torService ?? TorService.sharedInstance;
@@ -196,6 +202,7 @@ class ElectrumXClient {
       host: node.address,
       port: node.port,
       useSSL: node.useSSL,
+      trustedCertificatePem: node.trustedCertificatePem,
       prefs: prefs,
       torService: torService,
       failovers: failovers,
@@ -277,11 +284,13 @@ class ElectrumXClient {
       final String useHost;
       final int usePort;
       final bool useUseSSL;
+      final String? useCertificatePem;
 
       if (currentFailoverIndex == -1) {
         useHost = host;
         usePort = port;
         useUseSSL = useSSL;
+        useCertificatePem = trustedCertificatePem;
       } else {
         _electrumAdapterChannel = null;
         await ClientManager.sharedInstance.remove(
@@ -290,9 +299,39 @@ class ElectrumXClient {
         useHost = _failovers[currentFailoverIndex].address;
         usePort = _failovers[currentFailoverIndex].port;
         useUseSSL = _failovers[currentFailoverIndex].useSSL;
+        useCertificatePem =
+            _failovers[currentFailoverIndex].trustedCertificatePem;
       }
 
-      _electrumAdapterChannel ??= await electrum_adapter.connect(
+      // Only an SSL connection has a certificate decision.
+      final String? useTrust = useUseSSL ? useCertificatePem : null;
+
+      // A connection another client for this coin already made is shared,
+      // including one to a failover, as before certificates could be
+      // trusted. The exception is a connection to this very endpoint that
+      // was opened under a different certificate decision: a revoked or
+      // changed approval must reach it here, because no wallet may be loaded
+      // to close it through updateNode().
+      final existing = getElectrumAdapter();
+      if (existing != null) {
+        final sameEndpoint =
+            existing.host == useHost &&
+            existing.port == usePort &&
+            existing.useSSL == useUseSSL;
+        final sameTrust =
+            ClientManager.sharedInstance.trustedCertificateFor(
+              cryptoCurrency,
+            ) ==
+            useTrust;
+        if (!sameEndpoint || sameTrust) {
+          return;
+        }
+        await (await ClientManager.sharedInstance.remove(
+          cryptoCurrency: cryptoCurrency,
+        )).$1?.close();
+      }
+
+      _electrumAdapterChannel = await electrum_adapter.connect(
         useHost,
         port: usePort,
         connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
@@ -300,6 +339,7 @@ class ElectrumXClient {
         acceptUnverified: false,
         useSSL: useUseSSL,
         proxyInfo: proxyInfo,
+        onBadCertificate: trustedCertificateCheck(useTrust),
       );
 
       if (getElectrumAdapter() == null) {
@@ -328,6 +368,7 @@ class ElectrumXClient {
           newClient,
           cryptoCurrency: cryptoCurrency,
           netType: netType,
+          trustedCertificatePem: useTrust,
         );
       }
     });

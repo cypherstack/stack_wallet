@@ -129,9 +129,9 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
       condition: !isDesktop,
       builder: (child) => Background(
         child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
             leading: AppBarBackButton(
               onPressed: () async {
@@ -158,14 +158,14 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                     key: const Key("nodeDetailsEditNodeAppBarButtonKey"),
                     size: 36,
                     shadows: const [],
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.background,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .background,
                     icon: SvgPicture.asset(
                       Assets.svg.pencil,
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
                       width: 20,
                       height: 20,
                     ),
@@ -283,29 +283,15 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                           .read(nodeServiceChangeNotifierProvider)
                           .getNodeById(id: nodeId)!;
 
-                      final TorPlainNetworkOption netOption;
-                      if (ref.read(nodeFormDataProvider).netOption != null) {
-                        netOption = ref.read(nodeFormDataProvider).netOption!;
-                      } else {
-                        netOption = TorPlainNetworkOption.fromNodeData(
-                          node.torEnabled,
-                          node.clearnetEnabled,
+                      final editing = isDesktop && !_desktopReadOnly;
+                      final nodeFormData = editing
+                          ? ref.read(nodeFormDataProvider)
+                          : NodeFormData.fromNode(node);
+                      if (!editing) {
+                        nodeFormData.password = await node.getPassword(
+                          ref.read(secureStoreProvider),
                         );
                       }
-
-                      final nodeFormData = NodeFormData()
-                        ..useSSL = node.useSSL
-                        ..trusted = node.trusted
-                        ..name = node.name
-                        ..host = node.host
-                        ..login = node.loginName
-                        ..port = node.port
-                        ..isFailover = node.isFailover
-                        ..netOption = netOption
-                        ..forceNoTor = node.forceNoTor;
-                      nodeFormData.password = await node.getPassword(
-                        ref.read(secureStoreProvider),
-                      );
 
                       if (context.mounted) {
                         final testPassed =
@@ -316,6 +302,20 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                             );
 
                         if (testPassed) {
+                          if (!editing) {
+                            final saved = await ref
+                                .read(nodeServiceChangeNotifierProvider)
+                                .saveTrustedCertificate(node, nodeFormData);
+                            if (saved) {
+                              await _notifyWalletsOfUpdatedNode();
+                              final form = ref.read(nodeFormDataProvider);
+                              if (form.matchesEndpointOf(node)) {
+                                form.trustedCertificatePem =
+                                    nodeFormData.trustedCertificatePem;
+                              }
+                            }
+                          }
+                          if (mounted) setState(() {});
                           if (context.mounted) {
                             unawaited(
                               showFloatingFlushBar(
@@ -362,6 +362,14 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                                 name: ref.read(nodeFormDataProvider).name,
                                 useSSL: ref.read(nodeFormDataProvider).useSSL,
                                 trusted: ref.read(nodeFormDataProvider).trusted,
+                                trustedCertificatePem: ref
+                                    .read(nodeFormDataProvider)
+                                    .trustedCertificatePem,
+                                clearTrustedCertificate:
+                                    ref
+                                        .read(nodeFormDataProvider)
+                                        .trustedCertificatePem ==
+                                    null,
                                 loginName: ref.read(nodeFormDataProvider).login,
                                 isFailover: ref
                                     .read(nodeFormDataProvider)

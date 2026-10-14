@@ -12,16 +12,11 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:digest_auth/digest_auth.dart';
-import 'package:flutter/material.dart';
 import 'package:http/io_client.dart';
 import 'package:monero_rpc/monero_rpc.dart';
 import 'package:socks5_proxy/socks.dart';
 import 'package:socks_socket/socks_socket.dart';
 
-import '../widgets/desktop/primary_button.dart';
-import '../widgets/desktop/secondary_button.dart';
-import '../widgets/stack_dialog.dart';
-import 'format.dart';
 import 'logger.dart';
 
 class MoneroNodeConnectionResponse {
@@ -30,12 +25,7 @@ class MoneroNodeConnectionResponse {
   final int? port;
   final bool success;
 
-  MoneroNodeConnectionResponse(
-    this.cert,
-    this.url,
-    this.port,
-    this.success,
-  );
+  MoneroNodeConnectionResponse(this.cert, this.url, this.port, this.success);
 }
 
 Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
@@ -43,10 +33,7 @@ Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
   String? username,
   String? password,
   bool allowBadX509Certificate, {
-  required ({
-    InternetAddress host,
-    int port,
-  })? proxyInfo,
+  required ({InternetAddress host, int port})? proxyInfo,
 }) async {
   if (uri.host.endsWith(".onion")) {
     if (proxyInfo == null) {
@@ -80,8 +67,9 @@ Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
             // node asking us for authentication, but we don't have any crendentials.
             return MoneroNodeConnectionResponse(null, null, null, false);
           }
-          authenticateHeaderValue =
-              line.replaceFirst('WWW-authenticate: ', '').trim();
+          authenticateHeaderValue = line
+              .replaceFirst('WWW-authenticate: ', '')
+              .trim();
         }
       }
       // header to authenticate was present, we need to remake the request with digest
@@ -91,8 +79,12 @@ Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
 
         // generate the Authorization header for the second request.
         final authHeader = digestAuth.getAuthString('POST', uri.path);
-        final rawRequestAuthenticated =
-            DaemonRpc.rawRequestRpc(uri, 'get_info', {}, authHeader);
+        final rawRequestAuthenticated = DaemonRpc.rawRequestRpc(
+          uri,
+          'get_info',
+          {},
+          authHeader,
+        );
         // resend with an authenticated request
         response = await socket.send(rawRequestAuthenticated);
       }
@@ -103,7 +95,7 @@ Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
 
       return MoneroNodeConnectionResponse(null, null, null, success);
     } catch (e, s) {
-      Logging.instance.w("$e\n$s", error: e, stackTrace: s,);
+      Logging.instance.w("$e\n$s", error: e, stackTrace: s);
       return MoneroNodeConnectionResponse(null, null, null, false);
     } finally {
       await socket?.close();
@@ -114,10 +106,7 @@ Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
     try {
       if (proxyInfo != null) {
         SocksTCPClient.assignToHttpClient(httpClient, [
-          ProxySettings(
-            proxyInfo.host,
-            proxyInfo.port,
-          ),
+          ProxySettings(proxyInfo.host, proxyInfo.port),
         ]);
       }
 
@@ -127,8 +116,12 @@ Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
         }
 
         if (badCertResponse == null) {
-          badCertResponse =
-              MoneroNodeConnectionResponse(cert, url, port, false);
+          badCertResponse = MoneroNodeConnectionResponse(
+            cert,
+            url,
+            port,
+            false,
+          );
         } else {
           return false;
         }
@@ -150,55 +143,13 @@ Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
       if (badCertResponse != null) {
         return badCertResponse!;
       } else {
-        Logging.instance.w("$e\n$s", error: e, stackTrace: s,);
+        Logging.instance.w("$e\n$s", error: e, stackTrace: s);
         return MoneroNodeConnectionResponse(null, null, null, false);
       }
     } finally {
       httpClient.close(force: true);
     }
   }
-}
-
-Future<bool> showBadX509CertificateDialog(
-  X509Certificate cert,
-  String url,
-  int port,
-  BuildContext context,
-) async {
-  final chars = Format.uint8listToString(cert.sha1)
-      .toUpperCase()
-      .characters
-      .toList(growable: false);
-
-  String sha1 = chars.sublist(0, 2).join();
-  for (int i = 2; i < chars.length; i += 2) {
-    sha1 += ":${chars.sublist(i, i + 2).join()}";
-  }
-
-  final result = await showDialog<bool>(
-    context: context,
-    barrierDismissible: false,
-    builder: (context) {
-      return StackDialog(
-        title: "Untrusted X509Certificate",
-        message: "SHA1:\n$sha1",
-        leftButton: SecondaryButton(
-          label: "Cancel",
-          onPressed: () {
-            Navigator.of(context).pop(false);
-          },
-        ),
-        rightButton: PrimaryButton(
-          label: "Trust",
-          onPressed: () {
-            Navigator.of(context).pop(true);
-          },
-        ),
-      );
-    },
-  );
-
-  return result ?? false;
 }
 
 extension on SOCKSSocket {

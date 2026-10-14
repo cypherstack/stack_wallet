@@ -16,6 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../../models/node_form_data.dart';
 import '../../../../models/node_model.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/global/active_wallet_provider.dart';
@@ -31,10 +32,12 @@ import '../../../../utilities/logger.dart';
 import '../../../../utilities/node_uri_util.dart';
 import '../../../../utilities/test_node_connection.dart';
 import '../../../../utilities/text_styles.dart';
+import '../../../../utilities/tls_certificate.dart';
 import '../../../../utilities/tor_plain_net_option_enum.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
+import '../../../../wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -48,7 +51,7 @@ import '../../../../widgets/stack_dialog.dart';
 import '../../../../widgets/stack_text_field.dart';
 import '../../../../widgets/textfield_icon_button.dart';
 
-// import 'package:web3dart/web3dart.dart';
+export '../../../../models/node_form_data.dart';
 
 enum AddEditNodeViewType { add, edit }
 
@@ -95,6 +98,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
     } else if (coin is CryptonoteCurrency) {
       ref.read(nodeFormDataProvider).host = data.host;
     }
+    if (mounted) setState(() {});
   }
 
   Future<void> attemptSave() async {
@@ -255,6 +259,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           coinName: coin.identifier,
           isFailover: formData.isFailover!,
           trusted: formData.trusted!,
+          trustedCertificatePem: formData.trustedCertificatePem,
           isDown: false,
           torEnabled: torEnabled,
           clearnetEnabled: plainEnabled,
@@ -284,6 +289,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           coinName: coin.identifier,
           isFailover: formData.isFailover!,
           trusted: formData.trusted!,
+          trustedCertificatePem: formData.trustedCertificatePem,
           isDown: false,
           torEnabled: torEnabled,
           clearnetEnabled: plainEnabled,
@@ -748,18 +754,6 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
   }
 }
 
-class NodeFormData {
-  String? name, host, login, password, apiSecret;
-  int? port;
-  bool? useSSL, isFailover, trusted, forceNoTor, isPrimary;
-  TorPlainNetworkOption? netOption;
-
-  @override
-  String toString() {
-    return "{ name: $name, host: $host, port: $port, useSSL: $useSSL, trusted: $trusted, netOption: $netOption, isPrimary: $isPrimary }";
-  }
-}
-
 final nodeFormDataProvider = Provider<NodeFormData>((_) => NodeFormData());
 
 class NodeForm extends ConsumerStatefulWidget {
@@ -869,6 +863,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
 
   @override
   void initState() {
+    ref.read(nodeFormDataProvider).trustedCertificatePem = null;
     onChanged = widget.onChanged;
     _nameController = TextEditingController();
     _hostController = TextEditingController();
@@ -884,9 +879,10 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       if (enableAuthFields) {
         if (widget.scannedPw == null) {
           node.getPassword(widget.secureStore).then((value) {
-            if (value is String) {
-              _passwordController.text = value;
-            }
+            if (!mounted || value is! String) return;
+            _passwordController.text = value;
+            // Tests and saves may run before any field is edited.
+            _updateState();
           });
         } else {
           _passwordController.text = widget.scannedPw!;
@@ -921,8 +917,12 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       }
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        // update provider state object so test connection works without having to modify a field in the ui first
+        if (!mounted) return;
+        // Update the form before loading its endpoint-specific approval.
         _updateState();
+        ref.read(nodeFormDataProvider).trustedCertificatePem =
+            node.trustedCertificatePem;
+        if (mounted) setState(() {});
       });
     } else {
       enableSSLCheckbox = true;
@@ -1345,6 +1345,30 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                 ),
               ),
             ],
+          ),
+        if ((widget.coin is ElectrumXCurrencyInterface ||
+                widget.coin is BitcoinFrost) &&
+            ref.read(nodeFormDataProvider).trustedCertificatePem != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SelectableText(
+                  'Trusted TLS certificate\nSHA-256:\n'
+                  '${certificatePemFingerprint(ref.read(nodeFormDataProvider).trustedCertificatePem!) ?? 'Unavailable'}',
+                  style: STextStyles.itemSubtitle12(context),
+                ),
+                if (!widget.readOnly)
+                  TextButton(
+                    onPressed: () => setState(() {
+                      ref.read(nodeFormDataProvider).trustedCertificatePem =
+                          null;
+                    }),
+                    child: const Text('Forget certificate'),
+                  ),
+              ],
+            ),
           ),
         if (widget.coin is CryptonoteCurrency)
           Row(
