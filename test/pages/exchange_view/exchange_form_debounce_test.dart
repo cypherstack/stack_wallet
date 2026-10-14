@@ -8,9 +8,13 @@ import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
 import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_form.dart';
+import 'package:stackwallet/pages/exchange_view/sub_widgets/rate_type_toggle.dart';
 import 'package:stackwallet/providers/exchange/exchange_form_state_provider.dart';
 import 'package:stackwallet/providers/global/locale_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
+import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
+import 'package:stackwallet/services/exchange/exolix/exolix_exchange.dart';
+import 'package:stackwallet/services/exchange/trocador/trocador_exchange.dart';
 import 'package:stackwallet/services/locale_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_service.dart';
@@ -137,6 +141,59 @@ void main() {
     await tester.enterText(receiveField, "4.87654321");
 
     return (container, sendField, receiveField);
+  }
+
+  for (final exchange in [
+    ChangeNowExchange.instance,
+    ExolixExchange.instance,
+    TrocadorExchange.instance,
+  ]) {
+    testWidgets('${exchange.name} rate switches preserve the receive amount', (
+      tester,
+    ) async {
+      final container = await pumpForm(
+        tester,
+        receive: currency('RECEIVE'),
+        sendAmount: Decimal.one,
+        receiveAmount: Decimal.fromInt(2),
+        fixedRate: true,
+      );
+      container.read(efExchangeProvider.notifier).state = exchange;
+      container.read(efExchangeProviderNameProvider.notifier).state =
+          exchange.name;
+
+      final receiveField = find.byType(TextField).last;
+      await tester.tap(receiveField);
+      await tester.pump();
+      await tester.pump();
+      await tester.enterText(receiveField, '7.12345678');
+      await tester.pump(const Duration(seconds: 2));
+      expect(container.read(efReversedProvider), isTrue);
+
+      await tester.tap(find.byType(RateTypeToggle));
+      await tester.pump();
+      await tester.pump();
+      expect(container.read(efRateTypeProvider), ExchangeRateType.estimated);
+      expect(container.read(efReversedProvider), isTrue);
+      expect(
+        container.read(efReceiveAmountProvider),
+        Decimal.parse('7.12345678'),
+      );
+      expect(
+        tester.widget<TextField>(receiveField).controller!.text,
+        '7.12345678',
+      );
+
+      await tester.tap(find.byType(RateTypeToggle));
+      await tester.pump();
+      await tester.pump();
+      expect(container.read(efRateTypeProvider), ExchangeRateType.fixed);
+      expect(container.read(efReversedProvider), isTrue);
+      expect(
+        container.read(efReceiveAmountProvider),
+        Decimal.parse('7.12345678'),
+      );
+    });
   }
 
   testWidgets("currency change cancels stale amount debounce", (tester) async {
