@@ -1022,8 +1022,10 @@ class _SendViewState extends ConsumerState<SendView> {
   }
 
   /// Replaces the OpenAlias in the address field with the address it resolves
-  /// to. Returns false if the lookup failed or was cancelled.
-  Future<bool> _resolveOpenAlias() async {
+  /// to. Returns the alias, trimmed and lowercased, or null if the lookup
+  /// failed or was cancelled.
+  Future<String?> _resolveOpenAlias() async {
+    final alias = _address!.trim().toLowerCase();
     CsOpenAliasOperation<CsOpenAliasRecipient>? operation;
     bool cancelled = false;
     unawaited(
@@ -1047,14 +1049,14 @@ class _SendViewState extends ConsumerState<SendView> {
           .read(pOpenAliasService)
           .lookup(_address!, isValidAddress: coin.validateAddress);
       final address = (await operation.result).address;
-      if (cancelled || !mounted) return false;
+      if (cancelled || !mounted) return null;
       Navigator.of(context, rootNavigator: true).pop();
       sendToController.text = address;
       _address = address;
       _setValidAddressProviders(_address);
-      return true;
+      return alias;
     } catch (e, s) {
-      if (cancelled || !mounted) return false;
+      if (cancelled || !mounted) return null;
       Logging.instance.w("OpenAlias lookup failed", error: e, stackTrace: s);
       Navigator.of(context, rootNavigator: true).pop();
       unawaited(
@@ -1066,7 +1068,7 @@ class _SendViewState extends ConsumerState<SendView> {
           ),
         ),
       );
-      return false;
+      return null;
     }
   }
 
@@ -1075,10 +1077,12 @@ class _SendViewState extends ConsumerState<SendView> {
     FocusScope.of(context).unfocus();
     await Future<void>.delayed(const Duration(milliseconds: 100));
     final wallet = ref.read(pWallets).getWallet(walletId);
+    String? openAlias;
     if (coin is Monero &&
         !coin.validateAddress(_address ?? "") &&
         isOpenAlias(_address ?? "")) {
-      if (!await _resolveOpenAlias() || !mounted) return;
+      openAlias = await _resolveOpenAlias();
+      if (openAlias == null || !mounted) return;
     }
 
     final Amount amount = ref.read(pSendAmount)!;
@@ -1331,6 +1335,7 @@ class _SendViewState extends ConsumerState<SendView> {
                     )!,
                   ),
                 ],
+            openAlias: openAlias,
             memo: memo,
             feeRateType: feeRateType,
             satsPerVByte: satsPerVByte,

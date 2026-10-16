@@ -270,6 +270,9 @@ class _Harness {
   Finder get field => find.byKey(const Key('sendViewAddressFieldKey'));
   Finder get button => find.text(desktop ? 'Preview send' : 'Preview');
   Finder get ok => find.text(desktop ? 'Ok' : 'OK');
+  TxData confirmed(WidgetTester tester) => tester
+      .widget<ConfirmTransactionView>(find.byType(ConfirmTransactionView))
+      .txData;
   // The send screen is offstage under the mobile confirm screen.
   String text(WidgetTester tester) => tester
       .widget<TextField>(
@@ -380,6 +383,8 @@ void main() {
       await h.finish(tester);
       expect(h.wallet.prepared.single.recipients!.single.address, literal);
       expect(find.byType(ConfirmTransactionView), findsOneWidget);
+      expect(h.confirmed(tester).recipients!.single.address, literal);
+      expect(h.confirmed(tester).openAlias, 'alice@example.com');
       expect(find.text(literal), findsWidgets);
       expect(h.text(tester), literal);
     });
@@ -479,6 +484,7 @@ void main() {
         expect(h.lookups, isEmpty);
         expect(h.wallet.prepared.single.recipients!.single.address, literal);
         expect(find.byType(ConfirmTransactionView), findsOneWidget);
+        expect(h.confirmed(tester).openAlias, isNull);
       });
     }
 
@@ -517,6 +523,7 @@ void main() {
         'second-recipient',
       ]);
       expect(find.byType(ConfirmTransactionView), findsOneWidget);
+      expect(h.confirmed(tester).openAlias, isNull);
     });
   }
 }
