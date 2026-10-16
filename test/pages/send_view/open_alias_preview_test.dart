@@ -385,6 +385,8 @@ void main() {
       expect(find.byType(ConfirmTransactionView), findsOneWidget);
       expect(h.confirmed(tester).recipients!.single.address, literal);
       expect(h.confirmed(tester).openAlias, 'alice@example.com');
+      expect(find.text('OpenAlias'), findsOneWidget);
+      expect(find.text('alice@example.com'), findsOneWidget);
       expect(find.text(literal), findsWidgets);
       expect(h.text(tester), literal);
     });
@@ -485,6 +487,7 @@ void main() {
         expect(h.wallet.prepared.single.recipients!.single.address, literal);
         expect(find.byType(ConfirmTransactionView), findsOneWidget);
         expect(h.confirmed(tester).openAlias, isNull);
+        expect(find.text('OpenAlias'), findsNothing);
       });
     }
 
