@@ -113,12 +113,6 @@ class _Wallet extends Fake implements CryptonoteWallet {
     slow: BigInt.one,
   );
   @override
-  int getTxPriorityHigh() => 3;
-  @override
-  int getTxPriorityMedium() => 2;
-  @override
-  int getTxPriorityNormal() => 1;
-  @override
   Future<Amount> estimateFeeFor(Amount value, BigInt feeRate) async =>
       amount(10);
   @override

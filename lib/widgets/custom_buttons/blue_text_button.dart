@@ -147,7 +147,9 @@ class CustomTextButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _CustomTextButton(
-      key: UniqueKey(),
+      // The state starts from these, and is kept through other rebuilds so
+      // that a click in progress lasts.
+      key: ValueKey((enabled, Theme.of(context).extension<StackColors>()!)),
       text: text,
       enabledColor: Theme.of(context)
           .extension<StackColors>()!

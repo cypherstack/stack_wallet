@@ -12,7 +12,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../../pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import '../../../pages/token_view/solana_token_contract_details_view.dart';
 import '../../../pages/token_view/sub_widgets/token_transaction_list_widget_sol.dart';
 import '../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
@@ -93,7 +92,6 @@ class _DesktopTokenViewState extends ConsumerState<DesktopSolTokenView> {
                       .topNavIconPrimary,
                 ),
                 onPressed: () {
-                  ref.refresh(feeSheetSessionCacheProvider);
                   Navigator.of(context).pop();
                 },
               ),

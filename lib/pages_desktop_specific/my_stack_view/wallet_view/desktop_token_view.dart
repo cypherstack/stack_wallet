@@ -13,7 +13,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../../pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import '../../../pages/token_view/sub_widgets/token_transaction_list_widget.dart';
 import '../../../pages/token_view/token_contract_details_view.dart';
 import '../../../pages/wallet_view/transaction_views/tx_v2/all_transactions_v2_view.dart';
@@ -93,7 +92,6 @@ class _DesktopTokenViewState extends ConsumerState<DesktopTokenView> {
                       .topNavIconPrimary,
                 ),
                 onPressed: () {
-                  ref.refresh(feeSheetSessionCacheProvider);
                   Navigator.of(context).pop();
                 },
               ),
