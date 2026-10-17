@@ -124,7 +124,7 @@ dependencies:
   cs_openalias:
     git:
       url: https://github.com/cypherstack/cs_openalias.git
-      ref: d0755ff124d3f384ba1895800f5155af0280617b
+      ref: 194f114f1b75a5eb43f2559e386376c10d9075bb
   socks_socket: ^2.0.0
   local_auth: ^2.3.0
   permission_handler: ^13.0.1
