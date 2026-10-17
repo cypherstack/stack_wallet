@@ -11,23 +11,27 @@ final pOpenAliasService = Provider<OpenAliasService>((_) => OpenAliasService());
 
 const openAliasLookupFailedTitle = 'OpenAlias lookup failed';
 
-String openAliasErrorMessage(CsOpenAliasException e) => switch (e) {
-  CsOpenAliasInvalidAliasException() => 'Enter a valid address or OpenAlias.',
-  CsOpenAliasNoRecordException() =>
-    'No Monero OpenAlias record was found for ${e.alias}.',
-  CsOpenAliasInvalidRecordException() =>
-    'This alias has an invalid or unsupported Monero record for this wallet.',
-  CsOpenAliasDnssecException() =>
-    'DNSSEC verification failed or is unavailable. Ask the recipient for a '
-        'verified alias or address.',
-  CsOpenAliasNetworkException() =>
-    'OpenAlias lookup failed. Check your connection and try again.',
-  CsOpenAliasCancelledException() => 'OpenAlias lookup cancelled.',
-};
+String openAliasErrorMessage(CsOpenAliasException e, String coinName) =>
+    switch (e) {
+      CsOpenAliasInvalidAliasException() =>
+        'Enter a valid address or OpenAlias.',
+      CsOpenAliasNoRecordException() =>
+        'No $coinName OpenAlias record was found for ${e.alias}.',
+      CsOpenAliasInvalidRecordException() =>
+        'This alias has an invalid or unsupported $coinName record for this '
+            'wallet.',
+      CsOpenAliasDnssecException() =>
+        'DNSSEC verification failed or is unavailable. Ask the recipient for a '
+            'verified alias or address.',
+      CsOpenAliasNetworkException() =>
+        'OpenAlias lookup failed. Check your connection and try again.',
+      CsOpenAliasCancelledException() => 'OpenAlias lookup cancelled.',
+    };
 
 typedef OpenAliasLookup = CsOpenAliasOperation<CsOpenAliasRecipient> Function(
   String alias, {
   required bool Function(String address) isValidAddress,
+  required String application,
   required CsOpenAliasProxy? proxy,
 });
 
@@ -65,19 +69,25 @@ class OpenAliasService {
   /// Why no lookup can be sent now, or null when one can.
   String? unavailableReason() => _route().unavailable;
 
-  /// Looks up [alias], through Tor when Tor is on. Throws
-  /// [OpenAliasUnavailableException] without sending anything when Incognito
-  /// mode is on or Tor is on but unavailable.
+  /// Looks up the [application] record of [alias], through Tor when Tor is
+  /// on. Throws [OpenAliasUnavailableException] without sending anything when
+  /// Incognito mode is on or Tor is on but unavailable.
   CsOpenAliasOperation<CsOpenAliasRecipient> lookup(
     String alias, {
     required bool Function(String address) isValidAddress,
+    required String application,
   }) {
     final route = _route();
     final unavailable = route.unavailable;
     if (unavailable != null) {
       throw OpenAliasUnavailableException(unavailable);
     }
-    return _lookup(alias, isValidAddress: isValidAddress, proxy: route.proxy);
+    return _lookup(
+      alias,
+      isValidAddress: isValidAddress,
+      application: application,
+      proxy: route.proxy,
+    );
   }
 
   ({String? unavailable, CsOpenAliasProxy? proxy}) _route() {

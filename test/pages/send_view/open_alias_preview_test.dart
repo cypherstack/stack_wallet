@@ -64,7 +64,10 @@ class _Monero extends Monero {
 }
 
 class _Wownero extends Wownero {
-  _Wownero() : super(CryptoCurrencyNetwork.main);
+  _Wownero([this.application]) : super(CryptoCurrencyNetwork.main);
+  String? application;
+  @override
+  String? get openAliasApplication => application;
   @override
   bool validateAddress(String address) => _isValid(address);
   @override
@@ -151,9 +154,10 @@ class _Prefs extends ChangeNotifier implements Prefs {
 }
 
 class _Lookup {
-  _Lookup(this.alias, this.isValidAddress);
+  _Lookup(this.alias, this.isValidAddress, this.application);
   final String alias;
   final bool Function(String) isValidAddress;
+  final String application;
   final result = Completer<CsOpenAliasRecipient>();
   int cancels = 0;
 }
@@ -173,18 +177,24 @@ class _Harness {
   late final service = OpenAliasService(
     externalCalls: () => !incognito,
     useTor: () => false,
-    lookup: (alias, {required isValidAddress, required proxy}) {
-      final lookup = _Lookup(alias, isValidAddress);
-      lookups.add(lookup);
-      return CsOpenAliasOperation(lookup.result.future, () {
-        lookup.cancels++;
-        if (!lookup.result.isCompleted) {
-          lookup.result.completeError(
-            CsOpenAliasCancelledException('cancelled', alias: alias),
-          );
-        }
-      });
-    },
+    lookup:
+        (
+          alias, {
+          required isValidAddress,
+          required application,
+          required proxy,
+        }) {
+          final lookup = _Lookup(alias, isValidAddress, application);
+          lookups.add(lookup);
+          return CsOpenAliasOperation(lookup.result.future, () {
+            lookup.cancels++;
+            if (!lookup.result.isCompleted) {
+              lookup.result.completeError(
+                CsOpenAliasCancelledException('cancelled', alias: alias),
+              );
+            }
+          });
+        },
   );
 
   Future<void> mount(
@@ -361,6 +371,43 @@ void main() {
       expect(h.enabled(tester), isFalse);
     });
 
+    testWidgets('$layout a coin with its own tag looks up that tag', (
+      tester,
+    ) async {
+      final h = _Harness(desktop, coin: _Wownero('wow'));
+      await h.mount(tester);
+      await h.enter(tester, alias);
+      await h.setAmount(tester);
+      expect(h.enabled(tester), isTrue);
+      await h.preview(tester);
+      expect(h.lookups.single.application, 'wow');
+      h.lookups.single.result.completeError(
+        const CsOpenAliasNoRecordException('', alias: 'alice.example.com'),
+      );
+      await h.finish(tester);
+      expect(
+        find.text(
+          'No Wownero OpenAlias record was found for alice.example.com.',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('$layout Preview checks the tag again before a lookup', (
+      tester,
+    ) async {
+      final coin = _Wownero('wow');
+      final h = _Harness(desktop, coin: coin);
+      await h.mount(tester);
+      await h.enter(tester, alias);
+      await h.setAmount(tester);
+      expect(h.enabled(tester), isTrue);
+      coin.application = null;
+      await h.preview(tester);
+      await h.finish(tester);
+      expect(h.lookups, isEmpty);
+    });
+
     testWidgets('$layout Preview resolves the alias and confirms the address', (
       tester,
     ) async {
@@ -371,6 +418,7 @@ void main() {
       await h.preview(tester);
       final lookup = h.lookups.single;
       expect(lookup.alias, alias);
+      expect(lookup.application, 'xmr');
       expect(lookup.isValidAddress(literal), isTrue);
       expect(lookup.isValidAddress(alias), isFalse);
       expect(find.text('Cancel'), findsOneWidget);
