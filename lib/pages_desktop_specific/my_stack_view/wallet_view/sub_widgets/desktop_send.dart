@@ -443,7 +443,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   /// Replaces the OpenAlias in the address field with the address it resolves
   /// to. Returns the alias, trimmed and lowercased, or null if the lookup
   /// failed or was cancelled.
-  Future<String?> _resolveOpenAlias() async {
+  Future<String?> _resolveOpenAlias(String application) async {
     final alias = _address!.trim().toLowerCase();
     CsOpenAliasOperation<CsOpenAliasRecipient>? operation;
     bool cancelled = false;
@@ -473,7 +473,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     try {
       operation = ref
           .read(pOpenAliasService)
-          .lookup(_address!, isValidAddress: coin.validateAddress);
+          .lookup(
+            _address!,
+            isValidAddress: coin.validateAddress,
+            application: application,
+          );
       final address = (await operation.result).address;
       if (cancelled || !mounted) return null;
       Navigator.of(context, rootNavigator: true).pop();
@@ -505,10 +509,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
     final wallet = ref.read(pWallets).getWallet(walletId);
     String? openAlias;
-    if (coin is Monero &&
+    final application = coin.openAliasApplication;
+    if (application != null &&
         !coin.validateAddress(_address ?? "") &&
         isOpenAlias(_address ?? "")) {
-      openAlias = await _resolveOpenAlias();
+      openAlias = await _resolveOpenAlias(application);
       if (openAlias == null || !mounted) return;
     }
 
@@ -1092,7 +1097,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
       ref.read(pValidSendToAddress.notifier).state =
           wallet.cryptoCurrency.validateAddress(address ?? "") ||
-          (coin is Monero && isOpenAlias(address ?? ""));
+          (coin.openAliasApplication != null && isOpenAlias(address ?? ""));
     }
   }
 

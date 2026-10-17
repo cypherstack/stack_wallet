@@ -151,9 +151,10 @@ class _Prefs extends ChangeNotifier implements Prefs {
 }
 
 class _Lookup {
-  _Lookup(this.alias, this.isValidAddress);
+  _Lookup(this.alias, this.isValidAddress, this.application);
   final String alias;
   final bool Function(String) isValidAddress;
+  final String application;
   final result = Completer<CsOpenAliasRecipient>();
   int cancels = 0;
 }
@@ -173,8 +174,8 @@ class _Harness {
   late final service = OpenAliasService(
     externalCalls: () => !incognito,
     useTor: () => false,
-    lookup: (alias, {required isValidAddress, proxy}) {
-      final lookup = _Lookup(alias, isValidAddress);
+    lookup: (alias, {required isValidAddress, required application, proxy}) {
+      final lookup = _Lookup(alias, isValidAddress, application);
       lookups.add(lookup);
       return CsOpenAliasOperation(lookup.result.future, () {
         lookup.cancels++;
@@ -374,6 +375,7 @@ void main() {
       await h.preview(tester);
       final lookup = h.lookups.single;
       expect(lookup.alias, alias);
+      expect(lookup.application, 'xmr');
       expect(lookup.isValidAddress(literal), isTrue);
       expect(lookup.isValidAddress(alias), isFalse);
       expect(find.text('Cancel'), findsOneWidget);

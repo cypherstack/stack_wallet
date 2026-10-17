@@ -18,12 +18,18 @@ void main() {
         if (!connected.isCompleted) connected.complete();
         socket.destroy();
       });
-      final operation = OpenAliasService(
-        externalCalls: () => true,
-        useTor: () => true,
-        supportsTor: () => true,
-        torProxy: () => (host: InternetAddress.loopbackIPv4, port: proxy.port),
-      ).lookup('alice.example', isValidAddress: (_) => true);
+      final operation =
+          OpenAliasService(
+            externalCalls: () => true,
+            useTor: () => true,
+            supportsTor: () => true,
+            torProxy: () =>
+                (host: InternetAddress.loopbackIPv4, port: proxy.port),
+          ).lookup(
+            'alice.example',
+            isValidAddress: (_) => true,
+            application: 'xmr',
+          );
       await connected.future.timeout(const Duration(seconds: 10));
       operation.cancel();
       await expectLater(

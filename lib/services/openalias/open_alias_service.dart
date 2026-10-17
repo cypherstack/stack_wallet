@@ -22,6 +22,7 @@ bool isOpenAlias(String input) {
 typedef OpenAliasLookup = CsOpenAliasOperation<CsOpenAliasRecipient> Function(
   String alias, {
   required bool Function(String address) isValidAddress,
+  required String application,
   CsOpenAliasProxy? proxy,
 });
 
@@ -59,19 +60,25 @@ class OpenAliasService {
   /// Why no lookup can be sent now, or null when one can.
   String? unavailableReason() => _route().unavailable;
 
-  /// Looks up [alias], through Tor when Tor is on. Throws
-  /// [OpenAliasUnavailableException] without sending anything when Incognito
-  /// mode is on or Tor is on but unavailable.
+  /// Looks up the [application] record of [alias], through Tor when Tor is
+  /// on. Throws [OpenAliasUnavailableException] without sending anything when
+  /// Incognito mode is on or Tor is on but unavailable.
   CsOpenAliasOperation<CsOpenAliasRecipient> lookup(
     String alias, {
     required bool Function(String address) isValidAddress,
+    required String application,
   }) {
     final route = _route();
     final unavailable = route.unavailable;
     if (unavailable != null) {
       throw OpenAliasUnavailableException(unavailable);
     }
-    return _lookup(alias, isValidAddress: isValidAddress, proxy: route.proxy);
+    return _lookup(
+      alias,
+      isValidAddress: isValidAddress,
+      application: application,
+      proxy: route.proxy,
+    );
   }
 
   ({String? unavailable, CsOpenAliasProxy? proxy}) _route() {
