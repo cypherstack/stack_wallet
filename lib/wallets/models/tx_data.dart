@@ -57,6 +57,11 @@ class TxData {
   final String? memo;
 
   final List<TxRecipient>? recipients;
+
+  /// The OpenAlias, trimmed and lowercased, that the recipient's address was
+  /// resolved from.
+  final String? openAlias;
+
   final Set<BaseInput>? utxos;
   final List<BaseInput>? usedUTXOs;
 
@@ -137,6 +142,7 @@ class TxData {
     this.noteOnChain,
     this.memo,
     this.recipients,
+    this.openAlias,
     this.utxos,
     this.usedUTXOs,
     this.changeAddress,
@@ -287,6 +293,7 @@ class TxData {
     Set<BaseInput>? utxos,
     List<BaseInput>? usedUTXOs,
     List<TxRecipient>? recipients,
+    String? openAlias,
     String? frostMSConfig,
     List<String>? frostSigners,
     String? changeAddress,
@@ -341,6 +348,7 @@ class TxData {
       utxos: utxos ?? this.utxos,
       usedUTXOs: usedUTXOs ?? this.usedUTXOs,
       recipients: recipients ?? this.recipients,
+      openAlias: openAlias ?? this.openAlias,
       frostMSConfig: frostMSConfig ?? this.frostMSConfig,
       frostSigners: frostSigners ?? this.frostSigners,
       changeAddress: changeAddress ?? this.changeAddress,

@@ -516,6 +516,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.3.0"
+  cs_openalias:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: d0755ff124d3f384ba1895800f5155af0280617b
+      resolved-ref: d0755ff124d3f384ba1895800f5155af0280617b
+      url: "https://github.com/cypherstack/cs_openalias.git"
+    source: git
+    version: "0.0.1"
   cs_salvium:
     dependency: "direct main"
     description:
@@ -829,6 +838,24 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.2"
+  dnssec_resolver:
+    dependency: "direct overridden"
+    description:
+      path: "."
+      ref: e03de21083a819732efef323c62c1bc259fe17f5
+      resolved-ref: e03de21083a819732efef323c62c1bc259fe17f5
+      url: "https://github.com/cypherstack/dnssec_resolver.git"
+    source: git
+    version: "0.0.1"
+  doh_transport:
+    dependency: "direct overridden"
+    description:
+      path: "."
+      ref: a6a5d8e8843c045ae4f18bee9e34ffde5d457910
+      resolved-ref: a6a5d8e8843c045ae4f18bee9e34ffde5d457910
+      url: "https://github.com/cypherstack/doh_transport.git"
+    source: git
+    version: "0.0.1"
   drift:
     dependency: "direct main"
     description:
@@ -889,11 +916,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: b6fa44d015d3bfa06934b73219928c29ca48a290
-      resolved-ref: b6fa44d015d3bfa06934b73219928c29ca48a290
+      ref: "76ffad6ecc1e31de47d9187fd39c831db0aa987f"
+      resolved-ref: "76ffad6ecc1e31de47d9187fd39c831db0aa987f"
       url: "https://github.com/cypherstack/electrum_adapter.git"
     source: git
-    version: "3.0.2"
+    version: "4.0.1"
   emojis:
     dependency: "direct main"
     description:
@@ -1232,8 +1259,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "14427bcbbe1e754bce4a1b93cdb0a31ce56d792b"
-      resolved-ref: "14427bcbbe1e754bce4a1b93cdb0a31ce56d792b"
+      ref: "7548bf1c6e79a82e991c3feb61c1908dfe324275"
+      resolved-ref: "7548bf1c6e79a82e991c3feb61c1908dfe324275"
       url: "https://github.com/cypherstack/fusiondart.git"
     source: git
     version: "1.0.0"
@@ -1750,6 +1777,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.5.0"
+  openalias:
+    dependency: "direct overridden"
+    description:
+      path: "."
+      ref: fbcb56b9f399d61b52cc762412c538343e460923
+      resolved-ref: fbcb56b9f399d61b52cc762412c538343e460923
+      url: "https://github.com/cypherstack/openalias.git"
+    source: git
+    version: "0.0.1"
   package_config:
     dependency: transitive
     description:
@@ -2140,13 +2176,13 @@ packages:
     source: hosted
     version: "2.1.1"
   socks_socket:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: socks_socket
-      sha256: "53bc7eae40a3aa16ea810b0e9de3bb23ba7beb0b40d09357b89190f2f44374cc"
+      sha256: "09149ed1278584554aeacc60c7aeec5bd80154e6ce1136f00d97485d09d5a338"
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.1"
+    version: "2.0.0"
   solana:
     dependency: "direct main"
     description:

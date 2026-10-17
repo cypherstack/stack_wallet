@@ -11,6 +11,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:cs_openalias/cs_openalias.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -30,6 +31,7 @@ import '../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../providers/ui/preview_tx_button_state_provider.dart';
 import '../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../route_generator.dart';
+import '../../services/openalias/open_alias_service.dart';
 import '../../services/spark_names_service.dart';
 import '../../themes/coin_icon_provider.dart';
 import '../../themes/stack_colors.dart';
@@ -703,8 +705,9 @@ class _SendViewState extends ConsumerState<SendView> {
         }
       }
 
-      ref.read(pValidSendToAddress.notifier).state = wallet.cryptoCurrency
-          .validateAddress(address ?? "");
+      ref.read(pValidSendToAddress.notifier).state =
+          wallet.cryptoCurrency.validateAddress(address ?? "") ||
+          (coin is Monero && isOpenAlias(address ?? ""));
     }
   }
 
@@ -1018,11 +1021,69 @@ class _SendViewState extends ConsumerState<SendView> {
     }
   }
 
+  /// Replaces the OpenAlias in the address field with the address it resolves
+  /// to. Returns the alias, trimmed and lowercased, or null if the lookup
+  /// failed or was cancelled.
+  Future<String?> _resolveOpenAlias() async {
+    final alias = _address!.trim().toLowerCase();
+    CsOpenAliasOperation<CsOpenAliasRecipient>? operation;
+    bool cancelled = false;
+    unawaited(
+      showDialog<void>(
+        context: context,
+        useSafeArea: false,
+        barrierDismissible: false,
+        builder: (context) => BuildingTransactionDialog(
+          coin: coin,
+          isSpark: false,
+          onCancel: () {
+            cancelled = true;
+            operation?.cancel();
+            Navigator.of(context).pop();
+          },
+        ),
+      ),
+    );
+    try {
+      operation = ref
+          .read(pOpenAliasService)
+          .lookup(_address!, isValidAddress: coin.validateAddress);
+      final address = (await operation.result).address;
+      if (cancelled || !mounted) return null;
+      Navigator.of(context, rootNavigator: true).pop();
+      sendToController.text = address;
+      _address = address;
+      _setValidAddressProviders(_address);
+      return alias;
+    } catch (e, s) {
+      if (cancelled || !mounted) return null;
+      Logging.instance.w("OpenAlias lookup failed", error: e, stackTrace: s);
+      Navigator.of(context, rootNavigator: true).pop();
+      unawaited(
+        showDialog<void>(
+          context: context,
+          builder: (context) => StackOkDialog(
+            title: openAliasLookupFailedTitle,
+            message: e is CsOpenAliasException ? e.userMessage : e.toString(),
+          ),
+        ),
+      );
+      return null;
+    }
+  }
+
   Future<void> _previewTransaction() async {
     // wait for keyboard to disappear
     FocusScope.of(context).unfocus();
     await Future<void>.delayed(const Duration(milliseconds: 100));
     final wallet = ref.read(pWallets).getWallet(walletId);
+    String? openAlias;
+    if (coin is Monero &&
+        !coin.validateAddress(_address ?? "") &&
+        isOpenAlias(_address ?? "")) {
+      openAlias = await _resolveOpenAlias();
+      if (openAlias == null || !mounted) return;
+    }
 
     final Amount amount = ref.read(pSendAmount)!;
     final Amount availableBalance;
@@ -1274,6 +1335,7 @@ class _SendViewState extends ConsumerState<SendView> {
                     )!,
                   ),
                 ],
+            openAlias: openAlias,
             memo: memo,
             feeRateType: feeRateType,
             satsPerVByte: satsPerVByte,

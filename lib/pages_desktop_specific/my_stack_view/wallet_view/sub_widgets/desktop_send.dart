@@ -10,6 +10,7 @@
 
 import 'dart:async';
 
+import 'package:cs_openalias/cs_openalias.dart';
 import 'package:decimal/decimal.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
@@ -37,6 +38,7 @@ import '../../../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../../../providers/ui/preview_tx_button_state_provider.dart';
 import '../../../../providers/wallet/desktop_fee_providers.dart';
 import '../../../../providers/wallet/public_private_balance_state_provider.dart';
+import '../../../../services/openalias/open_alias_service.dart';
 import '../../../../services/spark_names_service.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/address_utils.dart';
@@ -73,6 +75,7 @@ import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/qr_code_scanner_dialog.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
+import '../../../../widgets/desktop/simple_desktop_dialog.dart';
 import '../../../../widgets/dialogs/firo_exchange_address_dialog.dart';
 import '../../../../widgets/epic_txs_method_toggle.dart';
 import '../../../../widgets/eth_fee_form.dart';
@@ -437,12 +440,77 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     }
   }
 
+  /// Replaces the OpenAlias in the address field with the address it resolves
+  /// to. Returns the alias, trimmed and lowercased, or null if the lookup
+  /// failed or was cancelled.
+  Future<String?> _resolveOpenAlias() async {
+    final alias = _address!.trim().toLowerCase();
+    CsOpenAliasOperation<CsOpenAliasRecipient>? operation;
+    bool cancelled = false;
+    unawaited(
+      showDialog<void>(
+        context: context,
+        useSafeArea: false,
+        barrierDismissible: false,
+        builder: (context) => DesktopDialog(
+          maxWidth: 400,
+          maxHeight: double.infinity,
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: BuildingTransactionDialog(
+              coin: coin,
+              isSpark: false,
+              onCancel: () {
+                cancelled = true;
+                operation?.cancel();
+                Navigator.of(context).pop();
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+    try {
+      operation = ref
+          .read(pOpenAliasService)
+          .lookup(_address!, isValidAddress: coin.validateAddress);
+      final address = (await operation.result).address;
+      if (cancelled || !mounted) return null;
+      Navigator.of(context, rootNavigator: true).pop();
+      sendToController.text = address;
+      _address = address;
+      _setValidAddressProviders(_address);
+      return alias;
+    } catch (e, s) {
+      if (cancelled || !mounted) return null;
+      Logging.instance.w("OpenAlias lookup failed", error: e, stackTrace: s);
+      Navigator.of(context, rootNavigator: true).pop();
+      unawaited(
+        showDialog<void>(
+          context: context,
+          builder: (context) => SimpleDesktopDialog(
+            title: openAliasLookupFailedTitle,
+            message: e is CsOpenAliasException ? e.userMessage : e.toString(),
+          ),
+        ),
+      );
+      return null;
+    }
+  }
+
   Future<void> previewSend() async {
     final nonceInput = _nonceInput;
     if (!nonceInput.isValid) return;
     final nonce = nonceInput.value;
 
     final wallet = ref.read(pWallets).getWallet(walletId);
+    String? openAlias;
+    if (coin is Monero &&
+        !coin.validateAddress(_address ?? "") &&
+        isOpenAlias(_address ?? "")) {
+      openAlias = await _resolveOpenAlias();
+      if (openAlias == null || !mounted) return;
+    }
 
     // Handle MWC slatepack transactions directly.
     if (isMimblewimblecoin && ref.read(pIsSlatepack(widget.walletId))) {
@@ -743,6 +811,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                     )!,
                   ),
                 ],
+            openAlias: openAlias,
             memo: memo,
             feeRateType: feeRateType,
             satsPerVByte: satsPerVByte,
@@ -1021,8 +1090,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         }
       }
 
-      ref.read(pValidSendToAddress.notifier).state = wallet.cryptoCurrency
-          .validateAddress(address ?? "");
+      ref.read(pValidSendToAddress.notifier).state =
+          wallet.cryptoCurrency.validateAddress(address ?? "") ||
+          (coin is Monero && isOpenAlias(address ?? ""));
     }
   }
 
