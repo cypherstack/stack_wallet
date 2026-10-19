@@ -16,14 +16,14 @@ import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../../../notifications/show_flush_bar.dart';
-import '../../../../providers/global/active_wallet_provider.dart';
 import '../../../../providers/global/secure_store_provider.dart';
 import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
-import '../../../../utilities/enums/sync_type_enum.dart';
 import '../../../../utilities/flutter_secure_storage_interface.dart';
 import '../../../../utilities/test_node_connection.dart';
+import '../../../../utilities/logger.dart';
+import '../../../../utilities/node_change_notifier.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/tor_plain_net_option_enum.dart';
 import '../../../../utilities/util.dart';
@@ -62,44 +62,38 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
   late final String popRouteName;
 
   bool _desktopReadOnly = true;
+  bool _busy = false;
+  late final NodeFormData _form;
 
-  Future<void> _notifyWalletsOfUpdatedNode() async {
-    final wallets = ref
-        .read(pWallets)
-        .wallets
-        .where((e) => e.info.coin == widget.coin);
-    final prefs = ref.read(prefsChangeNotifierProvider);
+  VoidCallback? _whileIdle(Future<void> Function() action) =>
+      _busy ? null : () => _runBusy(action);
 
-    switch (prefs.syncType) {
-      case SyncingType.currentWalletOnly:
-        for (final wallet in wallets) {
-          if (ref.read(currentWalletIdProvider) == wallet.walletId) {
-            unawaited(wallet.updateNode().then((value) => wallet.refresh()));
-          } else {
-            unawaited(wallet.updateNode());
-          }
-        }
-        break;
-      case SyncingType.selectedWalletsAtStartup:
-        final List<String> walletIdsToSync = prefs.walletIdsSyncOnStartup;
-        for (final wallet in wallets) {
-          if (walletIdsToSync.contains(wallet.walletId)) {
-            unawaited(wallet.updateNode().then((value) => wallet.refresh()));
-          } else {
-            unawaited(wallet.updateNode());
-          }
-        }
-        break;
-      case SyncingType.allWalletsOnStartup:
-        for (final wallet in wallets) {
-          unawaited(wallet.updateNode().then((value) => wallet.refresh()));
-        }
-        break;
+  Future<void> _runBusy(Future<void> Function() action) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      await WidgetsBinding.instance.endOfFrame;
+      await _form.passwordLoad;
+      if (mounted) await action();
+    } catch (error, stack) {
+      Logging.instance.w('$error', error: error, stackTrace: stack);
+      if (mounted) {
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message: 'Node operation failed',
+            context: context,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
     }
   }
 
   @override
   initState() {
+    _form = ref.refresh(nodeFormDataProvider);
     secureStore = ref.read(secureStoreProvider);
     coin = widget.coin;
     nodeId = widget.nodeId;
@@ -129,9 +123,9 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
       condition: !isDesktop,
       builder: (child) => Background(
         child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
             leading: AppBarBackButton(
               onPressed: () async {
@@ -158,28 +152,30 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                     key: const Key("nodeDetailsEditNodeAppBarButtonKey"),
                     size: 36,
                     shadows: const [],
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.background,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .background,
                     icon: SvgPicture.asset(
                       Assets.svg.pencil,
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
                       width: 20,
                       height: 20,
                     ),
-                    onPressed: () {
-                      Navigator.of(context).pushNamed(
-                        AddEditNodeView.routeName,
-                        arguments: Tuple4(
-                          AddEditNodeViewType.edit,
-                          coin,
-                          nodeId,
-                          popRouteName,
-                        ),
-                      );
-                    },
+                    onPressed: _busy
+                        ? null
+                        : () {
+                            Navigator.of(context).pushNamed(
+                              AddEditNodeView.routeName,
+                              arguments: Tuple4(
+                                AddEditNodeViewType.edit,
+                                coin,
+                                nodeId,
+                                popRouteName,
+                              ),
+                            );
+                          },
                   ),
                 ),
               ),
@@ -238,6 +234,10 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             NodeForm(
+              // Reload the form only when the stored node changes.
+              key: ValueKey(node),
+              data: _form,
+              busy: _busy,
               node: node,
               secureStore: secureStore,
               readOnly: isDesktop ? _desktopReadOnly : true,
@@ -256,13 +256,16 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                             child: DeleteButton(
                               label: "Delete node",
                               desktopMed: true,
-                              onPressed: () async {
-                                Navigator.of(context).pop();
+                              onPressed: _busy
+                                  ? null
+                                  : () async {
+                                      final service = ref.read(
+                                        nodeServiceChangeNotifierProvider,
+                                      );
+                                      Navigator.of(context).pop();
 
-                                await ref
-                                    .read(nodeServiceChangeNotifierProvider)
-                                    .delete(node!.id, true);
-                              },
+                                      await service.delete(node!.id, true);
+                                    },
                             ),
                           ),
                           const SizedBox(width: 16),
@@ -277,35 +280,26 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                 Expanded(
                   child: SecondaryButton(
                     label: "Test connection",
+                    enabled: !_busy,
                     buttonHeight: isDesktop ? ButtonHeight.l : null,
-                    onPressed: () async {
+                    onPressed: _whileIdle(() async {
+                      final service = ref.read(
+                        nodeServiceChangeNotifierProvider,
+                      );
+                      final notify = nodeChangeNotifier(ref, coin);
                       final node = ref
                           .read(nodeServiceChangeNotifierProvider)
                           .getNodeById(id: nodeId)!;
 
-                      final TorPlainNetworkOption netOption;
-                      if (ref.read(nodeFormDataProvider).netOption != null) {
-                        netOption = ref.read(nodeFormDataProvider).netOption!;
-                      } else {
-                        netOption = TorPlainNetworkOption.fromNodeData(
-                          node.torEnabled,
-                          node.clearnetEnabled,
+                      final editing = isDesktop && !_desktopReadOnly;
+                      final nodeFormData = editing
+                          ? _form
+                          : NodeFormData.fromNode(node);
+                      if (!editing) {
+                        nodeFormData.password = await node.getPassword(
+                          ref.read(secureStoreProvider),
                         );
                       }
-
-                      final nodeFormData = NodeFormData()
-                        ..useSSL = node.useSSL
-                        ..trusted = node.trusted
-                        ..name = node.name
-                        ..host = node.host
-                        ..login = node.loginName
-                        ..port = node.port
-                        ..isFailover = node.isFailover
-                        ..netOption = netOption
-                        ..forceNoTor = node.forceNoTor;
-                      nodeFormData.password = await node.getPassword(
-                        ref.read(secureStoreProvider),
-                      );
 
                       if (context.mounted) {
                         final testPassed =
@@ -316,6 +310,14 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                             );
 
                         if (testPassed) {
+                          if (!editing) {
+                            final saved = await service.saveTrustedCertificate(
+                              node,
+                              nodeFormData,
+                            );
+                            if (saved) await notify();
+                          }
+                          if (mounted) setState(() {});
                           if (context.mounted) {
                             unawaited(
                               showFloatingFlushBar(
@@ -337,62 +339,58 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                           }
                         }
                       }
-                    },
+                    }),
                   ),
                 ),
                 if (isDesktop) const SizedBox(width: 16),
                 if (isDesktop)
                   Expanded(
-                    child:
-                        // !nodeId.startsWith(DefaultNodes.defaultNodeIdPrefix)
-                        //     ?
-                        PrimaryButton(
-                          label: _desktopReadOnly ? "Edit" : "Save",
-                          buttonHeight: ButtonHeight.l,
-                          onPressed: () async {
-                            final shouldSave = _desktopReadOnly == false;
-                            setState(() {
-                              _desktopReadOnly = !_desktopReadOnly;
-                            });
+                    child: PrimaryButton(
+                      label: _desktopReadOnly ? "Edit" : "Save",
+                      enabled: !_busy,
+                      buttonHeight: ButtonHeight.l,
+                      onPressed: _whileIdle(() async {
+                        if (_desktopReadOnly) {
+                          setState(() => _desktopReadOnly = false);
+                          return;
+                        }
+                        final service = ref.read(
+                          nodeServiceChangeNotifierProvider,
+                        );
+                        final notify = nodeChangeNotifier(ref, coin);
+                        final editedNode = node!.copyWith(
+                          host: _form.host,
+                          port: _form.port,
+                          name: _form.name,
+                          useSSL: _form.useSSL,
+                          trusted: _form.trusted,
+                          trustedCertificatePem: _form.trustedCertificatePem,
+                          clearTrustedCertificate:
+                              _form.trustedCertificatePem == null,
+                          loginName: _form.login,
+                          isFailover: _form.isFailover,
+                          torEnabled:
+                              _form.netOption == TorPlainNetworkOption.tor ||
+                              _form.netOption == TorPlainNetworkOption.both,
+                          clearnetEnabled:
+                              _form.netOption == TorPlainNetworkOption.clear ||
+                              _form.netOption == TorPlainNetworkOption.both,
+                          forceNoTor: _form.forceNoTor,
+                        );
 
-                            if (shouldSave) {
-                              final editedNode = node!.copyWith(
-                                host: ref.read(nodeFormDataProvider).host,
-                                port: ref.read(nodeFormDataProvider).port,
-                                name: ref.read(nodeFormDataProvider).name,
-                                useSSL: ref.read(nodeFormDataProvider).useSSL,
-                                trusted: ref.read(nodeFormDataProvider).trusted,
-                                loginName: ref.read(nodeFormDataProvider).login,
-                                isFailover: ref
-                                    .read(nodeFormDataProvider)
-                                    .isFailover,
-                                torEnabled:
-                                    ref.read(nodeFormDataProvider).netOption ==
-                                        TorPlainNetworkOption.tor ||
-                                    ref.read(nodeFormDataProvider).netOption ==
-                                        TorPlainNetworkOption.both,
-                                clearnetEnabled:
-                                    ref.read(nodeFormDataProvider).netOption ==
-                                        TorPlainNetworkOption.clear ||
-                                    ref.read(nodeFormDataProvider).netOption ==
-                                        TorPlainNetworkOption.both,
-                                forceNoTor: ref
-                                    .read(nodeFormDataProvider)
-                                    .forceNoTor,
-                              );
-
-                              await ref
-                                  .read(nodeServiceChangeNotifierProvider)
-                                  .save(
-                                    editedNode,
-                                    ref.read(nodeFormDataProvider).password,
-                                    true,
-                                  );
-                              await _notifyWalletsOfUpdatedNode();
-                            }
-                          },
-                        ),
-                    // : Container()
+                        if (!await service.saveEdit(
+                          editedNode,
+                          _form.password,
+                          true,
+                          opened: _form.source!,
+                          forgetCertificate: _form.certificateForgotten,
+                        )) {
+                          return;
+                        }
+                        await notify();
+                        if (mounted) setState(() => _desktopReadOnly = true);
+                      }),
+                    ),
                   ),
               ],
             ),

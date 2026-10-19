@@ -77,9 +77,8 @@ void main() {
     when(
       nodeService.getPrimaryNodeFor(currency: bitcoin),
     ).thenAnswer((_) => buildNode(id: 'other node id', name: 'Stack Default'));
-    when(
-      nodeService.getNodeById(id: 'node id'),
-    ).thenAnswer((_) => buildNode(id: 'node id', name: 'some other name'));
+    when(nodeService.getNodeById(id: 'node id'))
+        .thenAnswer((_) => buildNode(id: 'node id', name: 'some other name'));
 
     await pumpSubject(
       tester,
@@ -101,9 +100,8 @@ void main() {
     final nodeService = MockNodeService();
     final activeNode = buildNode(id: 'node id', name: 'Some other node name');
 
-    when(
-      nodeService.getPrimaryNodeFor(currency: bitcoin),
-    ).thenAnswer((_) => activeNode);
+    when(nodeService.getPrimaryNodeFor(currency: bitcoin))
+        .thenAnswer((_) => activeNode);
     when(nodeService.getNodeById(id: 'node id')).thenAnswer((_) => activeNode);
 
     await pumpSubject(
@@ -127,9 +125,8 @@ void main() {
     final nodeService = MockNodeService();
     final activeNode = buildNode(id: 'node id', name: 'Stack Default');
 
-    when(
-      nodeService.getPrimaryNodeFor(currency: bitcoin),
-    ).thenAnswer((_) => activeNode);
+    when(nodeService.getPrimaryNodeFor(currency: bitcoin))
+        .thenAnswer((_) => activeNode);
     when(nodeService.getNodeById(id: 'node id')).thenAnswer((_) => activeNode);
 
     await pumpSubject(
@@ -178,9 +175,8 @@ void main() {
       when(nodeService.getPrimaryNodeFor(currency: bitcoin)).thenAnswer(
         (_) => buildNode(id: 'other node id', name: 'Some other node name'),
       );
-      when(
-        nodeService.getNodeById(id: 'node id'),
-      ).thenAnswer((_) => disconnectedNode);
+      when(nodeService.getNodeById(id: 'node id'))
+          .thenAnswer((_) => disconnectedNode);
 
       await pumpSubject(
         tester,
@@ -211,10 +207,9 @@ void main() {
       expect(platformOverrides.connectionInvocations.single.host, '127.0.0.1');
 
       verifyNever(
-        nodeService.setPrimaryNodeFor(
-          coin: bitcoin,
+        nodeService.commitConnectionTest(
           node: anyNamed('node'),
-          shouldNotifyListeners: anyNamed('shouldNotifyListeners'),
+          formData: anyNamed('formData'),
         ),
       );
     },

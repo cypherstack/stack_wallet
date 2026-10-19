@@ -1,4 +1,4 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
+// Manually maintained Hive adapter. Append fields for backwards compatibility.
 
 part of '../node_model.dart';
 
@@ -33,13 +33,14 @@ class NodeModelAdapter extends TypeAdapter<NodeModel> {
       forceNoTor: fields[13] as bool? ?? false,
       isPrimary: fields[14] as bool? ?? false,
       nodeApiSecret: fields[15] as String?,
+      trustedCertificatePem: fields[16] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, NodeModel obj) {
     writer
-      ..writeByte(16)
+      ..writeByte(17)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -71,7 +72,9 @@ class NodeModelAdapter extends TypeAdapter<NodeModel> {
       ..writeByte(14)
       ..write(obj.isPrimary)
       ..writeByte(15)
-      ..write(obj.nodeApiSecret);
+      ..write(obj.nodeApiSecret)
+      ..writeByte(16)
+      ..write(obj.trustedCertificatePem);
   }
 
   @override

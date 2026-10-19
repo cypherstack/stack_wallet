@@ -15,20 +15,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
 
+import '../models/node_form_data.dart';
 import '../notifications/show_flush_bar.dart';
-import '../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import '../pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
-import '../providers/global/active_wallet_provider.dart';
 import '../providers/global/secure_store_provider.dart';
 import '../providers/providers.dart';
 import '../themes/stack_colors.dart';
 import '../utilities/assets.dart';
 import '../utilities/constants.dart';
 import '../utilities/default_nodes.dart';
-import '../utilities/enums/sync_type_enum.dart';
 import '../utilities/test_node_connection.dart';
+import '../utilities/node_change_notifier.dart';
 import '../utilities/text_styles.dart';
-import '../utilities/tor_plain_net_option_enum.dart';
 import '../utilities/util.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import 'conditional_parent.dart';
@@ -57,41 +55,6 @@ class _NodeCardState extends ConsumerState<NodeCard> {
   String _status = "Disconnected";
   late final String nodeId;
   bool _advancedIsExpanded = false;
-
-  Future<void> _notifyWalletsOfUpdatedNode(WidgetRef ref) async {
-    final wallets = ref
-        .read(pWallets)
-        .wallets
-        .where((e) => e.info.coin == widget.coin);
-    final prefs = ref.read(prefsChangeNotifierProvider);
-
-    switch (prefs.syncType) {
-      case SyncingType.currentWalletOnly:
-        for (final wallet in wallets) {
-          if (ref.read(currentWalletIdProvider) == wallet.walletId) {
-            unawaited(wallet.updateNode().then((value) => wallet.refresh()));
-          } else {
-            unawaited(wallet.updateNode());
-          }
-        }
-        break;
-      case SyncingType.selectedWalletsAtStartup:
-        final List<String> walletIdsToSync = prefs.walletIdsSyncOnStartup;
-        for (final wallet in wallets) {
-          if (walletIdsToSync.contains(wallet.walletId)) {
-            unawaited(wallet.updateNode().then((value) => wallet.refresh()));
-          } else {
-            unawaited(wallet.updateNode());
-          }
-        }
-        break;
-      case SyncingType.allWalletsOnStartup:
-        for (final wallet in wallets) {
-          unawaited(wallet.updateNode().then((value) => wallet.refresh()));
-        }
-        break;
-    }
-  }
 
   @override
   void initState() {
@@ -167,24 +130,13 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                       text: "Connect",
                       enabled: _status == "Disconnected",
                       onTap: () async {
-                        final TorPlainNetworkOption netOption;
-                        if (_node.torEnabled && !_node.clearnetEnabled) {
-                          netOption = TorPlainNetworkOption.tor;
-                        } else if (_node.clearnetEnabled && !_node.torEnabled) {
-                          netOption = TorPlainNetworkOption.clear;
-                        } else {
-                          netOption = TorPlainNetworkOption.both;
-                        }
-
-                        final nodeFormData = NodeFormData()
-                          ..useSSL = _node.useSSL
-                          ..trusted = _node.trusted
-                          ..name = _node.name
-                          ..host = _node.host
-                          ..login = _node.loginName
-                          ..port = _node.port
-                          ..netOption = netOption
-                          ..isFailover = _node.isFailover;
+                        // Carry the saved certificate so an approved node is
+                        // not reviewed again, and keep a new approval below.
+                        final service = ref.read(
+                          nodeServiceChangeNotifierProvider,
+                        );
+                        final notify = nodeChangeNotifier(ref, widget.coin);
+                        final nodeFormData = NodeFormData.fromNode(_node);
                         nodeFormData.password = await _node.getPassword(
                           ref.read(secureStoreProvider),
                         );
@@ -211,15 +163,12 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                             return;
                           }
 
-                          await ref
-                              .read(nodeServiceChangeNotifierProvider)
-                              .setPrimaryNodeFor(
-                                coin: widget.coin,
-                                node: _node,
-                                shouldNotifyListeners: true,
-                              );
-
-                          await _notifyWalletsOfUpdatedNode(ref);
+                          if (await service.commitConnectionTest(
+                            node: _node,
+                            formData: nodeFormData,
+                          )) {
+                            await notify();
+                          }
                         }
                       },
                     ),
@@ -251,9 +200,9 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                   height: isDesktop ? 40 : 24,
                   decoration: BoxDecoration(
                     color: _node.id.startsWith(DefaultNodes.defaultNodeIdPrefix)
-                        ? Theme.of(
-                            context,
-                          ).extension<StackColors>()!.buttonBackSecondary
+                        ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .buttonBackSecondary
                         : Theme.of(context)
                               .extension<StackColors>()!
                               .infoItemIcons
@@ -267,12 +216,12 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                       width: isDesktop ? 20 : 14,
                       color:
                           _node.id.startsWith(DefaultNodes.defaultNodeIdPrefix)
-                          ? Theme.of(
-                              context,
-                            ).extension<StackColors>()!.accentColorDark
-                          : Theme.of(
-                              context,
-                            ).extension<StackColors>()!.infoItemIcons,
+                          ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorDark
+                          : Theme.of(context)
+                                .extension<StackColors>()!
+                                .infoItemIcons,
                     ),
                   ),
                 ),
@@ -290,12 +239,12 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                   SvgPicture.asset(
                     Assets.svg.network,
                     color: _status == "Connected"
-                        ? Theme.of(
-                            context,
-                          ).extension<StackColors>()!.accentColorGreen
-                        : Theme.of(
-                            context,
-                          ).extension<StackColors>()!.buttonBackSecondary,
+                        ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorGreen
+                        : Theme.of(context)
+                              .extension<StackColors>()!
+                              .buttonBackSecondary,
                     width: 20,
                     height: 20,
                   ),
@@ -306,9 +255,9 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                         : Assets.svg.chevronDown,
                     width: 12,
                     height: 6,
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textSubtitle1,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textSubtitle1,
                   ),
               ],
             ),
