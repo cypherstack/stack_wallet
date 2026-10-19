@@ -272,17 +272,14 @@ class EthTokenWallet extends Wallet {
   }
 
   @override
-  Future<TxData> confirmSend({required TxData txData}) async {
-    try {
-      return await ethWallet.confirmSend(
-        txData: txData,
-        prepareTempTx: _prepareTempTx,
-      );
-    } catch (e) {
-      // rethrow to pass error in alert
-      rethrow;
-    }
-  }
+  Future<TxData> confirmSend({
+    required TxData txData,
+    Future<void> Function(String raw)? beforeBroadcast,
+  }) => ethWallet.confirmSend(
+    txData: txData,
+    prepareTempTx: _prepareTempTx,
+    beforeBroadcast: beforeBroadcast,
+  );
 
   @override
   Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate) async {

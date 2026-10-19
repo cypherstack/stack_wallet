@@ -36,6 +36,8 @@ import '../../../../../models/wallet_restore_state.dart';
 import '../../../../../notifications/show_flush_bar.dart';
 import '../../../../../services/address_book_service.dart';
 import '../../../../../services/cakepay/cakepay_service.dart';
+import '../../../../../services/exchange/rosen/rosen_exchange.dart';
+import '../../../../../services/exchange/rosen/rosen_funding.dart';
 import '../../../../../services/node_service.dart';
 import '../../../../../services/shopinbit/shopinbit_service.dart';
 import '../../../../../services/trade_notes_service.dart';
@@ -657,7 +659,7 @@ abstract class SWB {
     // restore trade history
     if (trades != null) {
       Logging.instance.d("SWB restoring trades");
-      await _restoreTrades(trades);
+      await _restoreTrades(trades, oldToNewWalletIdMap);
     }
 
     // restore trade history lookup data for trades send from stack wallet
@@ -1258,7 +1260,10 @@ abstract class SWB {
     await nodeService.updateDefaults();
   }
 
-  static Future<void> _restoreTrades(List<dynamic> trades) async {
+  static Future<void> _restoreTrades(
+    List<dynamic> trades,
+    Map<String, String> oldToNewWalletIdMap,
+  ) async {
     if (trades.isNotEmpty) {
       final tradesService = TradesService();
       for (int i = 0; i < trades.length; i++) {
@@ -1278,6 +1283,15 @@ abstract class SWB {
           trade = Trade.fromExchangeTransaction(exTx, false);
         } else {
           trade = Trade.fromMap(trades[i] as Map<String, dynamic>);
+        }
+        // Keep existing source wallets if restoring their clones is cancelled.
+        if (trade.exchangeName == RosenExchange.exchangeName &&
+            DB.instance.get<Trade>(
+                  boxName: DB.boxNameTradesV2,
+                  key: trade.uuid,
+                ) ==
+                null) {
+          trade = RosenFunding.remapFundingWallet(trade, oldToNewWalletIdMap);
         }
 
         await tradesService.add(
@@ -1304,6 +1318,27 @@ abstract class SWB {
           .map((e) => oldToNewWalletIdMap[e] ?? e)
           .toList();
       lookup = lookup.copyWith(walletIds: walletIds);
+
+      final trade = DB.instance.get<Trade>(
+        boxName: DB.boxNameTradesV2,
+        key: lookup.uuid,
+      );
+      if (trade != null &&
+          trade.exchangeName == RosenExchange.exchangeName &&
+          trade.payInTxid.isNotEmpty) {
+        if (trade.payInTxid.toLowerCase() != lookup.txid.toLowerCase()) {
+          continue;
+        }
+        final data = trade.other == null ? null : jsonDecode(trade.other!);
+        final funding = data is Map ? data[RosenFunding.fundingKey] : null;
+        final walletId = funding is Map ? funding['walletId'] : null;
+        if (walletId is! String || walletId.isEmpty) {
+          throw const FormatException('Invalid restored Rosen funding wallet.');
+        }
+        lookup = lookup.copyWith(walletIds: [walletId]);
+        await tradeTxidLookupDataService.save(tradeWalletLookup: lookup);
+        continue;
+      }
 
       final oldLookup = DB.instance.get<TradeWalletLookup>(
         boxName: DB.boxNameTradeLookup,
