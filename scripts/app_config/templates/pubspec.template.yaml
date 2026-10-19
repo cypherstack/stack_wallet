@@ -117,7 +117,7 @@ dependencies:
   fusiondart:
     git:
       url: https://github.com/cypherstack/fusiondart.git
-      ref: 14427bcbbe1e754bce4a1b93cdb0a31ce56d792b
+      ref: 7548bf1c6e79a82e991c3feb61c1908dfe324275
 
   # Utility plugins
   http: ^1.6.0
@@ -229,7 +229,7 @@ dependencies:
   electrum_adapter:
     git:
       url: https://github.com/cypherstack/electrum_adapter.git
-      ref: b6fa44d015d3bfa06934b73219928c29ca48a290
+      ref: 69de4e880c855a682b4b6539b54ddec7d80558fc
   stream_channel: ^2.1.0
   solana:
     git: # TODO [prio=low]: Revert to official package once Tor support is merged upstream.

@@ -156,11 +156,12 @@ class NotificationsService extends ChangeNotifier {
               name: node.name,
               id: node.id,
               useSSL: node.useSSL,
+              trustedCertificatePem: node.trustedCertificatePem,
               torEnabled: node.torEnabled,
               clearnetEnabled: node.clearnetEnabled,
             );
-            final failovers = nodeService
-                .failoverNodesFor(currency: coin)
+            final fallbackNodes = nodeService.failoverNodesFor(currency: coin);
+            final failovers = fallbackNodes
                 .map(
                   (e) => ElectrumXNode(
                     address: e.host,
@@ -168,6 +169,7 @@ class NotificationsService extends ChangeNotifier {
                     name: e.name,
                     id: e.id,
                     useSSL: e.useSSL,
+                    trustedCertificatePem: e.trustedCertificatePem,
                     torEnabled: node.torEnabled,
                     clearnetEnabled: node.clearnetEnabled,
                   ),
@@ -180,7 +182,28 @@ class NotificationsService extends ChangeNotifier {
               prefs: prefs,
               cryptoCurrency: wallet.cryptoCurrency,
             );
-            final tx = await client.getTransaction(txHash: txid);
+            // This client is not owned by a loaded wallet. Retire its pending
+            // setup too when an approval or node changes.
+            void retire() {
+              if (!identical(
+                    nodeService.getPrimaryNodeFor(currency: coin),
+                    node,
+                  ) ||
+                  !listEquals(
+                    nodeService.failoverNodesFor(currency: coin),
+                    fallbackNodes,
+                  )) {
+                unawaited(client.closeAdapter());
+              }
+            }
+
+            nodeService.addListener(retire);
+            late final Map<String, dynamic> tx;
+            try {
+              tx = await client.getTransaction(txHash: txid);
+            } finally {
+              nodeService.removeListener(retire);
+            }
 
             int confirmations = tx["confirmations"] as int? ?? 0;
 
