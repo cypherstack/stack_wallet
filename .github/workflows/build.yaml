@@ -817,8 +817,8 @@ jobs:
       - name: Install Rust toolchains
         run: |
           rustup toolchain install 1.85.1
-          rustup toolchain install 1.89.0
-          rustup default 1.89.0
+          rustup toolchain install 1.99.1
+          rustup default 1.99.1
 
       - name: Configure app
         run: |
@@ -903,8 +903,8 @@ jobs:
       - name: Install Rust toolchains
         run: |
           rustup toolchain install 1.85.1
-          rustup toolchain install 1.89.0
-          rustup default 1.89.0
+          rustup toolchain install 1.99.1
+          rustup default 1.99.1
 
       - name: Configure app
         run: |
@@ -978,10 +978,10 @@ jobs:
       - name: Install additional Rust toolchains
         run: |
           rustup toolchain install 1.85.1
-          rustup toolchain install 1.89.0
-          rustup default 1.89.0
-          rustup target add aarch64-apple-ios --toolchain 1.89.0
-          rustup target add x86_64-apple-ios --toolchain 1.89.0
+          rustup toolchain install 1.99.1
+          rustup default 1.99.1
+          rustup target add aarch64-apple-ios --toolchain 1.99.1
+          rustup target add x86_64-apple-ios --toolchain 1.99.1
 
       - name: Configure app
         run: |
@@ -1275,8 +1275,8 @@ jobs:
       - name: Install Rust toolchains
         run: |
           rustup toolchain install 1.85.1
-          rustup toolchain install 1.89.0
-          rustup default 1.89.0
+          rustup toolchain install 1.99.1
+          rustup default 1.99.1
 
       - name: Configure app
         run: |
@@ -1361,9 +1361,9 @@ jobs:
       - name: Install Rust toolchains
         run: |
           rustup toolchain install 1.85.1
-          rustup toolchain install 1.89.0
-          rustup default 1.89.0
-          rustup target add aarch64-apple-darwin --toolchain 1.89.0
+          rustup toolchain install 1.99.1
+          rustup default 1.99.1
+          rustup target add aarch64-apple-darwin --toolchain 1.99.1
           cargo install cargo-lipo
 
       - name: Configure app
@@ -1438,10 +1438,10 @@ jobs:
       - name: Install additional Rust toolchains
         run: |
           rustup toolchain install 1.85.1
-          rustup toolchain install 1.89.0
-          rustup default 1.89.0
-          rustup target add aarch64-apple-ios --toolchain 1.89.0
-          rustup target add x86_64-apple-ios --toolchain 1.89.0
+          rustup toolchain install 1.99.1
+          rustup default 1.99.1
+          rustup target add aarch64-apple-ios --toolchain 1.99.1
+          rustup target add x86_64-apple-ios --toolchain 1.99.1
 
       - name: Configure app
         run: |

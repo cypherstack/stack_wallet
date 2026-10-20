@@ -1005,8 +1005,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "920ac94cf5295df3c3ae083c6a23ff602fb0f068"
-      resolved-ref: "920ac94cf5295df3c3ae083c6a23ff602fb0f068"
+      ref: d5cfb763fa62928a6e6265e1f4412738772151eb
+      resolved-ref: d5cfb763fa62928a6e6265e1f4412738772151eb
       url: "https://github.com/cypherstack/flutter_libepiccash.git"
     source: git
     version: "0.0.1"
@@ -1014,8 +1014,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: eec0f5ae0ee49d2d6e14c925d61e5d29dbd17be4
-      resolved-ref: eec0f5ae0ee49d2d6e14c925d61e5d29dbd17be4
+      ref: d8c5d5488cb00e21d0dc04ad306a65e2d54c4d3c
+      resolved-ref: d8c5d5488cb00e21d0dc04ad306a65e2d54c4d3c
       url: "https://github.com/cypherstack/flutter_libmwc.git"
     source: git
     version: "0.1.0"
@@ -1218,8 +1218,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "3397cf62f30f1467aea781c23d84051441775f14"
-      resolved-ref: "3397cf62f30f1467aea781c23d84051441775f14"
+      ref: c8be6a0ea892d744adfacc8e97df891feca49707
+      resolved-ref: c8be6a0ea892d744adfacc8e97df891feca49707
       url: "https://github.com/cypherstack/frostdart.git"
     source: git
     version: "0.3.0"
@@ -2378,11 +2378,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "5586bfa3c48e495bc00f9b56fa18869daf768573"
-      resolved-ref: "5586bfa3c48e495bc00f9b56fa18869daf768573"
+      ref: e30ed0d386a40ee4a999aeaf57aafd32921d601e
+      resolved-ref: e30ed0d386a40ee4a999aeaf57aafd32921d601e
       url: "https://github.com/cypherstack/tor.git"
     source: git
-    version: "0.1.0"
+    version: "0.2.0"
   tuple:
     dependency: "direct main"
     description:
@@ -2669,9 +2669,9 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: dc953e2f2e960b7ffbf636fc72ed2142a71ef963
-      resolved-ref: dc953e2f2e960b7ffbf636fc72ed2142a71ef963
-      url: "https://github.com/xelis-project/xelis-wallet-flutter.git"
+      ref: "8630a2cf28947497ec67b7535ddf1fac4cedbaa8"
+      resolved-ref: "8630a2cf28947497ec67b7535ddf1fac4cedbaa8"
+      url: "https://github.com/cypherstack/xelis-wallet-flutter.git"
     source: git
     version: "0.4.1"
   xml:
