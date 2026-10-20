@@ -28,6 +28,7 @@ Future<T?> showLoading<T>({
   required BuildContext context,
   required String message,
   String? subMessage,
+  // Unused: the overlay always goes on the root navigator.
   bool rootNavigator = false,
   bool opaqueBG = false,
   void Function(Exception)? onException,
@@ -39,25 +40,29 @@ Future<T?> showLoading<T>({
         !(whileFuture == null && whileFutureAlt == null),
   );
 
-  unawaited(
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => WillPopScope(
-        onWillPop: () async => false,
-        child: Container(
-          color: Theme.of(
-            context,
-          ).extension<StackColors>()!.overlay.withOpacity(opaqueBG ? 1.0 : 0.6),
-          child: CustomLoadingOverlay(
-            message: message,
-            subMessage: subMessage,
-            eventBus: null,
-          ),
+  // Always shown on the root navigator (as showDialog did). Keep a handle on
+  // the route so only this overlay is dismissed, whatever is on top of it.
+  final navigator = Navigator.of(context, rootNavigator: true);
+  final route = DialogRoute<void>(
+    context: context,
+    themes: InheritedTheme.capture(from: context, to: navigator.context),
+    barrierDismissible: false,
+    builder: (_) => WillPopScope(
+      onWillPop: () async => false,
+      child: Container(
+        color: Theme.of(context)
+            .extension<StackColors>()!
+            .overlay
+            .withOpacity(opaqueBG ? 1.0 : 0.6),
+        child: CustomLoadingOverlay(
+          message: message,
+          subMessage: subMessage,
+          eventBus: null,
         ),
       ),
     ),
   );
+  unawaited(navigator.push(route));
 
   Exception? ex;
   T? result;
@@ -76,11 +81,16 @@ Future<T?> showLoading<T>({
     ex = e is Exception ? e : Exception(e.toString());
   }
 
-  if (context.mounted) {
-    Navigator.of(context, rootNavigator: rootNavigator).pop();
-    if (ex != null) {
-      onException?.call(ex);
+  if (navigator.mounted && route.isActive) {
+    if (route.isCurrent) {
+      navigator.pop();
+    } else {
+      navigator.removeRoute(route);
     }
+  }
+
+  if (context.mounted && ex != null) {
+    onException?.call(ex);
   }
 
   return result;
