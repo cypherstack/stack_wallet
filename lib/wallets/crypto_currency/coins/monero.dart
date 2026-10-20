@@ -1,9 +1,17 @@
 import '../../../models/node_model.dart';
+import '../../../utilities/cryptonote_address.dart';
 import '../../../utilities/default_nodes.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../../../wl_gen/interfaces/cs_monero_interface.dart';
 import '../crypto_currency.dart';
 import '../intermediate/cryptonote_currency.dart';
+
+int moneroNetworkType(CryptoCurrencyNetwork network) => switch (network) {
+  CryptoCurrencyNetwork.main => 0,
+  CryptoCurrencyNetwork.test => 1,
+  CryptoCurrencyNetwork.stage => 2,
+  _ => throw ArgumentError.value(network, "network", "Unsupported network"),
+};
 
 class Monero extends CryptonoteCurrency {
   Monero(super.network) {
@@ -14,6 +22,10 @@ class Monero extends CryptonoteCurrency {
         _id = _idMain;
         _name = "Monero";
         _ticker = "XMR";
+      case CryptoCurrencyNetwork.stage:
+        _id = "${_idMain}Stagenet";
+        _name = "sMonero";
+        _ticker = "sXMR";
       default:
         throw Exception("Unsupported network: $network");
     }
@@ -52,11 +64,19 @@ class Monero extends CryptonoteCurrency {
     }
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return csMonero.validateAddress(address, 0);
+        return csMonero.validateAddress(address, moneroNetworkType(network));
+      case CryptoCurrencyNetwork.stage:
+        // monero_c's addressValid() takes an int nettype, which binds to
+        // wallet2's deprecated addressValid(str, bool testnet) overload, so
+        // every non zero nettype validates as testnet. Decode here instead.
+        return _stagenetAddressTags.contains(cryptonoteAddressTag(address));
       default:
         throw Exception("Unsupported network: $network");
     }
   }
+
+  /// Stagenet base58 tags: standard, integrated, subaddress.
+  static const _stagenetAddressTags = {24, 25, 36};
 
   @override
   NodeModel defaultNode({required bool isPrimary}) {
@@ -73,6 +93,26 @@ class Monero extends CryptonoteCurrency {
           isFailover: true,
           isDown: false,
           trusted: true,
+          torEnabled: true,
+          clearnetEnabled: true,
+          isPrimary: isPrimary,
+        );
+
+      case CryptoCurrencyNetwork.stage:
+        // Third party stagenet RPC over plaintext HTTP: untrusted both as a
+        // daemon and on the wire. Acceptable only because stagenet coins are
+        // worthless.
+        return NodeModel(
+          host: "http://node3.monerodevs.org",
+          port: 38089,
+          name: DefaultNodes.defaultName,
+          id: DefaultNodes.buildId(this),
+          useSSL: false,
+          enabled: true,
+          coinName: identifier,
+          isFailover: true,
+          isDown: false,
+          trusted: false,
           torEnabled: true,
           clearnetEnabled: true,
           isPrimary: isPrimary,
@@ -114,6 +154,8 @@ class Monero extends CryptonoteCurrency {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return Uri.parse("https://xmrchain.net/tx/$txid");
+      case CryptoCurrencyNetwork.stage:
+        return Uri.parse("https://stagenet.xmrchain.net/tx/$txid");
       default:
         throw Exception(
           "Unsupported network for defaultBlockExplorer(): $network",

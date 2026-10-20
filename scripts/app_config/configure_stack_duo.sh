@@ -78,6 +78,7 @@ final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Bitcoin(CryptoCurrencyNetwork.test4),
   BitcoinFrost(CryptoCurrencyNetwork.test),
   BitcoinFrost(CryptoCurrencyNetwork.test4),
+  Monero(CryptoCurrencyNetwork.stage),
 ]);
 
 const List<EthContract> _defaultEthTokens = [];

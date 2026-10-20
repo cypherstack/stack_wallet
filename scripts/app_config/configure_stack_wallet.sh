@@ -133,6 +133,7 @@ final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Salvium(CryptoCurrencyNetwork.test),
   Stellar(CryptoCurrencyNetwork.test),
   Xelis(CryptoCurrencyNetwork.test),
+  Monero(CryptoCurrencyNetwork.stage),
 ]);
 
 final List<EthContract> _defaultEthTokens = [
