@@ -46,6 +46,7 @@ import '../../wallets/models/tx_data.dart';
 import '../../widgets/animated_text.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/hideable_balance.dart';
 import '../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../widgets/icon_widgets/qrcode_icon.dart';
 import '../../widgets/icon_widgets/sol_token_icon.dart';
@@ -798,36 +799,42 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
                                       },
                                       child: Container(
                                         color: Colors.transparent,
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.end,
-                                          children: [
-                                            Text(
-                                              _formatTokenBalance(
-                                                ref
-                                                    .watch(
-                                                      pSolanaTokenBalance((
-                                                        walletId:
-                                                            widget.walletId,
-                                                        tokenMint: tokenMint,
-                                                      )),
-                                                    )
-                                                    .spendable,
-                                              ),
-                                              style: STextStyles.titleBold12(
-                                                context,
-                                              ).copyWith(fontSize: 10),
-                                              textAlign: TextAlign.right,
-                                            ),
-                                            if (price != null)
+                                        child: HideableBalance(
+                                          iconColor: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textDark,
+                                          iconSize: 16,
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.end,
+                                            children: [
                                               Text(
-                                                "${(ref.watch(pSolanaTokenBalance((walletId: widget.walletId, tokenMint: tokenMint))).spendable.decimal * price).toAmount(fractionDigits: 2).fiatString(locale: locale)} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
-                                                style: STextStyles.subtitle(
+                                                _formatTokenBalance(
+                                                  ref
+                                                      .watch(
+                                                        pSolanaTokenBalance((
+                                                          walletId:
+                                                              widget.walletId,
+                                                          tokenMint: tokenMint,
+                                                        )),
+                                                      )
+                                                      .spendable,
+                                                ),
+                                                style: STextStyles.titleBold12(
                                                   context,
-                                                ).copyWith(fontSize: 8),
+                                                ).copyWith(fontSize: 10),
                                                 textAlign: TextAlign.right,
                                               ),
-                                          ],
+                                              if (price != null)
+                                                Text(
+                                                  "${(ref.watch(pSolanaTokenBalance((walletId: widget.walletId, tokenMint: tokenMint))).spendable.decimal * price).toAmount(fractionDigits: 2).fiatString(locale: locale)} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
+                                                  style: STextStyles.subtitle(
+                                                    context,
+                                                  ).copyWith(fontSize: 8),
+                                                  textAlign: TextAlign.right,
+                                                ),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ),

@@ -76,6 +76,7 @@ import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/dialogs/firo_exchange_address_dialog.dart';
 import '../../../../widgets/epic_txs_method_toggle.dart';
 import '../../../../widgets/eth_fee_form.dart';
+import '../../../../widgets/hideable_balance.dart';
 import '../../../../widgets/icon_widgets/addressbook_icon.dart';
 import '../../../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../../../widgets/icon_widgets/qrcode_icon.dart';
@@ -1713,19 +1714,25 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                         style: STextStyles.itemSubtitle12(context),
                       ),
                       const SizedBox(width: 10),
-                      Text(
-                        ref
-                            .watch(pAmountFormatter(coin))
-                            .format(
-                              ref
-                                  .watch(
-                                    isMwebEnabled
-                                        ? pWalletBalanceSecondary(walletId)
-                                        : pWalletBalanceTertiary(walletId),
-                                  )
-                                  .spendable,
-                            ),
-                        style: STextStyles.itemSubtitle(context),
+                      HideableBalance(
+                        iconColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .infoItemLabel,
+                        iconSize: 16,
+                        child: Text(
+                          ref
+                              .watch(pAmountFormatter(coin))
+                              .format(
+                                ref
+                                    .watch(
+                                      isMwebEnabled
+                                          ? pWalletBalanceSecondary(walletId)
+                                          : pWalletBalanceTertiary(walletId),
+                                    )
+                                    .spendable,
+                              ),
+                          style: STextStyles.itemSubtitle(context),
+                        ),
                       ),
                     ],
                   ),
@@ -1739,13 +1746,19 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                         style: STextStyles.itemSubtitle12(context),
                       ),
                       const SizedBox(width: 10),
-                      Text(
-                        ref
-                            .watch(pAmountFormatter(coin))
-                            .format(
-                              ref.watch(pWalletBalance(walletId)).spendable,
-                            ),
-                        style: STextStyles.itemSubtitle(context),
+                      HideableBalance(
+                        iconColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .infoItemLabel,
+                        iconSize: 16,
+                        child: Text(
+                          ref
+                              .watch(pAmountFormatter(coin))
+                              .format(
+                                ref.watch(pWalletBalance(walletId)).spendable,
+                              ),
+                          style: STextStyles.itemSubtitle(context),
+                        ),
                       ),
                     ],
                   ),

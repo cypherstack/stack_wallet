@@ -73,6 +73,7 @@ import '../../widgets/dialogs/firo_exchange_address_dialog.dart';
 import '../../widgets/epic_txs_method_toggle.dart';
 import '../../widgets/eth_fee_form.dart';
 import '../../widgets/fee_slider.dart';
+import '../../widgets/hideable_balance.dart';
 import '../../widgets/icon_widgets/addressbook_icon.dart';
 import '../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../widgets/icon_widgets/qrcode_icon.dart';
@@ -1838,31 +1839,45 @@ class _SendViewState extends ConsumerState<SendView> {
                                           },
                                           child: Container(
                                             color: Colors.transparent,
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.end,
-                                              children: [
-                                                Text(
-                                                  ref
-                                                      .watch(
-                                                        pAmountFormatter(coin),
-                                                      )
-                                                      .format(amount),
-                                                  style:
-                                                      STextStyles.titleBold12(
-                                                        context,
-                                                      ).copyWith(fontSize: 10),
-                                                  textAlign: TextAlign.right,
-                                                ),
-                                                if (price != null)
+                                            child: HideableBalance(
+                                              iconColor: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .textDark,
+                                              iconSize: 16,
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.end,
+                                                children: [
                                                   Text(
-                                                    "${(amount.decimal * price).toAmount(fractionDigits: 2).fiatString(locale: locale)} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
-                                                    style: STextStyles.subtitle(
-                                                      context,
-                                                    ).copyWith(fontSize: 8),
+                                                    ref
+                                                        .watch(
+                                                          pAmountFormatter(
+                                                            coin,
+                                                          ),
+                                                        )
+                                                        .format(amount),
+                                                    style:
+                                                        STextStyles.titleBold12(
+                                                          context,
+                                                        ).copyWith(
+                                                          fontSize: 10,
+                                                        ),
                                                     textAlign: TextAlign.right,
                                                   ),
-                                              ],
+                                                  if (price != null)
+                                                    Text(
+                                                      "${(amount.decimal * price).toAmount(fractionDigits: 2).fiatString(locale: locale)} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
+                                                      style:
+                                                          STextStyles.subtitle(
+                                                            context,
+                                                          ).copyWith(
+                                                            fontSize: 8,
+                                                          ),
+                                                      textAlign:
+                                                          TextAlign.right,
+                                                    ),
+                                                ],
+                                              ),
                                             ),
                                           ),
                                         );
@@ -2382,18 +2397,26 @@ class _SendViewState extends ConsumerState<SendView> {
                                                       break;
                                                   }
 
-                                                  return Text(
-                                                    ref
-                                                        .watch(
-                                                          pAmountFormatter(
-                                                            coin,
+                                                  return HideableBalance(
+                                                    iconColor: Theme.of(context)
+                                                        .extension<
+                                                          StackColors
+                                                        >()!
+                                                        .infoItemLabel,
+                                                    iconSize: 16,
+                                                    child: Text(
+                                                      ref
+                                                          .watch(
+                                                            pAmountFormatter(
+                                                              coin,
+                                                            ),
+                                                          )
+                                                          .format(amount),
+                                                      style:
+                                                          STextStyles.itemSubtitle(
+                                                            context,
                                                           ),
-                                                        )
-                                                        .format(amount),
-                                                    style:
-                                                        STextStyles.itemSubtitle(
-                                                          context,
-                                                        ),
+                                                    ),
                                                   );
                                                 },
                                               ),
