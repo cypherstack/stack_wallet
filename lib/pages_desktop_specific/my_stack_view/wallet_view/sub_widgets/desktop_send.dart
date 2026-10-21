@@ -708,6 +708,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       isChange: false,
                     ),
                   ],
+                  openAlias: openAlias,
                   feeRateType: feeRateType,
                   satsPerVByte: satsPerVByte,
                   utxos:
@@ -730,6 +731,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       )!,
                     ),
                   ],
+                  openAlias: openAlias,
                   feeRateType: feeRateType,
                   satsPerVByte: satsPerVByte,
                   utxos:
@@ -768,6 +770,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                         ),
                       ]
                     : null,
+                openAlias: openAlias,
               ),
             );
             break;
@@ -785,6 +788,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 addressType: wallet.cryptoCurrency.getAddressType(_address!)!,
               ),
             ],
+            openAlias: openAlias,
             feeRateType: feeRateType,
             satsPerVByte: satsPerVByte,
             // these will need to be mweb utxos

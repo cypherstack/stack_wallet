@@ -1235,6 +1235,7 @@ class _SendViewState extends ConsumerState<SendView> {
                       isChange: false,
                     ),
                   ],
+                  openAlias: openAlias,
                   feeRateType: feeRateType,
                   satsPerVByte: satsPerVByte,
                   utxos: (coinControlEnabled && selectedUTXOs.isNotEmpty)
@@ -1255,6 +1256,7 @@ class _SendViewState extends ConsumerState<SendView> {
                       )!,
                     ),
                   ],
+                  openAlias: openAlias,
                   feeRateType: feeRateType,
                   satsPerVByte: satsPerVByte,
                   utxos: (coinControlEnabled && selectedUTXOs.isNotEmpty)
@@ -1291,6 +1293,7 @@ class _SendViewState extends ConsumerState<SendView> {
                         ),
                       ]
                     : null,
+                openAlias: openAlias,
               ),
             );
             break;
@@ -1308,6 +1311,7 @@ class _SendViewState extends ConsumerState<SendView> {
                 addressType: wallet.cryptoCurrency.getAddressType(_address!)!,
               ),
             ],
+            openAlias: openAlias,
             feeRateType: feeRateType,
             satsPerVByte: satsPerVByte,
 
