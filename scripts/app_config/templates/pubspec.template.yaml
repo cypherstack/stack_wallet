@@ -117,10 +117,15 @@ dependencies:
   fusiondart:
     git:
       url: https://github.com/cypherstack/fusiondart.git
-      ref: 14427bcbbe1e754bce4a1b93cdb0a31ce56d792b
+      ref: 7548bf1c6e79a82e991c3feb61c1908dfe324275
 
   # Utility plugins
   http: ^1.6.0
+  cs_openalias:
+    git:
+      url: https://github.com/cypherstack/cs_openalias.git
+      ref: 84e3e85ced4b41e502063bcaa3314c1ec60adce3
+  socks_socket: ^2.0.0
   local_auth: ^2.3.0
   permission_handler: ^13.0.1
   flutter_local_notifications: ^22.3.0
@@ -229,7 +234,7 @@ dependencies:
   electrum_adapter:
     git:
       url: https://github.com/cypherstack/electrum_adapter.git
-      ref: b6fa44d015d3bfa06934b73219928c29ca48a290
+      ref: 76ffad6ecc1e31de47d9187fd39c831db0aa987f
   stream_channel: ^2.1.0
   solana:
     git: # TODO [prio=low]: Revert to official package once Tor support is merged upstream.
@@ -297,6 +302,10 @@ dev_dependencies:
   isar_community_generator: 3.3.2
   # Later drift_dev releases require analyzer >=13; Isar supports <11.
   drift_dev: 2.34.0
+  openalias:
+    git:
+      url: https://github.com/cypherstack/openalias.git
+      ref: 46d8402773fe3e85f15e4f0be97b92fddcd0a70e
 
 flutter_native_splash:
   image: assets/icon/splash.png
@@ -308,6 +317,20 @@ flutter_native_splash:
     color_dark: "2A2D34"
 
 dependency_overrides:
+  # cs_openalias's constituent packages are not published yet.
+  openalias:
+    git:
+      url: https://github.com/cypherstack/openalias.git
+      ref: 46d8402773fe3e85f15e4f0be97b92fddcd0a70e
+  dnssec_resolver:
+    git:
+      url: https://github.com/cypherstack/dnssec_resolver.git
+      ref: ea1f7c02e55915f7f96c95d8a476fcb3ca78e694
+  doh_transport:
+    git:
+      url: https://github.com/cypherstack/doh_transport.git
+      ref: 72115493b5ab338cceaa8cdc1eb264653620c303
+
   # required for: native_toolchain_rust >=1.0.3 depends on toml ^0.18.0
   # stellar sdk package needs to get 0.18.0 to remove this override
   toml: ^0.18.0
