@@ -1064,7 +1064,9 @@ class _SendViewState extends ConsumerState<SendView> {
           context: context,
           builder: (context) => StackOkDialog(
             title: openAliasLookupFailedTitle,
-            message: e is CsOpenAliasException ? e.userMessage : e.toString(),
+            message: e is CsOpenAliasException
+                ? openAliasErrorMessage(e)
+                : e.toString(),
           ),
         ),
       );

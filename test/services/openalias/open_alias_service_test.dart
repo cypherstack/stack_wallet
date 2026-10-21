@@ -18,7 +18,7 @@ class _Calls {
   CsOpenAliasOperation<CsOpenAliasRecipient> lookup(
     String alias, {
     required bool Function(String address) isValidAddress,
-    CsOpenAliasProxy? proxy,
+    required CsOpenAliasProxy? proxy,
   }) {
     aliases.add(alias);
     proxies.add(proxy);
@@ -33,7 +33,7 @@ class _Calls {
 }
 
 void main() {
-  test('isOpenAlias accepts only names that normalizeOpenAlias accepts', () {
+  test('isOpenAlias accepts names and rejects addresses', () {
     for (final input in ['Alice@Example.com', 'donate.getmonero.org.']) {
       expect(isOpenAlias(input), isTrue, reason: input);
     }
@@ -46,6 +46,30 @@ void main() {
     ]) {
       expect(isOpenAlias(input), isFalse, reason: input);
     }
+  });
+
+  test('every lookup failure has a user message', () {
+    const alias = 'alice.example.com';
+    final messages = {
+      for (final e in <CsOpenAliasException>[
+        const CsOpenAliasInvalidAliasException('', alias: alias),
+        const CsOpenAliasNoRecordException('', alias: alias),
+        const CsOpenAliasInvalidRecordException('', alias: alias),
+        const CsOpenAliasDnssecException(
+          '',
+          alias: alias,
+          status: CsOpenAliasDnssecStatus.bogus,
+        ),
+        const CsOpenAliasNetworkException('', alias: alias),
+        const CsOpenAliasCancelledException('', alias: alias),
+      ])
+        openAliasErrorMessage(e),
+    };
+    expect(messages, hasLength(6));
+    expect(
+      messages,
+      contains('No Monero OpenAlias record was found for alice.example.com.'),
+    );
   });
 
   test('Incognito mode sends nothing and names the setting', () {
