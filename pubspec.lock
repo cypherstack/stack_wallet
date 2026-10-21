@@ -520,8 +520,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: d0755ff124d3f384ba1895800f5155af0280617b
-      resolved-ref: d0755ff124d3f384ba1895800f5155af0280617b
+      ref: "15b980d57c8174a131f795543356d5684d2354bc"
+      resolved-ref: "15b980d57c8174a131f795543356d5684d2354bc"
       url: "https://github.com/cypherstack/cs_openalias.git"
     source: git
     version: "0.0.1"
@@ -842,8 +842,8 @@ packages:
     dependency: "direct overridden"
     description:
       path: "."
-      ref: e03de21083a819732efef323c62c1bc259fe17f5
-      resolved-ref: e03de21083a819732efef323c62c1bc259fe17f5
+      ref: "8e133d6a60acc5f15ce88fb2d7c9acd603896c55"
+      resolved-ref: "8e133d6a60acc5f15ce88fb2d7c9acd603896c55"
       url: "https://github.com/cypherstack/dnssec_resolver.git"
     source: git
     version: "0.0.1"
@@ -851,8 +851,8 @@ packages:
     dependency: "direct overridden"
     description:
       path: "."
-      ref: a6a5d8e8843c045ae4f18bee9e34ffde5d457910
-      resolved-ref: a6a5d8e8843c045ae4f18bee9e34ffde5d457910
+      ref: "3dbac4862762f62cb15a01a064b6861a77bb56ea"
+      resolved-ref: "3dbac4862762f62cb15a01a064b6861a77bb56ea"
       url: "https://github.com/cypherstack/doh_transport.git"
     source: git
     version: "0.0.1"
@@ -1781,8 +1781,8 @@ packages:
     dependency: "direct overridden"
     description:
       path: "."
-      ref: fbcb56b9f399d61b52cc762412c538343e460923
-      resolved-ref: fbcb56b9f399d61b52cc762412c538343e460923
+      ref: "46d8402773fe3e85f15e4f0be97b92fddcd0a70e"
+      resolved-ref: "46d8402773fe3e85f15e4f0be97b92fddcd0a70e"
       url: "https://github.com/cypherstack/openalias.git"
     source: git
     version: "0.0.1"

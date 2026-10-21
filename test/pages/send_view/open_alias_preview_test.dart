@@ -173,7 +173,7 @@ class _Harness {
   late final service = OpenAliasService(
     externalCalls: () => !incognito,
     useTor: () => false,
-    lookup: (alias, {required isValidAddress, proxy}) {
+    lookup: (alias, {required isValidAddress, required proxy}) {
       final lookup = _Lookup(alias, isValidAddress);
       lookups.add(lookup);
       return CsOpenAliasOperation(lookup.result.future, () {
@@ -326,9 +326,6 @@ class _Harness {
     CsOpenAliasRecipient(
       domain: 'alice.example.com',
       address: literal,
-      application: 'xmr',
-      canonicalName: 'alice.example.com',
-      ttl: 300,
       fields: const {'recipient_address': literal},
     ),
   );
@@ -440,7 +437,12 @@ void main() {
       h.lookups.single.result.completeError(error);
       await h.finish(tester);
       expect(find.text('OpenAlias lookup failed'), findsOneWidget);
-      expect(find.text(error.userMessage), findsOneWidget);
+      expect(
+        find.text(
+          'No Monero OpenAlias record was found for alice.example.com.',
+        ),
+        findsOneWidget,
+      );
       expect(find.text('Generating transaction'), findsNothing);
       expect(find.text('Confirm send all'), findsNothing);
       expect(find.text('Transaction failed'), findsNothing);

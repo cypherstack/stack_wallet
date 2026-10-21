@@ -9,20 +9,26 @@ import '../tor_service.dart';
 
 final pOpenAliasService = Provider<OpenAliasService>((_) => OpenAliasService());
 
-/// Whether [input] has the form of an OpenAlias name.
-bool isOpenAlias(String input) {
-  try {
-    normalizeOpenAlias(input);
-    return true;
-  } on CsOpenAliasInvalidAliasException {
-    return false;
-  }
-}
+const openAliasLookupFailedTitle = 'OpenAlias lookup failed';
+
+String openAliasErrorMessage(CsOpenAliasException e) => switch (e) {
+  CsOpenAliasInvalidAliasException() => 'Enter a valid address or OpenAlias.',
+  CsOpenAliasNoRecordException() =>
+    'No Monero OpenAlias record was found for ${e.alias}.',
+  CsOpenAliasInvalidRecordException() =>
+    'This alias has an invalid or unsupported Monero record for this wallet.',
+  CsOpenAliasDnssecException() =>
+    'DNSSEC verification failed or is unavailable. Ask the recipient for a '
+        'verified alias or address.',
+  CsOpenAliasNetworkException() =>
+    'OpenAlias lookup failed. Check your connection and try again.',
+  CsOpenAliasCancelledException() => 'OpenAlias lookup cancelled.',
+};
 
 typedef OpenAliasLookup = CsOpenAliasOperation<CsOpenAliasRecipient> Function(
   String alias, {
   required bool Function(String address) isValidAddress,
-  CsOpenAliasProxy? proxy,
+  required CsOpenAliasProxy? proxy,
 });
 
 /// Thrown by [OpenAliasService.lookup] when no lookup may be sent.

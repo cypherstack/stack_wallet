@@ -30,8 +30,8 @@ void main() {
       service.lookup('dan@cypherstack', isValidAddress: validate).result,
       throwsA(
         isA<CsOpenAliasNoRecordException>().having(
-          (error) => error.userMessage,
-          'userMessage',
+          openAliasErrorMessage,
+          'openAliasErrorMessage',
           'No Monero OpenAlias record was found for dan.cypherstack.',
         ),
       ),

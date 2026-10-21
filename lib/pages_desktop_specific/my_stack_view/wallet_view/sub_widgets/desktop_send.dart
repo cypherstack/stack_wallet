@@ -490,7 +490,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           context: context,
           builder: (context) => SimpleDesktopDialog(
             title: openAliasLookupFailedTitle,
-            message: e is CsOpenAliasException ? e.userMessage : e.toString(),
+            message: e is CsOpenAliasException
+                ? openAliasErrorMessage(e)
+                : e.toString(),
           ),
         ),
       );

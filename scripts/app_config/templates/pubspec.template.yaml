@@ -124,7 +124,7 @@ dependencies:
   cs_openalias:
     git:
       url: https://github.com/cypherstack/cs_openalias.git
-      ref: d0755ff124d3f384ba1895800f5155af0280617b
+      ref: 15b980d57c8174a131f795543356d5684d2354bc
   socks_socket: ^2.0.0
   local_auth: ^2.3.0
   permission_handler: ^13.0.1
@@ -317,15 +317,15 @@ dependency_overrides:
   openalias:
     git:
       url: https://github.com/cypherstack/openalias.git
-      ref: fbcb56b9f399d61b52cc762412c538343e460923
+      ref: 46d8402773fe3e85f15e4f0be97b92fddcd0a70e
   dnssec_resolver:
     git:
       url: https://github.com/cypherstack/dnssec_resolver.git
-      ref: e03de21083a819732efef323c62c1bc259fe17f5
+      ref: 8e133d6a60acc5f15ce88fb2d7c9acd603896c55
   doh_transport:
     git:
       url: https://github.com/cypherstack/doh_transport.git
-      ref: a6a5d8e8843c045ae4f18bee9e34ffde5d457910
+      ref: 3dbac4862762f62cb15a01a064b6861a77bb56ea
 
   # required for: native_toolchain_rust >=1.0.3 depends on toml ^0.18.0
   # stellar sdk package needs to get 0.18.0 to remove this override
