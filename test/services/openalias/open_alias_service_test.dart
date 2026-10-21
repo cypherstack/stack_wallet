@@ -13,16 +13,19 @@ class _Calls {
   final aliases = <String>[];
   final proxies = <CsOpenAliasProxy?>[];
   final validators = <bool Function(String)>[];
+  final applications = <String>[];
   final operations = <CsOpenAliasOperation<CsOpenAliasRecipient>>[];
 
   CsOpenAliasOperation<CsOpenAliasRecipient> lookup(
     String alias, {
     required bool Function(String address) isValidAddress,
+    required String application,
     required CsOpenAliasProxy? proxy,
   }) {
     aliases.add(alias);
     proxies.add(proxy);
     validators.add(isValidAddress);
+    applications.add(application);
     final operation = CsOpenAliasOperation<CsOpenAliasRecipient>(
       Future.error(CsOpenAliasNoRecordException('no record', alias: alias)),
       () {},
@@ -63,7 +66,7 @@ void main() {
         const CsOpenAliasNetworkException('', alias: alias),
         const CsOpenAliasCancelledException('', alias: alias),
       ])
-        openAliasErrorMessage(e),
+        openAliasErrorMessage(e, 'Monero'),
     };
     expect(messages, hasLength(6));
     expect(
@@ -81,7 +84,11 @@ void main() {
     );
     expect(service.unavailableReason(), incognito);
     expect(
-      () => service.lookup('alice@example.com', isValidAddress: (_) => true),
+      () => service.lookup(
+        'alice@example.com',
+        isValidAddress: (_) => true,
+        application: 'xmr',
+      ),
       throwsA(
         isA<OpenAliasUnavailableException>().having(
           (e) => e.message,
@@ -109,7 +116,11 @@ void main() {
       );
       expect(service.unavailableReason(), torUnavailable);
       expect(
-        () => service.lookup('alice@example.com', isValidAddress: (_) => true),
+        () => service.lookup(
+          'alice@example.com',
+          isValidAddress: (_) => true,
+          application: 'xmr',
+        ),
         throwsA(
           isA<OpenAliasUnavailableException>().having(
             (e) => e.message,
@@ -133,7 +144,11 @@ void main() {
         lookup: calls.lookup,
       );
       expect(service.unavailableReason(), isNull);
-      service.lookup('alice@example.com', isValidAddress: (_) => true);
+      service.lookup(
+        'alice@example.com',
+        isValidAddress: (_) => true,
+        application: 'xmr',
+      );
       expect(calls.proxies.single?.address, tor ? '127.0.0.1' : null);
       expect(calls.proxies.single?.port, tor ? 9050 : null);
     }
@@ -150,9 +165,11 @@ void main() {
     final operation = service.lookup(
       ' Alice@Example.com',
       isValidAddress: validate,
+      application: 'btc',
     );
     expect(calls.aliases.single, ' Alice@Example.com');
     expect(calls.validators.single, same(validate));
+    expect(calls.applications.single, 'btc');
     expect(operation, same(calls.operations.single));
   });
 
@@ -168,11 +185,19 @@ void main() {
       useTor: () => false,
       lookup: calls.lookup,
     );
-    service.lookup('alice@example.com', isValidAddress: (_) => true);
+    service.lookup(
+      'alice@example.com',
+      isValidAddress: (_) => true,
+      application: 'xmr',
+    );
     expect(reads, 1);
     external = false;
     expect(
-      () => service.lookup('alice@example.com', isValidAddress: (_) => true),
+      () => service.lookup(
+        'alice@example.com',
+        isValidAddress: (_) => true,
+        application: 'xmr',
+      ),
       throwsA(isA<OpenAliasUnavailableException>()),
     );
     expect(reads, 2);

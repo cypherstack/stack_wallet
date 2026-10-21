@@ -17,7 +17,11 @@ void main() {
     'live signed alias uses native DNSSEC and Monero address validation',
     () async {
       final result = await service
-          .lookup('donate.getmonero.org', isValidAddress: validate)
+          .lookup(
+            'donate.getmonero.org',
+            isValidAddress: validate,
+            application: 'xmr',
+          )
           .result;
       expect(result.domain, 'donate.getmonero.org');
       expect(validate(result.address), isTrue);
@@ -27,10 +31,16 @@ void main() {
 
   test('live nonexistent name is reported with the alias', () async {
     await expectLater(
-      service.lookup('dan@cypherstack', isValidAddress: validate).result,
+      service
+          .lookup(
+            'dan@cypherstack',
+            isValidAddress: validate,
+            application: 'xmr',
+          )
+          .result,
       throwsA(
         isA<CsOpenAliasNoRecordException>().having(
-          openAliasErrorMessage,
+          (e) => openAliasErrorMessage(e, 'Monero'),
           'openAliasErrorMessage',
           'No Monero OpenAlias record was found for dan.cypherstack.',
         ),
@@ -41,7 +51,9 @@ void main() {
   for (final domain in ['openalias.org', 'dnssec-failed.org']) {
     test('live unsigned or bogus DNS is rejected: $domain', () async {
       await expectLater(
-        service.lookup(domain, isValidAddress: validate).result,
+        service
+            .lookup(domain, isValidAddress: validate, application: 'xmr')
+            .result,
         throwsA(isA<CsOpenAliasException>()),
       );
     }, skip: skip);
