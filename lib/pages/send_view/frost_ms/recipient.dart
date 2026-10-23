@@ -91,11 +91,21 @@ class _RecipientState extends ConsumerState<Recipient> {
 
   RecipientId get _id => (walletId: widget.walletId, index: widget.index);
 
+  Amount? _parseAmount() {
+    // Read the current locale directly: controller listeners can run during
+    // relocalization before pAmountFormatter has updated its cached locale.
+    return ref
+        .read(pAmountUnit(widget.coin))
+        .tryParse(
+          amountController.text,
+          locale: ref.read(localeServiceChangeNotifierProvider).locale,
+          coin: widget.coin,
+        );
+  }
+
   void _updateRecipientData({String? label, bool replaceLabel = false}) {
     final address = addressController.text;
-    final amount = ref
-        .read(pAmountFormatter(widget.coin))
-        .tryParseEditable(amountController.text);
+    final amount = _parseAmount();
     final previous = ref.read(pRecipient(_id));
 
     ref.read(pRecipient(_id).notifier).state = (
@@ -174,9 +184,7 @@ class _RecipientState extends ConsumerState<Recipient> {
 
   void _cryptoAmountChanged() async {
     if (!_cryptoAmountChangeLock) {
-      Amount? cryptoAmount = ref
-          .read(pAmountFormatter(widget.coin))
-          .tryParseEditable(amountController.text);
+      Amount? cryptoAmount = _parseAmount();
       if (cryptoAmount != null) {
         if (ref.read(pRecipient(_id))?.amount != null &&
             ref.read(pRecipient(_id))?.amount == cryptoAmount) {
