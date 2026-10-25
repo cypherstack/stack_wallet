@@ -11,7 +11,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
       ca-certificates curl file git gnupg python3 sudo unzip xz-utils \
-      automake build-essential cmake debhelper libtool meson ninja-build pkg-config rsync \
+      automake build-essential cmake debhelper libtool meson ninja-build patchelf pkg-config rsync \
       clang libclang-dev llvm \
       libgcrypt20-dev libgirepository1.0-dev libgit2-dev libglib2.0-dev libgtk-3-dev \
       libjsoncpp-dev liblzma-dev libncurses5-dev libncursesw5-dev \
