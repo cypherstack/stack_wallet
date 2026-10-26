@@ -8,6 +8,7 @@ import '../../../utilities/address_utils.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/amount/amount_field_relocalization.dart';
 import '../../../utilities/amount/amount_formatter.dart';
+import '../../../utilities/amount/amount_parser.dart';
 import '../../../utilities/amount/amount_input_formatter.dart';
 import '../../../utilities/amount/amount_unit.dart';
 import '../../../utilities/barcode_scanner_interface.dart';
@@ -85,22 +86,27 @@ class _RecipientState extends ConsumerState<Recipient> {
   late final FocusNode addressFocusNode, amountFocusNode;
 
   bool _addressIsEmpty = true;
-  final bool _cryptoAmountChangeLock = false;
+  bool _cryptoAmountChangeLock = false;
 
   bool get isSingle => widget.remove == null;
 
   RecipientId get _id => (walletId: widget.walletId, index: widget.index);
 
-  Amount? _parseAmount() {
-    // Read the current locale directly: controller listeners can run during
-    // relocalization before pAmountFormatter has updated its cached locale.
-    return ref
-        .read(pAmountUnit(widget.coin))
-        .tryParse(
-          amountController.text,
-          locale: ref.read(localeServiceChangeNotifierProvider).locale,
-          coin: widget.coin,
-        );
+  Amount? _parseAmount() => AmountParser.tryParseEditable(
+    amountController.text,
+    locale: ref.read(localeServiceChangeNotifierProvider).locale,
+    unit: ref.read(pAmountUnit(widget.coin)),
+    coin: widget.coin,
+  );
+
+  void _updateAmountDisplay(VoidCallback update) {
+    final wasLocked = _cryptoAmountChangeLock;
+    _cryptoAmountChangeLock = true;
+    try {
+      update();
+    } finally {
+      _cryptoAmountChangeLock = wasLocked;
+    }
   }
 
   void _updateRecipientData({String? label, bool replaceLabel = false}) {
@@ -307,7 +313,11 @@ class _RecipientState extends ConsumerState<Recipient> {
     final String locale = ref.watch(
       localeServiceChangeNotifierProvider.select((value) => value.locale),
     );
-    listenForAmountRelocalization(ref.listen, controllers: [amountController]);
+    listenForAmountRelocalization(
+      ref.listen,
+      controllers: [amountController],
+      updateControllers: _updateAmountDisplay,
+    );
     // Keep the amount, rather than the number typed, when the unit changes.
     ref.listen<AmountFormatter>(pAmountFormatter(widget.coin), (
       previous,
@@ -315,7 +325,9 @@ class _RecipientState extends ConsumerState<Recipient> {
     ) {
       final amount = ref.read(pRecipient(_id))?.amount;
       if (previous?.unit != next.unit && amount != null) {
-        amountController.text = next.formatEditable(amount);
+        _updateAmountDisplay(() {
+          amountController.text = next.formatEditable(amount);
+        });
       }
     });
 

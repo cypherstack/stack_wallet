@@ -43,6 +43,7 @@ import '../../../../utilities/address_utils.dart';
 import '../../../../utilities/amount/amount.dart';
 import '../../../../utilities/amount/amount_field_relocalization.dart';
 import '../../../../utilities/amount/amount_formatter.dart';
+import '../../../../utilities/amount/amount_parser.dart';
 import '../../../../utilities/amount/amount_input_formatter.dart';
 import '../../../../utilities/amount/amount_unit.dart';
 import '../../../../utilities/assets.dart';
@@ -903,12 +904,26 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
   bool _xelisSendAll = false;
 
+  // Controller assignments used for display must not edit the stored amount.
+  void _updateAmountDisplay(VoidCallback update) {
+    final wasLocked = _cryptoAmountChangeLock;
+    _cryptoAmountChangeLock = true;
+    try {
+      update();
+    } finally {
+      _cryptoAmountChangeLock = wasLocked;
+    }
+  }
+
   void _cryptoAmountChanged() async {
-    _xelisSendAll = false;
     if (!_cryptoAmountChangeLock) {
-      final cryptoAmount = ref
-          .read(pAmountFormatter(coin))
-          .tryParseEditable(cryptoAmountController.text);
+      _xelisSendAll = false;
+      final cryptoAmount = AmountParser.tryParseEditable(
+        cryptoAmountController.text,
+        locale: ref.read(localeServiceChangeNotifierProvider).locale,
+        unit: ref.read(pAmountUnit(coin)),
+        coin: coin,
+      );
       final Amount? amount;
       if (cryptoAmount != null) {
         amount = cryptoAmount;
@@ -1337,6 +1352,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   }
 
   void fiatTextFieldOnChanged(String baseAmountString) {
+    _xelisSendAll = false;
     final baseAmount = Amount.tryParseFiatString(
       baseAmountString,
       locale: ref.read(localeServiceChangeNotifierProvider).locale,
@@ -1547,7 +1563,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     listenForAmountRelocalization(
       ref.listen,
       controllers: [cryptoAmountController, baseAmountController],
-      onRelocalized: _cryptoAmountChanged,
+      updateControllers: _updateAmountDisplay,
     );
     // Keep the amount, rather than the number typed, when the unit changes.
     ref.listen<AmountFormatter>(pAmountFormatter(coin), (previous, next) {
@@ -1555,7 +1571,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       if (previous?.unit != next.unit && amount != null) {
         // Only the display changes, so keep the send all intent.
         final xelisSendAll = _xelisSendAll;
-        cryptoAmountController.text = next.formatEditable(amount);
+        _updateAmountDisplay(() {
+          cryptoAmountController.text = next.formatEditable(amount);
+        });
         _xelisSendAll = xelisSendAll;
       }
     });
