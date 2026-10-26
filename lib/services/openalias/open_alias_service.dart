@@ -4,6 +4,7 @@ import 'package:cs_openalias/cs_openalias.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app_config.dart';
+import '../../utilities/logger.dart';
 import '../../utilities/prefs.dart';
 import '../tor_service.dart';
 
@@ -27,6 +28,8 @@ String openAliasErrorMessage(CsOpenAliasException e, String coinName) =>
         'OpenAlias lookup failed. Check your connection and try again.',
       CsOpenAliasCancelledException() => 'OpenAlias lookup cancelled.',
     };
+
+String openAliasKey(String input) => input.trim().toLowerCase();
 
 typedef OpenAliasLookup = CsOpenAliasOperation<CsOpenAliasRecipient> Function(
   String alias, {
@@ -90,6 +93,19 @@ class OpenAliasService {
     );
   }
 
+  /// Starts [lookup] for the alias typed into a send field.
+  OpenAliasResolution resolve(
+    String input, {
+    required bool Function(String address) isValidAddress,
+    required String application,
+    required String coinName,
+  }) => OpenAliasResolution._(
+    () =>
+        lookup(input, isValidAddress: isValidAddress, application: application),
+    alias: openAliasKey(input),
+    coinName: coinName,
+  );
+
   ({String? unavailable, CsOpenAliasProxy? proxy}) _route() {
     if (!_externalCalls()) {
       return (
@@ -118,5 +134,68 @@ class OpenAliasService {
       unavailable: 'Tor is unavailable. No lookup was sent.',
       proxy: null,
     );
+  }
+}
+
+sealed class OpenAliasOutcome {
+  const OpenAliasOutcome();
+}
+
+final class OpenAliasResolved extends OpenAliasOutcome {
+  const OpenAliasResolved({required this.alias, required this.address});
+
+  final String alias;
+  final String address;
+}
+
+final class OpenAliasFailed extends OpenAliasOutcome {
+  const OpenAliasFailed(this.message);
+
+  String get title => openAliasLookupFailedTitle;
+  final String message;
+}
+
+final class OpenAliasCancelled extends OpenAliasOutcome {
+  const OpenAliasCancelled();
+}
+
+/// A lookup started by [OpenAliasService.resolve].
+final class OpenAliasResolution {
+  OpenAliasResolution._(
+    CsOpenAliasOperation<CsOpenAliasRecipient> Function() start, {
+    required String alias,
+    required String coinName,
+  }) {
+    outcome = _run(start, alias, coinName);
+  }
+
+  late final Future<OpenAliasOutcome> outcome;
+  CsOpenAliasOperation<CsOpenAliasRecipient>? _operation;
+  bool _cancelled = false;
+
+  void cancel() {
+    _cancelled = true;
+    _operation?.cancel();
+  }
+
+  Future<OpenAliasOutcome> _run(
+    CsOpenAliasOperation<CsOpenAliasRecipient> Function() start,
+    String alias,
+    String coinName,
+  ) async {
+    try {
+      _operation = start();
+      final address = (await _operation!.result).address;
+      if (_cancelled) return const OpenAliasCancelled();
+      return OpenAliasResolved(alias: alias, address: address);
+    } catch (e, s) {
+      if (_cancelled) return const OpenAliasCancelled();
+      Logging.instance.w("OpenAlias lookup failed", error: e, stackTrace: s);
+      return OpenAliasFailed(
+        e is CsOpenAliasException
+            ? openAliasErrorMessage(e, coinName)
+            : e.toString(),
+      );
+    }
   }
 }

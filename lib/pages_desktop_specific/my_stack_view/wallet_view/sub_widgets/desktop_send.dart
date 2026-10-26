@@ -444,9 +444,14 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   /// to. Returns the alias, trimmed and lowercased, or null if the lookup
   /// failed or was cancelled.
   Future<String?> _resolveOpenAlias(String application) async {
-    final alias = _address!.trim().toLowerCase();
-    CsOpenAliasOperation<CsOpenAliasRecipient>? operation;
-    bool cancelled = false;
+    final resolution = ref
+        .read(pOpenAliasService)
+        .resolve(
+          _address!,
+          isValidAddress: coin.validateAddress,
+          application: application,
+          coinName: coin.prettyName,
+        );
     unawaited(
       showDialog<void>(
         context: context,
@@ -461,8 +466,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               coin: coin,
               isSpark: false,
               onCancel: () {
-                cancelled = true;
-                operation?.cancel();
+                resolution.cancel();
                 Navigator.of(context).pop();
               },
             ),
@@ -470,37 +474,27 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         ),
       ),
     );
-    try {
-      operation = ref
-          .read(pOpenAliasService)
-          .lookup(
-            _address!,
-            isValidAddress: coin.validateAddress,
-            application: application,
-          );
-      final address = (await operation.result).address;
-      if (cancelled || !mounted) return null;
-      Navigator.of(context, rootNavigator: true).pop();
-      sendToController.text = address;
-      _address = address;
-      _setValidAddressProviders(_address);
-      return alias;
-    } catch (e, s) {
-      if (cancelled || !mounted) return null;
-      Logging.instance.w("OpenAlias lookup failed", error: e, stackTrace: s);
-      Navigator.of(context, rootNavigator: true).pop();
-      unawaited(
-        showDialog<void>(
-          context: context,
-          builder: (context) => SimpleDesktopDialog(
-            title: openAliasLookupFailedTitle,
-            message: e is CsOpenAliasException
-                ? openAliasErrorMessage(e, coin.prettyName)
-                : e.toString(),
+    final outcome = await resolution.outcome;
+    if (!mounted) return null;
+    switch (outcome) {
+      case OpenAliasCancelled():
+        return null;
+      case OpenAliasResolved(:final alias, :final address):
+        Navigator.of(context, rootNavigator: true).pop();
+        sendToController.text = address;
+        _address = address;
+        _setValidAddressProviders(_address);
+        return alias;
+      case OpenAliasFailed(:final title, :final message):
+        Navigator.of(context, rootNavigator: true).pop();
+        unawaited(
+          showDialog<void>(
+            context: context,
+            builder: (context) =>
+                SimpleDesktopDialog(title: title, message: message),
           ),
-        ),
-      );
-      return null;
+        );
+        return null;
     }
   }
 

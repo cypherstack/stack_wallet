@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:cs_openalias/cs_openalias.dart';
@@ -34,6 +35,20 @@ class _Calls {
     return operation;
   }
 }
+
+OpenAliasService _service(OpenAliasLookup lookup, {bool external = true}) =>
+    OpenAliasService(
+      externalCalls: () => external,
+      useTor: () => false,
+      lookup: lookup,
+    );
+
+OpenAliasResolution _resolve(OpenAliasService service) => service.resolve(
+  ' Alice@Example.com',
+  isValidAddress: (_) => true,
+  application: 'xmr',
+  coinName: 'Monero',
+);
 
 void main() {
   test('isOpenAlias accepts names and rejects addresses', () {
@@ -202,5 +217,117 @@ void main() {
     );
     expect(reads, 2);
     expect(calls.aliases, hasLength(1));
+  });
+
+  group('resolve', () {
+    test('returns the normalized alias and the address', () async {
+      final aliases = <String>[];
+      final service = _service((
+        alias, {
+        required isValidAddress,
+        required application,
+        required proxy,
+      }) {
+        aliases.add(alias);
+        return CsOpenAliasOperation(
+          Future.value(
+            CsOpenAliasRecipient(
+              domain: 'alice.example.com',
+              address: 'resolved',
+              fields: const {'recipient_address': 'resolved'},
+            ),
+          ),
+          () {},
+        );
+      });
+      final outcome = await _resolve(service).outcome;
+      expect(aliases.single, ' Alice@Example.com');
+      expect(
+        outcome,
+        isA<OpenAliasResolved>()
+            .having((e) => e.alias, 'alias', 'alice@example.com')
+            .having((e) => e.address, 'address', 'resolved'),
+      );
+    });
+
+    test('a lookup failure becomes its user message', () async {
+      final service = _service((
+        alias, {
+        required isValidAddress,
+        required application,
+        required proxy,
+      }) {
+        return CsOpenAliasOperation(
+          Future.error(
+            const CsOpenAliasNoRecordException('', alias: 'alice.example.com'),
+          ),
+          () {},
+        );
+      });
+      final outcome = await _resolve(service).outcome;
+      expect(
+        outcome,
+        isA<OpenAliasFailed>()
+            .having((e) => e.title, 'title', openAliasLookupFailedTitle)
+            .having(
+              (e) => e.message,
+              'message',
+              'No Monero OpenAlias record was found for alice.example.com.',
+            ),
+      );
+    });
+
+    test('an unavailable lookup shows the reason', () async {
+      final calls = _Calls();
+      final outcome = await _resolve(_service(calls.lookup, external: false))
+          .outcome;
+      expect(
+        outcome,
+        isA<OpenAliasFailed>().having((e) => e.message, 'message', incognito),
+      );
+      expect(calls.aliases, isEmpty);
+    });
+
+    test('any other error shows its text', () async {
+      final service = _service((
+        alias, {
+        required isValidAddress,
+        required application,
+        required proxy,
+      }) {
+        throw ArgumentError('bad application');
+      });
+      final outcome = await _resolve(service).outcome;
+      expect(
+        outcome,
+        isA<OpenAliasFailed>().having(
+          (e) => e.message,
+          'message',
+          'Invalid argument(s): bad application',
+        ),
+      );
+    });
+
+    test('cancel cancels the lookup', () async {
+      final result = Completer<CsOpenAliasRecipient>();
+      var cancels = 0;
+      final service = _service((
+        alias, {
+        required isValidAddress,
+        required application,
+        required proxy,
+      }) {
+        return CsOpenAliasOperation(result.future, () {
+          cancels++;
+          result.completeError(
+            CsOpenAliasCancelledException('cancelled', alias: alias),
+          );
+        });
+      });
+      final resolution = _resolve(service);
+      resolution.cancel();
+      expect(cancels, 1);
+      expect(await resolution.outcome, isA<OpenAliasCancelled>());
+    });
   });
 }
