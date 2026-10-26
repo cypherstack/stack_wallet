@@ -191,11 +191,11 @@ final class OpenAliasResolution {
     } catch (e, s) {
       if (_cancelled) return const OpenAliasCancelled();
       Logging.instance.w("OpenAlias lookup failed", error: e, stackTrace: s);
-      return OpenAliasFailed(
-        e is CsOpenAliasException
-            ? openAliasErrorMessage(e, coinName)
-            : e.toString(),
-      );
+      return OpenAliasFailed(switch (e) {
+        CsOpenAliasException() => openAliasErrorMessage(e, coinName),
+        OpenAliasUnavailableException(:final message) => message,
+        _ => 'The OpenAlias lookup failed.',
+      });
     }
   }
 }

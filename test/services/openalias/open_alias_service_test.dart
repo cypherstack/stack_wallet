@@ -288,7 +288,7 @@ void main() {
       expect(calls.aliases, isEmpty);
     });
 
-    test('any other error shows its text', () async {
+    test('any other error is logged, not shown', () async {
       final service = _service((
         alias, {
         required isValidAddress,
@@ -297,15 +297,22 @@ void main() {
       }) {
         throw ArgumentError('bad application');
       });
-      final outcome = await _resolve(service).outcome;
+      final logged = <String>[];
+      final outcome = await runZoned(
+        () => _resolve(service).outcome,
+        zoneSpecification: ZoneSpecification(
+          print: (_, _, _, line) => logged.add(line),
+        ),
+      );
       expect(
         outcome,
         isA<OpenAliasFailed>().having(
           (e) => e.message,
           'message',
-          'Invalid argument(s): bad application',
+          'The OpenAlias lookup failed.',
         ),
       );
+      expect(logged.single, contains('bad application'));
     });
 
     test('cancel cancels the lookup', () async {
