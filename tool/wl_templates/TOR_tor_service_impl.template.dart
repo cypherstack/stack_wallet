@@ -10,6 +10,7 @@ import '../../services/fusion_tor_service.dart';
 import '../../services/tor_service.dart';
 //ON
 import '../../utilities/logger.dart';
+
 //END_ON
 
 TorService get torService => _getInterface();
