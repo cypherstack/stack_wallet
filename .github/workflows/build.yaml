@@ -88,6 +88,9 @@ jobs:
           USE_SYSTEM_SECURE_STORAGE_DEPS: "1"
         run: flutter build linux --release --verbose
 
+      - name: Prepare Linux release bundle
+        run: python3 scripts/linux/prepare_release_bundle.py build/linux/x64/release/bundle
+
       - name: Package
         run: |
           tar -czf "stack_wallet-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz" \
@@ -481,6 +484,9 @@ jobs:
           USE_SYSTEM_SECURE_STORAGE_DEPS: "1"
         run: flutter build linux --release --verbose
 
+      - name: Prepare Linux release bundle
+        run: python3 scripts/linux/prepare_release_bundle.py build/linux/x64/release/bundle
+
       - name: Package
         run: |
           tar -czf "campfire-linux-x86_64-${{ steps.ver.outputs.version }}.tar.gz" \
@@ -544,6 +550,9 @@ jobs:
         env:
           USE_SYSTEM_SECURE_STORAGE_DEPS: "1"
         run: flutter build linux --release --verbose
+
+      - name: Prepare Linux release bundle
+        run: python3 scripts/linux/prepare_release_bundle.py build/linux/x64/release/bundle
 
       - name: Package
         run: |

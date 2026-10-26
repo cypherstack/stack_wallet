@@ -187,6 +187,29 @@ flutter pub get
 flutter run linux
 ```
 
+#### Linux release bundle preparation
+
+After `flutter build linux --release`, run this from the repository root before
+archiving the bundle or using it to build an AppImage or Flatpak:
+
+```sh
+sudo apt-get install binutils patchelf python3
+python3 scripts/linux/prepare_release_bundle.py build/linux/x64/release/bundle
+```
+
+The helper clears the executable-stack flag on the bundled Monero, Wownero and
+Salvium wallet libraries, which modern Linux loaders can otherwise reject. It
+then checks every ELF in the bundle and fails if any still requests an executable
+stack. Other libraries are not patched automatically. Ubuntu 24.04's `patchelf`
+supports the required `--clear-execstack` option. CI runs this before producing
+the Linux tarball, so both downstream packagers inherit the prepared bundle.
+
+Standalone regression tests (also require a C compiler):
+
+```sh
+python3 -m unittest discover -s scripts/linux/tests -p 'test_*.py' -v
+```
+
 ## Mac host
 
 ### Dependencies
