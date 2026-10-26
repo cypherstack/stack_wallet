@@ -1,6 +1,21 @@
 name: Test
 on: [pull_request]
 jobs:
+  linux-release-bundle:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install ELF test tools
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends binutils build-essential patchelf python3
+
+      - name: Test Linux release bundle preparation
+        run: python3 -m unittest discover -s scripts/linux/tests -p 'test_*.py' -v
+
   test:
     runs-on: ubuntu-24.04
     permissions:
