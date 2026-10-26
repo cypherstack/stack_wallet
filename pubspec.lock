@@ -520,8 +520,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "84e3e85ced4b41e502063bcaa3314c1ec60adce3"
-      resolved-ref: "84e3e85ced4b41e502063bcaa3314c1ec60adce3"
+      ref: "6c9376e1a196eec811a04c289e0008d928591427"
+      resolved-ref: "6c9376e1a196eec811a04c289e0008d928591427"
       url: "https://github.com/cypherstack/cs_openalias.git"
     source: git
     version: "0.0.1"
@@ -842,8 +842,8 @@ packages:
     dependency: "direct overridden"
     description:
       path: "."
-      ref: ea1f7c02e55915f7f96c95d8a476fcb3ca78e694
-      resolved-ref: ea1f7c02e55915f7f96c95d8a476fcb3ca78e694
+      ref: b33d6a2ca9e03884dc0d397e3a73fbb6e482e68d
+      resolved-ref: b33d6a2ca9e03884dc0d397e3a73fbb6e482e68d
       url: "https://github.com/cypherstack/dnssec_resolver.git"
     source: git
     version: "0.0.1"
@@ -1778,7 +1778,7 @@ packages:
     source: hosted
     version: "4.5.0"
   openalias:
-    dependency: "direct dev"
+    dependency: "direct overridden"
     description:
       path: "."
       ref: "46d8402773fe3e85f15e4f0be97b92fddcd0a70e"

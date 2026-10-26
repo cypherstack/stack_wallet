@@ -124,7 +124,7 @@ dependencies:
   cs_openalias:
     git:
       url: https://github.com/cypherstack/cs_openalias.git
-      ref: 84e3e85ced4b41e502063bcaa3314c1ec60adce3
+      ref: 6c9376e1a196eec811a04c289e0008d928591427
   socks_socket: ^2.0.0
   local_auth: ^2.3.0
   permission_handler: ^13.0.1
@@ -302,10 +302,6 @@ dev_dependencies:
   isar_community_generator: 3.3.2
   # Later drift_dev releases require analyzer >=13; Isar supports <11.
   drift_dev: 2.34.0
-  openalias:
-    git:
-      url: https://github.com/cypherstack/openalias.git
-      ref: 46d8402773fe3e85f15e4f0be97b92fddcd0a70e
 
 flutter_native_splash:
   image: assets/icon/splash.png
@@ -325,7 +321,7 @@ dependency_overrides:
   dnssec_resolver:
     git:
       url: https://github.com/cypherstack/dnssec_resolver.git
-      ref: ea1f7c02e55915f7f96c95d8a476fcb3ca78e694
+      ref: b33d6a2ca9e03884dc0d397e3a73fbb6e482e68d
   doh_transport:
     git:
       url: https://github.com/cypherstack/doh_transport.git

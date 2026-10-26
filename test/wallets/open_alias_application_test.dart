@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:openalias/openalias.dart' show isOpenAliasApplication;
+import 'package:cs_openalias/cs_openalias.dart' show isOpenAliasApplication;
 import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
