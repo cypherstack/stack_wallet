@@ -152,6 +152,7 @@ class _SendViewState extends ConsumerState<SendView> {
 
   Amount? _cachedAmountToSend;
   String? _address;
+  OpenAliasResolved? _openAlias;
 
   /// The [pRecipient] index of each recipient's form while sending to more
   /// than one recipient, otherwise null.
@@ -239,8 +240,13 @@ class _SendViewState extends ConsumerState<SendView> {
   }
 
   void _addRecipientTapped() {
+    final resolved = _openAlias;
+    final address =
+        resolved != null && resolved.alias == openAliasKey(_address ?? "")
+        ? resolved.address
+        : _address ?? "";
     _setMultiRecipients([
-      (address: _address ?? "", amount: ref.read(pSendAmount), label: null),
+      (address: address, amount: ref.read(pSendAmount), label: null),
       (address: "", amount: null, label: null),
     ]);
   }
@@ -1021,10 +1027,9 @@ class _SendViewState extends ConsumerState<SendView> {
     }
   }
 
-  /// Replaces the OpenAlias in the address field with the address it resolves
-  /// to. Returns the alias, trimmed and lowercased, or null if the lookup
+  /// Looks up the OpenAlias in the address field. Returns null if the lookup
   /// failed or was cancelled.
-  Future<String?> _resolveOpenAlias(String application) async {
+  Future<OpenAliasResolved?> _resolveOpenAlias(String application) async {
     final resolution = ref
         .read(pOpenAliasService)
         .resolve(
@@ -1053,12 +1058,9 @@ class _SendViewState extends ConsumerState<SendView> {
     switch (outcome) {
       case OpenAliasCancelled():
         return null;
-      case OpenAliasResolved(:final alias, :final address):
+      case OpenAliasResolved():
         Navigator.of(context, rootNavigator: true).pop();
-        sendToController.text = address;
-        _address = address;
-        _setValidAddressProviders(_address);
-        return alias;
+        return outcome;
       case OpenAliasFailed(:final title, :final message):
         Navigator.of(context, rootNavigator: true).pop();
         unawaited(
@@ -1077,13 +1079,21 @@ class _SendViewState extends ConsumerState<SendView> {
     await Future<void>.delayed(const Duration(milliseconds: 100));
     final wallet = ref.read(pWallets).getWallet(walletId);
     String? openAlias;
+    String? resolvedAddress;
     final application = coin.openAliasApplication;
     if (application != null &&
         !coin.validateAddress(_address ?? "") &&
         isOpenAlias(_address ?? "")) {
-      openAlias = await _resolveOpenAlias(application);
-      if (openAlias == null || !mounted) return;
+      var resolved = _openAlias;
+      if (resolved?.alias != openAliasKey(_address!)) {
+        resolved = _openAlias = await _resolveOpenAlias(application);
+      }
+      if (resolved == null || !mounted) return;
+      openAlias = resolved.alias;
+      resolvedAddress = resolved.address;
+      _setValidAddressProviders(resolvedAddress);
     }
+    late final recipientAddress = resolvedAddress ?? _address!;
 
     final Amount amount = ref.read(pSendAmount)!;
     final Amount availableBalance;
@@ -1227,7 +1237,7 @@ class _SendViewState extends ConsumerState<SendView> {
                 txData: TxData(
                   sparkRecipients: [
                     (
-                      address: _address!,
+                      address: recipientAddress,
                       amount: amount,
                       memo: memoController.text,
                       isChange: false,
@@ -1246,11 +1256,11 @@ class _SendViewState extends ConsumerState<SendView> {
                 txData: TxData(
                   recipients: [
                     TxRecipient(
-                      address: _address!,
+                      address: recipientAddress,
                       amount: amount,
                       isChange: false,
                       addressType: wallet.cryptoCurrency.getAddressType(
-                        _address!,
+                        recipientAddress,
                       )!,
                     ),
                   ],
@@ -1273,18 +1283,18 @@ class _SendViewState extends ConsumerState<SendView> {
                     ? null
                     : [
                         TxRecipient(
-                          address: _address!,
+                          address: recipientAddress,
                           amount: amount,
                           isChange: false,
                           addressType: wallet.cryptoCurrency.getAddressType(
-                            _address!,
+                            recipientAddress,
                           )!,
                         ),
                       ],
                 sparkRecipients: ref.read(pValidSparkSendToAddress)
                     ? [
                         (
-                          address: _address!,
+                          address: recipientAddress,
                           amount: amount,
                           memo: memoController.text,
                           isChange: false,
@@ -1303,10 +1313,12 @@ class _SendViewState extends ConsumerState<SendView> {
           txData: TxData(
             recipients: [
               TxRecipient(
-                address: _address!,
+                address: recipientAddress,
                 amount: amount,
                 isChange: false,
-                addressType: wallet.cryptoCurrency.getAddressType(_address!)!,
+                addressType: wallet.cryptoCurrency.getAddressType(
+                  recipientAddress,
+                )!,
               ),
             ],
             openAlias: openAlias,
@@ -1331,11 +1343,11 @@ class _SendViewState extends ConsumerState<SendView> {
                 _multiRecipients?.toTxRecipients(wallet.cryptoCurrency) ??
                 [
                   TxRecipient(
-                    address: _address!,
+                    address: recipientAddress,
                     amount: amount,
                     isChange: false,
                     addressType: wallet.cryptoCurrency.getAddressType(
-                      _address!,
+                      recipientAddress,
                     )!,
                   ),
                 ],
@@ -1445,6 +1457,7 @@ class _SendViewState extends ConsumerState<SendView> {
     if (!mounted) {
       return;
     }
+    _openAlias = null;
     sendToController.text = "";
     cryptoAmountController.text = "";
     baseAmountController.text = "";

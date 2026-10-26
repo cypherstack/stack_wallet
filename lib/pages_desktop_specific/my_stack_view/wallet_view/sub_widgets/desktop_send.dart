@@ -139,6 +139,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
   Amount? _cachedAmountToSend;
   String? _address;
+  OpenAliasResolved? _openAlias;
 
   /// The [pRecipient] index of each recipient's form while sending to more
   /// than one recipient, otherwise null.
@@ -440,10 +441,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     }
   }
 
-  /// Replaces the OpenAlias in the address field with the address it resolves
-  /// to. Returns the alias, trimmed and lowercased, or null if the lookup
+  /// Looks up the OpenAlias in the address field. Returns null if the lookup
   /// failed or was cancelled.
-  Future<String?> _resolveOpenAlias(String application) async {
+  Future<OpenAliasResolved?> _resolveOpenAlias(String application) async {
     final resolution = ref
         .read(pOpenAliasService)
         .resolve(
@@ -479,12 +479,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     switch (outcome) {
       case OpenAliasCancelled():
         return null;
-      case OpenAliasResolved(:final alias, :final address):
+      case OpenAliasResolved():
         Navigator.of(context, rootNavigator: true).pop();
-        sendToController.text = address;
-        _address = address;
-        _setValidAddressProviders(_address);
-        return alias;
+        return outcome;
       case OpenAliasFailed(:final title, :final message):
         Navigator.of(context, rootNavigator: true).pop();
         unawaited(
@@ -505,13 +502,21 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
     final wallet = ref.read(pWallets).getWallet(walletId);
     String? openAlias;
+    String? resolvedAddress;
     final application = coin.openAliasApplication;
     if (application != null &&
         !coin.validateAddress(_address ?? "") &&
         isOpenAlias(_address ?? "")) {
-      openAlias = await _resolveOpenAlias(application);
-      if (openAlias == null || !mounted) return;
+      var resolved = _openAlias;
+      if (resolved?.alias != openAliasKey(_address!)) {
+        resolved = _openAlias = await _resolveOpenAlias(application);
+      }
+      if (resolved == null || !mounted) return;
+      openAlias = resolved.alias;
+      resolvedAddress = resolved.address;
+      _setValidAddressProviders(resolvedAddress);
     }
+    late final recipientAddress = resolvedAddress ?? _address!;
 
     // Handle MWC slatepack transactions directly.
     if (isMimblewimblecoin && ref.read(pIsSlatepack(widget.walletId))) {
@@ -701,7 +706,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 txData: TxData(
                   sparkRecipients: [
                     (
-                      address: _address!,
+                      address: recipientAddress,
                       amount: amount,
                       memo: memoController.text,
                       isChange: false,
@@ -722,11 +727,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 txData: TxData(
                   recipients: [
                     TxRecipient(
-                      address: _address!,
+                      address: recipientAddress,
                       amount: amount,
                       isChange: false,
                       addressType: wallet.cryptoCurrency.getAddressType(
-                        _address!,
+                        recipientAddress,
                       )!,
                     ),
                   ],
@@ -751,18 +756,18 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                     ? null
                     : [
                         TxRecipient(
-                          address: _address!,
+                          address: recipientAddress,
                           amount: amount,
                           isChange: false,
                           addressType: wallet.cryptoCurrency.getAddressType(
-                            _address!,
+                            recipientAddress,
                           )!,
                         ),
                       ],
                 sparkRecipients: ref.read(pValidSparkSendToAddress)
                     ? [
                         (
-                          address: _address!,
+                          address: recipientAddress,
                           amount: amount,
                           memo: memoController.text,
                           isChange: false,
@@ -781,10 +786,12 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           txData: TxData(
             recipients: [
               TxRecipient(
-                address: _address!,
+                address: recipientAddress,
                 amount: amount,
                 isChange: false,
-                addressType: wallet.cryptoCurrency.getAddressType(_address!)!,
+                addressType: wallet.cryptoCurrency.getAddressType(
+                  recipientAddress,
+                )!,
               ),
             ],
             openAlias: openAlias,
@@ -808,11 +815,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 _multiRecipients?.toTxRecipients(wallet.cryptoCurrency) ??
                 [
                   TxRecipient(
-                    address: _address!,
+                    address: recipientAddress,
                     amount: amount,
                     isChange: false,
                     addressType: wallet.cryptoCurrency.getAddressType(
-                      _address!,
+                      recipientAddress,
                     )!,
                   ),
                 ],
@@ -949,6 +956,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     if (!mounted) {
       return;
     }
+    _openAlias = null;
     sendToController.text = "";
     cryptoAmountController.text = "";
     baseAmountController.text = "";
@@ -1170,8 +1178,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   }
 
   void _addRecipientTapped() {
+    final resolved = _openAlias;
+    final address =
+        resolved != null && resolved.alias == openAliasKey(_address ?? "")
+        ? resolved.address
+        : _address ?? "";
     _setMultiRecipients([
-      (address: _address ?? "", amount: ref.read(pSendAmount), label: null),
+      (address: address, amount: ref.read(pSendAmount), label: null),
       (address: "", amount: null, label: null),
     ]);
   }

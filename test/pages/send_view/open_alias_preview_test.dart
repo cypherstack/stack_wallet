@@ -433,7 +433,70 @@ void main() {
       expect(find.text('OpenAlias'), findsOneWidget);
       expect(find.text('alice@example.com'), findsOneWidget);
       expect(find.text(literal), findsWidgets);
-      expect(h.text(tester), literal);
+      expect(h.text(tester), alias);
+    });
+
+    testWidgets('$layout a repeated Preview reuses the resolved alias', (
+      tester,
+    ) async {
+      final h = _Harness(desktop);
+      await h.mount(tester);
+      await h.enter(tester, alias);
+      await h.setAmount(tester);
+      await h.preview(tester);
+      h.succeed();
+      await h.finish(tester);
+      expect(find.byType(ConfirmTransactionView), findsOneWidget);
+
+      h.navigator.currentState!.pop();
+      await tester.pumpAndSettle();
+      expect(find.byType(ConfirmTransactionView), findsNothing);
+      expect(h.text(tester), alias);
+      expect(h.enabled(tester), isTrue);
+
+      await h.preview(tester);
+      await h.finish(tester);
+      expect(h.lookups, hasLength(1));
+      expect(h.wallet.prepared, hasLength(2));
+      expect(h.wallet.prepared.last.recipients!.single.address, literal);
+      expect(h.wallet.prepared.last.openAlias, 'alice@example.com');
+      expect(find.byType(ConfirmTransactionView), findsOneWidget);
+      expect(h.confirmed(tester).recipients!.single.address, literal);
+      expect(h.confirmed(tester).openAlias, 'alice@example.com');
+      expect(find.text('OpenAlias'), findsOneWidget);
+      expect(find.text('alice@example.com'), findsOneWidget);
+      expect(find.text(literal), findsWidgets);
+    });
+
+    testWidgets('$layout an edited alias is looked up again', (tester) async {
+      final h = _Harness(desktop);
+      await h.mount(tester);
+      await h.enter(tester, alias);
+      await h.setAmount(tester);
+      await h.preview(tester);
+      h.succeed();
+      await h.finish(tester);
+      h.navigator.currentState!.pop();
+      await tester.pumpAndSettle();
+
+      await h.enter(tester, 'bob@example.com');
+      await h.preview(tester);
+      expect(h.lookups, hasLength(2));
+      expect(h.lookups.last.alias, 'bob@example.com');
+      h.lookups.last.result.complete(
+        CsOpenAliasRecipient(
+          domain: 'bob.example.com',
+          address: 'second-recipient',
+          fields: const {'recipient_address': 'second-recipient'},
+        ),
+      );
+      await h.finish(tester);
+      expect(
+        h.confirmed(tester).recipients!.single.address,
+        'second-recipient',
+      );
+      expect(h.confirmed(tester).openAlias, 'bob@example.com');
+      expect(h.text(tester), 'bob@example.com');
     });
 
     testWidgets('$layout the lookup runs before the send-all confirmation', (
@@ -450,7 +513,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Confirm send all'), findsOneWidget);
       expect(h.wallet.prepared, isEmpty);
-      expect(h.text(tester), literal);
+      expect(h.text(tester), alias);
     });
 
     testWidgets('$layout Cancel during the lookup cancels it', (tester) async {
@@ -540,6 +603,35 @@ void main() {
         expect(find.text('OpenAlias'), findsNothing);
       });
     }
+
+    testWidgets('$layout Add recipient after a Preview carries the address', (
+      tester,
+    ) async {
+      final h = _Harness(desktop);
+      await h.mount(tester);
+      await h.enter(tester, alias);
+      await h.setAmount(tester);
+      await h.preview(tester);
+      h.succeed();
+      await h.finish(tester);
+      h.navigator.currentState!.pop();
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is CustomTextButton && widget.text == 'Add recipient',
+        ),
+      );
+      await tester.pumpAndSettle();
+      final forms = find.byType(Recipient);
+      expect(forms, findsNWidgets(2));
+      expect(
+        find.descendant(of: forms.first, matching: find.text(literal)),
+        findsOneWidget,
+      );
+      expect(h.lookups, hasLength(1));
+    });
 
     testWidgets('$layout multiple recipients never start a lookup', (
       tester,
