@@ -127,7 +127,9 @@ class OpenAliasService {
           proxy: CsOpenAliasProxy(address: info.host.address, port: info.port),
         );
       } catch (_) {
-        // Tor is not connected; never fall back to a direct lookup.
+        // Tor is not connected. Unlike Electrum, never fall back to clearnet,
+        // even with the kill switch off: the resolver and the network path
+        // would see this address asking for the alias domain.
       }
     }
     return (
