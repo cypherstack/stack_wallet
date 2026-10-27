@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:socks5_proxy/socks.dart';
 import 'package:stellar_flutter_sdk/stellar_flutter_sdk.dart';
 
 import '../app_config.dart';
@@ -28,7 +30,15 @@ Future<bool> testStellarNodeConnection(String host, int port) async {
 
   if (response.code == 200) {
     //Get chain height for sdk
-    final StellarSDK stellarSdk = StellarSDK(host);
+    HttpClient? httpClient;
+    if (AppConfig.hasFeature(AppFeature.tor) && Prefs.instance.useTor) {
+      final proxyInfo = TorService.sharedInstance.getProxyInfo();
+      httpClient = HttpClient();
+      SocksTCPClient.assignToHttpClient(httpClient, [
+        ProxySettings(proxyInfo.host, proxyInfo.port),
+      ]);
+    }
+    final StellarSDK stellarSdk = StellarSDK(host, httpClient: httpClient);
     final height = await stellarSdk.ledgers
         .order(RequestBuilderOrder.DESC)
         .limit(1)
