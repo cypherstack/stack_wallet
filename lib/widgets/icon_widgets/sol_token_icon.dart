@@ -15,6 +15,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:isar_community/isar.dart';
 
 import '../../models/isar/exchange_cache/currency.dart';
+import '../../networking/tor_aware_network_image.dart';
 import '../../services/exchange/change_now/change_now_exchange.dart';
 import '../../services/exchange/exchange_data_loading_service.dart';
 import '../../themes/coin_icon_provider.dart';
@@ -84,8 +85,8 @@ class _SolTokenIconState extends ConsumerState<SolTokenIcon> {
       );
     } else {
       // Display token icon from network.
-      return SvgPicture.network(
-        imageUrl!,
+      return SvgPicture(
+        TorAwareSvgNetworkLoader(imageUrl!),
         width: widget.size,
         height: widget.size,
         placeholderBuilder: (_) => const LoadingIndicator(),
