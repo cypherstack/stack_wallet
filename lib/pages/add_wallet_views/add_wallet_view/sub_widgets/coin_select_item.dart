@@ -19,6 +19,7 @@ import '../../../../models/add_wallet_list_entity/add_wallet_list_entity.dart';
 import '../../../../models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
 import '../../../../models/add_wallet_list_entity/sub_classes/sol_token_entity.dart';
 import '../../../../models/isar/exchange_cache/currency.dart';
+import '../../../../networking/tor_aware_network_image.dart';
 import '../../../../providers/providers.dart';
 import '../../../../services/exchange/change_now/change_now_exchange.dart';
 import '../../../../services/exchange/exchange_data_loading_service.dart';
@@ -146,15 +147,15 @@ class _CoinSelectItemState extends ConsumerState<CoinSelectItem> {
               else
                 tokenImageUri != null
                     ? tokenImageUri!.toLowerCase().endsWith(".svg")
-                          ? SvgPicture.network(
-                              tokenImageUri!,
+                          ? SvgPicture(
+                              TorAwareSvgNetworkLoader(tokenImageUri!),
                               width: 26,
                               height: 26,
                               placeholderBuilder: (_) =>
                                   const AppIcon(width: 26, height: 26),
                             )
-                          : Image.network(
-                              tokenImageUri!,
+                          : Image(
+                              image: TorAwareNetworkImage(tokenImageUri!),
                               width: 26,
                               height: 26,
                               errorBuilder: (_, _, _) => SvgPicture.file(

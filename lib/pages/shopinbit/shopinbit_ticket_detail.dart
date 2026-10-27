@@ -10,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../db/drift/shared_db/shared_database.dart';
 import '../../models/shopinbit/shopinbit_enums.dart';
+import '../../networking/tor_aware_network_image.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../providers/db/drift_provider.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
@@ -432,9 +433,8 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
         );
       }
       if (context.mounted) {
-        await Navigator.of(
-          context,
-        ).pushNamed(ShopInBitOfferView.routeName, arguments: _id);
+        await Navigator.of(context)
+            .pushNamed(ShopInBitOfferView.routeName, arguments: _id);
       }
     }
 
@@ -443,9 +443,9 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
             padding: .only(bottom: isDesktop ? 12 : 8),
             child: RoundedWhiteContainer(
               borderColor: isDesktop
-                  ? Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultBG
+                  ? Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG
                   : null,
               child: ConditionalParent(
                 condition: Util.isDesktop,
@@ -559,9 +559,9 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
                           ? STextStyles.desktopTextExtraSmall(context)
                           : STextStyles.field(context))
                       .copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textDark,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark,
                       ),
               decoration: InputDecoration(
                 hintText: "Type a message...",
@@ -585,9 +585,9 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
                 Assets.svg.send,
                 width: 24,
                 height: 24,
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.accentColorBlue,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .accentColorBlue,
               ),
             ),
         ],
@@ -600,9 +600,9 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
             padding: EdgeInsets.only(bottom: isDesktop ? 12 : 8),
             child: RoundedWhiteContainer(
               borderColor: isDesktop
-                  ? Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultBG
+                  ? Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG
                   : null,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -698,9 +698,9 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
         condition: !isDesktop,
         builder: (child) => Background(
           child: Scaffold(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -892,10 +892,13 @@ class _ProxyImageState extends State<_ProxyImage> {
               if (resp.hasError || resp.value == null) {
                 return widget.fallback();
               }
-              return Image.network(
-                resp.value!.toString(),
+              return Image(
+                image: ResizeImage.resizeIfNeeded(
+                  null,
+                  _kAttachmentDecodeHeight,
+                  TorAwareNetworkImage(resp.value!.toString()),
+                ),
                 fit: BoxFit.contain,
-                cacheHeight: _kAttachmentDecodeHeight,
                 semanticLabel: "Image attachment",
                 errorBuilder: (_, _, _) => widget.fallback(),
               );

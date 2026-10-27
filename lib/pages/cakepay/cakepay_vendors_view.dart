@@ -2,6 +2,7 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../networking/tor_aware_network_image.dart';
 import '../../services/cakepay/cakepay_service.dart';
 import '../../services/cakepay/src/models/card.dart';
 import '../../themes/stack_colors.dart';
@@ -87,9 +88,8 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
   }
 
   Future<void> _onCardTapped(CakePayCard card) async {
-    await Navigator.of(
-      context,
-    ).pushNamed(CakePayCardDetailView.routeName, arguments: card);
+    await Navigator.of(context)
+        .pushNamed(CakePayCardDetailView.routeName, arguments: card);
   }
 
   @override
@@ -130,9 +130,9 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
         condition: !isDesktop,
         builder: (child) => Background(
           child: Scaffold(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -210,9 +210,9 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
                           child: Text(
                             "No items",
                             style: STextStyles.w500_14(context).copyWith(
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textSubtitle1,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textSubtitle1,
                             ),
                           ),
                         ),
@@ -226,9 +226,9 @@ class _CakePayVendorsViewState extends State<CakePayVendorsView> {
                               Text(
                                 error.toString(),
                                 style: STextStyles.w500_14(context).copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.textSubtitle1,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textSubtitle1,
                                 ),
                               ),
                               const SizedBox(height: 16),
@@ -276,9 +276,9 @@ class _SearchField extends StatelessWidget {
         focusNode: focusNode,
         style: isDesktop
             ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldActiveText,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldActiveText,
               )
             : STextStyles.field(context),
         decoration:
@@ -327,9 +327,8 @@ class _CountryDropdown extends StatelessWidget {
     );
 
     final itemStyle = isDesktop
-        ? STextStyles.desktopTextExtraSmall(
-            context,
-          ).copyWith(color: colors.textFieldActiveText)
+        ? STextStyles.desktopTextExtraSmall(context)
+              .copyWith(color: colors.textFieldActiveText)
         : STextStyles.w500_14(context);
 
     return ClipRRect(
@@ -341,9 +340,8 @@ class _CountryDropdown extends StatelessWidget {
           hint: Text(
             "All countries",
             style: isDesktop
-                ? STextStyles.desktopTextExtraSmall(
-                    context,
-                  ).copyWith(color: colors.textFieldDefaultSearchIconLeft)
+                ? STextStyles.desktopTextExtraSmall(context)
+                      .copyWith(color: colors.textFieldDefaultSearchIconLeft)
                 : STextStyles.fieldLabel(context),
           ),
           items: [
@@ -446,8 +444,8 @@ class _CardTile extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
             child: card.cardImageUrl != null
-                ? Image.network(
-                    card.cardImageUrl!,
+                ? Image(
+                    image: TorAwareNetworkImage(card.cardImageUrl!),
                     width: isDesktop ? 60 : 48,
                     height: isDesktop ? 40 : 32,
                     fit: BoxFit.cover,
@@ -483,9 +481,8 @@ class _CardTile extends StatelessWidget {
                   ].join(' '),
                   style: isDesktop
                       ? STextStyles.desktopTextExtraExtraSmall(context)
-                      : STextStyles.itemSubtitle12(
-                          context,
-                        ).copyWith(color: colors.textSubtitle1),
+                      : STextStyles.itemSubtitle12(context)
+                            .copyWith(color: colors.textSubtitle1),
                 ),
               ],
             ),
