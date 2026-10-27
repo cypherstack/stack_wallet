@@ -19,6 +19,7 @@ import '../../../app_config.dart';
 import '../../../models/exchange/aggregate_currency.dart';
 import '../../../models/isar/exchange_cache/currency.dart';
 import '../../../models/isar/exchange_cache/pair.dart';
+import '../../../networking/tor_aware_network_image.dart';
 import '../../../services/exchange/exchange.dart';
 import '../../../services/exchange/exchange_data_loading_service.dart';
 import '../../../themes/stack_colors.dart';
@@ -73,19 +74,19 @@ class _ExchangeCurrencySelectionViewState
       showDialog<void>(
         context: context,
         barrierDismissible: false,
-        builder:
-            (_) => WillPopScope(
-              onWillPop: () async => false,
-              child: Container(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.overlay.withOpacity(0.6),
-                child: const CustomLoadingOverlay(
-                  message: "Loading currencies",
-                  eventBus: null,
-                ),
-              ),
+        builder: (_) => WillPopScope(
+          onWillPop: () async => false,
+          child: Container(
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .overlay
+                .withOpacity(0.6),
+            child: const CustomLoadingOverlay(
+              message: "Loading currencies",
+              eventBus: null,
             ),
+          ),
+        ),
       ),
     );
 
@@ -101,36 +102,33 @@ class _ExchangeCurrencySelectionViewState
   Future<List<AggregateCurrency>> _loadCurrencies() async {
     await ExchangeDataLoadingService.instance.initDB();
     final isar = await ExchangeDataLoadingService.instance.isar;
-    final currencies =
-        await isar.currencies
-            .where()
-            .filter()
-            .isFiatEqualTo(false)
-            .and()
-            .group(
-              (q) =>
-                  widget.isFixedRate
-                      ? q
-                          .rateTypeEqualTo(SupportedRateType.both)
-                          .or()
-                          .rateTypeEqualTo(SupportedRateType.fixed)
-                      : q
-                          .rateTypeEqualTo(SupportedRateType.both)
-                          .or()
-                          .rateTypeEqualTo(SupportedRateType.estimated),
-            )
-            .sortByIsStackCoin()
-            .thenByName()
-            .findAll();
+    final currencies = await isar.currencies
+        .where()
+        .filter()
+        .isFiatEqualTo(false)
+        .and()
+        .group(
+          (q) => widget.isFixedRate
+              ? q
+                    .rateTypeEqualTo(SupportedRateType.both)
+                    .or()
+                    .rateTypeEqualTo(SupportedRateType.fixed)
+              : q
+                    .rateTypeEqualTo(SupportedRateType.both)
+                    .or()
+                    .rateTypeEqualTo(SupportedRateType.estimated),
+        )
+        .sortByIsStackCoin()
+        .thenByName()
+        .findAll();
 
     // If using Tor, filter exchanges which do not support Tor.
     if (Prefs.instance.useTor) {
       if (Exchange.exchangeNamesWithTorSupport.isNotEmpty) {
         currencies.removeWhere(
-          (element) =>
-              !Exchange.exchangeNamesWithTorSupport.contains(
-                element.exchangeName,
-              ),
+          (element) => !Exchange.exchangeNamesWithTorSupport.contains(
+            element.exchangeName,
+          ),
         );
       }
     }
@@ -163,20 +161,18 @@ class _ExchangeCurrencySelectionViewState
       results.remove(widget.pairedCurrency);
     }
 
-    final walletCoins =
-        results
-            .where(
-              (currency) =>
-                  AppConfig.coins
-                      .where(
-                        (coin) =>
-                            coin.ticker.toLowerCase() ==
-                                currency.ticker.toLowerCase() &&
-                            currency.fuzzyNet == coin.ticker.toLowerCase(),
-                      )
-                      .isNotEmpty,
-            )
-            .toList();
+    final walletCoins = results
+        .where(
+          (currency) => AppConfig.coins
+              .where(
+                (coin) =>
+                    coin.ticker.toLowerCase() ==
+                        currency.ticker.toLowerCase() &&
+                    currency.fuzzyNet == coin.ticker.toLowerCase(),
+              )
+              .isNotEmpty,
+        )
+        .toList();
 
     final list = results.toList();
 
@@ -240,8 +236,9 @@ class _ExchangeCurrencySelectionViewState
       builder: (child) {
         return Background(
           child: Scaffold(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () async {
@@ -286,45 +283,45 @@ class _ExchangeCurrencySelectionViewState
                 focusNode: _searchFocusNode,
                 onChanged: (value) => setState(() => _searchString = value),
                 style: STextStyles.field(context),
-                decoration: standardInputDecoration(
-                  "Search",
-                  _searchFocusNode,
-                  context,
-                  desktopMed: isDesktop,
-                ).copyWith(
-                  prefixIcon: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 16,
-                    ),
-                    child: SvgPicture.asset(
-                      Assets.svg.search,
-                      width: 16,
-                      height: 16,
-                    ),
-                  ),
-                  suffixIcon:
-                      _searchController.text.isNotEmpty
+                decoration:
+                    standardInputDecoration(
+                      "Search",
+                      _searchFocusNode,
+                      context,
+                      desktopMed: isDesktop,
+                    ).copyWith(
+                      prefixIcon: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 16,
+                        ),
+                        child: SvgPicture.asset(
+                          Assets.svg.search,
+                          width: 16,
+                          height: 16,
+                        ),
+                      ),
+                      suffixIcon: _searchController.text.isNotEmpty
                           ? Padding(
-                            padding: const EdgeInsets.only(right: 0),
-                            child: UnconstrainedBox(
-                              child: Row(
-                                children: [
-                                  TextFieldIconButton(
-                                    child: const XIcon(),
-                                    onTap: () async {
-                                      setState(() {
-                                        _searchController.text = "";
-                                        _searchString = "";
-                                      });
-                                    },
-                                  ),
-                                ],
+                              padding: const EdgeInsets.only(right: 0),
+                              child: UnconstrainedBox(
+                                child: Row(
+                                  children: [
+                                    TextFieldIconButton(
+                                      child: const XIcon(),
+                                      onTap: () async {
+                                        setState(() {
+                                          _searchController.text = "";
+                                          _searchString = "";
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          )
+                            )
                           : null,
-                ),
+                    ),
               ),
             ),
             const SizedBox(height: 20),
@@ -358,23 +355,20 @@ class _ExchangeCurrencySelectionViewState
                                     height: 24,
                                     child:
                                         AppConfig.isStackCoin(
-                                              items[index].ticker,
-                                            )
-                                            ? CoinIconForTicker(
-                                              ticker: items[index].ticker,
-                                              size: 24,
-                                            )
-                                            : hasImageUrl
-                                            ? _NetImage(
-                                              url: image,
-                                              key: ValueKey(
-                                                image + items[index].fuzzyNet,
-                                              ),
-                                            )
-                                            : const SizedBox(
-                                              width: 24,
-                                              height: 24,
+                                          items[index].ticker,
+                                        )
+                                        ? CoinIconForTicker(
+                                            ticker: items[index].ticker,
+                                            size: 24,
+                                          )
+                                        : hasImageUrl
+                                        ? _NetImage(
+                                            url: image,
+                                            key: ValueKey(
+                                              image + items[index].fuzzyNet,
                                             ),
+                                          )
+                                        : const SizedBox(width: 24, height: 24),
                                   ),
                                   const SizedBox(width: 10),
                                   Expanded(
@@ -399,9 +393,8 @@ class _ExchangeCurrencySelectionViewState
                                                   left: 12,
                                                 ),
                                                 child: CoinTickerTag(
-                                                  ticker:
-                                                      items[index].fuzzyNet
-                                                          .toUpperCase(),
+                                                  ticker: items[index].fuzzyNet
+                                                      .toUpperCase(),
                                                 ),
                                               ),
                                           ],
@@ -409,14 +402,12 @@ class _ExchangeCurrencySelectionViewState
                                         const SizedBox(height: 2),
                                         Text(
                                           items[index].ticker.toUpperCase(),
-                                          style: STextStyles.smallMed12(
-                                            context,
-                                          ).copyWith(
-                                            color:
-                                                Theme.of(context)
+                                          style: STextStyles.smallMed12(context)
+                                              .copyWith(
+                                                color: Theme.of(context)
                                                     .extension<StackColors>()!
                                                     .textSubtitle1,
-                                          ),
+                                              ),
                                         ),
                                       ],
                                     ),
@@ -447,15 +438,20 @@ class _NetImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (url.endsWith(".svg")) {
-      return SvgPicture.network(
+      return SvgPicture(
         key: key,
-        url,
+        TorAwareSvgNetworkLoader(url),
         width: 24,
         height: 24,
         placeholderBuilder: (_) => const LoadingIndicator(),
       );
     } else {
-      return Image.network(url, width: 24, height: 24, key: key);
+      return Image(
+        image: TorAwareNetworkImage(url),
+        width: 24,
+        height: 24,
+        key: key,
+      );
     }
   }
 }

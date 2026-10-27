@@ -14,6 +14,7 @@ import 'package:flutter_svg/svg.dart';
 
 import '../../app_config.dart';
 import '../../models/exchange/aggregate_currency.dart';
+import '../../networking/tor_aware_network_image.dart';
 import '../../pages/buy_view/sub_widgets/crypto_selection_view.dart';
 import '../../providers/global/locale_provider.dart';
 import '../../themes/stack_colors.dart';
@@ -181,8 +182,10 @@ class _ExchangeTextFieldState extends ConsumerState<ExchangeTextField> {
                               } else if (widget.currency != null &&
                                   widget.currency!.image.isNotEmpty) {
                                 return Center(
-                                  child: SvgPicture.network(
-                                    widget.currency!.image,
+                                  child: SvgPicture(
+                                    TorAwareSvgNetworkLoader(
+                                      widget.currency!.image,
+                                    ),
                                     height: 18,
                                     placeholderBuilder: (_) => Container(
                                       width: 18,

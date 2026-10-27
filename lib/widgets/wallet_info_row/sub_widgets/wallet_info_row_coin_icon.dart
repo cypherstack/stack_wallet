@@ -16,6 +16,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:isar_community/isar.dart';
 
 import '../../../models/isar/exchange_cache/currency.dart';
+import '../../../networking/tor_aware_network_image.dart';
 import '../../../services/exchange/change_now/change_now_exchange.dart';
 import '../../../services/exchange/exchange_data_loading_service.dart';
 import '../../../themes/coin_icon_provider.dart';
@@ -48,18 +49,14 @@ class _WalletInfoCoinIconState extends ConsumerState<WalletInfoCoinIcon> {
 
     ExchangeDataLoadingService.instance.isar.then((isar) async {
       if (widget.contractAddress != null) {
-        final currency =
-            await isar.currencies
-                .where()
-                .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
-                .filter()
-                .tokenContractEqualTo(
-                  widget.contractAddress!,
-                  caseSensitive: false,
-                )
-                .and()
-                .imageIsNotEmpty()
-                .findFirst();
+        final currency = await isar.currencies
+            .where()
+            .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
+            .filter()
+            .tokenContractEqualTo(widget.contractAddress!, caseSensitive: false)
+            .and()
+            .imageIsNotEmpty()
+            .findFirst();
 
         if (mounted) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -87,14 +84,17 @@ class _WalletInfoCoinIconState extends ConsumerState<WalletInfoCoinIcon> {
       ),
       child: Padding(
         padding: EdgeInsets.all(widget.size / 5),
-        child:
-            imageUrl != null && imageUrl!.isNotEmpty
-                ? SvgPicture.network(imageUrl!, width: 20, height: 20)
-                : SvgPicture.file(
-                  File(ref.watch(coinIconProvider(widget.coin))),
-                  width: 20,
-                  height: 20,
-                ),
+        child: imageUrl != null && imageUrl!.isNotEmpty
+            ? SvgPicture(
+                TorAwareSvgNetworkLoader(imageUrl!),
+                width: 20,
+                height: 20,
+              )
+            : SvgPicture.file(
+                File(ref.watch(coinIconProvider(widget.coin))),
+                width: 20,
+                height: 20,
+              ),
       ),
     );
   }

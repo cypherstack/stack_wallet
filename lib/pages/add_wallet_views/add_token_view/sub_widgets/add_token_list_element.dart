@@ -16,6 +16,7 @@ import 'package:isar_community/isar.dart';
 import '../../../../models/isar/exchange_cache/currency.dart';
 import '../../../../models/isar/models/contract.dart';
 import '../../../../models/isar/models/ethereum/eth_contract.dart';
+import '../../../../networking/tor_aware_network_image.dart';
 import '../../../../services/exchange/change_now/change_now_exchange.dart';
 import '../../../../services/exchange/exchange_data_loading_service.dart';
 import '../../../../themes/stack_colors.dart';
@@ -101,8 +102,8 @@ class _AddTokenListElementState extends ConsumerState<AddTokenListElement> {
                 )
               else
                 currency != null
-                    ? SvgPicture.network(
-                        currency!.image,
+                    ? SvgPicture(
+                        TorAwareSvgNetworkLoader(currency!.image),
                         width: iconSize,
                         height: iconSize,
                         placeholderBuilder: (_) =>
