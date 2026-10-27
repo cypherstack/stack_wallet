@@ -48,6 +48,9 @@ class Ethereum extends Bip39Currency {
   bool get hasTokenSupport => true;
 
   @override
+  bool get torSupport => true;
+
+  @override
   NodeModel defaultNode({required bool isPrimary}) => NodeModel(
     host: "https://eth2.stackwallet.com",
     port: 443,
