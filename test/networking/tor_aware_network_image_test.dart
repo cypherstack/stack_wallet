@@ -39,4 +39,19 @@ void main() {
       ),
     );
   });
+
+  test("network image cache is scoped by cacheScope", () {
+    expect(
+      TorAwareNetworkImage(url("/a.png"), cacheScope: "customer-a"),
+      TorAwareNetworkImage(url("/a.png"), cacheScope: "customer-a"),
+    );
+    expect(
+      TorAwareNetworkImage(url("/a.png"), cacheScope: "customer-a"),
+      isNot(TorAwareNetworkImage(url("/a.png"), cacheScope: "customer-b")),
+    );
+    expect(
+      TorAwareNetworkImage(url("/a.png"), cacheScope: "customer-a"),
+      isNot(TorAwareNetworkImage(url("/a.png"))),
+    );
+  });
 }
