@@ -827,9 +827,9 @@ class _AttachmentChip extends StatelessWidget {
 
 /// Renders an authenticated `/attachment-proxy/` image.
 ///
-/// The signed URL future is built once in [initState] (and only rebuilt when
+/// The request future is built once in [initState] (and only rebuilt when
 /// [proxyPath] or [customerKey] actually change) so the surrounding 30s poll
-/// can't re-fire `getAttachmentUrl`/re-fetch the image on every rebuild.
+/// can't re-fire `getAttachmentRequest`/re-fetch the image on every rebuild.
 class _ProxyImage extends StatefulWidget {
   const _ProxyImage({
     required this.client,
@@ -848,18 +848,17 @@ class _ProxyImage extends StatefulWidget {
 }
 
 class _ProxyImageState extends State<_ProxyImage> {
-  late Future<ApiResponse<Uri>> _urlFuture;
+  late Future<ApiResponse<AttachmentRequest>> _requestFuture;
 
-  Future<ApiResponse<Uri>> _buildFuture() => widget.client.getAttachmentUrl(
-    widget.proxyPath,
-    useQueryAuth: true,
-    customerKey: widget.customerKey,
-  );
+  // Header auth: a query-auth URL would put the token and customer key into
+  // logged HTTP errors.
+  Future<ApiResponse<AttachmentRequest>> _buildFuture() => widget.client
+      .getAttachmentRequest(widget.proxyPath, customerKey: widget.customerKey);
 
   @override
   void initState() {
     super.initState();
-    _urlFuture = _buildFuture();
+    _requestFuture = _buildFuture();
   }
 
   @override
@@ -867,7 +866,7 @@ class _ProxyImageState extends State<_ProxyImage> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.proxyPath != widget.proxyPath ||
         oldWidget.customerKey != widget.customerKey) {
-      _urlFuture = _buildFuture();
+      _requestFuture = _buildFuture();
     }
   }
 
@@ -879,8 +878,8 @@ class _ProxyImageState extends State<_ProxyImage> {
         borderRadius: BorderRadius.circular(8),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxHeight: _kAttachmentMaxHeight),
-          child: FutureBuilder<ApiResponse<Uri>>(
-            future: _urlFuture,
+          child: FutureBuilder<ApiResponse<AttachmentRequest>>(
+            future: _requestFuture,
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
                 return const SizedBox(
@@ -896,7 +895,10 @@ class _ProxyImageState extends State<_ProxyImage> {
                 image: ResizeImage.resizeIfNeeded(
                   null,
                   _kAttachmentDecodeHeight,
-                  TorAwareNetworkImage(resp.value!.toString()),
+                  TorAwareNetworkImage(
+                    resp.value!.uri.toString(),
+                    headers: resp.value!.headers,
+                  ),
                 ),
                 fit: BoxFit.contain,
                 semanticLabel: "Image attachment",
