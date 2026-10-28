@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:decimal/decimal.dart';
 import 'package:ethereum_addresses/ethereum_addresses.dart';
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 import 'package:isar_community/isar.dart';
 import 'package:socks5_proxy/socks.dart';
@@ -172,7 +173,8 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
   }
 
   // static helper function for building a web3 client, proxied over tor if
-  // enabled
+  // enabled. The returned client refuses to send once the tor preference no
+  // longer matches the transport it was built with; see _TorPreferenceClient.
   static web3.Web3Client createWeb3Client(
     String url,
     Prefs prefs,
@@ -180,15 +182,21 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
   ) {
     final httpClient = HttpClient();
 
-    if (AppConfig.hasFeature(AppFeature.tor) && prefs.useTor) {
+    if (_shouldProxy(prefs)) {
       final proxyInfo = torService.getProxyInfo();
       SocksTCPClient.assignToHttpClient(httpClient, [
         ProxySettings(proxyInfo.host, proxyInfo.port),
       ]);
     }
 
-    return web3.Web3Client(url, IOClient(httpClient));
+    return web3.Web3Client(
+      url,
+      _TorPreferenceClient(IOClient(httpClient), prefs),
+    );
   }
+
+  static bool _shouldProxy(Prefs prefs) =>
+      AppConfig.hasFeature(AppFeature.tor) && prefs.useTor;
 
   Amount estimateEthFee(BigInt feeRate, int gasLimit, int decimals) {
     final gweiAmount = feeRate.toDecimal() / (Decimal.ten.pow(9).toDecimal());
@@ -771,4 +779,33 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
     timer = null;
     await super.exit();
   }
+}
+
+// The proxy is bound to the HttpClient when it is built, but some operations
+// (updateTransactions, the token wallet's tx loop) build one client and reuse
+// it for many RPCs. If the tor preference flips meanwhile, the remaining RPCs
+// would still use the old transport. Fail those instead of sending: the
+// operation errors out and the next one builds a client under the current
+// preference. Nothing is retried here, so a broadcast is never replayed.
+class _TorPreferenceClient extends http.BaseClient {
+  _TorPreferenceClient(this._inner, this._prefs)
+    : _proxied = EthereumWallet._shouldProxy(_prefs);
+
+  final http.Client _inner;
+  final Prefs _prefs;
+  final bool _proxied;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    if (EthereumWallet._shouldProxy(_prefs) != _proxied) {
+      throw StateError(
+        'Tor preference changed since this client was created; '
+        'the request was not sent',
+      );
+    }
+    return _inner.send(request);
+  }
+
+  @override
+  void close() => _inner.close();
 }
