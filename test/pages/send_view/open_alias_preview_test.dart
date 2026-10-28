@@ -547,6 +547,24 @@ void main() {
       expect(h.confirmed(tester).recipients!.single.address, literal);
     });
 
+    testWidgets('$layout clearing and retyping the alias looks it up again', (
+      tester,
+    ) async {
+      final h = _Harness(desktop);
+      await h.mount(tester);
+      await h.enter(tester, alias);
+      await h.setAmount(tester);
+      await h.previewAndReturn(tester);
+
+      await h.enter(tester, '');
+      await h.enter(tester, alias);
+      await h.preview(tester);
+      expect(h.lookups, hasLength(2));
+      h.succeed();
+      await h.finish(tester);
+      expect(h.confirmed(tester).recipients!.single.address, literal);
+    });
+
     testWidgets('$layout the lookup runs before the send-all confirmation', (
       tester,
     ) async {

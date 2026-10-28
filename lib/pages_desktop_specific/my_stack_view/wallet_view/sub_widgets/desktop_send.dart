@@ -138,8 +138,17 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   String? _onChainNote;
 
   Amount? _cachedAmountToSend;
-  String? _address;
+  String? _addressValue;
   OpenAliasResolved? _openAlias;
+
+  String? get _address => _addressValue;
+
+  // Clearing and retyping an alias passes through other text, so the lookup
+  // is dropped then rather than kept for the same alias typed again.
+  set _address(String? value) {
+    _addressValue = value;
+    if (openAliasKey(value ?? "") != _openAlias?.alias) _openAlias = null;
+  }
 
   /// The [pRecipient] index of each recipient's form while sending to more
   /// than one recipient, otherwise null.
