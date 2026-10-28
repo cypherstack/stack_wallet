@@ -36,12 +36,34 @@ class _Calls {
   }
 }
 
-OpenAliasService _service(OpenAliasLookup lookup, {bool external = true}) =>
-    OpenAliasService(
-      externalCalls: () => external,
-      useTor: () => false,
-      lookup: lookup,
-    );
+OpenAliasService _service(
+  OpenAliasLookup lookup, {
+  bool external = true,
+  DateTime Function()? now,
+}) => OpenAliasService(
+  externalCalls: () => external,
+  useTor: () => false,
+  lookup: lookup,
+  now: now,
+);
+
+OpenAliasService _answering(Duration ttl, DateTime Function() now) => _service(
+  (alias, {required isValidAddress, required application, required proxy}) =>
+      CsOpenAliasOperation(
+        Future.value(
+          CsOpenAliasRecipient(
+            domain: 'alice.example.com',
+            address: 'resolved',
+            fields: const {'recipient_address': 'resolved'},
+            ttl: ttl,
+          ),
+        ),
+        () {},
+      ),
+  now: now,
+);
+
+final _start = DateTime.utc(2026, 10, 28, 12);
 
 OpenAliasResolution _resolve(OpenAliasService service) => service.resolve(
   ' Alice@Example.com',
@@ -249,6 +271,52 @@ void main() {
             .having((e) => e.alias, 'alias', 'alice@example.com')
             .having((e) => e.address, 'address', 'resolved'),
       );
+    });
+
+    test('the answer expires after its TTL', () async {
+      final outcome = await _resolve(
+        _answering(const Duration(seconds: 60), () => _start),
+      ).outcome;
+      expect(
+        outcome,
+        isA<OpenAliasResolved>().having(
+          (e) => e.expiresAt,
+          'expiresAt',
+          _start.add(const Duration(seconds: 60)),
+        ),
+      );
+    });
+
+    test('a TTL over an hour is cut to an hour', () async {
+      final outcome = await _resolve(
+        _answering(const Duration(days: 2), () => _start),
+      ).outcome;
+      expect(
+        outcome,
+        isA<OpenAliasResolved>().having(
+          (e) => e.expiresAt,
+          'expiresAt',
+          _start.add(const Duration(hours: 1)),
+        ),
+      );
+    });
+
+    test('a zero TTL is never current', () async {
+      final service = _answering(Duration.zero, () => _start);
+      final outcome = await _resolve(service).outcome as OpenAliasResolved;
+      expect(outcome.expiresAt, _start);
+      expect(service.isCurrent(outcome), isFalse);
+    });
+
+    test('isCurrent follows the clock', () async {
+      var now = _start;
+      final service = _answering(const Duration(seconds: 60), () => now);
+      final outcome = await _resolve(service).outcome as OpenAliasResolved;
+      expect(service.isCurrent(outcome), isTrue);
+      now = _start.add(const Duration(seconds: 59));
+      expect(service.isCurrent(outcome), isTrue);
+      now = _start.add(const Duration(seconds: 60));
+      expect(service.isCurrent(outcome), isFalse);
     });
 
     test('a lookup failure becomes its user message', () async {

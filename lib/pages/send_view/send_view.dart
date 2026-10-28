@@ -242,7 +242,9 @@ class _SendViewState extends ConsumerState<SendView> {
   void _addRecipientTapped() {
     final resolved = _openAlias;
     final address =
-        resolved != null && resolved.alias == openAliasKey(_address ?? "")
+        resolved != null &&
+            resolved.alias == openAliasKey(_address ?? "") &&
+            ref.read(pOpenAliasService).isCurrent(resolved)
         ? resolved.address
         : _address ?? "";
     _setMultiRecipients([
@@ -1085,7 +1087,9 @@ class _SendViewState extends ConsumerState<SendView> {
         !coin.validateAddress(_address ?? "") &&
         isOpenAlias(_address ?? "")) {
       var resolved = _openAlias;
-      if (resolved?.alias != openAliasKey(_address!)) {
+      if (resolved == null ||
+          resolved.alias != openAliasKey(_address!) ||
+          !ref.read(pOpenAliasService).isCurrent(resolved)) {
         resolved = _openAlias = await _resolveOpenAlias(application);
       }
       if (resolved == null || !mounted) return;

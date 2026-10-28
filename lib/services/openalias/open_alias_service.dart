@@ -56,18 +56,21 @@ class OpenAliasService {
     bool Function()? supportsTor,
     ({InternetAddress host, int port}) Function()? torProxy,
     OpenAliasLookup? lookup,
+    DateTime Function()? now,
   }) : _externalCalls = externalCalls ?? (() => Prefs.instance.externalCalls),
        _useTor = useTor ?? (() => Prefs.instance.useTor),
        _supportsTor =
            supportsTor ?? (() => AppConfig.hasFeature(AppFeature.tor)),
        _torProxy = torProxy ?? (() => TorService.sharedInstance.getProxyInfo()),
-       _lookup = lookup ?? resolveOpenAlias;
+       _lookup = lookup ?? resolveOpenAlias,
+       _now = now ?? DateTime.now;
 
   final bool Function() _externalCalls;
   final bool Function() _useTor;
   final bool Function() _supportsTor;
   final ({InternetAddress host, int port}) Function() _torProxy;
   final OpenAliasLookup _lookup;
+  final DateTime Function() _now;
 
   /// Why no lookup can be sent now, or null when one can.
   String? unavailableReason() => _route().unavailable;
@@ -93,6 +96,10 @@ class OpenAliasService {
     );
   }
 
+  /// Whether [resolved] is still within the TTL of its answer.
+  bool isCurrent(OpenAliasResolved resolved) =>
+      resolved.expiresAt.isAfter(_now());
+
   /// Starts [lookup] for the alias typed into a send field.
   OpenAliasResolution resolve(
     String input, {
@@ -104,6 +111,7 @@ class OpenAliasService {
         lookup(input, isValidAddress: isValidAddress, application: application),
     alias: openAliasKey(input),
     coinName: coinName,
+    now: _now,
   );
 
   ({String? unavailable, CsOpenAliasProxy? proxy}) _route() {
@@ -144,10 +152,15 @@ sealed class OpenAliasOutcome {
 }
 
 final class OpenAliasResolved extends OpenAliasOutcome {
-  const OpenAliasResolved({required this.alias, required this.address});
+  const OpenAliasResolved({
+    required this.alias,
+    required this.address,
+    required this.expiresAt,
+  });
 
   final String alias;
   final String address;
+  final DateTime expiresAt;
 }
 
 final class OpenAliasFailed extends OpenAliasOutcome {
@@ -161,14 +174,18 @@ final class OpenAliasCancelled extends OpenAliasOutcome {
   const OpenAliasCancelled();
 }
 
+// Bounds reuse even if a resolver hands back an inflated TTL.
+const _maxReuse = Duration(hours: 1);
+
 /// A lookup started by [OpenAliasService.resolve].
 final class OpenAliasResolution {
   OpenAliasResolution._(
     CsOpenAliasOperation<CsOpenAliasRecipient> Function() start, {
     required String alias,
     required String coinName,
+    required DateTime Function() now,
   }) {
-    outcome = _run(start, alias, coinName);
+    outcome = _run(start, alias, coinName, now);
   }
 
   late final Future<OpenAliasOutcome> outcome;
@@ -184,12 +201,18 @@ final class OpenAliasResolution {
     CsOpenAliasOperation<CsOpenAliasRecipient> Function() start,
     String alias,
     String coinName,
+    DateTime Function() now,
   ) async {
     try {
       _operation = start();
-      final address = (await _operation!.result).address;
+      final recipient = await _operation!.result;
       if (_cancelled) return const OpenAliasCancelled();
-      return OpenAliasResolved(alias: alias, address: address);
+      final ttl = recipient.ttl < _maxReuse ? recipient.ttl : _maxReuse;
+      return OpenAliasResolved(
+        alias: alias,
+        address: recipient.address,
+        expiresAt: now().add(ttl),
+      );
     } catch (e, s) {
       if (_cancelled) return const OpenAliasCancelled();
       Logging.instance.w("OpenAlias lookup failed", error: e, stackTrace: s);

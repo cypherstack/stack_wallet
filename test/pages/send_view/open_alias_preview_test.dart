@@ -173,10 +173,12 @@ class _Harness {
   late final ProviderContainer container;
   final navigator = GlobalKey<NavigatorState>();
   final lookups = <_Lookup>[];
+  var now = DateTime.utc(2026, 10, 28, 12);
 
   late final service = OpenAliasService(
     externalCalls: () => !incognito,
     useTor: () => false,
+    now: () => now,
     lookup:
         (
           alias, {
@@ -332,14 +334,24 @@ class _Harness {
     expect(tester.takeException(), isNull);
   }
 
-  void succeed() => lookups.single.result.complete(
+  void succeed() => lookups.last.result.complete(
     CsOpenAliasRecipient(
       domain: 'alice.example.com',
       address: literal,
       fields: const {'recipient_address': literal},
-      ttl: const Duration(minutes: 5),
+      ttl: const Duration(seconds: 60),
     ),
   );
+
+  /// Previews, completes the lookup and goes back to the form.
+  Future<void> previewAndReturn(WidgetTester tester) async {
+    await preview(tester);
+    succeed();
+    await finish(tester);
+    expect(find.byType(ConfirmTransactionView), findsOneWidget);
+    navigator.currentState!.pop();
+    await tester.pumpAndSettle();
+  }
 }
 
 void main() {
@@ -499,6 +511,40 @@ void main() {
       );
       expect(h.confirmed(tester).openAlias, 'bob@example.com');
       expect(h.text(tester), 'bob@example.com');
+    });
+
+    testWidgets('$layout an expired resolution is looked up again', (
+      tester,
+    ) async {
+      final h = _Harness(desktop);
+      await h.mount(tester);
+      await h.enter(tester, alias);
+      await h.setAmount(tester);
+      await h.previewAndReturn(tester);
+
+      h.now = h.now.add(const Duration(seconds: 61));
+      await h.preview(tester);
+      expect(h.lookups, hasLength(2));
+      h.succeed();
+      await h.finish(tester);
+      expect(h.confirmed(tester).recipients!.single.address, literal);
+      expect(h.confirmed(tester).openAlias, 'alice@example.com');
+    });
+
+    testWidgets('$layout a resolution within its TTL is reused', (
+      tester,
+    ) async {
+      final h = _Harness(desktop);
+      await h.mount(tester);
+      await h.enter(tester, alias);
+      await h.setAmount(tester);
+      await h.previewAndReturn(tester);
+
+      h.now = h.now.add(const Duration(seconds: 59));
+      await h.preview(tester);
+      await h.finish(tester);
+      expect(h.lookups, hasLength(1));
+      expect(h.confirmed(tester).recipients!.single.address, literal);
     });
 
     testWidgets('$layout the lookup runs before the send-all confirmation', (
