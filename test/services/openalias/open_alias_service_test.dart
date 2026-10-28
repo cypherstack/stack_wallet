@@ -287,6 +287,32 @@ void main() {
       );
     });
 
+    test('the TTL counts from when the lookup started', () async {
+      var now = _start;
+      final completer = Completer<CsOpenAliasRecipient>();
+      final service = _service(
+        (
+          alias, {
+          required isValidAddress,
+          required application,
+          required proxy,
+        }) => CsOpenAliasOperation(completer.future, () {}),
+        now: () => now,
+      );
+      final resolution = _resolve(service);
+      now = _start.add(const Duration(seconds: 30));
+      completer.complete(
+        CsOpenAliasRecipient(
+          domain: 'alice.example.com',
+          address: 'resolved',
+          fields: const {'recipient_address': 'resolved'},
+          ttl: const Duration(seconds: 60),
+        ),
+      );
+      final outcome = await resolution.outcome as OpenAliasResolved;
+      expect(outcome.expiresAt, _start.add(const Duration(seconds: 60)));
+    });
+
     test('a TTL over an hour is cut to an hour', () async {
       final outcome = await _resolve(
         _answering(const Duration(days: 2), () => _start),

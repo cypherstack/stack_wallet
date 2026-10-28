@@ -699,6 +699,37 @@ void main() {
       expect(h.lookups, hasLength(1));
     });
 
+    testWidgets(
+      '$layout Add recipient after an expired Preview keeps the alias',
+      (tester) async {
+        final h = _Harness(desktop);
+        await h.mount(tester);
+        await h.enter(tester, alias);
+        await h.setAmount(tester);
+        await h.previewAndReturn(tester);
+        h.now = h.now.add(const Duration(seconds: 61));
+
+        await tester.tap(
+          find.byWidgetPredicate(
+            (widget) =>
+                widget is CustomTextButton && widget.text == 'Add recipient',
+          ),
+        );
+        await tester.pumpAndSettle();
+        final forms = find.byType(Recipient);
+        expect(forms, findsNWidgets(2));
+        expect(
+          find.descendant(of: forms.first, matching: find.text(alias)),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(of: forms.first, matching: find.text(literal)),
+          findsNothing,
+        );
+        expect(h.lookups, hasLength(1));
+      },
+    );
+
     testWidgets('$layout multiple recipients never start a lookup', (
       tester,
     ) async {

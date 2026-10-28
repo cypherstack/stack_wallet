@@ -204,6 +204,9 @@ final class OpenAliasResolution {
     DateTime Function() now,
   ) async {
     try {
+      // The TTL is what remained when the answer arrived; count it from the
+      // start so a slow lookup cannot extend it.
+      final started = now();
       _operation = start();
       final recipient = await _operation!.result;
       if (_cancelled) return const OpenAliasCancelled();
@@ -211,7 +214,7 @@ final class OpenAliasResolution {
       return OpenAliasResolved(
         alias: alias,
         address: recipient.address,
-        expiresAt: now().add(ttl),
+        expiresAt: started.add(ttl),
       );
     } catch (e, s) {
       if (_cancelled) return const OpenAliasCancelled();
