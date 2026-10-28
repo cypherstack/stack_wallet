@@ -166,6 +166,7 @@ class ManagedElectrumXClient extends ElectrumXClient {
 
     final existing = getElectrumAdapter();
     if (existing != null && !existing.peer.isClosed) {
+      await super.checkElectrumAdapter();
       return;
     }
     if (existing != null) {
@@ -184,6 +185,7 @@ class ManagedElectrumXClient extends ElectrumXClient {
       cryptoCurrency: cryptoCurrency,
       netType: netType,
     );
+    await super.checkElectrumAdapter();
   }
 }
 

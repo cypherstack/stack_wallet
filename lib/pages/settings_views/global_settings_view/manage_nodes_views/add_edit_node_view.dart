@@ -16,24 +16,26 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../../models/node_form_data.dart';
 import '../../../../models/node_model.dart';
 import '../../../../notifications/show_flush_bar.dart';
-import '../../../../providers/global/active_wallet_provider.dart';
 import '../../../../providers/global/secure_store_provider.dart';
 import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/barcode_scanner_interface.dart';
 import '../../../../utilities/constants.dart';
-import '../../../../utilities/enums/sync_type_enum.dart';
 import '../../../../utilities/flutter_secure_storage_interface.dart';
 import '../../../../utilities/logger.dart';
+import '../../../../utilities/node_change_notifier.dart';
 import '../../../../utilities/node_uri_util.dart';
 import '../../../../utilities/test_node_connection.dart';
 import '../../../../utilities/text_styles.dart';
+import '../../../../utilities/tls_certificate.dart';
 import '../../../../utilities/tor_plain_net_option_enum.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../../wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
 import '../../../../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
@@ -48,7 +50,7 @@ import '../../../../widgets/stack_dialog.dart';
 import '../../../../widgets/stack_text_field.dart';
 import '../../../../widgets/textfield_icon_button.dart';
 
-// import 'package:web3dart/web3dart.dart';
+export '../../../../models/node_form_data.dart';
 
 enum AddEditNodeViewType { add, edit }
 
@@ -83,28 +85,50 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
   late bool saveEnabled;
   late bool testConnectionEnabled;
 
+  late final NodeFormData _form;
+  bool _busy = false;
+
   void _onTestSuccess(NodeFormData data) {
-    if (coin is Epiccash) {
-      ref.read(nodeFormDataProvider).host = data.host;
-      ref.read(nodeFormDataProvider).port = data.port;
-      ref.read(nodeFormDataProvider).useSSL = data.useSSL;
-    } else if (coin is Mimblewimblecoin) {
-      ref.read(nodeFormDataProvider).host = data.host;
-      ref.read(nodeFormDataProvider).port = data.port;
-      ref.read(nodeFormDataProvider).useSSL = data.useSSL;
-    } else if (coin is CryptonoteCurrency) {
-      ref.read(nodeFormDataProvider).host = data.host;
+    if (mounted && identical(data, _form)) setState(() {});
+  }
+
+  VoidCallback? _whileIdle(Future<void> Function() action) =>
+      _busy ? null : () => _runBusy(action);
+
+  Future<void> _runBusy(Future<void> Function() action) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      await WidgetsBinding.instance.endOfFrame;
+      await _form.passwordLoad;
+      if (mounted) await action();
+    } catch (error, stack) {
+      Logging.instance.w('$error', error: error, stackTrace: stack);
+      if (mounted) {
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message: 'Node operation failed',
+            context: context,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
     }
   }
 
   Future<void> attemptSave() async {
+    final service = ref.read(nodeServiceChangeNotifierProvider);
+    final notify = nodeChangeNotifier(ref, coin);
     final canConnect = await ref.read(testNodeConnectionProvider)(
       context: context,
       onSuccess: _onTestSuccess,
       cryptoCurrency: coin,
-      nodeFormData: ref.read(nodeFormDataProvider),
+      nodeFormData: _form,
     );
 
+    if (!mounted || ModalRoute.of(context)?.isCurrent == false) return;
     bool? shouldSave;
 
     if (!canConnect && mounted) {
@@ -217,12 +241,12 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
       });
     }
 
-    if (!canConnect && !shouldSave!) {
+    if (!mounted || (!canConnect && shouldSave != true)) {
       // return without saving
       return;
     }
 
-    final formData = ref.read(nodeFormDataProvider);
+    final formData = _form;
 
     // strip unused path
     String address = formData.host!;
@@ -255,6 +279,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           coinName: coin.identifier,
           isFailover: formData.isFailover!,
           trusted: formData.trusted!,
+          trustedCertificatePem: formData.trustedCertificatePem,
           isDown: false,
           torEnabled: torEnabled,
           clearnetEnabled: plainEnabled,
@@ -263,10 +288,8 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           nodeApiSecret: formData.apiSecret,
         );
 
-        await ref
-            .read(nodeServiceChangeNotifierProvider)
-            .save(node, formData.password, true);
-        await _notifyWalletsOfUpdatedNode();
+        await service.save(node, formData.password, true);
+        await notify();
         if (mounted) {
           Navigator.of(context)
               .popUntil(ModalRoute.withName(widget.routeOnSuccessOrDelete));
@@ -284,6 +307,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           coinName: coin.identifier,
           isFailover: formData.isFailover!,
           trusted: formData.trusted!,
+          trustedCertificatePem: formData.trustedCertificatePem,
           isDown: false,
           torEnabled: torEnabled,
           clearnetEnabled: plainEnabled,
@@ -292,48 +316,19 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           nodeApiSecret: formData.apiSecret,
         );
 
-        await ref
-            .read(nodeServiceChangeNotifierProvider)
-            .save(node, formData.password, true);
-        await _notifyWalletsOfUpdatedNode();
+        if (!await service.saveEdit(
+          node,
+          formData.password,
+          true,
+          opened: formData.source!,
+          forgetCertificate: formData.certificateForgotten,
+        )) {
+          return;
+        }
+        await notify();
         if (mounted) {
           Navigator.of(context)
               .popUntil(ModalRoute.withName(widget.routeOnSuccessOrDelete));
-        }
-        break;
-    }
-  }
-
-  Future<void> _notifyWalletsOfUpdatedNode() async {
-    final wallets = ref
-        .read(pWallets)
-        .wallets
-        .where((e) => e.info.coin == widget.coin);
-    final prefs = ref.read(prefsChangeNotifierProvider);
-
-    switch (prefs.syncType) {
-      case SyncingType.currentWalletOnly:
-        for (final wallet in wallets) {
-          if (ref.read(currentWalletIdProvider) == wallet.walletId) {
-            unawaited(wallet.updateNode().then((value) => wallet.refresh()));
-          } else {
-            unawaited(wallet.updateNode());
-          }
-        }
-        break;
-      case SyncingType.selectedWalletsAtStartup:
-        final List<String> walletIdsToSync = prefs.walletIdsSyncOnStartup;
-        for (final wallet in wallets) {
-          if (walletIdsToSync.contains(wallet.walletId)) {
-            unawaited(wallet.updateNode().then((value) => wallet.refresh()));
-          } else {
-            unawaited(wallet.updateNode());
-          }
-        }
-        break;
-      case SyncingType.allWalletsOnStartup:
-        for (final wallet in wallets) {
-          unawaited(wallet.updateNode().then((value) => wallet.refresh()));
         }
         break;
     }
@@ -433,7 +428,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
   @override
   void initState() {
     isDesktop = Util.isDesktop;
-    ref.refresh(nodeFormDataProvider);
+    _form = ref.refresh(nodeFormDataProvider);
 
     viewType = widget.viewType;
     coin = widget.coin;
@@ -517,7 +512,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                             .extension<StackColors>()!
                             .accentColorDark,
                       ),
-                      onPressed: _scanQr,
+                      onPressed: _busy ? null : _scanQr,
                     ),
                   ),
                 ),
@@ -553,16 +548,20 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                         width: 20,
                         height: 20,
                       ),
-                      onPressed: () async {
-                        Navigator.popUntil(
-                          context,
-                          ModalRoute.withName(widget.routeOnSuccessOrDelete),
-                        );
+                      onPressed: _busy
+                          ? null
+                          : () async {
+                              Navigator.popUntil(
+                                context,
+                                ModalRoute.withName(
+                                  widget.routeOnSuccessOrDelete,
+                                ),
+                              );
 
-                        await ref
-                            .read(nodeServiceChangeNotifierProvider)
-                            .delete(nodeId!, true);
-                      },
+                              await ref
+                                  .read(nodeServiceChangeNotifierProvider)
+                                  .delete(nodeId!, true);
+                            },
                     ),
                   ),
                 ),
@@ -601,7 +600,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           maxWidth: 580,
           maxHeight: double.infinity,
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisSize: .min,
             children: [
               const SizedBox(height: 8),
               Row(
@@ -630,7 +629,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                                   .extension<StackColors>()!
                                   .background,
                         icon: const QrCodeIcon(width: 21, height: 21),
-                        onPressed: _scanQr,
+                        onPressed: _busy ? null : _scanQr,
                       ),
                     ),
                 ],
@@ -648,7 +647,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           ),
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: .stretch,
           children: [
             NodeForm(
               key: Key((node ?? _scannedResult?.$1)?.id ?? "none"),
@@ -656,6 +655,8 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
               scannedPw: _scannedResult?.$2,
               secureStore: ref.read(secureStoreProvider),
               readOnly: false,
+              busy: _busy,
+              data: _form,
               coin: widget.coin,
               onChanged: (canSave, canTest) {
                 if (canSave != saveEnabled &&
@@ -682,16 +683,16 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                 Expanded(
                   child: SecondaryButton(
                     label: "Test connection",
-                    enabled: testConnectionEnabled,
+                    enabled: testConnectionEnabled && !_busy,
                     buttonHeight: isDesktop ? ButtonHeight.l : null,
-                    onPressed: testConnectionEnabled
-                        ? () async {
+                    onPressed: testConnectionEnabled && !_busy
+                        ? _whileIdle(() async {
                             final testPassed =
                                 await ref.read(testNodeConnectionProvider)(
                                   context: context,
                                   onSuccess: _onTestSuccess,
                                   cryptoCurrency: coin,
-                                  nodeFormData: ref.read(nodeFormDataProvider),
+                                  nodeFormData: _form,
                                 );
                             if (context.mounted) {
                               if (testPassed) {
@@ -712,7 +713,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                                 );
                               }
                             }
-                          }
+                          })
                         : null,
                   ),
                 ),
@@ -721,9 +722,11 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                   Expanded(
                     child: PrimaryButton(
                       label: "Save",
-                      enabled: saveEnabled,
+                      enabled: saveEnabled && !_busy,
                       buttonHeight: ButtonHeight.l,
-                      onPressed: saveEnabled ? attemptSave : null,
+                      onPressed: saveEnabled && !_busy
+                          ? _whileIdle(attemptSave)
+                          : null,
                     ),
                   ),
               ],
@@ -738,7 +741,9 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                     : Theme.of(context)
                           .extension<StackColors>()!
                           .getPrimaryDisabledButtonStyle(context),
-                onPressed: saveEnabled ? attemptSave : null,
+                onPressed: saveEnabled && !_busy
+                    ? _whileIdle(attemptSave)
+                    : null,
                 child: Text("Save", style: STextStyles.button(context)),
               ),
           ],
@@ -748,24 +753,14 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
   }
 }
 
-class NodeFormData {
-  String? name, host, login, password, apiSecret;
-  int? port;
-  bool? useSSL, isFailover, trusted, forceNoTor, isPrimary;
-  TorPlainNetworkOption? netOption;
-
-  @override
-  String toString() {
-    return "{ name: $name, host: $host, port: $port, useSSL: $useSSL, trusted: $trusted, netOption: $netOption, isPrimary: $isPrimary }";
-  }
-}
-
 final nodeFormDataProvider = Provider<NodeFormData>((_) => NodeFormData());
 
 class NodeForm extends ConsumerStatefulWidget {
   const NodeForm({
     super.key,
     this.node,
+    this.data,
+    this.busy = false,
     this.scannedPw,
     required this.secureStore,
     required this.readOnly,
@@ -774,6 +769,8 @@ class NodeForm extends ConsumerStatefulWidget {
   });
 
   final NodeModel? node;
+  final NodeFormData? data;
+  final bool busy;
   final String? scannedPw;
   final SecureStorageInterface secureStore;
   final bool readOnly;
@@ -785,6 +782,36 @@ class NodeForm extends ConsumerStatefulWidget {
 }
 
 class _NodeFormState extends ConsumerState<NodeForm> {
+  late final NodeFormData _data;
+  bool _changing = false;
+  bool _passwordEdited = false;
+  bool get _inputsReadOnly => widget.readOnly || widget.busy || _changing;
+  String? get _certificate => widget.readOnly
+      ? widget.node?.trustedCertificatePem
+      : _data.trustedCertificatePem;
+
+  Future<void> _changeNode(Future<bool> Function() action) async {
+    if (widget.busy || _changing) return;
+    final notify = nodeChangeNotifier(ref, widget.coin);
+    setState(() => _changing = true);
+    try {
+      if (await action()) await notify();
+    } catch (error, stack) {
+      Logging.instance.w('$error', error: error, stackTrace: stack);
+      if (mounted) {
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message: 'Node operation failed',
+            context: context,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _changing = false);
+    }
+  }
+
   late final TextEditingController _nameController;
   late final TextEditingController _hostController;
   late final TextEditingController _portController;
@@ -834,41 +861,45 @@ class _NodeFormState extends ConsumerState<NodeForm> {
 
   bool enableField(TextEditingController controller) {
     bool enable = true;
-    if (widget.readOnly) {
+    if (_inputsReadOnly) {
       enable = controller.text.isNotEmpty;
     }
     return enable;
   }
 
   bool get shouldBeReadOnly =>
-      widget.readOnly || widget.node?.isDefault == true;
+      _inputsReadOnly || widget.node?.isDefault == true;
 
   void _updateState() {
+    if (widget.busy || _changing) return;
     port = int.tryParse(_portController.text);
     onChanged?.call(canSave, canTestConnection);
-    ref.read(nodeFormDataProvider).name = _nameController.text;
-    ref.read(nodeFormDataProvider).host = _hostController.text;
-    ref.read(nodeFormDataProvider).login = _usernameController.text.isEmpty
+    _data.name = _nameController.text;
+    _data.host = _hostController.text;
+    _data.login = _usernameController.text.isEmpty
         ? null
         : _usernameController.text;
-    ref.read(nodeFormDataProvider).password = _passwordController.text.isEmpty
+    _data.password = _passwordController.text.isEmpty
         ? null
         : _passwordController.text;
-    ref.read(nodeFormDataProvider).apiSecret = _apiSecretController.text.isEmpty
+    _data.apiSecret = _apiSecretController.text.isEmpty
         ? null
         : _apiSecretController.text;
-    ref.read(nodeFormDataProvider).port = port;
-    ref.read(nodeFormDataProvider).useSSL = _useSSL;
-    ref.read(nodeFormDataProvider).isFailover = _isFailover;
-    ref.read(nodeFormDataProvider).trusted = _trusted;
-    ref.read(nodeFormDataProvider).netOption = netOption;
-    ref.read(nodeFormDataProvider).forceNoTor = _forceNoTor;
-    ref.read(nodeFormDataProvider).host;
-    ref.read(nodeFormDataProvider).isPrimary = _isPrimary;
+    _data.port = port;
+    _data.useSSL = _useSSL;
+    _data.isFailover = _isFailover;
+    _data.trusted = _trusted;
+    _data.netOption = netOption;
+    _data.forceNoTor = _forceNoTor;
+    _data.host;
+    _data.isPrimary = _isPrimary;
   }
 
   @override
   void initState() {
+    _data = widget.data ?? ref.read(nodeFormDataProvider);
+    _data.source = widget.node;
+    _data.trustedCertificatePem = null;
     onChanged = widget.onChanged;
     _nameController = TextEditingController();
     _hostController = TextEditingController();
@@ -883,11 +914,16 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       final node = widget.node!;
       if (enableAuthFields) {
         if (widget.scannedPw == null) {
-          node.getPassword(widget.secureStore).then((value) {
-            if (value is String) {
-              _passwordController.text = value;
-            }
-          });
+          // Save and Test await this; a failed read must not block them.
+          _data.passwordLoad = node.getPassword(widget.secureStore).then((
+            value,
+          ) {
+            if (!mounted || value is! String || _passwordEdited) return;
+            _passwordController.text = value;
+            _data.password = value;
+            // Tests and saves may run before any field is edited.
+            _updateState();
+          }, onError: (Object _) {});
         } else {
           _passwordController.text = widget.scannedPw!;
         }
@@ -921,8 +957,11 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       }
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        // update provider state object so test connection works without having to modify a field in the ui first
+        if (!mounted) return;
+        // Update the form before loading its endpoint-specific approval.
         _updateState();
+        _data.trustedCertificatePem = node.trustedCertificatePem;
+        if (mounted) setState(() {});
       });
     } else {
       enableSSLCheckbox = true;
@@ -1230,6 +1269,8 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                                   TextFieldIconButton(
                                     child: const XIcon(),
                                     onTap: () async {
+                                      if (widget.busy || _changing) return;
+                                      _passwordEdited = true;
                                       _passwordController.text = "";
                                       _updateState();
                                     },
@@ -1241,6 +1282,8 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                         : null,
                   ),
               onChanged: (newValue) {
+                if (widget.busy || _changing) return;
+                _passwordEdited = true;
                 _updateState();
                 setState(() {});
               },
@@ -1346,11 +1389,57 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               ),
             ],
           ),
+        if ((widget.coin is ElectrumXCurrencyInterface ||
+                widget.coin is BitcoinFrost) &&
+            _useSSL &&
+            _certificate != null)
+          Column(
+            crossAxisAlignment: .start,
+            children: [
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: SelectableText(
+                      'Trusted TLS certificate\n'
+                      'SHA-256:\n'
+                      '${certificatePemFingerprint(_certificate!) ?? 'Unavailable'}',
+                      style: STextStyles.itemSubtitle12(context),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Spacer(),
+                  SecondaryButton(
+                    label: 'Forget certificate',
+                    buttonHeight: .s,
+                    padding: const .symmetric(horizontal: 10),
+                    onPressed: widget.busy || _changing
+                        ? null
+                        : () async {
+                            if (!widget.readOnly) {
+                              setState(_data.forgetCertificate);
+                              return;
+                            }
+                            await _changeNode(
+                              () => ref
+                                  .read(nodeServiceChangeNotifierProvider)
+                                  .forgetTrustedCertificate(widget.node!),
+                            );
+                          },
+                  ),
+                ],
+              ),
+            ],
+          ),
         if (widget.coin is CryptonoteCurrency)
           Row(
             children: [
               GestureDetector(
-                onTap: !widget.readOnly /*&& trustedCheckbox*/
+                onTap: !_inputsReadOnly
                     ? () {
                         setState(() {
                           _trusted = !_trusted;
@@ -1366,7 +1455,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                         width: 20,
                         height: 20,
                         child: Checkbox(
-                          fillColor: !widget.readOnly
+                          fillColor: !_inputsReadOnly
                               ? null
                               : MaterialStateProperty.all(
                                   Theme.of(context)
@@ -1376,7 +1465,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                           materialTapTargetSize:
                               MaterialTapTargetSize.shrinkWrap,
                           value: _trusted,
-                          onChanged: !widget.readOnly
+                          onChanged: !_inputsReadOnly
                               ? (newValue) {
                                   setState(() {
                                     _trusted = newValue!;
@@ -1407,26 +1496,24 @@ class _NodeFormState extends ConsumerState<NodeForm> {
           Row(
             children: [
               GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _isFailover = !_isFailover;
-                  });
-                  if (widget.readOnly) {
-                    ref
-                        .read(nodeServiceChangeNotifierProvider)
-                        .save(
-                          widget.node!.copyWith(
-                            isFailover: _isFailover,
-                            loginName: widget.node!.loginName,
-                            trusted: widget.node!.trusted,
-                          ),
-                          null,
-                          true,
-                        );
-                  } else {
-                    _updateState();
-                  }
-                },
+                onTap: widget.busy || _changing
+                    ? null
+                    : () {
+                        setState(() {
+                          _isFailover = !_isFailover;
+                        });
+                        if (widget.readOnly) {
+                          unawaited(
+                            _changeNode(
+                              () => ref
+                                  .read(nodeServiceChangeNotifierProvider)
+                                  .setFailover(widget.node!.id, _isFailover),
+                            ),
+                          );
+                        } else {
+                          _updateState();
+                        }
+                      },
                 child: Container(
                   color: Colors.transparent,
                   child: Row(
@@ -1438,26 +1525,29 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                           materialTapTargetSize:
                               MaterialTapTargetSize.shrinkWrap,
                           value: _isFailover,
-                          onChanged: (newValue) {
-                            setState(() {
-                              _isFailover = newValue!;
-                            });
-                            if (widget.readOnly) {
-                              ref
-                                  .read(nodeServiceChangeNotifierProvider)
-                                  .save(
-                                    widget.node!.copyWith(
-                                      isFailover: _isFailover,
-                                      loginName: widget.node!.loginName,
-                                      trusted: widget.node!.trusted,
-                                    ),
-                                    null,
-                                    true,
-                                  );
-                            } else {
-                              _updateState();
-                            }
-                          },
+                          onChanged: widget.busy || _changing
+                              ? null
+                              : (newValue) {
+                                  setState(() {
+                                    _isFailover = newValue!;
+                                  });
+                                  if (widget.readOnly) {
+                                    unawaited(
+                                      _changeNode(
+                                        () => ref
+                                            .read(
+                                              nodeServiceChangeNotifierProvider,
+                                            )
+                                            .setFailover(
+                                              widget.node!.id,
+                                              _isFailover,
+                                            ),
+                                      ),
+                                    );
+                                  } else {
+                                    _updateState();
+                                  }
+                                },
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -1477,11 +1567,11 @@ class _NodeFormState extends ConsumerState<NodeForm> {
             children: [
               RadioTextButton(
                 label: "Only TOR traffic",
-                enabled: !widget.readOnly,
+                enabled: !_inputsReadOnly,
                 value: TorPlainNetworkOption.tor,
                 groupValue: netOption,
                 onChanged: (value) {
-                  if (!widget.readOnly) {
+                  if (!_inputsReadOnly) {
                     setState(() => netOption = TorPlainNetworkOption.tor);
                     _updateState();
                   }
@@ -1495,11 +1585,11 @@ class _NodeFormState extends ConsumerState<NodeForm> {
             children: [
               RadioTextButton(
                 label: "Only non-TOR traffic",
-                enabled: !widget.readOnly,
+                enabled: !_inputsReadOnly,
                 value: TorPlainNetworkOption.clear,
                 groupValue: netOption,
                 onChanged: (value) {
-                  if (!widget.readOnly) {
+                  if (!_inputsReadOnly) {
                     setState(() => netOption = TorPlainNetworkOption.clear);
                     _updateState();
                   }
@@ -1513,11 +1603,11 @@ class _NodeFormState extends ConsumerState<NodeForm> {
             children: [
               RadioTextButton(
                 label: "Allow both",
-                enabled: !widget.readOnly,
+                enabled: !_inputsReadOnly,
                 value: TorPlainNetworkOption.both,
                 groupValue: netOption,
                 onChanged: (value) {
-                  if (!widget.readOnly) {
+                  if (!_inputsReadOnly) {
                     setState(() => netOption = TorPlainNetworkOption.both);
                     _updateState();
                   }
@@ -1534,7 +1624,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                 width: 20,
                 height: 20,
                 child: Checkbox(
-                  fillColor: !widget.readOnly
+                  fillColor: !_inputsReadOnly
                       ? null
                       : MaterialStateProperty.all(
                           Theme.of(context)
@@ -1543,7 +1633,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                         ),
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   value: _forceNoTor,
-                  onChanged: !widget.readOnly
+                  onChanged: !_inputsReadOnly
                       ? (newValue) {
                           setState(() {
                             _forceNoTor = newValue!;
@@ -1598,8 +1688,8 @@ class RadioTextButton<T> extends StatelessWidget {
         child: Container(
           color: Colors.transparent,
           child: Row(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: .min,
+            crossAxisAlignment: .start,
             children: [
               SizedBox(
                 width: 20,

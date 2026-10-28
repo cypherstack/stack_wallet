@@ -11,6 +11,7 @@ import '../app_config.dart';
 import '../networking/http.dart';
 import '../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import '../providers/global/prefs_provider.dart';
+import '../providers/global/node_service_provider.dart';
 import '../services/tor_service.dart';
 import '../wallets/api/cardano/blockfrost_http_provider.dart';
 import '../wallets/api/tezos/tezos_rpc_api.dart';
@@ -20,6 +21,7 @@ import '../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
 import '../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../wallets/wallet/impl/solana_wallet.dart';
 import '../wl_gen/interfaces/lib_xelis_interface.dart';
+import '../widgets/tls_certificate_dialog.dart' as electrum_tls;
 import 'connection_check/electrum_connection_check.dart';
 import 'logger.dart';
 import 'test_epic_box_connection.dart';
@@ -220,12 +222,40 @@ Future<bool> testNodeConnection({
     case ElectrumXCurrencyInterface():
     case BitcoinFrost():
       try {
-        testPassed = await checkElectrumServer(
-          host: formData.host!,
-          port: formData.port!,
-          useSSL: formData.useSSL!,
-          overridePrefs: read(prefsChangeNotifierProvider),
-          overrideTorService: read(pTorService),
+        if (!read(nodeServiceChangeNotifierProvider)
+            .prepareCertificateTest(formData)) {
+          return false;
+        }
+        final prefs = read(prefsChangeNotifierProvider);
+        final torService = read(pTorService);
+        final useTor = prefs.useTor;
+        final torStatus = AppConfig.hasFeature(AppFeature.tor) && useTor
+            ? torService.status
+            : null;
+        testPassed = await testElectrumNodeConnection(
+          formData,
+          isActive: () =>
+              context.mounted &&
+              ModalRoute.of(context)?.isCurrent != false &&
+              prefs.useTor == useTor &&
+              (torStatus == null || torService.status == torStatus),
+          onSuccess: onSuccess,
+          requestTrust: (certificate, host, port) => electrum_tls
+              .showBadX509CertificateDialog(certificate, host, port, context),
+          testConnection:
+              ({
+                required host,
+                required port,
+                required useSSL,
+                trustedCertificatePem,
+              }) => checkElectrumServer(
+                host: host,
+                port: port,
+                useSSL: useSSL,
+                trustedCertificatePem: trustedCertificatePem,
+                overridePrefs: prefs,
+                overrideTorService: torService,
+              ),
         );
       } catch (_) {
         testPassed = false;

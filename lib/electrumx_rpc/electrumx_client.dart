@@ -18,7 +18,6 @@ import 'package:electrum_adapter/electrum_adapter.dart';
 import 'package:electrum_adapter/methods/specific/firo.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:mutex/mutex.dart';
-import 'package:stream_channel/stream_channel.dart';
 
 import '../app_config.dart';
 import '../exceptions/electrumx/no_such_transaction.dart';
@@ -31,6 +30,7 @@ import '../utilities/amount/amount.dart';
 import '../utilities/extensions/impl/string.dart';
 import '../utilities/logger.dart';
 import '../utilities/prefs.dart';
+import '../utilities/tls_certificate.dart';
 import '../utilities/tor_plain_net_option_enum.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import '../wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
@@ -51,6 +51,7 @@ class ElectrumXNode {
     required this.useSSL,
     required this.torEnabled,
     required this.clearnetEnabled,
+    this.trustedCertificatePem,
   });
   final String address;
   final int port;
@@ -59,6 +60,7 @@ class ElectrumXNode {
   final bool useSSL;
   final bool torEnabled;
   final bool clearnetEnabled;
+  final String? trustedCertificatePem;
 
   factory ElectrumXNode.from(ElectrumXNode node) {
     return ElectrumXNode(
@@ -69,6 +71,7 @@ class ElectrumXNode {
       useSSL: node.useSSL,
       torEnabled: node.torEnabled,
       clearnetEnabled: node.clearnetEnabled,
+      trustedCertificatePem: node.trustedCertificatePem,
     );
   }
 
@@ -90,12 +93,19 @@ class ElectrumXClient {
 
   bool get useSSL => _useSSL;
   late bool _useSSL;
+  final String? trustedCertificatePem;
 
-  // StreamChannel<dynamic>? get electrumAdapterChannel => _electrumAdapterChannel;
-  StreamChannel<dynamic>? _electrumAdapterChannel;
+  bool _closed = false;
+  int _connectionGeneration = 0;
+  ElectrumClient? _adapter;
+  ElectrumClient? _pendingClient;
 
-  ElectrumClient? getElectrumAdapter() => ClientManager.sharedInstance
-      .getClient(cryptoCurrency: cryptoCurrency, netType: netType);
+  ElectrumClient? getElectrumAdapter() => _closed
+      ? null
+      : ClientManager.sharedInstance.getClient(
+          cryptoCurrency: cryptoCurrency,
+          netType: netType,
+        );
 
   late Prefs _prefs;
   late TorService _torService;
@@ -105,12 +115,6 @@ class ElectrumXClient {
 
   final Duration connectionTimeoutForSpecialCaseJsonRPCClients;
 
-  // add finalizer to cancel stream subscription when all references to an
-  // instance of ElectrumX becomes inaccessible
-  static final Finalizer<ElectrumXClient> _finalizer = Finalizer((p0) {
-    p0._torPreferenceListener?.cancel();
-    p0._torStatusListener?.cancel();
-  });
   StreamSubscription<TorPreferenceChangedEvent>? _torPreferenceListener;
   StreamSubscription<TorConnectionStatusChangedEvent>? _torStatusListener;
 
@@ -132,6 +136,7 @@ class ElectrumXClient {
     ),
     TorService? torService,
     EventBus? globalEventBusForTesting,
+    this.trustedCertificatePem,
   }) {
     _prefs = prefs;
     _torService = torService ?? TorService.sharedInstance;
@@ -146,9 +151,14 @@ class ElectrumXClient {
     _torStatusListener = bus.on<TorConnectionStatusChangedEvent>().listen((
       event,
     ) async {
+      if (_closed) return;
       switch (event.newStatus) {
         case TorConnectionStatus.connecting:
           await _torConnectingLock.acquire();
+          if (_closed) {
+            _torConnectingLock.release();
+            return;
+          }
           _requireMutex = true;
           break;
 
@@ -166,21 +176,7 @@ class ElectrumXClient {
     _torPreferenceListener = bus.on<TorPreferenceChangedEvent>().listen((
       event,
     ) async {
-      // not sure if we need to do anything specific here
-      // switch (event.status) {
-      //   case TorStatus.enabled:
-      //   case TorStatus.disabled:
-      // }
-
-      // setting to null should force the creation of a new json rpc client
-      // on the next request sent through this electrumx instance
-      _electrumAdapterChannel = null;
-      await (await ClientManager.sharedInstance.remove(
-        cryptoCurrency: cryptoCurrency,
-      )).$1?.close();
-
-      // Also close any chain height services that are currently open.
-      // await ChainHeightServiceManager.dispose();
+      if (!_closed) await _resetAdapter();
     });
   }
 
@@ -196,6 +192,7 @@ class ElectrumXClient {
       host: node.address,
       port: node.port,
       useSSL: node.useSSL,
+      trustedCertificatePem: node.trustedCertificatePem,
       prefs: prefs,
       torService: torService,
       failovers: failovers,
@@ -218,120 +215,141 @@ class ElectrumXClient {
   }
 
   Future<void> closeAdapter() async {
-    await getElectrumAdapter()?.close();
+    _closed = true;
+    _requireMutex = false;
+    if (_torConnectingLock.isLocked) _torConnectingLock.release();
+    await _torPreferenceListener?.cancel();
+    await _torStatusListener?.cancel();
+    await _resetAdapter();
   }
 
-  Future<void> checkElectrumAdapter() async {
-    await _adapterMutex.protect(() async {
-      ({InternetAddress host, int port})? proxyInfo;
+  Future<void> _release(ElectrumClient client) async {
+    final removed = ClientManager.sharedInstance.remove(
+      cryptoCurrency: cryptoCurrency,
+      expectedClient: client,
+    );
+    try {
+      await client.close();
+    } finally {
+      await removed;
+    }
+  }
 
-      if (AppConfig.hasFeature(AppFeature.tor)) {
-        // If we're supposed to use Tor...
-        if (_prefs.useTor) {
-          // But Tor isn't running...
-          if (_torService.status != TorConnectionStatus.connected) {
-            // And the killswitch isn't set...
-            if (!_prefs.torKillSwitch) {
-              // Then we'll just proceed and connect to ElectrumX through
-              // clearnet at the bottom of this function.
-              Logging.instance.w(
-                "Tor preference set but Tor is not enabled, killswitch not set,"
-                " connecting to Electrum adapter through clearnet",
-              );
-            } else {
-              // ... But if the killswitch is set, then we throw an exception.
-              throw Exception(
-                "Tor preference and killswitch set but Tor is not enabled, "
-                "not connecting to Electrum adapter",
-              );
-              // TODO [prio=low]: Try to start Tor.
-            }
-          } else {
-            // Get the proxy info from the TorService.
-            proxyInfo = _torService.getProxyInfo();
-          }
+  Future<void> _resetAdapter() async {
+    _connectionGeneration++;
+    final pending = _pendingClient;
+    final current = _adapter;
+    _pendingClient = _adapter = null;
+    if (pending != null) await _release(pending);
+    if (current != null && !identical(current, pending)) {
+      await _release(current);
+    }
+  }
 
-          if (netType == TorPlainNetworkOption.clear) {
-            _electrumAdapterChannel = null;
-            await ClientManager.sharedInstance.remove(
-              cryptoCurrency: cryptoCurrency,
-            );
-          }
-        } else {
-          if (netType == TorPlainNetworkOption.tor) {
-            _electrumAdapterChannel = null;
-            await ClientManager.sharedInstance.remove(
-              cryptoCurrency: cryptoCurrency,
-            );
-          }
-        }
+  Future<void> checkElectrumAdapter() => _adapterMutex.protect(() async {
+    final generation = _connectionGeneration;
+    void ensureCurrent() {
+      if (_closed || generation != _connectionGeneration) {
+        throw StateError('Electrum client changed');
       }
-      // If the current ElectrumAdapterClient is closed, create a new one.
-      if (getElectrumAdapter() != null && getElectrumAdapter()!.peer.isClosed) {
-        _electrumAdapterChannel = null;
-        await ClientManager.sharedInstance.remove(
-          cryptoCurrency: cryptoCurrency,
-        );
+    }
+
+    ensureCurrent();
+    final failover = currentFailoverIndex == -1
+        ? null
+        : _failovers[currentFailoverIndex];
+    final useHost = failover?.address ?? host;
+    final usePort = failover?.port ?? port;
+    final ssl = failover?.useSSL ?? useSSL;
+    final pem = ssl
+        ? (failover == null
+              ? trustedCertificatePem
+              : failover.trustedCertificatePem)
+        : null;
+    ({InternetAddress host, int port})? proxy;
+    if (AppConfig.hasFeature(AppFeature.tor) && _prefs.useTor) {
+      if (_torService.status == TorConnectionStatus.connected) {
+        proxy = _torService.getProxyInfo();
+      } else if (_prefs.torKillSwitch) {
+        throw StateError('Tor is not connected');
       }
-
-      final String useHost;
-      final int usePort;
-      final bool useUseSSL;
-
-      if (currentFailoverIndex == -1) {
-        useHost = host;
-        usePort = port;
-        useUseSSL = useSSL;
-      } else {
-        _electrumAdapterChannel = null;
-        await ClientManager.sharedInstance.remove(
-          cryptoCurrency: cryptoCurrency,
-        );
-        useHost = _failovers[currentFailoverIndex].address;
-        usePort = _failovers[currentFailoverIndex].port;
-        useUseSSL = _failovers[currentFailoverIndex].useSSL;
-      }
-
-      _electrumAdapterChannel ??= await electrum_adapter.connect(
+    }
+    bool matches(
+      ElectrumClient client,
+      String h,
+      int p,
+      bool tls,
+      String? pin,
+    ) =>
+        client.host == h &&
+        client.port == p &&
+        client.useSSL == tls &&
+        ClientManager.sharedInstance.trustedCertificateFor(cryptoCurrency) ==
+            (tls ? pin : null);
+    bool shareable(ElectrumClient client) =>
+        !client.peer.isClosed &&
+        client.proxyInfo?.host.address == proxy?.host.address &&
+        client.proxyInfo?.port == proxy?.port &&
+        (failover != null
+            ? matches(client, useHost, usePort, ssl, pem)
+            : matches(client, host, port, useSSL, trustedCertificatePem) ||
+                  _failovers.any(
+                    (n) => matches(
+                      client,
+                      n.address,
+                      n.port,
+                      n.useSSL,
+                      n.trustedCertificatePem,
+                    ),
+                  ));
+    final existing = getElectrumAdapter();
+    if (existing != null && shareable(existing)) {
+      _adapter = existing;
+      return;
+    }
+    if (existing != null) {
+      await _release(existing);
+      ensureCurrent();
+    }
+    ElectrumClient? candidate;
+    bool kept = false;
+    try {
+      final channel = await electrum_adapter.connect(
         useHost,
         port: usePort,
+        useSSL: ssl,
+        proxyInfo: proxy,
         connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
-        aliveTimerDuration: connectionTimeoutForSpecialCaseJsonRPCClients,
         acceptUnverified: false,
-        useSSL: useUseSSL,
-        proxyInfo: proxyInfo,
+        onBadCertificate: trustedCertificateCheck(pem),
       );
-
-      if (getElectrumAdapter() == null) {
-        final ElectrumClient newClient;
-        if (cryptoCurrency is Firo) {
-          newClient = FiroElectrumClient(
-            _electrumAdapterChannel!,
-            useHost,
-            usePort,
-            useUseSSL,
-            proxyInfo,
-          );
-        } else {
-          newClient = ElectrumClient(
-            _electrumAdapterChannel!,
-            useHost,
-            usePort,
-            useUseSSL,
-            proxyInfo,
-          );
-        }
-
-        await newClient.request('server.version');
-
+      candidate = cryptoCurrency is Firo
+          ? FiroElectrumClient(channel, useHost, usePort, ssl, proxy)
+          : ElectrumClient(channel, useHost, usePort, ssl, proxy);
+      _pendingClient = candidate;
+      ensureCurrent();
+      await candidate.request('server.version');
+      ensureCurrent();
+      final other = getElectrumAdapter();
+      if (other != null && shareable(other)) {
+        _adapter = other;
+      } else {
+        _adapter = candidate;
         await ClientManager.sharedInstance.addClient(
-          newClient,
+          candidate,
           cryptoCurrency: cryptoCurrency,
           netType: netType,
+          trustedCertificatePem: pem,
         );
+        ensureCurrent();
+        kept = true;
       }
-    });
-  }
+    } finally {
+      if (identical(_pendingClient, candidate)) _pendingClient = null;
+      if (!kept && candidate != null) await _release(candidate);
+    }
+    ensureCurrent();
+  });
 
   /// Send raw rpc command
   Future<dynamic> request({
@@ -354,7 +372,7 @@ class ElectrumXClient {
     }
 
     try {
-      final response = await getElectrumAdapter()!.request(command, args);
+      final response = await _adapter!.request(command, args);
 
       if (response is Map &&
           response.keys.contains("error") &&
@@ -448,9 +466,9 @@ class ElectrumXClient {
 
     try {
       final futures = <Future<dynamic>>[];
-      getElectrumAdapter()!.peer.withBatch(() {
+      _adapter!.peer.withBatch(() {
         for (final arg in args) {
-          futures.add(getElectrumAdapter()!.request(command, arg));
+          futures.add(_adapter!.request(command, arg));
         }
       });
       final response = await Future.wait(futures);
@@ -829,7 +847,7 @@ class ElectrumXClient {
   }) async {
     Logging.instance.d("attempting to fetch blockchain.transaction.get...");
     await checkElectrumAdapter();
-    final dynamic response = await getElectrumAdapter()!.request(
+    final dynamic response = await _adapter!.request(
       'blockchain.transaction.get',
       [txHash, verbose],
     );
@@ -885,9 +903,8 @@ class ElectrumXClient {
   }) async {
     Logging.instance.d("attempting to fetch lelantus.getanonymityset...");
     await checkElectrumAdapter();
-    final Map<String, dynamic> response =
-        await (getElectrumAdapter() as FiroElectrumClient)
-            .getLelantusAnonymitySet(groupId: groupId, blockHash: blockhash);
+    final Map<String, dynamic> response = await (_adapter as FiroElectrumClient)
+        .getLelantusAnonymitySet(groupId: groupId, blockHash: blockhash);
     Logging.instance.d("Fetching lelantus.getanonymityset finished");
     return response;
   }
@@ -902,7 +919,7 @@ class ElectrumXClient {
   }) async {
     Logging.instance.d("attempting to fetch lelantus.getmintmetadata...");
     await checkElectrumAdapter();
-    final dynamic response = await (getElectrumAdapter() as FiroElectrumClient)
+    final dynamic response = await (_adapter as FiroElectrumClient)
         .getLelantusMintData(mints: mints);
     Logging.instance.d("Fetching lelantus.getmintmetadata finished");
     return response;
@@ -921,7 +938,7 @@ class ElectrumXClient {
     dynamic response;
 
     while (retryCount > 0 && response is! List) {
-      response = await (getElectrumAdapter() as FiroElectrumClient)
+      response = await (_adapter as FiroElectrumClient)
           .getLelantusUsedCoinSerials(startNumber: startNumber);
       // TODO add 2 minute timeout.
       Logging.instance.d("Fetching lelantus.getusedcoinserials finished");
@@ -938,7 +955,7 @@ class ElectrumXClient {
   Future<int> getLelantusLatestCoinId({String? requestID}) async {
     Logging.instance.d("attempting to fetch lelantus.getlatestcoinid...");
     await checkElectrumAdapter();
-    final int response = await (getElectrumAdapter() as FiroElectrumClient)
+    final int response = await (_adapter as FiroElectrumClient)
         .getLatestCoinId();
     Logging.instance.d("Fetching lelantus.getlatestcoinid finished");
     return response;
@@ -968,11 +985,10 @@ class ElectrumXClient {
       final start = DateTime.now();
       await checkElectrumAdapter();
       final Map<String, dynamic> response =
-          await (getElectrumAdapter() as FiroElectrumClient)
-              .getSparkAnonymitySet(
-                coinGroupId: coinGroupId,
-                startBlockHash: startBlockHash,
-              );
+          await (_adapter as FiroElectrumClient).getSparkAnonymitySet(
+            coinGroupId: coinGroupId,
+            startBlockHash: startBlockHash,
+          );
       Logging.instance.d(
         "Finished ElectrumXClient.getSparkAnonymitySet(coinGroupId"
         "=$coinGroupId, startBlockHash=$startBlockHash). "
@@ -996,7 +1012,7 @@ class ElectrumXClient {
   //     final start = DateTime.now();
   //     await _checkElectrumAdapter();
   //     final Map<String, dynamic> response =
-  //         await (getElectrumAdapter() as FiroElectrumClient)
+  //         await (_adapter as FiroElectrumClient)
   //             .getUsedCoinsTags(startNumber: startNumber);
   //     // TODO: Add 2 minute timeout.
   //     // Why 2 minutes?
@@ -1043,7 +1059,7 @@ class ElectrumXClient {
   //     );
   //     await checkElectrumAdapter();
   //     final List<dynamic> response =
-  //         await (getElectrumAdapter() as FiroElectrumClient)
+  //         await (_adapter as FiroElectrumClient)
   //             .getSparkMintMetaData(sparkCoinHashes: sparkCoinHashes);
   //     Logging.instance.log(
   //       "Fetching spark.getsparkmintmetadata finished",
@@ -1063,7 +1079,7 @@ class ElectrumXClient {
     try {
       Logging.instance.d("attempting to fetch spark.getsparklatestcoinid...");
       await checkElectrumAdapter();
-      final int response = await (getElectrumAdapter() as FiroElectrumClient)
+      final int response = await (_adapter as FiroElectrumClient)
           .getSparkLatestCoinId();
       Logging.instance.d("Fetching spark.getsparklatestcoinid finished");
       return response;
@@ -1364,7 +1380,7 @@ class ElectrumXClient {
   /// }
   Future<Map<String, dynamic>> getFeeRate({String? requestID}) async {
     await checkElectrumAdapter();
-    return await getElectrumAdapter()!.getFeeRate();
+    return await _adapter!.getFeeRate();
   }
 
   /// Return the estimated transaction fee per kilobyte for a transaction to be
