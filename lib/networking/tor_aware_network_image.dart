@@ -39,13 +39,18 @@ Future<Uint8List> fetchTorAwareBytes(
 /// Use with [Image] instead of [Image.network], which always goes clearnet.
 @immutable
 class TorAwareNetworkImage extends ImageProvider<TorAwareNetworkImage> {
-  const TorAwareNetworkImage(this.url, {this.headers});
+  const TorAwareNetworkImage(this.url, {this.headers, this.cacheScope});
 
   final String url;
 
   /// Sent with the request but not part of the cache key, so e.g. a refreshed
   /// auth token doesn't cause a refetch.
   final Map<String, String>? headers;
+
+  /// Part of the cache key, unlike [headers]. Set it to a stable identity
+  /// (e.g. a customer key) when the same [url] can serve different content
+  /// depending on who is asking, so one identity never sees another's image.
+  final String? cacheScope;
 
   @override
   Future<TorAwareNetworkImage> obtainKey(ImageConfiguration configuration) =>
@@ -94,10 +99,12 @@ class TorAwareNetworkImage extends ImageProvider<TorAwareNetworkImage> {
 
   @override
   bool operator ==(Object other) =>
-      other is TorAwareNetworkImage && other.url == url;
+      other is TorAwareNetworkImage &&
+      other.url == url &&
+      other.cacheScope == cacheScope;
 
   @override
-  int get hashCode => url.hashCode;
+  int get hashCode => Object.hash(url, cacheScope);
 
   @override
   String toString() =>

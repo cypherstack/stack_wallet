@@ -830,6 +830,11 @@ class _AttachmentChip extends StatelessWidget {
 /// The request future is built once in [initState] (and only rebuilt when
 /// [proxyPath] or [customerKey] actually change) so the surrounding 30s poll
 /// can't re-fire `getAttachmentRequest`/re-fetch the image on every rebuild.
+typedef _AttachmentLoad = ({
+  ApiResponse<AttachmentRequest> response,
+  String customerKey,
+});
+
 class _ProxyImage extends StatefulWidget {
   const _ProxyImage({
     required this.client,
@@ -848,12 +853,18 @@ class _ProxyImage extends StatefulWidget {
 }
 
 class _ProxyImageState extends State<_ProxyImage> {
-  late Future<ApiResponse<AttachmentRequest>> _requestFuture;
+  late Future<_AttachmentLoad> _requestFuture;
 
   // Header auth: a query-auth URL would put the token and customer key into
-  // logged HTTP errors.
-  Future<ApiResponse<AttachmentRequest>> _buildFuture() => widget.client
-      .getAttachmentRequest(widget.proxyPath, customerKey: widget.customerKey);
+  // logged HTTP errors. The customer key travels with the response because
+  // FutureBuilder keeps showing the previous snapshot while a new future is
+  // pending, and that snapshot must not be paired with a newer key.
+  Future<_AttachmentLoad> _buildFuture() {
+    final customerKey = widget.customerKey;
+    return widget.client
+        .getAttachmentRequest(widget.proxyPath, customerKey: customerKey)
+        .then((response) => (response: response, customerKey: customerKey));
+  }
 
   @override
   void initState() {
@@ -878,7 +889,7 @@ class _ProxyImageState extends State<_ProxyImage> {
         borderRadius: BorderRadius.circular(8),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxHeight: _kAttachmentMaxHeight),
-          child: FutureBuilder<ApiResponse<AttachmentRequest>>(
+          child: FutureBuilder<_AttachmentLoad>(
             future: _requestFuture,
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
@@ -887,7 +898,7 @@ class _ProxyImageState extends State<_ProxyImage> {
                   child: LoadingIndicator(width: _kAttachmentLoaderWidth),
                 );
               }
-              final resp = snapshot.data!;
+              final resp = snapshot.data!.response;
               if (resp.hasError || resp.value == null) {
                 return widget.fallback();
               }
@@ -898,6 +909,7 @@ class _ProxyImageState extends State<_ProxyImage> {
                   TorAwareNetworkImage(
                     resp.value!.uri.toString(),
                     headers: resp.value!.headers,
+                    cacheScope: snapshot.data!.customerKey,
                   ),
                 ),
                 fit: BoxFit.contain,
