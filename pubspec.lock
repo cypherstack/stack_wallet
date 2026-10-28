@@ -520,8 +520,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "6c9376e1a196eec811a04c289e0008d928591427"
-      resolved-ref: "6c9376e1a196eec811a04c289e0008d928591427"
+      ref: d8fc7c0a7e0b4a4c2586776fd36c22702419cc52
+      resolved-ref: d8fc7c0a7e0b4a4c2586776fd36c22702419cc52
       url: "https://github.com/cypherstack/cs_openalias.git"
     source: git
     version: "0.0.1"

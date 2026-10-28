@@ -235,6 +235,7 @@ void main() {
               domain: 'alice.example.com',
               address: 'resolved',
               fields: const {'recipient_address': 'resolved'},
+              ttl: const Duration(minutes: 5),
             ),
           ),
           () {},

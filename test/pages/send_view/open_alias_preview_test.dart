@@ -337,6 +337,7 @@ class _Harness {
       domain: 'alice.example.com',
       address: literal,
       fields: const {'recipient_address': literal},
+      ttl: const Duration(minutes: 5),
     ),
   );
 }
@@ -488,6 +489,7 @@ void main() {
           domain: 'bob.example.com',
           address: 'second-recipient',
           fields: const {'recipient_address': 'second-recipient'},
+          ttl: const Duration(minutes: 5),
         ),
       );
       await h.finish(tester);
