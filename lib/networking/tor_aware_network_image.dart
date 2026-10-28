@@ -14,9 +14,13 @@ import 'http.dart';
 /// Fetches [url] through the app's [HTTP] client, routing over Tor when it is
 /// enabled. Throws if Tor is enabled but not connected, so nothing falls back
 /// to clearnet.
-Future<Uint8List> fetchTorAwareBytes(String url) async {
+Future<Uint8List> fetchTorAwareBytes(
+  String url, {
+  Map<String, String>? headers,
+}) async {
   final response = await const HTTP().get(
     url: Uri.parse(url),
+    headers: headers,
     proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
         ? null
         : Prefs.instance.useTor
@@ -35,9 +39,13 @@ Future<Uint8List> fetchTorAwareBytes(String url) async {
 /// Use with [Image] instead of [Image.network], which always goes clearnet.
 @immutable
 class TorAwareNetworkImage extends ImageProvider<TorAwareNetworkImage> {
-  const TorAwareNetworkImage(this.url);
+  const TorAwareNetworkImage(this.url, {this.headers});
 
   final String url;
+
+  /// Sent with the request but not part of the cache key, so e.g. a refreshed
+  /// auth token doesn't cause a refetch.
+  final Map<String, String>? headers;
 
   @override
   Future<TorAwareNetworkImage> obtainKey(ImageConfiguration configuration) =>
@@ -70,7 +78,7 @@ class TorAwareNetworkImage extends ImageProvider<TorAwareNetworkImage> {
           expectedTotalBytes: null,
         ),
       );
-      final bytes = await fetchTorAwareBytes(key.url);
+      final bytes = await fetchTorAwareBytes(key.url, headers: key.headers);
       final buffer = await ui.ImmutableBuffer.fromUint8List(bytes);
       return await decode(buffer);
     } catch (_) {
