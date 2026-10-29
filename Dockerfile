@@ -11,7 +11,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
       ca-certificates curl file git gnupg python3 sudo unzip xz-utils \
-      automake build-essential cmake debhelper libtool meson ninja-build pkg-config rsync \
+      automake build-essential cmake debhelper libtool meson ninja-build patchelf pkg-config rsync \
       clang libclang-dev llvm \
       libgcrypt20-dev libgirepository1.0-dev libgit2-dev libglib2.0-dev libgtk-3-dev \
       libjsoncpp-dev liblzma-dev libncurses5-dev libncursesw5-dev \
@@ -32,9 +32,9 @@ ENV RUSTUP_HOME=/usr/local/rustup \
     PATH=/usr/local/cargo/bin:$PATH
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-      | sh -s -- -y --default-toolchain 1.89.0 --profile minimal --no-modify-path \
+      | sh -s -- -y --default-toolchain 1.99.1 --profile minimal --no-modify-path \
  && rustup install 1.85.1 1.71.0 stable --profile minimal \
- && rustup target add x86_64-unknown-linux-gnu --toolchain 1.89.0 \
+ && rustup target add x86_64-unknown-linux-gnu --toolchain 1.99.1 \
  && cargo install cargo-ndk \
  && chmod -R a+rwX "$CARGO_HOME" "$RUSTUP_HOME"
 
@@ -119,10 +119,10 @@ ENV RUSTUP_HOME=/usr/local/rustup \
     PATH=/usr/local/cargo/bin:$PATH
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-      | sh -s -- -y --default-toolchain 1.89.0 --profile minimal --no-modify-path \
+      | sh -s -- -y --default-toolchain 1.99.1 --profile minimal --no-modify-path \
  && rustup target add \
       aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android \
-      --toolchain 1.89.0 \
+      --toolchain 1.99.1 \
  && cargo install cargo-ndk \
  && chmod -R a+rwX "$CARGO_HOME" "$RUSTUP_HOME"
 
@@ -209,7 +209,7 @@ ENV RUSTUP_HOME=/usr/local/rustup \
     PATH=/usr/local/cargo/bin:$PATH
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-      | sh -s -- -y --default-toolchain 1.90.0 --profile minimal --no-modify-path \
+      | sh -s -- -y --default-toolchain 1.99.1 --profile minimal --no-modify-path \
  && chmod -R a+rwX "$CARGO_HOME" "$RUSTUP_HOME"
 
 ENV PATH=/usr/local/go/bin:$PATH
