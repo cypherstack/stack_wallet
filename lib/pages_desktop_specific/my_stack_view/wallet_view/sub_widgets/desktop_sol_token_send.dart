@@ -387,11 +387,21 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
     }
   }
 
+  // Controller assignments used for display must not edit the stored amount.
+  void _updateAmountDisplay(VoidCallback update) {
+    final wasLocked = _cryptoAmountChangeLock;
+    _cryptoAmountChangeLock = true;
+    try {
+      update();
+    } finally {
+      _cryptoAmountChangeLock = wasLocked;
+    }
+  }
+
   void _cryptoAmountChanged() async {
     if (!_cryptoAmountChangeLock) {
       // Get the token's decimal places for proper amount parsing. May still
-      // be null while the token wallet is loading (e.g. a locale change
-      // fires the relocalization listener before init completes).
+      // be null while the token wallet is loading.
       final tokenWallet = ref.read(pCurrentSolanaTokenWallet);
       if (tokenWallet == null) return;
 
@@ -697,7 +707,7 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
     listenForAmountRelocalization(
       ref.listen,
       controllers: [cryptoAmountController, baseAmountController],
-      onRelocalized: _cryptoAmountChanged,
+      updateControllers: _updateAmountDisplay,
     );
 
     final tokenWallet = ref.watch(pCurrentSolanaTokenWallet);

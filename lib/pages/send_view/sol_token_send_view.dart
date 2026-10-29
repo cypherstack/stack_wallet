@@ -296,6 +296,17 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
     _updatePreviewButtonState(_address, _amountToSend);
   }
 
+  // Controller assignments used for display must not edit the stored amount.
+  void _updateAmountDisplay(VoidCallback update) {
+    final wasLocked = _cryptoAmountChangeLock;
+    _cryptoAmountChangeLock = true;
+    try {
+      update();
+    } finally {
+      _cryptoAmountChangeLock = wasLocked;
+    }
+  }
+
   void _cryptoAmountChanged() async {
     if (!_cryptoAmountChangeLock) {
       final tokenWallet = ref.read(pCurrentSolanaTokenWallet);
@@ -670,7 +681,7 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
     listenForAmountRelocalization(
       ref.listen,
       controllers: [cryptoAmountController, baseAmountController],
-      onRelocalized: _cryptoAmountChanged,
+      updateControllers: _updateAmountDisplay,
     );
 
     final tokenWallet = ref.watch(pCurrentSolanaTokenWallet);
