@@ -11,6 +11,17 @@ mixin ElectrumXCurrencyInterface on Bip39HDCurrency {
   /// The default fee rate in satoshis per kilobyte.
   BigInt get defaultFeeRate;
 
+  /// Whether raw transactions follow Bitcoin's layout, which the parser in
+  /// owned_input_signatures.dart reads, allowing for Peercoin's timestamp and
+  /// the Dash and Firo extra payload. Particl's layout differs, so its coins
+  /// are not authenticated against the parent transaction; its signature hash
+  /// commits to the amount anyway.
+  bool get hasBitcoinTransactionLayout => true;
+
+  /// Whether transactions below version 3 carry a timestamp after the
+  /// version field, as Peercoin's do.
+  bool get legacyTransactionTimestamp => false;
+
   @override
   AddressType? getAddressType(String address) {
     try {

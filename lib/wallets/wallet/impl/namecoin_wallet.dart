@@ -20,6 +20,7 @@ import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
 import '../../models/name_op_state.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/bip39_hd_wallet.dart';
+import '../supporting/owned_input_signatures.dart';
 import '../wallet_mixin_interfaces/coin_control_interface.dart';
 import '../wallet_mixin_interfaces/cpfp_interface.dart';
 import '../wallet_mixin_interfaces/electrumx_interface.dart';
@@ -174,11 +175,38 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
       }
     }
 
+    int value = jsonUTXO["value"] as int;
+    // Name outputs are blocked above and carry a name script, so only plain
+    // coins are checked against their parent.
+    if (!shouldBlock) {
+      try {
+        final authenticated = await authenticatedP2pkhOutput(
+          txid: txn["txid"] as String,
+          vout: vout,
+          address: utxoOwnerAddress,
+          confirmations: txn["confirmations"] as int?,
+        );
+        if (authenticated != null) {
+          if (authenticated.value.toInt() != value) {
+            Logging.instance.w(
+              "Server misreported coin ${txn["txid"]}:$vout as $value; using "
+              "${authenticated.value}",
+            );
+          }
+          value = authenticated.value.toInt();
+        }
+      } on UnauthenticatedTransaction catch (e) {
+        Logging.instance.w("Could not verify coin ${txn["txid"]}:$vout: $e");
+        shouldBlock = true;
+        blockReason = ElectrumXInterface.unverifiedCoinReason;
+      }
+    }
+
     final utxo = UTXO(
       walletId: walletId,
       txid: txn["txid"] as String,
       vout: vout,
-      value: jsonUTXO["value"] as int,
+      value: value,
       name: label ?? "",
       isBlocked: shouldBlock,
       blockedReason: blockReason,
