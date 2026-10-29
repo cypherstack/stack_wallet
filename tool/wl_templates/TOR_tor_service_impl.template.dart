@@ -10,6 +10,7 @@ import '../../services/fusion_tor_service.dart';
 import '../../services/tor_service.dart';
 //ON
 import '../../utilities/logger.dart';
+
 //END_ON
 
 TorService get torService => _getInterface();
@@ -115,8 +116,7 @@ class _TorServiceImpl extends TorService {
       return;
     }
 
-    _tor!.disable();
-    await _tor?.stop();
+    await _tor!.stop();
 
     _updateStatusAndFireEvent(
       status: TorConnectionStatus.disconnected,
