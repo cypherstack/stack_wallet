@@ -719,6 +719,9 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
         ),
       );
     }
+    final amountFormatter = ref.watch(
+      pAmountFormatter(tokenWallet.cryptoCurrency),
+    );
 
     return Background(
       child: Scaffold(
@@ -1336,14 +1339,8 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
                                                 if (snapshot.connectionState ==
                                                         ConnectionState.done &&
                                                     snapshot.hasData) {
-                                                  final formattedFee = ref
-                                                      .watch(
-                                                        pAmountFormatter(
-                                                          tokenWallet
-                                                              .cryptoCurrency,
-                                                        ),
-                                                      )
-                                                      .format(
+                                                  final formattedFee =
+                                                      amountFormatter.format(
                                                         snapshot.data!,
                                                         withUnitName: true,
                                                         indicatePrecisionLoss:
