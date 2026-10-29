@@ -583,7 +583,7 @@ class _SendViewState extends ConsumerState<SendView> {
       cryptoAmountController.text = amountString;
       _cryptoAmountChangeLock = false;
     } else {
-      amount = 0.toAmountAsRaw(fractionDigits: coin.fractionDigits);
+      amount = null;
       _cachedAmountToSend = null;
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = "";

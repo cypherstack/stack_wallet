@@ -1386,7 +1386,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       cryptoAmountController.text = amountString;
       _cryptoAmountChangeLock = false;
     } else {
-      amount = Decimal.zero.toAmount(fractionDigits: coin.fractionDigits);
+      amount = null;
       _cachedAmountToSend = null;
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = "";
