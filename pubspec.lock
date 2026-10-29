@@ -519,11 +519,10 @@ packages:
   cs_openalias:
     dependency: "direct main"
     description:
-      path: "."
-      ref: d8fc7c0a7e0b4a4c2586776fd36c22702419cc52
-      resolved-ref: d8fc7c0a7e0b4a4c2586776fd36c22702419cc52
-      url: "https://github.com/cypherstack/cs_openalias.git"
-    source: git
+      name: cs_openalias
+      sha256: a14c689a3e1f1440fa694992bafdda81b11e3677290fd4633b2423e67c0ca484
+      url: "https://pub.dev"
+    source: hosted
     version: "0.0.1"
   cs_salvium:
     dependency: "direct main"
@@ -839,22 +838,20 @@ packages:
     source: hosted
     version: "2.1.2"
   dnssec_resolver:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
-      path: "."
-      ref: b33d6a2ca9e03884dc0d397e3a73fbb6e482e68d
-      resolved-ref: b33d6a2ca9e03884dc0d397e3a73fbb6e482e68d
-      url: "https://github.com/cypherstack/dnssec_resolver.git"
-    source: git
+      name: dnssec_resolver
+      sha256: "07c297c779d92f493c5de247e799a464447d8accd499c5b481c160247bece971"
+      url: "https://pub.dev"
+    source: hosted
     version: "0.0.1"
   doh_transport:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
-      path: "."
-      ref: "72115493b5ab338cceaa8cdc1eb264653620c303"
-      resolved-ref: "72115493b5ab338cceaa8cdc1eb264653620c303"
-      url: "https://github.com/cypherstack/doh_transport.git"
-    source: git
+      name: doh_transport
+      sha256: "290ef817e1bf0e674d7efebe1c6bbfccc2c5b7d08271e7c6952e4d845a56ee95"
+      url: "https://pub.dev"
+    source: hosted
     version: "0.0.1"
   drift:
     dependency: "direct main"
@@ -1778,13 +1775,12 @@ packages:
     source: hosted
     version: "4.5.0"
   openalias:
-    dependency: "direct overridden"
+    dependency: transitive
     description:
-      path: "."
-      ref: "46d8402773fe3e85f15e4f0be97b92fddcd0a70e"
-      resolved-ref: "46d8402773fe3e85f15e4f0be97b92fddcd0a70e"
-      url: "https://github.com/cypherstack/openalias.git"
-    source: git
+      name: openalias
+      sha256: be84930643f2720ddc48dd5de69d47ba5c647df35f8f9b873eb285f5e57fb5ad
+      url: "https://pub.dev"
+    source: hosted
     version: "0.0.1"
   package_config:
     dependency: transitive
