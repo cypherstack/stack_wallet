@@ -1640,12 +1640,9 @@ class _SendViewState extends ConsumerState<SendView> {
     ref.listen<AmountFormatter>(pAmountFormatter(coin), (previous, next) {
       final amount = ref.read(pSendAmount);
       if (previous?.unit != next.unit && amount != null) {
-        // Only the display changes, so keep the send all intent.
-        final xelisSendAll = _xelisSendAll;
         _updateAmountDisplay(() {
           cryptoAmountController.text = next.formatEditable(amount);
         });
-        _xelisSendAll = xelisSendAll;
       }
     });
     final amountFormatter = ref.watch(pAmountFormatter(coin));
