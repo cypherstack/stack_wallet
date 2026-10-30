@@ -15,7 +15,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       clang libclang-dev llvm \
       libgcrypt20-dev libgirepository1.0-dev libgit2-dev libglib2.0-dev libgtk-3-dev \
       libjsoncpp-dev liblzma-dev libncurses5-dev libncursesw5-dev \
-      libopencv-dev \
       libsecret-1-dev libssl-dev libtss2-dev \
       ocl-icd-opencl-dev opencl-headers valac zlib1g-dev \
       g++-aarch64-linux-gnu gcc-aarch64-linux-gnu \
@@ -93,6 +92,15 @@ RUN git clone --depth 1 --branch 3.47.2 https://github.com/flutter/flutter.git "
  && chmod -R a+rwX "$FLUTTER_HOME"
 
 RUN git config --system --add safe.directory '*'
+
+# Minimal static OpenCV for the camera_linux QR plugin, so that the Linux tarball and
+# AppImage carry OpenCV inside libopencv_wrapper.so instead of needing libopencv-dev's
+# ~50 shared libraries on the user's machine. Linux builds point at it with
+# STACKWALLET_OPENCV_DIR (see scripts/app_config/templates/linux/CMakeLists.txt).
+COPY scripts/linux/build_opencv_static.sh /tmp/build_opencv_static.sh
+RUN /tmp/build_opencv_static.sh /opt/opencv-static \
+ && rm /tmp/build_opencv_static.sh
+ENV STACKWALLET_OPENCV_DIR=/opt/opencv-static/lib/cmake/opencv4
 
 RUN flutter --version && rustc --version && cargo --version && node --version && go version
 
