@@ -37,7 +37,16 @@ modules:
       - -DWITH_FFMPEG=OFF
       - -DWITH_GSTREAMER=OFF
       - -DWITH_V4L=ON
-      - -DWITH_LIBV4L=ON
+      # Offline build: the IPP ICV download would fail inside the sandbox.
+      - -DWITH_IPP=OFF
+      - -DBUILD_opencv_apps=OFF
+      # OpenCV defaults to /app/lib64 here; keep it in /app/lib, which is on the
+      # loader path and in the camera-linux RPATH below.
+      - -DOPENCV_LIB_INSTALL_PATH=lib
+    cleanup:
+      - /include
+      - /lib/cmake
+      - /share/opencv4
     sources:
       - type: git
         url: https://github.com/opencv/opencv
