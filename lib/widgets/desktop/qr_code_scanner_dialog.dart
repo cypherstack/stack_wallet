@@ -40,6 +40,9 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
   int _cameraId = -1;
   String? _macOSDeviceId;
   final int _imageDelayInMs = Platform.isLinux ? 500 : 250;
+  int _consecutiveFailures = 0;
+  String? _cameraError;
+  String? _initError;
 
   @override
   void initState() {
@@ -52,6 +55,12 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
             _isCameraOpen = true;
           });
           unawaited(_captureAndScanImage());
+        } else if (mounted) {
+          setState(() {
+            _cameraError = "Unable to open the camera"
+                "${_initError == null ? "" : " ($_initError)"}. You can "
+                "still use \"Select file\" to scan a QR code image.";
+          });
         }
       });
     });
@@ -68,17 +77,62 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
         if (cameras.isEmpty) {
           throw CameraException('No cameras available', 'No cameras found.');
         }
-        final CameraDescription camera = cameras[0]; // Could be user-selected.
-        _cameraId = await _cameraWindowsPlugin.createCameraWithSettings(
-          camera,
-          const MediaSettings(
-            resolutionPreset: ResolutionPreset.low,
-            fps: 4,
-            videoBitrate: 200000,
-            enableAudio: false,
-          ),
+        Logging.instance.d(
+          "Windows cameras: ${cameras.map((c) => c.name).toList()}",
         );
-        await _cameraWindowsPlugin.initializeCamera(_cameraId);
+        // Try anything that looks like an IR camera last.
+        final irName = RegExp(r'\bIR\b|infrared', caseSensitive: false);
+        final ordered = [
+          ...cameras.where((c) => !irName.hasMatch(c.name)),
+          ...cameras.where((c) => irName.hasMatch(c.name)),
+        ];
+
+        // initializeCamera() starts the preview, and camera_windows picks the
+        // preview mode as the largest one with height <= the preset cap
+        // (low = 240, medium = 480, max = none) at >= 15 fps. If no mode fits,
+        // it fails with "Failed to initialize video preview". The cap only
+        // affects the preview; takePicture() always uses the largest mode.
+        // fps and videoBitrate only apply to video recording, so leave them
+        // out.
+        CameraException? lastError;
+        bool opened = false;
+        for (final camera in ordered) {
+          for (final preset in [
+            ResolutionPreset.medium,
+            ResolutionPreset.max,
+          ]) {
+            if (!mounted) return false;
+            try {
+              _cameraId = await _cameraWindowsPlugin.createCameraWithSettings(
+                camera,
+                MediaSettings(resolutionPreset: preset, enableAudio: false),
+              );
+              await _cameraWindowsPlugin.initializeCamera(_cameraId);
+              opened = true;
+              break;
+            } on CameraException catch (e) {
+              lastError = e;
+              Logging.instance.w(
+                "Windows camera ${camera.name} failed with $preset",
+                error: e,
+              );
+              if (_cameraId >= 0) {
+                await _cameraWindowsPlugin.dispose(_cameraId);
+                _cameraId = -1;
+              }
+            }
+          }
+          if (opened) break;
+        }
+        if (!opened) {
+          throw lastError ??
+              CameraException('camera_error', 'No usable camera found.');
+        }
+        if (!mounted) {
+          // Closed while the camera was opening; PopScope already ran.
+          await _cameraWindowsPlugin.dispose(_cameraId);
+          return false;
+        }
         // await _cameraWindowsPlugin!.onCameraInitialized(_cameraId).first;
         // TODO [prio=low]: Make this work. ^^^
         Logging.instance.d(
@@ -101,6 +155,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
 
       return true;
     } catch (e, s) {
+      _initError = e is CameraException ? e.description ?? e.code : "$e";
       Logging.instance.e(
         "Failed to initialize camera",
         error: e,
@@ -153,7 +208,16 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
         } else if (Platform.isWindows) {
           final XFile xfile =
               await _cameraWindowsPlugin!.takePicture(_cameraId);
-          final bytes = await xfile.readAsBytes();
+          final List<int> bytes;
+          try {
+            bytes = await xfile.readAsBytes();
+          } finally {
+            // camera_windows saves every capture as a JPEG in the user's
+            // Pictures folder and never removes it.
+            try {
+              await File(xfile.path).delete();
+            } catch (_) {}
+          }
           base64Image = base64Encode(bytes);
           // We could use a Uint8List to optimize for Windows and macOS.
         } else if (Platform.isMacOS) {
@@ -188,8 +252,10 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
           continue;
         }
 
+        _consecutiveFailures = 0;
         if (mounted) {
           setState(() {
+            _cameraError = null;
             _image = Image.memory(
               base64Decode(base64Image!),
               fit: BoxFit.cover,
@@ -214,21 +280,32 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
         }
 
         await Future<void>.delayed(Duration(milliseconds: _imageDelayInMs));
-      } catch (e) {
-        // Logging.instance.log("Failed to capture and scan image", error: e, stackTrace: s,);
-        // Spammy.
-
-        // if (mounted) {
-        //   widget.onSnackbar(
-        //       "Error capturing or scanning the image. Please try again.");
-        // }
+      } catch (e, s) {
+        _consecutiveFailures++;
+        // Log the first failure and every 20th after it, so a capture that
+        // fails on every iteration shows up in the logs without flooding them.
+        if (_consecutiveFailures == 1 || _consecutiveFailures % 20 == 0) {
+          Logging.instance.e(
+            "Failed to capture image ($_consecutiveFailures in a row)",
+            error: e,
+            stackTrace: s,
+          );
+        }
+        if (_consecutiveFailures == 20 && mounted) {
+          setState(() {
+            _cameraError = "The camera is not returning images.";
+          });
+        }
+        // Without this a failing capture spins the loop with no delay.
+        await Future<void>.delayed(Duration(milliseconds: _imageDelayInMs));
       }
     }
   }
 
   Future<String?> _scanImage(img.Image image) async {
+    final LuminanceSource source;
     try {
-      final LuminanceSource source = RGBLuminanceSource(
+      source = RGBLuminanceSource(
         image.width,
         image.height,
         image
@@ -237,20 +314,26 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
             .buffer
             .asInt32List(),
       );
-      final BinaryBitmap bitmap =
-          BinaryBitmap(GlobalHistogramBinarizer(source));
-
-      final QRCodeReader reader = QRCodeReader();
-      final qrDecode = reader.decode(bitmap);
-      if (qrDecode.text.isEmpty) {
-        return null;
-      }
-      return qrDecode.text;
-    } catch (e) {
-      // Logging.instance.log("Failed to decode QR code", error: e, stackTrace: s,);
-      // Spammy.
+    } catch (_) {
       return null;
     }
+
+    // HybridBinarizer thresholds locally and copes with uneven lighting in a
+    // webcam frame far better. Keep the global one as a fallback.
+    for (final Binarizer binarizer in [
+      HybridBinarizer(source),
+      GlobalHistogramBinarizer(source),
+    ]) {
+      try {
+        final qrDecode = QRCodeReader().decode(BinaryBitmap(binarizer));
+        if (qrDecode.text.isNotEmpty) {
+          return qrDecode.text;
+        }
+      } catch (_) {
+        // No QR code found with this binarizer. Spammy to log.
+      }
+    }
+    return null;
   }
 
   @override
@@ -279,16 +362,27 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
               ],
             ),
             Expanded(
-              child: _isCameraOpen
-                  ? _image != null
-                      ? _image!
+              child: _cameraError != null
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 32),
+                        child: Text(
+                          _cameraError!,
+                          textAlign: TextAlign.center,
+                          style: STextStyles.desktopTextSmall(context),
+                        ),
+                      ),
+                    )
+                  : _isCameraOpen
+                      ? _image != null
+                          ? _image!
+                          : const Center(
+                              child: CircularProgressIndicator(),
+                            )
                       : const Center(
-                          child: CircularProgressIndicator(),
-                        )
-                  : const Center(
-                      child:
-                          CircularProgressIndicator(), // Show progress indicator immediately
-                    ),
+                          child:
+                              CircularProgressIndicator(), // Show progress indicator immediately
+                        ),
             ),
             Padding(
               padding: const EdgeInsets.all(16),
