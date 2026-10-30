@@ -30,6 +30,7 @@ import '../../crypto_currency/crypto_currency.dart';
 import '../../crypto_currency/interfaces/paynym_currency_interface.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/bip39_hd_wallet.dart';
+import '../supporting/owned_input_signatures.dart';
 import 'electrumx_interface.dart';
 
 const String kPCodeKeyPrefix = "pCode_key_";
@@ -1863,6 +1864,22 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
         outputs.add(output);
       }
 
+      // A pending spend of our coins is kept, and sized, only from raw bytes
+      // the server proves this wallet signed. Anything else is dropped.
+      final height = txData["height"] as int?;
+      RawTransactionSize? verifiedSize;
+      if (wasSentFromThisWallet && (height == null || height <= 0)) {
+        verifiedSize = await verifyPendingSpend(
+          txid: txData["txid"] as String,
+          inputs: inputs,
+          outputs: outputs,
+        );
+        if (verifiedSize == null) {
+          await deleteUnverifiedTransaction(txData["txid"] as String);
+          continue;
+        }
+      }
+
       final totalOut = outputs
           .map((e) => e.value)
           .fold(BigInt.zero, (value, element) => value + element);
@@ -1912,7 +1929,12 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       }
 
       String? otherData;
-      if (txData["size"] is int || txData["vsize"] is int) {
+      if (verifiedSize != null) {
+        otherData = jsonEncode({
+          TxV2OdKeys.size: verifiedSize.size,
+          TxV2OdKeys.vSize: verifiedSize.vSize,
+        });
+      } else if (txData["size"] is int || txData["vsize"] is int) {
         otherData = jsonEncode({
           TxV2OdKeys.size: txData["size"] as int?,
           TxV2OdKeys.vSize: txData["vsize"] as int?,

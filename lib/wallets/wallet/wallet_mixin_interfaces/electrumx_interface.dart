@@ -33,6 +33,7 @@ import '../impl/bitcoin_wallet.dart';
 import '../impl/firo_wallet.dart';
 import '../impl/peercoin_wallet.dart';
 import '../intermediate/bip39_hd_wallet.dart';
+import '../supporting/owned_input_signatures.dart';
 import 'cpfp_interface.dart';
 import 'electrum_fee_planner.dart';
 import 'mweb_fee_utils.dart';
@@ -1379,6 +1380,141 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     }
   }
 
+  /// The size of pending spend [txid], from the raw bytes the server returns
+  /// for it, once those bytes are proven to be a transaction this wallet
+  /// signed with the stored [inputs] and [outputs], and for p2pkh inputs
+  /// the amounts match the parent transactions. Null if not. Network
+  /// errors propagate. Transaction records are not touched. The spend is
+  /// always fetched from the server, never from the cache.
+  Future<RawTransactionSize?> verifyPendingSpend({
+    required String txid,
+    required List<InputV2> inputs,
+    required List<OutputV2> outputs,
+  }) async {
+    try {
+      return await fetchAndVerifyOwnedInputSignatures(
+        txid: txid,
+        rawTxHex: await _fetchRawTransactionHexFromServer(txid),
+        inputs: inputs,
+        outputs: outputs,
+        network: cryptoCurrency.networkParams,
+        allowMweb: this is MwebInterface,
+        legacyTimestamp: cryptoCurrency.legacyTransactionTimestamp,
+        fetchRawTransaction: _fetchRawTransactionHex,
+      );
+    } on UnauthenticatedTransaction catch (e) {
+      Logging.instance.w("Could not authenticate pending spend $txid: $e");
+      return null;
+    }
+  }
+
+  /// Drops any stored copy of [txid]. A pending spend the server cannot prove
+  /// this wallet signed may be one it made up, so it is not kept. It is picked
+  /// up again on a later refresh if the bytes then verify.
+  Future<void> deleteUnverifiedTransaction(String txid) => mainDB.isar.writeTxn(
+    () => mainDB.isar.transactionV2s
+        .where()
+        .txidWalletIdEqualTo(txid, walletId)
+        .deleteAll(),
+  );
+
+  /// The raw hex of [txid] from the server, never from the cache.
+  Future<String> _fetchRawTransactionHexFromServer(String txid) async {
+    final response = await electrumXClient.getTransaction(
+      txHash: txid,
+      verbose: false,
+    );
+    final rawTx = response["rawtx"];
+    return rawTx is String ? rawTx : "";
+  }
+
+  /// The raw hex of [txid], from the authenticated cache when present.
+  Future<String> _fetchRawTransactionHex(String txid) async {
+    final cached = await electrumXCachedClient.getAuthenticatedRawTransaction(
+      txHash: txid,
+      cryptoCurrency: cryptoCurrency,
+    );
+    return cached ?? await _fetchRawTransactionHexFromServer(txid);
+  }
+
+  /// Fetches [txid] and checks that the bytes hash to it. They are cached
+  /// only once [confirmations] is past the threshold the decoded transaction
+  /// cache uses: a reorg cannot change bytes the txid commits to, but an
+  /// unconfirmed transaction can be replaced, so it is not kept.
+  Future<coinlib.Transaction> fetchAuthenticatedTransaction(
+    String txid, {
+    int? confirmations,
+  }) async {
+    final cached = await electrumXCachedClient.getAuthenticatedRawTransaction(
+      txHash: txid,
+      cryptoCurrency: cryptoCurrency,
+    );
+    final rawTxHex = cached ?? await _fetchRawTransactionHexFromServer(txid);
+    final tx = parseAuthenticatedTransaction(
+      txid: txid,
+      rawTxHex: rawTxHex,
+      legacyTimestamp: cryptoCurrency.legacyTransactionTimestamp,
+    );
+    if (cached == null &&
+        confirmations != null &&
+        confirmations > CachedElectrumXClient.minCacheConfirms) {
+      await electrumXCachedClient.putAuthenticatedRawTransaction(
+        txHash: txid,
+        rawTxHex: rawTxHex,
+        cryptoCurrency: cryptoCurrency,
+      );
+    }
+    return tx;
+  }
+
+  /// The output funding p2pkh coin [txid]:[vout], read from the authenticated
+  /// parent transaction. The legacy signature hash does not commit to the
+  /// amount, so a server could otherwise lie about a coin's value and have
+  /// the wallet overpay the fee. Null when [address] is not p2pkh or the
+  /// parser cannot read this coin's transactions. [address] is as the server
+  /// reports it, so it is normalised first (cashaddr for Bitcoin Cash and
+  /// eCash). [confirmations] decides whether the parent is cached.
+  ///
+  /// Throws [UnauthenticatedTransaction] when the parent cannot be verified
+  /// or its output does not pay [address]. Network errors propagate.
+  Future<coinlib.Output?> authenticatedP2pkhOutput({
+    required String txid,
+    required int vout,
+    required String? address,
+    required int? confirmations,
+  }) async {
+    if (!cryptoCurrency.hasBitcoinTransactionLayout || address == null) {
+      return null;
+    }
+    final normalized = normalizeAddress(address);
+    if (!isP2pkhAddress(normalized, cryptoCurrency.networkParams)) {
+      return null;
+    }
+    final parent = await fetchAuthenticatedTransaction(
+      txid,
+      confirmations: confirmations,
+    );
+    if (vout >= parent.outputs.length) {
+      throw UnauthenticatedTransaction("Output $vout of $txid missing");
+    }
+    final output = parent.outputs[vout];
+    if (!scriptPaysTo(
+      normalized,
+      output.scriptPubKey,
+      cryptoCurrency.networkParams,
+    )) {
+      throw UnauthenticatedTransaction(
+        "Output $vout of $txid does not pay $address",
+      );
+    }
+    return output;
+  }
+
+  /// The reason to block a coin whose parent could not be verified. The coin
+  /// is kept with the server's values, visible but never spent, so one bad
+  /// parent does not stop the rest of the coins from refreshing.
+  static const unverifiedCoinReason = "Could not verify this coin's value";
+
   Future<UTXO> parseUTXO({required Map<String, dynamic> jsonUTXO}) async {
     final txn = await electrumXCachedClient.getTransaction(
       txHash: jsonUTXO["tx_hash"] as String,
@@ -1408,6 +1544,36 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       }
     }
 
+    int value = jsonUTXO["value"] as int;
+    final utxoTxid = txn["txid"] as String;
+    String? unverifiedReason;
+    try {
+      final authenticated = await authenticatedP2pkhOutput(
+        txid: utxoTxid,
+        vout: vout,
+        address: utxoOwnerAddress,
+        confirmations: txn["confirmations"] as int?,
+      );
+      if (authenticated != null) {
+        final authenticatedValue = authenticated.value.toInt();
+        final authenticatedScript = coinlib.bytesToHex(
+          authenticated.scriptPubKey,
+        );
+        if (authenticatedValue != value ||
+            authenticatedScript != scriptPubKey?.toLowerCase()) {
+          Logging.instance.w(
+            "Server misreported coin $utxoTxid:$vout as $value with script "
+            "$scriptPubKey; using $authenticatedValue and $authenticatedScript",
+          );
+        }
+        value = authenticatedValue;
+        scriptPubKey = authenticatedScript;
+      }
+    } on UnauthenticatedTransaction catch (e) {
+      Logging.instance.w("Could not verify coin $utxoTxid:$vout: $e");
+      unverifiedReason = ElectrumXInterface.unverifiedCoinReason;
+    }
+
     final checkBlockResult = await checkBlockUTXO(
       jsonUTXO,
       scriptPubKey,
@@ -1419,10 +1585,10 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       walletId: walletId,
       txid: txn["txid"] as String,
       vout: vout,
-      value: jsonUTXO["value"] as int,
+      value: value,
       name: checkBlockResult.utxoLabel ?? "",
-      isBlocked: checkBlockResult.blocked,
-      blockedReason: checkBlockResult.blockedReason,
+      isBlocked: unverifiedReason != null || checkBlockResult.blocked,
+      blockedReason: unverifiedReason ?? checkBlockResult.blockedReason,
       isCoinbase:
           txn["is_coinbase"] as bool? ??
           txn["is-coinbase"] as bool? ??
