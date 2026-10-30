@@ -1,0 +1,30 @@
+name: Static OpenCV for camera_linux
+description: >
+  Make sure the minimal static OpenCV used by camera_linux is in /opt/opencv-static.
+  The CI image ships it; if the image predates it, build it here and cache the result.
+
+runs:
+  using: composite
+  steps:
+    - name: Check CI image for static OpenCV
+      id: image
+      shell: bash
+      run: |
+        if [ -f /opt/opencv-static/lib/cmake/opencv4/OpenCVConfig.cmake ]; then
+          echo "present=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "present=false" >> "$GITHUB_OUTPUT"
+          echo "::notice::CI image has no /opt/opencv-static (image not rebuilt yet?); building it in this job"
+        fi
+
+    - name: Restore static OpenCV cache
+      if: steps.image.outputs.present != 'true'
+      uses: actions/cache@v5
+      with:
+        path: /opt/opencv-static
+        key: opencv-static-${{ hashFiles('scripts/linux/build_opencv_static.sh') }}
+
+    - name: Build static OpenCV
+      if: steps.image.outputs.present != 'true'
+      shell: bash
+      run: scripts/linux/build_opencv_static.sh /opt/opencv-static
