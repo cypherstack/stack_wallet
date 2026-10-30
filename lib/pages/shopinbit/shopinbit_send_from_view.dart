@@ -34,6 +34,7 @@ import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
+import '../../widgets/hideable_balance.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../home_view/home_view.dart';
@@ -115,9 +116,9 @@ class _ShopInBitSendFromViewState extends ConsumerState<ShopInBitSendFromView> {
       builder: (child) {
         return Background(
           child: Scaffold(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () {
@@ -270,9 +271,9 @@ class _ShopInBitSendFromCardState extends ConsumerState<ShopInBitSendFromCard> {
                 child: Text(
                   "Ok",
                   style: STextStyles.button(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.buttonTextSecondary,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .buttonTextSecondary,
                   ),
                 ),
                 onPressed: () => Navigator.of(context).pop(),
@@ -413,9 +414,9 @@ class _ShopInBitSendFromCardState extends ConsumerState<ShopInBitSendFromCard> {
                 child: Text(
                   "Ok",
                   style: STextStyles.button(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.buttonTextSecondary,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .buttonTextSecondary,
                   ),
                 ),
                 onPressed: () {
@@ -500,20 +501,32 @@ class _ShopInBitSendFromCardState extends ConsumerState<ShopInBitSendFromCard> {
                             contractAddress: tokenContract!.address,
                           )),
                         );
-                        return Text(
-                          "${balance.spendable.decimal.toStringAsFixed(tokenContract!.decimals)} ${tokenContract!.symbol}",
-                          style: STextStyles.itemSubtitle(context),
+                        return HideableBalance(
+                          iconColor: Theme.of(context)
+                              .extension<StackColors>()!
+                              .infoItemLabel,
+                          iconSize: 16,
+                          child: Text(
+                            "${balance.spendable.decimal.toStringAsFixed(tokenContract!.decimals)} ${tokenContract!.symbol}",
+                            style: STextStyles.itemSubtitle(context),
+                          ),
                         );
                       },
                     )
                   else
-                    Text(
-                      ref
-                          .watch(pAmountFormatter(coin))
-                          .format(
-                            ref.watch(pWalletBalance(walletId)).spendable,
-                          ),
-                      style: STextStyles.itemSubtitle(context),
+                    HideableBalance(
+                      iconColor: Theme.of(context)
+                          .extension<StackColors>()!
+                          .infoItemLabel,
+                      iconSize: 16,
+                      child: Text(
+                        ref
+                            .watch(pAmountFormatter(coin))
+                            .format(
+                              ref.watch(pWalletBalance(walletId)).spendable,
+                            ),
+                        style: STextStyles.itemSubtitle(context),
+                      ),
                     ),
                 ],
               ),
