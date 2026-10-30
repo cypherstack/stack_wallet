@@ -1124,45 +1124,51 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
       "$runtimeType refresh() refreshMutex.acquire() acquired!",
     );
 
-    Logging.instance.t("$runtimeType refresh() final node = getCurrentNode();");
-    final node = getCurrentNode();
-
-    Logging.instance.i(
-      "$runtimeType refresh() await _torNodeMismatchGuard(node)",
-    );
-    if (await _torNodeMismatchGuard(node)) {
-      throw Exception("TOR – clearnet mismatch");
-    }
-
-    Logging.instance.t(
-      "$runtimeType refresh() it csMonero.startSyncing(wallet!);",
-    );
-    await csMonero.startSyncing(wallet!);
-    Logging.instance.t(
-      "$runtimeType refresh() _setSyncStatus(lib_monero_compat.StartingSyncStatus());",
-    );
-    _setSyncStatus(lib_monero_compat.StartingSyncStatus());
-
-    Logging.instance.t("$runtimeType refresh() await updateTransactions();");
-    await updateTransactions();
-    Logging.instance.t("$runtimeType refresh() await updateBalance();");
-    await updateBalance();
-
-    Logging.instance.t(
-      "$runtimeType refresh() await checkReceivingAddressForTransactions();",
-    );
-    if (info.otherData[WalletInfoKeys.reuseAddress] != true) {
-      await checkReceivingAddressForTransactions();
-    }
-
-    Logging.instance.t(
-      "$runtimeType refresh() refreshMutex.isLocked=${refreshMutex.isLocked} pre release.",
-    );
-    if (refreshMutex.isLocked) {
-      refreshMutex.release();
+    try {
       Logging.instance.t(
-        "$runtimeType refresh() refreshMutex.isLocked manually released.",
+        "$runtimeType refresh() final node = getCurrentNode();",
       );
+      final node = getCurrentNode();
+
+      Logging.instance.i(
+        "$runtimeType refresh() await _torNodeMismatchGuard(node)",
+      );
+      if (await _torNodeMismatchGuard(node)) {
+        throw Exception("TOR – clearnet mismatch");
+      }
+
+      Logging.instance.t(
+        "$runtimeType refresh() it csMonero.startSyncing(wallet!);",
+      );
+      await csMonero.startSyncing(wallet!);
+      Logging.instance.t(
+        "$runtimeType refresh() _setSyncStatus(lib_monero_compat.StartingSyncStatus());",
+      );
+      _setSyncStatus(lib_monero_compat.StartingSyncStatus());
+
+      Logging.instance.t("$runtimeType refresh() await updateTransactions();");
+      await updateTransactions();
+      Logging.instance.t("$runtimeType refresh() await updateBalance();");
+      await updateBalance();
+
+      Logging.instance.t(
+        "$runtimeType refresh() await checkReceivingAddressForTransactions();",
+      );
+      if (info.otherData[WalletInfoKeys.reuseAddress] != true) {
+        await checkReceivingAddressForTransactions();
+      }
+    } finally {
+      // always release, otherwise a failed refresh leaves the lock held
+      // forever and blocks rescan (recover) and every later refresh
+      Logging.instance.t(
+        "$runtimeType refresh() refreshMutex.isLocked=${refreshMutex.isLocked} pre release.",
+      );
+      if (refreshMutex.isLocked) {
+        refreshMutex.release();
+        Logging.instance.t(
+          "$runtimeType refresh() refreshMutex.isLocked manually released.",
+        );
+      }
     }
 
     Logging.instance.t(

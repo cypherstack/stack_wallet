@@ -136,23 +136,32 @@ class _WalletNetworkSettingsViewState
 
     try {
       if (mounted) {
+        final wallet = ref.read(pWallets).getWallet(widget.walletId);
+        final rescansInBackground =
+            wallet is CryptonoteWallet || wallet is EpiccashWallet;
+
+        // these wallets keep rescanning after recover is called so the user
+        // may close the dialog before recover returns (it can be held up by a
+        // refresh in progress)
+        bool rescanningDialogOpen = true;
         unawaited(
           showDialog<dynamic>(
             context: context,
             useSafeArea: false,
             barrierDismissible: false,
-            builder: (context) => const RescanningDialog(),
-          ),
+            builder: (context) =>
+                RescanningDialog(rescansInBackground: rescansInBackground),
+          ).then((_) => rescanningDialogOpen = false),
         );
 
         try {
-          final wallet = ref.read(pWallets).getWallet(widget.walletId);
-
           await wallet.recover(isRescan: true);
 
           if (mounted) {
             // pop rescanning dialog
-            Navigator.of(context, rootNavigator: isDesktop).pop();
+            if (rescanningDialogOpen) {
+              Navigator.of(context, rootNavigator: isDesktop).pop();
+            }
 
             final String message;
             if (wallet is CryptonoteWallet || wallet is EpiccashWallet) {
@@ -193,7 +202,9 @@ class _WalletNetworkSettingsViewState
 
           if (mounted) {
             // pop rescanning dialog
-            Navigator.of(context, rootNavigator: isDesktop).pop();
+            if (rescanningDialogOpen) {
+              Navigator.of(context, rootNavigator: isDesktop).pop();
+            }
 
             // show error
             await showDialog<dynamic>(

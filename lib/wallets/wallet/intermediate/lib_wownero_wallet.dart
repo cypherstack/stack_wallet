@@ -1138,18 +1138,20 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
     // Slight possibility of race but should be irrelevant
     await refreshMutex.acquire();
 
-    csWownero.startSyncing(wallet!);
-    _setSyncStatus(lib_monero_compat.StartingSyncStatus());
+    try {
+      csWownero.startSyncing(wallet!);
+      _setSyncStatus(lib_monero_compat.StartingSyncStatus());
 
-    await updateTransactions();
-    await updateBalance();
+      await updateTransactions();
+      await updateBalance();
 
-    if (info.otherData[WalletInfoKeys.reuseAddress] != true) {
-      await checkReceivingAddressForTransactions();
-    }
-
-    if (refreshMutex.isLocked) {
-      refreshMutex.release();
+      if (info.otherData[WalletInfoKeys.reuseAddress] != true) {
+        await checkReceivingAddressForTransactions();
+      }
+    } finally {
+      if (refreshMutex.isLocked) {
+        refreshMutex.release();
+      }
     }
 
     final synced = wallet != null && await csWownero.isSynced(wallet!);

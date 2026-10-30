@@ -9,6 +9,8 @@
  */
 
 import 'package:flutter/material.dart';
+import '../../../../../themes/stack_colors.dart';
+import '../../../../../utilities/text_styles.dart';
 import '../../../../../utilities/util.dart';
 import '../../../../../widgets/animated_widgets/rotating_arrows.dart';
 import '../../../../../widgets/conditional_parent.dart';
@@ -18,8 +20,13 @@ import '../../../../../widgets/stack_dialog.dart';
 class RescanningDialog extends StatefulWidget {
   const RescanningDialog({
     super.key,
+    this.rescansInBackground = false,
     // required this.onCancel,
   });
+
+  /// If true the rescan carries on in the background (see the sync status)
+  /// so the user is allowed to close this dialog and leave.
+  final bool rescansInBackground;
 
   // final VoidCallback onCancel;
 
@@ -65,22 +72,37 @@ class _RescanningDialogState extends State<RescanningDialog>
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        return false;
+        return widget.rescansInBackground;
       },
       child: ConditionalParent(
         condition: isDesktop,
         builder: (child) => DesktopDialog(
-          maxHeight: 150,
+          maxHeight: widget.rescansInBackground ? 230 : 150,
           maxWidth: 500,
           child: child,
         ),
-        child: const StackDialog(
+        child: StackDialog(
           title: "Rescanning blockchain",
-          message: "This may take a while. Please do not exit this screen.",
-          icon: RotatingArrows(
+          message: widget.rescansInBackground
+              ? "This may take a while. You can close this dialog, the rescan "
+                    "will continue in the background."
+              : "This may take a while. Please do not exit this screen.",
+          icon: const RotatingArrows(
             width: 24,
             height: 24,
           ),
+          rightButton: widget.rescansInBackground
+              ? TextButton(
+                  style: Theme.of(context)
+                      .extension<StackColors>()!
+                      .getSecondaryEnabledButtonStyle(context),
+                  child: Text(
+                    "Close",
+                    style: STextStyles.itemSubtitle12(context),
+                  ),
+                  onPressed: () => Navigator.of(context).pop(),
+                )
+              : null,
           // rightButton: TextButton(
           //   style: Theme.of(context).textButtonTheme.style?.copyWith(
           //     backgroundColor: MaterialStateProperty.all<Color>(
