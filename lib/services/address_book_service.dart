@@ -10,8 +10,13 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import '../app_config.dart';
 import '../db/isar/main_db.dart';
+import '../models/isar/models/blockchain_data/address.dart';
 import '../models/isar/models/contact_entry.dart';
+import '../utilities/logger.dart';
+import '../wallets/wallet/wallet.dart';
+import '../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 
 class AddressBookService extends ChangeNotifier {
   ContactEntry getContactById(String id) {
@@ -76,6 +81,50 @@ class AddressBookService extends ChangeNotifier {
     await MainDB.instance.putContactEntry(contactEntry: editedContact);
     notifyListeners();
     return true;
+  }
+
+  /// Rebuilds the "My Stack" contact from the current receiving address of
+  /// each of [wallets].
+  Future<void> updateMyStackContact(Iterable<Wallet> wallets) async {
+    final List<ContactAddressEntry> addresses = [];
+    for (final wallet in wallets) {
+      try {
+        final String addressString;
+        if (wallet is SparkInterface &&
+            !(wallet.isViewOnly && wallet.viewOnlyType != .spark)) {
+          Address? address = await wallet.getCurrentReceivingSparkAddress();
+          address ??= await wallet.generateNextSparkAddress(saveToDB: true);
+          addressString = address.value;
+        } else {
+          final address = await wallet.getCurrentReceivingAddress();
+          addressString = address?.value ?? wallet.info.cachedReceivingAddress;
+        }
+
+        addresses.add(
+          ContactAddressEntry()
+            ..coinName = wallet.info.coin.identifier
+            ..address = addressString
+            ..label = "Current Receiving"
+            ..other = wallet.info.name,
+        );
+      } catch (e, s) {
+        // don't let one wallet keep the rest out of the address book
+        Logging.instance.e(
+          "Failed to get address for ${wallet.info.name}",
+          error: e,
+          stackTrace: s,
+        );
+      }
+    }
+
+    await editContact(
+      ContactEntry(
+        name: "My ${AppConfig.prefix}",
+        addresses: addresses,
+        isFavorite: true,
+        customId: "default",
+      ),
+    );
   }
 
   /// Remove address book contact entry from db if it exists

@@ -14,6 +14,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../../models/isar/models/contact_entry.dart';
 import '../../../../../providers/global/address_book_service_provider.dart';
+import '../../../../../providers/providers.dart';
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../utilities/assets.dart';
 import '../../../../../utilities/constants.dart';
@@ -25,7 +26,7 @@ import '../../../../../widgets/stack_text_field.dart';
 import '../../../../../widgets/textfield_icon_button.dart';
 import 'sub_widgets/contact_list_item.dart';
 
-class AddressBookAddressChooser extends StatefulWidget {
+class AddressBookAddressChooser extends ConsumerStatefulWidget {
   const AddressBookAddressChooser({
     super.key,
     this.coin,
@@ -34,11 +35,12 @@ class AddressBookAddressChooser extends StatefulWidget {
   final CryptoCurrency? coin;
 
   @override
-  State<AddressBookAddressChooser> createState() =>
+  ConsumerState<AddressBookAddressChooser> createState() =>
       _AddressBookAddressChooserState();
 }
 
-class _AddressBookAddressChooserState extends State<AddressBookAddressChooser> {
+class _AddressBookAddressChooserState
+    extends ConsumerState<AddressBookAddressChooser> {
   late final bool isDesktop;
   late final TextEditingController _searchController;
   late final FocusNode searchFieldFocusNode;
@@ -109,6 +111,16 @@ class _AddressBookAddressChooserState extends State<AddressBookAddressChooser> {
     isDesktop = Util.isDesktop;
     searchFieldFocusNode = FocusNode();
     _searchController = TextEditingController();
+
+    // the "My Stack" contact is otherwise only created by the address book
+    // view, so make sure it exists and is current before choosing from it
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      await ref
+          .read(addressBookServiceProvider)
+          .updateMyStackContact(ref.read(pWallets).wallets);
+    });
+
     super.initState();
   }
 
