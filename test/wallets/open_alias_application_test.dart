@@ -1,0 +1,25 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:cs_openalias/cs_openalias.dart' show isOpenAliasApplication;
+import 'package:stackwallet/app_config.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+
+void main() {
+  test('every coin has no OpenAlias application or a valid one', () {
+    for (final coin in AppConfig.coins) {
+      final application = coin.openAliasApplication;
+      if (application != null) {
+        expect(
+          isOpenAliasApplication(application),
+          isTrue,
+          reason: coin.identifier,
+        );
+      }
+    }
+    if (AppConfig.coins.any((e) => e is Monero)) {
+      expect(
+        AppConfig.coins.map((e) => e.openAliasApplication),
+        contains('xmr'),
+      );
+    }
+  });
+}
