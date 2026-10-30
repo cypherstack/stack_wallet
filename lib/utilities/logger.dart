@@ -150,8 +150,16 @@ class Logging {
         ),
         toFile,
       ));
-    } catch (e, s) {
-      t("Isolates suck", error: e, stackTrace: s);
+    } catch (e) {
+      try {
+        // ignore: avoid_print
+        print(
+          "${level.name} [$time] $message"
+          ", ERROR: $error"
+          ", STRACE: $stackTrace"
+          ", LOGGING FAILED: $e",
+        );
+      } catch (_) {}
     }
   }
 
