@@ -51,6 +51,20 @@ endfunction()
 set(FLUTTER_MANAGED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/flutter")
 add_subdirectory(${FLUTTER_MANAGED_DIR})
 
+# camera_linux (QR scanner) calls find_package(OpenCV) from its own CMake. Release
+# builds set STACKWALLET_OPENCV_DIR to the minimal static OpenCV built by
+# scripts/linux/build_opencv_static.sh, so that libopencv_wrapper.so carries
+# OpenCV inside itself and does not need libopencv_*.so on the user's machine.
+# This must be set before the plugins are added. Without it the plugin links the
+# system OpenCV, which is fine for development but is not relocatable.
+if(DEFINED ENV{STACKWALLET_OPENCV_DIR} AND NOT "$ENV{STACKWALLET_OPENCV_DIR}" STREQUAL "")
+  if(NOT EXISTS "$ENV{STACKWALLET_OPENCV_DIR}/OpenCVConfig.cmake")
+    message(FATAL_ERROR "STACKWALLET_OPENCV_DIR has no OpenCVConfig.cmake: $ENV{STACKWALLET_OPENCV_DIR}")
+  endif()
+  set(OpenCV_DIR "$ENV{STACKWALLET_OPENCV_DIR}" CACHE PATH "OpenCV used by camera_linux" FORCE)
+  set(STACKWALLET_STATIC_OPENCV ON)
+endif()
+
 # System-level dependencies.
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTK REQUIRED IMPORTED_TARGET gtk+-3.0)
@@ -125,6 +139,30 @@ set_target_properties(${BINARY_NAME}
 # Generated plugin build rules, which manage building the plugins and adding
 # them to the application.
 include(flutter/generated_plugins.cmake)
+
+# camera_linux: dlopen("libcamera_linux.so") needs libopencv_wrapper.so next to it.
+# The plugin only bundles libcamera_linux.so, so bundle the wrapper too, and make
+# both find each other from the bundle's lib/ directory (install(FILES) does not
+# rewrite RPATH, so it has to be correct in the built files).
+if(TARGET camera_linux AND TARGET opencv_wrapper)
+  set_target_properties(camera_linux opencv_wrapper PROPERTIES
+    BUILD_WITH_INSTALL_RPATH ON
+    INSTALL_RPATH "$ORIGIN")
+  # camera_linux.c calls nothing in the wrapper, so a linker defaulting to
+  # --as-needed would drop the dependency and leave Dart's dlsym lookups undefined.
+  # Linking the C++ wrapper makes CMake use the C++ driver; keep libstdc++ out of
+  # this otherwise C-only library's dependencies.
+  target_link_options(camera_linux PRIVATE
+    -Wl,--no-as-needed -static-libstdc++ -static-libgcc)
+  if(STACKWALLET_STATIC_OPENCV)
+    # Keep the static OpenCV, libjpeg, libpng, zlib and libstdc++ private to the
+    # wrapper so they cannot interpose on (or be interposed by) the copies that
+    # GTK and other libraries in the process use.
+    target_link_options(opencv_wrapper PRIVATE
+      -static-libstdc++ -static-libgcc -Wl,--exclude-libs,ALL -Wl,-Bsymbolic)
+  endif()
+  list(APPEND PLUGIN_BUNDLED_LIBRARIES $<TARGET_FILE:opencv_wrapper>)
+endif()
 
 
 # === Installation ===
