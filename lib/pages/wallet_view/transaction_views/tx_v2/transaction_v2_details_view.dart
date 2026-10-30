@@ -117,20 +117,42 @@ class _TransactionV2DetailsViewState
     }
     _boostButtonLock = true;
     try {
-      if (Util.isDesktop) {
-        if (_transaction.vSize == null) {
-          final updatedTx = await showLoading(
-            whileFuture: wallet.updateVSize(_transaction),
-            context: context,
-            message: "Fetching transaction vSize...",
-          );
-
-          // TODO handle errors if null
-          _transaction = updatedTx!;
+      // Re-check the transaction against the current server before pricing a
+      // bump off its size. One the server cannot prove we signed is not
+      // boosted, and the refresh drops it from history.
+      Exception? failure;
+      final updatedTx = await showLoading(
+        whileFuture: wallet.updateVSize(_transaction),
+        context: context,
+        message: "Verifying transaction...",
+        onException: (e) => failure = e,
+      );
+      if (!mounted) {
+        return;
+      }
+      if (updatedTx == null) {
+        final error = failure;
+        await showDialog<void>(
+          context: context,
+          builder: (_) => StackOkDialog(
+            title: error == null
+                ? "Could not verify transaction"
+                : "Failed to verify transaction",
+            message: error == null
+                ? "The current server did not return a transaction signed by "
+                      "this wallet, so it cannot be boosted."
+                : error.toString(),
+            maxWidth: Util.isDesktop ? 400 : null,
+          ),
+        );
+        if (error == null) {
+          unawaited(wallet.refresh());
         }
+        return;
+      }
+      _transaction = updatedTx;
 
-        // TODO pass the size in to the rbf screen
-
+      if (Util.isDesktop) {
         if (mounted) {
           await showDialog<void>(
             context: context,
@@ -511,9 +533,9 @@ class _TransactionV2DetailsViewState
         appBar: isDesktop
             ? null
             : AppBar(
-                backgroundColor: Theme.of(
-                  context,
-                ).extension<StackColors>()!.background,
+                backgroundColor: Theme.of(context)
+                    .extension<StackColors>()!
+                    .background,
                 leading: AppBarBackButton(
                   onPressed: () async {
                     // if (FocusScope.of(context).hasFocus) {
@@ -559,9 +581,9 @@ class _TransactionV2DetailsViewState
                       builder: (child) {
                         return RoundedWhiteContainer(
                           borderColor: isDesktop
-                              ? Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.backgroundAppBar
+                              ? Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .backgroundAppBar
                               : null,
                           padding: const EdgeInsets.all(0),
                           child: child,
@@ -816,36 +838,30 @@ class _TransactionV2DetailsViewState
                                                                     fetchContactNameFor(
                                                                       e,
                                                                     ),
-                                                                builder:
-                                                                    (
-                                                                      builderContext,
-                                                                      AsyncSnapshot<
-                                                                        String
-                                                                      >
-                                                                      snapshot,
-                                                                    ) {
-                                                                      final String
-                                                                      addressOrContactName;
-                                                                      if (snapshot.connectionState ==
-                                                                              ConnectionState.done &&
-                                                                          snapshot
-                                                                              .hasData) {
-                                                                        addressOrContactName =
-                                                                            snapshot.data!;
-                                                                      } else {
-                                                                        addressOrContactName =
-                                                                            e;
-                                                                      }
+                                                                builder: (builderContext, AsyncSnapshot<String> snapshot) {
+                                                                  final String
+                                                                  addressOrContactName;
+                                                                  if (snapshot.connectionState ==
+                                                                          ConnectionState
+                                                                              .done &&
+                                                                      snapshot
+                                                                          .hasData) {
+                                                                    addressOrContactName =
+                                                                        snapshot
+                                                                            .data!;
+                                                                  } else {
+                                                                    addressOrContactName =
+                                                                        e;
+                                                                  }
 
-                                                                      return OutputCard(
-                                                                        address:
-                                                                            addressOrContactName,
-                                                                        amount:
-                                                                            data[i].amount,
-                                                                        coin:
-                                                                            coin,
-                                                                      );
-                                                                    },
+                                                                  return OutputCard(
+                                                                    address:
+                                                                        addressOrContactName,
+                                                                    amount: data[i]
+                                                                        .amount,
+                                                                    coin: coin,
+                                                                  );
+                                                                },
                                                               );
                                                             }),
                                                           ],
@@ -1658,9 +1674,9 @@ class OutputCard extends ConsumerWidget {
               ref.watch(pAmountFormatter(coin)).format(amount),
               style: Util.isDesktop
                   ? STextStyles.desktopTextExtraExtraSmall(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textDark,
                     )
                   : STextStyles.itemSubtitle12(context),
             ),
@@ -1696,9 +1712,9 @@ class IconCopyButton extends StatelessWidget {
       height: 26,
       width: 26,
       child: RawMaterialButton(
-        fillColor: Theme.of(
-          context,
-        ).extension<StackColors>()!.buttonBackSecondary,
+        fillColor: Theme.of(context)
+            .extension<StackColors>()!
+            .buttonBackSecondary,
         elevation: 0,
         hoverElevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
@@ -1738,9 +1754,9 @@ class IconPencilButton extends StatelessWidget {
       height: 26,
       width: 26,
       child: RawMaterialButton(
-        fillColor: Theme.of(
-          context,
-        ).extension<StackColors>()!.buttonBackSecondary,
+        fillColor: Theme.of(context)
+            .extension<StackColors>()!
+            .buttonBackSecondary,
         elevation: 0,
         hoverElevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
@@ -1889,16 +1905,16 @@ class _TxidDetailItemState extends ConsumerState<_TxidDetailItem> {
               child: Text(
                 "Cancel",
                 style: STextStyles.button(context).copyWith(
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.accentColorDark,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .accentColorDark,
                 ),
               ),
             ),
             rightButton: TextButton(
-              style: Theme.of(
-                context,
-              ).extension<StackColors>()!.getPrimaryEnabledButtonStyle(context),
+              style: Theme.of(context)
+                  .extension<StackColors>()!
+                  .getPrimaryEnabledButtonStyle(context),
               onPressed: () {
                 Navigator.of(context).pop(true);
               },
@@ -2026,13 +2042,12 @@ class _TxidDetailItemState extends ConsumerState<_TxidDetailItem> {
                       SelectableText(
                         widget.txid.replaceFirst("mweb_outputId_", ""),
                         style: isDesktop
-                            ? STextStyles.desktopTextExtraExtraSmall(
-                                context,
-                              ).copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textDark,
-                              )
+                            ? STextStyles.desktopTextExtraExtraSmall(context)
+                                  .copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark,
+                                  )
                             : STextStyles.itemSubtitle12(context),
                       ),
                     ],
@@ -2073,13 +2088,12 @@ class _TxidDetailItemState extends ConsumerState<_TxidDetailItem> {
                       SelectableText(
                         widget.txid,
                         style: isDesktop
-                            ? STextStyles.desktopTextExtraExtraSmall(
-                                context,
-                              ).copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textDark,
-                              )
+                            ? STextStyles.desktopTextExtraExtraSmall(context)
+                                  .copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark,
+                                  )
                             : STextStyles.itemSubtitle12(context),
                       ),
                       if (widget.coin is! Epiccash &&
@@ -2176,9 +2190,9 @@ class _TxDetailsAmountHeader extends ConsumerWidget {
       child: Container(
         decoration: isDesktop
             ? BoxDecoration(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.backgroundAppBar,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .backgroundAppBar,
                 borderRadius: BorderRadius.vertical(
                   top: Radius.circular(Constants.size.circularBorderRadius),
                 ),
