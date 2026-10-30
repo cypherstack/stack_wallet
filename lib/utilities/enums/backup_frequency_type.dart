@@ -12,4 +12,5 @@ enum BackupFrequencyType {
   everyTenMinutes,
   everyAppStart,
   afterClosingAWallet,
+  afterChanges,
 }
