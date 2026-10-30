@@ -68,6 +68,9 @@ modules:
       - type: dir
         path: .
 
+  # The SDK links with --as-needed, which would drop libopencv_wrapper.so from
+  # libcamera_linux.so (camera_linux.c calls nothing) and leave the symbols
+  # Dart looks up undefined, so turn it off for this module.
   - name: camera-linux
     buildsystem: simple
     build-commands:
@@ -76,6 +79,7 @@ modules:
           -DCMAKE_PREFIX_PATH=/app
           -DCMAKE_INSTALL_RPATH=/app/lib/campfire/lib:/app/lib
           -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON
+          -DCMAKE_SHARED_LINKER_FLAGS=-Wl,--no-as-needed
       - cmake --build _build --parallel
       - install -Dm755 _build/libopencv_wrapper.so
           /app/lib/campfire/lib/libopencv_wrapper.so
