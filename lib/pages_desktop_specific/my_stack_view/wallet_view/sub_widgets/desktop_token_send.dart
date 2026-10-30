@@ -29,6 +29,7 @@ import '../../../../utilities/address_utils.dart';
 import '../../../../utilities/amount/amount.dart';
 import '../../../../utilities/amount/amount_field_relocalization.dart';
 import '../../../../utilities/amount/amount_formatter.dart';
+import '../../../../utilities/amount/amount_parser.dart';
 import '../../../../utilities/amount/amount_input_formatter.dart';
 import '../../../../utilities/amount/amount_unit.dart';
 import '../../../../utilities/clipboard_interface.dart';
@@ -373,14 +374,26 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
         amount ?? Amount.zeroWith(fractionDigits: tokenDecimals);
   }
 
+  // Controller assignments used for display must not edit the stored amount.
+  void _updateAmountDisplay(VoidCallback update) {
+    final wasLocked = _cryptoAmountChangeLock;
+    _cryptoAmountChangeLock = true;
+    try {
+      update();
+    } finally {
+      _cryptoAmountChangeLock = wasLocked;
+    }
+  }
+
   void _cryptoAmountChanged() async {
     if (!_cryptoAmountChangeLock) {
-      final cryptoAmount = ref
-          .read(pAmountFormatter(coin))
-          .tryParseEditable(
-            cryptoAmountController.text,
-            tokenContract: ref.read(pCurrentTokenWallet)!.tokenContract,
-          );
+      final cryptoAmount = AmountParser.tryParseEditable(
+        cryptoAmountController.text,
+        locale: ref.read(localeServiceChangeNotifierProvider).locale,
+        unit: ref.read(pAmountUnit(coin)),
+        coin: coin,
+        tokenContract: ref.read(pCurrentTokenWallet)!.tokenContract,
+      );
 
       if (cryptoAmount != null) {
         _amountToSend = cryptoAmount;
@@ -700,8 +713,15 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
     listenForAmountRelocalization(
       ref.listen,
       controllers: [cryptoAmountController, baseAmountController],
-      onRelocalized: _cryptoAmountChanged,
+      updateControllers: _updateAmountDisplay,
     );
+    ref.listen<AmountFormatter>(pAmountFormatter(coin), (previous, next) {
+      if (previous?.unit != next.unit && _amountToSend != null) {
+        _updateAmountDisplay(() {
+          cryptoAmountController.text = next.formatEditable(_amountToSend!);
+        });
+      }
+    });
     final isCustomFee = ref.watch(feeRateTypeDesktopStateProvider).isCustom;
     // ethFee is checked in the ValueListenableBuilder around the preview
     // button so fee keystrokes don't rebuild this whole view.

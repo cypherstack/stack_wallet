@@ -41,17 +41,17 @@ class HiddenSettings extends StatelessWidget {
             padding: const EdgeInsets.all(8.0),
             child: AppBarIconButton(
               size: 32,
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldDefaultBG,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldDefaultBG,
               shadows: const [],
               icon: SvgPicture.asset(
                 Assets.svg.arrowLeft,
                 width: 18,
                 height: 18,
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.topNavIconPrimary,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .topNavIconPrimary,
               ),
               onPressed: Navigator.of(context).pop,
             ),

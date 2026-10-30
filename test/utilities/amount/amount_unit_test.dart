@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:stackwallet/models/isar/models/solana/sol_contract.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
+import 'package:stackwallet/utilities/amount/amount_parser.dart';
 import 'package:stackwallet/utilities/amount/amount_input_formatter.dart';
 import 'package:stackwallet/utilities/amount/amount_unit.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -217,7 +218,15 @@ void main() {
       maxDecimals: 8,
     );
 
-    expect(formatter.tryParseEditable("5")?.decimal, Decimal.fromInt(5));
+    expect(
+      AmountParser.tryParseEditable(
+        "5",
+        locale: formatter.locale,
+        unit: formatter.unit,
+        coin: formatter.coin,
+      )?.decimal,
+      Decimal.fromInt(5),
+    );
 
     for (final value in [
       "+5",
@@ -226,7 +235,16 @@ void main() {
       for (final codePoint in [0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x20])
         "1${String.fromCharCode(codePoint)}234",
     ]) {
-      expect(formatter.tryParseEditable(value), isNull, reason: value);
+      expect(
+        AmountParser.tryParseEditable(
+          value,
+          locale: formatter.locale,
+          unit: formatter.unit,
+          coin: formatter.coin,
+        ),
+        isNull,
+        reason: value,
+      );
       expect(
         Amount.tryParseFiatString(value, locale: "en_US"),
         isNull,
@@ -234,7 +252,15 @@ void main() {
       );
     }
 
-    expect(formatter.tryParseEditable("0.000000001"), isNull);
+    expect(
+      AmountParser.tryParseEditable(
+        "0.000000001",
+        locale: formatter.locale,
+        unit: formatter.unit,
+        coin: formatter.coin,
+      ),
+      isNull,
+    );
     expect(Amount.tryParseFiatString("1.001", locale: "en_US"), isNull);
 
     expect(
@@ -790,7 +816,12 @@ void main() {
         );
         final text = formatter.formatEditable(amount);
         expect(
-          formatter.tryParseEditable(text),
+          AmountParser.tryParseEditable(
+            text,
+            locale: formatter.locale,
+            unit: formatter.unit,
+            coin: formatter.coin,
+          ),
           amount,
           reason: "$locale $unit $text",
         );
