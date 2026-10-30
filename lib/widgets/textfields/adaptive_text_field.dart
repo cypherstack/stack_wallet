@@ -12,11 +12,16 @@ import '../textfield_icon_button.dart';
 class AdaptiveTextField extends StatefulWidget {
   const AdaptiveTextField({
     super.key,
+    this.textFieldKey,
     this.labelText,
     this.hintText,
     this.controller,
     this.focusNode,
+    this.style,
     this.autocorrect,
+    this.smartDashesType,
+    this.smartQuotesType,
+    this.desktopMed = false,
     this.readOnly = false,
     this.enabled = true,
     this.enableSuggestions = true,
@@ -32,15 +37,21 @@ class AdaptiveTextField extends StatefulWidget {
     this.maxLines,
     this.inputFormatters,
     this.showPasteClearButton = false,
+    this.trimPastedText = true,
     this.keyboardType,
   });
 
+  final Key? textFieldKey;
   final String? labelText;
   final String? hintText;
 
   final TextEditingController? controller;
   final FocusNode? focusNode;
+  final TextStyle? style;
   final bool? autocorrect;
+  final SmartDashesType? smartDashesType;
+  final SmartQuotesType? smartQuotesType;
+  final bool desktopMed;
   final EdgeInsets? contentPadding;
   final int? minLines;
   final int? maxLines;
@@ -56,6 +67,8 @@ class AdaptiveTextField extends StatefulWidget {
 
   /// This will be ignored if [suffixIcons] is not null!
   final bool showPasteClearButton;
+
+  final bool trimPastedText;
 
   /// If this is not null, [showPasteClearButton] will be ignored.
   final List<Widget>? suffixIcons;
@@ -127,11 +140,14 @@ class _AdaptiveTextFieldState extends State<AdaptiveTextField> {
             Constants.size.circularBorderRadius,
           ),
           child: TextField(
+            key: widget.textFieldKey,
             minLines: widget.minLines,
             maxLines: widget.maxLines,
-            style: Util.isDesktop
-                ? STextStyles.field(context).copyWith(fontSize: 16)
-                : STextStyles.field(context),
+            style:
+                widget.style ??
+                (Util.isDesktop
+                    ? STextStyles.field(context).copyWith(fontSize: 16)
+                    : STextStyles.field(context)),
             controller: controller,
             focusNode: _focusNode,
             onChanged: widget.onChanged,
@@ -139,6 +155,8 @@ class _AdaptiveTextFieldState extends State<AdaptiveTextField> {
             readOnly: widget.readOnly,
             enabled: widget.enabled,
             autocorrect: widget.autocorrect,
+            smartDashesType: widget.smartDashesType,
+            smartQuotesType: widget.smartQuotesType,
             enableSuggestions: widget.enableSuggestions,
             onSubmitted: widget.onSubmitted,
             keyboardType: widget.keyboardType,
@@ -148,7 +166,9 @@ class _AdaptiveTextFieldState extends State<AdaptiveTextField> {
                   widget.labelText,
                   _focusNode,
                   context,
+                  desktopMed: widget.desktopMed,
                 ).copyWith(
+                  alignLabelWithHint: (widget.minLines ?? 1) > 2 ? true : null,
                   hintText: widget.hintText,
                   suffixText:
                       (widget.suffixIcons?.isNotEmpty != true &&
@@ -190,8 +210,27 @@ class _AdaptiveTextFieldState extends State<AdaptiveTextField> {
                                   await Clipboard.getData(Clipboard.kTextPlain);
                               if (data?.text != null &&
                                   data!.text!.isNotEmpty) {
-                                final content = data.text!.trim();
-                                controller.text = content;
+                                final content = widget.trimPastedText
+                                    ? data.text!.trim()
+                                    : data.text!;
+                                // Setting controller.text directly skips
+                                // inputFormatters, so run them here as a
+                                // paste into the (empty) field would.
+                                TextEditingValue value = TextEditingValue(
+                                  text: content,
+                                  selection: TextSelection.collapsed(
+                                    offset: content.length,
+                                  ),
+                                );
+                                for (final formatter
+                                    in widget.inputFormatters ??
+                                        const <TextInputFormatter>[]) {
+                                  value = formatter.formatEditUpdate(
+                                    TextEditingValue.empty,
+                                    value,
+                                  );
+                                }
+                                controller.text = value.text;
                               }
                             } else {
                               controller.text = "";

@@ -167,6 +167,10 @@ abstract class Wallet<T extends CryptoCurrency> {
       prefs: prefs,
     );
 
+    if (wallet is XelisWallet) {
+      wallet.allowNewWallet = mnemonic == null;
+    }
+
     if (wallet is ViewOnlyOptionInterface && walletInfo.isViewOnly) {
       await secureStorageInterface.write(
         key: getViewOnlyWalletDataSecStoreKey(walletId: walletInfo.walletId),
@@ -497,6 +501,10 @@ abstract class Wallet<T extends CryptoCurrency> {
   /// reflect updated balance, transactions, utxos, etc.
   Future<TxData> confirmSend({required TxData txData});
 
+  /// Releases a preparation when its review is abandoned. Wallets whose
+  /// preparations own native resources override this lifecycle hook.
+  Future<void> cancelSend({required TxData txData}) async {}
+
   /// Recover a wallet by scanning the blockchain. If called on a new wallet a
   /// normal recovery should occur. When called on an existing wallet and
   /// [isRescan] is false then it should throw. Otherwise this function should
@@ -556,21 +564,7 @@ abstract class Wallet<T extends CryptoCurrency> {
             ),
           );
         }
-        if (shouldAutoSync) {
-          _periodicRefreshTimer ??= Timer.periodic(const Duration(seconds: 150), (
-            timer,
-          ) async {
-            // chain height check currently broken
-            // if ((await chainHeight) != (await storedChainHeight)) {
-
-            // TODO: [prio=med] some kind of quick check if wallet needs to refresh to replace the old refreshIfThereIsNewData call
-            // if (await refreshIfThereIsNewData()) {
-            unawaited(refresh());
-
-            // }
-            // }
-          });
-        }
+        ensurePeriodicRefreshTimer();
       },
       onError: (Object e, StackTrace s) {
         if (!doNotFireRefreshEvents) {
@@ -600,6 +594,16 @@ abstract class Wallet<T extends CryptoCurrency> {
     unawaited(_refresh(refreshCompleter));
 
     return future;
+  }
+
+  @protected
+  void ensurePeriodicRefreshTimer() {
+    if (shouldAutoSync) {
+      _periodicRefreshTimer ??= Timer.periodic(
+        const Duration(seconds: 150),
+        (_) => unawaited(refresh()),
+      );
+    }
   }
 
   void _fireRefreshPercentChange(double percent) {

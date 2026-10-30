@@ -3,11 +3,12 @@ import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
 import 'package:ethereum_addresses/ethereum_addresses.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart';
 import 'package:isar_community/isar.dart';
+import 'package:wallet/wallet.dart' as eth_wallet;
 import 'package:web3dart/json_rpc.dart' show RPCError;
 import 'package:web3dart/web3dart.dart' as web3;
-import 'package:wallet/wallet.dart' as eth_wallet;
 
 import '../../../dto/ethereum/eth_tx_dto.dart';
 import '../../../models/balance.dart';
@@ -21,7 +22,6 @@ import '../../../services/ethereum/ethereum_api.dart';
 import '../../../services/event_bus/events/global/updated_in_background_event.dart';
 import '../../../services/event_bus/global_event_bus.dart';
 import '../../../utilities/amount/amount.dart';
-import '../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../utilities/eth_commons.dart';
 import '../../../utilities/logger.dart';
 import '../../crypto_currency/crypto_currency.dart';
@@ -29,7 +29,97 @@ import '../../models/tx_data.dart';
 import '../intermediate/bip39_wallet.dart';
 import '../wallet_mixin_interfaces/private_key_interface.dart';
 
+@visibleForTesting
+Future<List<TransactionV2>> findReplacedPendingEthereumTransactions({
+  required String walletId,
+  required Iterable<TransactionV2> transactions,
+  required Future<int> Function() getLatestConfirmedNonce,
+  required Future<web3.TransactionInformation?> Function(String txid)
+  getTransactionByHash,
+  void Function(Object error, StackTrace stackTrace)? onNonceLookupError,
+  void Function(TransactionV2 transaction, Object error, StackTrace stackTrace)?
+  onTransactionLookupError,
+}) async {
+  final candidates = transactions
+      .where(
+        (transaction) =>
+            transaction.walletId == walletId &&
+            transaction.height == null &&
+            transaction.blockHash == null &&
+            transaction.nonce != null &&
+            (transaction.type == TransactionType.outgoing ||
+                transaction.type == TransactionType.sentToSelf) &&
+            (transaction.subType == TransactionSubType.none ||
+                transaction.subType == TransactionSubType.ethToken),
+      )
+      .toList(growable: false);
+
+  if (candidates.isEmpty) {
+    return const [];
+  }
+
+  final int latestConfirmedNonce;
+  try {
+    latestConfirmedNonce = await getLatestConfirmedNonce();
+  } catch (e, s) {
+    onNonceLookupError?.call(e, s);
+    return const [];
+  }
+
+  final replacedTransactions = <TransactionV2>[];
+  for (final transaction in candidates) {
+    if (transaction.nonce! >= latestConfirmedNonce) {
+      continue;
+    }
+
+    try {
+      final originalTransaction = await getTransactionByHash(transaction.txid);
+      if (originalTransaction?.blockHash == null) {
+        replacedTransactions.add(transaction);
+      }
+    } catch (e, s) {
+      onTransactionLookupError?.call(transaction, e, s);
+    }
+  }
+
+  return replacedTransactions;
+}
+
 // Eth can not use tor with web3dart
+
+@visibleForTesting
+({BigInt maxFeePerGas, BigInt maxPriorityFeePerGas}) resolveEip1559FeeCaps({
+  required BigInt baseFee,
+  required BigInt priorityFeePerGas,
+  BigInt? customMaxFeePerGas,
+}) {
+  if (customMaxFeePerGas != null && priorityFeePerGas.isNegative) {
+    throw Exception("Max priority fee per gas cannot be negative.");
+  }
+  final maxPriorityFeePerGas = priorityFeePerGas.isNegative
+      ? BigInt.zero
+      : priorityFeePerGas;
+
+  // Presets get 2x base-fee headroom since it can rise 12.5% per block. The
+  // EIP-1559 max fee is the total per-gas cap, so it also includes priority.
+  final maxFeePerGas =
+      customMaxFeePerGas ?? baseFee * BigInt.two + maxPriorityFeePerGas;
+
+  if (maxFeePerGas <= BigInt.zero) {
+    throw Exception("Max fee per gas must be greater than zero.");
+  }
+  if (baseFee > maxFeePerGas) {
+    throw Exception("Max fee per gas is below the current network base fee.");
+  }
+  if (maxPriorityFeePerGas > maxFeePerGas) {
+    throw Exception("Max priority fee per gas exceeds max fee per gas.");
+  }
+
+  return (
+    maxFeePerGas: maxFeePerGas,
+    maxPriorityFeePerGas: maxPriorityFeePerGas,
+  );
+}
 
 class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
   EthereumWallet(CryptoCurrencyNetwork network) : super(Ethereum(network));
@@ -218,7 +308,9 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
 
       final addressHex = (await getCurrentReceivingAddress())!.value;
       final address = eth_wallet.EthereumAddress.fromHex(addressHex);
-      final eth_wallet.EtherAmount ethBalance = await client.getBalance(address);
+      final eth_wallet.EtherAmount ethBalance = await client.getBalance(
+        address,
+      );
       final balance = Balance(
         total: Amount(
           rawValue: ethBalance.getInWei,
@@ -303,6 +395,7 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
 
     if (response.value!.isEmpty) {
       // no new transactions found
+      await deleteReplacedPendingTransactions();
       return;
     }
 
@@ -421,6 +514,55 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
       txns.add(txn);
     }
     await mainDB.updateOrPutTransactionV2s(txns);
+    await deleteReplacedPendingTransactions();
+  }
+
+  Future<void> deleteReplacedPendingTransactions() async {
+    final pendingTransactions = await mainDB.isar.transactionV2s
+        .where()
+        .walletIdEqualTo(walletId)
+        .filter()
+        .heightIsNull()
+        .nonceIsNotNull()
+        .findAll();
+
+    web3.Web3Client? client;
+    web3.Web3Client getClient() => client ??= getEthClient();
+    final replacedTransactions = await findReplacedPendingEthereumTransactions(
+      walletId: walletId,
+      transactions: pendingTransactions,
+      getLatestConfirmedNonce: () async => getClient().getTransactionCount(
+        await getMyWeb3Address(),
+        atBlock: const web3.BlockNum.current(),
+      ),
+      getTransactionByHash: (txid) => getClient().getTransactionByHash(txid),
+      onNonceLookupError: (error, stackTrace) {
+        Logging.instance.w(
+          "$runtimeType failed to get the latest confirmed nonce",
+          error: error,
+          stackTrace: stackTrace,
+        );
+      },
+      onTransactionLookupError: (transaction, error, stackTrace) {
+        Logging.instance.w(
+          "$runtimeType failed to look up pending transaction "
+          "${transaction.txid}",
+          error: error,
+          stackTrace: stackTrace,
+        );
+      },
+    );
+    final replacedTransactionIds = replacedTransactions
+        .map((transaction) => transaction.id)
+        .toList(growable: false);
+
+    if (replacedTransactionIds.isEmpty) {
+      return;
+    }
+
+    await mainDB.isar.writeTxn(() async {
+      await mainDB.isar.transactionV2s.deleteAll(replacedTransactionIds);
+    });
   }
 
   @override
@@ -439,18 +581,17 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
     ({
       int nonce,
       BigInt chainId,
-      BigInt baseFee,
-      BigInt maxBaseFee,
-      BigInt priorityFee,
+      BigInt maxFeePerGas,
+      BigInt maxPriorityFeePerGas,
     })
   >
   internalSharedPrepareSend({
     required TxData txData,
     required eth_wallet.EthereumAddress myWeb3Address,
   }) async {
-    if (txData.feeRateType == null) throw Exception("Missing fee rate type.");
-    if (txData.feeRateType == FeeRateType.custom &&
-        txData.ethEIP1559Fee == null) {
+    final feeRateType = txData.feeRateType;
+    if (feeRateType == null) throw Exception("Missing fee rate type.");
+    if (feeRateType == .custom && txData.ethEIP1559Fee == null) {
       throw Exception("Missing custom EIP-1559 values.");
     }
 
@@ -466,45 +607,27 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
         );
 
     final feeObject = await fees;
-    final baseFee = feeObject.suggestBaseFee;
-    BigInt maxBaseFee = baseFee;
-    BigInt priorityFee;
+    final BigInt baseFee = feeObject.suggestBaseFee;
 
-    switch (txData.feeRateType!) {
-      case FeeRateType.fast:
-        priorityFee = feeObject.fast - baseFee;
-        if (priorityFee.isNegative) priorityFee = BigInt.zero;
-        break;
-
-      case FeeRateType.average:
-        priorityFee = feeObject.medium - baseFee;
-        if (priorityFee.isNegative) priorityFee = BigInt.zero;
-        break;
-
-      case FeeRateType.slow:
-        priorityFee = feeObject.slow - baseFee;
-        if (priorityFee.isNegative) priorityFee = BigInt.zero;
-        break;
-
-      case FeeRateType.custom:
-        priorityFee = txData.ethEIP1559Fee!.priorityFeeWei;
-        maxBaseFee = txData.ethEIP1559Fee!.maxBaseFeeWei;
-        break;
-    }
-
-    if (baseFee > maxBaseFee) {
-      throw Exception("Base cannot be greater than max base fee");
-    }
-    if (priorityFee > maxBaseFee) {
-      throw Exception("Priority fee cannot be greater than max base fee");
-    }
+    final BigInt rawPriority = switch (feeRateType) {
+      .fast => feeObject.fast - baseFee,
+      .average => feeObject.medium - baseFee,
+      .slow => feeObject.slow - baseFee,
+      .custom => txData.ethEIP1559Fee!.maxPriorityFeePerGasWei,
+    };
+    final feeCaps = resolveEip1559FeeCaps(
+      baseFee: baseFee,
+      priorityFeePerGas: rawPriority,
+      customMaxFeePerGas: feeRateType == .custom
+          ? txData.ethEIP1559Fee!.maxFeePerGasWei
+          : null,
+    );
 
     return (
       nonce: nonce,
       chainId: chainId,
-      baseFee: baseFee,
-      maxBaseFee: maxBaseFee,
-      priorityFee: priorityFee,
+      maxFeePerGas: feeCaps.maxFeePerGas,
+      maxPriorityFeePerGas: feeCaps.maxPriorityFeePerGas,
     );
   }
 
@@ -526,24 +649,26 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
       throw Exception("Insufficient balance");
     }
 
+    final gasLimit = txData.ethEIP1559Fee?.gasLimit ?? kEthereumMinGasLimit;
     final tx = web3.Transaction(
       to: eth_wallet.EthereumAddress.fromHex(address),
-      maxGas: txData.ethEIP1559Fee?.gasLimit ?? kEthereumMinGasLimit,
+      maxGas: gasLimit,
       value: eth_wallet.EtherAmount.inWei(amount.raw),
       nonce: prep.nonce,
       maxFeePerGas: eth_wallet.EtherAmount.fromBigInt(
         eth_wallet.EtherUnit.wei,
-        prep.maxBaseFee,
+        prep.maxFeePerGas,
       ),
       maxPriorityFeePerGas: eth_wallet.EtherAmount.fromBigInt(
         eth_wallet.EtherUnit.wei,
-        prep.priorityFee,
+        prep.maxPriorityFeePerGas,
       ),
     );
 
-    final feeEstimate = await estimateFeeFor(
-      Amount.zero,
-      prep.maxBaseFee + prep.priorityFee,
+    final feeEstimate = estimateEthFee(
+      prep.maxFeePerGas,
+      gasLimit,
+      cryptoCurrency.fractionDigits,
     );
 
     return txData.copyWith(

@@ -3,6 +3,7 @@ part of 'firo_cache.dart';
 enum FCFuncName {
   _updateSparkAnonSetCoinsWith,
   _updateSparkUsedTagsWith,
+  _close,
 }
 
 class FCTask {
@@ -16,9 +17,29 @@ class FCTask {
 class _FiroCacheWorker {
   final SendPort _commands;
   final ReceivePort _responses;
+  final Isolate _isolate;
   final Map<String, Completer<Object?>> _activeRequests = {};
 
+  bool _closing = false;
+
+  Future<void> close() async {
+    final closed = runTask(FCTask(func: FCFuncName._close, data: null));
+    _closing = true;
+    try {
+      await closed.timeout(const Duration(seconds: 15));
+    } catch (_) {
+      // The worker may have exited before receiving the close request, or
+      // may be stuck in a task. The reset caller exits and retries deletion
+      // on the next launch instead of deleting files under a live worker.
+      _isolate.kill(priority: Isolate.immediate);
+      rethrow;
+    } finally {
+      _responses.close();
+    }
+  }
+
   Future<Object?> runTask(FCTask task) async {
+    if (_closing) throw StateError('Firo cache worker is closing');
     final completer = Completer<Object?>.sync();
     _activeRequests[task.id] = completer;
     _commands.send(task);
@@ -37,23 +58,19 @@ class _FiroCacheWorker {
 
     initPort.handler = (dynamic initialMessage) {
       final commandPort = initialMessage as SendPort;
-      connection.complete(
-        (
-          ReceivePort.fromRawReceivePort(initPort),
-          commandPort,
-        ),
-      );
+      connection.complete((
+        ReceivePort.fromRawReceivePort(initPort),
+        commandPort,
+      ));
     };
 
+    final Isolate isolate;
     try {
-      await Isolate.spawn(
-        _startWorkerIsolate,
-        (
-          initPort.sendPort,
-          setCacheFilePath,
-          usedTagsCacheFilePath,
-        ),
-      );
+      isolate = await Isolate.spawn(_startWorkerIsolate, (
+        initPort.sendPort,
+        setCacheFilePath,
+        usedTagsCacheFilePath,
+      ));
     } catch (_) {
       initPort.close();
       rethrow;
@@ -61,10 +78,10 @@ class _FiroCacheWorker {
 
     final (receivePort, sendPort) = await connection.future;
 
-    return _FiroCacheWorker._(receivePort, sendPort);
+    return _FiroCacheWorker._(receivePort, sendPort, isolate);
   }
 
-  _FiroCacheWorker._(this._responses, this._commands) {
+  _FiroCacheWorker._(this._responses, this._commands, this._isolate) {
     _responses.listen(_handleResponsesFromIsolate);
   }
 
@@ -93,6 +110,13 @@ class _FiroCacheWorker {
         try {
           final FCResult result;
           switch (task.func) {
+            case FCFuncName._close:
+              setCacheDb.close();
+              usedTagsCacheDb.close();
+              receivePort.close();
+              sendPort.send((task.id, null));
+              return;
+
             case FCFuncName._updateSparkAnonSetCoinsWith:
               final data =
                   task.data as (SparkAnonymitySetMeta, List<RawSparkCoin>);
@@ -127,14 +151,8 @@ class _FiroCacheWorker {
     final receivePort = ReceivePort();
     args.$1.send(receivePort.sendPort);
     final mutex = Mutex();
-    final setCacheDb = sqlite3.open(
-      args.$2,
-      mode: OpenMode.readWrite,
-    );
-    final usedTagsCacheDb = sqlite3.open(
-      args.$3,
-      mode: OpenMode.readWrite,
-    );
+    final setCacheDb = sqlite3.open(args.$2, mode: OpenMode.readWrite);
+    final usedTagsCacheDb = sqlite3.open(args.$3, mode: OpenMode.readWrite);
     _handleCommandsToIsolate(
       receivePort,
       args.$1,

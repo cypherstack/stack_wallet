@@ -1332,7 +1332,11 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         try {
           final bool sweep;
 
-          if (txData.utxos == null) {
+          if (txData.recipients!.length > 1) {
+            // Paying several recipients is never a sweep, even when their
+            // total is the whole balance, as the fee must still be paid.
+            sweep = false;
+          } else if (txData.utxos == null) {
             final balance = await availableBalance;
             sweep = txData.amount! == balance;
           } else {
@@ -1340,12 +1344,6 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
                 .map((e) => e.value)
                 .fold(BigInt.zero, (p, e) => p + e);
             sweep = txData.amount!.raw == totalInputsValue;
-          }
-
-          // TODO: test this one day
-          // cs_monero may not support this yet properly
-          if (sweep && txData.recipients!.length > 1) {
-            throw Exception("Send all not supported with multiple recipients");
           }
 
           final List<CsRecipient> outputs = [];
@@ -1396,6 +1394,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
             return txData.copyWith(
               fee: realFee,
               pendingTransaction: pendingTransaction,
+              txids: pendingTransaction.txids,
             );
           });
         } catch (e) {
@@ -1426,9 +1425,9 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         await csMonero.commitTx(wallet!, txData.pendingTransaction!);
 
         Logging.instance.d(
-          "transaction ${txData.pendingTransaction!.txid} has been sent",
+          "transactions ${txData.pendingTransaction!.txids} have been sent",
         );
-        return txData.copyWith(txid: txData.pendingTransaction!.txid);
+        return txData.copyWith(txids: txData.pendingTransaction!.txids);
       } catch (e, s) {
         Logging.instance.e(
           "${info.name} ${compatType.name.toLowerCase()} confirmSend: ",

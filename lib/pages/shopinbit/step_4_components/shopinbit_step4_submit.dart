@@ -2,10 +2,12 @@ import "dart:async";
 
 import "package:flutter/material.dart";
 
-import "../../../db/drift/shared_db/shared_database.dart";
-import "../../../models/shopinbit/shopinbit_order_model.dart";
-import "../../../notifications/show_flush_bar.dart";
+import "../../../models/shopinbit/shopinbit_request_draft.dart";
 import "../../../services/shopinbit/shopinbit_service.dart";
+import "../../../services/shopinbit/src/models/ticket.dart";
+import "../../../utilities/logger.dart";
+import "../../../utilities/util.dart";
+import "../../../widgets/stack_dialog.dart";
 import "../shopinbit_order_created.dart";
 
 /// Submits a ShopinBit request to the API and navigates to the order-created
@@ -13,75 +15,62 @@ import "../shopinbit_order_created.dart";
 ///
 /// Used by the concierge, travel and generic flows. The car flow has its own
 /// pre-payment branching (fee view) and does not call this helper.
+///
+/// All persistence lives in [ShopInBitService.createRequest], which inserts
+/// the fully-provenanced ticket row and kicks off a background refresh, so the
+/// UI only has to hand over the [draft] and route on the returned id.
 Future<void> submitShopInBitRequest(
   BuildContext context,
-  ShopInBitOrderModel model,
+  ShopinbitRequestDraft draft,
   ShopInBitService service,
-  SharedDatabase db,
 ) async {
   try {
-    final String customerKey = await service.ensureCustomerKey();
-
-    assert(
-      model.category != null,
-      "Step 4 reached with null category: Step 2 must set category before"
-      " reaching Step 4",
+    final TicketRef? ref = await service.createRequest(
+      category: draft.category,
+      comment: draft.requestDescription,
+      deliveryCountry: draft.deliveryCountryCode,
+      deliveryState: draft.deliveryState,
+      voucherCode: draft.voucherCode,
     );
 
-    // API service_type: travel requests use "concierge" because the
-    // ShopinBit API routes both through the same concierge pipeline.
-    // Travel-specific details are captured in the structured comment field.
-    final String categoryStr = switch (model.category) {
-      ShopInBitCategory.concierge => "concierge",
-      ShopInBitCategory.travel => "concierge",
-      ShopInBitCategory.car => "car",
-      null => throw StateError("category must be non-null at Step 4 submit"),
-    };
-
-    final resp = await service.client.createRequest(
-      customerPseudonym: model.displayName,
-      externalCustomerKey: customerKey,
-      serviceType: categoryStr,
-      comment: model.requestDescription,
-      deliveryCountry: model.deliveryCountry,
-    );
-
-    if (resp.hasError) {
+    if (ref == null) {
       if (context.mounted) {
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.warning,
-            message: resp.exception?.message ?? "Failed to create request",
-            context: context,
+        await showDialog<void>(
+          context: context,
+          useRootNavigator: Util.isDesktop,
+          builder: (context) => StackOkDialog(
+            title: "Failed to create request",
+            maxWidth: Util.isDesktop ? 500 : null,
+            message: "Please try again in a moment.",
+            desktopPopRootNavigator: Util.isDesktop,
           ),
         );
       }
       return;
     }
 
-    final ref = resp.value!;
-    model
-      ..apiTicketId = ref.id
-      ..ticketId = ref.number
-      ..status = ShopInBitOrderStatus.pending;
-    await db
-        .into(db.shopInBitTickets)
-        .insertOnConflictUpdate(model.toCompanion());
-
     if (!context.mounted) return;
 
     unawaited(
       Navigator.of(
         context,
-      ).pushNamed(ShopInBitOrderCreated.routeName, arguments: model),
+      ).pushNamed(ShopInBitOrderCreated.routeName, arguments: ref.id),
     );
-  } catch (e) {
+  } catch (e, s) {
+    Logging.instance.e(
+      "Failed to create ShopInBit request",
+      error: e,
+      stackTrace: s,
+    );
     if (context.mounted) {
-      unawaited(
-        showFloatingFlushBar(
-          type: FlushBarType.warning,
-          message: "Failed to create request: $e",
-          context: context,
+      await showDialog<void>(
+        context: context,
+        useRootNavigator: Util.isDesktop,
+        builder: (context) => StackOkDialog(
+          title: "Failed to create request",
+          maxWidth: Util.isDesktop ? 500 : null,
+          message: e.toString(),
+          desktopPopRootNavigator: Util.isDesktop,
         ),
       );
     }

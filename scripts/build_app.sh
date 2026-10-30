@@ -32,7 +32,11 @@ unset -v APP_BUILD_PLATFORM
 unset -v APP_NAMED_ID
 
 # optional args (with defaults)
-BUILD_CRYPTO_PLUGINS=0
+# -i: skip building the platform native deps (secure storage deps, secp256k1).
+SKIP_NATIVE_DEPS_BUILD=0
+# -d: use downloaded/prebuilt binaries instead of building from source where
+#     supported. Enables the NATIVE_PREBUILTS block in the pubspec template so
+#     native-assets plugins use CI prebuilts via hooks user_defines.
 DOWNLOAD_CRYPTO_PLUGINS=0
 BUILD_ISAR_FROM_SOURCE=0
 USE_SYSTEM_SECURE_STORAGE_DEPS=0
@@ -44,7 +48,7 @@ while getopts "v:b:p:a:idfs" opt; do
         b) APP_BUILD_NUMBER="$OPTARG" ;;
         p) APP_BUILD_PLATFORM="$OPTARG" ;;
         a) APP_NAMED_ID="$OPTARG" ;;
-        i) BUILD_CRYPTO_PLUGINS=1 ;;
+        i) SKIP_NATIVE_DEPS_BUILD=1 ;;
         d) DOWNLOAD_CRYPTO_PLUGINS=1 ;;
         f) BUILD_ISAR_FROM_SOURCE=1 ;;
         s) USE_SYSTEM_SECURE_STORAGE_DEPS=1 ;;
@@ -80,10 +84,8 @@ source "${APP_PROJECT_ROOT_DIR}/scripts/app_config/templates/configure_template_
 export BUILD_ISAR_FROM_SOURCE
 export USE_SYSTEM_SECURE_STORAGE_DEPS
 
-# checks for the correct platform dir and pushes it for later
-if printf '%s\0' "${APP_PLATFORMS[@]}" | grep -Fxqz -- "${APP_BUILD_PLATFORM}"; then
-    pushd "${APP_PROJECT_ROOT_DIR}/scripts/${APP_BUILD_PLATFORM}"
-else
+# checks for a valid platform
+if ! printf '%s\0' "${APP_PLATFORMS[@]}" | grep -Fxqz -- "${APP_BUILD_PLATFORM}"; then
     echo "Invalid platform: ${APP_BUILD_PLATFORM}"
     usage
 fi
@@ -104,6 +106,11 @@ if printf '%s\0' "${APP_NAMED_IDS[@]}" | grep -Fxqz -- "${APP_NAMED_ID}"; then
     "${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/link_assets.sh" "${APP_NAMED_ID}" "${APP_BUILD_PLATFORM}"
     # shellcheck disable=SC1090
     source "${APP_PROJECT_ROOT_DIR}/scripts/app_config/configure_${APP_NAMED_ID}.sh" "${APP_BUILD_PLATFORM}"
+    if [ "$DOWNLOAD_CRYPTO_PLUGINS" -eq 1 ]; then
+        # Enable CI prebuilt native assets (hooks user_defines) in pubspec.yaml so
+        # native-assets plugins download verified binaries instead of compiling Rust.
+        dart "${APP_PROJECT_ROOT_DIR}/tool/process_pubspec_deps.dart" "${ACTUAL_PUBSPEC}" NATIVE_PREBUILTS
+    fi
     "${APP_PROJECT_ROOT_DIR}/scripts/app_config/platforms/${APP_BUILD_PLATFORM}/platform_config.sh"
 
     if [[ "$APP_BUILD_PLATFORM" != "linux" ]]; then
@@ -115,12 +122,24 @@ else
     exit 1
 fi
 
-if [ "$BUILD_CRYPTO_PLUGINS" -eq 0 ]; then
-    if [ "$DOWNLOAD_CRYPTO_PLUGINS" -eq 1 ]; then
-        ./download_all.sh "$APP_NAMED_ID"
-    else
-        ./build_all.sh "$APP_NAMED_ID"
-    fi
+# Build platform native deps that are not provided by pub packages. The crypto
+# plugins (flutter_libepiccash, flutter_libmwc, frostdart) are native-assets
+# packages now; their build hooks compile (or fetch) them during flutter build.
+if [ "$SKIP_NATIVE_DEPS_BUILD" -eq 0 ]; then
+    case "$APP_BUILD_PLATFORM" in
+        linux)
+            pushd "${APP_PROJECT_ROOT_DIR}/scripts/linux"
+            ./build_secure_storage_deps.sh
+            ./build_secp256k1.sh
+            popd
+            ;;
+        windows)
+            # WSL cross-compile of secp256k1.dll. CI builds it natively instead.
+            if [ "$DOWNLOAD_CRYPTO_PLUGINS" -eq 0 ]; then
+                pushd "${APP_PROJECT_ROOT_DIR}/scripts/windows"
+                ./build_secp256k1_wsl.sh
+                popd
+            fi
+            ;;
+    esac
 fi
-
-popd

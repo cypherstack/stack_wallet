@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../models/shopinbit/shopinbit_order_model.dart';
+import '../../models/shopinbit/shopinbit_enums.dart';
 import '../../providers/providers.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
@@ -17,11 +17,16 @@ import '../exchange_view/sub_widgets/step_row.dart';
 import 'shopinbit_step_4.dart';
 
 class ShopInBitStep3 extends ConsumerStatefulWidget {
-  const ShopInBitStep3({super.key, required this.model});
+  const ShopInBitStep3({
+    super.key,
+    required this.category,
+    required this.customerKey,
+  });
 
   static const String routeName = "/shopInBitStep3";
 
-  final ShopInBitOrderModel model;
+  final ShopInBitCategory category;
+  final String customerKey;
 
   @override
   ConsumerState<ShopInBitStep3> createState() => _ShopInBitStep3State();
@@ -31,7 +36,7 @@ class _ShopInBitStep3State extends ConsumerState<ShopInBitStep3> {
   bool _agreed = false;
 
   String _guidelinesText() {
-    switch (widget.model.category) {
+    switch (widget.category) {
       case ShopInBitCategory.concierge:
         return "Concierge Service Guidelines:\n\n"
             "\u2022 Minimum: fee of 100 EUR or minimum order "
@@ -70,19 +75,19 @@ class _ShopInBitStep3State extends ConsumerState<ShopInBitStep3> {
             "disguised as vehicle purchases.\n\n"
             "\u2022 Provide details about the make, model, year, "
             "and any specific requirements.";
-      case null:
-        return "";
     }
   }
 
-  void _continue() {
-    widget.model.guidelinesAccepted = true;
-    // Persist acceptance.
-    ref.read(pSharedDrift).shopinBitSettingsDao.setGuidelinesAccepted(true);
+  Future<void> _continue() async {
+    await ref
+        .read(pSharedDrift)
+        .shopInBitSettingsDao
+        .setGuidelinesAccepted(widget.customerKey, widget.category, true);
 
-    Navigator.of(
+    if (!mounted) return;
+    await Navigator.of(
       context,
-    ).pushNamed(ShopInBitStep4.routeName, arguments: widget.model);
+    ).pushNamed(ShopInBitStep4.routeName, arguments: widget.category);
   }
 
   @override
@@ -176,10 +181,7 @@ class _ShopInBitStep3State extends ConsumerState<ShopInBitStep3> {
             ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 16,
-                ),
+                padding: const .only(bottom: 32, left: 32, right: 32, top: 16),
                 child: content,
               ),
             ),

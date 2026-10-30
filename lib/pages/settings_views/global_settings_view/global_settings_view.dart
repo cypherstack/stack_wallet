@@ -11,13 +11,12 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app_config.dart';
-import '../../../providers/providers.dart';
 import '../../../route_generator.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
+import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -247,36 +246,24 @@ class GlobalSettingsView extends StatelessWidget {
                                       );
                                     },
                                   ),
-                                  if (AppConfig.hasFeature(
-                                    AppFeature.shopinBit,
-                                  ))
-                                    Consumer(
-                                      builder: (_, ref, __) {
-                                        final familiarity = ref.watch(
-                                          prefsChangeNotifierProvider.select(
-                                            (v) => v.familiarity,
-                                          ),
-                                        );
-                                        if (familiarity < 6) {
-                                          return const SizedBox.shrink();
-                                        }
-                                        return Column(
-                                          children: [
-                                            const SizedBox(height: 8),
-                                            SettingsListButton(
-                                              iconAssetName: Assets.svg.key,
-                                              iconSize: 16,
-                                              title: "ShopinBit",
-                                              onPressed: () {
-                                                Navigator.of(context).pushNamed(
-                                                  ShopInBitSettingsView
-                                                      .routeName,
-                                                );
-                                              },
-                                            ),
-                                          ],
-                                        );
-                                      },
+                                  if (Constants.enableExchange &&
+                                      AppConfig.hasFeature(
+                                        AppFeature.shopinBit,
+                                      ))
+                                    Column(
+                                      children: [
+                                        const SizedBox(height: 8),
+                                        SettingsListButton(
+                                          iconAssetName: Assets.svg.key,
+                                          iconSize: 16,
+                                          title: "ShopinBit",
+                                          onPressed: () {
+                                            Navigator.of(context).pushNamed(
+                                              ShopInBitSettingsView.routeName,
+                                            );
+                                          },
+                                        ),
+                                      ],
                                     ),
                                   const SizedBox(height: 8),
                                   SettingsListButton(

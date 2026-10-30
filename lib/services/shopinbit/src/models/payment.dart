@@ -1,8 +1,10 @@
+import 'package:decimal/decimal.dart';
+
 class PaymentInfo {
   final String status;
   final String customerPrice;
   final String partnerPrice;
-  final int vatRate;
+  final Decimal? vatRate;
   final String currency;
   final DateTime? rateLockedUntil;
   final Map<String, String> paymentLinks;
@@ -23,22 +25,15 @@ class PaymentInfo {
     final linksRaw = json['payment_links'] as Map<String, dynamic>? ?? {};
     return PaymentInfo(
       status: json['status'] as String,
-      customerPrice: (json['customer_price'] ?? '') as String,
-      partnerPrice: (json['partner_price'] ?? '') as String,
-      vatRate: _toInt(json['vat_rate']),
-      currency: (json['currency'] ?? 'EUR') as String,
-      rateLockedUntil: json['rate_locked_until'] != null
-          ? DateTime.parse(json['rate_locked_until'] as String)
-          : null,
+      customerPrice: json['customer_price'] as String,
+      partnerPrice: json['partner_price'] as String,
+      vatRate: Decimal.tryParse(json['vat_rate'].toString()),
+      currency: json['currency'] as String,
+      rateLockedUntil: DateTime.tryParse(
+        json['rate_locked_until']?.toString() ?? '',
+      ),
       paymentLinks: linksRaw.map((k, v) => MapEntry(k, v as String)),
       due: json['due'] as String?,
     );
   }
-}
-
-int _toInt(dynamic v) {
-  if (v is int) return v;
-  if (v is String) return int.parse(v);
-  if (v is double) return v.toInt();
-  return 0;
 }

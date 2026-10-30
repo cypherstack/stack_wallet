@@ -77,7 +77,7 @@ const OrdinalSchema = CollectionSchema(
   getId: _ordinalGetId,
   getLinks: _ordinalGetLinks,
   attach: _ordinalAttach,
-  version: '3.3.0-dev.2',
+  version: '3.3.2',
 );
 
 int _ordinalEstimateSize(

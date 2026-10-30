@@ -159,16 +159,14 @@ class PriceAPI {
 
       for (final map in coinGeckoData) {
         final String coinName = map["name"] as String;
-        late CryptoCurrency coin;
-        try {
-          coin = AppConfig.getCryptoCurrencyByPrettyName(
-            coinName == "Factor" ? "Fact0rn" : coinName,
-          );
-        } catch (e, s) {
+        final coins = AppConfig.coins.where(
+          (coin) =>
+              coin.network == CryptoCurrencyNetwork.main &&
+              _coinToIdMap[coin.runtimeType] == map["id"],
+        );
+        if (coins.isEmpty) {
           Logging.instance.e(
             "Failed to find matching app coin for $coinName. Moving on",
-            error: e,
-            stackTrace: s,
           );
           continue;
         }
@@ -179,9 +177,13 @@ class PriceAPI {
               ? double.parse(map["price_change_percentage_24h"].toString())
               : 0.0;
 
-          result[coin] = (value: price, change24h: change24h);
+          for (final coin in coins) {
+            result[coin] = (value: price, change24h: change24h);
+          }
         } catch (_) {
-          result.remove(coin);
+          for (final coin in coins) {
+            result.remove(coin);
+          }
         }
       }
 

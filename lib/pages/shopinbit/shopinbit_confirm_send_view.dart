@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/isar/models/isar_models.dart';
-import '../../models/shopinbit/shopinbit_order_model.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
+import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../providers/providers.dart';
 import '../../route_generator.dart';
 import '../../themes/stack_colors.dart';
@@ -32,6 +32,7 @@ import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../pinpad_views/lock_screen_view.dart';
 import '../send_view/sub_widgets/sending_transaction_dialog.dart';
+import '../send_view/sub_widgets/split_transaction_warning.dart';
 import '../wallet_view/wallet_view.dart';
 
 class ShopInBitConfirmSendView extends ConsumerStatefulWidget {
@@ -40,8 +41,9 @@ class ShopInBitConfirmSendView extends ConsumerStatefulWidget {
     required this.txData,
     required this.walletId,
     this.routeOnSuccessName = WalletView.routeName,
-    required this.model,
+    required this.apiTicketId,
     this.tokenContract,
+    this.popThroughRouteName,
   });
 
   static const String routeName = "/shopInBitConfirmSend";
@@ -49,8 +51,9 @@ class ShopInBitConfirmSendView extends ConsumerStatefulWidget {
   final TxData txData;
   final String walletId;
   final String routeOnSuccessName;
-  final ShopInBitOrderModel model;
+  final int apiTicketId;
   final EthContract? tokenContract;
+  final String? popThroughRouteName;
 
   @override
   ConsumerState<ShopInBitConfirmSendView> createState() =>
@@ -61,7 +64,7 @@ class _ShopInBitConfirmSendViewState
     extends ConsumerState<ShopInBitConfirmSendView> {
   late final String walletId;
   late final String routeOnSuccessName;
-  late final ShopInBitOrderModel model;
+  late final int apiTicketId;
 
   final isDesktop = Util.isDesktop;
 
@@ -87,7 +90,6 @@ class _ShopInBitConfirmSendViewState
 
     final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
 
-    late String txid;
     Future<TxData> txidFuture;
 
     final String note = widget.txData.note ?? "";
@@ -109,37 +111,41 @@ class _ShopInBitConfirmSendViewState
       sendProgressController.triggerSuccess?.call();
       await Future<void>.delayed(const Duration(seconds: 5));
 
-      txid = (results.first as TxData).txid!;
+      final confirmedTx = results.first as TxData;
+      for (final txid in confirmedTx.txids) {
+        await ref
+            .read(mainDBProvider)
+            .putTransactionNote(
+              TransactionNote(walletId: walletId, txid: txid, value: note),
+            );
+      }
 
-      // save note
-      await ref
-          .read(mainDBProvider)
-          .putTransactionNote(
-            TransactionNote(walletId: walletId, txid: txid, value: note),
-          );
-
-      // Update model status after successful broadcast
-      model.status = ShopInBitOrderStatus.paymentPending;
-      model.paymentMethod = widget.tokenContract != null
-          ? widget.tokenContract!.symbol.toUpperCase()
-          : coin.ticker.toUpperCase();
-
-      final db = ref.read(pSharedDrift);
-      await db
-          .into(db.shopInBitTickets)
-          .insertOnConflictUpdate(model.toCompanion());
+      // The server (and the BTCPay webhook) own ticket + payment state from
+      // here, so there's nothing to persist locally; just nudge a refresh so
+      // the ticket row reflects the new payment status promptly.
+      if (apiTicketId != 0) {
+        unawaited(ref.read(pShopinBitService).refreshOne(apiTicketId));
+      }
 
       // pop back to wallet
       if (context.mounted) {
-        // pop sending dialog (pushed via showDialog which uses root navigator)
-        Navigator.of(context, rootNavigator: true).pop();
-
-        if (Util.isDesktop) {
-          // pop the confirm send desktop dialog
+        final popThroughRouteName = widget.popThroughRouteName;
+        if (popThroughRouteName != null) {
+          final navigator = Navigator.of(context, rootNavigator: true);
+          navigator.popUntil(ModalRoute.withName(popThroughRouteName));
+          navigator.pop();
+        } else {
+          // pop sending dialog (pushed via showDialog which uses root navigator)
           Navigator.of(context, rootNavigator: true).pop();
-        }
 
-        Navigator.of(context).popUntil(ModalRoute.withName(routeOnSuccessName));
+          if (Util.isDesktop) {
+            // pop the confirm send desktop dialog
+            Navigator.of(context, rootNavigator: true).pop();
+          }
+
+          Navigator.of(context)
+              .popUntil(ModalRoute.withName(routeOnSuccessName));
+        }
       }
     } catch (e, s) {
       Logging.instance.e(
@@ -167,9 +173,9 @@ class _ShopInBitConfirmSendViewState
                 child: Text(
                   "Ok",
                   style: STextStyles.button(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.buttonTextSecondary,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .buttonTextSecondary,
                   ),
                 ),
                 onPressed: () {
@@ -250,24 +256,27 @@ class _ShopInBitConfirmSendViewState
   void initState() {
     walletId = widget.walletId;
     routeOnSuccessName = widget.routeOnSuccessName;
-    model = widget.model;
+    apiTicketId = widget.apiTicketId;
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    final ticketNumber =
+        ref.watch(pShopInBitTicket(apiTicketId)).asData?.value?.ticketNumber ??
+        "";
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) {
         return Background(
           child: Scaffold(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             appBar: AppBar(
-              backgroundColor: Theme.of(
-                context,
-              ).extension<StackColors>()!.backgroundAppBar,
+              backgroundColor: Theme.of(context)
+                  .extension<StackColors>()!
+                  .backgroundAppBar,
               leading: AppBarBackButton(
                 onPressed: () async {
                   Navigator.of(context).pop();
@@ -331,9 +340,9 @@ class _ShopInBitConfirmSendViewState
                   children: [
                     RoundedWhiteContainer(
                       padding: const EdgeInsets.all(0),
-                      borderColor: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.background,
+                      borderColor: Theme.of(context)
+                          .extension<StackColors>()!
+                          .background,
                       child: child,
                     ),
                     const SizedBox(height: 16),
@@ -349,9 +358,9 @@ class _ShopInBitConfirmSendViewState
                     ),
                     const SizedBox(height: 10),
                     RoundedContainer(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textFieldDefaultBG,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldDefaultBG,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
@@ -364,22 +373,21 @@ class _ShopInBitConfirmSendViewState
                                 )
                                 .format(widget.txData.fee!),
                             style:
-                                STextStyles.desktopTextExtraExtraSmall(
-                                  context,
-                                ).copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.textDark,
-                                ),
+                                STextStyles.desktopTextExtraExtraSmall(context)
+                                    .copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark,
+                                    ),
                           ),
                         ],
                       ),
                     ),
                     const SizedBox(height: 16),
                     RoundedContainer(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.snackBarBackSuccess,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .snackBarBackSuccess,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -431,6 +439,13 @@ class _ShopInBitConfirmSendViewState
                         ],
                       ),
                     ),
+                    if (widget.txData.txids.length > 1)
+                      Padding(
+                        padding: const .only(top: 16),
+                        child: SplitTransactionWarning(
+                          transactionCount: widget.txData.txids.length,
+                        ),
+                      ),
                     const SizedBox(height: 16),
                     Row(
                       children: [
@@ -483,9 +498,9 @@ class _ShopInBitConfirmSendViewState
             ),
             isDesktop
                 ? Container(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.background,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .background,
                     height: 1,
                   )
                 : const SizedBox(height: 12),
@@ -506,9 +521,9 @@ class _ShopInBitConfirmSendViewState
             ),
             isDesktop
                 ? Container(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.background,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .background,
                     height: 1,
                   )
                 : const SizedBox(height: 12),
@@ -530,9 +545,9 @@ class _ShopInBitConfirmSendViewState
             ),
             isDesktop
                 ? Container(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.background,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .background,
                     height: 1,
                   )
                 : const SizedBox(height: 12),
@@ -585,9 +600,9 @@ class _ShopInBitConfirmSendViewState
                                     STextStyles.desktopTextExtraExtraSmall(
                                       context,
                                     ).copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textSubtitle2,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textSubtitle2,
                                     ),
                               );
                             },
@@ -613,9 +628,9 @@ class _ShopInBitConfirmSendViewState
             ),
             isDesktop
                 ? Container(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.background,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .background,
                     height: 1,
                   )
                 : const SizedBox(height: 12),
@@ -641,9 +656,9 @@ class _ShopInBitConfirmSendViewState
             ),
             isDesktop
                 ? Container(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.background,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .background,
                     height: 1,
                   )
                 : const SizedBox(height: 12),
@@ -662,9 +677,9 @@ class _ShopInBitConfirmSendViewState
             ),
             isDesktop
                 ? Container(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.background,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .background,
                     height: 1,
                   )
                 : const SizedBox(height: 12),
@@ -674,7 +689,7 @@ class _ShopInBitConfirmSendViewState
                 children: [
                   Text("Request ID", style: STextStyles.smallMed12(context)),
                   Text(
-                    model.ticketId ?? "",
+                    ticketNumber,
                     style: STextStyles.itemSubtitle12(context),
                     textAlign: TextAlign.right,
                   ),
@@ -684,18 +699,18 @@ class _ShopInBitConfirmSendViewState
             if (!isDesktop) const SizedBox(height: 12),
             if (!isDesktop)
               RoundedContainer(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.snackBarBackSuccess,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .snackBarBackSuccess,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       "Total amount",
                       style: STextStyles.titleBold12(context).copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textConfirmTotalAmount,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textConfirmTotalAmount,
                       ),
                     ),
                     Builder(
@@ -725,9 +740,9 @@ class _ShopInBitConfirmSendViewState
                         return Text(
                           ref.watch(pAmountFormatter(coin)).format(total),
                           style: STextStyles.itemSubtitle12(context).copyWith(
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textConfirmTotalAmount,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textConfirmTotalAmount,
                           ),
                           textAlign: TextAlign.right,
                         );
@@ -738,6 +753,13 @@ class _ShopInBitConfirmSendViewState
               ),
             if (!isDesktop) const SizedBox(height: 16),
             if (!isDesktop) const Spacer(),
+            if (!isDesktop && widget.txData.txids.length > 1)
+              Padding(
+                padding: const .only(bottom: 16),
+                child: SplitTransactionWarning(
+                  transactionCount: widget.txData.txids.length,
+                ),
+              ),
             if (!isDesktop)
               PrimaryButton(
                 label: "Send",
