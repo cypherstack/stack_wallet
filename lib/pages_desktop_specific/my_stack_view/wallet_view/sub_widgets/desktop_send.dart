@@ -1386,7 +1386,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       cryptoAmountController.text = amountString;
       _cryptoAmountChangeLock = false;
     } else {
-      amount = Decimal.zero.toAmount(fractionDigits: coin.fractionDigits);
+      amount = null;
       _cachedAmountToSend = null;
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = "";
@@ -1569,12 +1569,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     ref.listen<AmountFormatter>(pAmountFormatter(coin), (previous, next) {
       final amount = ref.read(pSendAmount);
       if (previous?.unit != next.unit && amount != null) {
-        // Only the display changes, so keep the send all intent.
-        final xelisSendAll = _xelisSendAll;
         _updateAmountDisplay(() {
           cryptoAmountController.text = next.formatEditable(amount);
         });
-        _xelisSendAll = xelisSendAll;
       }
     });
     final isCustomFee = ref.watch(feeRateTypeDesktopStateProvider).isCustom;
