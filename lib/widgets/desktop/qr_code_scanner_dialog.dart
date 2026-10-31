@@ -15,13 +15,13 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:image/image.dart' as img;
-import 'package:zxing2/qrcode.dart';
 
 import '../../notifications/show_flush_bar.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/camera_preview_frame.dart';
 import '../../utilities/logger.dart';
+import '../../utilities/qr_image_decoder.dart';
 import '../../utilities/text_styles.dart';
 import 'desktop_dialog.dart';
 import 'desktop_dialog_close_button.dart';
@@ -386,39 +386,8 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
     }
   }
 
-  Future<String?> _scanImage(img.Image image) async {
-    final LuminanceSource source;
-    try {
-      source = RGBLuminanceSource(
-        image.width,
-        image.height,
-        image
-            .convert(numChannels: 4)
-            .getBytes(order: img.ChannelOrder.abgr)
-            .buffer
-            .asInt32List(),
-      );
-    } catch (_) {
-      return null;
-    }
-
-    // HybridBinarizer thresholds locally and copes with uneven lighting in a
-    // webcam frame far better. Keep the global one as a fallback.
-    for (final Binarizer binarizer in [
-      HybridBinarizer(source),
-      GlobalHistogramBinarizer(source),
-    ]) {
-      try {
-        final qrDecode = QRCodeReader().decode(BinaryBitmap(binarizer));
-        if (qrDecode.text.isNotEmpty) {
-          return qrDecode.text;
-        }
-      } catch (_) {
-        // No QR code found with this binarizer. Spammy to log.
-      }
-    }
-    return null;
-  }
+  Future<String?> _scanImage(img.Image image) async =>
+      decodeQrFromImage(image);
 
   Widget _buildCameraView(BuildContext context) {
     if (Platform.isWindows && _isCameraOpen) {
