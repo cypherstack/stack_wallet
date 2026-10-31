@@ -18,6 +18,7 @@ import 'verify_recovery_phrase_view/verify_recovery_phrase_view.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
+import '../../providers/global/wallets_provider.dart';
 import '../../wallets/isar/providers/all_wallets_info_provider.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../widgets/background.dart';
@@ -83,9 +84,19 @@ class _SelectWalletForTokenViewState
 
     final _hasEthWallets = ethWalletInfos.isNotEmpty;
 
+    // The wallet info is written to the db when a new wallet is created, but
+    // the wallet is only added to pWallets once its flow completes. Rebuild
+    // when that happens and skip wallets that are not registered yet.
+    ref.watch(newEthWalletTriggerTempUntilHiveCompletelyDeleted);
+    final registeredWalletIds =
+        ref.read(pWallets).wallets.map((e) => e.walletId).toSet();
+
     final List<String> ethWalletIds = [];
 
-    for (final walletId in ethWalletInfos.map((e) => e.walletId).toList()) {
+    for (final walletId in ethWalletInfos
+        .map((e) => e.walletId)
+        .where(registeredWalletIds.contains)
+        .toList()) {
       final walletContracts = ref.read(pWalletTokenAddresses(walletId));
       if (!walletContracts.contains(widget.entity.token.address)) {
         ethWalletIds.add(walletId);
