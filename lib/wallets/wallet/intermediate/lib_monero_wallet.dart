@@ -392,8 +392,10 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         // clear blockchain info
         await mainDB.deleteWalletBlockchainData(walletId);
 
-        highestPercentCached = 0;
         await csMonero.rescanBlockchain(wallet!);
+        // Reset after the worker has accepted the rescan so a progress reading sent
+        // before it cannot be ordered after the reset and pin the guard near 100%.
+        highestPercentCached = 0;
         await csMonero.startSyncing(wallet!);
         unawaited(save());
       });

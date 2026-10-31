@@ -370,8 +370,10 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
         // clear blockchain info
         await mainDB.deleteWalletBlockchainData(walletId);
 
+        await csSalvium.rescanBlockchain(wallet!);
+        // Reset after the worker has accepted the rescan so a progress reading sent
+        // before it cannot be ordered after the reset and pin the guard near 100%.
         highestPercentCached = 0;
-        unawaited(csSalvium.rescanBlockchain(wallet!));
         csSalvium.startSyncing(wallet!);
         // unawaited(save());
       });
