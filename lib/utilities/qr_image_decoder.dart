@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:image/image.dart' as img;
@@ -18,7 +19,26 @@ String? decodeQrFromImageBytes(Uint8List bytes) {
 
 /// Decodes a QR code from [image], whatever its bit depth, channel count or
 /// palette. Returns null if no QR code is found.
-String? decodeQrFromImage(img.Image image) {
+///
+/// If [maxDimension] is set, larger images are scaled down to fit it first.
+/// Some webcams hand back full sensor-size photos (3264x2448 from a USB
+/// webcam on Windows), which took 2-3 s per frame to scan on an older laptop.
+String? decodeQrFromImage(img.Image image, {int? maxDimension}) {
+  if (maxDimension != null &&
+      math.max(image.width, image.height) > maxDimension) {
+    image = image.width >= image.height
+        ? img.copyResize(
+            image,
+            width: maxDimension,
+            interpolation: img.Interpolation.average,
+          )
+        : img.copyResize(
+            image,
+            height: maxDimension,
+            interpolation: img.Interpolation.average,
+          );
+  }
+
   final LuminanceSource source;
   try {
     source = RGBLuminanceSource(image.width, image.height, _argbPixels(image));

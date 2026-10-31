@@ -68,6 +68,21 @@ void main() {
     expect(decodeQrFromImage(decoded), _address);
   });
 
+  test("decodes a large camera-sized frame scaled down to maxDimension", () {
+    // A QR code held up to a 3264x2448 webcam, filling about a third of the
+    // frame's height.
+    final frame = img.Image(width: 3264, height: 2448);
+    img.fill(frame, color: img.ColorRgb8(200, 200, 200));
+    final code = _qrImage(_address, scale: 18);
+    img.compositeImage(frame, code, dstX: 1200, dstY: 700);
+    final jpeg = img.decodeJpg(img.encodeJpg(frame, quality: 85))!;
+    expect(decodeQrFromImage(jpeg, maxDimension: 1280), _address);
+  });
+
+  test("leaves images within maxDimension alone", () {
+    expect(decodeQrFromImage(rgb, maxDimension: 1280), _address);
+  });
+
   test("decodes a JPEG", () {
     final bytes = Uint8List.fromList(img.encodeJpg(rgb, quality: 85));
     expect(decodeQrFromImageBytes(bytes), _address);

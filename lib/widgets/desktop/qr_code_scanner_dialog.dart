@@ -63,9 +63,6 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
   bool _loggedBlankWindowsFrame = false;
   bool _hasWindowsFrame = false;
 
-  // Bigger captures cost more to read back and scan without helping zxing.
-  static const _maxWindowsFrameDimension = 1280;
-
   @override
   void initState() {
     super.initState();
@@ -294,7 +291,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
     if (preview != null && preview.width > 0 && preview.height > 0) {
       final fit = min(
         1.0,
-        _maxWindowsFrameDimension / max(preview.width, preview.height),
+        _cameraFrameMaxDimension / max(preview.width, preview.height),
       );
       // toImage() rounds each side up, and the laid-out box is rarely exactly
       // the camera's aspect ratio, so take the smaller ratio and stay a hair
@@ -406,7 +403,10 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
           });
         }
 
-        final String? scanResult = await _scanImage(image);
+        final String? scanResult = await _scanImage(
+          image,
+          maxDimension: _cameraFrameMaxDimension,
+        );
         if (scanResult != null && scanResult.isNotEmpty) {
           await _stopCamera();
 
@@ -441,7 +441,13 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
     }
   }
 
-  Future<String?> _scanImage(img.Image image) async => decodeQrFromImage(image);
+  // Camera frames bigger than this are scaled down before scanning, and
+  // Windows preview captures are taken at no more than this. Files picked
+  // with "Select file" are scanned at full size.
+  static const _cameraFrameMaxDimension = 1280;
+
+  Future<String?> _scanImage(img.Image image, {int? maxDimension}) async =>
+      decodeQrFromImage(image, maxDimension: maxDimension);
 
   Widget _buildCameraView(BuildContext context) {
     if (Platform.isWindows && _isCameraOpen) {
