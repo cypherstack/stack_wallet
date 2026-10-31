@@ -36,9 +36,9 @@ class QrCodeScannerDialog extends StatefulWidget {
 }
 
 class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
-  final CameraLinux? _cameraLinuxPlugin = Platform.isLinux
-      ? CameraLinux()
-      : null;
+  // Created in _initializeCamera: the constructor loads libcamera_linux.so
+  // and throws if it can't.
+  CameraLinux? _cameraLinuxPlugin;
   final CameraWindows? _cameraWindowsPlugin = Platform.isWindows
       ? CameraWindows()
       : null;
@@ -49,6 +49,10 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
   String? _macOSDeviceId;
   final int _imageDelayInMs = Platform.isLinux ? 500 : 250;
   int _consecutiveFailures = 0;
+  // Time since the last usable frame, to notice a camera that opened but
+  // stopped (or never started) returning images.
+  final Stopwatch _sinceLastFrame = Stopwatch();
+  static const _frameTimeout = Duration(seconds: 10);
   String? _cameraError;
   String? _initError;
 
@@ -87,8 +91,17 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
 
   Future<bool> _initializeCamera() async {
     try {
-      if (Platform.isLinux && _cameraLinuxPlugin != null) {
-        await _cameraLinuxPlugin.initializeCamera();
+      if (Platform.isLinux) {
+        final plugin = _cameraLinuxPlugin = CameraLinux();
+        // This only starts a capture thread. If OpenCV can't open a camera
+        // the thread just exits, and captureImage() keeps returning nothing,
+        // so wait for a first frame before calling the camera open.
+        await plugin.initializeCamera();
+        if (!await _waitForFirstLinuxFrame(plugin)) {
+          plugin.stopCamera();
+          if (!mounted) return false;
+          throw TimeoutException("No image from the camera", _frameTimeout);
+        }
         Logging.instance.d("Linux Camera initialized");
       } else if (Platform.isWindows && _cameraWindowsPlugin != null) {
         final List<CameraDescription> cameras = await _cameraWindowsPlugin
@@ -181,7 +194,11 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
 
       return true;
     } catch (e, s) {
-      _initError = e is CameraException ? e.description ?? e.code : "$e";
+      _initError = switch (e) {
+        CameraException() => e.description ?? e.code,
+        TimeoutException() => e.message ?? "$e",
+        _ => "$e",
+      };
       Logging.instance.e(
         "Failed to initialize camera",
         error: e,
@@ -191,12 +208,48 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
     }
   }
 
+  /// Polls [plugin] until it returns a frame. Returns false on timeout or if
+  /// the dialog closes first.
+  Future<bool> _waitForFirstLinuxFrame(CameraLinux plugin) async {
+    final stopwatch = Stopwatch()..start();
+    Object? lastError;
+    while (mounted && stopwatch.elapsed < _frameTimeout) {
+      try {
+        if ((await plugin.captureImage()).isNotEmpty) {
+          return true;
+        }
+      } catch (e) {
+        // captureImage() can throw on the null pointer it gets when there is
+        // no frame yet.
+        lastError = e;
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 250));
+    }
+    if (lastError != null) {
+      Logging.instance.w("No frame from Linux camera", error: lastError);
+    }
+    return false;
+  }
+
+  /// Shows an error once no usable frame has arrived for [_frameTimeout].
+  void _checkFrameTimeout() {
+    if (_sinceLastFrame.elapsed >= _frameTimeout &&
+        _cameraError == null &&
+        mounted) {
+      setState(() {
+        _cameraError =
+            "The camera is not returning images. You can still "
+            "use \"Select file\" to scan a QR code image.";
+      });
+    }
+  }
+
   Future<void> _stopCamera() async {
     _isScanning = false;
 
     try {
       if (Platform.isLinux && _cameraLinuxPlugin != null) {
-        _cameraLinuxPlugin.stopCamera();
+        _cameraLinuxPlugin!.stopCamera();
         Logging.instance.d("Linux Camera stopped");
       } else if (Platform.isWindows && _cameraWindowsPlugin != null) {
         // if (_cameraId >= 0) {
@@ -289,12 +342,13 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
 
   Future<void> _captureAndScanImage() async {
     _isScanning = true;
+    _sinceLastFrame.start();
     while (_isScanning) {
       try {
         String? base64Image;
         img.Image? windowsFrame;
         if (Platform.isLinux && _cameraLinuxPlugin != null) {
-          base64Image = await _cameraLinuxPlugin.captureImage();
+          base64Image = await _cameraLinuxPlugin!.captureImage();
         } else if (Platform.isWindows) {
           windowsFrame = await _captureWindowsPreviewFrame();
         } else if (Platform.isMacOS) {
@@ -302,12 +356,14 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
           if (macOSimg == null) {
             Logging.instance.w("Failed to capture image");
             await Future<void>.delayed(Duration(milliseconds: _imageDelayInMs));
+            _checkFrameTimeout();
             continue;
           }
           final img.Image? image = img.decodeImage(macOSimg.bytes!);
           if (image == null) {
             Logging.instance.w("Failed to capture image");
             await Future<void>.delayed(Duration(milliseconds: _imageDelayInMs));
+            _checkFrameTimeout();
             continue;
           }
           base64Image = base64Encode(img.encodePng(image));
@@ -318,6 +374,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
           //     .log("Failed to capture image", level: LogLevel.Error);
           // Spammy.
           await Future<void>.delayed(Duration(milliseconds: _imageDelayInMs));
+          _checkFrameTimeout();
           continue;
         }
         final img.Image? image =
@@ -328,10 +385,12 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
         if (image == null) {
           Logging.instance.w("Failed to decode image");
           await Future<void>.delayed(Duration(milliseconds: _imageDelayInMs));
+          _checkFrameTimeout();
           continue;
         }
 
         _consecutiveFailures = 0;
+        _sinceLastFrame.reset();
         if (mounted) {
           setState(() {
             _cameraError = null;
@@ -375,11 +434,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
             stackTrace: s,
           );
         }
-        if (_consecutiveFailures == 20 && mounted) {
-          setState(() {
-            _cameraError = "The camera is not returning images.";
-          });
-        }
+        _checkFrameTimeout();
         // Without this a failing capture spins the loop with no delay.
         await Future<void>.delayed(Duration(milliseconds: _imageDelayInMs));
       }
