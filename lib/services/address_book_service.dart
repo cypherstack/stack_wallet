@@ -10,6 +10,7 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:mutex/mutex.dart';
 import '../app_config.dart';
 import '../db/isar/main_db.dart';
 import '../models/isar/models/blockchain_data/address.dart';
@@ -19,6 +20,8 @@ import '../wallets/wallet/wallet.dart';
 import '../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 
 class AddressBookService extends ChangeNotifier {
+  final Mutex _myStackContactLock = Mutex();
+
   ContactEntry getContactById(String id) {
     final ContactEntry? contactEntry = MainDB.instance.getContactEntry(id: id);
     if (contactEntry == null) {
@@ -85,8 +88,12 @@ class AddressBookService extends ChangeNotifier {
 
   /// Rebuilds the "My Stack" contact from the current receiving address of
   /// each of [wallets].
-  Future<void> updateMyStackContact(Iterable<Wallet> wallets) async {
+  Future<void> updateMyStackContact(Iterable<Wallet> wallets) =>
+      _myStackContactLock.protect(() => _updateMyStackContact(wallets));
+
+  Future<void> _updateMyStackContact(Iterable<Wallet> wallets) async {
     final List<ContactAddressEntry> addresses = [];
+    var failed = false;
     for (final wallet in wallets) {
       try {
         final String addressString;
@@ -108,14 +115,17 @@ class AddressBookService extends ChangeNotifier {
             ..other = wallet.info.name,
         );
       } catch (e, s) {
-        // don't let one wallet keep the rest out of the address book
+        failed = true;
         Logging.instance.e(
-          "Failed to get address for ${wallet.info.name}",
+          "Failed to rebuild My Stack contact",
           error: e,
           stackTrace: s,
         );
       }
     }
+
+    // Keep the last complete contact if any wallet could not be refreshed.
+    if (failed) return;
 
     await editContact(
       ContactEntry(
