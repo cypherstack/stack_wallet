@@ -1,0 +1,132 @@
+/* Stack Wallet Build Benchmark Report: Professional stylesheet */
+@page {
+  size: A4 landscape;
+  margin: 1.5cm 1.8cm;
+  @bottom-center {
+    content: "Page " counter(page) " of " counter(pages);
+    font-size: 7pt;
+    color: #888;
+  }
+}
+
+body {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 10pt;
+  line-height: 1.55;
+  color: #222;
+  max-width: 100%;
+}
+
+h1 {
+  font-size: 20pt;
+  font-weight: 700;
+  color: #1a1a1a;
+  border-bottom: 3px solid #2563eb;
+  padding-bottom: 8px;
+  margin-top: 0;
+  margin-bottom: 6px;
+}
+
+h2 {
+  font-size: 13pt;
+  font-weight: 600;
+  color: #1a1a1a;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 4px;
+  margin-top: 28px;
+  margin-bottom: 10px;
+  page-break-after: avoid;
+}
+
+h3 {
+  font-size: 11pt;
+  font-weight: 600;
+  margin-top: 16px;
+  margin-bottom: 6px;
+}
+
+p {
+  margin: 4px 0 8px 0;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 10px 0 16px 0;
+  font-size: 9pt;
+  page-break-inside: avoid;
+}
+
+thead {
+  display: table-header-group;
+}
+
+th {
+  background: #2563eb;
+  color: white;
+  font-weight: 600;
+  padding: 4px 6px;
+  text-align: left;
+  font-size: 7pt;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
+}
+
+td {
+  border: 1px solid #ccc;
+  padding: 3px 6px;
+  text-align: left;
+  font-family: "SF Mono", "Menlo", "Monaco", "Cascadia Code", monospace;
+  font-size: 7.5pt;
+}
+
+tr:nth-child(even) td {
+  background: #f8f9fb;
+}
+
+code {
+  background: #f0f0f0;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-family: "SF Mono", "Menlo", "Monaco", monospace;
+  font-size: 8.5pt;
+}
+
+strong {
+  color: #111;
+}
+
+a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+/* Improvement column - colored */
+td:last-child {
+  font-weight: 600;
+}
+
+/* Phase breakdown table: alternating header */
+table:last-of-type th {
+  background: #1e293b;
+}
+
+/* Key findings list spacing */
+h2 + ul li, h2 + p + ul li {
+  margin-bottom: 4px;
+}
+
+/* First page has no header */
+@page :first {
+  margin-top: 2.5cm;
+}
+
+/* Cover / header block */
+.report-meta {
+  background: #f8f9fb;
+  border-left: 4px solid #2563eb;
+  padding: 12px 16px;
+  margin: 16px 0;
+  font-size: 9pt;
+  border-radius: 2px;
+}

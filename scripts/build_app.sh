@@ -2,7 +2,9 @@
 
 set -e
 
-source ./env.sh
+THIS_SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/env.sh
+source "$THIS_SCRIPT_DIR/env.sh"
 
 APP_PLATFORMS=("android" "ios" "macos" "linux" "windows")
 APP_NAMED_IDS=("stack_wallet" "stack_duo" "campfire")
@@ -34,10 +36,10 @@ unset -v APP_NAMED_ID
 # optional args (with defaults)
 # -i: skip building the platform native deps (secure storage deps, secp256k1).
 SKIP_NATIVE_DEPS_BUILD=0
-# -d: use downloaded/prebuilt binaries instead of building from source where
-#     supported. Enables the NATIVE_PREBUILTS block in the pubspec template so
-#     native-assets plugins use CI prebuilts via hooks user_defines.
-DOWNLOAD_CRYPTO_PLUGINS=0
+# -d: use downloaded/prebuilt native assets instead of building from source
+#     where supported. Enables the NATIVE_PREBUILTS block in the pubspec
+#     template so hooks receive the prebuilt-assets user defines.
+USE_NATIVE_PREBUILTS=0
 BUILD_ISAR_FROM_SOURCE=0
 USE_SYSTEM_SECURE_STORAGE_DEPS=0
 
@@ -49,7 +51,7 @@ while getopts "v:b:p:a:idfs" opt; do
         p) APP_BUILD_PLATFORM="$OPTARG" ;;
         a) APP_NAMED_ID="$OPTARG" ;;
         i) SKIP_NATIVE_DEPS_BUILD=1 ;;
-        d) DOWNLOAD_CRYPTO_PLUGINS=1 ;;
+        d) USE_NATIVE_PREBUILTS=1 ;;
         f) BUILD_ISAR_FROM_SOURCE=1 ;;
         s) USE_SYSTEM_SECURE_STORAGE_DEPS=1 ;;
         *) usage ;;
@@ -106,7 +108,7 @@ if printf '%s\0' "${APP_NAMED_IDS[@]}" | grep -Fxqz -- "${APP_NAMED_ID}"; then
     "${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/link_assets.sh" "${APP_NAMED_ID}" "${APP_BUILD_PLATFORM}"
     # shellcheck disable=SC1090
     source "${APP_PROJECT_ROOT_DIR}/scripts/app_config/configure_${APP_NAMED_ID}.sh" "${APP_BUILD_PLATFORM}"
-    if [ "$DOWNLOAD_CRYPTO_PLUGINS" -eq 1 ]; then
+    if [ "$USE_NATIVE_PREBUILTS" -eq 1 ]; then
         # Enable CI prebuilt native assets (hooks user_defines) in pubspec.yaml so
         # native-assets plugins download verified binaries instead of compiling Rust.
         dart "${APP_PROJECT_ROOT_DIR}/tool/process_pubspec_deps.dart" "${ACTUAL_PUBSPEC}" NATIVE_PREBUILTS
@@ -135,7 +137,7 @@ if [ "$SKIP_NATIVE_DEPS_BUILD" -eq 0 ]; then
             ;;
         windows)
             # WSL cross-compile of secp256k1.dll. CI builds it natively instead.
-            if [ "$DOWNLOAD_CRYPTO_PLUGINS" -eq 0 ]; then
+            if [ "$USE_NATIVE_PREBUILTS" -eq 0 ]; then
                 pushd "${APP_PROJECT_ROOT_DIR}/scripts/windows"
                 ./build_secp256k1_wsl.sh
                 popd
