@@ -31,7 +31,7 @@ MACOS_ENV_SET = MACOSX_DEPLOYMENT_TARGET=12.0
 export APP_PROJECT_ROOT_DIR
 export PUB_CACHE
 
-.PHONY: help check-reqs check-reqs-macos check-sdk-macos bootstrap-macos bootstrap-xcode bootstrap-xcode-download sccache-setup cache-stats clean clean-app clean-native build-macos build-linux diagnose-env-macos test-mwc
+.PHONY: help check-reqs check-reqs-macos check-sdk-macos bootstrap-macos bootstrap-xcode bootstrap-xcode-download sccache-setup cache-stats verify-bom clean clean-app clean-native build-macos build-linux diagnose-env-macos test-mwc
 
 help: ## Show available commands
 	@echo "Available targets:"
@@ -147,6 +147,9 @@ sccache-setup: ## Opt-in: use sccache for the Rust/C builds run by native-asset 
 	@echo "Why a config file: with Flutter 3.47.x (hooks_runner 1.5.0) exported variables such as RUSTC_WRAPPER"
 	@echo "never reach the hooks; cargo reads this file via HOME. Flutter versions with hooks_runner >= 1.6.2"
 	@echo "also pass CARGO_BUILD_RUSTC_WRAPPER=sccache from the environment. See sccache --show-stats."
+
+verify-bom: ## Check the local toolchain and the pinned plugins against stack-bom.toml
+	@dart tool/verify_bom.dart
 
 cache-stats: ## Show sccache statistics (hit rate) after a build
 	@command -v sccache >/dev/null 2>&1 || { echo >&2 "[ERROR] sccache not installed."; exit 1; }
