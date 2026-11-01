@@ -1,0 +1,50 @@
+name: Make build
+
+# Builds with the Makefile targets on the hosted runners. Manual or on pushes to ci/make-* branches.
+on:
+  workflow_dispatch:
+  push:
+    branches: ['ci/make-*']
+
+jobs:
+  windows:
+    runs-on: windows-2022
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.2'
+          channel: 'stable'
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.24.13'
+      - name: Install make
+        run: command -v make >/dev/null 2>&1 || choco install make -y --no-progress
+      - name: Build
+        run: make build-windows VERSION=0.0.0 BUILD_NUM=${{ github.run_number }} WINDOWS_COPY_ASSETS=1
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.2'
+          channel: 'stable'
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.24.13'
+      - name: Tools
+        run: |
+          brew install meson ninja autoconf automake libtool protobuf pkg-config cbindgen || true
+          rustup toolchain install 1.99.1 --profile minimal || true
+          rustup default 1.99.1 || true
+      - name: Build
+        run: make build-macos VERSION=0.0.0 BUILD_NUM=${{ github.run_number }}
