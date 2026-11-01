@@ -48,3 +48,31 @@ Highlights include:
 ## Building
 
 You can look at the [build instructions](docs/building.md) for more details.
+
+### macOS with Nix or direnv
+
+Use one shared toolchain path for both `nix develop` and `direnv`.
+
+1. Enable direnv for this repo (optional convenience):
+   - `.envrc` uses `use flake`
+   - run `direnv allow`
+2. Enter the flake environment (if not using direnv):
+   - `nix develop`
+3. Run build:
+   - `make build-macos`
+
+### macOS without Nix (Homebrew host setup)
+
+Use this only when you are not building through Nix/flake.
+
+1. Install host tools:
+   - `make bootstrap-macos`
+2. Run build:
+   - Open a new terminal (or run `source ~/.zshrc`) so the Homebrew setup's
+     Rust 1.99.1 selection is active.
+   - `make build-macos`
+
+The Homebrew bootstrap installs the native build tools and configures Rust
+1.99.1 for Flutter's native-assets hooks. It replaces the former local
+`crypto_plugins` macOS prebuild path; no submodule setup or manual native
+plugin build is needed.

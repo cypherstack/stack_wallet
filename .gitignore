@@ -4,6 +4,7 @@
 *.pyc
 *.swp
 .DS_Store
+._*
 .atom/
 .buildlog/
 .history
@@ -35,8 +36,12 @@ Microsoft.Windows*
 android/app/.cxx
 android/build/
 
+# Nix / direnv / project-local toolchain state
+.direnv/
+
 # Web related
 lib/generated_plugin_registrant.dart
+
 
 # testing data
 test/services/coins/bitcoin/bitcoin_wallet_test_parameters.dart
@@ -120,3 +125,9 @@ lib/wl_gen/generated/
 
 /assets/windows/mwebd.exe
 /tool/build
+bm/results/
+/.cargo/config.toml
+
+# Nix dev shell: generated wrappers
+.nix-bin/
+.direnv/

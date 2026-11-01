@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 if [ "${USE_SYSTEM_SECURE_STORAGE_DEPS:-0}" = "1" ]; then
     echo "USE_SYSTEM_SECURE_STORAGE_DEPS is set; skipping build of jsoncpp and libsecret (using system packages)"
@@ -21,7 +21,7 @@ cd jsoncpp || exit 1
 git checkout $JSONCPP_TAG
 mkdir -p build
 cd build || exit 1
-cmake -DCMAKE_BUILD_TYPE=release -DBUILD_STATIC_LIBS=ON -DBUILD_SHARED_LIBS=ON -DARCHIVE_INSTALL_DIR=. -G "Unix Makefiles" ..
+cmake -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_BUILD_TYPE=release -DBUILD_STATIC_LIBS=ON -DBUILD_SHARED_LIBS=ON -DARCHIVE_INSTALL_DIR=. -G "Unix Makefiles" ..
 make -j"$(nproc)"
 
 cd "$LINUX_DIRECTORY" || exit 1
@@ -38,9 +38,25 @@ if ! [ -x "$(command -v meson)" ]; then
   echo 'Error: meson is not installed.' >&2
   exit 1
 fi
-meson _build -Dmanpage=false -Dgtk_doc=false
+meson _build -Dvapi=false  -Dmanpage=false -Dgtk_doc=false
 if ! [ -x "$(command -v ninja)" ]; then
   echo 'Error: ninja is not installed.' >&2
   exit 1
 fi
 ninja -C _build
+
+# Publish a local pkg-config file that points at the locally built libsecret.
+# This avoids relying on distro-specific libsecret/glib pkg-config metadata.
+mkdir -p "$LINUX_DIRECTORY/pc"
+cat > "$LINUX_DIRECTORY/pc/libsecret-1.pc" <<EOF
+prefix=$LINUX_DIRECTORY/build/libsecret
+exec_prefix=\${prefix}
+libdir=\${prefix}/_build/libsecret
+includedir=\${prefix}
+
+Name: libsecret-1
+Description: GObject bindings for Secret Service API
+Version: $LIBSECRET_TAG
+Libs: -L\${libdir} -lsecret-1
+Cflags: -I\${includedir} -I\${includedir}/_build
+EOF

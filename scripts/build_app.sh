@@ -6,10 +6,11 @@ source "$(dirname -- "${BASH_SOURCE[0]}")/env.sh"
 
 # Function to display usage.
 usage() {
-    echo "Usage: $0 -v <version> -b <build_number> -p <platform> -a <app> [-d] [-i] [-f] [-w <wsl-distro>]"
+    echo "Usage: $0 -v <version> -b <build_number> -p <platform> -a <app> [-d] [-i] [-s] [-f] [-w <wsl-distro>]"
     echo "  Default: build dnix libraries from source with Nix and verify their hashes."
     echo "  -d: use verified dnix prebuilts; other packages may still build from source."
     echo "  -i: skip platform native dependencies (secure storage and secp256k1)."
+    echo "  -s: use system libsecret/JsonCPP (Linux/CI); default builds them from source."
     echo "  -f: build Isar from source."
     echo "  -w: dnix WSL distribution (default: DNIX_WSL_DISTRIBUTION or WSL default)."
     exit "${1:-1}"
@@ -18,7 +19,10 @@ usage() {
 confirmDisclaimer() {
     while true; do
         # shellcheck disable=SC2162
-        read -p "Please confirm you understand that when using certain values for <version> and <build_number> there is a chance that the resulting app WILL DELETE CRITICAL WALLET DATA. Are you sure you want to continue? (yes/no): " response
+        if ! read -p "Please confirm you understand that when using certain values for <version> and <build_number> there is a chance that the resulting app WILL DELETE CRITICAL WALLET DATA. Are you sure you want to continue? (yes/no): " response; then
+            echo >&2 "No answer received; aborting. Re-run interactively or use the Makefile with CONFIRM=1."
+            exit 1
+        fi
         case $response in
             [Yy][Ee][Ss] ) echo "Continuing..."; break;;
             [Nn][Oo] ) exit 0;;
