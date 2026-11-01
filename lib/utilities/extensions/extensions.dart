@@ -16,3 +16,4 @@ export 'impl/gradient.dart';
 export 'impl/list.dart';
 export 'impl/string.dart';
 export 'impl/uint8_list.dart';
+export 'impl/uri.dart';

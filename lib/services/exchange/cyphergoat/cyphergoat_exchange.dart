@@ -303,7 +303,7 @@ class CypherGoatExchange extends Exchange {
       }
 
       final data = response.value!;
-      final estimateIdStr = data.rates.estimateId.toString();
+      final estimateIdStr = data.rates.estimateId?.toString();
 
       final List<Estimate> estimates = [];
       for (final quote in response.value!.rates.results) {

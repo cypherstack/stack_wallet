@@ -26,10 +26,13 @@ String? optionalCgString(Map<String, dynamic> map, String key) {
 
 Decimal requireCgDecimal(Map<String, dynamic> map, String key) {
   final v = map[key];
-  if (v is! num && v is! String) {
+  final parsed = v is num || v is String
+      ? Decimal.tryParse(v.toString())
+      : null;
+  if (parsed == null) {
     throw CgResponseFormatException("Missing required numeric field '$key'");
   }
-  return Decimal.parse(v.toString());
+  return parsed;
 }
 
 int requireCgInt(Map<String, dynamic> map, String key) {
@@ -40,10 +43,15 @@ int requireCgInt(Map<String, dynamic> map, String key) {
   return v.toInt();
 }
 
-bool requireCgBool(Map<String, dynamic> map, String key) {
+int? optionalCgInt(Map<String, dynamic> map, String key) {
   final v = map[key];
-  if (v is! bool) {
-    throw CgResponseFormatException("Missing required boolean field '$key'");
-  }
-  return v;
+  if (v is num) return v.toInt();
+  if (v is String) return int.tryParse(v);
+  return null;
+}
+
+/// The `error` field of a decoded error body, or null if there is none.
+String? extractErrorMessage(dynamic json) {
+  final error = json is Map ? json["error"]?.toString() : null;
+  return error == null || error.isEmpty ? null : error;
 }

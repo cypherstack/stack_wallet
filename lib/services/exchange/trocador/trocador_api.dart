@@ -49,7 +49,7 @@ abstract class TrocadorAPI {
   static Future<dynamic> _makeGetRequest(Uri uri) async {
     int code = -1;
     try {
-      debugPrint("URI: $uri");
+      debugPrint("URI: ${uri.redacted}");
       final response = await client.get(
         url: uri,
         headers: {
@@ -73,7 +73,7 @@ abstract class TrocadorAPI {
       return json;
     } catch (e, s) {
       Logging.instance.e(
-        "_makeRequest($uri) HTTP:$code threw: ",
+        "_makeRequest(${uri.redacted}) HTTP:$code threw: ",
         error: e,
         stackTrace: s,
       );

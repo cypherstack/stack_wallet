@@ -6,11 +6,13 @@ import '../../../app_config.dart';
 import '../../../exceptions/exchange/exchange_exception.dart';
 import '../../../external_api_keys.dart';
 import '../../../networking/http.dart';
+import '../../../utilities/extensions/extensions.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/prefs.dart';
 import '../../tor_service.dart';
 import '../exchange_response.dart';
 import 'response_objects/cg_estimate.dart';
+import 'response_objects/cg_parse_utils.dart';
 import 'response_objects/cg_transaction.dart';
 
 const kCypherGoatSource = "stackwallet";
@@ -23,6 +25,11 @@ abstract class CypherGoatAPI {
   static Uri _buildUri({required String path, Map<String, String>? params}) {
     return Uri.https(authority, path, params);
   }
+
+  // The exception message ends up in the "Failed to create trade" dialog, and
+  // an error body can be a whole html page.
+  static String _shortBody(String body) =>
+      body.length > 200 ? "${body.substring(0, 200)}..." : body;
 
   static Future<dynamic> _makeGetRequest(Uri uri) async {
     int code = -1;
@@ -47,17 +54,20 @@ abstract class CypherGoatAPI {
 
       code = response.code;
 
-      final json = jsonDecode(response.body);
-
       if (code != 200) {
-        final errMsg = (json is Map ? json["error"].toString() : null);
-        throw Exception(errMsg ?? "HTTP $code: ${response.body}");
+        String? errMsg;
+        try {
+          errMsg = extractErrorMessage(jsonDecode(response.body));
+        } catch (_) {
+          // not json, e.g. an html error page
+        }
+        throw Exception(errMsg ?? "HTTP $code: ${_shortBody(response.body)}");
       }
 
-      return json;
+      return jsonDecode(response.body);
     } catch (e, s) {
       Logging.instance.e(
-        "CypherGoatAPI GET $uri HTTP:$code threw:",
+        "CypherGoatAPI GET ${uri.redacted} HTTP:$code threw:",
         error: e,
         stackTrace: s,
       );

@@ -31,16 +31,12 @@ class CgEstimateResult {
 class CgEstimatesResponse {
   final List<CgEstimateResult> results;
   final Decimal min;
-  final Decimal tradeValueFiat;
-  final Decimal tradeValueBtc;
-  final int estimateId;
+  final int? estimateId;
 
   CgEstimatesResponse({
     required this.results,
     required this.min,
-    required this.tradeValueFiat,
-    required this.tradeValueBtc,
-    required this.estimateId,
+    this.estimateId,
   });
 
   factory CgEstimatesResponse.fromMap(Map<String, dynamic> map) {
@@ -56,9 +52,7 @@ class CgEstimatesResponse {
           )
           .toList(),
       min: requireCgDecimal(map, "Min"),
-      tradeValueFiat: requireCgDecimal(map, "TradeValue_fiat"),
-      tradeValueBtc: requireCgDecimal(map, "TradeValue_btc"),
-      estimateId: requireCgInt(map, "EstimateId"),
+      estimateId: optionalCgInt(map, "EstimateId"),
     );
   }
 }
