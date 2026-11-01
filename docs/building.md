@@ -455,6 +455,10 @@ the version that dnix pins to rebuild Apple libraries byte for byte. License acc
 setup only run with `ARGS=-y`. This route is not used in CI. Prefer the Mac App Store or developer.apple.com
 if you can, since third-party redistribution of Xcode may conflict with Apple's terms.
 
+### Keep the build environment the same between runs
+
+Flutter reruns every native-asset build hook when `PATH` or any `NIX_*` variable differs from the previous build, even if no source changed. Measured on macOS: 33 to 40 s for a repeated build with an unchanged environment, 536 s after putting one extra directory in front of `PATH`, 156 to 164 s after adding a `NIX_*` variable or restoring `PATH`. So build always from the same shell setup (for example only through `make`, or only inside `nix develop`), and do not alternate between a terminal inside `nix develop` and an IDE without it.
+
 ### Optional: sccache for native-asset builds
 
 `make sccache-setup` writes `~/.cargo/config.toml` with `rustc-wrapper = "sccache"` (it never overwrites an
