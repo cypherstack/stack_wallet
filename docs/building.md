@@ -459,6 +459,10 @@ if you can, since third-party redistribution of Xcode may conflict with Apple's 
 
 Flutter reruns every native-asset build hook when `PATH` or any `NIX_*` variable differs from the previous build, even if no source changed. Measured on macOS: 33 to 40 s for a repeated build with an unchanged environment, 536 s after putting one extra directory in front of `PATH`, 156 to 164 s after adding a `NIX_*` variable or restoring `PATH`. So build always from the same shell setup (for example only through `make`, or only inside `nix develop`), and do not alternate between a terminal inside `nix develop` and an IDE without it.
 
+### Toolchain bill of materials
+
+`stack-bom.toml` lists the toolchain a build is expected to use (Flutter, Dart, Rust, Go, Xcode) and the git revisions of the pinned native plugins. `make verify-bom` compares the local machine and `pubspec.lock` against it and exits with an error on a mismatch (a different recommended Flutter or Xcode version is only a warning). After changing a plugin pin, run `dart tool/verify_bom.dart --update` to refresh the `[plugins]` section.
+
 ### Optional: sccache for native-asset builds
 
 `make sccache-setup` writes `~/.cargo/config.toml` with `rustc-wrapper = "sccache"` (it never overwrites an
