@@ -10,7 +10,7 @@ runs:
       id: image
       shell: bash
       run: |
-        if [ -f /opt/opencv-static/lib/cmake/opencv4/OpenCVConfig.cmake ]; then
+        if scripts/linux/build_opencv_static.sh --check-only /opt/opencv-static; then
           echo "present=true" >> "$GITHUB_OUTPUT"
         else
           echo "present=false" >> "$GITHUB_OUTPUT"

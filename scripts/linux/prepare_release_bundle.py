@@ -89,6 +89,11 @@ def patch_camera_rpath(lib_dir):
 def check_camera_libraries(bundle):
     lib_dir = bundle / "lib"
     camera, wrapper = lib_dir / CAMERA_LIBRARY, lib_dir / CAMERA_WRAPPER
+    for path in (camera, wrapper):
+        if path.is_symlink():
+            raise ValueError(
+                f"Camera library must be a bundled copy, not a symlink: {path}"
+            )
     if not camera.is_file():
         raise ValueError(f"{CAMERA_LIBRARY} is missing from {lib_dir}; QR scanning would not work")
     if not wrapper.is_file():

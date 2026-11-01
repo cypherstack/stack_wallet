@@ -217,6 +217,17 @@ class PrepareReleaseBundleTest(unittest.TestCase):
         self.assertIn("Camera libraries load", result.stdout)
         self.assertEqual(prepared, {p.name: p.read_bytes() for p in (self.bundle / "lib").iterdir()})
 
+    def test_check_only_rejects_symlinked_camera_library(self):
+        self.run_prepare()
+        wrapper = self.bundle / "lib" / "libopencv_wrapper.so"
+        outside = Path(self.temp.name) / wrapper.name
+        wrapper.rename(outside)
+        wrapper.symlink_to(outside)
+
+        result = self.run_script("--check-only", expected=1)
+
+        self.assertIn("must be a bundled copy, not a symlink", result.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()

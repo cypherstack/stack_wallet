@@ -8,7 +8,8 @@
 # inside itself, instead of depending on ~50 libopencv_*.so that user machines do
 # not have. Same module list and V4L-only videoio as the Flatpak OpenCV module.
 #
-# Usage: build_opencv_static.sh [PREFIX]    (default /opt/opencv-static)
+# Usage: build_opencv_static.sh [--check-only] [PREFIX]
+#        PREFIX defaults to /opt/opencv-static.
 #
 # The result is OpenCVConfig.cmake in PREFIX/lib/cmake/opencv4; the Linux CMake
 # picks it up through STACKWALLET_OPENCV_DIR (see linux/CMakeLists.txt template).
@@ -18,6 +19,16 @@ set -euo pipefail
 OPENCV_VERSION="4.10.0"
 OPENCV_COMMIT="71d3237a093b60a27601c20e9ee6c3e52154e8b1"
 
+CHECK_ONLY=false
+if [ "${1:-}" = "--check-only" ]; then
+  CHECK_ONLY=true
+  shift
+fi
+if [ "$#" -gt 1 ]; then
+  echo "Usage: $0 [--check-only] [PREFIX]" >&2
+  exit 2
+fi
+
 PREFIX="${1:-/opt/opencv-static}"
 STAMP="${PREFIX}/.stackwallet-opencv-${OPENCV_VERSION}-${OPENCV_COMMIT}"
 JOBS="${OPENCV_BUILD_JOBS:-$(nproc)}"
@@ -25,6 +36,10 @@ JOBS="${OPENCV_BUILD_JOBS:-$(nproc)}"
 if [ -f "${STAMP}" ] && [ -f "${PREFIX}/lib/cmake/opencv4/OpenCVConfig.cmake" ]; then
   echo "OpenCV ${OPENCV_VERSION} already built in ${PREFIX}"
   exit 0
+fi
+if $CHECK_ONLY; then
+  echo "OpenCV ${OPENCV_VERSION} is missing or stale in ${PREFIX}" >&2
+  exit 1
 fi
 
 WORK="$(mktemp -d)"
