@@ -1,10 +1,8 @@
 name: Make build
 
-# Builds with the Makefile targets on the hosted runners. Manual or on pushes to ci/make-* branches.
+# Builds with the Makefile targets on the hosted runners. Manual only.
 on:
   workflow_dispatch:
-  push:
-    branches: ['ci/make-*']
 
 jobs:
   windows:
@@ -48,3 +46,31 @@ jobs:
           rustup default 1.99.1 || true
       - name: Build
         run: make build-macos VERSION=0.0.0 BUILD_NUM=${{ github.run_number }}
+
+  linux:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.2'
+          channel: 'stable'
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.24.13'
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            automake build-essential clang cmake libclang-dev libtool llvm meson ninja-build patchelf pkg-config protobuf-compiler rsync \
+            libgcrypt20-dev libgirepository1.0-dev libgit2-dev libglib2.0-dev libgtk-3-dev libjsoncpp-dev liblzma-dev \
+            libncurses5-dev libncursesw5-dev libopencv-dev libsecret-1-dev libssl-dev libtss2-dev \
+            ocl-icd-opencl-dev opencl-headers valac zlib1g-dev
+      - name: Rust
+        run: |
+          rustup toolchain install 1.99.1 --profile minimal
+          rustup default 1.99.1
+      - name: Build
+        run: make build-linux VERSION=0.0.0 BUILD_NUM=${{ github.run_number }}
