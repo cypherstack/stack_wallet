@@ -31,7 +31,7 @@ MACOS_ENV_SET = MACOSX_DEPLOYMENT_TARGET=12.0
 export APP_PROJECT_ROOT_DIR
 export PUB_CACHE
 
-.PHONY: help check-reqs check-reqs-macos check-sdk-macos bootstrap-macos bootstrap-xcode bootstrap-xcode-download sccache-setup cache-stats verify-bom clean clean-app clean-native build-macos build-linux diagnose-env-macos test-mwc
+.PHONY: help check-reqs check-reqs-macos check-sdk-macos bootstrap-macos bootstrap-xcode bootstrap-xcode-download sccache-setup cache-stats verify-bom clean clean-app clean-native build-macos build-linux build-windows diagnose-env-macos test-mwc
 
 help: ## Show available commands
 	@echo "Available targets:"
@@ -279,3 +279,17 @@ build-linux: check-reqs ## Build Linux Release through Flutter native-assets hoo
 		PKG_CONFIG_LIBDIR="$(CURDIR)/scripts/linux/pc:$$SYSPROF_PC_DIR:$$PC_PATH" \
 		PROTOC="$(PROTOC_PATH)" $(FLUTTER) build linux --release; \
 	fi
+
+# Windows: run from Git Bash. Same steps as the "build-windows" job in .github/workflows/build.yaml.
+# WINDOWS_COPY_ASSETS=1 replaces the asset links with copies (needed on runners that cannot create symlinks).
+WINDOWS_COPY_ASSETS ?= 0
+
+build-windows: ## Build Windows release (Git Bash; same steps as CI)
+	@command -v flutter >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
+	@command -v go >/dev/null 2>&1 || { echo >&2 "[ERROR] Go not installed."; exit 1; }
+	@cd scripts && bash prebuild.sh
+	@cd scripts && echo yes | MWEBD_FETCH=1 ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p windows -a $(APP_NAME) -d -s
+	@if [ "$(WINDOWS_COPY_ASSETS)" = "1" ]; then bash scripts/windows/replace_asset_links.sh; fi
+	@$(FLUTTER) pub get
+	@$(DART) run coinlib:build_windows
+	@$(FLUTTER) build windows --release
