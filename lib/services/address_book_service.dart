@@ -93,10 +93,9 @@ class AddressBookService extends ChangeNotifier {
 
   Future<void> _updateMyStackContact(Iterable<Wallet> wallets) async {
     final List<ContactAddressEntry> addresses = [];
-    var failed = false;
     for (final wallet in wallets) {
+      String addressString;
       try {
-        final String addressString;
         if (wallet is SparkInterface &&
             !(wallet.isViewOnly && wallet.viewOnlyType != .spark)) {
           Address? address = await wallet.getCurrentReceivingSparkAddress();
@@ -106,26 +105,26 @@ class AddressBookService extends ChangeNotifier {
           final address = await wallet.getCurrentReceivingAddress();
           addressString = address?.value ?? wallet.info.cachedReceivingAddress;
         }
-
-        addresses.add(
-          ContactAddressEntry()
-            ..coinName = wallet.info.coin.identifier
-            ..address = addressString
-            ..label = "Current Receiving"
-            ..other = wallet.info.name,
-        );
       } catch (e, s) {
-        failed = true;
+        // Fall back to the last address saved for this wallet, so one failing
+        // wallet doesn't drop out of the contact or keep the rest from updating.
         Logging.instance.e(
-          "Failed to rebuild My Stack contact",
+          "Failed to get a wallet address for My Stack, using the cached one",
           error: e,
           stackTrace: s,
         );
+        addressString = wallet.info.cachedReceivingAddress;
       }
-    }
+      if (addressString.isEmpty) continue;
 
-    // Keep the last complete contact if any wallet could not be refreshed.
-    if (failed) return;
+      addresses.add(
+        ContactAddressEntry()
+          ..coinName = wallet.info.coin.identifier
+          ..address = addressString
+          ..label = "Current Receiving"
+          ..other = wallet.info.name,
+      );
+    }
 
     await editContact(
       ContactEntry(

@@ -49,7 +49,7 @@ Address _address(String walletId) => Address(
 );
 
 void main() {
-  test("does not replace My Stack with a partial contact", () async {
+  test("uses the cached address for a wallet that fails", () async {
     final service = _TestAddressBookService();
     final goodWallet = _TestWallet(
       info: _walletInfo("good"),
@@ -62,7 +62,11 @@ void main() {
 
     await service.updateMyStackContact([goodWallet, failingWallet]);
 
-    expect(service.writes, isEmpty);
+    expect(service.writes, hasLength(1));
+    expect(service.writes.single.addresses.map((e) => e.address), [
+      "address-good",
+      "cached-failing",
+    ]);
   });
 
   test("serializes My Stack updates in call order", () async {
