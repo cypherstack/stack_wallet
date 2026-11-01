@@ -95,6 +95,13 @@ if [[ "$TARGET_DIR" != *.app || "$TARGET_DIR" == "/" ]]; then
     exit 1
 fi
 
+# sudo is only needed when the target directory is not writable (for example /Applications).
+SUDO=""
+mkdir -p "$(dirname "$TARGET_DIR")" 2>/dev/null || true
+if [[ ! -w "$(dirname "$TARGET_DIR")" ]]; then
+    SUDO="sudo"
+fi
+
 DOWNLOAD_URL="https://archive.org/download/${IA_ITEM}/${FILE_NAME}"
 TORRENT_URL="https://archive.org/download/${IA_ITEM}/${IA_ITEM}_archive.torrent"
 XIP_PATH="${CACHE_DIR}/${FILE_NAME}"
@@ -130,7 +137,7 @@ if [[ $DRY_RUN -eq 1 ]]; then
 fi
 
 if [[ $ASSUME_YES -eq 0 ]]; then
-    echo "This downloads ~2 GB, needs ~20 GB free and uses sudo to install into ${TARGET_DIR}."
+    echo "This downloads ~2 GB, needs ~20 GB free while extracting, and uses sudo only if ${TARGET_DIR} is not writable."
     echo "Redistribution of Xcode by third parties may conflict with Apple's license terms."
     read -r -p "Continue? (yes/no): " ANSWER
     [[ "$ANSWER" == "yes" ]] || { echo "Aborted."; exit 1; }
@@ -194,10 +201,10 @@ if [[ ! -d "${EXTRACT_DIR}/Xcode.app" ]]; then
 fi
 
 # 5. Install
-echo "Installing to ${TARGET_DIR} (sudo)..."
-sudo rm -rf "$TARGET_DIR"
-sudo mv "${EXTRACT_DIR}/Xcode.app" "$TARGET_DIR"
-sudo xattr -dr com.apple.quarantine "$TARGET_DIR" 2>/dev/null || true
+echo "Installing to ${TARGET_DIR}${SUDO:+ (sudo)}..."
+$SUDO rm -rf "$TARGET_DIR"
+$SUDO mv "${EXTRACT_DIR}/Xcode.app" "$TARGET_DIR"
+$SUDO xattr -dr com.apple.quarantine "$TARGET_DIR" 2>/dev/null || true
 rm -rf "$EXTRACT_DIR"
 
 # 6. Select and first-launch only with -y; otherwise print the commands.
