@@ -137,20 +137,21 @@ class _WalletNetworkSettingsViewState
     try {
       if (mounted) {
         final wallet = ref.read(pWallets).getWallet(widget.walletId);
-        final rescansInBackground =
-            wallet is CryptonoteWallet || wallet is EpiccashWallet;
+        final rescansInBackground = wallet is CryptonoteWallet;
 
-        // these wallets keep rescanning after recover is called so the user
-        // may close the dialog before recover returns (it can be held up by a
-        // refresh in progress)
+        // Cryptonote wallets keep rescanning after recover is called, so the
+        // user may close the dialog before recover returns if a refresh is in
+        // progress.
         bool rescanningDialogOpen = true;
         unawaited(
           showDialog<dynamic>(
             context: context,
             useSafeArea: false,
             barrierDismissible: false,
-            builder: (context) =>
-                RescanningDialog(rescansInBackground: rescansInBackground),
+            builder: (context) => RescanningDialog(
+              rescansInBackground: rescansInBackground,
+              onClose: () => rescanningDialogOpen = false,
+            ),
           ).then((_) => rescanningDialogOpen = false),
         );
 

@@ -898,10 +898,6 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
     final _syncStatus = syncStatus;
 
     if (_syncStatus != null) {
-      if (_syncStatus.progress() == 1 && refreshMutex.isLocked) {
-        refreshMutex.release();
-      }
-
       WalletSyncStatus? status;
       xmrAndWowSyncSpecificFunctionThatShouldBeGottenRidOfInTheFuture(true);
 
@@ -1149,9 +1145,7 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
         await checkReceivingAddressForTransactions();
       }
     } finally {
-      if (refreshMutex.isLocked) {
-        refreshMutex.release();
-      }
+      refreshMutex.release();
     }
 
     final synced = wallet != null && await csWownero.isSynced(wallet!);

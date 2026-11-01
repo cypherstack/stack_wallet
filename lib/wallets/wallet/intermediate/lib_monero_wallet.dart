@@ -883,10 +883,6 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     final _syncStatus = syncStatus;
 
     if (_syncStatus != null) {
-      if (_syncStatus.progress() == 1 && refreshMutex.isLocked) {
-        refreshMutex.release();
-      }
-
       WalletSyncStatus? status;
       xmrAndWowSyncSpecificFunctionThatShouldBeGottenRidOfInTheFuture(true);
 
@@ -1165,12 +1161,10 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
       Logging.instance.t(
         "$runtimeType refresh() refreshMutex.isLocked=${refreshMutex.isLocked} pre release.",
       );
-      if (refreshMutex.isLocked) {
-        refreshMutex.release();
-        Logging.instance.t(
-          "$runtimeType refresh() refreshMutex.isLocked manually released.",
-        );
-      }
+      refreshMutex.release();
+      Logging.instance.t(
+        "$runtimeType refresh() refreshMutex.isLocked manually released.",
+      );
     }
 
     Logging.instance.t(

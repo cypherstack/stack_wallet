@@ -21,12 +21,14 @@ class RescanningDialog extends StatefulWidget {
   const RescanningDialog({
     super.key,
     this.rescansInBackground = false,
+    this.onClose,
     // required this.onCancel,
   });
 
   /// If true the rescan carries on in the background (see the sync status)
   /// so the user is allowed to close this dialog and leave.
   final bool rescansInBackground;
+  final VoidCallback? onClose;
 
   // final VoidCallback onCancel;
 
@@ -72,6 +74,7 @@ class _RescanningDialogState extends State<RescanningDialog>
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
+        if (widget.rescansInBackground) widget.onClose?.call();
         return widget.rescansInBackground;
       },
       child: ConditionalParent(
@@ -100,7 +103,10 @@ class _RescanningDialogState extends State<RescanningDialog>
                     "Close",
                     style: STextStyles.itemSubtitle12(context),
                   ),
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: () {
+                    widget.onClose?.call();
+                    Navigator.of(context).pop();
+                  },
                 )
               : null,
           // rightButton: TextButton(
