@@ -72,5 +72,28 @@ jobs:
         run: |
           rustup toolchain install 1.99.1 --profile minimal
           rustup default 1.99.1
+      - name: Check the toolchain bill of materials
+        run: make verify-bom
       - name: Build
         run: make build-linux VERSION=0.0.0 BUILD_NUM=${{ github.run_number }}
+
+  ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.2'
+          channel: 'stable'
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.24.13'
+      - name: Tools
+        run: |
+          brew install meson ninja autoconf automake libtool protobuf pkg-config cbindgen || true
+          rustup toolchain install 1.99.1 --profile minimal || true
+          rustup default 1.99.1 || true
+      - name: Build
+        run: make build-ios VERSION=0.0.0 BUILD_NUM=${{ github.run_number }}
