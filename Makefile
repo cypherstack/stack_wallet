@@ -31,7 +31,7 @@ MACOS_ENV_SET = MACOSX_DEPLOYMENT_TARGET=12.0
 export APP_PROJECT_ROOT_DIR
 export PUB_CACHE
 
-.PHONY: help check-reqs check-reqs-macos check-sdk-macos bootstrap-macos bootstrap-xcode bootstrap-xcode-download sccache-setup cache-stats verify-bom clean clean-app clean-native build-macos build-linux build-windows diagnose-env-macos test-mwc
+.PHONY: help check-reqs check-reqs-macos check-sdk-macos bootstrap-macos bootstrap-xcode bootstrap-xcode-download sccache-setup cache-stats verify-bom clean clean-app clean-native build-macos build-linux build-windows diagnose-env-macos test-mwc build-android
 
 help: ## Show available commands
 	@echo "Available targets:"
@@ -293,3 +293,15 @@ build-windows: ## Build Windows release (Git Bash; same steps as CI)
 	@$(FLUTTER) pub get
 	@$(DART) run coinlib:build_windows
 	@$(FLUTTER) build windows --release
+
+# Android: same steps as the "build-android" CI job, without the signing secrets. Needs the Android SDK/NDK
+# (ANDROID_SDK_ROOT) and Java; the CI image ghcr.io/<owner>/stackwallet-ci:android is built from the Dockerfile
+# (docker build --target android). The release APKs are unsigned unless android/key.properties exists.
+build-android: ## Build Android APKs (same steps as CI, unsigned without android/key.properties)
+	@command -v flutter >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
+	@[ -n "$$ANDROID_SDK_ROOT$$ANDROID_HOME" ] || { echo >&2 "[ERROR] ANDROID_SDK_ROOT is not set (Android SDK/NDK required)."; exit 1; }
+	@cd scripts && bash prebuild.sh
+	@cd scripts && echo yes | ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p android -a $(APP_NAME) -d -s
+	@$(FLUTTER) pub get
+	@$(FLUTTER) build apk --split-per-abi --release
+
