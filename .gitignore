@@ -131,3 +131,5 @@ bm/results/
 # Nix dev shell: generated wrappers
 .nix-bin/
 .direnv/
+/android/key.properties
+/android/dev-keystore.jks

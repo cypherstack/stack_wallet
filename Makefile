@@ -31,7 +31,7 @@ MACOS_ENV_SET = MACOSX_DEPLOYMENT_TARGET=12.0
 export APP_PROJECT_ROOT_DIR
 export PUB_CACHE
 
-.PHONY: help check-reqs check-reqs-macos check-sdk-macos bootstrap-macos bootstrap-xcode bootstrap-xcode-download sccache-setup cache-stats verify-bom clean clean-app clean-native build-macos build-linux build-windows diagnose-env-macos test-mwc build-android
+.PHONY: help check-reqs check-reqs-macos check-sdk-macos bootstrap-macos bootstrap-xcode bootstrap-xcode-download sccache-setup cache-stats verify-bom clean clean-app clean-native build-macos build-linux build-windows diagnose-env-macos test-mwc build-android android-dev-key
 
 help: ## Show available commands
 	@echo "Available targets:"
@@ -296,8 +296,17 @@ build-windows: ## Build Windows release (Git Bash; same steps as CI)
 
 # Android: same steps as the "build-android" CI job, without the signing secrets. Needs the Android SDK/NDK
 # (ANDROID_SDK_ROOT) and Java; the CI image ghcr.io/<owner>/stackwallet-ci:android is built from the Dockerfile
-# (docker build --target android). The release APKs are unsigned unless android/key.properties exists.
-build-android: ## Build Android APKs (same steps as CI, unsigned without android/key.properties)
+# (docker build --target android). Without android/key.properties a throw-away debug key is created, so the APKs
+# are not suitable for distribution.
+android-dev-key: ## Create a throw-away debug signing key if android/key.properties is missing (never use for releases)
+	@if [ ! -f android/key.properties ]; then \
+		echo "[INFO] android/key.properties missing: creating a throw-away debug key (not for releases)"; \
+		keytool -genkeypair -keystore android/dev-keystore.jks -storetype pkcs12 -storepass android -keypass android \
+			-alias devkey -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Stack Wallet dev build" -noprompt && \
+		printf 'storeFile=../dev-keystore.jks\nstorePassword=android\nkeyPassword=android\nkeyAlias=devkey\n' > android/key.properties; \
+	fi
+
+build-android: android-dev-key ## Build Android APKs (same steps as CI; signed with a throw-away key unless android/key.properties exists)
 	@command -v flutter >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
 	@[ -n "$$ANDROID_SDK_ROOT$$ANDROID_HOME" ] || { echo >&2 "[ERROR] ANDROID_SDK_ROOT is not set (Android SDK/NDK required)."; exit 1; }
 	@cd scripts && bash prebuild.sh
