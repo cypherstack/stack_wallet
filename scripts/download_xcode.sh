@@ -102,7 +102,8 @@ if [[ ! -w "$(dirname "$TARGET_DIR")" ]]; then
     SUDO="sudo"
 fi
 
-DOWNLOAD_URL="https://archive.org/download/${IA_ITEM}/${FILE_NAME}"
+# XCODE_XIP_URL can point to another mirror (the SHA-1 and the Apple signature are still checked).
+DOWNLOAD_URL="${XCODE_XIP_URL:-https://archive.org/download/${IA_ITEM}/${FILE_NAME}}"
 TORRENT_URL="https://archive.org/download/${IA_ITEM}/${IA_ITEM}_archive.torrent"
 XIP_PATH="${CACHE_DIR}/${FILE_NAME}"
 

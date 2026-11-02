@@ -447,8 +447,8 @@ Two ways to get Flutter 3.47.x, Rust 1.99.1, Go, CMake and CocoaPods. Both need 
 
 ### Xcode (optional download)
 
-`make bootstrap-xcode` only checks and selects an installed Xcode. If you have none, you can opt in to
-`make bootstrap-xcode-download` (`scripts/download_xcode.sh`), which downloads a `.xip` from
+`make bootstrap-xcode` only checks and selects an installed Xcode. To build with another installed Xcode without changing the global selection, run for example `DEVELOPER_DIR=/Applications/Xcode_27.0.app/Contents/Developer make build-macos`. If you have none, you can opt in to
+`make bootstrap-xcode-download` (`scripts/download_xcode.sh`), which downloads a `.xip` (set `XCODE_XIP_URL` to use another mirror; the hash and signature are still checked) from
 archive.org without an Apple ID. It checks the SHA-1 listed by archive.org and Apple's signature on
 the archive, and aborts if either fails. Default is Xcode 27.1; use `XCODE_VERSION=27.0` when you need
 the version that dnix pins to rebuild Apple libraries byte for byte. License acceptance and first-launch
@@ -462,8 +462,10 @@ Flutter reruns every native-asset build hook when `PATH` or any `NIX_*` variable
 ### Optional: sccache for native-asset builds
 
 `make sccache-setup` writes `~/.cargo/config.toml` with `rustc-wrapper = "sccache"` (it never overwrites an
-existing file). With Flutter 3.47.x the build hooks only see a filtered environment, so exporting
-`RUSTC_WRAPPER` does nothing, but cargo still reads this file through `HOME`. Check `sccache --show-stats`
+existing file). The build hooks only see a filtered environment (Flutter 3.47.x, and also the 3.50 beta tried so far), so
+exporting `RUSTC_WRAPPER` does nothing in either: sccache saw no compile requests. Cargo still reads this file
+through `HOME`, which works with both versions. (With the 3.50 beta the variable `CARGO_BUILD_RUSTC_WRAPPER`
+also gets through.) Check `sccache --show-stats`
 after a build. Measured on an Apple Silicon Mac for a from-source build of all native assets (one run each):
 775 s without sccache, 665 s with a cold sccache, 534 s with a warm one. The prebuilt path (`-d`, the
 `make build-macos` default) only replaces the tor, epiccash and mwc libraries, so it saved about one minute
