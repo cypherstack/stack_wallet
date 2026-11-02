@@ -167,6 +167,8 @@ clean: ## Remove artifacts and fix permissions
 # --- PLATFORM BUILDS ---
 
 PREBUILTS ?= 1
+# Linux only: SYSTEM_DEPS=1 uses the system libsecret/jsoncpp packages instead of building them (like the CI image).
+SYSTEM_DEPS ?= 0
 
 build-macos: check-reqs-macos check-sdk-macos ## Build macOS release (same steps as upstream CI; PREBUILTS=0 compiles native assets from source)
 	@# pubspec.yaml is generated; build_app.sh only regenerates it from the template when unchanged,
@@ -217,7 +219,7 @@ build-linux: check-reqs ## Build Linux Release through Flutter native-assets hoo
 	@cd scripts && bash prebuild.sh
 	@echo "--- Generating config..."
 	@if [ -z "$(PROTOC_PATH)" ]; then echo "[ERROR] protoc not found!"; exit 1; fi
-	@cd scripts && yes yes | BUILD_ISAR_FROM_SOURCE=0 PROTOC="$(PROTOC_PATH)" ./build_app.sh -a $(APP_NAME) -p linux -v $(VERSION) -b $(BUILD_NUM)
+	@cd scripts && yes yes | BUILD_ISAR_FROM_SOURCE=0 PROTOC="$(PROTOC_PATH)" ./build_app.sh -a $(APP_NAME) -p linux -v $(VERSION) -b $(BUILD_NUM) $(if $(filter 1,$(PREBUILTS)),-d) $(if $(filter 1,$(SYSTEM_DEPS)),-s)
 	@# Flutter 3.47.x hooks only see a filtered environment, so PROTOC (exported by the flake) never
 	@# reaches cargo build scripts. Some crates (prost-build 0.7) ship a generic-Linux protoc that cannot
 	@# run on NixOS. cargo reads [env] from .cargo/config.toml found from the package dir upwards, which
@@ -250,16 +252,16 @@ build-linux: check-reqs ## Build Linux Release through Flutter native-assets hoo
 	else \
 		echo "[WARN] podman/docker not found; skipping coinlib:build_linux"; \
 	fi
-	@SYSPROF_PC_DIR=$$(dirname "$$(find /nix/store -path '*/lib/pkgconfig/sysprof-capture-4.pc' 2>/dev/null | head -n1)"); \
+	@if [ "$(SYSTEM_DEPS)" = "1" ]; then \
+		USE_SYSTEM_SECURE_STORAGE_DEPS=1 PROTOC="$(PROTOC_PATH)" $(FLUTTER) build linux --release; \
+	else \
+		SYSPROF_PC_DIR=$$(dirname "$$(find /nix/store -path '*/lib/pkgconfig/sysprof-capture-4.pc' 2>/dev/null | head -n1)"); \
 		PC_PATH=$$(pkg-config --variable=pc_path pkg-config 2>/dev/null || echo ""); \
-		PKG_CONFIG_DISABLE_UNINSTALLED=1 \
-		PKG_CONFIG_PATH= \
+		PKG_CONFIG_DISABLE_UNINSTALLED=1 PKG_CONFIG_PATH= \
 		PKG_CONFIG_LIBDIR="$(CURDIR)/scripts/linux/pc:$$SYSPROF_PC_DIR:$$PC_PATH" \
 		pkg-config --modversion libsecret-1 >/dev/null || \
-		{ echo "[ERROR] libsecret-1 not resolvable via pkg-config"; exit 1; }
-	@SYSPROF_PC_DIR=$$(dirname "$$(find /nix/store -path '*/lib/pkgconfig/sysprof-capture-4.pc' 2>/dev/null | head -n1)"); \
-		PC_PATH=$$(pkg-config --variable=pc_path pkg-config 2>/dev/null || echo ""); \
-		PKG_CONFIG_DISABLE_UNINSTALLED=1 \
-		PKG_CONFIG_PATH= \
+		{ echo "[ERROR] libsecret-1 not resolvable via pkg-config"; exit 1; }; \
+		PKG_CONFIG_DISABLE_UNINSTALLED=1 PKG_CONFIG_PATH= \
 		PKG_CONFIG_LIBDIR="$(CURDIR)/scripts/linux/pc:$$SYSPROF_PC_DIR:$$PC_PATH" \
-		PROTOC="$(PROTOC_PATH)" $(FLUTTER) build linux --release
+		PROTOC="$(PROTOC_PATH)" $(FLUTTER) build linux --release; \
+	fi
