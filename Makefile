@@ -31,7 +31,7 @@ MACOS_ENV_SET = MACOSX_DEPLOYMENT_TARGET=12.0
 export APP_PROJECT_ROOT_DIR
 export PUB_CACHE
 
-.PHONY: help check-reqs check-reqs-macos check-sdk-macos bootstrap-macos bootstrap-xcode bootstrap-xcode-download sccache-setup cache-stats clean build-macos build-linux diagnose-env-macos test-mwc
+.PHONY: help check-reqs check-reqs-macos check-sdk-macos bootstrap-macos bootstrap-xcode bootstrap-xcode-download sccache-setup cache-stats clean clean-app clean-native build-macos build-linux diagnose-env-macos test-mwc
 
 help: ## Show available commands
 	@echo "Available targets:"
@@ -169,6 +169,17 @@ clean: ## Remove artifacts and fix permissions
 PREBUILTS ?= 1
 # Linux only: SYSTEM_DEPS=1 uses the system libsecret/jsoncpp packages instead of building them (like the CI image).
 SYSTEM_DEPS ?= 0
+
+clean-app: ## Remove app build output (build/, Pods) but keep the native-asset build outputs, so the next build is fast
+	@chflags -R nouchg build/ macos/ 2>/dev/null || true
+	@chmod -R u+w build/ macos/ 2>/dev/null || true
+	@rm -rf build/ macos/Pods macos/Podfile.lock ios/Pods ios/Podfile.lock
+	@echo "[OK] Removed build/ and Pods; .dart_tool/hooks_runner is kept."
+
+clean-native: ## Remove only the native-asset build outputs (forces the Rust/Go/C libraries to be rebuilt)
+	@chmod -R u+w .dart_tool/hooks_runner build/native_assets 2>/dev/null || true
+	@rm -rf .dart_tool/hooks_runner build/native_assets
+	@echo "[OK] Removed .dart_tool/hooks_runner and build/native_assets."
 
 build-macos: check-reqs-macos check-sdk-macos ## Build macOS release (same steps as upstream CI; PREBUILTS=0 compiles native assets from source)
 	@# pubspec.yaml is generated; build_app.sh only regenerates it from the template when unchanged,
