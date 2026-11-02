@@ -153,7 +153,7 @@ fi
 # 1. Resumable download
 if [[ ! -f "$XIP_PATH" ]]; then
     echo "Downloading ${FILE_NAME} (resumable; torrent alternative: ${TORRENT_URL})..."
-    curl -fL -C - --progress-bar -o "$XIP_PATH" "$DOWNLOAD_URL"
+    curl -fL -C - --retry 8 --retry-delay 5 --retry-all-errors --progress-bar -o "$XIP_PATH" "$DOWNLOAD_URL"
 else
     echo "Using cached archive: $XIP_PATH"
 fi
