@@ -90,6 +90,7 @@ fi
 
 # Build
 echo "Building: make ${BUILD_TARGET} ${MAKE_FLAGS} " | banner  
+sccache --zero-stats >/dev/null 2>&1 || true
 START=$(date +%s)
 make ${BUILD_TARGET} ${MAKE_FLAGS} 2>&1 | tail -5
 RC=$?
@@ -97,6 +98,12 @@ END=$(date +%s)
 WALL=$((END - START))
 
 # Disk after
+SCC_NOTE=""
+if command -v sccache >/dev/null 2>&1; then
+  SCC_REQ=$(sccache --show-stats 2>/dev/null | awk '/^Compile requests executed/ {print $NF}')
+  SCC_HIT=$(sccache --show-stats 2>/dev/null | awk '/^Cache hits  / {print $NF}')
+  [ -n "${SCC_REQ:-}" ] && [ "${SCC_REQ:-0}" != "0" ] && SCC_NOTE="sccache ${SCC_HIT:-0}/${SCC_REQ} hits"
+fi
 DISK_AFTER=$(du -sk . 2>/dev/null | cut -f1)
 DISK_DELTA=$((DISK_AFTER - DISK_BEFORE))
 
@@ -105,7 +112,7 @@ if [ ! -f "$OUTFILE" ]; then
   echo "label,branch,commit,host,arch,os_name,os_ver,date,warm,flags,wall_sec,success,disk_total_kb,disk_delta_kb,comment" > "$OUTFILE"
 fi
 
-echo "${LABEL},${BRANCH},${COMMIT},${HOST},${ARCH},${OS_NAME},${OS_VER},${DATE},${WARM},${MAKE_FLAGS:--},${WALL},$((RC == 0 ? 1 : 0)),${DISK_AFTER},${DISK_DELTA}," >> "$OUTFILE"
+echo "${LABEL},${BRANCH},${COMMIT},${HOST},${ARCH},${OS_NAME},${OS_VER},${DATE},${WARM},${MAKE_FLAGS:--},${WALL},$((RC == 0 ? 1 : 0)),${DISK_AFTER},${DISK_DELTA},${SCC_NOTE}" >> "$OUTFILE"
 
 echo ""
 if [ $RC -eq 0 ]; then
