@@ -184,6 +184,10 @@ Note on Emulators: Only x86_64 emulators are supported, x86 emulators will not w
 
 On Windows the CI job `build-windows` builds natively on `windows-2022` (it does not use WSL2), and `make build-windows` runs the same steps from Git Bash: `scripts/prebuild.sh`, `scripts/build_app.sh -p windows -d -s`, `flutter pub get`, `dart run coinlib:build_windows`, `flutter build windows --release`. It needs Flutter, Go and a Visual Studio C++ toolchain on the machine. Where the user cannot create symbolic links (for example the GitHub-hosted runner), add `WINDOWS_COPY_ASSETS=1` so the asset directories are copied instead of linked. The WSL2 route described at the top of this guide still works.
 
+#### Android and iOS
+
+`make build-android` runs the steps of the `build-android` CI job (`prebuild.sh`, `build_app.sh -p android -d -s`, `flutter pub get`, `flutter build apk --split-per-abi --release`). It needs the Android SDK/NDK (`ANDROID_SDK_ROOT`) and Java; the CI image built from the `Dockerfile` (`docker build --target android`) has everything. The release build cannot be signed without the signing secrets, so `make android-dev-key` creates a throw-away debug key (`android/key.properties`, `android/dev-keystore.jks`, both git-ignored) when `android/key.properties` is missing. APKs built this way are only for local testing. `make build-ios` runs the `build-ios` CI steps on macOS (`flutter build ios --release --no-codesign`, a device build).
+
 ### Linux
 Run the following commands or launch via Android Studio:
 ```
