@@ -51,7 +51,13 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" && pwd)"
 bash "$SCRIPT_DIR/install_xcode.sh"
 
 echo "Installing Homebrew packages..."
-brew install direnv rustup cmake meson ninja pkg-config gnu-sed cocoapods go protobuf cbindgen autoconf automake libtool pandoc weasyprint toilet figlet sccache
+# Do not upgrade formulae that are already installed: a build machine keeps the versions it was set up with.
+export HOMEBREW_NO_INSTALL_UPGRADE=1
+brew install direnv rustup cmake meson ninja pkg-config gnu-sed cocoapods go protobuf cbindgen autoconf automake libtool sccache
+
+# Only used for the benchmark reports in bm/. A failure here (for example a link conflict with a
+# copy installed another way) must not stop the toolchain setup.
+brew install pandoc weasyprint toilet figlet || echo "[WARN] optional report tools were not fully installed; only bm/ report rendering needs them."
 
 # The Homebrew cask always installs the latest Flutter, but the app is built
 # and tested against one pinned release. Install that tag from source instead.
