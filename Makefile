@@ -31,7 +31,7 @@ MACOS_ENV_SET = MACOSX_DEPLOYMENT_TARGET=12.0
 export APP_PROJECT_ROOT_DIR
 export PUB_CACHE
 
-.PHONY: help check-reqs check-reqs-macos check-sdk-macos bootstrap-macos bootstrap-xcode bootstrap-xcode-download sccache-setup cache-stats verify-bom clean clean-app clean-native build-macos build-linux build-windows diagnose-env-macos test-mwc build-android android-dev-key
+.PHONY: help check-reqs check-reqs-macos check-sdk-macos bootstrap-macos bootstrap-xcode bootstrap-xcode-download sccache-setup cache-stats verify-bom clean clean-app clean-native build-macos build-linux build-windows diagnose-env-macos test-mwc build-android android-dev-key build-ios
 
 help: ## Show available commands
 	@echo "Available targets:"
@@ -313,4 +313,12 @@ build-android: android-dev-key ## Build Android APKs (same steps as CI; signed w
 	@cd scripts && echo yes | ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p android -a $(APP_NAME) -d -s
 	@$(FLUTTER) pub get
 	@$(FLUTTER) build apk --split-per-abi --release
+
+# iOS: same steps as the "build-ios" CI job (device build, no code signing). Run on macOS with Xcode.
+build-ios: check-sdk-macos ## Build iOS Runner.app without code signing (same steps as CI)
+	@command -v flutter >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
+	@cd scripts && bash prebuild.sh
+	@cd scripts && echo yes | ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p ios -a $(APP_NAME) -d -s
+	@$(FLUTTER) pub get
+	@$(FLUTTER) build ios --release --no-codesign
 
