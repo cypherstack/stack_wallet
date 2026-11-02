@@ -173,7 +173,7 @@ build-macos: check-reqs-macos check-sdk-macos ## Build macOS release (same steps
 	@# so a previous PREBUILTS setting would otherwise stick.
 	@rm -f pubspec.yaml
 	@echo "--- Configuring project (scripts/build_app.sh)..."
-	@echo yes | env $(MACOS_ENV_UNSET) scripts/build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p macos -a stack_wallet -s $(if $(filter 1,$(PREBUILTS)),-d)
+	@cd scripts && echo yes | env $(MACOS_ENV_UNSET) ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p macos -a stack_wallet -s $(if $(filter 1,$(PREBUILTS)),-d)
 	@echo "--- Resolving dependencies..."
 	@env $(MACOS_ENV_UNSET) $(FLUTTER) pub get
 	@cd scripts && env $(MACOS_ENV_UNSET) bash prebuild.sh
@@ -230,10 +230,6 @@ build-linux: check-reqs ## Build Linux Release through Flutter native-assets hoo
 		echo "[INFO] .cargo/config.toml exists; make sure it sets [env] PROTOC if protoc fails to run (NixOS)."; \
 	fi
 	@echo "--- Building app..."
-	@if [ ! -f lib/external_api_keys.dart ]; then \
-		echo "[WARN] lib/external_api_keys.dart missing; recreating template."; \
-		printf 'const kChangeNowApiKey = "";\nconst kSimpleSwapApiKey = "";\nconst kNanswapApiKey = "";\nconst kNanoSwapRpcApiKey = "";\nconst kWizSwapApiKey = "";\n' > lib/external_api_keys.dart; \
-	fi
 	@$(FLUTTER) pub get
 	@mkdir -p scripts/linux/pc
 	@printf '%s\n' \
