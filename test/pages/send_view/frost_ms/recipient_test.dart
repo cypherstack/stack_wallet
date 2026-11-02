@@ -30,6 +30,18 @@ class _TestMonero extends Monero {
   bool validateAddress(String address) => address.startsWith("address");
 }
 
+class _TestLocaleService extends LocaleService {
+  String _locale = "en_US";
+
+  @override
+  String get locale => _locale;
+
+  void setLocale(String locale) {
+    _locale = locale;
+    notifyListeners();
+  }
+}
+
 /// The mobile camera scanner, returning [rawContent].
 class _FakeScanner implements BarcodeScannerInterface {
   _FakeScanner(this.rawContent);
@@ -59,6 +71,7 @@ void main() {
   late List<PaymentUriData> multiRecipientUris;
   late _FakeScanner scanner;
   late List<String> messages;
+  late _TestLocaleService localeService;
 
   /// Lays widgets out for desktop or mobile on any host platform.
   void useLayout({required bool desktop}) {
@@ -85,24 +98,17 @@ void main() {
     clipboard = FakeClipboard();
     multiRecipientUris = [];
     messages = [];
+    localeService = _TestLocaleService();
     container = ProviderContainer(
       overrides: [
         pAmountUnit.overrideWithProvider(
           (_) => Provider((ref) => ref.watch(unit)),
         ),
-        pAmountFormatter.overrideWithProvider(
-          (coin) => Provider(
-            (ref) => AmountFormatter(
-              unit: ref.watch(pAmountUnit(coin)),
-              locale: "en_US",
-              coin: coin,
-              maxDecimals: coin.fractionDigits,
-            ),
-          ),
+        // Use the production formatter so locale/provider ordering is tested.
+        pMaxDecimals.overrideWithProvider(
+          (coin) => Provider((_) => coin.fractionDigits),
         ),
-        localeServiceChangeNotifierProvider.overrideWithProvider(
-          ChangeNotifierProvider((_) => LocaleService()),
-        ),
+        localeServiceChangeNotifierProvider.overrideWithValue(localeService),
         pClipboard.overrideWithValue(clipboard),
         pBarcodeScanner.overrideWithValue(scanner),
       ],
@@ -266,6 +272,52 @@ void main() {
     expect(recipient()!.amount, xmr("1"));
     expect(recipient()!.label, isNull);
   });
+
+  for (final desktop in [false, true]) {
+    testWidgets("keeps the recipient amount across locale changes "
+        "on ${desktop ? 'desktop' : 'mobile'}", (tester) async {
+      useLayout(desktop: desktop);
+      await pumpRecipient(
+        tester,
+        initial: (
+          address: "address0",
+          amount: xmr("1.000000000001"),
+          label: "Alice",
+        ),
+      );
+
+      localeService.setLocale("de_DE");
+      await tester.pump();
+      await tester.pump();
+      expect(text(tester, amountField()), "1,000000000001");
+      expect(
+        recipient(),
+        (address: "address0", amount: xmr("1.000000000001"), label: "Alice"),
+        reason:
+            "Changing locale must preserve the stored amount, "
+            "not just its text",
+      );
+
+      await tester.enterText(amountField(), "2,000000000001");
+      await tester.pump();
+      expect(recipient()?.amount, xmr("2.000000000001"));
+
+      localeService.setLocale("en_US");
+      await tester.pump();
+      await tester.pump();
+      expect(text(tester, amountField()), "2.000000000001");
+      expect(recipient()?.amount, xmr("2.000000000001"));
+      expect(recipient()?.label, "Alice");
+
+      await tester.enterText(addressField(), "address1");
+      await tester.pump();
+      expect(recipient(), (
+        address: "address1",
+        amount: xmr("2.000000000001"),
+        label: null,
+      ));
+    });
+  }
 
   testWidgets("fills the address, amount, and name from a pasted request", (
     tester,
