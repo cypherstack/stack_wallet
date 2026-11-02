@@ -1048,15 +1048,19 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                 final port = uri.hasPort ? uri.port : 0;
                 if (port != 0) {
                   _portController.text = port.toString();
-                  final noPortUri = Uri(
-                    scheme: uri.scheme,
-                    userInfo: uri.userInfo,
-                    host: uri.host,
-                    path: uri.path,
-                    query: uri.hasQuery ? uri.query : null,
-                    fragment: uri.fragment.isNotEmpty ? uri.fragment : null,
-                  );
-                  _hostController.text = noPortUri.toString();
+                  // eth connects to the host url as is and ignores the port
+                  // field, so the port has to stay in the url
+                  if (widget.coin is! Ethereum) {
+                    final noPortUri = Uri(
+                      scheme: uri.scheme,
+                      userInfo: uri.userInfo,
+                      host: uri.host,
+                      path: uri.path,
+                      query: uri.hasQuery ? uri.query : null,
+                      fragment: uri.fragment.isNotEmpty ? uri.fragment : null,
+                    );
+                    _hostController.text = noPortUri.toString();
+                  }
                 }
               } catch (_) {
                 if (newValue.contains(":")) {
