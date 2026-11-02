@@ -15,4 +15,17 @@ void main() {
       false,
     );
   });
+
+  test('openAlias defaults to null and copies', () {
+    expect(TxData().openAlias, isNull);
+    expect(TxData().copyWith().openAlias, isNull);
+
+    final txData = TxData(openAlias: 'donate@getmonero.org');
+    expect(txData.openAlias, 'donate@getmonero.org');
+    expect(txData.copyWith(note: 'note').openAlias, 'donate@getmonero.org');
+    expect(
+      TxData().copyWith(openAlias: 'alice@example.com').openAlias,
+      'alice@example.com',
+    );
+  });
 }

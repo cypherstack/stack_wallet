@@ -11,6 +11,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:cs_openalias/cs_openalias.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -30,6 +31,7 @@ import '../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../providers/ui/preview_tx_button_state_provider.dart';
 import '../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../route_generator.dart';
+import '../../services/openalias/open_alias_service.dart';
 import '../../services/spark_names_service.dart';
 import '../../themes/coin_icon_provider.dart';
 import '../../themes/stack_colors.dart';
@@ -149,7 +151,17 @@ class _SendViewState extends ConsumerState<SendView> {
   late final bool isEth;
 
   Amount? _cachedAmountToSend;
-  String? _address;
+  String? _addressValue;
+  OpenAliasResolved? _openAlias;
+
+  String? get _address => _addressValue;
+
+  // Clearing and retyping an alias passes through other text, so the lookup
+  // is dropped then rather than kept for the same alias typed again.
+  set _address(String? value) {
+    _addressValue = value;
+    if (openAliasKey(value ?? "") != _openAlias?.alias) _openAlias = null;
+  }
 
   /// The [pRecipient] index of each recipient's form while sending to more
   /// than one recipient, otherwise null.
@@ -237,8 +249,15 @@ class _SendViewState extends ConsumerState<SendView> {
   }
 
   void _addRecipientTapped() {
+    final resolved = _openAlias;
+    final address =
+        resolved != null &&
+            resolved.alias == openAliasKey(_address ?? "") &&
+            ref.read(pOpenAliasService).isCurrent(resolved)
+        ? resolved.address
+        : _address ?? "";
     _setMultiRecipients([
-      (address: _address ?? "", amount: ref.read(pSendAmount), label: null),
+      (address: address, amount: ref.read(pSendAmount), label: null),
       (address: "", amount: null, label: null),
     ]);
   }
@@ -703,8 +722,9 @@ class _SendViewState extends ConsumerState<SendView> {
         }
       }
 
-      ref.read(pValidSendToAddress.notifier).state = wallet.cryptoCurrency
-          .validateAddress(address ?? "");
+      ref.read(pValidSendToAddress.notifier).state =
+          wallet.cryptoCurrency.validateAddress(address ?? "") ||
+          (coin.openAliasApplication != null && isOpenAlias(address ?? ""));
     }
   }
 
@@ -1018,11 +1038,75 @@ class _SendViewState extends ConsumerState<SendView> {
     }
   }
 
+  /// Looks up the OpenAlias in the address field. Returns null if the lookup
+  /// failed or was cancelled.
+  Future<OpenAliasResolved?> _resolveOpenAlias(String application) async {
+    final resolution = ref
+        .read(pOpenAliasService)
+        .resolve(
+          _address!,
+          isValidAddress: coin.validateAddress,
+          application: application,
+          coinName: coin.prettyName,
+        );
+    unawaited(
+      showDialog<void>(
+        context: context,
+        useSafeArea: false,
+        barrierDismissible: false,
+        builder: (context) => BuildingTransactionDialog(
+          coin: coin,
+          isSpark: false,
+          onCancel: () {
+            resolution.cancel();
+            Navigator.of(context).pop();
+          },
+        ),
+      ),
+    );
+    final outcome = await resolution.outcome;
+    if (!mounted) return null;
+    switch (outcome) {
+      case OpenAliasCancelled():
+        return null;
+      case OpenAliasResolved():
+        Navigator.of(context, rootNavigator: true).pop();
+        return outcome;
+      case OpenAliasFailed(:final title, :final message):
+        Navigator.of(context, rootNavigator: true).pop();
+        unawaited(
+          showDialog<void>(
+            context: context,
+            builder: (context) => StackOkDialog(title: title, message: message),
+          ),
+        );
+        return null;
+    }
+  }
+
   Future<void> _previewTransaction() async {
     // wait for keyboard to disappear
     FocusScope.of(context).unfocus();
     await Future<void>.delayed(const Duration(milliseconds: 100));
     final wallet = ref.read(pWallets).getWallet(walletId);
+    String? openAlias;
+    String? resolvedAddress;
+    final application = coin.openAliasApplication;
+    if (application != null &&
+        !coin.validateAddress(_address ?? "") &&
+        isOpenAlias(_address ?? "")) {
+      var resolved = _openAlias;
+      if (resolved == null ||
+          resolved.alias != openAliasKey(_address!) ||
+          !ref.read(pOpenAliasService).isCurrent(resolved)) {
+        resolved = _openAlias = await _resolveOpenAlias(application);
+      }
+      if (resolved == null || !mounted) return;
+      openAlias = resolved.alias;
+      resolvedAddress = resolved.address;
+      _setValidAddressProviders(resolvedAddress);
+    }
+    late final recipientAddress = resolvedAddress ?? _address!;
 
     final Amount amount = ref.read(pSendAmount)!;
     final Amount availableBalance;
@@ -1166,12 +1250,13 @@ class _SendViewState extends ConsumerState<SendView> {
                 txData: TxData(
                   sparkRecipients: [
                     (
-                      address: _address!,
+                      address: recipientAddress,
                       amount: amount,
                       memo: memoController.text,
                       isChange: false,
                     ),
                   ],
+                  openAlias: openAlias,
                   feeRateType: feeRateType,
                   satsPerVByte: satsPerVByte,
                   utxos: (coinControlEnabled && selectedUTXOs.isNotEmpty)
@@ -1184,14 +1269,15 @@ class _SendViewState extends ConsumerState<SendView> {
                 txData: TxData(
                   recipients: [
                     TxRecipient(
-                      address: _address!,
+                      address: recipientAddress,
                       amount: amount,
                       isChange: false,
                       addressType: wallet.cryptoCurrency.getAddressType(
-                        _address!,
+                        recipientAddress,
                       )!,
                     ),
                   ],
+                  openAlias: openAlias,
                   feeRateType: feeRateType,
                   satsPerVByte: satsPerVByte,
                   utxos: (coinControlEnabled && selectedUTXOs.isNotEmpty)
@@ -1210,24 +1296,25 @@ class _SendViewState extends ConsumerState<SendView> {
                     ? null
                     : [
                         TxRecipient(
-                          address: _address!,
+                          address: recipientAddress,
                           amount: amount,
                           isChange: false,
                           addressType: wallet.cryptoCurrency.getAddressType(
-                            _address!,
+                            recipientAddress,
                           )!,
                         ),
                       ],
                 sparkRecipients: ref.read(pValidSparkSendToAddress)
                     ? [
                         (
-                          address: _address!,
+                          address: recipientAddress,
                           amount: amount,
                           memo: memoController.text,
                           isChange: false,
                         ),
                       ]
                     : null,
+                openAlias: openAlias,
               ),
             );
             break;
@@ -1239,12 +1326,15 @@ class _SendViewState extends ConsumerState<SendView> {
           txData: TxData(
             recipients: [
               TxRecipient(
-                address: _address!,
+                address: recipientAddress,
                 amount: amount,
                 isChange: false,
-                addressType: wallet.cryptoCurrency.getAddressType(_address!)!,
+                addressType: wallet.cryptoCurrency.getAddressType(
+                  recipientAddress,
+                )!,
               ),
             ],
+            openAlias: openAlias,
             feeRateType: feeRateType,
             satsPerVByte: satsPerVByte,
 
@@ -1266,14 +1356,15 @@ class _SendViewState extends ConsumerState<SendView> {
                 _multiRecipients?.toTxRecipients(wallet.cryptoCurrency) ??
                 [
                   TxRecipient(
-                    address: _address!,
+                    address: recipientAddress,
                     amount: amount,
                     isChange: false,
                     addressType: wallet.cryptoCurrency.getAddressType(
-                      _address!,
+                      recipientAddress,
                     )!,
                   ),
                 ],
+            openAlias: openAlias,
             memo: memo,
             feeRateType: feeRateType,
             satsPerVByte: satsPerVByte,
@@ -1379,6 +1470,7 @@ class _SendViewState extends ConsumerState<SendView> {
     if (!mounted) {
       return;
     }
+    _openAlias = null;
     sendToController.text = "";
     cryptoAmountController.text = "";
     baseAmountController.text = "";
