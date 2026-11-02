@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:camera_linux/camera_linux.dart';
 import 'package:camera_macos/camera_macos_arguments.dart';
@@ -10,11 +13,14 @@ import 'package:camera_platform_interface/camera_platform_interface.dart';
 import 'package:camera_windows/camera_windows.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:image/image.dart' as img;
 import 'package:zxing2/qrcode.dart';
 
 import '../../notifications/show_flush_bar.dart';
+import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
+import '../../utilities/camera_preview_frame.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import 'desktop_dialog.dart';
@@ -43,6 +49,16 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
   int _consecutiveFailures = 0;
   String? _cameraError;
   String? _initError;
+
+  // On Windows we scan what the preview shows rather than calling
+  // takePicture(), which always saves a JPEG to the user's Pictures folder.
+  final GlobalKey _windowsPreviewKey = GlobalKey();
+  Size? _windowsPreviewSize;
+  bool _loggedBlankWindowsFrame = false;
+  bool _hasWindowsFrame = false;
+
+  // Bigger captures cost more to read back and scan without helping zxing.
+  static const _maxWindowsFrameDimension = 1280;
 
   @override
   void initState() {
@@ -90,10 +106,9 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
         // initializeCamera() starts the preview, and camera_windows picks the
         // preview mode as the largest one with height <= the preset cap
         // (low = 240, medium = 480, max = none) at >= 15 fps. If no mode fits,
-        // it fails with "Failed to initialize video preview". The cap only
-        // affects the preview; takePicture() always uses the largest mode.
-        // fps and videoBitrate only apply to video recording, so leave them
-        // out.
+        // it fails with "Failed to initialize video preview". We scan the
+        // preview, so this also sets the scan resolution. fps and
+        // videoBitrate only apply to video recording, so leave them out.
         CameraException? lastError;
         bool opened = false;
         for (final camera in ordered) {
@@ -107,7 +122,14 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
                 camera,
                 MediaSettings(resolutionPreset: preset, enableAudio: false),
               );
+              // The plugin reports the preview size through this event,
+              // which it adds before initializeCamera() returns.
+              final initialized =
+                  _cameraWindowsPlugin.onCameraInitialized(_cameraId).first;
               await _cameraWindowsPlugin.initializeCamera(_cameraId);
+              final event = await initialized;
+              _windowsPreviewSize =
+                  Size(event.previewWidth, event.previewHeight);
               opened = true;
               break;
             } on CameraException catch (e) {
@@ -133,10 +155,9 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
           await _cameraWindowsPlugin.dispose(_cameraId);
           return false;
         }
-        // await _cameraWindowsPlugin!.onCameraInitialized(_cameraId).first;
-        // TODO [prio=low]: Make this work. ^^^
         Logging.instance.d(
-          "Windows Camera initialized with ID: $_cameraId",
+          "Windows Camera initialized with ID: $_cameraId, "
+          "preview $_windowsPreviewSize",
         );
       } else if (Platform.isMacOS) {
         final List<CameraMacOSDevice> videoDevices = await CameraMacOS.instance
@@ -198,28 +219,82 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
     }
   }
 
+  /// Grabs the frame the Windows preview is showing, in memory. Returns null
+  /// when there is nothing to scan yet.
+  Future<img.Image?> _captureWindowsPreviewFrame() async {
+    final boundary = _windowsPreviewKey.currentContext?.findRenderObject();
+    // Not laid out or painted yet, e.g. just after the camera opened.
+    // debugNeedsPaint is always false in release builds, where toImage()
+    // would throw instead and the capture loop retries after a delay.
+    if (boundary is! RenderRepaintBoundary ||
+        !boundary.hasSize ||
+        boundary.size.isEmpty ||
+        boundary.debugNeedsPaint) {
+      return null;
+    }
+
+    // toImage() redraws the texture at whatever scale we ask for, so match
+    // the camera's own resolution instead of the on-screen size.
+    final preview = _windowsPreviewSize;
+    double pixelRatio = 1;
+    if (preview != null && preview.width > 0 && preview.height > 0) {
+      final fit = min(
+        1.0,
+        _maxWindowsFrameDimension / max(preview.width, preview.height),
+      );
+      // toImage() rounds each side up, and the laid-out box is rarely exactly
+      // the camera's aspect ratio, so take the smaller ratio and stay a hair
+      // under it. Otherwise a 640x480 camera can come back as 640x481.
+      pixelRatio = min(
+            preview.width * fit / boundary.size.width,
+            preview.height * fit / boundary.size.height,
+          ) *
+          (1 - 1e-9);
+    }
+
+    final ui.Image frame = await boundary.toImage(pixelRatio: pixelRatio);
+    final int width = frame.width;
+    final int height = frame.height;
+    final ByteData? bytes;
+    try {
+      bytes = await frame.toByteData(format: ui.ImageByteFormat.rawRgba);
+    } finally {
+      frame.dispose();
+    }
+    // The dialog closed while we were waiting on the raster thread.
+    if (!_isScanning || !mounted || bytes == null) return null;
+
+    final rgba = bytes.buffer.asUint8List(
+      bytes.offsetInBytes,
+      bytes.lengthInBytes,
+    );
+    final blank = blankPreviewFrame(rgba);
+    if (blank != null) {
+      if (!_loggedBlankWindowsFrame) {
+        _loggedBlankWindowsFrame = true;
+        Logging.instance.w(
+          "Windows camera preview frame is ${blank.name}, "
+          "waiting for a usable one",
+        );
+      }
+      return null;
+    }
+    _loggedBlankWindowsFrame = false;
+
+    // camera_windows mirrors the preview, so flip it back for zxing.
+    return imageFromMirroredPreviewRgba(rgba, width: width, height: height);
+  }
+
   Future<void> _captureAndScanImage() async {
     _isScanning = true;
     while (_isScanning) {
       try {
         String? base64Image;
+        img.Image? windowsFrame;
         if (Platform.isLinux && _cameraLinuxPlugin != null) {
           base64Image = await _cameraLinuxPlugin.captureImage();
         } else if (Platform.isWindows) {
-          final XFile xfile =
-              await _cameraWindowsPlugin!.takePicture(_cameraId);
-          final List<int> bytes;
-          try {
-            bytes = await xfile.readAsBytes();
-          } finally {
-            // camera_windows saves every capture as a JPEG in the user's
-            // Pictures folder and never removes it.
-            try {
-              await File(xfile.path).delete();
-            } catch (_) {}
-          }
-          base64Image = base64Encode(bytes);
-          // We could use a Uint8List to optimize for Windows and macOS.
+          windowsFrame = await _captureWindowsPreviewFrame();
         } else if (Platform.isMacOS) {
           final macOSimg = await CameraMacOS.instance.takePicture();
           if (macOSimg == null) {
@@ -235,14 +310,16 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
           }
           base64Image = base64Encode(img.encodePng(image));
         }
-        if (base64Image == null || base64Image.isEmpty) {
+        if (windowsFrame == null &&
+            (base64Image == null || base64Image.isEmpty)) {
           // Logging.instance
           //     .log("Failed to capture image", level: LogLevel.Error);
           // Spammy.
           await Future<void>.delayed(Duration(milliseconds: _imageDelayInMs));
           continue;
         }
-        final img.Image? image = img.decodeImage(base64Decode(base64Image));
+        final img.Image? image =
+            windowsFrame ?? img.decodeImage(base64Decode(base64Image!));
         // TODO [prio=low]: Optimize this process. Docs say:
         // > WARNING Since this will check the image data against all known
         // > decoders, it is much slower than using an explicit decoder
@@ -256,10 +333,15 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
         if (mounted) {
           setState(() {
             _cameraError = null;
-            _image = Image.memory(
-              base64Decode(base64Image!),
-              fit: BoxFit.cover,
-            );
+            // Windows already shows the live preview.
+            if (windowsFrame == null) {
+              _image = Image.memory(
+                base64Decode(base64Image!),
+                fit: BoxFit.cover,
+              );
+            } else {
+              _hasWindowsFrame = true;
+            }
           });
         }
 
@@ -336,6 +418,61 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
     return null;
   }
 
+  Widget _buildCameraView(BuildContext context) {
+    if (Platform.isWindows && _isCameraOpen) {
+      return _buildWindowsPreview(context);
+    }
+    if (_cameraError != null) {
+      return _buildCameraError(context);
+    }
+    if (_isCameraOpen && _image != null) {
+      return _image!;
+    }
+    return const Center(child: CircularProgressIndicator());
+  }
+
+  Widget _buildCameraError(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Text(
+          _cameraError!,
+          textAlign: TextAlign.center,
+          style: STextStyles.desktopTextSmall(context),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWindowsPreview(BuildContext context) {
+    final size = _windowsPreviewSize;
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Center(
+          child: AspectRatio(
+            aspectRatio: size != null && size.width > 0 && size.height > 0
+                ? size.width / size.height
+                : 4 / 3,
+            child: RepaintBoundary(
+              key: _windowsPreviewKey,
+              child: _cameraWindowsPlugin!.buildPreview(_cameraId),
+            ),
+          ),
+        ),
+        // Cover the preview rather than replace it, so it keeps painting and
+        // scanning picks up again once frames come back.
+        if (_cameraError != null)
+          ColoredBox(
+            color: Theme.of(context).extension<StackColors>()!.popupBG,
+            child: _buildCameraError(context),
+          )
+        else if (!_hasWindowsFrame)
+          const Center(child: CircularProgressIndicator()),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -361,29 +498,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
                 const DesktopDialogCloseButton(),
               ],
             ),
-            Expanded(
-              child: _cameraError != null
-                  ? Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 32),
-                        child: Text(
-                          _cameraError!,
-                          textAlign: TextAlign.center,
-                          style: STextStyles.desktopTextSmall(context),
-                        ),
-                      ),
-                    )
-                  : _isCameraOpen
-                      ? _image != null
-                          ? _image!
-                          : const Center(
-                              child: CircularProgressIndicator(),
-                            )
-                      : const Center(
-                          child:
-                              CircularProgressIndicator(), // Show progress indicator immediately
-                        ),
-            ),
+            Expanded(child: _buildCameraView(context)),
             Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
