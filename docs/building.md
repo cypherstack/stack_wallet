@@ -180,7 +180,11 @@ flutter run android
 
 Note on Emulators: Only x86_64 emulators are supported, x86 emulators will not work.  You should [configure KVM](https://help.ubuntu.com/community/KVM/Installation) for much better performance.
 
-#### Linux
+#### Windows
+
+On Windows the CI job `build-windows` builds natively on `windows-2022` (it does not use WSL2), and `make build-windows` runs the same steps from Git Bash: `scripts/prebuild.sh`, `scripts/build_app.sh -p windows -d -s`, `flutter pub get`, `dart run coinlib:build_windows`, `flutter build windows --release`. It needs Flutter, Go and a Visual Studio C++ toolchain on the machine. Where the user cannot create symbolic links (for example the GitHub-hosted runner), add `WINDOWS_COPY_ASSETS=1` so the asset directories are copied instead of linked. The WSL2 route described at the top of this guide still works.
+
+### Linux
 Run the following commands or launch via Android Studio:
 ```
 flutter pub get
