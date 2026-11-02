@@ -769,6 +769,25 @@ class _ConfirmTransactionViewState
                 children: [
                   Text("Send $unit", style: STextStyles.pageTitleH1(context)),
                   const SizedBox(height: 12),
+                  if (widget.txData.openAlias != null) ...[
+                    RoundedWhiteContainer(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            "OpenAlias",
+                            style: STextStyles.smallMed12(context),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            widget.txData.openAlias!,
+                            style: STextStyles.itemSubtitle12(context),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
                   RoundedWhiteContainer(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1125,6 +1144,41 @@ class _ConfirmTransactionViewState
                             .extension<StackColors>()!
                             .background,
                       ),
+                      if (widget.txData.openAlias != null) ...[
+                        Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "OpenAlias",
+                                style: STextStyles.desktopTextExtraExtraSmall(
+                                  context,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              SelectableText(
+                                widget.txData.openAlias!,
+                                style:
+                                    STextStyles.desktopTextExtraExtraSmall(
+                                      context,
+                                    ).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          height: 1,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
+                        ),
+                      ],
                       Padding(
                         padding: const EdgeInsets.all(12),
                         child: Column(
