@@ -37,6 +37,7 @@ import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_scaffold.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/loading_indicator.dart';
+import '../../widgets/onetime_popups/native_library_warning_dialog.dart';
 import '../../widgets/stack_text_field.dart';
 import 'create_password_view.dart';
 
@@ -187,6 +188,13 @@ class _ForgottenPassphraseRestoreFromSWBState
     passwordController = TextEditingController();
 
     passwordFocusNode = FocusNode();
+
+    // On a fresh install this screen comes before any home view, and a
+    // restore with a library missing would fail its cryptonote wallets
+    // with no explanation.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(showNativeLibraryWarningIfRequired(context));
+    });
 
     super.initState();
   }
