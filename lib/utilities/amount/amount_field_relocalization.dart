@@ -57,23 +57,36 @@ void relocalizeAmountController(
 /// parsers, then invokes [onRelocalized] so the caller can re-run any
 /// parsing/validation that cached state from the old text.
 ///
+/// [updateControllers] can wrap the assignments to suppress input listeners.
+/// Use it when the caller stores a canonical amount: a display change must not
+/// be interpreted as another edit of that amount.
+///
 /// Must be called from a widget's build method with `ref.listen`.
 void listenForAmountRelocalization(
   ProviderListen<String> listen, {
   required List<TextEditingController> controllers,
   VoidCallback? onRelocalized,
+  void Function(VoidCallback update)? updateControllers,
 }) {
   listen(localeServiceChangeNotifierProvider.select((value) => value.locale), (
     previous,
     next,
   ) {
     if (previous == null || previous == next) return;
-    for (final controller in controllers) {
-      relocalizeAmountController(
-        controller,
-        sourceLocale: previous,
-        targetLocale: next,
-      );
+    void update() {
+      for (final controller in controllers) {
+        relocalizeAmountController(
+          controller,
+          sourceLocale: previous,
+          targetLocale: next,
+        );
+      }
+    }
+
+    if (updateControllers == null) {
+      update();
+    } else {
+      updateControllers(update);
     }
     onRelocalized?.call();
   });
