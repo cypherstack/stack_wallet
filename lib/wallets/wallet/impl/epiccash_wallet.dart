@@ -641,24 +641,29 @@ class EpiccashWallet extends Bip39Wallet {
     }
   }
 
-  /// Only index 0 is currently used in stack wallet.
-  Future<Address> _generateAndStoreReceivingAddressForIndex(int index) async {
+  /// Query the open native wallet, independently of the cached address.
+  Future<String> getNativeReceivingAddress() async {
     if (_wallet == null) {
       throw Exception('Wallet not opened. Call open() first.');
     }
 
+    final epicBoxConfig = await getEpicBoxConfig();
+    return libEpic.getAddressInfo(
+      wallet: _wallet!,
+      index: 0,
+      epicboxConfig: epicBoxConfig.toString(),
+    );
+  }
+
+  /// Only index 0 is currently used in stack wallet.
+  Future<Address> _generateAndStoreReceivingAddressForIndex(int index) async {
     // Since only 0 is a valid index in stack wallet at this time, lets just
     // throw is not zero
     if (index != 0) {
       throw Exception("Invalid/unexpected address index used");
     }
 
-    final epicBoxConfig = await getEpicBoxConfig();
-    final walletAddress = await libEpic.getAddressInfo(
-      wallet: _wallet!,
-      index: index,
-      epicboxConfig: epicBoxConfig.toString(),
-    );
+    final walletAddress = await getNativeReceivingAddress();
 
     Logging.instance.d("WALLET_ADDRESS_IS $walletAddress");
 
