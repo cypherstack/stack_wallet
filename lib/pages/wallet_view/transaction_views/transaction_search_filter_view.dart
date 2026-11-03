@@ -19,6 +19,8 @@ import '../../../themes/theme_providers.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/amount/amount_field_relocalization.dart';
 import '../../../utilities/amount/amount_formatter.dart';
+import '../../../utilities/amount/amount_parser.dart';
+import '../../../utilities/amount/amount_unit.dart';
 import '../../../utilities/amount/amount_input_formatter.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
@@ -39,7 +41,8 @@ import '../../../widgets/textfield_icon_button.dart';
 ({bool isValid, Amount? amount}) parseTransactionFilterAmountInput({
   required String text,
   required String locale,
-  required AmountFormatter formatter,
+  required AmountUnit unit,
+  required CryptoCurrency coin,
 }) {
   final decimalSeparator =
       Util.getSymbolsFor(locale: locale)?.DECIMAL_SEP ?? ".";
@@ -47,7 +50,12 @@ import '../../../widgets/textfield_icon_button.dart';
     return (isValid: true, amount: null);
   }
 
-  final amount = formatter.tryParseEditable(text);
+  final amount = AmountParser.tryParseEditable(
+    text,
+    locale: locale,
+    unit: unit,
+    coin: coin,
+  );
   return (isValid: amount != null, amount: amount);
 }
 
@@ -653,7 +661,8 @@ class _TransactionSearchViewState
     final parsedAmount = parseTransactionFilterAmountInput(
       text: _amountTextEditingController.text,
       locale: locale,
-      formatter: ref.read(pAmountFormatter(widget.coin)),
+      unit: ref.read(pAmountUnit(widget.coin)),
+      coin: widget.coin,
     );
     if (!parsedAmount.isValid) {
       return;
