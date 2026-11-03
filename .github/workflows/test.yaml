@@ -93,6 +93,8 @@ jobs:
 
 #      - name: Analyze
 #        run: flutter analyze
+      - name: Test build scripts
+        run: dart scripts/tests/build_input_test.dart
       - name: Test
         run: |
           bash scripts/ensure_test_app_config.sh
