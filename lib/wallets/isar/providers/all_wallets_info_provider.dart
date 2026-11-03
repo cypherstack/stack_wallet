@@ -46,30 +46,24 @@ final pAllWalletsInfoByCoin = Provider((ref) {
   return results;
 });
 
-_WalletInfoWatcher? _globalInstance;
-
 final _pAllWalletsInfo = ChangeNotifierProvider((ref) {
-  if (_globalInstance == null) {
-    final isar = ref.watch(mainDBProvider).isar;
+  final isar = ref.watch(mainDBProvider).isar;
 
-    _globalInstance = _WalletInfoWatcher(
-      isar.walletInfo
-          .where()
-          .filter()
-          .anyOf<String, CryptoCurrency>(
-            AppConfig.coins.map((e) => e.identifier),
-            (q, element) => q.coinNameMatches(element),
-          )
-          .findAllSync(),
-      isar,
-    );
-  }
-
-  return _globalInstance!;
+  return _WalletInfoWatcher(
+    isar.walletInfo
+        .where()
+        .filter()
+        .anyOf<String, CryptoCurrency>(
+          AppConfig.coins.map((e) => e.identifier),
+          (q, element) => q.coinNameMatches(element),
+        )
+        .findAllSync(),
+    isar,
+  );
 });
 
 class _WalletInfoWatcher extends ChangeNotifier {
-  late final StreamSubscription<void> _streamSubscription;
+  late final StreamSubscription<List<WalletInfo>> _streamSubscription;
 
   List<WalletInfo> _value;
 
@@ -77,20 +71,16 @@ class _WalletInfoWatcher extends ChangeNotifier {
 
   _WalletInfoWatcher(this._value, Isar isar) {
     _streamSubscription = isar.walletInfo
-        .watchLazy(fireImmediately: true)
-        .listen((event) {
-          isar.walletInfo
-              .where()
-              .filter()
-              .anyOf<String, CryptoCurrency>(
-                AppConfig.coins.map((e) => e.identifier),
-                (q, element) => q.coinNameMatches(element),
-              )
-              .findAll()
-              .then((value) {
-                _value = value;
-                notifyListeners();
-              });
+        .where()
+        .filter()
+        .anyOf<String, CryptoCurrency>(
+          AppConfig.coins.map((e) => e.identifier),
+          (q, element) => q.coinNameMatches(element),
+        )
+        .watch(fireImmediately: true)
+        .listen((value) {
+          _value = value;
+          notifyListeners();
         });
   }
 

@@ -61,8 +61,6 @@ final _wiProvider = ChangeNotifierProvider.family<_Watcher, bool>((
     isar,
   );
 
-  ref.onDispose(() => watcher.dispose());
-
   return watcher;
 });
 
