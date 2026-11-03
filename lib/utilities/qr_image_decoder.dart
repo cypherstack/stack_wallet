@@ -21,11 +21,7 @@ String? decodeQrFromImageBytes(Uint8List bytes) {
 String? decodeQrFromImage(img.Image image) {
   final LuminanceSource source;
   try {
-    source = RGBLuminanceSource(
-      image.width,
-      image.height,
-      _argbPixels(image),
-    );
+    source = RGBLuminanceSource(image.width, image.height, _argbPixels(image));
   } catch (_) {
     return null;
   }

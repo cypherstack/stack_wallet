@@ -386,8 +386,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
     }
   }
 
-  Future<String?> _scanImage(img.Image image) async =>
-      decodeQrFromImage(image);
+  Future<String?> _scanImage(img.Image image) async => decodeQrFromImage(image);
 
   Widget _buildCameraView(BuildContext context) {
     if (Platform.isWindows && _isCameraOpen) {
