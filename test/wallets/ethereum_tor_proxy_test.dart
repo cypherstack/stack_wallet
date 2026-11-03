@@ -9,12 +9,10 @@ import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/wallets/wallet/impl/ethereum_wallet.dart';
 
 class _MockPrefs extends Mock implements Prefs {
-  _MockPrefs(this._useTor);
-
-  final bool _useTor;
+  _MockPrefs(this.useTor);
 
   @override
-  bool get useTor => _useTor;
+  bool useTor;
 }
 
 class _FakeTorService extends Fake implements TorService {
@@ -43,6 +41,7 @@ String _rpcHttpResponse() =>
 // tunnelled HTTP request with a canned JSON-RPC eth_blockNumber result.
 class _FakeSocksServer {
   late final ServerSocket _server;
+  int connections = 0;
   int? addressType;
   String? target;
   int? port;
@@ -53,6 +52,7 @@ class _FakeSocksServer {
   Future<void> start() async {
     _server = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
     _server.listen((socket) {
+      connections++;
       var stage = 0;
       socket.listen((Uint8List bytes) {
         switch (stage) {
@@ -83,6 +83,36 @@ class _FakeSocksServer {
 
   Future<void> stop() => _server.close();
 }
+
+// Local node that answers every RPC with the canned result and counts them.
+class _FakeNode {
+  late final HttpServer _server;
+  int requests = 0;
+
+  String get url => 'http://127.0.0.1:${_server.port}';
+
+  Future<void> start() async {
+    _server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+    _server.listen((req) async {
+      requests++;
+      await utf8.decoder.bind(req).join();
+      req.response
+        ..headers.contentType = ContentType.json
+        ..write(_rpcBody);
+      await req.response.close();
+    });
+  }
+
+  Future<void> stop() => _server.close(force: true);
+}
+
+final _torPreferenceChanged = throwsA(
+  isA<StateError>().having(
+    (e) => e.message,
+    'message',
+    contains('Tor preference changed'),
+  ),
+);
 
 void main() {
   late _FakeSocksServer socks;
@@ -118,31 +148,111 @@ void main() {
   });
 
   test('web3 client connects directly when Tor is off', () async {
-    final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
-    server.listen((req) async {
-      await utf8.decoder.bind(req).join();
-      req.response
-        ..headers.contentType = ContentType.json
-        ..write(_rpcBody);
-      await req.response.close();
-    });
+    final node = _FakeNode();
+    await node.start();
 
     final torService = _FakeTorService((
       host: InternetAddress.loopbackIPv4,
       port: socks.listeningPort,
     ));
     final client = EthereumWallet.createWeb3Client(
-      'http://127.0.0.1:${server.port}',
+      node.url,
       _MockPrefs(false),
       torService,
     );
 
     final height = await client.getBlockNumber();
     await client.dispose();
-    await server.close(force: true);
+    await node.stop();
 
     expect(height, 42);
+    expect(node.requests, 1);
     expect(torService.proxyInfoReads, 0);
     expect(socks.target, isNull);
+  });
+
+  group('tor preference changed after the client was built', () {
+    late _FakeNode node;
+    late _FakeTorService torService;
+
+    setUp(() async {
+      node = _FakeNode();
+      await node.start();
+      torService = _FakeTorService((
+        host: InternetAddress.loopbackIPv4,
+        port: socks.listeningPort,
+      ));
+    });
+
+    tearDown(() => node.stop());
+
+    test('client built with Tor off refuses to send once Tor is on', () async {
+      final prefs = _MockPrefs(false);
+      final client = EthereumWallet.createWeb3Client(
+        node.url,
+        prefs,
+        torService,
+      );
+
+      expect(await client.getBlockNumber(), 42);
+      expect(node.requests, 1);
+
+      prefs.useTor = true;
+
+      await expectLater(client.getBlockNumber(), _torPreferenceChanged);
+      await client.dispose();
+
+      // Nothing went out directly and nothing was rerouted via the proxy.
+      expect(node.requests, 1);
+      expect(socks.connections, 0);
+      expect(torService.proxyInfoReads, 0);
+    });
+
+    test('client built with Tor on refuses to send once Tor is off', () async {
+      final prefs = _MockPrefs(true);
+      final client = EthereumWallet.createWeb3Client(
+        node.url,
+        prefs,
+        torService,
+      );
+
+      expect(await client.getBlockNumber(), 42);
+      expect(socks.connections, 1);
+      expect(socks.request.toString(), contains('eth_blockNumber'));
+
+      prefs.useTor = false;
+
+      await expectLater(client.getBlockNumber(), _torPreferenceChanged);
+      await client.dispose();
+
+      // No new proxy connection and nothing went to the node directly.
+      expect(socks.connections, 1);
+      expect(node.requests, 0);
+      expect(torService.proxyInfoReads, 1);
+    });
+
+    test('unchanged preference keeps a reused client working', () async {
+      final direct = EthereumWallet.createWeb3Client(
+        node.url,
+        _MockPrefs(false),
+        torService,
+      );
+      expect(await direct.getBlockNumber(), 42);
+      expect(await direct.getBlockNumber(), 42);
+      await direct.dispose();
+      expect(node.requests, 2);
+      expect(socks.connections, 0);
+
+      final proxied = EthereumWallet.createWeb3Client(
+        node.url,
+        _MockPrefs(true),
+        torService,
+      );
+      expect(await proxied.getBlockNumber(), 42);
+      expect(await proxied.getBlockNumber(), 42);
+      await proxied.dispose();
+      expect(node.requests, 2);
+      expect(socks.connections, 2);
+    });
   });
 }
