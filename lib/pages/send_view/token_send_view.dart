@@ -281,7 +281,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
           .formatEditable(_amountToSend!);
       _cryptoAmountChangeLock = false;
     } else {
-      _amountToSend = Amount.zero;
+      _amountToSend = null;
       _cachedAmountToSend = null;
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = "";

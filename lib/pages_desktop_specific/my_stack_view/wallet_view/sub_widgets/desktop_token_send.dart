@@ -599,7 +599,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
       cryptoAmountController.text = amountString;
       _cryptoAmountChangeLock = false;
     } else {
-      _amountToSend = Decimal.zero.toAmount(fractionDigits: tokenDecimals);
+      _amountToSend = null;
       _cachedAmountToSend = null;
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = "";
