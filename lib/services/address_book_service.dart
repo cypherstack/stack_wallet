@@ -11,6 +11,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mutex/mutex.dart';
+
 import '../app_config.dart';
 import '../db/isar/main_db.dart';
 import '../models/isar/models/blockchain_data/address.dart';
