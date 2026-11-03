@@ -95,25 +95,34 @@ class AddressBookService extends ChangeNotifier {
   Future<void> _updateMyStackContact(Iterable<Wallet> wallets) async {
     final List<ContactAddressEntry> addresses = [];
     for (final wallet in wallets) {
+      final SparkInterface? sparkWallet =
+          wallet is SparkInterface &&
+              !(wallet.isViewOnly && wallet.viewOnlyType != .spark)
+          ? wallet
+          : null;
       String addressString;
       try {
-        if (wallet is SparkInterface &&
-            !(wallet.isViewOnly && wallet.viewOnlyType != .spark)) {
-          Address? address = await wallet.getCurrentReceivingSparkAddress();
-          address ??= await wallet.generateNextSparkAddress(saveToDB: true);
+        if (sparkWallet != null) {
+          Address? address = await sparkWallet
+              .getCurrentReceivingSparkAddress();
+          address ??= await sparkWallet.generateNextSparkAddress(
+            saveToDB: true,
+          );
           addressString = address.value;
         } else {
           final address = await wallet.getCurrentReceivingAddress();
           addressString = address?.value ?? wallet.info.cachedReceivingAddress;
         }
       } catch (e, s) {
-        // Fall back to the last address saved for this wallet, so one failing
-        // wallet doesn't drop out of the contact or keep the rest from updating.
+        // A Spark wallet's cached address is its transparent one, so leave it
+        // out rather than offer a public address. Other wallets fall back to
+        // the cached address so one failure doesn't drop them or stop the rest.
         Logging.instance.e(
-          "Failed to get a wallet address for My Stack, using the cached one",
+          "Failed to get a wallet address for My Stack",
           error: e,
           stackTrace: s,
         );
+        if (sparkWallet != null) continue;
         addressString = wallet.info.cachedReceivingAddress;
       }
       if (addressString.isEmpty) continue;

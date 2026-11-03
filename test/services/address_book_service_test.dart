@@ -5,8 +5,10 @@ import 'package:mockito/mockito.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/isar/models/contact_entry.dart';
 import 'package:stackwallet/services/address_book_service.dart';
+import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 
 class _TestAddressBookService extends AddressBookService {
   final writes = <ContactEntry>[];
@@ -28,6 +30,24 @@ class _TestWallet extends Mock implements Wallet {
 
   @override
   Future<Address?> getCurrentReceivingAddress() => loadAddress();
+}
+
+class _TestSparkWallet extends Mock
+    implements Wallet<Firo>, SparkInterface<Firo> {
+  _TestSparkWallet({required this.info});
+
+  @override
+  final WalletInfo info;
+
+  @override
+  bool get isViewOnly => false;
+
+  @override
+  Future<Address?> getCurrentReceivingSparkAddress() async => null;
+
+  @override
+  Future<Address> generateNextSparkAddress({required bool saveToDB}) =>
+      throw Exception("spark address generation failed");
 }
 
 WalletInfo _walletInfo(String id) => WalletInfo(
@@ -66,6 +86,30 @@ void main() {
     expect(service.writes.single.addresses.map((e) => e.address), [
       "address-good",
       "cached-failing",
+    ]);
+  });
+
+  test("leaves out a Spark wallet whose Spark address fails", () async {
+    final service = _TestAddressBookService();
+    final goodWallet = _TestWallet(
+      info: _walletInfo("good"),
+      loadAddress: () async => _address("good"),
+    );
+    final sparkWallet = _TestSparkWallet(
+      info: WalletInfo(
+        walletId: "firo",
+        name: "firo",
+        mainAddressType: AddressType.p2pkh,
+        coinName: "firo",
+        cachedReceivingAddress: "transparent-firo",
+      ),
+    );
+
+    await service.updateMyStackContact([goodWallet, sparkWallet]);
+
+    expect(service.writes, hasLength(1));
+    expect(service.writes.single.addresses.map((e) => e.address), [
+      "address-good",
     ]);
   });
 
