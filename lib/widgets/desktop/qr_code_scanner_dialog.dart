@@ -36,10 +36,12 @@ class QrCodeScannerDialog extends StatefulWidget {
 }
 
 class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
-  final CameraLinux? _cameraLinuxPlugin =
-      Platform.isLinux ? CameraLinux() : null;
-  final CameraWindows? _cameraWindowsPlugin =
-      Platform.isWindows ? CameraWindows() : null;
+  final CameraLinux? _cameraLinuxPlugin = Platform.isLinux
+      ? CameraLinux()
+      : null;
+  final CameraWindows? _cameraWindowsPlugin = Platform.isWindows
+      ? CameraWindows()
+      : null;
   bool _isCameraOpen = false;
   Image? _image;
   bool _isScanning = false;
@@ -73,7 +75,8 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
           unawaited(_captureAndScanImage());
         } else if (mounted) {
           setState(() {
-            _cameraError = "Unable to open the camera"
+            _cameraError =
+                "Unable to open the camera"
                 "${_initError == null ? "" : " ($_initError)"}. You can "
                 "still use \"Select file\" to scan a QR code image.";
           });
@@ -88,8 +91,8 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
         await _cameraLinuxPlugin.initializeCamera();
         Logging.instance.d("Linux Camera initialized");
       } else if (Platform.isWindows && _cameraWindowsPlugin != null) {
-        final List<CameraDescription> cameras =
-            await _cameraWindowsPlugin.availableCameras();
+        final List<CameraDescription> cameras = await _cameraWindowsPlugin
+            .availableCameras();
         if (cameras.isEmpty) {
           throw CameraException('No cameras available', 'No cameras found.');
         }
@@ -124,12 +127,15 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
               );
               // The plugin reports the preview size through this event,
               // which it adds before initializeCamera() returns.
-              final initialized =
-                  _cameraWindowsPlugin.onCameraInitialized(_cameraId).first;
+              final initialized = _cameraWindowsPlugin
+                  .onCameraInitialized(_cameraId)
+                  .first;
               await _cameraWindowsPlugin.initializeCamera(_cameraId);
               final event = await initialized;
-              _windowsPreviewSize =
-                  Size(event.previewWidth, event.previewHeight);
+              _windowsPreviewSize = Size(
+                event.previewWidth,
+                event.previewHeight,
+              );
               opened = true;
               break;
             } on CameraException catch (e) {
@@ -166,12 +172,11 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
           throw Exception('No cameras available');
         }
         _macOSDeviceId = videoDevices.first.deviceId;
-        await CameraMacOS.instance
-            .initialize(cameraMacOSMode: CameraMacOSMode.photo);
-
-        Logging.instance.d(
-          "macOS Camera initialized with ID: $_macOSDeviceId",
+        await CameraMacOS.instance.initialize(
+          cameraMacOSMode: CameraMacOSMode.photo,
         );
+
+        Logging.instance.d("macOS Camera initialized with ID: $_macOSDeviceId");
       }
 
       return true;
@@ -211,11 +216,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
         // }
       }
     } catch (e, s) {
-      Logging.instance.e(
-        "Failed to stop camera",
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.e("Failed to stop camera", error: e, stackTrace: s);
     }
   }
 
@@ -245,7 +246,8 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
       // toImage() rounds each side up, and the laid-out box is rarely exactly
       // the camera's aspect ratio, so take the smaller ratio and stay a hair
       // under it. Otherwise a 640x480 camera can come back as 640x481.
-      pixelRatio = min(
+      pixelRatio =
+          min(
             preview.width * fit / boundary.size.width,
             preview.height * fit / boundary.size.height,
           ) *
@@ -539,8 +541,9 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
                         }
 
                         try {
-                          final img.Image? image =
-                              img.decodeImage(File(filePath).readAsBytesSync());
+                          final img.Image? image = img.decodeImage(
+                            File(filePath).readAsBytesSync(),
+                          );
                           if (image == null) {
                             await showFloatingFlushBar(
                               type: FlushBarType.info,
@@ -573,8 +576,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
                           if (context.mounted) {
                             await showFloatingFlushBar(
                               type: FlushBarType.info,
-                              message:
-                                  "Error processing the image. Please try again.",
+                              message: "Error processing the image. Please try again.",
                               iconAsset: Assets.svg.file,
                               context: context,
                             );

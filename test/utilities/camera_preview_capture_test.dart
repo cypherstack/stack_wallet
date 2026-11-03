@@ -52,8 +52,9 @@ class _QrPainter extends CustomPainter {
 }
 
 void main() {
-  testWidgets("reads a QR code back from a mirrored preview capture",
-      (tester) async {
+  testWidgets("reads a QR code back from a mirrored preview capture", (
+    tester,
+  ) async {
     final matrix = Encoder.encode(_text, ErrorCorrectionLevel.m).matrix!;
     final modules = [
       for (var y = 0; y < matrix.height; y++)
@@ -84,8 +85,9 @@ void main() {
     final (width, height, rgba) = (await tester.runAsync(() async {
       final frame = await boundary.toImage(pixelRatio: 2);
       try {
-        final bytes =
-            await frame.toByteData(format: ui.ImageByteFormat.rawRgba);
+        final bytes = await frame.toByteData(
+          format: ui.ImageByteFormat.rawRgba,
+        );
         return (frame.width, frame.height, bytes!.buffer.asUint8List());
       } finally {
         frame.dispose();
@@ -95,8 +97,11 @@ void main() {
     expect((width, height), (side * 2, side * 2));
     expect(blankPreviewFrame(rgba), isNull);
 
-    final image =
-        imageFromMirroredPreviewRgba(rgba, width: width, height: height);
+    final image = imageFromMirroredPreviewRgba(
+      rgba,
+      width: width,
+      height: height,
+    );
 
     // The marker is back in the top-left once flipped.
     final marker = image.getPixel(4, 4);
@@ -113,8 +118,9 @@ void main() {
     expect(result.text, _text);
   });
 
-  testWidgets("sees a capture with nothing painted as transparent",
-      (tester) async {
+  testWidgets("sees a capture with nothing painted as transparent", (
+    tester,
+  ) async {
     final key = GlobalKey();
     await tester.pumpWidget(
       Center(
@@ -130,8 +136,9 @@ void main() {
     final rgba = (await tester.runAsync(() async {
       final frame = await boundary.toImage();
       try {
-        final bytes =
-            await frame.toByteData(format: ui.ImageByteFormat.rawRgba);
+        final bytes = await frame.toByteData(
+          format: ui.ImageByteFormat.rawRgba,
+        );
         return bytes!.buffer.asUint8List();
       } finally {
         frame.dispose();
