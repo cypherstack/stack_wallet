@@ -176,9 +176,8 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
     if (ref.read(prevDesktopMenuItemProvider.state).state ==
             DesktopMenuItemId.myStack &&
         ref.read(prevDesktopMenuItemProvider.state).state == newKey) {
-      Navigator.of(
-        myStackViewNavKey.currentContext!,
-      ).popUntil(ModalRoute.withName(MyStackView.routeName));
+      Navigator.of(myStackViewNavKey.currentContext!)
+          .popUntil(ModalRoute.withName(MyStackView.routeName));
       if (ref.read(currentWalletIdProvider.state).state != null) {
         final wallet = ref
             .read(pWallets)
