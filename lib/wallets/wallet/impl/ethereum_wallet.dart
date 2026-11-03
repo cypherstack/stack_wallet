@@ -1,16 +1,20 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:decimal/decimal.dart';
 import 'package:ethereum_addresses/ethereum_addresses.dart';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart';
+import 'package:http/io_client.dart';
 import 'package:isar_community/isar.dart';
+import 'package:socks5_proxy/socks.dart';
 import 'package:wallet/wallet.dart' as eth_wallet;
 import 'package:web3dart/json_rpc.dart' show RPCError;
 import 'package:web3dart/web3dart.dart' as web3;
 
+import '../../../app_config.dart';
 import '../../../dto/ethereum/eth_tx_dto.dart';
+import '../../../exceptions/wallet/node_tor_mismatch_config_exception.dart';
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
@@ -21,9 +25,12 @@ import '../../../models/paymint/fee_object_model.dart';
 import '../../../services/ethereum/ethereum_api.dart';
 import '../../../services/event_bus/events/global/updated_in_background_event.dart';
 import '../../../services/event_bus/global_event_bus.dart';
+import '../../../services/tor_service.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/eth_commons.dart';
 import '../../../utilities/logger.dart';
+import '../../../utilities/prefs.dart';
+import '../../../utilities/tor_plain_net_option_enum.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/bip39_wallet.dart';
@@ -85,8 +92,6 @@ Future<List<TransactionV2>> findReplacedPendingEthereumTransactions({
   return replacedTransactions;
 }
 
-// Eth can not use tor with web3dart
-
 @visibleForTesting
 ({BigInt maxFeePerGas, BigInt maxPriorityFeePerGas}) resolveEip1559FeeCaps({
   required BigInt baseFee,
@@ -144,10 +149,45 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
   web3.Web3Client getEthClient() {
     final node = getCurrentNode();
 
-    // Eth can not use tor with web3dart as Client does not support proxies
-    final client = Client();
+    final netOption = TorPlainNetworkOption.fromNodeData(
+      node.torEnabled,
+      node.clearnetEnabled,
+    );
 
-    return web3.Web3Client(node.host, client);
+    if (prefs.useTor) {
+      if (netOption == TorPlainNetworkOption.clear) {
+        throw NodeTorMismatchConfigException(
+          message: "TOR enabled but node set to clearnet only",
+        );
+      }
+    } else {
+      if (netOption == TorPlainNetworkOption.tor) {
+        throw NodeTorMismatchConfigException(
+          message: "TOR off but node set to TOR only",
+        );
+      }
+    }
+
+    return createWeb3Client(node.host, prefs, TorService.sharedInstance);
+  }
+
+  // static helper function for building a web3 client, proxied over tor if
+  // enabled
+  static web3.Web3Client createWeb3Client(
+    String url,
+    Prefs prefs,
+    TorService torService,
+  ) {
+    final httpClient = HttpClient();
+
+    if (AppConfig.hasFeature(AppFeature.tor) && prefs.useTor) {
+      final proxyInfo = torService.getProxyInfo();
+      SocksTCPClient.assignToHttpClient(httpClient, [
+        ProxySettings(proxyInfo.host, proxyInfo.port),
+      ]);
+    }
+
+    return web3.Web3Client(url, IOClient(httpClient));
   }
 
   Amount estimateEthFee(BigInt feeRate, int gasLimit, int decimals) {
@@ -292,8 +332,8 @@ class EthereumWallet extends Bip39Wallet with PrivateKeyInterface {
 
   @override
   Future<bool> pingCheck() async {
-    final web3.Web3Client client = getEthClient();
     try {
+      final client = getEthClient();
       await client.getBlockNumber();
       return true;
     } catch (_) {
