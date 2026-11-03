@@ -75,3 +75,20 @@ img.Image imageFromMirroredPreviewRgba(
     order: img.ChannelOrder.rgba,
   );
 }
+
+/// A 64-bit FNV-1a hash of [rgba], for telling a new camera frame from a
+/// repeat of the last one.
+///
+/// Frames from a live sensor never repeat byte for byte, so two captures
+/// with the same fingerprint mean the preview has stopped updating. This is
+/// a full pass over the buffer; an indexed loop keeps it to a few
+/// milliseconds for a 1280 px frame.
+int previewFrameFingerprint(Uint8List rgba) {
+  var hash = 0xcbf29ce484222325;
+  final length = rgba.length;
+  for (var i = 0; i < length; i++) {
+    hash ^= rgba[i];
+    hash *= 0x100000001b3;
+  }
+  return hash;
+}

@@ -128,4 +128,42 @@ void main() {
       );
     });
   });
+
+  group("previewFrameFingerprint", () {
+    test("is the same for identical frames", () {
+      final a = Uint8List.fromList(
+        List.generate(4 * 64, (i) => (i * 7) & 0xff),
+      );
+      final b = Uint8List.fromList(a);
+      expect(previewFrameFingerprint(a), previewFrameFingerprint(b));
+    });
+
+    test("changes when one byte changes", () {
+      final a = Uint8List.fromList(
+        List.generate(4 * 64, (i) => (i * 7) & 0xff),
+      );
+      final b = Uint8List.fromList(a);
+      b[b.length ~/ 2] ^= 1;
+      expect(previewFrameFingerprint(a), isNot(previewFrameFingerprint(b)));
+    });
+
+    test("changes when a pixel is moved", () {
+      // Same bytes, different order: a plain sum would miss this.
+      final a = _rgba([
+        [1, 2, 3, 255],
+        [4, 5, 6, 255],
+      ]);
+      final b = _rgba([
+        [4, 5, 6, 255],
+        [1, 2, 3, 255],
+      ]);
+      expect(previewFrameFingerprint(a), isNot(previewFrameFingerprint(b)));
+    });
+
+    test("distinguishes frames of different lengths", () {
+      final a = Uint8List(16);
+      final b = Uint8List(20);
+      expect(previewFrameFingerprint(a), isNot(previewFrameFingerprint(b)));
+    });
+  });
 }

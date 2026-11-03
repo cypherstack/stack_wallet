@@ -62,6 +62,14 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
   Size? _windowsPreviewSize;
   bool _loggedBlankWindowsFrame = false;
   bool _hasWindowsFrame = false;
+  // camera_windows keeps showing the last frame after the capture engine
+  // fails, and toImage() keeps returning it. The fingerprint tells a new
+  // frame from a repeat; the error event tells us the camera is gone at once.
+  int? _lastWindowsFrameFingerprint;
+  bool _loggedRepeatedWindowsFrame = false;
+  bool _windowsCameraLost = false;
+  StreamSubscription<CameraErrorEvent>? _windowsErrorSub;
+  bool _cameraStopped = false;
 
   @override
   void initState() {
@@ -171,6 +179,11 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
           await _cameraWindowsPlugin.dispose(_cameraId);
           return false;
         }
+        // The plugin's only closing event comes from our own dispose(), so
+        // the error event is the one that matters.
+        _windowsErrorSub = _cameraWindowsPlugin
+            .onCameraError(_cameraId)
+            .listen((e) => _onWindowsCameraLost(e.description));
         Logging.instance.d(
           "Windows Camera initialized with ID: $_cameraId, "
           "preview $_windowsPreviewSize",
@@ -228,27 +241,56 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
     return false;
   }
 
-  /// Shows an error once no usable frame has arrived for [_frameTimeout].
+  /// Shows an error once no new frame has arrived for [_frameTimeout].
   void _checkFrameTimeout() {
     if (_sinceLastFrame.elapsed >= _frameTimeout &&
         _cameraError == null &&
         mounted) {
       setState(() {
         _cameraError =
-            "The camera is not returning images. You can still "
+            "The camera preview has stopped updating. You can still "
             "use \"Select file\" to scan a QR code image.";
       });
     }
   }
 
+  /// The plugin reported a capture engine error. Its preview keeps the last
+  /// frame and it never restarts the stream, so stop scanning and say so now
+  /// rather than waiting for the frame timeout.
+  void _onWindowsCameraLost(String description) {
+    // The engine can report one failure several times, and an event already
+    // queued can still arrive after the dialog started closing.
+    if (_windowsCameraLost || !_isScanning) return;
+    _windowsCameraLost = true;
+    _isScanning = false;
+    Logging.instance.w("Windows camera error: $description");
+    // FormatMessage text ends in ".\r\n", and unknown errors come through
+    // empty.
+    final detail = description.trim().replaceFirst(RegExp(r"\.$"), "");
+    if (!mounted) return;
+    setState(() {
+      _cameraError =
+          "The camera stopped working"
+          "${detail.isEmpty ? "" : " ($detail)"}. Close and reopen the "
+          "scanner to try again, or use \"Select file\" to scan a QR code "
+          "image.";
+    });
+  }
+
   Future<void> _stopCamera() async {
     _isScanning = false;
+    // Runs from PopScope and from dispose(); the second call has nothing to
+    // do.
+    if (_cameraStopped) return;
+    _cameraStopped = true;
 
     try {
       if (Platform.isLinux && _cameraLinuxPlugin != null) {
         _cameraLinuxPlugin!.stopCamera();
         Logging.instance.d("Linux Camera stopped");
       } else if (Platform.isWindows && _cameraWindowsPlugin != null) {
+        await _windowsErrorSub?.cancel();
+        _windowsErrorSub = null;
         // if (_cameraId >= 0) {
         await _cameraWindowsPlugin.dispose(_cameraId);
         Logging.instance.d("Windows Camera stopped with ID: $_cameraId");
@@ -270,8 +312,16 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
     }
   }
 
+  @override
+  void dispose() {
+    // PopScope normally gets here first; this covers a route removed without
+    // a pop.
+    unawaited(_stopCamera());
+    super.dispose();
+  }
+
   /// Grabs the frame the Windows preview is showing, in memory. Returns null
-  /// when there is nothing to scan yet.
+  /// when there is nothing to scan yet, or nothing new since the last call.
   Future<img.Image?> _captureWindowsPreviewFrame() async {
     final boundary = _windowsPreviewKey.currentContext?.findRenderObject();
     // Not laid out or painted yet, e.g. just after the camera opened.
@@ -332,6 +382,21 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
       return null;
     }
     _loggedBlankWindowsFrame = false;
+
+    // A repeat of the last capture means the preview has stopped updating,
+    // so treat it like no frame and let the frame timeout notice.
+    final fingerprint = previewFrameFingerprint(rgba);
+    if (fingerprint == _lastWindowsFrameFingerprint) {
+      if (!_loggedRepeatedWindowsFrame) {
+        _loggedRepeatedWindowsFrame = true;
+        Logging.instance.w(
+          "Windows camera preview frame has not changed, waiting for a new one",
+        );
+      }
+      return null;
+    }
+    _lastWindowsFrameFingerprint = fingerprint;
+    _loggedRepeatedWindowsFrame = false;
 
     // camera_windows mirrors the preview, so flip it back for zxing.
     return imageFromMirroredPreviewRgba(rgba, width: width, height: height);
