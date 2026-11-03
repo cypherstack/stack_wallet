@@ -12,9 +12,11 @@ import 'package:stackwallet/pages/salvium_stake/salvium_create_stake_view.dart';
 import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_send.dart';
 import 'package:stackwallet/providers/global/locale_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
+import 'package:stackwallet/providers/global/price_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/providers/ui/preview_tx_button_state_provider.dart';
 import 'package:stackwallet/services/locale_service.dart';
+import 'package:stackwallet/services/price_service.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
@@ -121,6 +123,10 @@ void main() {
           pWalletBalance(walletId)
               .overrideWithValue(Balance.zeroFor(currency: coin)),
           prefsChangeNotifierProvider.overrideWithValue(prefs),
+          // This fixture checks amount formatting, without background polling.
+          priceAnd24hChangeNotifierProvider.overrideWithValue(
+            PriceService('USD'),
+          ),
           localeServiceChangeNotifierProvider.overrideWithValue(locale),
           themeProvider.overrideWithProvider(StateProvider((ref) => theme)),
           coinIconProvider(coin).overrideWithValue(
