@@ -16,7 +16,7 @@ final pAllWalletsInfo = Provider((ref) {
   final results = ref.watch(_pAllWalletsInfo.select((value) => value.value));
 
   if (duress) {
-    results.retainWhere((e) => e.isDuressVisible);
+    return results.where((e) => e.isDuressVisible).toList();
   }
 
   return results;
