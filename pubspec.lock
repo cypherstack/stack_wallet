@@ -244,19 +244,18 @@ packages:
     dependency: "direct main"
     description:
       name: camera_platform_interface
-      sha256: "98cfc9357e04bad617671b4c1f78a597f25f08003089dd94050709ae54effc63"
+      sha256: b3083b183ef1daa408d5f0c98c8c7ac0325b490695fb4557ff4210fcf04c5984
       url: "https://pub.dev"
     source: hosted
-    version: "2.12.0"
+    version: "2.15.0"
   camera_windows:
     dependency: "direct main"
     description:
-      path: "packages/camera/camera_windows"
-      ref: HEAD
-      resolved-ref: "9bfbfd643ba4e6865ec34124e42a1cc502c400c0"
-      url: "https://github.com/cypherstack/packages.git"
-    source: git
-    version: "0.2.4"
+      name: camera_windows
+      sha256: "05c322203f66fa68953378398542865606543f294395fbbb055b4ea8f089e39b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.0+1"
   cbor:
     dependency: "direct main"
     description:

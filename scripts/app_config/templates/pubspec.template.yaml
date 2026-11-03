@@ -245,10 +245,7 @@ dependencies:
       url: https://github.com/cypherstack/camera-linux
       ref: ecb412474c5d240347b04ac1eb9f019802ff7034
   zxing2: ^0.2.3
-  camera_windows:
-    git: # TODO [prio=low]: Revert to official after https://github.com/flutter/packages/pull/7067.
-      url: https://github.com/cypherstack/packages.git
-      path: packages/camera/camera_windows
+  camera_windows: ^0.3.0+1
   camera_platform_interface: ^2.8.0
   camera_macos: ^0.1.1
   blockchain_utils: ^3.3.0
