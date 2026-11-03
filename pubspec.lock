@@ -227,11 +227,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: ecb412474c5d240347b04ac1eb9f019802ff7034
-      resolved-ref: ecb412474c5d240347b04ac1eb9f019802ff7034
-      url: "https://github.com/cypherstack/camera-linux"
+      ref: "3685399f595ceee99f8deb8943e7147f604b59bb"
+      resolved-ref: "3685399f595ceee99f8deb8943e7147f604b59bb"
+      url: "https://github.com/sneurlax/camera-linux"
     source: git
-    version: "0.0.8"
+    version: "0.1.0"
   camera_macos:
     dependency: "direct main"
     description:
