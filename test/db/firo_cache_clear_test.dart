@@ -385,6 +385,70 @@ void main() {
   );
 
   test(
+    'a checkpoint from before a full reset reads the whole new set',
+    () async {
+      final db = sqlite3.open('${cache.path}/spark_set_v2.sqlite3');
+      db.execute('''
+      INSERT INTO SparkSet (blockHash, setHash, groupId, size)
+      VALUES ('old', 'old', 1, 1);
+      INSERT INTO SparkCoin (serialized, txHash, context, groupId)
+      VALUES ('known', 'tx', 'context', 1);
+      INSERT INTO SparkSetCoins (setId, coinId) VALUES (1, 1);
+    ''');
+      db.close();
+      // Nothing newer than the checkpoint exists yet.
+      expect(
+        await FiroCacheCoordinator.getSetCoinsForGroupId(
+          1,
+          afterBlockHash: 'old',
+          network: network,
+        ),
+        isEmpty,
+      );
+
+      await FiroCacheCoordinator.clearSharedCache(network);
+      final client = _SetClient();
+      final fetch =
+          FiroCacheCoordinator.runFetchAndUpdateSparkAnonSetCacheForGroupId(
+            1,
+            client,
+            network,
+            null,
+          );
+      await client.started.future;
+      client.releaseMeta(size: 2);
+      await client.sectorStarted.future;
+      client.sectorResponse.complete([
+        ['known', 'tx', 'context'],
+        ['received', 'tx2', 'context'],
+      ]);
+      await fetch;
+
+      // The rebuilt cache no longer holds the wallet's checkpoint hash. The
+      // wallet advances its checkpoint after this read, so it must see every
+      // coin rather than none.
+      final coins = await FiroCacheCoordinator.getSetCoinsForGroupId(
+        1,
+        afterBlockHash: 'old',
+        network: network,
+      );
+      expect(
+        coins.map((e) => e.serialized),
+        unorderedEquals(['known', 'received']),
+      );
+      // A checkpoint the cache does know still reads incrementally.
+      expect(
+        await FiroCacheCoordinator.getSetCoinsForGroupId(
+          1,
+          afterBlockHash: 'block',
+          network: network,
+        ),
+        isEmpty,
+      );
+    },
+  );
+
+  test(
     'concurrent reset requests finish with readable empty databases',
     () async {
       await Future.wait([

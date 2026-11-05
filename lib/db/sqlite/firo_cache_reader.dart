@@ -40,6 +40,9 @@ abstract class _Reader {
     String blockHash, {
     required Database db,
   }) async {
+    // A full reset rebuilds SparkSet, so a wallet's checkpoint hash may no
+    // longer exist. The wallet advances its checkpoint after this read, so an
+    // unknown hash must return the whole set rather than nothing.
     const query = """
         WITH TargetBlock AS (
           SELECT id
@@ -49,7 +52,7 @@ abstract class _Reader {
         TargetSets AS (
           SELECT id AS setId
           FROM SparkSet
-          WHERE groupId = ? AND id > (SELECT id FROM TargetBlock)
+          WHERE groupId = ? AND id > COALESCE((SELECT id FROM TargetBlock), 0)
         )
         SELECT 
           SparkCoin.serialized,
