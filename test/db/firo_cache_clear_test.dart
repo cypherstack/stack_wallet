@@ -328,6 +328,63 @@ void main() {
   });
 
   test(
+    'full reset recovery retains its scope and restores set writes',
+    () async {
+      final db = sqlite3.open('${cache.path}/spark_set_v2.sqlite3');
+      db.execute('''
+        INSERT INTO SparkSet (blockHash, setHash, groupId, size)
+        VALUES ('old', 'old', 1, 0);
+      ''');
+      db.close();
+      final obstruction = Directory('${cache.path}/spark_reset_main.pending');
+      await obstruction.create();
+      try {
+        await expectLater(
+          FiroCacheCoordinator.clearSharedCache(network),
+          throwsA(isA<FileSystemException>()),
+        );
+        await expectLater(
+          FiroCacheCoordinator.getUsedCoinTagsCount(network),
+          throwsA(isA<FileSystemException>()),
+        );
+      } finally {
+        await obstruction.delete();
+      }
+
+      // A read must recover the full reset, including removal of the old set.
+      await empty();
+      final client = _SetClient();
+      final fetch =
+          FiroCacheCoordinator.runFetchAndUpdateSparkAnonSetCacheForGroupId(
+            1,
+            client,
+            network,
+            null,
+          );
+      await client.started.future;
+      client.releaseMeta();
+      await client.sectorStarted.future;
+      client.sectorResponse.complete([
+        ['fresh', 'tx', 'context'],
+      ]);
+      await fetch;
+
+      // Successful recovery must also retire the remembered full-reset intent.
+      await FiroCacheCoordinator.clearSharedCache(
+        network,
+        clearOnlyUsedTagsCache: true,
+      );
+      expect(
+        (await FiroCacheCoordinator.getSetCoinsForGroupId(
+          1,
+          network: network,
+        )).single.serialized,
+        'fresh',
+      );
+    },
+  );
+
+  test(
     'concurrent reset requests finish with readable empty databases',
     () async {
       await Future.wait([

@@ -64,6 +64,7 @@ abstract class FiroCacheCoordinator {
   static final Map<CryptoCurrencyNetwork, _CacheEpoch> _tagEpochs = {};
   static final Map<CryptoCurrencyNetwork, Future<void>> _resets = {};
   static final Map<CryptoCurrencyNetwork, Object> _resetErrors = {};
+  static final Set<CryptoCurrencyNetwork> _pendingFullResets = {};
   static bool _closing = false;
 
   static Future<void>? _initFuture;
@@ -157,11 +158,13 @@ abstract class FiroCacheCoordinator {
     CryptoCurrencyNetwork network, {
     required bool clearSets,
   }) async {
+    // Record intent inside the reset lock before filesystem access can fail.
+    if (clearSets) _pendingFullResets.add(network);
     final dir = await StackFileSystem.applicationFiroCacheSQLiteDirectory();
     final marker = File('${dir.path}/${_FiroCache.resetMarkerName(network)}');
     // Preserve an earlier interrupted full reset when retrying a tags reset.
     final resetSets =
-        clearSets ||
+        _pendingFullResets.contains(network) ||
         (await marker.exists() &&
             (await marker.readAsString()).trim() != 'tags-v1');
     if (resetSets && !clearSets) _invalidate(_setEpochs, network);
@@ -189,6 +192,7 @@ abstract class FiroCacheCoordinator {
       mode: OpenMode.readWrite,
     );
     await marker.delete();
+    _pendingFullResets.remove(network);
     _resetErrors.remove(network);
   }
 
