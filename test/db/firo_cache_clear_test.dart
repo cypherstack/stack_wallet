@@ -448,6 +448,34 @@ void main() {
     },
   );
 
+  test('a checkpoint hash stored under another group is ignored', () async {
+    final db = sqlite3.open('${cache.path}/spark_set_v2.sqlite3');
+    db.execute('''
+      INSERT INTO SparkSet (blockHash, setHash, groupId, size)
+      VALUES ('new', 'new', 1, 1), ('old', 'old', 2, 1);
+      INSERT INTO SparkCoin (serialized, txHash, context, groupId)
+      VALUES ('received', 'tx', 'context', 1), ('other', 'tx2', 'context', 2);
+      INSERT INTO SparkSetCoins (setId, coinId) VALUES (1, 1), (2, 2);
+    ''');
+    db.close();
+    // Group 1 no longer holds the wallet's checkpoint hash. Another group
+    // holding that hash must not set the cutoff for group 1.
+    final coins = await FiroCacheCoordinator.getSetCoinsForGroupId(
+      1,
+      afterBlockHash: 'old',
+      network: network,
+    );
+    expect(coins.map((e) => e.serialized), ['received']);
+    expect(
+      await FiroCacheCoordinator.getSetCoinsForGroupId(
+        2,
+        afterBlockHash: 'old',
+        network: network,
+      ),
+      isEmpty,
+    );
+  });
+
   test(
     'concurrent reset requests finish with readable empty databases',
     () async {

@@ -47,7 +47,7 @@ abstract class _Reader {
         WITH TargetBlock AS (
           SELECT id
           FROM SparkSet
-          WHERE blockHash = ?
+          WHERE blockHash = ? AND groupId = ?
         ),
         TargetSets AS (
           SELECT id AS setId
@@ -64,7 +64,7 @@ abstract class _Reader {
         WHERE SparkSetCoins.setId IN (SELECT setId FROM TargetSets);
     """;
 
-    return db.select("$query;", [blockHash, groupId]);
+    return db.select("$query;", [blockHash, groupId, groupId]);
   }
 
   static Future<bool> _checkSetInfoForGroupIdExists(
