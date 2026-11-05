@@ -313,6 +313,14 @@ class _CountryDropdown extends StatelessWidget {
     required this.onChanged,
   });
 
+  // Cake Pay lists the United States under multiple country names.
+  static const _usCountryAliases = {
+    "us",
+    "usa",
+    "united states",
+    "united states of america",
+  };
+
   final List<String> countryNames;
   final String? selectedCountry;
   final TextEditingController searchController;
@@ -406,12 +414,14 @@ class _CountryDropdown extends StatelessWidget {
               ),
             ),
             searchMatchFn: (item, searchValue) {
-              if (item.value == null) {
-                return "all countries".contains(searchValue.toLowerCase());
-              }
-              return item.value!.toLowerCase().contains(
-                searchValue.toLowerCase(),
-              );
+              final country = (item.value ?? "all countries")
+                  .trim()
+                  .toLowerCase();
+              final query = searchValue.trim().toLowerCase();
+
+              return country.contains(query) ||
+                  (_usCountryAliases.contains(country) &&
+                      _usCountryAliases.any((alias) => alias.contains(query)));
             },
           ),
           menuItemStyleData: const MenuItemStyleData(
