@@ -777,9 +777,9 @@ abstract class Wallet<T extends CryptoCurrency> {
             final wallet = mainDB.isar.walletInfo
                 .where()
                 .walletIdEqualTo(id)
-                .findFirstSync()!;
+                .findFirstSync();
 
-            if (wallet.coin == cryptoCurrency) {
+            if (wallet?.coin == cryptoCurrency) {
               walletIds.add(id);
             }
           }
