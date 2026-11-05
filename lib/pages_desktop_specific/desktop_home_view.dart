@@ -27,6 +27,7 @@ import '../utilities/enums/backup_frequency_type.dart';
 import '../utilities/idle_monitor.dart';
 import '../utilities/prefs.dart';
 import '../widgets/background.dart';
+import '../widgets/onetime_popups/native_library_warning_dialog.dart';
 import 'address_book_view/desktop_address_book.dart';
 import 'desktop_buy/desktop_buy_view.dart';
 import 'desktop_exchange/desktop_exchange_view.dart';
@@ -109,6 +110,10 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
     // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
     //   showOneTimeTorHasBeenAddedDialogIfRequired(context);
     // });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(showNativeLibraryWarningIfRequired(context));
+    });
 
     super.initState();
   }
