@@ -33,6 +33,7 @@ import '../../themes/stack_colors.dart';
 import '../../themes/theme_providers.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
+import '../../utilities/amount/fee_rate_formatter.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
@@ -688,6 +689,8 @@ class _ConfirmTransactionViewState
       amountWithoutChange = widget.txData.amountWithoutChange!;
     }
 
+    final feeRate = formatApproximateFeeRate(fee?.raw, widget.txData.vSize);
+
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(
@@ -889,9 +892,8 @@ class _ConfirmTransactionViewState
                         ],
                       ),
                     ),
-                  if (widget.txData.fee != null && widget.txData.vSize != null)
-                    const SizedBox(height: 12),
-                  if (widget.txData.fee != null && widget.txData.vSize != null)
+                  if (feeRate != null) const SizedBox(height: 12),
+                  if (feeRate != null)
                     RoundedWhiteContainer(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -902,7 +904,7 @@ class _ConfirmTransactionViewState
                           ),
                           const SizedBox(height: 4),
                           SelectableText(
-                            "~${fee!.raw.toInt() ~/ widget.txData.vSize!}",
+                            feeRate,
                             style: STextStyles.itemSubtitle12(context),
                           ),
                         ],
@@ -1505,10 +1507,7 @@ class _ConfirmTransactionViewState
                   ),
                 ),
               ),
-            if (isDesktop &&
-                !widget.isPaynymTransaction &&
-                widget.txData.fee != null &&
-                widget.txData.vSize != null)
+            if (isDesktop && !widget.isPaynymTransaction && feeRate != null)
               Padding(
                 padding: const EdgeInsets.only(left: 32),
                 child: Text(
@@ -1516,10 +1515,7 @@ class _ConfirmTransactionViewState
                   style: STextStyles.desktopTextExtraExtraSmall(context),
                 ),
               ),
-            if (isDesktop &&
-                !widget.isPaynymTransaction &&
-                widget.txData.fee != null &&
-                widget.txData.vSize != null)
+            if (isDesktop && !widget.isPaynymTransaction && feeRate != null)
               Padding(
                 padding: const EdgeInsets.only(top: 10, left: 32, right: 32),
                 child: RoundedContainer(
@@ -1531,7 +1527,7 @@ class _ConfirmTransactionViewState
                       .extension<StackColors>()!
                       .textFieldDefaultBG,
                   child: SelectableText(
-                    "~${fee!.raw.toInt() ~/ widget.txData.vSize!}",
+                    feeRate,
                     style: STextStyles.itemSubtitle(context),
                   ),
                 ),

@@ -68,8 +68,9 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
   }
 
   late AutoLockInfo _autoLockInfo;
+  late final Prefs _prefs;
   void _prefsTimeoutListener() {
-    final prefs = ref.read(prefsChangeNotifierProvider);
+    final prefs = _prefs;
     if (mounted && prefs.autoLockInfo != _autoLockInfo) {
       _autoLockInfo = prefs.autoLockInfo;
       if (_autoLockInfo.enabled) {
@@ -88,7 +89,8 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
 
   @override
   void initState() {
-    _autoLockInfo = ref.read(prefsChangeNotifierProvider).autoLockInfo;
+    _prefs = ref.read(prefsChangeNotifierProvider);
+    _autoLockInfo = _prefs.autoLockInfo;
     if (_autoLockInfo.enabled) {
       _idleMonitor = IdleMonitor(
         timeout: Duration(minutes: _autoLockInfo.minutes),
@@ -103,7 +105,7 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
     );
     _idleMonitor?.attach();
 
-    ref.read(prefsChangeNotifierProvider).addListener(_prefsTimeoutListener);
+    _prefs.addListener(_prefsTimeoutListener);
 
     // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
     //   showOneTimeTorHasBeenAddedDialogIfRequired(context);
@@ -118,7 +120,7 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
 
   @override
   dispose() {
-    ref.read(prefsChangeNotifierProvider).removeListener(_prefsTimeoutListener);
+    _prefs.removeListener(_prefsTimeoutListener);
     _idleMonitor?.detach();
     super.dispose();
   }
