@@ -141,20 +141,14 @@ class SolanaTokenWallet extends Wallet {
 
       await rpcClient.getLatestBlockhash();
 
-      final recipientTokenAccount = await _findOrDeriveRecipientTokenAccount(
-        recipientAddress: recipientAddress,
+      // Derive the destination locally. A token account reported by the node
+      // could belong to any holder of this mint, so it must never choose
+      // where the transfer goes.
+      final recipientTokenAccount = await _deriveAtaAddress(
+        ownerAddress: recipientAddress,
         mint: tokenMint,
-        rpcClient: rpcClient,
         tokenProgramId: tokenProgramId,
       );
-
-      if (recipientTokenAccount.isEmpty) {
-        throw Exception(
-          "Cannot determine recipient token account for mint $tokenMint. "
-          "Recipient may not have a token account for this mint. "
-          "Please ensure the recipient has initialized an Associated Token Account (ATA) first.",
-        );
-      }
 
       final senderTokenAccountKey = Ed25519HDPublicKey.fromBase58(
         senderTokenAccount,
@@ -300,10 +294,9 @@ class SolanaTokenWallet extends Wallet {
               "Token transaction missing a token program instruction.",
             ),
           );
-      final recipientTokenAccount = await _findOrDeriveRecipientTokenAccount(
-        recipientAddress: txData.recipients!.first.address,
+      final recipientTokenAccount = await _deriveAtaAddress(
+        ownerAddress: txData.recipients!.first.address,
         mint: tokenMint,
-        rpcClient: rpcClient,
         tokenProgramId: tokenProgramId,
       );
 
@@ -353,7 +346,7 @@ class SolanaTokenWallet extends Wallet {
         ];
 
         // Determine if this is a self-transfer.
-        final isToSelf = senderTokenAccount == recipientTokenAccount;
+        final isToSelf = txData.recipients!.first.address == walletAddress;
 
         // Create the temporary transaction record.
         final tempTx = TransactionV2(
@@ -770,38 +763,6 @@ class SolanaTokenWallet extends Wallet {
       Logging.instance.w("$runtimeType _findTokenAccount error: $e");
       return null;
     }
-  }
-
-  Future<String> _findOrDeriveRecipientTokenAccount({
-    required String recipientAddress,
-    required String mint,
-    required RpcClient rpcClient,
-    required String tokenProgramId,
-  }) async {
-    // First, try to find an existing token account
-    final existingAccount = await _findTokenAccount(
-      ownerAddress: recipientAddress,
-      mint: mint,
-      rpcClient: rpcClient,
-    );
-
-    if (existingAccount != null) {
-      Logging.instance.i(
-        "$runtimeType Found existing token account for recipient: $existingAccount",
-      );
-      return existingAccount;
-    }
-
-    // If no existing account found, try to derive the ATA
-    Logging.instance.i(
-      "$runtimeType No existing token account found, deriving ATA for recipient",
-    );
-
-    return await _deriveAtaAddress(
-      ownerAddress: recipientAddress,
-      mint: mint,
-      tokenProgramId: tokenProgramId,
-    );
   }
 
   Future<String> _deriveAtaAddress({

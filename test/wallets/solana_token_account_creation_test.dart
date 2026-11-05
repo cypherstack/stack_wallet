@@ -78,6 +78,19 @@ void main() {
           'rentEpoch': 0,
           'data': ['', 'base64'],
         };
+        // A hostile node reports another holder's account for the recipient.
+        final decoy = await Ed25519HDKeyPair.fromSeedWithHdPath(
+          seed: List.filled(32, 2),
+          hdPath: "m/44'/501'/0'/0'",
+        );
+        final expectedAddress = (await Ed25519HDPublicKey.findProgramAddress(
+          seeds: [
+            Ed25519HDPublicKey.fromBase58(SystemProgram.programId).bytes,
+            Ed25519HDPublicKey.fromBase58(program).bytes,
+            Ed25519HDPublicKey.fromBase58(Token2022Program.programId).bytes,
+          ],
+          programId: AssociatedTokenAccountProgram.id,
+        )).toBase58();
         var mintLookupCount = 0;
         var statusLookupCount = 0;
         late final Isar isar;
@@ -149,18 +162,15 @@ void main() {
                   ? <Map<String, Object>>[
                       {'pubkey': TokenProgram.programId, 'account': account},
                     ]
-                  : scenario.recipientExists
-                  ? <Map<String, Object>>[
-                      {
-                        'pubkey': AssociatedTokenAccountProgram.programId,
-                        'account': account,
-                      },
-                    ]
-                  : <Map<String, Object>>[],
+                  : <Map<String, Object>>[
+                      {'pubkey': decoy.address, 'account': account},
+                    ],
             'getAccountInfo' =>
               (params.first == TokenProgram.programId ||
                       params.first == Token2022Program.programId ||
-                      params.first == AssociatedTokenAccountProgram.programId)
+                      params.first == decoy.address ||
+                      (params.first == expectedAddress &&
+                          scenario.recipientExists))
                   ? account
                   : null,
             'getLatestBlockhash' => {
@@ -254,27 +264,19 @@ void main() {
         final result = await prepared;
         expect(mintLookupCount, 0);
         expect(result.solInstructions!.last.programId.toBase58(), program);
+        // The destination is the recipient's derived ATA whatever token
+        // account the node claims the recipient holds.
+        expect(
+          result.solInstructions!.last.accounts[2].pubKey.toBase58(),
+          expectedAddress,
+          reason: 'A node-reported account must never choose the destination',
+        );
         if (scenario.recipientExists) {
           expect(result.solInstructions, hasLength(1));
-          expect(
-            result.solInstructions!.last.accounts[2].pubKey.toBase58(),
-            AssociatedTokenAccountProgram.programId,
-          );
         } else {
           final creation = result.solInstructions!.first;
           expect(creation.accounts[5].pubKey.toBase58(), program);
-          final expectedAddress = await Ed25519HDPublicKey.findProgramAddress(
-            seeds: [
-              Ed25519HDPublicKey.fromBase58(SystemProgram.programId).bytes,
-              Ed25519HDPublicKey.fromBase58(program).bytes,
-              Ed25519HDPublicKey.fromBase58(Token2022Program.programId).bytes,
-            ],
-            programId: AssociatedTokenAccountProgram.id,
-          );
-          expect(
-            creation.accounts[1].pubKey.toBase58(),
-            expectedAddress.toBase58(),
-          );
+          expect(creation.accounts[1].pubKey.toBase58(), expectedAddress);
         }
         // A trailing instruction must not change which program the pending
         // record derives the recipient account from.
