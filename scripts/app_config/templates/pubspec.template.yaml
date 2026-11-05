@@ -272,7 +272,7 @@ dependencies:
   mobile_app_privacy:
     git:
       url: https://github.com/cypherstack/mobile_app_privacy
-      ref: e60766bc420861b9e8c804627d84cbd570b04ff6
+      ref: 21f95309522dd48face32c0c4a3ca2ac8df092fb
 
   # required for web3dart to use EthereumAddress class...
   wallet: 0.0.18
