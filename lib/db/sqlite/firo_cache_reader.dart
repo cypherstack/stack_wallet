@@ -9,7 +9,8 @@ abstract class _Reader {
     int groupId, {
     required Database db,
   }) async {
-    final query = """
+    final query =
+        """
       SELECT sc.serialized, sc.txHash, sc.context, sc.groupId
       FROM SparkSet AS ss
       JOIN SparkSetCoins AS ssc ON ss.id = ssc.setId
@@ -24,7 +25,8 @@ abstract class _Reader {
     int groupId, {
     required Database db,
   }) async {
-    final query = """
+    final query =
+        """
       SELECT ss.blockHash, ss.setHash, ss.size
       FROM SparkSet ss
       WHERE ss.groupId = $groupId
@@ -71,7 +73,8 @@ abstract class _Reader {
     int groupId, {
     required Database db,
   }) async {
-    final query = """
+    final query =
+        """
       SELECT EXISTS (
         SELECT 1
         FROM SparkSet
@@ -101,9 +104,7 @@ abstract class _Reader {
     return db.select("$query;");
   }
 
-  static Future<ResultSet> _getUsedCoinTagsCount({
-    required Database db,
-  }) async {
+  static Future<ResultSet> _getUsedCoinTagsCount({required Database db}) async {
     const query = """
       SELECT COUNT(*) AS count
       FROM SparkUsedCoinTags;
@@ -118,7 +119,8 @@ abstract class _Reader {
   }) async {
     final tagsConcat = tags.join("', '");
 
-    final query = """
+    final query =
+        """
       SELECT tag, GROUP_CONCAT(txid) AS txids
       FROM SparkUsedCoinTags
       WHERE tag IN ('$tagsConcat') 
@@ -132,7 +134,8 @@ abstract class _Reader {
     String txid, {
     required Database db,
   }) async {
-    final query = """
+    final query =
+        """
       SELECT tag
       FROM SparkUsedCoinTags
       WHERE txid = '$txid';
@@ -145,7 +148,8 @@ abstract class _Reader {
     String tag, {
     required Database db,
   }) async {
-    final query = """
+    final query =
+        """
       SELECT EXISTS (
         SELECT 1
         FROM SparkUsedCoinTags
