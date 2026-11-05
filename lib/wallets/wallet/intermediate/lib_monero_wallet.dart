@@ -731,6 +731,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
 
   @override
   Future<void> exit() async {
+    await super.exit();
     Logging.instance.i("exit called on monero $walletId!");
     if (wallet != null) {
       csMonero.stopAutoSaving(wallet!);

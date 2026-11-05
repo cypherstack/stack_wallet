@@ -17,6 +17,7 @@ import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub
 import 'package:stackwallet/providers/providers.dart';
 import 'package:stackwallet/providers/ui/preview_tx_button_state_provider.dart';
 import 'package:stackwallet/services/openalias/open_alias_service.dart';
+import 'package:stackwallet/services/price_service.dart';
 import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
 import 'package:stackwallet/themes/coin_image_provider.dart';
@@ -236,6 +237,10 @@ class _Harness {
             .overrideWithValue('test/sample_data/light/assets/dummy.svg'),
         coinImageSecondaryProvider(coin).overrideWithValue('dummy.svg'),
         pOpenAliasService.overrideWithValue(service),
+        // Alias resolution tests do not run the application's price timer.
+        priceAnd24hChangeNotifierProvider.overrideWithValue(
+          PriceService('USD'),
+        ),
       ],
     );
     addTearDown(() async {

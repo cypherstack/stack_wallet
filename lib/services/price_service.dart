@@ -31,13 +31,14 @@ class PriceService extends ChangeNotifier {
   final Duration updateInterval = const Duration(seconds: 60);
 
   Timer? _timer;
+  bool _disposed = false;
   final Map<CryptoCurrency, ({Decimal value, double change24h})> _cachedPrices =
       {};
 
   final Map<String, ({Decimal value, double change24h})> _cachedTokenPrices =
       {};
 
-  final _priceAPI = PriceAPI(HTTP());
+  final _priceAPI = PriceAPI(const HTTP());
 
   ({Decimal value, double change24h})? getPrice(CryptoCurrency coin) =>
       _cachedPrices[coin];
@@ -48,9 +49,21 @@ class PriceService extends ChangeNotifier {
   PriceService(this.baseTicker);
 
   Future<void> updatePrice() async {
+    try {
+      await _updatePrice();
+    } catch (_) {
+      // Queries already in flight can fail when their database is closed.
+      // A disposed service has no caller left to receive a polling error.
+      if (!_disposed) rethrow;
+    }
+  }
+
+  Future<void> _updatePrice() async {
+    if (_disposed) return;
     final priceMap = await _priceAPI.getPricesAnd24hChange(
       baseCurrency: baseTicker,
     );
+    if (_disposed) return;
 
     bool shouldNotify = false;
     for (final map in priceMap.entries) {
@@ -61,12 +74,14 @@ class PriceService extends ChangeNotifier {
     }
 
     final _tokenContractAddressesToCheck = await tokenContractAddressesToCheck;
+    if (_disposed) return;
 
     if (_tokenContractAddressesToCheck.isNotEmpty) {
       final tokenPriceMap = await _priceAPI.getPricesAnd24hChangeForEthTokens(
         contractAddresses: _tokenContractAddressesToCheck,
         baseCurrency: baseTicker,
       );
+      if (_disposed) return;
 
       for (final map in tokenPriceMap.entries) {
         if (_cachedTokenPrices[map.key] != map.value) {
@@ -76,13 +91,17 @@ class PriceService extends ChangeNotifier {
       }
     }
 
-    final _solTokenContractAddressesToCheck = await solTokenContractAddressesToCheck;
+    final _solTokenContractAddressesToCheck =
+        await solTokenContractAddressesToCheck;
+    if (_disposed) return;
 
     if (_solTokenContractAddressesToCheck.isNotEmpty) {
-      final solTokenPriceMap = await _priceAPI.getPricesAnd24hChangeForSolTokens(
-        contractAddresses: _solTokenContractAddressesToCheck,
-        baseCurrency: baseTicker,
-      );
+      final solTokenPriceMap = await _priceAPI
+          .getPricesAnd24hChangeForSolTokens(
+            contractAddresses: _solTokenContractAddressesToCheck,
+            baseCurrency: baseTicker,
+          );
+      if (_disposed) return;
 
       for (final map in solTokenPriceMap.entries) {
         if (_cachedTokenPrices[map.key] != map.value) {
@@ -103,6 +122,7 @@ class PriceService extends ChangeNotifier {
   }
 
   void start(bool rightAway) {
+    if (_disposed) return;
     if (rightAway) {
       updatePrice();
     }
@@ -114,6 +134,7 @@ class PriceService extends ChangeNotifier {
 
   @override
   void dispose() {
+    _disposed = true;
     cancel();
     super.dispose();
   }

@@ -61,6 +61,9 @@ class PriceAPI {
   );
 
   static String _lastUsedBaseCurrency = "";
+  // Recreated API instances write the same currency cache,
+  // so request ownership is shared.
+  static final Map<String, Object> _latestRequests = {};
 
   static const Duration refreshIntervalDuration = Duration(
     seconds: refreshInterval,
@@ -77,6 +80,7 @@ class PriceAPI {
 
   Future<void> _updateCachedPrices(
     Map<CryptoCurrency, ({Decimal value, double change24h})> data,
+    String baseCurrency,
   ) async {
     final Map<String, dynamic> map = {};
 
@@ -91,15 +95,22 @@ class PriceAPI {
 
     await DB.instance.put<dynamic>(
       boxName: DB.boxNamePriceCache,
-      key: 'cache',
+      key: _cacheKey(baseCurrency),
       value: map,
     );
   }
 
-  Map<CryptoCurrency, ({Decimal value, double change24h})> get _cachedPrices {
+  String _cacheKey(String baseCurrency) =>
+      'cache_${baseCurrency.toLowerCase()}';
+
+  Map<CryptoCurrency, ({Decimal value, double change24h})> _cachedPrices(
+    String baseCurrency,
+  ) {
     final map =
-        DB.instance.get<dynamic>(boxName: DB.boxNamePriceCache, key: 'cache')
-            as Map? ??
+        DB.instance.get<dynamic>(
+          boxName: DB.boxNamePriceCache,
+          key: _cacheKey(baseCurrency),
+        ) as Map? ??
         {};
     // init with 0
     final Map<CryptoCurrency, ({Decimal value, double change24h})> result = {};
@@ -122,21 +133,25 @@ class PriceAPI {
 
   Future<Map<CryptoCurrency, ({Decimal value, double change24h})>>
   getPricesAnd24hChange({required String baseCurrency}) async {
+    await DB.instance.migrateLegacyPriceCache();
     final now = DateTime.now();
     if (_lastUsedBaseCurrency != baseCurrency ||
         now.difference(_lastCalled) > refreshIntervalDuration) {
       _lastCalled = now;
       _lastUsedBaseCurrency = baseCurrency;
     } else {
-      return _cachedPrices;
+      return _cachedPrices(baseCurrency);
     }
 
     final externalCalls = Prefs.instance.externalCalls;
     if ((!Util.isTestEnv && !externalCalls) ||
         !(await Prefs.instance.isExternalCallsSet())) {
       Logging.instance.i("User does not want to use external calls");
-      return _cachedPrices;
+      return _cachedPrices(baseCurrency);
     }
+    final cacheKey = _cacheKey(baseCurrency);
+    final request = Object();
+    _latestRequests[cacheKey] = request;
     final Map<CryptoCurrency, ({Decimal value, double change24h})> result = {};
     try {
       final uri = Uri.parse(
@@ -188,9 +203,12 @@ class PriceAPI {
       }
 
       // update cache
-      await _updateCachedPrices(result);
+      if (!identical(_latestRequests[cacheKey], request)) {
+        return _cachedPrices(baseCurrency);
+      }
+      await _updateCachedPrices(result, baseCurrency);
 
-      return _cachedPrices;
+      return _cachedPrices(baseCurrency);
     } catch (e, s) {
       Logging.instance.e(
         "getPricesAnd24hChange($baseCurrency): ",
@@ -198,7 +216,7 @@ class PriceAPI {
         stackTrace: s,
       );
       // return previous cached values
-      return _cachedPrices;
+      return _cachedPrices(baseCurrency);
     }
   }
 
