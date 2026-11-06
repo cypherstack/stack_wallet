@@ -27,6 +27,7 @@ import '../../../../utilities/extensions/extensions.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/crypto_currency/coins/firo.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../widgets/hideable_balance.dart';
 import 'desktop_balance_toggle_button.dart';
 
 class FiroDesktopWalletSummary extends ConsumerStatefulWidget {
@@ -194,10 +195,14 @@ class _Balance extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return SelectableText(
-      ref.watch(pAmountFormatter(coin)).format(amount, tokenContract: null),
-      style: STextStyles.desktopH3(context),
-      textAlign: TextAlign.end,
+    return HideableBalance(
+      iconColor: Theme.of(context).extension<StackColors>()!.textDark,
+      iconSize: 24,
+      child: SelectableText(
+        ref.watch(pAmountFormatter(coin)).format(amount, tokenContract: null),
+        style: STextStyles.desktopH3(context),
+        textAlign: TextAlign.end,
+      ),
     );
   }
 }
@@ -218,14 +223,17 @@ class _Price extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.only(left: 16),
-      child: SelectableText(
-        "${Amount.fromDecimal(price * amount.decimal, fractionDigits: 2).fiatString(locale: ref.watch(localeServiceChangeNotifierProvider.select((value) => value.locale)))} "
-        "${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
-        style: STextStyles.desktopTextExtraSmall(context).copyWith(
-          color: Theme.of(context).extension<StackColors>()!.textSubtitle1,
+      child: HideableBalance(
+        iconColor: Theme.of(context).extension<StackColors>()!.textSubtitle1,
+        iconSize: 16,
+        child: SelectableText(
+          "${Amount.fromDecimal(price * amount.decimal, fractionDigits: 2).fiatString(locale: ref.watch(localeServiceChangeNotifierProvider.select((value) => value.locale)))} "
+          "${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
+          style: STextStyles.desktopTextExtraSmall(context).copyWith(
+            color: Theme.of(context).extension<StackColors>()!.textSubtitle1,
+          ),
+          textAlign: TextAlign.end,
         ),
-
-        textAlign: TextAlign.end,
       ),
     );
   }

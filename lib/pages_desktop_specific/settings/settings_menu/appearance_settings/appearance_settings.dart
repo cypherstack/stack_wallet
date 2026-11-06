@@ -14,6 +14,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../../../app_config.dart';
 import '../../../../models/isar/stack_theme.dart';
 import 'sub_widgets/desktop_manage_themes.dart';
@@ -27,6 +28,7 @@ import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../widgets/custom_buttons/draggable_switch_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
+
 import 'package:tuple/tuple.dart';
 
 class AppearanceOptionSettings extends ConsumerStatefulWidget {
@@ -48,9 +50,7 @@ class _AppearanceOptionSettings
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.only(
-              right: 30,
-            ),
+            padding: const EdgeInsets.only(right: 30),
             child: RoundedWhiteContainer(
               radiusMultiplier: 2,
               child: Wrap(
@@ -77,16 +77,17 @@ class _AppearanceOptionSettings
                                 children: [
                                   TextSpan(
                                     text: "Appearances",
-                                    style:
-                                        STextStyles.desktopTextSmall(context),
+                                    style: STextStyles.desktopTextSmall(
+                                      context,
+                                    ),
                                   ),
                                   TextSpan(
                                     text:
                                         "\n\nCustomize how your ${AppConfig.appName} looks according to your preferences.",
                                     style:
                                         STextStyles.desktopTextExtraExtraSmall(
-                                      context,
-                                    ),
+                                          context,
+                                        ),
                                   ),
                                 ],
                               ),
@@ -96,9 +97,7 @@ class _AppearanceOptionSettings
                       ),
                       const Padding(
                         padding: EdgeInsets.all(10.0),
-                        child: Divider(
-                          thickness: 0.5,
-                        ),
+                        child: Divider(thickness: 0.5),
                       ),
                       Padding(
                         padding: const EdgeInsets.all(10.0),
@@ -109,10 +108,10 @@ class _AppearanceOptionSettings
                               "Display favorite wallets",
                               style: STextStyles.desktopTextExtraSmall(context)
                                   .copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark,
-                              ),
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark,
+                                  ),
                               textAlign: TextAlign.left,
                             ),
                             SizedBox(
@@ -126,8 +125,9 @@ class _AppearanceOptionSettings
                                 ),
                                 onValueChanged: (newValue) {
                                   ref
-                                      .read(prefsChangeNotifierProvider)
-                                      .showFavoriteWallets = newValue;
+                                          .read(prefsChangeNotifierProvider)
+                                          .showFavoriteWallets =
+                                      newValue;
                                 },
                               ),
                             ),
@@ -136,9 +136,46 @@ class _AppearanceOptionSettings
                       ),
                       const Padding(
                         padding: EdgeInsets.all(10.0),
-                        child: Divider(
-                          thickness: 0.5,
+                        child: Divider(thickness: 0.5),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Hide balances",
+                              style: STextStyles.desktopTextExtraSmall(context)
+                                  .copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark,
+                                  ),
+                              textAlign: TextAlign.left,
+                            ),
+                            SizedBox(
+                              height: 20,
+                              width: 40,
+                              child: DraggableSwitchButton(
+                                isOn: ref.watch(
+                                  prefsChangeNotifierProvider.select(
+                                    (value) => value.hideBalances,
+                                  ),
+                                ),
+                                onValueChanged: (newValue) {
+                                  ref
+                                          .read(prefsChangeNotifierProvider)
+                                          .hideBalances =
+                                      newValue;
+                                },
+                              ),
+                            ),
+                          ],
                         ),
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.all(10.0),
+                        child: Divider(thickness: 0.5),
                       ),
                       Padding(
                         padding: const EdgeInsets.all(10.0),
@@ -149,10 +186,10 @@ class _AppearanceOptionSettings
                               "Choose theme",
                               style: STextStyles.desktopTextExtraSmall(context)
                                   .copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark,
-                              ),
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark,
+                                  ),
                               textAlign: TextAlign.left,
                             ),
                           ],
@@ -175,9 +212,7 @@ class _AppearanceOptionSettings
 }
 
 class ThemeToggle extends ConsumerStatefulWidget {
-  const ThemeToggle({
-    super.key,
-  });
+  const ThemeToggle({super.key});
 
   @override
   ConsumerState<ThemeToggle> createState() => _ThemeToggle();
@@ -219,8 +254,9 @@ class _ThemeToggle extends ConsumerState<ThemeToggle> {
       }
 
       // apply theme
-      ref.read(themeProvider.notifier).state =
-          ref.read(pThemeService).getTheme(themeId: themeId)!;
+      ref.read(themeProvider.notifier).state = ref
+          .read(pThemeService)
+          .getTheme(themeId: themeId)!;
 
       // Assets.precache(context);
     } else {
@@ -239,8 +275,9 @@ class _ThemeToggle extends ConsumerState<ThemeToggle> {
       ref.read(prefsChangeNotifierProvider.notifier).themeId = themeId;
 
       // apply theme
-      ref.read(themeProvider.notifier).state =
-          ref.read(pThemeService).getTheme(themeId: themeId)!;
+      ref.read(themeProvider.notifier).state = ref
+          .read(pThemeService)
+          .getTheme(themeId: themeId)!;
 
       // Assets.precache(context);
     }
@@ -278,16 +315,20 @@ class _ThemeToggle extends ConsumerState<ThemeToggle> {
   void initState() {
     _updateInstalledList();
 
-    _subscription =
-        ref.read(mainDBProvider).isar.stackThemes.watchLazy().listen((_) {
-      if (mounted) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          setState(() {
-            _updateInstalledList();
-          });
+    _subscription = ref
+        .read(mainDBProvider)
+        .isar
+        .stackThemes
+        .watchLazy()
+        .listen((_) {
+          if (mounted) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              setState(() {
+                _updateInstalledList();
+              });
+            });
+          }
         });
-      }
-    });
 
     super.initState();
   }
@@ -328,27 +369,23 @@ class _ThemeToggle extends ConsumerState<ThemeToggle> {
                             width: 2.5,
                             color: _current == i
                                 ? Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .infoItemIcons
+                                      .extension<StackColors>()!
+                                      .infoItemIcons
                                 : Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .popupBG,
+                                      .extension<StackColors>()!
+                                      .popupBG,
                           ),
                           borderRadius: BorderRadius.circular(
                             Constants.size.circularBorderRadius,
                           ),
                         ),
                         child: SvgPicture.file(
-                          File(
-                            installedThemeIdNames[i].item3,
-                          ),
+                          File(installedThemeIdNames[i].item3),
                           height: 160,
                           width: 200,
                         ),
                       ),
-                      const SizedBox(
-                        height: 12,
-                      ),
+                      const SizedBox(height: 12),
                       Row(
                         children: [
                           SizedBox(
@@ -367,17 +404,15 @@ class _ThemeToggle extends ConsumerState<ThemeToggle> {
                               },
                             ),
                           ),
-                          const SizedBox(
-                            width: 14,
-                          ),
+                          const SizedBox(width: 14),
                           Text(
                             installedThemeIdNames[i].item2,
                             style: STextStyles.desktopTextExtraSmall(context)
                                 .copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textDark,
-                            ),
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark,
+                                ),
                           ),
                         ],
                       ),
