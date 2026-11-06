@@ -1,0 +1,5 @@
+# Pre-fetched dependency caches (large, fetched by supplementary/deps/ scripts)
+depends/
+
+# Build output directories
+guix-build-*/
