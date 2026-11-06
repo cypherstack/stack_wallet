@@ -189,8 +189,17 @@ flutter run linux
 
 #### Linux release bundle preparation
 
-After `flutter build linux --release`, run this from the repository root before
-archiving the bundle or using it to build an AppImage or Flatpak:
+For a release bundle the QR scanner plugin (`camera_linux`) must not depend on
+OpenCV libraries from the user's machine. Build a minimal static OpenCV once, and
+point the Linux build at it (the CI image already has it in `/opt/opencv-static`):
+
+```sh
+scripts/linux/build_opencv_static.sh "$HOME/opencv-static"
+export STACKWALLET_OPENCV_DIR="$HOME/opencv-static/lib/cmake/opencv4"
+```
+
+Then, after `flutter build linux --release`, run this from the repository root
+before archiving the bundle or using it to build an AppImage or Flatpak:
 
 ```sh
 sudo apt-get install binutils patchelf python3
@@ -203,6 +212,12 @@ then checks every ELF in the bundle and fails if any still requests an executabl
 stack. Other libraries are not patched automatically. Ubuntu 24.04's `patchelf`
 supports the required `--clear-execstack` option. CI runs this before producing
 the Linux tarball, so both downstream packagers inherit the prepared bundle.
+
+It also requires `libcamera_linux.so` and `libopencv_wrapper.so` in `lib/`, sets
+their RUNPATH to `$ORIGIN`, and fails unless they need nothing but the bundle and
+baseline libraries (glibc, libstdc++) and load with the symbols the app looks up.
+`--check-only` runs just that check, without patchelf, on any assembled bundle
+such as an AppDir.
 
 Standalone regression tests (also require a C compiler):
 

@@ -15,6 +15,42 @@ finish-args:
   - --talk-name=org.freedesktop.Notifications
 
 modules:
+  - name: opencv
+    buildsystem: cmake-ninja
+    builddir: true
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DBUILD_LIST=core,imgcodecs,imgproc,videoio
+      - -DBUILD_EXAMPLES=OFF
+      - -DBUILD_TESTS=OFF
+      - -DBUILD_PERF_TESTS=OFF
+      - -DBUILD_DOCS=OFF
+      - -DBUILD_opencv_python3=OFF
+      - -DBUILD_opencv_python_bindings_generator=OFF
+      - -DWITH_GTK=OFF
+      - -DWITH_QT=OFF
+      - -DWITH_OPENGL=OFF
+      - -DWITH_OPENCL=OFF
+      - -DWITH_CUDA=OFF
+      - -DWITH_FFMPEG=OFF
+      - -DWITH_GSTREAMER=OFF
+      - -DWITH_V4L=ON
+      # Offline build: the IPP ICV download would fail inside the sandbox.
+      - -DWITH_IPP=OFF
+      - -DBUILD_opencv_apps=OFF
+      # OpenCV defaults to /app/lib64 here; keep it in /app/lib, which is on the
+      # loader path and in the camera-linux RPATH below.
+      - -DOPENCV_LIB_INSTALL_PATH=lib
+    cleanup:
+      - /include
+      - /lib/cmake
+      - /share/opencv4
+    sources:
+      - type: git
+        url: https://github.com/opencv/opencv
+        tag: '4.10.0'
+        commit: 71d3237a093b60a27601c20e9ee6c3e52154e8b1
+
   - name: campfire
     buildsystem: simple
     build-commands:
@@ -31,3 +67,25 @@ modules:
     sources:
       - type: dir
         path: .
+
+  # The SDK links with --as-needed, which would drop libopencv_wrapper.so from
+  # libcamera_linux.so (camera_linux.c calls nothing) and leave the symbols
+  # Dart looks up undefined, so turn it off for this module.
+  - name: camera-linux
+    buildsystem: simple
+    build-commands:
+      - cmake -S src -B _build
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_PREFIX_PATH=/app
+          -DCMAKE_INSTALL_RPATH=/app/lib/campfire/lib:/app/lib
+          -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON
+          -DCMAKE_SHARED_LINKER_FLAGS=-Wl,--no-as-needed
+      - cmake --build _build --parallel
+      - install -Dm755 _build/libopencv_wrapper.so
+          /app/lib/campfire/lib/libopencv_wrapper.so
+      - install -Dm755 _build/libcamera_linux.so
+          /app/lib/campfire/lib/libcamera_linux.so
+    sources:
+      - type: git
+        url: https://github.com/cypherstack/camera-linux
+        commit: ecb412474c5d240347b04ac1eb9f019802ff7034

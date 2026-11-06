@@ -83,9 +83,13 @@ jobs:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
+      - name: Static OpenCV for camera_linux
+        uses: ./.github/actions/static-opencv
+
       - name: Build
         env:
           USE_SYSTEM_SECURE_STORAGE_DEPS: "1"
+          STACKWALLET_OPENCV_DIR: /opt/opencv-static/lib/cmake/opencv4
         run: flutter build linux --release --verbose
 
       - name: Prepare Linux release bundle
@@ -479,9 +483,13 @@ jobs:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
+      - name: Static OpenCV for camera_linux
+        uses: ./.github/actions/static-opencv
+
       - name: Build
         env:
           USE_SYSTEM_SECURE_STORAGE_DEPS: "1"
+          STACKWALLET_OPENCV_DIR: /opt/opencv-static/lib/cmake/opencv4
         run: flutter build linux --release --verbose
 
       - name: Prepare Linux release bundle
@@ -546,9 +554,13 @@ jobs:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
+      - name: Static OpenCV for camera_linux
+        uses: ./.github/actions/static-opencv
+
       - name: Build
         env:
           USE_SYSTEM_SECURE_STORAGE_DEPS: "1"
+          STACKWALLET_OPENCV_DIR: /opt/opencv-static/lib/cmake/opencv4
         run: flutter build linux --release --verbose
 
       - name: Prepare Linux release bundle
@@ -666,6 +678,7 @@ jobs:
           tar -xzf "stack_wallet-linux-x86_64-${VERSION}.tar.gz"
           mkdir -p AppDir
           cp -r bundle/* AppDir/
+          python3 scripts/linux/prepare_release_bundle.py --check-only AppDir
           cp appimage/stack_wallet/AppRun AppDir/AppRun
           chmod +x AppDir/AppRun
           cp appimage/stack_wallet/stack_wallet.desktop AppDir/
@@ -1124,6 +1137,7 @@ jobs:
           tar -xzf "campfire-linux-x86_64-${VERSION}.tar.gz"
           mkdir -p AppDir
           cp -r bundle/* AppDir/
+          python3 scripts/linux/prepare_release_bundle.py --check-only AppDir
           cp appimage/campfire/AppRun AppDir/AppRun
           chmod +x AppDir/AppRun
           cp appimage/campfire/campfire.desktop AppDir/
@@ -1584,6 +1598,7 @@ jobs:
           tar -xzf "stack_duo-linux-x86_64-${VERSION}.tar.gz"
           mkdir -p AppDir
           cp -r bundle/* AppDir/
+          python3 scripts/linux/prepare_release_bundle.py --check-only AppDir
           cp appimage/stack_duo/AppRun AppDir/AppRun
           chmod +x AppDir/AppRun
           cp appimage/stack_duo/stack_duo.desktop AppDir/

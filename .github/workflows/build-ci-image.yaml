@@ -5,6 +5,7 @@ on:
     branches: [main, staging]
     paths:
       - 'Dockerfile'
+      - 'scripts/linux/build_opencv_static.sh'
       - '.github/workflows/build-ci-image.yaml'
   workflow_dispatch:
 
