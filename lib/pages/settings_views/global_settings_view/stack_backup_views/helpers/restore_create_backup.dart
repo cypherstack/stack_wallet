@@ -63,6 +63,7 @@ import '../../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/private_key_interface.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../../../wl_gen/interfaces/frost_interface.dart';
+import 'swb_view_only_recovery_data.dart';
 
 class PreRestoreState {
   final Set<String> walletIds;
@@ -296,9 +297,27 @@ abstract class SWB {
         backupWallet['isFavorite'] = wallet.info.isFavourite;
         backupWallet['otherDataJsonString'] = wallet.info.otherDataJsonString;
 
-        if (wallet is ViewOnlyOptionInterface && wallet.isViewOnly) {
+        SWBViewOnlyRecoveryData? viewOnlyRecoveryData;
+        if (wallet is ViewOnlyOptionInterface) {
+          final rawViewOnlyData = await _secureStore.read(
+            key: Wallet.getViewOnlyWalletDataSecStoreKey(
+              walletId: wallet.walletId,
+            ),
+          );
+          viewOnlyRecoveryData = normalizeSWBViewOnlyRecoveryData(
+            operation: "back up",
+            walletName: wallet.info.name,
+            walletId: wallet.walletId,
+            otherData: wallet.info.otherData,
+            encodedData: rawViewOnlyData,
+          );
+        }
+
+        if (viewOnlyRecoveryData != null) {
           backupWallet['viewOnlyWalletDataKey'] =
-              (await wallet.getViewOnlyWalletData()).toJsonEncodedString();
+              viewOnlyRecoveryData.encodedData;
+          backupWallet['otherDataJsonString'] =
+              viewOnlyRecoveryData.otherDataJsonString;
         } else if (wallet is MnemonicInterface) {
           backupWallet['mnemonic'] = await wallet.getMnemonic();
           backupWallet['mnemonicPassphrase'] = await wallet
@@ -399,13 +418,18 @@ abstract class SWB {
     String? mnemonic, mnemonicPassphrase, privateKey;
 
     ViewOnlyWalletData? viewOnlyData;
-    if (info.isViewOnly) {
+    if (walletbackup['viewOnlyWalletDataKey'] is String) {
       final viewOnlyDataEncoded =
           walletbackup['viewOnlyWalletDataKey'] as String;
 
       viewOnlyData = ViewOnlyWalletData.fromJsonEncodedString(
         viewOnlyDataEncoded,
         walletId: info.walletId,
+      );
+    } else if (info.isViewOnly) {
+      throw FormatException(
+        'Cannot restore view-only wallet "${info.name}": '
+        'recovery data is missing',
       );
     } else if (walletbackup['mnemonic'] == null) {
       // probably private key based
@@ -700,8 +724,34 @@ abstract class SWB {
     SecureStorageInterface secureStorageInterface,
     ShopInBitService shopinbitService,
   ) async {
-    if (!Platform.isLinux) await WakelockPlus.enable();
+    if (Platform.isLinux) {
+      return _restoreStackWalletJSON(
+        jsonBackup,
+        uiState,
+        secureStorageInterface,
+        shopinbitService,
+      );
+    }
 
+    await WakelockPlus.enable();
+    try {
+      return await _restoreStackWalletJSON(
+        jsonBackup,
+        uiState,
+        secureStorageInterface,
+        shopinbitService,
+      );
+    } finally {
+      await WakelockPlus.disable();
+    }
+  }
+
+  static Future<bool?> _restoreStackWalletJSON(
+    String jsonBackup,
+    StackRestoringUIState? uiState,
+    SecureStorageInterface secureStorageInterface,
+    ShopInBitService shopinbitService,
+  ) async {
     Logging.instance.d("SWB creating temp backup");
     final preRestoreJSON = await createStackWalletJSON(
       secureStorage: secureStorageInterface,
@@ -724,6 +774,7 @@ abstract class SWB {
         json.decode(jsonBackup) as Map<String, dynamic>;
 
     final List<dynamic> wallets = validJSON["wallets"] as List;
+    normalizeSWBViewOnlyWalletBackups(wallets);
 
     // check for duplicate walletIds and assign new ones if required
     for (final wallet in wallets) {
@@ -912,7 +963,6 @@ abstract class SWB {
       await status;
     }
 
-    if (!Platform.isLinux) await WakelockPlus.disable();
     // check if cancel was requested and restore previous state
     if (_checkShouldCancel(
       preRestoreState,
