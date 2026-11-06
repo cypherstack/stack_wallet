@@ -127,9 +127,17 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
         _linuxErrorSub = plugin
             .onCameraError(_cameraId)
             .listen((e) => _onCameraLost(e.description));
+        // A capture failure is reported on the frame stream as well as
+        // through onCameraError, so it needs a handler here too or it escapes
+        // as an uncaught error. _onCameraLost ignores the second report.
         _linuxFrameSub = plugin
             .onStreamedFrameAvailable(_cameraId)
-            .listen((frame) => _latestLinuxFrame = frame.planes.first.bytes);
+            .listen(
+              (frame) => _latestLinuxFrame = frame.planes.first.bytes,
+              onError: (Object e) => _onCameraLost(
+                e is CameraException ? (e.description ?? e.code) : "$e",
+              ),
+            );
         Logging.instance.d("Linux camera initialized with ID: $_cameraId");
       } else if (Platform.isWindows && _cameraWindowsPlugin != null) {
         final List<CameraDescription> cameras = await _cameraWindowsPlugin
