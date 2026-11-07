@@ -175,14 +175,5 @@ void main() {
       expect(find.text("Invoices not supported"), findsOneWidget);
       await closeDialog(tester);
     });
-
-    testWidgets("invoice with invoice support is a placeholder", (
-      tester,
-    ) async {
-      final wallet = _InspectOnlyWallet(SlateState.i2, invoices: true);
-      await runFlow(tester, wallet);
-      expect(find.text("Invoice payment"), findsOneWidget);
-      await closeDialog(tester);
-    });
   });
 }

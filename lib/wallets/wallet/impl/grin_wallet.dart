@@ -1644,6 +1644,12 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
   @override
   bool get supportsRepost => true;
 
+  @override
+  Future<bool> canRepost(String txid) async {
+    final tx = await _storedTx(txid);
+    return tx != null && (slatepackTxInfo(tx)?.canRepost ?? false);
+  }
+
   /// Broadcasts the stored finalized transaction [txid] again.
   @override
   Future<void> repost(String txid) async {

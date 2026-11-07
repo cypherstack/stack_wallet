@@ -68,6 +68,10 @@ mixin SlatepackInterface<T extends CryptoCurrency> on Wallet<T> {
 
   Future<void> repost(String txid) => throw UnsupportedError("repost");
 
+  /// Whether [txid] is finalized, stored and unconfirmed, so it can be
+  /// posted again.
+  Future<bool> canRepost(String txid) async => false;
+
   Future<SlatepackResult> issueInvoice({
     required Amount amount,
     String? payerAddress,
