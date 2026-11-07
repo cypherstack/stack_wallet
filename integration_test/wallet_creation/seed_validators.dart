@@ -29,7 +29,7 @@ Future<void> verifyOpenNativeWallet(Wallet wallet, String expected) async {
   } else if (wallet is MimblewimblecoinWallet) {
     actual = (await wallet.thisWalletAddress(
       0,
-      await wallet.getMwcMqsConfig(),
+      await wallet.getRelayConfig(),
     )).value;
   } else if (wallet is LibXelisWallet) {
     wallet.checkInitialized();
