@@ -8,7 +8,7 @@ import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub
 import 'package:stackwallet/pages_desktop_specific/password/create_password_view.dart';
 import 'package:stackwallet/pages_desktop_specific/password/desktop_login_view.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
-import 'package:stackwallet/widgets/mwc_txs_method_toggle.dart';
+import 'package:stackwallet/widgets/slatepack_method_toggle.dart';
 import 'package:stackwallet/widgets/toggle.dart';
 import 'package:stackwallet/widgets/wallet_card.dart';
 
@@ -92,16 +92,17 @@ class DesktopDriver extends PlatformDriver {
     );
     final receive = find.byType(DesktopReceive);
     await ui.waitFor(receive);
-    final mwcMode = find.descendant(
+    final slatepackMode = find.descendant(
       of: receive,
-      matching: find.byType(MwcTxsMethodToggle),
+      matching: find.byType(SlatepackMethodToggle),
     );
-    if (mwcMode.evaluate().isNotEmpty) {
+    if (slatepackMode.evaluate().isNotEmpty) {
       final toggle = ui.tester.widget<Toggle>(
-        find.descendant(of: mwcMode, matching: find.byType(Toggle)),
+        find.descendant(of: slatepackMode, matching: find.byType(Toggle)),
       );
       // MWC defaults to Slatepack, which does not display the MQS address.
-      if (!toggle.isOn) await ui.tap(mwcMode);
+      // Epic Cash defaults to epicbox, so this is a no-op there.
+      if (!toggle.isOn) await ui.tap(slatepackMode);
     }
     await selectPrimaryAddress(wallet, receive);
     final displayed = find.descendant(
