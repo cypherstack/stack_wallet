@@ -1300,6 +1300,24 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.2"
+  grin:
+    dependency: "direct main"
+    description:
+      path: "packages/grin"
+      ref: "6ff6fe60461f312128e3389c87b729081fc80587"
+      resolved-ref: "6ff6fe60461f312128e3389c87b729081fc80587"
+      url: "ssh://git@git.cypherstack.com:222/sneurlax/grin_native.git"
+    source: git
+    version: "0.1.0"
+  grin_native:
+    dependency: "direct main"
+    description:
+      path: "packages/grin_native"
+      ref: "6ff6fe60461f312128e3389c87b729081fc80587"
+      resolved-ref: "6ff6fe60461f312128e3389c87b729081fc80587"
+      url: "ssh://git@git.cypherstack.com:222/sneurlax/grin_native.git"
+    source: git
+    version: "0.1.0"
   grpc:
     dependency: transitive
     description:
@@ -1654,8 +1672,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: 21f95309522dd48face32c0c4a3ca2ac8df092fb
-      resolved-ref: 21f95309522dd48face32c0c4a3ca2ac8df092fb
+      ref: "21f95309522dd48face32c0c4a3ca2ac8df092fb"
+      resolved-ref: "21f95309522dd48face32c0c4a3ca2ac8df092fb"
       url: "https://github.com/cypherstack/mobile_app_privacy"
     source: git
     version: "0.0.5"
