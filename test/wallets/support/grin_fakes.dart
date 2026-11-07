@@ -105,9 +105,8 @@ class FakeGrinWalletApi implements GrinWalletApi {
   bool get scanRunning => _scan != null && !_scan!.isCompleted;
 
   /// Ends a blocked scan successfully.
-  void finishScan() => _scan?.complete(
-    const GrinScanResult(scannedHeight: 100, tipHeight: 100),
-  );
+  void finishScan() =>
+      _scan?.complete(const GrinScanResult(scannedHeight: 100, tipHeight: 100));
 
   void _check(String call) {
     if (_closed) throw StateError('closed');
@@ -435,7 +434,8 @@ class FakeGrinBackend implements GrinWalletBackend {
   final creates = <CreateCall>[];
   final opens = <GrinWalletConfig>[];
   final deletes = <String>[];
-  final nodeTests = <({String nodeUrl, String? apiSecret, String? socksProxy})>[];
+  final nodeTests =
+      <({String nodeUrl, String? apiSecret, String? socksProxy})>[];
   final apis = <FakeGrinWalletApi>[];
 
   /// Directories that hold a wallet, with its password.

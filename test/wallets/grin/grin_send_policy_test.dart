@@ -99,22 +99,24 @@ void main() {
     expect(h.backend.api.httpSends, isEmpty);
   });
 
-  test('a clearnet send with Tor off needs the IP disclosure accepted',
-      () async {
-    await h.wallet.init();
-    await expectLater(
-      h.wallet.confirmSend(txData: send('https://wallet.example')),
-      throwsA(isA<GrinWalletException>()),
-    );
-    expect(h.backend.api.httpSends, isEmpty);
+  test(
+    'a clearnet send with Tor off needs the IP disclosure accepted',
+    () async {
+      await h.wallet.init();
+      await expectLater(
+        h.wallet.confirmSend(txData: send('https://wallet.example')),
+        throwsA(isA<GrinWalletException>()),
+      );
+      expect(h.backend.api.httpSends, isEmpty);
 
-    await h.wallet.confirmSend(
-      txData: send('https://wallet.example', clearnetAck: true),
-    );
-    final args = h.backend.api.httpSends.single;
-    expect(args.post, isTrue);
-    expect(args.ttlBlocks, GrinWallet.slatepackTtlBlocks);
-  });
+      await h.wallet.confirmSend(
+        txData: send('https://wallet.example', clearnetAck: true),
+      );
+      final args = h.backend.api.httpSends.single;
+      expect(args.post, isTrue);
+      expect(args.ttlBlocks, GrinWallet.slatepackTtlBlocks);
+    },
+  );
 
   test('http:// needs the plaintext warning even over Tor', () async {
     await torOn();
@@ -130,31 +132,35 @@ void main() {
     expect(h.backend.api.httpSends, hasLength(1));
   });
 
-  test('Tor on but down refuses an HTTP send even with the kill switch off',
-      () async {
-    h.prefs.tor = true;
-    h.prefs.killSwitch = false;
-    h.tor.current = TorConnectionStatus.disconnected;
-    await h.wallet.init();
-    await expectLater(
-      h.wallet.confirmSend(
-        txData: send(
-          'https://wallet.example',
-          clearnetAck: true,
-          plaintextAck: true,
+  test(
+    'Tor on but down refuses an HTTP send even with the kill switch off',
+    () async {
+      h.prefs.tor = true;
+      h.prefs.killSwitch = false;
+      h.tor.current = TorConnectionStatus.disconnected;
+      await h.wallet.init();
+      await expectLater(
+        h.wallet.confirmSend(
+          txData: send(
+            'https://wallet.example',
+            clearnetAck: true,
+            plaintextAck: true,
+          ),
         ),
-      ),
-      throwsA(isA<GrinWalletException>()),
-    );
-    expect(h.backend.api.httpSends, isEmpty);
-  });
+        throwsA(isA<GrinWalletException>()),
+      );
+      expect(h.backend.api.httpSends, isEmpty);
+    },
+  );
 
   test('an onion send over Tor goes out', () async {
     await torOn();
     await h.wallet.init();
     await h.wallet.confirmSend(txData: send('http://abc.onion'));
-    expect(h.backend.api.httpSends.single.recipientUrlOrAddress,
-        'http://abc.onion');
+    expect(
+      h.backend.api.httpSends.single.recipientUrlOrAddress,
+      'http://abc.onion',
+    );
   });
 
   test('send all takes the fee out of the amount', () async {
@@ -162,8 +168,7 @@ void main() {
     final prepared = await h.wallet.prepareSend(
       txData: send('grin1friend').copyWith(subtractFeeFromAmount: true),
     );
-    expect(prepared.recipients!.single.amount,
-        grin(1000000000 - 23500000));
+    expect(prepared.recipients!.single.amount, grin(1000000000 - 23500000));
     await h.wallet.confirmSend(txData: prepared);
     final args = h.backend.api.initSends.single;
     expect(args.amount, BigInt.from(1000000000));

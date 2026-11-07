@@ -40,15 +40,17 @@ void main() {
     expect(config.nodeUrl, 'https://grinnode.live:3413');
   });
 
-  test('blocked at open means network disabled, never a direct socket',
-      () async {
-    h.prefs.tor = true;
-    h.tor.current = TorConnectionStatus.disconnected;
-    await h.wallet.init();
-    final config = h.backend.creates.single.config;
-    expect(config.networkEnabled, isFalse);
-    expect(config.socksProxy, isNull);
-  });
+  test(
+    'blocked at open means network disabled, never a direct socket',
+    () async {
+      h.prefs.tor = true;
+      h.tor.current = TorConnectionStatus.disconnected;
+      await h.wallet.init();
+      final config = h.backend.creates.single.config;
+      expect(config.networkEnabled, isFalse);
+      expect(config.socksProxy, isNull);
+    },
+  );
 
   test('enabling Tor: events arrive before the preference flips', () async {
     await h.wallet.init();
@@ -56,15 +58,13 @@ void main() {
 
     // connectTor fires connecting and connected while useTor is still false.
     h.tor.current = TorConnectionStatus.connecting;
-    h.bus.fire(TorConnectionStatusChangedEvent(
-      TorConnectionStatus.connecting,
-      '',
-    ));
+    h.bus.fire(
+      TorConnectionStatusChangedEvent(TorConnectionStatus.connecting, ''),
+    );
     h.tor.current = TorConnectionStatus.connected;
-    h.bus.fire(TorConnectionStatusChangedEvent(
-      TorConnectionStatus.connected,
-      '',
-    ));
+    h.bus.fire(
+      TorConnectionStatusChangedEvent(TorConnectionStatus.connected, ''),
+    );
     await settle();
     expect(api.networkUpdates, isEmpty, reason: 'still direct');
 
@@ -75,29 +75,30 @@ void main() {
     expect(api.networkUpdates.single.networkEnabled, isTrue);
   });
 
-  test('disabling Tor: disconnected arrives while useTor is still true',
-      () async {
-    h.prefs.tor = true;
-    h.tor.current = TorConnectionStatus.connected;
-    await h.wallet.init();
-    final api = h.backend.api;
+  test(
+    'disabling Tor: disconnected arrives while useTor is still true',
+    () async {
+      h.prefs.tor = true;
+      h.tor.current = TorConnectionStatus.connected;
+      await h.wallet.init();
+      final api = h.backend.api;
 
-    h.tor.current = TorConnectionStatus.disconnected;
-    h.bus.fire(TorConnectionStatusChangedEvent(
-      TorConnectionStatus.disconnected,
-      '',
-    ));
-    await settle();
-    // Kill switch on: blocked until the preference catches up.
-    expect(api.networkUpdates.single.networkEnabled, isFalse);
+      h.tor.current = TorConnectionStatus.disconnected;
+      h.bus.fire(
+        TorConnectionStatusChangedEvent(TorConnectionStatus.disconnected, ''),
+      );
+      await settle();
+      // Kill switch on: blocked until the preference catches up.
+      expect(api.networkUpdates.single.networkEnabled, isFalse);
 
-    h.prefs.tor = false;
-    h.bus.fire(TorPreferenceChangedEvent(status: TorStatus.disabled));
-    await settle();
-    expect(api.networkUpdates, hasLength(2));
-    expect(api.networkUpdates.last.networkEnabled, isTrue);
-    expect(api.networkUpdates.last.socksProxy, isNull);
-  });
+      h.prefs.tor = false;
+      h.bus.fire(TorPreferenceChangedEvent(status: TorStatus.disabled));
+      await settle();
+      expect(api.networkUpdates, hasLength(2));
+      expect(api.networkUpdates.last.networkEnabled, isTrue);
+      expect(api.networkUpdates.last.socksProxy, isNull);
+    },
+  );
 
   test('every blocked update disables the network', () async {
     await h.wallet.init();

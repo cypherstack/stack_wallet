@@ -14,16 +14,23 @@ void main() {
   });
 
   test('the port field replaces a port in the host', () {
-    expect(url('https://node.example:443', port: 3413),
-        'https://node.example:3413');
+    expect(
+      url('https://node.example:443', port: 3413),
+      'https://node.example:3413',
+    );
     expect(url('https://node.example:443', port: 0), 'https://node.example');
-    expect(url('http://127.0.0.1', port: 13413, useSSL: false),
-        'http://127.0.0.1:13413');
+    expect(
+      url('http://127.0.0.1', port: 13413, useSSL: false),
+      'http://127.0.0.1:13413',
+    );
   });
 
   test('trailing slashes go, a path stays', () {
     expect(url('https://node.example/'), 'https://node.example:3413');
-    expect(url('https://node.example/grin//'), 'https://node.example:3413/grin');
+    expect(
+      url('https://node.example/grin//'),
+      'https://node.example:3413/grin',
+    );
   });
 
   test('onion nodes use http only', () {

@@ -42,7 +42,8 @@ void main() {
     return h.backend.api;
   }
 
-  Amount grin(int nano) => Amount(rawValue: BigInt.from(nano), fractionDigits: 9);
+  Amount grin(int nano) =>
+      Amount(rawValue: BigInt.from(nano), fractionDigits: 9);
 
   test('restore creates from the mnemonic, then scans from the restore '
       'height', () async {
@@ -52,62 +53,66 @@ void main() {
     expect(create.isNewWallet, isFalse);
     expect(api.calls, contains('scan:1000:false'));
     expect(h.wallet.info.grinData!.pendingScanFrom, 1000);
-    expect((await h.wallet.getCurrentReceivingAddress())!.type,
-        AddressType.mimbleWimble);
+    expect(
+      (await h.wallet.getCurrentReceivingAddress())!.type,
+      AddressType.mimbleWimble,
+    );
 
     api.finishScan();
     await eventually(() => h.wallet.info.grinData!.pendingScanFrom == null);
   });
 
-  test('nothing that refreshes from the node runs while a scan is pending',
-      () async {
-    final api = await restore();
-    expect(api.scanRunning, isTrue);
-    final before = List.of(api.calls);
+  test(
+    'nothing that refreshes from the node runs while a scan is pending',
+    () async {
+      final api = await restore();
+      expect(api.scanRunning, isTrue);
+      final before = List.of(api.calls);
 
-    await h.wallet.refresh();
-    await h.wallet.updateTransactions();
-    await h.wallet.updateBalance();
-    await expectLater(
-      h.wallet.estimateFeeFor(grin(5), BigInt.one),
-      throwsA(isA<GrinWalletException>()),
-    );
-    final txData = TxData(
-      recipients: [
-        TxRecipient(
-          address: 'grin1recipient',
-          amount: grin(5),
-          isChange: false,
-          addressType: AddressType.mimbleWimble,
-        ),
-      ],
-    );
-    await expectLater(
-      h.wallet.prepareSend(txData: txData),
-      throwsA(isA<GrinWalletException>()),
-    );
-    await expectLater(
-      h.wallet.confirmSend(txData: txData),
-      throwsA(isA<GrinWalletException>()),
-    );
-    expect(
-      await h.wallet.cancelPendingTransactionAndPost('slate-1'),
-      isNotEmpty,
-    );
+      await h.wallet.refresh();
+      await h.wallet.updateTransactions();
+      await h.wallet.updateBalance();
+      await expectLater(
+        h.wallet.estimateFeeFor(grin(5), BigInt.one),
+        throwsA(isA<GrinWalletException>()),
+      );
+      final txData = TxData(
+        recipients: [
+          TxRecipient(
+            address: 'grin1recipient',
+            amount: grin(5),
+            isChange: false,
+            addressType: AddressType.mimbleWimble,
+          ),
+        ],
+      );
+      await expectLater(
+        h.wallet.prepareSend(txData: txData),
+        throwsA(isA<GrinWalletException>()),
+      );
+      await expectLater(
+        h.wallet.confirmSend(txData: txData),
+        throwsA(isA<GrinWalletException>()),
+      );
+      expect(
+        await h.wallet.cancelPendingTransactionAndPost('slate-1'),
+        isNotEmpty,
+      );
 
-    final after = api.calls.sublist(before.length);
-    expect(api.transactionRefreshes, everyElement(isFalse));
-    expect(api.balanceRefreshes, everyElement(isFalse));
-    for (final call in [
-      'estimateFee',
-      'initSend',
-      'sendHttp',
-      'cancelTransaction',
-    ]) {
-      expect(after, isNot(contains(call)));
-    }
-    expect(after.where((c) => c.startsWith('scan')), isEmpty);
-  });
+      final after = api.calls.sublist(before.length);
+      expect(api.transactionRefreshes, everyElement(isFalse));
+      expect(api.balanceRefreshes, everyElement(isFalse));
+      for (final call in [
+        'estimateFee',
+        'initSend',
+        'sendHttp',
+        'cancelTransaction',
+      ]) {
+        expect(after, isNot(contains(call)));
+      }
+      expect(after.where((c) => c.startsWith('scan')), isEmpty);
+    },
+  );
 
   test('a cancelled scan resumes from scanned_height + 1', () async {
     final api = await restore();
@@ -117,35 +122,41 @@ void main() {
 
     await h.wallet.refresh();
     await eventually(() => api.calls.contains('scan:20001:false'));
-    expect(api.calls.where((c) => c.startsWith('scan')).toList(),
-        ['scan:1000:false', 'scan:20001:false']);
+    expect(api.calls.where((c) => c.startsWith('scan')).toList(), [
+      'scan:1000:false',
+      'scan:20001:false',
+    ]);
   });
 
-  test('a node error keeps the resume height and reports unableToSync',
-      () async {
-    h.backend.scanBlocks = false;
-    final statuses = <WalletSyncStatus>[];
-    h.bus.on<WalletSyncStatusChangedEvent>().listen(
-      (e) => statuses.add(e.newStatus),
-    );
-    await h.wallet.init(isRestore: true);
-    await h.wallet.recover(isRescan: false);
-    await eventually(
-      () => h.wallet.info.grinData!.pendingScanFrom == null,
-      reason: 'the default fake scan succeeds',
-    );
+  test(
+    'a node error keeps the resume height and reports unableToSync',
+    () async {
+      h.backend.scanBlocks = false;
+      final statuses = <WalletSyncStatus>[];
+      h.bus.on<WalletSyncStatusChangedEvent>().listen(
+        (e) => statuses.add(e.newStatus),
+      );
+      await h.wallet.init(isRestore: true);
+      await h.wallet.recover(isRescan: false);
+      await eventually(
+        () => h.wallet.info.grinData!.pendingScanFrom == null,
+        reason: 'the default fake scan succeeds',
+      );
 
-    // Now a rescan whose node call fails.
-    h.backend.api.scanError = grinError(9);
-    await h.wallet.recover(isRescan: true);
-    await eventually(() => statuses.contains(WalletSyncStatus.unableToSync));
-    expect(h.wallet.info.grinData!.pendingScanFrom, 1000);
-  });
+      // Now a rescan whose node call fails.
+      h.backend.api.scanError = grinError(9);
+      await h.wallet.recover(isRescan: true);
+      await eventually(() => statuses.contains(WalletSyncStatus.unableToSync));
+      expect(h.wallet.info.grinData!.pendingScanFrom, 1000);
+    },
+  );
 
   test('progress is reported as percent and blocks remaining', () async {
     final percents = <double>[];
     final remaining = <int>[];
-    h.bus.on<RefreshPercentChangedEvent>().listen((e) => percents.add(e.percent));
+    h.bus.on<RefreshPercentChangedEvent>().listen(
+      (e) => percents.add(e.percent),
+    );
     h.bus.on<BlocksRemainingEvent>().listen(
       (e) => remaining.add(e.blocksRemaining),
     );
@@ -165,15 +176,19 @@ void main() {
     api.finishScan();
   });
 
-  test('rescan keeps history and does not delete unconfirmed outputs',
-      () async {
-    final api = await restore();
-    api.finishScan();
-    await eventually(() => h.wallet.info.grinData!.pendingScanFrom == null);
-    await h.wallet.recover(isRescan: true);
-    await pumpEventQueue();
-    expect(api.calls.where((c) => c.startsWith('scan')).last,
-        'scan:1000:false');
-    expect(h.backend.calls.where((c) => c == 'delete'), isEmpty);
-  });
+  test(
+    'rescan keeps history and does not delete unconfirmed outputs',
+    () async {
+      final api = await restore();
+      api.finishScan();
+      await eventually(() => h.wallet.info.grinData!.pendingScanFrom == null);
+      await h.wallet.recover(isRescan: true);
+      await pumpEventQueue();
+      expect(
+        api.calls.where((c) => c.startsWith('scan')).last,
+        'scan:1000:false',
+      );
+      expect(h.backend.calls.where((c) => c == 'delete'), isEmpty);
+    },
+  );
 }

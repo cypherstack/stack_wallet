@@ -51,13 +51,14 @@ void main() {
     });
 
     test('a node error with a slate id means finalized, not broadcast', () {
-      final safe =
-          sanitizeGrinError(grinError(9, details: {'slate_id': 's'}))
-              as GrinWalletException;
+      final safe = sanitizeGrinError(
+        grinError(9, details: {'slate_id': 's'}),
+      ) as GrinWalletException;
       expect(safe.finalizedNotBroadcast, isTrue);
       expect(
-        (sanitizeGrinError(grinError(9)) as GrinWalletException)
-            .finalizedNotBroadcast,
+        (sanitizeGrinError(
+          grinError(9),
+        ) as GrinWalletException).finalizedNotBroadcast,
         isFalse,
       );
     });
@@ -104,10 +105,7 @@ void main() {
               recipients: [
                 TxRecipient(
                   address: 'grin1friend',
-                  amount: Amount(
-                    rawValue: BigInt.from(5),
-                    fractionDigits: 9,
-                  ),
+                  amount: Amount(rawValue: BigInt.from(5), fractionDigits: 9),
                   isChange: false,
                   addressType: AddressType.mimbleWimble,
                 ),

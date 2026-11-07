@@ -35,13 +35,7 @@ String label(TransactionV2 tx, {int height = 1000}) => tx.statusLabel(
 void main() {
   test('a self-send becomes one sentToSelf row', () {
     final txs = map([
-      entryOf(
-        id: 1,
-        debited: 1000,
-        credited: 400,
-        fee: 10,
-        counterparty: own,
-      ),
+      entryOf(id: 1, debited: 1000, credited: 400, fee: 10, counterparty: own),
       entryOf(
         id: 2,
         type: GrinTxType.txReceived,
@@ -132,10 +126,9 @@ void main() {
     ).single;
     expect(kept.height, 900);
 
-    final firstSeen = map(
-      [entryOf(id: 7, debited: 10, confirmed: true)],
-      chainHeight: 1234,
-    ).single;
+    final firstSeen = map([
+      entryOf(id: 7, debited: 10, confirmed: true),
+    ], chainHeight: 1234).single;
     expect(firstSeen.height, 1234, reason: 'kernelLookupMinHeight is 1');
 
     final cancelled = map([
@@ -181,7 +174,8 @@ void main() {
       );
       expect(
         label(
-          map([entryOf(id: 1, type: GrinTxType.txReverted, credited: 5)]).single,
+          map([entryOf(id: 1, type: GrinTxType.txReverted, credited: 5)])
+              .single,
         ),
         'Reverted',
       );
@@ -245,7 +239,9 @@ void main() {
         'Invoice issued (waiting for payer)',
       );
       expect(
-        label(map([entryOf(id: 1, state: GrinSlateState.i2, debited: 9)]).single),
+        label(
+          map([entryOf(id: 1, state: GrinSlateState.i2, debited: 9)]).single,
+        ),
         'Paying invoice (waiting for invoicer)',
       );
     });

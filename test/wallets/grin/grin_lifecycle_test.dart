@@ -82,8 +82,10 @@ void main() {
     final reopened = h.newWallet();
     await reopened.init();
     expect(h.backend.calls, ['create', 'open']);
-    expect(h.backend.opens.single.walletDir,
-        h.backend.creates.single.config.walletDir);
+    expect(
+      h.backend.opens.single.walletDir,
+      h.backend.creates.single.config.walletDir,
+    );
     await reopened.exit();
   });
 
@@ -93,17 +95,19 @@ void main() {
     expect(h.backend.calls, ['create']);
   });
 
-  test('missing files of an existing wallet are not silently replaced',
-      () async {
-    await h.wallet.init();
-    await h.wallet.exit();
-    h.backend.wallets.clear();
-    await expectLater(
-      h.newWallet().init(),
-      throwsA(isA<GrinWalletException>()),
-    );
-    expect(h.backend.calls, ['create', 'open']);
-  });
+  test(
+    'missing files of an existing wallet are not silently replaced',
+    () async {
+      await h.wallet.init();
+      await h.wallet.exit();
+      h.backend.wallets.clear();
+      await expectLater(
+        h.newWallet().init(),
+        throwsA(isA<GrinWalletException>()),
+      );
+      expect(h.backend.calls, ['create', 'open']);
+    },
+  );
 
   test('init with isRestore opens nothing', () async {
     await h.wallet.init(isRestore: true);
@@ -183,8 +187,7 @@ void main() {
     expect(h.secrets.values.containsKey(passwordKey()), isFalse);
   });
 
-  test('a restore being cancelled deletes the unregistered instance',
-      () async {
+  test('a restore being cancelled deletes the unregistered instance', () async {
     final restore = h.wallet;
     h.backend.scanBlocks = true;
     await restore.init(isRestore: true);

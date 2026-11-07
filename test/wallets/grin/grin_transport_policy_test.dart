@@ -76,15 +76,19 @@ void main() {
 
     test('connected uses the proxy, read at resolve time', () {
       expect(resolve(), const GrinProxy('127.0.0.1:9050'));
-      expect(resolve(proxy: '127.0.0.1:9150'), const GrinProxy('127.0.0.1:9150'));
-      expect(resolve(option: TorPlainNetworkOption.tor, onion: true),
-          const GrinProxy('127.0.0.1:9050'));
+      expect(
+        resolve(proxy: '127.0.0.1:9150'),
+        const GrinProxy('127.0.0.1:9150'),
+      );
+      expect(
+        resolve(option: TorPlainNetworkOption.tor, onion: true),
+        const GrinProxy('127.0.0.1:9050'),
+      );
       expect(resolve(proxy: null), torDown);
     });
 
     test('connecting holds', () {
-      expect(resolve(status: TorConnectionStatus.connecting),
-          const GrinHold());
+      expect(resolve(status: TorConnectionStatus.connecting), const GrinHold());
     });
 
     test('disconnected with the kill switch is blocked', () {
@@ -140,10 +144,14 @@ void main() {
           refusal(kind: kind, transport: const GrinDirect()),
           GrinSendRefusal.torDown,
         );
-        expect(refusal(kind: kind, transport: const GrinHold()),
-            GrinSendRefusal.torDown);
-        expect(refusal(kind: kind, transport: clearOn),
-            GrinSendRefusal.blocked);
+        expect(
+          refusal(kind: kind, transport: const GrinHold()),
+          GrinSendRefusal.torDown,
+        );
+        expect(
+          refusal(kind: kind, transport: clearOn),
+          GrinSendRefusal.blocked,
+        );
       }
     });
 
@@ -167,8 +175,10 @@ void main() {
         refusal(transport: const GrinDirect(), clearnetAck: true),
         GrinSendRefusal.torDown,
       );
-      expect(refusal(transport: torDown, clearnetAck: true),
-          GrinSendRefusal.blocked);
+      expect(
+        refusal(transport: torDown, clearnetAck: true),
+        GrinSendRefusal.blocked,
+      );
     });
 
     test('http:// needs the plaintext warning, even over Tor', () {
@@ -187,8 +197,10 @@ void main() {
 
     test('unknown targets are refused', () {
       expect(refusal(kind: null), GrinSendRefusal.unsupportedTarget);
-      expect(refusal(kind: GrinAddressKind.unknown),
-          GrinSendRefusal.unsupportedTarget);
+      expect(
+        refusal(kind: GrinAddressKind.unknown),
+        GrinSendRefusal.unsupportedTarget,
+      );
     });
   });
 }

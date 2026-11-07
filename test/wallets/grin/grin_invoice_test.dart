@@ -62,16 +62,21 @@ void main() {
     expect(h.backend.api.calls, isNot(contains('processInvoice')));
   });
 
-  test('a match pays with the expected amount, TTL and confirmations',
-      () async {
-    h.backend.api.decoded = slateInfoOf(GrinSlateState.i1, amount: 1000);
-    final i2 = await h.wallet.processInvoice('i1', confirmedAmount: grin(1000));
-    expect(i2.state, GrinSlateState.i2);
-    final args = h.backend.api.invoicePayments.single;
-    expect(args.expectedAmount, BigInt.from(1000));
-    expect(args.ttlBlocks, GrinWallet.slatepackTtlBlocks);
-    expect(args.minimumConfirmations, 10);
-  });
+  test(
+    'a match pays with the expected amount, TTL and confirmations',
+    () async {
+      h.backend.api.decoded = slateInfoOf(GrinSlateState.i1, amount: 1000);
+      final i2 = await h.wallet.processInvoice(
+        'i1',
+        confirmedAmount: grin(1000),
+      );
+      expect(i2.state, GrinSlateState.i2);
+      final args = h.backend.api.invoicePayments.single;
+      expect(args.expectedAmount, BigInt.from(1000));
+      expect(args.ttlBlocks, GrinWallet.slatepackTtlBlocks);
+      expect(args.minimumConfirmations, 10);
+    },
+  );
 
   test('issuing and finalizing an invoice', () async {
     final i1 = await h.wallet.issueInvoice(
