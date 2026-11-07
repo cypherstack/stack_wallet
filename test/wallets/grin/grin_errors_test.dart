@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:grin/grin.dart';
 import 'package:isar_community/isar.dart';
 import 'package:stackwallet/models/slatepack_models.dart';
 import 'package:stackwallet/exceptions/wallet/insufficient_balance_exception.dart';

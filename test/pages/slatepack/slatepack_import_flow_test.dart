@@ -175,5 +175,15 @@ void main() {
       expect(find.text("Invoices not supported"), findsOneWidget);
       await closeDialog(tester);
     });
+
+    testWidgets("an invoice without an amount is refused", (tester) async {
+      final wallet = _InspectOnlyWallet(SlateState.i1, invoices: true);
+      await runFlow(tester, wallet);
+      expect(
+        find.text("This invoice does not say how much to pay."),
+        findsOneWidget,
+      );
+      await closeDialog(tester);
+    });
   });
 }
