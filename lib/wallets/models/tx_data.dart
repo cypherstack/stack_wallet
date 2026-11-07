@@ -17,8 +17,10 @@ import '../../wl_gen/interfaces/cs_monero_interface.dart'
 import '../../wl_gen/interfaces/xelis_types.dart';
 import '../isar/models/spark_coin.dart';
 import 'name_op_state.dart';
+import 'slatepack_method.dart';
 import 'tx_recipient.dart';
 
+export 'slatepack_method.dart';
 export 'tx_recipient.dart';
 
 enum TxType {
@@ -115,6 +117,16 @@ class TxData {
 
   final TransactionV2? tempTx;
 
+  // slatepack coins
+  final SlatepackMethod? slatepackMethod;
+
+  /// The armored Slatepack a send produced. Left out of [toString].
+  final String? slatepack;
+
+  // grin http sends
+  final bool grinClearnetAcknowledged;
+  final bool grinPlaintextAcknowledged;
+
   final bool ignoreCachedBalanceChecks;
   final bool subtractFeeFromAmount;
 
@@ -165,6 +177,10 @@ class TxData {
     this.sparkSpends,
     this.usedSparkCoins,
     this.tempTx,
+    this.slatepackMethod,
+    this.slatepack,
+    this.grinClearnetAcknowledged = false,
+    this.grinPlaintextAcknowledged = false,
     this.ignoreCachedBalanceChecks = false,
     this.subtractFeeFromAmount = false,
     this.opNameState,
@@ -318,6 +334,10 @@ class TxData {
     List<TxData>? sparkSpends,
     List<SparkCoin>? usedSparkCoins,
     TransactionV2? tempTx,
+    SlatepackMethod? slatepackMethod,
+    String? slatepack,
+    bool? grinClearnetAcknowledged,
+    bool? grinPlaintextAcknowledged,
     bool? ignoreCachedBalanceChecks,
     bool? subtractFeeFromAmount,
     NameOpState? opNameState,
@@ -370,6 +390,12 @@ class TxData {
       sparkSpends: sparkSpends ?? this.sparkSpends,
       usedSparkCoins: usedSparkCoins ?? this.usedSparkCoins,
       tempTx: tempTx ?? this.tempTx,
+      slatepackMethod: slatepackMethod ?? this.slatepackMethod,
+      slatepack: slatepack ?? this.slatepack,
+      grinClearnetAcknowledged:
+          grinClearnetAcknowledged ?? this.grinClearnetAcknowledged,
+      grinPlaintextAcknowledged:
+          grinPlaintextAcknowledged ?? this.grinPlaintextAcknowledged,
       ignoreCachedBalanceChecks:
           ignoreCachedBalanceChecks ?? this.ignoreCachedBalanceChecks,
       subtractFeeFromAmount:
@@ -417,6 +443,7 @@ class TxData {
       'usedSparkCoins: $usedSparkCoins, '
       'otherData: $otherData, '
       'tempTx: $tempTx, '
+      'slatepackMethod: $slatepackMethod, '
       'ignoreCachedBalanceChecks: $ignoreCachedBalanceChecks, '
       'subtractFeeFromAmount: $subtractFeeFromAmount, '
       'opNameState: $opNameState, '
