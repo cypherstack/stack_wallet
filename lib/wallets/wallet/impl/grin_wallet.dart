@@ -165,6 +165,7 @@ class GrinWallet extends Bip39Wallet<Grin> {
   static Future<List<String>> retryDeferredDeletes({
     required Iterable<String> walletIds,
     required SecureStorageInterface secureStore,
+    GrinWalletBackend? backend,
   }) async {
     final remaining = <String>[];
     for (final walletId in walletIds) {
@@ -179,6 +180,7 @@ class GrinWallet extends Bip39Wallet<Grin> {
         final deleted = await deleteWalletFiles(
           walletId: walletId,
           secureStore: secureStore,
+          backend: backend,
         );
         if (!deleted) remaining.add(walletId);
       } catch (e) {
@@ -662,11 +664,15 @@ class GrinWallet extends Bip39Wallet<Grin> {
     _fireSyncStatus(WalletSyncStatus.unableToSync);
   }
 
-  /// Runs the pending scan if there is one, otherwise a normal refresh.
+  /// Starts the pending scan if there is one, otherwise a normal refresh.
+  /// A scan is not awaited: it can take hours, and startup awaits refresh.
   @override
   Future<void> refresh() async {
     if (_api == null || _exited) return;
-    if (_scanPending) return _runScanJob();
+    if (_scanPending) {
+      unawaited(_runScanJob());
+      return;
+    }
     return super.refresh();
   }
 
