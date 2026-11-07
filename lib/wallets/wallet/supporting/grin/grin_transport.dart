@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:grin/grin.dart' show GrinAddressKind;
 
 import '../../../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
+import '../../../../services/tor_service.dart';
 import '../../../../utilities/tor_plain_net_option_enum.dart';
 
 /// How node and HTTP traffic of a Grin wallet leaves the device.
@@ -85,6 +88,20 @@ bool isOnionHost(String host) {
   final end = rest.indexOf(RegExp(r"[/:?#]"));
   if (end >= 0) rest = rest.substring(0, end);
   return rest.endsWith(".onion");
+}
+
+/// The SOCKS address of [tor] as `host:port`, or null when it has none.
+/// The library takes IPv4 literals only.
+String? grinProxyAddress(TorService tor) {
+  try {
+    final info = tor.getProxyInfo();
+    final host = info.host.type == InternetAddressType.IPv4
+        ? info.host.address
+        : "127.0.0.1";
+    return "$host:${info.port}";
+  } catch (_) {
+    return null;
+  }
 }
 
 /// The transport policy for Grin node traffic.

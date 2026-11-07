@@ -34,6 +34,7 @@ import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/coins/epiccash.dart';
+import '../../../../wallets/crypto_currency/coins/grin.dart';
 import '../../../../wallets/crypto_currency/coins/litecoin.dart';
 import '../../../../wallets/crypto_currency/coins/mimblewimblecoin.dart';
 import '../../../../wallets/crypto_currency/coins/monero.dart';
@@ -42,6 +43,7 @@ import '../../../../wallets/crypto_currency/coins/wownero.dart';
 import '../../../../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/impl/epiccash_wallet.dart';
+import '../../../../wallets/wallet/impl/grin_wallet.dart';
 import '../../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
@@ -155,7 +157,9 @@ class _WalletNetworkSettingsViewState
             Navigator.of(context, rootNavigator: isDesktop).pop();
 
             final String message;
-            if (wallet is CryptonoteWallet || wallet is EpiccashWallet) {
+            if (wallet is CryptonoteWallet ||
+                wallet is EpiccashWallet ||
+                wallet is GrinWallet) {
               message = "Rescan started";
             } else {
               message = "Rescan completed";
@@ -280,6 +284,7 @@ class _WalletNetworkSettingsViewState
         coin is Epiccash ||
         coin is Salvium ||
         coin is Mimblewimblecoin ||
+        coin is Grin ||
         (coin is Litecoin &&
             ref.read(pWalletInfo(widget.walletId)).isMwebEnabled)) {
       _blocksRemainingSubscription = eventBus.on<BlocksRemainingEvent>().listen(
@@ -366,6 +371,13 @@ class _WalletNetworkSettingsViewState
           (ref.watch(pWallets).getWallet(widget.walletId)
                   as MimblewimblecoinWallet)
               .highestPercent;
+      if (_percent < highestPercent) {
+        _percent = highestPercent.clamp(0.0, 1.0);
+      }
+    } else if (coin is Grin) {
+      final double highestPercent =
+          (ref.watch(pWallets).getWallet(widget.walletId) as GrinWallet)
+              .restoreProgress;
       if (_percent < highestPercent) {
         _percent = highestPercent.clamp(0.0, 1.0);
       }
@@ -647,6 +659,7 @@ class _WalletNetworkSettingsViewState
                                     coin is Epiccash ||
                                     coin is Salvium ||
                                     coin is Mimblewimblecoin ||
+                                    coin is Grin ||
                                     (coin is Litecoin &&
                                         ref.watch(
                                           pWalletInfo(

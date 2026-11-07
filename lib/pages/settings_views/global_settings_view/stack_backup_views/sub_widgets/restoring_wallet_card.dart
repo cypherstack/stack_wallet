@@ -26,6 +26,7 @@ import '../../../../../utilities/logger.dart';
 import '../../../../../utilities/text_styles.dart';
 import '../../../../../utilities/util.dart';
 import '../../../../../wallets/wallet/impl/epiccash_wallet.dart';
+import '../../../../../wallets/wallet/impl/grin_wallet.dart';
 import '../../../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../../../../wallets/wallet/impl/xelis_wallet.dart';
 import '../../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
@@ -72,6 +73,10 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
           break;
 
         case XelisWallet():
+          await wallet.init(isRestore: true);
+          break;
+
+        case GrinWallet():
           await wallet.init(isRestore: true);
           break;
 

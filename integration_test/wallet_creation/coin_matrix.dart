@@ -11,6 +11,7 @@ const defaultWordCounts = <String, int>{
   'ethereum': 12,
   'fact0rn': 12,
   'firo': 12,
+  'grin': 24,
   'litecoin': 12,
   'mimblewimblecoin': 12,
   'monero': 16,

@@ -24,6 +24,7 @@ import '../../../../wallets/isar/models/wallet_info.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/impl/bitcoin_wallet.dart';
 import '../../../../wallets/wallet/impl/epiccash_wallet.dart';
+import '../../../../wallets/wallet/impl/grin_wallet.dart';
 import '../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
@@ -592,9 +593,13 @@ class _WalletSettingsWalletSettingsViewState
                         ),
                       ),
                     ),
-                  if (wallet is CryptonoteWallet || wallet is EpiccashWallet)
+                  if (wallet is CryptonoteWallet ||
+                      wallet is EpiccashWallet ||
+                      wallet is GrinWallet)
                     const SizedBox(height: 8),
-                  if (wallet is CryptonoteWallet || wallet is EpiccashWallet)
+                  if (wallet is CryptonoteWallet ||
+                      wallet is EpiccashWallet ||
+                      wallet is GrinWallet)
                     RoundedWhiteContainer(
                       padding: const EdgeInsets.all(0),
                       child: RawMaterialButton(

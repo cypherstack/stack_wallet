@@ -40,9 +40,14 @@ class DesktopManageBlockExplorersDialog extends ConsumerWidget {
       prefsChangeNotifierProvider.select((value) => value.showTestNetCoins),
     );
 
+    // Coins without a default explorer cannot be edited here.
     final coins = AppConfig.coins
         .where(
-          (e) => showTestNet || e.network == CryptoCurrencyNetwork.main,
+          (e) =>
+              (showTestNet || e.network == CryptoCurrencyNetwork.main) &&
+              e is! Epiccash &&
+              e is! Mimblewimblecoin &&
+              e is! Grin,
         )
         .toList();
 

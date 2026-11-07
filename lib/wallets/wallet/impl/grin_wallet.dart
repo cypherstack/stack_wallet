@@ -168,8 +168,13 @@ class GrinWallet extends Bip39Wallet<Grin> {
   }) async {
     final remaining = <String>[];
     for (final walletId in walletIds) {
+      final String dir;
       try {
-        final dir = await walletDirPath(walletId);
+        dir = await walletDirPath(walletId);
+      } catch (_) {
+        continue;
+      }
+      try {
         if (!await Directory(dir).exists()) continue;
         final deleted = await deleteWalletFiles(
           walletId: walletId,
@@ -681,17 +686,7 @@ class GrinWallet extends Bip39Wallet<Grin> {
         node.clearnetEnabled,
       ),
       nodeIsOnion: isOnionHost(node.host),
-      proxyAddress: () {
-        try {
-          final info = _tor.getProxyInfo();
-          final host = info.host.type == InternetAddressType.IPv4
-              ? info.host.address
-              : "127.0.0.1";
-          return "$host:${info.port}";
-        } catch (_) {
-          return null;
-        }
-      },
+      proxyAddress: () => grinProxyAddress(_tor),
     );
   }
 
@@ -1220,6 +1215,16 @@ class GrinWallet extends Bip39Wallet<Grin> {
       return (await _requireApi().getAddress()).slatepackAddress;
     } catch (e) {
       throw _fail("slatepackAddress", e);
+    }
+  }
+
+  /// The index 0 address as the native wallet derives it, not the stored
+  /// copy.
+  Future<String> getNativeReceivingAddress() async {
+    try {
+      return (await _requireApi().getAddress()).slatepackAddress;
+    } catch (e) {
+      throw _fail("getNativeReceivingAddress", e);
     }
   }
 

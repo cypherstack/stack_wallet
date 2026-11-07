@@ -2507,7 +2507,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         if (coin is! NanoCurrency &&
             coin is! Epiccash &&
             coin is! Tezos &&
-            coin is! Mimblewimblecoin)
+            coin is! Mimblewimblecoin &&
+            coin is! Grin)
           DesktopSendFeeForm(
             walletId: walletId,
             isToken: false,
