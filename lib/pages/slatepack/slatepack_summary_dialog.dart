@@ -1,357 +1,107 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../models/slatepack_models.dart';
-import '../../../providers/global/wallets_provider.dart';
-import '../../../themes/stack_colors.dart';
-import '../../../utilities/amount/amount.dart';
-import '../../../utilities/amount/amount_formatter.dart';
-import '../../../utilities/clipboard_interface.dart';
-import '../../../utilities/show_loading.dart';
-import '../../../utilities/slatepack_terms.dart';
-import '../../../utilities/text_styles.dart';
-import '../../../utilities/util.dart';
-import '../../../wallets/isar/providers/wallet_info_provider.dart';
-import '../../../wallets/wallet/intermediate/mimblewimble_wallet.dart';
-import '../../../widgets/conditional_parent.dart';
-import '../../../widgets/custom_buttons/simple_copy_button.dart';
-import '../../../widgets/desktop/desktop_dialog_close_button.dart';
-import '../../../widgets/desktop/primary_button.dart';
-import '../../../widgets/desktop/secondary_button.dart';
-import '../../../widgets/detail_item.dart';
-import '../../../widgets/dialogs/s_dialog.dart';
-import '../../../widgets/rounded_white_container.dart';
-import '../../../widgets/stack_dialog.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/amount/amount.dart';
+import '../../utilities/amount/amount_formatter.dart';
+import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/detail_item.dart';
+import '../../widgets/rounded_container.dart';
+import '../../widgets/rounded_white_container.dart';
+import 'slatepack_popup.dart';
 
-class SlatepackImportDialog extends ConsumerStatefulWidget {
-  const SlatepackImportDialog({
+/// What an imported slatepack will do, with a button to go ahead. Pops true
+/// when the user confirms.
+class SlatepackSummaryDialog extends ConsumerWidget {
+  const SlatepackSummaryDialog({
     super.key,
-    required this.walletId,
-    required this.rawSlatepack,
-    required this.decoded,
-    required this.slatepackType,
-    this.clipboard = const ClipboardWrapper(),
+    required this.title,
+    required this.coin,
+    required this.actionLabel,
+    this.amount,
+    this.fee,
+    this.details = const [],
+    this.note,
   });
 
-  final String walletId;
-  final String rawSlatepack;
-  final SlatepackDecodeResult decoded;
-  final String slatepackType;
-  final ClipboardInterface clipboard;
+  final String title;
+  final CryptoCurrency coin;
+  final String actionLabel;
+  final Amount? amount;
+  final Amount? fee;
+
+  /// Extra label and value rows shown under the amount and fee.
+  final List<(String, String)> details;
+
+  /// Shown above the buttons, e.g. a warning.
+  final String? note;
 
   @override
-  ConsumerState<SlatepackImportDialog> createState() =>
-      _SlatepackImportDialogState();
-}
-
-class _SlatepackImportDialogState extends ConsumerState<SlatepackImportDialog> {
-  late final SlatepackTerms _terms;
-
-  Future<({String responseSlatepack, bool wasEncrypted})>
-  _processSlatepack() async {
-    // add delay for showloading exception catching hack fix
-    await Future<void>.delayed(const Duration(seconds: 1));
-
-    final wallet =
-        ref.read(pWallets).getWallet(widget.walletId) as MimblewimbleWallet;
-
-    // Determine action based on slatepack type.
-    if (widget.slatepackType.contains("S1")) {
-      // This is an initial slatepack - receive it and create response.
-      final result = await wallet.receiveSlatepack(widget.rawSlatepack);
-
-      if (result.success && result.responseSlatepack != null) {
-        return (
-          responseSlatepack: result.responseSlatepack!,
-          wasEncrypted: result.wasEncrypted ?? false,
-        );
-      } else {
-        throw Exception(result.error ?? 'Failed to process slatepack');
-      }
-    } else {
-      throw Exception('Unsupported slatepack type: ${widget.slatepackType}');
-    }
-  }
-
-  Future<void> _processPressed() async {
-    Exception? ex;
-    final result = await showLoading(
-      whileFuture: _processSlatepack(),
-      context: context,
-      message: "Processing ${_terms.noun}...",
-      onException: (e) => ex = e,
-    );
-
-    if (result == null || ex != null) {
-      if (mounted) {
-        await showDialog<void>(
-          context: context,
-          useRootNavigator: true,
-          builder: (context) => StackOkDialog(
-            desktopPopRootNavigator: true,
-            maxWidth: Util.isDesktop ? 400 : null,
-            title: "${_terms.title} receive error",
-            message: ex?.toString() ?? "Unexpected result without exception",
-          ),
-        );
-      }
-      return;
-    }
-
-    if (mounted) {
-      Navigator.of(context).pop(result);
-    }
-  }
-
-  late final Amount? _amount;
-
-  // late final Amount? _fee;
-
-  @override
-  void initState() {
-    _terms = SlatepackTerms.forCoin(ref.read(pWalletCoin(widget.walletId)));
-
-    final map = jsonDecode(widget.decoded.slateJson!) as Map;
-
-    final rawAmount = BigInt.tryParse(map["amount"].toString());
-    _amount = rawAmount == null
-        ? null
-        : Amount(
-            rawValue: rawAmount,
-            fractionDigits: ref
-                .read(pWalletCoin(widget.walletId))
-                .fractionDigits,
-          );
-
-    // final rawFee = BigInt.tryParse(map["fee"].toString());
-    // _fee =
-    //     rawFee == null
-    //         ? null
-    //         : Amount(
-    //           rawValue: rawFee,
-    //           fractionDigits:
-    //               ref.read(pWalletCoin(widget.walletId)).fractionDigits,
-    //         );
-
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDesktop = Util.isDesktop;
+    final colors = Theme.of(context).extension<StackColors>()!;
+    final formatter = ref.watch(pAmountFormatter(coin));
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (isDesktop)
-          // Header with title and close button.
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 32),
-                child: Text(
-                  "Import ${_terms.title}",
-                  style: STextStyles.pageTitleH2(context),
-                ),
-              ),
-              const DesktopDialogCloseButton(),
-            ],
-          ),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: isDesktop ? 32 : 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              ConditionalParent(
-                condition: isDesktop,
-                builder: (child) => RoundedWhiteContainer(
-                  borderColor: isDesktop
-                      ? Theme.of(
-                          context,
-                        ).extension<StackColors>()!.backgroundAppBar
-                      : null,
-                  padding: const EdgeInsets.all(0),
-                  child: child,
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (!isDesktop)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 24, bottom: 24),
-                        child: Text(
-                          "Import ${_terms.noun}",
-                          style: STextStyles.pageTitleH2(context),
-                        ),
-                      ),
+    final rows = <(String, String)>[
+      if (amount != null) ("Amount", formatter.format(amount!)),
+      if (fee != null) ("Fee", formatter.format(fee!)),
+      ...details,
+    ];
 
-                    // DetailItem(title: "Type", detail: widget.slatepackType),
-                    // const DetailDivider(),
-                    // DetailItem(
-                    //   title: "Encrypted",
-                    //   detail: (widget.decoded.wasEncrypted ?? false).toString(),
-                    // ),
-                    // if (widget.decoded.senderAddress != null)
-                    //   const DetailDivider(),
-                    // if (widget.decoded.senderAddress != null)
-                    //   DetailItem(
-                    //     title: "From",
-                    //     detail: widget.decoded.senderAddress!,
-                    //   ),
-                    // if (widget.decoded.recipientAddress != null)
-                    //   const DetailDivider(),
-                    // if (widget.decoded.recipientAddress != null)
-                    //   DetailItem(
-                    //     title: "To",
-                    //     detail: widget.decoded.recipientAddress!,
-                    //   ),
-                    // if (_amount != null) const DetailDivider(),
-                    if (_amount != null)
-                      DetailItem(
-                        title: "Amount",
-                        detail: ref
-                            .watch(
-                              pAmountFormatter(
-                                ref.watch(pWalletCoin(widget.walletId)),
-                              ),
-                            )
-                            .format(_amount),
-                      ),
-                    // if (_fee != null) const DetailDivider(),
-                    // if (_fee != null)
-                    //   DetailItem(
-                    //     title: "Fee",
-                    //     detail: ref
-                    //         .watch(
-                    //           pAmountFormatter(
-                    //             ref.watch(pWalletCoin(widget.walletId)),
-                    //           ),
-                    //         )
-                    //         .format(_fee),
-                    //   ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              ConditionalParent(
-                condition: isDesktop,
-                builder: (child) => Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [child],
-                ),
-                child: PrimaryButton(
-                  width: isDesktop ? 220 : null,
-
-                  buttonHeight: isDesktop ? ButtonHeight.l : null,
-                  label: "Process",
-                  onPressed: _processPressed,
-                ),
-              ),
-              if (!isDesktop) const SizedBox(height: 12),
-              if (!isDesktop)
-                SecondaryButton(
-                  label: "Cancel",
-                  onPressed: Navigator.of(context).pop,
-                ),
-            ],
-          ),
-        ),
-        isDesktop ? const SizedBox(height: 32) : const SizedBox(height: 24),
-      ],
-    );
-  }
-}
-
-class SlatepackResponseDialog extends StatelessWidget {
-  const SlatepackResponseDialog({
-    super.key,
-    required this.terms,
-    required this.responseSlatepack,
-    required this.wasEncrypted,
-  });
-
-  final SlatepackTerms terms;
-  final String responseSlatepack;
-  final bool wasEncrypted;
-
-  @override
-  Widget build(BuildContext context) {
-    return SDialog(
+    return SlatepackPopupLayout(
+      title: title,
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Header with title and close button.
-          if (Util.isDesktop)
-            Padding(
-              padding: const EdgeInsets.only(left: 32),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Response ${terms.title}",
-                    style: STextStyles.pageTitleH2(context),
-                  ),
-                  const DesktopDialogCloseButton(),
-                ],
-              ),
-            ),
-          Padding(
-            padding: Util.isDesktop
-                ? const EdgeInsets.only(left: 32, right: 32, bottom: 32)
-                : const EdgeInsets.only(left: 24, right: 24, bottom: 24),
+          RoundedWhiteContainer(
+            padding: EdgeInsets.zero,
+            borderColor: isDesktop ? colors.backgroundAppBar : null,
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (!Util.isDesktop) const SizedBox(height: 24),
-                Text(
-                  "Return this ${terms.noun} to the sender to complete the "
-                  "transaction.",
-                  style: STextStyles.pageTitleH2(context),
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Response ${terms.noun}",
-                      style: STextStyles.itemSubtitle(context),
-                    ),
-                    SimpleCopyButton(data: responseSlatepack),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                ConditionalParent(
-                  condition: !Util.isDesktop,
-                  builder: (child) => SizedBox(
-                    height: 220,
-                    child: SingleChildScrollView(child: child),
-                  ),
-                  child: SelectableText(
-                    responseSlatepack,
-                    style: STextStyles.w500_14(context),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                ConditionalParent(
-                  condition: Util.isDesktop,
-                  builder: (child) => Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [child],
-                  ),
-                  child: PrimaryButton(
-                    label: "Done",
-                    width: Util.isDesktop ? 220 : null,
-                    buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
-                    onPressed: Navigator.of(context).pop,
-                  ),
-                ),
+                for (int i = 0; i < rows.length; i++) ...[
+                  if (i > 0) const DetailDivider(),
+                  DetailItem(title: rows[i].$1, detail: rows[i].$2),
+                ],
               ],
             ),
+          ),
+          if (note != null) ...[
+            const SizedBox(height: 16),
+            RoundedContainer(
+              color: colors.warningBackground,
+              child: Text(
+                note!,
+                style: STextStyles.label(context)
+                    .copyWith(color: colors.warningForeground),
+              ),
+            ),
+          ],
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Expanded(
+                child: SecondaryButton(
+                  label: "Cancel",
+                  buttonHeight: isDesktop ? ButtonHeight.l : null,
+                  onPressed: () => Navigator.of(context).pop(false),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: PrimaryButton(
+                  label: actionLabel,
+                  buttonHeight: isDesktop ? ButtonHeight.l : null,
+                  onPressed: () => Navigator.of(context).pop(true),
+                ),
+              ),
+            ],
           ),
         ],
       ),

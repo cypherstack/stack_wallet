@@ -22,8 +22,10 @@ import '../../../pages/settings_views/global_settings_view/manage_nodes_views/ad
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/default_epicboxes.dart';
 import '../../../utilities/dynamic_object.dart';
+import '../../../utilities/enums/slatepack_method.dart';
 import '../../../utilities/flutter_secure_storage_interface.dart';
 import '../../../utilities/logger.dart';
+import '../../../utilities/slatepack_terms.dart';
 import '../../../utilities/test_epic_box_connection.dart';
 import '../../../utilities/tor_plain_net_option_enum.dart';
 import '../../../wl_gen/interfaces/libepiccash_interface.dart';
@@ -32,6 +34,7 @@ import '../../isar/models/wallet_info.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/mimblewimble_wallet.dart';
 import '../supporting/mimblewimble_wallet_info_extension.dart';
+import '../wallet_mixin_interfaces/slatepack_interface.dart';
 
 //
 // refactor of https://github.com/cypherstack/stack_wallet/blob/1d9fb4cd069f22492ece690ac788e05b8f8b1209/lib/services/coins/epiccash/epiccash_wallet.dart
@@ -51,6 +54,16 @@ class EpiccashWallet extends MimblewimbleWallet {
 
   @override
   int get firstBlockTimestamp => 1565370278;
+
+  @override
+  SlatepackTerms get slatepackTerms => SlatepackTerms.slate;
+
+  // Epic Cash users have always defaulted to epicbox.
+  @override
+  List<SlatepackMethod> get supportedMethods => const [
+    SlatepackMethod.relay,
+    SlatepackMethod.slatepack,
+  ];
 
   @override
   Future<void> updateRelayConfig(String host, int port) async {
@@ -117,14 +130,14 @@ class EpiccashWallet extends MimblewimbleWallet {
 
   // ================= Slatepack Operations ===================================
 
-  /// Epic slates are exchanged as plain JSON; [encrypt] is ignored.
+  /// Epic slates are exchanged as plain JSON and are never encrypted.
+  /// [sendAll] is ignored; prepareSend already took the fee off the amount.
   @override
   Future<SlatepackResult> createSlatepack({
     required Amount amount,
     String? recipientAddress,
     String? message,
-    bool encrypt = false,
-    int? minimumConfirmations,
+    bool sendAll = false,
   }) async {
     try {
       _hackedCheckTorNodePrefs();
@@ -136,18 +149,22 @@ class EpiccashWallet extends MimblewimbleWallet {
         amount: amount.raw.toInt(),
         address: 'slate', // Not used in slate mode.
         secretKeyIndex: 0,
-        minimumConfirmations:
-            minimumConfirmations ?? cryptoCurrency.minConfirms,
+        minimumConfirmations: cryptoCurrency.minConfirms,
         note: message ?? '',
         returnSlate: true,
       );
 
+      final info = inspectSlateJsonString(result.slateJson);
       return SlatepackResult(
         success: true,
         slatepack: result.slateJson,
         slateJson: result.slateJson,
         wasEncrypted: false,
         recipientAddress: recipientAddress,
+        state: SlateState.s1,
+        slateId: result.slateId,
+        amount: info?.amount ?? amount,
+        fee: info?.fee,
       );
     } catch (e, s) {
       Logging.instance.e('Failed to create slatepack: $e\n$s');
@@ -175,7 +192,7 @@ class EpiccashWallet extends MimblewimbleWallet {
   }
 
   @override
-  Future<ReceiveResult> receiveSlatepack(String slatepack) async {
+  Future<SlatepackResult> receiveSlatepack(String slatepack) async {
     try {
       _hackedCheckTorNodePrefs();
       if (_wallet == null) {
@@ -187,17 +204,21 @@ class EpiccashWallet extends MimblewimbleWallet {
         slateJson: slatepack,
       );
 
-      return ReceiveResult(
+      final info = inspectSlateJsonString(received.slateJson);
+      return SlatepackResult(
         success: true,
-        slateId: received.slateId,
-        commitId: received.commitId,
-        responseSlatepack: received.slateJson,
+        slatepack: received.slateJson,
+        slateJson: received.slateJson,
         wasEncrypted: false,
         recipientAddress: null,
+        state: SlateState.s2,
+        slateId: received.slateId,
+        amount: info?.amount,
+        fee: info?.fee,
       );
     } catch (e, s) {
       Logging.instance.e('Failed to receive slatepack: $e\n$s');
-      return ReceiveResult(success: false, error: e.toString());
+      return SlatepackResult(success: false, error: e.toString());
     }
   }
 
@@ -218,25 +239,11 @@ class EpiccashWallet extends MimblewimbleWallet {
         success: true,
         slateId: finalized.slateId,
         commitId: finalized.commitId,
+        posted: true,
       );
     } catch (e, s) {
       Logging.instance.e('Failed to finalize slatepack: $e\n$s');
       return FinalizeResult(success: false, error: e.toString());
-    }
-  }
-
-  /// Check if data is a slate JSON.
-  @override
-  bool isSlatepack(String data) {
-    try {
-      final dynamic parsed = jsonDecode(data);
-      // Check for common slate fields.
-      return parsed is Map &&
-          (parsed.containsKey('id') || parsed.containsKey('slate_id')) &&
-          (parsed.containsKey('amount') ||
-              parsed.containsKey('participant_data'));
-    } catch (e) {
-      return false;
     }
   }
 
@@ -726,7 +733,20 @@ class EpiccashWallet extends MimblewimbleWallet {
         recipient = recipient.copyWith(amount: recipient.amount - feeAmount);
       }
 
-      return txData.copyWith(recipients: [recipient], fee: feeAmount);
+      final SlatepackMethod method;
+      if (txData.isSlatepackSend || recipient.address.isEmpty) {
+        method = SlatepackMethod.slatepack;
+      } else if (isHttpAddress(recipient.address)) {
+        method = SlatepackMethod.http;
+      } else {
+        method = SlatepackMethod.relay;
+      }
+
+      return txData.copyWith(
+        recipients: [recipient],
+        fee: feeAmount,
+        otherData: slatepackMethodOtherData(method),
+      );
     } catch (e, s) {
       Logging.instance.e("Epic cash prepareSend", error: e, stackTrace: s);
       rethrow;

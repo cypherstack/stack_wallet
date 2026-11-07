@@ -18,7 +18,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../../../models/slatepack_models.dart';
 import '../../../../models/isar/models/blockchain_data/address.dart';
 import '../../../../models/isar/models/blockchain_data/utxo.dart';
 import '../../../../models/isar/models/contact_entry.dart';
@@ -29,7 +28,6 @@ import '../../../../pages/send_view/confirm_transaction_view.dart';
 import '../../../../pages/send_view/frost_ms/recipient.dart';
 import '../../../../pages/send_view/sub_widgets/building_transaction_dialog.dart';
 import '../../../../pages/send_view/sub_widgets/multi_recipient.dart';
-import '../../../../pages/send_view/sub_widgets/slatepack_dialog.dart';
 import '../../../../providers/providers.dart';
 import '../../../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../../../providers/ui/preview_tx_button_state_provider.dart';
@@ -49,22 +47,21 @@ import '../../../../utilities/assets.dart';
 import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/enums/fee_rate_type_enum.dart';
+import '../../../../utilities/enums/slatepack_method.dart';
 import '../../../../utilities/integer_input.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/prefs.dart';
-import '../../../../utilities/show_loading.dart';
-import '../../../../utilities/slatepack_terms.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/models/tx_data.dart';
 import '../../../../wallets/wallet/impl/firo_wallet.dart';
-import '../../../../wallets/wallet/intermediate/mimblewimble_wallet.dart';
 import '../../../../wallets/wallet/impl/salvium_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/slatepack_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
@@ -196,134 +193,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     }
   }
 
-  Future<void> _handleDesktopSlatepackCreation(
-    MimblewimbleWallet wallet,
-  ) async {
-    final SlatepackTerms terms = SlatepackTerms.forCoin(coin);
-    try {
-      final amount = ref.read(pSendAmount)!;
-
-      Future<SlatepackResult> wrappedFutureWithDelay() async {
-        await Future<void>.delayed(const Duration(seconds: 1));
-        return wallet.createSlatepack(
-          amount: amount,
-          recipientAddress: null, // No specific recipient for manual slatepack.
-          message: _onChainNote?.isNotEmpty == true ? _onChainNote : null,
-          encrypt: false, // No encryption without recipient address.
-        );
-      }
-
-      // Create slatepack.
-      Exception? ex;
-      final slatepackResult = await showLoading(
-        whileFuture: wrappedFutureWithDelay(),
-        context: context,
-        rootNavigator: true,
-        message: "Building ${terms.noun}...",
-        delay: const Duration(seconds: 2),
-        onException: (e) => ex = e,
-      );
-
-      if (slatepackResult == null ||
-          !slatepackResult.success ||
-          slatepackResult.slatepack == null ||
-          ex != null) {
-        String error =
-            ex?.toString() ??
-            slatepackResult?.error ??
-            'Failed to create ${terms.noun}';
-        if (error.startsWith("Exception:")) {
-          error = error.replaceFirst("Exception:", "").trim();
-        }
-        throw Exception(error);
-      }
-
-      // refresh asap to show the pending slate tx in history
-      unawaited(() async {
-        await Future<void>.delayed(Duration.zero);
-        await wallet.refresh();
-      }());
-
-      // Show slatepack dialog.
-      if (mounted) {
-        await showDialog<void>(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => DesktopDialog(
-            maxHeight: double.infinity,
-            maxWidth: 700,
-            child: SlatepackDialog(
-              terms: terms,
-              slatepackResult: slatepackResult,
-            ),
-          ),
-        );
-
-        // Clear form after slatepack dialog is closed.
-        clearSendForm();
-      }
-    } catch (e, s) {
-      Logging.instance.e(
-        'Failed to create ${coin.prettyName} ${terms.noun} on desktop',
-        error: e,
-        stackTrace: s,
-      );
-
-      if (mounted) {
-        await showDialog<void>(
-          context: context,
-          builder: (context) => DesktopDialog(
-            maxWidth: 450,
-            maxHeight: double.infinity,
-            child: Padding(
-              padding: const EdgeInsets.only(left: 32, bottom: 32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '${terms.title} Creation Failed',
-                        style: STextStyles.desktopH3(context),
-                      ),
-                      const DesktopDialogCloseButton(),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 32),
-                    child: Text(
-                      'Failed to create ${terms.noun}: $e',
-                      textAlign: TextAlign.left,
-                      style: STextStyles.desktopTextExtraExtraSmall(context)
-                          .copyWith(fontSize: 18),
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 32),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: PrimaryButton(
-                            buttonHeight: ButtonHeight.l,
-                            label: 'OK',
-                            onPressed: () => Navigator.of(context).pop(),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      }
-    }
-  }
-
   /// Looks up the OpenAlias in the address field. Returns null if the lookup
   /// failed or was cancelled.
   Future<OpenAliasResolved?> _resolveOpenAlias(String application) async {
@@ -384,10 +253,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     final nonce = nonceInput.value;
 
     final wallet = ref.read(pWallets).getWallet(walletId);
+    final isSlatepackSend =
+        wallet is SlatepackInterface && ref.read(pIsSlatepack(walletId));
     String? openAlias;
     String? resolvedAddress;
     final application = coin.openAliasApplication;
     if (application != null &&
+        !isSlatepackSend &&
         !coin.validateAddress(_address ?? "") &&
         isOpenAlias(_address ?? "")) {
       var resolved = _openAlias;
@@ -402,12 +274,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       _setValidAddressProviders(resolvedAddress);
     }
     late final recipientAddress = resolvedAddress ?? _address!;
-
-    if (wallet is MimblewimbleWallet &&
-        ref.read(pIsSlatepack(widget.walletId))) {
-      await _handleDesktopSlatepackCreation(wallet);
-      return;
-    }
 
     final Amount amount = ref.read(pSendAmount)!;
     final Amount availableBalance;
@@ -577,6 +443,21 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 : null,
           ),
         );
+      } else if (isSlatepackSend) {
+        // No address: the confirm screen hands out a slatepack instead.
+        txDataFuture = wallet.prepareSend(
+          txData: TxData(
+            recipients: [
+              TxRecipient(
+                address: "",
+                amount: amount,
+                isChange: false,
+                addressType: AddressType.mimbleWimble,
+              ),
+            ],
+            otherData: slatepackMethodOtherData(SlatepackMethod.slatepack),
+          ),
+        );
       } else if (wallet is FiroWallet) {
         switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
           case BalanceType.public:
@@ -736,10 +617,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           );
         } else {
           txData = txData.copyWith(note: _note ?? "");
-          if (coin is Epiccash) {
-            txData = txData.copyWith(noteOnChain: _onChainNote ?? "");
-          }
-          if (coin is Mimblewimblecoin) {
+          if (wallet is SlatepackInterface && wallet.supportsOnChainNote) {
             txData = txData.copyWith(noteOnChain: _onChainNote ?? "");
           }
         }
@@ -1436,7 +1314,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     clipboard = widget.clipboard;
 
     hasOptionalMemo = coin is Stellar || coin is Solana;
-    usesSlatepacks = coin is Mimblewimblecoin || coin is Epiccash;
+    usesSlatepacks =
+        ref.read(pWallets).getWallet(walletId) is SlatepackInterface;
 
     sendToController = TextEditingController();
     cryptoAmountController = TextEditingController();
@@ -1543,7 +1422,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     });
     // ethFee is checked in the ValueListenableBuilder around the preview
     // button so fee keystrokes don't rebuild this whole view.
-    final previewEnabled = ref.watch(pPreviewTxButtonEnabled(coin));
+    final previewEnabled = ref.watch(pPreviewTxButtonEnabled(walletId));
     final needsEthFee = coin is Ethereum && isCustomFee;
 
     // add listener for epic cash to strip http:// and https:// prefixes if the address also ocntains an @ symbol (indicating an epicbox address)
@@ -1635,9 +1514,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 ),
               ),
               child: SizedBox(
-                height:
-                    60, // Provide an explicit height to avoid infinite constraints
-                child: SlatepackMethodToggle(coin: coin),
+                height: 60, // Provide an explicit height to avoid infinite constraints
+                child: SlatepackMethodToggle(walletId: walletId),
               ),
             ),
           ),
@@ -2180,10 +2058,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               } else {
                 if (_data != null && _data.contactLabel == _address) {
                   error = null;
-                } else if ((coin is Mimblewimblecoin || coin is Epiccash) &&
+                } else if (usesSlatepacks &&
                     ref.watch(pIsSlatepack(widget.walletId))) {
-                  // For MWC/Epic slatepack transactions, address validation is not required.
-                  // TODO: When implementing encrypted slatepacks, address validation will be required.
+                  // Slatepack sends have no address to validate.
                   error = null;
                 } else if (!ref.watch(pValidSendToAddress)) {
                   error = "Invalid address";
@@ -2414,9 +2291,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 (!needsEthFee || ethFee != null);
             return PrimaryButton(
               buttonHeight: ButtonHeight.l,
-              label: ref.watch(pIsSlatepack(widget.walletId))
-                  ? "Create slatepack"
-                  : "Preview send",
+              label: "Preview send",
               enabled: enabled,
               onPressed: enabled ? previewSend : null,
             );
