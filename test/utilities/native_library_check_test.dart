@@ -2,8 +2,10 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:logger/logger.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/native_library_check.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
 const _exe = r"C:\Program Files\Stack Wallet\stack_wallet.exe";
 const _dll = "monero_libwallet2_api_c.dll";
@@ -203,6 +205,8 @@ void main() {
       final failures = takeNativeLibraryFailures();
       expect(failures.map((f) => f.displayName), [
         "Wownero wallets",
+        // Its file is present but won't load either, when Grin is built in.
+        if (AppConfig.coins.whereType<Grin>().isNotEmpty) "Grin wallets",
         "Most wallets",
       ]);
       expect(failures.first.result.problem, NativeLibraryProblem.loadFailed);
