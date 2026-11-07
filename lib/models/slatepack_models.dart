@@ -169,3 +169,76 @@ class FinalizeResult {
         ")";
   }
 }
+
+/// What the confirm screen has to ask, or refuse, before a direct send.
+class SlatepackHttpPolicy {
+  const SlatepackHttpPolicy({
+    this.blockedReason,
+    this.needsClearnetAck = false,
+    this.needsPlaintextAck = false,
+  });
+
+  /// Set when the send cannot go ahead now. Shown to the user.
+  final String? blockedReason;
+
+  /// The target is reached without Tor and learns the user's IP address.
+  final bool needsClearnetAck;
+
+  /// The target is a plain http:// URL, readable on the way (also by a Tor
+  /// exit).
+  final bool needsPlaintextAck;
+
+  bool get isBlocked => blockedReason != null;
+}
+
+/// Slatepack details of a stored transaction, for the details screen.
+class SlatepackTxInfo {
+  const SlatepackTxInfo({
+    this.slateId,
+    this.kernelExcess,
+    this.counterpartyAddress,
+    this.ttlCutoffHeight,
+    this.finalizedNotBroadcast = false,
+    this.canRepost = false,
+    this.canShowSlatepack = false,
+    this.hasPaymentProof = false,
+  });
+
+  final String? slateId;
+  final String? kernelExcess;
+  final String? counterpartyAddress;
+  final int? ttlCutoffHeight;
+
+  /// Finalized and stored but not seen on chain yet.
+  final bool finalizedNotBroadcast;
+
+  final bool canRepost;
+
+  /// The wallet still has the slatepack the other party needs.
+  final bool canShowSlatepack;
+
+  final bool hasPaymentProof;
+}
+
+/// A checked payment proof.
+class PaymentProofCheck {
+  const PaymentProofCheck({
+    required this.amount,
+    required this.kernelExcess,
+    required this.senderAddress,
+    required this.recipientAddress,
+    required this.isSender,
+    required this.isRecipient,
+  });
+
+  final Amount amount;
+  final String kernelExcess;
+  final String senderAddress;
+  final String recipientAddress;
+
+  /// This wallet's address is the proof's sender.
+  final bool isSender;
+
+  /// This wallet's address is the proof's recipient.
+  final bool isRecipient;
+}

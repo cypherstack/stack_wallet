@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:grin/grin.dart';
 import 'package:isar_community/isar.dart';
+import 'package:stackwallet/models/slatepack_models.dart';
 import 'package:stackwallet/exceptions/wallet/insufficient_balance_exception.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
@@ -139,7 +140,7 @@ void main() {
         final s1 = await h.wallet.receiveSlatepack(
           'BEGINSLATEPACK. incoming ENDSLATEPACK.',
         );
-        expect(s1.state, GrinSlateState.s2);
+        expect(s1.state, SlateState.s2);
 
         expect(password, isNotEmpty);
         shown.add(password);

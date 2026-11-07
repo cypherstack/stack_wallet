@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/slatepack_models.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/slatepack_method.dart';
@@ -43,7 +44,7 @@ mixin SlatepackInterface<T extends CryptoCurrency> on Wallet<T> {
 
   /// Start a send (S1). [message] is dropped when [supportsOnChainNote] is
   /// false. [recipientAddress] encrypts the slatepack to that address where
-  /// the coin supports it.
+  /// the coin supports it. With [sendAll], [amount] includes the fee.
   Future<SlatepackResult> createSlatepack({
     required Amount amount,
     String? recipientAddress,
@@ -82,6 +83,26 @@ mixin SlatepackInterface<T extends CryptoCurrency> on Wallet<T> {
 
   Future<String> exportPaymentProof(String txid) =>
       throw UnsupportedError("proofs");
+
+  /// Checks a payment proof (JSON) through the wallet's node.
+  Future<PaymentProofCheck> verifyPaymentProof(String proofJson) =>
+      throw UnsupportedError("proofs");
+
+  /// The receive QR code holds the bare address instead of a URI.
+  bool get receiveQrIsRawAddress => false;
+
+  /// Shown under the receive address.
+  String? get receiveAddressNote => null;
+
+  /// Funds held by unfinished transactions, when the coin reports them.
+  Amount? get amountLocked => null;
+
+  /// What has to be asked or refused before a direct send to [address].
+  SlatepackHttpPolicy httpSendPolicy(String address) =>
+      const SlatepackHttpPolicy();
+
+  /// Slatepack details of [tx], or null when there are none to show.
+  SlatepackTxInfo? slatepackTxInfo(TransactionV2 tx) => null;
 }
 
 /// Key in [TxData.otherData] that tells the confirm screen how to send.
