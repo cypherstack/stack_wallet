@@ -1482,6 +1482,7 @@ class _TransactionV2DetailsViewState
                   ),
                 ),
                 if (isSlatepackWallet &&
+                    _transaction.slateId != null &&
                     _transaction.getConfirmations(currentHeight) < 1 &&
                     _transaction.isCancelled == false)
                   const SizedBox(height: 40),
@@ -1492,6 +1493,7 @@ class _TransactionV2DetailsViewState
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         floatingActionButton:
             (isSlatepackWallet &&
+                _transaction.slateId != null &&
                 _transaction.getConfirmations(currentHeight) < 1 &&
                 _transaction.isCancelled == false)
             ? ConditionalParent(
