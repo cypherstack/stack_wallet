@@ -8,6 +8,8 @@ import 'package:isar_community/isar.dart';
 import 'package:mutex/mutex.dart';
 
 import '../../../models/balance.dart';
+import '../../../models/isar/models/blockchain_data/transaction.dart';
+import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/paymint/fee_object_model.dart';
 import '../../../models/relay_config_model.dart';
 import '../../../models/slatepack_models.dart';
@@ -17,17 +19,19 @@ import '../../../services/event_bus/events/global/refresh_percent_changed_event.
 import '../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import '../../../services/event_bus/global_event_bus.dart';
 import '../../../utilities/amount/amount.dart';
+import '../../../utilities/enums/slatepack_method.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/stack_file_system.dart';
 import '../../models/tx_data.dart';
 import '../supporting/mimblewimble_wallet_info_extension.dart';
 import '../supporting/restore_progress.dart';
+import '../wallet_mixin_interfaces/slatepack_interface.dart';
 import 'bip39_wallet.dart';
 
 /// What Epic Cash and MWC have in common: a native wallet that is scanned
 /// in block chunks, a relay server for automatic slate exchange, and manual
 /// slatepack exchange.
-abstract class MimblewimbleWallet extends Bip39Wallet {
+abstract class MimblewimbleWallet extends Bip39Wallet with SlatepackInterface {
   MimblewimbleWallet(super.currency);
 
   final Mutex syncMutex = Mutex();
@@ -84,166 +88,173 @@ abstract class MimblewimbleWallet extends Bip39Wallet {
     );
   }
 
-  /// Returns an empty String on success, error message on failure.
-  Future<String> cancelPendingTransactionAndPost(String txSlateId);
-
   Future<RelayConfigModel> getRelayConfig();
 
   Future<void> updateRelayConfig(String host, int port);
 
   // ================= Slatepack Operations ===================================
 
-  Future<SlatepackResult> createSlatepack({
-    required Amount amount,
-    String? recipientAddress,
-    String? message,
-    bool encrypt = false,
-    int? minimumConfirmations,
-  });
+  @override
+  List<SlatepackMethod> get supportedMethods => const [
+    SlatepackMethod.slatepack,
+    SlatepackMethod.relay,
+  ];
+
+  @override
+  bool get supportsOnChainNote => true;
+
+  @override
+  double get restoreProgress => highestPercent;
+
+  @override
+  Future<String> slatepackAddress() async =>
+      (await getCurrentReceivingAddress())?.value ?? "";
 
   Future<SlatepackDecodeResult> decodeSlatepack(String slatepack);
-
-  /// Receive a slatepack and return the response slatepack.
-  Future<ReceiveResult> receiveSlatepack(String slatepack);
-
-  /// Finalize a slatepack (sender step 3).
-  Future<FinalizeResult> finalizeSlatepack(String slatepack);
-
-  bool isSlatepack(String data);
 
   bool isHttpAddress(String address) {
     return address.startsWith('http://') || address.startsWith('https://');
   }
 
-  /// Cheap syntactic check run by [fullDecodeSlatepack] before decoding.
+  /// Cheap syntactic check run by [inspectSlatepack] before decoding.
   /// Throws to reject input that is obviously not a slatepack.
   @protected
   void checkSlatepackFormat(String slatepack) {}
 
-  // this isn't nearly the best way to handle this but better than copy pasting
-  // this function in two places (mobile and desktop widgets)...
-  Future<({SlatepackDecodeResult result, String type, String raw})?>
-  fullDecodeSlatepack(String slatepack) async {
-    // add delay for showloading exception catching hack fix
-    await Future<void>.delayed(const Duration(seconds: 1));
+  @override
+  Future<SlateInspection> inspectSlatepack(String armored) async {
+    final String text = armored.trim();
+    if (text.isEmpty) {
+      throw Exception("No ${slatepackTerms.noun} entered");
+    }
 
-    if (slatepack.isEmpty) {
+    checkSlatepackFormat(text);
+
+    final SlatepackDecodeResult decoded = await decodeSlatepack(text);
+    if (!decoded.success || decoded.slateJson == null) {
+      throw Exception(
+        decoded.error ?? "Failed to decode ${slatepackTerms.noun}",
+      );
+    }
+
+    final dynamic json = jsonDecode(decoded.slateJson!);
+    if (json is! Map) {
+      throw Exception("Not a ${slatepackTerms.noun}");
+    }
+
+    final inspection = inspectSlateJson(
+      json,
+      fractionDigits: cryptoCurrency.fractionDigits,
+      isEncrypted: decoded.wasEncrypted ?? false,
+      senderAddress: decoded.senderAddress,
+      recipientAddress: decoded.recipientAddress,
+    );
+    Logging.instance.d("Inspected ${slatepackTerms.noun}: $inspection");
+    return inspection;
+  }
+
+  /// Works out the state of an Epic Cash or MWC slate from its JSON. Neither
+  /// marks the state reliably, so it counts partial signatures and falls
+  /// back to the `sta` field and then to the addresses.
+  @visibleForTesting
+  static SlateInspection inspectSlateJson(
+    Map<dynamic, dynamic> json, {
+    required int fractionDigits,
+    bool isEncrypted = false,
+    String? senderAddress,
+    String? recipientAddress,
+  }) {
+    SlateState state = SlateState.unknown;
+
+    final dynamic participants = json['participant_data'];
+    if (participants is List && participants.isNotEmpty) {
+      int signed = 0;
+      for (final dynamic p in participants) {
+        if (p is Map && p['part_sig'] != null) {
+          signed++;
+        }
+      }
+      if (signed == 0) {
+        state = SlateState.s1;
+      } else if (signed == 1) {
+        state = SlateState.s2;
+      } else if (signed >= participants.length) {
+        state = SlateState.s3;
+      }
+    }
+
+    if (state == SlateState.unknown && json['sta'] != null) {
+      state = SlateState.fromCode(json['sta'].toString());
+    }
+
+    if (state == SlateState.unknown) {
+      if (senderAddress != null && recipientAddress != null) {
+        state = SlateState.s2;
+      } else if (senderAddress != null) {
+        state = SlateState.s1;
+      }
+    }
+
+    Amount? parseAmount(dynamic raw) {
+      final value = BigInt.tryParse(raw?.toString() ?? "");
+      return value == null
+          ? null
+          : Amount(rawValue: value, fractionDigits: fractionDigits);
+    }
+
+    return SlateInspection(
+      state: state,
+      slateId: (json['id'] ?? '').toString(),
+      amount: parseAmount(json['amount'] ?? json['amt']),
+      fee: parseAmount(json['fee']),
+      senderAddress: senderAddress,
+      recipientAddress: recipientAddress,
+      isEncrypted: isEncrypted,
+      ttlCutoffHeight: int.tryParse(
+        (json['ttl_cutoff_height'] ?? json['ttl'] ?? '').toString(),
+      ),
+    );
+  }
+
+  /// State, id, amount and fee for a [SlatepackResult], from the slate JSON.
+  @protected
+  SlateInspection? inspectSlateJsonString(String? slateJson) {
+    if (slateJson == null) return null;
+    try {
+      final dynamic json = jsonDecode(slateJson);
+      if (json is! Map) return null;
+      return inspectSlateJson(
+        json,
+        fractionDigits: cryptoCurrency.fractionDigits,
+      );
+    } catch (_) {
       return null;
     }
-
-    checkSlatepackFormat(slatepack);
-
-    final SlatepackDecodeResult decoded = await decodeSlatepack(slatepack);
-    if (!decoded.success) {
-      throw Exception(decoded.error ?? "Failed to decode slatepack");
-    }
-
-    final analysis = await analyzeSlatepack(slatepack);
-
-    final String slatepackType = switch (analysis.status) {
-      'S1' => "S1 (Initial Send)",
-      'S2' => "S2 (Response)",
-      'S3' => "S3 (Finalized)",
-      _ => _slatepackTypeFromAddresses(decoded),
-    };
-
-    return (result: decoded, type: slatepackType, raw: slatepack);
   }
 
-  String _slatepackTypeFromAddresses(SlatepackDecodeResult decoded) {
-    if (decoded.senderAddress != null && decoded.recipientAddress != null) {
-      return "S2 (Response)";
-    } else if (decoded.senderAddress != null) {
-      return "S1 (Initial)";
-    } else {
-      return "Unknown";
+  @override
+  Future<({Amount amount, Amount fee})?> localTxForSlate(String slateId) async {
+    if (slateId.isEmpty) return null;
+
+    final List<TransactionV2> candidates = await mainDB.isar.transactionV2s
+        .where()
+        .walletIdEqualTo(walletId)
+        .filter()
+        .otherDataContains(slateId)
+        .findAll();
+
+    for (final TransactionV2 tx in candidates) {
+      if (tx.slateId != slateId) continue;
+      final int digits = cryptoCurrency.fractionDigits;
+      final Amount amount = tx.type == TransactionType.incoming
+          ? tx.getAmountReceivedInThisWallet(fractionDigits: digits)
+          : tx.getAmountSentFromThisWallet(
+              fractionDigits: digits,
+              subtractFee: true,
+            );
+      return (amount: amount, fee: tx.getFee(fractionDigits: digits));
     }
-  }
-
-  /// Analyze a slatepack and determine transaction type and metadata.
-  Future<
-    ({
-      String type,
-      String status,
-      String? amount,
-      bool wasEncrypted,
-      String? senderAddress,
-      String? recipientAddress,
-      String slateId,
-    })
-  >
-  analyzeSlatepack(String slatepack) async {
-    try {
-      final SlatepackDecodeResult decoded = await decodeSlatepack(slatepack);
-      if (!decoded.success) {
-        throw Exception(decoded.error);
-      }
-
-      final dynamic slateData = jsonDecode(decoded.slateJson!);
-      final String slateId = "${slateData['id'] ?? ''}";
-      final String? amountStr = slateData['amount']?.toString();
-
-      Logging.instance.d('Analyzed slatepack with ID: $slateId');
-
-      String status = 'Unknown';
-      String type = 'Unknown';
-
-      // Count signatures in the participant data to work out which step
-      // the slate is at.
-      final List<dynamic>? participants =
-          slateData['participant_data'] as List<dynamic>?;
-      if (participants != null && participants.isNotEmpty) {
-        int signedParticipants = 0;
-        for (final dynamic participant in participants) {
-          if (participant['part_sig'] != null) {
-            signedParticipants++;
-          }
-        }
-
-        if (signedParticipants == 0) {
-          status = 'S1';
-          type = 'Outgoing';
-        } else if (signedParticipants == 1) {
-          status = 'S2';
-          type = 'Incoming';
-        } else if (signedParticipants >= participants.length) {
-          status = 'S3';
-          type = 'Outgoing';
-        }
-      }
-
-      // Fallback: some slates carry an explicit 'sta' field.
-      if (status == 'Unknown' && slateData['sta'] != null) {
-        status = "${slateData['sta']}";
-        if (status == 'S1') {
-          type = 'Outgoing';
-        } else if (status == 'S2') {
-          type = 'Incoming';
-        } else if (status == 'S3') {
-          type = 'Outgoing';
-        }
-      }
-
-      return (
-        type: type,
-        status: status,
-        amount: amountStr,
-        wasEncrypted: decoded.wasEncrypted ?? false,
-        senderAddress: decoded.senderAddress,
-        recipientAddress: decoded.recipientAddress,
-        slateId: slateId,
-      );
-    } catch (e) {
-      return (
-        type: 'Unknown',
-        status: 'Unknown',
-        amount: null,
-        wasEncrypted: false,
-        senderAddress: null,
-        recipientAddress: null,
-        slateId: '',
-      );
-    }
+    return null;
   }
 
   // ================= Native wallet hooks =====================================

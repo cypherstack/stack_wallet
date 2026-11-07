@@ -34,12 +34,12 @@ import '../../utilities/text_styles.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/impl/bitcoin_wallet.dart';
-import '../../wallets/wallet/intermediate/mimblewimble_wallet.dart';
 import '../../wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/bcash_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/slatepack_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../widgets/background.dart';
@@ -49,13 +49,11 @@ import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/custom_loading_overlay.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
-import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/qr.dart';
 import '../../widgets/rounded_white_container.dart';
-import '../../widgets/stack_dialog.dart';
 import 'addresses/wallet_addresses_view.dart';
 import 'generate_receiving_uri_qr_code_view.dart';
-import 'sub_widgets/slatepack_import_dialog.dart';
+import '../slatepack/slatepack_import_flow.dart';
 import 'sub_widgets/slatepack_entry_dialog.dart';
 
 class ReceiveView extends ConsumerStatefulWidget {
@@ -83,6 +81,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
   late final bool _supportsSpark;
   late final bool _showMultiType;
   late bool supportsMweb;
+  SlatepackTerms? _slatepackTerms;
 
   int _currentIndex = 0;
 
@@ -91,67 +90,18 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
   final Map<AddressType, StreamSubscription<Address?>> _addressSubMap = {};
 
   Future<void> _importSlatepack() async {
-    final SlatepackTerms terms = SlatepackTerms.forCoin(coin);
+    final wallet = ref.read(pWallets).getWallet(walletId) as SlatepackInterface;
 
-    final slatepackString = await showDialog<String>(
+    final text = await showDialog<String>(
       context: context,
-      builder: (context) => SlatepackEntryDialog(terms: terms),
+      builder: (context) => SlatepackEntryDialog(
+        terms: wallet.slatepackTerms,
+        clipboard: widget.clipboard,
+      ),
     );
+    if (text == null || text.trim().isEmpty || !mounted) return;
 
-    if (slatepackString == null) return;
-    if (mounted) {
-      final wallet =
-          ref.read(pWallets).getWallet(walletId) as MimblewimbleWallet;
-
-      Exception? ex;
-      final result = await showLoading(
-        whileFuture: wallet.fullDecodeSlatepack(slatepackString),
-        context: context,
-        message: "Decoding ${terms.noun}...",
-        onException: (e) => ex = e,
-      );
-
-      if (result == null || ex != null) {
-        if (mounted) {
-          await showDialog<void>(
-            context: context,
-            builder: (context) => StackOkDialog(
-              title: "${terms.title} receive error",
-              message: ex?.toString() ?? "Unexpected result without exception",
-            ),
-          );
-        }
-        return;
-      }
-
-      if (mounted) {
-        final response =
-            await showDialog<({String responseSlatepack, bool wasEncrypted})>(
-              context: context,
-              builder: (context) => SDialog(
-                child: SlatepackImportDialog(
-                  walletId: widget.walletId,
-                  clipboard: widget.clipboard,
-                  rawSlatepack: result.raw,
-                  decoded: result.result,
-                  slatepackType: result.type,
-                ),
-              ),
-            );
-
-        if (mounted && response != null) {
-          await showDialog<void>(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => SlatepackResponseDialog(
-              terms: terms,
-              responseSlatepack: response.responseSlatepack,
-              wasEncrypted: response.wasEncrypted,
-            ),
-          );
-        }
-      }
-    }
+    await SlatepackImportFlow.run(context: context, wallet: wallet, text: text);
   }
 
   Future<void> generateNewAddress() async {
@@ -166,9 +116,10 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
             return WillPopScope(
               onWillPop: () async => shouldPop,
               child: Container(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.overlay.withOpacity(0.5),
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .overlay
+                    .withOpacity(0.5),
                 child: const CustomLoadingOverlay(
                   message: "Generating address",
                   eventBus: null,
@@ -225,9 +176,8 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
       shouldPop = true;
 
       if (mounted) {
-        Navigator.of(
-          context,
-        ).popUntil(ModalRoute.withName(ReceiveView.routeName));
+        Navigator.of(context)
+            .popUntil(ModalRoute.withName(ReceiveView.routeName));
 
         setState(() {
           _addressMap[_walletAddressTypes[_currentIndex]] =
@@ -248,9 +198,10 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
             return WillPopScope(
               onWillPop: () async => shouldPop,
               child: Container(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.overlay.withOpacity(0.5),
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .overlay
+                    .withOpacity(0.5),
                 child: const CustomLoadingOverlay(
                   message: "Generating address",
                   eventBus: null,
@@ -332,6 +283,9 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
     clipboard = widget.clipboard;
     final wallet = ref.read(pWallets).getWallet(walletId);
     _supportsSpark = wallet is SparkInterface;
+    if (wallet is SlatepackInterface) {
+      _slatepackTerms = wallet.slatepackTerms;
+    }
     supportsMweb =
         wallet is MwebInterface &&
         !wallet.info.isViewOnly &&
@@ -493,17 +447,16 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
               child: AspectRatio(
                 aspectRatio: 1,
                 child: AppBarIconButton(
-                  semanticsLabel:
-                      "Address List Pop-up Button. Opens A Pop-up For Address List Button.",
+                  semanticsLabel: "Address List Pop-up Button. Opens A Pop-up For Address List Button.",
                   key: const Key("walletNetworkSettingsAddNewNodeViewButton"),
                   size: 36,
                   shadows: const [],
                   color: Theme.of(context).extension<StackColors>()!.background,
                   icon: SvgPicture.asset(
                     Assets.svg.verticalEllipsis,
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.accentColorDark,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
                     width: 20,
                     height: 20,
                   ),
@@ -520,9 +473,9 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                               right: 10,
                               child: Container(
                                 decoration: BoxDecoration(
-                                  color: Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.popupBG,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .popupBG,
                                   borderRadius: BorderRadius.circular(
                                     Constants.size.circularBorderRadius,
                                   ),
@@ -591,9 +544,9 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                           Text(
                             "Address type",
                             style: STextStyles.w500_14(context).copyWith(
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.infoItemLabel,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .infoItemLabel,
                             ),
                           ),
                           const SizedBox(height: 10),
@@ -760,10 +713,10 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                             ? generateNewSparkAddress
                             : generateNewAddress,
                       ),
-                    if (coin is Mimblewimblecoin || coin is Epiccash) ...[
+                    if (_slatepackTerms != null) ...[
                       const SizedBox(height: 12),
                       SecondaryButton(
-                        label: "Import ${SlatepackTerms.forCoin(coin).title}",
+                        label: "Import ${_slatepackTerms!.title}",
                         onPressed: _importSlatepack,
                       ),
                     ],

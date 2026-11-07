@@ -1,218 +1,279 @@
+import 'dart:convert';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:share_plus/share_plus.dart';
 
-import '../../../models/slatepack_models.dart';
-import '../../../notifications/show_flush_bar.dart';
-import '../../../themes/stack_colors.dart';
-import '../../../utilities/assets.dart';
-import '../../../utilities/clipboard_interface.dart';
-import '../../../utilities/slatepack_terms.dart';
-import '../../../utilities/text_styles.dart';
-import '../../../utilities/util.dart';
-import '../../../widgets/conditional_parent.dart';
-import '../../../widgets/desktop/desktop_dialog_close_button.dart';
-import '../../../widgets/desktop/primary_button.dart';
-import '../../../widgets/qr.dart';
-import '../../../widgets/rounded_container.dart';
-import '../../../widgets/rounded_white_container.dart';
+import '../../models/slatepack_models.dart';
+import '../../notifications/show_flush_bar.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/assets.dart';
+import '../../utilities/clipboard_interface.dart';
+import '../../utilities/logger.dart';
+import '../../utilities/slatepack_terms.dart';
+import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
+import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/rounded_container.dart';
+import '../../widgets/rounded_white_container.dart';
+import 'slatepack_popup.dart';
+import 'slatepack_qr.dart';
 
-class SlatepackDialog extends ConsumerStatefulWidget {
+/// Shows a slatepack the user has to pass to the other party.
+Future<void> showSlatepackDialog({
+  required BuildContext context,
+  required SlatepackTerms terms,
+  required SlatepackResult result,
+}) {
+  return showSlatepackPopup<void>(
+    context: context,
+    barrierDismissible: false,
+    child: SlatepackDialog.fromResult(terms: terms, result: result),
+  );
+}
+
+/// One dialog for every slatepack the wallet hands out (S1, S2, I1, I2):
+/// copy, share, save to file, and a QR code when the text is short enough.
+class SlatepackDialog extends StatelessWidget {
   const SlatepackDialog({
     super.key,
     required this.terms,
-    required this.slatepackResult,
+    required this.slatepack,
+    required this.state,
+    this.slateId,
+    this.isEncrypted = false,
     this.clipboard = const ClipboardWrapper(),
   });
 
+  factory SlatepackDialog.fromResult({
+    Key? key,
+    required SlatepackTerms terms,
+    required SlatepackResult result,
+    ClipboardInterface clipboard = const ClipboardWrapper(),
+  }) => SlatepackDialog(
+    key: key,
+    terms: terms,
+    slatepack: result.slatepack!,
+    state: result.state,
+    slateId: result.slateId,
+    isEncrypted: result.wasEncrypted ?? false,
+    clipboard: clipboard,
+  );
+
   final SlatepackTerms terms;
-  final SlatepackResult slatepackResult;
+  final String slatepack;
+  final SlateState state;
+  final String? slateId;
+  final bool isEncrypted;
   final ClipboardInterface clipboard;
 
-  @override
-  ConsumerState<SlatepackDialog> createState() => _SlatepackDialogState();
-}
+  String get title => switch (state) {
+    SlateState.s1 => "Send ${terms.title}",
+    SlateState.s2 => "Response ${terms.title}",
+    SlateState.i1 => "Invoice ${terms.title}",
+    SlateState.i2 => "Payment ${terms.title}",
+    _ => terms.title,
+  };
 
-class _SlatepackDialogState extends ConsumerState<SlatepackDialog> {
-  void _copySlatepack() {
-    widget.clipboard.setData(
-      ClipboardData(text: widget.slatepackResult.slatepack!),
-    );
-    showFloatingFlushBar(
-      type: FlushBarType.info,
-      message: "${widget.terms.title} copied to clipboard",
-      iconAsset: Assets.svg.copy,
-      context: context,
-    );
+  String get instructions => switch (state) {
+    SlateState.s1 =>
+      "1. Share this ${terms.noun} with the recipient\n"
+          "2. Wait for them to return the response ${terms.noun}\n"
+          "3. Import their response on the Slatepack screen to finalize the "
+          "transaction\n\n"
+          "The funds stay locked until the transaction is finalized or "
+          "cancelled.",
+    SlateState.s2 =>
+      "Return this ${terms.noun} to the sender. They finalize and broadcast "
+          "the transaction.",
+    SlateState.i1 =>
+      "1. Share this invoice with the payer\n"
+          "2. Wait for them to return the payment ${terms.noun}\n"
+          "3. Import it on the Slatepack screen to finalize the payment",
+    SlateState.i2 =>
+      "Return this ${terms.noun} to the payee. They finalize and broadcast "
+          "the payment. The funds stay locked until then.",
+    _ => "Pass this ${terms.noun} to the other party.",
+  };
+
+  /// `<slateId>.<state>.slatepack`, e.g. `0436...a1.S1.slatepack`.
+  String get fileName {
+    final id = (slateId == null || slateId!.isEmpty) ? "slatepack" : slateId!;
+    final suffix = state == SlateState.unknown ? "" : ".${state.code}";
+    return "$id$suffix.slatepack";
   }
 
-  void _shareSlatepack() {
-    // TODO: Implement file sharing for desktop platforms.
-    showFloatingFlushBar(
-      type: FlushBarType.info,
-      message: "Share functionality coming soon",
-      context: context,
-    );
+  Future<void> _copy(BuildContext context) async {
+    await clipboard.setData(ClipboardData(text: slatepack));
+    if (context.mounted) {
+      await showFloatingFlushBar(
+        type: FlushBarType.info,
+        message: "${terms.title} copied to clipboard",
+        iconAsset: Assets.svg.copy,
+        context: context,
+      );
+    }
   }
+
+  Future<void> _share() async {
+    try {
+      await SharePlus.instance.share(
+        ShareParams(text: slatepack, subject: title),
+      );
+    } catch (e, s) {
+      Logging.instance.e(
+        "Sharing ${terms.noun} failed",
+        error: e,
+        stackTrace: s,
+      );
+    }
+  }
+
+  Future<void> _save(BuildContext context) async {
+    try {
+      final path = await FilePicker.platform.saveFile(
+        dialogTitle: "Save ${terms.noun}",
+        fileName: fileName,
+        bytes: Uint8List.fromList(utf8.encode(slatepack)),
+        lockParentWindow: true,
+      );
+      if (path != null && context.mounted) {
+        await showFloatingFlushBar(
+          type: FlushBarType.success,
+          message: "Saved to $path",
+          context: context,
+        );
+      }
+    } catch (e, s) {
+      Logging.instance.e(
+        "Saving ${terms.noun} failed",
+        error: e,
+        stackTrace: s,
+      );
+      if (context.mounted) {
+        await showFloatingFlushBar(
+          type: FlushBarType.warning,
+          message: "Could not save the ${terms.noun}: $e",
+          context: context,
+        );
+      }
+    }
+  }
+
+  Widget _icon(BuildContext context, String asset) => SvgPicture.asset(
+    asset,
+    width: 14,
+    height: 14,
+    colorFilter: ColorFilter.mode(
+      Theme.of(context).extension<StackColors>()!.buttonTextSecondary,
+      BlendMode.srcIn,
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
-    return ConditionalParent(
-      condition: Util.isDesktop,
-      builder: (child) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Header with title and close button.
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 32),
-                child: Text(
-                  "Send ${widget.terms.title}",
-                  style: STextStyles.pageTitleH2(context),
-                ),
-              ),
-              const DesktopDialogCloseButton(),
-            ],
-          ),
-          Padding(padding: const EdgeInsets.all(32), child: child),
-        ],
-      ),
+    final colors = Theme.of(context).extension<StackColors>()!;
+    final isDesktop = Util.isDesktop;
+
+    return SlatepackPopupLayout(
+      title: title,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Instructions.
           RoundedContainer(
-            color: Theme.of(
-              context,
-            ).extension<StackColors>()!.textFieldDefaultBG,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Next Steps:",
-                  style: STextStyles.label(
-                    context,
-                  ).copyWith(fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  "1. Share this ${widget.terms.noun} with the recipient\n"
-                  "2. Wait for them to return the response "
-                  "${widget.terms.noun}\n"
-                  "3. Import their response to finalize the transaction",
-                  style: STextStyles.w400_14(context),
-                ),
-              ],
-            ),
+            color: colors.textFieldDefaultBG,
+            child: Text(instructions, style: STextStyles.w400_14(context)),
           ),
-
-          // Encryption status.
-          // we don't encrypt so ignore for now
-          // if (widget.slatepackResult.wasEncrypted == true)
-          //   Container(
-          //     padding: const EdgeInsets.symmetric(
-          //       horizontal: 12,
-          //       vertical: 8,
-          //     ),
-          //     decoration: BoxDecoration(
-          //       color: Theme.of(
-          //         context,
-          //       ).extension<StackColors>()!.infoItemIcons.withOpacity(0.1),
-          //       borderRadius: BorderRadius.circular(8),
-          //     ),
-          //     child: Row(
-          //       mainAxisSize: MainAxisSize.min,
-          //       children: [
-          //         Icon(
-          //           Icons.lock,
-          //           size: 16,
-          //           color:
-          //               Theme.of(
-          //                 context,
-          //               ).extension<StackColors>()!.infoItemIcons,
-          //         ),
-          //         const SizedBox(width: 8),
-          //         Text(
-          //           "Encrypted for recipient",
-          //           style: STextStyles.label(context).copyWith(
-          //             color:
-          //                 Theme.of(
-          //                   context,
-          //                 ).extension<StackColors>()!.infoItemIcons,
-          //           ),
-          //         ),
-          //       ],
-          //     ),
-          //   ),
           const SizedBox(height: 12),
-
-          // QR Code view.
+          Row(
+            children: [
+              SvgPicture.asset(
+                isEncrypted ? Assets.svg.lock : Assets.svg.lockOpen,
+                width: 14,
+                height: 14,
+                colorFilter: ColorFilter.mode(
+                  colors.infoItemIcons,
+                  BlendMode.srcIn,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  isEncrypted
+                      ? "Encrypted to the other party's address"
+                      : "Not encrypted",
+                  style: STextStyles.label(context),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
           Center(
-            child: QR(
-              data: widget.slatepackResult.slatepack!,
-              size: 220,
-              // errorCorrectionLevel: QrErrorCorrectLevel.M,
-            ),
+            child: SlatepackQr(data: slatepack, noun: terms.noun),
           ),
-
           const SizedBox(height: 12),
-
-          // Slatepack text view.
           RoundedWhiteContainer(
+            borderColor: isDesktop ? colors.backgroundAppBar : null,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Row(
-                  children: [
-                    Text(
-                      widget.terms.title,
-                      style: STextStyles.itemSubtitle(context),
-                    ),
-                    const Spacer(),
-                    GestureDetector(
-                      onTap: _copySlatepack,
-                      child: Row(
-                        children: [
-                          SvgPicture.asset(
-                            Assets.svg.copy,
-                            width: 10,
-                            height: 10,
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.infoItemIcons,
-                          ),
-                          const SizedBox(width: 4),
-                          Text("Copy", style: STextStyles.link2(context)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                Text(terms.title, style: STextStyles.itemSubtitle(context)),
                 const SizedBox(height: 8),
-                Container(
-                  constraints: const BoxConstraints(
-                    maxHeight: 200,
-                    minHeight: 100,
-                  ),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 200),
                   child: SingleChildScrollView(
                     child: SelectableText(
-                      widget.slatepackResult.slatepack!,
-                      style: STextStyles.w400_14(
-                        context,
-                      ).copyWith(fontFamily: 'monospace'),
+                      slatepack,
+                      style: STextStyles.w400_14(context)
+                          .copyWith(fontFamily: 'monospace'),
                     ),
                   ),
                 ),
               ],
             ),
           ),
-
-          if (!Util.isDesktop)
-            PrimaryButton(label: "Done", onPressed: Navigator.of(context).pop),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: SecondaryButton(
+                  label: "Copy",
+                  buttonHeight: isDesktop ? ButtonHeight.l : null,
+                  icon: _icon(context, Assets.svg.copy),
+                  onPressed: () => _copy(context),
+                ),
+              ),
+              if (!isDesktop) ...[
+                const SizedBox(width: 12),
+                Expanded(
+                  child: SecondaryButton(
+                    label: "Share",
+                    icon: _icon(context, Assets.svg.share),
+                    onPressed: _share,
+                  ),
+                ),
+              ],
+              const SizedBox(width: 12),
+              Expanded(
+                child: SecondaryButton(
+                  label: "Save",
+                  buttonHeight: isDesktop ? ButtonHeight.l : null,
+                  icon: _icon(context, Assets.svg.downloadFolder),
+                  onPressed: () => _save(context),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          PrimaryButton(
+            label: "Done",
+            buttonHeight: isDesktop ? ButtonHeight.l : null,
+            onPressed: Navigator.of(context).pop,
+          ),
         ],
       ),
     );

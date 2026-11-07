@@ -11,43 +11,49 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../providers/global/wallets_provider.dart';
 import '../providers/ui/preview_tx_button_state_provider.dart';
 import '../themes/stack_colors.dart';
 import '../utilities/assets.dart';
 import '../utilities/constants.dart';
-import '../utilities/enums/mimblewimble_transaction_method.dart';
+import '../utilities/enums/slatepack_method.dart';
 import '../utilities/util.dart';
-import '../wallets/crypto_currency/crypto_currency.dart';
+import '../wallets/wallet/wallet_mixin_interfaces/slatepack_interface.dart';
 import 'toggle.dart';
 
+/// Switches a slatepack wallet between manual slatepacks (left) and its
+/// other method (right): the relay for Epic Cash and MWC.
 class SlatepackMethodToggle extends ConsumerWidget {
-  const SlatepackMethodToggle({super.key, required this.coin});
+  const SlatepackMethodToggle({super.key, required this.walletId});
 
-  final CryptoCurrency coin;
+  final String walletId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     debugPrint("BUILD: $runtimeType");
     final bool isDesktop = Util.isDesktop;
+    final wallet =
+        ref.watch(pWallets).getWallet(walletId) as SlatepackInterface;
+    final SlatepackMethod other = wallet.supportedMethods.firstWhere(
+      (m) => m != SlatepackMethod.slatepack,
+    );
 
     return Toggle(
       onValueChanged: (bool value) {
-        ref.read(pSelectedSlatepackMethod(coin).notifier).state = value
-            ? MimblewimbleTransactionMethod.relay
-            : MimblewimbleTransactionMethod.slatepack;
+        ref.read(pSelectedSlatepackMethod(walletId).notifier).state = value
+            ? other
+            : SlatepackMethod.slatepack;
       },
-      isOn:
-          ref.watch(pSelectedSlatepackMethod(coin)) ==
-          MimblewimbleTransactionMethod.relay,
+      isOn: ref.watch(pSelectedSlatepackMethod(walletId)) == other,
       onColor: isDesktop
-          ? Theme.of(
-              context,
-            ).extension<StackColors>()!.rateTypeToggleDesktopColorOn
+          ? Theme.of(context)
+                .extension<StackColors>()!
+                .rateTypeToggleDesktopColorOn
           : Theme.of(context).extension<StackColors>()!.rateTypeToggleColorOn,
       offColor: isDesktop
-          ? Theme.of(
-              context,
-            ).extension<StackColors>()!.rateTypeToggleDesktopColorOff
+          ? Theme.of(context)
+                .extension<StackColors>()!
+                .rateTypeToggleDesktopColorOff
           : Theme.of(context).extension<StackColors>()!.rateTypeToggleColorOff,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(
@@ -55,9 +61,9 @@ class SlatepackMethodToggle extends ConsumerWidget {
         ),
       ),
       onIcon: Assets.svg.gear,
-      onText: "Slatepack",
+      onText: SlatepackMethod.slatepack.label,
       offIcon: Assets.svg.radioSyncing,
-      offText: "Automatic",
+      offText: other.label,
     );
   }
 }

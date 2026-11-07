@@ -41,9 +41,9 @@ import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../../../wallets/isar/models/spark_coin.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
-import '../../../../wallets/wallet/intermediate/mimblewimble_wallet.dart';
 import '../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/slatepack_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
@@ -99,6 +99,8 @@ class _TransactionV2DetailsViewState
   late final Contract? tokenContract;
   late final bool supportsRbf;
   late final bool hasTxKeyProbably;
+  late final bool isSlatepackWallet;
+  late final bool showOnChainNote;
 
   bool get isTokenTx => tokenContract != null;
 
@@ -203,6 +205,9 @@ class _TransactionV2DetailsViewState
     walletId = widget.walletId;
 
     final wallet = ref.read(pWallets).getWallet(walletId);
+    isSlatepackWallet = wallet is SlatepackInterface;
+    showOnChainNote =
+        wallet is SlatepackInterface && wallet.supportsOnChainNote;
 
     hasTxKeyProbably =
         (wallet is CryptonoteWallet) &&
@@ -879,11 +884,11 @@ class _TransactionV2DetailsViewState
                                     ],
                                   ),
                                 ),
-                              if (coin is Epiccash || coin is Mimblewimblecoin)
+                              if (showOnChainNote)
                                 isDesktop
                                     ? const _Divider()
                                     : const SizedBox(height: 12),
-                              if (coin is Epiccash || coin is Mimblewimblecoin)
+                              if (showOnChainNote)
                                 RoundedWhiteContainer(
                                   padding: isDesktop
                                       ? const EdgeInsets.all(16)
@@ -933,8 +938,7 @@ class _TransactionV2DetailsViewState
                                           MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
-                                          (coin is Epiccash ||
-                                                  coin is Mimblewimblecoin)
+                                          isSlatepackWallet
                                               ? "Local Note"
                                               : "Note ",
                                           style: labelStyle,
@@ -1404,11 +1408,11 @@ class _TransactionV2DetailsViewState
                               //       ],
                               //     ),
                               //   ),
-                              if (coin is Epiccash || coin is Mimblewimblecoin)
+                              if (isSlatepackWallet)
                                 isDesktop
                                     ? const _Divider()
                                     : const SizedBox(height: 12),
-                              if (coin is Epiccash || coin is Mimblewimblecoin)
+                              if (isSlatepackWallet)
                                 RoundedWhiteContainer(
                                   padding: isDesktop
                                       ? const EdgeInsets.all(16)
@@ -1463,7 +1467,7 @@ class _TransactionV2DetailsViewState
                     ),
                   ),
                 ),
-                if ((coin is Epiccash || coin is Mimblewimblecoin) &&
+                if (isSlatepackWallet &&
                     _transaction.getConfirmations(currentHeight) < 1 &&
                     _transaction.isCancelled == false)
                   const SizedBox(height: 40),
@@ -1473,7 +1477,7 @@ class _TransactionV2DetailsViewState
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         floatingActionButton:
-            ((coin is Epiccash || coin is Mimblewimblecoin) &&
+            (isSlatepackWallet &&
                 _transaction.getConfirmations(currentHeight) < 1 &&
                 _transaction.isCancelled == false)
             ? ConditionalParent(
@@ -1496,7 +1500,7 @@ class _TransactionV2DetailsViewState
                     onPressed: () async {
                       final wallet = ref.read(pWallets).getWallet(walletId);
 
-                      if (wallet is MimblewimbleWallet) {
+                      if (wallet is SlatepackInterface) {
                         final String? id = _transaction.slateId;
                         if (id == null) {
                           unawaited(
@@ -1556,8 +1560,8 @@ class _TransactionV2DetailsViewState
                           showFloatingFlushBar(
                             type: FlushBarType.warning,
                             message:
-                                "ERROR: Wallet type is not "
-                                "Epic Cash or MimbleWimbleCoin",
+                                "ERROR: This wallet cannot cancel "
+                                "slatepack transactions",
                             context: context,
                           ),
                         );

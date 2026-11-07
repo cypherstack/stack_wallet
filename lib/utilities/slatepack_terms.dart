@@ -1,12 +1,11 @@
-import '../wallets/crypto_currency/crypto_currency.dart';
-
 /// Wording the slatepack screens use for the payload being exchanged. Epic
-/// Cash passes raw slate JSON around while MWC uses armored slatepacks.
+/// Cash passes raw slate JSON around while MWC uses armored slatepacks. A
+/// wallet picks its terms through SlatepackInterface.slatepackTerms.
 enum SlatepackTerms {
-  slate("slate", "Slate JSON", "Enter Response Slate JSON"),
-  slatepack("slatepack", "Slatepack Message", "Enter Final Slatepack Message");
+  slate("slate", "Slate JSON"),
+  slatepack("slatepack", "Slatepack Message");
 
-  const SlatepackTerms(this.noun, this.payload, this.finalizeHint);
+  const SlatepackTerms(this.noun, this.payload);
 
   /// "slate" or "slatepack".
   final String noun;
@@ -14,12 +13,6 @@ enum SlatepackTerms {
   /// What the user is asked to paste, e.g. "Slatepack Message".
   final String payload;
 
-  /// Hint for the response field on the finalize screen.
-  final String finalizeHint;
-
   /// [noun] with a capital, for titles.
   String get title => "${noun[0].toUpperCase()}${noun.substring(1)}";
-
-  static SlatepackTerms forCoin(CryptoCurrency coin) =>
-      coin is Epiccash ? slate : slatepack;
 }

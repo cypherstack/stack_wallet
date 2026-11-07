@@ -12,14 +12,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../frost_route_generator.dart';
-import '../../../../pages/finalize_view/finalize_view.dart';
 import '../../../../pages/send_view/frost_ms/frost_send_view.dart';
+import '../../../../pages/slatepack/slatepack_view.dart';
 import '../../../../pages/wallet_view/transaction_views/tx_v2/transaction_v2_list.dart';
 import '../../../../providers/global/wallets_provider.dart';
 import '../../../../utilities/clipboard_interface.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import '../../../../wallets/wallet/impl/solana_wallet.dart' show SolanaWallet;
+import '../../../../wallets/wallet/wallet_mixin_interfaces/slatepack_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../../widgets/custom_tab_view.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
@@ -58,10 +59,10 @@ class _MyWalletState extends ConsumerState<MyWallet> {
     isFrost = wallet is BitcoinFrostWallet;
     isEth = coin is Ethereum;
     isSolana = wallet is SolanaWallet;
-    usesSlatepacks = coin is Mimblewimblecoin || coin is Epiccash;
+    usesSlatepacks = wallet is SlatepackInterface;
 
     if (usesSlatepacks) {
-      titles.add("Finalize");
+      titles.add("Slatepack");
     }
 
     if ((isEth || isSolana) && widget.contractAddress == null) {
@@ -184,7 +185,7 @@ class _MyWalletState extends ConsumerState<MyWallet> {
               if (usesSlatepacks)
                 Padding(
                   padding: const EdgeInsets.all(20),
-                  child: FinalizeView(walletId: widget.walletId),
+                  child: SlatepackView(walletId: widget.walletId),
                 ),
 
               if ((isEth || isSolana) && widget.contractAddress == null)

@@ -37,7 +37,7 @@ import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
-import '../../../wallets/wallet/intermediate/mimblewimble_wallet.dart';
+import '../../../wallets/wallet/wallet_mixin_interfaces/slatepack_interface.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -1698,7 +1698,7 @@ class _TransactionDetailsViewState
                     onPressed: () async {
                       final wallet = ref.read(pWallets).getWallet(walletId);
 
-                      if (wallet is MimblewimbleWallet) {
+                      if (wallet is SlatepackInterface) {
                         final String? id = _transaction.slateId;
                         if (id == null) {
                           unawaited(
@@ -1758,7 +1758,7 @@ class _TransactionDetailsViewState
                           showFloatingFlushBar(
                             type: FlushBarType.warning,
                             message:
-                                "ERROR: Wallet type is not Epic Cash or MimbleWimbleCoin",
+                                "ERROR: This wallet cannot cancel slatepack transactions",
                             context: context,
                           ),
                         );

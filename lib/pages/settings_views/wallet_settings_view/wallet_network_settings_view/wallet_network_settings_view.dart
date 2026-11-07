@@ -42,10 +42,10 @@ import '../../../../wallets/crypto_currency/coins/wownero.dart';
 import '../../../../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/impl/epiccash_wallet.dart';
-import '../../../../wallets/wallet/intermediate/mimblewimble_wallet.dart';
 import '../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/slatepack_interface.dart';
 import '../../../../widgets/animated_text.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
@@ -354,12 +354,13 @@ class _WalletNetworkSettingsViewState
       if (_percent < highestPercent) {
         _percent = highestPercent.clamp(0.0, 1.0);
       }
-    } else if (coin is Epiccash || coin is Mimblewimblecoin) {
-      final double highestPercent =
-          (ref.watch(pWallets).getWallet(widget.walletId) as MimblewimbleWallet)
-              .highestPercent;
-      if (_percent < highestPercent) {
-        _percent = highestPercent.clamp(0.0, 1.0);
+    } else {
+      final wallet = ref.watch(pWallets).getWallet(widget.walletId);
+      if (wallet is SlatepackInterface) {
+        final double highestPercent = wallet.restoreProgress;
+        if (_percent < highestPercent) {
+          _percent = highestPercent.clamp(0.0, 1.0);
+        }
       }
     }
 

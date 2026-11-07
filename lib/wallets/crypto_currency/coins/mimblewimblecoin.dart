@@ -2,7 +2,7 @@ import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/node_model.dart';
 import '../../../utilities/default_nodes.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
-import '../../../utilities/enums/mimblewimble_transaction_method.dart';
+import '../../../utilities/enums/slatepack_method.dart';
 import '../../../wl_gen/interfaces/libmwc_interface.dart';
 import '../crypto_currency.dart';
 import '../intermediate/bip39_currency.dart';
@@ -71,14 +71,14 @@ class Mimblewimblecoin extends Bip39Currency {
   }
 
   /// Detect transaction type based on address/data format.
-  MimblewimbleTransactionMethod getTransactionMethod(String addressOrData) {
+  SlatepackMethod getTransactionMethod(String addressOrData) {
     if (isSlatepack(addressOrData)) {
-      return MimblewimbleTransactionMethod.slatepack;
+      return SlatepackMethod.slatepack;
     } else if (isMwcmqsAddress(addressOrData)) {
-      return MimblewimbleTransactionMethod.relay;
+      return SlatepackMethod.relay;
       // } else if (isHttpAddress(addressOrData)) {
     } else {
-      throw Exception("Unknown MimblewimbleTransactionMethod found!");
+      throw Exception("Unknown SlatepackMethod found!");
     }
   }
 
