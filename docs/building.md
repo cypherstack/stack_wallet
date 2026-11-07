@@ -8,6 +8,10 @@ Here you will find instructions on how to install the necessary tools for buildi
   native wallet library and installs its pinned Rust toolchain automatically.
   Android builds require NDK r28 or newer.
 
+- Grin's native library is built from source by the grin_native build hook,
+  which also needs Rustup. Its repositories are private for now; see
+  [Grin](#grin) before the first build.
+
 - The only OS supported for building Android and Linux desktop is Ubuntu 24.04.  Windows builds require using Ubuntu 24.04 on WSL2.  macOS builds for itself and iOS.  Advanced users may also be able to build on other Debian-based distributions like Linux Mint.
 - Android setup ([Android Studio](https://developer.android.com/studio) and subsequent dependencies)
 - 100 GB of storage
@@ -389,6 +393,37 @@ flutter pub get
 dart run coinlib:build_windows
 flutter run -d windows
 ```
+
+## Grin
+
+Stack Wallet configs with `GRIN` enabled depend on `grin_native`, which is
+fetched by pub from `ssh://git@git.cypherstack.com:222/sneurlax/grin_native.git`.
+Pub runs with your ssh agent, so `flutter pub get` works for anyone with
+access to that repository. `package:grin`, the pure Dart half, comes from the
+same repository and is a dependency of every app config, so Stack Duo and
+Campfire builds need that access too.
+
+The build hook compiles the grin-ffi Rust crate. Flutter runs hooks without
+your ssh agent, so cargo cannot fetch the private grin-wallet fork from the
+hook. Fill the cargo git cache once after `flutter pub get`, and again after
+every change of the grin_native ref:
+
+```sh
+bash scripts/grin_prefetch.sh
+```
+
+It runs `cargo fetch --locked` for the crate in `$HOME/.cargo` (or
+`CARGO_HOME` if set; the hook does not see a different one). A passphrase-less
+deploy key in `~/.ssh` works instead.
+
+To build against a local checkout of the grin repository, edit the
+generated `pubspec.yaml` after configuring (it is not committed): in the
+`grin_native` dependency, the `grin` dependency and the `grin` override,
+replace the url with the checkout's path and the ref with a branch, for
+example `url: /path/to/grin` and `ref: hardening`. Run
+`flutter pub upgrade grin grin_native` after each library commit. A
+`pubspec_overrides.yaml` does not work for this unless it repeats every
+override in `pubspec.yaml`, because its `dependency_overrides` replace them.
 
 ## Xelis tests
 

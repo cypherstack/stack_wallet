@@ -31,6 +31,7 @@ abstract final class DesktopStartupAndReset {
     'wallets',
     'epiccash',
     'mimblewimblecoin',
+    'grin',
     'xelis',
     'drift',
     'sqlite',

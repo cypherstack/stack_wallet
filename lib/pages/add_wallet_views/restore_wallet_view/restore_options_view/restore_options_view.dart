@@ -228,6 +228,10 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
           height = 0;
         }
 
+        if (widget.coin is Grin) {
+          height = (widget.coin as Grin).heightFromDate(date);
+        }
+
         if (widget.coin is Epiccash) {
           final int secondsSinceEpoch = date.millisecondsSinceEpoch ~/ 1000;
           const int epicCashFirstBlock = 1565370278;
@@ -426,7 +430,8 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
       children: [
         if (isCnAnd25 ||
             widget.coin is Epiccash ||
-            widget.coin is Mimblewimblecoin)
+            widget.coin is Mimblewimblecoin ||
+            widget.coin is Grin)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -453,11 +458,13 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
           ),
         if (isCnAnd25 ||
             widget.coin is Epiccash ||
-            widget.coin is Mimblewimblecoin)
+            widget.coin is Mimblewimblecoin ||
+            widget.coin is Grin)
           SizedBox(height: Util.isDesktop ? 16 : 8),
         if (isCnAnd25 ||
             widget.coin is Epiccash ||
-            widget.coin is Mimblewimblecoin)
+            widget.coin is Mimblewimblecoin ||
+            widget.coin is Grin)
           ref.watch(_pIsUsingDate)
               ? RestoreFromDatePicker(
                   onTap: widget.dateChooserFunction,
@@ -515,11 +522,13 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                 ),
         if (isCnAnd25 ||
             widget.coin is Epiccash ||
-            widget.coin is Mimblewimblecoin)
+            widget.coin is Mimblewimblecoin ||
+            widget.coin is Grin)
           const SizedBox(height: 8),
         if (isCnAnd25 ||
             widget.coin is Epiccash ||
-            widget.coin is Mimblewimblecoin)
+            widget.coin is Mimblewimblecoin ||
+            widget.coin is Grin)
           RoundedWhiteContainer(
             child: Center(
               child: Text(
@@ -538,7 +547,8 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
           ),
         if (isCnAnd25 ||
             widget.coin is Epiccash ||
-            widget.coin is Mimblewimblecoin)
+            widget.coin is Mimblewimblecoin ||
+            widget.coin is Grin)
           SizedBox(height: Util.isDesktop ? 24 : 16),
         Text(
           "Choose recovery phrase length",

@@ -64,6 +64,17 @@ dependencies:
 #      ref: d8c5d5488cb00e21d0dc04ad306a65e2d54c4d3c
 # %%END_ENABLE_MWC%%
 
+# grin_native compiles the grin-ffi Rust library in its build hook. Keep its
+# ref equal to the grin dependency and override below. The hook needs the
+# grin-wallet fork in the cargo git cache; see scripts/grin_prefetch.sh.
+# %%ENABLE_GRIN%%
+#  grin_native:
+#    git:
+#      url: ssh://git@git.cypherstack.com:222/sneurlax/grin_native.git
+#      path: packages/grin_native
+#      ref: 6ff6fe60461f312128e3389c87b729081fc80587
+# %%END_ENABLE_GRIN%%
+
 # %%ENABLE_TOR%%
 #  tor_ffi_plugin:
 #    git:
@@ -91,6 +102,14 @@ dependencies:
 # %%END_ENABLE_MWEBD%%
 
   monero_rpc: ^2.0.0
+
+  # Grin wallet API and models, pure Dart. Every app config depends on it;
+  # only grin_native (above) is behind ENABLE_GRIN.
+  grin:
+    git:
+      url: ssh://git@git.cypherstack.com:222/sneurlax/grin_native.git
+      path: packages/grin
+      ref: 6ff6fe60461f312128e3389c87b729081fc80587
 
   # cs_monero compat (unpublished)
   compat:
@@ -346,6 +365,14 @@ dependency_overrides:
   # xelis override
   freezed: ^3.1.0
   freezed_annotation: ^3.1.0
+
+  # grin_native depends on grin from hosted, which is not published. Pin it to
+  # the same repo and ref as the grin dependency.
+  grin:
+    git:
+      url: ssh://git@git.cypherstack.com:222/sneurlax/grin_native.git
+      path: packages/grin
+      ref: 6ff6fe60461f312128e3389c87b729081fc80587
 
 # %%ENABLE_ISAR%%
 #  isar_community:

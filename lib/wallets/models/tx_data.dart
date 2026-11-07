@@ -115,6 +115,14 @@ class TxData {
 
   final TransactionV2? tempTx;
 
+  // slatepack coins
+  /// The armored Slatepack a send produced. Left out of [toString].
+  final String? slatepack;
+
+  // grin http sends
+  final bool grinClearnetAcknowledged;
+  final bool grinPlaintextAcknowledged;
+
   final bool ignoreCachedBalanceChecks;
   final bool subtractFeeFromAmount;
 
@@ -165,6 +173,9 @@ class TxData {
     this.sparkSpends,
     this.usedSparkCoins,
     this.tempTx,
+    this.slatepack,
+    this.grinClearnetAcknowledged = false,
+    this.grinPlaintextAcknowledged = false,
     this.ignoreCachedBalanceChecks = false,
     this.subtractFeeFromAmount = false,
     this.opNameState,
@@ -318,6 +329,9 @@ class TxData {
     List<TxData>? sparkSpends,
     List<SparkCoin>? usedSparkCoins,
     TransactionV2? tempTx,
+    String? slatepack,
+    bool? grinClearnetAcknowledged,
+    bool? grinPlaintextAcknowledged,
     bool? ignoreCachedBalanceChecks,
     bool? subtractFeeFromAmount,
     NameOpState? opNameState,
@@ -370,6 +384,11 @@ class TxData {
       sparkSpends: sparkSpends ?? this.sparkSpends,
       usedSparkCoins: usedSparkCoins ?? this.usedSparkCoins,
       tempTx: tempTx ?? this.tempTx,
+      slatepack: slatepack ?? this.slatepack,
+      grinClearnetAcknowledged:
+          grinClearnetAcknowledged ?? this.grinClearnetAcknowledged,
+      grinPlaintextAcknowledged:
+          grinPlaintextAcknowledged ?? this.grinPlaintextAcknowledged,
       ignoreCachedBalanceChecks:
           ignoreCachedBalanceChecks ?? this.ignoreCachedBalanceChecks,
       subtractFeeFromAmount:

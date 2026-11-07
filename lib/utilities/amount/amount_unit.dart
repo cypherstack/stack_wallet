@@ -98,7 +98,10 @@ extension AmountUnitExt on AmountUnit {
       case AmountUnit.nano:
         if (coin is Ethereum) {
           return "gwei";
-        } else if (coin is Wownero || coin is Monero || coin is NanoCurrency) {
+        } else if (coin is Wownero ||
+            coin is Monero ||
+            coin is NanoCurrency ||
+            coin is Grin) {
           return "n${coin.ticker}";
         } else {
           return "sats";

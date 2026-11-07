@@ -108,6 +108,9 @@ class NodeService extends ChangeNotifier {
             loginName: savedNode.loginName,
             isPrimary: savedNode.isPrimary,
             forceNoTor: savedNode.forceNoTor,
+            // A secret the user set on a default node without one stays.
+            nodeApiSecret:
+                defaultNode.nodeApiSecret ?? savedNode.nodeApiSecret,
           ),
         );
       }

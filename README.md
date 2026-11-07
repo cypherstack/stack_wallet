@@ -20,6 +20,7 @@ Highlights include:
     - [Dogecoin](https://dogecoin.com/)
     - [Epic Cash](https://linktr.ee/epiccash)
     - [MimbleWimbleCoin](https://mwc.mw)
+    - [Grin](https://grin.mw/)
     - [Ethereum](https://ethereum.org/en/)
     - [Ecash](https://e.cash/)
     - [Fact0rn](https://www.fact0rn.io/)

@@ -667,6 +667,7 @@ class _SendViewState extends ConsumerState<SendView> {
       _cryptoAmountChangedFeeUpdateTimer = Timer(updateFeesTimerDuration, () {
         if (coin is! Epiccash &&
             coin is! Mimblewimblecoin &&
+            coin is! Grin &&
             !_baseFocus.hasFocus) {
           setState(() {
             _calculateFeesFuture = calculateFees(
@@ -688,6 +689,7 @@ class _SendViewState extends ConsumerState<SendView> {
     _baseAmountChangedFeeUpdateTimer = Timer(updateFeesTimerDuration, () {
       if (coin is! Epiccash &&
           coin is! Mimblewimblecoin &&
+          coin is! Grin &&
           !_cryptoFocus.hasFocus) {
         setState(() {
           _calculateFeesFuture = calculateFees(
@@ -780,8 +782,9 @@ class _SendViewState extends ConsumerState<SendView> {
   }
 
   Future<Amount> calculateFees(Amount amount) async {
-    // Xelis obtains the exact fee when preparing the reviewed transaction.
-    if (coin is Xelis) {
+    // Xelis and Grin obtain the exact fee when preparing the reviewed
+    // transaction.
+    if (coin is Xelis || coin is Grin) {
       return Amount.zeroWith(fractionDigits: coin.fractionDigits);
     }
     final feeRateType = ref.read(feeRateTypeMobileStateProvider);
@@ -1446,7 +1449,11 @@ class _SendViewState extends ConsumerState<SendView> {
       ref.refresh(feeSheetSessionCacheProvider);
       ref.refresh(pIsExchangeAddress);
     });
-    hasFees = coin is! Epiccash && coin is! NanoCurrency && coin is! Tezos;
+    hasFees =
+        coin is! Epiccash &&
+        coin is! NanoCurrency &&
+        coin is! Tezos &&
+        coin is! Grin;
     _currentFee = 0.toAmountAsRaw(fractionDigits: coin.fractionDigits);
 
     _calculateFeesFuture = calculateFees(
@@ -2706,7 +2713,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                 coin is! NanoCurrency &&
                                 coin is! Tezos)
                               Text(
-                                coin is Xelis
+                                coin is Xelis || coin is Grin
                                     ? "Transaction fee"
                                     : "Transaction fee (estimated)",
                                 style: STextStyles.smallMed12(context),
@@ -2717,7 +2724,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                 coin is! NanoCurrency &&
                                 coin is! Tezos)
                               const SizedBox(height: 8),
-                            if (coin is Xelis)
+                            if (coin is Xelis || coin is Grin)
                               Padding(
                                 padding: const EdgeInsets.all(12),
                                 child: Text(

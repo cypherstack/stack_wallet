@@ -29,6 +29,7 @@ import '../wallets/isar/models/frost_wallet_info.dart';
 import '../wallets/isar/models/wallet_info.dart';
 import '../wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import '../wallets/wallet/impl/epiccash_wallet.dart';
+import '../wallets/wallet/impl/grin_wallet.dart';
 import '../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../wallets/wallet/intermediate/lib_salvium_wallet.dart';
@@ -170,6 +171,15 @@ class Wallets {
       Logging.instance.i(
         "Mimblewimblecoin wallet: $walletId deleted with result: $deleteResult",
       );
+    } else if (info.coin is Grin) {
+      // Also reaches an instance that is not registered yet, such as a
+      // restore being cancelled. A busy directory is retried at next load
+      // from the wallets-to-delete list below.
+      final deleted = await GrinWallet.deleteWalletFiles(
+        walletId: walletId,
+        secureStore: secureStorage,
+      );
+      Logging.instance.i("Grin wallet: $walletId files deleted: $deleted");
     }
 
     // delete wallet data in main db
@@ -458,10 +468,12 @@ class Wallets {
     }
     hasLoaded = true;
 
+    final idsToDelete = DB.instance
+        .values<String>(boxName: DB.boxNameWalletsToDeleteOnStart)
+        .toList();
+
     // clear out any wallet hive boxes where the wallet was deleted in previous app run
-    for (final walletId in DB.instance.values<String>(
-      boxName: DB.boxNameWalletsToDeleteOnStart,
-    )) {
+    for (final walletId in idsToDelete) {
       await mainDB.isar.writeTxn(
         () async => await mainDB.isar.walletInfo
             .where()
@@ -469,10 +481,23 @@ class Wallets {
             .deleteAll(),
       );
     }
+
+    // Grin wallet files whose delete found the directory busy.
+    final grinRemaining = await GrinWallet.retryDeferredDeletes(
+      walletIds: idsToDelete,
+      secureStore: nodeService.secureStorageInterface,
+    );
+
     // clear list
     await DB.instance.deleteAll<String>(
       boxName: DB.boxNameWalletsToDeleteOnStart,
     );
+    for (final walletId in grinRemaining) {
+      await DB.instance.add<String>(
+        boxName: DB.boxNameWalletsToDeleteOnStart,
+        value: walletId,
+      );
+    }
 
     final walletInfoList = await mainDB.isar.walletInfo
         .where()
