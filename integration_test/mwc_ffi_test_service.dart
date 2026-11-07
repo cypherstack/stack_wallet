@@ -628,21 +628,28 @@ class FFITestService {
       () async {
         try {
           final bogus = 'NOT_A_SLATEPACK';
+          String? slateJson;
+          Object? decodeError;
           try {
             final dec = await Libmwc.decodeSlatepack(slatepack: bogus);
-            // High-level API may not throw; validate empty slate JSON returned.
-            if (dec.slateJson.isNotEmpty) {
-              throw TestException(
-                'Invalid slatepack returned non-empty slate JSON',
-              );
-            }
-            return 'Invalid slatepack handled gracefully (empty slate JSON)';
+            slateJson = dec.slateJson;
           } catch (e) {
-            // If it throws, that's also acceptable as graceful failure.
-            final es = e.toString();
+            decodeError = e;
+          }
+          // If the decoder throws, that's also acceptable as graceful failure.
+          if (decodeError != null) {
+            final es = decodeError.toString();
             final trunc = es.substring(0, es.length < 80 ? es.length : 80);
             return 'Invalid slatepack decode threw as expected: $trunc...';
           }
+          // High-level API may not throw; validate empty slate JSON returned.
+          // Outside the catch above, so a failed assertion fails the test.
+          if (slateJson!.isNotEmpty) {
+            throw TestException(
+              'Invalid slatepack returned non-empty slate JSON',
+            );
+          }
+          return 'Invalid slatepack handled gracefully (empty slate JSON)';
         } catch (e) {
           throw TestException('Invalid format handling failed: $e');
         }

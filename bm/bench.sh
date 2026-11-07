@@ -92,8 +92,11 @@ fi
 echo "Building: make ${BUILD_TARGET} ${MAKE_FLAGS} " | banner  
 sccache --zero-stats >/dev/null 2>&1 || true
 START=$(date +%s)
+# A failing build must still be timed and recorded, so errexit is off for the build and its status is taken from make.
+set +e
 make ${BUILD_TARGET} ${MAKE_FLAGS} 2>&1 | tail -5
-RC=$?
+RC=${PIPESTATUS[0]}
+set -e
 END=$(date +%s)
 WALL=$((END - START))
 
@@ -136,3 +139,6 @@ tail -n +2 "$OUTFILE" | while IFS=, read -r label branch commit host arch os_nam
   [ "$success" = "1" ] && ok="✓" || ok="✗"
   printf "%-12s %-20s %-8s %-10s %-4s %10s %8s %s\n" "${date:0:10}" "$label" "${commit:0:7}" "${flags:--}" "$warm_label" "$time_fmt" "$ok ${delta_mb}MB" "$comment"
 done
+
+# Report the build's own exit status to the caller.
+exit "$RC"
