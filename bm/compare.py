@@ -138,15 +138,17 @@ def compare(dir1, dir2=None):
         print(f"\n{'═'*80}")
         print(f"  Delta: {os.path.basename(dir1)} → {os.path.basename(dir2)}")
         print(f"{'═'*80}")
-        labels1 = {r["label"] for r in rows1}
-        labels2 = {r["label"] for r in rows2}
-        for label in sorted(labels1 & labels2):
-            t1 = wall_s(rows1[0]["wall_sec"])
-            t2 = wall_s(rows2[0]["wall_sec"])
+        # Pair measurements by label and host; if a pair was measured several times, the latest row counts.
+        latest1 = {(r["label"], r.get("host", "unknown")): r for r in rows1}
+        latest2 = {(r["label"], r.get("host", "unknown")): r for r in rows2}
+        for key in sorted(latest1.keys() & latest2.keys()):
+            label, host = key
+            t1 = wall_s(latest1[key]["wall_sec"])
+            t2 = wall_s(latest2[key]["wall_sec"])
             delta = t2 - t1
             pct = (delta/t1)*100 if t1 else 0
             sign = "+" if delta > 0 else ""
-            print(f"  {hr_label(label):25s}  {wall_fmt(t1)} → {wall_fmt(t2)}  ({sign}{pct:.0f}%)")
+            print(f"  {hr_label(label):25s}  {host:12s}  {wall_fmt(t1)} → {wall_fmt(t2)}  ({sign}{pct:.0f}%)")
 
 
 if __name__ == "__main__":

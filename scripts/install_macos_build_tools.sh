@@ -41,11 +41,15 @@ if ! command -v brew >/dev/null 2>&1; then
   fi
 fi
 
-# rustup is keg-only in Homebrew (conflicts with rust), manually add to PATH
-RUSTUP_BIN="/opt/homebrew/opt/rustup/bin"
-if [[ -d "$RUSTUP_BIN" ]] && [[ ":$PATH:" != *":$RUSTUP_BIN:"* ]]; then
-  export PATH="$RUSTUP_BIN:$PATH"
-fi
+# rustup is keg-only in Homebrew (conflicts with rust), so it has to be added to PATH by hand.
+# Called again after `brew install`: on a first install the directory does not exist before it.
+add_rustup_to_path() {
+  local prefix
+  prefix="$(brew --prefix rustup 2>/dev/null || true)"
+  [[ -n "$prefix" && -d "$prefix/bin" && ":$PATH:" != *":$prefix/bin:"* ]] && export PATH="$prefix/bin:$PATH"
+  return 0
+}
+add_rustup_to_path
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" && pwd)"
 bash "$SCRIPT_DIR/install_xcode.sh"
@@ -54,6 +58,7 @@ echo "Installing Homebrew packages..."
 # Do not upgrade formulae that are already installed: a build machine keeps the versions it was set up with.
 export HOMEBREW_NO_INSTALL_UPGRADE=1
 brew install direnv rustup cmake meson ninja pkg-config gnu-sed cocoapods go protobuf cbindgen autoconf automake libtool sccache
+add_rustup_to_path
 
 # Only used for the benchmark reports in bm/. A failure here (for example a link conflict with a
 # copy installed another way) must not stop the toolchain setup.

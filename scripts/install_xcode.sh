@@ -36,19 +36,23 @@ fi
 
 echo "Checking Xcode..."
 
-XCODE_APP="$(ls -d /Applications/Xcode*.app 2>/dev/null | head -1 || true)"
+# Any full Xcode that is already selected stays selected, whatever its file name (Xcode.app,
+# Xcode_27.1.app, Xcode-beta.app, ...) and wherever it lives. Only an unusable selection (none, or
+# the Command Line Tools) is replaced by an Xcode found in $XCODE_APPS_DIR.
+XCODE_APPS_DIR="${XCODE_APPS_DIR:-/Applications}"
+SELECTED_DEV="$(xcode-select -p 2>/dev/null || true)"
 
-if [[ -z "$XCODE_APP" ]]; then
-  die "[ERROR] Full Xcode is required for macOS/iOS builds (Command Line Tools alone are not enough). Install it, then re-run this script:
+if [[ "$SELECTED_DEV" == /*.app/Contents/Developer && -x "$SELECTED_DEV/usr/bin/xcodebuild" ]]; then
+  echo "Xcode already configured: ${SELECTED_DEV%/Contents/Developer}"
+else
+  XCODE_APP="$(ls -d "$XCODE_APPS_DIR"/Xcode*.app 2>/dev/null | head -1 || true)"
+  if [[ -z "$XCODE_APP" ]]; then
+    die "[ERROR] Full Xcode is required for macOS/iOS builds (Command Line Tools alone are not enough). Install it, then re-run this script:
   - Mac App Store: search 'Xcode' and install, or run 'mas install 497799835' if you already have 'mas' set up
   - Or download the .xip directly from https://developer.apple.com/download/all/?q=xcode"
-fi
-
-if ! xcode-select -p >/dev/null 2>&1 || [[ "$(xcode-select -p)" != *"/Xcode.app"* ]]; then
-  echo "Xcode.app found at $XCODE_APP. Setting xcode-select path..."
+  fi
+  echo "Xcode found at $XCODE_APP. Setting xcode-select path..."
   sudo xcode-select -s "$XCODE_APP/Contents/Developer"
-else
-  echo "Xcode.app already configured."
 fi
 
 sudo xcodebuild -license accept 2>/dev/null || true
