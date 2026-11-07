@@ -425,6 +425,38 @@ example `url: /path/to/grin` and `ref: hardening`. Run
 `pubspec_overrides.yaml` does not work for this unless it repeats every
 override in `pubspec.yaml`, because its `dependency_overrides` replace them.
 
+### Grin tests
+
+The unit tests in `test/wallets/grin` use fakes and need no native code.
+
+`integration_test/grin/grin_test_chain_test.dart` drives `GrinWallet`
+against the real grin-ffi library on its in-process test chain: mining,
+Slatepack S1/S2/S3, invoices, cancel, repost, payment proofs, restore with a
+scan, and delete. That chain is only in a library built with grin_native's
+`test_utils` user-define, which must never reach a release. Run the suite
+with the script, which adds the define to the generated `pubspec.yaml` for
+the run and restores the file afterwards:
+
+```sh
+bash scripts/grin_e2e_test.sh            # host desktop, e.g. linux
+bash scripts/grin_e2e_test.sh macos
+```
+
+Extra arguments go to `flutter test`. The first run compiles the library a
+second time with the feature on, which takes several minutes and about 1 GB
+under `.dart_tool`. After a run, the app bundle under `build/` holds the
+test library until the next normal build.
+
+To check that a bundle was built without `test_utils`, run the symbol gate
+on it. It expects exactly 36 `grin_` exports and no `grin_test_` ones:
+
+```sh
+bash scripts/grin_symbol_gate.sh build/linux/x64/release/bundle
+```
+
+The script covers Linux `.so` files; its comments give the `llvm-nm` and
+`dumpbin` equivalents for the other platforms.
+
 ## Xelis tests
 
 Run on a configured desktop target (`windows`, `linux`, or `macos`) with
