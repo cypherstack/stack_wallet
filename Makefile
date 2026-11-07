@@ -106,11 +106,11 @@ ifeq ($(PLATFORM),Darwin)
 	@if [ -n "$$IN_NIX_SHELL" ] || [ -n "$$NIX_BUILD_TOP" ]; then \
 		echo "[WARN] Nix environment detected; skipping the Homebrew package install (use nix/flake-provided toolchain instead)."; \
 		echo "[WARN] Xcode itself is never provided by Nix (Apple's license forbids redistributing it), so that part still runs:"; \
-		$(MAKE) bootstrap-xcode; \
-		exit 0; \
+		$(MAKE) bootstrap-xcode || exit 1; \
+	else \
+		bash scripts/install_macos_build_tools.sh || exit 1; \
+		rustup target add aarch64-apple-darwin x86_64-apple-darwin aarch64-apple-ios --toolchain $(RUST_VERSION) >/dev/null 2>&1 || true; \
 	fi
-	@bash scripts/install_macos_build_tools.sh
-	@rustup target add aarch64-apple-darwin x86_64-apple-darwin aarch64-apple-ios --toolchain $(RUST_VERSION) >/dev/null 2>&1 || true
 else
 	@echo "[ERROR] bootstrap-macos is macOS-only."
 	@exit 1
@@ -288,6 +288,8 @@ build-windows: ## Build Windows release (Git Bash; same steps as CI)
 	@command -v flutter >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
 	@command -v go >/dev/null 2>&1 || { echo >&2 "[ERROR] Go not installed."; exit 1; }
 	@cd scripts && bash prebuild.sh
+	@# link_assets.sh (run by build_app.sh) cannot remove the real directories a previous copy run left behind.
+	@if [ "$(WINDOWS_COPY_ASSETS)" = "1" ]; then bash scripts/windows/replace_asset_links.sh --clean; fi
 	@cd scripts && echo yes | MWEBD_FETCH=1 ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p windows -a $(APP_NAME) -d -s
 	@if [ "$(WINDOWS_COPY_ASSETS)" = "1" ]; then bash scripts/windows/replace_asset_links.sh; fi
 	@$(FLUTTER) pub get
