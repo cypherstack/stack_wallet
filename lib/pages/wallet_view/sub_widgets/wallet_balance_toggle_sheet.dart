@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../models/balance.dart';
+import '../../../providers/global/wallets_provider.dart';
 import '../../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../../providers/wallet/wallet_balance_toggle_state_provider.dart';
 import '../../../themes/stack_colors.dart';
@@ -22,6 +23,7 @@ import '../../../utilities/enums/wallet_balance_toggle_state.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../wallets/wallet/wallet_mixin_interfaces/slatepack_interface.dart';
 
 enum _BalanceType { available, full, privateAvailable, privateFull }
 
@@ -42,25 +44,27 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
 
     final balance = ref.watch(pWalletBalance(walletId));
 
+    // Funds held by unfinished slatepack sends, not in either balance.
+    final wallet = ref.watch(pWallets).getWallet(walletId);
+    final locked = wallet is SlatepackInterface ? wallet.amountLocked : null;
+
     _BalanceType _bal =
         ref.watch(walletBalanceToggleStateProvider.state).state ==
-                WalletBalanceToggleState.available
-            ? _BalanceType.available
-            : _BalanceType.full;
+            WalletBalanceToggleState.available
+        ? _BalanceType.available
+        : _BalanceType.full;
 
     Balance? balancePrivate;
     if (hasPrivate) {
-      balancePrivate =
-          isMweb
-              ? ref.watch(pWalletBalanceSecondary(walletId))
-              : ref.watch(pWalletBalanceTertiary(walletId));
+      balancePrivate = isMweb
+          ? ref.watch(pWalletBalanceSecondary(walletId))
+          : ref.watch(pWalletBalanceTertiary(walletId));
 
       if (ref.watch(publicPrivateBalanceStateProvider.state).state ==
           BalanceType.private) {
-        _bal =
-            _bal == _BalanceType.available
-                ? _BalanceType.privateAvailable
-                : _BalanceType.privateFull;
+        _bal = _bal == _BalanceType.available
+            ? _BalanceType.privateAvailable
+            : _BalanceType.privateFull;
       }
     }
 
@@ -85,10 +89,9 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
               Center(
                 child: Container(
                   decoration: BoxDecoration(
-                    color:
-                        Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textFieldDefaultBG,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),
@@ -196,6 +199,17 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                   value: _BalanceType.privateFull,
                   groupValue: _bal,
                 ),
+              if (locked != null) ...[
+                const SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.only(left: 8.0),
+                  child: Text(
+                    "Locked in unfinished transactions: "
+                    "${ref.watch(pAmountFormatter(coin)).format(locked)}",
+                    style: STextStyles.label(context),
+                  ),
+                ),
+              ],
               const SizedBox(height: 40),
             ],
           ),
@@ -244,10 +258,9 @@ class BalanceSelector<T> extends ConsumerWidget {
               width: 20,
               height: 20,
               child: Radio(
-                activeColor:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()!.radioButtonIconEnabled,
+                activeColor: Theme.of(context)
+                    .extension<StackColors>()!
+                    .radioButtonIconEnabled,
                 value: value,
                 groupValue: groupValue,
                 onChanged: onChanged,
@@ -262,10 +275,9 @@ class BalanceSelector<T> extends ConsumerWidget {
                 Text(
                   ref.watch(pAmountFormatter(coin)).format(balance),
                   style: STextStyles.itemSubtitle12(context).copyWith(
-                    color:
-                        Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textSubtitle1,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textSubtitle1,
                   ),
                 ),
               ],

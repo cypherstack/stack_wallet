@@ -194,6 +194,7 @@ class SlatepackHttpPolicy {
 /// Slatepack details of a stored transaction, for the details screen.
 class SlatepackTxInfo {
   const SlatepackTxInfo({
+    this.state = SlateState.unknown,
     this.slateId,
     this.kernelExcess,
     this.counterpartyAddress,
@@ -204,6 +205,8 @@ class SlatepackTxInfo {
     this.hasPaymentProof = false,
   });
 
+  /// The last state the wallet saw.
+  final SlateState state;
   final String? slateId;
   final String? kernelExcess;
   final String? counterpartyAddress;

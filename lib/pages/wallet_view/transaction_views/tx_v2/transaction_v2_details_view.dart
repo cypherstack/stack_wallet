@@ -44,6 +44,8 @@ import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/slatepack_interface.dart';
+import '../../../../models/slatepack_models.dart';
+import 'slatepack_tx_details.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
@@ -101,6 +103,7 @@ class _TransactionV2DetailsViewState
   late final bool hasTxKeyProbably;
   late final bool isSlatepackWallet;
   late final bool showOnChainNote;
+  SlatepackTxInfo? _slatepackInfo;
 
   bool get isTokenTx => tokenContract != null;
 
@@ -208,6 +211,9 @@ class _TransactionV2DetailsViewState
     isSlatepackWallet = wallet is SlatepackInterface;
     showOnChainNote =
         wallet is SlatepackInterface && wallet.supportsOnChainNote;
+    _slatepackInfo = wallet is SlatepackInterface
+        ? wallet.slatepackTxInfo(_transaction)
+        : null;
 
     hasTxKeyProbably =
         (wallet is CryptonoteWallet) &&
@@ -1449,6 +1455,14 @@ class _TransactionV2DetailsViewState
                                     ],
                                   ),
                                 ),
+                              if (_slatepackInfo != null)
+                                SlatepackTxDetails(
+                                  wallet:
+                                      ref.read(pWallets).getWallet(walletId)
+                                          as SlatepackInterface,
+                                  transaction: _transaction,
+                                  info: _slatepackInfo!,
+                                ),
                               if (!isDesktop) const SizedBox(height: 12),
                               // if (whatIsIt(
                               //       _transaction,
@@ -1513,6 +1527,34 @@ class _TransactionV2DetailsViewState
                             ),
                           );
                           return;
+                        }
+
+                        if (_slatepackInfo?.finalizedNotBroadcast ?? false) {
+                          final go = await showDialog<bool>(
+                            context: context,
+                            builder: (context) => StackDialog(
+                              title: "Cancel a finalized transaction?",
+                              message:
+                                  "This transaction is finalized and may "
+                                  "still reach the chain, for example if the "
+                                  "other party or a node posts it. "
+                                  "Cancelling unlocks the funds in this "
+                                  "wallet only. If it confirms later the "
+                                  "wallet shows it again. Try Repost first "
+                                  "if it is stuck.",
+                              leftButton: SecondaryButton(
+                                label: "Keep",
+                                onPressed: () =>
+                                    Navigator.of(context).pop(false),
+                              ),
+                              rightButton: PrimaryButton(
+                                label: "Cancel anyway",
+                                onPressed: () =>
+                                    Navigator.of(context).pop(true),
+                              ),
+                            ),
+                          );
+                          if (go != true || !context.mounted) return;
                         }
 
                         unawaited(

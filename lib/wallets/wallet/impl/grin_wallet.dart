@@ -1755,6 +1755,7 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
     final unconfirmed = tx.height == null || tx.height! <= 0;
     final finalized = stored && open && unconfirmed;
     return SlatepackTxInfo(
+      state: state,
       slateId: tx.slateId,
       kernelExcess: data[TxV2OdKeys.grinKernelExcess] as String?,
       counterpartyAddress: data[TxV2OdKeys.counterpartyAddress] as String?,
