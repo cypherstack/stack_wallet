@@ -180,7 +180,15 @@ flutter run android
 
 Note on Emulators: Only x86_64 emulators are supported, x86 emulators will not work.  You should [configure KVM](https://help.ubuntu.com/community/KVM/Installation) for much better performance.
 
-#### Linux
+#### Windows
+
+On Windows the CI job `build-windows` builds natively on `windows-2022` (it does not use WSL2), and `make build-windows` runs the same steps from Git Bash: `scripts/prebuild.sh`, `scripts/build_app.sh -p windows -d -s`, `flutter pub get`, `dart run coinlib:build_windows`, `flutter build windows --release`. It needs Flutter, Go and a Visual Studio C++ toolchain on the machine. Where the user cannot create symbolic links (for example the GitHub-hosted runner), add `WINDOWS_COPY_ASSETS=1` so the asset directories are copied instead of linked. The WSL2 route described at the top of this guide still works.
+
+#### Android and iOS
+
+`make build-android` runs the steps of the `build-android` CI job (`prebuild.sh`, `build_app.sh -p android -d -s`, `flutter pub get`, `flutter build apk --split-per-abi --release`). It needs the Android SDK/NDK (`ANDROID_SDK_ROOT`) and Java; the CI image built from the `Dockerfile` (`docker build --target android`) has everything. The release build cannot be signed without the signing secrets, so `make android-dev-key` creates a throw-away debug key (`android/key.properties`, `android/dev-keystore.jks`, both git-ignored) when `android/key.properties` is missing. APKs built this way are only for local testing. `make build-ios` runs the `build-ios` CI steps on macOS (`flutter build ios --release --no-codesign`, a device build).
+
+### Linux
 Run the following commands or launch via Android Studio:
 ```
 flutter pub get
@@ -418,3 +426,63 @@ Run with `-v` or `--verbose` to see a more detailed error.  Certain exceptions (
 ## Tor
 
 To test Tor usage, run Stack Wallet from Android Studio.  Click the Flutter DevTools icon in the Run tab (next to the Hot Reload and Hot Restart buttons) and navigate to the Network tab.  Connections using Tor will show as `GET InternetAddress('127.0.0.1', IPv4) 101 ws`.  Connections outside of Tor will show the destination address directly (although some Tor requests may also show the destination address directly, check the Headers take for *eg.* `{localPort: 59940, remoteAddress: 127.0.0.1, remotePort: 6725}`.  `localPort` should match your Tor port.
+
+## Building with `make` (optional wrapper)
+
+The `Makefile` is a thin wrapper around the steps above. `make build-macos` runs
+the same sequence as CI: `scripts/build_app.sh -p macos -a stack_wallet -s`, `flutter pub get`,
+`scripts/prebuild.sh` and `flutter build macos --release`. It does not change the app's
+name or bundle ID. Run `make help` for all targets.
+
+```
+make build-macos VERSION=2.1.0 BUILD_NUM=210              # prebuilt native assets (-d), fast
+make build-macos VERSION=2.1.0 BUILD_NUM=210 PREBUILTS=0  # compile native assets from source
+```
+
+### Toolchain on macOS
+
+Two ways to get Flutter 3.47.x, Rust 1.99.1, Go, CMake and CocoaPods. Both need a full Xcode.app.
+
+- **Homebrew:** `make bootstrap-macos` runs `scripts/install_macos_build_tools.sh`. It installs the
+  Homebrew packages, clones the pinned Flutter tag (3.47.4, the same patch release as the Nix shell; CI and the
+  rest of this guide use 3.47.2; builds were verified with both; override with `FLUTTER_VERSION` / `FLUTTER_DIR`),
+  installs the pinned Rust toolchain via rustup and adds the PATH entries to `~/.zshrc`.
+- **Nix:** `nix develop` (or `direnv allow` with the included `.envrc`) provides the toolchain from
+  `flake.lock`. nixpkgs has no Flutter 3.47.2 (it goes from 3.47.0 to 3.47.4), so this shell uses
+  Flutter 3.47.4; Rust 1.99.1 is installed through rustup on first entry. Xcode itself always comes from the host.
+
+`make check-reqs-macos` verifies the result and `make diagnose-env-macos` prints what was found.
+
+### Xcode (optional download)
+
+`make bootstrap-xcode` only checks and selects an installed Xcode. To build with another installed Xcode without changing the global selection, run for example `DEVELOPER_DIR=/Applications/Xcode_27.0.app/Contents/Developer make build-macos`. If you have none, you can opt in to
+`make bootstrap-xcode-download` (`scripts/download_xcode.sh`), which downloads a `.xip` (set `XCODE_XIP_URL` to use another mirror; the hash and signature are still checked) from
+archive.org without an Apple ID. It checks the SHA-1 listed by archive.org and Apple's signature on
+the archive, and aborts if either fails. Default is Xcode 27.1; use `XCODE_VERSION=27.0` when you need
+the version that dnix pins to rebuild Apple libraries byte for byte. License acceptance and first-launch
+setup only run with `ARGS=-y`. This route is not used in CI. Prefer the Mac App Store or developer.apple.com
+if you can, since third-party redistribution of Xcode may conflict with Apple's terms.
+
+### Keep the build environment the same between runs
+
+Flutter reruns every native-asset build hook when `PATH` or any `NIX_*` variable differs from the previous build, even if no source changed. Measured on macOS: 33 to 40 s for a repeated build with an unchanged environment, 536 s after putting one extra directory in front of `PATH`, 156 to 164 s after adding a `NIX_*` variable or restoring `PATH`. So build always from the same shell setup (for example only through `make`, or only inside `nix develop`), and do not alternate between a terminal inside `nix develop` and an IDE without it.
+
+### Toolchain bill of materials
+
+`stack-bom.toml` lists the toolchain a build is expected to use (Flutter, Dart, Rust, Go, Xcode) and the git revisions of the pinned native plugins. `make verify-bom` compares the local machine and `pubspec.lock` against it and exits with an error on a mismatch (a different recommended Flutter or Xcode version is only a warning). After changing a plugin pin, run `dart tool/verify_bom.dart --update` to refresh the `[plugins]` section.
+
+### Optional: sccache for native-asset builds
+
+`make sccache-setup` writes `~/.cargo/config.toml` with `rustc-wrapper = "sccache"` (it never overwrites an
+existing file). The build hooks only see a filtered environment (Flutter 3.47.x, and also the 3.50 beta tried so far), so
+exporting `RUSTC_WRAPPER` does nothing in either: sccache saw no compile requests. Cargo still reads this file
+through `HOME`, which works with both versions. (With the 3.50 beta the variable `CARGO_BUILD_RUSTC_WRAPPER`
+also gets through.) Check `sccache --show-stats`
+after a build. Measured on an Apple Silicon Mac for a from-source build of all native assets (one run each):
+775 s without sccache, 665 s with a cold sccache, 534 s with a warm one. The prebuilt path (`-d`, the
+`make build-macos` default) only replaces the tor, epiccash and mwc libraries, so it saved about one minute
+in a cold build (12 vs. 13 minutes).
+
+### Linux
+
+`make build-linux` runs the Linux flow (`scripts/build_app.sh -p linux`, local libsecret and secp256k1 helper builds, `flutter build linux --release`). It needs `protoc`, Meson and Ninja; inside `nix develop` they are provided. Before building it writes `.cargo/config.toml` with `[env] PROTOC = "<protoc found in PATH>"` if the file does not exist (it is git-ignored). This is needed on NixOS, where a generic-Linux `protoc` shipped inside a crate cannot run and the exported variable does not reach the build hooks.
