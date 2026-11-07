@@ -1317,6 +1317,12 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
   }
 
   @override
+  bool get supportsSlatepackRecipient => true;
+
+  @override
+  String? get directSendAddressHint => "grin1 address, onion or http(s) URL";
+
+  @override
   bool get receiveQrIsRawAddress => true;
 
   @override

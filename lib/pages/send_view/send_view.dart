@@ -77,6 +77,7 @@ import '../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../widgets/icon_widgets/qrcode_icon.dart';
 import '../../widgets/icon_widgets/x_icon.dart';
 import '../../widgets/slatepack_method_toggle.dart';
+import '../slatepack/slatepack_recipient_field.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../../widgets/stack_text_field.dart';
@@ -125,6 +126,7 @@ class _SendViewState extends ConsumerState<SendView> {
   late final ClipboardInterface clipboard;
 
   late TextEditingController sendToController;
+  final _slatepackRecipientController = TextEditingController();
   late TextEditingController cryptoAmountController;
   late TextEditingController baseAmountController;
   late TextEditingController noteController;
@@ -1086,12 +1088,15 @@ class _SendViewState extends ConsumerState<SendView> {
           ),
         );
       } else if (isSlatepackSend) {
-        // No address: the confirm screen hands out a slatepack instead.
+        // The confirm screen hands out a slatepack, encrypted to the
+        // optional recipient where the coin supports it.
         txDataFuture = wallet.prepareSend(
           txData: TxData(
             recipients: [
               TxRecipient(
-                address: "",
+                address: wallet.supportsSlatepackRecipient
+                    ? _slatepackRecipientController.text.trim()
+                    : "",
                 amount: amount,
                 isChange: false,
                 addressType: AddressType.mimbleWimble,
@@ -1227,6 +1232,12 @@ class _SendViewState extends ConsumerState<SendView> {
             feeRateType: feeRateType,
             satsPerVByte: satsPerVByte,
             ethEIP1559Fee: _ethFee.value,
+            otherData: wallet is SlatepackInterface
+                ? slatepackMethodOtherData(
+                    ref.read(pSelectedSlatepackMethod(walletId)) ??
+                        wallet.supportedMethods.first,
+                  )
+                : null,
             utxos:
                 (wallet is CoinControlInterface &&
                     wallet is! SalviumWallet &&
@@ -1550,6 +1561,7 @@ class _SendViewState extends ConsumerState<SendView> {
     baseAmountController.removeListener(_baseAmountChanged);
 
     sendToController.dispose();
+    _slatepackRecipientController.dispose();
     cryptoAmountController.dispose();
     baseAmountController.dispose();
     noteController.dispose();
@@ -1839,6 +1851,15 @@ class _SendViewState extends ConsumerState<SendView> {
                                 ),
                               ),
                               const SizedBox(height: 16),
+                              if (isSlatepackMode &&
+                                  _slatepackWallet!
+                                      .supportsSlatepackRecipient) ...[
+                                SlatepackRecipientField(
+                                  controller: _slatepackRecipientController,
+                                  coin: coin,
+                                ),
+                                const SizedBox(height: 16),
+                              ],
                             ],
 
                             if (!isSlatepackMode)
@@ -1965,7 +1986,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                       standardInputDecoration(
                                         isSlatepackMode
                                             ? "Enter ${coin.ticker} address (optional)"
-                                            : "Enter ${coin.ticker} address",
+                                            : _slatepackWallet
+                                                      ?.directSendAddressHint ??
+                                                  "Enter ${coin.ticker} address",
                                         _addressFocusNode,
                                         context,
                                       ).copyWith(

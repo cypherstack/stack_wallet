@@ -29,6 +29,7 @@ import '../../../../pages/send_view/frost_ms/recipient.dart';
 import '../../../../pages/send_view/sub_widgets/building_transaction_dialog.dart';
 import '../../../../pages/send_view/sub_widgets/multi_recipient.dart';
 import '../../../../pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
+import '../../../../pages/slatepack/slatepack_recipient_field.dart';
 import '../../../../providers/providers.dart';
 import '../../../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../../../providers/ui/preview_tx_button_state_provider.dart';
@@ -112,6 +113,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   late final ClipboardInterface clipboard;
 
   late TextEditingController sendToController;
+  final _slatepackRecipientController = TextEditingController();
   late TextEditingController cryptoAmountController;
   late TextEditingController baseAmountController;
   late TextEditingController memoController;
@@ -127,6 +129,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
   late final bool hasOptionalMemo;
   late final bool usesSlatepacks;
+
+  String? get _directSendAddressHint {
+    final wallet = ref.read(pWallets).getWallet(walletId);
+    return wallet is SlatepackInterface ? wallet.directSendAddressHint : null;
+  }
 
   String? _note;
   String? _onChainNote;
@@ -446,12 +453,15 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           ),
         );
       } else if (isSlatepackSend) {
-        // No address: the confirm screen hands out a slatepack instead.
+        // The confirm screen hands out a slatepack, encrypted to the
+        // optional recipient where the coin supports it.
         txDataFuture = wallet.prepareSend(
           txData: TxData(
             recipients: [
               TxRecipient(
-                address: "",
+                address: wallet.supportsSlatepackRecipient
+                    ? _slatepackRecipientController.text.trim()
+                    : "",
                 amount: amount,
                 isChange: false,
                 addressType: AddressType.mimbleWimble,
@@ -590,6 +600,12 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             feeRateType: feeRateType,
             satsPerVByte: satsPerVByte,
             nonce: wallet.cryptoCurrency is Ethereum ? nonce : null,
+            otherData: wallet is SlatepackInterface
+                ? slatepackMethodOtherData(
+                    ref.read(pSelectedSlatepackMethod(walletId)) ??
+                        wallet.supportedMethods.first,
+                  )
+                : null,
             utxos:
                 (wallet is CoinControlInterface &&
                     wallet is! SalviumWallet &&
@@ -1389,6 +1405,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     _ethFee.dispose();
 
     sendToController.dispose();
+    _slatepackRecipientController.dispose();
     cryptoAmountController.dispose();
     baseAmountController.dispose();
     memoController.dispose();
@@ -1523,6 +1540,17 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 height: 60, // Provide an explicit height to avoid infinite constraints
                 child: SlatepackMethodToggle(walletId: walletId),
               ),
+            ),
+          ),
+        if (usesSlatepacks &&
+            ref.watch(pIsSlatepack(widget.walletId)) &&
+            (ref.read(pWallets).getWallet(walletId) as SlatepackInterface)
+                .supportsSlatepackRecipient)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: SlatepackRecipientField(
+              controller: _slatepackRecipientController,
+              coin: coin,
             ),
           ),
 
@@ -1925,7 +1953,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   standardInputDecoration(
                     ref.watch(pIsSlatepack(widget.walletId))
                         ? "Enter ${coin.ticker} address (optional)"
-                        : "Enter ${coin.ticker} address",
+                        : _directSendAddressHint ??
+                              "Enter ${coin.ticker} address",
                     _addressFocusNode,
                     context,
                     desktopMed: true,

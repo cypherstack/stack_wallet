@@ -88,6 +88,12 @@ mixin SlatepackInterface<T extends CryptoCurrency> on Wallet<T> {
   Future<PaymentProofCheck> verifyPaymentProof(String proofJson) =>
       throw UnsupportedError("proofs");
 
+  /// A slatepack send can name a recipient address to encrypt to.
+  bool get supportsSlatepackRecipient => false;
+
+  /// Hint for the address field of a direct send, if the coin wants one.
+  String? get directSendAddressHint => null;
+
   /// The receive QR code holds the bare address instead of a URI.
   bool get receiveQrIsRawAddress => false;
 

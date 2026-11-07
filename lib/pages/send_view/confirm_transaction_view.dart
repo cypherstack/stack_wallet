@@ -48,6 +48,8 @@ import '../../wallets/wallet/impl/solana_wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/slatepack_interface.dart';
+import '../../utilities/enums/slatepack_method.dart';
+import '../../models/slatepack_models.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -65,6 +67,7 @@ import '../pinpad_views/lock_screen_view.dart';
 import '../wallet_view/wallet_view.dart';
 import 'sub_widgets/multi_recipient.dart';
 import '../slatepack/slatepack_dialog.dart';
+import 'sub_widgets/slatepack_transport_warnings.dart';
 import 'sub_widgets/sending_transaction_dialog.dart';
 import 'sub_widgets/split_transaction_warning.dart';
 
@@ -106,6 +109,10 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
 
 class _ConfirmTransactionViewState
     extends ConsumerState<ConfirmTransactionView> {
+  // Direct (http) slatepack sends: transport warnings the user accepted.
+  bool _clearnetAck = false;
+  bool _plaintextAck = false;
+
   late final String walletId;
   late final String routeOnSuccessName;
   late final bool isDesktop;
@@ -164,10 +171,16 @@ class _ConfirmTransactionViewState
     final recipient = widget.txData.recipients!.first;
     final note = onChainNoteController.text;
 
+    // A send-all was estimated with the fee taken off the amount.
+    final sendAll = widget.txData.subtractFeeFromAmount;
+    final fee = widget.txData.fee;
     final result = await wallet.createSlatepack(
-      amount: recipient.amount,
+      amount: sendAll && fee != null
+          ? recipient.amount + fee
+          : recipient.amount,
       recipientAddress: recipient.address.isEmpty ? null : recipient.address,
       message: wallet.supportsOnChainNote && note.isNotEmpty ? note : null,
+      sendAll: sendAll,
     );
     if (!result.success || result.slatepack == null) {
       throw Exception(result.error ?? "Failed to create ${terms.noun}");
@@ -277,6 +290,8 @@ class _ConfirmTransactionViewState
                 noteOnChain: wallet.supportsOnChainNote
                     ? onChainNoteController.text
                     : null,
+                grinClearnetAcknowledged: _clearnetAck,
+                grinPlaintextAcknowledged: _plaintextAck,
               ),
             );
           } else {
@@ -539,6 +554,19 @@ class _ConfirmTransactionViewState
             (widget.txData.recipients?.firstOrNull?.address.isEmpty ?? false)
         ? "${slatepackWallet.slatepackTerms.title}, exchanged manually"
         : null;
+    final SlatepackHttpPolicy? httpPolicy =
+        slatepackWallet != null &&
+            widget.txData.slatepackMethod == SlatepackMethod.http &&
+            widget.txData.recipients?.firstOrNull != null
+        ? slatepackWallet.httpSendPolicy(
+            widget.txData.recipients!.first.address,
+          )
+        : null;
+    final sendAllowed = SlatepackTransportWarnings.allows(
+      httpPolicy,
+      clearnetAck: _clearnetAck,
+      plaintextAck: _plaintextAck,
+    );
 
     return ConditionalParent(
       condition: !isDesktop,
@@ -1476,6 +1504,17 @@ class _ConfirmTransactionViewState
                   ),
                 ),
               ),
+            if (httpPolicy != null)
+              Padding(
+                padding: isDesktop
+                    ? const EdgeInsets.symmetric(horizontal: 32, vertical: 8)
+                    : const EdgeInsets.symmetric(vertical: 8),
+                child: SlatepackTransportWarnings(
+                  policy: httpPolicy,
+                  onClearnetAck: (v) => setState(() => _clearnetAck = v),
+                  onPlaintextAck: (v) => setState(() => _plaintextAck = v),
+                ),
+              ),
             SizedBox(height: isDesktop ? 28 : 16),
             Padding(
               padding: isDesktop
@@ -1484,87 +1523,93 @@ class _ConfirmTransactionViewState
               child: PrimaryButton(
                 label: "Send",
                 buttonHeight: isDesktop ? ButtonHeight.l : null,
-                onPressed: () async {
-                  if (isDesktop) {
-                    final unlocked = await showDialog<bool?>(
-                      context: context,
-                      builder: (context) => DesktopDialog(
-                        maxWidth: 580,
-                        maxHeight: double.infinity,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [DesktopDialogCloseButton()],
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                left: 32,
-                                right: 32,
-                                bottom: 32,
-                              ),
-                              child: DesktopAuthSend(
-                                coin: coin,
-                                tokenTicker: widget.isTokenTx ? unit : null,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                    if (context.mounted && unlocked is bool) {
-                      if (unlocked) {
-                        unawaited(_attemptSend(context));
-                      } else {
-                        unawaited(
-                          showFloatingFlushBar(
-                            type: FlushBarType.warning,
-                            message: "Invalid passphrase",
+                enabled: sendAllowed,
+                onPressed: !sendAllowed
+                    ? null
+                    : () async {
+                        if (isDesktop) {
+                          final unlocked = await showDialog<bool?>(
                             context: context,
-                          ),
-                        );
-                      }
-                    }
-                  } else {
-                    final unlocked = await Navigator.push<bool>(
-                      context,
-                      RouteGenerator.getRoute<bool>(
-                        shouldUseMaterialRoute:
-                            RouteGenerator.useMaterialPageRoute,
-                        builder: (_) => const LockscreenView(
-                          showBackButton: true,
-                          popOnSuccess: true,
-                          routeOnSuccessArguments: true,
-                          routeOnSuccess: "",
-                          biometricsCancelButtonString: "CANCEL",
-                          biometricsLocalizedReason:
-                              "Authenticate to send transaction",
-                          biometricsAuthenticationTitle: "Confirm Transaction",
-                        ),
-                        settings: const RouteSettings(
-                          name: "/confirmsendlockscreen",
-                        ),
-                      ),
-                    );
+                            builder: (context) => DesktopDialog(
+                              maxWidth: 580,
+                              maxHeight: double.infinity,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [DesktopDialogCloseButton()],
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                      left: 32,
+                                      right: 32,
+                                      bottom: 32,
+                                    ),
+                                    child: DesktopAuthSend(
+                                      coin: coin,
+                                      tokenTicker: widget.isTokenTx
+                                          ? unit
+                                          : null,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                          if (context.mounted && unlocked is bool) {
+                            if (unlocked) {
+                              unawaited(_attemptSend(context));
+                            } else {
+                              unawaited(
+                                showFloatingFlushBar(
+                                  type: FlushBarType.warning,
+                                  message: "Invalid passphrase",
+                                  context: context,
+                                ),
+                              );
+                            }
+                          }
+                        } else {
+                          final unlocked = await Navigator.push<bool>(
+                            context,
+                            RouteGenerator.getRoute<bool>(
+                              shouldUseMaterialRoute:
+                                  RouteGenerator.useMaterialPageRoute,
+                              builder: (_) => const LockscreenView(
+                                showBackButton: true,
+                                popOnSuccess: true,
+                                routeOnSuccessArguments: true,
+                                routeOnSuccess: "",
+                                biometricsCancelButtonString: "CANCEL",
+                                biometricsLocalizedReason:
+                                    "Authenticate to send transaction",
+                                biometricsAuthenticationTitle:
+                                    "Confirm Transaction",
+                              ),
+                              settings: const RouteSettings(
+                                name: "/confirmsendlockscreen",
+                              ),
+                            ),
+                          );
 
-                    if (context.mounted) {
-                      if (unlocked == true) {
-                        unawaited(_attemptSend(context));
-                      } else {
-                        unawaited(
-                          showFloatingFlushBar(
-                            type: FlushBarType.warning,
-                            message: Util.isDesktop
-                                ? "Invalid passphrase"
-                                : "Invalid PIN",
-                            context: context,
-                          ),
-                        );
-                      }
-                    }
-                  }
-                },
+                          if (context.mounted) {
+                            if (unlocked == true) {
+                              unawaited(_attemptSend(context));
+                            } else {
+                              unawaited(
+                                showFloatingFlushBar(
+                                  type: FlushBarType.warning,
+                                  message: Util.isDesktop
+                                      ? "Invalid passphrase"
+                                      : "Invalid PIN",
+                                  context: context,
+                                ),
+                              );
+                            }
+                          }
+                        }
+                      },
               ),
             ),
             if (isDesktop) const SizedBox(height: 32),
