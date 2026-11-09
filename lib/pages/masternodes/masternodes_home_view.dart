@@ -34,6 +34,7 @@ import '../../widgets/stack_dialog.dart';
 import '../send_view/send_view.dart';
 import 'create_masternode_view.dart';
 import 'sub_widgets/masternodes_list.dart';
+import 'sub_widgets/unban_masternode_form.dart';
 
 class MasternodesHomeView extends ConsumerStatefulWidget {
   const MasternodesHomeView({super.key, required this.walletId});
@@ -530,9 +531,9 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
           width: Util.isDesktop ? 580 : null,
           padding: .all(Util.isDesktop ? 32 : 24),
           leftButton: TextButton(
-            style: Theme.of(
-              ctx,
-            ).extension<StackColors>()!.getSecondaryEnabledButtonStyle(ctx),
+            style: Theme.of(ctx)
+                .extension<StackColors>()!
+                .getSecondaryEnabledButtonStyle(ctx),
             child: Text(
               "Later",
               style: STextStyles.button(ctx).copyWith(
@@ -542,9 +543,9 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
             onPressed: () => Navigator.of(ctx).pop(false),
           ),
           rightButton: TextButton(
-            style: Theme.of(
-              ctx,
-            ).extension<StackColors>()!.getPrimaryEnabledButtonStyle(ctx),
+            style: Theme.of(ctx)
+                .extension<StackColors>()!
+                .getPrimaryEnabledButtonStyle(ctx),
             child: Text("Register", style: STextStyles.button(ctx)),
             onPressed: () => Navigator.of(ctx).pop(true),
           ),
@@ -600,6 +601,53 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
     }
   }
 
+  Future<void> _showUnbanForm([MasternodeInfo? node]) async {
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AnimatedPadding(
+        padding: EdgeInsets.only(
+          bottom: Util.isDesktop
+              ? 0
+              : MediaQuery.viewInsetsOf(dialogContext).bottom,
+        ),
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
+        child: SDialog(
+          contentCanScroll: true,
+          padding: EdgeInsets.all(Util.isDesktop ? 24 : 20),
+          child: SizedBox(
+            width: Util.isDesktop ? 560 : null,
+            child: UnbanMasternodeForm(
+              walletId: widget.walletId,
+              node: node,
+              onSuccess: (txid) {
+                Navigator.of(dialogContext).pop();
+                if (!mounted) return;
+                setState(() => _masternodesFuture = _fetchMasternodes());
+                unawaited(
+                  showDialog<void>(
+                    context: context,
+                    builder: (_) => StackOkDialog(
+                      title: "Masternode Unban Submitted",
+                      message:
+                          "Masternode service update submitted. The masternode "
+                          "will become active after the transaction is "
+                          "confirmed.\n\n"
+                          "Transaction ID: $txid",
+                      desktopPopRootNavigator: Util.isDesktop,
+                      maxWidth: Util.isDesktop ? 440 : null,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -627,18 +675,18 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
                     padding: const EdgeInsets.only(left: 24, right: 20),
                     child: AppBarIconButton(
                       size: 32,
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textFieldDefaultBG,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldDefaultBG,
                       shadows: const [],
                       icon: SvgPicture.asset(
                         Assets.svg.arrowLeft,
                         width: 18,
                         height: 18,
                         colorFilter: ColorFilter.mode(
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.topNavIconPrimary,
+                          Theme.of(context)
+                              .extension<StackColors>()!
+                              .topNavIconPrimary,
                           BlendMode.srcIn,
                         ),
                       ),
@@ -660,20 +708,31 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
               ),
               trailing: Padding(
                 padding: const EdgeInsets.only(right: 24),
-                child: PrimaryButton(
-                  label: "Create Masternode",
-                  buttonHeight: .l,
-                  horizontalContentPadding: 10,
-                  icon: SvgPicture.asset(
-                    Assets.svg.circlePlus,
-                    colorFilter: ColorFilter.mode(
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()!.buttonTextPrimary,
-                      .srcIn,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SecondaryButton(
+                      label: "Unban by ProTx hash",
+                      buttonHeight: .l,
+                      onPressed: () => _showUnbanForm(),
                     ),
-                  ),
-                  onPressed: _createMasternode,
+                    const SizedBox(width: 12),
+                    PrimaryButton(
+                      label: "Create Masternode",
+                      buttonHeight: .l,
+                      horizontalContentPadding: 10,
+                      icon: SvgPicture.asset(
+                        Assets.svg.circlePlus,
+                        colorFilter: ColorFilter.mode(
+                          Theme.of(context)
+                              .extension<StackColors>()!
+                              .buttonTextPrimary,
+                          .srcIn,
+                        ),
+                      ),
+                      onPressed: _createMasternode,
+                    ),
+                  ],
                 ),
               ),
             )
@@ -688,6 +747,11 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
                 overflow: TextOverflow.ellipsis,
               ),
               actions: [
+                IconButton(
+                  tooltip: "Unban masternode by ProTx hash",
+                  onPressed: () => _showUnbanForm(),
+                  icon: const Icon(Icons.restore),
+                ),
                 Padding(
                   padding: const EdgeInsets.only(
                     top: 10,
@@ -700,15 +764,15 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
                       key: const Key("createNewMasterNodeButton"),
                       size: 36,
                       shadows: const [],
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.background,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .background,
                       icon: SvgPicture.asset(
                         Assets.svg.plus,
                         colorFilter: ColorFilter.mode(
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.accentColorDark,
+                          Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorDark,
                           .srcIn,
                         ),
                         width: 20,
@@ -743,7 +807,7 @@ class _MasternodesHomeViewState extends ConsumerState<MasternodesHomeView> {
             );
           }
 
-          return MasternodesList(nodes: nodes);
+          return MasternodesList(nodes: nodes, onUnban: _showUnbanForm);
         },
       ),
     );

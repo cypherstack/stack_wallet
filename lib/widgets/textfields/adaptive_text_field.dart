@@ -23,6 +23,7 @@ class AdaptiveTextField extends StatefulWidget {
     this.smartQuotesType,
     this.desktopMed = false,
     this.readOnly = false,
+    this.obscureText = false,
     this.enabled = true,
     this.enableSuggestions = true,
     this.onChanged,
@@ -57,6 +58,7 @@ class AdaptiveTextField extends StatefulWidget {
   final int? maxLines;
 
   final bool readOnly;
+  final bool obscureText;
   final bool enabled;
   final bool enableSuggestions;
 
@@ -153,6 +155,7 @@ class _AdaptiveTextFieldState extends State<AdaptiveTextField> {
             onChanged: widget.onChanged,
             onTap: widget.onTap,
             readOnly: widget.readOnly,
+            obscureText: widget.obscureText,
             enabled: widget.enabled,
             autocorrect: widget.autocorrect,
             smartDashesType: widget.smartDashesType,

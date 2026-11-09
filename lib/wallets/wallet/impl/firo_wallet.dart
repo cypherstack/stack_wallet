@@ -17,6 +17,7 @@ import '../../../models/isar/models/isar_models.dart';
 import '../../../models/keys/view_only_wallet_data.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/extensions/extensions.dart';
+import '../../../utilities/firo_legacy_bls.dart';
 import '../../../utilities/firo_pro_reg_signed_message_prefix.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/util.dart';
@@ -59,6 +60,7 @@ class MasternodeInfo {
   final String votingAddress;
   final String payoutAddress;
   final String pubKeyOperator;
+  final String operatorPayoutAddress;
 
   MasternodeInfo({
     required this.proTxHash,
@@ -78,6 +80,7 @@ class MasternodeInfo {
     required this.votingAddress,
     required this.payoutAddress,
     required this.pubKeyOperator,
+    this.operatorPayoutAddress = "",
   });
 
   MasternodeStatus get status {
@@ -98,6 +101,8 @@ class MasternodeInfo {
       "Owner Address": ownerAddress,
       "Voting Address": votingAddress,
       "Operator Public Key": pubKeyOperator,
+      if (operatorPayoutAddress.isNotEmpty)
+        "Operator Payout Address": operatorPayoutAddress,
       "Operator Reward": "$operatorReward %",
       "Collateral Hash": collateralHash,
       "Collateral Index": collateralIndex.toString(),
@@ -1292,6 +1297,296 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
     return broadcastedTxHash;
   }
 
+  Future<String> unbanMasternode({
+    required String proTxHash,
+    required String ipAndPort,
+    required String operatorPrivateKey,
+    String? feeSourceAddress,
+  }) async {
+    final normalizedProTxHash = proTxHash.trim().toLowerCase();
+    if (!RegExp(r'^[0-9a-f]{64}$').hasMatch(normalizedProTxHash)) {
+      throw Exception("Invalid ProTx hash.");
+    }
+
+    final endpoint = _parseFiroServiceEndpoint(ipAndPort.trim());
+    final info = await electrumXClient.request(
+      command: 'protx.info',
+      args: [normalizedProTxHash],
+    );
+    if (info is! Map) {
+      throw Exception("Could not load masternode information.");
+    }
+    final state = Map<String, dynamic>.from(info["state"] as Map);
+    final pubKeyOperator = state["pubKeyOperator"]?.toString();
+    if (pubKeyOperator == null || pubKeyOperator.length != 96) {
+      throw Exception("Masternode has an invalid operator public key.");
+    }
+
+    final poseBanHeight = int.tryParse(
+      state["PoSeBanHeight"]?.toString() ?? "-1",
+    );
+    final revocationReason = int.tryParse(
+      state["revocationReason"]?.toString() ?? "0",
+    );
+    if (poseBanHeight == null || revocationReason == null) {
+      throw Exception("Masternode status data is incomplete.");
+    }
+    if (poseBanHeight == -1) {
+      throw Exception(
+        revocationReason == 0
+            ? "This masternode is not PoSe-banned."
+            : "This masternode is revoked and cannot be restored with "
+                  "update_service.",
+      );
+    }
+
+    final derivedOperatorPublicKey =
+        (await FiroLegacyBls.publicKeyFromPrivateKey(operatorPrivateKey)).toHex;
+    if (derivedOperatorPublicKey.toLowerCase() !=
+        pubKeyOperator.toLowerCase()) {
+      throw Exception(
+        "The operator private key does not match this masternode.",
+      );
+    }
+
+    final operatorReward = double.tryParse(
+      info["operatorReward"]?.toString() ?? "0",
+    );
+    if (operatorReward == null) {
+      throw Exception("Masternode operator reward data is invalid.");
+    }
+    final operatorPayoutAddress =
+        state["operatorPayoutAddress"]?.toString() ?? "";
+    if (operatorReward > 0 && operatorPayoutAddress.isEmpty) {
+      throw Exception(
+        "Could not read the current operator payout address. "
+        "Refusing to update this masternode so its reward settings are kept.",
+      );
+    }
+
+    final operatorPayoutScript = operatorReward == 0
+        ? Uint8List(0)
+        : _transparentAddressScript(operatorPayoutAddress);
+
+    final currentChainHeight = await chainHeight;
+    final allUtxos = await mainDB.getUTXOs(walletId).findAll();
+    final feeUtxos = allUtxos
+        .where(
+          (utxo) =>
+              !utxo.isBlocked &&
+              utxo.used != true &&
+              utxo.address != null &&
+              (feeSourceAddress == null ||
+                  feeSourceAddress.trim().isEmpty ||
+                  utxo.address == feeSourceAddress.trim()) &&
+              utxo.isConfirmed(
+                currentChainHeight,
+                cryptoCurrency.minConfirms,
+                cryptoCurrency.minCoinbaseConfirms,
+              ),
+        )
+        .map((utxo) => StandardInput(utxo) as BaseInput)
+        .toList();
+    if (feeUtxos.isEmpty) {
+      throw Exception(
+        feeSourceAddress == null || feeSourceAddress.trim().isEmpty
+            ? "No confirmed transparent FIRO is available to pay the "
+                  "network fee."
+            : "No confirmed spendable FIRO was found at the fee source address.",
+      );
+    }
+    final feeReturnAddress = feeSourceAddress?.trim().isNotEmpty == true
+        ? feeSourceAddress!.trim()
+        : (feeUtxos.first as StandardInput).utxo.address!;
+    final feeAddress = await mainDB
+        .getAddresses(walletId)
+        .filter()
+        .valueEqualTo(feeReturnAddress)
+        .findFirst();
+    if (feeAddress == null ||
+        !cryptoCurrency.validateAddress(feeReturnAddress) ||
+        cryptoCurrency.getAddressType(feeReturnAddress) != AddressType.p2pkh) {
+      throw Exception(
+        "The fee source must be a transparent P2PKH address in this wallet.",
+      );
+    }
+
+    final partialTx = await coinSelection(
+      txData: TxData(
+        overrideVersion: 3 + (2 << 16),
+        feeRateAmount: cryptoCurrency.defaultFeeRate * BigInt.from(10),
+        recipients: [
+          TxRecipient(
+            address: feeReturnAddress,
+            addressType: AddressType.p2pkh,
+            amount: cryptoCurrency.dustLimit,
+            isChange: false,
+          ),
+        ],
+      ),
+      coinControl: false,
+      isSendAll: false,
+      isSendAllCoinControlUtxos: false,
+      utxos: feeUtxos,
+    );
+
+    final inputsHashInput = BytesBuilder();
+    for (final input in partialTx.usedUTXOs!) {
+      final utxo = (input as StandardInput).utxo;
+      final txidBytes = utxo.txid.toUint8ListFromHex.reversed.toList();
+      if (txidBytes.length != 32) {
+        throw Exception("Invalid fee transaction ID: ${utxo.txid}");
+      }
+      inputsHashInput.add(txidBytes);
+      inputsHashInput.add(
+        (ByteData(
+          4,
+        )..setUint32(0, utxo.vout, Endian.little)).buffer.asUint8List(),
+      );
+    }
+    final inputsHash = crypto.sha256
+        .convert(crypto.sha256.convert(inputsHashInput.toBytes()).bytes)
+        .bytes;
+
+    final payload = BytesBuilder();
+    payload.add(
+      (ByteData(2)..setUint16(0, 1, Endian.little)).buffer.asUint8List(),
+    );
+    payload.add(normalizedProTxHash.toUint8ListFromHex.reversed.toList());
+    payload.add(endpoint.ipBytes);
+    payload.add(
+      (ByteData(
+        2,
+      )..setUint16(0, endpoint.port, Endian.big)).buffer.asUint8List(),
+    );
+    payload.addByte(operatorPayoutScript.length);
+    payload.add(operatorPayoutScript);
+    payload.add(inputsHash);
+
+    final payloadWithoutSignature = payload.toBytes();
+    final payloadDigest = crypto.sha256
+        .convert(crypto.sha256.convert(payloadWithoutSignature).bytes)
+        .bytes;
+    final signature = await FiroLegacyBls.signDigest(
+      privateKeyHex: operatorPrivateKey,
+      digest: Uint8List.fromList(payloadDigest),
+    );
+    payload.add(signature);
+
+    final finalTx = await buildTransaction(
+      txData: partialTx.copyWith(vExtraData: payload.toBytes()),
+      inputsWithKeys: partialTx.usedUTXOs!,
+    );
+    final rawTx = finalTx.raw!;
+    if (!rawTx.toLowerCase().contains(payload.toBytes().toHex.toLowerCase())) {
+      throw Exception(
+        "ProUpServTx payload is missing from the signed transaction.",
+      );
+    }
+    final txid = await electrumXClient.broadcastTransaction(rawTx: rawTx);
+    if (txid.toUint8ListFromHex.length != 32) {
+      throw Exception(
+        "Failed to broadcast masternode unban transaction: $txid",
+      );
+    }
+    await updateSentCachedTxData(txData: finalTx);
+    return txid;
+  }
+
+  Uint8List _transparentAddressScript(String address) {
+    if (!cryptoCurrency.validateAddress(address)) {
+      throw Exception("Invalid operator payout address.");
+    }
+    final type = cryptoCurrency.getAddressType(address);
+    final hash = base58Decode(address).sublist(1);
+    if (hash.length != 20) {
+      throw Exception("Invalid operator payout address.");
+    }
+    if (type == AddressType.p2pkh) {
+      return P2PKH.fromHash(hash).script.compiled;
+    }
+    if (type == AddressType.p2sh) {
+      return Uint8List.fromList([0xa9, 0x14, ...hash, 0x87]);
+    }
+    throw Exception("Operator payout address must be transparent P2PKH/P2SH.");
+  }
+
+  ({Uint8List ipBytes, int port}) _parseFiroServiceEndpoint(String value) {
+    String host;
+    String portText;
+    if (value.startsWith("[")) {
+      final closeBracket = value.indexOf("]");
+      if (closeBracket < 0 ||
+          closeBracket + 1 >= value.length ||
+          value[closeBracket + 1] != ":") {
+        throw Exception("Enter IPv6 services as [address]:port.");
+      }
+      host = value.substring(1, closeBracket);
+      portText = value.substring(closeBracket + 2);
+    } else {
+      final separator = value.lastIndexOf(":");
+      if (separator <= 0) {
+        throw Exception("Enter the masternode service as IP:port.");
+      }
+      host = value.substring(0, separator);
+      portText = value.substring(separator + 1);
+      if (host.contains(":")) {
+        throw Exception("Wrap an IPv6 address in brackets: [address]:port.");
+      }
+    }
+    final port = int.tryParse(portText);
+    if (port == null || port < 1 || port > 65535) {
+      throw Exception("Service port must be between 1 and 65535.");
+    }
+    final ipv4Parts = host.split(".");
+    if (ipv4Parts.length == 4) {
+      final octets = ipv4Parts.map(int.tryParse).toList();
+      if (octets.any((part) => part == null || part < 0 || part > 255)) {
+        throw Exception("Invalid IPv4 service address.");
+      }
+      return (
+        ipBytes: Uint8List.fromList([
+          ...List<int>.filled(10, 0),
+          0xff,
+          0xff,
+          ...octets.cast<int>(),
+        ]),
+        port: port,
+      );
+    }
+
+    final halves = host.split("::");
+    if (halves.length > 2 || host.isEmpty) {
+      throw Exception("Invalid IPv6 service address.");
+    }
+    List<int> parseGroups(String half) {
+      if (half.isEmpty) return const [];
+      return half.split(":").map((group) {
+        if (group.isEmpty ||
+            group.length > 4 ||
+            !RegExp(r'^[0-9a-fA-F]+$').hasMatch(group)) {
+          throw Exception("Invalid IPv6 service address.");
+        }
+        return int.parse(group, radix: 16);
+      }).toList();
+    }
+
+    final left = parseGroups(halves.first);
+    final right = halves.length == 2 ? parseGroups(halves.last) : <int>[];
+    final zeroCount = 8 - left.length - right.length;
+    if ((halves.length == 1 && zeroCount != 0) ||
+        (halves.length == 2 && zeroCount < 1)) {
+      throw Exception("Invalid IPv6 service address.");
+    }
+    final groups = [...left, ...List<int>.filled(zeroCount, 0), ...right];
+    final bytes = <int>[];
+    for (final group in groups) {
+      bytes.add((group >> 8) & 0xff);
+      bytes.add(group & 0xff);
+    }
+    return (ipBytes: Uint8List.fromList(bytes), port: port);
+  }
+
   Future<List<MasternodeInfo>> getMyMasternodes() async {
     final proTxHashes = await getMyMasternodeProTxHashes();
 
@@ -1328,6 +1623,8 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
               votingAddress: info["state"]["votingAddress"] as String,
               payoutAddress: info["state"]["payoutAddress"] as String,
               pubKeyOperator: info["state"]["pubKeyOperator"] as String,
+              operatorPayoutAddress:
+                  info["state"]["operatorPayoutAddress"]?.toString() ?? "",
             );
           } catch (err) {
             // getMyMasternodeProTxHashes() may give non-masternode txids, so

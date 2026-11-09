@@ -44,6 +44,8 @@ dependencies:
 # %%END_ENABLE_XEL%%
 
 # %%ENABLE_FIRO%%
+#  bls_dart:
+#    path: crypto_plugins/firo_bls_dart
 #  flutter_libsparkmobile:
 #    git:
 #      url: https://github.com/cypherstack/flutter_libsparkmobile.git
@@ -310,6 +312,10 @@ flutter_native_splash:
     color_dark: "2A2D34"
 
 dependency_overrides:
+# %%ENABLE_FIRO%%
+#  rust_lib_bls_dart:
+#    path: crypto_plugins/firo_bls_dart/rust_builder
+# %%END_ENABLE_FIRO%%
   # required for: native_toolchain_rust >=1.0.3 depends on toml ^0.18.0
   # stellar sdk package needs to get 0.18.0 to remove this override
   toml: ^0.18.0
