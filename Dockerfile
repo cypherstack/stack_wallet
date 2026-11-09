@@ -32,7 +32,6 @@ ENV RUSTUP_HOME=/usr/local/rustup \
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
       | sh -s -- -y --default-toolchain 1.99.1 --profile minimal --no-modify-path \
- && rustup install 1.85.1 1.71.0 stable --profile minimal \
  && rustup target add x86_64-unknown-linux-gnu --toolchain 1.99.1 \
  && cargo install cargo-ndk \
  && chmod -R a+rwX "$CARGO_HOME" "$RUSTUP_HOME"
@@ -202,7 +201,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       libjsoncpp-dev liblzma-dev libsecret-1-dev libssl-dev \
  && rm -rf /var/lib/apt/lists/*
 
-# Epic/MWC use prebuilts; frostdart still compiles through its native-assets hook.
+# The dnix packages use prebuilts. Xelis still needs Rust for its build hook.
 ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
     PATH=/usr/local/cargo/bin:$PATH

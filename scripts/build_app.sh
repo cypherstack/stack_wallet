@@ -7,7 +7,11 @@ source "$(dirname -- "${BASH_SOURCE[0]}")/env.sh"
 # Function to display usage.
 usage() {
     echo "Usage: $0 -v <version> -b <build_number> -p <platform> -a <app> [-d] [-i] [-f] [-s]"
-    exit 1
+    echo "  Default: build dnix libraries from source with Nix and verify their hashes."
+    echo "  -d: use verified dnix prebuilts; other packages may still build from source."
+    echo "  -i: skip platform native dependencies (secure storage and secp256k1)."
+    echo "  -f: build Isar from source. -s: use system Linux secure-storage libraries."
+    exit "${1:-1}"
 }
 
 confirmDisclaimer() {
@@ -31,24 +35,23 @@ unset -v APP_NAMED_ID
 # optional args (with defaults)
 # -i: skip building the platform native deps (secure storage deps, secp256k1).
 SKIP_NATIVE_DEPS_BUILD=0
-# -d: use downloaded/prebuilt binaries instead of building from source where
-#     supported. Enables the NATIVE_PREBUILTS block in the pubspec template so
-#     native-assets plugins use CI prebuilts via hooks user_defines.
-DOWNLOAD_CRYPTO_PLUGINS=0
+# dnix checks the package's pinned hashes in both source and prebuilt mode.
+DNIX_BUILD_MODE=source
 BUILD_ISAR_FROM_SOURCE=0
 USE_SYSTEM_SECURE_STORAGE_DEPS=0
 
 # Parse command-line arguments.
-while getopts "v:b:p:a:idfs" opt; do
+while getopts "v:b:p:a:idfsh" opt; do
     case "${opt}" in
         v) APP_VERSION_STRING="$OPTARG" ;;
         b) APP_BUILD_NUMBER="$OPTARG" ;;
         p) APP_BUILD_PLATFORM="$OPTARG" ;;
         a) APP_NAMED_ID="$OPTARG" ;;
         i) SKIP_NATIVE_DEPS_BUILD=1 ;;
-        d) DOWNLOAD_CRYPTO_PLUGINS=1 ;;
+        d) DNIX_BUILD_MODE=prebuilt ;;
         f) BUILD_ISAR_FROM_SOURCE=1 ;;
         s) USE_SYSTEM_SECURE_STORAGE_DEPS=1 ;;
+        h) usage 0 ;;
         *) usage ;;
     esac
 done
@@ -112,11 +115,9 @@ cp -rp "${APP_PROJECT_ROOT_DIR}/asset_sources/other/playstore_icon/${APP_NAMED_I
 "${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/link_assets.sh" "${APP_NAMED_ID}" "${APP_BUILD_PLATFORM}"
 # shellcheck disable=SC1090
 source "${APP_PROJECT_ROOT_DIR}/scripts/app_config/configure_${APP_NAMED_ID}.sh" "${APP_BUILD_PLATFORM}"
-if [ "$DOWNLOAD_CRYPTO_PLUGINS" -eq 1 ]; then
-    # Enable CI prebuilt native assets (hooks user_defines) in pubspec.yaml so
-    # native-assets plugins download verified binaries instead of compiling Rust.
-    dart "${APP_PROJECT_ROOT_DIR}/tool/process_pubspec_deps.dart" "${ACTUAL_PUBSPEC}" NATIVE_PREBUILTS
-fi
+# Render the mode before any Flutter/Dart command that can run build hooks.
+sed -i.bak "s/PLACEHOLDER_DNIX_BUILD_MODE/${DNIX_BUILD_MODE}/g" "${ACTUAL_PUBSPEC}"
+rm -f "${ACTUAL_PUBSPEC}.bak"
 "${APP_PROJECT_ROOT_DIR}/scripts/app_config/platforms/${APP_BUILD_PLATFORM}/platform_config.sh"
 
 if [[ "$APP_BUILD_PLATFORM" != "linux" ]]; then
@@ -125,7 +126,7 @@ if [[ "$APP_BUILD_PLATFORM" != "linux" ]]; then
 fi
 
 # Build platform native deps that are not provided by pub packages. The crypto
-# plugins (flutter_libepiccash, flutter_libmwc, frostdart) are native-assets
+# plugins (flutter_libepiccash, flutter_libmwc, frostdart, tor_ffi_plugin) are native-assets
 # packages now; their build hooks compile (or fetch) them during flutter build.
 if [ "$SKIP_NATIVE_DEPS_BUILD" -eq 0 ]; then
     case "$APP_BUILD_PLATFORM" in
@@ -136,11 +137,21 @@ if [ "$SKIP_NATIVE_DEPS_BUILD" -eq 0 ]; then
             popd
             ;;
         windows)
-            # WSL cross-compile of secp256k1.dll. CI builds it natively instead.
-            if [ "$DOWNLOAD_CRYPTO_PLUGINS" -eq 0 ]; then
-                pushd "${APP_PROJECT_ROOT_DIR}/scripts/windows"
-                ./build_secp256k1_wsl.sh
-                popd
+            # Prebuilt jobs build secp256k1 separately after pub get, as before.
+            if [ "$DNIX_BUILD_MODE" = source ]; then
+                case "$(uname -s)" in
+                    MINGW*|MSYS*|CYGWIN*)
+                        pushd "${APP_PROJECT_ROOT_DIR}"
+                        cmd.exe /c dart run coinlib:build_windows
+                        popd
+                        ;;
+                    Linux*)
+                        pushd "${APP_PROJECT_ROOT_DIR}/scripts/windows"
+                        ./build_secp256k1_wsl.sh
+                        popd
+                        ;;
+                    *) echo "Building Windows secp256k1 needs Windows or Linux/WSL." >&2; exit 1 ;;
+                esac
             fi
             ;;
     esac

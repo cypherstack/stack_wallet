@@ -29,7 +29,7 @@ dependencies:
 #  frostdart:
 #    git:
 #      url: https://github.com/cypherstack/frostdart.git
-#      ref: c8be6a0ea892d744adfacc8e97df891feca49707
+#      ref: f7fea2a926ea88e2eb6a353579372188d6915314
 # %%END_ENABLE_FROST%%
 
 # %%ENABLE_XEL%%
@@ -54,21 +54,21 @@ dependencies:
 #  flutter_libepiccash:
 #    git:
 #      url: https://github.com/cypherstack/flutter_libepiccash.git
-#      ref: d5cfb763fa62928a6e6265e1f4412738772151eb
+#      ref: 63e93b01c3c4c68a52b26a43e4442a4738d5e7e8
 # %%END_ENABLE_EPIC%%
 
 # %%ENABLE_MWC%%
 #  flutter_libmwc:
 #    git:
 #      url: https://github.com/cypherstack/flutter_libmwc.git
-#      ref: d8c5d5488cb00e21d0dc04ad306a65e2d54c4d3c
+#      ref: 5722fb3ba05c8f52e8e0255c485ae5ea52e9a694
 # %%END_ENABLE_MWC%%
 
 # %%ENABLE_TOR%%
 #  tor_ffi_plugin:
 #    git:
 #      url: https://github.com/cypherstack/tor.git
-#      ref: e30ed0d386a40ee4a999aeaf57aafd32921d601e
+#      ref: 6e954a9d5a0aaaafb861049b79041d7ae98c2a08
 # %%END_ENABLE_TOR%%
 
 # %%ENABLE_XMR%%
@@ -280,6 +280,7 @@ dependencies:
 dev_dependencies:
   args: ^2.7.0
   test: ^1.31.1
+  yaml: ^3.1.3
   flutter_test:
     sdk: flutter
   integration_test:
@@ -365,28 +366,27 @@ dependency_overrides:
 #      ref: 39ea19ff035518aef4d0e776206d96a428f57789
 # %%END_ENABLE_ISAR%%
 
-# Prebuilt native assets for CI. Enabled by scripts/build_app.sh -d.
-# Each listed plugin's build hook downloads and verifies prebuilt binaries
-# instead of compiling its Rust sources. Entries for packages that are not in
-# the dependency graph are ignored, so this block is safe for every app config.
-# Each url/sha256 pair is tied to a source fingerprint of the plugin, so it must
-# be updated together with the plugin git ref pinned in dependencies above.
-# %%ENABLE_NATIVE_PREBUILTS%%
-#hooks:
-#  user_defines:
+# dnix verifies both source builds and prebuilts against each package's dnix.lock.
+# build_app.sh renders the mode as source by default, or prebuilt with -d.
+# The app's existing dependency markers also enable its hook configuration.
+hooks:
+  user_defines:
+# %%ENABLE_FROST%%
+#    frostdart:
+#      build: PLACEHOLDER_DNIX_BUILD_MODE
+# %%END_ENABLE_FROST%%
+# %%ENABLE_TOR%%
 #    tor_ffi_plugin:
-#      native_build: prebuilt
-#      prebuilt_manifest_url: "https://github.com/cypherstack/tor/releases/download/native-0.2.0/manifest.json"
-#      prebuilt_manifest_sha256: "0008ecf60b52a5ba1ffecb2f5951a5d5c4bbffdb71ab470259d62d4abc314c4b"
+#      build: PLACEHOLDER_DNIX_BUILD_MODE
+# %%END_ENABLE_TOR%%
+# %%ENABLE_EPIC%%
 #    flutter_libepiccash:
-#      native_build: prebuilt
-#      prebuilt_manifest_url: "https://github.com/cypherstack/flutter_libepiccash/releases/download/native-0.3.0-1/manifest.json"
-#      prebuilt_manifest_sha256: "ab91bef838c8e658c5167e3ff6599eec1e0db24223de20394658a277913aec38"
+#      build: PLACEHOLDER_DNIX_BUILD_MODE
+# %%END_ENABLE_EPIC%%
+# %%ENABLE_MWC%%
 #    flutter_libmwc:
-#      native_build: prebuilt
-#      prebuilt_manifest_url: "https://github.com/cypherstack/flutter_libmwc/releases/download/native-0.1.7/manifest.json"
-#      prebuilt_manifest_sha256: "c83b8d57c4bde1f88d580587f8df91480bb083a95e58bbf0f0a3c47855e6522d"
-# %%END_ENABLE_NATIVE_PREBUILTS%%
+#      build: PLACEHOLDER_DNIX_BUILD_MODE
+# %%END_ENABLE_MWC%%
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
