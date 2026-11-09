@@ -18,7 +18,8 @@ on:
         default: '1'
 
 # Configure app uses -d for verified dnix prebuilts (Frost, Tor, Epic and MWC).
-# Xelis and Spark still use their own source-build hooks.
+# Every app still builds dnssec_resolver with Rust 1.90.0; Stack Wallet also
+# builds Xelis with Rust 1.99.1, and Stack Wallet/Campfire build Spark with C++.
 jobs:
 
   build-disclaimer:
@@ -231,6 +232,11 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
+      # OpenAlias/DNSSEC builds from source in every app, including -d.
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.90.0
+
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.47.2'
@@ -280,9 +286,6 @@ jobs:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
-      - name: Build secp256k1.dll for Windows
-        run: dart run coinlib:build_windows
-
       - name: Build
         run: flutter build windows --release
 
@@ -321,6 +324,11 @@ jobs:
           fi
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
+
+      # OpenAlias/DNSSEC builds from source in every app, including -d.
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.90.0
 
       - uses: subosito/flutter-action@v2
         with:
@@ -386,10 +394,10 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
+      # OpenAlias/DNSSEC builds from source in every app, including -d.
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: stable
-          targets: aarch64-apple-ios
+          toolchain: 1.90.0
 
       - uses: subosito/flutter-action@v2
         with:
@@ -811,6 +819,11 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
+      # OpenAlias/DNSSEC builds from source in every app, including -d.
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.90.0
+
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.47.2'
@@ -852,9 +865,6 @@ jobs:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
-      - name: Build secp256k1.dll for Windows
-        run: dart run coinlib:build_windows
-
       - name: Build
         run: flutter build windows --release
 
@@ -893,6 +903,11 @@ jobs:
           fi
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
+
+      # OpenAlias/DNSSEC builds from source in every app, including -d.
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.90.0
 
       - uses: subosito/flutter-action@v2
         with:
@@ -957,6 +972,11 @@ jobs:
           fi
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
+
+      # OpenAlias/DNSSEC builds from source in every app, including -d.
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.90.0
 
       - uses: subosito/flutter-action@v2
         with:
@@ -1244,6 +1264,11 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
+      # OpenAlias/DNSSEC builds from source in every app, including -d.
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.90.0
+
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.47.2'
@@ -1285,9 +1310,6 @@ jobs:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
-      - name: Build secp256k1.dll for Windows
-        run: dart run coinlib:build_windows
-
       - name: Build
         run: flutter build windows --release
 
@@ -1326,6 +1348,11 @@ jobs:
           fi
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
+
+      # OpenAlias/DNSSEC builds from source in every app, including -d.
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.90.0
 
       - uses: subosito/flutter-action@v2
         with:
@@ -1390,6 +1417,11 @@ jobs:
           fi
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
+
+      # OpenAlias/DNSSEC builds from source in every app, including -d.
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.90.0
 
       - uses: subosito/flutter-action@v2
         with:

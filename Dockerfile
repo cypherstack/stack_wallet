@@ -32,6 +32,7 @@ ENV RUSTUP_HOME=/usr/local/rustup \
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
       | sh -s -- -y --default-toolchain 1.99.1 --profile minimal --no-modify-path \
+ && rustup toolchain install 1.90.0 --profile minimal \
  && rustup target add x86_64-unknown-linux-gnu --toolchain 1.99.1 \
  && cargo install cargo-ndk \
  && chmod -R a+rwX "$CARGO_HOME" "$RUSTUP_HOME"
@@ -95,7 +96,8 @@ RUN git config --system --add safe.directory '*'
 RUN flutter --version && rustc --version && cargo --version && node --version && go version
 
 
-# Android-only image: no Linux/Windows cross-compilers, no OpenCV/OpenCL, single Rust toolchain with android targets
+# Android-only image: no Linux/Windows cross-compilers or OpenCV/OpenCL;
+# pinned Rust toolchains for DNSSEC and Xelis, with Android targets.
 FROM ubuntu:24.04 AS android
 
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -118,6 +120,7 @@ ENV RUSTUP_HOME=/usr/local/rustup \
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
       | sh -s -- -y --default-toolchain 1.99.1 --profile minimal --no-modify-path \
+ && rustup toolchain install 1.90.0 --profile minimal \
  && rustup target add \
       aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android \
       --toolchain 1.99.1 \
@@ -201,13 +204,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       libjsoncpp-dev liblzma-dev libsecret-1-dev libssl-dev \
  && rm -rf /var/lib/apt/lists/*
 
-# The dnix packages use prebuilts. Xelis still needs Rust for its build hook.
+# dnix uses prebuilts; all apps need Rust 1.90.0 for DNSSEC, plus
+# Rust 1.99.1 for Stack Wallet's Xelis hook.
 ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
     PATH=/usr/local/cargo/bin:$PATH
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
       | sh -s -- -y --default-toolchain 1.99.1 --profile minimal --no-modify-path \
+ && rustup toolchain install 1.90.0 --profile minimal \
  && chmod -R a+rwX "$CARGO_HOME" "$RUSTUP_HOME"
 
 ENV PATH=/usr/local/go/bin:$PATH

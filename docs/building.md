@@ -51,7 +51,8 @@ mode skips hash verification. See [dnix build modes](https://github.com/cypherst
 | The four dnix packages, source mode | [Nix](https://nixos.org/download/); on Windows, Nix inside WSL2; for Apple targets, Xcode **27.0**, as pinned by the packages |
 | The four dnix packages, `-d` | No Nix or package-specific Rust/C toolchain needed for these libraries |
 | Flutter and platform plugins | Target SDKs and the platform's C/C++ build tools in either mode |
-| Xelis (Stack Wallet) | Rustup on the Flutter host; its hook installs Rust **1.99.1** and the required target; Android needs NDK r28 or newer |
+| OpenAlias / DNSSEC (every app) | Rustup on the Flutter host in both modes; `dnssec_resolver` builds from source with Rust **1.90.0** |
+| Xelis (Stack Wallet) | Rustup; its hook installs Rust **1.99.1** and the required target; Android needs NDK r28 or newer |
 | Spark (Stack Wallet and Campfire) | CMake and a C++ compiler; its native-assets hook still builds from source |
 | Coinlib secp256k1 | A separate platform build, described below |
 | MWEB (Stack Wallet) | Go; CI uses **1.24.13**. The Windows executable has a separate WSL build or prebuilt download |
@@ -59,8 +60,11 @@ mode skips hash verification. See [dnix build modes](https://github.com/cypherst
 
 `-d` applies to the dnix packages, not every native library in the application.
 Their old host Rust toolchain lists, `cbindgen`, `cargo-lipo`, and manually built
-Epic/MWC/Tor dependencies are no longer required. Keep Rustup for Xelis and for
-an optional Isar source build (`-f`). Nix supplies the four dnix packages' own
+Epic/MWC/Tor dependencies are no longer required. **Keep Rustup for every app**:
+unconditional `cs_openalias` depends on the source-built `dnssec_resolver`.
+Stack Wallet also needs it for Xelis, as does an optional Isar source build
+(`-f`). These hooks install their pinned toolchains automatically. Nix supplies
+the four dnix packages' own
 pinned toolchains, independently of the Rust installed on the host.
 
 The macOS app deployment target is now **12.0** to accommodate the native
@@ -90,10 +94,10 @@ sudo apt-get install meson libgirepository1.0-dev valac xsltproc \
   docbook-xsl libgcrypt20-dev libglib2.0-dev
 ```
 
-For Stack Wallet, install [Rustup](https://rustup.rs/) and
-[Go](https://go.dev/doc/install). Xelis installs its pinned Rust toolchain on
-first use; you can install it ahead of time with `rustup toolchain install
-1.99.1`.
+Install [Rustup](https://rustup.rs/) for **all three apps**, including prebuilt
+mode. You can preinstall DNSSEC's toolchain with `rustup toolchain install
+1.90.0`. Stack Wallet also needs [Go](https://go.dev/doc/install) and Xelis'
+Rust **1.99.1** toolchain, which its hook installs on first use.
 
 ### Android
 
@@ -110,11 +114,12 @@ not supported. Enable KVM for hardware-accelerated emulation on Linux.
 ## Mac host
 
 Install Flutter 3.47.2 and Nix on an Apple Silicon Mac. **Xcode 27.0 is required
-for verified source builds of the Apple libraries**; a different version can
-produce different hashes. Prebuilt mode still needs Xcode to build the Flutter
+for verified source builds of the Apple libraries** (release build **27A266a**);
+a different version can produce different hashes. Prebuilt mode still needs Xcode to build the Flutter
 app. Install 27.0 alongside your existing Xcode, under `/Applications` with a
-name matching `Xcode*.app`. dnix finds the pinned version there automatically;
-you can keep your existing system-wide `xcode-select` setting.
+name matching `Xcode*.app`. dnix normally finds the pinned version there; you
+can keep a different stable Xcode selected system-wide. See the beta limitation
+below when keeping multiple builds of 27.0 installed.
 
 ### Install with xcodes
 
@@ -132,6 +137,11 @@ downloads it with `xcodes install 27.0 --no-superuser --update`, then runs Apple
 first-launch setup, which accepts the Xcode license. Wait for **Setup complete**
 in that window before building. Preview the commands with
 `dart tool/setup_xcode.dart --print`.
+
+The helper finds `xcodes` on your current PATH before cleaning the environment,
+including Mint, MacPorts, or Nix installations. It selects the **27A266a** release
+build and ignores 27.0 betas. The setup window waits for Return after displaying
+its result, so you can copy the instructions even with a close-on-exit profile.
 
 The installer runs in a clean environment without shell startup files or build
 commands. `xcodes` handles Apple account prompts; `sudo -k` prompts directly for
@@ -154,13 +164,13 @@ Keychain according to its own settings.
    ```
 
    The first command installs Apple's components and accepts the Xcode license.
-   Confirm the second prints `Xcode 27.0`, then close that setup window. You can
-   also run our Dart helper after moving the app; it reuses that installation.
+   Confirm the second prints `Xcode 27.0` and `Build version 27A266a`, then close
+   that setup window. You can also run our Dart helper after moving the app; it reuses that installation.
 
 ### Select Xcode for a build
 
-In your normal build terminal, select 27.0 for that shell only. Substitute the
-path printed by the helper (`xcodes` may name the bundle `Xcode-27.0.0.app`):
+In your normal build terminal, select 27.0 for Flutter and Xcode commands in that
+shell only. Substitute the path printed by the helper (`xcodes` may name the bundle `Xcode-27.0.0.app`):
 
 ```sh
 export DEVELOPER_DIR=/Applications/Xcode-27.0.app/Contents/Developer
@@ -168,10 +178,20 @@ xcodebuild -version
 flutter doctor
 ```
 
-Run the configuration and Flutter build commands in this shell. `unset
-DEVELOPER_DIR` returns it to the system default. There is no need for
-`sudo xcode-select --switch`. For iOS simulation, install the required simulator
-runtime from this Xcode's Settings > Components.
+Run configuration and Flutter build commands in this shell. `unset DEVELOPER_DIR`
+returns it to the system default. For iOS simulation, install the required
+simulator runtime from this Xcode's Settings > Components.
+
+**Native hooks do not inherit `DEVELOPER_DIR`.** dnix checks the system-wide
+Xcode selection first, then scans `/Applications/Xcode*.app`. The current
+packages pin version 27.0 but do not yet pin `toolchains.xcodeBuild`, so a 27.0
+beta can be selected ahead of the release even after setup succeeds. The app's
+source preflight rejects that case before changing configuration. Use `-d`, or
+keep that beta outside the scanned paths and ensure it is not the system-wide
+selection. An upstream package build-number pin is still needed to make this
+selection unambiguous for direct Flutter builds too. Exporting `DEVELOPER_DIR`
+does not fix it. Other native hooks such as Spark/MWEB also discover tools
+independently of this export.
 
 ### Other Mac tools
 
@@ -181,7 +201,7 @@ Install [Homebrew](https://brew.sh/) and the remaining native/plugin tools:
 brew install autoconf automake libtool cmake cocoapods pkg-config
 ```
 
-For Stack Wallet, also install Rustup and Go. You do not need to install
+Install Rustup for **every app**, and Go for Stack Wallet. You do not need to install
 `cbindgen`, `cargo-lipo`, or the old Epic/MWC dependency list. Use
 `flutter doctor` to check the Apple SDK and CocoaPods setup. iOS device builds
 also need your usual signing configuration.
@@ -196,7 +216,7 @@ Install:
 - [Visual Studio 2022](https://docs.flutter.dev/platform-integration/windows/setup)
   with **Desktop development with C++**, CMake tools, and a Windows SDK.
 - Windows Developer Mode for symlinks used by Flutter and the asset scripts.
-- Rustup on Windows for Stack Wallet's Xelis hook.
+- Rustup on Windows for every app's DNSSEC hook and Stack Wallet's Xelis hook.
 - WSL2 and Nix inside its Linux distribution for dnix source mode.
 
 Follow Microsoft's [WSL installation guide](https://learn.microsoft.com/en-us/windows/wsl/install)
@@ -214,10 +234,12 @@ translates paths, builds a Windows DLL in Nix, copies it back to Windows, and
 verifies it before Flutter bundles it. A second Flutter/Dart installation
 inside WSL and manual copying of these four libraries are unnecessary.
 
-By default, dnix uses the default WSL distribution. You can choose it with
-`wsl.exe --set-default Ubuntu-24.04`, or add
-`wsl_distribution: Ubuntu-24.04` beside `build: source` in **each** enabled
-package's hook settings. Keep native package checkouts in LF form and preserve
+By default, dnix uses the default WSL distribution. Select it persistently with
+`wsl.exe --set-default Ubuntu-24.04`, or put
+`export DNIX_WSL_DISTRIBUTION=Ubuntu-24.04` in your Git Bash profile.
+`build_app.sh` renders that setting for every enabled dnix package on each run;
+`-w Ubuntu-24.04` overrides it for one configuration. Editing only the generated
+`pubspec.yaml` will not survive reconfiguration. Keep native checkouts in LF form and preserve
 symlinks and executable permissions; filesystem differences can cause a hash
 mismatch. See [dnix Windows source builds](https://github.com/cypherstack/dnix/blob/main/doc/configuration.md#windows-source-builds)
 for checkout and environment details.
@@ -231,17 +253,26 @@ mingw-w64`. Alternatively, set `MWEBD_FETCH=1` when running `build_app.sh` to
 fetch the existing MWEB release and check its published checksum. This setting
 is independent of `-d` and dnix's `wsl_distribution`.
 
-In source mode, `build_app.sh` builds secp256k1 natively when invoked from Git
-Bash. With `-d` or `-i`, build it separately after configuring the app:
+In **both** dnix modes, `build_app.sh` builds secp256k1 unless `-i` is supplied.
+The helper finds Visual Studio 2022's bundled CMake through `vswhere`, so Git
+Bash does not need a Developer Command Prompt. It checks tools before changing
+app configuration and stops on failed build commands. After `-i`, run:
 
 ```sh
-flutter pub get
-dart run coinlib:build_windows
+dart scripts/windows/build_secp256k1.dart
 ```
 
-The legacy Linux/WSL configuration path still uses
-`scripts/windows/build_secp256k1_wsl.sh` and needs CMake plus MinGW in WSL.
-The old MXE setup and Epic-specific CMake upgrade are not needed for dnix.
+Native Windows uses MSVC; Linux/WSL cross-compiles with CMake and MinGW. Both
+use secp256k1 **v0.5.0** (`e3a885d42a7800c1ccebad94ad1e2b82c4df5c65`).
+Their DLLs are not expected to be byte-identical across these toolchains; dnix's
+hash-verification guarantee applies to its four packages, not secp256k1. The
+helper reuses a DLL only when its build receipt and checksum match. The old
+MXE setup and Epic-specific CMake upgrade are not needed for dnix.
+
+If configuring from the legacy Linux/WSL shell, keep its Linux Dart/Rustup tools
+as well as Rustup on the native Windows Flutter host. The prerequisite check
+can verify Rustup only for the Dart host running configuration. Windows builds
+from WSL still probe the WSL distribution chosen for the native Windows hooks.
 
 ## Configure and build
 
@@ -282,6 +313,7 @@ bash scripts/build_app.sh -a stack_wallet -p linux -v 1.2.3 -b 123 -s -d
 | `-i` | Skip the script's secure-storage and secp256k1 builds; native-assets hooks still run |
 | `-s` | Use system Linux secure-storage libraries |
 | `-f` | Use the existing optional Isar source-build helper; requires its cached source and Rust |
+| `-w` | Set the dnix WSL distribution; overrides `DNIX_WSL_DISTRIBUTION` |
 | `-h` | Show help |
 
 Choose `-p` for your target and then run the corresponding Flutter build:
@@ -294,17 +326,20 @@ Choose `-p` for your target and then run the corresponding Flutter build:
 | iOS | `flutter build ios --release` |
 | Windows | `flutter build windows --release` |
 
-The configuration script also runs asset generators on non-Linux targets.
-Those `dart run` commands can execute native-assets hooks, so install the
-required source-build tools **before** running the configuration script.
-The selected mode persists for subsequent `flutter run`, `flutter test`, and
-`flutter build` commands until you regenerate the configuration.
+Configuration checks Rustup, source-mode Nix/WSL/Xcode requirements, and the
+Windows secp256k1 tools before replacing generated files. A dnix requirement
+failure explains how to use `-d` instead; `-d` still requires Rustup for DNSSEC.
+The icon/splash `dart run` commands use only those executables' dependency
+closures and do **not** run the app's native hooks. App hooks run with later
+`flutter run`, `flutter test`, and `flutter build` commands, using the selected
+mode until you regenerate the configuration.
 
 For development, use `flutter devices` and then `flutter run -d <device-id>`.
 The Linux setup builds secp256k1 unless `-i` was supplied. If it was skipped,
 run `(cd scripts/linux && bash build_secp256k1.sh)` before starting the app.
-On macOS, run `dart run coinlib:build_macos` after `flutter pub get` to prepare
-the separate desktop secp256k1 library.
+On macOS, application builds compile and bundle secp256k1 through the Coinlib
+Flutter plugin. Only host-side Dart/Flutter tests need the separate library
+from `dart run coinlib:build_macos` after `flutter pub get`.
 
 ### Linux release bundle preparation
 
@@ -333,7 +368,8 @@ python3 -m unittest discover -s scripts/linux/tests -p 'test_*.py' -v
 Application CI uses `-d` for all three apps, so it verifies the four packages'
 prebuilts without rebuilding their Nix recipes or installing Nix/WSL. Native
 source-build and reproducibility checks belong to the packages' own CI.
-Xelis, Spark, and other non-dnix components keep their existing build paths.
+Every app still builds DNSSEC with Rust 1.90.0. Xelis, Spark, and other non-dnix
+components keep their existing build paths; CI retains Rustup for all apps.
 
 After configuring an app and running `flutter pub get`, check template/mode
 selection without compiling native libraries:
@@ -343,9 +379,12 @@ dart scripts/tests/native_build_config_test.dart
 dart scripts/tests/build_input_test.dart
 ```
 
-The configuration tests exercise all three apps, switching modes, and the
-Windows/WSL secp256k1 dispatch using stubbed native tools. Actual native Windows
-to WSL builds are tested in dnix's CI; these app tests do not run WSL.
+Configuration tests exercise all three apps, both modes, persistent WSL settings,
+Linux builds, and Windows output locations using stubbed native tools. Separate
+tests cover prerequisite failures, Xcode setup, Windows tool discovery, and the
+secp256k1 cache. A small Windows CI job runs the PowerShell prebuild regression
+tests. Actual native Windows to WSL builds are tested in dnix's CI; these app
+tests do not run WSL.
 
 ## Xelis tests
 

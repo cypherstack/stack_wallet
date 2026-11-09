@@ -1,6 +1,16 @@
 name: Test
 on: [pull_request]
 jobs:
+  windows-build-scripts:
+    runs-on: windows-2022
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - name: Test Windows prebuild paths and stubs
+        shell: powershell
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tests/prebuild_windows_test.ps1
+
   linux-release-bundle:
     runs-on: ubuntu-24.04
     permissions:
@@ -97,6 +107,10 @@ jobs:
         run: dart scripts/tests/build_input_test.dart
       - name: Test native build configuration
         run: dart scripts/tests/native_build_config_test.dart
+      - name: Test build prerequisites
+        run: dart scripts/tests/build_environment_test.dart
+      - name: Test Windows secp256k1 helper
+        run: dart scripts/tests/windows_secp_build_test.dart
       - name: Test Xcode setup helper
         run: dart scripts/tests/xcode_setup_test.dart
       - name: Test wallet creation launcher

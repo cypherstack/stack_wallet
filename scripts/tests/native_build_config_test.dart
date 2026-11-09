@@ -6,6 +6,8 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
+import '../../tool/configure_native_assets.dart';
+
 void main() {
   final repository = File.fromUri(Platform.script).parent.parent.parent;
   const packages = {
@@ -55,6 +57,7 @@ void main() {
       'scripts/env.sh',
       'scripts/app_config/shared/update_version.sh',
       'tool/process_pubspec_deps.dart',
+      'tool/configure_native_assets.dart',
       'tool/gen_interfaces.dart',
       for (final app in packages.keys) 'scripts/app_config/configure_$app.sh',
     ]) {
@@ -78,17 +81,17 @@ void main() {
     // so this test never downloads a library or requires Nix, Xcode or Go.
     script('scripts/app_config/shared/link_assets.sh', ':');
     script('scripts/app_config/shared/asset_generators.sh', r'''
-cp "$APP_PROJECT_ROOT_DIR/pubspec.yaml" "$APP_PROJECT_ROOT_DIR/before-hooks.yaml"
+cp "$APP_PROJECT_ROOT_DIR/pubspec.yaml" "$APP_PROJECT_ROOT_DIR/before-assets.yaml"
 ''');
-    for (final platform in ['macos', 'windows']) {
+    for (final platform in ['macos', 'windows', 'linux']) {
       script('scripts/app_config/platforms/$platform/platform_config.sh', ':');
     }
-    script('scripts/windows/build_secp256k1_wsl.sh', r'''
-printf 'wsl\n' > "$APP_PROJECT_ROOT_DIR/secp-host"
+    for (final dependency in ['secure_storage_deps', 'secp256k1']) {
+      script('scripts/linux/build_$dependency.sh', '''
+printf '%s\\n' '$dependency' >> "\$APP_PROJECT_ROOT_DIR/linux-deps"
+pwd > "\$APP_PROJECT_ROOT_DIR/native-cwd"
 ''');
-    script('bin/cmd.exe', r'''
-printf '%s\n' "$@" > "$APP_PROJECT_ROOT_DIR/windows-command"
-''');
+    }
     script('bin/git', r'''
 test "$1" = log
 printf '0000000000000000000000000000000000000000\n'
@@ -105,6 +108,36 @@ else
 fi
 ''');
     script('bin/sha256sum', "printf 'fixture-hash  mwebd.exe\\n'");
+    // The real preflight/helper have separate tests with injected native tools.
+    // These fixtures exercise their position in the configuration flow and cwd.
+    File(p.join(root.path, 'tool/check_build_environment.dart'))
+        .writeAsStringSync('''
+import 'dart:convert';
+import 'dart:io';
+void main(List<String> args) {
+  final root = File.fromUri(Platform.script).parent.parent;
+  File('\${root.path}/preflight-args').writeAsStringSync(jsonEncode(args));
+  if (Platform.environment['DNIX_TEST_PREFLIGHT_FAIL'] == '1') exit(21);
+}
+''');
+    final windowsHelper = File(
+      p.join(root.path, 'scripts/windows/build_secp256k1.dart'),
+    );
+    windowsHelper.parent.createSync(recursive: true);
+    windowsHelper.writeAsStringSync('''
+import 'dart:io';
+void main(List<String> args) {
+  final root = File.fromUri(Platform.script).parent.parent.parent;
+  if (args.contains('--check')) {
+    if (Platform.environment['DNIX_TEST_SECP_PREFLIGHT_FAIL'] == '1') exit(22);
+    return;
+  }
+  File('\${root.path}/native-cwd').writeAsStringSync(Directory.current.resolveSymbolicLinksSync());
+  final output = File('\${root.path}/build/secp256k1.dll');
+  output.parent.createSync(recursive: true);
+  output.writeAsStringSync('fixture DLL');
+}
+''');
     File(p.join(root.path, 'tool/build_standalone_mwebd_windows.dart'))
         .writeAsStringSync('''
 import 'dart:io';
@@ -122,11 +155,15 @@ void main(List<String> args) {
     bool skipNative = true,
     String platform = 'macos',
     String? host,
+    String? distribution,
+    bool fromScripts = false,
+    Map<String, String> environment = const {},
+    int expectedExit = 0,
   }) async {
     final process = await Process.start(
       'bash',
       [
-        'scripts/build_app.sh',
+        fromScripts ? 'build_app.sh' : 'scripts/build_app.sh',
         '-a',
         app,
         '-p',
@@ -137,11 +174,14 @@ void main(List<String> args) {
         '123',
         if (prebuilt) '-d',
         if (skipNative) '-i',
+        if (distribution != null) ...['-w', distribution],
       ],
-      workingDirectory: root.path,
+      workingDirectory: fromScripts ? p.join(root.path, 'scripts') : root.path,
       environment: {
         'PATH': '${bin.path}:${Platform.environment['PATH']}',
+        'DNIX_WSL_DISTRIBUTION': '',
         if (host != null) 'DNIX_TEST_HOST': host,
+        ...environment,
       },
     );
     final output = process.stdout.transform(utf8.decoder).join();
@@ -149,10 +189,15 @@ void main(List<String> args) {
     process.stdin.writeln('yes');
     await process.stdin.close();
     final code = await process.exitCode;
-    expect(code, 0, reason: '${await output}\n${await errors}');
+    expect(code, expectedExit, reason: '${await output}\n${await errors}');
   }
 
-  void expectMode(String app, String mode) {
+  void expectMode(
+    String app,
+    String mode, {
+    String? distribution,
+    bool linux = false,
+  }) {
     final text = File(p.join(root.path, 'pubspec.yaml')).readAsStringSync();
     final pubspec = loadYaml(text) as YamlMap;
     final dependencies = pubspec['dependencies'] as YamlMap;
@@ -163,16 +208,23 @@ void main(List<String> args) {
     );
     expect(defines.keys.toSet(), packages[app]);
     for (final package in packages[app]!) {
-      expect(defines[package], {'build': mode});
+      expect(defines[package], {
+        'build': mode,
+        if (distribution != null) 'wsl_distribution': distribution,
+      });
     }
     expect(text, isNot(contains('PLACEHOLDER_DNIX_BUILD_MODE')));
     expect(text, isNot(contains('native_build:')));
     expect(text, isNot(contains('prebuilt_manifest_')));
-    // Asset generators use dart run, which can execute native build hooks.
-    expect(
-      File(p.join(root.path, 'before-hooks.yaml')).readAsStringSync(),
-      text,
-    );
+    expect(text, isNot(contains('PLACEHOLDER_DNIX_WSL_DISTRIBUTION')));
+    final assets = File(p.join(root.path, 'before-assets.yaml'));
+    if (linux) {
+      expect(assets.existsSync(), isFalse);
+    } else {
+      // Asset tools see the final spec, though their own dependency closures
+      // contain no application native hooks.
+      expect(assets.readAsStringSync(), text);
+    }
   }
 
   group('dnix configuration', () {
@@ -188,54 +240,151 @@ void main(List<String> args) {
       );
     }
 
-    test(
-      'native Windows uses coinlib instead of the WSL cross compiler',
-      () async {
+    for (final host in ['MINGW64_NT', 'Linux']) {
+      for (final prebuilt in [false, true]) {
+        test(
+          'Windows config builds secp in project root on $host, -d=$prebuilt',
+          () async {
+            await configure(
+              'stack_wallet',
+              platform: 'windows',
+              host: host,
+              skipNative: false,
+              prebuilt: prebuilt,
+              fromScripts: true,
+            );
+            expectMode('stack_wallet', prebuilt ? 'prebuilt' : 'source');
+            expect(
+              File(p.join(root.path, 'native-cwd')).readAsStringSync(),
+              root.resolveSymbolicLinksSync(),
+            );
+            expect(
+              File(p.join(root.path, 'build/secp256k1.dll')).existsSync(),
+              isTrue,
+            );
+          },
+        );
+      }
+    }
+
+    for (final prebuilt in [false, true]) {
+      test('Linux config builds both external deps, -d=$prebuilt', () async {
         await configure(
           'stack_wallet',
-          platform: 'windows',
-          host: 'MINGW64_NT',
+          platform: 'linux',
           skipNative: false,
+          prebuilt: prebuilt,
         );
-        expectMode('stack_wallet', 'source');
-        expect(File(p.join(root.path, 'windows-command')).readAsLinesSync(), [
-          '/c',
-          'dart',
-          'run',
-          'coinlib:build_windows',
+        expectMode(
+          'stack_wallet',
+          prebuilt ? 'prebuilt' : 'source',
+          linux: true,
+        );
+        expect(File(p.join(root.path, 'linux-deps')).readAsLinesSync(), [
+          'secure_storage_deps',
+          'secp256k1',
         ]);
-        expect(File(p.join(root.path, 'secp-host')).existsSync(), isFalse);
-      },
-    );
+        expect(
+          File(p.join(root.path, 'native-cwd')).readAsStringSync().trim(),
+          Directory(p.join(root.path, 'scripts/linux'))
+              .resolveSymbolicLinksSync(),
+        );
+      });
+    }
 
-    test('Linux/WSL keeps the secp256k1 cross-build path', () async {
-      await configure(
-        'stack_wallet',
-        platform: 'windows',
-        host: 'Linux',
-        skipNative: false,
-      );
-      expect(File(p.join(root.path, 'secp-host')).readAsStringSync(), 'wsl\n');
-      expect(File(p.join(root.path, 'windows-command')).existsSync(), isFalse);
-    });
+    for (final platform in ['windows', 'linux']) {
+      test('-i skips external deps for $platform in either mode', () async {
+        for (final prebuilt in [false, true]) {
+          await configure(
+            'stack_wallet',
+            platform: platform,
+            prebuilt: prebuilt,
+          );
+          expect(File(p.join(root.path, 'native-cwd')).existsSync(), isFalse);
+          expect(
+            File(p.join(root.path, 'build/secp256k1.dll')).existsSync(),
+            isFalse,
+          );
+          expect(File(p.join(root.path, 'linux-deps')).existsSync(), isFalse);
+        }
+      });
+    }
 
     test(
-      '-d leaves the separate Windows secp256k1 build to the caller',
+      'WSL environment survives regeneration, flag overrides, unset clears',
       () async {
+        const distro = 'Ubuntu "dev" & %20';
+        for (final prebuilt in [false, true]) {
+          await configure(
+            'stack_wallet',
+            prebuilt: prebuilt,
+            environment: {'DNIX_WSL_DISTRIBUTION': distro},
+          );
+          expectMode(
+            'stack_wallet',
+            prebuilt ? 'prebuilt' : 'source',
+            distribution: distro,
+          );
+          expect(
+            jsonDecode(
+              File(p.join(root.path, 'preflight-args')).readAsStringSync(),
+            ),
+            ['macos', 'stack_wallet', prebuilt ? 'prebuilt' : 'source', distro],
+          );
+        }
         await configure(
           'stack_wallet',
-          platform: 'windows',
-          host: 'MINGW64_NT',
-          skipNative: false,
-          prebuilt: true,
+          distribution: 'Ubuntu-24.04',
+          environment: {'DNIX_WSL_DISTRIBUTION': distro},
         );
-        expectMode('stack_wallet', 'prebuilt');
-        expect(File(p.join(root.path, 'secp-host')).existsSync(), isFalse);
-        expect(
-          File(p.join(root.path, 'windows-command')).existsSync(),
-          isFalse,
-        );
+        expectMode('stack_wallet', 'source', distribution: 'Ubuntu-24.04');
+        await configure('stack_wallet');
+        expectMode('stack_wallet', 'source');
       },
     );
+
+    for (final failure in [
+      (variable: 'DNIX_TEST_PREFLIGHT_FAIL', code: 21),
+      (variable: 'DNIX_TEST_SECP_PREFLIGHT_FAIL', code: 22),
+    ]) {
+      test(
+        '${failure.variable} leaves existing configuration untouched',
+        () async {
+          final spec = File(p.join(root.path, 'pubspec.yaml'))
+            ..writeAsStringSync('unchanged');
+          await configure(
+            'stack_wallet',
+            platform: 'windows',
+            skipNative: false,
+            environment: {failure.variable: '1'},
+            expectedExit: failure.code,
+          );
+          expect(spec.readAsStringSync(), 'unchanged');
+          expect(
+            File(p.join(root.path, 'lib/app_config.g.dart')).existsSync(),
+            isFalse,
+          );
+        },
+      );
+    }
+
+    test('renderer rejects invalid modes and WSL names', () {
+      expect(
+        () => configureNativeAssets('', 'typo', null),
+        throwsArgumentError,
+      );
+      for (final distribution in [
+        '',
+        ' ',
+        '-option',
+        'line\nbreak',
+        'nul\u0000',
+      ]) {
+        expect(
+          () => configureNativeAssets('', 'source', distribution),
+          throwsArgumentError,
+        );
+      }
+    });
   }, skip: Platform.isWindows ? 'Requires POSIX bash' : false);
 }

@@ -374,18 +374,22 @@ hooks:
 # %%ENABLE_FROST%%
 #    frostdart:
 #      build: PLACEHOLDER_DNIX_BUILD_MODE
+#      wsl_distribution: PLACEHOLDER_DNIX_WSL_DISTRIBUTION
 # %%END_ENABLE_FROST%%
 # %%ENABLE_TOR%%
 #    tor_ffi_plugin:
 #      build: PLACEHOLDER_DNIX_BUILD_MODE
+#      wsl_distribution: PLACEHOLDER_DNIX_WSL_DISTRIBUTION
 # %%END_ENABLE_TOR%%
 # %%ENABLE_EPIC%%
 #    flutter_libepiccash:
 #      build: PLACEHOLDER_DNIX_BUILD_MODE
+#      wsl_distribution: PLACEHOLDER_DNIX_WSL_DISTRIBUTION
 # %%END_ENABLE_EPIC%%
 # %%ENABLE_MWC%%
 #    flutter_libmwc:
 #      build: PLACEHOLDER_DNIX_BUILD_MODE
+#      wsl_distribution: PLACEHOLDER_DNIX_WSL_DISTRIBUTION
 # %%END_ENABLE_MWC%%
 
 # For information on the generic Dart part of this file, see the

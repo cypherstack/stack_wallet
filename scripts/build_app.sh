@@ -6,11 +6,12 @@ source "$(dirname -- "${BASH_SOURCE[0]}")/env.sh"
 
 # Function to display usage.
 usage() {
-    echo "Usage: $0 -v <version> -b <build_number> -p <platform> -a <app> [-d] [-i] [-f] [-s]"
+    echo "Usage: $0 -v <version> -b <build_number> -p <platform> -a <app> [-d] [-i] [-f] [-s] [-w <wsl-distro>]"
     echo "  Default: build dnix libraries from source with Nix and verify their hashes."
     echo "  -d: use verified dnix prebuilts; other packages may still build from source."
     echo "  -i: skip platform native dependencies (secure storage and secp256k1)."
     echo "  -f: build Isar from source. -s: use system Linux secure-storage libraries."
+    echo "  -w: dnix WSL distribution (default: DNIX_WSL_DISTRIBUTION or WSL default)."
     exit "${1:-1}"
 }
 
@@ -37,11 +38,12 @@ unset -v APP_NAMED_ID
 SKIP_NATIVE_DEPS_BUILD=0
 # dnix checks the package's pinned hashes in both source and prebuilt mode.
 DNIX_BUILD_MODE=source
+DNIX_WSL_DISTRIBUTION="${DNIX_WSL_DISTRIBUTION:-}"
 BUILD_ISAR_FROM_SOURCE=0
 USE_SYSTEM_SECURE_STORAGE_DEPS=0
 
 # Parse command-line arguments.
-while getopts "v:b:p:a:idfsh" opt; do
+while getopts "v:b:p:a:w:idfsh" opt; do
     case "${opt}" in
         v) APP_VERSION_STRING="$OPTARG" ;;
         b) APP_BUILD_NUMBER="$OPTARG" ;;
@@ -51,6 +53,7 @@ while getopts "v:b:p:a:idfsh" opt; do
         d) DNIX_BUILD_MODE=prebuilt ;;
         f) BUILD_ISAR_FROM_SOURCE=1 ;;
         s) USE_SYSTEM_SECURE_STORAGE_DEPS=1 ;;
+        w) DNIX_WSL_DISTRIBUTION="$OPTARG" ;;
         h) usage 0 ;;
         *) usage ;;
     esac
@@ -97,6 +100,17 @@ if [[ ! "$APP_BUILD_NUMBER" =~ ^[0-9]+$ ]]; then
 fi
 
 confirmDisclaimer
+
+# Check requirements before replacing any generated app/platform files.
+DNIX_DISTRIBUTION_ARGS=()
+if [ -n "$DNIX_WSL_DISTRIBUTION" ]; then
+    DNIX_DISTRIBUTION_ARGS=("$DNIX_WSL_DISTRIBUTION")
+fi
+dart "${APP_PROJECT_ROOT_DIR}/tool/check_build_environment.dart" \
+    "$APP_BUILD_PLATFORM" "$APP_NAMED_ID" "$DNIX_BUILD_MODE" "${DNIX_DISTRIBUTION_ARGS[@]}"
+if [ "$APP_BUILD_PLATFORM" = windows ] && [ "$SKIP_NATIVE_DEPS_BUILD" -eq 0 ]; then
+    dart "${APP_PROJECT_ROOT_DIR}/scripts/windows/build_secp256k1.dart" --check
+fi
 set -x
 
 source "${APP_PROJECT_ROOT_DIR}/scripts/app_config/templates/configure_template_files.sh"
@@ -115,9 +129,10 @@ cp -rp "${APP_PROJECT_ROOT_DIR}/asset_sources/other/playstore_icon/${APP_NAMED_I
 "${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/link_assets.sh" "${APP_NAMED_ID}" "${APP_BUILD_PLATFORM}"
 # shellcheck disable=SC1090
 source "${APP_PROJECT_ROOT_DIR}/scripts/app_config/configure_${APP_NAMED_ID}.sh" "${APP_BUILD_PLATFORM}"
-# Render the mode before any Flutter/Dart command that can run build hooks.
-sed -i.bak "s/PLACEHOLDER_DNIX_BUILD_MODE/${DNIX_BUILD_MODE}/g" "${ACTUAL_PUBSPEC}"
-rm -f "${ACTUAL_PUBSPEC}.bak"
+# Record settings for later app builds. Icon/splash executables do not run the
+# application's native hooks; each executable uses its own dependency closure.
+dart "${APP_PROJECT_ROOT_DIR}/tool/configure_native_assets.dart" \
+    "${ACTUAL_PUBSPEC}" "$DNIX_BUILD_MODE" "${DNIX_DISTRIBUTION_ARGS[@]}"
 "${APP_PROJECT_ROOT_DIR}/scripts/app_config/platforms/${APP_BUILD_PLATFORM}/platform_config.sh"
 
 if [[ "$APP_BUILD_PLATFORM" != "linux" ]]; then
@@ -137,22 +152,11 @@ if [ "$SKIP_NATIVE_DEPS_BUILD" -eq 0 ]; then
             popd
             ;;
         windows)
-            # Prebuilt jobs build secp256k1 separately after pub get, as before.
-            if [ "$DNIX_BUILD_MODE" = source ]; then
-                case "$(uname -s)" in
-                    MINGW*|MSYS*|CYGWIN*)
-                        pushd "${APP_PROJECT_ROOT_DIR}"
-                        cmd.exe /c dart run coinlib:build_windows
-                        popd
-                        ;;
-                    Linux*)
-                        pushd "${APP_PROJECT_ROOT_DIR}/scripts/windows"
-                        ./build_secp256k1_wsl.sh
-                        popd
-                        ;;
-                    *) echo "Building Windows secp256k1 needs Windows or Linux/WSL." >&2; exit 1 ;;
-                esac
-            fi
+            # -d only selects dnix prebuilts. This separate library is skipped
+            # with -i, or reused when its local build receipt still matches.
+            pushd "${APP_PROJECT_ROOT_DIR}"
+            dart "${APP_PROJECT_ROOT_DIR}/scripts/windows/build_secp256k1.dart"
+            popd
             ;;
     esac
 fi
