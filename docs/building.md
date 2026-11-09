@@ -109,11 +109,71 @@ not supported. Enable KVM for hardware-accelerated emulation on Linux.
 
 ## Mac host
 
-Install Flutter 3.47.2 on an Apple Silicon Mac. For source mode, install Nix
-and **Xcode 27.0**, select that Xcode installation with `xcode-select`, and
-complete its first-launch setup. The dnix hook checks the Xcode version when
-building Apple targets. Prebuilt mode still needs the Xcode installation
-required to build the Flutter app.
+Install Flutter 3.47.2 and Nix on an Apple Silicon Mac. **Xcode 27.0 is required
+for verified source builds of the Apple libraries**; a different version can
+produce different hashes. Prebuilt mode still needs Xcode to build the Flutter
+app. Install 27.0 alongside your existing Xcode, under `/Applications` with a
+name matching `Xcode*.app`. dnix finds the pinned version there automatically;
+you can keep your existing system-wide `xcode-select` setting.
+
+### Install with xcodes
+
+Install the [xcodes CLI](https://github.com/XcodesOrg/xcodes), then run our
+standalone helper from the repository root:
+
+```sh
+brew install xcodesorg/made/xcodes
+dart tool/setup_xcode.dart
+```
+
+Use plain `dart`, as shown, so setup does not run the application's native build
+hooks. The helper opens a separate Terminal window, reuses an installed 27.0 or
+downloads it with `xcodes install 27.0 --no-superuser --update`, then runs Apple's
+first-launch setup, which accepts the Xcode license. Wait for **Setup complete**
+in that window before building. Preview the commands with
+`dart tool/setup_xcode.dart --print`.
+
+The installer runs in a clean environment without shell startup files or build
+commands. `xcodes` handles Apple account prompts; `sudo -k` prompts directly for
+the administrator password and does not create a reusable sudo ticket. Dart
+does not read either password. This separates the terminal and processes; it
+is not an OS sandbox. `xcodes` may remember Apple account credentials in your
+Keychain according to its own settings.
+
+### Install from Apple's developer website
+
+1. Sign in to [Apple Developer Downloads](https://developer.apple.com/download/all/?q=Xcode),
+   find the **Xcode 27.0 release**, and download its `.xip` archive.
+2. Expand the archive in Finder. Rename the extracted app to `Xcode-27.0.app`
+   **before** moving it into `/Applications`, preserving your existing Xcode.
+3. Open a separate Terminal window and finish setup:
+
+   ```sh
+   sudo -k /Applications/Xcode-27.0.app/Contents/Developer/usr/bin/xcodebuild -runFirstLaunch
+   DEVELOPER_DIR=/Applications/Xcode-27.0.app/Contents/Developer xcodebuild -version
+   ```
+
+   The first command installs Apple's components and accepts the Xcode license.
+   Confirm the second prints `Xcode 27.0`, then close that setup window. You can
+   also run our Dart helper after moving the app; it reuses that installation.
+
+### Select Xcode for a build
+
+In your normal build terminal, select 27.0 for that shell only. Substitute the
+path printed by the helper (`xcodes` may name the bundle `Xcode-27.0.0.app`):
+
+```sh
+export DEVELOPER_DIR=/Applications/Xcode-27.0.app/Contents/Developer
+xcodebuild -version
+flutter doctor
+```
+
+Run the configuration and Flutter build commands in this shell. `unset
+DEVELOPER_DIR` returns it to the system default. There is no need for
+`sudo xcode-select --switch`. For iOS simulation, install the required simulator
+runtime from this Xcode's Settings > Components.
+
+### Other Mac tools
 
 Install [Homebrew](https://brew.sh/) and the remaining native/plugin tools:
 

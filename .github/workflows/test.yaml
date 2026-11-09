@@ -97,6 +97,8 @@ jobs:
         run: dart scripts/tests/build_input_test.dart
       - name: Test native build configuration
         run: dart scripts/tests/native_build_config_test.dart
+      - name: Test Xcode setup helper
+        run: dart scripts/tests/xcode_setup_test.dart
       - name: Test wallet creation launcher
         run: dart scripts/tests/wallet_creation_runner_test.dart
       - name: Test
