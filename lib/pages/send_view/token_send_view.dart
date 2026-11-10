@@ -27,6 +27,7 @@ import '../../utilities/address_utils.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_field_relocalization.dart';
 import '../../utilities/amount/amount_formatter.dart';
+import '../../utilities/amount/amount_parser.dart';
 import '../../utilities/amount/amount_input_formatter.dart';
 import '../../utilities/amount/amount_unit.dart';
 import '../../utilities/assets.dart';
@@ -280,7 +281,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
           .formatEditable(_amountToSend!);
       _cryptoAmountChangeLock = false;
     } else {
-      _amountToSend = Amount.zero;
+      _amountToSend = null;
       _cachedAmountToSend = null;
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = "";
@@ -294,14 +295,26 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
     _updatePreviewButtonState(_address, _amountToSend);
   }
 
+  // Controller assignments used for display must not edit the stored amount.
+  void _updateAmountDisplay(VoidCallback update) {
+    final wasLocked = _cryptoAmountChangeLock;
+    _cryptoAmountChangeLock = true;
+    try {
+      update();
+    } finally {
+      _cryptoAmountChangeLock = wasLocked;
+    }
+  }
+
   void _cryptoAmountChanged() async {
     if (!_cryptoAmountChangeLock) {
-      final cryptoAmount = ref
-          .read(pAmountFormatter(coin))
-          .tryParseEditable(
-            cryptoAmountController.text,
-            tokenContract: tokenContract,
-          );
+      final cryptoAmount = AmountParser.tryParseEditable(
+        cryptoAmountController.text,
+        locale: ref.read(localeServiceChangeNotifierProvider).locale,
+        unit: ref.read(pAmountUnit(coin)),
+        coin: coin,
+        tokenContract: tokenContract,
+      );
       if (cryptoAmount != null) {
         _amountToSend = cryptoAmount;
         if (_cachedAmountToSend != null &&
@@ -463,9 +476,8 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
     //   }
     // }
 
+    bool wasCancelled = false;
     try {
-      bool wasCancelled = false;
-
       if (mounted) {
         unawaited(
           showDialog<void>(
@@ -538,7 +550,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
       }
     } catch (e, s) {
       Logging.instance.e("$e\n$s", error: e, stackTrace: s);
-      if (mounted) {
+      if (mounted && !wasCancelled) {
         // pop building dialog
         Navigator.of(context).pop();
 
@@ -657,8 +669,15 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
     listenForAmountRelocalization(
       ref.listen,
       controllers: [cryptoAmountController, baseAmountController],
-      onRelocalized: _cryptoAmountChanged,
+      updateControllers: _updateAmountDisplay,
     );
+    ref.listen<AmountFormatter>(pAmountFormatter(coin), (previous, next) {
+      if (previous?.unit != next.unit && _amountToSend != null) {
+        _updateAmountDisplay(() {
+          cryptoAmountController.text = next.formatEditable(_amountToSend!);
+        });
+      }
+    });
     // ethFee is checked in the ValueListenableBuilder around the preview
     // button so fee keystrokes don't rebuild this whole view.
     final previewEnabled = ref

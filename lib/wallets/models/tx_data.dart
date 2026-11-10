@@ -45,7 +45,10 @@ class TxData {
 
   final String? raw;
 
-  final String? txid;
+  final List<String> txids;
+
+  /// Only available when this send contains exactly one transaction.
+  String? get txid => txids.length == 1 ? txids.single : null;
   final String? txHash;
 
   final String? note;
@@ -54,6 +57,11 @@ class TxData {
   final String? memo;
 
   final List<TxRecipient>? recipients;
+
+  /// The OpenAlias, trimmed and lowercased, that the recipient's address was
+  /// resolved from.
+  final String? openAlias;
+
   final Set<BaseInput>? utxos;
   final List<BaseInput>? usedUTXOs;
 
@@ -127,12 +135,14 @@ class TxData {
     this.fee,
     this.vSize,
     this.raw,
-    this.txid,
+    String? txid,
+    List<String>? txids,
     this.txHash,
     this.note,
     this.noteOnChain,
     this.memo,
     this.recipients,
+    this.openAlias,
     this.utxos,
     this.usedUTXOs,
     this.changeAddress,
@@ -164,7 +174,7 @@ class TxData {
     this.opReturnData,
     this.type = TxType.regular,
     this.salviumStakeTx = false,
-  });
+  }) : txids = List.unmodifiable(txids ?? (txid == null ? <String>[] : [txid]));
 
   Amount? get amount {
     if (recipients != null && recipients!.isNotEmpty) {
@@ -273,6 +283,7 @@ class TxData {
     int? vSize,
     String? raw,
     String? txid,
+    List<String>? txids,
     String? txHash,
     String? note,
     String? noteOnChain,
@@ -282,6 +293,7 @@ class TxData {
     Set<BaseInput>? utxos,
     List<BaseInput>? usedUTXOs,
     List<TxRecipient>? recipients,
+    String? openAlias,
     String? frostMSConfig,
     List<String>? frostSigners,
     String? changeAddress,
@@ -327,7 +339,7 @@ class TxData {
       fee: fee ?? this.fee,
       vSize: vSize ?? this.vSize,
       raw: raw ?? this.raw,
-      txid: txid ?? this.txid,
+      txids: txids ?? (txid == null ? this.txids : [txid]),
       txHash: txHash ?? this.txHash,
       note: note ?? this.note,
       noteOnChain: noteOnChain ?? this.noteOnChain,
@@ -336,6 +348,7 @@ class TxData {
       utxos: utxos ?? this.utxos,
       usedUTXOs: usedUTXOs ?? this.usedUTXOs,
       recipients: recipients ?? this.recipients,
+      openAlias: openAlias ?? this.openAlias,
       frostMSConfig: frostMSConfig ?? this.frostMSConfig,
       frostSigners: frostSigners ?? this.frostSigners,
       changeAddress: changeAddress ?? this.changeAddress,
@@ -379,7 +392,7 @@ class TxData {
       'fee: $fee, '
       'vSize: $vSize, '
       'raw: $raw, '
-      'txid: $txid, '
+      'txids: $txids, '
       'txHash: $txHash, '
       'note: $note, '
       'noteOnChain: $noteOnChain, '

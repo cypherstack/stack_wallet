@@ -463,11 +463,10 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                                   child: DraggableSwitchButton(
                                     isOn:
                                         ref.watch(
-                                              pWalletInfo(
-                                                widget.walletId,
-                                              ).select(
-                                                (value) => value.otherData,
-                                              ),
+                                              pWalletInfo(widget.walletId)
+                                                  .select(
+                                                    (value) => value.otherData,
+                                                  ),
                                             )[WalletInfoKeys.reuseAddress]
                                             as bool? ??
                                         false,
@@ -502,11 +501,10 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                                   child: DraggableSwitchButton(
                                     isOn:
                                         ref.watch(
-                                              pWalletInfo(
-                                                widget.walletId,
-                                              ).select(
-                                                (value) => value.otherData,
-                                              ),
+                                              pWalletInfo(widget.walletId)
+                                                  .select(
+                                                    (value) => value.otherData,
+                                                  ),
                                             )[WalletInfoKeys.mwebEnabled]
                                             as bool? ??
                                         false,
@@ -606,17 +604,17 @@ class _MoreFeaturesItemState extends State<_MoreFeaturesItem> {
                       File(widget.iconAsset),
                       width: _MoreFeaturesItem.iconSize,
                       height: _MoreFeaturesItem.iconSize,
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.settingsIconIcon,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .settingsIconIcon,
                     )
                   : SvgPicture.asset(
                       widget.iconAsset,
                       width: _MoreFeaturesItem.iconSize,
                       height: _MoreFeaturesItem.iconSize,
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.settingsIconIcon,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .settingsIconIcon,
                     ),
             ),
           ),
@@ -649,9 +647,9 @@ class _MoreFeaturesItemBase extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 32),
       child: RoundedContainer(
         color: Colors.transparent,
-        borderColor: Theme.of(
-          context,
-        ).extension<StackColors>()!.textFieldDefaultBG,
+        borderColor: Theme.of(context)
+            .extension<StackColors>()!
+            .textFieldDefaultBG,
         onPressed: onPressed,
         child: child,
       ),
@@ -690,6 +688,7 @@ class _MoreFeaturesClearSparkCacheItemState
           await FiroCacheCoordinator.clearSharedCache(
             widget.cryptoCurrency.network,
           );
+          if (!mounted) return;
           setState(() {
             // trigger rebuild for cache size display
           });
@@ -710,9 +709,9 @@ class _MoreFeaturesClearSparkCacheItemState
                 Assets.svg.x,
                 width: _MoreFeaturesItem.iconSize,
                 height: _MoreFeaturesItem.iconSize,
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.settingsIconIcon,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .settingsIconIcon,
               ),
             ),
           ),

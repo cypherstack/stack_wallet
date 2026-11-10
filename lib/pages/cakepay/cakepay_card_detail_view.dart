@@ -3,6 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../networking/tor_aware_network_image.dart';
 import '../../providers/global/locale_provider.dart';
 import '../../services/cakepay/cakepay_service.dart';
 import '../../services/cakepay/src/models/card.dart';
@@ -340,8 +341,8 @@ class _CardImage extends StatelessWidget {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: Image.network(
-          imageUrl,
+        child: Image(
+          image: TorAwareNetworkImage(imageUrl),
           width: isDesktop ? 300 : null,
           fit: isDesktop ? .contain : .fitWidth,
           loadingBuilder: (_, child, event) {
