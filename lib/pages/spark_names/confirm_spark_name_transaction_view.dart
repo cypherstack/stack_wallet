@@ -879,9 +879,9 @@ class _ConfirmSparkNameTransactionViewState
                       ),
                     );
                   } else {
-                    unlocked = await Navigator.push(
+                    unlocked = await Navigator.push<bool>(
                       context,
-                      RouteGenerator.getRoute(
+                      RouteGenerator.getRoute<bool>(
                         shouldUseMaterialRoute:
                             RouteGenerator.useMaterialPageRoute,
                         builder: (_) => const LockscreenView(
