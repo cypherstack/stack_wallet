@@ -276,7 +276,8 @@ jobs:
             # Remove whatever link_assets.sh left (reparse point, symlink, or nothing).
             # cmd.exe rmdir on a junction/symlink removes the link, not the target.
             if [ -e "$target" ] || [ -L "$target" ]; then
-              cmd.exe /c rmdir "$(cygpath -w "$target")" 2>/dev/null || rm -rf "$target"
+              MSYS2_ARG_CONV_EXCL="/C${MSYS2_ARG_CONV_EXCL:+;$MSYS2_ARG_CONV_EXCL}" \
+                cmd.exe /C rmdir "$(cygpath -w "$target")" 2>/dev/null || rm -rf "$target"
             fi
             mkdir -p "$target"
             cp -r "${source}/." "$target/"
@@ -867,7 +868,8 @@ jobs:
             target="assets/${dirname}"
             source="asset_sources/${dirname}/campfire"
             if [ -e "$target" ] || [ -L "$target" ]; then
-              cmd.exe /c rmdir "$(cygpath -w "$target")" 2>/dev/null || rm -rf "$target"
+              MSYS2_ARG_CONV_EXCL="/C${MSYS2_ARG_CONV_EXCL:+;$MSYS2_ARG_CONV_EXCL}" \
+                cmd.exe /C rmdir "$(cygpath -w "$target")" 2>/dev/null || rm -rf "$target"
             fi
             mkdir -p "$target"
             cp -r "${source}/." "$target/"
@@ -1320,7 +1322,8 @@ jobs:
             target="assets/${dirname}"
             source="asset_sources/${dirname}/stack_duo"
             if [ -e "$target" ] || [ -L "$target" ]; then
-              cmd.exe /c rmdir "$(cygpath -w "$target")" 2>/dev/null || rm -rf "$target"
+              MSYS2_ARG_CONV_EXCL="/C${MSYS2_ARG_CONV_EXCL:+;$MSYS2_ARG_CONV_EXCL}" \
+                cmd.exe /C rmdir "$(cygpath -w "$target")" 2>/dev/null || rm -rf "$target"
             fi
             mkdir -p "$target"
             cp -r "${source}/." "$target/"

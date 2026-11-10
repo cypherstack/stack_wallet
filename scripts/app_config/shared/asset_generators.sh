@@ -13,13 +13,17 @@ APP_BUILD_PLATFORM=$1
 pushd "${APP_PROJECT_ROOT_DIR}"
 YAML_FILE="${APP_PROJECT_ROOT_DIR}/scripts/app_config/platforms/${APP_BUILD_PLATFORM}/flutter_launcher_icons.yaml"
 if [[ "${APP_BUILD_PLATFORM}" = 'windows' ]]; then
-  cmd.exe /c flutter pub get
+  # Exclude only the CMD switch, preserving other conversions and user exclusions.
+  # Uppercase /C avoids excluding the usual lowercase /c/... drive paths.
+  MSYS2_ARG_CONV_EXCL="/C${MSYS2_ARG_CONV_EXCL:+;$MSYS2_ARG_CONV_EXCL}" \
+    cmd.exe /C flutter pub get
   if command -v cygpath >/dev/null 2>&1; then
     WIN_PATH_VERSION=$(cygpath -w "${YAML_FILE}")
   else
     WIN_PATH_VERSION=$(wslpath -w "${YAML_FILE}")
   fi
-  cmd.exe /c dart run flutter_launcher_icons -f "${WIN_PATH_VERSION}"
+  MSYS2_ARG_CONV_EXCL="/C${MSYS2_ARG_CONV_EXCL:+;$MSYS2_ARG_CONV_EXCL}" \
+    cmd.exe /C dart run flutter_launcher_icons -f "${WIN_PATH_VERSION}"
   # not needed in windows
 #  cmd.exe /c dart run flutter_native_splash:create
 else
