@@ -417,7 +417,7 @@ jobs:
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
       - name: Build
-        run: flutter build ios --release --no-codesign
+        run: flutter build ios --release --no-codesign --flavor stack_wallet
 
       - name: Package IPA
         run: |
@@ -1009,7 +1009,7 @@ jobs:
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
       - name: Build
-        run: flutter build ios --release --no-codesign
+        run: flutter build ios --release --no-codesign --flavor campfire
 
       - name: Package IPA
         run: |
@@ -1469,7 +1469,7 @@ jobs:
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
       - name: Build
-        run: flutter build ios --release --no-codesign
+        run: flutter build ios --release --no-codesign --flavor stack_duo
 
       - name: Package IPA
         run: |

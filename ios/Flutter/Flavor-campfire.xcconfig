@@ -1,0 +1,5 @@
+// Brand identity for the campfire flavor (see whitelabel/brands/campfire.yaml).
+// NOTE: Campfire's iOS bundle id is the legacy com.cypherstack.campfirefirowallet
+// (app_id_ios in the manifest), NOT com.cypherstack.campfire.
+PRODUCT_BUNDLE_IDENTIFIER = com.cypherstack.campfirefirowallet
+APP_DISPLAY_NAME = Campfire

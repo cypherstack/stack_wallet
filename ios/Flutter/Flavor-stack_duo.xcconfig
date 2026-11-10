@@ -1,0 +1,3 @@
+// Brand identity for the stack_duo flavor (see whitelabel/brands/stack_duo.yaml).
+PRODUCT_BUNDLE_IDENTIFIER = com.cypherstack.stackduo
+APP_DISPLAY_NAME = Stack Duo

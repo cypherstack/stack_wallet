@@ -1,0 +1,3 @@
+// Brand identity for the stack_wallet flavor (see whitelabel/brands/stack_wallet.yaml).
+PRODUCT_BUNDLE_IDENTIFIER = com.cypherstack.stackwallet
+APP_DISPLAY_NAME = Stack Wallet
