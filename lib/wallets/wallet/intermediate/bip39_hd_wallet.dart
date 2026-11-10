@@ -20,11 +20,11 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
     with MultiAddressInterface<T>, ViewOnlyOptionInterface<T> {
   Bip39HDWallet(super.cryptoCurrency);
 
-  Set<AddressType> get supportedAddressTypes =>
-      cryptoCurrency.supportedDerivationPathTypes
-          .where((e) => e != DerivePathType.bip49)
-          .map((e) => e.getAddressType())
-          .toSet();
+  Set<AddressType> get supportedAddressTypes => cryptoCurrency
+      .supportedDerivationPathTypes
+      .where((e) => e != DerivePathType.bip49)
+      .map((e) => e.getAddressType())
+      .toSet();
 
   Future<coinlib.HDPrivateKey> getRootHDNode() async {
     final seed = bip39.mnemonicToSeed(
@@ -65,14 +65,14 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
       );
     }
 
-    final current =
-        await mainDB.isar.addresses
-            .where()
-            .walletIdEqualTo(walletId)
-            .filter()
-            .typeEqualTo(derivePathType.getAddressType())
-            .sortByDerivationIndexDesc()
-            .findFirst();
+    final current = await mainDB.isar.addresses
+        .where()
+        .walletIdEqualTo(walletId)
+        .filter()
+        .typeEqualTo(derivePathType.getAddressType())
+        .subTypeEqualTo(AddressSubType.receiving)
+        .sortByDerivationIndexDesc()
+        .findFirst();
     final index = current == null ? 0 : current.derivationIndex + 1;
     const chain = 0; // receiving address
     final address = await _generateAddress(
@@ -294,8 +294,9 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
       value: convertAddressString(data.address.toString()),
       publicKey: keys.publicKey.data,
       derivationIndex: index,
-      derivationPath:
-          isViewOnly ? null : (DerivationPath()..value = derivationPath),
+      derivationPath: isViewOnly
+          ? null
+          : (DerivationPath()..value = derivationPath),
       type: data.addressType,
       subType: subType,
     );

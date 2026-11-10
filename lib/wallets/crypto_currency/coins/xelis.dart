@@ -141,7 +141,7 @@ class Xelis extends ElectrumCurrency {
   AddressType get defaultAddressType => defaultDerivePathType.getAddressType();
 
   @override
-  BigInt get satsPerCoin => BigInt.from(1000000000);
+  BigInt get satsPerCoin => BigInt.from(10).pow(fractionDigits);
 
   @override
   int get targetBlockTimeSeconds => 15;

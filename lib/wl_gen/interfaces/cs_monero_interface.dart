@@ -223,10 +223,11 @@ final class CsPendingTransaction {
   // stupid duplicates
   final BigInt amount, fee;
 
-  // stupid duplicate
-  final String txid;
+  /// One hash per transaction in the pending payment.
+  final List<String> txids;
 
-  const CsPendingTransaction(this.value, this.amount, this.fee, this.txid);
+  CsPendingTransaction(this.value, this.amount, this.fee, List<String> txids)
+    : txids = List.unmodifiable(txids);
 }
 
 // forwarding class
