@@ -24,6 +24,12 @@ final _alphabetIndex = <int, int>{
 /// whether the address is standard, integrated or a subaddress), or `null` if
 /// [address] is not a structurally valid, checksum correct CryptoNote address.
 int? cryptonoteAddressTag(String address) {
+  // Valid CryptoNote addresses use at most 106 encoded characters. Bound the
+  // input before decoding so pasted, untrusted strings cannot allocate a
+  // buffer proportional to arbitrary input length.
+  if (address.length > 106) {
+    return null;
+  }
   final raw = _decodeBase58(address);
   if (raw == null || raw.length <= _checksumSize) {
     return null;

@@ -74,6 +74,7 @@ void main() {
 
       expect(coin.validateAddress(""), isFalse);
       expect(coin.validateAddress("not an address"), isFalse);
+      expect(coin.validateAddress(List.filled(1_000_000, "z").join()), isFalse);
       // A single character typo must fail the address checksum.
       expect(
         coin.validateAddress(stagenetStandard.replaceRange(10, 11, "Z")),
