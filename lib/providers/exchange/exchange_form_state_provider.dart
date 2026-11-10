@@ -120,4 +120,35 @@ final efCanExchangeProvider = StateProvider<bool>((ref) {
   return !refreshing && estimate != null;
 });
 
-final efRefreshingProvider = StateProvider<bool>((ref) => false);
+/// The latest quote owns the shared loading state across all exchange forms.
+class ExchangeRefreshController extends StateController<bool> {
+  ExchangeRefreshController() : super(false);
+
+  Object? _owner;
+
+  bool owns(Object request) => mounted && identical(_owner, request);
+
+  void begin(Object request) {
+    if (!mounted) return;
+    _owner = request;
+    state = true;
+  }
+
+  void finish(Object request) {
+    if (!owns(request)) return;
+    // A listener may start another quote while state=false is being notified.
+    _owner = null;
+    state = false;
+  }
+
+  void reset() {
+    if (!mounted) return;
+    _owner = null;
+    state = false;
+  }
+}
+
+final efRefreshingProvider =
+    StateNotifierProvider<ExchangeRefreshController, bool>(
+      (ref) => ExchangeRefreshController(),
+    );

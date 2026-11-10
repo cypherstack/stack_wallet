@@ -394,6 +394,10 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
 
         highestPercentCached = 0;
         await csMonero.rescanBlockchain(wallet!);
+        // Reset again once the worker has accepted the rescan. A progress
+        // reading from before it can land in between and pin the guard near
+        // 100%, which hides every later reading until the rescan passes it.
+        highestPercentCached = 0;
         await csMonero.startSyncing(wallet!);
         unawaited(save());
       });
@@ -731,6 +735,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
 
   @override
   Future<void> exit() async {
+    await super.exit();
     Logging.instance.i("exit called on monero $walletId!");
     if (wallet != null) {
       csMonero.stopAutoSaving(wallet!);
@@ -881,10 +886,6 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     final _syncStatus = syncStatus;
 
     if (_syncStatus != null) {
-      if (_syncStatus.progress() == 1 && refreshMutex.isLocked) {
-        refreshMutex.release();
-      }
-
       WalletSyncStatus? status;
       xmrAndWowSyncSpecificFunctionThatShouldBeGottenRidOfInTheFuture(true);
 
@@ -1119,51 +1120,40 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     Logging.instance.t(
       "$runtimeType refresh() refreshMutex.acquire() waiting...",
     );
-    await refreshMutex.acquire();
-    Logging.instance.t(
-      "$runtimeType refresh() refreshMutex.acquire() acquired!",
-    );
-
-    Logging.instance.t("$runtimeType refresh() final node = getCurrentNode();");
-    final node = getCurrentNode();
-
-    Logging.instance.i(
-      "$runtimeType refresh() await _torNodeMismatchGuard(node)",
-    );
-    if (await _torNodeMismatchGuard(node)) {
-      throw Exception("TOR – clearnet mismatch");
-    }
-
-    Logging.instance.t(
-      "$runtimeType refresh() it csMonero.startSyncing(wallet!);",
-    );
-    await csMonero.startSyncing(wallet!);
-    Logging.instance.t(
-      "$runtimeType refresh() _setSyncStatus(lib_monero_compat.StartingSyncStatus());",
-    );
-    _setSyncStatus(lib_monero_compat.StartingSyncStatus());
-
-    Logging.instance.t("$runtimeType refresh() await updateTransactions();");
-    await updateTransactions();
-    Logging.instance.t("$runtimeType refresh() await updateBalance();");
-    await updateBalance();
-
-    Logging.instance.t(
-      "$runtimeType refresh() await checkReceivingAddressForTransactions();",
-    );
-    if (info.otherData[WalletInfoKeys.reuseAddress] != true) {
-      await checkReceivingAddressForTransactions();
-    }
-
-    Logging.instance.t(
-      "$runtimeType refresh() refreshMutex.isLocked=${refreshMutex.isLocked} pre release.",
-    );
-    if (refreshMutex.isLocked) {
-      refreshMutex.release();
+    await refreshMutex.protect(() async {
       Logging.instance.t(
-        "$runtimeType refresh() refreshMutex.isLocked manually released.",
+        "$runtimeType refresh() final node = getCurrentNode();",
       );
-    }
+      final node = getCurrentNode();
+
+      Logging.instance.i(
+        "$runtimeType refresh() await _torNodeMismatchGuard(node)",
+      );
+      if (await _torNodeMismatchGuard(node)) {
+        throw Exception("TOR – clearnet mismatch");
+      }
+
+      Logging.instance.t(
+        "$runtimeType refresh() it csMonero.startSyncing(wallet!);",
+      );
+      await csMonero.startSyncing(wallet!);
+      Logging.instance.t(
+        "$runtimeType refresh() _setSyncStatus(lib_monero_compat.StartingSyncStatus());",
+      );
+      _setSyncStatus(lib_monero_compat.StartingSyncStatus());
+
+      Logging.instance.t("$runtimeType refresh() await updateTransactions();");
+      await updateTransactions();
+      Logging.instance.t("$runtimeType refresh() await updateBalance();");
+      await updateBalance();
+
+      Logging.instance.t(
+        "$runtimeType refresh() await checkReceivingAddressForTransactions();",
+      );
+      if (info.otherData[WalletInfoKeys.reuseAddress] != true) {
+        await checkReceivingAddressForTransactions();
+      }
+    });
 
     Logging.instance.t(
       "$runtimeType refresh() wallet != null && await csMonero.isSynced(wallet!)",
@@ -1332,7 +1322,11 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         try {
           final bool sweep;
 
-          if (txData.utxos == null) {
+          if (txData.recipients!.length > 1) {
+            // Paying several recipients is never a sweep, even when their
+            // total is the whole balance, as the fee must still be paid.
+            sweep = false;
+          } else if (txData.utxos == null) {
             final balance = await availableBalance;
             sweep = txData.amount! == balance;
           } else {
@@ -1340,12 +1334,6 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
                 .map((e) => e.value)
                 .fold(BigInt.zero, (p, e) => p + e);
             sweep = txData.amount!.raw == totalInputsValue;
-          }
-
-          // TODO: test this one day
-          // cs_monero may not support this yet properly
-          if (sweep && txData.recipients!.length > 1) {
-            throw Exception("Send all not supported with multiple recipients");
           }
 
           final List<CsRecipient> outputs = [];
@@ -1396,6 +1384,7 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
             return txData.copyWith(
               fee: realFee,
               pendingTransaction: pendingTransaction,
+              txids: pendingTransaction.txids,
             );
           });
         } catch (e) {
@@ -1426,9 +1415,9 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
         await csMonero.commitTx(wallet!, txData.pendingTransaction!);
 
         Logging.instance.d(
-          "transaction ${txData.pendingTransaction!.txid} has been sent",
+          "transactions ${txData.pendingTransaction!.txids} have been sent",
         );
-        return txData.copyWith(txid: txData.pendingTransaction!.txid);
+        return txData.copyWith(txids: txData.pendingTransaction!.txids);
       } catch (e, s) {
         Logging.instance.e(
           "${info.name} ${compatType.name.toLowerCase()} confirmSend: ",

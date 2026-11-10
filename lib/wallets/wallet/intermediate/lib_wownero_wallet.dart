@@ -749,6 +749,7 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
 
   @override
   Future<void> exit() async {
+    await super.exit();
     Logging.instance.i("exit called on $wallet!");
     if (wallet != null) {
       csWownero.stopAutoSaving(wallet!);
@@ -898,10 +899,6 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
     final _syncStatus = syncStatus;
 
     if (_syncStatus != null) {
-      if (_syncStatus.progress() == 1 && refreshMutex.isLocked) {
-        refreshMutex.release();
-      }
-
       WalletSyncStatus? status;
       xmrAndWowSyncSpecificFunctionThatShouldBeGottenRidOfInTheFuture(true);
 
@@ -1136,21 +1133,17 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
 
     // this acquire should be almost instant due to above check.
     // Slight possibility of race but should be irrelevant
-    await refreshMutex.acquire();
+    await refreshMutex.protect(() async {
+      csWownero.startSyncing(wallet!);
+      _setSyncStatus(lib_monero_compat.StartingSyncStatus());
 
-    csWownero.startSyncing(wallet!);
-    _setSyncStatus(lib_monero_compat.StartingSyncStatus());
+      await updateTransactions();
+      await updateBalance();
 
-    await updateTransactions();
-    await updateBalance();
-
-    if (info.otherData[WalletInfoKeys.reuseAddress] != true) {
-      await checkReceivingAddressForTransactions();
-    }
-
-    if (refreshMutex.isLocked) {
-      refreshMutex.release();
-    }
+      if (info.otherData[WalletInfoKeys.reuseAddress] != true) {
+        await checkReceivingAddressForTransactions();
+      }
+    });
 
     final synced = wallet != null && await csWownero.isSynced(wallet!);
 
@@ -1374,6 +1367,7 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
             return txData.copyWith(
               fee: realFee,
               pendingTransaction: pendingTransaction,
+              txids: pendingTransaction.txids,
             );
           });
         } catch (e) {
@@ -1404,9 +1398,9 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
         await csWownero.commitTx(wallet!, txData.pendingTransaction!);
 
         Logging.instance.d(
-          "transaction ${txData.pendingTransaction!.txid} has been sent",
+          "transactions ${txData.pendingTransaction!.txids} have been sent",
         );
-        return txData.copyWith(txid: txData.pendingTransaction!.txid);
+        return txData.copyWith(txids: txData.pendingTransaction!.txids);
       } catch (e, s) {
         Logging.instance.e(
           "${info.name} ${compatType.name.toLowerCase()} confirmSend: ",
