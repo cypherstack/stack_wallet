@@ -647,6 +647,11 @@ NodeModel grinNode({
 
 /// A [GrinWallet] wired to fakes and an in-memory set of services.
 class GrinTestWallet extends GrinWallet {
+  bool mobileScanLifecycle = false;
+
+  @override
+  bool get cancelScanOnPause => mobileScanLifecycle;
+
   GrinTestWallet({
     required this.testWalletId,
     required FakeGrinBackend backend,

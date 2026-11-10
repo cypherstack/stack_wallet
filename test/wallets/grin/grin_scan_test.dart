@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/widgets.dart';
 import 'package:grin/grin.dart';
 import 'package:isar_community/isar.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
@@ -126,6 +127,36 @@ void main() {
       'scan:1000:false',
       'scan:20001:false',
     ]);
+  });
+
+  test('a paused restore continues when the app resumes', () async {
+    final binding = TestWidgetsFlutterBinding.ensureInitialized();
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    h.wallet.mobileScanLifecycle = true;
+    final api = await restore();
+    await eventually(() => api.scanRunning, reason: 'initial restore starts');
+    api.cancelScannedHeight = 1500;
+
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await eventually(
+      () => h.wallet.info.grinData!.pendingScanFrom == 1501,
+      reason: 'pause saves progress',
+    );
+    await pumpEventQueue();
+    await h.wallet.refresh();
+    await pumpEventQueue();
+    expect(api.calls.where((c) => c.startsWith('scan:')), ['scan:1000:false']);
+
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await eventually(
+      () => api.calls.contains('scan:1501:false'),
+      reason: 'resume starts the next scan',
+    );
+    expect(api.scanRunning, isTrue);
   });
 
   test(

@@ -381,7 +381,10 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
     _exited = false;
     _subscribeTor();
     if (cancelScanOnPause) {
-      _pauseObserver ??= GrinScanPauseObserver(cancelScan: cancelRunningScan);
+      _pauseObserver ??= GrinScanPauseObserver(
+        cancelScan: cancelRunningScan,
+        resumeScan: () => unawaited(_resumeAfterPause()),
+      );
     }
   }
 
@@ -592,6 +595,7 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
   }
 
   Future<void> _runScanJob() {
+    if (_pauseObserver?.isPaused ?? false) return Future<void>.value();
     final running = _scanJob;
     if (running != null) return running;
     final job = _scan();
@@ -615,6 +619,7 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
       );
       try {
         await _requireNetwork();
+        if (_pauseObserver?.isPaused ?? false) return;
         await api.scan(startHeight: from);
         await _setPendingScanFrom(null);
         succeeded = true;
@@ -631,6 +636,12 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
       highestPercent = 1;
       await refresh();
     }
+  }
+
+  Future<void> _resumeAfterPause() async {
+    final running = _scanJob;
+    if (running != null) await running;
+    if (!_exited && _api != null && _scanPending) await refresh();
   }
 
   Future<int> _resumeHeight(

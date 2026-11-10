@@ -429,10 +429,12 @@ void main() {
     );
   });
 
-  test('app pause cancels a scan, resume does not', () {
+  test('app pause and resume notify the scan owner', () {
     var cancels = 0;
+    var resumes = 0;
     final observer = GrinScanPauseObserver.detached(
       cancelScan: () => cancels++,
+      resumeScan: () => resumes++,
     );
     observer.onStateChange(AppLifecycleState.resumed);
     observer.onStateChange(AppLifecycleState.inactive);
@@ -441,6 +443,11 @@ void main() {
     expect(cancels, 1);
     observer.onStateChange(AppLifecycleState.detached);
     expect(cancels, 2);
+    expect(observer.isPaused, isTrue);
+    expect(resumes, 0);
+    observer.onStateChange(AppLifecycleState.resumed);
+    expect(observer.isPaused, isFalse);
+    expect(resumes, 1);
     observer.dispose();
   });
 }
