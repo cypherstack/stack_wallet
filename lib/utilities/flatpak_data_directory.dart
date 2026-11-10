@@ -7,14 +7,23 @@ typedef DirectoryCopy = Future<void> Function(
   Directory source,
   Directory destination,
 );
+typedef DirectoryRename = Future<void> Function(
+  Directory source,
+  String destination,
+);
 
 abstract class FlatpakDataDirectory {
   static const migrationMarker = ".flatpak_data_migration_v1";
 
-  /// Copies legacy data before selecting Flatpak's app-private XDG root.
+  /// Written to the legacy root before its contents are removed, so a later
+  /// launch can finish an interrupted removal.
+  static const legacyRemovalMarker = ".flatpak_data_migrated";
+
+  /// Moves legacy data before selecting Flatpak's app-private XDG root.
   static Future<Directory?> resolve({
     required Map<String, String> environment,
     required String appDirectoryName,
+    DirectoryRename renameDirectory = _renameDirectory,
     DirectoryCopy copyDirectory = _copyDirectory,
     void Function(Object error)? onError,
   }) async {
@@ -54,7 +63,26 @@ abstract class FlatpakDataDirectory {
     }
 
     final marker = File(path.join(destination.path, migrationMarker));
+    RandomAccessFile? migrationLock;
+    try {
+      // Serialize before touching legacy data. A separate lock in the XDG
+      // parent also covers first launch when Hive has not created dbinfo.lock.
+      await Directory(path.dirname(destination.path)).create(recursive: true);
+      migrationLock = await File("${destination.path}.migration.lock")
+          .open(mode: FileMode.append);
+      await migrationLock.lock(FileLock.exclusive);
+    } catch (error) {
+      await _releaseLock(migrationLock, onError);
+      onError?.call(error);
+      // If XDG is not writable, keep using the legacy data without mutation.
+      return legacy;
+    }
+
     if (await marker.exists()) {
+      if (await File(path.join(legacy.path, legacyRemovalMarker)).exists()) {
+        await _removeLegacy(legacy, onError);
+      }
+      await _releaseLock(migrationLock, onError);
       return destination;
     }
 
@@ -64,6 +92,7 @@ abstract class FlatpakDataDirectory {
           "Flatpak data migration found both legacy and unverified data",
         ),
       );
+      await _releaseLock(migrationLock, onError);
       return legacy;
     }
 
@@ -71,18 +100,12 @@ abstract class FlatpakDataDirectory {
     RandomAccessFile? migrationLock;
     RandomAccessFile? legacyLock;
     try {
-      migrationLock = await _lockMigration(destination);
+      legacyLock = await _lockLegacyDatabase(legacy);
       // Another instance may have completed a verified migration between the
-      // marker check above and taking the migration lock.
+      // marker check above and taking the lock.
       if (await marker.exists()) {
         return destination;
       }
-      if (await destination.exists()) {
-        throw StateError(
-          "Flatpak data migration found both legacy and unverified data",
-        );
-      }
-      legacyLock = await _lockLegacyDatabase(legacy);
       final temporaryType = await FileSystemEntity.type(
         temporary.path,
         followLinks: false,
@@ -97,11 +120,39 @@ abstract class FlatpakDataDirectory {
       }
 
       await Directory(path.dirname(destination.path)).create(recursive: true);
+      var renamed = true;
+      try {
+        await renameDirectory(legacy, destination.path);
+      } on FileSystemException {
+        // Always the case inside Flatpak, where the legacy root is a bind
+        // mount. Fall back to copying.
+        renamed = false;
+      }
+      if (renamed) {
+        try {
+          await _initialize(destination);
+        } catch (error) {
+          // The data is already in place; the next launch writes the marker.
+          onError?.call(error);
+        }
+        return destination;
+      }
+
       await copyDirectory(legacy, temporary);
       await _verifyDirectoryCopy(legacy, temporary);
       await File(path.join(temporary.path, migrationMarker))
           .writeAsString("complete", flush: true);
-      await temporary.rename(destination.path);
+      final removalMarker = File(path.join(legacy.path, legacyRemovalMarker));
+      await removalMarker.writeAsString("removing", flush: true);
+      final copiedRemovalMarker = File(
+        path.join(temporary.path, legacyRemovalMarker),
+      );
+      if (await copiedRemovalMarker.exists())
+        await copiedRemovalMarker.delete();
+      await renameDirectory(temporary, destination.path);
+      // Leave no second copy of the wallet data behind, e.g. one that a
+      // desktop reset of the new root would not remove.
+      await _removeLegacy(legacy, onError);
       return destination;
     } catch (error) {
       try {
@@ -125,34 +176,20 @@ abstract class FlatpakDataDirectory {
     }
   }
 
-  static Future<RandomAccessFile> _lockMigration(Directory destination) async {
-    await Directory(path.dirname(destination.path)).create(recursive: true);
-    final lockFile = File("${destination.path}.migration.lock");
-    final handle = await lockFile.open(mode: FileMode.append);
-    try {
-      await handle.lock(FileLock.exclusive);
-      return handle;
-    } catch (_) {
-      await handle.close();
-      rethrow;
-    }
-  }
-
   static Future<void> _releaseLock(
     RandomAccessFile? lock,
     void Function(Object error)? onError,
   ) async {
-    if (lock != null) {
-      try {
-        await lock.unlock();
-      } catch (error) {
-        onError?.call(error);
-      }
-      try {
-        await lock.close();
-      } catch (error) {
-        onError?.call(error);
-      }
+    if (lock == null) return;
+    try {
+      await lock.unlock();
+    } catch (error) {
+      onError?.call(error);
+    }
+    try {
+      await lock.close();
+    } catch (error) {
+      onError?.call(error);
     }
   }
 
@@ -161,6 +198,7 @@ abstract class FlatpakDataDirectory {
     if (!await lockFile.exists()) {
       return null;
     }
+
     final handle = await lockFile.open(mode: FileMode.append);
     try {
       await handle.lock(FileLock.exclusive);
@@ -170,6 +208,34 @@ abstract class FlatpakDataDirectory {
       rethrow;
     }
   }
+
+  static Future<void> _removeLegacy(
+    Directory legacy,
+    void Function(Object error)? onError,
+  ) async {
+    try {
+      final removalMarker = File(path.join(legacy.path, legacyRemovalMarker));
+      await removalMarker.writeAsString("removing", flush: true);
+      final entities = await legacy.list(followLinks: false).toList();
+      for (final entity in entities) {
+        if (entity.path != removalMarker.path) {
+          await entity.delete(recursive: true);
+        }
+      }
+      await removalMarker.delete();
+    } catch (error) {
+      onError?.call(error);
+      return;
+    }
+    try {
+      await legacy.delete();
+    } on FileSystemException {
+      // Expected inside Flatpak, where the legacy root is a mount point.
+    }
+  }
+
+  static Future<void> _renameDirectory(Directory source, String destination) =>
+      source.rename(destination);
 
   static Future<void> _initialize(Directory destination) async {
     await destination.create(recursive: true);

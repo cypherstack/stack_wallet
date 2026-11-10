@@ -38,9 +38,8 @@ void main() {
 
   setUpAll(() async {
     await Directory(path.join(legacy.path, "hive")).create(recursive: true);
-    await File(
-      path.join(legacy.path, "hive", "wallet.hive"),
-    ).writeAsString("wallet data");
+    await File(path.join(legacy.path, "hive", "wallet.hive"))
+        .writeAsString("wallet data");
     await lockFile.writeAsString("{}");
   });
 
@@ -71,7 +70,7 @@ Future<void> main(List<String> a) async {
   test(
     "the root does not change between calls after a migration failure",
     () async {
-      // First resolution (main(): applicationHiveDirectory) fails because
+      // First resolution (desktop startup, before Hive opens) fails because
       // XDG_DATA_HOME is not writable, so the app continues on legacy data.
       await xdg.create(recursive: true);
       await Process.run("chmod", ["0500", xdg.path]);
