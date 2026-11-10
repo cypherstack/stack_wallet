@@ -9,6 +9,7 @@ import 'package:bitcoindart/src/utils/constants/op.dart' as op;
 import 'package:bitcoindart/src/utils/script.dart' as bscript;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:isar_community/isar.dart';
+import 'package:meta/meta.dart';
 import 'package:pointycastle/digests/sha256.dart';
 import 'package:tuple/tuple.dart';
 
@@ -24,12 +25,12 @@ import '../../../utilities/bip32_utils.dart';
 import '../../../utilities/bip47_utils.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../../../utilities/extensions/extensions.dart';
-import '../../../utilities/format.dart';
 import '../../../utilities/logger.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../crypto_currency/interfaces/paynym_currency_interface.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/bip39_hd_wallet.dart';
+import '../supporting/owned_input_signatures.dart';
 import 'electrumx_interface.dart';
 
 const String kPCodeKeyPrefix = "pCode_key_";
@@ -45,6 +46,29 @@ String _receivingPaynymAddressDerivationPath(
 }) => "${_basePaynymDerivePath(testnet: testnet)}/$index/0";
 String _sendPaynymAddressDerivationPath(int index, {required bool testnet}) =>
     "${_basePaynymDerivePath(testnet: testnet)}/0/$index";
+
+@visibleForTesting
+int comparePaynymNotificationUtxos(UTXO a, UTXO b) {
+  final aIsTaproot =
+      a.address?.startsWith('bc1p') == true ||
+      a.address?.startsWith('tb1p') == true;
+  final bIsTaproot =
+      b.address?.startsWith('bc1p') == true ||
+      b.address?.startsWith('tb1p') == true;
+  if (aIsTaproot != bIsTaproot) {
+    return aIsTaproot ? 1 : -1;
+  }
+  return a.blockTime!.compareTo(b.blockTime!);
+}
+
+@visibleForTesting
+void validatePaynymNotificationInputs(List<StandardInput> inputs) {
+  if (inputs.first.derivePathType == DerivePathType.bip86) {
+    throw PaynymSendException(
+      "A non-Taproot UTXO is required for a PayNym notification transaction.",
+    );
+  }
+}
 
 mixin PaynymInterface<T extends PaynymCurrencyInterface>
     on Bip39HDWallet<T>, ElectrumXInterface<T> {
@@ -570,18 +594,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       // Sort spendable by age (oldest first), but push taproot UTXOs to the
       // end since taproot inputs don't expose the raw public key needed by the
       // receiver to compute ECDH for BIP47 notification parsing.
-      spendableOutputs.sort((a, b) {
-        final aIsTaproot =
-            a.address?.startsWith('bc1p') == true ||
-            a.address?.startsWith('tb1p') == true;
-        final bIsTaproot =
-            b.address?.startsWith('bc1p') == true ||
-            b.address?.startsWith('tb1p') == true;
-        if (aIsTaproot != bIsTaproot) {
-          return aIsTaproot ? 1 : -1;
-        }
-        return b.blockTime!.compareTo(a.blockTime!);
-      });
+      spendableOutputs.sort(comparePaynymNotificationUtxos);
 
       BigInt satoshisBeingUsed = BigInt.zero;
       int outputsBeingUsed = 0;
@@ -614,6 +627,8 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       final inputsWithKeys = (await addSigningKeys(
         utxoObjectsToUse.map((e) => StandardInput(e)).toList(),
       )).whereType<StandardInput>().toList();
+
+      validatePaynymNotificationInputs(inputsWithKeys);
 
       final vSizeForNoChange = BigInt.from(
         (await _createNotificationTx(
@@ -1849,6 +1864,22 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
         outputs.add(output);
       }
 
+      // A pending spend of our coins is kept, and sized, only from raw bytes
+      // the server proves this wallet signed. Anything else is dropped.
+      final height = txData["height"] as int?;
+      RawTransactionSize? verifiedSize;
+      if (wasSentFromThisWallet && (height == null || height <= 0)) {
+        verifiedSize = await verifyPendingSpend(
+          txid: txData["txid"] as String,
+          inputs: inputs,
+          outputs: outputs,
+        );
+        if (verifiedSize == null) {
+          await deleteUnverifiedTransaction(txData["txid"] as String);
+          continue;
+        }
+      }
+
       final totalOut = outputs
           .map((e) => e.value)
           .fold(BigInt.zero, (value, element) => value + element);
@@ -1898,7 +1929,12 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       }
 
       String? otherData;
-      if (txData["size"] is int || txData["vsize"] is int) {
+      if (verifiedSize != null) {
+        otherData = jsonEncode({
+          TxV2OdKeys.size: verifiedSize.size,
+          TxV2OdKeys.vSize: verifiedSize.vSize,
+        });
+      } else if (txData["size"] is int || txData["vsize"] is int) {
         otherData = jsonEncode({
           TxV2OdKeys.size: txData["size"] as int?,
           TxV2OdKeys.vSize: txData["vsize"] as int?,

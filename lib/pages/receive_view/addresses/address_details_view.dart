@@ -153,13 +153,13 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
       condition: !isDesktop,
       builder: (child) => Background(
         child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.backgroundAppBar,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .backgroundAppBar,
             leading: AppBarBackButton(
               onPressed: () {
                 Navigator.of(context).pop();
@@ -216,9 +216,9 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                                   STextStyles.desktopTextExtraExtraSmall(
                                     context,
                                   ).copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.textSubtitle1,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textSubtitle1,
                                   ),
                             ),
                             CustomTextButton(
@@ -230,9 +230,9 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                         const SizedBox(height: 4),
                         RoundedWhiteContainer(
                           padding: EdgeInsets.zero,
-                          borderColor: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.backgroundAppBar,
+                          borderColor: Theme.of(context)
+                              .extension<StackColors>()!
+                              .backgroundAppBar,
                           child: child,
                         ),
                         const SizedBox(height: 16),
@@ -245,9 +245,9 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                                   STextStyles.desktopTextExtraExtraSmall(
                                     context,
                                   ).copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.textSubtitle1,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textSubtitle1,
                                   ),
                             ),
                           ],
@@ -255,9 +255,9 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                         const SizedBox(height: 8),
                         RoundedWhiteContainer(
                           padding: EdgeInsets.zero,
-                          borderColor: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.backgroundAppBar,
+                          borderColor: Theme.of(context)
+                              .extension<StackColors>()!
+                              .backgroundAppBar,
                           child:
                               ref
                                       .watch(pWallets)
@@ -378,9 +378,9 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                     "Transactions",
                     textAlign: TextAlign.left,
                     style: STextStyles.itemSubtitle(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textDark3,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textDark3,
                     ),
                   ),
                 if (!isDesktop) const SizedBox(height: 12),
@@ -590,9 +590,9 @@ class _Tags extends StatelessWidget {
               : Text(
                   "Tags will appear here",
                   style: STextStyles.w500_14(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textSubtitle3,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textSubtitle3,
                   ),
                 ),
         ],

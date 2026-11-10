@@ -35,9 +35,9 @@ class AddressTag extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: STextStyles.w500_14(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.buttonTextPrimary,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .buttonTextPrimary,
             ),
           ),
         ),

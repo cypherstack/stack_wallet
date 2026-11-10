@@ -24,6 +24,8 @@ import '../services/mixins/wallet_db.dart';
 import '../services/wallets_service.dart';
 import '../utilities/amount/amount.dart';
 import '../utilities/constants.dart';
+import '../utilities/default_eth_tokens.dart';
+import '../utilities/default_nodes.dart';
 import '../utilities/flutter_secure_storage_interface.dart';
 import '../utilities/logger.dart';
 import '../utilities/prefs.dart';
@@ -379,9 +381,8 @@ class DbVersionMigrator with WalletDB {
         final mwcMigrationWalletsService = WalletsService();
         final mwcMigrationWalletNames =
             await mwcMigrationWalletsService.walletNames;
-        final mwcIdentifier = Mimblewimblecoin(
-          CryptoCurrencyNetwork.main,
-        ).identifier;
+        final mwcIdentifier = Mimblewimblecoin(CryptoCurrencyNetwork.main)
+            .identifier;
         for (final walletId in mwcMigrationWalletNames.keys) {
           if (mwcMigrationWalletNames[walletId]!.coinIdentifier ==
               mwcIdentifier) {
@@ -398,6 +399,40 @@ class DbVersionMigrator with WalletDB {
 
         // try to continue migrating
         return await migrate(16, secureStore: secureStore);
+
+      case 16:
+        if (AppConfig.defaultEthTokens.contains(DefaultTokens.rsFiro)) {
+          final db = MainDB.instance;
+          await db.initMainDB();
+          if (await db.getEthContracts().isNotEmpty() &&
+              await db
+                  .getEthContracts()
+                  .filter()
+                  .addressEqualTo(
+                    DefaultTokens.rsFiro.address,
+                    caseSensitive: false,
+                  )
+                  .isEmpty()) {
+            await db.putEthContract(DefaultTokens.rsFiro);
+          }
+        }
+
+        await DB.instance.put<dynamic>(
+          boxName: DB.boxNameDBInfo,
+          key: "hive_data_version",
+          value: 17,
+        );
+        return await migrate(17, secureStore: secureStore);
+
+      case 17:
+        await _v17();
+
+        await DB.instance.put<dynamic>(
+          boxName: DB.boxNameDBInfo,
+          key: "hive_data_version",
+          value: 18,
+        );
+        return await migrate(18, secureStore: secureStore);
 
       default:
         // finally return
@@ -686,5 +721,38 @@ class DbVersionMigrator with WalletDB {
     }
 
     await primariesBox.deleteFromDisk();
+  }
+
+  Future<void> _v17() async {
+    final nodesBox = await DB.instance.hive.openBox<NodeModel>(
+      DB.boxNameNodeModels,
+    );
+    final id = DefaultNodes.buildId(Fact0rn(CryptoCurrencyNetwork.main));
+    final node = nodesBox.get(id);
+
+    // The Fact0rn default node used to ship clearnet only. Only touch a node
+    // that still matches everything the user could have edited on it, so a
+    // customised node keeps its settings.
+    final untouched =
+        node != null &&
+        node.host == "electrumx2.projectfactor.io" &&
+        node.port == 50002 &&
+        node.name == DefaultNodes.defaultName &&
+        node.useSSL &&
+        node.isFailover &&
+        node.loginName == null &&
+        !node.torEnabled &&
+        node.clearnetEnabled;
+
+    if (untouched) {
+      await nodesBox.put(
+        id,
+        node.copyWith(
+          loginName: node.loginName,
+          trusted: node.trusted,
+          torEnabled: true,
+        ),
+      );
+    }
   }
 }

@@ -472,9 +472,8 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   @override
   Future<void> updateNode() async {
     _solNode =
-        NodeService(
-          secureStorageInterface: secureStorageInterface,
-        ).getPrimaryNodeFor(currency: info.coin) ??
+        NodeService(secureStorageInterface: secureStorageInterface)
+            .getPrimaryNodeFor(currency: info.coin) ??
         info.coin.defaultNode(isPrimary: true);
     await refresh();
   }
@@ -482,9 +481,8 @@ class SolanaWallet extends Bip39Wallet<Solana> {
   @override
   NodeModel getCurrentNode() {
     _solNode ??=
-        NodeService(
-          secureStorageInterface: secureStorageInterface,
-        ).getPrimaryNodeFor(currency: info.coin) ??
+        NodeService(secureStorageInterface: secureStorageInterface)
+            .getPrimaryNodeFor(currency: info.coin) ??
         info.coin.defaultNode(isPrimary: true);
 
     return _solNode!;
@@ -713,11 +711,11 @@ class SolanaWallet extends Bip39Wallet<Solana> {
 
   // static helper function for building a sol rpc client
   static RpcClient createRpcClient(
-    final String host,
-    final int port,
-    final bool useSSL,
-    final Prefs prefs,
-    final TorService torService,
+    String host,
+    int port,
+    bool useSSL,
+    Prefs prefs,
+    TorService torService,
   ) {
     HttpClient? httpClient;
 

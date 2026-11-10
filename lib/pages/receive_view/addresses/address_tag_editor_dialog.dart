@@ -269,9 +269,8 @@ class _AddressTagEditorDialogState extends State<AddressTagEditorDialog> {
                             tag,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: STextStyles.w500_14(
-                              context,
-                            ).copyWith(color: colors.buttonTextPrimary),
+                            style: STextStyles.w500_14(context)
+                                .copyWith(color: colors.buttonTextPrimary),
                           ),
                         ),
                       ),
@@ -304,26 +303,23 @@ class _AddressTagEditorDialogState extends State<AddressTagEditorDialog> {
               : _inputTooLong
               ? "Tag is too long"
               : "${_tags.length} of $maxAddressTagCount tags",
-          style: STextStyles.w500_12(
-            context,
-          ).copyWith(color: colors.textSubtitle2),
+          style: STextStyles.w500_12(context)
+              .copyWith(color: colors.textSubtitle2),
         ),
         if (_saveError != null) const SizedBox(height: 8),
         if (_saveError != null)
           Text(
             _saveError!,
             key: const Key("addressTagSaveError"),
-            style: STextStyles.w500_12(
-              context,
-            ).copyWith(color: colors.snackBarTextError),
+            style: STextStyles.w500_12(context)
+                .copyWith(color: colors.snackBarTextError),
           ),
         if (_availableSuggestions.isNotEmpty) const SizedBox(height: 12),
         if (_availableSuggestions.isNotEmpty)
           Text(
             "Suggestions",
-            style: STextStyles.itemSubtitle(
-              context,
-            ).copyWith(color: colors.textSubtitle1),
+            style: STextStyles.itemSubtitle(context)
+                .copyWith(color: colors.textSubtitle1),
           ),
         if (_availableSuggestions.isNotEmpty) const SizedBox(height: 8),
         if (_availableSuggestions.isNotEmpty)
@@ -338,9 +334,8 @@ class _AddressTagEditorDialogState extends State<AddressTagEditorDialog> {
                 onPressed: _saving ? null : () => _addTag(suggestion),
                 child: Text(
                   suggestion,
-                  style: STextStyles.w500_14(
-                    context,
-                  ).copyWith(color: colors.buttonTextSecondary),
+                  style: STextStyles.w500_14(context)
+                      .copyWith(color: colors.buttonTextSecondary),
                 ),
               );
             }).toList(),
@@ -362,9 +357,8 @@ class _AddressTagEditorDialogState extends State<AddressTagEditorDialog> {
           LengthLimitingTextInputFormatter(maxAddressTagLength),
         ],
         style: Util.isDesktop
-            ? STextStyles.desktopTextExtraSmall(
-                context,
-              ).copyWith(color: colors.textFieldActiveText, height: 1.8)
+            ? STextStyles.desktopTextExtraSmall(context)
+                  .copyWith(color: colors.textFieldActiveText, height: 1.8)
             : STextStyles.field(context),
         decoration: standardInputDecoration(
           "Add tag",

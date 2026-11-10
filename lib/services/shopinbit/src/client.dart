@@ -309,6 +309,31 @@ class ShopInBitClient {
     }
   }
 
+  /// URL and auth headers for fetching an attachment via
+  /// `/attachment-proxy/<path>` from an HTTP client that can set headers.
+  Future<ApiResponse<AttachmentRequest>> getAttachmentRequest(
+    String attachmentPath, {
+    String? customerKey,
+  }) async {
+    try {
+      final token = await _tokenManager.getValidToken();
+      final resolved = _resolvePath('/attachment-proxy/$attachmentPath');
+      return ApiResponse(
+        value: (
+          uri: Uri.parse('$baseUrl$resolved'),
+          headers: {
+            'Authorization': 'Bearer $token',
+            if (customerKey != null) 'External-Customer-Key': customerKey,
+          },
+        ),
+      );
+    } on ApiException catch (e) {
+      return ApiResponse(exception: e);
+    } catch (e) {
+      return ApiResponse(exception: ApiException.network(e));
+    }
+  }
+
   /// Download an attachment from `/attachment-proxy/<path>`.
   Future<ApiResponse<Response>> getAttachment(
     String attachmentPath, {
@@ -1055,6 +1080,8 @@ const kAllowedAttachmentExtensions = [
 
 typedef ResolvedAttachment = ({String mimeType, AttachmentCategory category});
 
+typedef AttachmentRequest = ({Uri uri, Map<String, String> headers});
+
 /// Path + content type, materialized into multipart bytes inside
 /// [_multipartRequest]: validation stays separate from encoding, and the
 /// encoded bytes can be resent on 401 without re-reading files from disk.
@@ -1075,8 +1102,7 @@ ResolvedAttachment? resolveAttachmentType(String fileName) {
     "gif" => (mimeType: "image/gif", category: .image),
     "pdf" => (mimeType: "application/pdf", category: .document),
     "docx" => (
-      mimeType:
-          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       category: .document,
     ),
     "xlsx" => (

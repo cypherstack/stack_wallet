@@ -125,9 +125,9 @@ class _DesktopAddressListState extends ConsumerState<DesktopAddressList> {
                 },
                 style: isDesktop
                     ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textFieldActiveText,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldActiveText,
                         height: 1.8,
                       )
                     : STextStyles.field(context),
@@ -192,9 +192,9 @@ class _DesktopAddressListState extends ConsumerState<DesktopAddressList> {
                 itemCount: addressIds.length,
                 separatorBuilder: (_, __) => Container(
                   height: 1,
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.backgroundAppBar,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .backgroundAppBar,
                 ),
                 itemBuilder: (_, index) => Padding(
                   padding: const EdgeInsets.all(4),

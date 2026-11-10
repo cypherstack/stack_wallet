@@ -71,7 +71,7 @@ const WalletSolanaTokenInfoSchema = CollectionSchema(
   getId: _walletSolanaTokenInfoGetId,
   getLinks: _walletSolanaTokenInfoGetLinks,
   attach: _walletSolanaTokenInfoAttach,
-  version: '3.3.0-dev.2',
+  version: '3.3.2',
 );
 
 int _walletSolanaTokenInfoEstimateSize(

@@ -83,7 +83,7 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
     final wallet = ref.read(pWallets).getWallet(walletId) as BitcoinFrostWallet;
 
     final recipients = recipientWidgetIndexes
-        .map((i) => ref.read(pRecipient(i).state).state)
+        .map((i) => ref.read(pRecipient((walletId: walletId, index: i))))
         .map(
           (e) => TxRecipient(
             address: e!.address,
@@ -165,9 +165,9 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                   child: Text(
                     "Ok",
                     style: STextStyles.button(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
                     ),
                   ),
                   onPressed: () {
@@ -190,7 +190,7 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
 
   bool _validateRecipientFormStatesHelper() {
     for (final i in recipientWidgetIndexes) {
-      final state = ref.read(pRecipient(i));
+      final state = ref.read(pRecipient((walletId: walletId, index: i)));
       if (state?.amount == null ||
           state?.address == null ||
           state!.address.isEmpty) {
@@ -245,9 +245,9 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
       condition: !Util.isDesktop,
       builder: (child) => Background(
         child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
             leading: AppBarBackButton(
               onPressed: () async {
@@ -319,9 +319,8 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                         children: [
                           Text(
                             ref.watch(pWalletName(walletId)),
-                            style: STextStyles.titleBold12(
-                              context,
-                            ).copyWith(fontSize: 14),
+                            style: STextStyles.titleBold12(context)
+                                .copyWith(fontSize: 14),
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
                           ),
@@ -330,9 +329,8 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                           // ),
                           Text(
                             "Available balance",
-                            style: STextStyles.label(
-                              context,
-                            ).copyWith(fontSize: 10),
+                            style: STextStyles.label(context)
+                                .copyWith(fontSize: 10),
                           ),
                         ],
                       ),
@@ -354,9 +352,8 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                                           .watch(pWalletBalance(walletId))
                                           .spendable,
                                     ),
-                                style: STextStyles.titleBold12(
-                                  context,
-                                ).copyWith(fontSize: 10),
+                                style: STextStyles.titleBold12(context)
+                                    .copyWith(fontSize: 10),
                                 textAlign: TextAlign.right,
                               ),
                             ],
@@ -379,6 +376,7 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                     ),
                     child: Recipient(
                       key: Key("recipientKey_${recipientWidgetIndexes[i]}"),
+                      walletId: walletId,
                       index: recipientWidgetIndexes[i],
                       displayNumber: i + 1,
                       coin: coin,
@@ -390,9 +388,10 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                           : () {
                               ref
                                       .read(
-                                        pRecipient(
-                                          recipientWidgetIndexes[i],
-                                        ).notifier,
+                                        pRecipient((
+                                          walletId: walletId,
+                                          index: recipientWidgetIndexes[i],
+                                        )).notifier,
                                       )
                                       .state =
                                   null;
@@ -410,11 +409,13 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                       sendAllTapped: () {
                         return ref
                             .read(pAmountFormatter(coin))
-                            .format(
+                            .formatEditable(
                               ref.read(pWalletBalance(walletId)).spendable,
-                              withUnitName: false,
                             );
                       },
+                      onMessage: (message) => setState(() {
+                        noteController.text = message;
+                      }),
                     ),
                   ),
               ],
@@ -440,9 +441,9 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                     Text(
                       "Coin control",
                       style: STextStyles.w500_14(context).copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textSubtitle1,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textSubtitle1,
                       ),
                     ),
                     CustomTextButton(

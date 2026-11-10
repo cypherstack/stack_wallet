@@ -66,7 +66,7 @@ const FrostWalletInfoSchema = CollectionSchema(
   getId: _frostWalletInfoGetId,
   getLinks: _frostWalletInfoGetLinks,
   attach: _frostWalletInfoAttach,
-  version: '3.3.0-dev.2',
+  version: '3.3.2',
 );
 
 int _frostWalletInfoEstimateSize(
