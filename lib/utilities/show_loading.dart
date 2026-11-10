@@ -43,12 +43,13 @@ Future<T?> showLoading<T>({
     showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => WillPopScope(
-        onWillPop: () async => false,
+      builder: (_) => PopScope(
+        canPop: false,
         child: Container(
-          color: Theme.of(
-            context,
-          ).extension<StackColors>()!.overlay.withOpacity(opaqueBG ? 1.0 : 0.6),
+          color: Theme.of(context)
+              .extension<StackColors>()!
+              .overlay
+              .withOpacity(opaqueBG ? 1.0 : 0.6),
           child: CustomLoadingOverlay(
             message: message,
             subMessage: subMessage,

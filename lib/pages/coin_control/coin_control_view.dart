@@ -162,13 +162,16 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
       );
     }
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope<Set<UTXO>>(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, Set<UTXO>? result) {
+        if (didPop) {
+          return;
+        }
         unawaited(_refreshBalance());
         Navigator.of(context).pop(
           widget.type == CoinControlViewType.use ? _selectedAvailable : null,
         );
-        return false;
       },
       child: Background(
         child: Scaffold(

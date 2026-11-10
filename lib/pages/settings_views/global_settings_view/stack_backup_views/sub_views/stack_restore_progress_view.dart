@@ -28,6 +28,7 @@ import '../../../../../utilities/enums/stack_restoring_status.dart';
 import '../../../../../utilities/logger.dart';
 import '../../../../../utilities/text_styles.dart';
 import '../../../../../utilities/util.dart';
+import '../../../../../widgets/async_pop_scope.dart';
 import '../../../../../widgets/conditional_parent.dart';
 import '../../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../../widgets/desktop/primary_button.dart';
@@ -65,15 +66,12 @@ class _StackRestoreProgressViewState
   bool isDesktop = Util.isDesktop;
 
   Future<void> _cancel() async {
-    bool shouldPop = false;
     unawaited(
       showDialog<void>(
         barrierDismissible: false,
         context: context,
-        builder: (_) => WillPopScope(
-          onWillPop: () async {
-            return shouldPop;
-          },
+        builder: (_) => PopScope(
+          canPop: false,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -84,9 +82,9 @@ class _StackRestoreProgressViewState
                   child: Text(
                     "Cancelling restore. Please wait.",
                     style: STextStyles.pageTitleH2(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textWhite,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textWhite,
                     ),
                   ),
                 ),
@@ -100,7 +98,6 @@ class _StackRestoreProgressViewState
     );
 
     await SWB.cancelRestore();
-    shouldPop = true;
 
     int count = 0;
 
@@ -189,9 +186,8 @@ class _StackRestoreProgressViewState
     if (shouldCancel) {
       await _cancel();
       return true;
-    } else {
-      return false;
     }
+    return false;
   }
 
   Widget _getIconForState(StackRestoringStatus state) {
@@ -199,9 +195,9 @@ class _StackRestoreProgressViewState
       case StackRestoringStatus.waiting:
         return SvgPicture.asset(
           Assets.svg.loader,
-          color: Theme.of(
-            context,
-          ).extension<StackColors>()!.buttonBackSecondary,
+          color: Theme.of(context)
+              .extension<StackColors>()!
+              .buttonBackSecondary,
         );
       case StackRestoringStatus.restoring:
         return SvgPicture.asset(
@@ -246,12 +242,12 @@ class _StackRestoreProgressViewState
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) {
-        return WillPopScope(
-          onWillPop: _onWillPop,
+        return AsyncPopScope<void>(
+          onPopAttempt: _onWillPop,
           child: Scaffold(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () async {
@@ -309,17 +305,17 @@ class _StackRestoreProgressViewState
                             height: 32,
                             child: RoundedContainer(
                               padding: const EdgeInsets.all(0),
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.buttonBackSecondary,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .buttonBackSecondary,
                               child: Center(
                                 child: SvgPicture.asset(
                                   Assets.svg.gear,
                                   width: 16,
                                   height: 16,
-                                  color: Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.accentColorDark,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .accentColorDark,
                                 ),
                               ),
                             ),
@@ -339,29 +335,29 @@ class _StackRestoreProgressViewState
                         )
                       : RoundedContainer(
                           padding: EdgeInsets.zero,
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.popupBG,
-                          borderColor: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.background,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .popupBG,
+                          borderColor: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
                           child: RestoringItemCard(
                             left: SizedBox(
                               width: 32,
                               height: 32,
                               child: RoundedContainer(
                                 padding: const EdgeInsets.all(0),
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.buttonBackSecondary,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .buttonBackSecondary,
                                 child: Center(
                                   child: SvgPicture.asset(
                                     Assets.svg.gear,
                                     width: 16,
                                     height: 16,
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.accentColorDark,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorDark,
                                   ),
                                 ),
                               ),
@@ -397,16 +393,16 @@ class _StackRestoreProgressViewState
                             height: 32,
                             child: RoundedContainer(
                               padding: const EdgeInsets.all(0),
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.buttonBackSecondary,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .buttonBackSecondary,
                               child: Center(
                                 child: AddressBookIcon(
                                   width: 16,
                                   height: 16,
-                                  color: Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.accentColorDark,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .accentColorDark,
                                 ),
                               ),
                             ),
@@ -426,28 +422,28 @@ class _StackRestoreProgressViewState
                         )
                       : RoundedContainer(
                           padding: EdgeInsets.zero,
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.popupBG,
-                          borderColor: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.background,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .popupBG,
+                          borderColor: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
                           child: RestoringItemCard(
                             left: SizedBox(
                               width: 32,
                               height: 32,
                               child: RoundedContainer(
                                 padding: const EdgeInsets.all(0),
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.buttonBackSecondary,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .buttonBackSecondary,
                                 child: Center(
                                   child: AddressBookIcon(
                                     width: 16,
                                     height: 16,
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.accentColorDark,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorDark,
                                   ),
                                 ),
                               ),
@@ -483,17 +479,17 @@ class _StackRestoreProgressViewState
                             height: 32,
                             child: RoundedContainer(
                               padding: const EdgeInsets.all(0),
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.buttonBackSecondary,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .buttonBackSecondary,
                               child: Center(
                                 child: SvgPicture.asset(
                                   Assets.svg.node,
                                   width: 16,
                                   height: 16,
-                                  color: Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.accentColorDark,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .accentColorDark,
                                 ),
                               ),
                             ),
@@ -513,29 +509,29 @@ class _StackRestoreProgressViewState
                         )
                       : RoundedContainer(
                           padding: EdgeInsets.zero,
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.popupBG,
-                          borderColor: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.background,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .popupBG,
+                          borderColor: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
                           child: RestoringItemCard(
                             left: SizedBox(
                               width: 32,
                               height: 32,
                               child: RoundedContainer(
                                 padding: const EdgeInsets.all(0),
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.buttonBackSecondary,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .buttonBackSecondary,
                                 child: Center(
                                   child: SvgPicture.asset(
                                     Assets.svg.node,
                                     width: 16,
                                     height: 16,
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.accentColorDark,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorDark,
                                   ),
                                 ),
                               ),
@@ -571,17 +567,17 @@ class _StackRestoreProgressViewState
                             height: 32,
                             child: RoundedContainer(
                               padding: const EdgeInsets.all(0),
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.buttonBackSecondary,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .buttonBackSecondary,
                               child: Center(
                                 child: SvgPicture.asset(
                                   Assets.svg.arrowsTwoWay,
                                   width: 16,
                                   height: 16,
-                                  color: Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.accentColorDark,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .accentColorDark,
                                 ),
                               ),
                             ),
@@ -601,29 +597,29 @@ class _StackRestoreProgressViewState
                         )
                       : RoundedContainer(
                           padding: EdgeInsets.zero,
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.popupBG,
-                          borderColor: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.background,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .popupBG,
+                          borderColor: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
                           child: RestoringItemCard(
                             left: SizedBox(
                               width: 32,
                               height: 32,
                               child: RoundedContainer(
                                 padding: const EdgeInsets.all(0),
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.buttonBackSecondary,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .buttonBackSecondary,
                                 child: Center(
                                   child: SvgPicture.asset(
                                     Assets.svg.arrowsTwoWay,
                                     width: 16,
                                     height: 16,
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.accentColorDark,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorDark,
                                   ),
                                 ),
                               ),
@@ -686,9 +682,9 @@ class _StackRestoreProgressViewState
                         child: Text(
                           _success ? "OK" : "Cancel restore process",
                           style: STextStyles.button(context).copyWith(
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.buttonTextPrimary,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .buttonTextPrimary,
                           ),
                         ),
                       )
@@ -714,12 +710,11 @@ class _StackRestoreProgressViewState
 
                                     if (widget.shouldPushToHome) {
                                       unawaited(
-                                        Navigator.of(
-                                          context,
-                                        ).pushNamedAndRemoveUntil(
-                                          DesktopHomeView.routeName,
-                                          (route) => false,
-                                        ),
+                                        Navigator.of(context)
+                                            .pushNamedAndRemoveUntil(
+                                              DesktopHomeView.routeName,
+                                              (route) => false,
+                                            ),
                                       );
                                     } else {
                                       Navigator.of(

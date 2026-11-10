@@ -179,21 +179,19 @@ class _BuyFormState extends ConsumerState<BuyForm> {
 
   void selectCrypto() async {
     if (ref.read(simplexProvider).supportedCryptos.isEmpty) {
-      bool shouldPop = false;
       unawaited(
         showDialog(
           context: context,
-          builder: (context) => WillPopScope(
-            child: const CustomLoadingOverlay(
+          builder: (context) => const PopScope(
+            canPop: false,
+            child: CustomLoadingOverlay(
               message: "Loading currency data",
               eventBus: null,
             ),
-            onWillPop: () async => shouldPop,
           ),
         ),
       );
       await _loadSimplexCryptos();
-      shouldPop = true;
       if (mounted) {
         Navigator.of(context, rootNavigator: isDesktop).pop();
       }
@@ -285,21 +283,19 @@ class _BuyFormState extends ConsumerState<BuyForm> {
 
   Future<void> selectFiat() async {
     if (ref.read(simplexProvider).supportedFiats.isEmpty) {
-      bool shouldPop = false;
       unawaited(
         showDialog(
           context: context,
-          builder: (context) => WillPopScope(
-            child: const CustomLoadingOverlay(
+          builder: (context) => const PopScope(
+            canPop: false,
+            child: CustomLoadingOverlay(
               message: "Loading currency data",
               eventBus: null,
             ),
-            onWillPop: () async => shouldPop,
           ),
         ),
       );
       await _loadSimplexFiats();
-      shouldPop = true;
       if (mounted) {
         Navigator.of(context, rootNavigator: isDesktop).pop();
       }
@@ -421,16 +417,15 @@ class _BuyFormState extends ConsumerState<BuyForm> {
       return;
     }
 
-    bool shouldPop = false;
     unawaited(
       showDialog(
         context: context,
-        builder: (context) => WillPopScope(
-          child: const CustomLoadingOverlay(
+        builder: (context) => const PopScope(
+          canPop: false,
+          child: CustomLoadingOverlay(
             message: "Loading quote data",
             eventBus: null,
           ),
-          onWillPop: () async => shouldPop,
         ),
       ),
     );
@@ -450,7 +445,6 @@ class _BuyFormState extends ConsumerState<BuyForm> {
     );
 
     final BuyResponse<SimplexQuote> quoteResponse = await _loadQuote(quote);
-    shouldPop = true;
     if (mounted) {
       Navigator.of(context, rootNavigator: isDesktop).pop();
     }

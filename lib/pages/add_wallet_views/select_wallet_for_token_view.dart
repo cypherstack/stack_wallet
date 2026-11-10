@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../models/add_wallet_list_entity/sub_classes/coin_entity.dart';
 import '../../models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
 import 'add_token_view/edit_wallet_tokens_view.dart';
@@ -30,16 +31,15 @@ import '../../widgets/eth_wallet_radio.dart';
 import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/wallet_info_row/wallet_info_row.dart';
+
 import 'package:tuple/tuple.dart';
 
-final newEthWalletTriggerTempUntilHiveCompletelyDeleted =
-    StateProvider((ref) => false);
+final newEthWalletTriggerTempUntilHiveCompletelyDeleted = StateProvider(
+  (ref) => false,
+);
 
 class SelectWalletForTokenView extends ConsumerStatefulWidget {
-  const SelectWalletForTokenView({
-    super.key,
-    required this.entity,
-  });
+  const SelectWalletForTokenView({super.key, required this.entity});
 
   static const String routeName = "/selectWalletForTokenView";
 
@@ -59,10 +59,7 @@ class _SelectWalletForTokenViewState
   void _onContinue() {
     Navigator.of(context).pushNamed(
       EditWalletTokensView.routeName,
-      arguments: Tuple2(
-        _selectedWalletId!,
-        [widget.entity.token.address],
-      ),
+      arguments: Tuple2(_selectedWalletId!, [widget.entity.token.address]),
     );
   }
 
@@ -92,17 +89,20 @@ class _SelectWalletForTokenViewState
       }
     }
 
-    return WillPopScope(
-      onWillPop: () async {
-        ref.read(createSpecialEthWalletRoutingFlag.notifier).state = false;
-        return true;
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        if (didPop) {
+          ref.read(createSpecialEthWalletRoutingFlag.notifier).state = false;
+        }
       },
       child: ConditionalParent(
         condition: !isDesktop,
         builder: (child) => Background(
           child: Scaffold(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () {
@@ -111,10 +111,7 @@ class _SelectWalletForTokenViewState
               ),
             ),
             body: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: child,
-              ),
+              child: Padding(padding: const EdgeInsets.all(16), child: child),
 
               // child: LayoutBuilder(
               //   builder: (ctx, constraints) {
@@ -139,18 +136,12 @@ class _SelectWalletForTokenViewState
               isCompactHeight: false,
               leading: AppBarBackButton(),
             ),
-            body: SizedBox(
-              width: 500,
-              child: child,
-            ),
+            body: SizedBox(width: 500, child: child),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (isDesktop)
-                const SizedBox(
-                  height: 24,
-                ),
+              if (isDesktop) const SizedBox(height: 24),
               Text(
                 "Select Ethereum wallet",
                 textAlign: TextAlign.center,
@@ -158,9 +149,7 @@ class _SelectWalletForTokenViewState
                     ? STextStyles.desktopH2(context)
                     : STextStyles.pageTitleH1(context),
               ),
-              SizedBox(
-                height: isDesktop ? 16 : 8,
-              ),
+              SizedBox(height: isDesktop ? 16 : 8),
               Text(
                 "You are adding an ETH token.",
                 textAlign: TextAlign.center,
@@ -168,9 +157,7 @@ class _SelectWalletForTokenViewState
                     ? STextStyles.desktopSubtitleH2(context)
                     : STextStyles.subtitle(context),
               ),
-              const SizedBox(
-                height: 8,
-              ),
+              const SizedBox(height: 8),
               Text(
                 "You must choose an Ethereum wallet in order to use ${widget.entity.name}",
                 textAlign: TextAlign.center,
@@ -178,9 +165,7 @@ class _SelectWalletForTokenViewState
                     ? STextStyles.desktopSubtitleH2(context)
                     : STextStyles.subtitle(context),
               ),
-              SizedBox(
-                height: isDesktop ? 60 : 16,
-              ),
+              SizedBox(height: isDesktop ? 60 : 16),
               ethWalletIds.isEmpty
                   ? RoundedWhiteContainer(
                       padding: EdgeInsets.all(isDesktop ? 16 : 12),
@@ -208,9 +193,8 @@ class _SelectWalletForTokenViewState
                       child: ListView.separated(
                         itemCount: ethWalletIds.length,
                         shrinkWrap: true,
-                        separatorBuilder: (_, __) => SizedBox(
-                          height: isDesktop ? 12 : 6,
-                        ),
+                        separatorBuilder: (_, __) =>
+                            SizedBox(height: isDesktop ? 12 : 6),
                         itemBuilder: (_, index) {
                           return RoundedContainer(
                             padding: EdgeInsets.all(isDesktop ? 16 : 8),
@@ -221,33 +205,25 @@ class _SelectWalletForTokenViewState
                             },
                             color: isDesktop
                                 ? Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .popupBG
+                                      .extension<StackColors>()!
+                                      .popupBG
                                 : _selectedWalletId == ethWalletIds[index]
-                                    ? Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .highlight
-                                    : Colors.transparent,
+                                ? Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .highlight
+                                : Colors.transparent,
                             child: isDesktop
                                 ? EthWalletRadio(
                                     walletId: ethWalletIds[index],
                                     selectedWalletId: _selectedWalletId,
                                   )
-                                : WalletInfoRow(
-                                    walletId: ethWalletIds[index],
-                                  ),
+                                : WalletInfoRow(walletId: ethWalletIds[index]),
                           );
                         },
                       ),
                     ),
-              if (ethWalletIds.isEmpty || isDesktop)
-                const SizedBox(
-                  height: 16,
-                ),
-              if (isDesktop)
-                const SizedBox(
-                  height: 16,
-                ),
+              if (ethWalletIds.isEmpty || isDesktop) const SizedBox(height: 16),
+              if (isDesktop) const SizedBox(height: 16),
               ethWalletIds.isEmpty
                   ? PrimaryButton(
                       label: "Add new Ethereum wallet",

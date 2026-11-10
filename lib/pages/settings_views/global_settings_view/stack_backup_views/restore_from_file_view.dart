@@ -88,9 +88,9 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
       builder: (child) {
         return Background(
           child: Scaffold(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () async {
@@ -142,9 +142,9 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                   "Choose file location",
                   style: STextStyles.desktopTextExtraExtraSmall(context)
                       .copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textDark3,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark3,
                       ),
                   textAlign: TextAlign.left,
                 ),
@@ -186,9 +186,9 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                       const SizedBox(width: 16),
                       SvgPicture.asset(
                         Assets.svg.folder,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textDark3,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark3,
                         width: 16,
                         height: 16,
                       ),
@@ -215,9 +215,9 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                   "Enter passphrase",
                   style: STextStyles.desktopTextExtraExtraSmall(context)
                       .copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textDark3,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark3,
                       ),
                   textAlign: TextAlign.left,
                 ),
@@ -260,9 +260,9 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                 hidePassword
                                     ? Assets.svg.eye
                                     : Assets.svg.eyeSlash,
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textDark3,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark3,
                                 width: 16,
                                 height: 16,
                               ),
@@ -315,15 +315,12 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                               return;
                             }
 
-                            bool shouldPop = false;
                             unawaited(
                               showDialog<dynamic>(
                                 barrierDismissible: false,
                                 context: context,
-                                builder: (_) => WillPopScope(
-                                  onWillPop: () async {
-                                    return shouldPop;
-                                  },
+                                builder: (_) => PopScope(
+                                  canPop: false,
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.stretch,
@@ -355,9 +352,8 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                               ),
                             );
 
-                            final encryptedText = await File(
-                              fileToRestore,
-                            ).readAsString();
+                            final encryptedText = await File(fileToRestore)
+                                .readAsString();
 
                             final String? jsonString = await compute(
                               SWB.decryptStackWalletStringWithPassphrase,
@@ -370,7 +366,6 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
 
                             if (mounted) {
                               // pop LoadingIndicator
-                              shouldPop = true;
                               Navigator.of(context).pop();
 
                               passwordController.text = "";
@@ -431,15 +426,12 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                   return;
                                 }
 
-                                bool shouldPop = false;
                                 unawaited(
                                   showDialog<dynamic>(
                                     barrierDismissible: false,
                                     context: context,
-                                    builder: (_) => WillPopScope(
-                                      onWillPop: () async {
-                                        return shouldPop;
-                                      },
+                                    builder: (_) => PopScope(
+                                      canPop: false,
                                       child: Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.stretch,
@@ -474,9 +466,8 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                   ),
                                 );
 
-                                final encryptedText = await File(
-                                  fileToRestore,
-                                ).readAsString();
+                                final encryptedText = await File(fileToRestore)
+                                    .readAsString();
 
                                 final String? jsonString = await compute(
                                   SWB.decryptStackWalletStringWithPassphrase,
@@ -489,7 +480,6 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
 
                                 if (context.mounted) {
                                   // pop LoadingIndicator
-                                  shouldPop = true;
                                   Navigator.of(
                                     context,
                                     rootNavigator: true,

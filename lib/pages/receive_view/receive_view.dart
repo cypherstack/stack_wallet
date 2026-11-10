@@ -161,8 +161,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
 
     if (slatepackString == null) return;
     if (mounted) {
-      final wallet =
-          ref.read(pWallets).getWallet(walletId) as EpiccashWallet;
+      final wallet = ref.read(pWallets).getWallet(walletId) as EpiccashWallet;
 
       Exception? ex;
       final result = await showLoading(
@@ -218,17 +217,17 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
     final wallet = ref.read(pWallets).getWallet(walletId);
 
     if (wallet is MultiAddressInterface) {
-      bool shouldPop = false;
       unawaited(
         showDialog(
           context: context,
           builder: (_) {
-            return WillPopScope(
-              onWillPop: () async => shouldPop,
+            return PopScope(
+              canPop: false,
               child: Container(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.overlay.withOpacity(0.5),
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .overlay
+                    .withOpacity(0.5),
                 child: const CustomLoadingOverlay(
                   message: "Generating address",
                   eventBus: null,
@@ -282,12 +281,9 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
         address = null;
       }
 
-      shouldPop = true;
-
       if (mounted) {
-        Navigator.of(
-          context,
-        ).popUntil(ModalRoute.withName(ReceiveView.routeName));
+        Navigator.of(context)
+            .popUntil(ModalRoute.withName(ReceiveView.routeName));
 
         setState(() {
           _addressMap[_walletAddressTypes[_currentIndex]] =
@@ -300,17 +296,17 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
   Future<void> generateNewSparkAddress() async {
     final wallet = ref.read(pWallets).getWallet(walletId);
     if (wallet is SparkInterface) {
-      bool shouldPop = false;
       unawaited(
         showDialog(
           context: context,
           builder: (_) {
-            return WillPopScope(
-              onWillPop: () async => shouldPop,
+            return PopScope(
+              canPop: false,
               child: Container(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.overlay.withOpacity(0.5),
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .overlay
+                    .withOpacity(0.5),
                 child: const CustomLoadingOverlay(
                   message: "Generating address",
                   eventBus: null,
@@ -322,8 +318,6 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
       );
 
       final address = await wallet.generateNextSparkAddress(saveToDB: true);
-
-      shouldPop = true;
 
       if (mounted) {
         Navigator.of(context, rootNavigator: true).pop();
@@ -553,17 +547,16 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
               child: AspectRatio(
                 aspectRatio: 1,
                 child: AppBarIconButton(
-                  semanticsLabel:
-                      "Address List Pop-up Button. Opens A Pop-up For Address List Button.",
+                  semanticsLabel: "Address List Pop-up Button. Opens A Pop-up For Address List Button.",
                   key: const Key("walletNetworkSettingsAddNewNodeViewButton"),
                   size: 36,
                   shadows: const [],
                   color: Theme.of(context).extension<StackColors>()!.background,
                   icon: SvgPicture.asset(
                     Assets.svg.verticalEllipsis,
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.accentColorDark,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
                     width: 20,
                     height: 20,
                   ),
@@ -580,9 +573,9 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                               right: 10,
                               child: Container(
                                 decoration: BoxDecoration(
-                                  color: Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.popupBG,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .popupBG,
                                   borderRadius: BorderRadius.circular(
                                     Constants.size.circularBorderRadius,
                                   ),
@@ -651,9 +644,9 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                           Text(
                             "Address type",
                             style: STextStyles.w500_14(context).copyWith(
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.infoItemLabel,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .infoItemLabel,
                             ),
                           ),
                           const SizedBox(height: 10),

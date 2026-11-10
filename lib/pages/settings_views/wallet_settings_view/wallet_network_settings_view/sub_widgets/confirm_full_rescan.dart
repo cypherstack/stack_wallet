@@ -9,6 +9,7 @@
  */
 
 import 'package:flutter/material.dart';
+
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../utilities/text_styles.dart';
 import '../../../../../utilities/util.dart';
@@ -35,9 +36,7 @@ class ConfirmFullRescanDialog extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(
-                    left: 32,
-                  ),
+                  padding: const EdgeInsets.only(left: 32),
                   child: Text(
                     "Rescan blockchain",
                     style: STextStyles.desktopH3(context),
@@ -60,9 +59,7 @@ class ConfirmFullRescanDialog extends StatelessWidget {
                     "Warning! It may take a while. If you exit before completion, you will have to redo the process.",
                     style: STextStyles.desktopTextSmall(context),
                   ),
-                  const SizedBox(
-                    height: 43,
-                  ),
+                  const SizedBox(height: 43),
                   Row(
                     children: [
                       Expanded(
@@ -72,9 +69,7 @@ class ConfirmFullRescanDialog extends StatelessWidget {
                           label: "Cancel",
                         ),
                       ),
-                      const SizedBox(
-                        width: 16,
-                      ),
+                      const SizedBox(width: 16),
                       Expanded(
                         child: PrimaryButton(
                           buttonHeight: ButtonHeight.l,
@@ -94,22 +89,16 @@ class ConfirmFullRescanDialog extends StatelessWidget {
         ),
       );
     } else {
-      return WillPopScope(
-        onWillPop: () async {
-          return true;
-        },
+      return PopScope(
+        canPop: true,
         child: StackDialog(
           title: "Rescan blockchain",
-          message:
-              "Warning! It may take a while. If you exit before completion, you will have to redo the process.",
+          message: "Warning! It may take a while. If you exit before completion, you will have to redo the process.",
           leftButton: TextButton(
             style: Theme.of(context)
                 .extension<StackColors>()!
                 .getSecondaryEnabledButtonStyle(context),
-            child: Text(
-              "Cancel",
-              style: STextStyles.itemSubtitle12(context),
-            ),
+            child: Text("Cancel", style: STextStyles.itemSubtitle12(context)),
             onPressed: () {
               Navigator.of(context).pop();
             },
@@ -118,10 +107,7 @@ class ConfirmFullRescanDialog extends StatelessWidget {
             style: Theme.of(context)
                 .extension<StackColors>()!
                 .getPrimaryEnabledButtonStyle(context),
-            child: Text(
-              "Rescan",
-              style: STextStyles.button(context),
-            ),
+            child: Text("Rescan", style: STextStyles.button(context)),
             onPressed: () {
               Navigator.of(context).pop();
               onConfirm.call();

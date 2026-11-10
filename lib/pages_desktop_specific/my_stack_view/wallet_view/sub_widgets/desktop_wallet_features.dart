@@ -208,16 +208,15 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
   }
 
   Future<void> _attemptAnonymize() async {
-    bool shouldPop = false;
     unawaited(
       showDialog(
         context: context,
-        builder: (context) => WillPopScope(
-          child: const CustomLoadingOverlay(
+        builder: (context) => const PopScope(
+          canPop: false,
+          child: CustomLoadingOverlay(
             message: "Privatizing balance",
             eventBus: null,
           ),
-          onWillPop: () async => shouldPop,
         ),
       ),
     );
@@ -225,7 +224,6 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     final wallet = ref.read(pWallets).getWallet(widget.walletId);
     final publicBalance = wallet.info.cachedBalance.spendable;
     if (publicBalance <= Amount.zero) {
-      shouldPop = true;
       if (context.mounted) {
         Navigator.of(context, rootNavigator: true).pop();
         Navigator.of(context)
@@ -247,7 +245,6 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
       } else {
         await (wallet as FiroWallet).anonymizeAllSpark();
       }
-      shouldPop = true;
       if (mounted) {
         Navigator.of(context, rootNavigator: true).pop();
         Navigator.of(context)
@@ -261,7 +258,6 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         );
       }
     } catch (e) {
-      shouldPop = true;
       if (mounted) {
         Navigator.of(context, rootNavigator: true).pop();
         Navigator.of(context)
