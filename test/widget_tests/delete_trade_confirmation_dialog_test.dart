@@ -129,9 +129,8 @@ class _TestApp extends StatelessWidget {
         ],
       ),
       builder: (context, child) => MediaQuery(
-        data: MediaQuery.of(
-          context,
-        ).copyWith(textScaler: TextScaler.linear(textScaleFactor)),
+        data: MediaQuery.of(context)
+            .copyWith(textScaler: TextScaler.linear(textScaleFactor)),
         child: child!,
       ),
       home: home,

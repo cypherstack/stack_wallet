@@ -27,6 +27,7 @@ import '../utilities/enums/backup_frequency_type.dart';
 import '../utilities/idle_monitor.dart';
 import '../utilities/prefs.dart';
 import '../widgets/background.dart';
+import '../widgets/onetime_popups/native_library_warning_dialog.dart';
 import 'address_book_view/desktop_address_book.dart';
 import 'desktop_buy/desktop_buy_view.dart';
 import 'desktop_exchange/desktop_exchange_view.dart';
@@ -67,8 +68,9 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
   }
 
   late AutoLockInfo _autoLockInfo;
+  late final Prefs _prefs;
   void _prefsTimeoutListener() {
-    final prefs = ref.read(prefsChangeNotifierProvider);
+    final prefs = _prefs;
     if (mounted && prefs.autoLockInfo != _autoLockInfo) {
       _autoLockInfo = prefs.autoLockInfo;
       if (_autoLockInfo.enabled) {
@@ -87,7 +89,8 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
 
   @override
   void initState() {
-    _autoLockInfo = ref.read(prefsChangeNotifierProvider).autoLockInfo;
+    _prefs = ref.read(prefsChangeNotifierProvider);
+    _autoLockInfo = _prefs.autoLockInfo;
     if (_autoLockInfo.enabled) {
       _idleMonitor = IdleMonitor(
         timeout: Duration(minutes: _autoLockInfo.minutes),
@@ -102,18 +105,22 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
     );
     _idleMonitor?.attach();
 
-    ref.read(prefsChangeNotifierProvider).addListener(_prefsTimeoutListener);
+    _prefs.addListener(_prefsTimeoutListener);
 
     // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
     //   showOneTimeTorHasBeenAddedDialogIfRequired(context);
     // });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(showNativeLibraryWarningIfRequired(context));
+    });
 
     super.initState();
   }
 
   @override
   dispose() {
-    ref.read(prefsChangeNotifierProvider).removeListener(_prefsTimeoutListener);
+    _prefs.removeListener(_prefsTimeoutListener);
     _idleMonitor?.detach();
     super.dispose();
   }
@@ -171,9 +178,8 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
     if (ref.read(prevDesktopMenuItemProvider.state).state ==
             DesktopMenuItemId.myStack &&
         ref.read(prevDesktopMenuItemProvider.state).state == newKey) {
-      Navigator.of(
-        myStackViewNavKey.currentContext!,
-      ).popUntil(ModalRoute.withName(MyStackView.routeName));
+      Navigator.of(myStackViewNavKey.currentContext!)
+          .popUntil(ModalRoute.withName(MyStackView.routeName));
       if (ref.read(currentWalletIdProvider.state).state != null) {
         final wallet = ref
             .read(pWallets)

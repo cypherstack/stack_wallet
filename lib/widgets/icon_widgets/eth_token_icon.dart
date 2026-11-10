@@ -16,9 +16,12 @@ import 'package:flutter_svg/svg.dart';
 import 'package:isar_community/isar.dart';
 
 import '../../models/isar/exchange_cache/currency.dart';
+import '../../networking/tor_aware_network_image.dart';
 import '../../services/exchange/change_now/change_now_exchange.dart';
 import '../../services/exchange/exchange_data_loading_service.dart';
 import '../../themes/coin_icon_provider.dart';
+import '../../utilities/assets.dart';
+import '../../utilities/default_eth_tokens.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../loading_indicator.dart';
 
@@ -38,10 +41,13 @@ class EthTokenIcon extends ConsumerStatefulWidget {
 
 class _EthTokenIconState extends ConsumerState<EthTokenIcon> {
   String? imageUrl;
+  bool get _isRsFiro =>
+      widget.contractAddress.toLowerCase() == DefaultTokens.rsFiro.address;
 
   @override
   void initState() {
     super.initState();
+    if (_isRsFiro) return;
 
     ExchangeDataLoadingService.instance.isar.then((isar) async {
       final currency = await isar.currencies
@@ -67,6 +73,14 @@ class _EthTokenIconState extends ConsumerState<EthTokenIcon> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isRsFiro) {
+      return SvgPicture.asset(
+        Assets.svg.rsFiro,
+        width: widget.size,
+        height: widget.size,
+      );
+    }
+
     if (imageUrl == null || imageUrl!.isEmpty) {
       return SvgPicture.file(
         File(ref.watch(coinIconProvider(Ethereum(.main)))),
@@ -74,8 +88,8 @@ class _EthTokenIconState extends ConsumerState<EthTokenIcon> {
         height: widget.size,
       );
     } else {
-      return SvgPicture.network(
-        imageUrl!,
+      return SvgPicture(
+        TorAwareSvgNetworkLoader(imageUrl!),
         width: widget.size,
         height: widget.size,
         placeholderBuilder: (_) => const LoadingIndicator(),
