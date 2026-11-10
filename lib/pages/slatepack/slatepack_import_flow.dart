@@ -359,11 +359,8 @@ abstract final class SlatepackImportFlow {
       paid = await showDialog<bool>(
         context: context,
         barrierDismissible: false,
-        builder: (_) => DesktopDialog(
-          maxWidth: 700,
-          maxHeight: double.infinity,
-          child: view,
-        ),
+        builder: (_) =>
+            DesktopDialog(maxWidth: 700, maxHeight: null, child: view),
       );
     } else {
       paid = await Navigator.of(context).push<bool>(

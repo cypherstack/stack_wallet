@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grin/grin.dart' show GrinAddressKind;
 
 import '../../themes/stack_colors.dart';
 import '../../utilities/constants.dart';
@@ -27,7 +28,10 @@ class SlatepackRecipientField extends StatefulWidget {
   /// Empty, or an address the coin accepts.
   static bool isAcceptable(CryptoCurrency coin, String text) {
     final trimmed = text.trim();
-    return trimmed.isEmpty || coin.validateAddress(trimmed);
+    return trimmed.isEmpty ||
+        (coin is Grin
+            ? coin.addressKind(trimmed) == GrinAddressKind.slatepack
+            : coin.validateAddress(trimmed));
   }
 
   @override

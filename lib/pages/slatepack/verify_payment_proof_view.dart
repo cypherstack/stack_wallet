@@ -27,7 +27,7 @@ Future<void> showVerifyPaymentProof(BuildContext context, String walletId) {
     return showDialog<void>(
       context: context,
       builder: (_) =>
-          DesktopDialog(maxWidth: 700, maxHeight: double.infinity, child: view),
+          DesktopDialog(maxWidth: 700, maxHeight: null, child: view),
     );
   }
   return Navigator.of(context).push<void>(

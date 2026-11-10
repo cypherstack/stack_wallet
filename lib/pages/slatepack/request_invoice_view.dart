@@ -34,7 +34,7 @@ Future<void> showRequestInvoice(BuildContext context, String walletId) {
     return showDialog<void>(
       context: context,
       builder: (_) =>
-          DesktopDialog(maxWidth: 580, maxHeight: double.infinity, child: view),
+          DesktopDialog(maxWidth: 580, maxHeight: null, child: view),
     );
   }
   return Navigator.of(context).push<void>(
@@ -73,7 +73,10 @@ class _RequestInvoiceViewState extends ConsumerState<RequestInvoiceView> {
     super.initState();
     _wallet =
         ref.read(pWallets).getWallet(widget.walletId) as SlatepackInterface;
+    _payerController.addListener(_payerChanged);
   }
+
+  void _payerChanged() => setState(() {});
 
   @override
   void dispose() {
@@ -148,7 +151,7 @@ class _RequestInvoiceViewState extends ConsumerState<RequestInvoiceView> {
 
   Future<void> _create() async {
     final amount = _amount;
-    if (amount == null || _busy) return;
+    if (amount == null || !_canCreate) return;
     setState(() => _busy = true);
     try {
       final payer = _payerController.text.trim();
