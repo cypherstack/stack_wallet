@@ -122,16 +122,19 @@ void main() {
       }
     });
 
-    test("allows an explicit data directory with --portable outside an AppImage", () {
-      final result = StackFileSystem.desktopDataDirectoryOverride(
-        arguments: const ["-d", "/custom/data", "--portable"],
-        appImagePath: null,
-        appDataDirectoryName: "stackwallet",
-        portableMarkerExists: false,
-      );
+    test(
+      "allows an explicit data directory with --portable outside an AppImage",
+      () {
+        final result = StackFileSystem.desktopDataDirectoryOverride(
+          arguments: const ["-d", "/custom/data", "--portable"],
+          appImagePath: null,
+          appDataDirectoryName: "stackwallet",
+          portableMarkerExists: false,
+        );
 
-      expect(result, (path: "/custom/data", portable: false));
-    });
+        expect(result, (path: "/custom/data", portable: false));
+      },
+    );
 
     test("does not enable portable mode outside an AppImage", () {
       final result = StackFileSystem.desktopDataDirectoryOverride(
