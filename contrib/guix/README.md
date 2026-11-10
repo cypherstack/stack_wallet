@@ -1,55 +1,72 @@
-# Guix Reproducible Builds for Stack Wallet
-Build infrastructure for producing reproducible (deterministic) Linux x86_64 builds of Stack Wallet inside a Guix container.
+# Experimental Guix builds for Stack Wallet
 
-Based on Bitcoin Core's approach (`contrib/guix/`).
+**Blocked on current staging:** this prototype predates the migration from
+`crypto_plugins` submodules to Dart native-assets hooks. Merging staging does not
+make the old offline build recipe compatible. The fetch, verification, and build
+entry points now fail before downloading dependencies or starting a container
+when the required legacy workspaces are absent. This is a diagnostic guard, not
+an implementation of native-assets support.
 
-## Prerequisites
-- [GNU Guix](https://guix.gnu.org/) installed (via the shell installer or distro package)
-- GPG key (for signing attestations)
-- ~20 GB disk space for dependency caches
+The orchestration, cache, and attestation scripts remain useful as a starting
+point. They have not produced a verified reproducible build of current staging.
+Do not use their presence checks or signed checksums as evidence that the native
+libraries were built reproducibly from reviewed source.
 
-## Quick Start
+## Work required before enabling builds
+
+1. Resolve native packages from the generated app configuration and locked pub
+   dependencies. Replace all `crypto_plugins` paths and legacy Cargokit setup.
+2. Vendor every selected native hook's Rust dependencies (including Xelis and
+   Tor), pin the toolchain each hook actually invokes, and honor locked sources.
+3. Fetch and verify the Go module cache for MWEB and all CMake/source downloads.
+   Make the hooks consume those caches without network access. The current
+   scripts do not populate the `go-cache` mount.
+4. Pin Guix channels, Flutter SDK archives, Rust archives, and native sources.
+   Verify extracted cache contents as well as archive hashes. `verify-deps.sh`
+   currently checks package presence; it does not authenticate those contents.
+5. Build the same commit independently in two clean network-isolated containers,
+   compare outputs, investigate Flutter AOT differences, and only then publish
+   reproducibility claims or attestations.
+
+The historical variant table is obsolete: current native packages and hooks
+must be derived from each variant's generated pubspec, including Campfire.
+
+## Entry points
+
+Run commands from `contrib/guix`. `SOURCE_DIR` defaults to the checkout containing
+these scripts, including Git worktrees; set it explicitly only for another source
+checkout. The current staging SDK version is Flutter 3.47.2.
+
 ```bash
-# 1. Fetch all dependencies (requires network)
+# These commands intentionally stop on current staging until the port is ready.
 supplementary/deps/fetch-pub-deps.sh
 supplementary/deps/fetch-cargo-deps.sh
-
-# 2. Verify dependency hashes
 supplementary/deps/verify-deps.sh
-
-# 3. Build (network-isolated, deterministic: reproducible)
-./guix-build
-
-# 4. Sign the build output
-./guix-attest
-
-# 5. (Other builders) Verify attestations match
-./guix-verify
+./guix-build --app stack_wallet --version 2.3.4 --build-number 234
 ```
 
-## Build Variants
-Set `APP_NAME_ID` to select the variant:
-| Variant        | `APP_NAME_ID`  | Rust Plugins                   |
-|----------------|----------------|--------------------------------|
-| Stack Wallet   | `stack_wallet` | epiccash, mwc, frostdart       |
-| Stack Duo      | `stack_duo`    | frostdart                      |
-| Campfire        | `campfire`     | (none)                         |
+The fetch/build/verification pipeline requires `FLUTTER_SDK_SHA256`, a 64-digit
+SHA-256 obtained independently for the exact Flutter Linux SDK archive. It no
+longer accepts an unverified download and merely prints its hash. SDK metadata
+must parse and match the pinned version; empty or malformed output fails.
 
-## Environment Variables
-| Variable            | Default           | Description                         |
-|---------------------|-------------------|-------------------------------------|
-| `APP_NAME_ID`       | `stack_wallet`    | Build variant                       |
-| `APP_VERSION`       | from pubspec.yaml | Version string (e.g. `2.3.4`)      |
-| `APP_BUILD_NUMBER`  | from pubspec.yaml | Build number (e.g. `234`)           |
-| `JOBS`              | `$(nproc)`        | Parallel job count                  |
-| `HOSTS`             | `x86_64-linux-gnu`| Target triplet(s)                   |
-| `SOURCE_DATE_EPOCH` | from git log      | Timestamp for determinism           |
-| `BASE_CACHE`        | `depends`         | Path to pre-fetched dependency dir  |
+`guix-build` accepts `--app stack_wallet|stack_duo|campfire`, `--version`,
+`--build-number`, `--jobs`, and `--hosts`. Linux x86_64 is the only intended target.
+`BASE_CACHE` selects the dependency cache; `OUTDIR` selects output;
+`SOURCE_DATE_EPOCH` otherwise comes from the source commit.
 
-## Known Limitations
-- Flutter SDK is a hash-pinned binary input, not built from source.
-- Pre-built native `.so` libs (Monero, Wownero, Salvium, Tor, etc.) ship in pub
-  packages and are accepted as-is with hash verification.
-  A future phase will see these dependencies also built via the same method.
-- Linux x86_64 only (no cross-compilation).
-- Flutter AOT reproducibility is unverified and may need investigation.
+`guix-attest` signs build checksums with GPG, and `guix-verify` compares
+attestations. Signing proves who signed particular checksums, not that the
+build is reproducible. `guix-clean` removes outputs; `--all` also removes caches.
+
+## Local validation
+
+From the repository root:
+
+```bash
+python3 -m unittest discover -s contrib/guix/tests -v
+```
+
+The tests exercise worktree source selection, early failure on current staging,
+checksum validation, and SDK metadata handling. They do not run a Guix container
+or demonstrate artifact reproducibility.

@@ -15,9 +15,8 @@ set -euo pipefail
 GUIX_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # Root of the stack_wallet source tree.
-# Layout: /stack_wallet/stack_wallet-guix/contrib/guix/ (GUIX_DIR)
-#          /stack_wallet/stack_wallet/                    (SOURCE_DIR)
-: "${SOURCE_DIR:="$(cd "${GUIX_DIR}/../../../stack_wallet" && pwd)"}"
+# Resolve the checkout containing these scripts, including isolated worktrees.
+: "${SOURCE_DIR:="$(cd "${GUIX_DIR}/../.." && pwd)"}"
 
 # Pre-fetched dependency caches.
 : "${BASE_CACHE:="${GUIX_DIR}/depends"}"
@@ -35,7 +34,7 @@ export OUTDIR
 # Versions     #
 ################
 
-export FLUTTER_VERSION="3.38.1"
+export FLUTTER_VERSION="3.47.2"
 export FLUTTER_CHANNEL="stable"
 
 export RUST_VERSION_DEFAULT="1.89.0"
@@ -81,7 +80,7 @@ verify_sha256() {
     local expected="$2"
     local actual
     actual="$(sha256sum "$file" | awk '{print $1}')"
-    if [ "$actual" != "$expected" ]; then
+    if [ "$actual" != "${expected,,}" ]; then
         die "SHA-256 mismatch for ${file}: expected ${expected}, got ${actual}"
     fi
 }
@@ -113,5 +112,48 @@ compute_source_date_epoch() {
             SOURCE_DATE_EPOCH="$(date +%s)"
         fi
         export SOURCE_DATE_EPOCH
+    fi
+}
+
+# This prototype still manually builds the pre-native-assets Rust workspaces.
+# Check before downloads or container setup: a successful textual merge does
+# not make its offline build pipeline compatible with current staging.
+require_supported_native_layout() {
+    local manifest
+    for manifest in \
+        crypto_plugins/flutter_libepiccash/rust/Cargo.toml \
+        crypto_plugins/flutter_libmwc/rust/Cargo.toml \
+        crypto_plugins/frostdart/src/serai/Cargo.toml; do
+        if [ ! -f "${SOURCE_DIR}/${manifest}" ]; then
+            die "Guix native-assets support is not implemented for this checkout.
+Missing legacy workspace: ${manifest}
+Current staging builds native packages through Dart hooks. Port the offline
+Rust/Go/CMake caches and hook toolchain selection before using this prototype.
+See contrib/guix/README.md. No dependencies have been downloaded by this check."
+        fi
+    done
+    local template="${SOURCE_DIR}/scripts/app_config/templates/pubspec.template.yaml"
+    local plugin
+    for plugin in flutter_libepiccash flutter_libmwc frostdart; do
+        if [ ! -f "$template" ] || ! grep -Eq \
+            "^[#[:space:]]*path:[[:space:]]+\\./crypto_plugins/${plugin}[[:space:]]*$" "$template"; then
+            die "Guix native-assets support is not implemented: the dependency template does not select legacy ${plugin}. Stale workspace directories do not make this checkout compatible. See contrib/guix/README.md."
+        fi
+    done
+}
+
+require_flutter_checksum() {
+    if [[ ! "${FLUTTER_SDK_SHA256:-}" =~ ^[0-9a-fA-F]{64}$ ]]; then
+        die "Set FLUTTER_SDK_SHA256 to the independently verified SHA-256 of the Flutter ${FLUTTER_VERSION} Linux SDK archive."
+    fi
+}
+
+verify_flutter_sdk_version() {
+    local flutter_bin="$1" actual_version
+    actual_version="$("$flutter_bin" --version --machine | python3 -c \
+        'import json, sys; print(json.load(sys.stdin)["frameworkVersion"])')" || actual_version=""
+    if [ "$actual_version" != "$FLUTTER_VERSION" ]; then
+        log_error "Flutter version mismatch: expected ${FLUTTER_VERSION}, got ${actual_version:-invalid metadata}"
+        return 1
     fi
 }

@@ -3,7 +3,8 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or https://opensource.org/licenses/MIT.
 #
-# verify-deps.sh — Re-verify all pre-fetched dependency hashes.
+# verify-deps.sh — Check SDK identity and dependency cache presence.
+# Presence checks below do not authenticate extracted package contents.
 
 set -euo pipefail
 
@@ -24,13 +25,10 @@ verify_flutter() {
         ERRORS=$((ERRORS + 1))
         return
     fi
-    local actual_version
-    actual_version="$("$flutter_bin" --version --machine 2>/dev/null | grep -o '"frameworkVersion":"[^"]*"' | cut -d'"' -f4)" || true
-    if [ -n "$actual_version" ] && [ "$actual_version" != "$FLUTTER_VERSION" ]; then
-        log_error "Flutter version mismatch: expected ${FLUTTER_VERSION}, got ${actual_version}"
-        ERRORS=$((ERRORS + 1))
-    else
+    if verify_flutter_sdk_version "$flutter_bin"; then
         log_info "  Flutter SDK ${FLUTTER_VERSION}: OK"
+    else
+        ERRORS=$((ERRORS + 1))
     fi
 }
 
@@ -204,6 +202,11 @@ main() {
     log_info "Source dir: ${SOURCE_DIR}"
     log_info "Cache dir:  ${BASE_CACHE}"
 
+    require_supported_native_layout
+    require_flutter_checksum
+    local archive="${BASE_CACHE}/flutter_linux_${FLUTTER_VERSION}-${FLUTTER_CHANNEL}.tar.xz"
+    [ -f "$archive" ] || die "Missing Flutter SDK archive: ${archive}"
+    verify_sha256 "$archive" "$FLUTTER_SDK_SHA256"
     verify_flutter
     verify_rust
     verify_hosted_packages
@@ -215,7 +218,7 @@ main() {
     if [ "$ERRORS" -gt 0 ]; then
         die "Verification FAILED with ${ERRORS} error(s). Run fetch scripts to fix."
     fi
-    log_info "=== All dependencies verified OK ==="
+    log_info "=== Dependency presence checks passed; this does not prove reproducibility ==="
 }
 
 main "$@"

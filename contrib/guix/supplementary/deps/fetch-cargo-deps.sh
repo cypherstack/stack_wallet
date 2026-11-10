@@ -11,6 +11,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/../../libexec/prelude.bash"
 
+require_supported_native_layout
+
 CARGO_CACHE="${CARGO_CACHE_DIR}"
 mkdir -p "$CARGO_CACHE"
 
@@ -30,8 +32,7 @@ vendor_workspace() {
     local cargo_bin="${RUST_DIR}/${rust_version}/bin/cargo"
 
     if [ ! -d "$workspace_dir" ]; then
-        log_info "Skipping ${name}: workspace not found at ${workspace_dir}"
-        return
+        die "Required ${name} workspace not found at ${workspace_dir}"
     fi
 
     local vendor_dir="${CARGO_CACHE}/vendor-${name}"
@@ -49,7 +50,7 @@ vendor_workspace() {
     local config_file="${CARGO_CACHE}/vendor-${name}-config.toml"
     (
         cd "$workspace_dir"
-        "$cargo_bin" vendor --versioned-dirs "$vendor_dir" 2>/dev/null
+        "$cargo_bin" vendor --locked --versioned-dirs "$vendor_dir"
     ) > "$config_file"
 
     log_info "${name}: vendored to ${vendor_dir}"

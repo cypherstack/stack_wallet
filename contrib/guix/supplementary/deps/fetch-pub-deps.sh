@@ -31,18 +31,14 @@ fetch_flutter_sdk() {
         curl -L --fail -o "$tarball" "$FLUTTER_URL"
     fi
 
-    if [ -n "$FLUTTER_SHA256" ]; then
-        verify_sha256 "$tarball" "$FLUTTER_SHA256"
-    else
-        log_info "FLUTTER_SDK_SHA256 not set — recording hash for future pinning:"
-        sha256sum "$tarball"
-    fi
+    verify_sha256 "$tarball" "$FLUTTER_SHA256"
 
     # Extract only if flutter/bin/flutter doesn't exist yet.
     if [ ! -x "${FLUTTER_SDK_DIR}/flutter/bin/flutter" ]; then
         log_info "Extracting Flutter SDK ..."
         tar -xf "$tarball" -C "${FLUTTER_SDK_DIR}"
     fi
+    verify_flutter_sdk_version "${FLUTTER_SDK_DIR}/flutter/bin/flutter"
     log_info "Flutter SDK ready at ${FLUTTER_SDK_DIR}/flutter"
 }
 
@@ -349,6 +345,8 @@ main() {
     log_info "Source dir: ${SOURCE_DIR}"
     log_info "Cache dir:  ${BASE_CACHE}"
 
+    require_supported_native_layout
+    require_flutter_checksum
     fetch_flutter_sdk
     fetch_rust_toolchains
     fetch_hosted_packages "${SOURCE_DIR}/pubspec.lock" "Stack Wallet pubspec.lock"

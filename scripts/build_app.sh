@@ -7,7 +7,7 @@ source "$(dirname -- "${BASH_SOURCE[0]}")/env.sh"
 # Function to display usage.
 usage() {
     echo "Usage: $0 -v <version> -b <build_number> -p <platform> -a <app> [-d] [-i] [-f] [-g] [-s]"
-    echo "  -g  Guix reproducible build (linux only). Delegates to contrib/guix/guix-build."
+    echo "  -g  Experimental Guix build (linux only; see contrib/guix/README.md). Delegates to contrib/guix/guix-build."
     exit 1
 }
 

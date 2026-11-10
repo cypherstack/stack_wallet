@@ -34,6 +34,8 @@ while [ $# -gt 0 ]; do
     esac
 done
 
+require_supported_native_layout
+require_flutter_checksum
 auto_detect_version
 compute_source_date_epoch
 
@@ -60,7 +62,7 @@ log_info "SOURCE_DATE_EPOCH: ${SOURCE_DATE_EPOCH}"
 log_info "Output:           ${OUTDIR}"
 
 # Verify pre-fetched caches exist.
-for cache_dir in "$PUB_CACHE_DIR" "$CARGO_CACHE_DIR" "$FLUTTER_SDK_DIR" "$RUST_DIR" "${BASE_CACHE}/native-sources"; do
+for cache_dir in "$PUB_CACHE_DIR" "$CARGO_CACHE_DIR" "$FLUTTER_SDK_DIR" "$RUST_DIR" "${BASE_CACHE}/native-sources" "${BASE_CACHE}/go-cache"; do
     if [ ! -d "$cache_dir" ]; then
         die "Missing cache directory: ${cache_dir}
 Run supplementary/deps/fetch-pub-deps.sh and fetch-cargo-deps.sh first."
@@ -71,6 +73,8 @@ done
 if [ ! -x "${FLUTTER_SDK_DIR}/flutter/bin/flutter" ]; then
     die "Flutter SDK not found at ${FLUTTER_SDK_DIR}/flutter"
 fi
+
+verify_flutter_sdk_version "${FLUTTER_SDK_DIR}/flutter/bin/flutter"
 
 # Verify at least the default Rust toolchain.
 if [ ! -x "${RUST_DIR}/${RUST_VERSION_DEFAULT}/bin/rustc" ]; then
