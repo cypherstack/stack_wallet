@@ -1531,34 +1531,39 @@ class _TransactionV2DetailsViewState
                           return;
                         }
 
-                        if (_slatepackInfo?.finalizedAwaitingConfirmation ??
-                            false) {
-                          final go = await showDialog<bool>(
-                            context: context,
-                            builder: (context) => StackDialog(
-                              title: "Cancel a finalized transaction?",
-                              message:
-                                  "This transaction is finalized and may "
-                                  "still reach the chain, for example if the "
-                                  "other party or a node posts it. "
-                                  "Cancelling unlocks the funds in this "
-                                  "wallet only. If it confirms later the "
-                                  "wallet shows it again. Try Repost first "
-                                  "if it is stuck.",
-                              leftButton: SecondaryButton(
-                                label: "Keep",
-                                onPressed: () =>
-                                    Navigator.of(context).pop(false),
-                              ),
-                              rightButton: PrimaryButton(
-                                label: "Cancel anyway",
-                                onPressed: () =>
-                                    Navigator.of(context).pop(true),
-                              ),
+                        final bool finalized =
+                            _slatepackInfo?.finalizedAwaitingConfirmation ??
+                            false;
+                        final go = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => StackDialog(
+                            title: finalized
+                                ? "Cancel a finalized transaction?"
+                                : "Cancel this transaction?",
+                            message: finalized
+                                ? "This transaction is finalized and may "
+                                      "still reach the chain, for example if "
+                                      "the other party or a node posts it. "
+                                      "Cancelling unlocks the funds in this "
+                                      "wallet only. If it confirms later the "
+                                      "wallet shows it again. Try Repost "
+                                      "first if it is stuck."
+                                : "The other party can no longer complete "
+                                      "it, and any funds it locked become "
+                                      "spendable again.",
+                            leftButton: SecondaryButton(
+                              label: "Keep",
+                              onPressed: () => Navigator.of(context).pop(false),
                             ),
-                          );
-                          if (go != true || !context.mounted) return;
-                        }
+                            rightButton: PrimaryButton(
+                              label: finalized
+                                  ? "Cancel anyway"
+                                  : "Cancel transaction",
+                              onPressed: () => Navigator.of(context).pop(true),
+                            ),
+                          ),
+                        );
+                        if (go != true || !context.mounted) return;
 
                         unawaited(
                           showDialog<void>(
