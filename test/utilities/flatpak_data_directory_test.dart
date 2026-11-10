@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -14,6 +16,19 @@ Future<void> _copyTree(Directory source, Directory destination) async {
       await entity.copy(target);
     }
   }
+}
+
+String _dartExecutable() {
+  final flutterRoot = Platform.environment["FLUTTER_ROOT"];
+  if (flutterRoot != null) {
+    return path.join(flutterRoot, "bin", "cache", "dart-sdk", "bin", "dart");
+  }
+
+  var directory = path.dirname(Platform.resolvedExecutable);
+  for (var i = 0; i < 6; i++) {
+    directory = path.dirname(directory);
+  }
+  return path.join(directory, "bin", "cache", "dart-sdk", "bin", "dart");
 }
 
 void main() {
@@ -59,9 +74,8 @@ void main() {
 
     expect(result!.path, path.join(temporaryRoot.path, "xdg", "stackwallet"));
     expect(
-      await File(
-        path.join(result.path, FlatpakDataDirectory.migrationMarker),
-      ).exists(),
+      await File(path.join(result.path, FlatpakDataDirectory.migrationMarker))
+          .exists(),
       isTrue,
     );
   });
@@ -70,9 +84,8 @@ void main() {
     final env = environment();
     final legacy = Directory(path.join(env["HOME"]!, ".stackwallet"));
     await Directory(path.join(legacy.path, "hive")).create(recursive: true);
-    await File(
-      path.join(legacy.path, "hive", "wallet.hive"),
-    ).writeAsString("wallet data");
+    await File(path.join(legacy.path, "hive", "wallet.hive"))
+        .writeAsString("wallet data");
 
     final result = await FlatpakDataDirectory.resolve(
       environment: env,
@@ -85,6 +98,101 @@ void main() {
       "wallet data",
     );
     expect(await legacy.exists(), isTrue);
+    expect(
+      await File(path.join(legacy.path, "hive", "dbinfo.lock")).exists(),
+      isFalse,
+    );
+  });
+
+  test(
+    "locks a legacy directory before copying when no Hive lock exists",
+    () async {
+      final env = environment();
+      final legacy = Directory(path.join(env["HOME"]!, ".stackwallet"));
+      await legacy.create(recursive: true);
+      await File(path.join(legacy.path, "wallet")).writeAsString("legacy data");
+      final lockFilePath = path.join(
+        env["XDG_DATA_HOME"]!,
+        "stackwallet.migration.lock",
+      );
+      final lockProbe = File(path.join(temporaryRoot.path, "try_lock.dart"));
+      await lockProbe.writeAsString('''
+import 'dart:io';
+Future<void> main(List<String> args) async {
+  final handle = await File(args.single).open(mode: FileMode.append);
+  try {
+    await handle.lock(FileLock.exclusive);
+    print('ACQUIRED');
+    await handle.unlock();
+  } on FileSystemException {
+    print('BLOCKED');
+  } finally {
+    await handle.close();
+  }
+}
+''');
+
+      Process? lockProbeProcess;
+      var lockWasHeldDuringCopy = false;
+      late final Future<String> lockProbeOutput;
+      final result = await FlatpakDataDirectory.resolve(
+        environment: env,
+        appDirectoryName: "stackwallet",
+        copyDirectory: (source, destination) async {
+          final probe = await Process.start(_dartExecutable(), [
+            lockProbe.path,
+            lockFilePath,
+          ]);
+          lockProbeProcess = probe;
+          lockProbeOutput = probe.stdout.transform(utf8.decoder).join();
+          final probeExited = Completer<void>();
+          probe.exitCode.then((_) => probeExited.complete());
+          await Future<void>.delayed(const Duration(milliseconds: 100));
+          lockWasHeldDuringCopy = !probeExited.isCompleted;
+          await _copyTree(source, destination);
+        },
+      );
+
+      expect(lockWasHeldDuringCopy, isTrue);
+      expect(await lockProbeProcess!.exitCode, 0);
+      expect((await lockProbeOutput).trim(), "ACQUIRED");
+      expect(result!.path, path.join(env["XDG_DATA_HOME"]!, "stackwallet"));
+      expect(
+        await File(path.join(result.path, "wallet")).readAsString(),
+        "legacy data",
+      );
+      expect(await Directory(path.join(legacy.path, "hive")).exists(), isFalse);
+    },
+  );
+
+  test("does not modify legacy data when the XDG root is read-only", () async {
+    final env = environment();
+    final legacy = Directory(path.join(env["HOME"]!, ".stackwallet"));
+    final xdg = Directory(env["XDG_DATA_HOME"]!);
+    await legacy.create(recursive: true);
+    await File(path.join(legacy.path, "wallet")).writeAsString("legacy data");
+    await xdg.create(recursive: true);
+    await Process.run("chmod", ["0500", xdg.path]);
+
+    try {
+      final result = await FlatpakDataDirectory.resolve(
+        environment: env,
+        appDirectoryName: "stackwallet",
+      );
+
+      expect(result!.path, legacy.path);
+      expect(
+        await File(path.join(legacy.path, "wallet")).readAsString(),
+        "legacy data",
+      );
+      expect(await Directory(path.join(legacy.path, "hive")).exists(), isFalse);
+      expect(
+        await File(path.join(legacy.path, "hive", "dbinfo.lock")).exists(),
+        isFalse,
+      );
+    } finally {
+      await Process.run("chmod", ["0700", xdg.path]);
+    }
   });
 
   test(
@@ -131,9 +239,8 @@ void main() {
     expect(result!.path, legacy.path);
     expect(reportedError, isA<FileSystemException>());
     expect(
-      await Directory(
-        "${env["XDG_DATA_HOME"]!}/stackwallet.migrating",
-      ).exists(),
+      await Directory("${env["XDG_DATA_HOME"]!}/stackwallet.migrating")
+          .exists(),
       isFalse,
     );
   });
@@ -170,9 +277,8 @@ void main() {
       path.join(env["XDG_DATA_HOME"]!, "stackwallet"),
     );
     await Directory(path.join(legacy.path, "hive")).create(recursive: true);
-    await File(
-      path.join(legacy.path, "hive", "wallet.hive"),
-    ).writeAsString("wallet data");
+    await File(path.join(legacy.path, "hive", "wallet.hive"))
+        .writeAsString("wallet data");
     Object? reportedError;
 
     final result = await FlatpakDataDirectory.resolve(

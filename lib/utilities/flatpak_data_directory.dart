@@ -3,8 +3,10 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as path;
 
-typedef DirectoryCopy =
-    Future<void> Function(Directory source, Directory destination);
+typedef DirectoryCopy = Future<void> Function(
+  Directory source,
+  Directory destination,
+);
 
 abstract class FlatpakDataDirectory {
   static const migrationMarker = ".flatpak_data_migration_v1";
@@ -66,14 +68,21 @@ abstract class FlatpakDataDirectory {
     }
 
     final temporary = Directory("${destination.path}.migrating");
+    RandomAccessFile? migrationLock;
     RandomAccessFile? legacyLock;
     try {
-      legacyLock = await _lockLegacyDatabase(legacy);
+      migrationLock = await _lockMigration(destination);
       // Another instance may have completed a verified migration between the
-      // marker check above and taking the lock.
+      // marker check above and taking the migration lock.
       if (await marker.exists()) {
         return destination;
       }
+      if (await destination.exists()) {
+        throw StateError(
+          "Flatpak data migration found both legacy and unverified data",
+        );
+      }
+      legacyLock = await _lockLegacyDatabase(legacy);
       final temporaryType = await FileSystemEntity.type(
         temporary.path,
         followLinks: false,
@@ -90,9 +99,8 @@ abstract class FlatpakDataDirectory {
       await Directory(path.dirname(destination.path)).create(recursive: true);
       await copyDirectory(legacy, temporary);
       await _verifyDirectoryCopy(legacy, temporary);
-      await File(
-        path.join(temporary.path, migrationMarker),
-      ).writeAsString("complete", flush: true);
+      await File(path.join(temporary.path, migrationMarker))
+          .writeAsString("complete", flush: true);
       await temporary.rename(destination.path);
       return destination;
     } catch (error) {
@@ -112,13 +120,38 @@ abstract class FlatpakDataDirectory {
       onError?.call(error);
       return legacy;
     } finally {
-      if (legacyLock != null) {
-        try {
-          await legacyLock.unlock();
-          await legacyLock.close();
-        } catch (error) {
-          onError?.call(error);
-        }
+      await _releaseLock(legacyLock, onError);
+      await _releaseLock(migrationLock, onError);
+    }
+  }
+
+  static Future<RandomAccessFile> _lockMigration(Directory destination) async {
+    await Directory(path.dirname(destination.path)).create(recursive: true);
+    final lockFile = File("${destination.path}.migration.lock");
+    final handle = await lockFile.open(mode: FileMode.append);
+    try {
+      await handle.lock(FileLock.exclusive);
+      return handle;
+    } catch (_) {
+      await handle.close();
+      rethrow;
+    }
+  }
+
+  static Future<void> _releaseLock(
+    RandomAccessFile? lock,
+    void Function(Object error)? onError,
+  ) async {
+    if (lock != null) {
+      try {
+        await lock.unlock();
+      } catch (error) {
+        onError?.call(error);
+      }
+      try {
+        await lock.close();
+      } catch (error) {
+        onError?.call(error);
       }
     }
   }
@@ -128,7 +161,6 @@ abstract class FlatpakDataDirectory {
     if (!await lockFile.exists()) {
       return null;
     }
-
     final handle = await lockFile.open(mode: FileMode.append);
     try {
       await handle.lock(FileLock.exclusive);
