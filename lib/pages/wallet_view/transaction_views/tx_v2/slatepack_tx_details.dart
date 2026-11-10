@@ -177,7 +177,8 @@ class SlatepackTxDetails extends StatelessWidget {
           row("Kernel excess", info.kernelExcess!, copy: true),
         if (info.counterpartyAddress != null)
           row("Counterparty", info.counterpartyAddress!, copy: true),
-        if (info.ttlCutoffHeight != null)
+        // The cutoff only matters until the transaction is mined.
+        if (info.ttlCutoffHeight != null && (transaction.height ?? 0) <= 0)
           row("Expires at block", info.ttlCutoffHeight.toString()),
         for (final action in actions) ...[
           SizedBox(height: isDesktop ? 16 : 12),

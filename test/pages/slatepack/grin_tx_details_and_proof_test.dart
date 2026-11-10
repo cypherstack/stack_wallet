@@ -169,6 +169,42 @@ void main() {
     expect(wallet.reposted, ['slate-1']);
   });
 
+  testWidgets('a mined transaction does not show its expiry block', (
+    tester,
+  ) async {
+    final mined = TransactionV2(
+      walletId: 'w',
+      blockHash: null,
+      hash: '08ab',
+      txid: 'slate-1',
+      timestamp: 0,
+      height: 1200,
+      inputs: const [],
+      outputs: const [],
+      version: 0,
+      type: TransactionType.outgoing,
+      subType: TransactionSubType.none,
+      otherData: null,
+    );
+    await pump(
+      tester,
+      SlatepackTxDetails(
+        wallet: wallet,
+        transaction: mined,
+        info: const SlatepackTxInfo(
+          state: SlateState.s3,
+          slateId: 'slate-1',
+          kernelExcess: '08ab',
+          ttlCutoffHeight: 2500,
+          hasPaymentProof: true,
+        ),
+      ),
+    );
+    expect(find.text('Expires at block'), findsNothing);
+    expect(find.text('2500'), findsNothing);
+    expect(find.text('08ab'), findsOneWidget);
+  });
+
   testWidgets('a proof can be exported', (tester) async {
     await pump(
       tester,
