@@ -630,7 +630,6 @@ class WalletUriData {
   final String? spendKey;
   final String? viewKey;
   final int? height;
-  final List<String>? txids;
 
   bool get isViewOnly => spendKey == null && seed == null;
 
@@ -641,7 +640,6 @@ class WalletUriData {
     this.spendKey,
     this.viewKey,
     this.height,
-    this.txids,
   });
 
   factory WalletUriData.fromUriString(
@@ -760,17 +758,5 @@ class WalletUriData {
         "viewKey: ${viewKey == null ? null : '<redacted>'}, "
         "height: $height, "
         " }";
-  }
-
-  String toJson() {
-    return jsonEncode({
-      "coin": coin.prettyName,
-      "address": address,
-      "seed": seed,
-      "spendKey": spendKey,
-      "viewKey": viewKey,
-      "height": height,
-      "txids": txids,
-    });
   }
 }

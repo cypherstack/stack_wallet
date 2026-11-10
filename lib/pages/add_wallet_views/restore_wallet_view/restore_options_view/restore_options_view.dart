@@ -19,6 +19,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
+import '../../../../models/keys/cryptonote_key_restore_data.dart';
 import '../../../../models/keys/view_only_wallet_data.dart';
 import '../../../../pages_desktop_specific/desktop_home_view.dart';
 import '../../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
@@ -29,6 +30,7 @@ import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/address_utils.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/constants.dart';
+import '../../../../utilities/logger.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
@@ -175,16 +177,15 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
 
     if (!mounted) return;
 
-    await showDialog<dynamic>(
+    final confirmed = await showDialog<bool>(
       context: context,
       useSafeArea: false,
       barrierDismissible: true,
-      builder: (context) {
-        return ConfirmRecoveryDialog(
-          onConfirm: () => _doUriRestore(data, fallbackHeight),
-        );
-      },
+      builder: (context) => const ConfirmRecoveryDialog(),
     );
+    if (confirmed == true && mounted) {
+      await _doUriRestore(data, fallbackHeight);
+    }
   }
 
   Future<void> _doUriRestore(WalletUriData data, int fallbackHeight) async {
@@ -203,7 +204,10 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
               ViewOnlyWalletType.cryptonote.index,
         };
       } else {
-        otherDataJson = {WalletInfoKeys.isRestoredFromKeysKey: true};
+        otherDataJson = {
+          WalletInfoKeys.recoveryTypeIndexKey:
+              WalletRecoveryType.privateKeys.index,
+        };
       }
 
       final info = WalletInfo.createNew(
@@ -213,27 +217,27 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
         otherDataJsonString: jsonEncode(otherDataJson),
       );
 
-      bool isRestoring = true;
+      bool restoringDialogOpen = false;
+      void closeRestoringDialog() {
+        if (restoringDialogOpen && mounted) {
+          Navigator.of(context, rootNavigator: true).pop();
+          restoringDialogOpen = false;
+        }
+      }
+
       if (mounted) {
+        restoringDialogOpen = true;
         unawaited(
           showDialog<dynamic>(
             context: context,
             useSafeArea: false,
             barrierDismissible: false,
-            builder: (context) {
-              return RestoringDialog(
-                onCancel: () async {
-                  isRestoring = false;
-                  await ref
-                      .read(pWallets)
-                      .deleteWallet(info, ref.read(secureStoreProvider));
-                },
-              );
-            },
+            builder: (context) => const RestoringDialog(),
           ),
         );
       }
 
+      late final Wallet wallet;
       try {
         var node = ref
             .read(nodeServiceChangeNotifierProvider)
@@ -246,7 +250,6 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
               .save(node, null, false);
         }
 
-        final Wallet wallet;
         if (data.seed != null) {
           wallet = await Wallet.create(
             walletInfo: info,
@@ -259,7 +262,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
         } else if (data.isViewOnly) {
           final viewOnlyData = CryptonoteViewOnlyWalletData(
             walletId: info.walletId,
-            address: data.address ?? "",
+            address: data.address!,
             privateViewKey: data.viewKey!,
           );
           wallet = await Wallet.create(
@@ -271,18 +274,17 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
             viewOnlyData: viewOnlyData,
           );
         } else {
-          final keysRestoreData = jsonEncode({
-            "address": data.address ?? "",
-            "viewKey": data.viewKey!,
-            "spendKey": data.spendKey!,
-          });
           wallet = await Wallet.create(
             walletInfo: info,
             mainDB: ref.read(mainDBProvider),
             secureStorageInterface: ref.read(secureStoreProvider),
             nodeService: ref.read(nodeServiceChangeNotifierProvider),
             prefs: ref.read(prefsChangeNotifierProvider),
-            keysRestoreData: keysRestoreData,
+            cryptonoteKeyRestoreData: CryptonoteKeyRestoreData(
+              address: data.address!,
+              privateViewKey: data.viewKey!,
+              privateSpendKey: data.spendKey!,
+            ),
           );
         }
 
@@ -294,54 +296,57 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
 
         await wallet.recover(isRescan: false);
 
-        if (mounted) {
-          await wallet.info.setMnemonicVerified(
+        await wallet.info.setMnemonicVerified(
+          isar: ref.read(mainDBProvider).isar,
+        );
+
+        if (ref.read(pDuress)) {
+          await wallet.info.updateDuressVisibilityStatus(
+            isDuressVisible: true,
             isar: ref.read(mainDBProvider).isar,
           );
-
-          if (ref.read(pDuress)) {
-            await wallet.info.updateDuressVisibilityStatus(
-              isDuressVisible: true,
-              isar: ref.read(mainDBProvider).isar,
-            );
-          }
-
-          ref.read(pWallets).addWallet(wallet);
-
-          if (mounted) {
-            if (isDesktop) {
-              Navigator.of(context)
-                  .popUntil(ModalRoute.withName(DesktopHomeView.routeName));
-            } else {
-              unawaited(
-                Navigator.of(
-                  context,
-                ).pushNamedAndRemoveUntil(HomeView.routeName, (route) => false),
-              );
-            }
-
-            await showDialog<dynamic>(
-              context: context,
-              useSafeArea: false,
-              barrierDismissible: true,
-              builder: (context) => const RestoreSucceededDialog(),
-            );
-          }
         }
-      } catch (e) {
-        if (mounted && isRestoring) {
-          Navigator.pop(context);
+      } catch (e, s) {
+        Logging.instance.e(
+          "Wallet URI restore failed (${e.runtimeType})",
+          stackTrace: s,
+        );
+        closeRestoringDialog();
+        if (mounted) {
           await showDialog<dynamic>(
             context: context,
             useSafeArea: false,
             barrierDismissible: true,
             builder: (context) => RestoreFailedDialog(
-              errorMessage: e.toString(),
+              errorMessage: "Wallet restore failed. Check the recovery details and try again.",
               walletId: info.walletId,
               walletName: info.name,
             ),
           );
         }
+        return;
+      }
+
+      if (!mounted) return;
+
+      ref.read(pWallets).addWallet(wallet);
+      closeRestoringDialog();
+      await showDialog<dynamic>(
+        context: context,
+        useSafeArea: false,
+        barrierDismissible: true,
+        builder: (context) => const RestoreSucceededDialog(),
+      );
+
+      if (!mounted) return;
+      if (isDesktop) {
+        Navigator.of(context)
+            .popUntil(ModalRoute.withName(DesktopHomeView.routeName));
+      } else {
+        unawaited(
+          Navigator.of(context)
+              .pushNamedAndRemoveUntil(HomeView.routeName, (route) => false),
+        );
       }
     } finally {
       if (!Platform.isLinux && !isDesktop) await WakelockPlus.disable();
@@ -426,6 +431,9 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                           onValueChanged: (value) {
                             setState(() {
                               _restoreMode = value;
+                              if (value != 2) {
+                                _uriData = null;
+                              }
                             });
                           },
                           decoration: BoxDecoration(
@@ -809,32 +817,53 @@ class UriRestoreOption extends ConsumerStatefulWidget {
 
 class _UriRestoreOptionState extends ConsumerState<UriRestoreOption> {
   late final TextEditingController _uriController;
+  late final FocusNode _uriFocusNode;
+  String? _uriError;
 
   @override
   void initState() {
     super.initState();
     _uriController = TextEditingController();
+    _uriFocusNode = FocusNode();
   }
 
   @override
   void dispose() {
     _uriController.dispose();
+    _uriFocusNode.dispose();
     super.dispose();
   }
 
   void _onUriChanged(String value) {
+    final uri = value.trim();
+    if (uri.isEmpty) {
+      setState(() => _uriError = null);
+      widget.onParsed(null);
+      return;
+    }
+
     WalletUriData? parsed;
+    String? error;
     try {
       parsed = WalletUriData.fromUriString(
-        value.trim(),
+        uri,
         addressValidator: widget.coin.validateAddress,
       );
-      if (parsed.coin != widget.coin) parsed = null;
+      if (parsed.coin != widget.coin) {
+        throw const FormatException("Wallet URI is for a different coin");
+      }
+    } on FormatException catch (e) {
+      error = e.message;
+      parsed = null;
+    } on UnsupportedError catch (e) {
+      error = e.message;
+      parsed = null;
     } catch (_) {
+      error = "Invalid wallet URI";
       parsed = null;
     }
 
-    // If the URI carries a height, push it into the shared controller.
+    setState(() => _uriError = error);
     if (parsed?.height != null) {
       widget.heightController.setBlockHeight(parsed!.height!);
     }
@@ -864,13 +893,18 @@ class _UriRestoreOptionState extends ConsumerState<UriRestoreOption> {
           ),
           child: TextField(
             controller: _uriController,
+            focusNode: _uriFocusNode,
+            autocorrect: false,
+            enableSuggestions: false,
+            smartDashesType: SmartDashesType.disabled,
+            smartQuotesType: SmartQuotesType.disabled,
             style: Util.isDesktop
                 ? STextStyles.desktopTextMedium(context).copyWith(height: 2)
                 : STextStyles.field(context),
             decoration:
                 standardInputDecoration(
                   "monero_wallet:<address>?seed=...",
-                  FocusNode(),
+                  _uriFocusNode,
                   context,
                 ).copyWith(
                   suffixIcon: UnconstrainedBox(
@@ -893,6 +927,15 @@ class _UriRestoreOptionState extends ConsumerState<UriRestoreOption> {
             onChanged: _onUriChanged,
           ),
         ),
+        if (_uriError != null) ...[
+          const SizedBox(height: 6),
+          Text(
+            _uriError!,
+            style: STextStyles.smallMed12(context).copyWith(
+              color: Theme.of(context).extension<StackColors>()!.textError,
+            ),
+          ),
+        ],
         SizedBox(height: Util.isDesktop ? 24 : 16),
         StartHeightPicker(
           coin: widget.coin,

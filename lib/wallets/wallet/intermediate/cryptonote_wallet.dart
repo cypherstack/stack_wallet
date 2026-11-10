@@ -24,7 +24,7 @@ abstract class CryptonoteWallet<T extends CryptonoteCurrency>
   @override
   Future<void> init({bool? isRestore, int? wordCount});
 
-  Future<CWKeyData?> getKeys();
+  Future<CWKeyData> getKeys();
 
   Future<String> getTxKeyFor({required String txid});
 

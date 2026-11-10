@@ -11,17 +11,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stack_wallet_backup/secure_storage.dart';
-import 'package:tuple/tuple.dart';
 
 import '../../../../app_config.dart';
+import '../../../../models/keys/wallet_recovery_material.dart';
 import '../../../../pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_view_only_wallet_keys_view.dart';
 import '../../../../providers/global/wallets_provider.dart';
 import '../../../../route_generator.dart';
+import '../../../../services/wallet_recovery_service.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/text_styles.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
@@ -74,18 +73,18 @@ class _DesktopAttentionDeleteWallet
                 Text("Attention!", style: STextStyles.desktopH2(context)),
                 const SizedBox(height: 16),
                 RoundedContainer(
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.snackBarBackError,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .snackBarBackError,
                   child: Padding(
                     padding: const EdgeInsets.all(10.0),
                     child: Text(
                       _deleteWarning,
                       style: STextStyles.desktopTextExtraExtraSmall(context)
                           .copyWith(
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.snackBarTextError,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .snackBarTextError,
                           ),
                     ),
                   ),
@@ -112,10 +111,11 @@ class _DesktopAttentionDeleteWallet
                           final wallet = ref
                               .read(pWallets)
                               .getWallet(widget.walletId);
+                          final recoveryMaterial =
+                              await WalletRecoveryService.getMaterial(wallet);
 
-                          if (wallet is ViewOnlyOptionInterface &&
-                              wallet.isViewOnly) {
-                            final data = await wallet.getViewOnlyWalletData();
+                          if (recoveryMaterial
+                              case final ViewOnlyWalletRecoveryMaterial data) {
                             if (context.mounted) {
                               await Navigator.of(context).push(
                                 MaterialPageRoute<void>(
@@ -153,7 +153,7 @@ class _DesktopAttentionDeleteWallet
                                           padding: const EdgeInsets.all(32),
                                           child: DeleteViewOnlyWalletKeysView(
                                             walletId: widget.walletId,
-                                            data: data,
+                                            data: data.keyData,
                                           ),
                                         ),
                                       ],
@@ -162,21 +162,11 @@ class _DesktopAttentionDeleteWallet
                                 ),
                               );
                             }
-                          } else
-                          // TODO: [prio=med] handle other types wallet deletion
-                          // All wallets currently are mnemonic based
-                          if (wallet is MnemonicInterface) {
-                            List<String> words = [];
-                            try {
-                              words = await wallet.getMnemonicAsWords();
-                            } catch (_) {
-                              // Key-restored wallets may not have a mnemonic.
-                            }
-
+                          } else {
                             if (context.mounted) {
                               await Navigator.of(context).pushNamed(
                                 DeleteWalletKeysPopup.routeName,
-                                arguments: Tuple2(widget.walletId, words),
+                                arguments: recoveryMaterial,
                               );
                             }
                           }

@@ -19,58 +19,41 @@ import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/stack_dialog.dart';
 
 class RestoringDialog extends StatefulWidget {
-  const RestoringDialog({
-    super.key,
-    required this.onCancel,
-  });
+  const RestoringDialog({super.key, this.onCancel});
 
-  final Future<void> Function() onCancel;
+  final Future<void> Function()? onCancel;
 
   @override
   State<RestoringDialog> createState() => _RestoringDialogState();
 }
 
 class _RestoringDialogState extends State<RestoringDialog> {
-  late final Future<void> Function() onCancel;
-  @override
-  void initState() {
-    onCancel = widget.onCancel;
-
-    super.initState();
-  }
-
   @override
   Widget build(BuildContext context) {
     if (Util.isDesktop) {
       return DesktopDialog(
         child: Column(
           children: [
-            DesktopDialogCloseButton(
-              onPressedOverride: () async {
-                await onCancel.call();
-                if (mounted) {
-                  Navigator.of(context).pop();
-                }
-              },
-            ),
-            const Spacer(
-              flex: 1,
-            ),
-            const RotatingArrows(
-              width: 40,
-              height: 40,
-            ),
-            const Spacer(
-              flex: 2,
-            ),
+            if (widget.onCancel != null)
+              DesktopDialogCloseButton(
+                onPressedOverride: () async {
+                  await widget.onCancel!.call();
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                  }
+                },
+              )
+            else
+              const SizedBox(height: 64),
+            const Spacer(flex: 1),
+            const RotatingArrows(width: 40, height: 40),
+            const Spacer(flex: 2),
             Text(
               "Restoring wallet...",
               style: STextStyles.desktopH2(context),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(
-              height: 16,
-            ),
+            const SizedBox(height: 16),
             Text(
               "Restoring your wallet may take a while.\nPlease do not exit this screen.",
               style: STextStyles.desktopTextMedium(context).copyWith(
@@ -78,26 +61,21 @@ class _RestoringDialogState extends State<RestoringDialog> {
               ),
               textAlign: TextAlign.center,
             ),
-            const Spacer(
-              flex: 2,
-            ),
-            Padding(
-              padding: const EdgeInsets.only(
-                left: 32,
-                right: 32,
-                bottom: 32,
+            const Spacer(flex: 2),
+            if (widget.onCancel != null)
+              Padding(
+                padding: const EdgeInsets.only(left: 32, right: 32, bottom: 32),
+                child: SecondaryButton(
+                  label: "Cancel",
+                  width: 272.5,
+                  onPressed: () async {
+                    await widget.onCancel!.call();
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                    }
+                  },
+                ),
               ),
-              child: SecondaryButton(
-                label: "Cancel",
-                width: 272.5,
-                onPressed: () async {
-                  await onCancel.call();
-                  if (mounted) {
-                    Navigator.of(context).pop();
-                  }
-                },
-              ),
-            ),
           ],
         ),
       );
@@ -109,25 +87,24 @@ class _RestoringDialogState extends State<RestoringDialog> {
         child: StackDialog(
           title: "Restoring wallet",
           message: "This may take a while. Please do not exit this screen.",
-          icon: const RotatingArrows(
-            width: 24,
-            height: 24,
-          ),
-          rightButton: TextButton(
-            style: Theme.of(context)
-                .extension<StackColors>()!
-                .getSecondaryEnabledButtonStyle(context),
-            child: Text(
-              "Cancel",
-              style: STextStyles.itemSubtitle12(context),
-            ),
-            onPressed: () async {
-              await onCancel.call();
-              if (mounted) {
-                Navigator.of(context).pop();
-              }
-            },
-          ),
+          icon: const RotatingArrows(width: 24, height: 24),
+          rightButton: widget.onCancel == null
+              ? null
+              : TextButton(
+                  style: Theme.of(context)
+                      .extension<StackColors>()!
+                      .getSecondaryEnabledButtonStyle(context),
+                  child: Text(
+                    "Cancel",
+                    style: STextStyles.itemSubtitle12(context),
+                  ),
+                  onPressed: () async {
+                    await widget.onCancel!.call();
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                    }
+                  },
+                ),
         ),
       );
     }
