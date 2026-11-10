@@ -46,9 +46,9 @@ class EpicBoxConfigModel extends RelayConfigModel {
   }) {
     return EpicBoxConfigModel(
       host: host,
-      port: this.port ?? 443,
-      protocolInsecure: this.protocolInsecure ?? false,
-      addressIndex: this.addressIndex ?? 0,
+      port: port ?? this.port ?? 443,
+      protocolInsecure: protocolInsecure ?? this.protocolInsecure ?? false,
+      addressIndex: addressIndex ?? this.addressIndex ?? 0,
       // id: id ?? this.id,
       // name: name ?? this.name,
     );
@@ -59,7 +59,8 @@ class EpicBoxConfigModel extends RelayConfigModel {
     return <String, dynamic>{
       'epicbox_domain': host,
       'epicbox_port': port,
-      'epicbox_protocol_insecure': protocolInsecure,
+      // The plugin's EpicboxConfig field is spelled "unsecure".
+      'epicbox_protocol_unsecure': protocolInsecure,
       'epicbox_address_index': addressIndex,
       // 'id': id,
       // 'name': name,
@@ -78,22 +79,22 @@ class EpicBoxConfigModel extends RelayConfigModel {
     if (oldPort != "empty") {
       _epicBox['epicbox_port'] = _epicBox['port'];
     }
-    final oldProtocolInsecure = _epicBox["protocol_insecure"] ?? "empty";
-    if (oldProtocolInsecure != "empty") {
-      _epicBox['epicbox_protocol_insecure'] = _epicBox['protocol_insecure'];
-    }
+    // Configs saved before the key matched the plugin's use
+    // "epicbox_protocol_insecure", and older ones "protocol_insecure".
+    _epicBox['epicbox_protocol_unsecure'] ??=
+        _epicBox['epicbox_protocol_insecure'] ?? _epicBox['protocol_insecure'];
     final oldAddressIndex = _epicBox["address_index"] ?? "empty";
     if (oldAddressIndex != "empty") {
       _epicBox['epicbox_address_index'] = _epicBox['address_index'];
     }
 
-    _epicBox['epicbox_protocol_insecure'] ??= false;
+    _epicBox['epicbox_protocol_unsecure'] ??= false;
     _epicBox['epicbox_address_index'] ??= 0;
 
     return EpicBoxConfigModel(
       host: _epicBox['epicbox_domain'] as String,
       port: _epicBox['epicbox_port'] as int,
-      protocolInsecure: _epicBox['epicbox_protocol_insecure'] as bool,
+      protocolInsecure: _epicBox['epicbox_protocol_unsecure'] as bool,
       addressIndex: _epicBox['epicbox_address_index'] as int,
       // name: fields[5] as String,
       // id: fields[6] as String,

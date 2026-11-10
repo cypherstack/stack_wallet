@@ -22,7 +22,7 @@ class MwcMqsConfigModel extends RelayConfigModel {
   const MwcMqsConfigModel({required super.host, super.port});
 
   MwcMqsConfigModel copyWith({int? port, bool? protocolInsecure}) {
-    return MwcMqsConfigModel(host: host, port: this.port ?? 443);
+    return MwcMqsConfigModel(host: host, port: port ?? this.port ?? 443);
   }
 
   @override
