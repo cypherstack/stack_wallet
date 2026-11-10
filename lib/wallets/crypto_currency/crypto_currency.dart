@@ -63,6 +63,10 @@ abstract class CryptoCurrency {
   // Override in subclass if the currency has Tor support:
   bool get torSupport => false;
 
+  // Override in subclass if the currency supports OpenAlias: the application
+  // of its records, e.g. "xmr" for `oa1:xmr` records.
+  String? get openAliasApplication => null;
+
   int get minConfirms;
   int get minCoinbaseConfirms => minConfirms;
   int? get mwebPegoutMaturity => null;

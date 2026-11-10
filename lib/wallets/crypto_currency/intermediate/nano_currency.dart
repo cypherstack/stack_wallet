@@ -19,6 +19,9 @@ abstract class NanoCurrency extends Bip39Currency {
   bool get hasBuySupport => false;
 
   @override
+  bool get torSupport => true;
+
+  @override
   int get defaultSeedPhraseLength => 24;
 
   @override
