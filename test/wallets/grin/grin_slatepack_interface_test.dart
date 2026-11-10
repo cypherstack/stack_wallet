@@ -12,6 +12,7 @@ import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/slatepack_method.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/impl/grin_wallet.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/wallet/supporting/grin/grin_errors.dart';
 import 'package:stackwallet/wallets/wallet/supporting/grin/grin_scan_pause_observer.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/slatepack_interface.dart';
@@ -81,6 +82,17 @@ void main() {
     expect(wallet.supportsRepost, isTrue);
     expect(wallet.receiveQrIsRawAddress, isTrue);
     expect(wallet.receiveAddressNote, isNotNull);
+  });
+
+  test('the direct send hint names the address prefix of the network', () {
+    expect(h.wallet.directSendAddressHint, startsWith('grin1 '));
+    final testnet = GrinWallet(
+      CryptoCurrencyNetwork.test,
+      backend: h.backend,
+      torService: h.tor,
+      eventBus: h.bus,
+    );
+    expect(testnet.directSendAddressHint, startsWith('tgrin1 '));
   });
 
   group('inspectSlatepack', () {
