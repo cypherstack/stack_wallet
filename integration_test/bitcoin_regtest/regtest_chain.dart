@@ -6,11 +6,16 @@ import 'dart:typed_data';
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 
 const _bitcoindPath = String.fromEnvironment('BITCOIND');
-const _electrsPath = String.fromEnvironment('ELECTRS');
+const _indexerName = String.fromEnvironment('INDEXER', defaultValue: 'electrs');
+const _indexerPaths = {
+  'electrs': String.fromEnvironment('ELECTRS'),
+  'fulcrum': String.fromEnvironment('FULCRUM'),
+};
 
-/// A private bitcoind regtest chain indexed by electrs 0.10, on free loopback
-/// ports under a temp dir. Set the binaries with --dart-define=BITCOIND=...
-/// and --dart-define=ELECTRS=...
+/// A private bitcoind regtest chain with an Electrum server in front of it, on
+/// free loopback ports under a temp dir. --dart-define=INDEXER picks electrs
+/// (0.10, the default) or fulcrum; BITCOIND, ELECTRS and FULCRUM name the
+/// binaries.
 ///
 /// The node's own wallet ("miner") holds the coinbase coins and pays the
 /// Stack wallets.
@@ -25,7 +30,10 @@ class RegtestChain {
   int get _monitoringPort => _ports[3];
 
   Process? _bitcoind;
-  Process? _electrs;
+  Process? _indexer;
+
+  /// The Electrum server in use: "electrs" or "fulcrum".
+  String get indexer => _indexerName;
   final _log = <String>[];
   String _auth = '';
   late final String minerAddress;
@@ -33,9 +41,12 @@ class RegtestChain {
   int _id = 0;
 
   static Future<RegtestChain> start() async {
+    if (!_indexerPaths.containsKey(_indexerName)) {
+      throw StateError('INDEXER must be one of ${_indexerPaths.keys}.');
+    }
     for (final (name, path) in [
       ('BITCOIND', _bitcoindPath),
-      ('ELECTRS', _electrsPath),
+      (_indexerName.toUpperCase(), _indexerPaths[_indexerName]!),
     ]) {
       if (path.isEmpty || !File(path).existsSync()) {
         throw StateError('Pass --dart-define=$name=<path to the binary>.');
@@ -49,8 +60,10 @@ class RegtestChain {
       chain.minerAddress =
           await chain.rpc('getnewaddress', [], 'miner') as String;
       await chain.rpc('generatetoaddress', [101, chain.minerAddress]);
-      await chain._startElectrs();
-      await chain.waitForElectrs();
+      await (_indexerName == 'fulcrum'
+          ? chain._startFulcrum()
+          : chain._startElectrs());
+      await chain.waitForIndexer();
     } catch (_) {
       await chain.stop();
       rethrow;
@@ -90,7 +103,7 @@ class RegtestChain {
   }
 
   Future<void> _startElectrs() async {
-    _electrs = await Process.start(_electrsPath, [
+    _indexer = await Process.start(_indexerPaths['electrs']!, [
       '--skip-default-conf-files',
       '--network=regtest',
       '--db-dir=${root.path}/electrs',
@@ -103,7 +116,27 @@ class RegtestChain {
       '--wait-duration-secs=1',
       '--log-filters=INFO',
     ]);
-    _capture('electrs', _electrs!);
+    _capture('electrs', _indexer!);
+  }
+
+  /// Fulcrum takes most settings from a config file. Peering is off so it
+  /// never contacts public servers.
+  Future<void> _startFulcrum() async {
+    final config = File('${root.path}/fulcrum.conf');
+    await config.writeAsString(
+      [
+        'datadir = ${root.path}/fulcrum',
+        'bitcoind = 127.0.0.1:$rpcPort',
+        'rpccookie = ${root.path}/bitcoind/regtest/.cookie',
+        'tcp = 127.0.0.1:$electrumPort',
+        'stats = 127.0.0.1:$_monitoringPort',
+        'peering = false',
+        'announce = false',
+        'polltime = 0.5',
+      ].join('\n'),
+    );
+    _indexer = await Process.start(_indexerPaths['fulcrum']!, [config.path]);
+    _capture('fulcrum', _indexer!);
   }
 
   void _capture(String name, Process process) {
@@ -151,10 +184,10 @@ class RegtestChain {
 
   Future<int> height() async => await rpc('getblockcount') as int;
 
-  /// Mines [blocks] to the miner wallet and waits for electrs to index them.
+  /// Mines [blocks] to the miner wallet and waits for the indexer.
   Future<void> mine(int blocks) async {
     await rpc('generatetoaddress', [blocks, minerAddress]);
-    await waitForElectrs();
+    await waitForIndexer();
   }
 
   /// Pays [btc] from the miner wallet to [address]; returns the txid.
@@ -170,10 +203,10 @@ class RegtestChain {
         await rpc('getrawtransaction', [txid, true]) as Map,
       );
 
-  /// Waits until electrs serves the same tip as bitcoind.
-  Future<void> waitForElectrs() async {
+  /// Waits until the indexer serves the same tip as bitcoind.
+  Future<void> waitForIndexer() async {
     final target = await height();
-    await _until('electrs at height $target', () async {
+    await _until('$indexer at height $target', () async {
       try {
         final header = await electrum('blockchain.headers.subscribe') as Map;
         return header['height'] == target;
@@ -183,20 +216,24 @@ class RegtestChain {
     });
   }
 
-  /// Waits until electrs lists [txid] in the history of [address].
+  /// Waits until the indexer lists [txid] in the history of [address], and no
+  /// longer lists [replaced]. electrs can serve a replaced tx for a moment
+  /// after its replacement appears.
   Future<void> waitForHistory(
     String address,
     String txid, {
     required coinlib.Network network,
+    String? replaced,
   }) async {
     final script = coinlib.Address.fromString(address, network).program.script;
     final hash = coinlib.sha256Hash(script.compiled).reversed.toList();
     final scripthash = coinlib.bytesToHex(Uint8List.fromList(hash));
-    await _until('electrs history of $address to list $txid', () async {
+    await _until('$indexer history of $address to list $txid', () async {
       final history = await electrum('blockchain.scripthash.get_history', [
         scripthash,
       ]) as List;
-      return history.any((e) => (e as Map)['tx_hash'] == txid);
+      final txids = history.map((e) => (e as Map)['tx_hash']).toSet();
+      return txids.contains(txid) && !txids.contains(replaced);
     });
   }
 
@@ -223,7 +260,7 @@ class RegtestChain {
           .timeout(const Duration(seconds: 10));
       final body = jsonDecode(line) as Map;
       if (body['error'] != null) {
-        throw StateError('electrs $method: ${body['error']}');
+        throw StateError('$indexer $method: ${body['error']}');
       }
       return body['result'];
     } finally {
@@ -240,7 +277,7 @@ class RegtestChain {
     while (!await check()) {
       for (final (name, process) in [
         ('bitcoind', _bitcoind),
-        ('electrs', _electrs),
+        (_indexerName, _indexer),
       ]) {
         final code = await process?.exitCode.timeout(
           Duration.zero,
@@ -260,7 +297,7 @@ class RegtestChain {
   }
 
   Future<void> stop() async {
-    _electrs?.kill();
+    _indexer?.kill();
     if (_bitcoind != null) {
       try {
         await rpc('stop');
@@ -268,7 +305,7 @@ class RegtestChain {
         _bitcoind!.kill();
       }
     }
-    for (final process in [_electrs, _bitcoind]) {
+    for (final process in [_indexer, _bitcoind]) {
       await process?.exitCode.timeout(
         const Duration(seconds: 20),
         onTimeout: () {

@@ -1,94 +1,23 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:integration_test/integration_test.dart';
-import 'package:isar_community/isar.dart';
-import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
-import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
-import 'package:stackwallet/wallets/models/tx_data.dart';
-import 'package:stackwallet/wallets/wallet/impl/bitcoin_wallet.dart';
 
-import 'regtest_chain.dart';
+import 'helpers.dart';
 import 'stack_env.dart';
 
-BigInt sats(String btc) {
-  final parts = btc.split('.');
-  final frac = parts.length > 1 ? parts[1] : '';
-  return BigInt.parse(parts[0]) * BigInt.from(100000000) +
-      BigInt.parse(frac.padRight(8, '0'));
-}
-
-BigInt btcToSats(num btc) => BigInt.from((btc * 1e8).round());
-
-Future<List<TransactionV2>> history(BitcoinWallet wallet) => MainDB
-    .instance
-    .isar
-    .transactionV2s
-    .where()
-    .walletIdEqualTo(wallet.walletId)
-    .findAll();
-
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-
-  late RegtestChain chain;
-  late StackEnv env;
-  RegtestChain? started;
-  StackEnv? opened;
-
-  setUpAll(() async {
-    chain = started = await RegtestChain.start();
-    env = opened = await StackEnv.open(chain);
-  });
-
-  tearDownAll(() async {
-    try {
-      await opened?.close();
-    } finally {
-      await started?.stop();
-    }
-  });
-
-  Future<String> address(BitcoinWallet wallet) async =>
-      (await wallet.getCurrentReceivingAddress())!.value;
-
-  /// Builds, signs and broadcasts through the same calls the send view makes.
-  Future<TxData> send(
-    BitcoinWallet from,
-    String to,
-    String btc, {
-    required int satsPerVByte,
-  }) async {
-    final prepared = await from.prepareSend(
-      txData: TxData(
-        recipients: [
-          TxRecipient(
-            address: to,
-            amount: Amount(rawValue: sats(btc), fractionDigits: 8),
-            isChange: false,
-            addressType: from.cryptoCurrency.getAddressType(to)!,
-          ),
-        ],
-        feeRateType: FeeRateType.custom,
-        satsPerVByte: satsPerVByte,
-      ),
-    );
-    return from.confirmSend(txData: prepared);
-  }
+  final fixture = RegtestFixture();
 
   testWidgets('mined coins move between Stack wallets and survive a restore', (
     tester,
   ) async {
-    addTearDown(() {
-      printOnFailure('--- app log\n${env.logTail()}');
-      printOnFailure('--- bitcoind and electrs\n${chain.logTail}');
-    });
+    fixture.dumpLogsOnFailure();
+    final chain = fixture.chain;
+    final env = fixture.env;
     final network = StackEnv.coin.networkParams;
     final alice = await env.createWallet('alice');
     final bob = await env.createWallet('bob');
-    final aliceAddress = await address(alice);
-    final bobAddress = await address(bob);
+    final aliceAddress = await receivingAddress(alice);
+    final bobAddress = await receivingAddress(bob);
     expect(aliceAddress, startsWith('bcrt1p'), reason: 'BIP86 by default');
 
     // The node's wallet pays alice; she sees it unconfirmed, then confirmed.
@@ -106,9 +35,8 @@ void main() {
     final toBob = await send(alice, bobAddress, '0.3', satsPerVByte: 3);
     final txid = toBob.txid!;
     expect(await chain.mempool(), contains(txid));
-    final entry = Map<String, dynamic>.from(
-      await chain.rpc('getmempoolentry', [txid]) as Map,
-    );
+    final entry = await fixture.mempoolEntry(txid);
+    expect(entry['bip125-replaceable'], isFalse, reason: 'RBF is opt-in');
     final fee = btcToSats((entry['fees'] as Map)['base'] as num);
     expect(fee, toBob.fee!.raw, reason: 'node and wallet agree on the fee');
     expect(fee >= BigInt.from(3 * (entry['vsize'] as int)), isTrue);
