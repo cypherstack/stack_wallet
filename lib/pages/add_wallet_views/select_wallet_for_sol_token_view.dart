@@ -17,6 +17,7 @@ import 'verify_recovery_phrase_view/verify_recovery_phrase_view.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
+import '../../providers/global/wallets_provider.dart';
 import '../../wallets/isar/providers/all_wallets_info_provider.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../widgets/background.dart';
@@ -75,9 +76,20 @@ class _SelectWalletForSolTokenViewState
 
   @override
   Widget build(BuildContext context) {
+    // The wallet info is written to the db when a new wallet is created, but
+    // the wallet is only added to pWallets once its flow completes. Rebuild
+    // when that happens and skip wallets that are not registered yet.
+    ref.watch(newSolWalletTriggerTempUntilHiveCompletelyDeleted);
+    final registeredWalletIds = ref
+        .read(pWallets)
+        .wallets
+        .map((e) => e.walletId)
+        .toSet();
+
     final solWalletInfos = ref
         .watch(pAllWalletsInfo)
         .where((e) => e.coin == widget.entity.cryptoCurrency)
+        .where((e) => registeredWalletIds.contains(e.walletId))
         .toList();
 
     final _hasSolWallets = solWalletInfos.isNotEmpty;

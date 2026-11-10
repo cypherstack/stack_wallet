@@ -65,6 +65,7 @@ import '../../../wl_gen/interfaces/cs_wownero_interface.dart';
 import '../../../wl_gen/interfaces/lib_xelis_interface.dart';
 import '../../home_view/home_view.dart';
 import '../add_token_view/edit_wallet_tokens_view.dart';
+import '../select_wallet_for_sol_token_view.dart';
 import '../select_wallet_for_token_view.dart';
 import '../verify_recovery_phrase_view/verify_recovery_phrase_view.dart';
 import 'confirm_recovery_dialog.dart';
@@ -395,6 +396,15 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                   .state = !ref
                   .read(newEthWalletTriggerTempUntilHiveCompletelyDeleted.state)
                   .state;
+            }
+
+            // The Solana token wallet picker skips wallets that are not in
+            // pWallets yet, so tell it to rebuild now that this one is.
+            if (info.coin is Solana) {
+              final trigger = ref.read(
+                newSolWalletTriggerTempUntilHiveCompletelyDeleted.notifier,
+              );
+              trigger.state = !trigger.state;
             }
 
             if (mounted) {
