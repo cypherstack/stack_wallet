@@ -9,6 +9,7 @@
  */
 
 import 'package:flutter/material.dart';
+
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
@@ -91,9 +92,9 @@ class _RestoringDialogState extends State<RestoringDialog> {
           message: "This may take a while. Please do not exit this screen.",
           icon: const RotatingArrows(width: 24, height: 24),
           rightButton: TextButton(
-            style: Theme.of(
-              context,
-            ).extension<StackColors>()!.getSecondaryEnabledButtonStyle(context),
+            style: Theme.of(context)
+                .extension<StackColors>()!
+                .getSecondaryEnabledButtonStyle(context),
             child: Text("Cancel", style: STextStyles.itemSubtitle12(context)),
             onPressed: () async {
               await onCancel.call();

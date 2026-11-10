@@ -123,9 +123,9 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
       onPopAttempt: _requestAndProcessCancel,
       child: Background(
         child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
             automaticallyImplyLeading: false,
             leading: AppBarBackButton(
@@ -159,9 +159,9 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
                           children: [
                             if (_fusionRoundsCompleted == 0)
                               RoundedContainer(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.snackBarBackError,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .snackBarBackError,
                                 child: Text(
                                   "Do not close this window. If you exit, "
                                   "the process will be canceled.",
@@ -176,9 +176,9 @@ class _FusionProgressViewState extends ConsumerState<FusionProgressView> {
                               ),
                             if (_fusionRoundsCompleted > 0)
                               RoundedContainer(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.snackBarBackInfo,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .snackBarBackInfo,
                                 child: Text(
                                   "Fusion rounds completed: $_fusionRoundsCompleted",
                                   style: STextStyles.w500_14(context).copyWith(

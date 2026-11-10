@@ -12,7 +12,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tuple/tuple.dart';
@@ -356,9 +355,8 @@ class _VerifyRecoveryPhraseViewState
               context,
             ).popUntil(ModalRoute.withName(SelectWalletForTokenView.routeName));
           } else {
-            Navigator.of(
-              context,
-            ).popUntil(ModalRoute.withName(DesktopHomeView.routeName));
+            Navigator.of(context)
+                .popUntil(ModalRoute.withName(DesktopHomeView.routeName));
             if (_coin is Ethereum || _coin is Solana) {
               unawaited(
                 Navigator.of(context).pushNamed(
@@ -451,10 +449,6 @@ class _VerifyRecoveryPhraseViewState
     }
 
     result.insert(random.nextInt(wordsToShow), chosenWord);
-
-    if (kDebugMode) {
-      print("Mnemonic game correct word: $chosenWord");
-    }
 
     return Tuple2(result, chosenWord);
   }
@@ -550,9 +544,9 @@ class _VerifyRecoveryPhraseViewState
                 SizedBox(height: isDesktop ? 16 : 12),
                 Container(
                   decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultBG,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),
@@ -564,10 +558,10 @@ class _VerifyRecoveryPhraseViewState
                     ),
                     child: Text(
                       "${correctIndex + 1}",
+                      key: const Key('recoveryPhraseWordIndex'),
                       textAlign: TextAlign.center,
-                      style: STextStyles.subtitle600(
-                        context,
-                      ).copyWith(fontSize: 32, letterSpacing: 0.25),
+                      style: STextStyles.subtitle600(context)
+                          .copyWith(fontSize: 32, letterSpacing: 0.25),
                     ),
                   ),
                 ),

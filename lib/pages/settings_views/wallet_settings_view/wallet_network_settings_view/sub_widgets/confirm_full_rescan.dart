@@ -9,6 +9,7 @@
  */
 
 import 'package:flutter/material.dart';
+
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../utilities/text_styles.dart';
 import '../../../../../utilities/util.dart';
@@ -92,21 +93,20 @@ class ConfirmFullRescanDialog extends StatelessWidget {
         canPop: true,
         child: StackDialog(
           title: "Rescan blockchain",
-          message:
-              "Warning! It may take a while. If you exit before completion, you will have to redo the process.",
+          message: "Warning! It may take a while. If you exit before completion, you will have to redo the process.",
           leftButton: TextButton(
-            style: Theme.of(
-              context,
-            ).extension<StackColors>()!.getSecondaryEnabledButtonStyle(context),
+            style: Theme.of(context)
+                .extension<StackColors>()!
+                .getSecondaryEnabledButtonStyle(context),
             child: Text("Cancel", style: STextStyles.itemSubtitle12(context)),
             onPressed: () {
               Navigator.of(context).pop();
             },
           ),
           rightButton: TextButton(
-            style: Theme.of(
-              context,
-            ).extension<StackColors>()!.getPrimaryEnabledButtonStyle(context),
+            style: Theme.of(context)
+                .extension<StackColors>()!
+                .getPrimaryEnabledButtonStyle(context),
             child: Text("Rescan", style: STextStyles.button(context)),
             onPressed: () {
               Navigator.of(context).pop();

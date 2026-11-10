@@ -18,58 +18,53 @@ void main() {
     );
   }
 
-  testWidgets(
-    'dynamic canPop controls system back and reports the result',
-    (tester) async {
-      await pumpApp(tester);
-      var canPop = false;
-      late StateSetter setPageState;
-      late BuildContext pageContext;
-      final callbacks = <(bool, int?)>[];
-      final result = navigatorKey.currentState!.push<int>(
-        MaterialPageRoute<int>(
-          builder: (_) => StatefulBuilder(
-            builder: (context, setState) {
-              setPageState = setState;
-              pageContext = context;
-              return PopScope<int>(
-                canPop: canPop,
-                onPopInvokedWithResult: (didPop, result) {
-                  callbacks.add((didPop, result));
-                },
-                child: const Scaffold(body: Text('page')),
-              );
-            },
-          ),
+  testWidgets('dynamic canPop controls system back and reports the result', (
+    tester,
+  ) async {
+    await pumpApp(tester);
+    var canPop = false;
+    late StateSetter setPageState;
+    late BuildContext pageContext;
+    final callbacks = <(bool, int?)>[];
+    final result = navigatorKey.currentState!.push<int>(
+      MaterialPageRoute<int>(
+        builder: (_) => StatefulBuilder(
+          builder: (context, setState) {
+            setPageState = setState;
+            pageContext = context;
+            return PopScope<int>(
+              canPop: canPop,
+              onPopInvokedWithResult: (didPop, result) {
+                callbacks.add((didPop, result));
+              },
+              child: const Scaffold(body: Text('page')),
+            );
+          },
         ),
-      );
-      await tester.pumpAndSettle();
+      ),
+    );
+    await tester.pumpAndSettle();
 
-      expect(
-        ModalRoute.of(pageContext)!.popDisposition,
-        RoutePopDisposition.doNotPop,
-      );
-      await simulateSystemBack();
-      await tester.pumpAndSettle();
+    expect(
+      ModalRoute.of(pageContext)!.popDisposition,
+      RoutePopDisposition.doNotPop,
+    );
+    await simulateSystemBack();
+    await tester.pumpAndSettle();
 
-      expect(callbacks, <(bool, int?)>[(false, null)]);
-      expect(find.text('page'), findsOneWidget);
+    expect(callbacks, <(bool, int?)>[(false, null)]);
+    expect(find.text('page'), findsOneWidget);
 
-      setPageState(() => canPop = true);
-      await tester.pump();
-      expect(
-        ModalRoute.of(pageContext)!.popDisposition,
-        RoutePopDisposition.pop,
-      );
+    setPageState(() => canPop = true);
+    await tester.pump();
+    expect(ModalRoute.of(pageContext)!.popDisposition, RoutePopDisposition.pop);
 
-      await navigatorKey.currentState!.maybePop<int>(19);
-      await tester.pumpAndSettle();
+    await navigatorKey.currentState!.maybePop<int>(19);
+    await tester.pumpAndSettle();
 
-      expect(callbacks.last, (true, 19));
-      await expectLater(result, completion(19));
-    },
-    variant: TargetPlatformVariant.all(),
-  );
+    expect(callbacks.last, (true, 19));
+    await expectLater(result, completion(19));
+  }, variant: TargetPlatformVariant.all());
 
   testWidgets('direct pop reports didPop without replaying side effects', (
     tester,
@@ -208,9 +203,8 @@ void main() {
             canPop: false,
             onPopInvokedWithResult: (didPop, _) {
               if (!didPop) {
-                Navigator.of(
-                  context,
-                ).popUntil(ModalRoute.withName('/recovery'));
+                Navigator.of(context)
+                    .popUntil(ModalRoute.withName('/recovery'));
               }
             },
             child: const Scaffold(body: Text('verify')),

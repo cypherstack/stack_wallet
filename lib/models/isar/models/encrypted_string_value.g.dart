@@ -48,7 +48,7 @@ const EncryptedStringValueSchema = CollectionSchema(
   getId: _encryptedStringValueGetId,
   getLinks: _encryptedStringValueGetLinks,
   attach: _encryptedStringValueAttach,
-  version: '3.3.0-dev.2',
+  version: '3.3.2',
 );
 
 int _encryptedStringValueEstimateSize(

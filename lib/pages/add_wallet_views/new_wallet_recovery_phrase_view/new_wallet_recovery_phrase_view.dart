@@ -157,19 +157,18 @@ class _NewWalletRecoveryPhraseViewState
                     child: AspectRatio(
                       aspectRatio: 1,
                       child: AppBarIconButton(
-                        semanticsLabel:
-                            "Copy Button. Copies The Recovery Phrase To Clipboard.",
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.background,
+                        semanticsLabel: "Copy Button. Copies The Recovery Phrase To Clipboard.",
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .background,
                         shadows: const [],
                         icon: SvgPicture.asset(
                           Assets.svg.copy,
                           width: 24,
                           height: 24,
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.topNavIconPrimary,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .topNavIconPrimary,
                         ),
                         onPressed: () async {
                           await _copy();
@@ -223,9 +222,9 @@ class _NewWalletRecoveryPhraseViewState
                   Container(
                     decoration: BoxDecoration(
                       color: isDesktop
-                          ? Theme.of(
-                              context,
-                            ).extension<StackColors>()!.background
+                          ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .background
                           : Theme.of(context).extension<StackColors>()!.popupBG,
                       borderRadius: BorderRadius.circular(
                         Constants.size.circularBorderRadius,
@@ -241,9 +240,9 @@ class _NewWalletRecoveryPhraseViewState
                         style: isDesktop
                             ? STextStyles.desktopSubtitleH2(context)
                             : STextStyles.label(context).copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.accentColorDark,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorDark,
                               ),
                       ),
                     ),
@@ -275,9 +274,9 @@ class _NewWalletRecoveryPhraseViewState
                               Assets.svg.copy,
                               width: 20,
                               height: 20,
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.buttonTextSecondary,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .buttonTextSecondary,
                             ),
                             const SizedBox(width: 10),
                             Text(

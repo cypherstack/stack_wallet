@@ -39,9 +39,8 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
         if (didPop) {
           return;
         }
-        Navigator.of(
-          context,
-        ).pop(ref.read(prefsChangeNotifierProvider).backupFrequencyType);
+        Navigator.of(context)
+            .pop(ref.read(prefsChangeNotifierProvider).backupFrequencyType);
       },
       child: Container(
         decoration: BoxDecoration(
@@ -62,9 +61,9 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
               Center(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultBG,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),

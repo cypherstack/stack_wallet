@@ -185,15 +185,15 @@ class _ProgressAndSuccessState extends State<ProgressAndSuccess>
           values: [
             ValueDelegate.color(
               const ["**"],
-              value: Theme.of(
-                context,
-              ).extension<StackColors>()!.accentColorDark,
+              value: Theme.of(context)
+                  .extension<StackColors>()!
+                  .accentColorDark,
             ),
             ValueDelegate.strokeColor(
               const ["**"],
-              value: Theme.of(
-                context,
-              ).extension<StackColors>()!.accentColorDark,
+              value: Theme.of(context)
+                  .extension<StackColors>()!
+                  .accentColorDark,
             ),
           ],
         ),

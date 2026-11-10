@@ -19,6 +19,7 @@ import '../../../app_config.dart';
 import '../../../models/exchange/aggregate_currency.dart';
 import '../../../models/isar/exchange_cache/currency.dart';
 import '../../../models/isar/exchange_cache/pair.dart';
+import '../../../networking/tor_aware_network_image.dart';
 import '../../../services/exchange/exchange.dart';
 import '../../../services/exchange/exchange_data_loading_service.dart';
 import '../../../themes/stack_colors.dart';
@@ -76,9 +77,10 @@ class _ExchangeCurrencySelectionViewState
         builder: (_) => PopScope(
           canPop: false,
           child: Container(
-            color: Theme.of(
-              context,
-            ).extension<StackColors>()!.overlay.withOpacity(0.6),
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .overlay
+                .withOpacity(0.6),
             child: const CustomLoadingOverlay(
               message: "Loading currencies",
               eventBus: null,
@@ -234,9 +236,9 @@ class _ExchangeCurrencySelectionViewState
       builder: (child) {
         return Background(
           child: Scaffold(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () async {
@@ -436,15 +438,20 @@ class _NetImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (url.endsWith(".svg")) {
-      return SvgPicture.network(
+      return SvgPicture(
         key: key,
-        url,
+        TorAwareSvgNetworkLoader(url),
         width: 24,
         height: 24,
         placeholderBuilder: (_) => const LoadingIndicator(),
       );
     } else {
-      return Image.network(url, width: 24, height: 24, key: key);
+      return Image(
+        image: TorAwareNetworkImage(url),
+        width: 24,
+        height: 24,
+        key: key,
+      );
     }
   }
 }

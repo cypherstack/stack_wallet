@@ -9,6 +9,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../models/add_wallet_list_entity/sub_classes/coin_entity.dart';
 import '../../models/add_wallet_list_entity/sub_classes/sol_token_entity.dart';
 import 'add_token_view/edit_wallet_tokens_view.dart';
@@ -29,6 +30,7 @@ import '../../widgets/eth_wallet_radio.dart';
 import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/wallet_info_row/wallet_info_row.dart';
+
 import 'package:tuple/tuple.dart';
 
 final newSolWalletTriggerTempUntilHiveCompletelyDeleted = StateProvider(
@@ -103,9 +105,9 @@ class _SelectWalletForSolTokenViewState
         condition: !isDesktop,
         builder: (child) => Background(
           child: Scaffold(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () {
@@ -193,13 +195,13 @@ class _SelectWalletForSolTokenViewState
                               });
                             },
                             color: isDesktop
-                                ? Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.popupBG
+                                ? Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .popupBG
                                 : _selectedWalletId == solWalletIds[index]
-                                ? Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.highlight
+                                ? Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .highlight
                                 : Colors.transparent,
                             child: isDesktop
                                 ? EthWalletRadio(

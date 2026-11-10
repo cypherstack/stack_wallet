@@ -242,9 +242,10 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
             return PopScope(
               canPop: false,
               child: Container(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.overlay.withOpacity(0.5),
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .overlay
+                    .withOpacity(0.5),
                 child: const CustomLoadingOverlay(
                   message: "Generating address",
                   eventBus: null,
@@ -318,9 +319,10 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
             return PopScope(
               canPop: false,
               child: Container(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.overlay.withOpacity(0.5),
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .overlay
+                    .withOpacity(0.5),
                 child: const CustomLoadingOverlay(
                   message: "Generating address",
                   eventBus: null,
@@ -550,23 +552,22 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
             child: Container(
               decoration: BoxDecoration(
                 color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()?.textFieldDefaultBG ??
+                    Theme.of(context)
+                        .extension<StackColors>()
+                        ?.textFieldDefaultBG ??
                     Colors.white, // Fallback color
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()?.backgroundAppBar ??
+                      Theme.of(context)
+                          .extension<StackColors>()
+                          ?.backgroundAppBar ??
                       Colors.grey, // Fallback color
                   width: 1,
                 ),
               ),
               child: const SizedBox(
-                height:
-                    60, // Provide an explicit height to avoid infinite constraints
+                height: 60, // Provide an explicit height to avoid infinite constraints
                 child: MwcTxsMethodToggle(),
               ),
             ),
@@ -577,23 +578,22 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
             child: Container(
               decoration: BoxDecoration(
                 color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()?.textFieldDefaultBG ??
+                    Theme.of(context)
+                        .extension<StackColors>()
+                        ?.textFieldDefaultBG ??
                     Colors.white, // Fallback color
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()?.backgroundAppBar ??
+                      Theme.of(context)
+                          .extension<StackColors>()
+                          ?.backgroundAppBar ??
                       Colors.grey, // Fallback color
                   width: 1,
                 ),
               ),
               child: const SizedBox(
-                height:
-                    60, // Provide an explicit height to avoid infinite constraints
+                height: 60, // Provide an explicit height to avoid infinite constraints
                 child: EpicTxsMethodToggle(),
               ),
             ),
@@ -647,9 +647,9 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                     ),
                     buttonStyleData: ButtonStyleData(
                       decoration: BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textFieldDefaultBG,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldDefaultBG,
                         borderRadius: BorderRadius.circular(
                           Constants.size.circularBorderRadius,
                         ),
@@ -659,9 +659,9 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                       offset: const Offset(0, -10),
                       elevation: 0,
                       decoration: BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textFieldDefaultBG,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldDefaultBG,
                         borderRadius: BorderRadius.circular(
                           Constants.size.circularBorderRadius,
                         ),
@@ -694,9 +694,9 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                 child: Container(
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.backgroundAppBar,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .backgroundAppBar,
                       width: 1,
                     ),
                     borderRadius: BorderRadius.circular(
@@ -721,9 +721,9 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                                   Assets.svg.copy,
                                   width: 15,
                                   height: 15,
-                                  color: Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.infoItemIcons,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .infoItemIcons,
                                 ),
                                 const SizedBox(width: 4),
                                 Text("Copy", style: STextStyles.link2(context)),
@@ -741,9 +741,9 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                                     STextStyles.desktopTextExtraExtraSmall(
                                       context,
                                     ).copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textDark,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark,
                                     ),
                               ),
                             ),
@@ -782,9 +782,9 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
               Text(
                 "Receive Slatepack",
                 style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldActiveSearchIconRight,
                 ),
                 textAlign: TextAlign.left,
               ),
@@ -815,9 +815,9 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                   },
                   focusNode: _slateFocusNode,
                   style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldActiveText,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldActiveText,
                     height: 1.8,
                   ),
                   decoration:
@@ -829,8 +829,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                       ).copyWith(
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
-                          vertical:
-                              12, // Adjust vertical padding for better alignment
+                          vertical: 12, // Adjust vertical padding for better alignment
                         ),
                         suffixIcon: Padding(
                           padding: _receiveSlateController.text.isEmpty
@@ -985,17 +984,17 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                     Assets.svg.qrcode,
                     width: 14,
                     height: 16,
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.accentColorBlue,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorBlue,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     "Create new QR code",
                     style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorBlue,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorBlue,
                     ),
                   ),
                 ],

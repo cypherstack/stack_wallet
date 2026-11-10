@@ -12,8 +12,8 @@ abstract class ElectrumSeedUtils {
   static const kSeedPrefix2faSegwit = "102"; // 2FA segwit
 
   static Uint8List electrumMnemonicToSeedBytes(
-    final String mnemonic, {
-    final String passphrase = "",
+    String mnemonic, {
+    String passphrase = "",
   }) {
     final salt = Uint8List.fromList([
       ..."electrum".toUint8ListFromUtf8,
@@ -28,8 +28,8 @@ abstract class ElectrumSeedUtils {
 
   // based on https://electrum.readthedocs.io/en/latest/seedphrase.html#version-number
   static String electrumMnemonicVersion(
-    final String mnemonic, {
-    final String passphrase = "",
+    String mnemonic, {
+    String passphrase = "",
   }) {
     final normalized = normalize(mnemonic).toUint8ListFromUtf8;
 
@@ -40,17 +40,18 @@ abstract class ElectrumSeedUtils {
     return hash.substring(0, length);
   }
 
-  static bool isNewSeed(final String mnemonic, {String prefix = kSeedPrefix}) {
+  static bool isNewSeed(String mnemonic, {String prefix = kSeedPrefix}) {
     final normalized = normalize(mnemonic).toUint8ListFromUtf8;
     final hash = _hmacHex(normalized);
     return hash.startsWith(prefix);
   }
 
-  static String normalize(final String mnemonic) {
+  static String normalize(String mnemonic) {
     final characters = String.fromCharCodes(
-      nfkd(
-        mnemonic,
-      ).toLowerCase().runes.where((e) => !_kNonZeroCCCCodeUnits.contains(e)),
+      nfkd(mnemonic)
+          .toLowerCase()
+          .runes
+          .where((e) => !_kNonZeroCCCCodeUnits.contains(e)),
     ).split(RegExp(r"\s+")).join(" ").trim().split("");
 
     final buffer = StringBuffer();

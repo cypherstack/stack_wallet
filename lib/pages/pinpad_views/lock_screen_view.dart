@@ -177,9 +177,8 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
           final walletId = widget.routeOnSuccessArguments as String;
 
           unawaited(
-            Navigator.of(
-              context,
-            ).pushNamed(WalletView.routeName, arguments: walletId),
+            Navigator.of(context)
+                .pushNamed(WalletView.routeName, arguments: walletId),
           );
         }
       }
@@ -486,9 +485,8 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                       fieldsCount: pinCount,
                       eachFieldHeight: 12,
                       eachFieldWidth: 12,
-                      textStyle: STextStyles.label(
-                        context,
-                      ).copyWith(fontSize: 1),
+                      textStyle: STextStyles.label(context)
+                          .copyWith(fontSize: 1),
                       focusNode: _pinFocusNode,
                       controller: _pinTextController,
                       useNativeKeyboard: false,
@@ -500,9 +498,9 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                         disabledBorder: InputBorder.none,
                         errorBorder: InputBorder.none,
                         focusedErrorBorder: InputBorder.none,
-                        fillColor: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.background,
+                        fillColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .background,
                         counterText: "",
                       ),
                       submittedFieldDecoration: _pinPutDecoration,

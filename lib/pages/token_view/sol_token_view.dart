@@ -84,9 +84,9 @@ class _SolTokenViewState extends ConsumerState<SolTokenView> {
       },
       child: Background(
         child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
             leading: AppBarBackButton(
               onPressed: () {
@@ -138,9 +138,9 @@ class _SolTokenViewState extends ConsumerState<SolTokenView> {
                   child: AppBarIconButton(
                     icon: SvgPicture.asset(
                       Assets.svg.verticalEllipsis,
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.topNavIconPrimary,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .topNavIconPrimary,
                     ),
                     onPressed: () {
                       Navigator.of(context).pushNamed(
@@ -181,9 +181,9 @@ class _SolTokenViewState extends ConsumerState<SolTokenView> {
                         Text(
                           "Transactions",
                           style: STextStyles.itemSubtitle(context).copyWith(
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textDark3,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark3,
                           ),
                         ),
                         CustomTextButton(

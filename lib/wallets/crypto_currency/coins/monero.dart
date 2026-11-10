@@ -46,6 +46,9 @@ class Monero extends CryptonoteCurrency {
   bool get torSupport => true;
 
   @override
+  String? get openAliasApplication => "xmr";
+
+  @override
   bool validateAddress(String address) {
     if (address.contains("111")) {
       return false;

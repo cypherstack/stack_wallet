@@ -9,6 +9,7 @@
  */
 
 import 'package:flutter/material.dart';
+
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
@@ -56,9 +57,9 @@ class _RestoringDialogState extends State<ClaimingPaynymDialog> {
                   Text(
                     "We are generating your PayNym",
                     style: STextStyles.desktopTextMedium(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textDark3,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textDark3,
                     ),
                   ),
                   const SizedBox(height: 40),

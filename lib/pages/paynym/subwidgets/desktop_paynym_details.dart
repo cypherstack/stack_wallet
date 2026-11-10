@@ -237,9 +237,9 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
                                   Assets.svg.circleArrowUpRight,
                                   width: 16,
                                   height: 16,
-                                  color: Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.buttonTextPrimary,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .buttonTextPrimary,
                                 ),
                                 iconSpacing: 6,
                                 onPressed: _onSend,
@@ -252,9 +252,9 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
                                   Assets.svg.circlePlusFilled,
                                   width: 16,
                                   height: 16,
-                                  color: Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.buttonTextPrimary,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .buttonTextPrimary,
                                 ),
                                 iconSpacing: 6,
                                 onPressed: _onConnectPressed,
@@ -289,9 +289,9 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
                     children: [
                       const SizedBox(height: 24),
                       RoundedContainer(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.warningBackground,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .warningBackground,
                         child: Text(
                           "Adding a PayNym to your contacts requires a one-time "
                           "transaction fee for creating the record on the "
@@ -300,9 +300,9 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
                           "into your wallet and try again.",
                           style: STextStyles.desktopTextExtraExtraSmall(context)
                               .copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.warningForeground,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .warningForeground,
                               ),
                         ),
                       ),
@@ -335,9 +335,9 @@ class _PaynymDetailsPopupState extends ConsumerState<DesktopPaynymDetails> {
                           widget.accountLite.code,
                           style: STextStyles.desktopTextExtraExtraSmall(context)
                               .copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textDark,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark,
                               ),
                         ),
                       ),

@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app_config.dart';
 import '../../../models/exchange/aggregate_currency.dart';
 import '../../../models/exchange/response_objects/estimate.dart';
+import '../../../networking/tor_aware_network_image.dart';
 import '../../../providers/exchange/exchange_form_state_provider.dart';
 import '../../../providers/global/locale_provider.dart';
 import '../../../services/exchange/exchange.dart';
@@ -164,9 +165,9 @@ class _ExchangeOptionState extends ConsumerState<ExchangeOption> {
                               isDesktop
                                   ? Container(
                                       height: 1,
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.background,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .background,
                                     )
                                   : const SizedBox(height: 16),
                               child,
@@ -215,9 +216,9 @@ class _ExchangeOptionState extends ConsumerState<ExchangeOption> {
                     estimate: null,
                     pair: pair,
                     rateString: message ?? "Failed to fetch rate",
-                    rateColor: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textError,
+                    rateColor: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textError,
                   );
                 },
               );
@@ -354,9 +355,9 @@ class _ProviderOptionState extends ConsumerState<ExchProviderOption> {
                   child: Padding(
                     padding: EdgeInsets.only(top: isDesktop ? 20.0 : 15.0),
                     child: Radio(
-                      activeColor: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.radioButtonIconEnabled,
+                      activeColor: Theme.of(context)
+                          .extension<StackColors>()!
+                          .radioButtonIconEnabled,
                       value: _id,
                       groupValue: groupValue,
                       onChanged: (_) {
@@ -382,8 +383,10 @@ class _ProviderOptionState extends ConsumerState<ExchProviderOption> {
                             widget.estimate!.exchangeProviderLogo!.isNotEmpty
                         ? ClipRRect(
                             borderRadius: BorderRadius.circular(5),
-                            child: Image.network(
-                              widget.estimate!.exchangeProviderLogo!,
+                            child: Image(
+                              image: TorAwareNetworkImage(
+                                widget.estimate!.exchangeProviderLogo!,
+                              ),
                               loadingBuilder:
                                   (context, child, loadingProgress) {
                                     if (loadingProgress == null) {
@@ -427,9 +430,9 @@ class _ProviderOptionState extends ConsumerState<ExchProviderOption> {
                           widget.estimate?.exchangeProvider ??
                               widget.exchange.name,
                           style: STextStyles.titleBold12(context).copyWith(
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textDark2,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark2,
                           ),
                         ),
                       ),
@@ -443,9 +446,9 @@ class _ProviderOptionState extends ConsumerState<ExchProviderOption> {
                               ],
                               style: STextStyles.itemSubtitle12(context)
                                   .copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.textSubtitle1,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textSubtitle1,
                                   ),
                             )
                           : Text(

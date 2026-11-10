@@ -30,8 +30,7 @@ class CancelStackRestoreDialog extends StatelessWidget {
       child: !Util.isDesktop
           ? StackDialog(
               title: "Cancel restore process",
-              message:
-                  "Cancelling will revert any changes that may have been applied",
+              message: "Cancelling will revert any changes that may have been applied",
               leftButton: TextButton(
                 style: Theme.of(context)
                     .extension<StackColors>()!
@@ -48,9 +47,9 @@ class CancelStackRestoreDialog extends StatelessWidget {
                 child: Text(
                   "Yes, cancel",
                   style: STextStyles.itemSubtitle12(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.buttonTextPrimary,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .buttonTextPrimary,
                   ),
                 ),
                 onPressed: () {
@@ -78,9 +77,9 @@ class CancelStackRestoreDialog extends StatelessWidget {
                     SizedBox(
                       width: 500,
                       child: RoundedContainer(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.snackBarBackError,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .snackBarBackError,
                         child: Text(
                           "If you cancel, the restore will not complete, and "
                           "the wallets will not appear in your ${AppConfig.prefix}.",

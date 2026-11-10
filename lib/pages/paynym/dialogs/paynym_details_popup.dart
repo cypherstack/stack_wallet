@@ -235,9 +235,9 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                                 Assets.svg.circleArrowUpRight,
                                 width: 14,
                                 height: 14,
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.buttonTextPrimary,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .buttonTextPrimary,
                               ),
                               iconSpacing: 8,
                               width: 100,
@@ -251,9 +251,9 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                                 Assets.svg.circlePlusFilled,
                                 width: 13,
                                 height: 13,
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.buttonTextPrimary,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .buttonTextPrimary,
                               ),
                               iconSpacing: 8,
                               width: 128,
@@ -276,9 +276,9 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                     children: [
                       const SizedBox(height: 24),
                       RoundedContainer(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.warningBackground,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .warningBackground,
                         child: Text(
                           "Adding a PayNym to your contacts requires a one-time "
                           "transaction fee for creating the record on the "
@@ -286,9 +286,9 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                           "${ref.watch(pWalletCoin(widget.walletId)).ticker} "
                           "into your wallet and try again.",
                           style: STextStyles.infoSmall(context).copyWith(
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.warningForeground,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .warningForeground,
                             fontSize: 12,
                           ),
                         ),
@@ -320,17 +320,16 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                       children: [
                         Text(
                           "PayNym address",
-                          style: STextStyles.infoSmall(
-                            context,
-                          ).copyWith(fontSize: 12),
+                          style: STextStyles.infoSmall(context)
+                              .copyWith(fontSize: 12),
                         ),
                         const SizedBox(height: 6),
                         Text(
                           widget.accountLite.code,
                           style: STextStyles.infoSmall(context).copyWith(
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textDark,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark,
                             fontSize: 12,
                           ),
                         ),
@@ -371,9 +370,9 @@ class _PaynymDetailsPopupState extends ConsumerState<PaynymDetailsPopup> {
                       Assets.svg.copy,
                       width: 12,
                       height: 12,
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.buttonTextSecondary,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .buttonTextSecondary,
                     ),
                     onPressed: () async {
                       await Clipboard.setData(

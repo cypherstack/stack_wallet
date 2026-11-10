@@ -57,9 +57,9 @@ class _RestoreFailedDialogState extends ConsumerState<RestoreFailedDialog> {
         title: "Restore failed",
         message: errorMessage,
         rightButton: TextButton(
-          style: Theme.of(
-            context,
-          ).extension<StackColors>()!.getSecondaryEnabledButtonStyle(context),
+          style: Theme.of(context)
+              .extension<StackColors>()!
+              .getSecondaryEnabledButtonStyle(context),
           child: Text("Ok", style: STextStyles.itemSubtitle12(context)),
           onPressed: () async {
             try {

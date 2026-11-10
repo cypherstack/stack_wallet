@@ -114,9 +114,9 @@ class _ChurningProgressViewState extends ConsumerState<ChurningProgressView> {
       onPopAttempt: _requestAndProcessCancel,
       child: Background(
         child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
             automaticallyImplyLeading: false,
             leading: AppBarBackButton(
@@ -150,9 +150,9 @@ class _ChurningProgressViewState extends ConsumerState<ChurningProgressView> {
                           children: [
                             if (_roundsCompleted == 0)
                               RoundedContainer(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.snackBarBackError,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .snackBarBackError,
                                 child: Text(
                                   "Do not close this window. If you exit, "
                                   "the process will be canceled.",
@@ -167,9 +167,9 @@ class _ChurningProgressViewState extends ConsumerState<ChurningProgressView> {
                               ),
                             if (_roundsCompleted > 0)
                               RoundedContainer(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.snackBarBackInfo,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .snackBarBackInfo,
                                 child: Text(
                                   "Churning rounds completed: $_roundsCompleted",
                                   style: STextStyles.w500_14(context).copyWith(
@@ -188,9 +188,8 @@ class _ChurningProgressViewState extends ConsumerState<ChurningProgressView> {
                               label:
                                   "Waiting for balance to unlock ${ref.watch(pChurningService(widget.walletId).select((s) => s.confirmsInfo)) ?? ""}",
                               status: ref.watch(
-                                pChurningService(
-                                  widget.walletId,
-                                ).select((s) => s.waitingForUnlockedBalance),
+                                pChurningService(widget.walletId)
+                                    .select((s) => s.waitingForUnlockedBalance),
                               ),
                             ),
                             const SizedBox(height: 12),
@@ -198,9 +197,8 @@ class _ChurningProgressViewState extends ConsumerState<ChurningProgressView> {
                               iconAsset: Assets.svg.churn,
                               label: "Creating churn transaction",
                               status: ref.watch(
-                                pChurningService(
-                                  widget.walletId,
-                                ).select((s) => s.makingChurnTransaction),
+                                pChurningService(widget.walletId)
+                                    .select((s) => s.makingChurnTransaction),
                               ),
                             ),
                             const SizedBox(height: 12),
@@ -208,9 +206,8 @@ class _ChurningProgressViewState extends ConsumerState<ChurningProgressView> {
                               iconAsset: Assets.svg.checkCircle,
                               label: "Complete",
                               status: ref.watch(
-                                pChurningService(
-                                  widget.walletId,
-                                ).select((s) => s.completedStatus),
+                                pChurningService(widget.walletId)
+                                    .select((s) => s.completedStatus),
                               ),
                             ),
                             const Spacer(),

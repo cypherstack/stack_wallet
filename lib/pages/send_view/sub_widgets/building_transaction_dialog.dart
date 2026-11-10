@@ -12,6 +12,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../themes/coin_image_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/text_styles.dart';
@@ -113,7 +114,6 @@ class _RestoringDialogState extends ConsumerState<BuildingTransactionDialog> {
                               style: STextStyles.itemSubtitle12(context),
                             ),
                             onPressed: () {
-                              Navigator.of(context).pop();
                               onCancel.call();
                             },
                           ),
@@ -138,7 +138,6 @@ class _RestoringDialogState extends ConsumerState<BuildingTransactionDialog> {
                     style: STextStyles.itemSubtitle12(context),
                   ),
                   onPressed: () {
-                    Navigator.of(context).pop();
                     onCancel.call();
                   },
                 ),
