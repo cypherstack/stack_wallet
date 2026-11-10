@@ -25,6 +25,7 @@ import '../services/wallets_service.dart';
 import '../utilities/amount/amount.dart';
 import '../utilities/constants.dart';
 import '../utilities/default_eth_tokens.dart';
+import '../utilities/default_nodes.dart';
 import '../utilities/flutter_secure_storage_interface.dart';
 import '../utilities/logger.dart';
 import '../utilities/prefs.dart';
@@ -423,6 +424,16 @@ class DbVersionMigrator with WalletDB {
         );
         return await migrate(17, secureStore: secureStore);
 
+      case 17:
+        await _v17();
+
+        await DB.instance.put<dynamic>(
+          boxName: DB.boxNameDBInfo,
+          key: "hive_data_version",
+          value: 18,
+        );
+        return await migrate(18, secureStore: secureStore);
+
       default:
         // finally return
         return;
@@ -710,5 +721,38 @@ class DbVersionMigrator with WalletDB {
     }
 
     await primariesBox.deleteFromDisk();
+  }
+
+  Future<void> _v17() async {
+    final nodesBox = await DB.instance.hive.openBox<NodeModel>(
+      DB.boxNameNodeModels,
+    );
+    final id = DefaultNodes.buildId(Fact0rn(CryptoCurrencyNetwork.main));
+    final node = nodesBox.get(id);
+
+    // The Fact0rn default node used to ship clearnet only. Only touch a node
+    // that still matches everything the user could have edited on it, so a
+    // customised node keeps its settings.
+    final untouched =
+        node != null &&
+        node.host == "electrumx2.projectfactor.io" &&
+        node.port == 50002 &&
+        node.name == DefaultNodes.defaultName &&
+        node.useSSL &&
+        node.isFailover &&
+        node.loginName == null &&
+        !node.torEnabled &&
+        node.clearnetEnabled;
+
+    if (untouched) {
+      await nodesBox.put(
+        id,
+        node.copyWith(
+          loginName: node.loginName,
+          trusted: node.trusted,
+          torEnabled: true,
+        ),
+      );
+    }
   }
 }
