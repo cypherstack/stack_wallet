@@ -96,7 +96,11 @@ class _FrostScaffoldState extends ConsumerState<FrostStepScaffold> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: Util.isDesktop && ref.watch(pFrostScaffoldCanPopDesktop),
-      onPopInvokedWithResult: (_, __) => _requestPop(context),
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) {
+          _requestPop(context);
+        }
+      },
       child: Material(
         child: ConditionalParent(
           condition: Util.isDesktop,
