@@ -53,6 +53,7 @@ import '../../home_view/home_view.dart';
 import '../add_token_view/edit_wallet_tokens_view.dart';
 import '../new_wallet_options/new_wallet_options_view.dart';
 import '../new_wallet_recovery_phrase_view/new_wallet_recovery_phrase_view.dart';
+import '../select_wallet_for_sol_token_view.dart';
 import '../select_wallet_for_token_view.dart';
 import 'sub_widgets/word_table.dart';
 import 'verify_mnemonic_passphrase_dialog.dart';
@@ -303,6 +304,15 @@ class _VerifyRecoveryPhraseViewState
             .state = !ref
             .read(newEthWalletTriggerTempUntilHiveCompletelyDeleted.state)
             .state;
+      }
+
+      // The Solana token wallet picker skips wallets that are not in pWallets
+      // yet, so tell it to rebuild now that this one is.
+      if (_coin is Solana) {
+        final trigger = ref.read(
+          newSolWalletTriggerTempUntilHiveCompletelyDeleted.notifier,
+        );
+        trigger.state = !trigger.state;
       }
 
       if (mounted &&
