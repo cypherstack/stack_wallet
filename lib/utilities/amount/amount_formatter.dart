@@ -66,12 +66,7 @@ class AmountFormatter {
     );
   }
 
-  Amount? tryParse(String string, {Contract? tokenContract}) {
-    return unit.tryParse(
-      string,
-      locale: locale,
-      coin: coin,
-      tokenContract: tokenContract,
-    );
+  String formatEditable(Amount amount) {
+    return unit.formatEditable(amount: amount, locale: locale);
   }
 }
