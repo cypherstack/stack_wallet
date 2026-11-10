@@ -236,5 +236,8 @@ class Particl extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   int get transactionVersion => 160;
 
   @override
+  bool get hasBitcoinTransactionLayout => false;
+
+  @override
   BigInt get defaultFeeRate => BigInt.from(20000);
 }

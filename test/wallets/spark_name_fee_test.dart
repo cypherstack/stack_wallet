@@ -2,7 +2,9 @@ import 'dart:typed_data';
 
 import 'package:flutter_libsparkmobile/flutter_libsparkmobile.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
+import 'package:stackwallet/wl_gen/interfaces/lib_spark_interface.dart';
 
 void main() {
   test('Spark Name validation rejects underscores before construction', () {
@@ -41,5 +43,60 @@ void main() {
       ),
       isTrue,
     );
+  });
+
+  group('Spark H2 activation', () {
+    test('mainnet uses V1 before the activation block', () {
+      final version = sparkSpendVersionForNextBlock(
+        network: CryptoCurrencyNetwork.main,
+        nextBlockHeight: 1370999,
+      );
+
+      expect(version, LibSparkSpendVersion.chaumV1);
+      expect(version.allowsMultipleInputs, isFalse);
+      expect(version.transactionVersion, 3 | (9 << 16));
+    });
+
+    test('mainnet uses V2 at activation and later', () {
+      for (final nextBlockHeight in [1371000, 1371001]) {
+        final version = sparkSpendVersionForNextBlock(
+          network: CryptoCurrencyNetwork.main,
+          nextBlockHeight: nextBlockHeight,
+        );
+
+        expect(version, LibSparkSpendVersion.chaumV2);
+        expect(version.allowsMultipleInputs, isTrue);
+        expect(version.transactionVersion, 3 | (11 << 16));
+      }
+    });
+
+    test('non-mainnet networks remain on V1', () {
+      for (final network in CryptoCurrencyNetwork.values.where(
+        (network) => network != CryptoCurrencyNetwork.main,
+      )) {
+        expect(
+          sparkSpendVersionForNextBlock(
+            network: network,
+            nextBlockHeight: 1371000,
+          ),
+          LibSparkSpendVersion.chaumV1,
+        );
+      }
+    });
+
+    test('only the Chaum V2 transaction version permits multiple inputs', () {
+      expect(
+        isChaumV2SparkTransactionVersion(
+          LibSparkSpendVersion.chaumV1.transactionVersion,
+        ),
+        isFalse,
+      );
+      expect(
+        isChaumV2SparkTransactionVersion(
+          LibSparkSpendVersion.chaumV2.transactionVersion,
+        ),
+        isTrue,
+      );
+    });
   });
 }

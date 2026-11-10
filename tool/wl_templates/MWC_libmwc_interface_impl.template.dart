@@ -1,5 +1,4 @@
 //ON
-import 'package:flutter_libmwc/git_versions.dart' as mimblewimblecoin_versions;
 import 'package:flutter_libmwc/lib.dart' as mimblewimblecoin;
 import 'package:flutter_libmwc/models/transaction.dart'
     as mimblewimblecoin_models;
@@ -348,9 +347,6 @@ final class _LibMwcInterfaceImpl extends LibMwcInterface {
   bool validateSendAddress({required String address}) {
     return mimblewimblecoin.Libmwc.validateSendAddress(address: address);
   }
-
-  @override
-  String getPluginVersion() => mimblewimblecoin_versions.getPluginVersion();
 }
 
 //END_ON
