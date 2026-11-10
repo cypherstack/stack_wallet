@@ -1,7 +1,23 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
+import 'package:stackwallet/widgets/start_height_picker.dart';
 
 void main() {
+  test('MWC date estimates use its own genesis and clamp earlier dates', () {
+    const genesis = 1573462801;
+    expect(
+      StartHeightPicker.mimblewimbleHeightFromDate(
+        DateTime.fromMillisecondsSinceEpoch((genesis - 10) * 1000),
+      ),
+      0,
+    );
+    expect(
+      StartHeightPicker.mimblewimbleHeightFromDate(
+        DateTime.fromMillisecondsSinceEpoch((genesis + 6100) * 1000),
+      ),
+      100,
+    );
+  });
   test(
     'wallet URI secrets stay redacted and malformed restores are rejected',
     () {

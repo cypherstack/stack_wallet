@@ -89,6 +89,13 @@ class StartHeightPicker extends StatefulWidget {
   final CryptoCurrency coin;
   final StartHeightPickerController controller;
 
+  /// Estimates an MWC scan height without skipping blocks near the chosen date.
+  static int mimblewimbleHeightFromDate(DateTime date) {
+    const genesis = 1573462801;
+    final seconds = date.millisecondsSinceEpoch ~/ 1000 - genesis;
+    return seconds < 0 ? 0 : seconds ~/ 61;
+  }
+
   @override
   State<StartHeightPicker> createState() => _StartHeightPickerState();
 }
@@ -108,6 +115,12 @@ class _StartHeightPickerState extends State<StartHeightPicker> {
     _dateController = TextEditingController();
     _blockHeightController = TextEditingController();
     _blockHeightFocusNode = FocusNode();
+    if (widget.coin is Monero &&
+        widget.coin.network != CryptoCurrencyNetwork.main) {
+      _isUsingDate = false;
+      _blockFieldEmpty = false;
+      _blockHeightController.text = "0";
+    }
     widget.controller.addListener(_onControllerChanged);
     // Notify after the first frame so a watching ListenableBuilder does not
     // rebuild during its own build phase.
@@ -161,11 +174,14 @@ class _StartHeightPickerState extends State<StartHeightPicker> {
           height = 0;
         }
 
+        if (widget.coin is Mimblewimblecoin) {
+          height = StartHeightPicker.mimblewimbleHeightFromDate(date);
+        }
         if (widget.coin is Epiccash) {
           final int secondsSinceEpoch = date.millisecondsSinceEpoch ~/ 1000;
-          const int epicCashFirstBlock = 1565370278;
+          const int genesis = 1565370278;
           const double overestimateSecondsPerBlock = 61;
-          final int chosenSeconds = secondsSinceEpoch - epicCashFirstBlock;
+          final int chosenSeconds = secondsSinceEpoch - genesis;
           final int approximateHeight =
               chosenSeconds ~/ overestimateSecondsPerBlock;
 
@@ -224,22 +240,24 @@ class _StartHeightPickerState extends State<StartHeightPicker> {
               _isUsingDate ? "Choose start date" : "Block height",
               style: Util.isDesktop
                   ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textDark3,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textDark3,
                     )
                   : STextStyles.smallMed12(context),
               textAlign: TextAlign.left,
             ),
-            CustomTextButton(
-              text: _isUsingDate ? "Use block height" : "Use date",
-              onTap: () {
-                setState(() {
-                  _isUsingDate = !_isUsingDate;
-                });
-                _notifyController();
-              },
-            ),
+            if (widget.coin is! Monero ||
+                widget.coin.network == CryptoCurrencyNetwork.main)
+              CustomTextButton(
+                text: _isUsingDate ? "Use block height" : "Use date",
+                onTap: () {
+                  setState(() {
+                    _isUsingDate = !_isUsingDate;
+                  });
+                  _notifyController();
+                },
+              ),
           ],
         ),
         SizedBox(height: Util.isDesktop ? 16 : 8),
@@ -259,9 +277,8 @@ class _StartHeightPickerState extends State<StartHeightPicker> {
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   textInputAction: TextInputAction.done,
                   style: Util.isDesktop
-                      ? STextStyles.desktopTextMedium(
-                          context,
-                        ).copyWith(height: 2)
+                      ? STextStyles.desktopTextMedium(context)
+                            .copyWith(height: 2)
                       : STextStyles.field(context),
                   onChanged: (value) {
                     setState(() {
@@ -278,8 +295,7 @@ class _StartHeightPickerState extends State<StartHeightPicker> {
                         suffixIcon: UnconstrainedBox(
                           child: TextFieldIconButton(
                             child: Semantics(
-                              label:
-                                  "Clear Block Height Field Button. Clears the block height field",
+                              label: "Clear Block Height Field Button. Clears the block height field",
                               excludeSemantics: true,
                               child: !_blockFieldEmpty
                                   ? XIcon(
@@ -309,9 +325,9 @@ class _StartHeightPickerState extends State<StartHeightPicker> {
                   : "Enter the initial block height of the wallet",
               style: Util.isDesktop
                   ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textSubtitle1,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textSubtitle1,
                     )
                   : STextStyles.smallMed12(context).copyWith(fontSize: 10),
             ),
