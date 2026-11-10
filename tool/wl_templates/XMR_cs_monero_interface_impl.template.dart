@@ -432,7 +432,7 @@ class _CsMoneroInterfaceImpl extends CsMoneroInterface {
       pending,
       pending.amount,
       pending.fee,
-      pending.txid,
+      pending.txids,
     );
   }
 
@@ -484,7 +484,7 @@ class _CsMoneroInterfaceImpl extends CsMoneroInterface {
       pending,
       pending.amount,
       pending.fee,
-      pending.txid,
+      pending.txids,
     );
   }
 

@@ -13,60 +13,14 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../app_config.dart';
 import '../themes/stack_colors.dart';
 import '../themes/theme_providers.dart';
-import '../themes/theme_service.dart';
-import '../utilities/stack_file_system.dart';
 import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
 import '../widgets/app_icon.dart';
 import '../widgets/background.dart';
-
-/// Root app widget for the "already running" error path.
-///
-/// Mirrors the theme bootstrap performed by [MaterialAppWithTheme] in main.dart
-/// but without touching Hive. Requires Isar + ThemeService to already be
-/// initialized before [runApp] is called.
-class AlreadyRunningApp extends ConsumerStatefulWidget {
-  const AlreadyRunningApp({super.key});
-
-  @override
-  ConsumerState<AlreadyRunningApp> createState() => _AlreadyRunningAppState();
-}
-
-class _AlreadyRunningAppState extends ConsumerState<AlreadyRunningApp> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(applicationThemesDirectoryPathProvider.notifier).state =
-          StackFileSystem.themesDir!.path;
-      // The first instance already verified/installed the light theme, so
-      // getTheme cannot return null here.
-      ref.read(themeProvider.state).state = ref
-          .read(pThemeService)
-          .getTheme(themeId: "light")!;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = ref.watch(colorProvider.state).state;
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: AppConfig.appName,
-      theme: ThemeData(
-        extensions: [colorScheme],
-        fontFamily: GoogleFonts.inter().fontFamily,
-        splashColor: Colors.transparent,
-      ),
-      home: const AlreadyRunningView(),
-    );
-  }
-}
 
 /// Error screen shown when this is a second instance of the app.
 ///
@@ -159,25 +113,22 @@ class AlreadyRunningView extends ConsumerWidget {
                         Text(
                           AppConfig.appName,
                           textAlign: TextAlign.center,
-                          style: STextStyles.pageTitleH1(
-                            context,
-                          ).copyWith(fontSize: 40),
+                          style: STextStyles.pageTitleH1(context)
+                              .copyWith(fontSize: 40),
                         ),
                         const Spacer(flex: 24),
                         Text(
                           AppConfig.shortDescriptionText,
                           textAlign: TextAlign.center,
-                          style: STextStyles.subtitle(
-                            context,
-                          ).copyWith(fontSize: 24),
+                          style: STextStyles.subtitle(context)
+                              .copyWith(fontSize: 24),
                         ),
                         const Spacer(flex: 42),
                         Text(
                           _errorMessage,
                           textAlign: TextAlign.center,
-                          style: STextStyles.label(
-                            context,
-                          ).copyWith(fontSize: 18),
+                          style: STextStyles.label(context)
+                              .copyWith(fontSize: 18),
                         ),
                         const Spacer(flex: 65),
                       ],

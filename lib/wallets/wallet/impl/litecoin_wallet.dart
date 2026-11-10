@@ -15,6 +15,7 @@ import '../../crypto_currency/crypto_currency.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
 import '../intermediate/bip39_hd_wallet.dart';
 import '../intermediate/external_wallet.dart';
+import '../supporting/owned_input_signatures.dart';
 import '../wallet_mixin_interfaces/coin_control_interface.dart';
 import '../wallet_mixin_interfaces/electrumx_interface.dart';
 import '../wallet_mixin_interfaces/extended_keys_interface.dart';
@@ -252,6 +253,22 @@ class LitecoinWallet<T extends ElectrumXCurrencyInterface>
         }
       }
 
+      // A pending spend of our coins is kept, and sized, only from raw bytes
+      // the server proves this wallet signed. Anything else is dropped.
+      final height = txData["height"] as int?;
+      RawTransactionSize? verifiedSize;
+      if (wasSentFromThisWallet && (height == null || height <= 0)) {
+        verifiedSize = await verifyPendingSpend(
+          txid: txData["txid"] as String,
+          inputs: inputs,
+          outputs: outputs,
+        );
+        if (verifiedSize == null) {
+          await deleteUnverifiedTransaction(txData["txid"] as String);
+          continue;
+        }
+      }
+
       final totalOut = outputs
           .map((e) => e.value)
           .fold(BigInt.zero, (value, element) => value + element);
@@ -328,7 +345,12 @@ class LitecoinWallet<T extends ElectrumXCurrencyInterface>
       }
 
       String? otherData;
-      if (txData["size"] is int || txData["vsize"] is int) {
+      if (verifiedSize != null) {
+        otherData = jsonEncode({
+          TxV2OdKeys.size: verifiedSize.size,
+          TxV2OdKeys.vSize: verifiedSize.vSize,
+        });
+      } else if (txData["size"] is int || txData["vsize"] is int) {
         otherData = jsonEncode({
           TxV2OdKeys.size: txData["size"] as int?,
           TxV2OdKeys.vSize: txData["vsize"] as int?,

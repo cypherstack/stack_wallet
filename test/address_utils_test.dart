@@ -4,10 +4,6 @@ import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
 void main() {
   const String firoAddress = "a6ESWKz7szru5syLtYAPRhHLdKvMq3Yt1j";
-  const moneroAddress =
-      "4AeRgkWZsMJhAWKMeCZ3h4ZSPnAcW5VBtRFyLd6gBEf6GgJU2FHXDA6i1DnQTd6h8R3VU5AkbGcWSNhtSwNNPgaD48gp4nn";
-  const privateKey =
-      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 
   test("condense address", () {
     final condensedAddress = AddressUtils.condenseAddress(firoAddress);
@@ -44,6 +40,78 @@ void main() {
     expect(result.message, "eggs are good!");
   });
 
+  test("parse uri with malformed amount rejects the whole uri", () {
+    // Payment URI amounts are machine-format plain decimals (BIP21 style):
+    // no signs, no exponents, no grouping or locale separators, no units.
+    const malformed = [
+      "-5",
+      "%2B5", // literal "+5"; a raw "+" is query-encoding for a space
+      "1e3",
+      "1E3",
+      "1e-3",
+      "1.2.3",
+      "5%20BTC",
+      "1,220.0", // grouped
+      "1,5", // comma decimal
+      "1.220,00", // European format
+      "1%20220.0", // space grouped
+      "5.", // trailing separator
+      "5,",
+      ".",
+      "", // explicitly present but empty
+      "0x10",
+      "NaN",
+      "Infinity",
+      "abc",
+    ];
+    for (final amount in malformed) {
+      expect(
+        AddressUtils.parsePaymentUri("bitcoin:$firoAddress?amount=$amount"),
+        isNull,
+        reason: "amount=$amount",
+      );
+    }
+  });
+
+  test("parse uri with valid amount preserves it verbatim", () {
+    const valid = [
+      "5",
+      "007",
+      "1220.0",
+      "1.220",
+      "0.5",
+      ".5",
+      "0.00000001",
+      "123456789.123456789",
+    ];
+    for (final amount in valid) {
+      final result = AddressUtils.parsePaymentUri(
+        "bitcoin:$firoAddress?amount=$amount",
+      );
+      expect(result?.amount, amount, reason: "amount=$amount");
+    }
+
+    // Surrounding whitespace is trimmed, not rejected.
+    final padded = AddressUtils.parsePaymentUri(
+      "bitcoin:$firoAddress?amount=%201.5%20",
+    );
+    expect(padded?.amount, "1.5");
+
+    // A raw "+" in a query decodes to a space, so "+5" arrives as " 5" and
+    // trims to a valid "5". A literal plus sign (%2B5) is rejected above.
+    final plusAsSpace = AddressUtils.parsePaymentUri(
+      "bitcoin:$firoAddress?amount=+5",
+    );
+    expect(plusAsSpace?.amount, "5");
+  });
+
+  test("parse query parameters exactly once", () {
+    const uri = "bitcoin:$firoAddress?label=Save%25&amount=1.5";
+    final result = AddressUtils.parsePaymentUri(uri);
+    expect(result!.label, "Save%");
+    expect(result.amount, "1.5");
+  });
+
   test("parse an invalid uri string", () {
     const uri = "firo$firoAddress?amount=50&label=eggs";
     final result = AddressUtils.parsePaymentUri(uri);
@@ -70,6 +138,66 @@ void main() {
     expect(result.address, "xel:$firoAddress");
     expect(result.amount, "50.1");
     expect(result.message, "eggs are good!");
+  });
+
+  test("distinguish CashAddr payment URIs from prefixed addresses", () {
+    const address = "qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a";
+
+    for (final scheme in ["bitcoincash", "bchtest", "ecash", "ectest"]) {
+      expect(AddressUtils.parsePaymentUri("$scheme:$address"), isNull);
+
+      final result = AddressUtils.parsePaymentUri(
+        "$scheme:$address?amount=1.25",
+      );
+      expect(result?.scheme, scheme);
+      expect(result?.address, "$scheme:$address");
+      expect(result?.amount, "1.25");
+    }
+
+    final uppercase = AddressUtils.parsePaymentUri(
+      "BITCOINCASH:${address.toUpperCase()}?amount=1.25",
+    );
+    expect(uppercase?.address, "bitcoincash:$address");
+
+    expect(AddressUtils.parsePaymentUri("xel:$address?amount=1.25"), isNull);
+
+    final xelis = AddressUtils.parsePaymentUri(
+      "xelis:xel:$address?amount=1.25",
+    );
+    expect((xelis?.address, xelis?.amount), ("xel:$address", "1.25"));
+  });
+
+  test("parse payment URI memo and destination-tag aliases", () {
+    const aliases = {
+      "tx_payment_id": "payment-id",
+      "memo": "memo-value",
+      "dt": "12345",
+      "destination_tag": "destination-tag",
+    };
+
+    for (final entry in aliases.entries) {
+      final result = AddressUtils.parsePaymentUri(
+        "ripple:$firoAddress?${entry.key}=${entry.value}",
+      );
+      expect(result?.memo, entry.value, reason: entry.key);
+    }
+
+    final fallback = AddressUtils.parsePaymentUri(
+      "ripple:$firoAddress?memo=&dt=54321",
+    );
+    expect(fallback?.memo, "54321");
+
+    // Memo and amount combine.
+    final combined = AddressUtils.parsePaymentUri(
+      "ripple:$firoAddress?amount=1.5&dt=12345",
+    );
+    expect((combined?.amount, combined?.memo), ("1.5", "12345"));
+
+    // A malformed amount rejects the whole URI; the memo does not survive.
+    expect(
+      AddressUtils.parsePaymentUri("ripple:$firoAddress?amount=1,5&dt=12345"),
+      isNull,
+    );
   });
 
   test("encode a list of (mnemonic) words/strings as a json object", () {
@@ -137,128 +265,193 @@ void main() {
     );
   });
 
-  group("wallet URI", () {
-    test("parses a private-key restore", () {
-      final result = WalletUriData.fromUriString(
-        "monero_wallet:$moneroAddress"
-        "?view_key=$privateKey&spend_key=$privateKey&height=123",
+  test("build a standard payment URI", () {
+    expect(
+      AddressUtils.buildPaymentUriString(
+        scheme: "firo",
+        address: firoAddress,
+        amount: "10.0123",
+        message: "Some kind of message!",
+      ),
+      "firo:$firoAddress?amount=10.0123&message=Some+kind+of+message%21",
+    );
+  });
+
+  test("build Monero-family payment URIs with standard query parameters", () {
+    for (final scheme in ["monero", "wownero"]) {
+      final uri = AddressUtils.buildPaymentUriString(
+        scheme: scheme,
+        address: firoAddress,
+        amount: "1.25",
+        message: "Some kind of message!",
       );
 
-      expect(result.address, moneroAddress);
-      expect(result.viewKey, privateKey);
-      expect(result.spendKey, privateKey);
-      expect(result.height, 123);
-      expect(result.isViewOnly, isFalse);
-    });
-
-    test("accepts the legacy mnemonic_seed parameter", () {
-      final result = WalletUriData.fromUriString(
-        "MONERO-WALLET:?mnemonic_seed=alpha%20beta",
-      );
-
-      expect(result.seed, "alpha beta");
-    });
-
-    test("requires an address for key-based restores", () {
       expect(
-        () => WalletUriData.fromUriString(
-          "monero_wallet:?view_key=$privateKey&spend_key=$privateKey",
-        ),
-        throwsFormatException,
+        uri,
+        "$scheme:$firoAddress?tx_amount=1.25&"
+        "tx_description=Some+kind+of+message%21",
       );
+      expect(uri, isNot(contains("#")));
+
+      final parsed = AddressUtils.parsePaymentUri(uri);
+      expect(parsed?.amount, "1.25");
+      expect(parsed?.message, "Some kind of message!");
+    }
+  });
+
+  group("Monero multi-recipient payment URIs", () {
+    const addressA = "4AdUndXHHZ6cfufTMvppY6JwXNouMBzSkbLYfpAV5Usx";
+    const addressB = "8BnERTpvL5MbCLtj5n9No7J5oE5hHiB3tVCK5cjSvCsx";
+
+    test("parses addresses, amounts, and names per recipient", () {
+      final result = AddressUtils.parsePaymentUri(
+        "monero:$addressA;$addressB?tx_amount=1.5;0.25"
+        "&recipient_name=Alice;Bob&tx_description=Dinner",
+        allowMultipleRecipients: true,
+      );
+
+      expect(result, isNotNull);
+      expect(result!.isMultiRecipient, isTrue);
+      expect(result.recipients.map((e) => e.address), [addressA, addressB]);
+      expect(result.recipients.map((e) => e.amount), ["1.5", "0.25"]);
+      expect(result.recipients.map((e) => e.label), ["Alice", "Bob"]);
+      expect(result.message, "Dinner");
+      expect(result.address, addressA);
+      expect(result.amount, "1.5");
     });
 
-    test("rejects a payment URI", () {
+    test("names are optional", () {
+      final result = AddressUtils.parsePaymentUri(
+        "monero:$addressA;$addressB?tx_amount=1;2",
+        allowMultipleRecipients: true,
+      );
+
+      expect(result!.recipients.map((e) => e.label), [null, null]);
+    });
+
+    test("decodes each value of a list on its own", () {
+      final result = AddressUtils.parsePaymentUri(
+        "monero:$addressA;$addressB?recipient_name=Smith%3B%20Co;Bob%20B."
+        "&tx_amount=0.09;0.01&tx_description=Great%20stream",
+        allowMultipleRecipients: true,
+      );
+
+      expect(result!.recipients.map((e) => e.address), [addressA, addressB]);
+      expect(result.recipients.map((e) => e.amount), ["0.09", "0.01"]);
+      expect(result.recipients.map((e) => e.label), ["Smith; Co", "Bob B."]);
+      expect(result.message, "Great stream");
+
       expect(
-        () => WalletUriData.fromUriString(
-          "monero:$moneroAddress?view_key=$privateKey",
-        ),
-        throwsFormatException,
+        AddressUtils.parsePaymentUri(
+          "monero:$addressA;$addressB?tx_amount=1;2"
+          "&recipient_name=Alice;Smith%3BCo",
+          allowMultipleRecipients: true,
+        )!.recipients.map((e) => e.label),
+        ["Alice", "Smith;Co"],
       );
+
+      // Values that are not lists are split and re-joined; a `;` in them,
+      // encoded or not, must survive.
+      final withMessage = AddressUtils.parsePaymentUri(
+        "monero:$addressA;$addressB?tx_amount=1;2"
+        "&tx_description=Lunch;%20tips%3B%20etc&tx_payment_id=a;b",
+        allowMultipleRecipients: true,
+      );
+      expect(withMessage?.message, "Lunch; tips; etc");
+      expect(withMessage?.paymentId, "a;b");
     });
 
-    test("requires a view key with a spend key", () {
-      expect(
-        () => WalletUriData.fromUriString(
-          "monero_wallet:$moneroAddress?spend_key=$privateKey",
-        ),
-        throwsFormatException,
-      );
-    });
-
-    test("rejects seed and private keys together", () {
-      expect(
-        () => WalletUriData.fromUriString(
-          "monero_wallet:$moneroAddress"
-          "?seed=alpha%20beta&view_key=$privateKey",
-        ),
-        throwsFormatException,
-      );
-    });
-
-    test("uses the supplied address validator", () {
-      expect(
-        () => WalletUriData.fromUriString(
-          "monero_wallet:$moneroAddress?view_key=$privateKey",
-          addressValidator: (_) => false,
-        ),
-        throwsFormatException,
-      );
-    });
-
-    test("rejects empty recovery material", () {
-      expect(
-        () => WalletUriData.fromUriString("monero_wallet:?seed="),
-        throwsFormatException,
-      );
-    });
-
-    test("rejects malformed private keys", () {
-      expect(
-        () => WalletUriData.fromUriString(
-          "monero_wallet:$moneroAddress?view_key=not-a-key",
-        ),
-        throwsFormatException,
-      );
-    });
-
-    test("rejects invalid restore heights", () {
-      for (final height in ["abc", "-1"]) {
+    test("a percent-encoded semicolon is not a separator", () {
+      for (final uri in [
+        "monero:$addressA;$addressB?tx_amount=0.09%3B0.01",
+        "monero:$addressA;$addressB?tx_amount=1;2&recipient_name=Alice%3BBob",
+      ]) {
         expect(
-          () => WalletUriData.fromUriString(
-            "monero_wallet:?seed=alpha%20beta&height=$height",
-          ),
-          throwsFormatException,
+          AddressUtils.parsePaymentUri(uri, allowMultipleRecipients: true),
+          isNull,
+          reason: uri,
         );
       }
     });
 
-    test("accepts numeric restore heights from JSON", () {
-      final result = WalletUriData.fromJson({
-        "seed": "alpha beta",
-        "height": 123,
-      }, Monero(CryptoCurrencyNetwork.main));
+    test("parses more than two recipients", () {
+      const addressC = "4C7oeS1rq4w7TxjdBdz2Z6rxDBsJtUpDjN9X8fKCnQsx";
+      final result = AddressUtils.parsePaymentUri(
+        "monero:$addressA;$addressB;$addressC?tx_amount=1;.5;0.000000000001"
+        "&recipient_name=Alice;;Carol",
+        allowMultipleRecipients: true,
+      );
 
-      expect(result.height, 123);
+      expect(result!.recipients.map((e) => e.address), [
+        addressA,
+        addressB,
+        addressC,
+      ]);
+      expect(result.recipients.map((e) => e.amount), [
+        "1",
+        ".5",
+        "0.000000000001",
+      ]);
+      expect(result.recipients.map((e) => e.label), ["Alice", null, "Carol"]);
     });
 
-    test("rejects transaction-ID restores until they are implemented", () {
+    test("is rejected unless multiple recipients are allowed", () {
       expect(
-        () => WalletUriData.fromUriString(
-          "monero_wallet:?seed=alpha%20beta&txid=$privateKey",
+        AddressUtils.parsePaymentUri(
+          "monero:$addressA;$addressB?tx_amount=1;2",
         ),
-        throwsUnsupportedError,
+        isNull,
       );
     });
 
-    test("does not expose secrets in diagnostics", () {
-      final result = WalletUriData.fromUriString(
-        "monero_wallet:$moneroAddress"
-        "?view_key=$privateKey&spend_key=$privateKey",
+    test("rejects malformed recipient lists", () {
+      for (final uri in [
+        "monero:$addressA;$addressB",
+        "monero:$addressA;$addressB?tx_amount=1",
+        "monero:$addressA;$addressB?tx_amount=1;2;3",
+        "monero:$addressA;$addressB?tx_amount=1;abc",
+        "monero:$addressA;$addressB?tx_amount=1;",
+        "monero:$addressA;$addressB?tx_amount=1;2&recipient_name=Alice",
+        "monero:$addressA;?tx_amount=1;2",
+        "monero:$addressA?tx_amount=1;2",
+        "monero:$addressA?tx_amount=1%3B2",
+      ]) {
+        expect(
+          AddressUtils.parsePaymentUri(uri, allowMultipleRecipients: true),
+          isNull,
+          reason: uri,
+        );
+      }
+    });
+
+    test("single recipient URIs are unchanged", () {
+      final result = AddressUtils.parsePaymentUri(
+        "monero:$addressA?tx_amount=1.5&recipient_name=Alice;Co",
+        allowMultipleRecipients: true,
       );
 
-      expect(result.toString(), isNot(contains(privateKey)));
-      expect(result.toString(), contains("redacted"));
+      expect(result!.isMultiRecipient, isFalse);
+      expect(result.address, addressA);
+      expect(result.amount, "1.5");
+      expect(result.label, "Alice;Co");
+
+      expect(
+        AddressUtils.parsePaymentUri(
+          "monero:$addressA?recipient_name=Alice%3BCo",
+          allowMultipleRecipients: true,
+        )?.label,
+        "Alice;Co",
+      );
+    });
+
+    test("other schemes do not split recipients", () {
+      expect(
+        AddressUtils.parsePaymentUri(
+          "wownero:$addressA;$addressB?tx_amount=1;2",
+          allowMultipleRecipients: true,
+        ),
+        isNull,
+      );
     });
   });
 }

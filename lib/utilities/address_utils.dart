@@ -14,6 +14,16 @@ import '../app_config.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import 'logger.dart';
 
+/// Parsed parameters as a map, plus the values of the amount and label
+/// parameters as lists: one per recipient for a Monero URI's `;` lists, else
+/// a single value; null when the parameter is absent. From `_parseUri`, the
+/// map also holds the scheme and address.
+typedef _ParsedParams = ({
+  Map<String, String> params,
+  List<String>? amounts,
+  List<String>? labels,
+});
+
 class AddressUtils {
   static final Set<String> recognizedParams = {
     'amount',
@@ -24,6 +34,9 @@ class AddressUtils {
     'recipient_name',
     'tx_description',
     'op_return', // For Rosen Bridge and other OP_RETURN protocols.
+    'memo', // Stellar SEP-0007.
+    'dt', // XRP destination tag.
+    'destination_tag',
     // TODO [prio=med]: Add more recognized params for other coins.
   };
 
@@ -41,12 +54,11 @@ class AddressUtils {
     );
   }
 
-  /// Parses a URI string and returns a map with parsed components.
-  static Map<String, String> _parseUri(
-    String uri, {
-    bool redactUriInLogs = false,
-  }) {
+  /// Parses a URI string into its components.
+  static _ParsedParams _parseUri(String uri) {
     final Map<String, String> result = {};
+    List<String>? amounts;
+    List<String>? labels;
     try {
       final u = Uri.parse(uri);
       if (u.hasScheme) {
@@ -73,129 +85,225 @@ class AddressUtils {
         }
 
         // Parse query parameters.
-        result.addAll(_parseQueryParameters(u.queryParameters));
+        final Map<String, List<String>> values;
+        if (result["scheme"] == "monero") {
+          // Monero URIs may list a value per recipient, separated by `;`.
+          // Split the still percent-encoded query before decoding each value,
+          // so that a `%3B` within a name is a `;` in it, not a separator.
+          values = _splitQueryLists(u.query);
+        } else {
+          values = u.queryParameters.map(
+            (key, value) => MapEntry(key, [value]),
+          );
+        }
+        final parsed = _parseQueryParameters(values);
+        result.addAll(parsed.params);
+        amounts = parsed.amounts;
+        labels = parsed.labels;
 
         // Handle Monero-specific fragment (tx_description).
         if (u.fragment.isNotEmpty && result["scheme"] == "monero") {
           result["tx_description"] = Uri.decodeComponent(u.fragment);
         }
       }
+    } on FormatException {
+      rethrow;
     } catch (e, s) {
-      if (redactUriInLogs) {
-        // FormatException.toString() quotes a window of its source, and
-        // Uri.parse's source is the pasted uri, so log the message alone and
-        // never hand the exception object to the logger.
-        Logging.instance.d(
-          "Exception caught in parseUri(<redacted>): "
-          "${e is FormatException ? e.message : e.runtimeType}",
-          stackTrace: s,
-        );
-      } else {
-        Logging.instance.d(
-          "Exception caught in parseUri($uri): $e",
-          error: e,
-          stackTrace: s,
-        );
+      Logging.instance.d(
+        "Exception caught in parseUri($uri): $e",
+        error: e,
+        stackTrace: s,
+      );
+    }
+    return (params: result, amounts: amounts, labels: labels);
+  }
+
+  /// Splits a still percent-encoded [query] (as `Uri.query` returns it) into
+  /// its parameters, each with its `;` separated values decoded one by one.
+  static Map<String, List<String>> _splitQueryLists(String query) {
+    final Map<String, List<String>> result = {};
+    for (final pair in query.split('&')) {
+      final split = pair.indexOf('=');
+      final key = split < 0 ? pair : pair.substring(0, split);
+      if (key.isEmpty) {
+        continue;
       }
+      final value = split < 0 ? '' : pair.substring(split + 1);
+      result[Uri.decodeQueryComponent(key)] = [
+        for (final e in value.split(';')) Uri.decodeQueryComponent(e),
+      ];
     }
     return result;
   }
 
-  /// Strips surrounding single or double quotes from a string.
-  static String _stripQuotes(String value) {
-    if (value.length >= 2 &&
-        ((value.startsWith('"') && value.endsWith('"')) ||
-            (value.startsWith("'") && value.endsWith("'")))) {
-      return value.substring(1, value.length - 1);
-    }
-    return value;
-  }
-
-  /// Helper method to parse and normalize query parameters.
-  ///
-  /// Keys are lowercased and dashes are replaced with underscores so that
-  /// e.g. `spend-key` and `spend_key` are treated identically.
-  /// Surrounding quotation marks on values are stripped.
-  static Map<String, String> _parseQueryParameters(Map<String, String> params) {
+  /// Helper method to parse and normalize query parameters, each given as its
+  /// list of values: one per recipient for a Monero URI's lists, else one.
+  static _ParsedParams _parseQueryParameters(Map<String, List<String>> params) {
     final Map<String, String> result = {};
-    params.forEach((key, value) {
-      // Normalize: lowercase + dashes -> underscores.
-      final normalizedKey = key.toLowerCase().replaceAll('-', '_');
-      final strippedValue = _stripQuotes(value);
-
-      if (recognizedParams.contains(normalizedKey)) {
-        switch (normalizedKey) {
+    List<String>? amounts;
+    List<String>? labels;
+    for (final MapEntry(:key, value: values) in params.entries) {
+      final lowerKey = key.toLowerCase();
+      final value = values.join(';');
+      if (recognizedParams.contains(lowerKey)) {
+        switch (lowerKey) {
           case 'amount':
           case 'tx_amount':
-            result['amount'] = _normalizeAmount(strippedValue);
+            amounts = [
+              for (final e in values)
+                _normalizeAmount(e) ??
+                    (throw FormatException(
+                      "Invalid payment URI amount: $value",
+                    )),
+            ];
+            result['amount'] = amounts.join(';');
             break;
           case 'label':
           case 'recipient_name':
-            result['label'] = Uri.decodeComponent(strippedValue);
+            labels = values;
+            result['label'] = value;
             break;
           case 'message':
           case 'tx_description':
-            result['message'] = Uri.decodeComponent(strippedValue);
+            result['message'] = value;
             break;
           case 'tx_payment_id':
-            result['tx_payment_id'] = Uri.decodeComponent(strippedValue);
+            result['tx_payment_id'] = value;
             break;
           default:
-            result[normalizedKey] = Uri.decodeComponent(strippedValue);
+            result[lowerKey] = value;
         }
       } else {
-        // Include unrecognized parameters with normalized key.
-        result[normalizedKey] = Uri.decodeComponent(strippedValue);
+        // Include unrecognized parameters as-is.
+        result[key] = value;
       }
-    });
-    return result;
+    }
+    return (params: result, amounts: amounts, labels: labels);
   }
 
-  /// Normalizes amount value to a standard format.
-  static String _normalizeAmount(String amount) {
-    // Remove any non-numeric characters except for '.'
-    final sanitized = amount.replaceAll(RegExp(r'[^\d.]'), '');
-    // Ensure only one decimal point
-    final parts = sanitized.split('.');
-    if (parts.length > 2) {
-      return '${parts[0]}.${parts.sublist(1).join()}';
-    }
-    return sanitized;
+  static String? _normalizeAmount(String amount) {
+    final trimmed = amount.trim();
+    return RegExp(r'^(\d+(\.\d+)?|\.\d+)$').hasMatch(trimmed) ? trimmed : null;
   }
+
+  /// Splits a Monero URI's `;` separated addresses into individual
+  /// recipients, each with its amount and name from [amounts] and [labels].
+  static List<PaymentUriRecipient> _parseMoneroRecipients({
+    required String address,
+    required List<String>? amounts,
+    required List<String>? labels,
+  }) {
+    final addresses = address.split(';').map((e) => e.trim()).toList();
+    if (addresses.length == 1) {
+      if (amounts != null && amounts.length > 1) {
+        throw FormatException(
+          "Invalid payment URI amount: ${amounts.join(';')}",
+        );
+      }
+      return [
+        PaymentUriRecipient(
+          address: address,
+          amount: amounts?.single,
+          label: labels?.join(';'),
+        ),
+      ];
+    }
+
+    if (addresses.contains("")) {
+      throw FormatException("Empty address in payment URI: $address");
+    }
+
+    if (amounts == null || amounts.length != addresses.length) {
+      throw const FormatException(
+        "Payment URI must have one amount per recipient",
+      );
+    }
+
+    if (labels != null && labels.length != addresses.length) {
+      throw const FormatException(
+        "Payment URI must have one name per recipient",
+      );
+    }
+
+    return [
+      for (int i = 0; i < addresses.length; i++)
+        PaymentUriRecipient(
+          address: addresses[i],
+          amount: amounts[i],
+          label: labels?[i].isNotEmpty == true ? labels![i] : null,
+        ),
+    ];
+  }
+
+  /// Whether [input], the new text of an address field whose text was
+  /// [previous], may be a payment URI worth parsing: several characters
+  /// changed at once, as when pasted, or it contains a scheme separator.
+  static bool mayBePaymentUri(String input, String previous) =>
+      (input.length - previous.length).abs() > 1 || input.contains(':');
 
   /// Centralized method to handle various cryptocurrency URIs and return a common object.
   ///
+  /// Multi-recipient URIs are only returned when [allowMultipleRecipients] is
+  /// true, so callers that handle a single address never drop recipients.
+  ///
   /// Returns null on failure to parse
-  static PaymentUriData? parsePaymentUri(String uri, {Logging? logging}) {
+  static PaymentUriData? parsePaymentUri(
+    String uri, {
+    Logging? logging,
+    bool allowMultipleRecipients = false,
+  }) {
     // hacky check its not just a bcash, ecash, or xel address
-    final parts = uri.split(":");
-    if (parts.length == 2) {
-      if ([
-        "xel",
-        "bitcoincash",
-        "bchtest",
-        "ecash",
-        "ectest",
-      ].contains(parts.first.toLowerCase())) {
-        return null;
-      }
+    const cashAddrSchemes = {"bitcoincash", "bchtest", "ecash", "ectest"};
+    final parsedUri = Uri.tryParse(uri);
+    final scheme = parsedUri?.scheme.toLowerCase();
+    if (parsedUri != null &&
+        (scheme == "xel" ||
+            (!parsedUri.hasQuery && cashAddrSchemes.contains(scheme)))) {
+      return null;
     }
 
     try {
-      final Map<String, String> parsedData = _parseUri(uri);
+      final parsedUri = _parseUri(uri);
+      final Map<String, String> parsedData = parsedUri.params;
 
       // Normalize the URI scheme.
       final String scheme = parsedData['scheme'] ?? '';
       parsedData.remove('scheme');
+      final address = parsedData['address']!.trim();
 
       // Filter out unrecognized parameters.
       final filteredParams = _filterParams(parsedData);
 
+      final amount = filteredParams['amount'] ?? filteredParams['tx_amount'];
+      final label = filteredParams['label'] ?? filteredParams['recipient_name'];
+
+      final List<PaymentUriRecipient> recipients;
+      if (scheme == "monero") {
+        recipients = _parseMoneroRecipients(
+          address: address,
+          amounts: parsedUri.amounts,
+          labels: parsedUri.labels,
+        );
+        if (recipients.length > 1 && !allowMultipleRecipients) {
+          throw const FormatException(
+            "Multiple recipients are not supported here",
+          );
+        }
+      } else {
+        recipients = [
+          PaymentUriRecipient(
+            address: cashAddrSchemes.contains(scheme)
+                ? "$scheme:$address".toLowerCase()
+                : address,
+            amount: amount,
+            label: label,
+          ),
+        ];
+      }
+
       return PaymentUriData(
         scheme: scheme,
-        address: parsedData['address']!.trim(),
-        amount: filteredParams['amount'] ?? filteredParams['tx_amount'],
-        label: filteredParams['label'] ?? filteredParams['recipient_name'],
+        recipients: recipients,
         message: filteredParams['message'] ?? filteredParams['tx_description'],
         paymentId: filteredParams['tx_payment_id'],
         // Specific to Monero
@@ -211,28 +319,32 @@ class AddressUtils {
   ///
   /// Returns null on failure to parse.
   static Map<String, dynamic>? _parseWalletUri(String uri) {
-    final Map<String, dynamic> parsedData = {};
-
     final separatorIndex = uri.indexOf(":");
     if (separatorIndex <= 0) return null;
-
     final scheme = uri
         .substring(0, separatorIndex)
         .toLowerCase()
         .replaceAll("-", "_");
-    final compatibleScheme = scheme.replaceAll("_", "");
-    final compatibleUri = compatibleScheme + uri.substring(separatorIndex);
-    parsedData.addAll(_parseUri(compatibleUri, redactUriInLogs: true));
-
-    // Match the normalized wallet-uri scheme exactly. A bare payment scheme
-    // (e.g. "monero") must not be accepted here as a wallet uri; only the
-    // "<uriScheme>_wallet" form is valid.
     final possibleCoins = AppConfig.coins.where(
-      (e) => "${e.uriScheme}_wallet" == scheme,
+      (coin) => "${coin.uriScheme}_wallet" == scheme,
     );
+    if (possibleCoins.length != 1) return null;
 
-    if (possibleCoins.length != 1) {
-      return null;
+    // Wallet URIs contain secret recovery material. Parse them separately
+    // from payment URIs to avoid their logging and multi-recipient rules.
+    final compatible =
+        scheme.replaceAll("_", "") + uri.substring(separatorIndex);
+    final parsed = Uri.tryParse(compatible);
+    if (parsed == null) return null;
+    final Map<String, dynamic> parsedData = {"address": parsed.path};
+    for (final entry in parsed.queryParameters.entries) {
+      var value = entry.value;
+      if (value.length >= 2 &&
+          ((value.startsWith('"') && value.endsWith('"')) ||
+              (value.startsWith("'") && value.endsWith("'")))) {
+        value = value.substring(1, value.length - 1);
+      }
+      parsedData[entry.key.toLowerCase().replaceAll("-", "_")] = value;
     }
 
     parsedData["coin"] = possibleCoins.first;
@@ -257,25 +369,30 @@ class AddressUtils {
       uriString = "$scheme:$address";
     }
 
-    if (scheme.toLowerCase() == "monero") {
-      // Handle Monero-specific formatting.
-      if (filteredParams.containsKey("tx_description")) {
-        final description = filteredParams.remove("tx_description")!;
-        if (filteredParams.isNotEmpty) {
-          uriString += Uri(queryParameters: filteredParams).toString();
-        }
-        uriString += "#${Uri.encodeComponent(description)}";
-      } else if (filteredParams.isNotEmpty) {
-        uriString += Uri(queryParameters: filteredParams).toString();
-      }
-    } else {
-      // General case for other cryptocurrencies.
-      if (filteredParams.isNotEmpty) {
-        uriString += Uri(queryParameters: filteredParams).toString();
-      }
+    if (filteredParams.isNotEmpty) {
+      uriString += Uri(queryParameters: filteredParams).toString();
     }
 
     return uriString;
+  }
+
+  static String buildPaymentUriString({
+    required String scheme,
+    required String address,
+    String? amount,
+    String? message,
+  }) {
+    final normalizedScheme = scheme.toLowerCase();
+    final usesMoneroParameters =
+        normalizedScheme == "monero" || normalizedScheme == "wownero";
+    final params = <String, String>{
+      if (amount != null && amount.isNotEmpty)
+        usesMoneroParameters ? "tx_amount" : "amount": amount,
+      if (message != null && message.isNotEmpty)
+        usesMoneroParameters ? "tx_description" : "message": message,
+    };
+
+    return buildUriString(scheme, address, params);
   }
 
   /// returns empty if bad data
@@ -437,24 +554,58 @@ class AddressUtils {
   }
 }
 
-class PaymentUriData {
+class PaymentUriRecipient {
   final String address;
-  final String? scheme;
   final String? amount;
   final String? label;
+
+  const PaymentUriRecipient({required this.address, this.amount, this.label});
+
+  @override
+  String toString() =>
+      "PaymentUriRecipient { "
+      "address: $address, "
+      "amount: $amount, "
+      "label: $label"
+      " }";
+}
+
+class PaymentUriData {
+  final String? scheme;
+
+  /// Always contains at least one recipient.
+  final List<PaymentUriRecipient> recipients;
   final String? message;
   final String? paymentId; // Specific to Monero.
   final Map<String, String> additionalParams;
+
+  String get address => recipients.first.address;
+  String? get amount => recipients.first.amount;
+  String? get label => recipients.first.label;
+
+  bool get isMultiRecipient => recipients.length > 1;
 
   CryptoCurrency? get coin => AddressUtils._getCryptoCurrencyByScheme(
     scheme ?? "", // empty will just return null
   );
 
+  String? get memo {
+    for (final value in [
+      paymentId,
+      additionalParams["memo"],
+      additionalParams["dt"],
+      additionalParams["destination_tag"],
+    ]) {
+      if (value?.isNotEmpty == true) {
+        return value;
+      }
+    }
+    return null;
+  }
+
   PaymentUriData({
-    required this.address,
+    required this.recipients,
     this.scheme,
-    this.amount,
-    this.label,
     this.message,
     this.paymentId,
     required this.additionalParams,
@@ -464,10 +615,8 @@ class PaymentUriData {
   String toString() =>
       "PaymentUriData { "
       "coin: $coin, "
-      "address: $address, "
-      "amount: $amount, "
+      "recipients: $recipients, "
       "scheme: $scheme, "
-      "label: $label, "
       "message: $message, "
       "paymentId: $paymentId, "
       "additionalParams: $additionalParams"

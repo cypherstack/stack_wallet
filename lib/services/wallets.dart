@@ -24,7 +24,10 @@ import '../utilities/prefs.dart';
 import '../utilities/stack_file_system.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import '../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
+import '../wallets/crypto_currency/intermediate/frost_currency.dart';
+import '../wallets/isar/models/frost_wallet_info.dart';
 import '../wallets/isar/models/wallet_info.dart';
+import '../wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import '../wallets/wallet/impl/epiccash_wallet.dart';
 import '../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../wallets/wallet/intermediate/cryptonote_wallet.dart';
@@ -108,16 +111,32 @@ class Wallets {
     SecureStorageInterface secureStorage,
   ) async {
     final walletId = info.walletId;
+    final isFrostWallet = info.coin is FrostCurrency;
     Logging.instance.d("deleteWallet called with walletId=$walletId");
 
     final wallet = _wallets[walletId];
     _wallets.remove(walletId);
     await wallet?.exit();
 
+    if (info.coin is Xelis) {
+      final root = await StackFileSystem.applicationXelisDirectory();
+      final directory = Directory(
+        "${root.path}${Platform.pathSeparator}$walletId",
+      );
+      if (await directory.exists()) await directory.delete(recursive: true);
+    }
+
     await Wallet.deleteSecureStorageData(
       walletId: walletId,
       secureStorage: secureStorage,
     );
+
+    if (isFrostWallet) {
+      await BitcoinFrostWallet.deleteSecureStorage(
+        walletId: walletId,
+        secureStorage: secureStorage,
+      );
+    }
 
     if (info.coin is CryptonoteCurrency) {
       await _deleteCryptonoteWalletFilesHelper(info);
@@ -180,6 +199,9 @@ class Wallets {
     }
 
     await mainDB.isar.writeTxn(() async {
+      if (isFrostWallet) {
+        await mainDB.isar.frostWalletInfo.deleteByWalletId(walletId);
+      }
       await mainDB.isar.walletInfo.deleteByWalletId(walletId);
     });
 
@@ -570,9 +592,8 @@ class Wallets {
       );
     } else if (walletInitFutures.isNotEmpty) {
       unawaited(
-        Future.wait(
-          walletInitFutures,
-        ).then((value) => _refreshFutures(idsToRefresh)),
+        Future.wait(walletInitFutures)
+            .then((value) => _refreshFutures(idsToRefresh)),
       );
     } else if (walletsToInitLinearly.isNotEmpty) {
       unawaited(_initLinearly(walletsToInitLinearly));
@@ -665,8 +686,24 @@ class Wallets {
 
   Future<void> _deleteWallet(String walletId) async {
     // TODO proper clean up of other wallet data in addition to the following
-    await mainDB.isar.writeTxn(
-      () async => await mainDB.isar.walletInfo.deleteByWalletId(walletId),
-    );
+    final info = await mainDB.isar.walletInfo
+        .where()
+        .walletIdEqualTo(walletId)
+        .findFirst();
+    final isFrostWallet =
+        info != null &&
+        AppConfig.getCryptoCurrencyFor(info.coinName) is FrostCurrency;
+    if (isFrostWallet) {
+      await BitcoinFrostWallet.deleteSecureStorage(
+        walletId: walletId,
+        secureStorage: nodeService.secureStorageInterface,
+      );
+    }
+    await mainDB.isar.writeTxn(() async {
+      if (isFrostWallet) {
+        await mainDB.isar.frostWalletInfo.deleteByWalletId(walletId);
+      }
+      await mainDB.isar.walletInfo.deleteByWalletId(walletId);
+    });
   }
 }
