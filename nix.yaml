@@ -1,0 +1,51 @@
+# nix_dart configuration. The Makefile configures the brand first, then runs
+# these commands in the named dev shell from nix/flake.nix.
+
+project:
+  name: stack_wallet
+
+flutter:
+  version: "3.47.2"
+  channel: stable
+  checksums:
+    macos_x64: "b6fd6ba98c8503d5ee06a6670627b5b1c36167ece3427435ec83b66e9b28c6b5"
+    macos_arm64: "f456fd6733053d9301828a2e702d6cbec872923126809aa8c48eb0a696d6cc01"
+    linux_x64: "447878859d01ca9bfdb99a85f245af07ed8a15fedcd9d189c4749e8e92d1f185"
+    linux_arm64: ""
+
+nix:
+  flake: nix
+
+platforms:
+  linux:
+    shell: linux
+    build:
+      command: make flutter-build-linux
+      # Flavored builds write to build/linux/x64/<flavor>/release/bundle/.
+      output: build/linux/x64/
+
+  android:
+    shell: android
+    sdk:
+      cmdline_tools_build: "14742923"
+      cmdline_tools_sha256_linux: "04453066b540409d975c676d781da1477479dde3761310f1a7eb92a1dfb15af7"
+      cmdline_tools_sha256_macos: "ed304c5ede3718541e4f978e4ae870a4d853db74af6c16d920588d48523b9dee"
+      platform_version: android-37.0
+      build_tools_version: "37.0.0"
+      ndk_version: "28.2.13676358"
+      cmake_version: "3.22.1"
+    build:
+      command: make flutter-build-android
+      output: build/app/outputs/flutter-apk/
+
+  macos:
+    shell: default
+    build:
+      command: make flutter-build-macos
+      output: build/macos/Build/Products/
+
+  ios:
+    shell: default
+    build:
+      command: make flutter-build-ios
+      output: build/ios/iphoneos/Runner.app

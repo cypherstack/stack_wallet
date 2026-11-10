@@ -1,7 +1,9 @@
 # Stack Wallet builds.
 #
 # Each build-<platform> target configures one brand with tool/branding and
-# builds its flavor with the tools on PATH.
+# builds its flavor. With NIX=1 (default except on Windows) the build runs in
+# the nix_dart dev shell for that platform, using the Flutter SDK pinned in
+# nix.yaml; with NIX=0 it uses the tools on PATH.
 #
 #   make build-linux APP=stack_wallet VERSION=2.4.0 BUILD_NUM=240
 #
@@ -15,6 +17,11 @@ BUILD_NUM ?=
 PREBUILTS ?= 1
 # 1 lets configuration replace generated files it does not own yet.
 OVERWRITE ?= 0
+NIX       ?= 1
+
+NIX_DART     ?= $(or $(PUB_CACHE),$(HOME)/.pub-cache)/bin/nix_dart
+NIX_DART_URL ?= https://github.com/ManyMath/nix.git
+NIX_DART_REF ?= 030805856c925ac83297e90b6393a52478c1f289
 
 # Linux only: 1 links the system libsecret and jsoncpp, as CI does.
 USE_SYSTEM_SECURE_STORAGE_DEPS ?= 1
@@ -26,49 +33,87 @@ export APP VERSION BUILD_NUM PREBUILTS OVERWRITE USE_SYSTEM_SECURE_STORAGE_DEPS
 BRANDS := stack_wallet stack_duo campfire
 UNIX_PLATFORMS := linux android macos ios
 
-.PHONY: help check-reqs \
+# Nix runs only inside WSL on Windows; Windows builds use the host tools.
+ifeq ($(OS),Windows_NT)
+override NIX := 0
+endif
+
+# Configuration runs outside the dev shell; with NIX=1 it uses the pinned SDK.
+ifeq ($(NIX),1)
+SDK_BIN := $(CURDIR)/.flutter-sdk/flutter/bin/
+else
+SDK_BIN :=
+endif
+
+.PHONY: help check-reqs nix-dart \
+	$(addprefix setup-,$(UNIX_PLATFORMS)) \
 	$(addprefix configure-,$(UNIX_PLATFORMS) windows) \
 	$(addprefix build-,$(UNIX_PLATFORMS) windows) \
 	$(addprefix flutter-build-,$(UNIX_PLATFORMS) windows) \
+	$(addprefix shell-,$(UNIX_PLATFORMS)) \
 	android-dev-key clean clean-app clean-native
 
 help:
 	@echo "build-<platform>      configure APP and build its flavor (linux android macos ios windows)"
 	@echo "configure-<platform>  configure APP only"
-	@echo "check-reqs            check the tools the build needs"
+	@echo "shell-<platform>      enter the nix_dart dev shell (linux android macos ios)"
+	@echo "setup-<platform>      fetch the SDKs pinned in nix.yaml"
+	@echo "check-reqs            check the tools the selected mode needs"
 	@echo "clean-app             remove build/ and Pods; keep native-asset outputs"
 	@echo "clean-native          remove native-asset outputs"
 	@echo "clean                 both of the above"
 	@echo
 	@echo "Variables:            APP=$(APP) VERSION=$(VERSION) BUILD_NUM=$(BUILD_NUM)"
-	@echo "                      PREBUILTS=$(PREBUILTS) OVERWRITE=$(OVERWRITE)"
+	@echo "                      PREBUILTS=$(PREBUILTS) OVERWRITE=$(OVERWRITE) NIX=$(NIX)"
 
 check-reqs:
+ifeq ($(NIX),1)
+	@command -v nix >/dev/null 2>&1 || { echo >&2 "nix not found"; exit 1; }
+	@command -v dart >/dev/null 2>&1 || { echo >&2 "dart not found; nix_dart is installed with it"; exit 1; }
+else
 	@for tool in flutter dart rustup cargo go cmake meson ninja protoc; do \
 		command -v $$tool >/dev/null 2>&1 || { echo >&2 "$$tool not found"; exit 1; }; \
 	done
+endif
 	@echo "Requirements found."
+
+# --- Toolchain (NIX=1) ---
+
+nix-dart:
+	@if [ "$$(cat .dart_tool/nix_dart.ref 2>/dev/null)" != "$(NIX_DART_REF)" ] || \
+		! command -v $(NIX_DART) >/dev/null 2>&1; then \
+		dart pub global activate --source git $(NIX_DART_URL) \
+			--git-ref $(NIX_DART_REF) --git-path packages/nix && \
+		mkdir -p .dart_tool && echo "$(NIX_DART_REF)" > .dart_tool/nix_dart.ref; \
+	fi
+
+# Fetches the Flutter SDK pinned in nix.yaml and, for android, the Android SDK.
+$(addprefix setup-,$(UNIX_PLATFORMS)): setup-%: nix-dart
+	$(NIX_DART) setup $*
+
+$(addprefix shell-,$(UNIX_PLATFORMS)): shell-%: setup-%
+	$(NIX_DART) shell $*
 
 # --- Configuration ---
 
 # Writes the brand's generated files, resolves packages, and generates icons
 # and splash screens: everything scripts/build_app.sh did before a build.
-$(addprefix configure-,$(UNIX_PLATFORMS) windows): configure-%:
+$(addprefix configure-,$(UNIX_PLATFORMS) windows): configure-%: $(if $(filter 1,$(NIX)),setup-%)
 	@[ -n "$(VERSION)" ] && [ -n "$(BUILD_NUM)" ] || \
 		{ echo >&2 "Set VERSION and BUILD_NUM"; exit 1; }
 	@case " $(BRANDS) " in *" $(APP) "*) ;; \
 		*) echo >&2 "APP must be one of: $(BRANDS)"; exit 1;; esac
 	bash scripts/prebuild.sh
-	$(if $(call ships_mwebd,$*),dart tool/build_standalone_mwebd_windows.dart $(if $(filter 1,$(MWEBD_FETCH)),--fetch))
-	dart tool/branding/configure.dart --brand $(APP) --platforms $* \
+	$(if $(call ships_mwebd,$*),"$(SDK_BIN)dart" tool/build_standalone_mwebd_windows.dart $(if $(filter 1,$(MWEBD_FETCH)),--fetch))
+	"$(SDK_BIN)dart" tool/branding/configure.dart --brand $(APP) --platforms $* \
 		--version $(VERSION) --build-number $(BUILD_NUM) --flavor $(APP) --apply \
 		$(if $(filter 1,$(PREBUILTS)),--prebuilts) \
 		$(if $(filter 1,$(OVERWRITE)),--overwrite) \
 		$(if $(call ships_mwebd,$*),--mwebd-sha256 "$$(sha256sum assets/windows/mwebd.exe | cut -d' ' -f1)")
-	flutter pub get
-	$(if $(filter-out linux,$*),dart run flutter_launcher_icons \
+	"$(SDK_BIN)flutter" pub get
+	$(if $(filter-out linux,$*),"$(SDK_BIN)dart" run flutter_launcher_icons \
 		-f scripts/app_config/platforms/$*/flutter_launcher_icons.yaml)
-	$(if $(filter android ios,$*),dart run flutter_native_splash:create \
+	$(if $(filter android ios,$*),"$(SDK_BIN)dart" run flutter_native_splash:create \
 		--path scripts/app_config/platforms/$*/flutter_native_splash.yaml)
 
 # Only stack_wallet ships mwebd.exe, and only on Windows.
@@ -76,9 +121,18 @@ ships_mwebd = $(and $(filter windows,$(1)),$(filter stack_wallet,$(APP)))
 
 # --- Builds ---
 
-$(addprefix build-,$(UNIX_PLATFORMS) windows): build-%: configure-%
+$(addprefix build-,$(UNIX_PLATFORMS)): build-%: configure-%
+ifeq ($(NIX),1)
+	$(NIX_DART) build $*
+else
 	$(MAKE) flutter-build-$*
+endif
 
+# Windows builds natively from Git Bash with the tools on PATH.
+build-windows: configure-windows
+	$(MAKE) flutter-build-windows
+
+# These run after configuration, inside the dev shell with NIX=1; see nix.yaml.
 flutter-build-linux:
 	flutter build linux --release --flavor $(APP)
 	python3 scripts/linux/prepare_release_bundle.py build/linux/x64/$(APP)/release/bundle

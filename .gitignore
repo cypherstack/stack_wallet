@@ -125,3 +125,7 @@ lib/wl_gen/generated/
 
 # Branding ownership and interrupted-write recovery (local to each checkout).
 /.whitelabel/
+
+# SDKs fetched by nix_dart setup.
+/.flutter-sdk/
+/.android-sdk/
