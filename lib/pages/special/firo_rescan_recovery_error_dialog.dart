@@ -95,9 +95,9 @@ class _FiroRescanRecoveryErrorViewState
           builder: (child) {
             return Background(
               child: Scaffold(
-                backgroundColor: Theme.of(
-                  context,
-                ).extension<StackColors>()!.background,
+                backgroundColor: Theme.of(context)
+                    .extension<StackColors>()!
+                    .background,
                 appBar: AppBar(
                   automaticallyImplyLeading: false,
                   actions: [
@@ -116,16 +116,16 @@ class _FiroRescanRecoveryErrorViewState
                           key: const Key("walletViewRadioButton"),
                           size: 36,
                           shadows: const [],
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.background,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
                           icon: SvgPicture.asset(
                             Assets.svg.trash,
                             width: 20,
                             height: 20,
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.topNavIconPrimary,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .topNavIconPrimary,
                           ),
                           onPressed: () async {
                             final walletName = ref.read(

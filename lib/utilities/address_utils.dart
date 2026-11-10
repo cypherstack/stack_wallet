@@ -318,7 +318,10 @@ class AddressUtils {
   /// Parses a wallet URI and returns a Map.
   ///
   /// Returns null on failure to parse.
-  static Map<String, dynamic>? _parseWalletUri(String uri) {
+  static Map<String, dynamic>? _parseWalletUri(
+    String uri,
+    CryptoCurrency? preferredCoin,
+  ) {
     final separatorIndex = uri.indexOf(":");
     if (separatorIndex <= 0) return null;
     final scheme = uri
@@ -326,9 +329,18 @@ class AddressUtils {
         .toLowerCase()
         .replaceAll("-", "_");
     final possibleCoins = AppConfig.coins.where(
-      (coin) => "${coin.uriScheme}_wallet" == scheme,
+      (coin) =>
+          "${coin.uriScheme}_wallet" == scheme &&
+          coin.network == CryptoCurrencyNetwork.main,
     );
-    if (possibleCoins.length != 1) return null;
+    final CryptoCurrency selectedCoin;
+    if (preferredCoin != null &&
+        "${preferredCoin.uriScheme}_wallet" == scheme) {
+      selectedCoin = preferredCoin;
+    } else {
+      if (possibleCoins.length != 1) return null;
+      selectedCoin = possibleCoins.first;
+    }
 
     // Wallet URIs contain secret recovery material. Parse them separately
     // from payment URIs to avoid their logging and multi-recipient rules.
@@ -347,7 +359,7 @@ class AddressUtils {
       parsedData[entry.key.toLowerCase().replaceAll("-", "_")] = value;
     }
 
-    parsedData["coin"] = possibleCoins.first;
+    parsedData["coin"] = selectedCoin;
 
     return parsedData;
   }
@@ -644,9 +656,16 @@ class WalletUriData {
 
   factory WalletUriData.fromUriString(
     String uri, {
+    CryptoCurrency? preferredCoin,
     bool Function(String address)? addressValidator,
   }) {
-    final map = AddressUtils._parseWalletUri(uri);
+    final Map<String, dynamic>? map;
+    try {
+      map = AddressUtils._parseWalletUri(uri, preferredCoin);
+    } on FormatException {
+      // FormatException may carry the input URI, including private keys.
+      throw const FormatException("Invalid wallet URI");
+    }
 
     if (map == null) {
       throw const FormatException("Invalid wallet URI");

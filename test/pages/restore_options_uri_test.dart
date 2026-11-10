@@ -11,6 +11,7 @@ import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/options.dart';
+import 'package:stackwallet/widgets/start_height_picker.dart';
 
 import '../sample_data/theme_json.dart';
 
@@ -83,22 +84,15 @@ void main() {
   });
 
   testWidgets("shows URI validation errors", (tester) async {
-    final dateController = TextEditingController();
-    final blockController = TextEditingController();
-    final blockFocusNode = FocusNode();
-    addTearDown(dateController.dispose);
-    addTearDown(blockController.dispose);
-    addTearDown(blockFocusNode.dispose);
+    final heightController = StartHeightPickerController();
+    addTearDown(heightController.dispose);
 
     WalletUriData? parsed;
     await tester.pumpWidget(
       testApp(
         UriRestoreOption(
           coin: coin,
-          dateController: dateController,
-          dateChooserFunction: () async {},
-          blockHeightController: blockController,
-          blockHeightFocusNode: blockFocusNode,
+          heightController: heightController,
           onParsed: (value) => parsed = value,
         ),
       ),

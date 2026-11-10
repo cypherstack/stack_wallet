@@ -20,7 +20,7 @@ void main() {
       ]) {
         expect(
           () => WalletUriData.fromUriString(uri),
-          throwsA(isA<Exception>()),
+          throwsA(anyOf(isA<FormatException>(), isA<UnsupportedError>())),
         );
       }
     },
@@ -29,6 +29,7 @@ void main() {
   test('payment URI still parses percent-encoded recipient separators', () {
     final data = AddressUtils.parsePaymentUri(
       'monero:abc;def?tx_amount=1;2&recipient_name=Alice%3BBob;Carol',
+      allowMultipleRecipients: true,
     );
     expect(data!.recipients.length, 2);
     expect(data.recipients.first.label, 'Alice;Bob');
