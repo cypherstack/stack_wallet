@@ -9,6 +9,23 @@ void main() {
   const privateKey =
       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 
+  test("wallet URI defaults to mainnet without a selected coin", () {
+    final data = WalletUriData.fromUriString(
+      "monero_wallet:?seed=alpha%20beta",
+    );
+    expect(data.coin.network, CryptoCurrencyNetwork.main);
+  });
+
+  test("wallet URI uses the selected network for a shared scheme", () {
+    final coin = Monero(CryptoCurrencyNetwork.main);
+    final data = WalletUriData.fromUriString(
+      "monero_wallet:?seed=alpha%20beta",
+      preferredCoin: coin,
+    );
+    expect(data.coin, same(coin));
+    expect(data.seed, "alpha beta");
+  });
+
   test("condense address", () {
     final condensedAddress = AddressUtils.condenseAddress(firoAddress);
     expect(condensedAddress, "a6ESW...3Yt1j");

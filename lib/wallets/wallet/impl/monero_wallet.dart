@@ -107,6 +107,7 @@ class MoneroWallet extends LibMoneroWallet {
     privateViewKey: privateViewKey,
     privateSpendKey: privateSpendKey,
     height: height,
+    network: moneroNetworkType(cryptoCurrency.network),
   );
 
   @override

@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/text_styles.dart';
@@ -81,8 +82,7 @@ class ConfirmRecoveryDialog extends StatelessWidget {
         },
         child: StackDialog(
           title: "Are you ready?",
-          message:
-              "Restoring your wallet may take a while. Please do not exit this screen once the process is started.",
+          message: "Restoring your wallet may take a while. Please do not exit this screen once the process is started.",
           leftButton: SecondaryButton(
             label: "Cancel",
             onPressed: () {

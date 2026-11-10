@@ -1211,6 +1211,7 @@ class _UriRestoreOptionState extends ConsumerState<UriRestoreOption> {
     try {
       parsed = WalletUriData.fromUriString(
         uri,
+        preferredCoin: widget.coin,
         addressValidator: widget.coin.validateAddress,
       );
     } on FormatException catch (e) {
@@ -1219,6 +1220,11 @@ class _UriRestoreOptionState extends ConsumerState<UriRestoreOption> {
       error = e.message;
     } catch (_) {
       error = "Invalid wallet URI";
+      parsed = null;
+    }
+
+    if (parsed != null && parsed.coin.identifier != widget.coin.identifier) {
+      error = "This is a ${parsed.coin.prettyName} wallet URI.";
       parsed = null;
     }
 

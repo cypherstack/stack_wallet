@@ -247,9 +247,8 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
           }
         });
 
-    _walletBackupPressed = IfNotAlreadyAsync<void>(
-      _walletBackupPressedHelper,
-    ).execute;
+    _walletBackupPressed = IfNotAlreadyAsync<void>(_walletBackupPressedHelper)
+        .execute;
     _walletXPubPressed = IfNotAlreadyAsync<void>(_walletXPubHelper).execute;
     _walletSparkViewKeyPressed = IfNotAlreadyAsync<void>(
       __walletSparkViewKeyPressedHelper,
@@ -321,9 +320,8 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
               iconSize: 16,
               title: "Address book",
               onPressed: () {
-                Navigator.of(
-                  context,
-                ).pushNamed(AddressBookView.routeName, arguments: coin);
+                Navigator.of(context)
+                    .pushNamed(AddressBookView.routeName, arguments: coin);
               },
             ),
             if (coin is FrostCurrency) const SizedBox(height: 8),
@@ -396,9 +394,8 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
               iconAssetName: Assets.svg.arrowRotate,
               title: "Syncing preferences",
               onPressed: () {
-                Navigator.of(
-                  context,
-                ).pushNamed(SyncingPreferencesView.routeName);
+                Navigator.of(context)
+                    .pushNamed(SyncingPreferencesView.routeName);
               },
             ),
             if (xPubEnabled) const SizedBox(height: 8),
@@ -555,9 +552,9 @@ class _WalletSettingsViewBody extends StatelessWidget {
                               child: Text(
                                 "Log out",
                                 style: STextStyles.button(context).copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.accentColorDark,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .accentColorDark,
                                 ),
                               ),
                             );
@@ -660,9 +657,9 @@ class _EpiBoxInfoFormState extends ConsumerState<EpicBoxInfoForm> {
             child: Text(
               "Save",
               style: STextStyles.button(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.accentColorDark,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .accentColorDark,
               ),
             ),
           ),
@@ -757,9 +754,9 @@ class _MwcmqsInfoFormState extends ConsumerState<MwcMqsInfoForm> {
             child: Text(
               "Save",
               style: STextStyles.button(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.accentColorDark,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .accentColorDark,
               ),
             ),
           ),
