@@ -9,3 +9,4 @@ app/upload-keystore-campfire.jks
 app/upload-keystore-stackwallet.jks
 GeneratedPluginRegistrant.java
 /.kotlin/
+/dev-keystore.jks

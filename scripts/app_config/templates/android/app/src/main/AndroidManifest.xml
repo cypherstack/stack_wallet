@@ -18,7 +18,6 @@
             android:value="true"/>
         <activity
             android:name=".MainActivity"
-            android:screenOrientation="portrait"
             android:exported="true"
             android:launchMode="singleInstance"
             android:theme="@style/LaunchTheme"

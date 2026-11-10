@@ -2,6 +2,8 @@
 
 Configures a checkout for one brand with the `whitelabel` engine. Brand
 manifests live in `brands/`. The engine is pinned by commit in `pubspec.yaml`.
+The repository Makefile runs this tool for each `configure-<platform>` and
+`build-<platform>` target.
 
 ```sh
 dart tool/branding/configure.dart --brand campfire --platforms linux \

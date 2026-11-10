@@ -2,6 +2,25 @@
 
 Here you will find instructions on how to install the necessary tools for building and running the app.
 
+## Building with make
+
+The Makefile configures one brand with `tool/branding` and builds its Flutter
+flavor with the tools on PATH.
+
+```sh
+make build-linux APP=stack_wallet VERSION=2.4.0 BUILD_NUM=240
+make build-android APP=campfire VERSION=2.4.0 BUILD_NUM=240
+make build-macos APP=stack_duo VERSION=2.4.0 BUILD_NUM=240
+```
+
+`APP` is `stack_wallet`, `stack_duo`, or `campfire`. Windows builds run from
+Git Bash. `PREBUILTS=0` compiles every native asset from source.
+`OVERWRITE=1` lets configuration adopt generated files from an earlier
+`build_app.sh` run; asset symlinks from that script must be removed first.
+`make help` lists the remaining targets.
+
+The sections below describe the manual setup and `scripts/build_app.sh`.
+
 ## Prerequisites
 
 - Xelis requires Flutter 3.47 or newer and Rustup. Native Assets builds the
