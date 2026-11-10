@@ -29,7 +29,7 @@ dependencies:
 #  frostdart:
 #    git:
 #      url: https://github.com/cypherstack/frostdart.git
-#      ref: 3397cf62f30f1467aea781c23d84051441775f14
+#      ref: c8be6a0ea892d744adfacc8e97df891feca49707
 # %%END_ENABLE_FROST%%
 
 # %%ENABLE_XEL%%
@@ -39,8 +39,8 @@ dependencies:
 #      ref: f1e912cf549d311f6ccbb065b1d1d5c70f42b578 # v0.36.0
 #  xelis_wallet_flutter:
 #    git:
-#      url: https://github.com/xelis-project/xelis-wallet-flutter.git
-#      ref: dc953e2f2e960b7ffbf636fc72ed2142a71ef963 # v0.4.1
+#      url: https://github.com/cypherstack/xelis-wallet-flutter.git
+#      ref: 8630a2cf28947497ec67b7535ddf1fac4cedbaa8 # v0.4.1 + Rust 1.99.1 (cypherstack fork)
 # %%END_ENABLE_XEL%%
 
 # %%ENABLE_FIRO%%
@@ -54,25 +54,25 @@ dependencies:
 #  flutter_libepiccash:
 #    git:
 #      url: https://github.com/cypherstack/flutter_libepiccash.git
-#      ref: 920ac94cf5295df3c3ae083c6a23ff602fb0f068
+#      ref: d5cfb763fa62928a6e6265e1f4412738772151eb
 # %%END_ENABLE_EPIC%%
 
 # %%ENABLE_MWC%%
 #  flutter_libmwc:
 #    git:
 #      url: https://github.com/cypherstack/flutter_libmwc.git
-#      ref: eec0f5ae0ee49d2d6e14c925d61e5d29dbd17be4
+#      ref: d8c5d5488cb00e21d0dc04ad306a65e2d54c4d3c
 # %%END_ENABLE_MWC%%
 
 # %%ENABLE_TOR%%
 #  tor_ffi_plugin:
 #    git:
 #      url: https://github.com/cypherstack/tor.git
-#      ref: 5586bfa3c48e495bc00f9b56fa18869daf768573
+#      ref: e30ed0d386a40ee4a999aeaf57aafd32921d601e
 # %%END_ENABLE_TOR%%
 
 # %%ENABLE_XMR%%
-#  cs_monero: 3.2.0
+#  cs_monero: 4.0.0
 #  cs_monero_flutter_libs: 2.0.1
 # %%END_ENABLE_XMR%%
 
@@ -117,10 +117,12 @@ dependencies:
   fusiondart:
     git:
       url: https://github.com/cypherstack/fusiondart.git
-      ref: 14427bcbbe1e754bce4a1b93cdb0a31ce56d792b
+      ref: 7548bf1c6e79a82e991c3feb61c1908dfe324275
 
   # Utility plugins
   http: ^1.6.0
+  cs_openalias: ^0.0.1
+  socks_socket: ^2.0.0
   local_auth: ^2.3.0
   permission_handler: ^13.0.1
   flutter_local_notifications: ^22.3.0
@@ -229,7 +231,7 @@ dependencies:
   electrum_adapter:
     git:
       url: https://github.com/cypherstack/electrum_adapter.git
-      ref: b6fa44d015d3bfa06934b73219928c29ca48a290
+      ref: 76ffad6ecc1e31de47d9187fd39c831db0aa987f
   stream_channel: ^2.1.0
   solana:
     git: # TODO [prio=low]: Revert to official package once Tor support is merged upstream.
@@ -241,12 +243,9 @@ dependencies:
   camera_linux:
     git:
       url: https://github.com/cypherstack/camera-linux
-      ref: ecb412474c5d240347b04ac1eb9f019802ff7034
+      ref: 82e2d82188cc4676a02559118af110c8161b4eed
   zxing2: ^0.2.3
-  camera_windows:
-    git: # TODO [prio=low]: Revert to official after https://github.com/flutter/packages/pull/7067.
-      url: https://github.com/cypherstack/packages.git
-      path: packages/camera/camera_windows
+  camera_windows: ^0.3.0+1
   camera_platform_interface: ^2.8.0
   camera_macos: ^0.1.1
   blockchain_utils: ^3.3.0
@@ -273,12 +272,14 @@ dependencies:
   mobile_app_privacy:
     git:
       url: https://github.com/cypherstack/mobile_app_privacy
-      ref: e60766bc420861b9e8c804627d84cbd570b04ff6
+      ref: 21f95309522dd48face32c0c4a3ca2ac8df092fb
 
   # required for web3dart to use EthereumAddress class...
   wallet: 0.0.18
 
 dev_dependencies:
+  args: ^2.7.0
+  test: ^1.31.1
   flutter_test:
     sdk: flutter
   integration_test:
@@ -375,16 +376,16 @@ dependency_overrides:
 #  user_defines:
 #    tor_ffi_plugin:
 #      native_build: prebuilt
-#      prebuilt_manifest_url: "https://github.com/cypherstack/tor/releases/download/native-0.1.0/manifest.json"
-#      prebuilt_manifest_sha256: "00a988a2c0994dff300bb19493e935b0d4eae2b506d02af9dd69ddad65805a24"
+#      prebuilt_manifest_url: "https://github.com/cypherstack/tor/releases/download/native-0.2.0/manifest.json"
+#      prebuilt_manifest_sha256: "0008ecf60b52a5ba1ffecb2f5951a5d5c4bbffdb71ab470259d62d4abc314c4b"
 #    flutter_libepiccash:
 #      native_build: prebuilt
-#      prebuilt_manifest_url: "https://github.com/cypherstack/flutter_libepiccash/releases/download/native-0.3.0/manifest.json"
-#      prebuilt_manifest_sha256: "19be31940f7a58af98f315032d13c0a7c43a45bbcc86847587a6d1593985603a"
+#      prebuilt_manifest_url: "https://github.com/cypherstack/flutter_libepiccash/releases/download/native-0.3.0-1/manifest.json"
+#      prebuilt_manifest_sha256: "ab91bef838c8e658c5167e3ff6599eec1e0db24223de20394658a277913aec38"
 #    flutter_libmwc:
 #      native_build: prebuilt
-#      prebuilt_manifest_url: "https://github.com/cypherstack/flutter_libmwc/releases/download/native-0.1.0-1/manifest.json"
-#      prebuilt_manifest_sha256: "956fbf9a9d5d4624d9d7ea19fb4c07057c5612e32efa62f5f609a189ace16276"
+#      prebuilt_manifest_url: "https://github.com/cypherstack/flutter_libmwc/releases/download/native-0.1.7/manifest.json"
+#      prebuilt_manifest_sha256: "c83b8d57c4bde1f88d580587f8df91480bb083a95e58bbf0f0a3c47855e6522d"
 # %%END_ENABLE_NATIVE_PREBUILTS%%
 
 # For information on the generic Dart part of this file, see the
