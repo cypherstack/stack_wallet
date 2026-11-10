@@ -1012,6 +1012,19 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
+      case SparkAddressOwnershipProofView.routeName:
+        if (args is ({String walletId, String address})) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => SparkAddressOwnershipProofView(
+              walletId: args.walletId,
+              address: args.address,
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
       case FusionProgressView.routeName:
         if (args is String) {
           return getRoute(

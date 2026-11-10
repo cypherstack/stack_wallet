@@ -52,6 +52,7 @@ class ChangeNowExchange extends Exchange {
       toCurrency: to,
       toNetwork: toNetwork ?? "",
       address: addressTo,
+      extraId: extraId,
       rateId: estimate?.rateId,
       refundAddress: addressRefund,
       refundExtraId: refundExtraId,

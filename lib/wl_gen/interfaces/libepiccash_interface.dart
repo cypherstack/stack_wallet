@@ -127,8 +127,6 @@ abstract class LibEpicCashInterface {
   });
 
   void updateConfig({required DynamicObject wallet, required String config});
-
-  String getPluginVersion();
 }
 
 class EpicTransaction {

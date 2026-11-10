@@ -4,6 +4,10 @@ Here you will find instructions on how to install the necessary tools for buildi
 
 ## Prerequisites
 
+- Xelis requires Flutter 3.47 or newer and Rustup. Native Assets builds the
+  native wallet library and installs its pinned Rust toolchain automatically.
+  Android builds require NDK r28 or newer.
+
 - The only OS supported for building Android and Linux desktop is Ubuntu 24.04.  Windows builds require using Ubuntu 24.04 on WSL2.  macOS builds for itself and iOS.  Advanced users may also be able to build on other Debian-based distributions like Linux Mint.
 - Android setup ([Android Studio](https://developer.android.com/studio) and subsequent dependencies)
 - 100 GB of storage
@@ -14,7 +18,7 @@ Here you will find instructions on how to install the necessary tools for buildi
 The following instructions are for building and running on a Linux host.  Alternatively, see the [Mac](#mac-host) and/or [Windows](#windows-host) section.  This entire section (except for the Android Studio section) needs to be completed in WSL if building on a Windows host.
 
 ### Flutter
-Install Flutter 3.38.5 by [following their guide](https://docs.flutter.dev/get-started/install/linux/desktop?tab=download#install-the-flutter-sdk).  Run `flutter doctor` in a terminal to confirm its installation.
+Install Flutter 3.47.2 by [following their guide](https://docs.flutter.dev/get-started/install/linux/desktop?tab=download#install-the-flutter-sdk).  Run `flutter doctor` in a terminal to confirm its installation.
 
 ### Android Studio
 Install Android Studio.  Follow instructions here [https://developer.android.com/studio/install#linux](https://developer.android.com/studio/install#linux) or install via snap:
@@ -43,7 +47,7 @@ sudo apt-get install libc6:i386 libncurses5:i386 libstdc++6:i386 lib32z1 libbz2-
 ### Build dependencies
 Install basic dependencies
 ```
-sudo apt-get install libssl-dev curl unzip automake build-essential file pkg-config git python3 libtool libtinfo6 cmake libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm lld g++ gcc gperf libopencv-dev python3-typogrify xsltproc valac gobject-introspection meson pipx libgcrypt20-dev libglib2.0-dev libsecret-1-dev
+sudo apt-get install libssl-dev curl unzip automake build-essential file pkg-config git python3 libtool libtinfo6 cmake libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm lld g++ gcc gperf python3-typogrify xsltproc valac gobject-introspection meson pipx libgcrypt20-dev libglib2.0-dev libsecret-1-dev
 pipx install meson==0.64.1 markdown==3.4.1 markupsafe==2.1.1 jinja2==3.1.2 pygments==2.13.0 toml==0.10.2 typogrify==2.0.7 tomli==2.0.1
 ```
 
@@ -51,8 +55,8 @@ Install [Rust](https://www.rust-lang.org/tools/install) via [rustup.rs](https://
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source ~/.bashrc
-rustup install 1.89.0 1.85.1 1.81.0
-rustup default 1.89.0
+rustup install 1.99.1
+rustup default 1.99.1
 cargo install cargo-ndk
 ```
 
@@ -69,7 +73,7 @@ pip3 install --upgrade meson==0.64.1 markdown==3.4.1 markupsafe==2.1.1 jinja2==3
 ```
 
 ### Flutter
-Install Flutter 3.38.5 by [following their guide](https://docs.flutter.dev/install/manual).
+Install Flutter 3.47.2 by [following their guide](https://docs.flutter.dev/install/manual).
 
 Run `flutter doctor` in a terminal to confirm its installation.
 
@@ -183,6 +187,29 @@ flutter pub get
 flutter run linux
 ```
 
+#### Linux release bundle preparation
+
+After `flutter build linux --release`, run this from the repository root before
+archiving the bundle or using it to build an AppImage or Flatpak:
+
+```sh
+sudo apt-get install binutils patchelf python3
+python3 scripts/linux/prepare_release_bundle.py build/linux/x64/release/bundle
+```
+
+The helper clears the executable-stack flag on the bundled Monero, Wownero and
+Salvium wallet libraries, which modern Linux loaders can otherwise reject. It
+then checks every ELF in the bundle and fails if any still requests an executable
+stack. Other libraries are not patched automatically. Ubuntu 24.04's `patchelf`
+supports the required `--clear-execstack` option. CI runs this before producing
+the Linux tarball, so both downstream packagers inherit the prepared bundle.
+
+Standalone regression tests (also require a C compiler):
+
+```sh
+python3 -m unittest discover -s scripts/linux/tests -p 'test_*.py' -v
+```
+
 ## Mac host
 
 ### Dependencies
@@ -206,12 +233,12 @@ brew install brotli cairo coreutils gdbm gettext glib gmp libevent libidn2 libng
 ```
 <!-- TODO: determine which of the above list are not needed at all. -->
 
-Download and install [Rust](https://www.rust-lang.org/tools/install).  [Rustup](https://rustup.rs/) is recommended for Rust setup.  Use `rustc` to confirm successful installation.  Install toolchains 1.81.0, 1.85.1, and 1.89.0 as well as `cbindgen` and `cargo-lipo` too.  You will also have to add the platform target(s) `aarch64-apple-ios` and/or `aarch64-apple-darwin`.  You can use the command(s):
+Download and install [Rust](https://www.rust-lang.org/tools/install).  [Rustup](https://rustup.rs/) is recommended for Rust setup.  Use `rustc` to confirm successful installation.  Install toolchain 1.99.1 as well as `cbindgen` and `cargo-lipo` too.  You will also have to add the platform target(s) `aarch64-apple-ios` and/or `aarch64-apple-darwin`.  You can use the command(s):
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source ~/.bashrc 
-rustup install 1.89.0 1.85.1 1.81.0
-rustup default 1.89.0
+rustup install 1.99.1
+rustup default 1.99.1
 cargo install cargo-ndk
 cargo install cbindgen cargo-lipo
 rustup target add aarch64-apple-ios aarch64-apple-darwin
@@ -220,7 +247,7 @@ rustup target add aarch64-apple-ios aarch64-apple-darwin
 Optionally download [Android Studio](https://developer.android.com/studio) as an IDE and activate its Dart and Flutter plugins.  VS Code may work as an alternative, but this is not recommended.
 
 ### Flutter
-Install 3.38.5 on your Mac host by [following their guide](https://docs.flutter.dev/install/manual).  Run `flutter doctor` in a terminal to confirm its installation.
+Install Flutter 3.47.2 on your Mac host by [following their guide](https://docs.flutter.dev/install/manual).  Run `flutter doctor` in a terminal to confirm its installation.
 
 ### Build plugins and configure
 #### Building plugins for iOS 
@@ -254,45 +281,48 @@ flutter run ios
 ```
 
 #### iOS Simulator (arm64/Apple Silicon)
-Running on the iOS Simulator requires simulator (aarch64-apple-ios-sim)
-slices for every native dependency. The crypto plugin submodules build
-device-only static libraries by default; simulator slices must be built
-additionally and are packaged as XCFrameworks:
 
+Simulator configuration is experimental and requires an Apple Silicon Mac,
+Xcode, and an installed iOS simulator runtime. It selects older review-pinned
+Monero and Wownero iOS packages that include arm64 simulator slices. Normal
+configuration keeps the released device dependencies; other platforms ignore
+this option. Stack Duo selects only the Monero override.
+
+Configure Stack Wallet from the repository root. Replace `<version>` and
+`<build-number>` with the values from your normal development configuration:
+
+```sh
+STACK_IOS_SIMULATOR=1 ./scripts/build_app.sh -a stack_wallet -p ios -v <version> -b <build-number>
+flutter pub get
+flutter devices
+flutter run -d <simulator-device-id>
 ```
-# after running scripts/ios/build_all.sh or download_all.sh (device slices):
-(cd crypto_plugins/frostdart/scripts/ios && ./build_all.sh)   # builds both slices
-(cd crypto_plugins/flutter_libepiccash/scripts/ios && ./build_sim.sh)
-(cd crypto_plugins/flutter_libmwc/scripts/ios && ./build_sim.sh)
-```
 
-The remaining native deps are handled as follows:
+Replace `stack_wallet` with `stack_duo` for Duo. Follow the version/build-number
+prompt carefully: changing those values can affect local wallet data. Use a
+separate development checkout and disposable test wallets for simulator work.
+To return to device builds, rerun configuration without `STACK_IOS_SIMULATOR`,
+then run `flutter pub get` again. Do not commit a simulator-only lockfile update.
 
-- `flutter_libsparkmobile`, `cs_salvium_flutter_libs_ios`: already ship
-  arm64 simulator slices in their XCFrameworks.
-- `tor_ffi_plugin`, `xelis_flutter`: built per-SDK by cargokit at pod
-  build time; no changes needed.
-- `flutter_mwebd`: builds both slices as an XCFramework at pod install
-  time (requires Go) when using the simulator-enabled fork.
-- `cs_monero_flutter_libs_ios`, `cs_wownero_flutter_libs_ios`: build the
-  simulator dylib from the respective monero_c tree with
-  `./build_single.sh <coin> aarch64-apple-iossimulator -j8` and package it
-  with the device slice via `tools/dart/bin/build_libs.dart ios`
-  (cs_monero) or the equivalent tooling in cs_wownero.
+The former Frost, Epic Cash, and MWC submodules now use Flutter Native Assets
+packages. Their build hooks compile or fetch libraries during the Flutter build;
+the removed crypto-plugin
+submodule build scripts and Cargokit instructions no longer apply. Install the
+native toolchains listed above, including Rustup, CMake, and Go. Every enabled
+native dependency must support the selected simulator SDK; selecting the
+Monero/Wownero slices alone does not verify a complete simulator build.
 
-`ios/Podfile` excludes `i386 x86_64` for `iphonesimulator` on all pod
-targets, so simulator builds are arm64-only (Apple Silicon). On Xcode 26,
-if `xcodebuild` reports no available simulator destinations or
-"iOS <version> is not installed", install the matching simulator runtime
-with `xcodebuild -downloadPlatform iOS`.
+The CocoaPods configuration excludes `i386` and `x86_64` simulator architectures,
+so this setup targets arm64 simulators. If Xcode reports that the required iOS
+runtime is missing, install it in Xcode's platform settings or with
+`xcodebuild -downloadPlatform iOS`.
 
-The simulator-enabled `flutter_mwebd`, `cs_monero_flutter_libs_ios`, and
-`cs_wownero_flutter_libs_ios` changes are pinned to their review commits in
-the app-config template. Update those refs to their merged commits or package
-releases before readying this PR. `flutter_libsparkmobile` already ships its
-simulator slice and needs no local override.
-
-Then run against a booted simulator as usual (`flutter run`).
+The simulator pins have not been refreshed to the current device-library ABI.
+The Monero simulator pin lacks `MONERO_Wallet_serializeCacheToJson`, which the
+released device library exports. Stack Wallet does not currently call that
+symbol, but the mismatch prevents treating this configuration as release-ready.
+A macOS simulator build and wallet smoke test are still required; Linux
+configuration checks cannot verify Apple SDK linking or runtime behavior.
 
 #### macOS
 Run the following commands or launch via Android Studio:
@@ -330,26 +360,24 @@ wsl
 
 https://stackoverflow.com/questions/46610256/chmod-wsl-bash-doesnt-work/50856772#50856772
 
-Then build windows `dll` libraries by running the following script on the WSL2 Ubuntu 24.04 host:
+Then build `secp256k1.dll` by running the following script on the WSL2 Ubuntu 24.04 host:
 
-- `stack_wallet/scripts/windows/build_all.sh`
+- `stack_wallet/scripts/windows/build_secp256k1_wsl.sh`
 
-If the DLLs were built on the WSL filesystem instead of on Windows, copy the resulting `dll`s to their respective positions on the Windows host:
+The crypto plugin libraries (epiccash, mwc, frostdart) are native-assets packages and are built by their build hooks during `flutter build`; they no longer need to be built here.
 
-- `stack_wallet/crypto_plugins/flutter_libepiccash/scripts/windows/build/libepic_cash_wallet.dll`
-
-<!-- TODO: script the copying or installation of libraries from WSL2 to the parent Windows host -->
+If the DLL was built on the WSL filesystem instead of on Windows, copy `stack_wallet/build/secp256k1.dll` to the same position on the Windows host.
 
 Frostdart will be built by the Windows host later.
 
 ### Install Flutter on Windows host
-Install Flutter 3.38.5 on your Windows host (not in WSL2) by [following their guide](https://docs.flutter.dev/install/manual).  Run `flutter doctor` in PowerShell to confirm its installation.
+Install Flutter 3.47.2 on your Windows host (not in WSL2) by [following their guide](https://docs.flutter.dev/install/manual).  Run `flutter doctor` in PowerShell to confirm its installation.
 
 ### Rust
 Install [Rust](https://www.rust-lang.org/tools/install) on the Windows host (not in WSL2).  Download the installer from [rustup.rs](https://rustup.rs), make sure it works on the commandline (you may need to open a new terminal), and install the following versions:
 ```
-rustup install 1.89.0 1.85.1 1.81.0
-rustup default 1.89.0
+rustup install 1.99.1
+rustup default 1.99.1
 cargo install cargo-ndk
 ```
 
@@ -397,15 +425,6 @@ cd .. // When finished go back to the root directory.
 
 or manually by creating the files referenced in that script with the specified content. 
 
-### Build frostdart
-
-In PowerShell on the Windows host, navigate to the `stack_wallet` folder:
-```
-cd crypto_plugins/frostdart/scripts/windows
-./build_all.bat
-cd .. // When finished go back to the root directory.
-```
-
 ### Running
 
 Run the following commands:
@@ -414,6 +433,27 @@ flutter pub get
 dart run coinlib:build_windows
 flutter run -d windows
 ```
+
+## Xelis tests
+
+Run on a configured desktop target (`windows`, `linux`, or `macos`) with
+the application's native plugin dependencies:
+
+```sh
+flutter test integration_test/xelis/xelis_adapter_test.dart -d windows
+flutter test integration_test/xelis/xelis_restore_test.dart -d windows
+flutter test integration_test/xelis/xelis_swb_test.dart -d windows
+```
+
+The transfer test starts a temporary devnet node using a host `xelis_daemon`
+1.25 executable:
+
+```sh
+flutter test integration_test/xelis/xelis_local_transfer_test.dart -d windows \
+  --dart-define=XELIS_LOCAL_DAEMON=/absolute/path/to/xelis_daemon
+```
+
+Missing `XELIS_LOCAL_DAEMON` or an invalid path fails the test.
 
 # Troubleshooting
 
