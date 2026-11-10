@@ -50,6 +50,12 @@ This guard checks the selected Git pins and existing package resolution; an old
 resolution may need refreshing too. Direct Flutter commands do not run the guard.
 See [dnix build modes](https://github.com/cypherstack/dnix/blob/main/doc/configuration.md#build-modes).
 
+Normal builds use the pinned Git packages. If you explicitly override a package
+with a local checkout, that package's `dnix.lock` must be present for verified
+builds. Without it, dnix falls back to `dev` and skips hash verification even
+when source or prebuilt mode is selected. The override guard above does not
+check for missing locks.
+
 ### Which tools are still required?
 
 | Component | Requirements |
