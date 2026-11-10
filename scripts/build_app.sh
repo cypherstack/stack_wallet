@@ -2,10 +2,7 @@
 
 set -e
 
-source ./env.sh
-
-APP_PLATFORMS=("android" "ios" "macos" "linux" "windows")
-APP_NAMED_IDS=("stack_wallet" "stack_duo" "campfire")
+source "$(dirname -- "${BASH_SOURCE[0]}")/env.sh"
 
 # Function to display usage.
 usage() {
@@ -76,6 +73,26 @@ if [ -z "$APP_NAMED_ID" ]; then
   usage
 fi
 
+case "$APP_BUILD_PLATFORM" in
+    android|ios|macos|linux|windows) ;;
+    *) echo "Invalid platform: ${APP_BUILD_PLATFORM}"; usage ;;
+esac
+
+case "$APP_NAMED_ID" in
+    stack_wallet|stack_duo|campfire) ;;
+    *) echo "Invalid app id: ${APP_NAMED_ID}"; usage ;;
+esac
+
+if [[ ! "$APP_VERSION_STRING" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$ ]]; then
+    echo "Invalid version: ${APP_VERSION_STRING}"
+    usage
+fi
+
+if [[ ! "$APP_BUILD_NUMBER" =~ ^[0-9]+$ ]]; then
+    echo "Invalid build number: ${APP_BUILD_NUMBER}"
+    usage
+fi
+
 confirmDisclaimer
 set -x
 
@@ -84,12 +101,6 @@ source "${APP_PROJECT_ROOT_DIR}/scripts/app_config/templates/configure_template_
 export BUILD_ISAR_FROM_SOURCE
 export USE_SYSTEM_SECURE_STORAGE_DEPS
 
-# checks for a valid platform
-if ! printf '%s\0' "${APP_PLATFORMS[@]}" | grep -Fxqz -- "${APP_BUILD_PLATFORM}"; then
-    echo "Invalid platform: ${APP_BUILD_PLATFORM}"
-    usage
-fi
-
 PLAY_STORE_ICON_FILE="${APP_PROJECT_ROOT_DIR}/android/app/src/main/app_icon-playstore.png"
 if [ -f "${PLAY_STORE_ICON_FILE}" ]; then
   rm "${PLAY_STORE_ICON_FILE}"
@@ -97,29 +108,20 @@ fi
 cp -rp "${APP_PROJECT_ROOT_DIR}/asset_sources/other/playstore_icon/${APP_NAMED_ID}/app_icon-playstore.png" "${PLAY_STORE_ICON_FILE}"
 
 # apply config project wide change changes
-if printf '%s\0' "${APP_NAMED_IDS[@]}" | grep -Fxqz -- "${APP_NAMED_ID}"; then
-    if cmp -s "${ACTUAL_PUBSPEC}" "${T_PUBSPEC}"; then
-      rm "${ACTUAL_PUBSPEC}"
-      cp "${T_PUBSPEC}" "${ACTUAL_PUBSPEC}"
-    fi
-    "${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/update_version.sh" -v "${APP_VERSION_STRING}" -b "${APP_BUILD_NUMBER}"
-    "${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/link_assets.sh" "${APP_NAMED_ID}" "${APP_BUILD_PLATFORM}"
-    # shellcheck disable=SC1090
-    source "${APP_PROJECT_ROOT_DIR}/scripts/app_config/configure_${APP_NAMED_ID}.sh" "${APP_BUILD_PLATFORM}"
-    if [ "$DOWNLOAD_CRYPTO_PLUGINS" -eq 1 ]; then
-        # Enable CI prebuilt native assets (hooks user_defines) in pubspec.yaml so
-        # native-assets plugins download verified binaries instead of compiling Rust.
-        dart "${APP_PROJECT_ROOT_DIR}/tool/process_pubspec_deps.dart" "${ACTUAL_PUBSPEC}" NATIVE_PREBUILTS
-    fi
-    "${APP_PROJECT_ROOT_DIR}/scripts/app_config/platforms/${APP_BUILD_PLATFORM}/platform_config.sh"
+"${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/update_version.sh" -v "${APP_VERSION_STRING}" -b "${APP_BUILD_NUMBER}"
+"${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/link_assets.sh" "${APP_NAMED_ID}" "${APP_BUILD_PLATFORM}"
+# shellcheck disable=SC1090
+source "${APP_PROJECT_ROOT_DIR}/scripts/app_config/configure_${APP_NAMED_ID}.sh" "${APP_BUILD_PLATFORM}"
+if [ "$DOWNLOAD_CRYPTO_PLUGINS" -eq 1 ]; then
+    # Enable CI prebuilt native assets (hooks user_defines) in pubspec.yaml so
+    # native-assets plugins download verified binaries instead of compiling Rust.
+    dart "${APP_PROJECT_ROOT_DIR}/tool/process_pubspec_deps.dart" "${ACTUAL_PUBSPEC}" NATIVE_PREBUILTS
+fi
+"${APP_PROJECT_ROOT_DIR}/scripts/app_config/platforms/${APP_BUILD_PLATFORM}/platform_config.sh"
 
-    if [[ "$APP_BUILD_PLATFORM" != "linux" ]]; then
-        # run icon and image generators after project config has completed for non linux
-        "${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/asset_generators.sh" "${APP_BUILD_PLATFORM}"
-    fi
-else
-    echo "Invalid app id: ${APP_NAMED_ID}"
-    exit 1
+if [[ "$APP_BUILD_PLATFORM" != "linux" ]]; then
+    # run icon and image generators after project config has completed for non linux
+    "${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/asset_generators.sh" "${APP_BUILD_PLATFORM}"
 fi
 
 # Build platform native deps that are not provided by pub packages. The crypto

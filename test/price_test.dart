@@ -1,14 +1,17 @@
 // TODO MWC
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:decimal/decimal.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/networking/http.dart';
 import 'package:stackwallet/services/price.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
 import 'hive/hive_ce_test_utils.dart';
 import 'price_test.mocks.dart';
@@ -390,6 +393,328 @@ void main() {
     final price = await priceAPI.getPricesAnd24hChange(baseCurrency: "btc");
 
     expectEmptyPriceSnapshot(price.toString());
+  });
+
+  Response bitcoinPrice(int value) => Response(
+    utf8.encode(
+      jsonEncode([
+        {"id": "bitcoin", "name": "Bitcoin", "current_price": value},
+      ]),
+    ),
+    200,
+  );
+
+  test(
+    "failed currency change never returns another currency's prices",
+    () async {
+      final client = MockHTTP();
+      when(
+        client.get(
+          proxyInfo: null,
+          url: anyNamed('url'),
+          headers: {'Content-Type': 'application/json'},
+        ),
+      ).thenAnswer((invocation) async {
+        final uri = invocation.namedArguments[#url] as Uri;
+        if (uri.queryParameters['vs_currency'] == 'usd') {
+          return bitcoinPrice(50000);
+        }
+        throw const SocketException('offline');
+      });
+      final api = PriceAPI(client)
+        ..resetLastCalledToForceNextCallToUpdateCache();
+      final bitcoin = Bitcoin(CryptoCurrencyNetwork.main);
+
+      expect(
+        (await api.getPricesAnd24hChange(baseCurrency: 'USD'))[bitcoin]?.value,
+        Decimal.fromInt(50000),
+      );
+      expect(await api.getPricesAnd24hChange(baseCurrency: 'BTC'), isEmpty);
+      // The throttled path must enforce the same currency boundary.
+      expect(await api.getPricesAnd24hChange(baseCurrency: 'BTC'), isEmpty);
+      expect(
+        (await api.getPricesAnd24hChange(baseCurrency: 'USD'))[bitcoin]?.value,
+        Decimal.fromInt(50000),
+      );
+    },
+  );
+
+  test("overlapping requests retain separate currency caches", () async {
+    final client = MockHTTP();
+    final usdResponse = Completer<Response>();
+    when(
+      client.get(
+        proxyInfo: null,
+        url: anyNamed('url'),
+        headers: {'Content-Type': 'application/json'},
+      ),
+    ).thenAnswer((invocation) async {
+      final uri = invocation.namedArguments[#url] as Uri;
+      return uri.queryParameters['vs_currency'] == 'usd'
+          ? usdResponse.future
+          : bitcoinPrice(1);
+    });
+    final api = PriceAPI(client)..resetLastCalledToForceNextCallToUpdateCache();
+    final bitcoin = Bitcoin(CryptoCurrencyNetwork.main);
+    final pendingUsd = api.getPricesAnd24hChange(baseCurrency: 'usd');
+    await Future<void>.delayed(Duration.zero);
+
+    expect(
+      (await api.getPricesAnd24hChange(baseCurrency: 'btc'))[bitcoin]?.value,
+      Decimal.one,
+    );
+    usdResponse.complete(bitcoinPrice(50000));
+    expect((await pendingUsd)[bitcoin]?.value, Decimal.fromInt(50000));
+    expect(
+      (await api.getPricesAnd24hChange(baseCurrency: 'btc'))[bitcoin]?.value,
+      Decimal.one,
+    );
+  });
+
+  test(
+    "returning to a currency discards its older in-flight response",
+    () async {
+      final client = MockHTTP();
+      final olderUsdResponse = Completer<Response>();
+      var usdRequests = 0;
+      when(
+        client.get(
+          proxyInfo: null,
+          url: anyNamed('url'),
+          headers: {'Content-Type': 'application/json'},
+        ),
+      ).thenAnswer((invocation) async {
+        final uri = invocation.namedArguments[#url] as Uri;
+        if (uri.queryParameters['vs_currency'] == 'btc') return bitcoinPrice(1);
+        return usdRequests++ == 0
+            ? olderUsdResponse.future
+            : bitcoinPrice(75000);
+      });
+      final olderApi = PriceAPI(client)
+        ..resetLastCalledToForceNextCallToUpdateCache();
+      final bitcoin = Bitcoin(CryptoCurrencyNetwork.main);
+      final pendingOlder = olderApi.getPricesAnd24hChange(baseCurrency: 'USD');
+      await Future<void>.delayed(Duration.zero);
+      await PriceAPI(client).getPricesAnd24hChange(baseCurrency: 'BTC');
+      final currentApi = PriceAPI(client);
+      expect(
+        (await currentApi.getPricesAnd24hChange(
+          baseCurrency: 'USD',
+        ))[bitcoin]?.value,
+        Decimal.fromInt(75000),
+      );
+      olderUsdResponse.complete(bitcoinPrice(50000));
+      expect((await pendingOlder)[bitcoin]?.value, Decimal.fromInt(75000));
+      expect(
+        (await currentApi.getPricesAnd24hChange(
+          baseCurrency: 'USD',
+        ))[bitcoin]?.value,
+        Decimal.fromInt(75000),
+      );
+      expect(usdRequests, 2);
+    },
+  );
+
+  test("a throttled read leaves the accepted pending fetch current", () async {
+    final client = MockHTTP();
+    final response = Completer<Response>();
+    when(
+      client.get(
+        proxyInfo: null,
+        url: anyNamed('url'),
+        headers: {'Content-Type': 'application/json'},
+      ),
+    ).thenAnswer((_) => response.future);
+    final api = PriceAPI(client)..resetLastCalledToForceNextCallToUpdateCache();
+    final pending = api.getPricesAnd24hChange(baseCurrency: 'USD');
+    await Future<void>.delayed(Duration.zero);
+    final secondApi = PriceAPI(client);
+    expect(await secondApi.getPricesAnd24hChange(baseCurrency: 'USD'), isEmpty);
+    response.complete(bitcoinPrice(50000));
+    final bitcoin = Bitcoin(CryptoCurrencyNetwork.main);
+    expect((await pending)[bitcoin]?.value, Decimal.fromInt(50000));
+    expect(
+      (await secondApi.getPricesAnd24hChange(
+        baseCurrency: 'USD',
+      ))[bitcoin]?.value,
+      Decimal.fromInt(50000),
+    );
+    verify(
+      client.get(
+        proxyInfo: null,
+        url: anyNamed('url'),
+        headers: {'Content-Type': 'application/json'},
+      ),
+    ).called(1);
+  });
+
+  test("legacy prices are not reused for a different currency", () async {
+    await DB.instance.put<dynamic>(
+      boxName: DB.boxNamePriceCache,
+      key: 'cache',
+      value: {
+        'Bitcoin': ['50000', 0.0],
+      },
+    );
+    final client = MockHTTP();
+    when(
+      client.get(
+        proxyInfo: null,
+        url: anyNamed('url'),
+        headers: {'Content-Type': 'application/json'},
+      ),
+    ).thenThrow(const SocketException('offline'));
+    final api = PriceAPI(client)..resetLastCalledToForceNextCallToUpdateCache();
+
+    expect(await api.getPricesAnd24hChange(baseCurrency: 'btc'), isEmpty);
+  });
+
+  test(
+    'offline upgrade migrates legacy prices to the saved currency once',
+    () async {
+      await DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs,
+        key: 'currency',
+        value: 'EUR',
+      );
+      // No consent means this test must use cache only, even under Flutter's
+      // external-call test-environment override.
+      await DB.instance.delete<dynamic>(
+        boxName: DB.boxNamePrefs,
+        key: 'externalCalls',
+      );
+      await DB.instance.put<dynamic>(
+        boxName: DB.boxNamePriceCache,
+        key: 'cache',
+        value: {
+          'Bitcoin': ['42000', 1.5],
+        },
+      );
+      final client = MockHTTP();
+      final api = PriceAPI(client)
+        ..resetLastCalledToForceNextCallToUpdateCache();
+      final bitcoin = Bitcoin(CryptoCurrencyNetwork.main);
+      expect(
+        (await api.getPricesAnd24hChange(baseCurrency: 'EUR'))[bitcoin]?.value,
+        Decimal.fromInt(42000),
+      );
+      expect(
+        (await PriceAPI(
+          client,
+        ).getPricesAnd24hChange(baseCurrency: 'eur'))[bitcoin]?.value,
+        Decimal.fromInt(42000),
+      );
+      expect(await api.getPricesAnd24hChange(baseCurrency: 'USD'), isEmpty);
+      expect(
+        DB.instance.get<dynamic>(boxName: DB.boxNamePriceCache, key: 'cache'),
+        isNull,
+      );
+      verifyZeroInteractions(client);
+    },
+  );
+
+  test('legacy migration preserves a newer currency cache', () async {
+    await DB.instance.delete<dynamic>(
+      boxName: DB.boxNamePrefs,
+      key: 'externalCalls',
+    );
+    await DB.instance.put<dynamic>(
+      boxName: DB.boxNamePriceCache,
+      key: 'cache',
+      value: {
+        'Bitcoin': ['42000', 0.0],
+      },
+    );
+    await DB.instance.put<dynamic>(
+      boxName: DB.boxNamePriceCache,
+      key: 'cache_usd',
+      value: {
+        'Bitcoin': ['75000', 0.0],
+      },
+    );
+    final api = PriceAPI(MockHTTP())
+      ..resetLastCalledToForceNextCallToUpdateCache();
+    final bitcoin = Bitcoin(CryptoCurrencyNetwork.main);
+    expect(
+      (await api.getPricesAnd24hChange(baseCurrency: 'USD'))[bitcoin]?.value,
+      Decimal.fromInt(75000),
+    );
+    expect(
+      DB.instance.get<dynamic>(boxName: DB.boxNamePriceCache, key: 'cache'),
+      isNull,
+    );
+  });
+
+  test(
+    'startup migration claims old prices before settings change currency',
+    () async {
+      await DB.instance.delete<dynamic>(
+        boxName: DB.boxNamePrefs,
+        key: 'externalCalls',
+      );
+      await DB.instance.put<dynamic>(
+        boxName: DB.boxNamePriceCache,
+        key: 'cache',
+        value: {
+          'Bitcoin': ['50000', 0.0],
+        },
+      );
+      await DB.instance.migrateLegacyPriceCache();
+      await DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs,
+        key: 'currency',
+        value: 'EUR',
+      );
+      final api = PriceAPI(MockHTTP())
+        ..resetLastCalledToForceNextCallToUpdateCache();
+      expect(await api.getPricesAnd24hChange(baseCurrency: 'EUR'), isEmpty);
+      final bitcoin = Bitcoin(CryptoCurrencyNetwork.main);
+      expect(
+        (await api.getPricesAnd24hChange(baseCurrency: 'USD'))[bitcoin]?.value,
+        Decimal.fromInt(50000),
+      );
+    },
+  );
+
+  test('concurrent migration uses the saved currency even when USD is requested first', () async {
+    await DB.instance.delete<dynamic>(
+      boxName: DB.boxNamePrefs,
+      key: 'externalCalls',
+    );
+    await DB.instance.put<dynamic>(
+      boxName: DB.boxNamePrefs,
+      key: 'currency',
+      value: 'EUR',
+    );
+    await DB.instance.put<dynamic>(
+      boxName: DB.boxNamePriceCache,
+      key: 'cache',
+      value: {
+        'Bitcoin': ['42000', 0.0],
+      },
+    );
+    final first = PriceAPI(MockHTTP())
+      ..resetLastCalledToForceNextCallToUpdateCache();
+    final second = PriceAPI(MockHTTP());
+    final results = await Future.wait([
+      first.getPricesAnd24hChange(baseCurrency: 'USD'),
+      second.getPricesAnd24hChange(baseCurrency: 'EUR'),
+    ]);
+    final bitcoin = Bitcoin(CryptoCurrencyNetwork.main);
+    expect(results.first, isEmpty);
+    expect(results.last[bitcoin]?.value, Decimal.fromInt(42000));
+    await DB.instance.hive.box<dynamic>(DB.boxNamePriceCache).close();
+    await DB.instance.hive.openBox<dynamic>(DB.boxNamePriceCache);
+    expect(
+      (await PriceAPI(
+        MockHTTP(),
+      ).getPricesAnd24hChange(baseCurrency: 'EUR'))[bitcoin]?.value,
+      Decimal.fromInt(42000),
+    );
+    expect(
+      DB.instance.get<dynamic>(boxName: DB.boxNamePriceCache, key: 'cache'),
+      isNull,
+    );
   });
 
   tearDown(() async {

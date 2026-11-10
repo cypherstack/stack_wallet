@@ -1048,15 +1048,19 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                 final port = uri.hasPort ? uri.port : 0;
                 if (port != 0) {
                   _portController.text = port.toString();
-                  final noPortUri = Uri(
-                    scheme: uri.scheme,
-                    userInfo: uri.userInfo,
-                    host: uri.host,
-                    path: uri.path,
-                    query: uri.hasQuery ? uri.query : null,
-                    fragment: uri.fragment.isNotEmpty ? uri.fragment : null,
-                  );
-                  _hostController.text = noPortUri.toString();
+                  // eth connects to the host url as is and ignores the port
+                  // field, so the port has to stay in the url
+                  if (widget.coin is! Ethereum) {
+                    final noPortUri = Uri(
+                      scheme: uri.scheme,
+                      userInfo: uri.userInfo,
+                      host: uri.host,
+                      path: uri.path,
+                      query: uri.hasQuery ? uri.query : null,
+                      fragment: uri.fragment.isNotEmpty ? uri.fragment : null,
+                    );
+                    _hostController.text = noPortUri.toString();
+                  }
                 }
               } catch (_) {
                 if (newValue.contains(":")) {
@@ -1471,60 +1475,57 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               ),
             ],
           ),
-        if (widget.coin is! Ethereum) const SizedBox(height: 16),
-        if (widget.coin is! Ethereum)
-          Row(
-            children: [
-              RadioTextButton(
-                label: "Only TOR traffic",
-                enabled: !widget.readOnly,
-                value: TorPlainNetworkOption.tor,
-                groupValue: netOption,
-                onChanged: (value) {
-                  if (!widget.readOnly) {
-                    setState(() => netOption = TorPlainNetworkOption.tor);
-                    _updateState();
-                  }
-                },
-              ),
-            ],
-          ),
-        if (widget.coin is! Ethereum) const SizedBox(height: 8),
-        if (widget.coin is! Ethereum)
-          Row(
-            children: [
-              RadioTextButton(
-                label: "Only non-TOR traffic",
-                enabled: !widget.readOnly,
-                value: TorPlainNetworkOption.clear,
-                groupValue: netOption,
-                onChanged: (value) {
-                  if (!widget.readOnly) {
-                    setState(() => netOption = TorPlainNetworkOption.clear);
-                    _updateState();
-                  }
-                },
-              ),
-            ],
-          ),
-        if (widget.coin is! Ethereum) const SizedBox(height: 8),
-        if (widget.coin is! Ethereum)
-          Row(
-            children: [
-              RadioTextButton(
-                label: "Allow both",
-                enabled: !widget.readOnly,
-                value: TorPlainNetworkOption.both,
-                groupValue: netOption,
-                onChanged: (value) {
-                  if (!widget.readOnly) {
-                    setState(() => netOption = TorPlainNetworkOption.both);
-                    _updateState();
-                  }
-                },
-              ),
-            ],
-          ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            RadioTextButton(
+              label: "Only TOR traffic",
+              enabled: !widget.readOnly,
+              value: TorPlainNetworkOption.tor,
+              groupValue: netOption,
+              onChanged: (value) {
+                if (!widget.readOnly) {
+                  setState(() => netOption = TorPlainNetworkOption.tor);
+                  _updateState();
+                }
+              },
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            RadioTextButton(
+              label: "Only non-TOR traffic",
+              enabled: !widget.readOnly,
+              value: TorPlainNetworkOption.clear,
+              groupValue: netOption,
+              onChanged: (value) {
+                if (!widget.readOnly) {
+                  setState(() => netOption = TorPlainNetworkOption.clear);
+                  _updateState();
+                }
+              },
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            RadioTextButton(
+              label: "Allow both",
+              enabled: !widget.readOnly,
+              value: TorPlainNetworkOption.both,
+              groupValue: netOption,
+              onChanged: (value) {
+                if (!widget.readOnly) {
+                  setState(() => netOption = TorPlainNetworkOption.both);
+                  _updateState();
+                }
+              },
+            ),
+          ],
+        ),
         if (widget.coin is CryptonoteCurrency && _isLocalNode())
           const SizedBox(height: 8),
         if (widget.coin is CryptonoteCurrency && _isLocalNode())

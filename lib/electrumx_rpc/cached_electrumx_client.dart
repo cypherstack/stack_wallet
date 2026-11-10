@@ -20,19 +20,42 @@ class CachedElectrumXClient {
 
   static const minCacheConfirms = 30;
 
+  static const _rawTxKeyPrefix = "raw:";
+
   CachedElectrumXClient({required this.electrumXClient});
 
   factory CachedElectrumXClient.from({
     required ElectrumXClient electrumXClient,
   }) => CachedElectrumXClient(electrumXClient: electrumXClient);
 
-  String base64ToHex(String source) => base64Decode(
-    LineSplitter.split(source).join(),
-  ).map((e) => e.toRadixString(16).padLeft(2, '0')).join();
+  String base64ToHex(String source) =>
+      base64Decode(LineSplitter.split(source).join())
+          .map((e) => e.toRadixString(16).padLeft(2, '0'))
+          .join();
 
-  String base64ToReverseHex(String source) => base64Decode(
-    LineSplitter.split(source).join(),
-  ).reversed.map((e) => e.toRadixString(16).padLeft(2, '0')).join();
+  String base64ToReverseHex(String source) =>
+      base64Decode(LineSplitter.split(source).join()).reversed
+          .map((e) => e.toRadixString(16).padLeft(2, '0'))
+          .join();
+
+  /// The raw hex stored for [txHash] by [putAuthenticatedRawTransaction].
+  Future<String?> getAuthenticatedRawTransaction({
+    required String txHash,
+    required CryptoCurrency cryptoCurrency,
+  }) async {
+    final box = await DB.instance.getTxCacheBox(currency: cryptoCurrency);
+    return box.get("$_rawTxKeyPrefix$txHash") as String?;
+  }
+
+  /// Stores [rawTxHex], which must already be checked to hash to [txHash].
+  Future<void> putAuthenticatedRawTransaction({
+    required String txHash,
+    required String rawTxHex,
+    required CryptoCurrency cryptoCurrency,
+  }) async {
+    final box = await DB.instance.getTxCacheBox(currency: cryptoCurrency);
+    await box.put("$_rawTxKeyPrefix$txHash", rawTxHex);
+  }
 
   /// Call electrumx getTransaction on a per coin basis, storing the result in local db if not already there.
   ///

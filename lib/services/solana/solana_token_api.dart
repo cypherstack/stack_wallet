@@ -188,13 +188,11 @@ class SolanaTokenAPI {
     try {
       _checkClient();
 
-      const splTokenProgramId = 'TokenkegQfeZyiNwAJsyFbPVwwQQfg5bgUiqhStM5QA';
-
       final result = await _rpcClient!.getTokenAccountsByOwner(
         ownerAddress,
         mint != null
             ? TokenAccountsFilter.byMint(mint)
-            : TokenAccountsFilter.byProgramId(splTokenProgramId),
+            : TokenAccountsFilter.byProgramId(TokenProgram.programId),
         encoding: Encoding.jsonParsed,
       );
 
@@ -666,16 +664,10 @@ class SolanaTokenAPI {
 
       final owner = response.value!.owner;
 
-      // Rough check which program owns this mint.
-      //
-      // For now all we need to know ius if it's SPL or newer.
-      // TODO [prio=low]: Fix via program metadata parsing or similar.
-      if (owner == 'TokenkegQfeZyiNwAJsyFbPVwwQQfg5bgUiqhStM5QA') {
+      if (owner == TokenProgram.programId) {
         return 'spl';
-      } else {
-        if (owner.startsWith('Token')) {
-          return 'token2022';
-        }
+      } else if (owner == Token2022Program.programId) {
+        return 'token2022';
       }
 
       return null;
