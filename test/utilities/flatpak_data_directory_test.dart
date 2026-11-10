@@ -187,6 +187,90 @@ void main() {
     });
   }
 
+  test("serializes concurrent first migrations without a Hive lock", () async {
+    final env = environment();
+    final legacy = Directory(path.join(env["HOME"]!, ".stackwallet"));
+    await legacy.create(recursive: true);
+    await File(path.join(legacy.path, "wallet")).writeAsString("keys");
+    final counter = File(path.join(temporaryRoot.path, "rename-calls"));
+    final script = File(path.join(temporaryRoot.path, "migrate.dart"));
+    await script.writeAsString('''
+import 'dart:io';
+import 'package:path/path.dart' as path;
+import 'package:stackwallet/utilities/flatpak_data_directory.dart';
+Future<void> copyTree(Directory source, Directory destination) async {
+  await destination.create(recursive: true);
+  await for (final entity in source.list(followLinks: false)) {
+    final target = path.join(destination.path, path.basename(entity.path));
+    if (entity is Directory) {
+      await copyTree(entity, Directory(target));
+    } else if (entity is File) {
+      await entity.copy(target);
+    }
+  }
+}
+Future<void> main(List<String> args) async {
+  final legacy = Directory(args[0]);
+  final env = <String, String>{
+    'FLATPAK_ID': 'com.cypherstack.stackwallet',
+    'HOME': Directory(legacy.path).parent.path,
+    'XDG_DATA_HOME': args[1],
+  };
+  await FlatpakDataDirectory.resolve(
+    environment: env,
+    appDirectoryName: 'stackwallet',
+    renameDirectory: (source, target) async {
+      if (source.path == legacy.path) {
+        await File(args[2]).writeAsString('x', mode: FileMode.append);
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+        throw FileSystemException('cross-device', source.path);
+      }
+      await source.rename(target);
+    },
+    copyDirectory: copyTree,
+  );
+}
+''');
+    final args = [legacy.path, env["XDG_DATA_HOME"]!, counter.path];
+    final packageConfig = path.join(
+      Directory.current.path,
+      ".dart_tool/package_config.json",
+    );
+    final processes = await Future.wait([
+      Process.start("dart", [
+        "--packages=$packageConfig",
+        script.path,
+        ...args,
+      ]),
+      Process.start("dart", [
+        "--packages=$packageConfig",
+        script.path,
+        ...args,
+      ]),
+    ]);
+    final results = await Future.wait(
+      processes.map((process) async {
+        final stdout = await process.stdout
+            .transform(systemEncoding.decoder)
+            .join();
+        final stderr = await process.stderr
+            .transform(systemEncoding.decoder)
+            .join();
+        final code = await process.exitCode;
+        return (code: code, stdout: stdout, stderr: stderr);
+      }),
+    );
+
+    expect(results.map((result) => result.code), everyElement(0));
+    expect(await counter.readAsString(), "x");
+    expect(
+      await File(path.join(env["XDG_DATA_HOME"]!, "stackwallet", "wallet"))
+          .readAsString(),
+      "keys",
+    );
+    expect(await legacy.exists(), isFalse);
+  });
+
   test("keeps legacy data when the copy does not verify", () async {
     final env = environment();
     final legacy = Directory(path.join(env["HOME"]!, ".stackwallet"));

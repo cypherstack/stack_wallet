@@ -97,7 +97,6 @@ abstract class FlatpakDataDirectory {
     }
 
     final temporary = Directory("${destination.path}.migrating");
-    RandomAccessFile? migrationLock;
     RandomAccessFile? legacyLock;
     try {
       legacyLock = await _lockLegacyDatabase(legacy);
@@ -147,8 +146,9 @@ abstract class FlatpakDataDirectory {
       final copiedRemovalMarker = File(
         path.join(temporary.path, legacyRemovalMarker),
       );
-      if (await copiedRemovalMarker.exists())
+      if (await copiedRemovalMarker.exists()) {
         await copiedRemovalMarker.delete();
+      }
       await renameDirectory(temporary, destination.path);
       // Leave no second copy of the wallet data behind, e.g. one that a
       // desktop reset of the new root would not remove.
