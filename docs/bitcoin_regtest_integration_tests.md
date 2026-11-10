@@ -6,9 +6,10 @@ chain and sends them between Stack wallets. Each test file starts its own
 removes them when it ends, so runs are independent and need no network.
 
 The wallets are the app's real `BitcoinWallet`s: Isar and Hive storage,
-`NodeService`, ElectrumX sync, coin selection and coinlib signing. The tests
+`NodeService`, ElectrumX sync, coin selection and coinlib signing. Most tests
 call `prepareSend`, `prepareRbfSend` and `confirmSend` the way the send and
-boost views do; they do not drive the UI.
+boost views do. `desktop_send_test.dart` runs the whole app instead and sends
+through the desktop send form, so it needs a desktop device.
 
 Configure/build the app and native dependencies first: [building.md](building.md).
 You also need `bitcoind` from Bitcoin Core (tested with 31.1) and one or both
@@ -38,6 +39,9 @@ Bitcoin regtest coin (`bitcoinRegtest`, `bcrt` addresses) to
 | `send_receive_test.dart` | node funds a new wallet (unconfirmed, then confirmed); Stack to Stack send at a custom fee rate, checked against bitcoind's mempool entry; a send to a P2WPKH address in the node's wallet; restoring from the recovery phrase |
 | `rbf_cpfp_test.dart` | an opted-in send signals BIP125 and is replaced at a higher rate; a coin control child of an unconfirmed parent raises the package fee rate |
 | `nested_segwit_test.dart` | a restored wallet spends coins that arrived on its BIP49 (P2SH-P2WPKH) address |
+| `desktop_send_test.dart` | onboarding, then the desktop send form: address, amount, the default fee (Stack's fallback rate, since regtest has no estimates), confirm and password; the node checks the payment |
 
 On failure the output ends with the app log and the last `bitcoind` and
-Electrum server log lines. App logs stay in the test's temp dir.
+Electrum server log lines. App data and logs stay in each test's temp dir;
+the desktop test sets the logs path pref first, because the app's default
+logs dir ignores the data dir override and is shared with real installs.
