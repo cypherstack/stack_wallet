@@ -19,6 +19,7 @@ import '../../../../models/add_wallet_list_entity/add_wallet_list_entity.dart';
 import '../../../../models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
 import '../../../../models/add_wallet_list_entity/sub_classes/sol_token_entity.dart';
 import '../../../../models/isar/exchange_cache/currency.dart';
+import '../../../../networking/tor_aware_network_image.dart';
 import '../../../../providers/providers.dart';
 import '../../../../services/exchange/change_now/change_now_exchange.dart';
 import '../../../../services/exchange/exchange_data_loading_service.dart';
@@ -26,6 +27,7 @@ import '../../../../themes/coin_icon_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/constants.dart';
+import '../../../../utilities/default_eth_tokens.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../widgets/app_icon.dart';
@@ -137,40 +139,46 @@ class _CoinSelectItemState extends ConsumerState<CoinSelectItem> {
           constraints: BoxConstraints(minHeight: isDesktop ? 70 : 0),
           child: Row(
             children: [
-              tokenImageUri != null
-                  ? tokenImageUri!.toLowerCase().endsWith(".svg")
-                        ? SvgPicture.network(
-                            tokenImageUri!,
-                            width: 26,
-                            height: 26,
-                            placeholderBuilder: (_) =>
-                                const AppIcon(width: 26, height: 26),
-                          )
-                        : Image.network(
-                            tokenImageUri!,
-                            width: 26,
-                            height: 26,
-                            errorBuilder: (_, _, _) => SvgPicture.file(
-                              File(
-                                ref.watch(
-                                  coinIconProvider(
-                                    widget.entity.cryptoCurrency,
-                                  ),
-                                ),
-                              ),
+              if (widget.entity is EthTokenEntity &&
+                  (widget.entity as EthTokenEntity).token.address
+                          .toLowerCase() ==
+                      DefaultTokens.rsFiro.address)
+                SvgPicture.asset(Assets.svg.rsFiro, width: 26, height: 26)
+              else
+                tokenImageUri != null
+                    ? tokenImageUri!.toLowerCase().endsWith(".svg")
+                          ? SvgPicture(
+                              TorAwareSvgNetworkLoader(tokenImageUri!),
                               width: 26,
                               height: 26,
-                            ),
-                          )
-                  : SvgPicture.file(
-                      File(
-                        ref.watch(
-                          coinIconProvider(widget.entity.cryptoCurrency),
+                              placeholderBuilder: (_) =>
+                                  const AppIcon(width: 26, height: 26),
+                            )
+                          : Image(
+                              image: TorAwareNetworkImage(tokenImageUri!),
+                              width: 26,
+                              height: 26,
+                              errorBuilder: (_, _, _) => SvgPicture.file(
+                                File(
+                                  ref.watch(
+                                    coinIconProvider(
+                                      widget.entity.cryptoCurrency,
+                                    ),
+                                  ),
+                                ),
+                                width: 26,
+                                height: 26,
+                              ),
+                            )
+                    : SvgPicture.file(
+                        File(
+                          ref.watch(
+                            coinIconProvider(widget.entity.cryptoCurrency),
+                          ),
                         ),
+                        width: 26,
+                        height: 26,
                       ),
-                      width: 26,
-                      height: 26,
-                    ),
               SizedBox(width: isDesktop ? 12 : 10),
               Text(
                 "${widget.entity.name} (${widget.entity.ticker})",
@@ -187,9 +195,9 @@ class _CoinSelectItemState extends ConsumerState<CoinSelectItem> {
                     height: 24,
                     child: SvgPicture.asset(
                       Assets.svg.check,
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
                     ),
                   ),
                 ),

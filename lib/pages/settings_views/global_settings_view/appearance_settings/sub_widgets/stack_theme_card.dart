@@ -17,6 +17,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:isar_community/isar.dart';
 
 import '../../../../../models/isar/stack_theme.dart';
+import '../../../../../networking/tor_aware_network_image.dart';
 import '../../../../../notifications/show_flush_bar.dart';
 import '../../../../../providers/db/main_db_provider.dart';
 import '../../../../../providers/global/prefs_provider.dart';
@@ -69,18 +70,16 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
   }
 
   Future<void> _downloadPressed() async {
-    final result =
-        (await showLoading(
-          whileFuture: _downloadAndInstall(),
-          context: context,
-          message: "Downloading and installing theme...",
-        ))!;
+    final result = (await showLoading(
+      whileFuture: _downloadAndInstall(),
+      context: context,
+      message: "Downloading and installing theme...",
+    ))!;
 
     if (mounted) {
-      final message =
-          result
-              ? "${widget.data.name} theme installed!"
-              : "Failed to install ${widget.data.name} theme";
+      final message = result
+          ? "${widget.data.name} theme installed!"
+          : "Failed to install ${widget.data.name} theme";
       if (isDesktop) {
         await showFloatingFlushBar(
           type: result ? FlushBarType.success : FlushBarType.warning,
@@ -90,16 +89,15 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
       } else {
         await showDialog<void>(
           context: context,
-          builder:
-              (_) => StackOkDialog(
-                title: message,
-                onOkPressed: (_) {
-                  setState(() {
-                    _needsUpdate = !result;
-                    _hasTheme = result;
-                  });
-                },
-              ),
+          builder: (_) => StackOkDialog(
+            title: message,
+            onOkPressed: (_) {
+              setState(() {
+                _needsUpdate = !result;
+                _hasTheme = result;
+              });
+            },
+          ),
         );
       }
     }
@@ -155,14 +153,13 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
     }
   }
 
-  StackTheme? getInstalled() =>
-      ref
-          .read(mainDBProvider)
-          .isar
-          .stackThemes
-          .where()
-          .themeIdEqualTo(widget.data.id)
-          .findFirstSync();
+  StackTheme? getInstalled() => ref
+      .read(mainDBProvider)
+      .isar
+      .stackThemes
+      .where()
+      .themeIdEqualTo(widget.data.id)
+      .findFirstSync();
 
   @override
   void initState() {
@@ -207,39 +204,41 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
   Widget build(BuildContext context) {
     return RoundedWhiteContainer(
       radiusMultiplier: isDesktop ? 2.5 : 1,
-      borderColor:
-          isDesktop
-              ? Theme.of(context).extension<StackColors>()!.textSubtitle6
-              : null,
+      borderColor: isDesktop
+          ? Theme.of(context).extension<StackColors>()!.textSubtitle6
+          : null,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 18),
-            child:
-                widget.data.previewImageUrl.isNotEmpty
-                    ? AspectRatio(
-                      aspectRatio: 1,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(100),
-                        child: Image.network(widget.data.previewImageUrl),
+            child: widget.data.previewImageUrl.isNotEmpty
+                ? AspectRatio(
+                    aspectRatio: 1,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(100),
+                      child: Image(
+                        image: TorAwareNetworkImage(
+                          widget.data.previewImageUrl,
+                        ),
                       ),
-                    )
-                    : Builder(
-                      builder: (context) {
-                        final themePreview =
-                            ref
-                                .watch(pThemeService)
-                                .getTheme(themeId: widget.data.id)
-                                ?.assets
-                                .themePreview ??
-                            "";
-
-                        return (themePreview.endsWith(".png"))
-                            ? Image.file(File(themePreview), height: 100)
-                            : SvgPicture.file(File(themePreview), height: 100);
-                      },
                     ),
+                  )
+                : Builder(
+                    builder: (context) {
+                      final themePreview =
+                          ref
+                              .watch(pThemeService)
+                              .getTheme(themeId: widget.data.id)
+                              ?.assets
+                              .themePreview ??
+                          "";
+
+                      return (themePreview.endsWith(".png"))
+                          ? Image.file(File(themePreview), height: 100)
+                          : SvgPicture.file(File(themePreview), height: 100);
+                    },
+                  ),
           ),
           const SizedBox(height: 12),
           Text(widget.data.name, style: STextStyles.itemSubtitle12(context)),
@@ -276,10 +275,9 @@ class _StackThemeCardState extends ConsumerState<StackThemeCard> {
           const SizedBox(height: 12),
           AnimatedCrossFade(
             duration: const Duration(milliseconds: 300),
-            crossFadeState:
-                _hasTheme
-                    ? CrossFadeState.showSecond
-                    : CrossFadeState.showFirst,
+            crossFadeState: _hasTheme
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
             firstChild: PrimaryButton(
               label: "Download",
               buttonHeight: isDesktop ? ButtonHeight.s : ButtonHeight.l,
