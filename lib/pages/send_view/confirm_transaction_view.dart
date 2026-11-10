@@ -690,6 +690,7 @@ class _ConfirmTransactionViewState
         );
       }),
     );
+    saveRecipientNameController.dispose();
     noteController.dispose();
     onChainNoteController.dispose();
 

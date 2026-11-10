@@ -100,16 +100,13 @@ void main() {
   });
 
   group('SaveRecipientOption', () {
-    test('is off until the user opts in', () {
+    test('defaults on and lets the user opt out', () {
       final option = SaveRecipientOption(address: 'recipient');
-
       expect(option.isOffered, isTrue);
-      expect(option.enabled, isFalse);
-      expect(option.addressToSave, isNull);
-
-      option.enabled = true;
-
+      expect(option.enabled, isTrue);
       expect(option.addressToSave, 'recipient');
+      option.enabled = false;
+      expect(option.addressToSave, isNull);
     });
 
     test('has nothing to offer or save for an ineligible transaction', () {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
+import 'package:stackwallet/pages/send_view/save_recipient.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/save_recipient_controls.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
@@ -10,7 +11,7 @@ import '../../sample_data/theme_json.dart';
 void main() {
   for (final isDesktop in [false, true]) {
     testWidgets(
-      '${isDesktop ? 'desktop' : 'mobile'} contact saving is opt-in',
+      '${isDesktop ? 'desktop' : 'mobile'} contact saving defaults on and can be disabled',
       (tester) async {
         await tester.pumpWidget(
           MaterialApp(
@@ -36,14 +37,14 @@ void main() {
           ),
         );
 
-        expect(_isOn(tester), isFalse);
-        expect(find.byType(TextField), findsNothing);
+        expect(_isOn(tester), isTrue);
+        expect(find.byType(TextField), findsOneWidget);
 
         await tester.tap(find.byType(DraggableSwitchButton));
         await tester.pump();
 
-        expect(_isOn(tester), isTrue);
-        expect(find.byType(TextField), findsOneWidget);
+        expect(_isOn(tester), isFalse);
+        expect(find.byType(TextField), findsNothing);
         expect(tester.takeException(), isNull);
       },
     );
@@ -66,7 +67,7 @@ class _Harness extends StatefulWidget {
 class _HarnessState extends State<_Harness> {
   final controller = TextEditingController();
   final focusNode = FocusNode();
-  var enabled = false;
+  final option = SaveRecipientOption(address: 'recipient');
 
   @override
   void dispose() {
@@ -78,9 +79,9 @@ class _HarnessState extends State<_Harness> {
   @override
   Widget build(BuildContext context) {
     return SaveRecipientControls(
-      enabled: enabled,
+      enabled: option.enabled,
       isDesktop: widget.isDesktop,
-      onChanged: (value) => setState(() => enabled = value),
+      onChanged: (value) => setState(() => option.enabled = value),
       controller: controller,
       focusNode: focusNode,
     );
