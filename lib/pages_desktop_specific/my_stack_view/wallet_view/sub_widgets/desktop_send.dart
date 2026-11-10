@@ -10,6 +10,7 @@
 
 import 'dart:async';
 
+import 'package:cs_openalias/cs_openalias.dart';
 import 'package:decimal/decimal.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
@@ -24,9 +25,12 @@ import '../../../../models/isar/models/contact_entry.dart';
 import '../../../../models/mwc_slatepack_models.dart';
 import '../../../../models/paynym/paynym_account_lite.dart';
 import '../../../../models/send_view_auto_fill_data.dart';
+import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages/send_view/confirm_transaction_view.dart';
+import '../../../../pages/send_view/frost_ms/recipient.dart';
 import '../../../../pages/send_view/sub_widgets/building_transaction_dialog.dart';
 import '../../../../pages/send_view/sub_widgets/epic_slatepack_dialog.dart';
+import '../../../../pages/send_view/sub_widgets/multi_recipient.dart';
 import '../../../../pages/send_view/sub_widgets/mwc_slatepack_dialog.dart';
 import '../../../../pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import '../../../../providers/providers.dart';
@@ -34,16 +38,21 @@ import '../../../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../../../providers/ui/preview_tx_button_state_provider.dart';
 import '../../../../providers/wallet/desktop_fee_providers.dart';
 import '../../../../providers/wallet/public_private_balance_state_provider.dart';
+import '../../../../services/openalias/open_alias_service.dart';
 import '../../../../services/spark_names_service.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/address_utils.dart';
 import '../../../../utilities/amount/amount.dart';
+import '../../../../utilities/amount/amount_field_relocalization.dart';
 import '../../../../utilities/amount/amount_formatter.dart';
+import '../../../../utilities/amount/amount_parser.dart';
 import '../../../../utilities/amount/amount_input_formatter.dart';
 import '../../../../utilities/amount/amount_unit.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/constants.dart';
+import '../../../../utilities/enums/fee_rate_type_enum.dart';
+import '../../../../utilities/integer_input.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/prefs.dart';
 import '../../../../utilities/show_loading.dart';
@@ -67,6 +76,7 @@ import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/qr_code_scanner_dialog.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
+import '../../../../widgets/desktop/simple_desktop_dialog.dart';
 import '../../../../widgets/dialogs/firo_exchange_address_dialog.dart';
 import '../../../../widgets/epic_txs_method_toggle.dart';
 import '../../../../widgets/eth_fee_form.dart';
@@ -129,7 +139,22 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   String? _onChainNote;
 
   Amount? _cachedAmountToSend;
-  String? _address;
+  String? _addressValue;
+  OpenAliasResolved? _openAlias;
+
+  String? get _address => _addressValue;
+
+  // Clearing and retyping an alias passes through other text, so the lookup
+  // is dropped then rather than kept for the same alias typed again.
+  set _address(String? value) {
+    _addressValue = value;
+    if (openAliasKey(value ?? "") != _openAlias?.alias) _openAlias = null;
+  }
+
+  /// The [pRecipient] index of each recipient's form while sending to more
+  /// than one recipient, otherwise null.
+  List<int>? _recipientIndexes;
+  int _greatestRecipientIndex = 0;
 
   bool _addressToggleFlag = false;
 
@@ -140,9 +165,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
   bool get isPaynymSend => widget.accountLite != null;
 
-  bool isCustomFee = false;
+  ({bool isValid, int? value}) get _nonceInput =>
+      parseOptionalIntegerInput(nonceController.text, minimum: 0);
+
+  bool get _nonceIsValid => _nonceInput.isValid;
+
   int customFeeRate = 1;
-  EthEIP1559Fee? ethFee;
+  final _ethFee = ValueNotifier<EthEIP1559Fee?>(null);
 
   Future<void> scanWebcam() async {
     try {
@@ -150,6 +179,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         context: context,
         builder: (context) => const QrCodeScannerDialog(),
       );
+      if (!mounted) return;
       if (qrResult == null) {
         Logging.instance.w("Qr scanning cancelled");
       } else {
@@ -269,9 +299,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                     child: Text(
                       'Failed to create slatepack: $e',
                       textAlign: TextAlign.left,
-                      style: STextStyles.desktopTextExtraExtraSmall(
-                        context,
-                      ).copyWith(fontSize: 18),
+                      style: STextStyles.desktopTextExtraExtraSmall(context)
+                          .copyWith(fontSize: 18),
                     ),
                   ),
                   const SizedBox(height: 40),
@@ -394,9 +423,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                     child: Text(
                       'Failed to create slate: $e',
                       textAlign: TextAlign.left,
-                      style: STextStyles.desktopTextExtraExtraSmall(
-                        context,
-                      ).copyWith(fontSize: 18),
+                      style: STextStyles.desktopTextExtraExtraSmall(context)
+                          .copyWith(fontSize: 18),
                     ),
                   ),
                   const SizedBox(height: 40),
@@ -423,8 +451,84 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     }
   }
 
+  /// Looks up the OpenAlias in the address field. Returns null if the lookup
+  /// failed or was cancelled.
+  Future<OpenAliasResolved?> _resolveOpenAlias(String application) async {
+    final resolution = ref
+        .read(pOpenAliasService)
+        .resolve(
+          _address!,
+          isValidAddress: coin.validateAddress,
+          application: application,
+          coinName: coin.prettyName,
+        );
+    unawaited(
+      showDialog<void>(
+        context: context,
+        useSafeArea: false,
+        barrierDismissible: false,
+        builder: (context) => DesktopDialog(
+          maxWidth: 400,
+          maxHeight: double.infinity,
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: BuildingTransactionDialog(
+              coin: coin,
+              isSpark: false,
+              onCancel: () {
+                resolution.cancel();
+                Navigator.of(context).pop();
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+    final outcome = await resolution.outcome;
+    if (!mounted) return null;
+    switch (outcome) {
+      case OpenAliasCancelled():
+        return null;
+      case OpenAliasResolved():
+        Navigator.of(context, rootNavigator: true).pop();
+        return outcome;
+      case OpenAliasFailed(:final title, :final message):
+        Navigator.of(context, rootNavigator: true).pop();
+        unawaited(
+          showDialog<void>(
+            context: context,
+            builder: (context) =>
+                SimpleDesktopDialog(title: title, message: message),
+          ),
+        );
+        return null;
+    }
+  }
+
   Future<void> previewSend() async {
+    final nonceInput = _nonceInput;
+    if (!nonceInput.isValid) return;
+    final nonce = nonceInput.value;
+
     final wallet = ref.read(pWallets).getWallet(walletId);
+    String? openAlias;
+    String? resolvedAddress;
+    final application = coin.openAliasApplication;
+    if (application != null &&
+        !coin.validateAddress(_address ?? "") &&
+        isOpenAlias(_address ?? "")) {
+      var resolved = _openAlias;
+      if (resolved == null ||
+          resolved.alias != openAliasKey(_address!) ||
+          !ref.read(pOpenAliasService).isCurrent(resolved)) {
+        resolved = _openAlias = await _resolveOpenAlias(application);
+      }
+      if (resolved == null || !mounted) return;
+      openAlias = resolved.alias;
+      resolvedAddress = resolved.address;
+      _setValidAddressProviders(resolvedAddress);
+    }
+    late final recipientAddress = resolvedAddress ?? _address!;
 
     // Handle MWC slatepack transactions directly.
     if (isMimblewimblecoin && ref.read(pIsSlatepack(widget.walletId))) {
@@ -464,7 +568,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             coinControlEnabled) ||
         (coinControlEnabled && ref.read(desktopUseUTXOs).isEmpty)) {
       // confirm send all
-      if (amount == availableBalance) {
+      if (_recipientIndexes == null && amount == availableBalance) {
         final bool? shouldSendAll = await showDialog<bool>(
           context: context,
           useSafeArea: false,
@@ -494,9 +598,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       child: Text(
                         "You are about to send your entire balance. Would you like to continue?",
                         textAlign: TextAlign.left,
-                        style: STextStyles.desktopTextExtraExtraSmall(
-                          context,
-                        ).copyWith(fontSize: 18),
+                        style: STextStyles.desktopTextExtraExtraSmall(context)
+                            .copyWith(fontSize: 18),
                       ),
                     ),
                     const SizedBox(height: 40),
@@ -537,12 +640,12 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           // cancel preview
           return;
         }
+        if (coin is Xelis) _xelisSendAll = true;
       }
     }
 
+    bool wasCancelled = false;
     try {
-      bool wasCancelled = false;
-
       if (mounted) {
         unawaited(
           showDialog<dynamic>(
@@ -580,11 +683,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
       TxData txData;
       Future<TxData> txDataFuture;
+      final feeRateType = ref.read(feeRateTypeDesktopStateProvider);
+      final satsPerVByte = feeRateType.customSatsPerVByte(customFeeRate);
 
       if (isPaynymSend) {
         final paynymWallet = wallet as PaynymInterface;
-
-        final feeRate = ref.read(feeRateTypeDesktopStateProvider);
         txDataFuture = paynymWallet.preparePaymentCodeSend(
           txData: TxData(
             paynymAccountLite: widget.accountLite!,
@@ -596,8 +699,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 addressType: AddressType.unknown,
               ),
             ],
-            satsPerVByte: isCustomFee ? customFeeRate : null,
-            feeRateType: feeRate,
+            satsPerVByte: satsPerVByte,
+            feeRateType: feeRateType,
             utxos:
                 (wallet is CoinControlInterface &&
                     wallet is! SalviumWallet &&
@@ -615,14 +718,15 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 txData: TxData(
                   sparkRecipients: [
                     (
-                      address: _address!,
+                      address: recipientAddress,
                       amount: amount,
                       memo: memoController.text,
                       isChange: false,
                     ),
                   ],
-                  feeRateType: ref.read(feeRateTypeDesktopStateProvider),
-                  satsPerVByte: isCustomFee ? customFeeRate : null,
+                  openAlias: openAlias,
+                  feeRateType: feeRateType,
+                  satsPerVByte: satsPerVByte,
                   utxos:
                       (coinControlEnabled &&
                           ref.read(pDesktopUseUTXOs).isNotEmpty)
@@ -635,21 +739,23 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 txData: TxData(
                   recipients: [
                     TxRecipient(
-                      address: _address!,
+                      address: recipientAddress,
                       amount: amount,
                       isChange: false,
                       addressType: wallet.cryptoCurrency.getAddressType(
-                        _address!,
+                        recipientAddress,
                       )!,
                     ),
                   ],
-                  feeRateType: ref.read(feeRateTypeDesktopStateProvider),
-                  satsPerVByte: isCustomFee ? customFeeRate : null,
+                  openAlias: openAlias,
+                  feeRateType: feeRateType,
+                  satsPerVByte: satsPerVByte,
                   utxos:
                       (coinControlEnabled &&
                           ref.read(pDesktopUseUTXOs).isNotEmpty)
                       ? ref.read(pDesktopUseUTXOs)
                       : null,
+                  opReturnData: ref.read(pOpReturnData),
                 ),
               );
             }
@@ -662,24 +768,25 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                     ? null
                     : [
                         TxRecipient(
-                          address: _address!,
+                          address: recipientAddress,
                           amount: amount,
                           isChange: false,
                           addressType: wallet.cryptoCurrency.getAddressType(
-                            _address!,
+                            recipientAddress,
                           )!,
                         ),
                       ],
                 sparkRecipients: ref.read(pValidSparkSendToAddress)
                     ? [
                         (
-                          address: _address!,
+                          address: recipientAddress,
                           amount: amount,
                           memo: memoController.text,
                           isChange: false,
                         ),
                       ]
                     : null,
+                openAlias: openAlias,
               ),
             );
             break;
@@ -691,14 +798,17 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           txData: TxData(
             recipients: [
               TxRecipient(
-                address: _address!,
+                address: recipientAddress,
                 amount: amount,
                 isChange: false,
-                addressType: wallet.cryptoCurrency.getAddressType(_address!)!,
+                addressType: wallet.cryptoCurrency.getAddressType(
+                  recipientAddress,
+                )!,
               ),
             ],
-            feeRateType: ref.read(feeRateTypeDesktopStateProvider),
-            satsPerVByte: isCustomFee ? customFeeRate : null,
+            openAlias: openAlias,
+            feeRateType: feeRateType,
+            satsPerVByte: satsPerVByte,
             // these will need to be mweb utxos
             // utxos:
             //     (wallet is CoinControlInterface &&
@@ -712,20 +822,24 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         final memo = hasOptionalMemo ? memoController.text : null;
         txDataFuture = wallet.prepareSend(
           txData: TxData(
-            recipients: [
-              TxRecipient(
-                address: _address!,
-                amount: amount,
-                isChange: false,
-                addressType: wallet.cryptoCurrency.getAddressType(_address!)!,
-              ),
-            ],
+            xelisSendAll: coin is Xelis && _xelisSendAll,
+            recipients:
+                _multiRecipients?.toTxRecipients(wallet.cryptoCurrency) ??
+                [
+                  TxRecipient(
+                    address: recipientAddress,
+                    amount: amount,
+                    isChange: false,
+                    addressType: wallet.cryptoCurrency.getAddressType(
+                      recipientAddress,
+                    )!,
+                  ),
+                ],
+            openAlias: openAlias,
             memo: memo,
-            feeRateType: ref.read(feeRateTypeDesktopStateProvider),
-            satsPerVByte: isCustomFee ? customFeeRate : null,
-            nonce: wallet.cryptoCurrency is Ethereum
-                ? int.tryParse(nonceController.text)
-                : null,
+            feeRateType: feeRateType,
+            satsPerVByte: satsPerVByte,
+            nonce: wallet.cryptoCurrency is Ethereum ? nonce : null,
             utxos:
                 (wallet is CoinControlInterface &&
                     wallet is! SalviumWallet &&
@@ -733,7 +847,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                     ref.read(pDesktopUseUTXOs).isNotEmpty)
                 ? ref.read(pDesktopUseUTXOs)
                 : null,
-            ethEIP1559Fee: ethFee,
+            ethEIP1559Fee: _ethFee.value,
           ),
         );
       }
@@ -741,6 +855,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       final results = await Future.wait([txDataFuture, time]);
 
       txData = results.first as TxData;
+
+      if (wasCancelled || !mounted) {
+        await wallet.cancelSend(txData: txData);
+        return;
+      }
 
       if (!wasCancelled && mounted) {
         if (isPaynymSend) {
@@ -772,6 +891,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 onSuccess: clearSendForm,
                 isPaynymTransaction: isPaynymSend,
                 routeOnSuccessName: DesktopHomeView.routeName,
+                recipientLabels: _multiRecipients?.map((e) => e.label).toList(),
               ),
             ),
           ),
@@ -779,7 +899,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       }
     } catch (e, s) {
       Logging.instance.e("Desktop send: ", error: e, stackTrace: s);
-      if (mounted) {
+      if (mounted && !wasCancelled) {
         // pop building dialog
         Navigator.of(context, rootNavigator: true).pop();
 
@@ -811,9 +931,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                         child: Text(
                           e.toString(),
                           textAlign: TextAlign.left,
-                          style: STextStyles.desktopTextExtraExtraSmall(
-                            context,
-                          ).copyWith(fontSize: 18),
+                          style: STextStyles.desktopTextExtraExtraSmall(context)
+                              .copyWith(fontSize: 18),
                         ),
                       ),
                       const SizedBox(height: 40),
@@ -846,6 +965,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   }
 
   void clearSendForm() {
+    if (!mounted) {
+      return;
+    }
+    _openAlias = null;
     sendToController.text = "";
     cryptoAmountController.text = "";
     baseAmountController.text = "";
@@ -853,16 +976,47 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     nonceController.text = "";
     _address = "";
     _addressToggleFlag = false;
-    if (mounted) {
-      setState(() {});
+    _clearRecipientForms();
+    _syncFeeAmount(null);
+    _setOpReturnData(null);
+    _setValidAddressProviders("");
+    setState(() {});
+  }
+
+  void _syncFeeAmount(Amount? amount) {
+    ref.read(sendAmountProvider.notifier).state =
+        amount ?? Amount.zeroWith(fractionDigits: coin.fractionDigits);
+  }
+
+  void _setOpReturnData(String? data) {
+    if (!mounted) {
+      return;
+    }
+    ref.read(pOpReturnData.notifier).state = data;
+  }
+
+  bool _xelisSendAll = false;
+
+  // Controller assignments used for display must not edit the stored amount.
+  void _updateAmountDisplay(VoidCallback update) {
+    final wasLocked = _cryptoAmountChangeLock;
+    _cryptoAmountChangeLock = true;
+    try {
+      update();
+    } finally {
+      _cryptoAmountChangeLock = wasLocked;
     }
   }
 
   void _cryptoAmountChanged() async {
     if (!_cryptoAmountChangeLock) {
-      final cryptoAmount = ref
-          .read(pAmountFormatter(coin))
-          .tryParse(cryptoAmountController.text);
+      _xelisSendAll = false;
+      final cryptoAmount = AmountParser.tryParseEditable(
+        cryptoAmountController.text,
+        locale: ref.read(localeServiceChangeNotifierProvider).locale,
+        unit: ref.read(pAmountUnit(coin)),
+        coin: coin,
+      );
       final Amount? amount;
       if (cryptoAmount != null) {
         amount = cryptoAmount;
@@ -878,11 +1032,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             ?.value;
 
         if (price != null && price > Decimal.zero) {
-          final String fiatAmountString = (amount.decimal * price)
-              .toAmount(fractionDigits: 2)
-              .fiatString(
-                locale: ref.read(localeServiceChangeNotifierProvider).locale,
-              );
+          final fiatAmount = (amount.decimal * price).toAmount(
+            fractionDigits: 2,
+          );
+          final fiatAmountString = Amount.formatEditableDecimal(
+            fiatAmount.decimal,
+            locale: ref.read(localeServiceChangeNotifierProvider).locale,
+          );
 
           baseAmountController.text = fiatAmountString;
         }
@@ -916,12 +1072,15 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       final paymentData = AddressUtils.parsePaymentUri(
         qrCodeData,
         logging: Logging.instance,
+        allowMultipleRecipients: _supportsMultiRecipient,
       );
 
       if (paymentData != null &&
           paymentData.coin?.uriScheme == coin.uriScheme) {
+        _setOpReturnData(paymentData.additionalParams['op_return']);
         _applyUri(paymentData);
       } else {
+        _setOpReturnData(null);
         _address = qrCodeData.split("\n").first.trim();
         sendToController.text = _address ?? "";
 
@@ -940,7 +1099,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   }
 
   void _setValidAddressProviders(String? address) {
-    if (isPaynymSend) {
+    if (_recipientIndexes != null) {
+      ref.read(pValidSendToAddress.notifier).state = _multiRecipients!
+          .isValidFor(coin);
+    } else if (isPaynymSend) {
       ref.read(pValidSendToAddress.notifier).state = true;
     } else {
       final wallet = ref.read(pWallets).getWallet(walletId);
@@ -967,13 +1129,173 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         }
       }
 
-      ref.read(pValidSendToAddress.notifier).state = wallet.cryptoCurrency
-          .validateAddress(address ?? "");
+      ref.read(pValidSendToAddress.notifier).state =
+          wallet.cryptoCurrency.validateAddress(address ?? "") ||
+          (coin.openAliasApplication != null && isOpenAlias(address ?? ""));
     }
+  }
+
+  bool get _supportsMultiRecipient =>
+      ref.read(pWallets).getWallet(walletId).supportsMultiRecipient;
+
+  RecipientId _recipientId(int index) => (walletId: walletId, index: index);
+
+  /// The recipients while sending to more than one, otherwise null.
+  List<RecipientData>? get _multiRecipients => _recipientIndexes
+      ?.map(
+        (index) =>
+            ref.read(pRecipient(_recipientId(index))) ??
+            (address: "", amount: null, label: null),
+      )
+      .toList();
+
+  /// Applies a payment request for several recipients scanned, pasted, or
+  /// typed into the address field.
+  void _applyMultiRecipientUri(PaymentUriData paymentData) {
+    final recipients = parseUriRecipients(paymentData, coin);
+    if (recipients == null) {
+      // Clear the previous payment, so Preview can't send it in place of the
+      // rejected request.
+      _address = "";
+      sendToController.text = "";
+      cryptoAmountController.text = "";
+      ref.read(pSendAmount.notifier).state = null;
+      _syncFeeAmount(null);
+      _setValidAddressProviders(_address);
+      setState(() {
+        _addressToggleFlag = false;
+      });
+      showFloatingFlushBar(
+        type: FlushBarType.warning,
+        message: "Invalid payment request amounts",
+        context: context,
+      );
+      return;
+    }
+
+    _note = paymentData.message;
+    _setOpReturnData(null);
+    _setMultiRecipients(recipients);
+  }
+
+  /// Offers to replace the recipients with those of a payment request for
+  /// several recipients scanned or pasted into one recipient's form.
+  Future<void> _replaceMultiRecipients(PaymentUriData paymentData) async {
+    final recipients = parseUriRecipients(paymentData, coin);
+    if (recipients == null) {
+      showFloatingFlushBar(
+        type: FlushBarType.warning,
+        message: "Invalid payment request amounts",
+        context: context,
+      );
+      return;
+    }
+
+    final replace = await confirmReplaceRecipients(
+      context,
+      count: recipients.length,
+    );
+    if (!replace || !mounted) {
+      return;
+    }
+
+    _note = paymentData.message;
+    _setMultiRecipients(recipients);
+  }
+
+  void _addRecipientTapped() {
+    final resolved = _openAlias;
+    final address =
+        resolved != null &&
+            resolved.alias == openAliasKey(_address ?? "") &&
+            ref.read(pOpenAliasService).isCurrent(resolved)
+        ? resolved.address
+        : _address ?? "";
+    _setMultiRecipients([
+      (address: address, amount: ref.read(pSendAmount), label: null),
+      (address: "", amount: null, label: null),
+    ]);
+  }
+
+  /// Replaces the address field, or any recipient forms, with a form for each
+  /// of [recipients].
+  void _setMultiRecipients(List<RecipientData> recipients) {
+    _clearRecipientForms();
+    _recipientIndexes = [
+      for (final recipient in recipients) _newRecipientForm(recipient),
+    ];
+    _address = null;
+    sendToController.text = "";
+    setState(() {
+      _addressToggleFlag = false;
+    });
+    _multiRecipientsChanged();
+  }
+
+  int _newRecipientForm(RecipientData? recipient) {
+    final index = ++_greatestRecipientIndex;
+    ref.read(pRecipient(_recipientId(index)).notifier).state = recipient;
+    return index;
+  }
+
+  void _clearRecipientForms() {
+    for (final index in _recipientIndexes ?? const <int>[]) {
+      ref.read(pRecipient(_recipientId(index)).notifier).state = null;
+    }
+    _recipientIndexes = null;
+  }
+
+  void _addRecipientForm() {
+    setState(() {
+      _recipientIndexes!.add(_newRecipientForm(null));
+    });
+    _multiRecipientsChanged();
+  }
+
+  void _removeRecipientForm(int index) {
+    ref.read(pRecipient(_recipientId(index)).notifier).state = null;
+    _recipientIndexes!.remove(index);
+
+    if (_recipientIndexes!.length == 1) {
+      // Back to the form for a single recipient.
+      final recipient = _multiRecipients!.single;
+      _clearRecipientForms();
+      _address = recipient.address;
+      sendToController.text = recipient.address;
+      cryptoAmountController.text = recipient.amount == null
+          ? ""
+          : ref.read(pAmountFormatter(coin)).formatEditable(recipient.amount!);
+      ref.read(pSendAmount.notifier).state = recipient.amount;
+      _syncFeeAmount(recipient.amount);
+      setState(() {
+        _addressToggleFlag = recipient.address.isNotEmpty;
+      });
+      _setValidAddressProviders(_address);
+    } else {
+      setState(() {});
+      _multiRecipientsChanged();
+    }
+  }
+
+  /// Shows the total of the recipients' amounts as the amount to send.
+  void _multiRecipientsChanged() {
+    final total = _multiRecipients!.total;
+    cryptoAmountController.text = total == null
+        ? ""
+        : ref.read(pAmountFormatter(coin)).formatEditable(total);
+    ref.read(pSendAmount.notifier).state = total;
+    _syncFeeAmount(total);
+    _setValidAddressProviders(_address);
   }
 
   void _applyUri(PaymentUriData paymentData) {
     try {
+      if (paymentData.isMultiRecipient) {
+        _applyMultiRecipientUri(paymentData);
+        return;
+      }
+      _clearRecipientForms();
+
       // auto fill address
       _address = paymentData.address;
       sendToController.text = _address!;
@@ -985,15 +1307,35 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         _note = paymentData.label;
       }
 
+      // firo-qt treats message as the spark memo when paying a spark address
+      if (coin is Firo &&
+          paymentData.message != null &&
+          SparkInterface.validateSparkAddress(
+            address: _address!,
+            isTestNet: coin.network.isTestNet,
+          )) {
+        memoController.text = paymentData.message!;
+      }
+
       // autofill amount field
       if (paymentData.amount != null) {
-        final amount = Decimal.parse(
+        final amount = Amount.tryParseCanonicalAmount(
           paymentData.amount!,
-        ).toAmount(fractionDigits: coin.fractionDigits);
-        cryptoAmountController.text = ref
-            .read(pAmountFormatter(coin))
-            .format(amount, withUnitName: false);
-        ref.read(pSendAmount.notifier).state = amount;
+          fractionDigits: coin.fractionDigits,
+          truncateOverprecision: true,
+        );
+        if (amount != null) {
+          cryptoAmountController.text = ref
+              .read(pAmountFormatter(coin))
+              .formatEditable(amount);
+          ref.read(pSendAmount.notifier).state = amount;
+          _syncFeeAmount(amount);
+        } else {
+          cryptoAmountController.clear();
+          _cachedAmountToSend = null;
+          ref.read(pSendAmount.notifier).state = null;
+          _syncFeeAmount(null);
+        }
       }
 
       // Trigger validation after pasting.
@@ -1047,11 +1389,14 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         final paymentData = AddressUtils.parsePaymentUri(
           content,
           logging: Logging.instance,
+          allowMultipleRecipients: _supportsMultiRecipient,
         );
         if (paymentData != null &&
             paymentData.coin?.uriScheme == coin.uriScheme) {
+          _setOpReturnData(paymentData.additionalParams['op_return']);
           _applyUri(paymentData);
         } else {
+          _setOpReturnData(null);
           if (coin is Epiccash) {
             content = AddressUtils().formatEpicCashAddress(content);
           }
@@ -1068,6 +1413,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           });
         }
       } catch (e) {
+        _setOpReturnData(null);
         // If parsing fails, treat it as a plain address.
         if (coin is Epiccash) {
           // strip http:// and https:// if content contains @
@@ -1107,6 +1453,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   }
 
   void fiatTextFieldOnChanged(String baseAmountString) {
+    _xelisSendAll = false;
     final baseAmount = Amount.tryParseFiatString(
       baseAmountString,
       locale: ref.read(localeServiceChangeNotifierProvider).locale,
@@ -1134,13 +1481,14 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
       final amountString = ref
           .read(pAmountFormatter(coin))
-          .format(amount, withUnitName: false);
+          .formatEditable(amount);
 
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = amountString;
       _cryptoAmountChangeLock = false;
     } else {
-      amount = Decimal.zero.toAmount(fractionDigits: coin.fractionDigits);
+      amount = null;
+      _cachedAmountToSend = null;
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = "";
       _cryptoAmountChangeLock = false;
@@ -1188,7 +1536,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
     cryptoAmountController.text = ref
         .read(pAmountFormatter(coin))
-        .format(amount, withUnitName: false);
+        .formatEditable(amount);
+    _syncFeeAmount(amount);
+    _xelisSendAll = coin is Xelis;
   }
 
   void _showDesktopCoinControl() async {
@@ -1231,12 +1581,27 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     cryptoAmountController.addListener(onCryptoAmountChanged);
 
     if (_data != null) {
-      if (_data.amount != null) {
-        cryptoAmountController.text = _data.amount!.toString();
+      final hasAmount = _data.amount != null;
+      if (hasAmount) {
+        _cryptoAmountChangeLock = true;
+        cryptoAmountController.text = ref
+            .read(pAmountFormatter(coin))
+            .formatEditable(
+              _data.amount!.toAmount(fractionDigits: coin.fractionDigits),
+            );
+        _cryptoAmountChangeLock = false;
       }
       sendToController.text = _data.contactLabel;
       _address = _data.address;
       _addressToggleFlag = true;
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (hasAmount) {
+          _cryptoAmountChanged();
+          _syncFeeAmount(ref.read(pSendAmount));
+        }
+        _setValidAddressProviders(_address);
+      });
     }
 
     if (isPaynymSend) {
@@ -1274,6 +1639,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   @override
   void dispose() {
     cryptoAmountController.removeListener(onCryptoAmountChanged);
+    _ethFee.dispose();
 
     sendToController.dispose();
     cryptoAmountController.dispose();
@@ -1295,6 +1661,28 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     final String locale = ref.watch(
       localeServiceChangeNotifierProvider.select((value) => value.locale),
     );
+    listenForAmountRelocalization(
+      ref.listen,
+      controllers: [cryptoAmountController, baseAmountController],
+      updateControllers: _updateAmountDisplay,
+    );
+    // Keep the amount, rather than the number typed, when the unit changes.
+    ref.listen<AmountFormatter>(pAmountFormatter(coin), (previous, next) {
+      final amount = ref.read(pSendAmount);
+      if (previous?.unit != next.unit && amount != null) {
+        // Only the display changes, so keep the send all intent.
+        final xelisSendAll = _xelisSendAll;
+        _updateAmountDisplay(() {
+          cryptoAmountController.text = next.formatEditable(amount);
+        });
+        _xelisSendAll = xelisSendAll;
+      }
+    });
+    final isCustomFee = ref.watch(feeRateTypeDesktopStateProvider).isCustom;
+    // ethFee is checked in the ValueListenableBuilder around the preview
+    // button so fee keystrokes don't rebuild this whole view.
+    final previewEnabled = ref.watch(pPreviewTxButtonEnabled(coin));
+    final needsEthFee = coin is Ethereum && isCustomFee;
 
     // add listener for epic cash to strip http:// and https:// prefixes if the address also ocntains an @ symbol (indicating an epicbox address)
     if (coin is Epiccash) {
@@ -1370,23 +1758,22 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             child: Container(
               decoration: BoxDecoration(
                 color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()?.textFieldDefaultBG ??
+                    Theme.of(context)
+                        .extension<StackColors>()
+                        ?.textFieldDefaultBG ??
                     Colors.white, // Fallback color
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()?.backgroundAppBar ??
+                      Theme.of(context)
+                          .extension<StackColors>()
+                          ?.backgroundAppBar ??
                       Colors.grey, // Fallback color
                   width: 1,
                 ),
               ),
               child: const SizedBox(
-                height:
-                    60, // Provide an explicit height to avoid infinite constraints
+                height: 60, // Provide an explicit height to avoid infinite constraints
                 child: MwcTxsMethodToggle(),
               ),
             ),
@@ -1398,23 +1785,22 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             child: Container(
               decoration: BoxDecoration(
                 color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()?.textFieldDefaultBG ??
+                    Theme.of(context)
+                        .extension<StackColors>()
+                        ?.textFieldDefaultBG ??
                     Colors.white, // Fallback color
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()?.backgroundAppBar ??
+                      Theme.of(context)
+                          .extension<StackColors>()
+                          ?.backgroundAppBar ??
                       Colors.grey, // Fallback color
                   width: 1,
                 ),
               ),
               child: const SizedBox(
-                height:
-                    60, // Provide an explicit height to avoid infinite constraints
+                height: 60, // Provide an explicit height to avoid infinite constraints
                 child: EpicTxsMethodToggle(),
               ),
             ),
@@ -1424,9 +1810,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           Text(
             "Send from",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldActiveSearchIconRight,
             ),
             textAlign: TextAlign.left,
           ),
@@ -1507,9 +1893,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 offset: const Offset(0, -10),
                 elevation: 0,
                 decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldDefaultBG,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultBG,
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),
@@ -1534,9 +1920,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             controller: sendToController,
             enabled: false,
             readOnly: true,
-            style: STextStyles.desktopTextFieldLabel(
-              context,
-            ).copyWith(fontSize: 16),
+            style: STextStyles.desktopTextFieldLabel(context)
+                .copyWith(fontSize: 16),
             decoration: const InputDecoration(
               contentPadding: EdgeInsets.symmetric(
                 vertical: 18,
@@ -1549,15 +1934,17 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              "Amount",
+              _recipientIndexes == null ? "Amount" : "Total",
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldActiveSearchIconRight,
               ),
               textAlign: TextAlign.left,
             ),
-            if (coin is! Ethereum && coin is! Tezos)
+            if (coin is! Ethereum &&
+                coin is! Tezos &&
+                _recipientIndexes == null)
               CustomTextButton(
                 text: _getSendAllTitle(
                   showCoinControl,
@@ -1569,6 +1956,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         ),
         const SizedBox(height: 10),
         TextField(
+          readOnly: _recipientIndexes != null,
           autocorrect: Util.isDesktop ? false : true,
           enableSuggestions: Util.isDesktop ? false : true,
           style: STextStyles.smallMed14(context).copyWith(
@@ -1586,6 +1974,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           textAlign: TextAlign.right,
           inputFormatters: [
             AmountInputFormatter(
+              controller: cryptoAmountController,
               decimals: coin.fractionDigits,
               unit: ref.watch(pAmountUnit(coin)),
               locale: locale,
@@ -1606,9 +1995,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             ),
             hintText: "0",
             hintStyle: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldDefaultText,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldDefaultText,
             ),
             prefixIcon: FittedBox(
               fit: BoxFit.scaleDown,
@@ -1617,9 +2006,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 child: Text(
                   ref.watch(pAmountUnit(coin)).unitForCoin(coin),
                   style: STextStyles.smallMed14(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.accentColorDark,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
                   ),
                 ),
               ),
@@ -1629,6 +2018,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         if (Prefs.instance.externalCalls) const SizedBox(height: 10),
         if (Prefs.instance.externalCalls)
           TextField(
+            readOnly: _recipientIndexes != null,
             autocorrect: Util.isDesktop ? false : true,
             enableSuggestions: Util.isDesktop ? false : true,
             style: STextStyles.smallMed14(context).copyWith(
@@ -1645,7 +2035,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   ),
             textAlign: TextAlign.right,
             inputFormatters: [
-              AmountInputFormatter(decimals: 2, locale: locale),
+              AmountInputFormatter(
+                controller: baseAmountController,
+                decimals: 2,
+                locale: locale,
+              ),
               // // regex to validate a fiat amount with 2 decimal places
               // TextInputFormatter.withFunction((oldValue, newValue) =>
               //     RegExp(r'^([0-9]*[,.]?[0-9]{0,2}|[,.][0-9]{0,2})$')
@@ -1662,9 +2056,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               ),
               hintText: "0",
               hintStyle: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldDefaultText,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldDefaultText,
               ),
               prefixIcon: FittedBox(
                 fit: BoxFit.scaleDown,
@@ -1677,9 +2071,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       ),
                     ),
                     style: STextStyles.smallMed14(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
                     ),
                   ),
                 ),
@@ -1690,9 +2084,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         if (showCoinControl)
           RoundedContainer(
             color: Colors.transparent,
-            borderColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.textFieldDefaultBG,
+            borderColor: Theme.of(context)
+                .extension<StackColors>()!
+                .textFieldDefaultBG,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -1713,22 +2107,44 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         if (!isPaynymSend &&
             !((isMimblewimblecoin || isEpiccash) &&
                 ref.watch(pIsSlatepack(widget.walletId))))
-          Text(
-            "Send to",
-            style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldActiveSearchIconRight,
-            ),
-            textAlign: TextAlign.left,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Send to",
+                style: STextStyles.desktopTextExtraSmall(context).copyWith(
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldActiveSearchIconRight,
+                ),
+                textAlign: TextAlign.left,
+              ),
+              if (_recipientIndexes == null && _supportsMultiRecipient)
+                CustomTextButton(
+                  text: "Add recipient",
+                  onTap: _addRecipientTapped,
+                ),
+            ],
           ),
         if (!isPaynymSend &&
             !((isMimblewimblecoin || isEpiccash) &&
                 ref.watch(pIsSlatepack(widget.walletId))))
           const SizedBox(height: 10),
+        if (_recipientIndexes != null)
+          RecipientForms(
+            walletId: walletId,
+            coin: coin,
+            indexes: _recipientIndexes!,
+            onChanged: _multiRecipientsChanged,
+            onAdd: _addRecipientForm,
+            onRemove: _removeRecipientForm,
+            onMultiRecipientUri: _replaceMultiRecipients,
+            onMessage: (message) => _note = message,
+          ),
         if (!isPaynymSend &&
             !((isMimblewimblecoin || isEpiccash) &&
-                ref.watch(pIsSlatepack(widget.walletId))))
+                ref.watch(pIsSlatepack(widget.walletId))) &&
+            _recipientIndexes == null)
           ClipRRect(
             borderRadius: BorderRadius.circular(
               Constants.size.circularBorderRadius,
@@ -1754,17 +2170,21 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               onChanged: (newValue) async {
                 final trimmed = newValue;
 
-                if ((trimmed.length - (_address?.length ?? 0)).abs() > 1) {
+                if (AddressUtils.mayBePaymentUri(trimmed, _address ?? "")) {
                   final parsed = AddressUtils.parsePaymentUri(
                     trimmed,
                     logging: Logging.instance,
+                    allowMultipleRecipients: _supportsMultiRecipient,
                   );
                   if (parsed != null) {
+                    _setOpReturnData(parsed.additionalParams['op_return']);
                     _applyUri(parsed);
                   } else {
+                    _setOpReturnData(null);
                     await _checkSparkNameAndOrSetAddress(newValue);
                   }
                 } else {
+                  _setOpReturnData(null);
                   await _checkSparkNameAndOrSetAddress(
                     newValue,
                     setController: false,
@@ -1774,14 +2194,14 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 _setValidAddressProviders(_address);
 
                 setState(() {
-                  _addressToggleFlag = newValue.isNotEmpty;
+                  _addressToggleFlag = sendToController.text.isNotEmpty;
                 });
               },
               focusNode: _addressFocusNode,
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldActiveText,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldActiveText,
                 height: 1.8,
               ),
               decoration:
@@ -1815,6 +2235,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                                     onTap: () {
                                       sendToController.text = "";
                                       _address = "";
+                                      _setOpReturnData(null);
                                       _setValidAddressProviders(_address);
                                       setState(() {
                                         _addressToggleFlag = false;
@@ -1877,6 +2298,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                                       );
 
                                   if (entry != null) {
+                                    _setOpReturnData(null);
                                     sendToController.text =
                                         entry.other ?? entry.label;
 
@@ -1893,8 +2315,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                               ),
                             if (sendToController.text.isEmpty)
                               TextFieldIconButton(
-                                semanticsLabel:
-                                    "Scan QR Button. Opens Camera For Scanning QR Code.",
+                                semanticsLabel: "Scan QR Button. Opens Camera For Scanning QR Code.",
                                 key: const Key("sendViewScanQrButtonKey"),
                                 onTap: scanWebcam,
                                 child: const QrCodeIcon(),
@@ -1950,9 +2371,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       error,
                       textAlign: TextAlign.left,
                       style: STextStyles.label(context).copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textError,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textError,
                       ),
                     ),
                   ),
@@ -1960,6 +2381,66 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               }
             },
           ),
+        // OP_RETURN metadata info (green, public mode only, with tooltip)
+        Builder(
+          builder: (context) {
+            final opData = ref.watch(pOpReturnData);
+            final balType = ref.watch(publicPrivateBalanceStateProvider);
+            if (opData == null ||
+                opData.isEmpty ||
+                balType != BalanceType.public) {
+              return Container();
+            }
+            return Align(
+              alignment: Alignment.topLeft,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 12.0, top: 4.0),
+                child: Tooltip(
+                  message: AddressUtils.formatOpReturnTooltip(opData),
+                  child: Text(
+                    "Transaction includes metadata "
+                    "(${opData.length ~/ 2} bytes)",
+                    textAlign: TextAlign.left,
+                    style: STextStyles.label(context).copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorGreen,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+        // OP_RETURN bridge warning (red, private mode only)
+        Builder(
+          builder: (context) {
+            final opData = ref.watch(pOpReturnData);
+            final balType = ref.watch(publicPrivateBalanceStateProvider);
+            if (opData == null ||
+                opData.isEmpty ||
+                balType != BalanceType.private) {
+              return Container();
+            }
+            return Align(
+              alignment: Alignment.topLeft,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 12.0, top: 4.0),
+                child: Text(
+                  "Bridge data detected but Spark (private) transactions "
+                  "cannot carry OP_RETURN data. Switch to public balance "
+                  "to complete the bridge transaction.",
+                  textAlign: TextAlign.left,
+                  style: STextStyles.label(context).copyWith(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textError,
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
         if (hasOptionalMemo || ref.watch(pValidSparkSendToAddress))
           const SizedBox(height: 10),
         if (hasOptionalMemo || ref.watch(pValidSparkSendToAddress))
@@ -1981,9 +2462,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 setState(() {});
               },
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldActiveText,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldActiveText,
                 height: 1.8,
               ),
               decoration:
@@ -2031,21 +2512,22 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             walletId: walletId,
             isToken: false,
             onCustomFeeSliderChanged: (value) => customFeeRate = value,
-            onCustomFeeOptionChanged: (value) {
-              isCustomFee = value;
+            onCustomFeeOptionChanged: () {
               customFeeRate = 1;
-              ethFee = null;
+              _ethFee.value = null;
             },
-            onCustomEip1559FeeOptionChanged: (value) => ethFee = value,
+            onCustomEip1559FeeOptionChanged: (value) {
+              _ethFee.value = value;
+            },
           ),
         if (coin is Ethereum) const SizedBox(height: 20),
         if (coin is Ethereum)
           Text(
             "Nonce",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldActiveSearchIconRight,
             ),
             textAlign: TextAlign.left,
           ),
@@ -2063,12 +2545,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               readOnly: false,
               autocorrect: false,
               enableSuggestions: false,
-              keyboardType: const TextInputType.numberWithOptions(),
+              keyboardType: TextInputType.number,
               focusNode: _nonceFocusNode,
+              onChanged: (_) => setState(() {}),
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldActiveText,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldActiveText,
                 height: 1.8,
               ),
               decoration:
@@ -2087,16 +2570,31 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   ),
             ),
           ),
+        if (coin is Ethereum && !_nonceIsValid)
+          Padding(
+            padding: const EdgeInsets.only(top: 6, left: 12),
+            child: Text(
+              "Enter a non-negative whole number",
+              style: STextStyles.errorSmall(context),
+            ),
+          ),
         const SizedBox(height: 36),
-        PrimaryButton(
-          buttonHeight: ButtonHeight.l,
-          label: ref.watch(pIsSlatepack(widget.walletId))
-              ? "Create slatepack"
-              : "Preview send",
-          enabled: ref.watch(pPreviewTxButtonEnabled(coin)),
-          onPressed: ref.watch(pPreviewTxButtonEnabled(coin))
-              ? previewSend
-              : null,
+        ValueListenableBuilder<EthEIP1559Fee?>(
+          valueListenable: _ethFee,
+          builder: (context, ethFee, _) {
+            final enabled =
+                previewEnabled &&
+                _nonceIsValid &&
+                (!needsEthFee || ethFee != null);
+            return PrimaryButton(
+              buttonHeight: ButtonHeight.l,
+              label: ref.watch(pIsSlatepack(widget.walletId))
+                  ? "Create slatepack"
+                  : "Preview send",
+              enabled: enabled,
+              onPressed: enabled ? previewSend : null,
+            );
+          },
         ),
       ],
     );

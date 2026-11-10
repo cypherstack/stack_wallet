@@ -60,13 +60,23 @@ class DPS {
     }
 
     try {
-      _handler = await StorageCryptoHandler.fromNewPassphrase(
+      if (await _get(key: _kKeyBlobKey) != null) {
+        throw Exception(
+          "DPS: attempted to overwrite an existing keyBlob with a new one",
+        );
+      }
+
+      final handler = await StorageCryptoHandler.fromNewPassphrase(
         passphrase,
         kLatestBlobVersion,
       );
+      final keyBlob = await handler.getKeyBlob();
 
-      await _put(key: _kKeyBlobKey, value: await _handler!.getKeyBlob());
+      // The blob is the password-exists commit marker. Store its version first
+      // so a failed blob write leaves a safe, retryable version-only state.
       await _updateStoredKeyBlobVersion(kLatestBlobVersion);
+      await _putAndVerify(key: _kKeyBlobKey, value: keyBlob);
+      _handler = handler;
     } catch (e, s) {
       Logging.instance.e(
         "${_getMessageFromException(e)}\n$s",
@@ -89,21 +99,36 @@ class DPS {
 
       if (keyBlob == null) {
         throw Exception(
-          "DPS: failed to find keyBlob while attempting to initialize with existing passphrase",
+          "DPS: failed to find keyBlob while attempting to initialize with"
+          " existing passphrase",
         );
       }
-      final blobVersion = await _getStoredKeyBlobVersion();
-      _handler = await StorageCryptoHandler.fromExisting(
+      final versionHint = await _getStoredKeyBlobVersion();
+      final authenticated = await _authenticateKeyBlob(
         passphrase,
         keyBlob,
-        blobVersion,
+        versionHint,
       );
-      if (blobVersion < kLatestBlobVersion) {
-        // update blob
-        await _handler!.resetPassphrase(passphrase, kLatestBlobVersion);
-        await _put(key: _kKeyBlobKey, value: await _handler!.getKeyBlob());
-        await _updateStoredKeyBlobVersion(kLatestBlobVersion);
+      _handler = authenticated.handler;
+
+      if (authenticated.version < kLatestBlobVersion) {
+        await _tryUpgradeKeyBlob(
+          passphrase: passphrase,
+          keyBlob: keyBlob,
+          version: authenticated.version,
+        );
+      } else if (versionHint != authenticated.version) {
+        try {
+          await _updateStoredKeyBlobVersion(authenticated.version);
+        } catch (e, s) {
+          Logging.instance.w(
+            "DPS: failed to repair key blob version metadata",
+            error: e,
+            stackTrace: s,
+          );
+        }
       }
+      await _tryCompactPasswordStorage();
     } catch (e, s) {
       Logging.instance.e(
         "${_getMessageFromException(e)}\n$s",
@@ -122,8 +147,8 @@ class DPS {
         // no passphrase key blob found so any passphrase is technically bad
         return false;
       }
-      final blobVersion = await _getStoredKeyBlobVersion();
-      await StorageCryptoHandler.fromExisting(passphrase, keyBlob, blobVersion);
+      final versionHint = await _getStoredKeyBlobVersion();
+      await _authenticateKeyBlob(passphrase, keyBlob, versionHint);
       // existing passphrase matches key blob
       return true;
     } catch (e, s) {
@@ -142,6 +167,10 @@ class DPS {
     String passphraseNew,
   ) async {
     try {
+      if (_handler == null) {
+        return false;
+      }
+
       final keyBlob = await _get(key: _kKeyBlobKey);
 
       if (keyBlob == null) {
@@ -149,14 +178,22 @@ class DPS {
         return false;
       }
 
-      if (!(await verifyPassphrase(passphraseOld))) {
-        return false;
-      }
+      final versionHint = await _getStoredKeyBlobVersion();
+      final authenticated = await _authenticateKeyBlob(
+        passphraseOld,
+        keyBlob,
+        versionHint,
+      );
+      final newHandler = authenticated.handler;
+      await newHandler.resetPassphrase(passphraseNew, kLatestBlobVersion);
+      final newBlob = await newHandler.getKeyBlob();
 
-      final blobVersion = await _getStoredKeyBlobVersion();
-      await _handler!.resetPassphrase(passphraseNew, blobVersion);
-      await _put(key: _kKeyBlobKey, value: await _handler!.getKeyBlob());
-      await _updateStoredKeyBlobVersion(blobVersion);
+      // The version may be temporarily ahead if the blob write fails. Readers
+      // probe supported versions, so the old blob remains usable and retryable.
+      await _updateStoredKeyBlobVersion(kLatestBlobVersion);
+      await _putAndVerify(key: _kKeyBlobKey, value: newBlob);
+      _handler = newHandler;
+      await _tryCompactPasswordStorage();
 
       // successfully updated passphrase
       return true;
@@ -181,7 +218,118 @@ class DPS {
   }
 
   Future<void> _updateStoredKeyBlobVersion(int version) async {
-    await _put(key: _kKeyBlobVersionKey, value: version.toString());
+    await _putAndVerify(key: _kKeyBlobVersionKey, value: version.toString());
+  }
+
+  Future<({StorageCryptoHandler handler, int version})> _authenticateKeyBlob(
+    String passphrase,
+    String keyBlob,
+    int versionHint,
+  ) async {
+    Object? lastError;
+    StackTrace? lastStackTrace;
+    final versions = <int>{versionHint};
+    for (int version = kLatestBlobVersion; version >= 1; version--) {
+      versions.add(version);
+    }
+
+    for (final version in versions) {
+      try {
+        return (
+          handler: await StorageCryptoHandler.fromExisting(
+            passphrase,
+            keyBlob,
+            version,
+          ),
+          version: version,
+        );
+      } on IncorrectPassphraseOrVersion catch (e, s) {
+        lastError = e;
+        lastStackTrace = s;
+      } on VersionError catch (e, s) {
+        lastError = e;
+        lastStackTrace = s;
+      }
+    }
+
+    Error.throwWithStackTrace(lastError!, lastStackTrace!);
+  }
+
+  Future<void> _tryUpgradeKeyBlob({
+    required String passphrase,
+    required String keyBlob,
+    required int version,
+  }) async {
+    try {
+      final upgradedHandler = await StorageCryptoHandler.fromExisting(
+        passphrase,
+        keyBlob,
+        version,
+      );
+      await upgradedHandler.resetPassphrase(passphrase, kLatestBlobVersion);
+      final upgradedBlob = await upgradedHandler.getKeyBlob();
+
+      await _updateStoredKeyBlobVersion(kLatestBlobVersion);
+      await _putAndVerify(key: _kKeyBlobKey, value: upgradedBlob);
+      _handler = upgradedHandler;
+    } catch (e, s) {
+      Logging.instance.w(
+        "DPS: key blob upgrade failed; continuing with authenticated version",
+        error: e,
+        stackTrace: s,
+      );
+    }
+  }
+
+  Future<void> _tryCompactPasswordStorage() async {
+    Box<String>? box;
+    try {
+      box = await DB.instance.hive.openBox<String>(kBoxNameDesktopData);
+      await box.compact();
+    } catch (e, s) {
+      Logging.instance.w(
+        "DPS: failed to compact desktop password storage",
+        error: e,
+        stackTrace: s,
+      );
+    } finally {
+      try {
+        await box?.close();
+      } catch (e, s) {
+        Logging.instance.w(
+          "DPS: failed to close desktop password storage after compaction",
+          error: e,
+          stackTrace: s,
+        );
+      }
+    }
+  }
+
+  Future<void> _putAndVerify({
+    required String key,
+    required String value,
+  }) async {
+    try {
+      await _put(key: key, value: value);
+    } catch (e, s) {
+      try {
+        if (await _get(key: key) == value) {
+          Logging.instance.w(
+            "DPS: put($key) reported an error but persisted data was verified",
+            error: e,
+            stackTrace: s,
+          );
+          return;
+        }
+      } catch (_) {
+        // Preserve the original write error below.
+      }
+      Error.throwWithStackTrace(e, s);
+    }
+
+    if (await _get(key: key) != value) {
+      throw Exception("DPS: persisted value verification failed for $key");
+    }
   }
 
   Future<void> _put({required String key, required String value}) async {
@@ -191,6 +339,7 @@ class DPS {
       await box.put(key, value);
     } catch (e, s) {
       Logging.instance.f("DPS failed put($key): ", error: e, stackTrace: s);
+      rethrow;
     } finally {
       await box?.close();
     }
@@ -204,6 +353,7 @@ class DPS {
       value = box.get(key);
     } catch (e, s) {
       Logging.instance.f("DPS failed get($key): ", error: e, stackTrace: s);
+      rethrow;
     } finally {
       await box?.close();
     }

@@ -11,11 +11,11 @@ export 'coins/dash.dart';
 export 'coins/dogecoin.dart';
 export 'coins/ecash.dart';
 export 'coins/epiccash.dart';
-export 'coins/mimblewimblecoin.dart';
 export 'coins/ethereum.dart';
 export 'coins/fact0rn.dart';
 export 'coins/firo.dart';
 export 'coins/litecoin.dart';
+export 'coins/mimblewimblecoin.dart';
 export 'coins/monero.dart';
 export 'coins/namecoin.dart';
 export 'coins/nano.dart';
@@ -69,8 +69,13 @@ abstract class CryptoCurrency {
   // coins where selecting one would derive a mismatched xpub.
   bool get supportsHardwareWallet => false;
 
+  // Override in subclass if the currency supports OpenAlias: the application
+  // of its records, e.g. "xmr" for `oa1:xmr` records.
+  String? get openAliasApplication => null;
+
   int get minConfirms;
   int get minCoinbaseConfirms => minConfirms;
+  int? get mwebPegoutMaturity => null;
 
   // TODO: [prio=low] could be handled differently as (at least) epiccash/mimblewimblecoin does not use this
   String get genesisHash;

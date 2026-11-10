@@ -18,6 +18,7 @@ import 'package:flutter_svg/svg.dart';
 import '../../app_config.dart';
 import '../../providers/global/notifications_provider.dart';
 import '../../providers/global/prefs_provider.dart';
+import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../providers/ui/home_view_index_provider.dart';
 import '../../providers/ui/unread_notifications_provider.dart';
 import '../../route_generator.dart';
@@ -34,10 +35,13 @@ import '../../widgets/animated_widgets/rotate_icon.dart';
 import '../../widgets/app_icon.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/onetime_popups/native_library_warning_dialog.dart';
 import '../../widgets/small_tor_icon.dart';
 import '../../widgets/stack_dialog.dart';
 import '../buy_view/buy_view.dart';
 import '../exchange_view/exchange_view.dart';
+import '../more_view/gift_cards_view.dart';
+import '../more_view/services_view.dart';
 import '../notification_views/notifications_view.dart';
 import '../pinpad_views/lock_screen_view.dart';
 import '../settings_views/global_settings_view/global_settings_view.dart';
@@ -227,6 +231,11 @@ class _HomeViewState extends ConsumerState<HomeView> {
         const ExchangeView(),
       if (AppConfig.hasFeature(AppFeature.buy) && Constants.enableExchange)
         const BuyView(),
+      if (AppConfig.hasFeature(AppFeature.cakePay) && Constants.enableExchange)
+        const GiftCardsView(),
+      if (AppConfig.hasFeature(AppFeature.shopinBit) &&
+          Constants.enableExchange)
+        const ServicesView(),
     ];
 
     ref.read(notificationsProvider).startCheckingWatchedNotifications();
@@ -234,6 +243,10 @@ class _HomeViewState extends ConsumerState<HomeView> {
     // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
     //   showOneTimeTorHasBeenAddedDialogIfRequired(context);
     // });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(showNativeLibraryWarningIfRequired(context));
+    });
 
     _idleMonitor?.attach();
 
@@ -298,9 +311,9 @@ class _HomeViewState extends ConsumerState<HomeView> {
           key: _key,
           appBar: AppBar(
             automaticallyImplyLeading: false,
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.backgroundAppBar,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .backgroundAppBar,
             title: Row(
               children: [
                 GestureDetector(
@@ -335,15 +348,10 @@ class _HomeViewState extends ConsumerState<HomeView> {
                     key: const Key("walletsViewAlertsButton"),
                     size: 36,
                     shadows: const [],
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.backgroundAppBar,
-                    icon:
-                        ref.watch(
-                          notificationsProvider.select(
-                            (value) => value.hasUnreadNotifications,
-                          ),
-                        )
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .backgroundAppBar,
+                    icon: ref.watch(pAnyGlobalUnreadNotifications)
                         ? SvgPicture.file(
                             File(
                               ref.watch(
@@ -354,68 +362,58 @@ class _HomeViewState extends ConsumerState<HomeView> {
                             ),
                             width: 20,
                             height: 20,
-                            color:
-                                ref.watch(
-                                  notificationsProvider.select(
-                                    (value) => value.hasUnreadNotifications,
-                                  ),
-                                )
+                            color: ref.watch(pAnyGlobalUnreadNotifications)
                                 ? null
-                                : Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.topNavIconPrimary,
+                                : Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .topNavIconPrimary,
                           )
                         : SvgPicture.asset(
                             Assets.svg.bell,
                             width: 20,
                             height: 20,
-                            color:
-                                ref.watch(
-                                  notificationsProvider.select(
-                                    (value) => value.hasUnreadNotifications,
-                                  ),
-                                )
+                            color: ref.watch(pAnyGlobalUnreadNotifications)
                                 ? null
-                                : Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.topNavIconPrimary,
+                                : Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .topNavIconPrimary,
                           ),
                     onPressed: () {
                       // reset unread state
                       ref.refresh(unreadNotificationsStateProvider);
 
-                      Navigator.of(
-                        context,
-                      ).pushNamed(NotificationsView.routeName).then((_) {
-                        final Set<int> unreadNotificationIds = ref
-                            .read(unreadNotificationsStateProvider.state)
-                            .state;
-                        if (unreadNotificationIds.isEmpty) return;
+                      Navigator.of(context)
+                          .pushNamed(NotificationsView.routeName)
+                          .then((_) {
+                            final Set<int> unreadNotificationIds = ref
+                                .read(unreadNotificationsStateProvider.state)
+                                .state;
+                            if (unreadNotificationIds.isEmpty) return;
 
-                        final List<Future<void>> futures = [];
-                        for (
-                          int i = 0;
-                          i < unreadNotificationIds.length - 1;
-                          i++
-                        ) {
-                          futures.add(
-                            ref
-                                .read(notificationsProvider)
-                                .markAsRead(
-                                  unreadNotificationIds.elementAt(i),
-                                  false,
-                                ),
-                          );
-                        }
+                            final List<Future<void>> futures = [];
+                            for (
+                              int i = 0;
+                              i < unreadNotificationIds.length - 1;
+                              i++
+                            ) {
+                              futures.add(
+                                ref
+                                    .read(notificationsProvider)
+                                    .markAsRead(
+                                      unreadNotificationIds.elementAt(i),
+                                      false,
+                                    ),
+                              );
+                            }
 
-                        // wait for multiple to update if any
-                        Future.wait(futures).then((_) {
-                          // only notify listeners once
-                          ref
-                              .read(notificationsProvider)
-                              .markAsRead(unreadNotificationIds.last, true);
-                        });
-                      });
+                            // wait for multiple to update if any
+                            Future.wait(futures).then((_) {
+                              // only notify listeners once
+                              ref
+                                  .read(notificationsProvider)
+                                  .markAsRead(unreadNotificationIds.last, true);
+                            });
+                          });
                     },
                   ),
                 ),
@@ -429,23 +427,22 @@ class _HomeViewState extends ConsumerState<HomeView> {
                     key: const Key("walletsViewSettingsButton"),
                     size: 36,
                     shadows: const [],
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.backgroundAppBar,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .backgroundAppBar,
                     icon: SvgPicture.asset(
                       Assets.svg.gear,
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.topNavIconPrimary,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .topNavIconPrimary,
                       width: 20,
                       height: 20,
                     ),
                     onPressed: () {
                       //todo: check if print needed
                       // debugPrint("main view settings tapped");
-                      Navigator.of(
-                        context,
-                      ).pushNamed(GlobalSettingsView.routeName);
+                      Navigator.of(context)
+                          .pushNamed(GlobalSettingsView.routeName);
                     },
                   ),
                 ),
@@ -459,9 +456,9 @@ class _HomeViewState extends ConsumerState<HomeView> {
                     ref.watch(prefsChangeNotifierProvider).enableExchange)
                   Container(
                     decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.backgroundAppBar,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .backgroundAppBar,
                       boxShadow:
                           Theme.of(context)
                                   .extension<StackColors>()!

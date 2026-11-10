@@ -5,22 +5,19 @@ import "package:flutter/services.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
 import "package:flutter_svg/flutter_svg.dart";
 
-import "../../../models/shopinbit/shopinbit_order_model.dart";
-import "../../../providers/db/drift_provider.dart";
+import "../../../models/shopinbit/shopinbit_request_draft.dart";
 import "../../../themes/stack_colors.dart";
 import "../../../utilities/assets.dart";
 import "../../../utilities/text_styles.dart";
 import "../../../utilities/util.dart";
-import "../../../widgets/desktop/primary_button.dart";
-import "../../../widgets/desktop/secondary_button.dart";
+import "../../../widgets/conditional_parent.dart";
 import "../../../widgets/rounded_white_container.dart";
-import "../../../widgets/stack_dialog.dart";
 import "../../../widgets/textfields/adaptive_text_field.dart";
 import "../shopinbit_car_fee_view.dart";
-import "../shopinbit_tickets_view.dart";
 import "shopinbit_country_picker.dart";
 import "shopinbit_labeled_checkbox.dart";
 import "shopinbit_privacy_checkbox.dart";
+import "shopinbit_state_picker.dart";
 import "shopinbit_step4_dropdown.dart";
 import "shopinbit_step4_header.dart";
 import "shopinbit_step4_submit_button.dart";
@@ -31,9 +28,7 @@ const int _minCarBudget = 20000;
 const int _minCarFieldLength = 3;
 
 class ShopInBitCarResearchForm extends ConsumerStatefulWidget {
-  const ShopInBitCarResearchForm({super.key, required this.model});
-
-  final ShopInBitOrderModel model;
+  const ShopInBitCarResearchForm({super.key});
 
   @override
   ConsumerState<ShopInBitCarResearchForm> createState() =>
@@ -61,7 +56,10 @@ class _ShopInBitCarResearchFormState
 
   String? _selectedCarCondition;
   bool _feeAcknowledged = false;
-  String? _selectedCountryIso;
+  String? _selectedCountryIsoCode;
+  String? _selectedCountryName;
+  String? _selectedState;
+  bool? _requiresState;
   bool _privacyAccepted = false;
   bool _submitting = false;
 
@@ -75,9 +73,6 @@ class _ShopInBitCarResearchFormState
       () => _carDescriptionTouched = true,
     );
     _wireTouchOnBlur(_carBudgetFocusNode, () => _carBudgetTouched = true);
-    if (widget.model.deliveryCountry.isNotEmpty) {
-      _selectedCountryIso = widget.model.deliveryCountry;
-    }
   }
 
   void _wireTouchOnBlur(FocusNode node, VoidCallback markTouched) {
@@ -111,70 +106,44 @@ class _ShopInBitCarResearchFormState
         _selectedCarCondition != null &&
         carBudgetValue != null &&
         carBudgetValue >= _minCarBudget &&
-        _selectedCountryIso != null;
+        _selectedCountryIsoCode != null &&
+        _selectedCountryIsoCode!.isNotEmpty;
   }
 
   Future<void> _submit() async {
     setState(() => _submitting = true);
     try {
-      final String countryIso = _selectedCountryIso!;
+      final countryIso = _selectedCountryIsoCode!;
 
-      widget.model
-        ..requestDescription =
-            "Brand: ${_brandController.text.trim()}\n"
-            "Model: ${_modelController.text.trim()}\n"
-            "Condition: $_selectedCarCondition\n"
-            "Description: ${_carDescriptionController.text.trim()}\n"
-            "Budget: ${_carBudgetController.text.trim()} EUR\n"
-            "Delivery country: $countryIso"
-        ..deliveryCountry = countryIso;
-
-      // Block if another car research flow is already in progress.
-      final db = ref.read(pSharedDrift);
-      final existingPending = await (db.select(
-        db.shopInBitTickets,
-      )..where((t) => t.isPendingPayment.equals(true))).get();
-
-      if (existingPending.isNotEmpty && mounted) {
-        final bool? resumePrevious = await showDialog<bool>(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => StackDialog(
-            width: Util.isDesktop ? 500 : null,
-            title: "In-Progress Car Research",
-            message:
-                "You have an unfinished car research payment. "
-                "Would you like to resume it or start a new search?",
-            leftButton: SecondaryButton(
-              label: "New",
-              buttonHeight: Util.isDesktop ? .l : null,
-              onPressed: Navigator.of(context).pop,
-            ),
-            rightButton: PrimaryButton(
-              label: "Resume",
-              buttonHeight: Util.isDesktop ? .l : null,
-              onPressed: () => Navigator.of(context).pop(true),
-            ),
-          ),
-        );
-
-        if (resumePrevious == true && mounted) {
-          unawaited(
-            Navigator.of(context).pushNamedAndRemoveUntil(
-              ShopInBitTicketsView.routeName,
-              (route) => route.isFirst,
-            ),
-          );
-          return;
-        }
+      final sb = StringBuffer();
+      sb.writeln("Brand: ${_brandController.text.trim()}");
+      sb.writeln("Model: ${_modelController.text.trim()}");
+      sb.writeln("Condition: $_selectedCarCondition");
+      sb.writeln("Description: ${_carDescriptionController.text.trim()}");
+      sb.writeln("Budget: ${_carBudgetController.text.trim()} EUR");
+      if (_requiresState == true) {
+        sb.writeln("Delivery state: ${_selectedState!}");
       }
+      sb.writeln("Delivery country: $countryIso");
 
+      final draft = ShopinbitRequestDraft(
+        category: .car,
+        requestDescription: sb.toString(),
+        deliveryCountryCode: countryIso,
+        deliveryCountryName: _selectedCountryName!,
+        deliveryState: _requiresState == true ? _selectedState! : null,
+        voucherCode: null,
+      );
+
+      // Any unfinished car research fee is recovered from the server
+      // (`GET /car-research/invoices/current`) by the requests list, so there
+      // is no local "pending payment" state to guard against here.
       if (!mounted) return;
 
       unawaited(
         Navigator.of(
           context,
-        ).pushNamed(ShopInBitCarFeeView.routeName, arguments: widget.model),
+        ).pushNamed(ShopInBitCarFeeView.routeName, arguments: draft),
       );
     } finally {
       if (mounted) setState(() => _submitting = false);
@@ -221,9 +190,34 @@ class _ShopInBitCarResearchFormState
           subtitle: "Tell us about the car you're looking for.",
         ),
         SizedBox(height: isDesktop ? 32 : 24),
-        ShopInBitCountryPicker(
-          selectedIso: _selectedCountryIso,
-          onChanged: (iso) => setState(() => _selectedCountryIso = iso),
+        ConditionalParent(
+          condition: _requiresState == true,
+          builder: (child) => Column(
+            mainAxisSize: .min,
+            children: [
+              child,
+              SizedBox(height: isDesktop ? 24 : 16),
+              ShopInBitStatePicker(
+                countryIso: _selectedCountryIsoCode!,
+                selectedState: _selectedState,
+                onChanged: (state) {
+                  if (state != _selectedState && mounted) {
+                    setState(() {
+                      _selectedState = state;
+                    });
+                  }
+                },
+              ),
+            ],
+          ),
+          child: ShopInBitCountryPicker(
+            selectedIso: _selectedCountryIsoCode,
+            onChanged: (data) => setState(() {
+              _selectedCountryIsoCode = data?.code;
+              _selectedCountryName = data?.name;
+              _requiresState = data?.requiresState;
+            }),
+          ),
         ),
         SizedBox(height: isDesktop ? 24 : 16),
         AdaptiveTextField(

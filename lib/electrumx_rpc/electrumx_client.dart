@@ -210,8 +210,9 @@ class ElectrumXClient {
 
   Future<bool> _allow() async {
     if (_prefs.wifiOnly) {
-      return (await Connectivity().checkConnectivity()) ==
-          ConnectivityResult.wifi;
+      return (await Connectivity().checkConnectivity()).contains(
+        ConnectivityResult.wifi,
+      );
     }
     return true;
   }
@@ -519,7 +520,11 @@ class ElectrumXClient {
   /// Ping the server to ensure it is responding
   ///
   /// Returns true if ping succeeded
-  Future<bool> ping({String? requestID, int retryCount = 1}) async {
+  Future<bool> ping({
+    String? requestID,
+    int retryCount = 1,
+    Duration timeout = const Duration(seconds: 30),
+  }) async {
     try {
       // This doesn't work because electrum_adapter only returns the result:
       // (which is always `null`).
@@ -535,14 +540,15 @@ class ElectrumXClient {
       return await request(
             requestID: requestID,
             command: 'server.ping',
-            requestTimeout: const Duration(seconds: 30),
+            requestTimeout: timeout,
             retries: retryCount,
           ).timeout(
-            const Duration(seconds: 30),
+            timeout,
             onTimeout: () {
               Logging.instance.d(
                 "ElectrumxClient.ping timed out with retryCount=$retryCount, host=$_host",
               );
+              return false;
             },
           )
           as bool;
@@ -1076,9 +1082,9 @@ class ElectrumXClient {
         command: "spark.getmempoolsparktxids",
       );
 
-      final txids = List<String>.from(
-        response as List,
-      ).map((e) => e.toHexReversedFromBase64).toSet();
+      final txids = List<String>.from(response as List)
+          .map((e) => e.toHexReversedFromBase64)
+          .toSet();
 
       Logging.instance.d(
         "Finished ElectrumXClient.getMempoolTxids(). "
@@ -1289,8 +1295,7 @@ class ElectrumXClient {
     required int endIndex, // exclusive
   }) async {
     try {
-      const command =
-          "spark.getsparkanonymitysetsector"; // TODO verify this will be correct
+      const command = "spark.getsparkanonymitysetsector"; // TODO verify this will be correct
       final start = DateTime.now();
       final response = await request(
         requestID: requestID,

@@ -14,7 +14,7 @@ class LedgerBitcoinService implements HardwareWalletService {
   final ledger.LedgerConnection _connection;
 
   LedgerBitcoinService({required ledger.LedgerConnection connection})
-      : _connection = connection;
+    : _connection = connection;
 
   @override
   Future<List<HardwareAccountData>> getAvailableAccounts({
@@ -30,9 +30,7 @@ class LedgerBitcoinService implements HardwareWalletService {
     try {
       final bitcoinApp = btc.BitcoinLedgerApp(_connection);
 
-      final xpub = await bitcoinApp.getXPubKey(
-        derivationPath: derivationPath,
-      );
+      final xpub = await bitcoinApp.getXPubKey(derivationPath: derivationPath);
 
       final masterFingerprintBytes = await bitcoinApp.getMasterFingerprint();
       final masterFingerprint = masterFingerprintBytes
@@ -80,7 +78,9 @@ class LedgerBitcoinService implements HardwareWalletService {
       debugPrint('[LedgerBitcoinService] Transaction signed successfully');
 
       return {
-        'signedPsbt': base64Encode(signedTxBytes),
+        'signedTransaction': signedTxBytes
+            .map((b) => b.toRadixString(16).padLeft(2, '0'))
+            .join(),
       };
     } catch (e) {
       debugPrint('[LedgerBitcoinService] signTransaction error: $e');

@@ -10,6 +10,7 @@ import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../providers/providers.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
+import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../widgets/background.dart';
@@ -37,31 +38,21 @@ class ShopInBitSettingsView extends ConsumerStatefulWidget {
 
 class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
   final _manualKeyController = TextEditingController();
-  final _displayNameController = TextEditingController();
 
   String? _currentKey;
   bool _loading = false;
-  bool _savingName = false;
 
   @override
   void initState() {
     super.initState();
 
-    // not the greatest solution but its the least invasive with the current
-    // ui code impl
     () async {
       final settings = await ref
           .read(pSharedDrift)
-          .shopinBitSettingsDao
-          .getSettings();
+          .shopInBitSettingsDao
+          .getCurrentSettings();
       if (mounted) {
-        final key = await ref.read(pShopinBitService).loadCustomerKey();
-        if (mounted) {
-          setState(() {
-            _currentKey = key;
-            _displayNameController.text = settings.displayName ?? "";
-          });
-        }
+        setState(() => _currentKey = settings?.customerKey);
       }
     }();
   }
@@ -69,28 +60,7 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
   @override
   void dispose() {
     _manualKeyController.dispose();
-    _displayNameController.dispose();
     super.dispose();
-  }
-
-  Future<void> _saveDisplayName() async {
-    final name = _displayNameController.text.trim();
-    if (name.isEmpty) return;
-    setState(() => _savingName = true);
-    try {
-      await ref.read(pSharedDrift).shopinBitSettingsDao.setDisplayName(name);
-      if (mounted) {
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.success,
-            message: "Display name updated",
-            context: context,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _savingName = false);
-    }
   }
 
   Future<void> _generate() async {
@@ -103,9 +73,7 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
     try {
       final String key;
       if (_currentKey != null) {
-        final resp = await ref.read(pShopinBitService).client.generateKey();
-        key = resp.valueOrThrow;
-        await ref.read(pShopinBitService).setCustomerKey(key);
+        key = await ref.read(pShopinBitService).generateCustomerKey();
       } else {
         key = await ref.read(pShopinBitService).ensureCustomerKey();
       }
@@ -119,18 +87,28 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
           ),
         );
       }
-    } catch (e) {
+    } catch (e, s) {
+      Logging.instance.e(
+        "Failed to generate ShopInBit customer key",
+        error: e,
+        stackTrace: s,
+      );
       if (mounted) {
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.warning,
-            message: "Failed to generate key: $e",
-            context: context,
+        await showDialog<void>(
+          context: context,
+          useRootNavigator: Util.isDesktop,
+          builder: (context) => StackOkDialog(
+            title: "Failed to generate key",
+            maxWidth: Util.isDesktop ? 500 : null,
+            message: e.toString(),
+            desktopPopRootNavigator: Util.isDesktop,
           ),
         );
       }
     } finally {
-      setState(() => _loading = false);
+      // Awaiting the error dialog above means the widget can unmount before
+      // we get here.
+      if (mounted) setState(() => _loading = false);
     }
   }
 
@@ -145,7 +123,7 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
 
     setState(() => _loading = true);
     try {
-      await ref.read(pShopinBitService).setCustomerKey(newKey);
+      await ref.read(pShopinBitService).recoverCustomerKey(newKey);
       setState(() {
         _currentKey = newKey;
         _manualKeyController.clear();
@@ -159,18 +137,28 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
           ),
         );
       }
-    } catch (e) {
+    } catch (e, s) {
+      Logging.instance.e(
+        "Failed to set ShopInBit customer key",
+        error: e,
+        stackTrace: s,
+      );
       if (mounted) {
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.warning,
-            message: "Failed to set key: $e",
-            context: context,
+        await showDialog<void>(
+          context: context,
+          useRootNavigator: Util.isDesktop,
+          builder: (context) => StackOkDialog(
+            title: "Failed to set key",
+            maxWidth: Util.isDesktop ? 500 : null,
+            message: e.toString(),
+            desktopPopRootNavigator: Util.isDesktop,
           ),
         );
       }
     } finally {
-      setState(() => _loading = false);
+      // Awaiting the error dialog above means the widget can unmount before
+      // we get here.
+      if (mounted) setState(() => _loading = false);
     }
   }
 
@@ -363,10 +351,24 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
                   children: [
                     Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: SvgPicture.asset(
-                        Assets.svg.key,
+
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE0E3E3),
+                          borderRadius: .circular(54),
+                        ),
                         width: 48,
                         height: 48,
+                        child: Center(
+                          child: SizedBox(
+                            width: 28,
+                            height: 28,
+                            child: SvgPicture.asset(
+                              Assets.svg.key,
+                              colorFilter: const .mode(Colors.black, .srcIn),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                     Padding(
@@ -487,38 +489,6 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
                                 _manualKeyController.text.trim().isNotEmpty,
                             label: "Set key",
                             onPressed: _setManualKey,
-                          ),
-                          const SizedBox(height: 20),
-                          Text(
-                            "Display Name",
-                            style: STextStyles.desktopTextSmall(context),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            "The name ShopinBit staff will see "
-                            "when communicating with you.",
-                            style: STextStyles.desktopTextExtraExtraSmall(
-                              context,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          SizedBox(
-                            width: 512,
-                            child: AdaptiveTextField(
-                              labelText: "Display name",
-                              controller: _displayNameController,
-                              onChangedComprehensive: (_) => setState(() {}),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          PrimaryButton(
-                            width: 210,
-                            buttonHeight: ButtonHeight.m,
-                            enabled:
-                                !_savingName &&
-                                _displayNameController.text.trim().isNotEmpty,
-                            label: "Save",
-                            onPressed: _saveDisplayName,
                           ),
                         ],
                       ),
@@ -682,43 +652,6 @@ class _ShopInBitSettingsViewState extends ConsumerState<ShopInBitSettingsView> {
                                 ),
                               ),
                               const SizedBox(height: 12),
-                              RoundedWhiteContainer(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "Display Name",
-                                      style: STextStyles.titleBold12(context),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      "The name ShopinBit staff will see "
-                                      "when communicating with you.",
-                                      style: STextStyles.itemSubtitle12(
-                                        context,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    AdaptiveTextField(
-                                      labelText: "Display name",
-                                      controller: _displayNameController,
-                                      onChangedComprehensive: (_) =>
-                                          setState(() {}),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    PrimaryButton(
-                                      label: "Save",
-                                      enabled:
-                                          !_savingName &&
-                                          _displayNameController.text
-                                              .trim()
-                                              .isNotEmpty,
-                                      onPressed: _saveDisplayName,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 12),
                             ],
                           ),
                         ),
@@ -790,6 +723,7 @@ class _VerifyKeyDialogState extends State<_VerifyKeyDialog> {
       child: ConditionalParent(
         condition: !Util.isDesktop,
         builder: (child) => StackDialogBase(
+          keyboardPaddingAmount: MediaQuery.of(context).viewInsets.bottom,
           child: Column(
             mainAxisSize: .min,
             children: [
@@ -832,7 +766,7 @@ class _VerifyKeyDialogState extends State<_VerifyKeyDialog> {
                 Expanded(
                   child: SecondaryButton(
                     label: "Cancel",
-                    buttonHeight: ButtonHeight.l,
+                    buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
                     onPressed: () => Navigator.of(
                       context,
                       rootNavigator: Util.isDesktop,
@@ -845,7 +779,7 @@ class _VerifyKeyDialogState extends State<_VerifyKeyDialog> {
                 Expanded(
                   child: PrimaryButton(
                     label: "Confirm",
-                    buttonHeight: ButtonHeight.l,
+                    buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
                     enabled: _confirmEnabled,
                     onPressed: _confirmEnabled
                         ? () => Navigator.of(

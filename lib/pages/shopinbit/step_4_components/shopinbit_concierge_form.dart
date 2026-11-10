@@ -2,14 +2,15 @@ import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
 
-import "../../../models/shopinbit/shopinbit_order_model.dart";
-import "../../../providers/db/drift_provider.dart";
+import "../../../models/shopinbit/shopinbit_request_draft.dart";
 import "../../../providers/global/shopin_bit_service_provider.dart";
 import "../../../utilities/util.dart";
+import "../../../widgets/conditional_parent.dart";
 import "../../../widgets/textfields/adaptive_text_field.dart";
 import "shopinbit_country_picker.dart";
 import "shopinbit_labeled_checkbox.dart";
 import "shopinbit_privacy_checkbox.dart";
+import "shopinbit_state_picker.dart";
 import "shopinbit_step4_dropdown.dart";
 import "shopinbit_step4_header.dart";
 import "shopinbit_step4_submit.dart";
@@ -21,9 +22,7 @@ const int _minConciergeBudget = 1000;
 const int _maxConciergeBudget = 100000;
 
 class ShopInBitConciergeForm extends ConsumerStatefulWidget {
-  const ShopInBitConciergeForm({super.key, required this.model});
-
-  final ShopInBitOrderModel model;
+  const ShopInBitConciergeForm({super.key});
 
   @override
   ConsumerState<ShopInBitConciergeForm> createState() =>
@@ -45,7 +44,10 @@ class _ShopInBitConciergeFormState
 
   String? _selectedCondition;
   bool _noLimit = false;
-  String? _selectedCountryIso;
+  String? _selectedCountryIsoCode;
+  String? _selectedCountryName;
+  String? _selectedState;
+  bool? _requiresState;
   bool _privacyAccepted = false;
   bool _submitting = false;
 
@@ -60,9 +62,6 @@ class _ShopInBitConciergeFormState
       if (!_budgetFocusNode.hasFocus) _budgetTouched = true;
       setState(() {});
     });
-    if (widget.model.deliveryCountry.isNotEmpty) {
-      _selectedCountryIso = widget.model.deliveryCountry;
-    }
   }
 
   @override
@@ -89,31 +88,33 @@ class _ShopInBitConciergeFormState
       _whatToPurchaseController.text.trim().length >= 10 &&
       _selectedCondition != null &&
       (_noLimit || _budgetIsValid) &&
-      _selectedCountryIso != null;
+      _selectedCountryIsoCode != null;
 
   Future<void> _submit() async {
     setState(() => _submitting = true);
-
-    final String countryIso = _selectedCountryIso!;
-    final String budgetText = _noLimit
-        ? "No limit"
-        : "${_budgetController.text.trim()} EUR";
-
-    widget.model
-      ..requestDescription =
-          "What to purchase: ${_whatToPurchaseController.text.trim()}\n"
-          "Condition: $_selectedCondition\n"
-          "Budget: $budgetText\n"
-          "Delivery country: $countryIso"
-      ..deliveryCountry = countryIso;
-
     try {
-      await submitShopInBitRequest(
-        context,
-        widget.model,
-        ref.read(pShopinBitService),
-        ref.read(pSharedDrift),
+      final String countryIso = _selectedCountryIsoCode!;
+      final String budgetText = _noLimit
+          ? "No limit"
+          : "${_budgetController.text.trim()} EUR";
+
+      final sb = StringBuffer();
+      sb.writeln("What to purchase: ${_whatToPurchaseController.text.trim()}");
+      sb.writeln("Condition: $_selectedCondition");
+      sb.writeln("Budget: $budgetText");
+      if (_requiresState == true) sb.writeln("State: ${_selectedState!}");
+      sb.writeln("Delivery country: $countryIso");
+
+      final draft = ShopinbitRequestDraft(
+        category: .concierge,
+        requestDescription: sb.toString(),
+        deliveryCountryCode: countryIso,
+        deliveryCountryName: _selectedCountryName!,
+        deliveryState: _requiresState == true ? _selectedState! : null,
+        voucherCode: null,
       );
+
+      await submitShopInBitRequest(context, draft, ref.read(pShopinBitService));
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -146,9 +147,7 @@ class _ShopInBitConciergeFormState
         AdaptiveTextField(
           controller: _whatToPurchaseController,
           focusNode: _whatToPurchaseFocusNode,
-          labelText:
-              "Describe what you'd like to purchase "
-              "(e.g., electronics, luxury goods, services...)",
+          labelText: "Describe what you need or paste a LINK here",
           minLines: 3,
           maxLines: 6,
           autocorrect: false,
@@ -184,9 +183,34 @@ class _ShopInBitConciergeFormState
           label: "No budget limit",
         ),
         SizedBox(height: isDesktop ? 24 : 20),
-        ShopInBitCountryPicker(
-          selectedIso: _selectedCountryIso,
-          onChanged: (iso) => setState(() => _selectedCountryIso = iso),
+        ConditionalParent(
+          condition: _requiresState == true,
+          builder: (child) => Column(
+            mainAxisSize: .min,
+            children: [
+              child,
+              SizedBox(height: isDesktop ? 24 : 16),
+              ShopInBitStatePicker(
+                countryIso: _selectedCountryIsoCode!,
+                selectedState: _selectedState,
+                onChanged: (state) {
+                  if (state != _selectedState && mounted) {
+                    setState(() {
+                      _selectedState = state;
+                    });
+                  }
+                },
+              ),
+            ],
+          ),
+          child: ShopInBitCountryPicker(
+            selectedIso: _selectedCountryIsoCode,
+            onChanged: (data) => setState(() {
+              _selectedCountryIsoCode = data?.code;
+              _selectedCountryName = data?.name;
+              _requiresState = data?.requiresState;
+            }),
+          ),
         ),
         SizedBox(height: isDesktop ? 16 : 24),
         ShopInBitPrivacyCheckbox(

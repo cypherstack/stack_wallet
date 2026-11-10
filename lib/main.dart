@@ -24,7 +24,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:keyboard_dismisser/keyboard_dismisser.dart';
 import 'package:logger/logger.dart';
 import 'package:mobile_app_privacy/mobile_app_privacy.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:window_size/window_size.dart';
 
 import 'app_config.dart';
@@ -41,7 +40,6 @@ import 'models/models.dart';
 import 'models/node_model.dart';
 import 'models/notification_model.dart';
 import 'models/trade_wallet_lookup.dart';
-import 'pages/already_running_view.dart';
 import 'pages/campfire_migrate_view.dart';
 import 'pages/home_view/home_view.dart';
 import 'pages/intro_view.dart';
@@ -65,12 +63,15 @@ import 'services/notifications_api.dart';
 import 'services/notifications_service.dart';
 import 'services/tor_service.dart';
 import 'services/trade_service.dart';
+import 'themes/stack_theme_data.dart';
 import 'themes/theme_providers.dart';
 import 'themes/theme_service.dart';
 import 'utilities/constants.dart';
+import 'utilities/desktop_startup_and_reset.dart';
 import 'utilities/enums/backup_frequency_type.dart';
 import 'utilities/flutter_secure_storage_interface.dart';
 import 'utilities/logger.dart';
+import 'utilities/native_library_check.dart';
 import 'utilities/prefs.dart';
 import 'utilities/stack_file_system.dart';
 import 'utilities/util.dart';
@@ -90,21 +91,21 @@ final openedFromSWBFileStringStateProvider = StateProvider<String?>(
 // runs the MyApp widget and checks for new users, caching the value in the
 // miscellaneous box for later use
 void main(List<String> args) async {
+  WidgetsFlutterBinding.ensureInitialized();
   // talker.info('initializing Rust lib ...');
   if (AppConfig.coins.whereType<Xelis>().isNotEmpty) {
     await libXelis.initRustLib();
   }
-  WidgetsFlutterBinding.ensureInitialized();
 
   if (Util.isDesktop && args.length == 2 && args.first == "-d") {
     StackFileSystem.setDesktopOverrideDir(args.last);
   }
 
-  final loadCoinlibFuture = loadCoinlib();
+  final loadCoinlibFuture = loadCoinlibOrRecordFailure(loadCoinlib);
 
   GoogleFonts.config.allowRuntimeFetching = false;
   if (Platform.isIOS) {
-    Util.libraryPath = await getLibraryDirectory();
+    Util.isIpad = await Util.getIsIPad;
   }
   Screen? screen;
   if (Platform.isLinux || (Util.isDesktop && !Platform.isIOS)) {
@@ -175,60 +176,36 @@ void main(List<String> args) async {
     csWownero.setUseCsWowneroLoggerInternal(kDebugMode);
   }
 
-  DB.instance.hive.init(
-    (await StackFileSystem.applicationHiveDirectory()).path,
-  );
+  if (Util.isDesktop && !(await DesktopStartupAndReset.prepareForStartup())) {
+    return;
+  }
+
+  final hiveDir = await StackFileSystem.applicationHiveDirectory();
+  // Without any hive data this is a new install with nothing to migrate.
+  // Check before opening a box, which creates its file.
+  final isNewInstall =
+      Util.isDesktop &&
+      !hiveDir.listSync().any(
+        (file) => file.path.endsWith('.hive') || file.path.endsWith('.hivec'),
+      );
+  DB.instance.hive.init(hiveDir.path);
 
   try {
     await DB.instance.hive.openBox<dynamic>(DB.boxNameDBInfo);
     await DB.instance.hive.openBox<dynamic>(DB.boxNamePrefs);
   } on FileSystemException catch (e) {
-    if (e.osError?.errorCode == 11 || e.message.contains('lock failed')) {
-      // Another instance already holds the Hive database lock.
-      // Try to bootstrap just enough of the theme system (Isar is independent
-      // of Hive) so the error screen looks like a real Stack Wallet screen.
-      Widget errorApp;
-      try {
-        await StackFileSystem.initThemesDir();
-        await MainDB.instance.initMainDB();
-        ThemeService.instance.init(MainDB.instance);
-        errorApp = const ProviderScope(child: AlreadyRunningApp());
-      } catch (_) {
-        // Isar is also unavailable (e.g., another error). Fall back to a
-        // minimal but still Inter-font styled screen.
-        errorApp = MaterialApp(
-          debugShowCheckedModeBanner: false,
-          theme: ThemeData(fontFamily: GoogleFonts.inter().fontFamily),
-          home: Scaffold(
-            body: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    AppConfig.appName,
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.inter(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'is already running.\n'
-                    'Close the other window and try again.',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.inter(fontSize: 16),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      }
-      runApp(errorApp);
+    if (DesktopStartupAndReset.isLockConflict(e)) {
+      await DesktopStartupAndReset.showAlreadyRunning();
       return;
     }
     rethrow;
+  }
+  if (isNewInstall) {
+    await DB.instance.put<dynamic>(
+      boxName: DB.boxNameDBInfo,
+      key: 'hive_data_version',
+      value: Constants.currentDataVersion,
+    );
   }
   await Prefs.instance.init();
 
@@ -260,7 +237,7 @@ void main(List<String> args) async {
           .logsStream(CryptoCurrencyNetwork.main)
           .then(
             (stream) =>
-                stream.listen((line) => print("[MWEBD: MAINNET]: $line")),
+                stream.listen((line) => debugPrint("[MWEBD: MAINNET]: $line")),
           ),
     );
     unawaited(
@@ -268,7 +245,7 @@ void main(List<String> args) async {
           .logsStream(CryptoCurrencyNetwork.test)
           .then(
             (stream) =>
-                stream.listen((line) => print("[MWEBD: TESTNET]: $line")),
+                stream.listen((line) => debugPrint("[MWEBD: TESTNET]: $line")),
           ),
     );
   }
@@ -293,17 +270,21 @@ void main(List<String> args) async {
   if (!Util.isDesktop) {
     final int dbVersion =
         DB.instance.get<dynamic>(
-              boxName: DB.boxNameDBInfo,
-              key: "hive_data_version",
-            )
-            as int? ??
+          boxName: DB.boxNameDBInfo,
+          key: "hive_data_version",
+        ) as int? ??
         0;
     if (dbVersion < Constants.currentDataVersion) {
       try {
         await DbVersionMigrator().migrate(
           dbVersion,
           secureStore: const SecureStorageWrapper(
-            store: FlutterSecureStorage(),
+            store: FlutterSecureStorage(
+              aOptions: AndroidOptions(
+                resetOnError: false,
+                migrateWithBackup: true,
+              ),
+            ),
             isDesktop: false,
           ),
         );
@@ -322,6 +303,10 @@ void main(List<String> args) async {
   unawaited(NotificationApi.init());
 
   await loadCoinlibFuture;
+
+  // Before any wallet loads, so a quarantined library is reported once on
+  // the home screen instead of surfacing as wallets that fail to open.
+  checkNativeLibrariesOnStartup();
 
   await MainDB.instance.initMainDB();
   ThemeService.instance.init(MainDB.instance);
@@ -722,16 +707,16 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
   Future<void> goToRestoreSWB(String encrypted) async {
     if (!ref.read(prefsChangeNotifierProvider).hasPin) {
-      await Navigator.of(
-        ref.read(pNavKey).currentContext!,
-      ).pushNamed(CreatePinView.routeName, arguments: true).then((value) {
-        if (value is! bool || value == false) {
-          Navigator.of(ref.read(pNavKey).currentContext!).pushNamed(
-            RestoreFromEncryptedStringView.routeName,
-            arguments: encrypted,
-          );
-        }
-      });
+      await Navigator.of(ref.read(pNavKey).currentContext!)
+          .pushNamed(CreatePinView.routeName, arguments: true)
+          .then((value) {
+            if (value is! bool || value == false) {
+              Navigator.of(ref.read(pNavKey).currentContext!).pushNamed(
+                RestoreFromEncryptedStringView.routeName,
+                arguments: encrypted,
+              );
+            }
+          });
     } else {
       unawaited(
         Navigator.push(
@@ -753,13 +738,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         ),
       );
     }
-  }
-
-  InputBorder _buildOutlineInputBorder(Color color) {
-    return OutlineInputBorder(
-      borderSide: BorderSide(width: 1, color: color),
-      borderRadius: BorderRadius.circular(Constants.size.circularBorderRadius),
-    );
   }
 
   @override
@@ -784,99 +762,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       navigatorKey: ref.read(pNavKey),
       title: AppConfig.appName,
       onGenerateRoute: RouteGenerator.generateRoute,
-      theme: ThemeData(
-        extensions: [colorScheme],
-        highlightColor: colorScheme.highlight,
-        brightness: colorScheme.brightness,
-        fontFamily: GoogleFonts.inter().fontFamily,
-        unselectedWidgetColor: colorScheme.radioButtonBorderDisabled,
-        // textTheme: GoogleFonts.interTextTheme().copyWith(
-        //   button: STextStyles.button(context),
-        //   subtitle1: STextStyles.field(context).copyWith(
-        //     color: colorScheme.textDark,
-        //   ),
-        // ),
-        radioTheme: const RadioThemeData(
-          splashRadius: 0,
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        ),
-        // splashFactory: NoSplash.splashFactory,
-        splashColor: Colors.transparent,
-        buttonTheme: ButtonThemeData(splashColor: colorScheme.splash),
-        textButtonTheme: TextButtonThemeData(
-          style: ButtonStyle(
-            // splashFactory: NoSplash.splashFactory,
-            overlayColor: MaterialStateProperty.all(colorScheme.splash),
-            minimumSize: MaterialStateProperty.all<Size>(const Size(46, 46)),
-            // textStyle: MaterialStateProperty.all<TextStyle>(
-            //     STextStyles.button(context)),
-            foregroundColor: MaterialStateProperty.all(
-              colorScheme.buttonTextSecondary,
-            ),
-            backgroundColor: MaterialStateProperty.all<Color>(
-              colorScheme.buttonBackSecondary,
-            ),
-            shape: MaterialStateProperty.all<OutlinedBorder>(
-              RoundedRectangleBorder(
-                // 1000 to be relatively sure it keeps its pill shape
-                borderRadius: BorderRadius.circular(1000),
-              ),
-            ),
-          ),
-        ),
-        primaryColor: colorScheme.accentColorDark,
-        primarySwatch: Util.createMaterialColor(colorScheme.accentColorDark),
-        checkboxTheme: CheckboxThemeData(
-          splashRadius: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-              Constants.size.checkboxBorderRadius,
-            ),
-          ),
-          checkColor: MaterialStateColor.resolveWith((state) {
-            if (state.contains(MaterialState.selected)) {
-              return colorScheme.checkboxIconChecked;
-            }
-            return colorScheme.checkboxBGChecked;
-          }),
-          fillColor: MaterialStateColor.resolveWith((states) {
-            if (states.contains(MaterialState.selected)) {
-              return colorScheme.checkboxBGChecked;
-            }
-            return colorScheme.checkboxBorderEmpty;
-          }),
-        ),
-        appBarTheme: AppBarTheme(
-          centerTitle: false,
-          color: colorScheme.background,
-          surfaceTintColor: colorScheme.background,
-          elevation: 0,
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          focusColor: colorScheme.textFieldDefaultBG,
-          fillColor: colorScheme.textFieldDefaultBG,
-          filled: true,
-          contentPadding: const EdgeInsets.symmetric(
-            vertical: 6,
-            horizontal: 12,
-          ),
-          // labelStyle: STextStyles.fieldLabel(context),
-          // hintStyle: STextStyles.fieldLabel(context),
-          enabledBorder: _buildOutlineInputBorder(
-            colorScheme.textFieldDefaultBG,
-          ),
-          focusedBorder: _buildOutlineInputBorder(
-            colorScheme.textFieldDefaultBG,
-          ),
-          errorBorder: _buildOutlineInputBorder(colorScheme.textFieldDefaultBG),
-          disabledBorder: _buildOutlineInputBorder(
-            colorScheme.textFieldDefaultBG,
-          ),
-          focusedErrorBorder: _buildOutlineInputBorder(
-            colorScheme.textFieldDefaultBG,
-          ),
-        ),
-      ),
+      theme: stackThemeData(colorScheme),
       home: CryptoNotifications(
         child: Util.isDesktop
             ? FutureBuilder(

@@ -68,7 +68,7 @@ const ContactEntrySchema = CollectionSchema(
   getId: _contactEntryGetId,
   getLinks: _contactEntryGetLinks,
   attach: _contactEntryAttach,
-  version: '3.3.0-dev.2',
+  version: '3.3.2',
 );
 
 int _contactEntryEstimateSize(

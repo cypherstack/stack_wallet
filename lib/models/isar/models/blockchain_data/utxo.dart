@@ -86,18 +86,42 @@ class UTXO {
     int? overrideMinConfirms, // added to handle namecoin name op outputs
   }) {
     final confirmations = getConfirmations(currentChainHeight);
-
-    if (overrideMinConfirms != null) {
-      return confirmations >= overrideMinConfirms;
-    }
-    return confirmations >=
+    final requiredConfirmations =
+        overrideMinConfirms ??
         (isCoinbase ? minimumCoinbaseConfirms : minimumConfirms);
+    return confirmations >= max(requiredConfirmations, mwebPegoutMaturity ?? 0);
   }
+
+  /// A lingering [blockedReason] on an unblocked utxo means the wallet
+  /// auto-froze it previously and the user deliberately unfroze it. Used to
+  /// prevent auto re-freezing in [MainDB.updateUTXOs]. Relies on the
+  /// freeze/unfreeze toggles only flipping [isBlocked] and never clearing
+  /// [blockedReason].
+  @ignore
+  bool get userUnfroze => !isBlocked && blockedReason != null;
 
   // fuzzy
   bool _isMonero() {
     return keyImage != null;
   }
+
+  @ignore
+  int? get mwebPegoutMaturity {
+    if (otherData == null) {
+      return null;
+    }
+
+    try {
+      final value =
+          (jsonDecode(otherData!) as Map)[UTXOOtherDataKeys.mwebPegoutMaturity];
+      return value is int && value > 0 ? value : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @ignore
+  bool get isMwebPegout => mwebPegoutMaturity != null;
 
   @ignore
   String? get keyImage {
@@ -181,6 +205,7 @@ class UTXO {
 
 abstract final class UTXOOtherDataKeys {
   static const keyImage = "keyImage";
+  static const mwebPegoutMaturity = "mwebPegoutMaturity";
   static const spent = "spent";
   static const nameOpData = "nameOpData";
 }

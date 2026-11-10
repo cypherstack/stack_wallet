@@ -16,7 +16,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
-import 'package:uuid/uuid.dart';
 
 import '../../models/exchange/aggregate_currency.dart';
 import '../../models/exchange/incomplete_exchange.dart';
@@ -27,15 +26,18 @@ import '../../models/isar/models/ethereum/eth_contract.dart';
 import '../../pages_desktop_specific/desktop_exchange/exchange_steps/step_scaffold.dart';
 import '../../providers/providers.dart';
 import '../../services/exchange/change_now/change_now_exchange.dart';
+import '../../services/exchange/cyphergoat/cyphergoat_exchange.dart';
 import '../../services/exchange/exchange.dart';
 import '../../services/exchange/exchange_data_loading_service.dart';
 import '../../services/exchange/exchange_response.dart';
 import '../../services/exchange/exolix/exolix_exchange.dart';
+import '../../services/exchange/lets_exchange/lets_exchange_exchange.dart';
 import '../../services/exchange/nanswap/nanswap_exchange.dart';
 import '../../services/exchange/trocador/trocador_exchange.dart';
 import '../../services/exchange/wizard_swap/wizard_swap_exchange.dart';
 import '../../themes/stack_colors.dart';
-import '../../utilities/amount/amount_unit.dart';
+import '../../utilities/amount/amount.dart';
+import '../../utilities/amount/amount_field_relocalization.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/enums/exchange_rate_type_enum.dart';
@@ -83,9 +85,11 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       return [
         ChangeNowExchange.instance,
         ExolixExchange.instance,
+        LetsExchangeExchange.instance,
         TrocadorExchange.instance,
         NanswapExchange.instance,
         WizardSwapExchange.instance,
+        CypherGoatExchange.instance,
       ];
     }
   }
@@ -101,6 +105,10 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   // todo: check and adjust this value?
   static const _valueCheckInterval = Duration(milliseconds: 1500);
 
+  String? _pendingSendAmountText;
+  String? _pendingReceiveAmountText;
+  late String _amountInputLocale;
+
   Future<T> showUpdatingExchangeRate<T>({
     required Future<T> whileFuture,
   }) async {
@@ -111,9 +119,10 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         builder: (_) => WillPopScope(
           onWillPop: () async => false,
           child: Container(
-            color: Theme.of(
-              context,
-            ).extension<StackColors>()!.overlay.withOpacity(0.6),
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .overlay
+                .withOpacity(0.6),
             child: const CustomLoadingOverlay(
               message: "Updating exchange rate",
               eventBus: null,
@@ -136,9 +145,13 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   void sendFieldOnChanged(String value) {
     if (_sendFocusNode.hasFocus) {
       _sendFieldOnChangedTimer?.cancel();
+      _pendingSendAmountText = value;
 
       _sendFieldOnChangedTimer = Timer(_valueCheckInterval, () async {
-        final newFromAmount = _localizedStringToNum(value);
+        final pendingText = _pendingSendAmountText ?? value;
+        _pendingSendAmountText = null;
+        _sendFieldOnChangedTimer = null;
+        final newFromAmount = _localizedStringToNum(pendingText);
 
         ref.read(efSendAmountProvider.notifier).state = newFromAmount;
         if (!_swapLock && !ref.read(efReversedProvider)) {
@@ -151,9 +164,13 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   Timer? _receiveFieldOnChangedTimer;
   void receiveFieldOnChanged(String value) async {
     _receiveFieldOnChangedTimer?.cancel();
+    _pendingReceiveAmountText = value;
 
     _receiveFieldOnChangedTimer = Timer(_valueCheckInterval, () async {
-      final newToAmount = _localizedStringToNum(value);
+      final pendingText = _pendingReceiveAmountText ?? value;
+      _pendingReceiveAmountText = null;
+      _receiveFieldOnChangedTimer = null;
+      final newToAmount = _localizedStringToNum(pendingText);
 
       ref.read(efReceiveAmountProvider.notifier).state = newToAmount;
       if (!_swapLock && ref.read(efReversedProvider)) {
@@ -162,21 +179,72 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     });
   }
 
+  bool _flushPendingAmountChange() {
+    final flushSend = _sendFieldOnChangedTimer?.isActive ?? false;
+    final flushReceive = _receiveFieldOnChangedTimer?.isActive ?? false;
+    String? sendText;
+    String? receiveText;
+
+    // Capture both edits before publishing either provider state. A provider
+    // refresh may rewrite either controller once the first state is visible.
+    if (flushSend) {
+      _sendFieldOnChangedTimer!.cancel();
+      _sendFieldOnChangedTimer = null;
+      sendText = _pendingSendAmountText ?? _sendController.text;
+      _pendingSendAmountText = null;
+    }
+    if (flushReceive) {
+      _receiveFieldOnChangedTimer!.cancel();
+      _receiveFieldOnChangedTimer = null;
+      receiveText = _pendingReceiveAmountText ?? _receiveController.text;
+      _pendingReceiveAmountText = null;
+    }
+
+    if (flushSend) {
+      ref.read(efSendAmountProvider.notifier).state = _localizedStringToNum(
+        sendText,
+      );
+    }
+    if (flushReceive) {
+      ref.read(efReceiveAmountProvider.notifier).state = _localizedStringToNum(
+        receiveText,
+      );
+    }
+    return flushSend || flushReceive;
+  }
+
   Decimal? _localizedStringToNum(String? value) {
     if (value == null) {
       return null;
     }
 
-    return AmountUnit.normal
-        .tryParse(
-          value,
-          locale: ref.read(localeServiceChangeNotifierProvider).locale,
-          coin: Bitcoin(
-            CryptoCurrencyNetwork.main,
-          ), // dummy value (not used due to override)
-          overrideWithDecimalPlacesFromString: true,
-        )
-        ?.decimal;
+    return Amount.tryParseEditableDecimal(
+      value,
+      locale: ref.read(localeServiceChangeNotifierProvider).locale,
+    );
+  }
+
+  void _relocalizePendingAmountText() {
+    final nextLocale = ref.read(localeServiceChangeNotifierProvider).locale;
+    if (nextLocale == _amountInputLocale) {
+      return;
+    }
+
+    if (_pendingSendAmountText != null) {
+      _pendingSendAmountText = Amount.relocalizeEditableDecimal(
+        _pendingSendAmountText!,
+        sourceLocale: _amountInputLocale,
+        targetLocale: nextLocale,
+      );
+    }
+    if (_pendingReceiveAmountText != null) {
+      _pendingReceiveAmountText = Amount.relocalizeEditableDecimal(
+        _pendingReceiveAmountText!,
+        sourceLocale: _amountInputLocale,
+        targetLocale: nextLocale,
+      );
+    }
+    _amountInputLocale = nextLocale;
   }
 
   void selectSendCurrency() async {
@@ -230,6 +298,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   }
 
   Future<void> _swap() async {
+    _flushPendingAmountChange();
     _swapLock = true;
     _sendFocusNode.unfocus();
     _receiveFocusNode.unfocus();
@@ -299,9 +368,9 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                             Expanded(
                               child: RoundedWhiteContainer(
                                 padding: const EdgeInsets.all(16),
-                                borderColor: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.background,
+                                borderColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .background,
                                 child: ExchangeCurrencySelectionView(
                                   pairedCurrency: paired,
                                   isFixedRate: isFixedRate,
@@ -339,6 +408,10 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     _receiveFocusNode.unfocus();
     _sendFocusNode.unfocus();
 
+    // Estimated trades are always driven by the send amount.
+    if (newType == ExchangeRateType.estimated) {
+      ref.read(efReversedProvider.notifier).state = false;
+    }
     ref.read(efRateTypeProvider.notifier).state = newType;
     update();
   }
@@ -388,6 +461,11 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   }
 
   void onExchangePressed() async {
+    if (_flushPendingAmountChange()) {
+      await showUpdatingExchangeRate(whileFuture: update());
+      if (!mounted) return;
+    }
+
     final exchangeName = ref.read(efExchangeProvider).name;
 
     final fromCurrency = ref
@@ -417,8 +495,24 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     }
 
     final rateType = ref.read(efRateTypeProvider);
-    final estimate = ref.read(efEstimateProvider)!;
-    final sendAmount = ref.read(efSendAmountProvider)!;
+    final estimate = ref.read(efEstimateProvider);
+    final sendAmount = ref.read(efSendAmountProvider);
+
+    if (estimate == null || sendAmount == null) {
+      if (mounted) {
+        await showDialog<void>(
+          context: context,
+          builder: (context) => StackOkDialog(
+            title: "Exchange rate not ready",
+            message:
+                "Please wait for the exchange rate to update and try again",
+            maxWidth: Util.isDesktop ? 300 : null,
+          ),
+        );
+      }
+
+      return;
+    }
 
     if (rateType == ExchangeRateType.fixed &&
         toCurrency.ticker.toUpperCase() == "WOW") {
@@ -427,8 +521,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           context: context,
           builder: (context) => const StackOkDialog(
             title: "WOW error",
-            message:
-                "Wownero is temporarily disabled as a receiving currency for fixed rate trades due to network issues",
+            message: "Wownero is temporarily disabled as a receiving currency for fixed rate trades due to network issues",
           ),
         );
       }
@@ -590,9 +683,8 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           );
         } else {
           unawaited(
-            Navigator.of(
-              context,
-            ).pushNamed(Step2View.routeName, arguments: model),
+            Navigator.of(context)
+                .pushNamed(Step2View.routeName, arguments: model),
           );
         }
       } else {
@@ -613,9 +705,8 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           );
         } else {
           unawaited(
-            Navigator.of(
-              context,
-            ).pushNamed(Step1View.routeName, arguments: model),
+            Navigator.of(context)
+                .pushNamed(Step1View.routeName, arguments: model),
           );
         }
       }
@@ -639,92 +730,103 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
   }
 
   Future<void> update() async {
-    final uuid = const Uuid().v1();
-    _latestUuid = uuid;
-    _addUpdate(uuid);
-    for (final exchange in usableExchanges) {
-      ref.read(efEstimatesListProvider(exchange.name).notifier).state = null;
-    }
+    if (!mounted) return;
+    final request = Object();
+    _refreshRequest = request;
 
-    final reversed = ref.read(efReversedProvider);
-    final amount = reversed
-        ? ref.read(efReceiveAmountProvider)
-        : ref.read(efSendAmountProvider);
+    final exchanges = usableExchanges;
+    final estimatesNotifiers = {
+      for (final exchange in exchanges)
+        exchange.name: ref.read(
+          efEstimatesListProvider(exchange.name).notifier,
+        ),
+    };
+    _refreshController.begin(request);
 
-    final pair = ref.read(efCurrencyPairProvider);
-    if (amount == null ||
-        amount <= Decimal.zero ||
-        pair.send == null ||
-        pair.receive == null) {
-      _removeUpdate(uuid);
-      return;
-    }
-    final rateType = ref.read(efRateTypeProvider);
-    final Map<String, Tuple2<ExchangeResponse<List<Estimate>>, Range?>>
-    results = {};
-
-    for (final exchange in usableExchanges) {
-      final sendCurrency = pair.send?.forExchange(exchange.name);
-      final receiveCurrency = pair.receive?.forExchange(exchange.name);
-
-      if (sendCurrency != null && receiveCurrency != null) {
-        final rangeResponse = await exchange.getRange(
-          reversed ? receiveCurrency.ticker : sendCurrency.ticker,
-          reversed ? receiveCurrency.network : sendCurrency.network,
-          reversed ? sendCurrency.ticker : receiveCurrency.ticker,
-          reversed ? sendCurrency.network : receiveCurrency.network,
-          rateType == ExchangeRateType.fixed,
-        );
-
-        Logging.instance.d(
-          "${exchange.name}: rateType=$rateType, RANGE=$rangeResponse",
-        );
-
-        final estimateResponse = await exchange.getEstimates(
-          sendCurrency.ticker,
-          sendCurrency.network,
-          receiveCurrency.ticker,
-          receiveCurrency.network,
-          amount,
-          rateType == ExchangeRateType.fixed,
-          reversed,
-        );
-
-        Logging.instance.d(
-          "${exchange.name}: estimateResponse=$estimateResponse",
-        );
-
-        results.addAll({
-          exchange.name: Tuple2(estimateResponse, rangeResponse.value),
-        });
+    try {
+      for (final exchange in exchanges) {
+        estimatesNotifiers[exchange.name]!.state = null;
       }
-    }
 
-    for (final exchange in usableExchanges) {
-      if (uuid == _latestUuid) {
-        ref.read(efEstimatesListProvider(exchange.name).notifier).state =
-            results[exchange.name];
+      final reversed = ref.read(efReversedProvider);
+      final amount = reversed
+          ? ref.read(efReceiveAmountProvider)
+          : ref.read(efSendAmountProvider);
+
+      final pair = ref.read(efCurrencyPairProvider);
+      if (amount == null ||
+          amount <= Decimal.zero ||
+          pair.send == null ||
+          pair.receive == null) {
+        return;
       }
-    }
+      final rateType = ref.read(efRateTypeProvider);
+      final Map<String, Tuple2<ExchangeResponse<List<Estimate>>, Range?>>
+      results = {};
 
-    _removeUpdate(uuid);
+      for (final exchange in exchanges) {
+        final sendCurrency = pair.send?.forExchange(exchange.name);
+        final receiveCurrency = pair.receive?.forExchange(exchange.name);
+
+        if (sendCurrency != null && receiveCurrency != null) {
+          final rangeResponse = await exchange.getRange(
+            reversed ? receiveCurrency.ticker : sendCurrency.ticker,
+            reversed ? receiveCurrency.network : sendCurrency.network,
+            reversed ? sendCurrency.ticker : receiveCurrency.ticker,
+            reversed ? sendCurrency.network : receiveCurrency.network,
+            rateType == ExchangeRateType.fixed,
+          );
+          if (!mounted || !_refreshController.owns(request)) {
+            return;
+          }
+
+          Logging.instance.d(
+            "${exchange.name}: rateType=$rateType, RANGE=$rangeResponse",
+          );
+
+          final estimateResponse = await exchange.getEstimates(
+            sendCurrency.ticker,
+            sendCurrency.network,
+            receiveCurrency.ticker,
+            receiveCurrency.network,
+            amount,
+            rateType == ExchangeRateType.fixed,
+            reversed,
+          );
+          if (!mounted || !_refreshController.owns(request)) {
+            return;
+          }
+
+          Logging.instance.d(
+            "${exchange.name}: estimateResponse=$estimateResponse",
+          );
+
+          results.addAll({
+            exchange.name: Tuple2(estimateResponse, rangeResponse.value),
+          });
+        }
+      }
+
+      for (final exchange in exchanges) {
+        if (mounted && _refreshController.owns(request)) {
+          estimatesNotifiers[exchange.name]!.state = results[exchange.name];
+        }
+      }
+    } finally {
+      _finishRefreshAfterFrame(request);
+    }
   }
 
-  String? _latestUuid;
-  final Set<String> _uuids = {};
+  late final ExchangeRefreshController _refreshController;
+  Object? _refreshRequest;
 
-  void _addUpdate(String uuid) {
-    _uuids.add(uuid);
-    ref.read(efRefreshingProvider.notifier).state = true;
-  }
-
-  void _removeUpdate(String uuid) {
-    _uuids.remove(uuid);
-    if (_uuids.isEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(efRefreshingProvider.notifier).state = false;
-      });
-    }
+  void _finishRefreshAfterFrame(Object request) {
+    final controller = _refreshController;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.finish(request);
+    });
+    // A refresh that changed nothing else may have no frame pending.
+    WidgetsBinding.instance.ensureVisualUpdate();
   }
 
   void updateSend(Estimate? estimate) {
@@ -738,8 +840,10 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
 
   @override
   void initState() {
+    _refreshController = ref.read(efRefreshingProvider.notifier);
     _sendController = TextEditingController();
     _receiveController = TextEditingController();
+    _amountInputLocale = ref.read(localeServiceChangeNotifierProvider).locale;
 
     walletId = widget.walletId;
     coin = widget.coin;
@@ -749,6 +853,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       if (_sendFocusNode.hasFocus) {
         final reversed = ref.read(efReversedProvider);
         WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
           ref.read(efReversedProvider.notifier).state = false;
           if (reversed == true) {
             update();
@@ -760,6 +865,11 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       if (_receiveFocusNode.hasFocus) {
         final reversed = ref.read(efReversedProvider);
         WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          // The read-only estimated output can still receive focus.
+          if (ref.read(efRateTypeProvider) == ExchangeRateType.estimated) {
+            return;
+          }
           ref.read(efReversedProvider.notifier).state = true;
           if (reversed != true) {
             update();
@@ -770,10 +880,11 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
 
     if (walletInitiated) {
       WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+        if (!mounted) return;
         ref.read(efSendAmountProvider.notifier).state = null;
         ref.read(efReceiveAmountProvider.notifier).state = null;
         ref.read(efReversedProvider.notifier).state = false;
-        ref.read(efRefreshingProvider.notifier).state = false;
+        _refreshController.reset();
         ref.read(efCurrencyPairProvider).setSend(null, notifyListeners: true);
         ref
             .read(efCurrencyPairProvider)
@@ -786,7 +897,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
               widget.contract?.address,
             )
             .then((value) {
-              if (value != null) {
+              if (mounted && value != null) {
                 ref
                     .read(efCurrencyPairProvider)
                     .setSend(value, notifyListeners: true);
@@ -795,6 +906,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       });
     } else {
       WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+        if (!mounted) return;
         _sendController.text = ref.read(efSendAmountStringProvider);
         _receiveController.text = ref.read(efReceiveAmountStringProvider);
       });
@@ -805,6 +917,12 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
 
   @override
   void dispose() {
+    final request = _refreshRequest;
+    if (request != null) {
+      _finishRefreshAfterFrame(request);
+    }
+    _sendFieldOnChangedTimer?.cancel();
+    _receiveFieldOnChangedTimer?.cancel();
     _receiveController.dispose();
     _sendController.dispose();
     _receiveFocusNode.dispose();
@@ -820,14 +938,30 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
 
     final isEstimated = rateType == ExchangeRateType.estimated;
 
+    // A pending debounce captured text in the old locale. Relocalize both the
+    // controllers and the stored user edits before parsing under the new
+    // locale, then refresh the quote for the newly committed amount.
+    listenForAmountRelocalization(
+      ref.listen,
+      controllers: [_sendController, _receiveController],
+      onRelocalized: () {
+        _relocalizePendingAmountText();
+        if (_flushPendingAmountChange()) {
+          unawaited(update());
+        }
+      },
+    );
+
     ref.listen(efReceiveAmountStringProvider, (previous, String next) {
       if (!_receiveFocusNode.hasFocus) {
         _receiveController.text = isEstimated && next.isEmpty ? "-" : next;
         // if (_swapLock) {
-        _sendController.text = ref.read(efSendAmountStringProvider);
+        if (_pendingSendAmountText == null) {
+          _sendController.text = ref.read(efSendAmountStringProvider);
+        }
         // }
 
-        if (_sendFocusNode.hasFocus) {
+        if (_sendFocusNode.hasFocus && _pendingSendAmountText == null) {
           _sendController.selection = TextSelection.fromPosition(
             TextPosition(offset: _sendController.text.length),
           );
@@ -838,13 +972,15 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
       if (!_sendFocusNode.hasFocus) {
         _sendController.text = next;
         // if (_swapLock) {
-        _receiveController.text =
-            isEstimated && ref.read(efReceiveAmountStringProvider).isEmpty
-            ? "-"
-            : ref.read(efReceiveAmountStringProvider);
+        if (_pendingReceiveAmountText == null) {
+          _receiveController.text =
+              isEstimated && ref.read(efReceiveAmountStringProvider).isEmpty
+              ? "-"
+              : ref.read(efReceiveAmountStringProvider);
+        }
         // }
 
-        if (_receiveFocusNode.hasFocus) {
+        if (_receiveFocusNode.hasFocus && _pendingReceiveAmountText == null) {
           _receiveController.selection = TextSelection.fromPosition(
             TextPosition(offset: _receiveController.text.length),
           );
@@ -862,6 +998,10 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
     });
 
     ref.listen(efCurrencyPairProvider, (previous, next) {
+      // Commit pending user text before its debounce can apply after the pair
+      // has changed. The controller may already have been rewritten from the
+      // previous provider value while focus moved between the fields.
+      _flushPendingAmountChange();
       if (!_swapLock) {
         update();
       }
@@ -889,13 +1029,13 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           textStyle: STextStyles.smallMed14(context).copyWith(
             color: Theme.of(context).extension<StackColors>()!.textDark,
           ),
-          buttonColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.buttonBackSecondary,
+          buttonColor: Theme.of(context)
+              .extension<StackColors>()!
+              .buttonBackSecondary,
           borderRadius: Constants.size.circularBorderRadius,
-          background: Theme.of(
-            context,
-          ).extension<StackColors>()!.textFieldDefaultBG,
+          background: Theme.of(context)
+              .extension<StackColors>()!
+              .textFieldDefaultBG,
           onTap: () {
             if (_sendController.text == "-") {
               _sendController.text = "";
@@ -931,9 +1071,9 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                   padding: isDesktop
                       ? const EdgeInsets.all(6)
                       : const EdgeInsets.all(2),
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.buttonBackSecondary,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .buttonBackSecondary,
                   radiusMultiplier: 0.75,
                   child: GestureDetector(
                     onTap: () async {
@@ -945,9 +1085,9 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
                         Assets.svg.swap,
                         width: 20,
                         height: 20,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorDark,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
                       ),
                     ),
                   ),
@@ -966,13 +1106,13 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           textStyle: STextStyles.smallMed14(context).copyWith(
             color: Theme.of(context).extension<StackColors>()!.textDark,
           ),
-          buttonColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.buttonBackSecondary,
+          buttonColor: Theme.of(context)
+              .extension<StackColors>()!
+              .buttonBackSecondary,
           borderRadius: Constants.size.circularBorderRadius,
-          background: Theme.of(
-            context,
-          ).extension<StackColors>()!.textFieldDefaultBG,
+          background: Theme.of(context)
+              .extension<StackColors>()!
+              .textFieldDefaultBG,
           onTap: rateType == ExchangeRateType.estimated
               ? null
               : () {

@@ -49,6 +49,9 @@ class Monero extends CryptonoteCurrency {
   bool get supportsHardwareWallet => false;
 
   @override
+  String? get openAliasApplication => "xmr";
+
+  @override
   bool validateAddress(String address) {
     if (address.contains("111")) {
       return false;

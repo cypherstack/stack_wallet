@@ -29,7 +29,7 @@ class VoucherInfo {
 
   factory VoucherInfo.fromJson(Map<String, dynamic> json) {
     return VoucherInfo(
-      valid: json['valid'] as bool? ?? false,
+      valid: json['valid'] as bool,
       voucherCode: json['voucher_code'] as String?,
       discountAmount: (json['discount_amount'] as num?)?.toDouble(),
       voucherType: json['voucher_type'] as String?,

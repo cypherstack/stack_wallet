@@ -18,14 +18,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar_community/isar.dart';
 
-import '../../models/isar/models/isar_models.dart';
 import '../../models/input.dart';
+import '../../models/isar/models/isar_models.dart';
 import '../../models/isar/models/transaction_note.dart';
 import '../../models/isar/ordinal.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../pages_desktop_specific/coin_control/desktop_coin_control_use_dialog.dart';
+import '../../pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
-import '../../providers/global/global_nav_key_provider.dart';
 import '../../providers/providers.dart';
 import '../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../route_generator.dart';
@@ -33,13 +33,12 @@ import '../../themes/stack_colors.dart';
 import '../../themes/theme_providers.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
+import '../../utilities/amount/fee_rate_formatter.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
-import '../../wallets/crypto_currency/coins/epiccash.dart';
-import '../../wallets/crypto_currency/coins/ethereum.dart';
-import '../../wallets/crypto_currency/coins/mimblewimblecoin.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import '../../wallets/isar/providers/solana/current_sol_token_wallet_provider.dart';
@@ -57,7 +56,6 @@ import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../widgets/desktop/primary_button.dart';
-import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/icon_widgets/x_icon.dart';
 import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
@@ -66,22 +64,22 @@ import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
 import '../../providers/hardware/hardware_wallet_provider.dart';
 import '../../wallets/hardware/hardware_session_state.dart';
-import '../../wallets/hardware/hardware_wallet_device.dart';
 import '../../wallets/hardware/hardware_wallet_device_family.dart';
 import '../../wallets/hardware/ledger/ledger_bitcoin_service.dart';
 import '../../wallets/hardware/ledger/ledger_usb_adapter.dart';
 import '../../wallets/hardware/mock_hardware_wallet_service.dart';
-import '../hardware_wallet/hardware_reconnect_dialog.dart';
 import '../../wallets/hardware/psbt_builder.dart';
+import '../hardware_wallet/hardware_reconnect_dialog.dart';
 import '../../wallets/isar/models/wallet_info.dart';
 import '../../wl_gen/interfaces/libepiccash_interface.dart';
-import '../masternodes/create_masternode_view.dart';
 import '../pinpad_views/lock_screen_view.dart';
 import '../wallet_view/wallet_view.dart';
 import 'sub_widgets/epic_slatepack_dialog.dart';
 import 'sub_widgets/hardware_confirm_dialog.dart';
+import 'sub_widgets/multi_recipient.dart';
 import 'sub_widgets/mwc_slatepack_dialog.dart';
 import 'sub_widgets/sending_transaction_dialog.dart';
+import 'sub_widgets/split_transaction_warning.dart';
 
 class ConfirmTransactionView extends ConsumerStatefulWidget {
   const ConfirmTransactionView({
@@ -89,25 +87,30 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
     required this.txData,
     required this.walletId,
     required this.onSuccess,
-    this.routeOnSuccessName = WalletView.routeName,
+    this.routeOnSuccessName,
     this.isTradeTransaction = false,
     this.isPaynymTransaction = false,
     this.isPaynymNotificationTransaction = false,
     this.isTokenTx = false,
     this.onSuccessInsteadOfRouteOnSuccess,
+    this.recipientLabels,
   });
 
   static const String routeName = "/confirmTransactionView";
 
   final TxData txData;
   final String walletId;
-  final String routeOnSuccessName;
+  final String? routeOnSuccessName;
   final bool isTradeTransaction;
   final bool isPaynymTransaction;
   final bool isPaynymNotificationTransaction;
   final bool isTokenTx;
   final VoidCallback? onSuccessInsteadOfRouteOnSuccess;
   final VoidCallback onSuccess;
+
+  /// The payment request's names for the recipients of a transaction with
+  /// several recipients, in order.
+  final List<String?>? recipientLabels;
 
   @override
   ConsumerState<ConfirmTransactionView> createState() =>
@@ -119,6 +122,7 @@ class _ConfirmTransactionViewState
   late final String walletId;
   late final String routeOnSuccessName;
   late final bool isDesktop;
+  late final Future<void> Function() _cancelPreparation;
 
   String? _signedRawTxHex;
 
@@ -210,9 +214,8 @@ class _ConfirmTransactionViewState
         if (context.mounted) {
           widget.onSuccess.call();
           if (widget.onSuccessInsteadOfRouteOnSuccess == null) {
-            Navigator.of(
-              context,
-            ).popUntil(ModalRoute.withName(routeOnSuccessName));
+            Navigator.of(context)
+                .popUntil(ModalRoute.withName(routeOnSuccessName));
           } else {
             widget.onSuccessInsteadOfRouteOnSuccess!.call();
           }
@@ -233,7 +236,7 @@ class _ConfirmTransactionViewState
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Slatepack Creation Failed'),
-            content: Text('Failed to create slatepack: $e'),
+            content: Text(errorMessage),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -289,9 +292,8 @@ class _ConfirmTransactionViewState
         if (context.mounted) {
           widget.onSuccess.call();
           if (widget.onSuccessInsteadOfRouteOnSuccess == null) {
-            Navigator.of(
-              context,
-            ).popUntil(ModalRoute.withName(routeOnSuccessName));
+            Navigator.of(context)
+                .popUntil(ModalRoute.withName(routeOnSuccessName));
           } else {
             widget.onSuccessInsteadOfRouteOnSuccess!.call();
           }
@@ -312,7 +314,7 @@ class _ConfirmTransactionViewState
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Slate Creation Failed'),
-            content: Text('Failed to create slate: $e'),
+            content: Text(errorMessage),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -325,106 +327,28 @@ class _ConfirmTransactionViewState
     }
   }
 
-  Future<int?> _resolveFiroCollateralVout({
-    required FiroWallet wallet,
-    required String txid,
-    required String recipientAddress,
-    required Amount amount,
-  }) async {
-    try {
-      final tx = await wallet.electrumXClient.getTransaction(txHash: txid);
-      final outputs = tx['vout'];
-      if (outputs is! List) {
-        return null;
-      }
-
-      for (final output in outputs) {
-        if (output is! Map) {
-          continue;
-        }
-        final outputMap = Map<String, dynamic>.from(output);
-        final n = outputMap['n'];
-        final outputIndex = switch (n) {
-          int value => value,
-          String value => int.tryParse(value),
-          _ => null,
-        };
-        if (outputIndex == null) {
-          continue;
-        }
-
-        final valueDecimal = Decimal.tryParse(outputMap['value'].toString());
-        if (valueDecimal == null) {
-          continue;
-        }
-        final outputAmount = Amount.fromDecimal(
-          valueDecimal,
-          fractionDigits: wallet.cryptoCurrency.fractionDigits,
-        );
-        if (outputAmount != amount) {
-          continue;
-        }
-
-        final scriptPubKey = outputMap['scriptPubKey'];
-        if (scriptPubKey is! Map) {
-          continue;
-        }
-
-        final recipientAddresses = <String>{};
-        final addresses = scriptPubKey['addresses'];
-        if (addresses is List) {
-          recipientAddresses.addAll(addresses.whereType<String>());
-        }
-
-        final address = scriptPubKey['address'];
-        if (address is String) {
-          recipientAddresses.add(address);
-        }
-
-        if (recipientAddresses.contains(recipientAddress)) {
-          return outputIndex;
-        }
-      }
-    } catch (e, s) {
-      Logging.instance.w(
-        "Failed to resolve collateral vout for txid=$txid: $e",
-        error: e,
-        stackTrace: s,
-      );
-    }
-
-    return null;
-  }
-
-  void _showMasternodeSubmittedDialog(BuildContext? rootContext, String txid) {
-    if (rootContext == null) {
-      return;
-    }
-    unawaited(
-      showDialog<void>(
-        context: rootContext,
-        builder: (_) => StackOkDialog(
-          title: "Masternode Registration Submitted",
-          message:
-              "Masternode registration submitted, your masternode will "
-              "appear in the list after the tx is confirmed.\n\nTransaction "
-              "ID: $txid",
-          desktopPopRootNavigator: Util.isDesktop,
-          maxWidth: Util.isDesktop ? 400 : null,
-        ),
-      ),
-    );
-  }
-
   Future<void> _attemptSend(BuildContext context) async {
     final wallet = ref.read(pWallets).getWallet(walletId);
     final coin = wallet.info.coin;
 
     final sendProgressController = ProgressAndSuccessController();
+    var isSendingDialogOpen = true;
+
+    void closeSendingDialog() {
+      if (!context.mounted || !isSendingDialogOpen) {
+        return;
+      }
+      final navigator = Navigator.of(context, rootNavigator: true);
+      if (navigator.canPop()) {
+        navigator.pop();
+      }
+      isSendingDialogOpen = false;
+    }
 
     unawaited(
       showDialog<dynamic>(
         context: context,
+        useRootNavigator: true,
         useSafeArea: false,
         barrierDismissible: false,
         builder: (context) {
@@ -433,7 +357,7 @@ class _ConfirmTransactionViewState
             controller: sendProgressController,
           );
         },
-      ),
+      ).whenComplete(() => isSendingDialogOpen = false),
     );
 
     final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
@@ -494,6 +418,7 @@ class _ConfirmTransactionViewState
                 context,
                 wallet as MimblewimblecoinWallet,
               );
+              closeSendingDialog();
               return; // Exit early, don't continue with normal transaction flow.
             } else {
               // Handle MWCMQS or HTTP transactions normally.
@@ -517,6 +442,7 @@ class _ConfirmTransactionViewState
                 context,
                 wallet as EpiccashWallet,
               );
+              closeSendingDialog();
               return; // Exit early, don't continue with normal transaction flow.
             } else {
               // Handle Epicbox transactions normally.
@@ -543,8 +469,10 @@ class _ConfirmTransactionViewState
 
       if (wallet is FiroWallet && confirmedTx.sparkMints != null) {
         txids.addAll(confirmedTx.sparkMints!.map((e) => e.txid!));
+      } else if (wallet is FiroWallet && confirmedTx.sparkSpends != null) {
+        txids.addAll(confirmedTx.sparkSpends!.map((e) => e.txid!));
       } else {
-        txids.add(confirmedTx.txid!);
+        txids.addAll(confirmedTx.txids);
       }
       if (coin is! Ethereum) {
         ref.refresh(desktopUseUTXOs);
@@ -569,193 +497,14 @@ class _ConfirmTransactionViewState
         unawaited(wallet.refresh());
       }
 
+      closeSendingDialog();
+
       widget.onSuccess.call();
 
-      // Check for 1000 FIRO transparent self-send -> prompt MN registration
-      bool navigatedToMN = false;
-      if (wallet is FiroWallet &&
-          confirmedTx.recipients != null &&
-          confirmedTx.sparkMints == null &&
-          txids.isNotEmpty &&
-          context.mounted) {
-        try {
-          final masternodeAmount = Amount.fromDecimal(
-            kMasterNodeValue,
-            fractionDigits: wallet.cryptoCurrency.fractionDigits,
-          );
-          final txFeeRaw = confirmedTx.fee?.raw ?? BigInt.zero;
-
-          final mnRecipient = confirmedTx.recipients!
-              // Exact 1000 FIRO: multiple such outputs uses the first match only.
-              .where((r) => !r.isChange && r.amount == masternodeAmount)
-              .firstOrNull;
-
-          if (mnRecipient != null && confirmedTx.txid != null) {
-            final ownAddress = await ref
-                .read(mainDBProvider)
-                .getAddresses(walletId)
-                .filter()
-                .valueEqualTo(mnRecipient.address)
-                .findFirst();
-
-            if (ownAddress != null && context.mounted) {
-              final collateralVout = await _resolveFiroCollateralVout(
-                wallet: wallet,
-                txid: confirmedTx.txid!,
-                recipientAddress: mnRecipient.address,
-                amount: masternodeAmount,
-              );
-              if (!context.mounted) {
-                return;
-              }
-
-              if (collateralVout == null) {
-                unawaited(
-                  showFloatingFlushBar(
-                    type: FlushBarType.warning,
-                    message:
-                        "Unable to determine collateral output index "
-                        "automatically. Open Masternodes and select your "
-                        "1000 FIRO UTXO manually.",
-                    context: context,
-                  ),
-                );
-              } else {
-                navigatedToMN = true;
-                final rootContext = ref.read(pNavKey).currentContext;
-
-                void completeMnParentNavigation() {
-                  if (widget.onSuccessInsteadOfRouteOnSuccess == null) {
-                    if (isDesktop) {
-                      Navigator.of(
-                        context,
-                      ).popUntil(ModalRoute.withName(routeOnSuccessName));
-                    } else {
-                      final navigator = Navigator.of(context);
-                      navigator.popUntil(
-                        ModalRoute.withName(routeOnSuccessName),
-                      );
-                    }
-                  } else {
-                    widget.onSuccessInsteadOfRouteOnSuccess!.call();
-                  }
-                }
-
-                completeMnParentNavigation();
-
-                if (isDesktop) {
-                  if (rootContext != null && rootContext.mounted) {
-                    unawaited(
-                      showDialog<Object>(
-                        context: rootContext,
-                        barrierDismissible: true,
-                        builder: (_) => SDialog(
-                          child: CreateMasternodeView(
-                            firoWalletId: walletId,
-                            collateralTxid: confirmedTx.txid!,
-                            collateralVout: collateralVout,
-                            collateralAddress: mnRecipient.address,
-                          ),
-                        ),
-                      ).then((result) {
-                        if (result is String) {
-                          _showMasternodeSubmittedDialog(rootContext, result);
-                        }
-                      }),
-                    );
-                  }
-                } else {
-                  final navContext =
-                      (rootContext != null && rootContext.mounted)
-                      ? rootContext
-                      : context;
-                  if (!navContext.mounted) {
-                    return;
-                  }
-                  unawaited(
-                    Navigator.of(navContext)
-                        .pushNamed(
-                          CreateMasternodeView.routeName,
-                          arguments: {
-                            'walletId': walletId,
-                            'collateralTxid': confirmedTx.txid!,
-                            'collateralVout': collateralVout,
-                            'collateralAddress': mnRecipient.address,
-                          },
-                        )
-                        .then((result) {
-                          if (result is String) {
-                            _showMasternodeSubmittedDialog(rootContext, result);
-                          }
-                        }),
-                  );
-                }
-              }
-            }
-          } else if (mnRecipient != null &&
-              confirmedTx.txid == null &&
-              context.mounted) {
-            unawaited(
-              showFloatingFlushBar(
-                type: FlushBarType.warning,
-                message:
-                    "Could not determine transaction id for collateral "
-                    "auto-detection. Register from the Masternodes screen "
-                    "once the transaction appears.",
-                context: context,
-              ),
-            );
-          } else {
-            // If fee was subtracted from the recipient, users can enter 1000 but
-            // end up with ~999.99... output which is not valid MN collateral.
-            final nearMnRecipient =
-                confirmedTx.recipients!
-                    .where(
-                      (r) => !r.isChange && r.amount.raw < masternodeAmount.raw,
-                    )
-                    .where(
-                      (r) => (masternodeAmount.raw - r.amount.raw) <= txFeeRaw,
-                    )
-                    .toList()
-                  ..sort((a, b) => b.amount.raw.compareTo(a.amount.raw));
-
-            if (nearMnRecipient.isNotEmpty) {
-              final maybeOwnAddress = await ref
-                  .read(mainDBProvider)
-                  .getAddresses(walletId)
-                  .filter()
-                  .valueEqualTo(nearMnRecipient.first.address)
-                  .findFirst();
-
-              if (maybeOwnAddress != null && context.mounted) {
-                unawaited(
-                  showFloatingFlushBar(
-                    type: FlushBarType.warning,
-                    message:
-                        "Masternode collateral requires one exact 1000 FIRO "
-                        "transparent output. Fee appears to have been "
-                        "subtracted from the recipient amount. Send 1000 "
-                        "to yourself again with fee paid on top.",
-                    context: context,
-                  ),
-                );
-              }
-            }
-          }
-        } catch (e, s) {
-          Logging.instance.w(
-            "Skipping masternode collateral auto-detection: $e",
-            error: e,
-            stackTrace: s,
-          );
-        }
-      }
-
-      if (!navigatedToMN && context.mounted) {
+      if (context.mounted) {
         if (widget.onSuccessInsteadOfRouteOnSuccess == null) {
-          Navigator.of(
-            context,
-          ).popUntil(ModalRoute.withName(routeOnSuccessName));
+          Navigator.of(context)
+              .popUntil(ModalRoute.withName(routeOnSuccessName));
         } else {
           widget.onSuccessInsteadOfRouteOnSuccess!.call();
         }
@@ -763,7 +512,7 @@ class _ConfirmTransactionViewState
     } on BadHttpAddressException catch (_) {
       if (context.mounted) {
         // pop building dialog
-        Navigator.of(context).pop();
+        closeSendingDialog();
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.warning,
@@ -779,7 +528,7 @@ class _ConfirmTransactionViewState
       Logging.instance.e(message, error: e, stackTrace: s);
       // pop sending dialog
       if (context.mounted) {
-        Navigator.of(context).pop();
+        closeSendingDialog();
 
         await showDialog<void>(
           context: context,
@@ -833,9 +582,9 @@ class _ConfirmTransactionViewState
                   child: Text(
                     "Ok",
                     style: STextStyles.button(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
                     ),
                   ),
                   onPressed: () {
@@ -856,7 +605,11 @@ class _ConfirmTransactionViewState
 
     isDesktop = Util.isDesktop;
     walletId = widget.walletId;
-    routeOnSuccessName = widget.routeOnSuccessName;
+    final preparedWallet = ref.read(pWallets).getWallet(walletId);
+    _cancelPreparation = () => preparedWallet.cancelSend(txData: widget.txData);
+    routeOnSuccessName =
+        widget.routeOnSuccessName ??
+        (Util.isDesktop ? DesktopWalletView.routeName : WalletView.routeName);
     _noteFocusNode = FocusNode();
     noteController = TextEditingController();
     noteController.text = widget.txData.note ?? "";
@@ -870,6 +623,15 @@ class _ConfirmTransactionViewState
 
   @override
   void dispose() {
+    unawaited(
+      _cancelPreparation().catchError((Object error, StackTrace stack) {
+        Logging.instance.e(
+          'Failed to release transaction preparation',
+          error: error,
+          stackTrace: stack,
+        );
+      }),
+    );
     noteController.dispose();
     onChainNoteController.dispose();
 
@@ -881,6 +643,11 @@ class _ConfirmTransactionViewState
   @override
   Widget build(BuildContext context) {
     final coin = ref.watch(pWalletCoin(walletId));
+    final sentRecipients = [
+      for (final e in widget.txData.recipients ?? <TxRecipient>[])
+        if (!e.isChange) e,
+    ];
+    final hasMultipleRecipients = sentRecipients.length > 1;
 
     final String unit;
     final wallet = ref.watch(pWallets).getWallet(walletId);
@@ -937,17 +704,19 @@ class _ConfirmTransactionViewState
       amountWithoutChange = widget.txData.amountWithoutChange!;
     }
 
+    final feeRate = formatApproximateFeeRate(fee?.raw, widget.txData.vSize);
+
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(
         child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             leading: AppBarBackButton(
               onPressed: () async {
                 // if (FocusScope.of(context).hasFocus) {
@@ -997,8 +766,7 @@ class _ConfirmTransactionViewState
                 AppBarBackButton(
                   size: 40,
                   iconSize: 24,
-                  onPressed: () =>
-                      Navigator.of(context, rootNavigator: true).pop(),
+                  onPressed: () => Navigator.of(context).pop(),
                 ),
                 Text(
                   "Confirm $unit transaction",
@@ -1019,6 +787,25 @@ class _ConfirmTransactionViewState
                 children: [
                   Text("Send $unit", style: STextStyles.pageTitleH1(context)),
                   const SizedBox(height: 12),
+                  if (widget.txData.openAlias != null) ...[
+                    RoundedWhiteContainer(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            "OpenAlias",
+                            style: STextStyles.smallMed12(context),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            widget.txData.openAlias!,
+                            style: STextStyles.itemSubtitle12(context),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
                   RoundedWhiteContainer(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1026,21 +813,36 @@ class _ConfirmTransactionViewState
                         Text(
                           widget.isPaynymTransaction
                               ? "PayNym recipient"
+                              : hasMultipleRecipients
+                              ? "Recipients"
                               : "Recipient",
                           style: STextStyles.smallMed12(context),
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          widget.isPaynymTransaction
-                              ? widget.txData.paynymAccountLite!.nymName
-                              : widget.txData.recipients?.first.address ??
-                                    widget
-                                        .txData
-                                        .sparkRecipients!
-                                        .first
-                                        .address,
-                          style: STextStyles.itemSubtitle12(context),
-                        ),
+                        if (hasMultipleRecipients)
+                          RecipientAmountList(
+                            coin: coin,
+                            recipients: sentRecipients,
+                            labels: widget.recipientLabels,
+                            labelStyle: STextStyles.smallMed12(context),
+                            valueStyle: STextStyles.itemSubtitle12(context),
+                          )
+                        else
+                          Text(
+                            widget.isPaynymTransaction
+                                ? widget.txData.paynymAccountLite!.nymName
+                                : widget
+                                          .txData
+                                          .recipients
+                                          ?.firstOrNull
+                                          ?.address ??
+                                      widget
+                                          .txData
+                                          .sparkRecipients!
+                                          .first
+                                          .address,
+                            style: STextStyles.itemSubtitle12(context),
+                          ),
                       ],
                     ),
                   ),
@@ -1105,9 +907,8 @@ class _ConfirmTransactionViewState
                         ],
                       ),
                     ),
-                  if (widget.txData.fee != null && widget.txData.vSize != null)
-                    const SizedBox(height: 12),
-                  if (widget.txData.fee != null && widget.txData.vSize != null)
+                  if (feeRate != null) const SizedBox(height: 12),
+                  if (feeRate != null)
                     RoundedWhiteContainer(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1118,7 +919,7 @@ class _ConfirmTransactionViewState
                           ),
                           const SizedBox(height: 4),
                           SelectableText(
-                            "~${fee!.raw.toInt() ~/ widget.txData.vSize!}",
+                            feeRate,
                             style: STextStyles.itemSubtitle12(context),
                           ),
                         ],
@@ -1178,18 +979,18 @@ class _ConfirmTransactionViewState
                 ),
                 child: RoundedWhiteContainer(
                   padding: const EdgeInsets.all(0),
-                  borderColor: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.background,
+                  borderColor: Theme.of(context)
+                      .extension<StackColors>()!
+                      .background,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Container(
                         decoration: BoxDecoration(
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.background,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
                           borderRadius: BorderRadius.only(
                             topLeft: Radius.circular(
                               Constants.size.circularBorderRadius,
@@ -1356,10 +1157,45 @@ class _ConfirmTransactionViewState
                       ),
                       Container(
                         height: 1,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.background,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .background,
                       ),
+                      if (widget.txData.openAlias != null) ...[
+                        Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "OpenAlias",
+                                style: STextStyles.desktopTextExtraExtraSmall(
+                                  context,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              SelectableText(
+                                widget.txData.openAlias!,
+                                style:
+                                    STextStyles.desktopTextExtraExtraSmall(
+                                      context,
+                                    ).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          height: 1,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
+                        ),
+                      ],
                       Padding(
                         padding: const EdgeInsets.all(12),
                         child: Column(
@@ -1375,34 +1211,57 @@ class _ConfirmTransactionViewState
                               ),
                             ),
                             const SizedBox(height: 2),
-                            SelectableText(
-                              // TODO: [prio=med] spark transaction specifics - better handling
-                              widget.isPaynymTransaction
-                                  ? widget.txData.paynymAccountLite!.nymName
-                                  : widget.txData.recipients?.first.address ??
-                                        widget
-                                            .txData
-                                            .sparkRecipients!
-                                            .first
-                                            .address,
-                              style:
-                                  STextStyles.desktopTextExtraExtraSmall(
-                                    context,
-                                  ).copyWith(
-                                    color: Theme.of(
+                            if (hasMultipleRecipients)
+                              RecipientAmountList(
+                                coin: coin,
+                                recipients: sentRecipients,
+                                labels: widget.recipientLabels,
+                                labelStyle:
+                                    STextStyles.desktopTextExtraExtraSmall(
                                       context,
-                                    ).extension<StackColors>()!.textDark,
-                                  ),
-                            ),
+                                    ),
+                                valueStyle:
+                                    STextStyles.desktopTextExtraExtraSmall(
+                                      context,
+                                    ).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark,
+                                    ),
+                              )
+                            else
+                              SelectableText(
+                                // TODO: [prio=med] spark transaction specifics - better handling
+                                widget.isPaynymTransaction
+                                    ? widget.txData.paynymAccountLite!.nymName
+                                    : widget
+                                              .txData
+                                              .recipients
+                                              ?.firstOrNull
+                                              ?.address ??
+                                          widget
+                                              .txData
+                                              .sparkRecipients!
+                                              .first
+                                              .address,
+                                style:
+                                    STextStyles.desktopTextExtraExtraSmall(
+                                      context,
+                                    ).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark,
+                                    ),
+                              ),
                           ],
                         ),
                       ),
                       if (widget.isPaynymTransaction)
                         Container(
                           height: 1,
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.background,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
                         ),
                       if (widget.isPaynymTransaction)
                         Padding(
@@ -1424,9 +1283,9 @@ class _ConfirmTransactionViewState
                                     STextStyles.desktopTextExtraExtraSmall(
                                       context,
                                     ).copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textDark,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark,
                                     ),
                               ),
                             ],
@@ -1435,9 +1294,9 @@ class _ConfirmTransactionViewState
                       if (coin is Ethereum)
                         Container(
                           height: 1,
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.background,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
                         ),
                       if (coin is Ethereum)
                         Padding(
@@ -1459,9 +1318,9 @@ class _ConfirmTransactionViewState
                                     STextStyles.desktopTextExtraExtraSmall(
                                       context,
                                     ).copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textDark,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark,
                                     ),
                               ),
                             ],
@@ -1592,9 +1451,9 @@ class _ConfirmTransactionViewState
                         focusNode: _noteFocusNode,
                         style: STextStyles.desktopTextExtraSmall(context)
                             .copyWith(
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textFieldActiveText,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFieldActiveText,
                               height: 1.8,
                             ),
                         onChanged: (_) => setState(() {}),
@@ -1654,19 +1513,16 @@ class _ConfirmTransactionViewState
                     horizontal: 16,
                     vertical: 18,
                   ),
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldDefaultBG,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultBG,
                   child: SelectableText(
                     ref.watch(pAmountFormatter(coin)).format(fee!),
                     style: STextStyles.itemSubtitle(context),
                   ),
                 ),
               ),
-            if (isDesktop &&
-                !widget.isPaynymTransaction &&
-                widget.txData.fee != null &&
-                widget.txData.vSize != null)
+            if (isDesktop && !widget.isPaynymTransaction && feeRate != null)
               Padding(
                 padding: const EdgeInsets.only(left: 32),
                 child: Text(
@@ -1674,10 +1530,7 @@ class _ConfirmTransactionViewState
                   style: STextStyles.desktopTextExtraExtraSmall(context),
                 ),
               ),
-            if (isDesktop &&
-                !widget.isPaynymTransaction &&
-                widget.txData.fee != null &&
-                widget.txData.vSize != null)
+            if (isDesktop && !widget.isPaynymTransaction && feeRate != null)
               Padding(
                 padding: const EdgeInsets.only(top: 10, left: 32, right: 32),
                 child: RoundedContainer(
@@ -1685,11 +1538,11 @@ class _ConfirmTransactionViewState
                     horizontal: 16,
                     vertical: 18,
                   ),
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldDefaultBG,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultBG,
                   child: SelectableText(
-                    "~${fee!.raw.toInt() ~/ widget.txData.vSize!}",
+                    feeRate,
                     style: STextStyles.itemSubtitle(context),
                   ),
                 ),
@@ -1705,22 +1558,21 @@ class _ConfirmTransactionViewState
                   padding: isDesktop
                       ? const EdgeInsets.symmetric(horizontal: 16, vertical: 18)
                       : const EdgeInsets.all(12),
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.snackBarBackSuccess,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .snackBarBackSuccess,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         isDesktop ? "Total amount to send" : "Total amount",
                         style: isDesktop
-                            ? STextStyles.desktopTextExtraExtraSmall(
-                                context,
-                              ).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textConfirmTotalAmount,
-                              )
+                            ? STextStyles.desktopTextExtraExtraSmall(context)
+                                  .copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textConfirmTotalAmount,
+                                  )
                             : STextStyles.titleBold12(context).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
@@ -1732,13 +1584,12 @@ class _ConfirmTransactionViewState
                             .watch(pAmountFormatter(coin))
                             .format(amountWithoutChange + fee!),
                         style: isDesktop
-                            ? STextStyles.desktopTextExtraExtraSmall(
-                                context,
-                              ).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textConfirmTotalAmount,
-                              )
+                            ? STextStyles.desktopTextExtraExtraSmall(context)
+                                  .copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textConfirmTotalAmount,
+                                  )
                             : STextStyles.itemSubtitle12(context).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
@@ -1750,22 +1601,31 @@ class _ConfirmTransactionViewState
                   ),
                 ),
               ),
+            if (widget.txData.txids.length > 1)
+              Padding(
+                padding: isDesktop
+                    ? const .symmetric(horizontal: 32, vertical: 16)
+                    : const .symmetric(vertical: 8),
+                child: SplitTransactionWarning(
+                  transactionCount: widget.txData.txids.length,
+                ),
+              ),
             if (_spendsOrdinal)
               Padding(
                 padding: isDesktop
                     ? const EdgeInsets.symmetric(horizontal: 32, vertical: 8)
                     : const EdgeInsets.symmetric(vertical: 8),
                 child: RoundedContainer(
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.warningBackground,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .warningBackground,
                   child: Row(
                     children: [
                       Icon(
                         Icons.warning_amber_rounded,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.warningForeground,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .warningForeground,
                         size: 20,
                       ),
                       const SizedBox(width: 8),
@@ -1774,9 +1634,9 @@ class _ConfirmTransactionViewState
                           "This transaction spends a UTXO containing "
                           "an ordinal inscription.",
                           style: STextStyles.smallMed12(context).copyWith(
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.warningForeground,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .warningForeground,
                           ),
                         ),
                       ),
@@ -1798,9 +1658,10 @@ class _ConfirmTransactionViewState
                       final useMock = ref
                           .read(prefsChangeNotifierProvider)
                           .enableMockHardwareAutoSigner;
-                      final deviceFamily = wallet.info
-                          .otherData[WalletInfoKeys.hardwareDeviceFamilyKey]
-                          as String?;
+                      final deviceFamily =
+                          wallet.info.otherData[WalletInfoKeys
+                                  .hardwareDeviceFamilyKey]
+                              as String?;
 
                       ref.read(hardwareSigningStateProvider.notifier).state =
                           HardwareSessionState.idle;
@@ -1808,30 +1669,31 @@ class _ConfirmTransactionViewState
                           null;
                       _signedRawTxHex = null;
 
-                      final otherDataMap =
-                          widget.txData.otherData != null
-                              ? jsonDecode(widget.txData.otherData!)
-                                  as Map<String, dynamic>
-                              : <String, dynamic>{};
+                      final otherDataMap = widget.txData.otherData != null
+                          ? jsonDecode(widget.txData.otherData!)
+                                as Map<String, dynamic>
+                          : <String, dynamic>{};
                       final psbt = otherDataMap['psbt'] as String?;
 
                       bool? approved;
                       if (!useMock &&
-                          deviceFamily == HardwareWalletDeviceFamily
-                              .ledger.name &&
+                          deviceFamily ==
+                              HardwareWalletDeviceFamily.ledger.name &&
                           psbt != null) {
-                        final adapter = ref.read(
-                          hardwareAdapterProvider(
-                            HardwareWalletDeviceFamily.ledger,
-                          ),
-                        )! as LedgerUsbAdapter;
+                        final adapter =
+                            ref.read(
+                                  hardwareAdapterProvider(
+                                    HardwareWalletDeviceFamily.ledger,
+                                  ),
+                                )!
+                                as LedgerUsbAdapter;
                         var device = adapter.connectedDevice;
                         if (device == null) {
                           final reconnected =
                               await HardwareReconnectDialog.show(
-                            context,
-                            HardwareWalletDeviceFamily.ledger,
-                          );
+                                context,
+                                HardwareWalletDeviceFamily.ledger,
+                              );
                           if (reconnected != true) {
                             if (mounted) {
                               Navigator.of(context).pop();
@@ -1871,26 +1733,42 @@ class _ConfirmTransactionViewState
                         );
 
                         if (approved == true && context.mounted) {
-                          final signingResult =
-                              ref.read(hardwareSigningResultProvider);
-                          if (signingResult != null &&
-                              signingResult
-                                  .containsKey('signedPsbt')) {
-                            final signedPsbt =
-                                signingResult['signedPsbt'] as String;
-                            _signedRawTxHex =
-                                PsbtFinalizer().finalize(signedPsbt);
+                          final signingResult = ref.read(
+                            hardwareSigningResultProvider,
+                          );
+                          try {
+                            final raw = signingResult?['signedTransaction'];
+                            if (raw is! String ||
+                                raw.isEmpty ||
+                                raw.length.isOdd ||
+                                !RegExp(r'^[0-9a-fA-F]+$').hasMatch(raw)) {
+                              throw const FormatException(
+                                "Missing signed transaction",
+                              );
+                            }
+                            validateLedgerSignedTransaction(raw, psbt);
+                            _signedRawTxHex = raw;
+                          } catch (_) {
+                            if (context.mounted) {
+                              unawaited(
+                                showFloatingFlushBar(
+                                  type: FlushBarType.warning,
+                                  message: "The hardware wallet did not return a valid signed transaction.",
+                                  context: context,
+                                ),
+                              );
+                            }
+                            return;
                           }
                         }
-                      } else {
+                      } else if (useMock) {
                         final autoApprove = ref
                             .read(prefsChangeNotifierProvider)
                             .enableMockHardwareAutoSigner;
                         final mockService = MockHardwareWalletService(
-                          signingStateController: ref
-                              .read(
-                                hardwareSigningStateProvider.notifier,
-                              ),
+                          signingStateController: ref.read(
+                            hardwareSigningStateProvider.notifier,
+                          ),
                           autoApprove: autoApprove,
                         );
 
@@ -1904,6 +1782,17 @@ class _ConfirmTransactionViewState
                             payload: {},
                           ),
                         );
+                      } else {
+                        if (context.mounted) {
+                          unawaited(
+                            showFloatingFlushBar(
+                              type: FlushBarType.warning,
+                              message: "A supported hardware wallet and unsigned transaction are required.",
+                              context: context,
+                            ),
+                          );
+                        }
+                        return;
                       }
 
                       if (approved == true && context.mounted) {
@@ -1952,9 +1841,19 @@ class _ConfirmTransactionViewState
                       }
                     }
                   } else {
-                    final unlocked = await Navigator.push(
+                    if (wallet.info.isHardwareWallet) {
+                      unawaited(
+                        showFloatingFlushBar(
+                          type: FlushBarType.warning,
+                          message: "Hardware wallet signing is available on desktop only.",
+                          context: context,
+                        ),
+                      );
+                      return;
+                    }
+                    final unlocked = await Navigator.push<bool>(
                       context,
-                      RouteGenerator.getRoute(
+                      RouteGenerator.getRoute<bool>(
                         shouldUseMaterialRoute:
                             RouteGenerator.useMaterialPageRoute,
                         builder: (_) => const LockscreenView(

@@ -14,6 +14,7 @@ import '../../utilities/extensions/impl/uint8_list.dart';
 import '../../widgets/eth_fee_form.dart';
 import '../../wl_gen/interfaces/cs_monero_interface.dart'
     show CsPendingTransaction;
+import '../../wl_gen/interfaces/xelis_types.dart';
 import '../isar/models/spark_coin.dart';
 import 'name_op_state.dart';
 import 'tx_recipient.dart';
@@ -44,7 +45,10 @@ class TxData {
 
   final String? raw;
 
-  final String? txid;
+  final List<String> txids;
+
+  /// Only available when this send contains exactly one transaction.
+  String? get txid => txids.length == 1 ? txids.single : null;
   final String? txHash;
 
   final String? note;
@@ -53,6 +57,11 @@ class TxData {
   final String? memo;
 
   final List<TxRecipient>? recipients;
+
+  /// The OpenAlias, trimmed and lowercased, that the recipient's address was
+  /// resolved from.
+  final String? openAlias;
+
   final Set<BaseInput>? utxos;
   final List<BaseInput>? usedUTXOs;
 
@@ -87,6 +96,7 @@ class TxData {
   final List<({String address, Amount amount, String memo, bool isChange})>?
   sparkRecipients;
   final List<TxData>? sparkMints;
+  final List<TxData>? sparkSpends;
   final List<SparkCoin>? usedSparkCoins;
   final ({
     String additionalInfo,
@@ -100,10 +110,13 @@ class TxData {
 
   // xelis specific
   final String? otherData;
+  final XelisPreparedTransaction? xelisPreparedTransaction;
+  final bool xelisSendAll;
 
   final TransactionV2? tempTx;
 
   final bool ignoreCachedBalanceChecks;
+  final bool subtractFeeFromAmount;
 
   // Namecoin Name related
   final NameOpState? opNameState;
@@ -112,6 +125,9 @@ class TxData {
 
   final bool salviumStakeTx;
 
+  // Generic OP_RETURN data (hex string) - for Rosen Bridge and other protocols
+  final String? opReturnData;
+
   TxData({
     this.feeRateType,
     this.feeRateAmount,
@@ -119,12 +135,14 @@ class TxData {
     this.fee,
     this.vSize,
     this.raw,
-    this.txid,
+    String? txid,
+    List<String>? txids,
     this.txHash,
     this.note,
     this.noteOnChain,
     this.memo,
     this.recipients,
+    this.openAlias,
     this.utxos,
     this.usedUTXOs,
     this.changeAddress,
@@ -141,17 +159,22 @@ class TxData {
     this.tezosOperationsList,
     this.sparkRecipients,
     this.otherData,
+    this.xelisPreparedTransaction,
+    this.xelisSendAll = false,
     this.sparkMints,
+    this.sparkSpends,
     this.usedSparkCoins,
     this.tempTx,
     this.ignoreCachedBalanceChecks = false,
+    this.subtractFeeFromAmount = false,
     this.opNameState,
     this.sparkNameInfo,
     this.vExtraData,
     this.overrideVersion,
+    this.opReturnData,
     this.type = TxType.regular,
     this.salviumStakeTx = false,
-  });
+  }) : txids = List.unmodifiable(txids ?? (txid == null ? <String>[] : [txid]));
 
   Amount? get amount {
     if (recipients != null && recipients!.isNotEmpty) {
@@ -251,6 +274,8 @@ class TxData {
       : null;
 
   TxData copyWith({
+    XelisPreparedTransaction? xelisPreparedTransaction,
+    bool? xelisSendAll,
     FeeRateType? feeRateType,
     BigInt? feeRateAmount,
     int? satsPerVByte,
@@ -258,14 +283,17 @@ class TxData {
     int? vSize,
     String? raw,
     String? txid,
+    List<String>? txids,
     String? txHash,
     String? note,
     String? noteOnChain,
     String? memo,
     String? otherData,
+    String? opReturnData,
     Set<BaseInput>? utxos,
     List<BaseInput>? usedUTXOs,
     List<TxRecipient>? recipients,
+    String? openAlias,
     String? frostMSConfig,
     List<String>? frostSigners,
     String? changeAddress,
@@ -287,9 +315,11 @@ class TxData {
     List<({String address, Amount amount, String memo, bool isChange})>?
     sparkRecipients,
     List<TxData>? sparkMints,
+    List<TxData>? sparkSpends,
     List<SparkCoin>? usedSparkCoins,
     TransactionV2? tempTx,
     bool? ignoreCachedBalanceChecks,
+    bool? subtractFeeFromAmount,
     NameOpState? opNameState,
     ({
       String additionalInfo,
@@ -309,7 +339,7 @@ class TxData {
       fee: fee ?? this.fee,
       vSize: vSize ?? this.vSize,
       raw: raw ?? this.raw,
-      txid: txid ?? this.txid,
+      txids: txids ?? (txid == null ? this.txids : [txid]),
       txHash: txHash ?? this.txHash,
       note: note ?? this.note,
       noteOnChain: noteOnChain ?? this.noteOnChain,
@@ -318,6 +348,7 @@ class TxData {
       utxos: utxos ?? this.utxos,
       usedUTXOs: usedUTXOs ?? this.usedUTXOs,
       recipients: recipients ?? this.recipients,
+      openAlias: openAlias ?? this.openAlias,
       frostMSConfig: frostMSConfig ?? this.frostMSConfig,
       frostSigners: frostSigners ?? this.frostSigners,
       changeAddress: changeAddress ?? this.changeAddress,
@@ -328,19 +359,26 @@ class TxData {
       chainId: chainId ?? this.chainId,
       solInstructions: solInstructions ?? this.solInstructions,
       pendingTransaction: pendingTransaction ?? this.pendingTransaction,
+      xelisPreparedTransaction:
+          xelisPreparedTransaction ?? this.xelisPreparedTransaction,
+      xelisSendAll: xelisSendAll ?? this.xelisSendAll,
       pendingSalviumTransaction:
           pendingSalviumTransaction ?? this.pendingSalviumTransaction,
       tezosOperationsList: tezosOperationsList ?? this.tezosOperationsList,
       sparkRecipients: sparkRecipients ?? this.sparkRecipients,
       sparkMints: sparkMints ?? this.sparkMints,
+      sparkSpends: sparkSpends ?? this.sparkSpends,
       usedSparkCoins: usedSparkCoins ?? this.usedSparkCoins,
       tempTx: tempTx ?? this.tempTx,
       ignoreCachedBalanceChecks:
           ignoreCachedBalanceChecks ?? this.ignoreCachedBalanceChecks,
+      subtractFeeFromAmount:
+          subtractFeeFromAmount ?? this.subtractFeeFromAmount,
       opNameState: opNameState ?? this.opNameState,
       sparkNameInfo: sparkNameInfo ?? this.sparkNameInfo,
       vExtraData: vExtraData ?? this.vExtraData,
       overrideVersion: overrideVersion ?? this.overrideVersion,
+      opReturnData: opReturnData ?? this.opReturnData,
       type: type ?? this.type,
     );
   }
@@ -354,7 +392,7 @@ class TxData {
       'fee: $fee, '
       'vSize: $vSize, '
       'raw: $raw, '
-      'txid: $txid, '
+      'txids: $txids, '
       'txHash: $txHash, '
       'note: $note, '
       'noteOnChain: $noteOnChain, '
@@ -375,14 +413,17 @@ class TxData {
       'tezosOperationsList: $tezosOperationsList, '
       'sparkRecipients: $sparkRecipients, '
       'sparkMints: $sparkMints, '
+      'sparkSpends: $sparkSpends, '
       'usedSparkCoins: $usedSparkCoins, '
       'otherData: $otherData, '
       'tempTx: $tempTx, '
       'ignoreCachedBalanceChecks: $ignoreCachedBalanceChecks, '
+      'subtractFeeFromAmount: $subtractFeeFromAmount, '
       'opNameState: $opNameState, '
       'sparkNameInfo: $sparkNameInfo, '
       'vExtraData: ${vExtraData?.toHex}, '
       'overrideVersion: $overrideVersion, '
+      'opReturnData: $opReturnData, '
       'type: $type, '
       '}';
 }

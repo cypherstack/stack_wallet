@@ -1,6 +1,10 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:ledger_bitcoin/ledger_bitcoin.dart' as ledger;
+import 'package:coinlib/coinlib.dart' as coinlib;
+import 'package:flutter/foundation.dart' show listEquals;
+
 /// BIP-174 PSBT magic bytes: "psbt" + 0xff separator.
 const List<int> _psbtMagic = [0x70, 0x73, 0x62, 0x74, 0xff];
 
@@ -25,6 +29,12 @@ class PsbtInput {
   /// Output index in the previous transaction.
   final int vout;
 
+  /// Full authenticated parent transaction, supplied to the Ledger signer.
+  final Uint8List? previousTransaction;
+
+  /// Sequence selected for the transaction, including its RBF policy.
+  final int sequence;
+
   /// Value in satoshis.
   final int value;
 
@@ -41,6 +51,8 @@ class PsbtInput {
   PsbtInput({
     required this.txid,
     required this.vout,
+    this.previousTransaction,
+    this.sequence = 0xfffffffd,
     required this.value,
     required this.scriptPubKey,
     required this.derivationPath,
@@ -128,6 +140,48 @@ class PsbtBuilder {
     }
   }
 
+  /// Build the BIP-370 PSBTv2 format required by ledger_bitcoin.
+  String buildLedger() {
+    final psbt = ledger.PsbtV2()
+      ..setGlobalPsbtVersion(2)
+      ..setGlobalTxVersion(txVersion)
+      ..setGlobalFallbackLocktime(locktime)
+      ..setGlobalInputCount(inputs.length)
+      ..setGlobalOutputCount(outputs.length);
+    for (var i = 0; i < inputs.length; i++) {
+      final input = inputs[i];
+      if (input.previousTransaction != null) {
+        psbt.setInputNonWitnessUtxo(i, input.previousTransaction!);
+      }
+      psbt
+        ..setInputPreviousTxId(i, input.txid)
+        ..setInputOutputIndex(i, input.vout)
+        ..setInputSequence(i, input.sequence)
+        ..setInputWitnessUtxo(i, _uint64LE(input.value), input.scriptPubKey)
+        ..setInputBip32Derivation(
+          i,
+          input.publicKey,
+          masterFingerprint,
+          input.derivationPath,
+        );
+    }
+    for (var i = 0; i < outputs.length; i++) {
+      final output = outputs[i];
+      psbt
+        ..setOutputAmount(i, output.value)
+        ..setOutputScript(i, output.scriptPubKey);
+      if (output.isChange) {
+        psbt.setOutputBip32Derivation(
+          i,
+          output.publicKey!,
+          masterFingerprint,
+          output.derivationPath!,
+        );
+      }
+    }
+    return base64Encode(psbt.serialize());
+  }
+
   /// Build a base64-encoded BIP-174 PSBT string.
   String build() {
     final buf = BytesBuilder();
@@ -192,7 +246,7 @@ class PsbtBuilder {
       // scriptSig: empty (varint 0x00).
       buf.addByte(0x00);
       // Sequence: 0xfffffffd (RBF-enabled default).
-      buf.add(_uint32LE(0xfffffffd));
+      buf.add(_uint32LE(input.sequence));
     }
 
     // Output count (varint).
@@ -222,10 +276,7 @@ class PsbtBuilder {
   }
 
   /// Serialize BIP32 derivation: 4-byte fingerprint + path as uint32 LE values.
-  Uint8List _serializeBip32Derivation(
-    Uint8List fingerprint,
-    List<int> path,
-  ) {
+  Uint8List _serializeBip32Derivation(Uint8List fingerprint, List<int> path) {
     final buf = BytesBuilder();
     buf.add(fingerprint);
     for (final component in path) {
@@ -244,6 +295,40 @@ class PsbtBuilder {
     buf.add(key);
     buf.add(_varint(value.length));
     buf.add(value);
+  }
+}
+
+/// Rejects a signed transaction whose inputs or outputs differ from the PSBT
+/// reviewed by the user. This also ensures it parses as a signed SegWit tx.
+void validateLedgerSignedTransaction(String rawHex, String originalPsbt) {
+  final expected = ledger.PsbtV2()..deserialize(base64Decode(originalPsbt));
+  final tx = coinlib.Transaction.fromHex(rawHex, expectWitness: true);
+  if (tx.toHex().toLowerCase() != rawHex.toLowerCase() ||
+      !tx.isWitness ||
+      !tx.complete ||
+      tx.version != expected.getGlobalTxVersion() ||
+      tx.locktime != (expected.getGlobalFallbackLocktime() ?? 0) ||
+      tx.inputs.length != expected.getGlobalInputCount() ||
+      tx.outputs.length != expected.getGlobalOutputCount()) {
+    throw const FormatException(
+      "Signed transaction does not match the requested transaction",
+    );
+  }
+  for (var i = 0; i < tx.inputs.length; i++) {
+    final input = tx.inputs[i];
+    if (input is! coinlib.WitnessInput ||
+        !listEquals(input.prevOut.hash, expected.getInputPreviousTxid(i)) ||
+        input.prevOut.n != expected.getInputOutputIndex(i) ||
+        input.sequence != expected.getInputSequence(i)) {
+      throw const FormatException("Signed transaction inputs do not match");
+    }
+  }
+  for (var i = 0; i < tx.outputs.length; i++) {
+    final output = tx.outputs[i];
+    if (output.value != BigInt.from(expected.getOutputAmount(i)) ||
+        !listEquals(output.scriptPubKey, expected.getOutputScript(i))) {
+      throw const FormatException("Signed transaction outputs do not match");
+    }
   }
 }
 
@@ -294,11 +379,9 @@ class PsbtFinalizer {
       final scriptSigLen = txReader.readVarint();
       txReader.readBytes(scriptSigLen); // skip scriptSig (empty in PSBT)
       final sequence = txReader.readUint32LE();
-      txInputs.add(_TxInput(
-        prevTxid: prevTxid,
-        prevVout: prevVout,
-        sequence: sequence,
-      ));
+      txInputs.add(
+        _TxInput(prevTxid: prevTxid, prevVout: prevVout, sequence: sequence),
+      );
     }
 
     final outputCount = txReader.readVarint();
@@ -379,7 +462,10 @@ class PsbtFinalizer {
     finalTx.add(_uint32LE(locktime));
 
     // Return hex.
-    return finalTx.toBytes().map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+    return finalTx
+        .toBytes()
+        .map((b) => b.toRadixString(16).padLeft(2, '0'))
+        .join();
   }
 }
 
@@ -430,7 +516,8 @@ class _PsbtReader {
       return _data[_offset++] | (_data[_offset++] << 8);
     }
     if (first == 0xfe) {
-      final v = _data[_offset] |
+      final v =
+          _data[_offset] |
           (_data[_offset + 1] << 8) |
           (_data[_offset + 2] << 16) |
           (_data[_offset + 3] << 24);

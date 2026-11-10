@@ -82,6 +82,8 @@ class DetailItemBase extends StatelessWidget {
     this.borderColor,
     this.expandDetail = false,
     this.noPadding = false,
+    this.crossAxisAlignment,
+    this.mainAxisAlignment,
   });
 
   final Widget title;
@@ -91,6 +93,8 @@ class DetailItemBase extends StatelessWidget {
   final Color? borderColor;
   final bool expandDetail;
   final bool noPadding;
+  final CrossAxisAlignment? crossAxisAlignment;
+  final MainAxisAlignment? mainAxisAlignment;
 
   @override
   Widget build(BuildContext context) {
@@ -113,7 +117,8 @@ class DetailItemBase extends StatelessWidget {
         ),
         child: horizontal
             ? Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: mainAxisAlignment ?? .spaceBetween,
+                crossAxisAlignment: crossAxisAlignment ?? .center,
                 children: [
                   title,
                   if (expandDetail) const SizedBox(width: 16),
@@ -125,7 +130,8 @@ class DetailItemBase extends StatelessWidget {
                 ],
               )
             : Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: mainAxisAlignment ?? .start,
+                crossAxisAlignment: crossAxisAlignment ?? .start,
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,

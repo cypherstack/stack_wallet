@@ -107,8 +107,7 @@ class Tezos extends Bip39Currency {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
-          // TODO: ?Change this to stack wallet one?
-          host: "https://mainnet.api.tez.ie",
+          host: "https://tezos.stackwallet.com",
           port: 443,
           name: DefaultNodes.defaultName,
           id: DefaultNodes.buildId(this),

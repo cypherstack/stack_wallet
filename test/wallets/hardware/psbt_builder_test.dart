@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ledger_bitcoin/ledger_bitcoin.dart' as ledger;
 import 'package:stackwallet/wallets/hardware/psbt_builder.dart';
 
 /// Helper to create a 32-byte txid from a hex string (reversed to internal byte order).
@@ -37,15 +39,51 @@ Uint8List _masterFingerprint() => Uint8List.fromList([0x12, 0x34, 0x56, 0x78]);
 
 /// BIP-84 derivation path: m/84'/0'/0'/0/0 with hardened markers.
 List<int> _bip84Path({int change = 0, int index = 0}) => [
-      0x80000000 + 84, // 84'
-      0x80000000 + 0, // 0'
-      0x80000000 + 0, // 0'
-      change,
-      index,
-    ];
+  0x80000000 + 84, // 84'
+  0x80000000 + 0, // 0'
+  0x80000000 + 0, // 0'
+  change,
+  index,
+];
 
 void main() {
   group('PsbtBuilder', () {
+    test('Ledger PSBTv2 is readable by the signing library', () {
+      final input = PsbtInput(
+        txid: Uint8List.fromList(List.generate(32, (i) => i)),
+        vout: 2,
+        previousTransaction: Uint8List.fromList([1, 2, 3]),
+        sequence: 0xfffffffe,
+        value: 125000,
+        scriptPubKey: _p2wpkhScript(_fakePubKeyHash()),
+        derivationPath: _bip84Path(),
+        publicKey: _fakePubKey(),
+      );
+      final output = PsbtOutput(
+        value: 120000,
+        scriptPubKey: _p2wpkhScript(_fakePubKeyHash(0xbb)),
+      );
+      final encoded = PsbtBuilder(
+        masterFingerprint: _masterFingerprint(),
+        inputs: [input],
+        outputs: [output],
+      ).buildLedger();
+      final psbt = ledger.PsbtV2()..deserialize(base64Decode(encoded));
+      expect(psbt.getGlobalPsbtVersion(), 2);
+      expect(psbt.getGlobalInputCount(), 1);
+      expect(psbt.getGlobalOutputCount(), 1);
+      expect(psbt.getInputPreviousTxid(0), input.txid);
+      expect(psbt.getInputOutputIndex(0), 2);
+      expect(psbt.getInputNonWitnessUtxo(0), [1, 2, 3]);
+      expect(psbt.getInputSequence(0), 0xfffffffe);
+      expect(psbt.getOutputAmount(0), 120000);
+      expect(psbt.getOutputScript(0), output.scriptPubKey);
+      expect(
+        psbt.getInputBip32Derivation(0, input.publicKey)!.$2,
+        input.derivationPath,
+      );
+    });
+
     test('output starts with BIP-174 magic bytes', () {
       final psbtBase64 = _buildSimplePsbt();
       final bytes = base64Decode(psbtBase64);
@@ -195,8 +233,9 @@ void main() {
       final pubKeyHex = changePubKey
           .map((b) => b.toRadixString(16).padLeft(2, '0'))
           .join();
-      final psbtHex =
-          bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+      final psbtHex = bytes
+          .map((b) => b.toRadixString(16).padLeft(2, '0'))
+          .join();
       expect(psbtHex.contains(pubKeyHex), true);
     });
 
@@ -347,6 +386,51 @@ void main() {
     });
   });
 
+  test('Ledger signed transaction must preserve reviewed inputs and outputs', () {
+    final pubKey = _fakePubKey(0x02);
+    PsbtBuilder builder(int outputValue) => PsbtBuilder(
+      masterFingerprint: _masterFingerprint(),
+      inputs: [
+        PsbtInput(
+          txid: _txidFromHex(
+            'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          ),
+          vout: 0,
+          value: 50000,
+          scriptPubKey: _p2wpkhScript(_fakePubKeyHash(0xaa)),
+          derivationPath: _bip84Path(),
+          publicKey: pubKey,
+        ),
+      ],
+      outputs: [
+        PsbtOutput(
+          value: outputValue,
+          scriptPubKey: _p2wpkhScript(_fakePubKeyHash(0xbb)),
+        ),
+      ],
+    );
+    final psbt = builder(49000);
+    final raw = PsbtFinalizer().finalize(
+      _injectPartialSignature(psbt.build(), pubKey),
+    );
+    expect(
+      () => validateLedgerSignedTransaction(raw, psbt.buildLedger()),
+      returnsNormally,
+    );
+    expect(
+      () => validateLedgerSignedTransaction(raw, builder(48000).buildLedger()),
+      throwsFormatException,
+    );
+    expect(
+      () => validateLedgerSignedTransaction('00', psbt.buildLedger()),
+      throwsA(anything),
+    );
+    expect(
+      () => validateLedgerSignedTransaction('${raw}00', psbt.buildLedger()),
+      throwsFormatException,
+    );
+  });
+
   group('PsbtFinalizer', () {
     test('round-trip: build PSBT, inject signature, finalize to raw tx', () {
       // Build a PSBT.
@@ -372,20 +456,14 @@ void main() {
     test('throws on invalid magic bytes', () {
       final badPsbt = base64Encode(Uint8List.fromList([0x00, 0x01, 0x02]));
       final finalizer = PsbtFinalizer();
-      expect(
-        () => finalizer.finalize(badPsbt),
-        throwsFormatException,
-      );
+      expect(() => finalizer.finalize(badPsbt), throwsFormatException);
     });
 
     test('throws on missing partial signature', () {
       // Build a valid PSBT but don't inject any signature.
       final psbtBase64 = _buildSimplePsbt();
       final finalizer = PsbtFinalizer();
-      expect(
-        () => finalizer.finalize(psbtBase64),
-        throwsFormatException,
-      );
+      expect(() => finalizer.finalize(psbtBase64), throwsFormatException);
     });
   });
 }

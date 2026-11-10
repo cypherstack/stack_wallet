@@ -18,7 +18,7 @@ class Address {
     required this.zip,
     required this.city,
     required this.country,
-    this.state,
+    required this.state,
   });
 
   Map<String, dynamic> toJson() => {

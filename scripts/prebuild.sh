@@ -1,10 +1,29 @@
 #!/bin/bash
 
+set -e
+cd -- "$(dirname -- "${BASH_SOURCE[0]}")"
+
 # Create template lib/external_api_keys.dart file if it doesn't already exist
 KEYS=../lib/external_api_keys.dart
 if ! test -f "$KEYS"; then
     echo 'prebuild.sh: creating template lib/external_api_keys.dart file'
-    printf 'const kChangeNowApiKey = "";\nconst kSimpleSwapApiKey = "";\nconst kNanswapApiKey = "";\nconst kNanoSwapRpcApiKey = "";\nconst kWizSwapApiKey = "";\nconst kShopInBitAccessKey = "";\nconst kShopInBitPartnerSecret = "";\nconst kCakePayApiToken = "";\nconst kExolixApiKey = "";\n' > $KEYS
+    cat << 'EOF' > "$KEYS"
+const kChangeNowApiKey = "";
+const kSimpleSwapApiKey = "";
+const kNanswapApiKey = "";
+const kNanoSwapRpcApiKey = "";
+const kWizSwapApiKey = "";
+const kShopInBitAccessKey = "";
+const kShopInBitPartnerSecret = "";
+const kCakePayApiToken = "";
+const kExolixApiKey = "";
+const kLetsExchangeId = "";
+const kLetsExchangeToken = "";
+const kCypherGoatApiKey = "";
+const kCypherGoatAffiliate = "";
+const kTrocadorApiKey = "";
+const kTrocadorRefCode = "";
+EOF
 fi
 
 # Create template wallet test parameter files if they don't already exist

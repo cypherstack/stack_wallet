@@ -148,8 +148,9 @@ class _HardwareWalletConnectViewState
 
       if (useMock) {
         final mockService = MockHardwareWalletService(
-          signingStateController:
-              ref.read(hardwareSessionStateProvider.notifier),
+          signingStateController: ref.read(
+            hardwareSessionStateProvider.notifier,
+          ),
           autoApprove: true,
         );
         const path = "m/84'/0'/0'";
@@ -174,9 +175,7 @@ class _HardwareWalletConnectViewState
         if (connection == null) {
           throw Exception('Ledger not connected');
         }
-        final service = LedgerBitcoinService(
-          connection: connection,
-        );
+        final service = LedgerBitcoinService(connection: connection);
 
         // TODO [prio=med]: account discovery. This is hardcoded to the first
         // mainnet Bitcoin BIP84 account (m/84'/0'/0') and does not support
@@ -240,15 +239,12 @@ class _HardwareWalletConnectViewState
 
       if (mounted) {
         if (isDesktop) {
-          Navigator.of(
-            context,
-          ).popUntil(ModalRoute.withName(DesktopHomeView.routeName));
+          Navigator.of(context)
+              .popUntil(ModalRoute.withName(DesktopHomeView.routeName));
         } else {
           unawaited(
-            Navigator.of(context).pushNamedAndRemoveUntil(
-              HomeView.routeName,
-              (route) => false,
-            ),
+            Navigator.of(context)
+                .pushNamedAndRemoveUntil(HomeView.routeName, (route) => false),
           );
         }
       }
@@ -277,13 +273,24 @@ class _HardwareWalletConnectViewState
           leading: AppBarBackButton(),
           trailing: ExitToMyStackButton(),
         ),
-        body: SizedBox(width: 480, child: _content()),
+        body: SizedBox(
+          width: 480,
+          child: LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: IntrinsicHeight(child: _content()),
+              ),
+            ),
+          ),
+        ),
       );
     } else {
       return Background(
         child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
             leading: const AppBarBackButton(),
             title: Text(
@@ -322,8 +329,9 @@ class _HardwareWalletConnectViewState
     final devices = ref.watch(hardwareDevicesProvider);
 
     return Column(
-      crossAxisAlignment:
-          isDesktop ? CrossAxisAlignment.center : CrossAxisAlignment.stretch,
+      crossAxisAlignment: isDesktop
+          ? CrossAxisAlignment.center
+          : CrossAxisAlignment.stretch,
       children: [
         if (isDesktop) const Spacer(flex: 10),
         if (!isDesktop) const SizedBox(height: 4),
@@ -345,11 +353,7 @@ class _HardwareWalletConnectViewState
         SizedBox(height: isDesktop ? 32 : 24),
         _buildFamilySelection(selectedFamily),
         SizedBox(height: isDesktop ? 32 : 24),
-        _buildStateContent(
-          sessionState,
-          selectedFamily,
-          devices,
-        ),
+        _buildStateContent(sessionState, selectedFamily, devices),
         if (!isDesktop) const Spacer(),
         const SizedBox(height: 16),
         _buildBottomActions(sessionState, selectedFamily),
@@ -359,11 +363,10 @@ class _HardwareWalletConnectViewState
     );
   }
 
-  Widget _buildFamilySelection(
-    HardwareWalletDeviceFamily? selectedFamily,
-  ) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+  Widget _buildFamilySelection(HardwareWalletDeviceFamily? selectedFamily) {
+    return Wrap(
+      alignment: WrapAlignment.center,
+      runSpacing: 12,
       children: HardwareWalletDeviceFamily.values.map((family) {
         final isSelected = selectedFamily == family;
         final isComingSoon = family == HardwareWalletDeviceFamily.foundation;
@@ -373,14 +376,11 @@ class _HardwareWalletConnectViewState
           child: Opacity(
             opacity: isComingSoon ? 0.5 : 1.0,
             child: RoundedWhiteContainer(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 12,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               borderColor: isSelected
                   ? Theme.of(context)
-                      .extension<StackColors>()!
-                      .textFieldActiveBG
+                        .extension<StackColors>()!
+                        .textFieldActiveBG
                   : null,
               onPressed: isComingSoon ? null : () => _onFamilySelected(family),
               child: Column(
@@ -392,20 +392,20 @@ class _HardwareWalletConnectViewState
                         ? STextStyles.desktopTextMedium(context).copyWith(
                             color: isSelected
                                 ? Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark
+                                      .extension<StackColors>()!
+                                      .textDark
                                 : Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textSubtitle1,
+                                      .extension<StackColors>()!
+                                      .textSubtitle1,
                           )
                         : STextStyles.field(context).copyWith(
                             color: isSelected
                                 ? Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark
+                                      .extension<StackColors>()!
+                                      .textDark
                                 : Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textSubtitle1,
+                                      .extension<StackColors>()!
+                                      .textSubtitle1,
                           ),
                   ),
                   if (isComingSoon) ...[
@@ -658,15 +658,9 @@ class _HardwareWalletConnectViewState
           onPressed: selectedFamily != null ? _onScanPressed : null,
         );
       case HardwareSessionState.scanning:
-        return SecondaryButton(
-          label: "Cancel",
-          onPressed: _onCancelPressed,
-        );
+        return SecondaryButton(label: "Cancel", onPressed: _onCancelPressed);
       case HardwareSessionState.deviceFound:
-        return SecondaryButton(
-          label: "Refresh",
-          onPressed: _onRetryPressed,
-        );
+        return SecondaryButton(label: "Refresh", onPressed: _onRetryPressed);
       case HardwareSessionState.connecting:
       case HardwareSessionState.approvalPending:
         return const SizedBox.shrink();
@@ -678,10 +672,7 @@ class _HardwareWalletConnectViewState
         );
       case HardwareSessionState.timeout:
       case HardwareSessionState.error:
-        return PrimaryButton(
-          label: "Retry",
-          onPressed: _onRetryPressed,
-        );
+        return PrimaryButton(label: "Retry", onPressed: _onRetryPressed);
       case HardwareSessionState.disconnected:
         return PrimaryButton(
           label: "Reconnect",

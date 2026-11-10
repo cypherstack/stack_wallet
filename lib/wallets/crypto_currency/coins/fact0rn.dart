@@ -48,7 +48,7 @@ class Fact0rn extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   String get ticker => _ticker;
 
   @override
-  bool get torSupport => false;
+  bool get torSupport => true;
 
   @override
   List<DerivePathType> get supportedDerivationPathTypes => [
@@ -175,7 +175,7 @@ class Fact0rn extends Bip39HDCurrency with ElectrumXCurrencyInterface {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
-          host: "electrumx1.projectfactor.io",
+          host: "electrumx2.projectfactor.io",
           port: 50002,
           name: DefaultNodes.defaultName,
           id: DefaultNodes.buildId(this),
@@ -184,7 +184,7 @@ class Fact0rn extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           coinName: identifier,
           isFailover: true,
           isDown: false,
-          torEnabled: false,
+          torEnabled: true,
           clearnetEnabled: true,
           isPrimary: isPrimary,
         );
@@ -225,8 +225,7 @@ class Fact0rn extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   Uri defaultBlockExplorer(String txid) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        // "https://explorer.fact0rn.io/tx/$txid" doesn't show mempool transactions
-        return Uri.parse("https://factexplorer.io/tx/$txid");
+        return Uri.parse("https://explorer.fact0rn.io/tx/$txid");
       default:
         throw Exception(
           "Unsupported network for defaultBlockExplorer(): $network",

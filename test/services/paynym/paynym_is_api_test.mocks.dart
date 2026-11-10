@@ -98,6 +98,62 @@ class MockHTTP extends _i1.Mock implements _i2.HTTP {
           as _i3.Future<_i2.Response>);
 
   @override
+  _i3.Future<_i2.Response> postBytes({
+    required Uri? url,
+    Map<String, String>? headers,
+    required List<int>? bodyBytes,
+    required ({_i4.InternetAddress host, int port})? proxyInfo,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#postBytes, [], {
+              #url: url,
+              #headers: headers,
+              #bodyBytes: bodyBytes,
+              #proxyInfo: proxyInfo,
+            }),
+            returnValue: _i3.Future<_i2.Response>.value(
+              _FakeResponse_0(
+                this,
+                Invocation.method(#postBytes, [], {
+                  #url: url,
+                  #headers: headers,
+                  #bodyBytes: bodyBytes,
+                  #proxyInfo: proxyInfo,
+                }),
+              ),
+            ),
+          )
+          as _i3.Future<_i2.Response>);
+
+  @override
+  _i3.Future<_i2.Response> put({
+    required Uri? url,
+    Map<String, String>? headers,
+    Object? body,
+    required ({_i4.InternetAddress host, int port})? proxyInfo,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#put, [], {
+              #url: url,
+              #headers: headers,
+              #body: body,
+              #proxyInfo: proxyInfo,
+            }),
+            returnValue: _i3.Future<_i2.Response>.value(
+              _FakeResponse_0(
+                this,
+                Invocation.method(#put, [], {
+                  #url: url,
+                  #headers: headers,
+                  #body: body,
+                  #proxyInfo: proxyInfo,
+                }),
+              ),
+            ),
+          )
+          as _i3.Future<_i2.Response>);
+
+  @override
   _i3.Future<_i2.Response> patch({
     required Uri? url,
     Map<String, String>? headers,

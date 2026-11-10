@@ -135,8 +135,9 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
 
     controller.text = wallet.info.name;
 
-    eventBus =
-        widget.eventBus != null ? widget.eventBus! : GlobalEventBus.instance;
+    eventBus = widget.eventBus != null
+        ? widget.eventBus!
+        : GlobalEventBus.instance;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(currentWalletIdProvider.notifier).state = wallet.walletId;
@@ -182,20 +183,19 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
             children: [
               const SizedBox(width: 32),
               AppBarIconButton(
+                key: const Key('desktopWalletBackButton'),
                 size: 32,
-                color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultBG,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldDefaultBG,
                 shadows: const [],
                 icon: SvgPicture.asset(
                   Assets.svg.arrowLeft,
                   width: 18,
                   height: 18,
-                  color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()!.topNavIconPrimary,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .topNavIconPrimary,
                 ),
                 onPressed: onBackPressed,
               ),
@@ -218,10 +218,9 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                 Text(
                   "(View only)",
                   style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                    color:
-                        Theme.of(context)
-                            .extension<StackColors>()!
-                            .textFieldActiveSearchIconLeft,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldActiveSearchIconLeft,
                   ),
                 ),
               if (kDebugMode) const Spacer(),
@@ -248,21 +247,21 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                         Text(
                           wallet.isarTransactionVersion == 2
                               ? ref
-                                  .watch(mainDBProvider)
-                                  .isar
-                                  .transactionV2s
-                                  .where()
-                                  .walletIdEqualTo(widget.walletId)
-                                  .countSync()
-                                  .toString()
+                                    .watch(mainDBProvider)
+                                    .isar
+                                    .transactionV2s
+                                    .where()
+                                    .walletIdEqualTo(widget.walletId)
+                                    .countSync()
+                                    .toString()
                               : ref
-                                  .watch(mainDBProvider)
-                                  .isar
-                                  .transactions
-                                  .where()
-                                  .walletIdEqualTo(widget.walletId)
-                                  .countSync()
-                                  .toString(),
+                                    .watch(mainDBProvider)
+                                    .isar
+                                    .transactions
+                                    .where()
+                                    .walletIdEqualTo(widget.walletId)
+                                    .countSync()
+                                    .toString(),
                         ),
                       ],
                     ),
@@ -330,10 +329,9 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                   child: Text(
                     "My wallet",
                     style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color:
-                          Theme.of(context)
-                              .extension<StackColors>()!
-                              .textFieldActiveSearchIconLeft,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldActiveSearchIconLeft,
                     ),
                   ),
                 ),
@@ -346,29 +344,25 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                         wallet.cryptoCurrency.hasTokenSupport
                             ? "Tokens"
                             : "Recent activity",
-                        style: STextStyles.desktopTextExtraSmall(
-                          context,
-                        ).copyWith(
-                          color:
-                              Theme.of(context)
+                        style: STextStyles.desktopTextExtraSmall(context)
+                            .copyWith(
+                              color: Theme.of(context)
                                   .extension<StackColors>()!
                                   .textFieldActiveSearchIconLeft,
-                        ),
+                            ),
                       ),
                       CustomTextButton(
-                        text:
-                            wallet.cryptoCurrency.hasTokenSupport
-                                ? "Edit"
-                                : "See all",
+                        text: wallet.cryptoCurrency.hasTokenSupport
+                            ? "Edit"
+                            : "See all",
                         onTap: () async {
                           if (wallet.cryptoCurrency.hasTokenSupport) {
                             final result = await showDialog<int?>(
                               context: context,
-                              builder:
-                                  (context) => EditWalletTokensView(
-                                    walletId: widget.walletId,
-                                    isDesktopPopup: true,
-                                  ),
+                              builder: (context) => EditWalletTokensView(
+                                walletId: widget.walletId,
+                                isDesktopPopup: true,
+                              ),
                             );
 
                             if (result == 42) {
@@ -401,12 +395,11 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child:
-                        wallet.cryptoCurrency.hasTokenSupport
-                            ? MyTokensView(walletId: widget.walletId)
-                            : wallet.isarTransactionVersion == 2
-                            ? TransactionsV2List(walletId: widget.walletId)
-                            : TransactionsList(walletId: widget.walletId),
+                    child: wallet.cryptoCurrency.hasTokenSupport
+                        ? MyTokensView(walletId: widget.walletId)
+                        : wallet.isarTransactionVersion == 2
+                        ? TransactionsV2List(walletId: widget.walletId)
+                        : TransactionsList(walletId: widget.walletId),
                   ),
                 ],
               ),
@@ -446,33 +439,29 @@ class DesktopWalletHeaderRow extends ConsumerWidget {
           if (wallet is FiroWallet)
             FiroDesktopWalletSummary(
               walletId: wallet.walletId,
-              initialSyncStatus:
-                  wallet.refreshMutex.isLocked
-                      ? WalletSyncStatus.syncing
-                      : WalletSyncStatus.synced,
+              initialSyncStatus: wallet.refreshMutex.isLocked
+                  ? WalletSyncStatus.syncing
+                  : WalletSyncStatus.synced,
             ),
 
           if (wallet is! FiroWallet)
             wallet is MwebInterface &&
                     ref.watch(
-                      pWalletInfo(
-                        wallet.walletId,
-                      ).select((s) => s.isMwebEnabled),
+                      pWalletInfo(wallet.walletId)
+                          .select((s) => s.isMwebEnabled),
                     )
                 ? MwebDesktopWalletSummary(
-                  walletId: wallet.walletId,
-                  initialSyncStatus:
-                      wallet.refreshMutex.isLocked
-                          ? WalletSyncStatus.syncing
-                          : WalletSyncStatus.synced,
-                )
+                    walletId: wallet.walletId,
+                    initialSyncStatus: wallet.refreshMutex.isLocked
+                        ? WalletSyncStatus.syncing
+                        : WalletSyncStatus.synced,
+                  )
                 : DesktopWalletSummary(
-                  walletId: wallet.walletId,
-                  initialSyncStatus:
-                      wallet.refreshMutex.isLocked
-                          ? WalletSyncStatus.syncing
-                          : WalletSyncStatus.synced,
-                ),
+                    walletId: wallet.walletId,
+                    initialSyncStatus: wallet.refreshMutex.isLocked
+                        ? WalletSyncStatus.syncing
+                        : WalletSyncStatus.synced,
+                  ),
           Expanded(child: DesktopWalletFeatures(walletId: wallet.walletId)),
         ],
       ),

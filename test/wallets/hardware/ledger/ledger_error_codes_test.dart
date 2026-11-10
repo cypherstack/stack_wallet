@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:stackduo/wallets/hardware/ledger/ledger_error_codes.dart';
+import 'package:stackwallet/wallets/hardware/ledger/ledger_error_codes.dart';
 
 void main() {
   group('LedgerErrorCodes', () {
