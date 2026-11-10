@@ -1,14 +1,11 @@
 import '../../../models/isar/models/blockchain_data/address.dart';
 
 mixin SignVerifyInterface {
-  Future<String> signMessage(
-    final String message, {
-    required final Address address,
-  });
+  Future<String> signMessage(String message, {required Address address});
 
   Future<bool> verifyMessage(
-    final String message, {
-    required final String address,
-    required final String signature,
+    String message, {
+    required String address,
+    required String signature,
   });
 }

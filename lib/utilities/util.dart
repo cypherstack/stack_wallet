@@ -16,6 +16,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/number_symbols.dart';
 import 'package:intl/number_symbols_data.dart';
+import 'package:platform/platform.dart' as platform;
 
 import '../app_config.dart';
 import '../wallets/wallet/impl/monero_wallet.dart';
@@ -28,37 +29,80 @@ abstract class Util {
   static const isArmLinux = bool.fromEnvironment("IS_ARM");
   static final isTestEnv = Platform.environment["FLUTTER_TEST"] == "true";
 
-  static Directory? libraryPath;
+  static final Map<String, NumberSymbols?> _numberSymbolsCache = {};
+
+  static platform.Platform layoutPlatform = const platform.LocalPlatform();
   static double? screenWidth;
+  static bool? isIpad;
 
   static NumberSymbols? getSymbolsFor({required String locale}) {
-    return numberFormatSymbols[locale] as NumberSymbols? ??
-        numberFormatSymbols[locale.replaceAll("-", "_")] as NumberSymbols? ??
-        numberFormatSymbols[locale.substring(3).toLowerCase()]
-            as NumberSymbols? ??
-        numberFormatSymbols[locale.substring(0, 2)] as NumberSymbols?;
+    return _numberSymbolsCache.putIfAbsent(locale, () {
+      final exactSymbols = numberFormatSymbols[locale];
+      if (exactSymbols is NumberSymbols) {
+        return exactSymbols;
+      }
+
+      final localeParts = locale
+          .replaceAll("-", "_")
+          .split("_")
+          .where((part) => part.isNotEmpty)
+          .toList();
+      if (localeParts.isEmpty) {
+        return null;
+      }
+
+      final languageCode = localeParts.first.toLowerCase();
+      String? scriptCode;
+      String? regionCode;
+      for (final part in localeParts.skip(1)) {
+        if (scriptCode == null && RegExp(r'^[A-Za-z]{4}$').hasMatch(part)) {
+          scriptCode =
+              "${part[0].toUpperCase()}${part.substring(1).toLowerCase()}";
+        } else if (regionCode == null &&
+            RegExp(r'^(?:[A-Za-z]{2}|\d{3})$').hasMatch(part)) {
+          regionCode = part.toUpperCase();
+        }
+      }
+
+      final candidates = <String>{
+        [
+          languageCode,
+          if (scriptCode != null) scriptCode,
+          if (regionCode != null) regionCode,
+        ].join("_"),
+        if (regionCode != null) "${languageCode}_$regionCode",
+        if (scriptCode != null) "${languageCode}_$scriptCode",
+        languageCode,
+      };
+
+      for (final candidate in candidates) {
+        final symbols = numberFormatSymbols[candidate];
+        if (symbols is NumberSymbols) {
+          return symbols;
+        }
+      }
+      return null;
+    });
   }
 
   static bool get isDesktop {
+    final p = layoutPlatform;
     // special check for running on linux based phones
-    if (Platform.isLinux && screenWidth != null && screenWidth! < 800) {
+    if (p.isLinux && screenWidth != null && screenWidth! < 800) {
       return false;
     }
 
-    // special check for running under ipad mode in macos
-    if (Platform.isIOS &&
-        libraryPath != null &&
-        !libraryPath!.path.contains("/var/mobile/")) {
+    if (isIpad == true) {
       return true;
     }
 
-    return Platform.isLinux || Platform.isMacOS || Platform.isWindows;
+    return p.isLinux || p.isMacOS || p.isWindows;
   }
 
-  static Future<bool> get isIPad async {
+  static Future<bool> get getIsIPad async {
     final deviceInfo = (await DeviceInfoPlugin().deviceInfo);
     if (deviceInfo is IosDeviceInfo) {
-      return (deviceInfo).name?.toLowerCase().contains("ipad") == true;
+      return (deviceInfo).name.toLowerCase().contains("ipad") == true;
     }
     return false;
   }

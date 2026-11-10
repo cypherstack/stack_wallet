@@ -1,4 +1,6 @@
 //ON
+import 'dart:ffi';
+
 import 'package:cs_salvium/cs_salvium.dart' as lib_salvium;
 import 'package:cs_salvium/src/deprecated/get_height_by_date.dart'
     as cs_salvium_deprecated;
@@ -394,7 +396,12 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
       pending,
       pending.amount,
       pending.fee,
-      pending.txid,
+      sal_wallet_ffi
+          .getPendingTransactionTxid(
+            Pointer<Void>.fromAddress(pending.pointerAddress),
+            separator: ';',
+          )
+          .split(';'),
     );
   }
 
@@ -443,7 +450,12 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
       pending,
       pending.amount,
       pending.fee,
-      pending.txid,
+      sal_wallet_ffi
+          .getPendingTransactionTxid(
+            Pointer<Void>.fromAddress(pending.pointerAddress),
+            separator: ';',
+          )
+          .split(';'),
     );
   }
 
@@ -495,7 +507,12 @@ class _CsSalviumInterfaceImpl extends CsSalviumInterface {
       pending,
       pending.amount,
       pending.fee,
-      pending.txid,
+      sal_wallet_ffi
+          .getPendingTransactionTxid(
+            Pointer<Void>.fromAddress(pending.pointerAddress),
+            separator: ';',
+          )
+          .split(';'),
     );
   }
 

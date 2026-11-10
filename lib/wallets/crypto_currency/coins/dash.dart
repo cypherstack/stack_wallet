@@ -90,7 +90,7 @@ class Dash extends Bip39HDCurrency with ElectrumXCurrencyInterface {
 
   @override
   Amount get dustLimit =>
-      Amount(rawValue: BigInt.from(1000000), fractionDigits: fractionDigits);
+      Amount(rawValue: BigInt.from(546), fractionDigits: fractionDigits);
 
   @override
   String get genesisHash {

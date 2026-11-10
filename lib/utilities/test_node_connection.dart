@@ -29,13 +29,12 @@ import 'test_mwcmqs_connection.dart';
 import 'test_stellar_node_connection.dart';
 import 'tor_plain_net_option_enum.dart';
 
-typedef TestNodeConnectionCallback =
-    Future<bool> Function({
-      required BuildContext context,
-      required NodeFormData nodeFormData,
-      required CryptoCurrency cryptoCurrency,
-      void Function(NodeFormData)? onSuccess,
-    });
+typedef TestNodeConnectionCallback = Future<bool> Function({
+  required BuildContext context,
+  required NodeFormData nodeFormData,
+  required CryptoCurrency cryptoCurrency,
+  void Function(NodeFormData)? onSuccess,
+});
 
 final testNodeConnectionProvider = Provider<TestNodeConnectionCallback>((ref) {
   return ({
@@ -236,7 +235,11 @@ Future<bool> testNodeConnection({
 
     case Ethereum():
       try {
-        testPassed = await testEthNodeConnection(formData.host!);
+        testPassed = await testEthNodeConnection(
+          formData.host!,
+          prefs: read(prefsChangeNotifierProvider),
+          torService: read(pTorService),
+        );
       } catch (_) {
         testPassed = false;
       }
@@ -329,6 +332,7 @@ Future<bool> testNodeConnection({
         testPassed = await libXelis.testDaemonConnection(
           "${formData.host!}:${formData.port!}",
           formData.useSSL ?? false,
+          cryptoCurrency.network,
         );
       } catch (_) {
         testPassed = false;

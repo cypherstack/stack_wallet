@@ -10,30 +10,33 @@
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tuple/tuple.dart';
+
 import '../../models/exchange/active_pair.dart';
 import '../../models/exchange/response_objects/estimate.dart';
 import '../../models/exchange/response_objects/range.dart';
-import '../global/locale_provider.dart';
 import '../../services/exchange/exchange.dart';
 import '../../services/exchange/exchange_response.dart';
 import '../../utilities/amount/amount.dart';
-import '../../utilities/amount/amount_unit.dart';
-
 import '../../utilities/enums/exchange_rate_type_enum.dart';
-import '../../wallets/crypto_currency/crypto_currency.dart';
-import 'package:tuple/tuple.dart';
+import '../global/locale_provider.dart';
 
-final efEstimatesListProvider = StateProvider.family<
-    Tuple2<ExchangeResponse<List<Estimate>>, Range?>?,
-    String>((ref, exchangeName) => null);
+final efEstimatesListProvider =
+    StateProvider.family<
+      Tuple2<ExchangeResponse<List<Estimate>>, Range?>?,
+      String
+    >((ref, exchangeName) => null);
 
-final efRateTypeProvider =
-    StateProvider<ExchangeRateType>((ref) => ExchangeRateType.estimated);
+final efRateTypeProvider = StateProvider<ExchangeRateType>(
+  (ref) => ExchangeRateType.estimated,
+);
 
-final efExchangeProvider =
-    StateProvider<Exchange>((ref) => Exchange.defaultExchange);
-final efExchangeProviderNameProvider =
-    StateProvider<String>((ref) => Exchange.defaultExchange.name);
+final efExchangeProvider = StateProvider<Exchange>(
+  (ref) => Exchange.defaultExchange,
+);
+final efExchangeProviderNameProvider = StateProvider<String>(
+  (ref) => Exchange.defaultExchange.name,
+);
 
 final currentCombinedExchangeIdProvider = Provider<String>((ref) {
   return "${ref.watch(efExchangeProvider).name}"
@@ -52,17 +55,8 @@ final efSendAmountStringProvider = StateProvider<String>((ref) {
     final decimal = ref.watch(efSendAmountProvider);
     String string = "";
     if (decimal != null) {
-      final amount = Amount.fromDecimal(decimal, fractionDigits: decimal.scale);
       final locale = ref.watch(localeServiceChangeNotifierProvider).locale;
-      string = AmountUnit.normal.displayAmount(
-        amount: amount,
-        locale: locale,
-        coin: Nano(
-          CryptoCurrencyNetwork.main,
-        ), // use nano just to ensure decimal.scale < Coin.value.decimals
-        withUnitName: false,
-        maxDecimalPlaces: decimal.scale,
-      );
+      string = Amount.formatEditableDecimal(decimal, locale: locale);
     }
 
     return string;
@@ -78,17 +72,8 @@ final efReceiveAmountStringProvider = StateProvider<String>((ref) {
     final decimal = ref.watch(efReceiveAmountProvider);
     String string = "";
     if (decimal != null) {
-      final amount = Amount.fromDecimal(decimal, fractionDigits: decimal.scale);
       final locale = ref.watch(localeServiceChangeNotifierProvider).locale;
-      string = AmountUnit.normal.displayAmount(
-        amount: amount,
-        locale: locale,
-        coin: Nano(
-          CryptoCurrencyNetwork.main,
-        ), // use nano just to ensure decimal.scale < Coin.value.decimals
-        withUnitName: false,
-        maxDecimalPlaces: decimal.scale,
-      );
+      string = Amount.formatEditableDecimal(decimal, locale: locale);
     }
 
     return string;
@@ -112,10 +97,10 @@ final efEstimateProvider = StateProvider<Estimate?>((ref) {
       ?.item1
       .value
       ?.where((e) {
-    return e.exchangeProvider == provider &&
-        e.fixedRate == fixedRate &&
-        e.reversed == reversed;
-  });
+        return e.exchangeProvider == provider &&
+            e.fixedRate == fixedRate &&
+            e.reversed == reversed;
+      });
 
   Estimate? result;
 
@@ -135,4 +120,35 @@ final efCanExchangeProvider = StateProvider<bool>((ref) {
   return !refreshing && estimate != null;
 });
 
-final efRefreshingProvider = StateProvider<bool>((ref) => false);
+/// The latest quote owns the shared loading state across all exchange forms.
+class ExchangeRefreshController extends StateController<bool> {
+  ExchangeRefreshController() : super(false);
+
+  Object? _owner;
+
+  bool owns(Object request) => mounted && identical(_owner, request);
+
+  void begin(Object request) {
+    if (!mounted) return;
+    _owner = request;
+    state = true;
+  }
+
+  void finish(Object request) {
+    if (!owns(request)) return;
+    // A listener may start another quote while state=false is being notified.
+    _owner = null;
+    state = false;
+  }
+
+  void reset() {
+    if (!mounted) return;
+    _owner = null;
+    state = false;
+  }
+}
+
+final efRefreshingProvider =
+    StateNotifierProvider<ExchangeRefreshController, bool>(
+      (ref) => ExchangeRefreshController(),
+    );
