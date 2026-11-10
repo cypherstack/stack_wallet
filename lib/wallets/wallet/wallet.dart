@@ -455,6 +455,7 @@ abstract class Wallet<T extends CryptoCurrency> {
     }
 
     final bool hasNetwork = await pingCheck();
+    if (!shouldAutoSync) return;
 
     if (_isConnected != hasNetwork) {
       final NodeConnectionStatus status = hasNetwork
@@ -549,11 +550,16 @@ abstract class Wallet<T extends CryptoCurrency> {
   }
 
   bool doNotFireRefreshEvents = false;
+  Future<void>? _refreshFuture;
 
   // Should fire events
-  Future<void> refresh() async {
+  Future<void> refresh() {
+    final activeRefresh = _refreshFuture;
+    if (activeRefresh != null) return activeRefresh;
+    if (refreshMutex.isLocked) return Future<void>.value();
+
     final refreshCompleter = Completer<void>();
-    final future = refreshCompleter.future.then(
+    final future = refreshCompleter.future.then<void>(
       (_) {
         if (!doNotFireRefreshEvents) {
           GlobalEventBus.instance.fire(
@@ -564,7 +570,6 @@ abstract class Wallet<T extends CryptoCurrency> {
             ),
           );
         }
-        ensurePeriodicRefreshTimer();
       },
       onError: (Object e, StackTrace s) {
         if (!doNotFireRefreshEvents) {
@@ -591,9 +596,13 @@ abstract class Wallet<T extends CryptoCurrency> {
       },
     );
 
+    _refreshFuture = future.whenComplete(() {
+      _refreshFuture = null;
+      ensurePeriodicRefreshTimer();
+    });
     unawaited(_refresh(refreshCompleter));
 
-    return future;
+    return _refreshFuture!;
   }
 
   @protected
@@ -619,21 +628,14 @@ abstract class Wallet<T extends CryptoCurrency> {
 
   // Should fire events
   Future<void> _refresh(Completer<void> completer) async {
-    // Awaiting this lock could be dangerous.
-    // Since refresh is periodic (generally)
-    if (refreshMutex.isLocked) {
-      return;
-    }
     final start = DateTime.now();
 
-    final viewOnly =
-        this is ViewOnlyOptionInterface &&
-        (this as ViewOnlyOptionInterface).isViewOnly;
-
     try {
-      // this acquire should be almost instant due to above check.
-      // Slight possibility of race but should be irrelevant
       await refreshMutex.acquire();
+
+      final viewOnly =
+          this is ViewOnlyOptionInterface &&
+          (this as ViewOnlyOptionInterface).isViewOnly;
 
       if (!doNotFireRefreshEvents) {
         GlobalEventBus.instance.fire(
@@ -712,9 +714,8 @@ abstract class Wallet<T extends CryptoCurrency> {
         _fireRefreshPercentChange(0.6);
         final utxosRefreshFuture = updateUTXOs();
         _fireRefreshPercentChange(0.65);
-        await utxosRefreshFuture;
+        await Future.wait([fetchFuture, utxosRefreshFuture]);
         _fireRefreshPercentChange(0.70);
-        await fetchFuture;
       }
 
       // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
@@ -749,15 +750,14 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       Logging.instance.i(
         "Refresh for "
-        "$walletId::${info.name}: ${DateTime.now().difference(start)}",
+        "$walletId: ${DateTime.now().difference(start)}",
       );
     }
   }
 
   Future<void> exit() async {
     Logging.instance.i("exit called on $walletId");
-    _periodicRefreshTimer?.cancel();
-    _networkAliveTimer?.cancel();
+    shouldAutoSync = false;
 
     // If the syncing pref is currentWalletOnly or selectedWalletsAtStartup (and
     // this wallet isn't in walletIdsSyncOnStartup), then we close subscriptions.
@@ -777,9 +777,9 @@ abstract class Wallet<T extends CryptoCurrency> {
             final wallet = mainDB.isar.walletInfo
                 .where()
                 .walletIdEqualTo(id)
-                .findFirstSync()!;
+                .findFirstSync();
 
-            if (wallet.coin == cryptoCurrency) {
+            if (wallet?.coin == cryptoCurrency) {
               walletIds.add(id);
             }
           }

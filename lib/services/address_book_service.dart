@@ -12,14 +12,21 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:mutex/mutex.dart';
 
+import '../app_config.dart';
 import '../db/isar/main_db.dart';
+import '../models/isar/models/blockchain_data/address.dart';
 import '../models/isar/models/contact_entry.dart';
+import '../utilities/logger.dart';
+import '../wallets/wallet/wallet.dart';
+import '../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 
 class AddressBookService extends ChangeNotifier {
   AddressBookService({this.requestAutoBackup});
 
   final void Function()? requestAutoBackup;
+  final Mutex _myStackContactLock = Mutex();
 
   ContactEntry getContactById(String id) {
     final ContactEntry? contactEntry = MainDB.instance.getContactEntry(id: id);
@@ -96,6 +103,65 @@ class AddressBookService extends ChangeNotifier {
     notifyListeners();
     requestAutoBackup?.call();
     return true;
+  }
+
+  /// Rebuilds the "My Stack" contact from the current receiving address of
+  /// each of [wallets].
+  Future<void> updateMyStackContact(Iterable<Wallet> wallets) =>
+      _myStackContactLock.protect(() => _updateMyStackContact(wallets));
+
+  Future<void> _updateMyStackContact(Iterable<Wallet> wallets) async {
+    final List<ContactAddressEntry> addresses = [];
+    for (final wallet in wallets) {
+      final SparkInterface? sparkWallet =
+          wallet is SparkInterface &&
+              !(wallet.isViewOnly && wallet.viewOnlyType != .spark)
+          ? wallet
+          : null;
+      String addressString;
+      try {
+        if (sparkWallet != null) {
+          Address? address = await sparkWallet
+              .getCurrentReceivingSparkAddress();
+          address ??= await sparkWallet.generateNextSparkAddress(
+            saveToDB: true,
+          );
+          addressString = address.value;
+        } else {
+          final address = await wallet.getCurrentReceivingAddress();
+          addressString = address?.value ?? wallet.info.cachedReceivingAddress;
+        }
+      } catch (e, s) {
+        // A Spark wallet's cached address is its transparent one, so leave it
+        // out rather than offer a public address. Other wallets fall back to
+        // the cached address so one failure doesn't drop them or stop the rest.
+        Logging.instance.e(
+          "Failed to get a wallet address for My Stack",
+          error: e,
+          stackTrace: s,
+        );
+        if (sparkWallet != null) continue;
+        addressString = wallet.info.cachedReceivingAddress;
+      }
+      if (addressString.isEmpty) continue;
+
+      addresses.add(
+        ContactAddressEntry()
+          ..coinName = wallet.info.coin.identifier
+          ..address = addressString
+          ..label = "Current Receiving"
+          ..other = wallet.info.name,
+      );
+    }
+
+    await editContact(
+      ContactEntry(
+        name: "My ${AppConfig.prefix}",
+        addresses: addresses,
+        isFavorite: true,
+        customId: "default",
+      ),
+    );
   }
 
   /// Remove address book contact entry from db if it exists
