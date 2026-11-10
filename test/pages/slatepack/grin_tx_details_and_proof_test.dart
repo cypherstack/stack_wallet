@@ -135,7 +135,9 @@ void main() {
     }
   }
 
-  testWidgets('finalized, not broadcast: rows and repost', (tester) async {
+  testWidgets('finalized, awaiting confirmation: rows and repost', (
+    tester,
+  ) async {
     await pump(
       tester,
       SlatepackTxDetails(
@@ -147,13 +149,13 @@ void main() {
           kernelExcess: '08ab',
           counterpartyAddress: 'grin1friend',
           ttlCutoffHeight: 2500,
-          finalizedNotBroadcast: true,
+          finalizedAwaitingConfirmation: true,
           canRepost: true,
           hasPaymentProof: true,
         ),
       ),
     );
-    expect(find.text('Finalized, not broadcast'), findsOneWidget);
+    expect(find.text('Finalized, awaiting confirmation'), findsOneWidget);
     expect(find.text('08ab'), findsOneWidget);
     expect(find.text('grin1friend'), findsOneWidget);
     expect(find.text('2500'), findsOneWidget);
@@ -200,6 +202,8 @@ void main() {
     await tester.tap(find.text('Show Slatepack again'));
     await settle(tester);
     expect(find.text('Send Slatepack'), findsOneWidget);
+    expect(find.text('Not encrypted'), findsNothing);
+    expect(find.text("Encrypted to the other party's address"), findsNothing);
   });
 
   testWidgets('verify shows the node caveat and both sides', (tester) async {

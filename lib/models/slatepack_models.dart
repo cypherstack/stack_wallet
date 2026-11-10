@@ -199,7 +199,7 @@ class SlatepackTxInfo {
     this.kernelExcess,
     this.counterpartyAddress,
     this.ttlCutoffHeight,
-    this.finalizedNotBroadcast = false,
+    this.finalizedAwaitingConfirmation = false,
     this.canRepost = false,
     this.canShowSlatepack = false,
     this.hasPaymentProof = false,
@@ -213,7 +213,7 @@ class SlatepackTxInfo {
   final int? ttlCutoffHeight;
 
   /// Finalized and stored but not seen on chain yet.
-  final bool finalizedNotBroadcast;
+  final bool finalizedAwaitingConfirmation;
 
   final bool canRepost;
 

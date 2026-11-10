@@ -1531,7 +1531,8 @@ class _TransactionV2DetailsViewState
                           return;
                         }
 
-                        if (_slatepackInfo?.finalizedNotBroadcast ?? false) {
+                        if (_slatepackInfo?.finalizedAwaitingConfirmation ??
+                            false) {
                           final go = await showDialog<bool>(
                             context: context,
                             builder: (context) => StackDialog(

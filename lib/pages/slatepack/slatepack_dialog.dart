@@ -59,7 +59,7 @@ class SlatepackDialog extends StatelessWidget {
     slatepack: result.slatepack!,
     state: result.state,
     slateId: result.slateId,
-    isEncrypted: result.wasEncrypted ?? false,
+    isEncrypted: result.wasEncrypted,
     clipboard: clipboard,
   );
 
@@ -67,7 +67,7 @@ class SlatepackDialog extends StatelessWidget {
   final String slatepack;
   final SlateState state;
   final String? slateId;
-  final bool isEncrypted;
+  final bool? isEncrypted;
   final ClipboardInterface clipboard;
 
   String get title => switch (state) {
@@ -189,28 +189,29 @@ class SlatepackDialog extends StatelessWidget {
             child: Text(instructions, style: STextStyles.w400_14(context)),
           ),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              SvgPicture.asset(
-                isEncrypted ? Assets.svg.lock : Assets.svg.lockOpen,
-                width: 14,
-                height: 14,
-                colorFilter: ColorFilter.mode(
-                  colors.infoItemIcons,
-                  BlendMode.srcIn,
+          if (isEncrypted != null)
+            Row(
+              children: [
+                SvgPicture.asset(
+                  isEncrypted == true ? Assets.svg.lock : Assets.svg.lockOpen,
+                  width: 14,
+                  height: 14,
+                  colorFilter: ColorFilter.mode(
+                    colors.infoItemIcons,
+                    BlendMode.srcIn,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Flexible(
-                child: Text(
-                  isEncrypted
-                      ? "Encrypted to the other party's address"
-                      : "Not encrypted",
-                  style: STextStyles.label(context),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    isEncrypted == true
+                        ? "Encrypted to the other party's address"
+                        : "Not encrypted",
+                    style: STextStyles.label(context),
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
           const SizedBox(height: 12),
           Center(
             child: SlatepackQr(data: slatepack, noun: terms.noun),

@@ -266,7 +266,7 @@ void main() {
       expect(details.kernelExcess, '08cd');
       expect(details.counterpartyAddress, 'grin1friend');
       expect(details.ttlCutoffHeight, 2500);
-      expect(details.finalizedNotBroadcast, isTrue);
+      expect(details.finalizedAwaitingConfirmation, isTrue);
       expect(details.canRepost, isTrue);
       expect(details.canShowSlatepack, isFalse);
     });

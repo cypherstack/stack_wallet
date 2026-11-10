@@ -171,8 +171,8 @@ class SlatepackTxDetails extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (info.finalizedNotBroadcast)
-          row("Status", "Finalized, not broadcast"),
+        if (info.finalizedAwaitingConfirmation)
+          row("Status", "Finalized, awaiting confirmation"),
         if (info.kernelExcess != null)
           row("Kernel excess", info.kernelExcess!, copy: true),
         if (info.counterpartyAddress != null)

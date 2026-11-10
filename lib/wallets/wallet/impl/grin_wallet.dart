@@ -1760,7 +1760,7 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
       kernelExcess: data[TxV2OdKeys.grinKernelExcess] as String?,
       counterpartyAddress: data[TxV2OdKeys.counterpartyAddress] as String?,
       ttlCutoffHeight: data[TxV2OdKeys.grinTtlCutoff] as int?,
-      finalizedNotBroadcast: finalized,
+      finalizedAwaitingConfirmation: finalized,
       canRepost: finalized,
       canShowSlatepack:
           open &&
