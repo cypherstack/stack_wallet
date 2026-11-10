@@ -26,9 +26,9 @@ class SaveRecipientControls extends StatelessWidget {
   Widget build(BuildContext context) {
     final labelStyle = isDesktop
         ? STextStyles.desktopTextExtraSmall(context).copyWith(
-            color: Theme.of(
-              context,
-            ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .textFieldActiveSearchIconRight,
           )
         : STextStyles.smallMed12(context);
 
@@ -65,9 +65,9 @@ class SaveRecipientControls extends StatelessWidget {
               enableSuggestions: !isDesktop,
               style: isDesktop
                   ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textFieldActiveText,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldActiveText,
                     )
                   : STextStyles.field(context),
               decoration: standardInputDecoration(

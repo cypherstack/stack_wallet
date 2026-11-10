@@ -71,7 +71,7 @@ const SentToAddressSchema = CollectionSchema(
   getId: _sentToAddressGetId,
   getLinks: _sentToAddressGetLinks,
   attach: _sentToAddressAttach,
-  version: '3.3.0-dev.2',
+  version: '3.3.2',
 );
 
 int _sentToAddressEstimateSize(

@@ -180,13 +180,13 @@ class _BoostTransactionViewState extends ConsumerState<BoostTransactionView> {
       condition: !isDesktop,
       builder: (child) => Background(
         child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             leading: AppBarBackButton(
               onPressed: () async {
                 Navigator.of(context).pop();
@@ -211,9 +211,9 @@ class _BoostTransactionViewState extends ConsumerState<BoostTransactionView> {
               children: [
                 RoundedWhiteContainer(
                   borderColor: isDesktop
-                      ? Theme.of(
-                          context,
-                        ).extension<StackColors>()!.backgroundAppBar
+                      ? Theme.of(context)
+                            .extension<StackColors>()!
+                            .backgroundAppBar
                       : null,
                   padding: const EdgeInsets.all(0),
                   child: child,

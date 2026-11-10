@@ -19,6 +19,8 @@ import '../../../widgets/detail_item.dart';
 import '../../../widgets/dialogs/s_dialog.dart';
 import '../../../widgets/rounded_container.dart';
 import '../../../widgets/textfields/adaptive_text_field.dart';
+import '../../wallet_view/transaction_views/transaction_details_view.dart'
+    show IconCopyButton;
 import '../signing_view.dart';
 import 'address_list.dart';
 
@@ -32,7 +34,7 @@ final class _SignState {
     required this.signature,
   });
 
-  bool get isValid => message.isNotEmpty && address != null;
+  bool get isValid => message.trim().isNotEmpty && address != null;
 
   _SignState copyWith({String? message, String? signature}) {
     return _SignState(
@@ -77,9 +79,9 @@ class _SignMessageFormState extends ConsumerState<SignMessageForm> {
   TextStyle _getStyle(BuildContext context) {
     return Util.isDesktop
         ? STextStyles.desktopTextExtraExtraSmall(context).copyWith(
-            color: Theme.of(
-              context,
-            ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .textFieldActiveSearchIconRight,
           )
         : STextStyles.smallMed12(context);
   }
@@ -133,9 +135,9 @@ class _SignMessageFormState extends ConsumerState<SignMessageForm> {
                           child: RoundedContainer(
                             padding: EdgeInsets.zero,
                             color: Colors.transparent,
-                            borderColor: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textFieldDefaultBG,
+                            borderColor: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textFieldDefaultBG,
                             child: child,
                           ),
                         ),
@@ -181,9 +183,11 @@ class _SignMessageFormState extends ConsumerState<SignMessageForm> {
         onException: (e) => ex = e,
       );
 
-      if (mounted && ex != null) {
+      if (!mounted || !identical(ref.read(_pSignState), state)) return;
+
+      if (ex != null) {
         await showSignVerifyError(ex!, context: context);
-      } else if (signature != null && mounted) {
+      } else if (signature != null) {
         ref.read(_pSignState.notifier).state = state.copyWith(
           signature: signature,
         );
@@ -214,7 +218,13 @@ class _SignMessageFormState extends ConsumerState<SignMessageForm> {
           AdaptiveTextField(
             controller: messageController,
             showPasteClearButton: true,
-            maxLines: 1,
+            trimPastedText: false,
+            autocorrect: false,
+            smartDashesType: SmartDashesType.disabled,
+            smartQuotesType: SmartQuotesType.disabled,
+            enableSuggestions: false,
+            minLines: 1,
+            maxLines: 5,
             onChangedComprehensive: (_) {
               if (mounted) {
                 ref.read(_pSignState.notifier).state = ref
@@ -249,6 +259,8 @@ class _SignMessageFormState extends ConsumerState<SignMessageForm> {
             noPadding: Util.isDesktop,
             button: ref.watch(_pSignState.select((s) => s.signature)).isEmpty
                 ? null
+                : Util.isDesktop
+                ? IconCopyButton(data: ref.read(_pSignState).signature)
                 : SimpleCopyButton(data: ref.read(_pSignState).signature),
           ),
 
