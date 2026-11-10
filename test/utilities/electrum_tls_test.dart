@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:electrum_adapter/electrum_adapter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stackwallet/utilities/connection_check/electrum_connection_check.dart';
 import 'package:stackwallet/utilities/tls_certificate.dart';
@@ -191,30 +192,32 @@ void main() {
     expect(server.requests, 1);
   });
 
-  test('a stalled handshake fails when the timeout fires', () async {
-    final stalled = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
-    final accepted = <Socket>[];
-    // Accept, then never answer the handshake.
-    stalled.listen((socket) {
-      accepted.add(socket);
-      socket.listen((_) {}, onError: (Object _) {});
-    });
-    final stopwatch = Stopwatch()..start();
-    final result = await testElectrumConnection(
-      host: '127.0.0.1',
-      port: stalled.port,
-      useSSL: true,
-      timeout: const Duration(milliseconds: 300),
+  for (final proxied in [false, true]) {
+    test(
+      'a stalled ${proxied ? 'SOCKS' : 'direct'} TLS handshake releases its socket',
+      () async {
+        final stalled = await TlsElectrumServer.start(stallHandshake: true);
+        servers.add(stalled);
+        final proxy = proxied ? await TlsTestProxy.start(stalled.port) : null;
+        if (proxy != null) proxies.add(proxy);
+        final result = await check(
+          stalled,
+          proxyInfo: proxy?.info,
+          timeout: const Duration(milliseconds: 300),
+        ).timeout(const Duration(seconds: 3));
+        expect(result.success, false);
+        expect(result.error, isA<ConnectionTimeoutException>());
+        expect(result.certificate, null);
+        final watch = Stopwatch()..start();
+        while (stalled.disconnections == 0 &&
+            watch.elapsed < const Duration(seconds: 2)) {
+          await Future<void>.delayed(const Duration(milliseconds: 5));
+        }
+        expect(stalled.accepted, 1);
+        expect(stalled.disconnections, 1);
+      },
     );
-    expect(result.success, false);
-    expect(result.error, isA<TimeoutException>());
-    expect(result.certificate, null);
-    expect(stopwatch.elapsed, lessThan(const Duration(seconds: 3)));
-    for (final socket in accepted) {
-      socket.destroy();
-    }
-    await stalled.close();
-  });
+  }
 
   test('PEM parsing accepts one certificate and rejects bundles', () {
     final pem = TlsElectrumServer.certificate('node_a');

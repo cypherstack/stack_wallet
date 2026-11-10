@@ -48,14 +48,16 @@ Future<ElectrumConnectionResult> testElectrumConnection({
       useSSL: useSSL,
       proxyInfo: proxyInfo,
       connectionTimeout: timeout,
+      connectionDeadline: timeout,
+      requestTimeout: timeout,
       acceptUnverified: false,
       onBadCertificate: (certificate) {
         if (trusted != null && trusted(certificate)) return true;
         rejected = certificate;
         return false;
       },
-    ).timeout(timeout);
-    await client.request('server.version').timeout(timeout);
+    );
+    await client.request('server.version');
     return const ElectrumConnectionResult(success: true);
   } catch (error) {
     return ElectrumConnectionResult(

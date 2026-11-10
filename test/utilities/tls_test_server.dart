@@ -126,6 +126,7 @@ class TlsElectrumServer {
     bool respond = true,
     bool versionError = false,
     bool stallHandshake = false,
+    Set<String> ignoredMethods = const {},
   }) async {
     final server = TlsElectrumServer._(
       await ServerSocket.bind(InternetAddress.loopbackIPv4, 0),
@@ -161,37 +162,47 @@ class TlsElectrumServer {
             .transform(const LineSplitter())
             .listen(
               (line) {
-                final request = jsonDecode(line) as Map<String, dynamic>;
-                server.requests++;
-                server.methods.add(request['method'] as String);
-                if (!respond) return;
-                if (versionError && request['method'] == 'server.version') {
-                  socket.write(
-                    '${jsonEncode({
+                final decoded = jsonDecode(line);
+                final replies = <Map<String, dynamic>>[];
+                for (final request in decoded is List ? decoded : [decoded]) {
+                  server.requests++;
+                  server.methods.add(request['method'] as String);
+                  if (!respond || ignoredMethods.contains(request['method'])) {
+                    continue;
+                  }
+                  if (versionError && request['method'] == 'server.version') {
+                    replies.add({
                       'jsonrpc': '2.0',
                       'id': request['id'],
                       'error': {'code': -32601, 'message': 'unsupported'},
-                    })}\n',
+                    });
+                    continue;
+                  }
+                  final Object result;
+                  switch (request['method']) {
+                    case 'server.version':
+                      result = ['ElectrumX TLS test', '1.4'];
+                    case 'blockchain.headers.subscribe':
+                      result = {'height': 100, 'hex': '00' * 80};
+                    case 'blockchain.transaction.get':
+                      result = {
+                        'txid': request['params'][0],
+                        'confirmations': 3,
+                      };
+                    default:
+                      result = {};
+                  }
+                  replies.add({
+                    'jsonrpc': '2.0',
+                    'id': request['id'],
+                    'result': result,
+                  });
+                }
+                if (replies.isNotEmpty) {
+                  socket.write(
+                    '${jsonEncode(decoded is List ? replies : replies.single)}\n',
                   );
-                  return;
                 }
-                final Object result;
-                switch (request['method']) {
-                  case 'server.version':
-                    result = ['ElectrumX TLS test', '1.4'];
-                  case 'blockchain.headers.subscribe':
-                    result = {'height': 100, 'hex': '00' * 80};
-                  case 'blockchain.transaction.get':
-                    result = {'txid': request['params'][0], 'confirmations': 3};
-                  default:
-                    result = {};
-                }
-                final reply = {
-                  'jsonrpc': '2.0',
-                  'id': request['id'],
-                  'result': result,
-                };
-                socket.write('${jsonEncode(reply)}\n');
               },
               onError: (Object _) {},
               onDone: () {

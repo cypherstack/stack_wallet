@@ -889,11 +889,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "69de4e880c855a682b4b6539b54ddec7d80558fc"
-      resolved-ref: "69de4e880c855a682b4b6539b54ddec7d80558fc"
+      ref: b0d8a16c8a4d6976bd0f1f98723e222706cc567c
+      resolved-ref: b0d8a16c8a4d6976bd0f1f98723e222706cc567c
       url: "https://github.com/cypherstack/electrum_adapter.git"
     source: git
-    version: "4.1.0"
+    version: "5.0.0"
   emojis:
     dependency: "direct main"
     description:

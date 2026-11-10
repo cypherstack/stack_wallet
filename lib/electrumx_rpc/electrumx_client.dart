@@ -82,6 +82,8 @@ class ElectrumXNode {
 }
 
 class ElectrumXClient {
+  static const _defaultRequestTimeout = Duration(seconds: 60);
+
   final CryptoCurrency cryptoCurrency;
   final TorPlainNetworkOption netType;
 
@@ -320,15 +322,33 @@ class ElectrumXClient {
         useSSL: ssl,
         proxyInfo: proxy,
         connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
+        connectionDeadline: connectionTimeoutForSpecialCaseJsonRPCClients,
         acceptUnverified: false,
         onBadCertificate: trustedCertificateCheck(pem),
       );
       candidate = cryptoCurrency is Firo
-          ? FiroElectrumClient(channel, useHost, usePort, ssl, proxy)
-          : ElectrumClient(channel, useHost, usePort, ssl, proxy);
+          ? FiroElectrumClient(
+              channel,
+              useHost,
+              usePort,
+              ssl,
+              proxy,
+              requestTimeout: _defaultRequestTimeout,
+            )
+          : ElectrumClient(
+              channel,
+              useHost,
+              usePort,
+              ssl,
+              proxy,
+              requestTimeout: _defaultRequestTimeout,
+            );
       _pendingClient = candidate;
       ensureCurrent();
-      await candidate.request('server.version');
+      await candidate.requestWithTimeout(
+        'server.version',
+        timeout: connectionTimeoutForSpecialCaseJsonRPCClients,
+      );
       ensureCurrent();
       final other = getElectrumAdapter();
       if (other != null && shareable(other)) {
@@ -357,7 +377,7 @@ class ElectrumXClient {
     List<dynamic> args = const [],
     String? requestID,
     int retries = 2,
-    Duration requestTimeout = const Duration(seconds: 60),
+    Duration requestTimeout = _defaultRequestTimeout,
   }) async {
     if (!(await _allow())) {
       throw WifiOnlyException();
@@ -372,7 +392,11 @@ class ElectrumXClient {
     }
 
     try {
-      final response = await _adapter!.request(command, args);
+      final response = await _adapter!.requestWithTimeout(
+        command,
+        parameters: args,
+        timeout: requestTimeout,
+      );
 
       if (response is Map &&
           response.keys.contains("error") &&
@@ -449,9 +473,10 @@ class ElectrumXClient {
   Future<List<dynamic>> batchRequest({
     required String command,
     required List<dynamic> args,
-    Duration requestTimeout = const Duration(seconds: 60),
+    Duration requestTimeout = _defaultRequestTimeout,
     int retries = 2,
   }) async {
+    if (args.isEmpty) return [];
     if (!(await _allow())) {
       throw WifiOnlyException();
     }
@@ -468,7 +493,13 @@ class ElectrumXClient {
       final futures = <Future<dynamic>>[];
       _adapter!.peer.withBatch(() {
         for (final arg in args) {
-          futures.add(_adapter!.request(command, arg));
+          futures.add(
+            _adapter!.requestWithTimeout(
+              command,
+              parameters: arg,
+              timeout: requestTimeout,
+            ),
+          );
         }
       });
       final response = await Future.wait(futures);
@@ -940,7 +971,6 @@ class ElectrumXClient {
     while (retryCount > 0 && response is! List) {
       response = await (_adapter as FiroElectrumClient)
           .getLelantusUsedCoinSerials(startNumber: startNumber);
-      // TODO add 2 minute timeout.
       Logging.instance.d("Fetching lelantus.getusedcoinserials finished");
 
       retryCount--;
@@ -1170,6 +1200,7 @@ class ElectrumXClient {
         requestID: requestID,
         command: "spark.getusedcoinstagstxhashes",
         args: ["$startNumber"],
+        requestTimeout: firoSetRequestTimeout,
       );
 
       final map = Map<String, dynamic>.from(response as Map);
@@ -1317,6 +1348,7 @@ class ElectrumXClient {
         requestID: requestID,
         command: command,
         args: ["$coinGroupId", latestBlock, "$startIndex", "$endIndex"],
+        requestTimeout: firoSetRequestTimeout,
       );
 
       final map = Map<String, dynamic>.from(response as Map);
