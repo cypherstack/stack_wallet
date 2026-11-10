@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/frost_route_generator.dart';
-import 'package:stackwallet/wallets/crypto_currency/coins/bitcoin_frost.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/frost_scaffold.dart';
 import 'package:stackwallet/pages/add_wallet_views/restore_wallet_view/sub_widgets/mnemonic_word_count_select_sheet.dart';
