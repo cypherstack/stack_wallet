@@ -25,7 +25,6 @@ import 'package:keyboard_dismisser/keyboard_dismisser.dart';
 import 'package:logger/logger.dart';
 import 'package:mobile_app_privacy/mobile_app_privacy.dart';
 import 'package:path/path.dart' as path;
-import 'package:path_provider/path_provider.dart';
 import 'package:window_size/window_size.dart';
 
 import 'app_config.dart';
