@@ -8,6 +8,7 @@
  *
  */
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:isar_community/isar.dart';
@@ -323,7 +324,7 @@ class MainDB {
 
     await isar.writeTxn(() async {
       final set = utxos.toSet();
-      final noteValues = <String, String?>{};
+      final noteLabels = <String, String>{};
       for (final utxo in utxos) {
         UTXO persistedUtxo = utxo;
         // check if utxo exists in db and update accordingly
@@ -361,17 +362,20 @@ class MainDB {
         }
 
         if (persistedUtxo.name.isEmpty) {
-          final noteValue = noteValues.containsKey(utxo.txid)
-              ? noteValues[utxo.txid]
-              : (await isar.transactionNotes.getByTxidWalletId(
-                  utxo.txid,
-                  walletId,
-                ))?.value;
-          noteValues[utxo.txid] = noteValue;
-          if (noteValue?.isNotEmpty == true) {
+          var label = noteLabels[utxo.txid];
+          if (label == null) {
+            final note = await isar.transactionNotes.getByTxidWalletId(
+              utxo.txid,
+              walletId,
+            );
+            label = noteLabels[utxo.txid] = utxoLabelFromNote(
+              note?.value ?? "",
+            );
+          }
+          if (label.isNotEmpty) {
             set
               ..remove(persistedUtxo)
-              ..add(persistedUtxo.copyWith(name: noteValue));
+              ..add(persistedUtxo.copyWith(name: label));
           }
         }
       }
@@ -397,6 +401,13 @@ class MainDB {
   Future<void> putTransactionNote(TransactionNote transactionNote) =>
       putTransactionNotes([transactionNote]);
 
+  /// UTXO labels are single line, so a multiline note contributes only its
+  /// first non-blank line.
+  static String utxoLabelFromNote(String note) => const LineSplitter()
+      .convert(note)
+      .map((line) => line.trim())
+      .firstWhere((line) => line.isNotEmpty, orElse: () => "");
+
   /// Copies a note only to blank UTXO labels. The label is independent after
   /// that first assignment, so later note edits cannot overwrite it.
   Future<void> putTransactionNotes(List<TransactionNote> transactionNotes) =>
@@ -407,7 +418,8 @@ class MainDB {
 
           final toUpdate = <UTXO>[];
           for (final note in transactionNotes) {
-            if (note.value.isEmpty) {
+            final label = utxoLabelFromNote(note.value);
+            if (label.isEmpty) {
               continue;
             }
             final utxos = await isar.utxos
@@ -419,7 +431,7 @@ class MainDB {
             toUpdate.addAll(
               utxos
                   .where((utxo) => utxo.name.isEmpty)
-                  .map((utxo) => utxo.copyWith(name: note.value)),
+                  .map((utxo) => utxo.copyWith(name: label)),
             );
           }
           if (toUpdate.isNotEmpty) {

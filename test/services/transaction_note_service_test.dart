@@ -6,7 +6,7 @@ import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/services/transaction_note_service.dart';
 
-import '../utilities/isar_test_core.dart';
+import '../support/isar_test_utils.dart';
 
 void main() {
   const walletId = "wallet-1";
@@ -43,7 +43,7 @@ void main() {
       .findFirstSync()!;
 
   setUpAll(() async {
-    await initializeIsarCoreForTests();
+    await initializeTestIsar();
     tempDir = await Directory.systemTemp.createTemp("stack-note-test-");
     isar = await Isar.open(
       [TransactionNoteSchema, UTXOSchema],
@@ -139,6 +139,25 @@ void main() {
     await db.updateUTXOs(walletId, [utxo(txid: "tx-4")]);
 
     expect(stored("tx-4", 0).name, isEmpty);
+  });
+
+  test("multiline notes label outputs with their first line", () async {
+    await db.putTransactionNote(note("tx-multi-1", "\n  rent  \r\nfor june\n"));
+    await db.updateUTXOs(walletId, [
+      utxo(txid: "tx-multi-1"),
+      utxo(txid: "tx-multi-2"),
+    ]);
+    await db.putTransactionNote(note("tx-multi-2", "gift\nfrom mom"));
+
+    expect(stored("tx-multi-1", 0).name, "rent");
+    expect(stored("tx-multi-2", 0).name, "gift");
+  });
+
+  test("whitespace-only notes do not label outputs", () async {
+    await db.updateUTXOs(walletId, [utxo(txid: "tx-blank")]);
+    await db.putTransactionNote(note("tx-blank", " \n\t\n"));
+
+    expect(stored("tx-blank", 0).name, isEmpty);
   });
 
   test("notes never cross wallet boundaries", () async {
