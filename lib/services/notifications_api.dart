@@ -8,7 +8,7 @@
  *
  */
 
-import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
@@ -19,7 +19,8 @@ import '../utilities/prefs.dart';
 import 'notifications_service.dart';
 
 abstract final class NotificationApi {
-  static Completer<void>? _initCalledCompleter;
+  static Future<void>? _initializationFuture;
+  static Future<bool?>? _permissionRequestFuture;
   static final _notifications = FlutterLocalNotificationsPlugin();
   // static final onNotifications = BehaviorSubject<String?>();
 
@@ -42,16 +43,21 @@ abstract final class NotificationApi {
     bool initScheduled = false,
     bool requestPermissions = true,
   }) async {
-    if (_initCalledCompleter == null) {
-      _initCalledCompleter = Completer<void>();
-    } else {
-      if (_initCalledCompleter!.isCompleted) {
-        return;
-      } else {
-        return await _initCalledCompleter!.future;
+    final existing = _initializationFuture;
+    if (existing != null) return existing;
+    final initialization = _initialize(requestPermissions: requestPermissions);
+    _initializationFuture = initialization;
+    try {
+      await initialization;
+    } catch (_) {
+      if (identical(_initializationFuture, initialization)) {
+        _initializationFuture = null;
       }
+      rethrow;
     }
+  }
 
+  static Future<void> _initialize({required bool requestPermissions}) async {
     const android = AndroidInitializationSettings('app_icon_alpha');
     final iOS = DarwinInitializationSettings(
       requestAlertPermission: requestPermissions,
@@ -98,7 +104,21 @@ abstract final class NotificationApi {
       //   onNotifications.add(payload.payload);
       // },
     );
-    _initCalledCompleter!.complete();
+  }
+
+  static Future<void> _requestPermissionIfNeeded() async {
+    if (!Platform.isAndroid) {
+      return;
+    }
+    _permissionRequestFuture ??= _notifications
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >()
+        ?.requestNotificationsPermission();
+    final granted = await _permissionRequestFuture;
+    if (granted == false) {
+      Logging.instance.i("System notification permission was denied");
+    }
   }
 
   static Future<void> clearNotifications() async {
@@ -121,6 +141,7 @@ abstract final class NotificationApi {
     String? payload,
   }) async {
     await init();
+    await _requestPermissionIfNeeded();
     final id = await prefs.incrementCurrentNotificationIndex();
     await _notifications.show(
       id: id,
@@ -146,11 +167,9 @@ abstract final class NotificationApi {
     String? changeNowId,
     String? payload,
   }) async {
-    final id = await _showOsNotification(
-      title: title,
-      body: body,
-      payload: payload,
-    );
+    await init();
+    await _requestPermissionIfNeeded();
+    final id = await prefs.incrementCurrentNotificationIndex();
 
     String confirms = "";
     if (txid != null &&
@@ -174,6 +193,22 @@ abstract final class NotificationApi {
     );
 
     await notificationsService.add(model, true);
+
+    try {
+      await _notifications.show(
+        id: id,
+        title: title,
+        body: body,
+        notificationDetails: await _notificationDetails(),
+        payload: payload,
+      );
+    } catch (error, stackTrace) {
+      Logging.instance.w(
+        "System notification delivery failed",
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   static Future<void> showLocalOnly({

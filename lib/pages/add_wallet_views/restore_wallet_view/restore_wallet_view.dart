@@ -27,7 +27,6 @@ import '../../../pages_desktop_specific/desktop_home_view.dart';
 import '../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import '../../../providers/global/secure_store_provider.dart';
 import '../../../providers/providers.dart';
-import '../../../services/transaction_notification_tracker.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/address_utils.dart';
 import '../../../utilities/assets.dart';
@@ -327,10 +326,6 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
               .save(node, null, false);
         }
 
-        final txTracker = TransactionNotificationTracker(
-          walletId: info.walletId,
-        );
-
         try {
           final wallet = await Wallet.create(
             walletInfo: info,
@@ -399,9 +394,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
             if (mounted) {
               if (isDesktop) {
-                Navigator.of(
-                  context,
-                ).popUntil(ModalRoute.withName(DesktopHomeView.routeName));
+                Navigator.of(context)
+                    .popUntil(ModalRoute.withName(DesktopHomeView.routeName));
               } else {
                 if (isCreateSpecialEthWallet) {
                   Navigator.of(context).popUntil(
@@ -493,42 +487,42 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       case FormInputStatus.empty:
         color = Theme.of(context).extension<StackColors>()!.textFieldDefaultBG;
         prefixColor = Theme.of(context).extension<StackColors>()!.textSubtitle2;
-        borderColor = Theme.of(
-          context,
-        ).extension<StackColors>()!.textFieldDefaultBG;
+        borderColor = Theme.of(context)
+            .extension<StackColors>()!
+            .textFieldDefaultBG;
         break;
       case FormInputStatus.invalid:
         color = Theme.of(context).extension<StackColors>()!.textFieldErrorBG;
-        prefixColor = Theme.of(
-          context,
-        ).extension<StackColors>()!.textFieldErrorSearchIconLeft;
-        borderColor = Theme.of(
-          context,
-        ).extension<StackColors>()!.textFieldErrorBorder;
+        prefixColor = Theme.of(context)
+            .extension<StackColors>()!
+            .textFieldErrorSearchIconLeft;
+        borderColor = Theme.of(context)
+            .extension<StackColors>()!
+            .textFieldErrorBorder;
         suffixIcon = SvgPicture.asset(
           Assets.svg.alertCircle,
           width: 16,
           height: 16,
-          color: Theme.of(
-            context,
-          ).extension<StackColors>()!.textFieldErrorSearchIconRight,
+          color: Theme.of(context)
+              .extension<StackColors>()!
+              .textFieldErrorSearchIconRight,
         );
         break;
       case FormInputStatus.valid:
         color = Theme.of(context).extension<StackColors>()!.textFieldSuccessBG;
-        prefixColor = Theme.of(
-          context,
-        ).extension<StackColors>()!.textFieldSuccessSearchIconLeft;
-        borderColor = Theme.of(
-          context,
-        ).extension<StackColors>()!.textFieldSuccessBorder;
+        prefixColor = Theme.of(context)
+            .extension<StackColors>()!
+            .textFieldSuccessSearchIconLeft;
+        borderColor = Theme.of(context)
+            .extension<StackColors>()!
+            .textFieldSuccessBorder;
         suffixIcon = SvgPicture.asset(
           Assets.svg.checkCircle,
           width: 16,
           height: 16,
-          color: Theme.of(
-            context,
-          ).extension<StackColors>()!.textFieldSuccessSearchIconRight,
+          color: Theme.of(context)
+              .extension<StackColors>()!
+              .textFieldSuccessSearchIconRight,
         );
         break;
     }
@@ -717,20 +711,19 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                   child: AspectRatio(
                     aspectRatio: 1,
                     child: AppBarIconButton(
-                      semanticsLabel:
-                          "View QR Code Button. Opens Camera To Scan QR Code For Restoring Wallet.",
+                      semanticsLabel: "View QR Code Button. Opens Camera To Scan QR Code For Restoring Wallet.",
                       key: const Key("restoreWalletViewQrCodeButton"),
                       size: 36,
                       shadows: const [],
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.background,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .background,
                       icon: QrCodeIcon(
                         width: 20,
                         height: 20,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorDark,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
                       ),
                       onPressed: scanMnemonicQr,
                     ),
@@ -745,20 +738,19 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                   child: AspectRatio(
                     aspectRatio: 1,
                     child: AppBarIconButton(
-                      semanticsLabel:
-                          "Paste Button. Pastes From Clipboard For Restoring Wallet.",
+                      semanticsLabel: "Paste Button. Pastes From Clipboard For Restoring Wallet.",
                       key: const Key("restoreWalletPasteButton"),
                       size: 36,
                       shadows: const [],
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.background,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .background,
                       icon: ClipboardIcon(
                         width: 20,
                         height: 20,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorDark,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
                       ),
                       onPressed: pasteMnemonic,
                     ),
@@ -815,9 +807,9 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                 Assets.svg.clipboard,
                                 width: 22,
                                 height: 22,
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.buttonTextSecondary,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .buttonTextSecondary,
                               ),
                               const SizedBox(width: 8),
                               Text(
@@ -1198,9 +1190,9 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                     },
                                     controller: _controllers[i - 1],
                                     style: STextStyles.field(context).copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textRestore,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textRestore,
                                       fontSize: isDesktop ? 16 : 14,
                                     ),
                                   ),
