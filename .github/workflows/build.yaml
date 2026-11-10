@@ -348,11 +348,11 @@ jobs:
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
       - name: Build
-        run: flutter build macos --release
+        run: flutter build macos --release --flavor stack_wallet
 
       - name: Package
         run: |
-          cd "build/macos/Build/Products/Release"
+          cd "build/macos/Build/Products/Release-stack_wallet"
           zip -r "$GITHUB_WORKSPACE/stack_wallet-macos-aarch64-${{ steps.ver.outputs.version }}.zip" \
             "Stack Wallet.app"
 
@@ -932,11 +932,11 @@ jobs:
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
       - name: Build
-        run: flutter build macos --release
+        run: flutter build macos --release --flavor campfire
 
       - name: Package
         run: |
-          cd "build/macos/Build/Products/Release"
+          cd "build/macos/Build/Products/Release-campfire"
           zip -r "$GITHUB_WORKSPACE/campfire-macos-aarch64-${{ steps.ver.outputs.version }}.zip" \
             "Campfire.app"
 
@@ -1392,11 +1392,11 @@ jobs:
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
       - name: Build
-        run: flutter build macos --release
+        run: flutter build macos --release --flavor stack_duo
 
       - name: Package
         run: |
-          cd "build/macos/Build/Products/Release"
+          cd "build/macos/Build/Products/Release-stack_duo"
           zip -r "$GITHUB_WORKSPACE/stack_duo-macos-aarch64-${{ steps.ver.outputs.version }}.zip" \
             "Stack Duo.app"
 

@@ -1,0 +1,11 @@
+// Application-level settings for the campfire flavor
+// (see whitelabel/brands/campfire.yaml).
+
+// The application's name. By default this is also the title of the Flutter window.
+PRODUCT_NAME = Campfire
+
+// The application's bundle identifier
+PRODUCT_BUNDLE_IDENTIFIER = com.cypherstack.campfire
+
+// The copyright displayed in application information
+PRODUCT_COPYRIGHT = Copyright © 2023 com.cypherstack. All rights reserved.
