@@ -2,7 +2,8 @@
 import 'dart:ffi';
 import 'dart:io';
 
-import 'setup_xcode.dart' show xcodeVersion, xcodeBuild;
+import 'native_build_options.dart';
+import 'native_dependency_contract.dart';
 
 typedef CommandRunner = Future<ProcessResult> Function(
   String executable,
@@ -81,26 +82,13 @@ fi
 nix --version
 ''';
 
-String? validatedDistribution(String? value) {
-  if (value == null) return null;
-  final distribution = value.trim();
-  if (distribution.isEmpty ||
-      distribution.startsWith('-') ||
-      value.contains(RegExp(r'[\x00-\x1f\x7f]'))) {
-    throw ArgumentError(
-      'WSL distribution must be a non-empty name, without '
-      'a leading hyphen or ASCII control characters.',
-    );
-  }
-  return distribution;
-}
-
 Future<List<String>> checkBuildEnvironment({
   required BuildEnvironment host,
   required String platform,
   required String app,
   required String mode,
   String? wslDistribution,
+  XcodeRequirement? xcodeRequirement,
 }) async {
   if (!{'android', 'ios', 'macos', 'linux', 'windows'}.contains(platform) ||
       !{'stack_wallet', 'stack_duo', 'campfire'}.contains(app) ||
@@ -108,38 +96,70 @@ Future<List<String>> checkBuildEnvironment({
     throw ArgumentError('Invalid platform, app or dnix build mode.');
   }
   final distribution = validatedDistribution(wslDistribution);
+  final appleSource = mode == 'source' && {'ios', 'macos'}.contains(platform);
+  if (appleSource && xcodeRequirement == null) {
+    throw ArgumentError(
+      'Apple source builds need the native Xcode requirement.',
+    );
+  }
   final errors = <String>[];
-  final home = host.variables[host.os == 'windows' ? 'USERPROFILE' : 'HOME'];
-  final separator = host.os == 'windows' ? r'\' : '/';
+  // Legacy WSL configuration invokes native Windows Flutter later. Probe the
+  // Windows Rustup it will use, not the unrelated Linux Rustup in this shell.
+  final windowsFromWsl =
+      platform == 'windows' &&
+      host.os == 'linux' &&
+      (host.variables['WSL_DISTRO_NAME']?.isNotEmpty ?? false);
   var hasRustup = false;
-  for (final executable in [
-    'rustup',
-    if (home != null) '$home$separator.cargo${separator}bin${separator}rustup',
-  ]) {
-    if ((await host.command(executable, ['--version']))?.exitCode == 0) {
-      hasRustup = true;
-      break;
+  if (windowsFromWsl) {
+    for (final command in [
+      'rustup --version',
+      r'""%USERPROFILE%\.cargo\bin\rustup.exe" --version"',
+    ]) {
+      if ((await host.command('cmd.exe', [
+            '/d',
+            '/s',
+            '/c',
+            command,
+          ]))?.exitCode ==
+          0) {
+        hasRustup = true;
+        break;
+      }
+    }
+  } else {
+    final home = host.variables[host.os == 'windows' ? 'USERPROFILE' : 'HOME'];
+    final separator = host.os == 'windows' ? r'\' : '/';
+    for (final executable in [
+      'rustup',
+      if (home != null)
+        '$home$separator.cargo${separator}bin${separator}rustup',
+    ]) {
+      if ((await host.command(executable, ['--version']))?.exitCode == 0) {
+        hasRustup = true;
+        break;
+      }
     }
   }
   if (!hasRustup) {
     final xelis = app == 'stack_wallet'
         ? ' Stack Wallet also needs Rust 1.99.1 for Xelis.'
         : '';
+    final flutterHost = windowsFromWsl ? 'native Windows' : 'the Flutter host';
+    final interoperability = windowsFromWsl
+        ? ' WSL must be able to launch cmd.exe; configure from Git Bash on '
+              'Windows if interoperability is unavailable.'
+        : '';
     errors.add(
-      'Install Rustup on the Flutter host (https://rustup.rs/). '
+      'Install Rustup on $flutterHost (https://rustup.rs/). '
       'Every app needs Rust 1.90.0 for DNSSEC, including with -d.$xelis '
-      'The hooks install their pinned toolchains automatically.',
+      'The hooks install their pinned toolchains automatically.'
+      '$interoperability',
     );
   }
   if (mode == 'prebuilt') return errors;
 
-  // Legacy configuration under WSL still invokes native Windows Flutter later.
-  // Its hooks select the default/requested distro, which can differ from this
-  // shell's current WSL distribution. Probe through wsl.exe in that case too.
-  final windowsFromWsl =
-      platform == 'windows' &&
-      host.os == 'linux' &&
-      (host.variables['WSL_DISTRO_NAME']?.isNotEmpty ?? false);
+  // Windows hooks select the default/requested distro, which can differ from
+  // this shell's current WSL distribution. Probe through wsl.exe in both cases.
   if (host.os == 'windows' || windowsFromWsl) {
     final result = await host.command(
       'wsl.exe',
@@ -204,17 +224,23 @@ Future<List<String>> checkBuildEnvironment({
     if (host.os != 'macos') {
       errors.add('Apple targets require a macOS build host.');
     } else if (host.architecture == 'arm64') {
-      final selected = await selectedDnixXcode(host);
+      final requirement = xcodeRequirement!;
+      final selected = await selectedDnixXcode(
+        host,
+        version: requirement.version,
+        pinnedBuild: requirement.upstreamBuildPinned ? requirement.build : null,
+      );
       if (selected == null) {
         errors.add(
-          'Source mode needs Xcode $xcodeVersion ($xcodeBuild) under '
+          'Source mode needs Xcode ${requirement.version} '
+          '(${requirement.build}) under '
           '/Applications. Run dart tool/setup_xcode.dart, or use '
           'build_app.sh -d for verified dnix prebuilts.',
         );
-      } else if (selected.build != xcodeBuild) {
+      } else if (selected.build != requirement.build) {
         errors.add(
-          'dnix would select Xcode $xcodeVersion (${selected.build}) '
-          'at ${selected.directory}, rather than release $xcodeBuild. '
+          'dnix would select Xcode ${requirement.version} (${selected.build}) '
+          'at ${selected.directory}, rather than release ${requirement.build}. '
           'DEVELOPER_DIR is not forwarded to native hooks. Use -d for verified '
           'prebuilts, or keep the conflicting beta outside '
           '/Applications/Xcode*.app and make sure the system Xcode selection '
@@ -230,8 +256,10 @@ Future<List<String>> checkBuildEnvironment({
 /// Match dnix's actual lookup: global selection first, then the shell glob.
 /// Flutter's hooks runner does not forward the caller's DEVELOPER_DIR.
 Future<({String directory, String build})?> selectedDnixXcode(
-  BuildEnvironment host,
-) async {
+  BuildEnvironment host, {
+  required String version,
+  String? pinnedBuild,
+}) async {
   final environment = Map<String, String>.of(host.variables)
     ..remove('DEVELOPER_DIR');
   final selected = await host.command('/usr/bin/xcode-select', [
@@ -249,20 +277,19 @@ Future<({String directory, String build})?> selectedDnixXcode(
     // The error below identifies the missing usable Xcode.
   }
   for (final candidate in candidates.toSet()) {
-    final version = await host.command(
+    final result = await host.command(
       '/usr/bin/xcodebuild',
       ['-version'],
       environment: {...environment, 'DEVELOPER_DIR': candidate},
     );
-    if (version?.exitCode != 0) continue;
-    final lines = '${version!.stdout}'.trim().split(RegExp(r'\r?\n'));
-    if (lines.isEmpty || lines.first.trim() != 'Xcode $xcodeVersion') continue;
-    return (
-      directory: candidate,
-      build: lines.length > 1
-          ? lines[1].trim().replaceFirst('Build version ', '')
-          : 'unknown',
-    );
+    if (result?.exitCode != 0) continue;
+    final lines = '${result!.stdout}'.trim().split(RegExp(r'\r?\n'));
+    if (lines.isEmpty || lines.first.trim() != 'Xcode $version') continue;
+    final build = lines.length > 1
+        ? lines[1].trim().replaceFirst('Build version ', '')
+        : 'unknown';
+    if (pinnedBuild != null && build != pinnedBuild) continue;
+    return (directory: candidate, build: build);
   }
   return null;
 }
@@ -277,12 +304,28 @@ Future<void> main(List<String> args) async {
     return;
   }
   try {
+    XcodeRequirement? requirement;
+    if (args[2] == 'source' && {'ios', 'macos'}.contains(args[0])) {
+      try {
+        requirement = await loadXcodeRequirement(
+          File.fromUri(Platform.script).parent.parent,
+        );
+      } catch (error) {
+        stderr.writeln('Cannot determine the required Xcode: $error');
+        stderr.writeln(
+          'See docs/building.md for dependency setup instructions.',
+        );
+        exitCode = 1;
+        return;
+      }
+    }
     final errors = await checkBuildEnvironment(
       host: BuildEnvironment.current(),
       platform: args[0],
       app: args[1],
       mode: args[2],
       wslDistribution: args.length == 4 ? args[3] : null,
+      xcodeRequirement: requirement,
     );
     if (errors.isNotEmpty) {
       for (final error in errors) {

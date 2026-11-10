@@ -66,7 +66,9 @@ jobs:
           dart format --output=none --set-exit-if-changed $FILES
 
       - name: Get dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          dart tool/check_native_overrides.dart stack_wallet
 
       - name: Decode secrets
         env:
@@ -107,6 +109,11 @@ jobs:
         run: dart scripts/tests/build_input_test.dart
       - name: Test native build configuration
         run: dart scripts/tests/native_build_config_test.dart
+      - name: Test native settings and dependency contracts
+        run: |
+          dart scripts/tests/configure_native_assets_test.dart
+          dart scripts/tests/native_dependency_contract_test.dart
+          dart scripts/tests/windows_native_overrides_test.dart
       - name: Test build prerequisites
         run: dart scripts/tests/build_environment_test.dart
       - name: Test Windows secp256k1 helper

@@ -77,7 +77,9 @@ jobs:
             -p linux -a stack_wallet -d -s
 
       - name: Get dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          dart tool/check_native_overrides.dart stack_wallet
 
       - name: Decode secrets
         env:
@@ -144,7 +146,9 @@ jobs:
             -p android -a stack_wallet -d -s
 
       - name: Get dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          dart tool/check_native_overrides.dart stack_wallet
 
       - name: Decode secrets
         env:
@@ -279,7 +283,9 @@ jobs:
           done
 
       - name: Get dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          dart tool/check_native_overrides.dart stack_wallet
 
       - name: Decode secrets
         env:
@@ -348,7 +354,9 @@ jobs:
             -p macos -a stack_wallet -d -s
 
       - name: Get dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          dart tool/check_native_overrides.dart stack_wallet
 
       - name: Decode secrets
         env:
@@ -417,7 +425,9 @@ jobs:
             -p ios -a stack_wallet -d -s
 
       - name: Get dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          dart tool/check_native_overrides.dart stack_wallet
 
       - name: Decode secrets
         env:
@@ -480,7 +490,9 @@ jobs:
             -p linux -a campfire -d -s
 
       - name: Get dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          dart tool/check_native_overrides.dart campfire
 
       - name: Decode secrets
         env:
@@ -547,7 +559,9 @@ jobs:
             -p linux -a stack_duo -d -s
 
       - name: Get dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          dart tool/check_native_overrides.dart stack_duo
 
       - name: Decode secrets
         env:
@@ -731,7 +745,9 @@ jobs:
             -p android -a campfire -d -s
 
       - name: Get dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          dart tool/check_native_overrides.dart campfire
 
       - name: Decode secrets
         env:
@@ -858,7 +874,9 @@ jobs:
           done
 
       - name: Get dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          dart tool/check_native_overrides.dart campfire
 
       - name: Decode secrets
         env:
@@ -927,7 +945,9 @@ jobs:
             -p macos -a campfire -d -s
 
       - name: Get dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          dart tool/check_native_overrides.dart campfire
 
       - name: Decode secrets
         env:
@@ -996,7 +1016,9 @@ jobs:
             -p ios -a campfire -d -s
 
       - name: Get dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          dart tool/check_native_overrides.dart campfire
 
       - name: Decode secrets
         env:
@@ -1176,7 +1198,9 @@ jobs:
             -p android -a stack_duo -d -s
 
       - name: Get dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          dart tool/check_native_overrides.dart stack_duo
 
       - name: Decode secrets
         env:
@@ -1303,7 +1327,9 @@ jobs:
           done
 
       - name: Get dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          dart tool/check_native_overrides.dart stack_duo
 
       - name: Decode secrets
         env:
@@ -1372,7 +1398,9 @@ jobs:
             -p macos -a stack_duo -d -s
 
       - name: Get dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          dart tool/check_native_overrides.dart stack_duo
 
       - name: Decode secrets
         env:
@@ -1441,7 +1469,9 @@ jobs:
             -p ios -a stack_duo -d -s
 
       - name: Get dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          dart tool/check_native_overrides.dart stack_duo
 
       - name: Decode secrets
         env:

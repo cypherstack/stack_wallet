@@ -1,5 +1,6 @@
 // Run with: dart scripts/tests/windows_secp_build_test.dart
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:crypto/crypto.dart';
 import 'package:test/test.dart';
@@ -16,6 +17,37 @@ void main() {
   late Map<String, String> compilerFlags;
   String? failAt;
   bool missingDll = false;
+  bool cleanupLocked = false;
+
+  test('secp pin matches resolved coinlib Windows recipes', () async {
+    // Resolve the dependency selected by pub, not a copied pin or cache path.
+    // Updating coinlib must review this contract too.
+    final library = await Isolate.resolvePackageUri(
+      Uri.parse('package:coinlib/coinlib.dart'),
+    );
+    expect(library, isNotNull, reason: 'Run flutter pub get before this test.');
+    final native = File.fromUri(library!.resolve('../bin/build_windows.dart'))
+        .readAsStringSync();
+    final cross = File.fromUri(
+      library.resolve('../bin/build_windows_crosscompile.dart'),
+    ).readAsStringSync();
+    final nativePin = RegExp(
+      r'''["']checkout["']\s*,\s*["']([0-9a-f]{40})["']''',
+    ).firstMatch(native)?.group(1);
+    final crossPin = RegExp(r'git\s+checkout\s+([0-9a-f]{40})\b')
+        .firstMatch(cross)
+        ?.group(1);
+    expect(
+      nativePin,
+      secpRevision,
+      reason: 'Review the resolved coinlib native Windows secp revision.',
+    );
+    expect(
+      crossPin,
+      secpRevision,
+      reason: 'Review the resolved coinlib cross-build secp revision.',
+    );
+  });
 
   void installSdk(String version) {
     for (final relative in [
@@ -46,6 +78,7 @@ void main() {
     compilerFlags = {};
     failAt = null;
     missingDll = false;
+    cleanupLocked = false;
     for (final entry in {
       'scripts/windows/build_secp256k1.dart': 'fixture recipe',
       'Program Files (x86)/Microsoft Visual Studio/Installer/vswhere.exe':
@@ -66,6 +99,12 @@ void main() {
     root: root,
     nativeWindows: nativeWindows,
     environment: {'ProgramFiles(x86)': programFiles, ...compilerFlags},
+    cleanup: (directory) {
+      if (cleanupLocked) {
+        throw FileSystemException('fixture locked directory', directory.path);
+      }
+      directory.deleteSync(recursive: true);
+    },
     run: (executable, args, {workingDirectory}) async {
       calls.add((executable: executable, args: args, cwd: workingDirectory));
       ProcessResult result([String out = '', int status = 0]) =>
@@ -92,9 +131,9 @@ void main() {
       final operation = args.first;
       if (operation == failAt) return result('', 42);
       if (executable == 'git') {
-        if (operation == 'clone') {
+        if (operation == 'init') {
           Directory(args.last).createSync(recursive: true);
-        } else if (operation != 'checkout') {
+        } else if (operation != 'checkout' && operation != 'fetch') {
           fail('Unexpected git invocation: $args');
         }
         return result();
@@ -123,7 +162,7 @@ void main() {
   test('preflight discovers VS CMake without creating build outputs', () async {
     await builder().check();
     expect(Directory('${root.path}/build').existsSync(), isFalse);
-    expect(operation('clone'), isEmpty);
+    expect(operation('fetch'), isEmpty);
     expect(calls.any((c) => c.executable == 'cmake'), isFalse);
     expect(
       calls.any(
@@ -139,7 +178,7 @@ void main() {
     Directory(sdkRoot).deleteSync(recursive: true);
     await expectLater(builder().check(), throwsA(isA<SecpBuildException>()));
     expect(Directory('${root.path}/build').existsSync(), isFalse);
-    expect(operation('clone'), isEmpty);
+    expect(operation('fetch'), isEmpty);
   });
 
   test('incomplete x64 SDK is rejected', () async {
@@ -169,6 +208,14 @@ void main() {
       expect(operation('checkout').single.args, [
         'checkout',
         '--detach',
+        secpRevision,
+      ]);
+      expect(operation('fetch').single.args, [
+        'fetch',
+        '--depth',
+        '1',
+        '--no-tags',
+        'https://github.com/bitcoin-core/secp256k1.git',
         secpRevision,
       ]);
       expect(
@@ -207,13 +254,14 @@ void main() {
       isTrue,
     );
     expect(File('${root.path}/build/secp256k1.dll').existsSync(), isTrue);
+    expect(calls.any((c) => c.executable.contains('mingw32-g++')), isFalse);
   });
 
-  test('matching receipt avoids cloning and recompiling', () async {
+  test('matching receipt avoids fetching and recompiling', () async {
     await builder().build();
     calls.clear();
     await builder().build();
-    expect(operation('clone'), isEmpty);
+    expect(operation('fetch'), isEmpty);
     expect(operation('--build'), isEmpty);
   });
 
@@ -222,7 +270,7 @@ void main() {
     File('${root.path}/build/secp256k1.dll').writeAsStringSync('corrupted');
     calls.clear();
     await builder().build();
-    expect(operation('clone'), hasLength(1));
+    expect(operation('fetch'), hasLength(1));
     expect(
       File('${root.path}/build/secp256k1.dll').readAsStringSync(),
       'fixture Windows library',
@@ -233,12 +281,12 @@ void main() {
     await builder().build();
     calls.clear();
     await builder(nativeWindows: false).build();
-    expect(operation('clone'), hasLength(1));
+    expect(operation('fetch'), hasLength(1));
     File('${root.path}/scripts/windows/build_secp256k1.dart')
         .writeAsStringSync('changed recipe');
     calls.clear();
     await builder(nativeWindows: false).build();
-    expect(operation('clone'), hasLength(1));
+    expect(operation('fetch'), hasLength(1));
   });
 
   test('changed CMake identity invalidates the cache', () async {
@@ -246,7 +294,7 @@ void main() {
     cmakeVersion = 'cmake version 4.1.0';
     calls.clear();
     await builder().build();
-    expect(operation('clone'), hasLength(1));
+    expect(operation('fetch'), hasLength(1));
   });
 
   test('new SDK version invalidates cache and is selected for CMake', () async {
@@ -254,7 +302,7 @@ void main() {
     installSdk('10.0.26100.0');
     calls.clear();
     await builder().build();
-    expect(operation('clone'), hasLength(1));
+    expect(operation('fetch'), hasLength(1));
     expect(
       operation('-S').single.args,
       contains('-DCMAKE_SYSTEM_VERSION=10.0.26100.0'),
@@ -266,10 +314,10 @@ void main() {
     compilerFlags = {'CL': '/O1', 'LDFLAGS': '-s'};
     calls.clear();
     await builder().build();
-    expect(operation('clone'), hasLength(1));
+    expect(operation('fetch'), hasLength(1));
   });
 
-  for (final operation in ['clone', 'checkout', '-S', '--build']) {
+  for (final operation in ['init', 'fetch', 'checkout', '-S', '--build']) {
     test(
       '$operation failure propagates without publishing a receipt',
       () async {
@@ -292,4 +340,82 @@ void main() {
     await expectLater(builder().build(), throwsA(isA<SecpBuildException>()));
     expect(File('${root.path}/build/secp256k1.dll.json').existsSync(), isFalse);
   });
+
+  test('locked cleanup leaves a successfully published DLL usable', () async {
+    cleanupLocked = true;
+    await builder().build();
+    expect(File('${root.path}/build/secp256k1.dll').existsSync(), isTrue);
+    expect(File('${root.path}/build/secp256k1.dll.json').existsSync(), isTrue);
+    calls.clear();
+    await builder().build();
+    expect(operation('fetch'), isEmpty);
+  });
+
+  test('locked cleanup never masks the original build failure', () async {
+    cleanupLocked = true;
+    failAt = '--build';
+    await expectLater(
+      builder().build(),
+      throwsA(
+        isA<SecpBuildException>().having(
+          (e) => e.message,
+          'message',
+          contains('--build'),
+        ),
+      ),
+    );
+    expect(File('${root.path}/build/secp256k1.dll.json').existsSync(), isFalse);
+  });
+
+  group('WSL entry point', () {
+    late Directory bin;
+    late File shim;
+    late File recorded;
+    setUp(() {
+      bin = Directory('${root.path}/bin')..createSync();
+      final repository = File.fromUri(Platform.script).parent.parent.parent;
+      shim = File('${root.path}/build_secp256k1_wsl.sh');
+      File('${repository.path}/scripts/windows/build_secp256k1_wsl.sh')
+          .copySync(shim.path);
+      recorded = File('${root.path}/dart-arguments');
+      final fakeDart = File('${bin.path}/dart')
+        ..writeAsStringSync(r'''#!/bin/sh
+if [ "$1" = --version ]; then
+  printf 'Dart SDK version: fixture on "%s"\n' "$FIXTURE_DART_HOST" >&2
+  exit 0
+fi
+printf '%s\n' "$@" > "$FIXTURE_ARGUMENTS"
+exit 37
+''');
+      expect(Process.runSync('chmod', ['+x', fakeDart.path]).exitCode, 0);
+    });
+    Future<ProcessResult> invoke(String host) => Process.run(
+      '/bin/bash',
+      [shim.path, '--check'],
+      environment: {
+        'PATH': '${bin.path}:/usr/bin:/bin',
+        'FIXTURE_DART_HOST': host,
+        'FIXTURE_ARGUMENTS': recorded.path,
+      },
+    );
+
+    test('Linux SDK runs the helper and propagates its status', () async {
+      final result = await invoke('linux_x64');
+      expect(result.exitCode, 37);
+      expect(recorded.readAsLinesSync(), [
+        '${root.path}/build_secp256k1.dart',
+        '--check',
+      ]);
+    });
+
+    test(
+      'Windows Flutter on WSL PATH fails before invoking the helper',
+      () async {
+        final result = await invoke('windows_x64');
+        expect(result.exitCode, 1);
+        expect(result.stderr, contains("Linux SDK's bin directory"));
+        expect(recorded.existsSync(), isFalse);
+      },
+    );
+  }, skip: Platform.isWindows ? 'Requires POSIX bash' : false);
 }

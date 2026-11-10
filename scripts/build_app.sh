@@ -102,6 +102,7 @@ fi
 confirmDisclaimer
 
 # Check requirements before replacing any generated app/platform files.
+dart "${APP_PROJECT_ROOT_DIR}/tool/check_native_overrides.dart" "$APP_NAMED_ID" "$APP_BUILD_PLATFORM"
 DNIX_DISTRIBUTION_ARGS=()
 if [ -n "$DNIX_WSL_DISTRIBUTION" ]; then
     DNIX_DISTRIBUTION_ARGS=("$DNIX_WSL_DISTRIBUTION")
@@ -139,6 +140,9 @@ if [[ "$APP_BUILD_PLATFORM" != "linux" ]]; then
     # run icon and image generators after project config has completed for non linux
     "${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/asset_generators.sh" "${APP_BUILD_PLATFORM}"
 fi
+
+# Asset generation can resolve dependencies; inspect the resulting checkouts too.
+dart "${APP_PROJECT_ROOT_DIR}/tool/check_native_overrides.dart" "$APP_NAMED_ID" "$APP_BUILD_PLATFORM"
 
 # Build platform native deps that are not provided by pub packages. The crypto
 # plugins (flutter_libepiccash, flutter_libmwc, frostdart, tor_ffi_plugin) are native-assets

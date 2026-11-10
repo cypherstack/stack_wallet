@@ -7,20 +7,17 @@ import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
 import '../../tool/configure_native_assets.dart';
+import '../../tool/native_dependency_contract.dart' show enabledDnixPackages;
 
 void main() {
   final repository = File.fromUri(Platform.script).parent.parent.parent;
-  const packages = {
-    'stack_wallet': {
-      'frostdart',
-      'tor_ffi_plugin',
-      'flutter_libepiccash',
-      'flutter_libmwc',
-    },
-    'stack_duo': {'frostdart', 'tor_ffi_plugin'},
-    'campfire': {'tor_ffi_plugin'},
+  const apps = ['stack_wallet', 'stack_duo', 'campfire'];
+  const allPackages = {
+    'frostdart',
+    'tor_ffi_plugin',
+    'flutter_libepiccash',
+    'flutter_libmwc',
   };
-  final allPackages = packages['stack_wallet']!;
   late Directory root;
   late Directory bin;
 
@@ -58,14 +55,15 @@ void main() {
       'scripts/app_config/shared/update_version.sh',
       'tool/process_pubspec_deps.dart',
       'tool/configure_native_assets.dart',
+      'tool/native_build_options.dart',
       'tool/gen_interfaces.dart',
-      for (final app in packages.keys) 'scripts/app_config/configure_$app.sh',
+      for (final app in apps) 'scripts/app_config/configure_$app.sh',
     ]) {
       copyFile(file);
     }
     copyDirectory('scripts/app_config/templates');
     copyDirectory('tool/wl_templates');
-    for (final app in packages.keys) {
+    for (final app in apps) {
       final icon = File(
         p.join(
           root.path,
@@ -96,20 +94,27 @@ pwd > "\$APP_PROJECT_ROOT_DIR/native-cwd"
 test "$1" = log
 printf '0000000000000000000000000000000000000000\n'
 ''');
-    // Invoke this SDK directly: Flutter's dart launcher also calls git/uname,
-    // which are simulated below to exercise the Windows dispatch on POSIX.
+    // Invoke this SDK directly; Flutter's launcher also calls our fake git.
     final dart = Platform.resolvedExecutable.replaceAll("'", "'\\''");
     script('bin/dart', "exec '$dart' \"\$@\"");
-    script('bin/uname', r'''
-if [ -n "${DNIX_TEST_HOST:-}" ]; then
-  printf '%s\n' "$DNIX_TEST_HOST"
-else
-  exec /usr/bin/uname "$@"
-fi
-''');
     script('bin/sha256sum', "printf 'fixture-hash  mwebd.exe\\n'");
     // The real preflight/helper have separate tests with injected native tools.
     // These fixtures exercise their position in the configuration flow and cwd.
+    File(p.join(root.path, 'tool/check_native_overrides.dart'))
+        .writeAsStringSync('''
+import 'dart:convert';
+import 'dart:io';
+void main(List<String> args) {
+  if (args.length != 2) exit(64);
+  final root = File.fromUri(Platform.script).parent.parent;
+  final calls = File('\${root.path}/override-checks');
+  final count = calls.existsSync() ? calls.readAsLinesSync().length : 0;
+  calls.writeAsStringSync('\${jsonEncode(args)}\\n', mode: FileMode.append);
+  if (Platform.environment['DNIX_TEST_OVERRIDE_FAIL'] == '\${count + 1}') {
+    exit(23);
+  }
+}
+''');
     File(p.join(root.path, 'tool/check_build_environment.dart'))
         .writeAsStringSync('''
 import 'dart:convert';
@@ -154,12 +159,15 @@ void main(List<String> args) {
     bool prebuilt = false,
     bool skipNative = true,
     String platform = 'macos',
-    String? host,
     String? distribution,
     bool fromScripts = false,
     Map<String, String> environment = const {},
     int expectedExit = 0,
   }) async {
+    final overrideChecks = File(p.join(root.path, 'override-checks'));
+    final previousChecks = overrideChecks.existsSync()
+        ? overrideChecks.readAsLinesSync().length
+        : 0;
     final process = await Process.start(
       'bash',
       [
@@ -180,7 +188,6 @@ void main(List<String> args) {
       environment: {
         'PATH': '${bin.path}:${Platform.environment['PATH']}',
         'DNIX_WSL_DISTRIBUTION': '',
-        if (host != null) 'DNIX_TEST_HOST': host,
         ...environment,
       },
     );
@@ -190,24 +197,26 @@ void main(List<String> args) {
     await process.stdin.close();
     final code = await process.exitCode;
     expect(code, expectedExit, reason: '${await output}\n${await errors}');
+    if (expectedExit == 0) {
+      final calls = overrideChecks.readAsLinesSync();
+      expect(calls, hasLength(previousChecks + 2));
+      for (final call in calls.skip(previousChecks)) {
+        expect(jsonDecode(call), [app, platform]);
+      }
+      final pubspec = loadYaml(
+        File(p.join(root.path, 'pubspec.yaml')).readAsStringSync(),
+      ) as YamlMap;
+      final dependencies = (pubspec['dependencies'] as YamlMap).keys.toSet();
+      expect(dependencies.intersection(allPackages), enabledDnixPackages(app));
+    }
   }
 
-  void expectMode(
-    String app,
-    String mode, {
-    String? distribution,
-    bool linux = false,
-  }) {
+  void expectMode(String mode, {String? distribution, bool linux = false}) {
     final text = File(p.join(root.path, 'pubspec.yaml')).readAsStringSync();
     final pubspec = loadYaml(text) as YamlMap;
-    final dependencies = pubspec['dependencies'] as YamlMap;
     final defines = (pubspec['hooks'] as YamlMap)['user_defines'] as YamlMap;
-    expect(
-      dependencies.keys.where(allPackages.contains).toSet(),
-      packages[app],
-    );
-    expect(defines.keys.toSet(), packages[app]);
-    for (final package in packages[app]!) {
+    expect(defines.keys.toSet(), allPackages);
+    for (final package in allPackages) {
       expect(defines[package], {
         'build': mode,
         if (distribution != null) 'wsl_distribution': distribution,
@@ -228,43 +237,40 @@ void main(List<String> args) {
   }
 
   group('dnix configuration', () {
-    for (final app in packages.keys) {
+    for (final app in apps) {
       test(
         '$app switches source -> prebuilt -> source without stale settings',
         () async {
           for (final prebuilt in [false, true, false]) {
             await configure(app, prebuilt: prebuilt);
-            expectMode(app, prebuilt ? 'prebuilt' : 'source');
+            expectMode(prebuilt ? 'prebuilt' : 'source');
           }
         },
       );
     }
 
-    for (final host in ['MINGW64_NT', 'Linux']) {
-      for (final prebuilt in [false, true]) {
-        test(
-          'Windows config builds secp in project root on $host, -d=$prebuilt',
-          () async {
-            await configure(
-              'stack_wallet',
-              platform: 'windows',
-              host: host,
-              skipNative: false,
-              prebuilt: prebuilt,
-              fromScripts: true,
-            );
-            expectMode('stack_wallet', prebuilt ? 'prebuilt' : 'source');
-            expect(
-              File(p.join(root.path, 'native-cwd')).readAsStringSync(),
-              root.resolveSymbolicLinksSync(),
-            );
-            expect(
-              File(p.join(root.path, 'build/secp256k1.dll')).existsSync(),
-              isTrue,
-            );
-          },
-        );
-      }
+    for (final prebuilt in [false, true]) {
+      test(
+        'Windows config builds secp in project root, -d=$prebuilt',
+        () async {
+          await configure(
+            'stack_wallet',
+            platform: 'windows',
+            skipNative: false,
+            prebuilt: prebuilt,
+            fromScripts: true,
+          );
+          expectMode(prebuilt ? 'prebuilt' : 'source');
+          expect(
+            File(p.join(root.path, 'native-cwd')).readAsStringSync(),
+            root.resolveSymbolicLinksSync(),
+          );
+          expect(
+            File(p.join(root.path, 'build/secp256k1.dll')).existsSync(),
+            isTrue,
+          );
+        },
+      );
     }
 
     for (final prebuilt in [false, true]) {
@@ -275,11 +281,7 @@ void main(List<String> args) {
           skipNative: false,
           prebuilt: prebuilt,
         );
-        expectMode(
-          'stack_wallet',
-          prebuilt ? 'prebuilt' : 'source',
-          linux: true,
-        );
+        expectMode(prebuilt ? 'prebuilt' : 'source', linux: true);
         expect(File(p.join(root.path, 'linux-deps')).readAsLinesSync(), [
           'secure_storage_deps',
           'secp256k1',
@@ -320,11 +322,7 @@ void main(List<String> args) {
             prebuilt: prebuilt,
             environment: {'DNIX_WSL_DISTRIBUTION': distro},
           );
-          expectMode(
-            'stack_wallet',
-            prebuilt ? 'prebuilt' : 'source',
-            distribution: distro,
-          );
+          expectMode(prebuilt ? 'prebuilt' : 'source', distribution: distro);
           expect(
             jsonDecode(
               File(p.join(root.path, 'preflight-args')).readAsStringSync(),
@@ -337,13 +335,14 @@ void main(List<String> args) {
           distribution: 'Ubuntu-24.04',
           environment: {'DNIX_WSL_DISTRIBUTION': distro},
         );
-        expectMode('stack_wallet', 'source', distribution: 'Ubuntu-24.04');
+        expectMode('source', distribution: 'Ubuntu-24.04');
         await configure('stack_wallet');
-        expectMode('stack_wallet', 'source');
+        expectMode('source');
       },
     );
 
     for (final failure in [
+      (variable: 'DNIX_TEST_OVERRIDE_FAIL', code: 23),
       (variable: 'DNIX_TEST_PREFLIGHT_FAIL', code: 21),
       (variable: 'DNIX_TEST_SECP_PREFLIGHT_FAIL', code: 22),
     ]) {
@@ -367,6 +366,25 @@ void main(List<String> args) {
         },
       );
     }
+
+    test('post-config override failure stops before native builds', () async {
+      await configure(
+        'stack_wallet',
+        platform: 'windows',
+        skipNative: false,
+        environment: {'DNIX_TEST_OVERRIDE_FAIL': '2'},
+        expectedExit: 23,
+      );
+      expect(
+        File(p.join(root.path, 'override-checks')).readAsLinesSync(),
+        hasLength(2),
+      );
+      expect(File(p.join(root.path, 'native-cwd')).existsSync(), isFalse);
+      expect(
+        File(p.join(root.path, 'build/secp256k1.dll')).existsSync(),
+        isFalse,
+      );
+    });
 
     test('renderer rejects invalid modes and WSL names', () {
       expect(

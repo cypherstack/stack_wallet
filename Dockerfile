@@ -26,16 +26,13 @@ RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
  && apt-get install -y --no-install-recommends nodejs \
  && rm -rf /var/lib/apt/lists/*
 
-ENV RUSTUP_HOME=/usr/local/rustup \
-    CARGO_HOME=/usr/local/cargo \
-    PATH=/usr/local/cargo/bin:$PATH
+# Keep Rustup on PATH. Hooks install pinned toolchains in the runtime HOME;
+# hooks_runner does not forward custom RUSTUP_HOME/CARGO_HOME settings.
+ENV PATH=/usr/local/cargo/bin:$PATH
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-      | sh -s -- -y --default-toolchain 1.99.1 --profile minimal --no-modify-path \
- && rustup toolchain install 1.90.0 --profile minimal \
- && rustup target add x86_64-unknown-linux-gnu --toolchain 1.99.1 \
- && cargo install cargo-ndk \
- && chmod -R a+rwX "$CARGO_HOME" "$RUSTUP_HOME"
+      | env RUSTUP_HOME=/usr/local/rustup CARGO_HOME=/usr/local/cargo \
+        sh -s -- -y --default-toolchain none --profile minimal --no-modify-path
 
 ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
 
@@ -93,11 +90,11 @@ RUN git clone --depth 1 --branch 3.47.2 https://github.com/flutter/flutter.git "
 
 RUN git config --system --add safe.directory '*'
 
-RUN flutter --version && rustc --version && cargo --version && node --version && go version
+RUN flutter --version && rustup --version && node --version && go version
 
 
 # Android-only image: no Linux/Windows cross-compilers or OpenCV/OpenCL;
-# pinned Rust toolchains for DNSSEC and Xelis, with Android targets.
+# Rust toolchains and targets are installed by hooks at runtime.
 FROM ubuntu:24.04 AS android
 
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -114,18 +111,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       openjdk-21-jdk-headless \
  && rm -rf /var/lib/apt/lists/*
 
-ENV RUSTUP_HOME=/usr/local/rustup \
-    CARGO_HOME=/usr/local/cargo \
-    PATH=/usr/local/cargo/bin:$PATH
+# Keep Rustup on PATH. Hooks install pinned toolchains in the runtime HOME;
+# hooks_runner does not forward custom RUSTUP_HOME/CARGO_HOME settings.
+ENV PATH=/usr/local/cargo/bin:$PATH
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-      | sh -s -- -y --default-toolchain 1.99.1 --profile minimal --no-modify-path \
- && rustup toolchain install 1.90.0 --profile minimal \
- && rustup target add \
-      aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android \
-      --toolchain 1.99.1 \
- && cargo install cargo-ndk \
- && chmod -R a+rwX "$CARGO_HOME" "$RUSTUP_HOME"
+      | env RUSTUP_HOME=/usr/local/rustup CARGO_HOME=/usr/local/cargo \
+        sh -s -- -y --default-toolchain none --profile minimal --no-modify-path
 
 ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
 
@@ -183,7 +175,7 @@ RUN git clone --depth 1 --branch 3.47.2 https://github.com/flutter/flutter.git "
 
 RUN git config --system --add safe.directory '*'
 
-RUN flutter --version && rustc --version && cargo --version && go version
+RUN flutter --version && rustup --version && go version
 
 
 # Image for flutter test (no Android SDK or cross-compilers)
@@ -204,16 +196,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       libjsoncpp-dev liblzma-dev libsecret-1-dev libssl-dev \
  && rm -rf /var/lib/apt/lists/*
 
-# dnix uses prebuilts; all apps need Rust 1.90.0 for DNSSEC, plus
-# Rust 1.99.1 for Stack Wallet's Xelis hook.
-ENV RUSTUP_HOME=/usr/local/rustup \
-    CARGO_HOME=/usr/local/cargo \
-    PATH=/usr/local/cargo/bin:$PATH
+# Keep Rustup on PATH. Hooks install pinned toolchains in the runtime HOME;
+# hooks_runner does not forward custom RUSTUP_HOME/CARGO_HOME settings.
+ENV PATH=/usr/local/cargo/bin:$PATH
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-      | sh -s -- -y --default-toolchain 1.99.1 --profile minimal --no-modify-path \
- && rustup toolchain install 1.90.0 --profile minimal \
- && chmod -R a+rwX "$CARGO_HOME" "$RUSTUP_HOME"
+      | env RUSTUP_HOME=/usr/local/rustup CARGO_HOME=/usr/local/cargo \
+        sh -s -- -y --default-toolchain none --profile minimal --no-modify-path
 
 ENV PATH=/usr/local/go/bin:$PATH
 
@@ -233,4 +222,4 @@ RUN git clone --depth 1 --branch 3.47.2 https://github.com/flutter/flutter.git "
 
 RUN git config --system --add safe.directory '*'
 
-RUN flutter --version && go version
+RUN flutter --version && rustup --version && go version

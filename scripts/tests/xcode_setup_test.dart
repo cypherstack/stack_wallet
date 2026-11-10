@@ -6,6 +6,8 @@ import 'package:test/test.dart';
 import '../../tool/setup_xcode.dart' as setup;
 
 void main() {
+  const fixtureVersion = '27.0';
+  const fixtureBuild = '27A266a';
   late Directory root;
   late Directory apps;
   late Directory bin;
@@ -21,8 +23,8 @@ void main() {
 
   void xcode(
     String name, {
-    String version = setup.xcodeVersion,
-    String build = setup.xcodeBuild,
+    String version = fixtureVersion,
+    String build = fixtureBuild,
   }) {
     final contents = '${apps.path}/$name/Contents';
     Directory(contents).createSync(recursive: true);
@@ -65,6 +67,7 @@ shift
 ''');
     script('${bin.path}/xcodes', r'''
 if [ "$*" = 'install --help' ]; then
+  if [ "${HELP_EXIT:-0}" != 0 ]; then exit "$HELP_EXIT"; fi
   echo "${HELP_FLAG:---no-superuser}"
   exit 0
 fi
@@ -103,6 +106,8 @@ cp -R "$SPARE" "$4/Xcode-27.0.0.app"
     final installer = setup.installerScript(
       home: root.path,
       user: 'fixture',
+      version: fixtureVersion,
+      build: fixtureBuild,
       xcodes: xcodes ?? '${bin.path}/xcodes',
       tools: tools,
       interactive: interactive,
@@ -125,7 +130,6 @@ cp -R "$SPARE" "$4/Xcode-27.0.0.app"
       'downloads without sudo, then initializes only the release build',
       () async {
         xcode('Xcode.app', version: '26.0');
-        xcode('Xcode-27.0.0-Beta.1.app', build: '27A5001a');
         final result = await runInstaller();
         expect(result.exitCode, 0, reason: '${result.stderr}');
         expect(calls.readAsLinesSync(), [
@@ -142,6 +146,31 @@ cp -R "$SPARE" "$4/Xcode-27.0.0.app"
         );
       },
     );
+
+    test('same-version build conflict gives a safe manual recovery', () async {
+      xcode('Xcode-27.0.0-Beta.1.app', build: '27A5001a');
+      final result = await runInstaller();
+      expect(result.exitCode, isNot(0));
+      expect(calls.existsSync(), isFalse);
+      expect(result.stderr, contains('another build of the same version'));
+      expect(result.stderr, contains('Xcode-27.0-27A266a.app'));
+      expect(result.stderr, contains('left untouched'));
+      expect(
+        File('${apps.path}/Xcode-27.0.0-Beta.1.app/Contents/version.plist')
+            .readAsStringSync(),
+        '27A5001a',
+      );
+
+      // Follow the proposed recovery without uninstalling the older build.
+      xcode('Xcode-27.0-27A266a.app');
+      final recovered = await runInstaller();
+      expect(recovered.exitCode, 0, reason: '${recovered.stderr}');
+      expect(calls.readAsLinesSync(), [
+        'sudo-without-cache',
+        'setup',
+        'checked',
+      ]);
+    });
 
     test(
       'skips a sorting-first beta and reuses a manually installed release',
@@ -175,6 +204,14 @@ cp -R "$SPARE" "$4/Xcode-27.0.0.app"
         expect(calls.existsSync(), isFalse);
       },
     );
+
+    test('explains xcodes shim failure without forwarding build env', () async {
+      final result = await runInstaller(env: {'HELP_EXIT': '44'});
+      expect(result.exitCode, isNot(0));
+      expect(calls.existsSync(), isFalse);
+      expect(result.stderr, contains('HOME with a clean setup environment'));
+      expect(result.stderr, contains('globally configured xcodes'));
+    });
 
     for (final env in [
       {'REPORTED_VERSION': '26.0'},
@@ -219,9 +256,32 @@ cp -R "$SPARE" "$4/Xcode-27.0.0.app"
         final executable = '${directory.path}/xcodes';
         File('${bin.path}/xcodes').copySync(executable);
         final resolved = setup.findXcodes('.:${directory.path}:/missing');
-        expect(resolved, File(executable).resolveSymbolicLinksSync());
+        expect(resolved, executable);
         expect(setup.findXcodes('.::relative'), isNull);
         final result = await runInstaller(xcodes: resolved);
+        expect(result.exitCode, 0, reason: '${result.stderr}');
+        expect(calls.readAsLinesSync().first, 'download-without-sudo');
+      },
+    );
+
+    test(
+      'preserves symlink shim dispatch name and its PATH directory',
+      () async {
+        final backend = '${root.path}/mise backend/mise';
+        final shims = Directory('${root.path}/mise shims')..createSync();
+        script(backend, r'''
+test "${0##*/}" = xcodes
+test "$(command -v xcodes)" = "$0"
+exec "$FIXTURE_XCODES" "$@"
+''');
+        final executable = '${shims.path}/xcodes';
+        Link(executable).createSync(backend);
+        final found = setup.findXcodes('${shims.path}:/usr/bin:/bin');
+        expect(found, executable);
+        final result = await runInstaller(
+          xcodes: found,
+          env: {'FIXTURE_XCODES': '${bin.path}/xcodes'},
+        );
         expect(result.exitCode, 0, reason: '${result.stderr}');
         expect(calls.readAsLinesSync().first, 'download-without-sudo');
       },
@@ -237,10 +297,7 @@ cp -R "$SPARE" "$4/Xcode-27.0.0.app"
       },
     );
 
-    for (final shell in [
-      '/bin/bash',
-      if (File('/bin/tcsh').existsSync()) '/bin/tcsh',
-    ]) {
+    for (final shell in ['/bin/bash', '/bin/tcsh']) {
       test(
         'short launcher works with $shell and removes the build environment',
         () async {
@@ -273,6 +330,7 @@ cp -R "$SPARE" "$4/Xcode-27.0.0.app"
             expect(output, isNot(contains('$name=')));
           }
         },
+        skip: !File(shell).existsSync() ? '$shell is not installed' : false,
       );
     }
 
@@ -294,7 +352,6 @@ cp -R "$SPARE" "$4/Xcode-27.0.0.app"
         '/tmp/stack-xcode-setup-fixture/setup.sh',
       );
       final appleScript = setup.terminalAppleScript(command);
-      if (!Platform.isMacOS) return;
       // Compile only: no Terminal window or privileged command runs.
       final output = '${root.path}/setup.scpt';
       final result = await Process.run('/usr/bin/osacompile', [
@@ -304,47 +361,55 @@ cp -R "$SPARE" "$4/Xcode-27.0.0.app"
         appleScript,
       ]);
       expect(result.exitCode, 0, reason: '${result.stderr}');
-    });
+    }, skip: !Platform.isMacOS ? 'Requires macOS osacompile' : false);
 
-    test('completion waits for acknowledgement on a real terminal', () async {
-      // Use a fixture pseudo-terminal, never Terminal.app or native tools.
-      if (!Platform.isMacOS) return;
-      final probe = File('${root.path}/finish.sh')
-        ..writeAsStringSync(
-          setup.installerScript(
-            home: root.path,
-            user: 'fixture',
-            tools: tools,
-            interactive: true,
-          ),
+    test(
+      'completion waits for acknowledgement on a real terminal',
+      () async {
+        // Use a fixture pseudo-terminal, never Terminal.app or native tools.
+        final probe = File('${root.path}/finish.sh')
+          ..writeAsStringSync(
+            setup.installerScript(
+              home: root.path,
+              user: 'fixture',
+              version: fixtureVersion,
+              build: fixtureBuild,
+              tools: tools,
+              interactive: true,
+            ),
+          );
+        xcode('Xcode-27.0.app');
+        final process = await Process.start(
+          '/usr/bin/script',
+          ['-q', '/dev/null', '/bin/bash', probe.path],
+          includeParentEnvironment: false,
+          environment: {'CALLS': calls.path, 'FIXTURE_APPS': apps.path},
         );
-      xcode('Xcode-27.0.app');
-      final process = await Process.start(
-        '/usr/bin/script',
-        ['-q', '/dev/null', '/bin/bash', probe.path],
-        includeParentEnvironment: false,
-        environment: {'CALLS': calls.path, 'FIXTURE_APPS': apps.path},
-      );
-      final text = StringBuffer();
-      var sawPrompt = false;
-      final subscription = process.stdout.listen((chunk) {
-        text.write(String.fromCharCodes(chunk));
-        if (!sawPrompt && text.toString().contains('Press Return to close')) {
-          sawPrompt = true;
-          process.stdin.writeln();
+        final text = StringBuffer();
+        var sawPrompt = false;
+        final subscription = process.stdout.listen((chunk) {
+          text.write(String.fromCharCodes(chunk));
+          if (!sawPrompt && text.toString().contains('Press Return to close')) {
+            sawPrompt = true;
+            process.stdin.writeln();
+          }
+        });
+        final errors = process.stderr.drain<void>();
+        try {
+          expect(
+            await process.exitCode.timeout(const Duration(seconds: 10)),
+            0,
+          );
+          await subscription.cancel();
+          await errors;
+          expect(sawPrompt, isTrue);
+          expect(text.toString(), contains('Setup complete'));
+        } finally {
+          process.kill(ProcessSignal.sigkill);
+          await process.stdin.close();
         }
-      });
-      final errors = process.stderr.drain<void>();
-      try {
-        expect(await process.exitCode.timeout(const Duration(seconds: 10)), 0);
-        await subscription.cancel();
-        await errors;
-        expect(sawPrompt, isTrue);
-        expect(text.toString(), contains('Setup complete'));
-      } finally {
-        process.kill(ProcessSignal.sigkill);
-        await process.stdin.close();
-      }
-    });
+      },
+      skip: !Platform.isMacOS ? 'Requires macOS script pseudo-terminal' : false,
+    );
   }, skip: Platform.isWindows ? 'Requires POSIX bash' : false);
 }

@@ -1,0 +1,9 @@
+{
+  "_comment": "Temporary Xcode release-build compatibility for exact package commits that pin only the version. Prefer toolchains.xcodeBuild upstream. New commits must be reviewed; never copy these records automatically.",
+  "xcodeBuilds": {
+    "f7fea2a926ea88e2eb6a353579372188d6915314": { "version": "27.0", "build": "27A266a" },
+    "6e954a9d5a0aaaafb861049b79041d7ae98c2a08": { "version": "27.0", "build": "27A266a" },
+    "63e93b01c3c4c68a52b26a43e4442a4738d5e7e8": { "version": "27.0", "build": "27A266a" },
+    "5722fb3ba05c8f52e8e0255c485ae5ea52e9a694": { "version": "27.0", "build": "27A266a" }
+  }
+}

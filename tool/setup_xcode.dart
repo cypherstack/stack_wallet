@@ -1,10 +1,7 @@
 // Run directly with `dart tool/setup_xcode.dart`; no pub get/build hooks needed.
 import 'dart:io';
 
-const xcodeVersion = '27.0';
-// Apple Developer Releases, September 14, 2026:
-// https://developer.apple.com/news/releases/
-const xcodeBuild = '27A266a';
+import 'native_dependency_contract.dart';
 
 // Explicit native tools let tests substitute fixtures without rewriting source
 // or risking a real sudo invocation. The CLI always uses these system defaults.
@@ -28,6 +25,8 @@ String shellQuote(String value) => "'${value.replaceAll("'", "'\\''")}'";
 String installerScript({
   required String home,
   required String user,
+  required String version,
+  required String build,
   String? xcodes,
   SetupTools tools = const SetupTools(),
   bool interactive = true,
@@ -48,8 +47,8 @@ set -euo pipefail
 umask 077
 export HOME=${shellQuote(home)} USER=${shellQuote(user)} LOGNAME=${shellQuote(user)}
 export PATH=${shellQuote(installerPath)} TERM=xterm-256color
-XCODE_VERSION=${shellQuote(xcodeVersion)}
-XCODE_BUILD=${shellQuote(xcodeBuild)}
+XCODE_VERSION=${shellQuote(version)}
+XCODE_BUILD=${shellQuote(build)}
 APPLICATIONS=${shellQuote(tools.applications)}
 ID=${shellQuote(tools.id)}
 UNAME=${shellQuote(tools.uname)}
@@ -94,28 +93,47 @@ fi
 
 find_xcode() {
   local candidate version build
+  CONFLICTING_XCODES=()
   for candidate in "$APPLICATIONS"/Xcode*.app; do
     [ -f "$candidate/Contents/Info.plist" ] || continue
     version=$("$PLIST_BUDDY" -c 'Print :CFBundleShortVersionString' \
       "$candidate/Contents/Info.plist" 2>/dev/null) || continue
+    [ "$version" = "$XCODE_VERSION" ] || continue
     build=$("$PLIST_BUDDY" -c 'Print :ProductBuildVersion' \
-      "$candidate/Contents/version.plist" 2>/dev/null) || continue
-    if [ "$version" = "$XCODE_VERSION" ] && [ "$build" = "$XCODE_BUILD" ]; then
+      "$candidate/Contents/version.plist" 2>/dev/null) || build=unknown
+    if [ "$build" = "$XCODE_BUILD" ]; then
       XCODE_APP="$candidate"
       return 0
     fi
+    CONFLICTING_XCODES+=("$candidate ($build)")
   done
   return 1
 }
 
 if ! find_xcode; then
+  if [ "${#CONFLICTING_XCODES[@]}" -gt 0 ]; then
+    printf 'These Xcode %s installations have a different build:\n' "$XCODE_VERSION" >&2
+    printf '  %s\n' "${CONFLICTING_XCODES[@]}" >&2
+    echo 'xcodes may refuse to install another build of the same version.' >&2
+    printf 'Download Xcode %s (%s) from https://developer.apple.com/download/all/?q=Xcode\n' \
+      "$XCODE_VERSION" "$XCODE_BUILD" >&2
+    echo 'Expand the archive in Finder, then rename the extracted app to' >&2
+    printf 'Xcode-%s-%s.app before moving it into %s.\n' \
+      "$XCODE_VERSION" "$XCODE_BUILD" "$APPLICATIONS" >&2
+    echo 'Rerun this helper afterward. Existing Xcodes have been left untouched.' >&2
+    exit 1
+  fi
   if [ -z "$XCODES" ] || [ ! -x "$XCODES" ]; then
     echo 'xcodes was not found on your PATH when setup was launched.' >&2
     echo 'Install it or add it to PATH, then rerun this helper.' >&2
     echo 'Homebrew option: brew install xcodesorg/made/xcodes' >&2
     exit 1
   fi
-  help=$("$XCODES" install --help)
+  if ! help=$("$XCODES" install --help); then
+    echo 'xcodes could not run from HOME with a clean setup environment.' >&2
+    echo 'Use a globally configured xcodes or put its direct executable on PATH.' >&2
+    exit 1
+  fi
   if [[ "$help" != *--no-superuser* ]]; then
     echo 'Update xcodes: this helper requires --no-superuser support.' >&2
     exit 1
@@ -164,7 +182,9 @@ String? findXcodes(String? searchPath) {
     try {
       final stat = candidate.statSync();
       if (stat.type == FileSystemEntityType.file && stat.mode & 0x49 != 0) {
-        return candidate.resolveSymbolicLinksSync();
+        // Keep the name used to invoke it: mise/asdf-style shims can dispatch
+        // through argv[0], and their own directory must remain on PATH.
+        return candidate.path;
       }
     } on FileSystemException {
       // Keep searching if an earlier PATH entry is inaccessible.
@@ -207,7 +227,7 @@ String terminalAppleScript(String command) {
 Future<void> main(List<String> args) async {
   if (args.length == 1 && ['-h', '--help'].contains(args.single)) {
     stdout.writeln('''Usage: dart tool/setup_xcode.dart [--print]
-Install/setup Xcode $xcodeVersion ($xcodeBuild) in a separate Terminal window.
+Install/setup the Xcode required by the pinned native dependencies.
 Finds xcodes on your current PATH before cleaning the installer environment.
 Apple account prompts go to xcodes; the administrator prompt goes to sudo.
 Apple first-launch setup accepts the Xcode license. No build is launched.
@@ -226,23 +246,53 @@ Apple first-launch setup accepts the Xcode license. No build is launched.
     exitCode = 1;
     return;
   }
-  final xcodes = findXcodes(Platform.environment['PATH']);
-  if (args.isNotEmpty) {
-    stdout.writeln(installerScript(home: home, user: user, xcodes: xcodes));
-    return;
-  }
-  if (!Platform.isMacOS) {
+  final printOnly = args.isNotEmpty;
+  if (!printOnly && !Platform.isMacOS) {
     stderr.writeln('Xcode setup requires macOS.');
     exitCode = 1;
     return;
   }
-  final uid = await Process.run('/usr/bin/id', [
-    '-u',
-  ], includeParentEnvironment: false);
-  if (uid.exitCode != 0 || uid.stdout.toString().trim() == '0') {
-    stderr.writeln('Run this helper as your normal macOS user, without sudo.');
+  if (!printOnly) {
+    final uid = await Process.run('/usr/bin/id', [
+      '-u',
+    ], includeParentEnvironment: false);
+    if (uid.exitCode != 0 || uid.stdout.toString().trim() == '0') {
+      stderr.writeln(
+        'Run this helper as your normal macOS user, without sudo.',
+      );
+      exitCode = 1;
+      return;
+    }
+  }
+  final XcodeRequirement requirement;
+  try {
+    requirement = await loadXcodeRequirement(
+      File.fromUri(Platform.script).parent.parent,
+    );
+  } catch (error) {
+    stderr.writeln('Cannot determine the required Xcode: $error');
     exitCode = 1;
     return;
+  }
+  final xcodes = findXcodes(Platform.environment['PATH']);
+  if (printOnly) {
+    stdout.writeln(
+      installerScript(
+        home: home,
+        user: user,
+        version: requirement.version,
+        build: requirement.build,
+        xcodes: xcodes,
+      ),
+    );
+    return;
+  }
+  if (!requirement.upstreamBuildPinned) {
+    stdout.writeln(
+      'The native packages pin Xcode ${requirement.version} without a build '
+      'number. Using the recorded compatible release ${requirement.build} '
+      'for these exact dependency revisions.',
+    );
   }
   // Fixed safe pathname for every supported login shell. mkdtemp creates the
   // directory with mode 0700; the script contains no credentials or build env.
@@ -255,6 +305,8 @@ Apple first-launch setup accepts the Xcode license. No build is launched.
       installerScript(
         home: home,
         user: user,
+        version: requirement.version,
+        build: requirement.build,
         xcodes: xcodes,
         cleanupDirectory: directory.path,
       ),

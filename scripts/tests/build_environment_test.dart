@@ -4,13 +4,22 @@ import 'dart:io';
 import 'package:test/test.dart';
 
 import '../../tool/check_build_environment.dart';
-import '../../tool/setup_xcode.dart' show xcodeBuild;
+import '../../tool/native_dependency_contract.dart';
+
+const fixtureXcode = XcodeRequirement(
+  version: '27.0',
+  build: '27A266a',
+  upstreamBuildPinned: false,
+);
 
 class HostFixture {
   String os = 'macos';
   String architecture = 'arm64';
   bool rustupOnPath = true;
   bool rustupInHome = false;
+  bool windowsRustupOnPath = true;
+  bool windowsRustupInHome = false;
+  bool windowsInterop = true;
   bool nix = true;
   bool wslHost = false;
   int wslExit = 0;
@@ -18,7 +27,7 @@ class HostFixture {
   final applications = <String>['/Applications/Xcode.app'];
   final versions = <String, String>{
     '/Applications/Xcode.app/Contents/Developer':
-        'Xcode 27.0\nBuild version $xcodeBuild\n',
+        'Xcode ${fixtureXcode.version}\nBuild version ${fixtureXcode.build}\n',
   };
   final calls =
       <
@@ -56,6 +65,18 @@ class HostFixture {
       if (executable == 'wsl.exe') {
         return ProcessResult(0, wslExit, 'nix fixture', '');
       }
+      if (executable == 'cmd.exe') {
+        if (!windowsInterop) throw ProcessException(executable, arguments);
+        final available = arguments.last == 'rustup --version'
+            ? windowsRustupOnPath
+            : windowsRustupInHome;
+        return ProcessResult(
+          0,
+          available ? 0 : 1,
+          'Windows rustup fixture',
+          '',
+        );
+      }
       if (executable == '/usr/bin/xcode-select') {
         return ProcessResult(0, selected.isEmpty ? 1 : 0, selected, '');
       }
@@ -72,12 +93,16 @@ class HostFixture {
     String platform = 'macos',
     String app = 'stack_wallet',
     String? distribution,
+    XcodeRequirement requirement = fixtureXcode,
   }) => checkBuildEnvironment(
     host: host,
     platform: platform,
     app: app,
     mode: mode,
     wslDistribution: distribution,
+    xcodeRequirement: mode == 'source' && {'ios', 'macos'}.contains(platform)
+        ? requirement
+        : null,
   );
 }
 
@@ -200,6 +225,7 @@ void main() {
       fixture.os = 'linux';
       fixture.wslHost = true;
       fixture.nix = false; // Nix in this configuring shell is irrelevant.
+      fixture.rustupOnPath = false; // Its Linux Rustup is also irrelevant.
       expect(
         await fixture.check(
           platform: 'windows',
@@ -211,8 +237,71 @@ void main() {
       expect(call.executable, 'wsl.exe');
       expect(call.arguments.take(2), ['--distribution', 'Other-Distribution']);
       expect(fixture.calls.any((call) => call.executable == 'nix'), isFalse);
+      expect(fixture.calls.first.executable, 'cmd.exe');
+      expect(fixture.calls.first.arguments, [
+        '/d',
+        '/s',
+        '/c',
+        'rustup --version',
+      ]);
+      expect(
+        fixture.calls.any((call) => call.executable.endsWith('rustup')),
+        isFalse,
+      );
     },
   );
+
+  test(
+    'Linux Rustup cannot satisfy legacy Windows Flutter requirements',
+    () async {
+      fixture.os = 'linux';
+      fixture.wslHost = true;
+      fixture.windowsRustupOnPath = false;
+      final errors = await fixture.check(platform: 'windows', mode: 'prebuilt');
+      expect(errors.single, contains('Install Rustup on native Windows'));
+      expect(errors.single, contains('including with -d'));
+      expect(
+        fixture.calls.every((call) => call.executable == 'cmd.exe'),
+        isTrue,
+      );
+    },
+  );
+
+  test('legacy WSL Rustup fallback expands the Windows user profile', () async {
+    fixture.os = 'linux';
+    fixture.wslHost = true;
+    fixture.windowsRustupOnPath = false;
+    fixture.windowsRustupInHome = true;
+    expect(await fixture.check(platform: 'windows', mode: 'prebuilt'), isEmpty);
+    expect(fixture.calls.last.arguments, [
+      '/d',
+      '/s',
+      '/c',
+      r'""%USERPROFILE%\.cargo\bin\rustup.exe" --version"',
+    ]);
+    expect(fixture.calls.every((call) => call.executable == 'cmd.exe'), isTrue);
+  });
+
+  test(
+    'missing WSL interoperability explains native Windows configuration',
+    () async {
+      fixture.os = 'linux';
+      fixture.wslHost = true;
+      fixture.windowsInterop = false;
+      expect(
+        (await fixture.check(platform: 'windows', mode: 'prebuilt')).single,
+        contains('configure from Git Bash on Windows'),
+      );
+    },
+  );
+
+  test('Linux Flutter in WSL still checks Linux Rustup', () async {
+    fixture.os = 'linux';
+    fixture.wslHost = true;
+    fixture.windowsInterop = false;
+    expect(await fixture.check(platform: 'linux', mode: 'prebuilt'), isEmpty);
+    expect(fixture.calls.single.executable, 'rustup');
+  });
 
   test('Linux cross configuration outside WSL probes local Nix', () async {
     fixture.os = 'linux';
@@ -264,6 +353,58 @@ void main() {
     fixture.selected = '/Applications/Xcode26.app/Contents/Developer';
     fixture.versions[fixture.selected] = 'Xcode 26.0\nBuild version 26A1\n';
     expect(await fixture.check(), isEmpty);
+  });
+
+  test('Xcode version comes from the native dependency requirement', () async {
+    const futureXcode = XcodeRequirement(
+      version: '28.0',
+      build: '28A123',
+      upstreamBuildPinned: true,
+    );
+    fixture.applications.add('/Applications/Xcode28.app');
+    fixture.versions['/Applications/Xcode28.app/Contents/Developer'] =
+        'Xcode 28.0\nBuild version 28A123\n';
+    expect(await fixture.check(requirement: futureXcode), isEmpty);
+    expect(
+      fixture.calls.last.env['DEVELOPER_DIR'],
+      '/Applications/Xcode28.app/Contents/Developer',
+    );
+  });
+
+  test(
+    'dnix build pin skips a beta and selects the matching release',
+    () async {
+      fixture.selected = '/Applications/Xcode-beta.app/Contents/Developer';
+      fixture.versions[fixture.selected] =
+          'Xcode 27.0\nBuild version 27A111b\n';
+      expect(
+        await fixture.check(
+          requirement: const XcodeRequirement(
+            version: '27.0',
+            build: '27A266a',
+            upstreamBuildPinned: true,
+          ),
+        ),
+        isEmpty,
+      );
+      expect(
+        fixture.calls.last.env['DEVELOPER_DIR'],
+        '/Applications/Xcode.app/Contents/Developer',
+      );
+    },
+  );
+
+  test('Apple source builds require metadata before any subprocess', () async {
+    await expectLater(
+      checkBuildEnvironment(
+        host: fixture.host,
+        platform: 'macos',
+        app: 'stack_wallet',
+        mode: 'source',
+      ),
+      throwsArgumentError,
+    );
+    expect(fixture.calls, isEmpty);
   });
 
   test('missing Xcode explains the setup helper', () async {

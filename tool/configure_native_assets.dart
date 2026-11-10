@@ -2,6 +2,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'native_build_options.dart';
+
 String configureNativeAssets(
   String template,
   String mode,
@@ -10,13 +12,7 @@ String configureNativeAssets(
   if (!['source', 'prebuilt'].contains(mode)) {
     throw ArgumentError.value(mode, 'mode', 'Expected source or prebuilt');
   }
-  final selectedDistribution = distribution?.trim();
-  if (distribution != null &&
-      (selectedDistribution!.isEmpty ||
-          selectedDistribution.startsWith('-') ||
-          distribution.contains(RegExp(r'[\x00-\x1f\x7f]')))) {
-    throw ArgumentError.value(distribution, 'distribution', 'Invalid WSL name');
-  }
+  final selectedDistribution = validatedDistribution(distribution);
   return template
       .split('\n')
       .where(

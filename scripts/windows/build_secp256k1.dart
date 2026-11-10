@@ -16,6 +16,8 @@ Future<ProcessResult> _run(
   String? workingDirectory,
 }) => Process.run(executable, arguments, workingDirectory: workingDirectory);
 
+void _removeWork(Directory directory) => directory.deleteSync(recursive: true);
+
 class SecpBuildException implements Exception {
   SecpBuildException(this.message);
   final String message;
@@ -29,12 +31,14 @@ class WindowsSecpBuilder {
     required this.nativeWindows,
     required this.environment,
     this.run = _run,
+    this.cleanup = _removeWork,
   });
 
   final Directory root;
   final bool nativeWindows;
   final Map<String, String> environment;
   final CommandRunner run;
+  final void Function(Directory) cleanup;
   late String cmake;
   String? visualStudio;
   ({String root, String version})? windowsSdk;
@@ -195,7 +199,6 @@ class WindowsSecpBuilder {
       compiler = (await checked('x86_64-w64-mingw32-gcc', [
         '--version',
       ])).stdout.toString();
-      await checked('x86_64-w64-mingw32-g++', ['--version']);
       await checked('make', ['--version']);
     }
     final bundledCmake =
@@ -240,6 +243,8 @@ class WindowsSecpBuilder {
   }
 
   Future<void> build() async {
+    // --check runs before configuration in a separate process. Revalidate here
+    // to identify the tools and inputs actually used by this build/cache lookup.
     await check();
     final output = File('${root.path}/build/secp256k1.dll');
     final receipt = File('${output.path}.json');
@@ -268,12 +273,15 @@ class WindowsSecpBuilder {
     try {
       final source = '${work.path}/source';
       final buildDir = '$source/build';
+      await checked('git', ['init', source]);
       await checked('git', [
-        'clone',
-        '--no-checkout',
+        'fetch',
+        '--depth',
+        '1',
+        '--no-tags',
         'https://github.com/bitcoin-core/secp256k1.git',
-        source,
-      ]);
+        secpRevision,
+      ], workingDirectory: source);
       await checked('git', [
         'checkout',
         '--detach',
@@ -332,7 +340,16 @@ class WindowsSecpBuilder {
         'Built ${output.path} from secp256k1 v0.5.0 ($secpRevision).',
       );
     } finally {
-      work.deleteSync(recursive: true);
+      try {
+        cleanup(work);
+      } on FileSystemException catch (error) {
+        // Windows scanners can keep generated files open after the compiler
+        // exits. Preserve either the successful publication or the build error.
+        stderr.writeln(
+          'Could not remove ${work.path}: ${error.message}. '
+          'You can remove this temporary directory later.',
+        );
+      }
     }
   }
 }

@@ -29,7 +29,8 @@ recipes and expected hashes. **Stack Wallet does not need its own `dnix.lock`
 or flake.** Updating a package means updating its Git revision and resolving
 `pubspec.lock`; there are no app-level prebuilt manifest URLs to maintain.
 
-The generated settings look like this, with an entry for each enabled package:
+The generated settings look like this, with entries for all four packages.
+Settings for packages absent from the selected app are ignored:
 
 ```yaml
 hooks:
@@ -40,9 +41,14 @@ hooks:
 
 Rerun `build_app.sh` to switch modes. It regenerates `pubspec.yaml`, so keep
 permanent changes in `scripts/app_config/templates/pubspec.template.yaml`.
-Remove any package-local `.dnix-build` development override when checking a
-release: dnix gives that file precedence over the app's settings, and `dev`
-mode skips hash verification. See [dnix build modes](https://github.com/cypherstack/dnix/blob/main/doc/configuration.md#build-modes).
+Configuration rejects package-local `.dnix-build` overrides in enabled packages:
+dnix gives those files precedence over the app's settings, and `dev` mode skips
+hash verification. Remove the reported overrides and run `flutter clean` before
+reconfiguring. After changing local dependency overrides or resolving packages
+separately, rerun `dart tool/check_native_overrides.dart <app>` before building.
+This guard checks the selected Git pins and existing package resolution; an old
+resolution may need refreshing too. Direct Flutter commands do not run the guard.
+See [dnix build modes](https://github.com/cypherstack/dnix/blob/main/doc/configuration.md#build-modes).
 
 ### Which tools are still required?
 
@@ -97,7 +103,10 @@ sudo apt-get install meson libgirepository1.0-dev valac xsltproc \
 Install [Rustup](https://rustup.rs/) for **all three apps**, including prebuilt
 mode. You can preinstall DNSSEC's toolchain with `rustup toolchain install
 1.90.0`. Stack Wallet also needs [Go](https://go.dev/doc/install) and Xelis'
-Rust **1.99.1** toolchain, which its hook installs on first use.
+Rust **1.99.1** toolchain, which its hook installs on first use. The Docker images
+install Rustup only; hooks install toolchains under the runtime user's HOME.
+Preinstalling them under custom image-only `RUSTUP_HOME`/`CARGO_HOME` paths does
+not help because the hook runner does not forward those variables.
 
 ### Android
 
@@ -139,16 +148,29 @@ in that window before building. Preview the commands with
 `dart tool/setup_xcode.dart --print`.
 
 The helper finds `xcodes` on your current PATH before cleaning the environment,
-including Mint, MacPorts, or Nix installations. It selects the **27A266a** release
-build and ignores 27.0 betas. The setup window waits for Return after displaying
-its result, so you can copy the instructions even with a close-on-exit profile.
+including Mint, MacPorts, Nix, and globally configured mise/asdf shims. It selects
+the **27A266a** release build. If another build of 27.0 is installed and the
+release is missing, it gives manual side-by-side installation instructions:
+xcodes can refuse to install two builds of the same version. Existing bundles
+are preserved. The setup window waits for Return after displaying its result,
+so you can copy the instructions even with a close-on-exit profile.
+
+The helper and preflight read `toolchains.xcode` and, when available,
+`toolchains.xcodeBuild` from the packages' `dnix.json`. For the current packages,
+which lack a build-number pin, `tool/native_dependency_compatibility.json`
+records the reviewed release for each exact Git revision. Updating a revision
+requires either an upstream build-number pin or a reviewed compatibility entry.
+On a fresh checkout, metadata is fetched from the pinned GitHub commits when
+it is absent from the pub cache; this also applies to `--print`.
 
 The installer runs in a clean environment without shell startup files or build
 commands. `xcodes` handles Apple account prompts; `sudo -k` prompts directly for
 the administrator password and does not create a reusable sudo ticket. Dart
 does not read either password. This separates the terminal and processes; it
-is not an OS sandbox. `xcodes` may remember Apple account credentials in your
-Keychain according to its own settings.
+is not an OS sandbox. Project-specific shim configuration is not forwarded;
+use a globally configured xcodes installation or its executable directly on
+PATH. `xcodes` may remember Apple account credentials in your Keychain according
+to its own settings.
 
 ### Install from Apple's developer website
 
@@ -269,10 +291,15 @@ hash-verification guarantee applies to its four packages, not secp256k1. The
 helper reuses a DLL only when its build receipt and checksum match. The old
 MXE setup and Epic-specific CMake upgrade are not needed for dnix.
 
-If configuring from the legacy Linux/WSL shell, keep its Linux Dart/Rustup tools
-as well as Rustup on the native Windows Flutter host. The prerequisite check
-can verify Rustup only for the Dart host running configuration. Windows builds
-from WSL still probe the WSL distribution chosen for the native Windows hooks.
+If configuring from the legacy Linux/WSL shell, use a Linux Dart SDK there and
+keep Rustup on the native Windows Flutter host. The prerequisite check probes
+Windows Rustup through `cmd.exe` and Nix in the distribution chosen for the
+native Windows hooks, so WSL interoperability must be enabled. The secp256k1
+compatibility wrapper rejects Windows Dart wrappers found on WSL's PATH.
+Configuration also dispatches the override guard to Windows Dart to inspect
+the Windows pub cache. To repeat that check manually from WSL, run
+`dart tool/check_native_overrides.dart <app> windows`; from native Windows,
+the target argument is optional.
 
 ## Configure and build
 
@@ -293,6 +320,7 @@ All four configuration arguments are required:
 ```sh
 bash scripts/build_app.sh -a stack_wallet -p linux -v 1.2.3 -b 123 -s
 flutter pub get
+dart tool/check_native_overrides.dart stack_wallet
 flutter build linux --release
 ```
 

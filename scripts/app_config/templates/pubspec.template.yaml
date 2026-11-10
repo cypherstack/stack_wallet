@@ -368,29 +368,21 @@ dependency_overrides:
 
 # dnix verifies both source builds and prebuilts against each package's dnix.lock.
 # build_app.sh renders the mode as source by default, or prebuilt with -d.
-# The app's existing dependency markers also enable its hook configuration.
+# Settings for packages absent from an app's dependency graph are ignored.
 hooks:
   user_defines:
-# %%ENABLE_FROST%%
-#    frostdart:
-#      build: PLACEHOLDER_DNIX_BUILD_MODE
-#      wsl_distribution: PLACEHOLDER_DNIX_WSL_DISTRIBUTION
-# %%END_ENABLE_FROST%%
-# %%ENABLE_TOR%%
-#    tor_ffi_plugin:
-#      build: PLACEHOLDER_DNIX_BUILD_MODE
-#      wsl_distribution: PLACEHOLDER_DNIX_WSL_DISTRIBUTION
-# %%END_ENABLE_TOR%%
-# %%ENABLE_EPIC%%
-#    flutter_libepiccash:
-#      build: PLACEHOLDER_DNIX_BUILD_MODE
-#      wsl_distribution: PLACEHOLDER_DNIX_WSL_DISTRIBUTION
-# %%END_ENABLE_EPIC%%
-# %%ENABLE_MWC%%
-#    flutter_libmwc:
-#      build: PLACEHOLDER_DNIX_BUILD_MODE
-#      wsl_distribution: PLACEHOLDER_DNIX_WSL_DISTRIBUTION
-# %%END_ENABLE_MWC%%
+    frostdart:
+      build: PLACEHOLDER_DNIX_BUILD_MODE
+      wsl_distribution: PLACEHOLDER_DNIX_WSL_DISTRIBUTION
+    tor_ffi_plugin:
+      build: PLACEHOLDER_DNIX_BUILD_MODE
+      wsl_distribution: PLACEHOLDER_DNIX_WSL_DISTRIBUTION
+    flutter_libepiccash:
+      build: PLACEHOLDER_DNIX_BUILD_MODE
+      wsl_distribution: PLACEHOLDER_DNIX_WSL_DISTRIBUTION
+    flutter_libmwc:
+      build: PLACEHOLDER_DNIX_BUILD_MODE
+      wsl_distribution: PLACEHOLDER_DNIX_WSL_DISTRIBUTION
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
