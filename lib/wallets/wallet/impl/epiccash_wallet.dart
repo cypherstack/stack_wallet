@@ -5,7 +5,6 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:isar_community/isar.dart';
 import 'package:stack_wallet_backup/generate_password.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../../../exceptions/main_db/main_db_exception.dart';
 import '../../../exceptions/wallet/node_tor_mismatch_config_exception.dart';
@@ -31,6 +30,7 @@ import '../../crypto_currency/crypto_currency.dart';
 import '../../isar/models/wallet_info.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/mimblewimble_wallet.dart';
+import '../supporting/epicbox_probe.dart';
 import '../supporting/mimblewimble_wallet_info_extension.dart';
 
 //
@@ -343,19 +343,8 @@ class EpiccashWallet extends MimblewimbleWallet {
     _hackedCheckTorNodePrefs();
     final String host = epicboxConfig.host;
     final int port = epicboxConfig.port ?? 443;
-    WebSocketChannel? channel;
     try {
-      final Uri uri = Uri.parse('wss://$host:$port');
-
-      channel = WebSocketChannel.connect(uri);
-
-      await channel.ready;
-
-      final dynamic response = await channel.stream.first.timeout(
-        const Duration(seconds: 2),
-      );
-
-      return response is String && response.contains("Challenge");
+      return await probeEpicboxServer(Uri.parse('wss://$host:$port'));
     } catch (e, s) {
       Logging.instance.w(
         "_testEpicboxServer failed on \"$host:$port\"",
@@ -363,8 +352,6 @@ class EpiccashWallet extends MimblewimbleWallet {
         stackTrace: s,
       );
       return false;
-    } finally {
-      await channel?.sink.close();
     }
   }
 
