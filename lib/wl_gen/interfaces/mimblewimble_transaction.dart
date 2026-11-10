@@ -41,6 +41,19 @@ class MimblewimbleTransaction {
     this.paymentProof,
   });
 
+  /// The first participant message that has text. The plugins turn a
+  /// missing message into the string "null", and on a send the first entry
+  /// can belong to the other party.
+  String? get onChainNote {
+    for (final m in messages ?? const <MimblewimbleMessage>[]) {
+      final String? text = m.message;
+      if (text != null && text.isNotEmpty && text != "null") {
+        return text;
+      }
+    }
+    return null;
+  }
+
   @override
   String toString() {
     return 'MimblewimbleTransaction('
