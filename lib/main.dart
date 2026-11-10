@@ -109,7 +109,9 @@ void main(List<String> args) async {
   final portableMarkerExists =
       appImagePath != null && File("$appImagePath.portable").existsSync();
 
-  if (args.contains("--portable") && appImagePath == null) {
+  if (args.contains("--portable") &&
+      !args.contains("-d") &&
+      appImagePath == null) {
     stderr.writeln("--portable is only supported when running an AppImage.");
     // Returning from main() would leave the runner's already mapped window
     // open and empty; only exit() ends the process.

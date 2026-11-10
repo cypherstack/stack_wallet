@@ -97,7 +97,7 @@ abstract class StackFileSystem {
     Directory appDirectory;
 
     // todo: can merge and do same as regular linux home dir?
-    if (Util.isArmLinux) {
+    if (Util.isArmLinux && _overrideDesktopDirPath == null) {
       appDirectory = await getApplicationDocumentsDirectory();
       appDirectory = Directory(
         path.join(appDirectory.path, ".${AppConfig.appDefaultDataDirName}"),

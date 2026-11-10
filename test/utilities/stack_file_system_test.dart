@@ -53,6 +53,20 @@ void main() {
       expect(result, (path: "/custom/data", portable: false));
     });
 
+    test(
+      "allows an explicit data directory with --portable outside AppImage",
+      () {
+        final result = StackFileSystem.desktopDataDirectoryOverride(
+          arguments: const ["--portable", "-d", "/custom/data"],
+          appImagePath: null,
+          appDataDirectoryName: "stackwallet",
+          portableMarkerExists: false,
+        );
+
+        expect(result, (path: "/custom/data", portable: false));
+      },
+    );
+
     test("keeps the explicit data directory authoritative after other "
         "arguments", () {
       final result = StackFileSystem.desktopDataDirectoryOverride(
