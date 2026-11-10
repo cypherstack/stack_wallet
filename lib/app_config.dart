@@ -28,7 +28,18 @@ abstract class AppConfig {
 
   static ({String light, String dark})? get appIconAsset => _appIconAsset;
 
-  static List<CryptoCurrency> get coins => _supportedCoins;
+  /// Adds Bitcoin regtest to [coins]. Only the regtest integration tests set
+  /// it, with --dart-define=STACK_BITCOIN_REGTEST=true.
+  static const bitcoinRegtest = bool.fromEnvironment("STACK_BITCOIN_REGTEST");
+
+  static final List<CryptoCurrency> _coins = bitcoinRegtest
+      ? List.unmodifiable([
+          ..._supportedCoins,
+          Bitcoin(CryptoCurrencyNetwork.regtest),
+        ])
+      : _supportedCoins;
+
+  static List<CryptoCurrency> get coins => _coins;
 
   static List<EthContract> get defaultEthTokens => _defaultEthTokens;
 

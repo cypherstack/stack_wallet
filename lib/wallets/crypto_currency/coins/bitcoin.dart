@@ -28,6 +28,10 @@ class Bitcoin extends Bip39HDCurrency
         _id = "bitcoinTestNet4";
         _name = "t4Bitcoin";
         _ticker = "t4BTC";
+      case CryptoCurrencyNetwork.regtest:
+        _id = "bitcoinRegtest";
+        _name = "rBitcoin";
+        _ticker = "rBTC";
       default:
         throw Exception("Unsupported network: $network");
     }
@@ -77,6 +81,8 @@ class Bitcoin extends Bip39HDCurrency
         return "000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943";
       case CryptoCurrencyNetwork.test4:
         return "00000000da84f2bafbbc53dee25a72ae507ff4914b867c565be350b0da8bf043";
+      case CryptoCurrencyNetwork.regtest:
+        return "0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206";
       default:
         throw Exception("Unsupported network: $network");
     }
@@ -104,13 +110,14 @@ class Bitcoin extends Bip39HDCurrency
         );
       case CryptoCurrencyNetwork.test:
       case CryptoCurrencyNetwork.test4:
+      case CryptoCurrencyNetwork.regtest:
         return coinlib.Network(
           wifPrefix: 0xef,
           p2pkhPrefix: 0x6f,
           p2shPrefix: 0xc4,
           privHDPrefix: 0x04358394,
           pubHDPrefix: 0x043587cf,
-          bech32Hrp: "tb",
+          bech32Hrp: network == CryptoCurrencyNetwork.regtest ? "bcrt" : "tb",
           messagePrefix: "\x18Bitcoin Signed Message:\n",
           minFee: BigInt.from(1), // Not used in stack wallet currently
           minOutput: dustLimit.raw, // Not used in stack wallet currently
@@ -275,6 +282,23 @@ class Bitcoin extends Bip39HDCurrency
           isPrimary: isPrimary,
         );
 
+      // electrs' default regtest Electrum port.
+      case CryptoCurrencyNetwork.regtest:
+        return NodeModel(
+          host: "127.0.0.1",
+          port: 60401,
+          name: DefaultNodes.defaultName,
+          id: DefaultNodes.buildId(this),
+          useSSL: false,
+          enabled: true,
+          coinName: identifier,
+          isFailover: true,
+          isDown: false,
+          torEnabled: false,
+          clearnetEnabled: true,
+          isPrimary: isPrimary,
+        );
+
       default:
         throw UnimplementedError();
     }
@@ -316,6 +340,9 @@ class Bitcoin extends Bip39HDCurrency
         return Uri.parse("https://mempool.space/testnet/tx/$txid");
       case CryptoCurrencyNetwork.test4:
         return Uri.parse("https://mempool.space/testnet4/tx/$txid");
+      // There is no public regtest explorer; this is a local mempool instance.
+      case CryptoCurrencyNetwork.regtest:
+        return Uri.parse("http://127.0.0.1:8080/tx/$txid");
       default:
         throw Exception(
           "Unsupported network for defaultBlockExplorer(): $network",
