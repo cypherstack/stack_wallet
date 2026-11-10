@@ -11,6 +11,10 @@
 enum FeeRateType { fast, average, slow, custom }
 
 extension FeeRateTypeExt on FeeRateType {
+  bool get isCustom => this == FeeRateType.custom;
+
+  int? customSatsPerVByte(int satsPerVByte) => isCustom ? satsPerVByte : null;
+
   String get prettyName {
     switch (this) {
       case FeeRateType.fast:

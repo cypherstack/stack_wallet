@@ -141,9 +141,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                       child: Text(
                         "Cancel",
                         style: STextStyles.button(context).copyWith(
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.buttonTextSecondary,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .buttonTextSecondary,
                         ),
                       ),
                     ),
@@ -203,9 +203,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
 
     return await showModalBottomSheet<bool?>(
       context: context,
-      backgroundColor: Theme.of(
-        context,
-      ).extension<StackColors>()!.backgroundAppBar,
+      backgroundColor: Theme.of(context)
+          .extension<StackColors>()!
+          .backgroundAppBar,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(Constants.size.circularBorderRadius * 3),
@@ -258,7 +258,23 @@ class _Step4ViewState extends ConsumerState<Step4View> {
 
     final wallet = ref.read(pWallets).getWallet(tuple.item1);
 
-    final Amount amount = model.sendAmount.toAmount(
+    final payInDecimal = model.payInDecimal;
+    if (payInDecimal == null) {
+      if (mounted) {
+        await showDialog<void>(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => StackOkDialog(
+            title: "Invalid trade amount",
+            message:
+                "The exchange returned an invalid pay-in amount:"
+                " \"${model.payInAmount}\"",
+          ),
+        );
+      }
+      return;
+    }
+    final Amount amount = payInDecimal.toAmount(
       fractionDigits: wallet.info.coin.fractionDigits,
     );
     final address = model.trade!.payInAddress;
@@ -308,9 +324,14 @@ class _Step4ViewState extends ConsumerState<Step4View> {
             )).inputs;
 
       if (wallet is FiroWallet && !firoPublicSend) {
-        throw Exception(
-          "Sending private Firo funds to an exchange address is temporarily "
-          "unavailable.",
+        txDataFuture = wallet.prepareSendSpark(
+          txData: TxData(
+            recipients: [recipient],
+            note:
+                "${model.trade!.payInCurrency.toUpperCase()}/"
+                "${model.trade!.payOutCurrency.toUpperCase()} exchange",
+          ),
+          requireChaumV2: true,
         );
       } else {
         final memo = wallet.info.coin is Stellar
@@ -390,9 +411,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                   child: Text(
                     "Ok",
                     style: STextStyles.button(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.buttonTextSecondary,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .buttonTextSecondary,
                     ),
                   ),
                   onPressed: () {
@@ -416,9 +437,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
       },
       child: Background(
         child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
             leading: Padding(
               padding: const EdgeInsets.all(10),
@@ -431,9 +452,9 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                   width: 24,
                   height: 24,
                   colorFilter: ColorFilter.mode(
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()!.topNavIconPrimary,
+                    Theme.of(context)
+                        .extension<StackColors>()!
+                        .topNavIconPrimary,
                     .srcIn,
                   ),
                 ),
@@ -483,10 +504,10 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                               DetailItem(
                                 title: "Amount",
                                 detail:
-                                    "${model.sendAmount.toString()} "
+                                    "${model.payInAmount} "
                                     "${model.sendTicker.toUpperCase()}",
                                 button: SimpleCopyButton(
-                                  data: model.sendAmount.toString(),
+                                  data: model.payInAmount,
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -616,23 +637,23 @@ class _WarningInfo extends StatelessWidget {
         text: TextSpan(
           text:
               "You must send at least "
-              "${model.sendAmount.toString()} ${model.sendTicker}. ",
+              "${model.payInAmount} ${model.sendTicker}. ",
           style: STextStyles.label700(context).copyWith(
-            color: Theme.of(
-              context,
-            ).extension<StackColors>()!.warningForeground,
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .warningForeground,
           ),
           children: [
             TextSpan(
               text:
                   "If you send less than "
-                  "${model.sendAmount.toString()} ${model.sendTicker},"
+                  "${model.payInAmount} ${model.sendTicker},"
                   " your transaction may not be converted and it may not be"
                   " refunded.",
               style: STextStyles.label(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.warningForeground,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .warningForeground,
               ),
             ),
           ],
@@ -671,6 +692,20 @@ class _SendFromButton extends ConsumerWidget {
                 tuple.item2.ticker.toLowerCase()) {
           await confirmSend(tuple);
         } else {
+          final payInDecimal = model.payInDecimal;
+          if (payInDecimal == null) {
+            await showDialog<void>(
+              context: context,
+              barrierDismissible: true,
+              builder: (context) => StackOkDialog(
+                title: "Invalid trade amount",
+                message:
+                    "The exchange returned an invalid pay-in amount:"
+                    " \"${model.payInAmount}\"",
+              ),
+            );
+            return;
+          }
           await Navigator.of(context).push(
             RouteGenerator.getRoute(
               shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
@@ -683,7 +718,7 @@ class _SendFromButton extends ConsumerWidget {
 
                 return SendFromView(
                   coin: coin,
-                  amount: model.sendAmount.toAmount(
+                  amount: payInDecimal.toAmount(
                     fractionDigits: coin.fractionDigits,
                   ),
                   address: model.trade!.payInAddress,
