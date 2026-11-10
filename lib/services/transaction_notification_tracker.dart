@@ -15,8 +15,8 @@ import '../db/hive/db.dart';
 abstract interface class TransactionNotificationStore {
   bool get isInitialized;
   Set<String> get deliveredTxids;
-  Set<String> get pendingDeliveryTxids;
-  Future<void> recordPendingDelivery(Iterable<String> txids);
+  Set<String> get pendingTxids;
+  Future<void> queuePending(Iterable<String> txids);
   Future<void> markInitialized();
   Future<void> recordDelivered(String txid);
 }
@@ -96,6 +96,27 @@ class TransactionNotificationTracker implements TransactionNotificationStore {
   @override
   Set<String> get deliveredTxids => pendings.toSet();
 
+  @override
+  Set<String> get pendingTxids => Set<String>.from(
+    DB.instance.get<dynamic>(
+          boxName: DB.boxNamePrefs,
+          key: _key("pendingDelivery"),
+        ) as List? ??
+        const [],
+  );
+
+  Future<void> _savePending(Set<String> txids) => DB.instance.put<dynamic>(
+    boxName: DB.boxNamePrefs,
+    key: _key("pendingDelivery"),
+    value: txids.toList(),
+  );
+
+  @override
+  Future<void> queuePending(Iterable<String> txids) =>
+      // The service supplies the whole eligible batch; replace it so transactions
+      // removed by a reorg do not leave permanent retry entries.
+      _savePending(txids.toSet());
+
   bool wasNotifiedPending(String txid) {
     final notifiedPendingTransactions =
         DB.instance.get<dynamic>(
@@ -120,36 +141,9 @@ class TransactionNotificationTracker implements TransactionNotificationStore {
   }
 
   @override
-  Set<String> get pendingDeliveryTxids =>
-      (DB.instance.get<dynamic>(
-                boxName: DB.boxNamePrefs,
-                key: _key("pendingDelivery"),
-              ) as Map? ??
-              {})
-          .keys
-          .whereType<String>()
-          .toSet();
-
-  @override
-  Future<void> recordPendingDelivery(Iterable<String> txids) =>
-      DB.instance.put<dynamic>(
-        boxName: DB.boxNamePrefs,
-        key: _key("pendingDelivery"),
-        // Replace the eligible batch so reorged/deleted transactions do not
-        // leave stale retry entries. Unlike the delivered ledger, truncating
-        // this set would lose notifications during a prolonged delivery outage.
-        value: {for (final txid in txids) txid: true},
-      );
-
-  @override
   Future<void> recordDelivered(String txid) async {
     await addNotifiedPending(txid);
-    final pending = pendingDeliveryTxids..remove(txid);
-    await DB.instance.put<dynamic>(
-      boxName: DB.boxNamePrefs,
-      key: _key("pendingDelivery"),
-      value: {for (final id in pending) id: true},
-    );
+    await _savePending(pendingTxids..remove(txid));
   }
 
   @override

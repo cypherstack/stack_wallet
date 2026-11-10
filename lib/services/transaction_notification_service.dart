@@ -35,46 +35,42 @@ class TransactionNotificationService {
     required String walletName,
     required int chainHeight,
     required bool supportsConfirmationUpdates,
+    bool initialSyncComplete = true,
+    int? fractionDigits,
+    String? ticker,
+    String? currencyName,
   }) async {
     final deliveredTxids = store.deliveredTxids;
-    final pending = store.pendingDeliveryTxids;
+    final pendingTxids = store.pendingTxids;
     final incoming = transactions
         .where((tx) => tx.type == TransactionType.incoming)
         .where(
-          (tx) => !knownTxids.contains(tx.txid) || pending.contains(tx.txid),
+          (tx) =>
+              !knownTxids.contains(tx.txid) || pendingTxids.contains(tx.txid),
         )
         .where((tx) => !deliveredTxids.contains(tx.txid))
         .toList();
 
-    if (!store.isInitialized && knownTxids.isEmpty) {
-      await store.markInitialized();
+    if (!store.isInitialized) {
+      if (initialSyncComplete) await store.markInitialized();
       return;
     }
 
-    if (!store.isInitialized) {
-      await store.markInitialized();
-    }
-
-    // Transactions are already persisted by refresh. Keep the entire batch
-    // pending so a delivery failure can retry after these IDs become known.
-    await store.recordPendingDelivery(incoming.map((tx) => tx.txid));
+    await store.queuePending(incoming.map((tx) => tx.txid));
+    final decimals = fractionDigits ?? coin.fractionDigits;
     for (final tx in incoming) {
-      final amount = tx.getAmountReceivedInThisWallet(
-        fractionDigits: coin.fractionDigits,
-      );
-      final formattedAmount = amount.decimal.toStringAsFixed(
-        coin.fractionDigits,
-      );
-      final payload = "$formattedAmount ${coin.ticker}";
+      final amount = tx.getAmountReceivedInThisWallet(fractionDigits: decimals);
+      final formattedAmount = amount.decimal.toStringAsFixed(decimals);
+      final payload = "$formattedAmount ${ticker ?? coin.ticker}";
 
       final event = CryptoNotificationEvent(
-        title: "Incoming ${coin.prettyName} transaction",
+        title: "Incoming ${currencyName ?? coin.prettyName} transaction",
         walletId: walletId,
         walletName: walletName,
         date: DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000),
         shouldWatchForUpdates:
             supportsConfirmationUpdates &&
-            (tx.height == null || tx.height! <= 0),
+            tx.getConfirmations(chainHeight) < coin.minConfirms,
         coin: coin,
         txid: tx.txid,
         confirmations: tx.getConfirmations(chainHeight),

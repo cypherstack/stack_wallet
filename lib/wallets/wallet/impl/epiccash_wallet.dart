@@ -1372,7 +1372,10 @@ class EpiccashWallet extends Bip39Wallet {
   }
 
   @override
-  Future<void> updateTransactions() async {
+  Future<void> updateTransactions() =>
+      updateTransactionsWithNotifications(_updateTransactions);
+
+  Future<void> _updateTransactions() async {
     try {
       _hackedCheckTorNodePrefs();
       const refreshFromNode = 1;

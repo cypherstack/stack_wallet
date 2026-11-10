@@ -43,14 +43,18 @@ void main() {
   );
 
   test(
-    "keeps failed delivery IDs across tracker instances until delivered",
+    "pending deliveries survive a new tracker and remain wallet scoped",
     () async {
       final tracker = TransactionNotificationTracker(walletId: "wallet");
-      await tracker.recordPendingDelivery(["first", "second"]);
+      await tracker.queuePending(["first", "second"]);
       final reopened = TransactionNotificationTracker(walletId: "wallet");
-      expect(reopened.pendingDeliveryTxids, {"first", "second"});
+      expect(reopened.pendingTxids, {"first", "second"});
+      expect(
+        TransactionNotificationTracker(walletId: "other").pendingTxids,
+        isEmpty,
+      );
       await reopened.recordDelivered("first");
-      expect(tracker.pendingDeliveryTxids, {"second"});
+      expect(tracker.pendingTxids, {"second"});
       expect(tracker.deliveredTxids, {"first"});
     },
   );

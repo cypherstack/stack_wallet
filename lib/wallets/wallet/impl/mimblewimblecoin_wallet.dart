@@ -1295,7 +1295,10 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   }
 
   @override
-  Future<void> updateTransactions() async {
+  Future<void> updateTransactions() =>
+      updateTransactionsWithNotifications(_updateTransactions);
+
+  Future<void> _updateTransactions() async {
     try {
       final wallet = await _ensureWalletOpen();
       const refreshFromNode = 1;
