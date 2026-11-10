@@ -32,6 +32,14 @@ class _CryptoNotificationsState extends ConsumerState<CryptoNotifications> {
   late final StreamSubscription<dynamic>? _streamSubscription;
 
   Future<void> _showNotification(CryptoNotificationEvent event) async {
+    // A queued event can outlive wallet deletion or a switch to a duress
+    // session. Only the wallets loaded in this session may publish details.
+    if (!ref
+        .read(pWallets)
+        .wallets
+        .any((wallet) => wallet.walletId == event.walletId)) {
+      return;
+    }
     await NotificationApi.showNotification(
       title: event.title,
       body: event.walletName,

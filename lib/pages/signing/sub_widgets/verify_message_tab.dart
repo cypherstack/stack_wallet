@@ -67,9 +67,9 @@ class _VerifyMessageFormState extends ConsumerState<VerifyMessageForm> {
   TextStyle _getStyle(BuildContext context) {
     return Util.isDesktop
         ? STextStyles.desktopTextExtraExtraSmall(context).copyWith(
-            color: Theme.of(
-              context,
-            ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .textFieldActiveSearchIconRight,
           )
         : STextStyles.smallMed12(context);
   }
@@ -84,6 +84,7 @@ class _VerifyMessageFormState extends ConsumerState<VerifyMessageForm> {
 
     _verify = IfNotAlreadyAsync<void>(() async {
       Exception? ex;
+      final state = ref.read(_pVerifyState);
 
       final verified = await showLoading(
         whileFuture:
@@ -100,7 +101,7 @@ class _VerifyMessageFormState extends ConsumerState<VerifyMessageForm> {
         onException: (e) => ex = e,
       );
 
-      if (mounted) {
+      if (mounted && identical(ref.read(_pVerifyState), state)) {
         if (ex != null) {
           await showSignVerifyError(ex!, context: context);
         } else {
@@ -145,7 +146,13 @@ class _VerifyMessageFormState extends ConsumerState<VerifyMessageForm> {
           AdaptiveTextField(
             controller: messageController,
             showPasteClearButton: true,
-            maxLines: 1,
+            trimPastedText: false,
+            autocorrect: false,
+            smartDashesType: SmartDashesType.disabled,
+            smartQuotesType: SmartQuotesType.disabled,
+            enableSuggestions: false,
+            minLines: 1,
+            maxLines: 5,
             onChangedComprehensive: (_) {
               if (mounted) {
                 ref.read(_pVerifyState.notifier).state = ref

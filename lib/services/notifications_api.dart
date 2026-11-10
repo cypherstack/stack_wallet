@@ -12,6 +12,7 @@ import 'dart:io';
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import '../app_config.dart';
 import '../models/notification_model.dart';
 import '../utilities/logger.dart';
 import '../utilities/prefs.dart';
@@ -38,13 +39,13 @@ abstract final class NotificationApi {
     );
   }
 
-  static Future<void> init({bool initScheduled = false}) async {
+  static Future<void> init({
+    bool initScheduled = false,
+    bool requestPermissions = true,
+  }) async {
     final existing = _initializationFuture;
-    if (existing != null) {
-      return existing;
-    }
-
-    final initialization = _initialize();
+    if (existing != null) return existing;
+    final initialization = _initialize(requestPermissions: requestPermissions);
     _initializationFuture = initialization;
     try {
       await initialization;
@@ -56,21 +57,46 @@ abstract final class NotificationApi {
     }
   }
 
-  static Future<void> _initialize() async {
+  static Future<void> _initialize({required bool requestPermissions}) async {
     const android = AndroidInitializationSettings('app_icon_alpha');
-    const iOS = DarwinInitializationSettings();
+    final iOS = DarwinInitializationSettings(
+      requestAlertPermission: requestPermissions,
+      requestBadgePermission: requestPermissions,
+      requestSoundPermission: requestPermissions,
+    );
     const linux = LinuxInitializationSettings(
       defaultActionName: "temporary_stack_wallet",
     );
-    const macOS = DarwinInitializationSettings();
-    const settings = InitializationSettings(
+    final macOS = DarwinInitializationSettings(
+      requestAlertPermission: requestPermissions,
+      requestBadgePermission: requestPermissions,
+      requestSoundPermission: requestPermissions,
+    );
+    final (windowsAppUserModelId, windowsGuid) = switch (AppConfig.appName) {
+      "Campfire" => (
+        "CypherStack.Campfire",
+        "fe1bb964-a80c-45cd-a5d6-c95b2d8b1142",
+      ),
+      "Stack Duo" => (
+        "CypherStack.StackDuo",
+        "7b01c69c-c282-493e-98a1-6a5cd3153049",
+      ),
+      _ => ("CypherStack.StackWallet", "986f4b88-0a22-42c2-a005-e5e150c8653f"),
+    };
+    final windows = WindowsInitializationSettings(
+      appName: AppConfig.appName,
+      appUserModelId: windowsAppUserModelId,
+      guid: windowsGuid,
+    );
+    final settings = InitializationSettings(
       android: android,
       iOS: iOS,
       linux: linux,
       macOS: macOS,
+      windows: windows,
     );
     await _notifications.initialize(
-      settings,
+      settings: settings,
       // onDidReceiveNotificationResponse: (payload) async {
       //   onNotifications.add(payload.payload);
       // },
@@ -102,7 +128,7 @@ abstract final class NotificationApi {
 
   static Future<void> clearNotification(int id) async {
     await init();
-    await _notifications.cancel(id);
+    await _notifications.cancel(id: id);
   }
 
   //===================================
@@ -118,10 +144,10 @@ abstract final class NotificationApi {
     await _requestPermissionIfNeeded();
     final id = await prefs.incrementCurrentNotificationIndex();
     await _notifications.show(
-      id,
-      title,
-      body,
-      await _notificationDetails(),
+      id: id,
+      title: title,
+      body: body,
+      notificationDetails: await _notificationDetails(),
       payload: payload,
     );
     return id;
@@ -170,10 +196,10 @@ abstract final class NotificationApi {
 
     try {
       await _notifications.show(
-        id,
-        title,
-        body,
-        await _notificationDetails(),
+        id: id,
+        title: title,
+        body: body,
+        notificationDetails: await _notificationDetails(),
         payload: payload,
       );
     } catch (error, stackTrace) {

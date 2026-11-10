@@ -28,6 +28,10 @@ class IncompleteExchangeModel extends ChangeNotifier {
   final Decimal sendAmount;
   final Decimal receiveAmount;
 
+  String get payInAmount => trade?.payInAmount ?? sendAmount.toString();
+
+  Decimal? get payInDecimal => Decimal.tryParse(payInAmount);
+
   final ExchangeRateType rateType;
 
   final bool reversed;
@@ -51,6 +55,28 @@ class IncompleteExchangeModel extends ChangeNotifier {
   set refundAddress(String? refundAddress) {
     if (_refundAddress != refundAddress) {
       _refundAddress = refundAddress;
+      notifyListeners();
+    }
+  }
+
+  String? _extraId;
+
+  String? get extraId => _extraId;
+
+  set extraId(String? extraId) {
+    if (_extraId != extraId) {
+      _extraId = extraId;
+      notifyListeners();
+    }
+  }
+
+  String? _refundExtraId;
+
+  String? get refundExtraId => _refundExtraId;
+
+  set refundExtraId(String? refundExtraId) {
+    if (_refundExtraId != refundExtraId) {
+      _refundExtraId = refundExtraId;
       notifyListeners();
     }
   }

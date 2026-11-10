@@ -288,15 +288,14 @@ class _NewWalletRecoveryPhraseWarningViewState
                     right: 10,
                   ),
                   child: AppBarIconButton(
-                    semanticsLabel:
-                        "Question Button. Opens A Dialog For Recovery Phrase Explanation.",
+                    semanticsLabel: "Question Button. Opens A Dialog For Recovery Phrase Explanation.",
                     icon: SvgPicture.asset(
                       Assets.svg.circleQuestion,
                       width: 20,
                       height: 20,
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
                     ),
                     onPressed: () async {
                       await showDialog<void>(
@@ -332,9 +331,8 @@ class _NewWalletRecoveryPhraseWarningViewState
                       Text(
                         walletName,
                         textAlign: TextAlign.center,
-                        style: STextStyles.label(
-                          context,
-                        ).copyWith(fontSize: 12),
+                        style: STextStyles.label(context)
+                            .copyWith(fontSize: 12),
                       ),
                     if (!isDesktop) const SizedBox(height: 4),
                     Text(
@@ -363,9 +361,8 @@ class _NewWalletRecoveryPhraseWarningViewState
                                   ? STextStyles.desktopTextMediumRegular(
                                       context,
                                     )
-                                  : STextStyles.subtitle(
-                                      context,
-                                    ).copyWith(fontSize: 12),
+                                  : STextStyles.subtitle(context)
+                                        .copyWith(fontSize: 12),
                             )
                           : Column(
                               children: [
@@ -382,13 +379,11 @@ class _NewWalletRecoveryPhraseWarningViewState
                                 RichText(
                                   textAlign: TextAlign.center,
                                   text: TextSpan(
-                                    style: STextStyles.desktopH3(
-                                      context,
-                                    ).copyWith(fontSize: 18),
+                                    style: STextStyles.desktopH3(context)
+                                        .copyWith(fontSize: 18),
                                     children: [
                                       TextSpan(
-                                        text:
-                                            "On the next screen you will be given ",
+                                        text: "On the next screen you will be given ",
                                         style: STextStyles.desktopH3(context)
                                             .copyWith(
                                               color: Theme.of(context)
@@ -598,9 +593,8 @@ class _NewWalletRecoveryPhraseWarningViewState
                                               ? STextStyles.desktopTextMedium(
                                                   context,
                                                 )
-                                              : STextStyles.baseXS(
-                                                  context,
-                                                ).copyWith(height: 1.3),
+                                              : STextStyles.baseXS(context)
+                                                    .copyWith(height: 1.3),
                                         ),
                                       ),
                                     ],

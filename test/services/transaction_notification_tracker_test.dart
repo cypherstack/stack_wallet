@@ -35,11 +35,23 @@ void main() {
         "restored-later",
       ]);
       expect(
-        TransactionNotificationTracker(
-          walletId: "restored-later",
-        ).isInitialized,
+        TransactionNotificationTracker(walletId: "restored-later")
+            .isInitialized,
         isFalse,
       );
+    },
+  );
+
+  test(
+    "keeps failed delivery IDs across tracker instances until delivered",
+    () async {
+      final tracker = TransactionNotificationTracker(walletId: "wallet");
+      await tracker.recordPendingDelivery(["first", "second"]);
+      final reopened = TransactionNotificationTracker(walletId: "wallet");
+      expect(reopened.pendingDeliveryTxids, {"first", "second"});
+      await reopened.recordDelivered("first");
+      expect(tracker.pendingDeliveryTxids, {"second"});
+      expect(tracker.deliveredTxids, {"first"});
     },
   );
 

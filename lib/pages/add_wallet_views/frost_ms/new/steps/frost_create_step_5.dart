@@ -78,15 +78,15 @@ class _FrostCreateStep5State extends ConsumerState<FrostCreateStep5> {
       child: Column(
         children: [
           RoundedContainer(
-            color: Theme.of(
-              context,
-            ).extension<StackColors>()!.warningBackground,
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .warningBackground,
             child: Text(
               _warning,
               style: STextStyles.w500_14(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.warningForeground,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .warningForeground,
               ),
             ),
           ),
@@ -142,9 +142,8 @@ class _FrostCreateStep5State extends ConsumerState<FrostCreateStep5> {
                   coin: data.info.frostCurrency,
                   name: data.info.walletName,
                 );
-                await TransactionNotificationTracker(
-                  walletId: info.walletId,
-                ).markInitialized();
+                await TransactionNotificationTracker(walletId: info.walletId)
+                    .markInitialized();
 
                 final wallet = await Wallet.create(
                   walletInfo: info,

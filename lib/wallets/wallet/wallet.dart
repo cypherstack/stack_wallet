@@ -171,6 +171,10 @@ abstract class Wallet<T extends CryptoCurrency> {
       prefs: prefs,
     );
 
+    if (wallet is XelisWallet) {
+      wallet.allowNewWallet = mnemonic == null;
+    }
+
     if (wallet is ViewOnlyOptionInterface && walletInfo.isViewOnly) {
       await secureStorageInterface.write(
         key: getViewOnlyWalletDataSecStoreKey(walletId: walletInfo.walletId),
@@ -455,6 +459,7 @@ abstract class Wallet<T extends CryptoCurrency> {
     }
 
     final bool hasNetwork = await pingCheck();
+    if (!shouldAutoSync) return;
 
     if (_isConnected != hasNetwork) {
       final NodeConnectionStatus status = hasNetwork
@@ -501,6 +506,10 @@ abstract class Wallet<T extends CryptoCurrency> {
   /// reflect updated balance, transactions, utxos, etc.
   Future<TxData> confirmSend({required TxData txData});
 
+  /// Releases a preparation when its review is abandoned. Wallets whose
+  /// preparations own native resources override this lifecycle hook.
+  Future<void> cancelSend({required TxData txData}) async {}
+
   /// Recover a wallet by scanning the blockchain. If called on a new wallet a
   /// normal recovery should occur. When called on an existing wallet and
   /// [isRescan] is false then it should throw. Otherwise this function should
@@ -545,11 +554,16 @@ abstract class Wallet<T extends CryptoCurrency> {
   }
 
   bool doNotFireRefreshEvents = false;
+  Future<void>? _refreshFuture;
 
   // Should fire events
-  Future<void> refresh() async {
+  Future<void> refresh() {
+    final activeRefresh = _refreshFuture;
+    if (activeRefresh != null) return activeRefresh;
+    if (refreshMutex.isLocked) return Future<void>.value();
+
     final refreshCompleter = Completer<void>();
-    final future = refreshCompleter.future.then(
+    final future = refreshCompleter.future.then<void>(
       (_) {
         if (!doNotFireRefreshEvents) {
           GlobalEventBus.instance.fire(
@@ -559,21 +573,6 @@ abstract class Wallet<T extends CryptoCurrency> {
               cryptoCurrency,
             ),
           );
-        }
-        if (shouldAutoSync) {
-          _periodicRefreshTimer ??= Timer.periodic(const Duration(seconds: 150), (
-            timer,
-          ) async {
-            // chain height check currently broken
-            // if ((await chainHeight) != (await storedChainHeight)) {
-
-            // TODO: [prio=med] some kind of quick check if wallet needs to refresh to replace the old refreshIfThereIsNewData call
-            // if (await refreshIfThereIsNewData()) {
-            unawaited(refresh());
-
-            // }
-            // }
-          });
         }
       },
       onError: (Object e, StackTrace s) {
@@ -601,9 +600,23 @@ abstract class Wallet<T extends CryptoCurrency> {
       },
     );
 
+    _refreshFuture = future.whenComplete(() {
+      _refreshFuture = null;
+      ensurePeriodicRefreshTimer();
+    });
     unawaited(_refresh(refreshCompleter));
 
-    return future;
+    return _refreshFuture!;
+  }
+
+  @protected
+  void ensurePeriodicRefreshTimer() {
+    if (shouldAutoSync) {
+      _periodicRefreshTimer ??= Timer.periodic(
+        const Duration(seconds: 150),
+        (_) => unawaited(refresh()),
+      );
+    }
   }
 
   void _fireRefreshPercentChange(double percent) {
@@ -619,21 +632,14 @@ abstract class Wallet<T extends CryptoCurrency> {
 
   // Should fire events
   Future<void> _refresh(Completer<void> completer) async {
-    // Awaiting this lock could be dangerous.
-    // Since refresh is periodic (generally)
-    if (refreshMutex.isLocked) {
-      return;
-    }
     final start = DateTime.now();
 
-    final viewOnly =
-        this is ViewOnlyOptionInterface &&
-        (this as ViewOnlyOptionInterface).isViewOnly;
-
     try {
-      // this acquire should be almost instant due to above check.
-      // Slight possibility of race but should be irrelevant
       await refreshMutex.acquire();
+
+      final viewOnly =
+          this is ViewOnlyOptionInterface &&
+          (this as ViewOnlyOptionInterface).isViewOnly;
 
       if (!doNotFireRefreshEvents) {
         GlobalEventBus.instance.fire(
@@ -720,9 +726,8 @@ abstract class Wallet<T extends CryptoCurrency> {
         _fireRefreshPercentChange(0.6);
         final utxosRefreshFuture = updateUTXOs();
         _fireRefreshPercentChange(0.65);
-        await utxosRefreshFuture;
+        await Future.wait([fetchFuture, utxosRefreshFuture]);
         _fireRefreshPercentChange(0.70);
-        await fetchFuture;
       }
 
       // Check for new incoming transactions and fire notification events.
@@ -785,15 +790,14 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       Logging.instance.i(
         "Refresh for "
-        "$walletId::${info.name}: ${DateTime.now().difference(start)}",
+        "$walletId: ${DateTime.now().difference(start)}",
       );
     }
   }
 
   Future<void> exit() async {
     Logging.instance.i("exit called on $walletId");
-    _periodicRefreshTimer?.cancel();
-    _networkAliveTimer?.cancel();
+    shouldAutoSync = false;
 
     // If the syncing pref is currentWalletOnly or selectedWalletsAtStartup (and
     // this wallet isn't in walletIdsSyncOnStartup), then we close subscriptions.
@@ -813,9 +817,9 @@ abstract class Wallet<T extends CryptoCurrency> {
             final wallet = mainDB.isar.walletInfo
                 .where()
                 .walletIdEqualTo(id)
-                .findFirstSync()!;
+                .findFirstSync();
 
-            if (wallet.coin == cryptoCurrency) {
+            if (wallet?.coin == cryptoCurrency) {
               walletIds.add(id);
             }
           }

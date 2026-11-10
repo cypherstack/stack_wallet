@@ -8,19 +8,15 @@
  *
  */
 
-import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar_community/isar.dart';
 
 import '../../app_config.dart';
-import '../../db/hive/db.dart';
-import '../../notifications/show_flush_bar.dart';
-import '../../pages/intro_view.dart';
+import '../../themes/theme_providers.dart';
+import '../../utilities/desktop_startup_and_reset.dart';
 import '../../utilities/logger.dart';
-import '../../utilities/stack_file_system.dart';
 import '../../utilities/text_styles.dart';
 import '../../widgets/app_icon.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -45,67 +41,30 @@ class _ForgotPasswordDesktopViewState
     extends ConsumerState<DeletePasswordWarningView> {
   bool _deleteInProgress = false;
 
-  Future<bool> _deleteStack() async {
-    final appRoot = await StackFileSystem.applicationRootDirectory();
-
+  Future<void> _deleteStack() async {
+    // Dispose the normal UI before closing the databases it depends on.
+    await DesktopStartupAndReset.showMessage(
+      'Resetting ${AppConfig.appName}...',
+      theme: ref.read(themeProvider),
+    );
+    await WidgetsBinding.instance.endOfFrame;
     try {
-      await DB.instance.hive.close();
-      if (Platform.isWindows) {
-        final xmrDir = Directory("${appRoot.path}/wallets");
-        if (xmrDir.existsSync()) {
-          await xmrDir.delete(recursive: true);
-        }
-        final epicDir = Directory("${appRoot.path}/epiccash");
-        if (epicDir.existsSync()) {
-          await epicDir.delete(recursive: true);
-        }
-
-        final mimblewimblecoinDir = Directory(
-          "${appRoot.path}/mimblewimblecoin",
-        );
-        if (mimblewimblecoinDir.existsSync()) {
-          await mimblewimblecoinDir.delete(recursive: true);
-        }
-
-        await Isar.getInstance("desktopStore")?.close(deleteFromDisk: true);
-
-        await (await StackFileSystem.applicationHiveDirectory()).delete(
-          recursive: true,
-        );
-      } else if (Platform.isLinux) {
-        await appRoot.delete(recursive: true);
-      } else {
-        // macos in ipad mode
-        final xmrDir = Directory("${appRoot.path}/wallets");
-        if (xmrDir.existsSync()) {
-          await xmrDir.delete(recursive: true);
-        }
-        final epicDir = Directory("${appRoot.path}/epiccash");
-        if (epicDir.existsSync()) {
-          await epicDir.delete(recursive: true);
-        }
-        final mimblewimblecoinDir = Directory(
-          "${appRoot.path}/mimblewimblecoin",
-        );
-        if (mimblewimblecoinDir.existsSync()) {
-          await mimblewimblecoinDir.delete(recursive: true);
-        }
-
-        await (await StackFileSystem.applicationHiveDirectory()).delete(
-          recursive: true,
-        );
-        await (await StackFileSystem.applicationIsarDirectory()).delete(
-          recursive: true,
-        );
-      }
-
-      await DB.instance.init();
+      await DesktopStartupAndReset.resetBeforeExit();
     } catch (e, s) {
-      Logging.instance.f("$e\n$s", error: e, stackTrace: s);
-      return false;
+      Logging.instance.f('$e\n$s', error: e, stackTrace: s);
+      await DesktopStartupAndReset.showMessage(
+        'Reset could not finish. ${AppConfig.appName} will now close.\n'
+        'Reopen the app to try again.',
+      );
+      await Future<void>.delayed(const Duration(seconds: 3));
+      exit(1);
     }
-
-    return true;
+    await DesktopStartupAndReset.showMessage(
+      '${AppConfig.appName} was reset and will now close.\n'
+      'Reopen it to create or restore your wallets.',
+    );
+    await Future<void>.delayed(const Duration(seconds: 3));
+    exit(0);
   }
 
   @override
@@ -145,10 +104,9 @@ class _ForgotPasswordDesktopViewState
                           style: STextStyles.desktopTextSmall(context),
                         ),
                         TextSpan(
-                          text:
-                              widget.shouldCreateNew
-                                  ? "create a new ${AppConfig.prefix}"
-                                  : "restore from backup",
+                          text: widget.shouldCreateNew
+                              ? "create a new ${AppConfig.prefix}"
+                              : "restore from backup",
                           style: STextStyles.desktopTextSmallBold(context),
                         ),
                         TextSpan(
@@ -156,12 +114,18 @@ class _ForgotPasswordDesktopViewState
                           style: STextStyles.desktopTextSmall(context),
                         ),
                         TextSpan(
-                          text: "delete your old wallets",
+                          text: "delete all wallets and app data",
                           style: STextStyles.desktopTextSmallBold(context),
                         ),
                         TextSpan(
                           text:
-                              ". All wallets will be lost. If you have not written down your recovery phrase for EACH wallet, you may be in danger of losing funds. Continue?",
+                              ". This includes contacts, notes, swap "
+                              "history and settings. Files ending in .swb "
+                              "and logs are not deleted. Without the recovery "
+                              "phrase or a backup for EACH wallet, its "
+                              "funds will be lost. ${AppConfig.appName} "
+                              "will close; reopen it to create or restore "
+                              "your wallets. Continue?",
                           style: STextStyles.desktopTextSmall(context),
                         ),
                       ],
@@ -170,49 +134,12 @@ class _ForgotPasswordDesktopViewState
                 ),
                 const SizedBox(height: 48),
                 PrimaryButton(
-                  label: "Delete and continue",
+                  label: "Delete everything and quit",
                   enabled: !_deleteInProgress,
                   onPressed: () async {
-                    final shouldDelete = !_deleteInProgress;
-                    setState(() {
-                      _deleteInProgress = true;
-                    });
-
-                    if (shouldDelete) {
-                      unawaited(
-                        showFloatingFlushBar(
-                          type: FlushBarType.info,
-                          message: "Deleting wallet...",
-                          context: context,
-                        ),
-                      );
-
-                      final success = await _deleteStack();
-
-                      if (success) {
-                        await showFloatingFlushBar(
-                          type: FlushBarType.success,
-                          message: "Wallet deleted",
-                          context: context,
-                        );
-                        if (mounted) {
-                          await Navigator.of(context).pushNamedAndRemoveUntil(
-                            IntroView.routeName,
-                            (_) => false,
-                          );
-                        }
-                      } else {
-                        await showFloatingFlushBar(
-                          type: FlushBarType.warning,
-                          message: "Something broke badly. Contact developer",
-                          context: context,
-                        );
-
-                        setState(() {
-                          _deleteInProgress = false;
-                        });
-                      }
-                    }
+                    if (_deleteInProgress) return;
+                    setState(() => _deleteInProgress = true);
+                    await _deleteStack();
                   },
                 ),
                 const SizedBox(height: 24),

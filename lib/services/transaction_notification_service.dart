@@ -4,8 +4,9 @@ import '../wallets/crypto_currency/crypto_currency.dart';
 import 'event_bus/events/global/crypto_notification_event.dart';
 import 'transaction_notification_tracker.dart';
 
-typedef CryptoNotificationSink =
-    Future<void> Function(CryptoNotificationEvent event);
+typedef CryptoNotificationSink = Future<void> Function(
+  CryptoNotificationEvent event,
+);
 
 class TransactionNotificationService {
   TransactionNotificationService({
@@ -36,9 +37,12 @@ class TransactionNotificationService {
     required bool supportsConfirmationUpdates,
   }) async {
     final deliveredTxids = store.deliveredTxids;
+    final pending = store.pendingDeliveryTxids;
     final incoming = transactions
         .where((tx) => tx.type == TransactionType.incoming)
-        .where((tx) => !knownTxids.contains(tx.txid))
+        .where(
+          (tx) => !knownTxids.contains(tx.txid) || pending.contains(tx.txid),
+        )
         .where((tx) => !deliveredTxids.contains(tx.txid))
         .toList();
 
@@ -51,6 +55,9 @@ class TransactionNotificationService {
       await store.markInitialized();
     }
 
+    // Transactions are already persisted by refresh. Keep the entire batch
+    // pending so a delivery failure can retry after these IDs become known.
+    await store.recordPendingDelivery(incoming.map((tx) => tx.txid));
     for (final tx in incoming) {
       final amount = tx.getAmountReceivedInThisWallet(
         fractionDigits: coin.fractionDigits,

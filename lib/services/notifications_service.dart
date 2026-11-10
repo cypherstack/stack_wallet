@@ -109,7 +109,7 @@ class NotificationsService extends ChangeNotifier {
     _timer = Timer.periodic(notificationRefreshInterval, (_) {
       Logging.instance.d("Periodic notifications update check");
       if (prefs.externalCalls) {
-        _checkTrades();
+        unawaited(_checkTrades());
       }
       _checkTransactions();
     });
@@ -232,7 +232,7 @@ class NotificationsService extends ChangeNotifier {
     }
   }
 
-  void _checkTrades() async {
+  Future<void> _checkTrades() async {
     for (final notification in _watchedChangeNowTradeNotifications) {
       final id = notification.changeNowId!;
 
@@ -242,7 +242,7 @@ class NotificationsService extends ChangeNotifier {
       );
 
       if (trades.isEmpty) {
-        return;
+        continue;
       }
       final oldTrade = trades.first;
       late final ExchangeResponse<Trade> response;
@@ -251,11 +251,11 @@ class NotificationsService extends ChangeNotifier {
         final exchange = Exchange.fromName(oldTrade.exchangeName);
         response = await exchange.updateTrade(oldTrade);
       } catch (_) {
-        return;
+        continue;
       }
 
       if (response.value == null) {
-        return;
+        continue;
       }
 
       final trade = response.value!;

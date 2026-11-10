@@ -16,6 +16,15 @@ class _MemoryNotificationStore implements TransactionNotificationStore {
   bool isInitialized;
 
   final Set<String> delivered = {};
+  @override
+  final Set<String> pendingDeliveryTxids = {};
+
+  @override
+  Future<void> recordPendingDelivery(Iterable<String> txids) async {
+    pendingDeliveryTxids
+      ..clear()
+      ..addAll(txids);
+  }
 
   @override
   Set<String> get deliveredTxids => delivered;
@@ -23,6 +32,7 @@ class _MemoryNotificationStore implements TransactionNotificationStore {
   @override
   Future<void> recordDelivered(String txid) async {
     delivered.add(txid);
+    pendingDeliveryTxids.remove(txid);
   }
 
   @override
@@ -202,6 +212,56 @@ void main() {
     expect(store.delivered, isEmpty);
     await expectLater(notify(), throwsException);
     expect(store.delivered, isEmpty);
+  });
+
+  test(
+    "retries the entire failed batch after transaction IDs become known",
+    () async {
+      final store = _MemoryNotificationStore();
+      var failDelivery = true;
+      final service = serviceFor(
+        store,
+        notificationSink: (event) async {
+          if (failDelivery) throw StateError("delivery unavailable");
+          notifications.add(event);
+        },
+      );
+      Future<void> notify(Set<String> known) =>
+          service.notifyNewIncomingTransactions(
+            knownTxids: known,
+            transactions: [_transaction("first"), _transaction("second")],
+            coin: bitcoin,
+            walletId: "wallet-id",
+            walletName: "Bitcoin wallet",
+            chainHeight: 10,
+            supportsConfirmationUpdates: true,
+          );
+
+      await expectLater(notify({}), throwsStateError);
+      expect(store.pendingDeliveryTxids, {"first", "second"});
+      failDelivery = false;
+      await notify({"first", "second"});
+      expect(notifications.map((event) => event.txid), ["first", "second"]);
+      expect(store.pendingDeliveryTxids, isEmpty);
+      await notify({"first", "second"});
+      expect(notifications, hasLength(2));
+    },
+  );
+
+  test("drops retries for transactions no longer in the wallet", () async {
+    final store = _MemoryNotificationStore()
+      ..pendingDeliveryTxids.add("removed");
+    await serviceFor(store).notifyNewIncomingTransactions(
+      knownTxids: {"removed"},
+      transactions: [],
+      coin: bitcoin,
+      walletId: "wallet-id",
+      walletName: "Bitcoin wallet",
+      chainHeight: 10,
+      supportsConfirmationUpdates: true,
+    );
+    expect(notifications, isEmpty);
+    expect(store.pendingDeliveryTxids, isEmpty);
   });
 
   test("does not record delivery without a registered listener", () async {
