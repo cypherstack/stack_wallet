@@ -10,7 +10,10 @@ void main() {
 
   test('preserves precision for values beyond double range', () {
     final fee = BigInt.parse('900719925474099312345678901234567890');
-    expect(formatFeeRate(feeRaw: fee, vSize: 3), '~300239975158033104115226300411522630.0');
+    expect(
+      formatFeeRate(feeRaw: fee, vSize: 3),
+      '~300239975158033104115226300411522630.0',
+    );
   });
 
   test('omits fee rates without a positive virtual size', () {
@@ -22,16 +25,25 @@ void main() {
 
   test('uses the locale decimal separator', () {
     expect(formatFeeRate(feeRaw: BigInt.from(126), vSize: 100), '~1.3');
-    expect(formatFeeRate(feeRaw: BigInt.from(126), vSize: 100, locale: 'en_US'), '~1.3');
-    expect(formatFeeRate(feeRaw: BigInt.from(126), vSize: 100, locale: 'de_DE'), '~1,3');
-    expect(formatFeeRate(feeRaw: BigInt.from(126), vSize: 100, locale: 'fr'), '~1,3');
+    expect(
+      formatFeeRate(feeRaw: BigInt.from(126), vSize: 100, locale: 'en_US'),
+      '~1.3',
+    );
+    expect(
+      formatFeeRate(feeRaw: BigInt.from(126), vSize: 100, locale: 'de_DE'),
+      '~1,3',
+    );
+    expect(
+      formatFeeRate(feeRaw: BigInt.from(126), vSize: 100, locale: 'fr'),
+      '~1,3',
+    );
   });
 
   testWidgets('renders the rate in the same locale as the amount', (
     tester,
   ) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: Scaffold(
           body: FeeAmountWithRate(
             formattedAmount: '0,00000126 BTC',
@@ -52,7 +64,7 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: MediaQuery(
           data: MediaQueryData(
             size: Size(240, 600),

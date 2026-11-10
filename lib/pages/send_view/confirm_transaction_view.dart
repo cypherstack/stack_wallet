@@ -1507,7 +1507,6 @@ class _ConfirmTransactionViewState
                     amountStyle: STextStyles.itemSubtitle(context),
                     rateStyle: STextStyles.desktopTextExtraExtraSmall(context),
                   ),
-                  ),
                 ),
               ),
             if (!isDesktop) const Spacer(),

@@ -49,11 +49,7 @@ class FeeAmountWithRate extends StatelessWidget {
           textAlign: TextAlign.right,
         ),
         if (rate != null)
-          Text(
-            ' ($rate sat/vB)',
-            style: rateStyle,
-            textAlign: TextAlign.right,
-          ),
+          Text(' ($rate sat/vB)', style: rateStyle, textAlign: TextAlign.right),
       ],
     );
   }
