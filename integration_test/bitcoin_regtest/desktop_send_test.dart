@@ -103,7 +103,12 @@ void main() {
     final nodes = container.read(nodeServiceChangeNotifierProvider);
     final node = coin
         .defaultNode(isPrimary: true)
-        .copyWith(port: chain.electrumPort, loginName: null, trusted: true);
+        .copyWith(
+          host: chain.electrumHost,
+          port: chain.electrumPort,
+          loginName: null,
+          trusted: true,
+        );
     await nodes.save(node, null, true);
     await nodes.setPrimaryNodeFor(coin: coin, node: node);
     final wallet = await Wallet.create(

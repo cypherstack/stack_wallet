@@ -1,69 +1,100 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 
-const _bitcoindPath = String.fromEnvironment('BITCOIND');
+import 'regtest_nodes.dart';
+
 const _indexerName = String.fromEnvironment('INDEXER', defaultValue: 'electrs');
+
+// Spawned by the test: binaries.
+const _bitcoindPath = String.fromEnvironment('BITCOIND');
 const _indexerPaths = {
   'electrs': String.fromEnvironment('ELECTRS'),
   'fulcrum': String.fromEnvironment('FULCRUM'),
 };
 
-/// A private bitcoind regtest chain with an Electrum server in front of it, on
-/// free loopback ports under a temp dir. --dart-define=INDEXER picks electrs
-/// (0.10, the default) or fulcrum; BITCOIND, ELECTRS and FULCRUM name the
-/// binaries.
+// Run on the host by scripts/bitcoin_regtest_nodes.dart: where to reach them.
+const _rpcHost = String.fromEnvironment('REGTEST_RPC_HOST');
+const _rpcPort = int.fromEnvironment('REGTEST_RPC_PORT');
+const _rpcUser = String.fromEnvironment('REGTEST_RPC_USER');
+const _rpcPassword = String.fromEnvironment('REGTEST_RPC_PASSWORD');
+const _electrumHost = String.fromEnvironment('REGTEST_ELECTRUM_HOST');
+const _electrumPort = int.fromEnvironment('REGTEST_ELECTRUM_PORT');
+
+/// A private bitcoind regtest chain with an Electrum server in front of it.
+/// --dart-define=INDEXER picks electrs (0.10, the default) or fulcrum.
 ///
-/// The node's own wallet ("miner") holds the coinbase coins and pays the
+/// Either the test starts the nodes itself (BITCOIND plus ELECTRS or FULCRUM
+/// name the binaries; Linux and Windows desktop), or the runner script starts
+/// them on the host and passes REGTEST_RPC_* and REGTEST_ELECTRUM_* (macOS,
+/// whose app sandbox cannot run them, and mobile targets).
+///
+/// The node's own wallet ("miner", created with the nodes) holds the coinbase
+/// coins and pays the
 /// Stack wallets.
 class RegtestChain {
-  RegtestChain._(this.root, this._ports);
+  RegtestChain._(this._rpc, this.electrumHost, this.electrumPort, this._nodes);
 
-  final Directory root;
-  final List<int> _ports;
-  int get rpcPort => _ports[0];
-  int get p2pPort => _ports[1];
-  int get electrumPort => _ports[2];
-  int get _monitoringPort => _ports[3];
+  final RegtestRpc _rpc;
+  final RegtestNodes? _nodes;
 
-  Process? _bitcoind;
-  Process? _indexer;
+  /// Where the wallet under test reaches the Electrum server.
+  final String electrumHost;
+  final int electrumPort;
 
   /// The Electrum server in use: "electrs" or "fulcrum".
   String get indexer => _indexerName;
-  final _log = <String>[];
-  String _auth = '';
   late final String minerAddress;
-  final _http = HttpClient();
-  int _id = 0;
+
+  static bool get _hostNodes => _rpcPort != 0;
 
   static Future<RegtestChain> start() async {
-    if (!_indexerPaths.containsKey(_indexerName)) {
-      throw StateError('INDEXER must be one of ${_indexerPaths.keys}.');
-    }
-    for (final (name, path) in [
-      ('BITCOIND', _bitcoindPath),
-      (_indexerName.toUpperCase(), _indexerPaths[_indexerName]!),
-    ]) {
-      if (path.isEmpty || !File(path).existsSync()) {
-        throw StateError('Pass --dart-define=$name=<path to the binary>.');
+    final RegtestChain chain;
+    if (_hostNodes) {
+      if (_electrumPort == 0 || _rpcPassword.isEmpty) {
+        throw StateError(
+          'REGTEST_RPC_PORT is set but REGTEST_ELECTRUM_PORT or '
+          'REGTEST_RPC_PASSWORD is not.',
+        );
       }
+      final host = _rpcHost.isEmpty ? '127.0.0.1' : _rpcHost;
+      chain = RegtestChain._(
+        RegtestRpc(
+          host: host,
+          port: _rpcPort,
+          user: _rpcUser.isEmpty ? RegtestNodes.rpcUser : _rpcUser,
+          password: _rpcPassword,
+        ),
+        _electrumHost.isEmpty ? host : _electrumHost,
+        _electrumPort,
+        null,
+      );
+    } else {
+      final indexerPath = _indexerPaths[_indexerName];
+      if (indexerPath == null) {
+        throw StateError('INDEXER must be one of ${_indexerPaths.keys}.');
+      }
+      for (final (name, path) in [
+        ('BITCOIND', _bitcoindPath),
+        (_indexerName.toUpperCase(), indexerPath),
+      ]) {
+        if (path.isEmpty) {
+          throw StateError(
+            'Pass --dart-define=$name=<path>, or run the nodes on the host '
+            'with scripts/test_bitcoin_regtest.sh.',
+          );
+        }
+      }
+      final nodes = await RegtestNodes.start(
+        bitcoind: _bitcoindPath,
+        indexer: _indexerName,
+        indexerPath: indexerPath,
+      );
+      chain = RegtestChain._(nodes.rpc, '127.0.0.1', nodes.electrumPort, nodes);
     }
-    final root = await Directory.systemTemp.createTemp('stack_btc_regtest_');
-    final chain = RegtestChain._(root, await _freePorts(4));
     try {
-      await chain._startBitcoind();
-      await chain.rpc('createwallet', ['miner']);
-      chain.minerAddress =
-          await chain.rpc('getnewaddress', [], 'miner') as String;
-      await chain.rpc('generatetoaddress', [101, chain.minerAddress]);
-      await (_indexerName == 'fulcrum'
-          ? chain._startFulcrum()
-          : chain._startElectrs());
-      await chain.waitForIndexer();
+      await chain._setUpMiner();
     } catch (_) {
       await chain.stop();
       rethrow;
@@ -71,116 +102,33 @@ class RegtestChain {
     return chain;
   }
 
-  Future<void> _startBitcoind() async {
-    final data = Directory('${root.path}/bitcoind')..createSync();
-    _bitcoind = await Process.start(_bitcoindPath, [
-      '-regtest',
-      '-datadir=${data.path}',
-      '-server',
-      '-txindex',
-      '-listen',
-      '-bind=127.0.0.1:$p2pPort',
-      '-rpcbind=127.0.0.1:$rpcPort',
-      '-rpcallowip=127.0.0.1',
-      '-rpcport=$rpcPort',
-      '-fallbackfee=0.0002',
-      '-dnsseed=0',
-      '-fixedseeds=0',
-      '-printtoconsole',
-    ]);
-    _capture('bitcoind', _bitcoind!);
-    final cookie = File('${data.path}/regtest/.cookie');
-    await _until('bitcoind RPC', () async {
-      if (!cookie.existsSync()) return false;
-      _auth = 'Basic ${base64.encode(utf8.encode(cookie.readAsStringSync()))}';
+  Future<void> _setUpMiner() async {
+    final wallets = List<String>.from(await rpc('listwallets') as List);
+    if (!wallets.contains('miner')) {
       try {
-        await rpc('getblockchaininfo');
-        return true;
-      } on Object {
-        return false;
+        await rpc('loadwallet', ['miner']);
+      } on StateError {
+        await rpc('createwallet', ['miner']);
       }
-    });
-  }
-
-  Future<void> _startElectrs() async {
-    _indexer = await Process.start(_indexerPaths['electrs']!, [
-      '--skip-default-conf-files',
-      '--network=regtest',
-      '--db-dir=${root.path}/electrs',
-      '--daemon-dir=${root.path}/bitcoind',
-      '--cookie-file=${root.path}/bitcoind/regtest/.cookie',
-      '--daemon-rpc-addr=127.0.0.1:$rpcPort',
-      '--daemon-p2p-addr=127.0.0.1:$p2pPort',
-      '--electrum-rpc-addr=127.0.0.1:$electrumPort',
-      '--monitoring-addr=127.0.0.1:$_monitoringPort',
-      '--wait-duration-secs=1',
-      '--log-filters=INFO',
-    ]);
-    _capture('electrs', _indexer!);
-  }
-
-  /// Fulcrum takes most settings from a config file. Peering is off so it
-  /// never contacts public servers.
-  Future<void> _startFulcrum() async {
-    final config = File('${root.path}/fulcrum.conf');
-    await config.writeAsString(
-      [
-        'datadir = ${root.path}/fulcrum',
-        'bitcoind = 127.0.0.1:$rpcPort',
-        'rpccookie = ${root.path}/bitcoind/regtest/.cookie',
-        'tcp = 127.0.0.1:$electrumPort',
-        'stats = 127.0.0.1:$_monitoringPort',
-        'peering = false',
-        'announce = false',
-        'polltime = 0.5',
-      ].join('\n'),
-    );
-    _indexer = await Process.start(_indexerPaths['fulcrum']!, [config.path]);
-    _capture('fulcrum', _indexer!);
-  }
-
-  void _capture(String name, Process process) {
-    for (final stream in [process.stdout, process.stderr]) {
-      stream.transform(utf8.decoder).transform(const LineSplitter()).listen((
-        line,
-      ) {
-        _log.add('$name: $line');
-        if (_log.length > 400) _log.removeAt(0);
-      });
     }
+    minerAddress = await rpc('getnewaddress', [], 'miner') as String;
+    final tip = await height();
+    if (tip < 101) {
+      await rpc('generatetoaddress', [101 - tip, minerAddress]);
+    }
+    await waitForIndexer();
   }
 
-  /// The last lines both processes printed, for failure messages.
+  /// The last lines the nodes printed, for failure messages.
   String get logTail =>
-      _log.skip(_log.length > 60 ? _log.length - 60 : 0).join('\n');
+      _nodes?.logTail ?? '(the runner script started the nodes; see its log)';
 
   /// A bitcoind JSON-RPC call, against [wallet] when given.
   Future<dynamic> rpc(
     String method, [
     List<dynamic> params = const [],
     String? wallet,
-  ]) async {
-    final path = wallet == null ? '/' : '/wallet/$wallet';
-    final request = await _http.post('127.0.0.1', rpcPort, path);
-    request.headers
-      ..set(HttpHeaders.authorizationHeader, _auth)
-      ..contentType = ContentType.json;
-    request.write(
-      jsonEncode({
-        'jsonrpc': '1.0',
-        'id': ++_id,
-        'method': method,
-        'params': params,
-      }),
-    );
-    final response = await request.close();
-    final body = jsonDecode(await response.transform(utf8.decoder).join());
-    final error = (body as Map)['error'];
-    if (error != null) {
-      throw StateError('bitcoind $method: $error');
-    }
-    return body['result'];
-  }
+  ]) => _rpc.call(method, params, wallet);
 
   Future<int> height() async => await rpc('getblockcount') as int;
 
@@ -203,17 +151,21 @@ class RegtestChain {
         await rpc('getrawtransaction', [txid, true]) as Map,
       );
 
+  /// One Electrum protocol call on a fresh connection.
+  Future<dynamic> electrum(String method, [List<dynamic> params = const []]) =>
+      electrumCall(electrumHost, electrumPort, method, params);
+
   /// Waits until the indexer serves the same tip as bitcoind.
   Future<void> waitForIndexer() async {
     final target = await height();
-    await _until('$indexer at height $target', () async {
+    await pollUntil('$indexer at height $target', () async {
       try {
         final header = await electrum('blockchain.headers.subscribe') as Map;
         return header['height'] == target;
       } on Object {
         return false;
       }
-    });
+    }, context: () => logTail);
   }
 
   /// Waits until the indexer lists [txid] in the history of [address], and no
@@ -228,105 +180,21 @@ class RegtestChain {
     final script = coinlib.Address.fromString(address, network).program.script;
     final hash = coinlib.sha256Hash(script.compiled).reversed.toList();
     final scripthash = coinlib.bytesToHex(Uint8List.fromList(hash));
-    await _until('$indexer history of $address to list $txid', () async {
+    await pollUntil('$indexer history of $address to list $txid', () async {
       final history = await electrum('blockchain.scripthash.get_history', [
         scripthash,
       ]) as List;
       final txids = history.map((e) => (e as Map)['tx_hash']).toSet();
       return txids.contains(txid) && !txids.contains(replaced);
-    });
+    }, context: () => logTail);
   }
 
-  /// One Electrum protocol call on a fresh connection.
-  Future<dynamic> electrum(
-    String method, [
-    List<dynamic> params = const [],
-  ]) async {
-    final socket = await Socket.connect('127.0.0.1', electrumPort);
-    try {
-      final request = {
-        'jsonrpc': '2.0',
-        'id': 1,
-        'method': method,
-        'params': params,
-      };
-      socket.write('${jsonEncode(request)}\n');
-      await socket.flush();
-      final line = await socket
-          .cast<List<int>>()
-          .transform(utf8.decoder)
-          .transform(const LineSplitter())
-          .first
-          .timeout(const Duration(seconds: 10));
-      final body = jsonDecode(line) as Map;
-      if (body['error'] != null) {
-        throw StateError('$indexer $method: ${body['error']}');
-      }
-      return body['result'];
-    } finally {
-      socket.destroy();
-    }
-  }
-
-  Future<void> _until(
-    String what,
-    Future<bool> Function() check, {
-    Duration timeout = const Duration(seconds: 60),
-  }) async {
-    final end = DateTime.now().add(timeout);
-    while (!await check()) {
-      for (final (name, process) in [
-        ('bitcoind', _bitcoind),
-        (_indexerName, _indexer),
-      ]) {
-        final code = await process?.exitCode.timeout(
-          Duration.zero,
-          onTimeout: () => -1,
-        );
-        if (code != null && code != -1) {
-          throw StateError(
-            '$name exited with $code waiting for $what\n$logTail',
-          );
-        }
-      }
-      if (DateTime.now().isAfter(end)) {
-        throw TimeoutException('Timed out waiting for $what\n$logTail');
-      }
-      await Future<void>.delayed(const Duration(milliseconds: 250));
-    }
-  }
-
+  /// Stops nodes this test started. Host-run nodes belong to the runner.
   Future<void> stop() async {
-    _indexer?.kill();
-    if (_bitcoind != null) {
-      try {
-        await rpc('stop');
-      } on Object {
-        _bitcoind!.kill();
-      }
+    if (_nodes != null) {
+      await _nodes.stop();
+    } else {
+      _rpc.close();
     }
-    for (final process in [_indexer, _bitcoind]) {
-      await process?.exitCode.timeout(
-        const Duration(seconds: 20),
-        onTimeout: () {
-          process.kill(ProcessSignal.sigkill);
-          return -1;
-        },
-      );
-    }
-    _http.close(force: true);
-    if (root.existsSync()) await root.delete(recursive: true);
   }
-}
-
-Future<List<int>> _freePorts(int count) async {
-  final sockets = <ServerSocket>[];
-  for (var i = 0; i < count; i++) {
-    sockets.add(await ServerSocket.bind(InternetAddress.loopbackIPv4, 0));
-  }
-  final ports = sockets.map((e) => e.port).toList();
-  for (final socket in sockets) {
-    await socket.close();
-  }
-  return ports;
 }

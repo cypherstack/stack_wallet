@@ -65,7 +65,12 @@ class StackEnv {
     final nodes = NodeService(secureStorageInterface: secrets);
     final node = coin
         .defaultNode(isPrimary: true)
-        .copyWith(port: chain.electrumPort, loginName: null, trusted: true);
+        .copyWith(
+          host: chain.electrumHost,
+          port: chain.electrumPort,
+          loginName: null,
+          trusted: true,
+        );
     await nodes.save(node, null, false);
     await nodes.setPrimaryNodeFor(coin: coin, node: node);
     return StackEnv._(root, logs, nodes, secrets);
