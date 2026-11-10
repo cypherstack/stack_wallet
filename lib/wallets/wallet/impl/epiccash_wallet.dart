@@ -935,7 +935,7 @@ class EpiccashWallet extends MimblewimbleWallet {
         final String? commitId =
             slatesToCommits[slateId]?['commitId'] as String?;
         final int? numberOfMessages = tx.messages?.length;
-        final String? onChainNote = tx.messages?.first.message;
+        final String? onChainNote = tx.onChainNote;
         final String? addressFrom =
             slatesToCommits[slateId]?["from"] as String?;
         final String? addressTo = slatesToCommits[slateId]?["to"] as String?;
