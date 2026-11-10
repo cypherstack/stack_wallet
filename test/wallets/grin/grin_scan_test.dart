@@ -128,6 +128,26 @@ void main() {
     ]);
   });
 
+  test('a node change continues a pending restore', () async {
+    await h.wallet.init(isRestore: true);
+    h.wallet.shouldAutoSync = true;
+    await eventually(() => h.wallet.isConnected);
+    await h.wallet.recover(isRescan: false);
+    await eventually(() => h.backend.api.scanRunning);
+    final api = h.backend.api;
+    api.cancelScannedHeight = 1500;
+    h.wallet.node = grinNode(host: 'https://other.node');
+
+    await h.wallet.updateNode();
+    await eventually(() => api.calls.contains('scan:1501:false'));
+
+    expect(api.calls.where((c) => c.startsWith('scan:')).toList(), [
+      'scan:1000:false',
+      'scan:1501:false',
+    ]);
+    expect(h.wallet.info.grinData!.pendingScanFrom, 1501);
+  });
+
   test(
     'a node error keeps the resume height and reports unableToSync',
     () async {
