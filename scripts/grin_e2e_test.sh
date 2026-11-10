@@ -51,6 +51,8 @@ restore() {
   cp "$backup_dir/pubspec.yaml" pubspec.yaml
   if [[ -f "$backup_dir/pubspec.lock" ]]; then
     cp "$backup_dir/pubspec.lock" pubspec.lock
+  else
+    rm -f -- pubspec.lock
   fi
   rm -rf -- "$backup_dir"
 }

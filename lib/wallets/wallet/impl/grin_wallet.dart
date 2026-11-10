@@ -598,11 +598,13 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
     if (_pauseObserver?.isPaused ?? false) return Future<void>.value();
     final running = _scanJob;
     if (running != null) return running;
-    final job = _scan();
-    _scanJob = job;
-    return job.whenComplete(() {
+    late final Future<void> job;
+    job = _scan().whenComplete(() {
       if (identical(_scanJob, job)) _scanJob = null;
+      if (!_exited) ensurePeriodicRefreshTimer();
     });
+    _scanJob = job;
+    return job;
   }
 
   Future<void> _scan() async {
@@ -787,6 +789,7 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
   /// so the change does not wait a whole batch; it resumes on the next
   /// refresh.
   Future<void> _applyTransport({bool refreshAfter = true}) async {
+    Future<void>? cancelledScan;
     final changed = await _transportMutex.protect(() async {
       final api = _api;
       if (api == null || _exited) return false;
@@ -795,7 +798,10 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
       if (transport is GrinHold) return false;
       if (network == _applied) return false;
 
-      if (_scanJob != null) api.cancelScan();
+      if (_scanJob != null) {
+        cancelledScan = _scanJob;
+        api.cancelScan();
+      }
       await api.updateNetwork(
         nodeUrl: network.nodeUrl,
         apiSecret: network.apiSecret,
@@ -810,6 +816,9 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
     if (_applied?.transport is GrinBlocked) {
       _fireDisconnected();
     } else if (refreshAfter && shouldAutoSync) {
+      // The next scan needs the resume height saved by the finishing job.
+      // Calls from that job use refreshAfter: false.
+      if (cancelledScan != null) await cancelledScan;
       unawaited(refresh());
     }
   }
