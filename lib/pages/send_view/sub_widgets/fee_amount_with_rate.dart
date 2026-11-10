@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../utilities/util.dart';
+import '../../../utilities/amount/fee_rate_formatter.dart';
 
 /// Fee rate in sat/vB to one decimal, or null when [vSize] is unknown or non
 /// positive (fixed fee coins, spark mints, account based coins).
@@ -8,28 +8,18 @@ import '../../../utilities/util.dart';
 /// [locale] picks the decimal separator so the rate matches the amount
 /// formatted next to it.
 String? formatFeeRate({
-  required int feeSats,
+  required BigInt feeRaw,
   required int? vSize,
   String? locale,
 }) {
-  if (vSize == null || vSize <= 0) {
-    return null;
-  }
-
-  final rate = (feeSats / vSize).toStringAsFixed(1);
-  if (locale == null) {
-    return rate;
-  }
-
-  final separator = Util.getSymbolsFor(locale: locale)?.DECIMAL_SEP ?? '.';
-  return separator == '.' ? rate : rate.replaceFirst('.', separator);
+  return formatApproximateFeeRate(feeRaw, vSize, locale: locale);
 }
 
 class FeeAmountWithRate extends StatelessWidget {
   const FeeAmountWithRate({
     super.key,
     required this.formattedAmount,
-    required this.feeSats,
+    required this.feeRaw,
     required this.vSize,
     required this.amountStyle,
     required this.rateStyle,
@@ -38,7 +28,7 @@ class FeeAmountWithRate extends StatelessWidget {
   });
 
   final String formattedAmount;
-  final int feeSats;
+  final BigInt feeRaw;
   final int? vSize;
   final TextStyle amountStyle;
   final TextStyle rateStyle;
@@ -47,7 +37,7 @@ class FeeAmountWithRate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final rate = formatFeeRate(feeSats: feeSats, vSize: vSize, locale: locale);
+    final rate = formatFeeRate(feeRaw: feeRaw, vSize: vSize, locale: locale);
 
     return Wrap(
       alignment: alignment,
@@ -60,7 +50,7 @@ class FeeAmountWithRate extends StatelessWidget {
         ),
         if (rate != null)
           Text(
-            ' (~$rate sat/vB)',
+            ' ($rate sat/vB)',
             style: rateStyle,
             textAlign: TextAlign.right,
           ),

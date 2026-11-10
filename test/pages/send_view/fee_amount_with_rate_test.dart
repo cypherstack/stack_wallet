@@ -4,21 +4,27 @@ import 'package:stackwallet/pages/send_view/sub_widgets/fee_amount_with_rate.dar
 
 void main() {
   test('formats positive fee rates to one decimal place', () {
-    expect(formatFeeRate(feeSats: 126, vSize: 100), '1.3');
-    expect(formatFeeRate(feeSats: 1000, vSize: 3), '333.3');
+    expect(formatFeeRate(feeRaw: BigInt.from(126), vSize: 100), '~1.3');
+    expect(formatFeeRate(feeRaw: BigInt.from(1000), vSize: 3), '~333.3');
+  });
+
+  test('preserves precision for values beyond double range', () {
+    final fee = BigInt.parse('900719925474099312345678901234567890');
+    expect(formatFeeRate(feeRaw: fee, vSize: 3), '~300239975158033104115226300411522630.0');
   });
 
   test('omits fee rates without a positive virtual size', () {
-    expect(formatFeeRate(feeSats: 126, vSize: null), isNull);
-    expect(formatFeeRate(feeSats: 126, vSize: 0), isNull);
-    expect(formatFeeRate(feeSats: 126, vSize: -1), isNull);
+    expect(formatFeeRate(feeRaw: BigInt.from(126), vSize: null), isNull);
+    expect(formatFeeRate(feeRaw: BigInt.from(126), vSize: 0), isNull);
+    expect(formatFeeRate(feeRaw: BigInt.from(126), vSize: -1), isNull);
+    expect(formatFeeRate(feeRaw: BigInt.from(-126), vSize: 100), isNull);
   });
 
   test('uses the locale decimal separator', () {
-    expect(formatFeeRate(feeSats: 126, vSize: 100), '1.3');
-    expect(formatFeeRate(feeSats: 126, vSize: 100, locale: 'en_US'), '1.3');
-    expect(formatFeeRate(feeSats: 126, vSize: 100, locale: 'de_DE'), '1,3');
-    expect(formatFeeRate(feeSats: 126, vSize: 100, locale: 'fr'), '1,3');
+    expect(formatFeeRate(feeRaw: BigInt.from(126), vSize: 100), '~1.3');
+    expect(formatFeeRate(feeRaw: BigInt.from(126), vSize: 100, locale: 'en_US'), '~1.3');
+    expect(formatFeeRate(feeRaw: BigInt.from(126), vSize: 100, locale: 'de_DE'), '~1,3');
+    expect(formatFeeRate(feeRaw: BigInt.from(126), vSize: 100, locale: 'fr'), '~1,3');
   });
 
   testWidgets('renders the rate in the same locale as the amount', (
@@ -29,7 +35,7 @@ void main() {
         home: Scaffold(
           body: FeeAmountWithRate(
             formattedAmount: '0,00000126 BTC',
-            feeSats: 126,
+            feeRaw: BigInt.from(126),
             vSize: 100,
             locale: 'de_DE',
             amountStyle: TextStyle(fontSize: 12),
@@ -62,7 +68,7 @@ void main() {
                   Expanded(
                     child: FeeAmountWithRate(
                       formattedAmount: '1234567890.12345678 BTC',
-                      feeSats: 999999999,
+                      feeRaw: BigInt.from(999999999),
                       vSize: 1,
                       amountStyle: TextStyle(fontSize: 12),
                       rateStyle: TextStyle(fontSize: 12),

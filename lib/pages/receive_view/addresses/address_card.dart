@@ -132,9 +132,12 @@ class _AddressCardState extends ConsumerState<AddressCard> {
         final file = await File("${tempDir.path}/qrcode.png").create();
         await file.writeAsBytes(pngBytes);
 
-        await Share.shareFiles([
-          "${tempDir.path}/qrcode.png",
-        ], text: "Receive URI QR Code");
+        await SharePlus.instance.share(
+          ShareParams(
+            files: [XFile("${tempDir.path}/qrcode.png")],
+            text: "Receive URI QR Code",
+          ),
+        );
       }
     } catch (e) {
       //todo: comeback to this

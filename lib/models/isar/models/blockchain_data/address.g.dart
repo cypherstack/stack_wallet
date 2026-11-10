@@ -128,7 +128,7 @@ const AddressSchema = CollectionSchema(
   getId: _addressGetId,
   getLinks: _addressGetLinks,
   attach: _addressAttach,
-  version: '3.3.0-dev.2',
+  version: '3.3.2',
 );
 
 int _addressEstimateSize(
@@ -223,11 +223,10 @@ P _addressDeserializeProp<P>(
       return (reader.readLong(offset)) as P;
     case 1:
       return (reader.readObjectOrNull<DerivationPath>(
-            offset,
-            DerivationPathSchema.deserialize,
-            allOffsets,
-          ))
-          as P;
+        offset,
+        DerivationPathSchema.deserialize,
+        allOffsets,
+      )) as P;
     case 2:
       return (reader.readStringOrNull(offset)) as P;
     case 3:
