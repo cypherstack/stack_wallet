@@ -118,7 +118,7 @@ void main() {
     const jsonString =
         '{"mnemonic":"hello","word","something","who","green","seven"]}';
 
-    expect(AddressUtils.decodeQRSeedData(jsonString), {});
+    expect(AddressUtils.decodeQRSeedData(jsonString), <String, dynamic>{});
   });
 
   test("build a uri string with empty params", () {
