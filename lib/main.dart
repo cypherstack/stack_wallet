@@ -71,6 +71,7 @@ import 'utilities/desktop_startup_and_reset.dart';
 import 'utilities/enums/backup_frequency_type.dart';
 import 'utilities/flutter_secure_storage_interface.dart';
 import 'utilities/logger.dart';
+import 'utilities/native_library_check.dart';
 import 'utilities/prefs.dart';
 import 'utilities/stack_file_system.dart';
 import 'utilities/util.dart';
@@ -100,7 +101,7 @@ void main(List<String> args) async {
     StackFileSystem.setDesktopOverrideDir(args.last);
   }
 
-  final loadCoinlibFuture = loadCoinlib();
+  final loadCoinlibFuture = loadCoinlibOrRecordFailure(loadCoinlib);
 
   GoogleFonts.config.allowRuntimeFetching = false;
   if (Platform.isIOS) {
@@ -302,6 +303,10 @@ void main(List<String> args) async {
   unawaited(NotificationApi.init());
 
   await loadCoinlibFuture;
+
+  // Before any wallet loads, so a quarantined library is reported once on
+  // the home screen instead of surfacing as wallets that fail to open.
+  checkNativeLibrariesOnStartup();
 
   await MainDB.instance.initMainDB();
   ThemeService.instance.init(MainDB.instance);

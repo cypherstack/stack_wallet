@@ -84,7 +84,7 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
     final wallet = ref.read(pWallets).getWallet(walletId) as BitcoinFrostWallet;
 
     final recipients = recipientWidgetIndexes
-        .map((i) => ref.read(pRecipient(i).state).state)
+        .map((i) => ref.read(pRecipient((walletId: walletId, index: i))))
         .map(
           (e) => TxRecipient(
             address: e!.address,
@@ -191,7 +191,7 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
 
   bool _validateRecipientFormStatesHelper() {
     for (final i in recipientWidgetIndexes) {
-      final state = ref.read(pRecipient(i));
+      final state = ref.read(pRecipient((walletId: walletId, index: i)));
       if (state?.amount == null ||
           state?.address == null ||
           state!.address.isEmpty) {
@@ -383,6 +383,7 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                     ),
                     child: Recipient(
                       key: Key("recipientKey_${recipientWidgetIndexes[i]}"),
+                      walletId: walletId,
                       index: recipientWidgetIndexes[i],
                       displayNumber: i + 1,
                       coin: coin,
@@ -394,8 +395,10 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                           : () {
                               ref
                                       .read(
-                                        pRecipient(recipientWidgetIndexes[i])
-                                            .notifier,
+                                        pRecipient((
+                                          walletId: walletId,
+                                          index: recipientWidgetIndexes[i],
+                                        )).notifier,
                                       )
                                       .state =
                                   null;
@@ -417,6 +420,9 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                               ref.read(pWalletBalance(walletId)).spendable,
                             );
                       },
+                      onMessage: (message) => setState(() {
+                        noteController.text = message;
+                      }),
                     ),
                   ),
               ],

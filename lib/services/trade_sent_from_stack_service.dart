@@ -38,10 +38,8 @@ class TradeSentFromStackService extends ChangeNotifier {
   List<String>? getWalletIdsForTradeId(String tradeId) {
     final matches = all.where((e) => e.tradeId == tradeId);
 
-    if (matches.length == 1) {
-      return matches.first.walletIds;
-    }
-    return null;
+    if (matches.isEmpty) return null;
+    return matches.expand((e) => e.walletIds).toSet().toList();
   }
 
   List<String>? getWalletIdForTxid(String txid) {
@@ -53,9 +51,7 @@ class TradeSentFromStackService extends ChangeNotifier {
     return null;
   }
 
-  Future<void> save({
-    required TradeWalletLookup tradeWalletLookup,
-  }) async {
+  Future<void> save({required TradeWalletLookup tradeWalletLookup}) async {
     await DB.instance.put(
       boxName: DB.boxNameTradeLookup,
       key: tradeWalletLookup.uuid,
@@ -64,9 +60,7 @@ class TradeSentFromStackService extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> delete({
-    required TradeWalletLookup tradeWalletLookup,
-  }) async {
+  Future<void> delete({required TradeWalletLookup tradeWalletLookup}) async {
     await DB.instance.delete<TradeWalletLookup>(
       key: tradeWalletLookup.uuid,
       boxName: DB.boxNameTradeLookup,

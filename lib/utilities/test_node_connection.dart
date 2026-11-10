@@ -235,7 +235,11 @@ Future<bool> testNodeConnection({
 
     case Ethereum():
       try {
-        testPassed = await testEthNodeConnection(formData.host!);
+        testPassed = await testEthNodeConnection(
+          formData.host!,
+          prefs: read(prefsChangeNotifierProvider),
+          torService: read(pTorService),
+        );
       } catch (_) {
         testPassed = false;
       }

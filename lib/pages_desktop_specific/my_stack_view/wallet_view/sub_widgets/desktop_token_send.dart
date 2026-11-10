@@ -29,6 +29,7 @@ import '../../../../utilities/address_utils.dart';
 import '../../../../utilities/amount/amount.dart';
 import '../../../../utilities/amount/amount_field_relocalization.dart';
 import '../../../../utilities/amount/amount_formatter.dart';
+import '../../../../utilities/amount/amount_parser.dart';
 import '../../../../utilities/amount/amount_input_formatter.dart';
 import '../../../../utilities/amount/amount_unit.dart';
 import '../../../../utilities/clipboard_interface.dart';
@@ -51,6 +52,7 @@ import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/eth_fee_form.dart';
 import '../../../../widgets/icon_widgets/addressbook_icon.dart';
 import '../../../../widgets/icon_widgets/clipboard_icon.dart';
+import '../../../../widgets/icon_widgets/qrcode_icon.dart';
 import '../../../../widgets/icon_widgets/x_icon.dart';
 import '../../../../widgets/stack_text_field.dart';
 import '../../../../widgets/textfield_icon_button.dart';
@@ -207,9 +209,8 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
       }
     }
 
+    bool wasCancelled = false;
     try {
-      bool wasCancelled = false;
-
       if (mounted) {
         unawaited(
           showDialog<dynamic>(
@@ -289,7 +290,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
         );
       }
     } catch (e) {
-      if (mounted) {
+      if (mounted && !wasCancelled) {
         // pop building dialog
         Navigator.of(context, rootNavigator: true).pop();
 
@@ -373,14 +374,26 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
         amount ?? Amount.zeroWith(fractionDigits: tokenDecimals);
   }
 
+  // Controller assignments used for display must not edit the stored amount.
+  void _updateAmountDisplay(VoidCallback update) {
+    final wasLocked = _cryptoAmountChangeLock;
+    _cryptoAmountChangeLock = true;
+    try {
+      update();
+    } finally {
+      _cryptoAmountChangeLock = wasLocked;
+    }
+  }
+
   void _cryptoAmountChanged() async {
     if (!_cryptoAmountChangeLock) {
-      final cryptoAmount = ref
-          .read(pAmountFormatter(coin))
-          .tryParseEditable(
-            cryptoAmountController.text,
-            tokenContract: ref.read(pCurrentTokenWallet)!.tokenContract,
-          );
+      final cryptoAmount = AmountParser.tryParseEditable(
+        cryptoAmountController.text,
+        locale: ref.read(localeServiceChangeNotifierProvider).locale,
+        unit: ref.read(pAmountUnit(coin)),
+        coin: coin,
+        tokenContract: ref.read(pCurrentTokenWallet)!.tokenContract,
+      );
 
       if (cryptoAmount != null) {
         _amountToSend = cryptoAmount;
@@ -586,7 +599,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
       cryptoAmountController.text = amountString;
       _cryptoAmountChangeLock = false;
     } else {
-      _amountToSend = Decimal.zero.toAmount(fractionDigits: tokenDecimals);
+      _amountToSend = null;
       _cachedAmountToSend = null;
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = "";
@@ -700,8 +713,15 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
     listenForAmountRelocalization(
       ref.listen,
       controllers: [cryptoAmountController, baseAmountController],
-      onRelocalized: _cryptoAmountChanged,
+      updateControllers: _updateAmountDisplay,
     );
+    ref.listen<AmountFormatter>(pAmountFormatter(coin), (previous, next) {
+      if (previous?.unit != next.unit && _amountToSend != null) {
+        _updateAmountDisplay(() {
+          cryptoAmountController.text = next.formatEditable(_amountToSend!);
+        });
+      }
+    });
     final isCustomFee = ref.watch(feeRateTypeDesktopStateProvider).isCustom;
     // ethFee is checked in the ValueListenableBuilder around the preview
     // button so fee keystrokes don't rebuild this whole view.
@@ -1041,6 +1061,13 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
                                 }
                               },
                               child: const AddressBookIcon(),
+                            ),
+                          if (sendToController.text.isEmpty)
+                            TextFieldIconButton(
+                              semanticsLabel: "Scan QR Button. Opens Camera For Scanning QR Code.",
+                              key: const Key("sendViewScanQrButtonKey"),
+                              onTap: scanQr,
+                              child: const QrCodeIcon(),
                             ),
                         ],
                       ),
