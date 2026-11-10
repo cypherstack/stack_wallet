@@ -83,7 +83,7 @@ class Xelis extends ElectrumCurrency {
           isPrimary: isPrimary,
         );
 
-      case CryptoCurrencyNetwork.test:
+      case CryptoCurrencyNetwork.stage:
         return NodeModel(
           host: "stagenet-node.xelis.io",
           port: 443,
@@ -141,7 +141,7 @@ class Xelis extends ElectrumCurrency {
   AddressType get defaultAddressType => defaultDerivePathType.getAddressType();
 
   @override
-  BigInt get satsPerCoin => BigInt.from(1000000000);
+  BigInt get satsPerCoin => BigInt.from(10).pow(fractionDigits);
 
   @override
   int get targetBlockTimeSeconds => 15;

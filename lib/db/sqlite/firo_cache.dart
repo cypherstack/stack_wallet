@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:meta/meta.dart';
 import 'package:mutex/mutex.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:uuid/uuid.dart';
@@ -36,6 +37,9 @@ abstract class _FiroCache {
       network == CryptoCurrencyNetwork.main
       ? "spark_tags_v$_tagsCacheVersion.sqlite3"
       : "spark_tags_v${_tagsCacheVersion}_${network.name}.sqlite3";
+
+  static String resetMarkerName(CryptoCurrencyNetwork network) =>
+      'spark_reset_${network.name}.pending';
 
   static final Map<CryptoCurrencyNetwork, Database> _setCacheDB = {};
   static final Map<CryptoCurrencyNetwork, Database> _usedTagsCacheDB = {};
@@ -73,6 +77,16 @@ abstract class _FiroCache {
         "${sqliteDir.path}/${sparkUsedTagsCacheFileName(network)}",
       );
 
+      // A reset acknowledged on disk must survive termination before its
+      // worker finishes. Recover it before any reader or writer opens the DBs.
+      final marker = File('${sqliteDir.path}/${resetMarkerName(network)}');
+      if (await marker.exists()) {
+        final sets = (await marker.readAsString()).trim() != 'tags-v1';
+        if (sets) await _recreateSetFile(sparkSetCacheFile.path);
+        await _recreateTagsFile(sparkUsedTagsCacheFile.path);
+        await marker.delete();
+      }
+
       if (!(await sparkSetCacheFile.exists())) {
         await _createSparkSetCacheDb(sparkSetCacheFile.path);
       }
@@ -91,36 +105,23 @@ abstract class _FiroCache {
     }
   }
 
-  static Future<void> _deleteAllCache(CryptoCurrencyNetwork network) async {
-    final start = DateTime.now();
-    setCacheDB(network).execute("""
-        DELETE FROM SparkSet;
-        DELETE FROM SparkCoin;
-        DELETE FROM SparkSetCoins;
-        VACUUM;
-      """);
-    await _deleteUsedTagsCache(network);
-
-    Logging.instance.d(
-      "_deleteAllCache() "
-      "duration = ${DateTime.now().difference(start)}",
-    );
+  // Called only after both the reader and worker have closed these files.
+  // Recreating avoids an unbounded foreground VACUUM of a large cache.
+  static Future<void> _removeDatabaseFiles(String path) async {
+    for (final suffix in ['', '-wal', '-shm', '-journal']) {
+      final file = File('$path$suffix');
+      if (await file.exists()) await file.delete();
+    }
   }
 
-  static Future<void> _deleteUsedTagsCache(
-    CryptoCurrencyNetwork network,
-  ) async {
-    final start = DateTime.now();
+  static Future<void> _recreateSetFile(String path) async {
+    await _removeDatabaseFiles(path);
+    await _createSparkSetCacheDb(path);
+  }
 
-    usedTagsCacheDB(network).execute("""
-        DELETE FROM SparkUsedCoinTags;
-        VACUUM;
-      """);
-
-    Logging.instance.d(
-      "_deleteUsedTagsCache() "
-      "duration = ${DateTime.now().difference(start)}",
-    );
+  static Future<void> _recreateTagsFile(String path) async {
+    await _removeDatabaseFiles(path);
+    await _createSparkUsedTagsCacheDb(path);
   }
 
   static Future<void> _createSparkSetCacheDb(String file) async {
@@ -154,7 +155,7 @@ abstract class _FiroCache {
         );
       """);
 
-    db.dispose();
+    db.close();
   }
 
   static Future<void> _createSparkUsedTagsCacheDb(String file) async {
@@ -168,6 +169,6 @@ abstract class _FiroCache {
         );
       """);
 
-    db.dispose();
+    db.close();
   }
 }

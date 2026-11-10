@@ -13,6 +13,11 @@ import '../crypto_currency.dart';
 import '../interfaces/electrumx_currency_interface.dart';
 import '../intermediate/bip39_hd_currency.dart';
 
+bool _isBitcoinBech32Address(String address) {
+  final value = address.toLowerCase();
+  return value.startsWith("bc1") || value.startsWith("tb1");
+}
+
 class Firo extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   Firo(super.network) {
     _idMain = "firo";
@@ -106,7 +111,7 @@ class Firo extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           p2shPrefix: 0x07,
           privHDPrefix: 0x0488ade4,
           pubHDPrefix: 0x0488b21e,
-          bech32Hrp: "bc",
+          bech32Hrp: "",
           messagePrefix: '\x16Zcoin Signed Message:\n',
           minFee: BigInt.from(1), // Not used in stack wallet currently
           minOutput: dustLimit.raw, // Not used in stack wallet currently
@@ -119,7 +124,7 @@ class Firo extends Bip39HDCurrency with ElectrumXCurrencyInterface {
           p2shPrefix: 0xb2,
           privHDPrefix: 0x04358394,
           pubHDPrefix: 0x043587cf,
-          bech32Hrp: "tb",
+          bech32Hrp: "",
           messagePrefix: "\x16Zcoin Signed Message:\n",
           minFee: BigInt.from(1), // Not used in stack wallet currently
           minOutput: dustLimit.raw, // Not used in stack wallet currently
@@ -188,11 +193,8 @@ class Firo extends Bip39HDCurrency with ElectrumXCurrencyInterface {
       coinlib.Address.fromString(address, networkParams);
       return true;
     } catch (_) {
-      if (validateSparkAddress(address)) {
-        return true;
-      } else {
-        return isExchangeAddress(address);
-      }
+      if (_isBitcoinBech32Address(address)) return false;
+      return isExchangeAddress(address) || validateSparkAddress(address);
     }
   }
 
@@ -301,9 +303,9 @@ class Firo extends Bip39HDCurrency with ElectrumXCurrencyInterface {
 
   @override
   AddressType? getAddressType(String address) {
-    if (validateSparkAddress(address)) {
-      return .spark;
-    }
-    return super.getAddressType(address);
+    if (_isBitcoinBech32Address(address)) return null;
+    final type = super.getAddressType(address);
+    if (type != null) return type;
+    return validateSparkAddress(address) ? .spark : null;
   }
 }

@@ -37,6 +37,7 @@ import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_scaffold.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/loading_indicator.dart';
+import '../../widgets/onetime_popups/native_library_warning_dialog.dart';
 import '../../widgets/stack_text_field.dart';
 import 'create_password_view.dart';
 
@@ -95,9 +96,9 @@ class _ForgottenPassphraseRestoreFromSWBState
                   child: Text(
                     "Decrypting ${AppConfig.prefix} backup file",
                     style: STextStyles.pageTitleH2(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textWhite,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textWhite,
                     ),
                   ),
                 ),
@@ -188,6 +189,13 @@ class _ForgottenPassphraseRestoreFromSWBState
 
     passwordFocusNode = FocusNode();
 
+    // On a fresh install this screen comes before any home view, and a
+    // restore with a library missing would fail its cryptonote wallets
+    // with no explanation.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(showNativeLibraryWarningIfRequired(context));
+    });
+
     super.initState();
   }
 
@@ -214,9 +222,8 @@ class _ForgottenPassphraseRestoreFromSWBState
             ref.refresh(storageCryptoHandlerProvider);
             await DB.instance.init();
             if (mounted) {
-              Navigator.of(
-                context,
-              ).popUntil(ModalRoute.withName(CreatePasswordView.routeName));
+              Navigator.of(context)
+                  .popUntil(ModalRoute.withName(CreatePasswordView.routeName));
               Navigator.of(context).pop();
             }
           },
@@ -241,9 +248,9 @@ class _ForgottenPassphraseRestoreFromSWBState
                   "Use your ${AppConfig.prefix} backup file to restore your wallets, address book, and wallet preferences.",
                   textAlign: TextAlign.center,
                   style: STextStyles.desktopTextSmall(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textSubtitle1,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textSubtitle1,
                   ),
                 ),
                 const SizedBox(height: 40),
@@ -283,9 +290,9 @@ class _ForgottenPassphraseRestoreFromSWBState
                                   const SizedBox(width: 24),
                                   SvgPicture.asset(
                                     Assets.svg.folder,
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.textDark3,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark3,
                                     width: 24,
                                     height: 24,
                                   ),
@@ -323,9 +330,8 @@ class _ForgottenPassphraseRestoreFromSWBState
                     key: const Key("restoreFromFilePasswordFieldKey"),
                     focusNode: passwordFocusNode,
                     controller: passwordController,
-                    style: STextStyles.desktopTextMedium(
-                      context,
-                    ).copyWith(height: 2),
+                    style: STextStyles.desktopTextMedium(context)
+                        .copyWith(height: 2),
                     obscureText: hidePassword,
                     enableSuggestions: false,
                     autocorrect: false,
@@ -356,9 +362,9 @@ class _ForgottenPassphraseRestoreFromSWBState
                                         hidePassword
                                             ? Assets.svg.eye
                                             : Assets.svg.eyeSlash,
-                                        color: Theme.of(
-                                          context,
-                                        ).extension<StackColors>()!.textDark3,
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textDark3,
                                         width: 24,
                                         height: 24,
                                       ),

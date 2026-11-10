@@ -69,7 +69,6 @@ class TrocadorExchange extends Exchange {
   }) async {
     final response = reversed
         ? await TrocadorAPI.createNewPaymentRateTrade(
-            isOnion: false,
             rateId: estimate?.rateId,
             fromTicker: from.toLowerCase(),
             fromNetwork: onlySupportedNetwork,
@@ -77,14 +76,13 @@ class TrocadorExchange extends Exchange {
             toNetwork: onlySupportedNetwork,
             toAmount: amount.toString(),
             receivingAddress: addressTo,
-            receivingMemo: null,
+            receivingMemo: extraId?.isNotEmpty == true ? extraId : null,
             refundAddress: addressRefund,
-            refundMemo: null,
+            refundMemo: refundExtraId.isNotEmpty ? refundExtraId : null,
             exchangeProvider: estimate!.exchangeProvider!,
             isFixedRate: fixedRate,
           )
         : await TrocadorAPI.createNewStandardRateTrade(
-            isOnion: false,
             rateId: estimate?.rateId,
             fromTicker: from.toLowerCase(),
             fromNetwork: onlySupportedNetwork,
@@ -92,9 +90,9 @@ class TrocadorExchange extends Exchange {
             toNetwork: onlySupportedNetwork,
             fromAmount: amount.toString(),
             receivingAddress: addressTo,
-            receivingMemo: null,
+            receivingMemo: extraId?.isNotEmpty == true ? extraId : null,
             refundAddress: addressRefund,
-            refundMemo: null,
+            refundMemo: refundExtraId.isNotEmpty ? refundExtraId : null,
             exchangeProvider: estimate!.exchangeProvider!,
             isFixedRate: fixedRate,
           );
@@ -139,7 +137,7 @@ class TrocadorExchange extends Exchange {
   Future<ExchangeResponse<List<Currency>>> getAllCurrencies(
     bool fixedRate,
   ) async {
-    _cachedCurrencies ??= (await TrocadorAPI.getCoins(isOnion: false)).value;
+    _cachedCurrencies ??= (await TrocadorAPI.getCoins()).value;
 
     _cachedCurrencies?.removeWhere((e) => e.network != onlySupportedNetwork);
 
@@ -222,7 +220,6 @@ class TrocadorExchange extends Exchange {
   ) async {
     final response = reversed
         ? await TrocadorAPI.getNewPaymentRate(
-            isOnion: false,
             fromTicker: from,
             fromNetwork: onlySupportedNetwork,
             toTicker: to,
@@ -230,7 +227,6 @@ class TrocadorExchange extends Exchange {
             toAmount: amount.toString(),
           )
         : await TrocadorAPI.getNewStandardRate(
-            isOnion: false,
             fromTicker: from,
             fromNetwork: onlySupportedNetwork,
             toTicker: to,
@@ -367,10 +363,7 @@ class TrocadorExchange extends Exchange {
 
   @override
   Future<ExchangeResponse<Trade>> updateTrade(Trade trade) async {
-    final response = await TrocadorAPI.getTrade(
-      isOnion: false,
-      tradeId: trade.tradeId,
-    );
+    final response = await TrocadorAPI.getTrade(tradeId: trade.tradeId);
 
     if (response.value != null) {
       final updated = response.value!;
