@@ -98,9 +98,10 @@ class _DesktopBuyViewState extends ConsumerState<DesktopBuyView> {
           ),
           if (torEnabled)
             Container(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.overlay.withValues(alpha: 0.7),
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .overlay
+                  .withValues(alpha: 0.7),
               height: MediaQuery.of(context).size.height,
               width: MediaQuery.of(context).size.width,
               child: DesktopDialog(
@@ -122,9 +123,9 @@ class _DesktopBuyViewState extends ConsumerState<DesktopBuyView> {
                         "Purchasing not available while Tor is enabled",
                         textAlign: TextAlign.center,
                         style: STextStyles.desktopTextMedium(context).copyWith(
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.infoItemLabel,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .infoItemLabel,
                         ),
                       ),
                     ],

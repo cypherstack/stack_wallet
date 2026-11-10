@@ -83,17 +83,16 @@ class _MwcSlatepackDialogState extends ConsumerState<MwcSlatepackDialog> {
         children: [
           // Instructions.
           RoundedContainer(
-            color: Theme.of(
-              context,
-            ).extension<StackColors>()!.textFieldDefaultBG,
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .textFieldDefaultBG,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   "Next Steps:",
-                  style: STextStyles.label(
-                    context,
-                  ).copyWith(fontWeight: FontWeight.w600),
+                  style: STextStyles.label(context)
+                      .copyWith(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -174,9 +173,9 @@ class _MwcSlatepackDialogState extends ConsumerState<MwcSlatepackDialog> {
                             Assets.svg.copy,
                             width: 10,
                             height: 10,
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.infoItemIcons,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .infoItemIcons,
                           ),
                           const SizedBox(width: 4),
                           Text("Copy", style: STextStyles.link2(context)),
@@ -194,9 +193,8 @@ class _MwcSlatepackDialogState extends ConsumerState<MwcSlatepackDialog> {
                   child: SingleChildScrollView(
                     child: SelectableText(
                       widget.slatepackResult.slatepack!,
-                      style: STextStyles.w400_14(
-                        context,
-                      ).copyWith(fontFamily: 'monospace'),
+                      style: STextStyles.w400_14(context)
+                          .copyWith(fontFamily: 'monospace'),
                     ),
                   ),
                 ),

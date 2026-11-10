@@ -120,9 +120,9 @@ class _JDropdownButtonState<T> extends State<JDropdownButton<T>> {
               icon: SvgPicture.asset(
                 Assets.svg.chevronDown,
                 width: 10,
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.buttonTextSecondary,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .buttonTextSecondary,
               ),
               curve: Curves.easeInOutCubic,
               controller: _rotateIconController,
@@ -250,9 +250,9 @@ class _JDropdownIconButtonState<T> extends State<JDropdownIconButton<T>> {
                 shape: MaterialStateProperty.all(
                   RoundedRectangleBorder(
                     side: BorderSide(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.buttonBackBorderSecondary,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .buttonBackBorderSecondary,
                       width: 1,
                     ),
                     borderRadius: BorderRadius.circular(

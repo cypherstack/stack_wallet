@@ -211,12 +211,12 @@ class ToggleState extends State<Toggle> {
                                                 .extension<StackColors>()!
                                                 .buttonTextSecondary
                                     : !_isOn
-                                    ? Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textDark
-                                    : Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textSubtitle1,
+                                    ? Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark
+                                    : Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textSubtitle1,
                               ),
                             if (widget.onIcon != null) const SizedBox(width: 5),
                             Text(
@@ -235,9 +235,9 @@ class ToggleState extends State<Toggle> {
                                     )
                                   : STextStyles.smallMed12(context).copyWith(
                                       color: !_isOn
-                                          ? Theme.of(
-                                              context,
-                                            ).extension<StackColors>()!.textDark
+                                          ? Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textDark
                                           : Theme.of(context)
                                                 .extension<StackColors>()!
                                                 .textSubtitle1,
@@ -267,12 +267,12 @@ class ToggleState extends State<Toggle> {
                                                 .extension<StackColors>()!
                                                 .buttonTextSecondary
                                     : _isOn
-                                    ? Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textDark
-                                    : Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textSubtitle1,
+                                    ? Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark
+                                    : Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textSubtitle1,
                               ),
                             if (widget.offIcon != null)
                               const SizedBox(width: 5),
@@ -292,9 +292,9 @@ class ToggleState extends State<Toggle> {
                                     )
                                   : STextStyles.smallMed12(context).copyWith(
                                       color: _isOn
-                                          ? Theme.of(
-                                              context,
-                                            ).extension<StackColors>()!.textDark
+                                          ? Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textDark
                                           : Theme.of(context)
                                                 .extension<StackColors>()!
                                                 .textSubtitle1,

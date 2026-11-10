@@ -44,9 +44,9 @@ class WalletSyncingOptionsView extends ConsumerWidget {
       builder: (child) {
         return Background(
           child: Scaffold(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () async {
@@ -101,9 +101,9 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                           padding: const EdgeInsets.all(0),
                           borderColor: !isDesktop
                               ? Colors.transparent
-                              : Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.background,
+                              : Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .background,
                           child: Column(
                             children: [
                               ...walletInfos.map(

@@ -146,9 +146,8 @@ class _NetworkInfoButtonState extends ConsumerState<NetworkInfoButton> {
 
     return Text(
       label,
-      style: STextStyles.desktopMenuItemSelected(
-        context,
-      ).copyWith(color: _getColor(status, context)),
+      style: STextStyles.desktopMenuItemSelected(context)
+          .copyWith(color: _getColor(status, context)),
     );
   }
 

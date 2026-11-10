@@ -14,6 +14,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../../models/isar/models/contact_entry.dart';
 import '../../../../../providers/global/address_book_service_provider.dart';
+import '../../../../../providers/providers.dart';
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../utilities/assets.dart';
 import '../../../../../utilities/constants.dart';
@@ -25,20 +26,18 @@ import '../../../../../widgets/stack_text_field.dart';
 import '../../../../../widgets/textfield_icon_button.dart';
 import 'sub_widgets/contact_list_item.dart';
 
-class AddressBookAddressChooser extends StatefulWidget {
-  const AddressBookAddressChooser({
-    super.key,
-    this.coin,
-  });
+class AddressBookAddressChooser extends ConsumerStatefulWidget {
+  const AddressBookAddressChooser({super.key, this.coin});
 
   final CryptoCurrency? coin;
 
   @override
-  State<AddressBookAddressChooser> createState() =>
+  ConsumerState<AddressBookAddressChooser> createState() =>
       _AddressBookAddressChooserState();
 }
 
-class _AddressBookAddressChooserState extends State<AddressBookAddressChooser> {
+class _AddressBookAddressChooserState
+    extends ConsumerState<AddressBookAddressChooser> {
   late final bool isDesktop;
   late final TextEditingController _searchController;
   late final FocusNode searchFieldFocusNode;
@@ -109,6 +108,16 @@ class _AddressBookAddressChooserState extends State<AddressBookAddressChooser> {
     isDesktop = Util.isDesktop;
     searchFieldFocusNode = FocusNode();
     _searchController = TextEditingController();
+
+    // the "My Stack" contact is otherwise only created by the address book
+    // view, so make sure it exists and is current before choosing from it
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      await ref
+          .read(addressBookServiceProvider)
+          .updateMyStackContact(ref.read(pWallets).wallets);
+    });
+
     super.initState();
   }
 
@@ -125,9 +134,7 @@ class _AddressBookAddressChooserState extends State<AddressBookAddressChooser> {
       children: [
         // search field
         Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 32,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 32),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(
               Constants.size.circularBorderRadius,
@@ -150,63 +157,59 @@ class _AddressBookAddressChooserState extends State<AddressBookAddressChooser> {
                       height: 1.8,
                     )
                   : STextStyles.field(context),
-              decoration: standardInputDecoration(
-                "Search",
-                searchFieldFocusNode,
-                context,
-                desktopMed: isDesktop,
-              ).copyWith(
-                prefixIcon: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: isDesktop ? 12 : 10,
-                    vertical: isDesktop ? 18 : 16,
-                  ),
-                  child: SvgPicture.asset(
-                    Assets.svg.search,
-                    width: isDesktop ? 20 : 16,
-                    height: isDesktop ? 20 : 16,
-                  ),
-                ),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? Padding(
-                        padding: const EdgeInsets.only(right: 0),
-                        child: UnconstrainedBox(
-                          child: Row(
-                            children: [
-                              TextFieldIconButton(
-                                child: const XIcon(),
-                                onTap: () async {
-                                  setState(() {
-                                    _searchController.text = "";
-                                    _searchTerm = "";
-                                  });
-                                },
+              decoration:
+                  standardInputDecoration(
+                    "Search",
+                    searchFieldFocusNode,
+                    context,
+                    desktopMed: isDesktop,
+                  ).copyWith(
+                    prefixIcon: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isDesktop ? 12 : 10,
+                        vertical: isDesktop ? 18 : 16,
+                      ),
+                      child: SvgPicture.asset(
+                        Assets.svg.search,
+                        width: isDesktop ? 20 : 16,
+                        height: isDesktop ? 20 : 16,
+                      ),
+                    ),
+                    suffixIcon: _searchController.text.isNotEmpty
+                        ? Padding(
+                            padding: const EdgeInsets.only(right: 0),
+                            child: UnconstrainedBox(
+                              child: Row(
+                                children: [
+                                  TextFieldIconButton(
+                                    child: const XIcon(),
+                                    onTap: () async {
+                                      setState(() {
+                                        _searchController.text = "";
+                                        _searchTerm = "";
+                                      });
+                                    },
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        ),
-                      )
-                    : null,
-              ),
+                            ),
+                          )
+                        : null,
+                  ),
             ),
           ),
         ),
-        const SizedBox(
-          height: 16,
-        ),
+        const SizedBox(height: 16),
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.only(
-              left: 32,
-              right: 32,
-              bottom: 32,
-            ),
+            padding: const EdgeInsets.only(left: 32, right: 32, bottom: 32),
             child: Consumer(
               builder: (context, ref, _) {
                 List<ContactEntry> contacts = ref
                     .watch(
-                      addressBookServiceProvider
-                          .select((value) => value.contacts),
+                      addressBookServiceProvider.select(
+                        (value) => value.contacts,
+                      ),
                     )
                     .toList();
 
@@ -214,7 +217,8 @@ class _AddressBookAddressChooserState extends State<AddressBookAddressChooser> {
 
                 final favorites = pullOutFavorites(contacts);
 
-                final totalLength = favorites.length +
+                final totalLength =
+                    favorites.length +
                     contacts.length +
                     2; // +2 for "fav" and "all" headers
 
@@ -223,9 +227,7 @@ class _AddressBookAddressChooserState extends State<AddressBookAddressChooser> {
                   shrinkWrap: true,
                   itemCount: totalLength,
                   separatorBuilder: (context, index) {
-                    return const SizedBox(
-                      height: 10,
-                    );
+                    return const SizedBox(height: 10);
                   },
                   itemBuilder: (context, index) {
                     if (index == 0) {
@@ -233,13 +235,12 @@ class _AddressBookAddressChooserState extends State<AddressBookAddressChooser> {
                         key: const Key(
                           "addressBookCAddressChooserFavoritesHeaderItemKey",
                         ),
-                        padding: const EdgeInsets.only(
-                          bottom: 10,
-                        ),
+                        padding: const EdgeInsets.only(bottom: 10),
                         child: Text(
                           "Favorites",
-                          style:
-                              STextStyles.desktopTextExtraExtraSmall(context),
+                          style: STextStyles.desktopTextExtraExtraSmall(
+                            context,
+                          ),
                         ),
                       );
                     } else if (index < favorites.length + 1) {
@@ -254,13 +255,12 @@ class _AddressBookAddressChooserState extends State<AddressBookAddressChooser> {
                         key: const Key(
                           "addressBookCAddressChooserAllContactsHeaderItemKey",
                         ),
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 10,
-                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
                         child: Text(
                           "All contacts",
-                          style:
-                              STextStyles.desktopTextExtraExtraSmall(context),
+                          style: STextStyles.desktopTextExtraExtraSmall(
+                            context,
+                          ),
                         ),
                       );
                     } else {

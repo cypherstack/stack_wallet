@@ -94,9 +94,10 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
           children: [
             child,
             Material(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.overlay.withValues(alpha: 0.6),
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .overlay
+                  .withValues(alpha: 0.6),
               child: const CustomLoadingOverlay(
                 message: "Updating exchange data",
                 subMessage: "This could take a few minutes",
@@ -151,9 +152,9 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                             Text(
                               "Trades",
                               style: STextStyles.itemSubtitle(context).copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textDark3,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark3,
                               ),
                             ),
                             const SizedBox(height: 12),
@@ -239,9 +240,9 @@ class _ExchangeViewState extends ConsumerState<ExchangeView> {
                           padding: const EdgeInsets.symmetric(horizontal: 4),
                           child: Container(
                             decoration: BoxDecoration(
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.popupBG,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .popupBG,
                               borderRadius: BorderRadius.circular(
                                 Constants.size.circularBorderRadius,
                               ),

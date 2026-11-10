@@ -13,8 +13,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../app_config.dart';
-import '../../models/isar/models/blockchain_data/address.dart';
-import '../../models/isar/models/contact_entry.dart';
 import '../../pages/address_book_views/subviews/add_address_book_entry_view.dart';
 import '../../pages/address_book_views/subviews/address_book_filter_view.dart';
 import '../../providers/global/address_book_service_provider.dart';
@@ -26,7 +24,6 @@ import '../../utilities/constants.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
-import '../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../widgets/address_book_card.dart';
 import '../../widgets/desktop/desktop_app_bar.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
@@ -119,35 +116,9 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
     // }
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final List<ContactAddressEntry> addresses = [];
-      final wallets = ref.read(pWallets).wallets;
-      for (final wallet in wallets) {
-        final String addressString;
-        if (wallet is SparkInterface &&
-            !(wallet.isViewOnly && wallet.viewOnlyType != .spark)) {
-          Address? address = await wallet.getCurrentReceivingSparkAddress();
-          address ??= await wallet.generateNextSparkAddress(saveToDB: true);
-          addressString = address.value;
-        } else {
-          final address = await wallet.getCurrentReceivingAddress();
-          addressString = address?.value ?? wallet.info.cachedReceivingAddress;
-        }
-
-        addresses.add(
-          ContactAddressEntry()
-            ..coinName = wallet.info.coin.identifier
-            ..address = addressString
-            ..label = "Current Receiving"
-            ..other = wallet.info.name,
-        );
-      }
-      final self = ContactEntry(
-        name: "My ${AppConfig.prefix}",
-        addresses: addresses,
-        isFavorite: true,
-        customId: "default",
-      );
-      await ref.read(addressBookServiceProvider).editContact(self);
+      await ref
+          .read(addressBookServiceProvider)
+          .updateMyStackContact(ref.read(pWallets).wallets);
     });
 
     super.initState();
@@ -286,9 +257,9 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                 buttonHeight: ButtonHeight.l,
                 icon: SvgPicture.asset(
                   Assets.svg.filter,
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.buttonTextSecondary,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .buttonTextSecondary,
                 ),
                 onPressed: selectCryptocurrency,
               ),
@@ -299,9 +270,9 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                 buttonHeight: ButtonHeight.l,
                 icon: SvgPicture.asset(
                   Assets.svg.circlePlus,
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.buttonTextPrimary,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .buttonTextPrimary,
                 ),
                 onPressed: newContact,
               ),
@@ -343,9 +314,9 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                           children: [
                             if (i > 0)
                               Container(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.background,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .background,
                                 height: 1,
                               ),
                             Padding(
@@ -416,9 +387,9 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                               children: [
                                 if (i > 0)
                                   Container(
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.background,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .background,
                                     height: 1,
                                   ),
                                 Padding(

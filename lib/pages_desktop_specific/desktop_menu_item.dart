@@ -45,9 +45,10 @@ class DesktopMyStackIcon extends ConsumerWidget {
           DesktopMenuItemId.myStack ==
               ref.watch(currentDesktopMenuItemProvider.state).state
           ? Theme.of(context).extension<StackColors>()!.accentColorDark
-          : Theme.of(
-              context,
-            ).extension<StackColors>()!.accentColorDark.withValues(alpha: 0.8),
+          : Theme.of(context)
+                .extension<StackColors>()!
+                .accentColorDark
+                .withValues(alpha: 0.8),
     );
   }
 }
@@ -65,9 +66,10 @@ class DesktopExchangeIcon extends ConsumerWidget {
           DesktopMenuItemId.exchange ==
               ref.watch(currentDesktopMenuItemProvider.state).state
           ? Theme.of(context).extension<StackColors>()!.accentColorDark
-          : Theme.of(
-              context,
-            ).extension<StackColors>()!.accentColorDark.withValues(alpha: 0.8),
+          : Theme.of(context)
+                .extension<StackColors>()!
+                .accentColorDark
+                .withValues(alpha: 0.8),
     );
   }
 }
@@ -85,9 +87,10 @@ class DesktopBuyIcon extends ConsumerWidget {
           DesktopMenuItemId.buy ==
               ref.watch(currentDesktopMenuItemProvider.state).state
           ? Theme.of(context).extension<StackColors>()!.accentColorDark
-          : Theme.of(
-              context,
-            ).extension<StackColors>()!.accentColorDark.withValues(alpha: 0.8),
+          : Theme.of(context)
+                .extension<StackColors>()!
+                .accentColorDark
+                .withValues(alpha: 0.8),
     );
   }
 }
@@ -105,9 +108,10 @@ class DesktopServicesIcon extends ConsumerWidget {
           DesktopMenuItemId.services ==
               ref.watch(currentDesktopMenuItemProvider.state).state
           ? Theme.of(context).extension<StackColors>()!.accentColorDark
-          : Theme.of(
-              context,
-            ).extension<StackColors>()!.accentColorDark.withValues(alpha: 0.8),
+          : Theme.of(context)
+                .extension<StackColors>()!
+                .accentColorDark
+                .withValues(alpha: 0.8),
     );
   }
 }
@@ -155,9 +159,10 @@ class DesktopAddressBookIcon extends ConsumerWidget {
           DesktopMenuItemId.addressBook ==
               ref.watch(currentDesktopMenuItemProvider.state).state
           ? Theme.of(context).extension<StackColors>()!.accentColorDark
-          : Theme.of(
-              context,
-            ).extension<StackColors>()!.accentColorDark.withValues(alpha: 0.8),
+          : Theme.of(context)
+                .extension<StackColors>()!
+                .accentColorDark
+                .withValues(alpha: 0.8),
     );
   }
 }
@@ -175,9 +180,10 @@ class DesktopSettingsIcon extends ConsumerWidget {
           DesktopMenuItemId.settings ==
               ref.watch(currentDesktopMenuItemProvider.state).state
           ? Theme.of(context).extension<StackColors>()!.accentColorDark
-          : Theme.of(
-              context,
-            ).extension<StackColors>()!.accentColorDark.withValues(alpha: 0.8),
+          : Theme.of(context)
+                .extension<StackColors>()!
+                .accentColorDark
+                .withValues(alpha: 0.8),
     );
   }
 }
@@ -195,9 +201,10 @@ class DesktopSupportIcon extends ConsumerWidget {
           DesktopMenuItemId.support ==
               ref.watch(currentDesktopMenuItemProvider.state).state
           ? Theme.of(context).extension<StackColors>()!.accentColorDark
-          : Theme.of(
-              context,
-            ).extension<StackColors>()!.accentColorDark.withValues(alpha: 0.8),
+          : Theme.of(context)
+                .extension<StackColors>()!
+                .accentColorDark
+                .withValues(alpha: 0.8),
     );
   }
 }
@@ -215,9 +222,10 @@ class DesktopAboutIcon extends ConsumerWidget {
           DesktopMenuItemId.about ==
               ref.watch(currentDesktopMenuItemProvider.state).state
           ? Theme.of(context).extension<StackColors>()!.accentColorDark
-          : Theme.of(
-              context,
-            ).extension<StackColors>()!.accentColorDark.withValues(alpha: 0.8),
+          : Theme.of(context)
+                .extension<StackColors>()!
+                .accentColorDark
+                .withValues(alpha: 0.8),
     );
   }
 }
@@ -231,9 +239,10 @@ class DesktopExitIcon extends ConsumerWidget {
       Assets.svg.exitDesktop,
       width: 20,
       height: 20,
-      color: Theme.of(
-        context,
-      ).extension<StackColors>()!.accentColorDark.withValues(alpha: 0.8),
+      color: Theme.of(context)
+          .extension<StackColors>()!
+          .accentColorDark
+          .withValues(alpha: 0.8),
     );
   }
 }
@@ -328,9 +337,9 @@ class _DesktopMenuItemState<T> extends ConsumerState<DesktopMenuItem<T>>
           ? Theme.of(context)
                 .extension<StackColors>()!
                 .getDesktopMenuButtonStyleSelected(context)
-          : Theme.of(
-              context,
-            ).extension<StackColors>()!.getDesktopMenuButtonStyle(context),
+          : Theme.of(context)
+                .extension<StackColors>()!
+                .getDesktopMenuButtonStyle(context),
       onPressed: () {
         onChanged(value);
       },

@@ -1,6 +1,21 @@
 name: Test
 on: [pull_request]
 jobs:
+  linux-release-bundle:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install ELF test tools
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends binutils build-essential patchelf python3
+
+      - name: Test Linux release bundle preparation
+        run: python3 -m unittest discover -s scripts/linux/tests -p 'test_*.py' -v
+
   test:
     runs-on: ubuntu-24.04
     permissions:
@@ -18,26 +33,30 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
-      - name: Configure app
+      # -d enables the pinned Epic/MWC native-assets prebuilts for flutter test.
+      - name: Configure app (prebuilt native assets)
         run: |
           cd scripts
           echo "yes" | ./build_app.sh -v "0.0.1" -b "1" -p "linux" -a "stack_wallet" -d -s
 
+      - name: Check formatting of changed files
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE=$(git merge-base ${{ github.event.pull_request.base.sha }} HEAD)
+          else
+            BASE=${{ github.event.before }}
+          fi
+          FILES=$(git diff --name-only --diff-filter=ACM "$BASE"..HEAD -- '*.dart')
+          if [ -z "$FILES" ]; then
+            echo "No Dart files changed."
+            exit 0
+          fi
+          echo "Checking formatting of $(echo "$FILES" | wc -l) file(s):"
+          echo "$FILES"
+          dart format --output=none --set-exit-if-changed $FILES
+
       - name: Get dependencies
         run: flutter pub get
-
-      - name: Create git_versions.dart stubs
-        run: |
-          mkdir -p crypto_plugins/flutter_libepiccash/lib
-          mkdir -p crypto_plugins/flutter_libmwc/lib
-
-          cat > crypto_plugins/flutter_libepiccash/lib/git_versions.dart << 'EOF'
-          String getPluginVersion() => "stub-for-tests";
-          EOF
-
-          cat > crypto_plugins/flutter_libmwc/lib/git_versions.dart << 'EOF'
-          String getPluginVersion() => "stub-for-tests";
-          EOF
 
       - name: Decode secrets
         env:
@@ -56,6 +75,12 @@ jobs:
           const kShopInBitPartnerSecret = "";
           const kCakePayApiToken = "";
           const kExolixApiKey = "";
+          const kLetsExchangeId = "";
+          const kLetsExchangeToken = "";
+          const kCypherGoatApiKey = "";
+          const kCypherGoatAffiliate = "";
+          const kTrocadorApiKey = "";
+          const kTrocadorRefCode = "";
           EOF
           fi
 
@@ -66,23 +91,12 @@ jobs:
         run: bash prebuild.sh
         working-directory: scripts
 
-      - name: Check formatting of changed files
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            BASE=$(git merge-base ${{ github.event.pull_request.base.sha }} HEAD)
-          else
-            BASE=${{ github.event.before }}
-          fi
-          FILES=$(git diff --name-only --diff-filter=ACM "$BASE"..HEAD -- '*.dart')
-          if [ -z "$FILES" ]; then
-            echo "No Dart files changed."
-            exit 0
-          fi
-          echo "Checking formatting of $(echo "$FILES" | wc -l) file(s):"
-          echo "$FILES"
-          dart format --output=none --set-exit-if-changed $FILES
 #      - name: Analyze
 #        run: flutter analyze
+      - name: Test build scripts
+        run: dart scripts/tests/build_input_test.dart
+      - name: Test wallet creation launcher
+        run: dart scripts/tests/wallet_creation_runner_test.dart
       - name: Test
         run: |
           bash scripts/ensure_test_app_config.sh

@@ -169,6 +169,27 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                 ],
                               ),
                             ),
+                            if (model.extraId?.isNotEmpty == true)
+                              const SizedBox(height: 8),
+                            if (model.extraId?.isNotEmpty == true)
+                              RoundedWhiteContainer(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Recipient memo or tag",
+                                      style: STextStyles.itemSubtitle(context),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      model.extraId!,
+                                      style: STextStyles.itemSubtitle12(
+                                        context,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             if (supportsRefund) const SizedBox(height: 8),
                             if (supportsRefund)
                               RoundedWhiteContainer(
@@ -182,6 +203,29 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                     const SizedBox(height: 4),
                                     Text(
                                       model.refundAddress!,
+                                      style: STextStyles.itemSubtitle12(
+                                        context,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            if (supportsRefund &&
+                                model.refundExtraId?.isNotEmpty == true)
+                              const SizedBox(height: 8),
+                            if (supportsRefund &&
+                                model.refundExtraId?.isNotEmpty == true)
+                              RoundedWhiteContainer(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Refund memo or tag",
+                                      style: STextStyles.itemSubtitle(context),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      model.refundExtraId!,
                                       style: STextStyles.itemSubtitle12(
                                         context,
                                       ),
@@ -255,11 +299,12 @@ class _Step3ViewState extends ConsumerState<Step3View> {
                                                 ? model.receiveAmount
                                                 : model.sendAmount,
                                             addressTo: model.recipientAddress!,
-                                            extraId: null,
+                                            extraId: model.extraId,
                                             addressRefund: supportsRefund
                                                 ? model.refundAddress!
                                                 : "",
-                                            refundExtraId: "",
+                                            refundExtraId:
+                                                model.refundExtraId ?? "",
                                             estimate: model.estimate,
                                             reversed: model.reversed,
                                           );

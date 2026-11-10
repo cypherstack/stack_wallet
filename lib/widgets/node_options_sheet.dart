@@ -121,9 +121,9 @@ class NodeOptionsSheet extends ConsumerWidget {
                 Center(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textFieldDefaultBG,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldDefaultBG,
                       borderRadius: BorderRadius.circular(
                         Constants.size.circularBorderRadius,
                       ),
@@ -150,9 +150,9 @@ class NodeOptionsSheet extends ConsumerWidget {
                               node.id.startsWith(
                                 DefaultNodes.defaultNodeIdPrefix,
                               )
-                              ? Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textSubtitle4
+                              ? Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textSubtitle4
                               : Theme.of(context)
                                     .extension<StackColors>()!
                                     .infoItemIcons
@@ -168,12 +168,12 @@ class NodeOptionsSheet extends ConsumerWidget {
                                 node.id.startsWith(
                                   DefaultNodes.defaultNodeIdPrefix,
                                 )
-                                ? Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.accentColorDark
-                                : Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.infoItemIcons,
+                                ? Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .accentColorDark
+                                : Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .infoItemIcons,
                           ),
                         ),
                       ),
@@ -193,12 +193,12 @@ class NodeOptionsSheet extends ConsumerWidget {
                       SvgPicture.asset(
                         Assets.svg.network,
                         color: status == "Connected"
-                            ? Theme.of(
-                                context,
-                              ).extension<StackColors>()!.accentColorGreen
-                            : Theme.of(
-                                context,
-                              ).extension<StackColors>()!.buttonBackSecondary,
+                            ? Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorGreen
+                            : Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .buttonBackSecondary,
                         width: 18,
                       ),
                     ],
@@ -222,9 +222,9 @@ class NodeOptionsSheet extends ConsumerWidget {
                         child: Text(
                           "Details",
                           style: STextStyles.button(context).copyWith(
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.accentColorDark,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorDark,
                           ),
                         ),
                       ),

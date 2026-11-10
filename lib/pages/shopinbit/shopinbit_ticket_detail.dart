@@ -10,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../db/drift/shared_db/shared_database.dart';
 import '../../models/shopinbit/shopinbit_enums.dart';
+import '../../networking/tor_aware_network_image.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../providers/db/drift_provider.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
@@ -432,9 +433,8 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
         );
       }
       if (context.mounted) {
-        await Navigator.of(
-          context,
-        ).pushNamed(ShopInBitOfferView.routeName, arguments: _id);
+        await Navigator.of(context)
+            .pushNamed(ShopInBitOfferView.routeName, arguments: _id);
       }
     }
 
@@ -443,9 +443,9 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
             padding: .only(bottom: isDesktop ? 12 : 8),
             child: RoundedWhiteContainer(
               borderColor: isDesktop
-                  ? Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultBG
+                  ? Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG
                   : null,
               child: ConditionalParent(
                 condition: Util.isDesktop,
@@ -559,9 +559,9 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
                           ? STextStyles.desktopTextExtraSmall(context)
                           : STextStyles.field(context))
                       .copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textDark,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark,
                       ),
               decoration: InputDecoration(
                 hintText: "Type a message...",
@@ -585,9 +585,9 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
                 Assets.svg.send,
                 width: 24,
                 height: 24,
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.accentColorBlue,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .accentColorBlue,
               ),
             ),
         ],
@@ -600,9 +600,9 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
             padding: EdgeInsets.only(bottom: isDesktop ? 12 : 8),
             child: RoundedWhiteContainer(
               borderColor: isDesktop
-                  ? Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultBG
+                  ? Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG
                   : null,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -698,9 +698,9 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
         condition: !isDesktop,
         builder: (child) => Background(
           child: Scaffold(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -827,9 +827,14 @@ class _AttachmentChip extends StatelessWidget {
 
 /// Renders an authenticated `/attachment-proxy/` image.
 ///
-/// The signed URL future is built once in [initState] (and only rebuilt when
+/// The request future is built once in [initState] (and only rebuilt when
 /// [proxyPath] or [customerKey] actually change) so the surrounding 30s poll
-/// can't re-fire `getAttachmentUrl`/re-fetch the image on every rebuild.
+/// can't re-fire `getAttachmentRequest`/re-fetch the image on every rebuild.
+typedef _AttachmentLoad = ({
+  ApiResponse<AttachmentRequest> response,
+  String customerKey,
+});
+
 class _ProxyImage extends StatefulWidget {
   const _ProxyImage({
     required this.client,
@@ -848,18 +853,23 @@ class _ProxyImage extends StatefulWidget {
 }
 
 class _ProxyImageState extends State<_ProxyImage> {
-  late Future<ApiResponse<Uri>> _urlFuture;
+  late Future<_AttachmentLoad> _requestFuture;
 
-  Future<ApiResponse<Uri>> _buildFuture() => widget.client.getAttachmentUrl(
-    widget.proxyPath,
-    useQueryAuth: true,
-    customerKey: widget.customerKey,
-  );
+  // Header auth: a query-auth URL would put the token and customer key into
+  // logged HTTP errors. The customer key travels with the response because
+  // FutureBuilder keeps showing the previous snapshot while a new future is
+  // pending, and that snapshot must not be paired with a newer key.
+  Future<_AttachmentLoad> _buildFuture() {
+    final customerKey = widget.customerKey;
+    return widget.client
+        .getAttachmentRequest(widget.proxyPath, customerKey: customerKey)
+        .then((response) => (response: response, customerKey: customerKey));
+  }
 
   @override
   void initState() {
     super.initState();
-    _urlFuture = _buildFuture();
+    _requestFuture = _buildFuture();
   }
 
   @override
@@ -867,7 +877,7 @@ class _ProxyImageState extends State<_ProxyImage> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.proxyPath != widget.proxyPath ||
         oldWidget.customerKey != widget.customerKey) {
-      _urlFuture = _buildFuture();
+      _requestFuture = _buildFuture();
     }
   }
 
@@ -879,8 +889,8 @@ class _ProxyImageState extends State<_ProxyImage> {
         borderRadius: BorderRadius.circular(8),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxHeight: _kAttachmentMaxHeight),
-          child: FutureBuilder<ApiResponse<Uri>>(
-            future: _urlFuture,
+          child: FutureBuilder<_AttachmentLoad>(
+            future: _requestFuture,
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
                 return const SizedBox(
@@ -888,14 +898,21 @@ class _ProxyImageState extends State<_ProxyImage> {
                   child: LoadingIndicator(width: _kAttachmentLoaderWidth),
                 );
               }
-              final resp = snapshot.data!;
+              final resp = snapshot.data!.response;
               if (resp.hasError || resp.value == null) {
                 return widget.fallback();
               }
-              return Image.network(
-                resp.value!.toString(),
+              return Image(
+                image: ResizeImage.resizeIfNeeded(
+                  null,
+                  _kAttachmentDecodeHeight,
+                  TorAwareNetworkImage(
+                    resp.value!.uri.toString(),
+                    headers: resp.value!.headers,
+                    cacheScope: snapshot.data!.customerKey,
+                  ),
+                ),
                 fit: BoxFit.contain,
-                cacheHeight: _kAttachmentDecodeHeight,
                 semanticLabel: "Image attachment",
                 errorBuilder: (_, _, _) => widget.fallback(),
               );

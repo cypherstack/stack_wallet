@@ -77,9 +77,10 @@ class _ExchangeLoadingOverlayViewState
         if (_statusEst == ChangeNowLoadStatus.loading ||
             (_statusFixed == ChangeNowLoadStatus.loading && userReloaded))
           Container(
-            color: Theme.of(
-              context,
-            ).extension<StackColors>()!.overlay.withValues(alpha: 0.7),
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .overlay
+                .withValues(alpha: 0.7),
             child: const CustomLoadingOverlay(
               message: "Loading Exchange data",
               eventBus: null,
@@ -90,16 +91,16 @@ class _ExchangeLoadingOverlayViewState
             _statusEst != ChangeNowLoadStatus.loading &&
             _statusFixed != ChangeNowLoadStatus.loading)
           Container(
-            color: Theme.of(
-              context,
-            ).extension<StackColors>()!.overlay.withValues(alpha: 0.7),
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .overlay
+                .withValues(alpha: 0.7),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 StackDialog(
                   title: "Failed to fetch Exchange data",
-                  message:
-                      "Exchange requires a working internet connection. Tap OK to try fetching again.",
+                  message: "Exchange requires a working internet connection. Tap OK to try fetching again.",
                   rightButton: TextButton(
                     style: Theme.of(context)
                         .extension<StackColors>()!
@@ -107,9 +108,9 @@ class _ExchangeLoadingOverlayViewState
                     child: Text(
                       "OK",
                       style: STextStyles.button(context).copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.buttonTextSecondary,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .buttonTextSecondary,
                       ),
                     ),
                     onPressed: () {

@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 
@@ -20,9 +21,10 @@ class SendNavIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(
-          context,
-        ).extension<StackColors>()!.bottomNavIconIcon.withValues(alpha: 0.4),
+        color: Theme.of(context)
+            .extension<StackColors>()!
+            .bottomNavIconIcon
+            .withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(24),
       ),
       child: Padding(

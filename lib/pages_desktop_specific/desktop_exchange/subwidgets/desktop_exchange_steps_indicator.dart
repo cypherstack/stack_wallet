@@ -9,6 +9,7 @@
  */
 
 import 'package:flutter/material.dart';
+
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../widgets/rounded_container.dart';
@@ -20,9 +21,10 @@ class DesktopExchangeStepsIndicator extends StatelessWidget {
 
   Color getColor(BuildContext context, int step) {
     if (currentStep >= step) {
-      return Theme.of(
-        context,
-      ).extension<StackColors>()!.accentColorBlue.withValues(alpha: 0.5);
+      return Theme.of(context)
+          .extension<StackColors>()!
+          .accentColorBlue
+          .withValues(alpha: 0.5);
     } else {
       return Theme.of(context).extension<StackColors>()!.textSubtitle3;
     }
@@ -51,9 +53,9 @@ class DesktopExchangeStepsIndicator extends StatelessWidget {
                   "Confirm amount",
                   style: STextStyles.desktopTextExtraExtraSmall(context)
                       .copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorBlue,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorBlue,
                       ),
                 ),
                 secondChild: Text(
@@ -90,9 +92,9 @@ class DesktopExchangeStepsIndicator extends StatelessWidget {
                   "Enter details",
                   style: STextStyles.desktopTextExtraExtraSmall(context)
                       .copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textSubtitle3,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textSubtitle3,
                       ),
                 ),
                 secondChild: AnimatedCrossFade(
@@ -100,9 +102,9 @@ class DesktopExchangeStepsIndicator extends StatelessWidget {
                     "Enter details",
                     style: STextStyles.desktopTextExtraExtraSmall(context)
                         .copyWith(
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.accentColorBlue,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorBlue,
                         ),
                   ),
                   secondChild: Text(
@@ -144,9 +146,9 @@ class DesktopExchangeStepsIndicator extends StatelessWidget {
                   "Confirm details",
                   style: STextStyles.desktopTextExtraExtraSmall(context)
                       .copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textSubtitle3,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textSubtitle3,
                       ),
                 ),
                 secondChild: AnimatedCrossFade(
@@ -154,9 +156,9 @@ class DesktopExchangeStepsIndicator extends StatelessWidget {
                     "Confirm details",
                     style: STextStyles.desktopTextExtraExtraSmall(context)
                         .copyWith(
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.accentColorBlue,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorBlue,
                         ),
                   ),
                   secondChild: Text(
@@ -198,18 +200,18 @@ class DesktopExchangeStepsIndicator extends StatelessWidget {
                   "Complete exchange",
                   style: STextStyles.desktopTextExtraExtraSmall(context)
                       .copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textSubtitle3,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textSubtitle3,
                       ),
                 ),
                 secondChild: Text(
                   "Complete exchange",
                   style: STextStyles.desktopTextExtraExtraSmall(context)
                       .copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorBlue,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorBlue,
                       ),
                 ),
                 crossFadeState: currentStep < 4
@@ -229,9 +231,9 @@ class DesktopExchangeStepsIndicator extends StatelessWidget {
                     offset: Offset(dy, 0),
                     duration: duration,
                     child: RoundedContainer(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorBlue,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorBlue,
                       height: barHeight,
                       width: double.infinity,
                     ),

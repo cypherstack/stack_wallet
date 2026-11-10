@@ -71,9 +71,9 @@ class _NumberKeyState extends State<NumberKey> {
           Future<void>.delayed(const Duration(milliseconds: 200), () {
             if (mounted) {
               setState(() {
-                _color = Theme.of(
-                  context,
-                ).extension<StackColors>()!.numberBackDefault;
+                _color = Theme.of(context)
+                    .extension<StackColors>()!
+                    .numberBackDefault;
               });
             }
           });
@@ -135,9 +135,9 @@ class _BackspaceKeyState extends State<BackspaceKey> {
           Future<void>.delayed(const Duration(milliseconds: 200), () {
             if (mounted) {
               setState(() {
-                _color = Theme.of(
-                  context,
-                ).extension<StackColors>()!.numpadBackDefault;
+                _color = Theme.of(context)
+                    .extension<StackColors>()!
+                    .numpadBackDefault;
               });
             }
           });
@@ -150,9 +150,9 @@ class _BackspaceKeyState extends State<BackspaceKey> {
               Assets.svg.delete,
               width: 20,
               height: 20,
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.numpadTextDefault,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .numpadTextDefault,
             ),
           ),
         ),
@@ -188,9 +188,9 @@ class SubmitKey extends StatelessWidget {
             Assets.svg.arrowRight,
             width: 20,
             height: 20,
-            color: Theme.of(
-              context,
-            ).extension<StackColors>()!.numpadTextDefault,
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .numpadTextDefault,
           ),
         ),
       ),
@@ -237,9 +237,9 @@ class CustomKey extends StatelessWidget {
                     iconAssetName!,
                     width: 20,
                     height: 20,
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.numpadTextDefault,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .numpadTextDefault,
                   ),
           ),
         ),

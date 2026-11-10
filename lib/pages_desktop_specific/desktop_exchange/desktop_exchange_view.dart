@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../pages/exchange_view/exchange_form.dart';
 import 'desktop_all_trades_view.dart';
 import 'subwidgets/desktop_trade_history.dart';
@@ -86,9 +87,10 @@ class _DesktopExchangeViewState extends ConsumerState<DesktopExchangeView> {
           children: [
             child,
             Material(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.overlay.withValues(alpha: 0.6),
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .overlay
+                  .withValues(alpha: 0.6),
               child: const CustomLoadingOverlay(
                 message: "Updating exchange data",
                 subMessage: "This could take a few minutes",
@@ -132,9 +134,8 @@ class _DesktopExchangeViewState extends ConsumerState<DesktopExchangeView> {
                         CustomTextButton(
                           text: "See all",
                           onTap: () {
-                            Navigator.of(
-                              context,
-                            ).pushNamed(DesktopAllTradesView.routeName);
+                            Navigator.of(context)
+                                .pushNamed(DesktopAllTradesView.routeName);
                           },
                         ),
                       ],

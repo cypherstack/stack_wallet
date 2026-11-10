@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../models/paynym/paynym_account_lite.dart';
 import '../dialogs/paynym_details_popup.dart';
 import 'paynym_bot.dart';
@@ -93,13 +94,12 @@ class _PaynymCardButtonState extends ConsumerState<PaynymCardButton> {
                       Text(
                         widget.accountLite.nymName,
                         style: isDesktop
-                            ? STextStyles.desktopTextExtraExtraSmall(
-                                context,
-                              ).copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textFieldActiveText,
-                              )
+                            ? STextStyles.desktopTextExtraExtraSmall(context)
+                                  .copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textFieldActiveText,
+                                  )
                             : STextStyles.w500_14(context),
                       ),
                       const SizedBox(height: 2),
@@ -108,9 +108,9 @@ class _PaynymCardButtonState extends ConsumerState<PaynymCardButton> {
                         style: isDesktop
                             ? STextStyles.desktopTextExtraExtraSmall(context)
                             : STextStyles.w500_14(context).copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textSubtitle1,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textSubtitle1,
                               ),
                       ),
                     ],

@@ -50,12 +50,13 @@ Future<List<DateTime?>?> showSWDatePicker(
       calendarType: range ? .range : null,
       buttonPadding: const EdgeInsets.only(right: 16),
       centerAlignModePicker: true,
-      selectedDayHighlightColor: Theme.of(
-        context,
-      ).extension<StackColors>()!.accentColorDark,
-      daySplashColor: Theme.of(
-        context,
-      ).extension<StackColors>()!.accentColorDark.withValues(alpha: 0.6),
+      selectedDayHighlightColor: Theme.of(context)
+          .extension<StackColors>()!
+          .accentColorDark,
+      daySplashColor: Theme.of(context)
+          .extension<StackColors>()!
+          .accentColorDark
+          .withValues(alpha: 0.6),
     ),
   );
 
@@ -183,16 +184,16 @@ class StackDateRangePicker extends StatelessWidget {
               },
               child: Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldDefaultBG,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultBG,
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),
                   border: Border.all(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultBG,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
                     width: 1,
                   ),
                 ),
@@ -207,9 +208,9 @@ class StackDateRangePicker extends StatelessWidget {
                         Assets.svg.calendar,
                         height: 20,
                         width: 20,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textSubtitle2,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textSubtitle2,
                       ),
                       const SizedBox(width: 10),
                       Expanded(
@@ -217,12 +218,12 @@ class StackDateRangePicker extends StatelessWidget {
                           fromDateString.isEmpty ? "From..." : fromDateString,
                           style: STextStyles.fieldLabel(context).copyWith(
                             color: fromDateString.isEmpty
-                                ? Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.textSubtitle2
-                                : Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.accentColorDark,
+                                ? Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textSubtitle2
+                                : Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .accentColorDark,
                           ),
                         ),
                       ),
@@ -278,16 +279,16 @@ class StackDateRangePicker extends StatelessWidget {
               },
               child: Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldDefaultBG,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultBG,
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),
                   border: Border.all(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultBG,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
                     width: 1,
                   ),
                 ),
@@ -302,9 +303,9 @@ class StackDateRangePicker extends StatelessWidget {
                         Assets.svg.calendar,
                         height: 20,
                         width: 20,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textSubtitle2,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textSubtitle2,
                       ),
                       const SizedBox(width: 10),
                       Expanded(
@@ -312,12 +313,12 @@ class StackDateRangePicker extends StatelessWidget {
                           toDateString.isEmpty ? "To..." : toDateString,
                           style: STextStyles.fieldLabel(context).copyWith(
                             color: toDateString.isEmpty
-                                ? Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.textSubtitle2
-                                : Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.accentColorDark,
+                                ? Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textSubtitle2
+                                : Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .accentColorDark,
                           ),
                         ),
                       ),

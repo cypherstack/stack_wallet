@@ -225,9 +225,10 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
             return WillPopScope(
               onWillPop: () async => shouldPop,
               child: Container(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.overlay.withValues(alpha: 0.5),
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .overlay
+                    .withValues(alpha: 0.5),
                 child: const CustomLoadingOverlay(
                   message: "Generating address",
                   eventBus: null,
@@ -284,9 +285,8 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
       shouldPop = true;
 
       if (mounted) {
-        Navigator.of(
-          context,
-        ).popUntil(ModalRoute.withName(ReceiveView.routeName));
+        Navigator.of(context)
+            .popUntil(ModalRoute.withName(ReceiveView.routeName));
 
         setState(() {
           _addressMap[_walletAddressTypes[_currentIndex]] =
@@ -307,9 +307,10 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
             return WillPopScope(
               onWillPop: () async => shouldPop,
               child: Container(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.overlay.withValues(alpha: 0.5),
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .overlay
+                    .withValues(alpha: 0.5),
                 child: const CustomLoadingOverlay(
                   message: "Generating address",
                   eventBus: null,
@@ -552,17 +553,16 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
               child: AspectRatio(
                 aspectRatio: 1,
                 child: AppBarIconButton(
-                  semanticsLabel:
-                      "Address List Pop-up Button. Opens A Pop-up For Address List Button.",
+                  semanticsLabel: "Address List Pop-up Button. Opens A Pop-up For Address List Button.",
                   key: const Key("walletNetworkSettingsAddNewNodeViewButton"),
                   size: 36,
                   shadows: const [],
                   color: Theme.of(context).extension<StackColors>()!.background,
                   icon: SvgPicture.asset(
                     Assets.svg.verticalEllipsis,
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.accentColorDark,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
                     width: 20,
                     height: 20,
                   ),
@@ -579,9 +579,9 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                               right: 10,
                               child: Container(
                                 decoration: BoxDecoration(
-                                  color: Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.popupBG,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .popupBG,
                                   borderRadius: BorderRadius.circular(
                                     Constants.size.circularBorderRadius,
                                   ),
@@ -650,9 +650,9 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                           Text(
                             "Address type",
                             style: STextStyles.w500_14(context).copyWith(
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.infoItemLabel,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .infoItemLabel,
                             ),
                           ),
                           const SizedBox(height: 10),

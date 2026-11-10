@@ -46,9 +46,10 @@ Future<T?> showLoading<T>({
       builder: (_) => WillPopScope(
         onWillPop: () async => false,
         child: Container(
-          color: Theme.of(context).extension<StackColors>()!.overlay.withValues(
-            alpha: opaqueBG ? 1.0 : 0.6,
-          ),
+          color: Theme.of(context)
+              .extension<StackColors>()!
+              .overlay
+              .withValues(alpha: opaqueBG ? 1.0 : 0.6),
           child: CustomLoadingOverlay(
             message: message,
             subMessage: subMessage,

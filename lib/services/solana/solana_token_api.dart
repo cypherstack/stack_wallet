@@ -144,13 +144,11 @@ class SolanaTokenAPI {
     try {
       _checkClient();
 
-      const splTokenProgramId = 'TokenkegQfeZyiNwAJsyFbPVwwQQfg5bgUiqhStM5QA';
-
       final result = await _rpcClient!.getTokenAccountsByOwner(
         ownerAddress,
         mint != null
             ? TokenAccountsFilter.byMint(mint)
-            : TokenAccountsFilter.byProgramId(splTokenProgramId),
+            : TokenAccountsFilter.byProgramId(TokenProgram.programId),
         encoding: Encoding.jsonParsed,
       );
 
@@ -274,7 +272,7 @@ class SolanaTokenAPI {
       _checkClient();
 
       // Return placeholder data.
-      // 
+      //
       // TODO: Implement actual RPC call using proper client methods.
       return SolanaTokenApiResponse<TokenAccountInfo>(
         value: TokenAccountInfo(
@@ -332,9 +330,7 @@ class SolanaTokenAPI {
   }
 
   Future<SolanaTokenApiResponse<Map<String, dynamic>?>>
-      fetchTokenMetadataByMint(
-    String mintAddress,
-  ) async {
+  fetchTokenMetadataByMint(String mintAddress) async {
     try {
       _checkClient();
 
@@ -351,14 +347,10 @@ class SolanaTokenAPI {
       // Until then, return null to allow users to enter custom token details.
 
       // Metadata PDA derivation not yet implemented
-      return SolanaTokenApiResponse<Map<String, dynamic>?>(
-        value: null,
-      );
+      return SolanaTokenApiResponse<Map<String, dynamic>?>(value: null);
     } on Exception {
       // On error, return null to allow user to manually enter token details
-      return SolanaTokenApiResponse<Map<String, dynamic>?>(
-        value: null,
-      );
+      return SolanaTokenApiResponse<Map<String, dynamic>?>(value: null);
     }
   }
 
@@ -408,16 +400,10 @@ class SolanaTokenAPI {
 
       final owner = response.value!.owner;
 
-      // Rough check which program owns this mint.
-      //
-      // For now all we need to know ius if it's SPL or newer.
-      // TODO [prio=low]: Fix via program metadata parsing or similar.
-      if (owner == 'TokenkegQfeZyiNwAJsyFbPVwwQQfg5bgUiqhStM5QA') {
+      if (owner == TokenProgram.programId) {
         return 'spl';
-      } else {
-        if (owner.startsWith('Token')) {
-          return 'token2022';
-        }
+      } else if (owner == Token2022Program.programId) {
+        return 'token2022';
       }
 
       return null;

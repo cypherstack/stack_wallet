@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../frost_route_generator.dart';
 import '../themes/stack_colors.dart';
 import '../utilities/text_styles.dart';
@@ -104,9 +105,9 @@ class _FrostScaffoldState extends ConsumerState<FrostStepScaffold> {
             condition: !Util.isDesktop,
             builder: (child) => Background(
               child: Scaffold(
-                backgroundColor: Theme.of(
-                  context,
-                ).extension<StackColors>()!.background,
+                backgroundColor: Theme.of(context)
+                    .extension<StackColors>()!
+                    .background,
                 body: SafeArea(child: child),
               ),
             ),
@@ -133,9 +134,8 @@ class _FrostScaffoldState extends ConsumerState<FrostStepScaffold> {
                           child: Text(
                             _routes[ref.watch(pFrostCreateCurrentStep) - 1]
                                 .title,
-                            style: STextStyles.navBarTitle(
-                              context,
-                            ).copyWith(fontSize: _titleTextSize),
+                            style: STextStyles.navBarTitle(context)
+                                .copyWith(fontSize: _titleTextSize),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -152,9 +152,9 @@ class _FrostScaffoldState extends ConsumerState<FrostStepScaffold> {
                   builder: (subContext, constraints) => ProgressBar(
                     width: constraints.maxWidth,
                     height: 3,
-                    fillColor: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.customTextButtonEnabledText,
+                    fillColor: Theme.of(context)
+                        .extension<StackColors>()!
+                        .customTextButtonEnabledText,
                     backgroundColor: Theme.of(context)
                         .extension<StackColors>()!
                         .customTextButtonEnabledText

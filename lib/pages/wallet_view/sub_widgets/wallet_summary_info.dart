@@ -166,18 +166,18 @@ class WalletSummaryInfo extends ConsumerWidget {
                       Text(
                         title,
                         style: STextStyles.subtitle500(context).copyWith(
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.textFavoriteCard,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textFavoriteCard,
                         ),
                       ),
                       if (!toggleBalance) ...[
                         const SizedBox(width: 4),
                         SvgPicture.asset(
                           Assets.svg.chevronDown,
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.textFavoriteCard,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textFavoriteCard,
                           width: 8,
                           height: 4,
                         ),
@@ -207,9 +207,9 @@ class WalletSummaryInfo extends ConsumerWidget {
                     ref.watch(pAmountFormatter(coin)).format(balanceToShow),
                     style: STextStyles.pageTitleH1(context).copyWith(
                       fontSize: 24,
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textFavoriteCard,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFavoriteCard,
                     ),
                   ),
                 ),
@@ -217,9 +217,9 @@ class WalletSummaryInfo extends ConsumerWidget {
                   Text(
                     "${(price.value * balanceToShow.decimal).toAmount(fractionDigits: 2).fiatString(locale: locale)} $baseCurrency",
                     style: STextStyles.subtitle500(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textFavoriteCard,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFavoriteCard,
                     ),
                   ),
               ],

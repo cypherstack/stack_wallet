@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/text_styles.dart';
@@ -115,13 +116,13 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
                     ),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.bottomNavBack,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .bottomNavBack,
                         boxShadow: [
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.standardBoxShadow,
+                          Theme.of(context)
+                              .extension<StackColors>()!
+                              .standardBoxShadow,
                         ],
                         borderRadius: BorderRadius.circular(1000),
                       ),

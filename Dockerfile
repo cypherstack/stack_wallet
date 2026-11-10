@@ -11,11 +11,10 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
       ca-certificates curl file git gnupg python3 sudo unzip xz-utils \
-      automake build-essential cmake debhelper libtool meson ninja-build pkg-config rsync \
+      automake build-essential cmake debhelper libtool meson ninja-build patchelf pkg-config rsync \
       clang libclang-dev llvm \
       libgcrypt20-dev libgirepository1.0-dev libgit2-dev libglib2.0-dev libgtk-3-dev \
       libjsoncpp-dev liblzma-dev libncurses5-dev libncursesw5-dev \
-      libopencv-dev \
       libsecret-1-dev libssl-dev libtss2-dev \
       ocl-icd-opencl-dev opencl-headers valac zlib1g-dev \
       g++-aarch64-linux-gnu gcc-aarch64-linux-gnu \
@@ -32,9 +31,9 @@ ENV RUSTUP_HOME=/usr/local/rustup \
     PATH=/usr/local/cargo/bin:$PATH
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-      | sh -s -- -y --default-toolchain 1.89.0 --profile minimal --no-modify-path \
+      | sh -s -- -y --default-toolchain 1.99.1 --profile minimal --no-modify-path \
  && rustup install 1.85.1 1.71.0 stable --profile minimal \
- && rustup target add x86_64-unknown-linux-gnu --toolchain 1.89.0 \
+ && rustup target add x86_64-unknown-linux-gnu --toolchain 1.99.1 \
  && cargo install cargo-ndk \
  && chmod -R a+rwX "$CARGO_HOME" "$RUSTUP_HOME"
 
@@ -63,11 +62,14 @@ RUN mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools" \
  && sdkmanager \
       "platform-tools" \
       "build-tools;35.0.0" \
+      "build-tools;36.0.0" \
+      "build-tools;37.0.0" \
       "platforms;android-32" \
       "platforms;android-33" \
       "platforms;android-34" \
       "platforms;android-35" \
       "platforms;android-36" \
+      "platforms;android-37.0" \
       "ndk;28.0.13004108" \
       "ndk;28.2.13676358" \
       "cmake;3.22.1" \
@@ -83,7 +85,7 @@ RUN curl -fsSL https://go.dev/dl/go1.24.13.linux-amd64.tar.gz -o /tmp/go.tar.gz 
 ENV FLUTTER_HOME=/opt/flutter \
     PATH=/opt/flutter/bin:/opt/flutter/bin/cache/dart-sdk/bin:$PATH
 
-RUN git clone --depth 1 --branch 3.44.8 https://github.com/flutter/flutter.git "$FLUTTER_HOME" \
+RUN git clone --depth 1 --branch 3.47.2 https://github.com/flutter/flutter.git "$FLUTTER_HOME" \
  && git config --global --add safe.directory '*' \
  && flutter config --no-analytics \
  && flutter precache --linux --android \
@@ -116,10 +118,10 @@ ENV RUSTUP_HOME=/usr/local/rustup \
     PATH=/usr/local/cargo/bin:$PATH
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-      | sh -s -- -y --default-toolchain 1.89.0 --profile minimal --no-modify-path \
+      | sh -s -- -y --default-toolchain 1.99.1 --profile minimal --no-modify-path \
  && rustup target add \
       aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android \
-      --toolchain 1.89.0 \
+      --toolchain 1.99.1 \
  && cargo install cargo-ndk \
  && chmod -R a+rwX "$CARGO_HOME" "$RUSTUP_HOME"
 
@@ -148,11 +150,14 @@ RUN mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools" \
  && sdkmanager \
       "platform-tools" \
       "build-tools;35.0.0" \
+      "build-tools;36.0.0" \
+      "build-tools;37.0.0" \
       "platforms;android-32" \
       "platforms;android-33" \
       "platforms;android-34" \
       "platforms;android-35" \
       "platforms;android-36" \
+      "platforms;android-37.0" \
       "ndk;28.0.13004108" \
       "ndk;28.2.13676358" \
       "cmake;3.22.1" \
@@ -168,7 +173,7 @@ RUN curl -fsSL https://go.dev/dl/go1.24.13.linux-amd64.tar.gz -o /tmp/go.tar.gz 
 ENV FLUTTER_HOME=/opt/flutter \
     PATH=/opt/flutter/bin:/opt/flutter/bin/cache/dart-sdk/bin:$PATH
 
-RUN git clone --depth 1 --branch 3.44.8 https://github.com/flutter/flutter.git "$FLUTTER_HOME" \
+RUN git clone --depth 1 --branch 3.47.2 https://github.com/flutter/flutter.git "$FLUTTER_HOME" \
  && git config --global --add safe.directory '*' \
  && flutter config --no-analytics \
  && flutter precache --android \
@@ -179,7 +184,7 @@ RUN git config --system --add safe.directory '*'
 RUN flutter --version && rustc --version && cargo --version && go version
 
 
-# Minimal image for flutter test (no Rust, no Android SDK, no cross-compilers)
+# Image for flutter test (no Android SDK or cross-compilers)
 FROM ubuntu:24.04 AS test
 
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -197,10 +202,26 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       libjsoncpp-dev liblzma-dev libsecret-1-dev libssl-dev \
  && rm -rf /var/lib/apt/lists/*
 
+# Epic/MWC use prebuilts; frostdart still compiles through its native-assets hook.
+ENV RUSTUP_HOME=/usr/local/rustup \
+    CARGO_HOME=/usr/local/cargo \
+    PATH=/usr/local/cargo/bin:$PATH
+
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+      | sh -s -- -y --default-toolchain 1.99.1 --profile minimal --no-modify-path \
+ && chmod -R a+rwX "$CARGO_HOME" "$RUSTUP_HOME"
+
+ENV PATH=/usr/local/go/bin:$PATH
+
+RUN curl -fsSL https://go.dev/dl/go1.24.13.linux-amd64.tar.gz -o /tmp/go.tar.gz \
+ && echo "1fc94b57134d51669c72173ad5d49fd62afb0f1db9bf3f798fd98ee423f8d730  /tmp/go.tar.gz" | sha256sum -c \
+ && tar -C /usr/local -xzf /tmp/go.tar.gz \
+ && rm /tmp/go.tar.gz
+
 ENV FLUTTER_HOME=/opt/flutter \
     PATH=/opt/flutter/bin:/opt/flutter/bin/cache/dart-sdk/bin:$PATH
 
-RUN git clone --depth 1 --branch 3.44.8 https://github.com/flutter/flutter.git "$FLUTTER_HOME" \
+RUN git clone --depth 1 --branch 3.47.2 https://github.com/flutter/flutter.git "$FLUTTER_HOME" \
  && git config --global --add safe.directory '*' \
  && flutter config --no-analytics \
  && flutter precache --linux \
@@ -208,4 +229,4 @@ RUN git clone --depth 1 --branch 3.44.8 https://github.com/flutter/flutter.git "
 
 RUN git config --system --add safe.directory '*'
 
-RUN flutter --version
+RUN flutter --version && go version

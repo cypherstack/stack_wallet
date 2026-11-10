@@ -11,7 +11,7 @@ extension CLTransactionExt on Transaction {
 
   int vSize() => (weight() / 4).ceil();
 
-  int _byteLength(final bool allowWitness) {
+  int _byteLength(bool allowWitness) {
     final hasWitness = allowWitness && isWitness;
     return (hasWitness ? 10 : 8) +
         _encodingLength(inputs.length) +
@@ -37,17 +37,14 @@ extension CLTransactionExt on Transaction {
   int _vectorSize(List<Uint8List> someVector) {
     final length = someVector.length;
     return _encodingLength(length) +
-        someVector.fold(
-          0,
-          (sum, witness) => sum + _varSliceSize(witness),
-        );
+        someVector.fold(0, (sum, witness) => sum + _varSliceSize(witness));
   }
 
   int _encodingLength(int number) => number < 0xfd
       ? 1
       : number <= 0xffff
-          ? 3
-          : number <= 0xffffffff
-              ? 5
-              : 9;
+      ? 3
+      : number <= 0xffffffff
+      ? 5
+      : 9;
 }

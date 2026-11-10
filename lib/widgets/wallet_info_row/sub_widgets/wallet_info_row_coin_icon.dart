@@ -16,6 +16,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:isar_community/isar.dart';
 
 import '../../../models/isar/exchange_cache/currency.dart';
+import '../../../networking/tor_aware_network_image.dart';
 import '../../../services/exchange/change_now/change_now_exchange.dart';
 import '../../../services/exchange/exchange_data_loading_service.dart';
 import '../../../themes/coin_icon_provider.dart';
@@ -84,7 +85,11 @@ class _WalletInfoCoinIconState extends ConsumerState<WalletInfoCoinIcon> {
       child: Padding(
         padding: EdgeInsets.all(widget.size / 5),
         child: imageUrl != null && imageUrl!.isNotEmpty
-            ? SvgPicture.network(imageUrl!, width: 20, height: 20)
+            ? SvgPicture(
+                TorAwareSvgNetworkLoader(imageUrl!),
+                width: 20,
+                height: 20,
+              )
             : SvgPicture.file(
                 File(ref.watch(coinIconProvider(widget.coin))),
                 width: 20,

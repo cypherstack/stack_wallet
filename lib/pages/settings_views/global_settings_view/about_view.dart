@@ -58,255 +58,127 @@ class AboutView extends ConsumerWidget {
                         children: [
                           FutureBuilder(
                             future: PackageInfo.fromPlatform(),
-                            builder: (
-                              context,
-                              AsyncSnapshot<PackageInfo> snapshot,
-                            ) {
-                              String version = "";
-                              String signature = "";
-                              String appName = "";
-                              String build = "";
+                            builder:
+                                (context, AsyncSnapshot<PackageInfo> snapshot) {
+                                  String version = "";
+                                  String signature = "";
+                                  String appName = "";
+                                  String build = "";
 
-                              if (snapshot.connectionState ==
-                                      ConnectionState.done &&
-                                  snapshot.hasData) {
-                                version = snapshot.data!.version;
-                                build = snapshot.data!.buildNumber;
-                                signature = snapshot.data!.buildSignature;
-                                appName = snapshot.data!.appName;
-                              }
+                                  if (snapshot.connectionState ==
+                                          ConnectionState.done &&
+                                      snapshot.hasData) {
+                                    version = snapshot.data!.version;
+                                    build = snapshot.data!.buildNumber;
+                                    signature = snapshot.data!.buildSignature;
+                                    appName = snapshot.data!.appName;
+                                  }
 
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Center(
-                                    child: Text(
-                                      appName,
-                                      style: STextStyles.pageTitleH2(context),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 24),
-                                  RoundedWhiteContainer(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
-                                      children: [
-                                        Text(
-                                          "Version",
-                                          style: STextStyles.titleBold12(
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      Center(
+                                        child: Text(
+                                          appName,
+                                          style: STextStyles.pageTitleH2(
                                             context,
                                           ),
                                         ),
-                                        const SizedBox(height: 4),
-                                        SelectableText(
-                                          version,
-                                          style: STextStyles.itemSubtitle(
-                                            context,
-                                          ),
+                                      ),
+                                      const SizedBox(height: 24),
+                                      RoundedWhiteContainer(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.stretch,
+                                          children: [
+                                            Text(
+                                              "Version",
+                                              style: STextStyles.titleBold12(
+                                                context,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            SelectableText(
+                                              version,
+                                              style: STextStyles.itemSubtitle(
+                                                context,
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  RoundedWhiteContainer(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
-                                      children: [
-                                        Text(
-                                          "Build number",
-                                          style: STextStyles.titleBold12(
-                                            context,
-                                          ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      RoundedWhiteContainer(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.stretch,
+                                          children: [
+                                            Text(
+                                              "Build number",
+                                              style: STextStyles.titleBold12(
+                                                context,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            SelectableText(
+                                              build,
+                                              style: STextStyles.itemSubtitle(
+                                                context,
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                        const SizedBox(height: 4),
-                                        SelectableText(
-                                          build,
-                                          style: STextStyles.itemSubtitle(
-                                            context,
-                                          ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      RoundedWhiteContainer(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.stretch,
+                                          children: [
+                                            Text(
+                                              "Build commit",
+                                              style: STextStyles.titleBold12(
+                                                context,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            SelectableText(
+                                              GitStatus.appCommitHash,
+                                              style: STextStyles.itemSubtitle(
+                                                context,
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  RoundedWhiteContainer(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
-                                      children: [
-                                        Text(
-                                          "Build commit",
-                                          style: STextStyles.titleBold12(
-                                            context,
-                                          ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      RoundedWhiteContainer(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.stretch,
+                                          children: [
+                                            Text(
+                                              "Build signature",
+                                              style: STextStyles.titleBold12(
+                                                context,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            SelectableText(
+                                              signature,
+                                              style: STextStyles.itemSubtitle(
+                                                context,
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                        const SizedBox(height: 4),
-                                        SelectableText(
-                                          GitStatus.appCommitHash,
-                                          style: STextStyles.itemSubtitle(
-                                            context,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  RoundedWhiteContainer(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
-                                      children: [
-                                        Text(
-                                          "Build signature",
-                                          style: STextStyles.titleBold12(
-                                            context,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        SelectableText(
-                                          signature,
-                                          style: STextStyles.itemSubtitle(
-                                            context,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              );
-                            },
+                                      ),
+                                    ],
+                                  );
+                                },
                           ),
-                          if (AppConfig.coins.whereType<Epiccash>().isNotEmpty)
-                            const SizedBox(height: 12),
-                          if (AppConfig.coins.whereType<Epiccash>().isNotEmpty)
-                            FutureBuilder(
-                              future: GitStatus.getEpicCommitStatus(),
-                              builder: (
-                                context,
-                                AsyncSnapshot<CommitStatus> snapshot,
-                              ) {
-                                CommitStatus stateOfCommit =
-                                    CommitStatus.notLoaded;
-
-                                if (snapshot.connectionState ==
-                                        ConnectionState.done &&
-                                    snapshot.hasData) {
-                                  stateOfCommit = snapshot.data!;
-                                }
-
-                                return RoundedWhiteContainer(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    children: [
-                                      Text(
-                                        "Epic Cash Build Commit",
-                                        style: STextStyles.titleBold12(context),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      SelectableText(
-                                        GitStatus.epicCashCommit,
-                                        style: GitStatus.styleForStatus(
-                                          stateOfCommit,
-                                          context,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
                           const SizedBox(height: 12),
-                          if (AppConfig.coins
-                              .whereType<Mimblewimblecoin>()
-                              .isNotEmpty)
-                            const SizedBox(height: 12),
-                          if (AppConfig.coins
-                              .whereType<Mimblewimblecoin>()
-                              .isNotEmpty)
-                            FutureBuilder(
-                              future:
-                                  GitStatus.getMimblewimblecoinCommitStatus(),
-                              builder: (
-                                context,
-                                AsyncSnapshot<CommitStatus> snapshot,
-                              ) {
-                                CommitStatus stateOfCommit =
-                                    CommitStatus.notLoaded;
-
-                                if (snapshot.connectionState ==
-                                        ConnectionState.done &&
-                                    snapshot.hasData) {
-                                  stateOfCommit = snapshot.data!;
-                                }
-
-                                return RoundedWhiteContainer(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    children: [
-                                      Text(
-                                        "Mimblewimblecoin Build Commit",
-                                        style: STextStyles.titleBold12(context),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      SelectableText(
-                                        GitStatus.mimblewimblecoinCommit,
-                                        style: GitStatus.styleForStatus(
-                                          stateOfCommit,
-                                          context,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
-                          if (AppConfig.coins.whereType<Monero>().isNotEmpty)
-                            const SizedBox(height: 12),
-                          // if (AppConfig.coins.whereType<Monero>().isNotEmpty)
-                          //   FutureBuilder(
-                          //     future: GitStatus.getMoneroCommitStatus(),
-                          //     builder: (
-                          //       context,
-                          //       AsyncSnapshot<CommitStatus> snapshot,
-                          //     ) {
-                          //       CommitStatus stateOfCommit =
-                          //           CommitStatus.notLoaded;
-                          //
-                          //       if (snapshot.connectionState ==
-                          //               ConnectionState.done &&
-                          //           snapshot.hasData) {
-                          //         stateOfCommit = snapshot.data!;
-                          //       }
-                          //       return RoundedWhiteContainer(
-                          //         child: Column(
-                          //           crossAxisAlignment:
-                          //               CrossAxisAlignment.stretch,
-                          //           children: [
-                          //             Text(
-                          //               "Monero Build Commit",
-                          //               style: STextStyles.titleBold12(context),
-                          //             ),
-                          //             const SizedBox(
-                          //               height: 4,
-                          //             ),
-                          //             SelectableText(
-                          //               GitStatus.moneroCommit,
-                          //               style: GitStatus.styleForStatus(
-                          //                 stateOfCommit,
-                          //                 context,
-                          //               ),
-                          //             ),
-                          //           ],
-                          //         ),
-                          //       );
-                          //     },
-                          //   ),
-                          // const SizedBox(
-                          //   height: 12,
-                          // ),
                           RoundedWhiteContainer(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -390,33 +262,29 @@ class AboutView extends ConsumerWidget {
                                 TextSpan(
                                   text: "Terms of service",
                                   style: STextStyles.richLink(context),
-                                  recognizer:
-                                      TapGestureRecognizer()
-                                        ..onTap = () {
-                                          launchUrl(
-                                            Uri.parse(
-                                              "https://stackwallet.com/terms-of-service.html",
-                                            ),
-                                            mode:
-                                                LaunchMode.externalApplication,
-                                          );
-                                        },
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () {
+                                      launchUrl(
+                                        Uri.parse(
+                                          "https://stackwallet.com/terms-of-service.html",
+                                        ),
+                                        mode: LaunchMode.externalApplication,
+                                      );
+                                    },
                                 ),
                                 const TextSpan(text: " and "),
                                 TextSpan(
                                   text: "Privacy policy",
                                   style: STextStyles.richLink(context),
-                                  recognizer:
-                                      TapGestureRecognizer()
-                                        ..onTap = () {
-                                          launchUrl(
-                                            Uri.parse(
-                                              "https://stackwallet.com/privacy-policy.html",
-                                            ),
-                                            mode:
-                                                LaunchMode.externalApplication,
-                                          );
-                                        },
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () {
+                                      launchUrl(
+                                        Uri.parse(
+                                          "https://stackwallet.com/privacy-policy.html",
+                                        ),
+                                        mode: LaunchMode.externalApplication,
+                                      );
+                                    },
                                 ),
                               ],
                             ),

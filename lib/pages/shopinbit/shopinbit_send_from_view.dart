@@ -115,9 +115,9 @@ class _ShopInBitSendFromViewState extends ConsumerState<ShopInBitSendFromView> {
       builder: (child) {
         return Background(
           child: Scaffold(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () {
@@ -270,9 +270,9 @@ class _ShopInBitSendFromCardState extends ConsumerState<ShopInBitSendFromCard> {
                 child: Text(
                   "Ok",
                   style: STextStyles.button(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.buttonTextSecondary,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .buttonTextSecondary,
                   ),
                 ),
                 onPressed: () => Navigator.of(context).pop(),
@@ -413,9 +413,9 @@ class _ShopInBitSendFromCardState extends ConsumerState<ShopInBitSendFromCard> {
                 child: Text(
                   "Ok",
                   style: STextStyles.button(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.buttonTextSecondary,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .buttonTextSecondary,
                   ),
                 ),
                 onPressed: () {
