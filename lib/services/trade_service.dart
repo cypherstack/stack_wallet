@@ -9,11 +9,14 @@
  */
 
 import 'package:flutter/cupertino.dart';
+import 'package:mutex/mutex.dart';
 
 import '../db/hive/db.dart';
 import '../models/exchange/response_objects/trade.dart';
 
 class TradesService extends ChangeNotifier {
+  static final notificationUpdateLock = Mutex();
+
   List<Trade> get trades {
     final list = DB.instance.values<Trade>(boxName: DB.boxNameTradesV2);
     list.sort(
@@ -75,11 +78,11 @@ class TradesService extends ChangeNotifier {
   Future<void> deleteByUuid({
     required String uuid,
     required bool shouldNotifyListeners,
-  }) async {
+  }) => notificationUpdateLock.protect(() async {
     await DB.instance.delete<Trade>(boxName: DB.boxNameTradesV2, key: uuid);
 
     if (shouldNotifyListeners) {
       notifyListeners();
     }
-  }
+  });
 }

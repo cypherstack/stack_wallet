@@ -4,11 +4,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
+import 'package:stackwallet/models/trade_wallet_lookup.dart';
 import 'package:stackwallet/pages/exchange_view/trade_details_view.dart';
 import 'package:stackwallet/providers/exchange/trade_note_service_provider.dart';
+import 'package:stackwallet/providers/exchange/trade_sent_from_stack_lookup_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/trades_service_provider.dart';
 import 'package:stackwallet/route_generator.dart';
+import 'package:stackwallet/services/trade_sent_from_stack_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -63,6 +66,27 @@ class _FakeAssets implements IThemeAssets {
   String? get background => null;
 }
 
+class _FakeLookups extends ChangeNotifier implements TradeSentFromStackService {
+  _FakeLookups(this.all);
+
+  @override
+  final List<TradeWalletLookup> all;
+
+  @override
+  Future<void> delete({required TradeWalletLookup tradeWalletLookup}) async =>
+      all.remove(tradeWalletLookup);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+TradeWalletLookup _lookup(String tradeId) => TradeWalletLookup(
+  uuid: "lookup-$tradeId",
+  txid: "txid-$tradeId",
+  tradeId: tradeId,
+  walletIds: const ["walletId"],
+);
+
 Trade _trade() => Trade(
   uuid: "uuid",
   tradeId: "tradeId",
@@ -92,16 +116,20 @@ void main() {
   late MockPrefs prefs;
   late MockTradesService trades;
   late MockTradeNotesService notes;
+  late _FakeLookups lookups;
 
   setUp(() {
     prefs = MockPrefs();
     trades = MockTradesService();
     notes = MockTradeNotesService();
+    lookups = _FakeLookups([_lookup("tradeId"), _lookup("otherTradeId")]);
     when(prefs.externalCalls).thenAnswer((_) => false);
     when(notes.getNote(tradeId: anyNamed("tradeId"))).thenAnswer((_) => "");
+    when(notes.delete(tradeId: anyNamed("tradeId"))).thenAnswer((_) async {});
 
     var deleted = false;
     when(trades.get(any)).thenAnswer((_) => deleted ? null : _trade());
+    when(trades.trades).thenAnswer((_) => deleted ? [] : [_trade()]);
     when(
       trades.delete(
         trade: anyNamed("trade"),
@@ -122,6 +150,9 @@ void main() {
       ),
       tradeNoteServiceProvider.overrideWithProvider(
         ChangeNotifierProvider((_) => notes),
+      ),
+      tradeSentFromStackLookupProvider.overrideWithProvider(
+        ChangeNotifierProvider((_) => lookups),
       ),
       themeAssetsProvider.overrideWithProvider(
         StateProvider((_) => _FakeAssets()),
@@ -222,6 +253,8 @@ void main() {
         shouldNotifyListeners: anyNamed("shouldNotifyListeners"),
       ),
     ).called(1);
+    verify(notes.delete(tradeId: "tradeId")).called(1);
+    expect(lookups.all.map((e) => e.tradeId), ["otherTradeId"]);
 
     expect(find.byType(DesktopDialog), findsNothing);
     expect(
