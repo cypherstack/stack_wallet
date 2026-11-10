@@ -280,6 +280,50 @@ flutter pub get
 flutter run ios
 ```
 
+#### iOS Simulator (arm64/Apple Silicon)
+
+Simulator configuration is experimental and requires an Apple Silicon Mac,
+Xcode, and an installed iOS simulator runtime. It selects older review-pinned
+Monero and Wownero iOS packages that include arm64 simulator slices. Normal
+configuration keeps the released device dependencies; other platforms ignore
+this option. Stack Duo selects only the Monero override.
+
+Configure Stack Wallet from the repository root. Replace `<version>` and
+`<build-number>` with the values from your normal development configuration:
+
+```sh
+STACK_IOS_SIMULATOR=1 ./scripts/build_app.sh -a stack_wallet -p ios -v <version> -b <build-number>
+flutter pub get
+flutter devices
+flutter run -d <simulator-device-id>
+```
+
+Replace `stack_wallet` with `stack_duo` for Duo. Follow the version/build-number
+prompt carefully: changing those values can affect local wallet data. Use a
+separate development checkout and disposable test wallets for simulator work.
+To return to device builds, rerun configuration without `STACK_IOS_SIMULATOR`,
+then run `flutter pub get` again. Do not commit a simulator-only lockfile update.
+
+The former Frost, Epic Cash, and MWC submodules now use Flutter Native Assets
+packages. Their build hooks compile or fetch libraries during the Flutter build;
+the removed crypto-plugin
+submodule build scripts and Cargokit instructions no longer apply. Install the
+native toolchains listed above, including Rustup, CMake, and Go. Every enabled
+native dependency must support the selected simulator SDK; selecting the
+Monero/Wownero slices alone does not verify a complete simulator build.
+
+The CocoaPods configuration excludes `i386` and `x86_64` simulator architectures,
+so this setup targets arm64 simulators. If Xcode reports that the required iOS
+runtime is missing, install it in Xcode's platform settings or with
+`xcodebuild -downloadPlatform iOS`.
+
+The simulator pins have not been refreshed to the current device-library ABI.
+The Monero simulator pin lacks `MONERO_Wallet_serializeCacheToJson`, which the
+released device library exports. Stack Wallet does not currently call that
+symbol, but the mismatch prevents treating this configuration as release-ready.
+A macOS simulator build and wallet smoke test are still required; Linux
+configuration checks cannot verify Apple SDK linking or runtime behavior.
+
 #### macOS
 Run the following commands or launch via Android Studio:
 ```

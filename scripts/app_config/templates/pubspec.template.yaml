@@ -347,6 +347,23 @@ dependency_overrides:
   freezed: ^3.1.0
   freezed_annotation: ^3.1.0
 
+# Experimental simulator pins are opt-in; device builds keep released packages.
+# %%ENABLE_XMR_IOS_SIMULATOR%%
+#  cs_monero_flutter_libs_ios:
+#    git:
+#      url: https://github.com/cypherstack/cs_monero
+#      path: cs_monero_flutter_libs_ios
+#      ref: d89ab9f9bc18fa610c8bd629ad8fbbfc7a0c6d5b
+# %%END_ENABLE_XMR_IOS_SIMULATOR%%
+
+# %%ENABLE_WOW_IOS_SIMULATOR%%
+#  cs_wownero_flutter_libs_ios:
+#    git:
+#      url: https://github.com/cypherstack/cs_wownero
+#      path: cs_wownero_flutter_libs_ios
+#      ref: 8cf5b879126dd8f11bde632ef8e7d2f088d95988
+# %%END_ENABLE_WOW_IOS_SIMULATOR%%
+
 # %%ENABLE_ISAR%%
 #  isar_community:
 #    git:

@@ -26,6 +26,12 @@ dart "${APP_PROJECT_ROOT_DIR}/tool/process_pubspec_deps.dart" \
       TOR \
       FROST
 
+# Review-pinned simulator libraries are separate from normal device dependencies.
+if [[ "$1" == "ios" && "${STACK_IOS_SIMULATOR:-0}" == "1" ]]; then
+  dart "${APP_PROJECT_ROOT_DIR}/tool/process_pubspec_deps.dart" \
+       "${PUBSPEC_FILE}" XMR_IOS_SIMULATOR
+fi
+
 dart "${APP_PROJECT_ROOT_DIR}/tool/gen_interfaces.dart" \
       "${APP_PROJECT_ROOT_DIR}/tool/wl_templates" \
       "${APP_PROJECT_ROOT_DIR}/lib/wl_gen/generated" \
