@@ -170,6 +170,8 @@ class _ConfirmTransactionViewState
     final terms = wallet.slatepackTerms;
     final recipient = widget.txData.recipients!.first;
     final note = onChainNoteController.text;
+    final localNote = noteController.text;
+    final db = ref.read(mainDBProvider);
 
     // A send-all was estimated with the fee taken off the amount.
     final sendAll = widget.txData.subtractFeeFromAmount;
@@ -186,10 +188,36 @@ class _ConfirmTransactionViewState
       throw Exception(result.error ?? "Failed to create ${terms.noun}");
     }
 
+    var noteSaved = localNote.isEmpty;
+    if (!noteSaved && result.slateId != null) {
+      try {
+        await db.putTransactionNote(
+          TransactionNote(
+            walletId: walletId,
+            txid: result.slateId!,
+            value: localNote,
+          ),
+        );
+        noteSaved = true;
+      } catch (_) {
+        // The slate already exists and still needs to reach the recipient.
+      }
+    }
+
     unawaited(wallet.refresh());
     closeSendingDialog();
 
     if (context.mounted) {
+      if (!noteSaved) {
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message:
+                "Transaction created, but the local note could not be saved.",
+            context: context,
+          ),
+        );
+      }
       await showSlatepackDialog(context: context, terms: terms, result: result);
     }
 
