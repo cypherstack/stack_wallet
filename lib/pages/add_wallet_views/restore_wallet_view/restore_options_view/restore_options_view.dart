@@ -310,9 +310,8 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
 
           if (mounted) {
             if (isDesktop) {
-              Navigator.of(
-                context,
-              ).popUntil(ModalRoute.withName(DesktopHomeView.routeName));
+              Navigator.of(context)
+                  .popUntil(ModalRoute.withName(DesktopHomeView.routeName));
             } else {
               unawaited(
                 Navigator.of(
@@ -381,9 +380,8 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                 onPressed: () {
                   if (textFieldFocusNode.hasFocus) {
                     textFieldFocusNode.unfocus();
-                    Future<void>.delayed(
-                      const Duration(milliseconds: 100),
-                    ).then((value) => Navigator.of(context).pop());
+                    Future<void>.delayed(const Duration(milliseconds: 100))
+                        .then((value) => Navigator.of(context).pop());
                   } else {
                     Navigator.of(context).pop();
                   }
@@ -418,12 +416,12 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                       ? Options(
                           key: UniqueKey(),
                           texts: const ["Seed", "View Only", "URI"],
-                          onColor: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.popupBG,
-                          offColor: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.textFieldDefaultBG,
+                          onColor: Theme.of(context)
+                              .extension<StackColors>()!
+                              .popupBG,
+                          offColor: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textFieldDefaultBG,
                           selectedIndex: _restoreMode,
                           onValueChanged: (value) {
                             setState(() {
@@ -441,12 +439,12 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                           key: UniqueKey(),
                           onText: "Seed",
                           offText: "View Only",
-                          onColor: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.popupBG,
-                          offColor: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.textFieldDefaultBG,
+                          onColor: Theme.of(context)
+                              .extension<StackColors>()!
+                              .popupBG,
+                          offColor: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textFieldDefaultBG,
                           isOn: _restoreMode == 1,
                           onValueChanged: (value) {
                             setState(() {
@@ -599,9 +597,9 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                     Assets.svg.chevronDown,
                     width: 12,
                     height: 6,
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldActiveSearchIconRight,
                   ),
                 ),
               ),
@@ -609,9 +607,9 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                 offset: const Offset(0, -10),
                 elevation: 0,
                 decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldDefaultBG,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultBG,
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),
@@ -649,13 +647,12 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                     Text(
                       "Advanced",
                       style: Util.isDesktop
-                          ? STextStyles.desktopTextExtraExtraSmall(
-                              context,
-                            ).copyWith(
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textDark3,
-                            )
+                          ? STextStyles.desktopTextExtraExtraSmall(context)
+                                .copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark3,
+                                )
                           : STextStyles.smallMed12(context),
                       textAlign: TextAlign.left,
                     ),
@@ -687,9 +684,8 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                       focusNode: widget.pwFocusNode,
                       controller: widget.pwController,
                       style: Util.isDesktop
-                          ? STextStyles.desktopTextMedium(
-                              context,
-                            ).copyWith(height: 2)
+                          ? STextStyles.desktopTextMedium(context)
+                                .copyWith(height: 2)
                           : STextStyles.field(context),
                       obscureText: _hidePassword,
                       enableSuggestions: false,
@@ -723,9 +719,9 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                                         _hidePassword
                                             ? Assets.svg.eye
                                             : Assets.svg.eyeSlash,
-                                        color: Theme.of(
-                                          context,
-                                        ).extension<StackColors>()!.textDark3,
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textDark3,
                                         width: Util.isDesktop ? 24 : 16,
                                         height: Util.isDesktop ? 24 : 16,
                                       ),
@@ -751,13 +747,12 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                                   "was created with an optional BIP39 passphrase "
                                   "you can enter it here.",
                         style: Util.isDesktop
-                            ? STextStyles.desktopTextExtraSmall(
-                                context,
-                              ).copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textSubtitle1,
-                              )
+                            ? STextStyles.desktopTextExtraSmall(context)
+                                  .copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textSubtitle1,
+                                  )
                             : STextStyles.itemSubtitle(context),
                       ),
                     ),
@@ -830,7 +825,11 @@ class _UriRestoreOptionState extends ConsumerState<UriRestoreOption> {
   void _onUriChanged(String value) {
     WalletUriData? parsed;
     try {
-      parsed = WalletUriData.fromUriString(value.trim());
+      parsed = WalletUriData.fromUriString(
+        value.trim(),
+        addressValidator: widget.coin.validateAddress,
+      );
+      if (parsed.coin != widget.coin) parsed = null;
     } catch (_) {
       parsed = null;
     }
