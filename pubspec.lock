@@ -1467,7 +1467,7 @@ packages:
     source: hosted
     version: "4.12.0"
   json_rpc_2:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: json_rpc_2
       sha256: "82dfd37d3b2e5030ae4729e1d7f5538cbc45eb1c73d618b9272931facac3bec1"

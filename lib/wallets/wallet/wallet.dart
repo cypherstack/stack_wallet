@@ -1,10 +1,16 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:isar_community/isar.dart';
 import 'package:meta/meta.dart';
 import 'package:mutex/mutex.dart';
 
 import '../../db/isar/main_db.dart';
+import '../../models/input.dart';
+import '../../models/isar/models/blockchain_data/transaction.dart';
+import '../../models/isar/models/blockchain_data/v2/input_v2.dart';
+import '../../models/isar/models/blockchain_data/v2/output_v2.dart';
+import '../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../models/isar/models/blockchain_data/address.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
 import '../../models/isar/models/solana/sol_contract.dart';
@@ -538,6 +544,137 @@ abstract class Wallet<T extends CryptoCurrency> {
       await mainDB.updateOrPutTransactionV2s([txData.tempTx!]);
     }
     return txData;
+  }
+
+  /// Keep possibly spent inputs unavailable and show the pending transaction
+  /// when a broadcast response was lost. Do not invoke success-specific hooks
+  /// such as Firo's optimistic instant-lock flag.
+  Future<void> preservePendingBroadcast({
+    required TxData txData,
+    String? txid,
+  }) async {
+    final inputs = (txData.usedUTXOs ?? txData.utxos ?? const <BaseInput>[])
+        .whereType<StandardInput>()
+        .toList();
+    try {
+      await mainDB.putUTXOs(
+        inputs.map((input) => input.utxo.copyWith(used: true)).toList(),
+      );
+    } catch (e, s) {
+      Logging.instance.e(
+        'Could not reserve inputs after an uncertain broadcast',
+        error: e,
+        stackTrace: s,
+      );
+    }
+    try {
+      final id = txData.tempTx?.txid ?? txid ?? txData.txid;
+      if (id == null && txData.raw != null) {
+        // Some supported transaction formats (currently Particl) cannot be
+        // hashed by the signing library. Journal these without inventing an ID.
+        final walletInfo = info;
+        final journal = List<Map<String, dynamic>>.from(
+          walletInfo.otherData[WalletInfoKeys.unknownElectrumBroadcasts]
+                  as List? ??
+              [],
+        )..removeWhere((entry) => entry['raw'] == txData.raw);
+        journal.add({
+          'raw': txData.raw,
+          'status': 'unknown',
+          'timestamp': DateTime.timestamp().millisecondsSinceEpoch,
+          'inputs': [
+            for (final input in inputs)
+              {'txid': input.utxo.txid, 'vout': input.utxo.vout},
+          ],
+        });
+        await walletInfo.updateOtherData(
+          newEntries: {WalletInfoKeys.unknownElectrumBroadcasts: journal},
+          isar: mainDB.isar,
+        );
+      } else if (id != null) {
+        // Frost and PayNym preparations do not normally cache a transaction.
+        // Keep a minimal pending entry so their reserved inputs have a visible
+        // reason and the signed bytes remain available for reconciliation.
+        final outputs = (txData.recipients ?? [])
+            .map(
+              (recipient) => OutputV2.isarCantDoRequiredInDefaultConstructor(
+                scriptPubKeyHex: '',
+                valueStringSats: recipient.amount.raw.toString(),
+                addresses: [recipient.address],
+                walletOwns: recipient.isChange,
+              ),
+            )
+            .toList();
+        final change =
+            inputs.fold(BigInt.zero, (sum, input) => sum + input.value) -
+            outputs.fold(BigInt.zero, (sum, output) => sum + output.value) -
+            (txData.fee?.raw ?? BigInt.zero);
+        if (change > BigInt.zero) {
+          outputs.add(
+            OutputV2.isarCantDoRequiredInDefaultConstructor(
+              scriptPubKeyHex: '',
+              valueStringSats: change.toString(),
+              addresses: [],
+              walletOwns: true,
+            ),
+          );
+        }
+        final pending =
+            txData.tempTx ??
+            TransactionV2(
+              walletId: walletId,
+              blockHash: null,
+              hash: id,
+              txid: id,
+              timestamp: DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
+              height: null,
+              version: 0,
+              type: TransactionType.outgoing,
+              subType: TransactionSubType.none,
+              otherData: null,
+              inputs: inputs
+                  .map(
+                    (input) => InputV2.isarCantDoRequiredInDefaultConstructor(
+                      scriptSigHex: null,
+                      scriptSigAsm: null,
+                      sequence: null,
+                      outpoint:
+                          OutpointV2.isarCantDoRequiredInDefaultConstructor(
+                            txid: input.utxo.txid,
+                            vout: input.utxo.vout,
+                          ),
+                      addresses: input.address == null ? [] : [input.address!],
+                      valueStringSats: input.value.toString(),
+                      witness: null,
+                      innerRedeemScriptAsm: null,
+                      coinbase: null,
+                      walletOwns: true,
+                    ),
+                  )
+                  .toList(),
+              outputs: outputs,
+            );
+        final otherData =
+            Map<String, dynamic>.from(
+              jsonDecode(pending.otherData ?? '{}') as Map,
+            )..addAll({
+              TxV2OdKeys.broadcastOutcomeUnknown: true,
+              TxV2OdKeys.rawTransaction: txData.raw,
+              if (txData.fee != null)
+                TxV2OdKeys.overrideFee: txData.fee!.toJsonString(),
+            });
+        await mainDB.updateOrPutTransactionV2s([
+          pending.copyWith(otherData: jsonEncode(otherData)),
+        ]);
+      }
+    } catch (e, s) {
+      // A cache error must not turn an uncertain broadcast into a failed send.
+      Logging.instance.e(
+        'Could not preserve the pending broadcast in the wallet cache',
+        error: e,
+        stackTrace: s,
+      );
+    }
   }
 
   NodeModel getCurrentNode() {

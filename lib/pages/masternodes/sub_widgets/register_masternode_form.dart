@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../exceptions/electrumx/broadcast_outcome_unknown.dart';
+
 import '../../../providers/global/wallets_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/if_not_already.dart';
@@ -58,6 +60,7 @@ class _RegisterMasternodeFormState
   late final VoidCallback _register;
 
   bool _enableCreateButton = false;
+  bool _broadcastOutcomeUnknown = false;
 
   void _validate() {
     if (mounted) {
@@ -108,6 +111,7 @@ class _RegisterMasternodeFormState
     super.initState();
 
     _register = IfNotAlreadyAsync<void>(() async {
+      if (_broadcastOutcomeUnknown) return;
       Exception? ex;
 
       final txId = await showLoading(
@@ -121,6 +125,9 @@ class _RegisterMasternodeFormState
 
       if (mounted) {
         if (ex != null || txId == null) {
+          if (ex is BroadcastOutcomeUnknown) {
+            setState(() => _broadcastOutcomeUnknown = true);
+          }
           String message = ex?.toString().trim() ?? "Unknown error: txId=$txId";
           const exceptionPrefix = "Exception:";
           while (message.startsWith(exceptionPrefix) &&
@@ -130,7 +137,9 @@ class _RegisterMasternodeFormState
           await showDialog<void>(
             context: context,
             builder: (_) => StackOkDialog(
-              title: "Registration failed",
+              title: ex is BroadcastOutcomeUnknown
+                  ? BroadcastOutcomeUnknown.title
+                  : "Registration failed",
               message: message,
               desktopPopRootNavigator: Util.isDesktop,
               maxWidth: Util.isDesktop ? 400 : null,
@@ -262,7 +271,7 @@ class _RegisterMasternodeFormState
           ),
           child: PrimaryButton(
             label: "Create",
-            enabled: _enableCreateButton,
+            enabled: _enableCreateButton && !_broadcastOutcomeUnknown,
             onPressed: _enableCreateButton ? _register : null,
             buttonHeight: Util.isDesktop ? .l : null,
           ),

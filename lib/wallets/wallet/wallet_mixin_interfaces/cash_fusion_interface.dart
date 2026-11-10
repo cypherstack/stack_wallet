@@ -2,21 +2,29 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:bitbox/bitbox.dart' as bitbox;
+import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:flutter/foundation.dart';
 import 'package:fusiondart/fusiondart.dart' as fusion;
 import 'package:isar_community/isar.dart';
 
 import '../../../app_config.dart';
+import '../../../exceptions/electrumx/broadcast_outcome_unknown.dart';
 import '../../../models/fusion_progress_ui_state.dart';
+import '../../../models/input.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../models/isar/models/blockchain_data/utxo.dart';
+import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
+import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
+import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../pages_desktop_specific/cashfusion/sub_widgets/fusion_dialog.dart';
 import '../../../services/fusion_tor_service.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/stack_file_system.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
+import '../../crypto_currency/intermediate/bip39_hd_currency.dart';
+import '../../models/tx_data.dart';
 import 'coin_control_interface.dart';
 import 'electrumx_interface.dart';
 
@@ -137,6 +145,7 @@ mixin CashFusionInterface<T extends ElectrumXCurrencyInterface>
   // Fusion object.
   fusion.Fusion? _mainFusionObject;
   bool _stopRequested = false;
+  BroadcastOutcomeUnknown? _unknownFusionBroadcast;
 
   /// An int storing the number of successfully completed fusion rounds.
   int _completedFuseCount = 0;
@@ -149,6 +158,12 @@ mixin CashFusionInterface<T extends ElectrumXCurrencyInterface>
 
   // callback to update the ui state object
   void _updateStatus({required fusion.FusionStatus status, String? info}) {
+    // fusiondart reports callback exceptions as failed rounds while unwinding.
+    // Keep an uncertain broadcast distinct from a definite fusion failure.
+    if (_unknownFusionBroadcast != null) {
+      _showUnknownFusionBroadcast();
+      return;
+    }
     switch (status) {
       case fusion.FusionStatus.connecting:
         _uiState?.setConnecting(
@@ -295,6 +310,121 @@ mixin CashFusionInterface<T extends ElectrumXCurrencyInterface>
 
         _uiState?.setFailed(false, shouldNotify: true);
         break;
+    }
+  }
+
+  void _showUnknownFusionBroadcast() {
+    final info =
+        '${BroadcastOutcomeUnknown.title}. '
+        'Further fusion rounds have stopped. $_unknownFusionBroadcast';
+    _uiState?.setFusing(
+      CashFusionState(status: CashFusionStatus.waiting, info: info),
+      shouldNotify: false,
+    );
+    _uiState?.setComplete(
+      CashFusionState(status: CashFusionStatus.waiting),
+      shouldNotify: false,
+    );
+    _uiState?.setFusionState(
+      CashFusionState(status: CashFusionStatus.waiting, info: info),
+      shouldNotify: false,
+    );
+    _uiState?.setFailed(false, shouldNotify: false);
+    _uiState?.setRunning(false, shouldNotify: true);
+  }
+
+  /// Broadcast the assembled transaction and retain our part if its reply is
+  /// lost. Other participants' inputs must never be reserved in this wallet.
+  @visibleForTesting
+  Future<String> broadcastFusionTransaction(
+    String txHex, {
+    required List<UTXO> walletUtxos,
+    required Iterable<String> walletAddresses,
+  }) async {
+    if (_unknownFusionBroadcast != null) throw _unknownFusionBroadcast!;
+    // Use the BCH parser that fusiondart uses to assemble these signed bytes.
+    final transaction = bitbox.Transaction.fromHex(txHex);
+    final txid = transaction.getId();
+    final outpoints = transaction.inputs
+        .map((input) => coinlib.OutPoint(input.hash!, input.index!))
+        .toSet();
+    final ownedInputs = walletUtxos
+        .where(
+          (utxo) => outpoints.contains(
+            coinlib.OutPoint.fromHex(utxo.txid, utxo.vout),
+          ),
+        )
+        .map(StandardInput.new)
+        .toList();
+    final addressesByScriptHash = {
+      for (final address in walletAddresses)
+        cryptoCurrency.addressToScriptHash(address: address): address,
+    };
+    final ownedOutputs = <OutputV2>[];
+    for (final output in transaction.outputs) {
+      final address =
+          addressesByScriptHash[Bip39HDCurrency.convertBytesToScriptHash(
+            output.script!,
+          )];
+      if (address != null) {
+        ownedOutputs.add(
+          OutputV2.isarCantDoRequiredInDefaultConstructor(
+            scriptPubKeyHex: coinlib.bytesToHex(output.script!),
+            valueStringSats: output.value.toString(),
+            addresses: [address],
+            walletOwns: true,
+          ),
+        );
+      }
+    }
+    final pending = TransactionV2(
+      walletId: walletId,
+      blockHash: null,
+      hash: txid,
+      txid: txid,
+      timestamp: DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
+      height: null,
+      version: transaction.version,
+      type: TransactionType.sentToSelf,
+      subType: TransactionSubType.cashFusion,
+      otherData: null,
+      // This provisional entry records this wallet's contribution. A normal
+      // transaction refresh fills in the other participants' inputs/outputs.
+      inputs: ownedInputs
+          .map(
+            (input) => InputV2.isarCantDoRequiredInDefaultConstructor(
+              scriptSigHex: null,
+              scriptSigAsm: null,
+              sequence: null,
+              outpoint: OutpointV2.isarCantDoRequiredInDefaultConstructor(
+                txid: input.utxo.txid,
+                vout: input.utxo.vout,
+              ),
+              addresses: input.address == null ? [] : [input.address!],
+              valueStringSats: input.value.toString(),
+              witness: null,
+              innerRedeemScriptAsm: null,
+              coinbase: null,
+              walletOwns: true,
+            ),
+          )
+          .toList(),
+      outputs: ownedOutputs,
+    );
+    try {
+      return await electrumXClient.broadcastTransaction(
+        rawTx: txHex,
+        expectedTxId: txid,
+      );
+    } on BroadcastOutcomeUnknown catch (error) {
+      _stopRequested = true;
+      _unknownFusionBroadcast = error;
+      _showUnknownFusionBroadcast();
+      await preservePendingBroadcast(
+        txData: TxData(raw: txHex, usedUTXOs: ownedInputs, tempTx: pending),
+        txid: txid,
+      );
+      rethrow;
     }
   }
 
@@ -601,6 +731,7 @@ mixin CashFusionInterface<T extends ElectrumXCurrencyInterface>
     }
 
     try {
+      _unknownFusionBroadcast = null;
       _updateStatus(status: fusion.FusionStatus.reset);
       _updateStatus(
         status: fusion.FusionStatus.connecting,
@@ -620,6 +751,7 @@ mixin CashFusionInterface<T extends ElectrumXCurrencyInterface>
 
       // Instantiate a Fusion object with custom parameters.
       _mainFusionObject = fusion.Fusion(serverParams);
+      List<UTXO> roundUtxos = [];
 
       // Pass wallet functions to the Fusion object
       await _mainFusionObject!.initFusion(
@@ -632,9 +764,21 @@ mixin CashFusionInterface<T extends ElectrumXCurrencyInterface>
         getTransactionJson: (String txid) async => await electrumXCachedClient
             .getTransaction(cryptoCurrency: info.coin, txHash: txid),
         getPrivateKeyForPubKey: _getPrivateKeyForPubKey,
-        broadcastTransaction: (String txHex) =>
-            electrumXClient.broadcastTransaction(rawTx: txHex),
+        broadcastTransaction: (String txHex) async =>
+            broadcastFusionTransaction(
+              txHex,
+              walletUtxos: roundUtxos,
+              walletAddresses:
+                  (await mainDB
+                          .getAddresses(walletId)
+                          .filter()
+                          .not()
+                          .typeEqualTo(AddressType.nonWallet)
+                          .findAll())
+                      .map((address) => address.value),
+            ),
         unReserveAddresses: (List<fusion.Address> addresses) async {
+          if (_unknownFusionBroadcast != null) return;
           final List<Future<void>> futures = [];
           for (final addr in addresses) {
             futures.add(
@@ -690,8 +834,11 @@ mixin CashFusionInterface<T extends ElectrumXCurrencyInterface>
             .filter()
             .isBlockedEqualTo(false)
             .and()
+            .usedEqualTo(false)
+            .and()
             .addressIsNotNull()
             .findAll();
+        roundUtxos = walletUtxos;
 
         final List<fusion.UtxoDTO> coinList = [];
         // Loop through UTXOs, checking and adding valid ones.
@@ -773,6 +920,13 @@ mixin CashFusionInterface<T extends ElectrumXCurrencyInterface>
           _failedFuseCount = 0;
         } catch (e, s) {
           Logging.instance.e("", error: e, stackTrace: s);
+          if (_unknownFusionBroadcast != null) {
+            _stopRequested = true;
+            await _mainFusionObject?.stop();
+            _mainFusionObject = null;
+            _showUnknownFusionBroadcast();
+            break;
+          }
           // just continue on attempt failure
 
           // Increment the number of failed fusion rounds.

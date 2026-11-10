@@ -89,22 +89,31 @@ class MockWallets extends _i1.Mock implements _i9.Wallets {
   }
 
   @override
-  _i2.NodeService get nodeService => (super.noSuchMethod(
-    Invocation.getter(#nodeService),
-    returnValue: _FakeNodeService_0(this, Invocation.getter(#nodeService)),
-  ) as _i2.NodeService);
+  _i2.NodeService get nodeService =>
+      (super.noSuchMethod(
+            Invocation.getter(#nodeService),
+            returnValue: _FakeNodeService_0(
+              this,
+              Invocation.getter(#nodeService),
+            ),
+          )
+          as _i2.NodeService);
 
   @override
-  _i3.MainDB get mainDB => (super.noSuchMethod(
-    Invocation.getter(#mainDB),
-    returnValue: _FakeMainDB_1(this, Invocation.getter(#mainDB)),
-  ) as _i3.MainDB);
+  _i3.MainDB get mainDB =>
+      (super.noSuchMethod(
+            Invocation.getter(#mainDB),
+            returnValue: _FakeMainDB_1(this, Invocation.getter(#mainDB)),
+          )
+          as _i3.MainDB);
 
   @override
-  List<_i5.Wallet<_i4.CryptoCurrency>> get wallets => (super.noSuchMethod(
-    Invocation.getter(#wallets),
-    returnValue: <_i5.Wallet<_i4.CryptoCurrency>>[],
-  ) as List<_i5.Wallet<_i4.CryptoCurrency>>);
+  List<_i5.Wallet<_i4.CryptoCurrency>> get wallets =>
+      (super.noSuchMethod(
+            Invocation.getter(#wallets),
+            returnValue: <_i5.Wallet<_i4.CryptoCurrency>>[],
+          )
+          as List<_i5.Wallet<_i4.CryptoCurrency>>);
 
   @override
   set nodeService(_i2.NodeService? value) => super.noSuchMethod(
@@ -121,12 +130,13 @@ class MockWallets extends _i1.Mock implements _i9.Wallets {
   @override
   _i5.Wallet<_i4.CryptoCurrency> getWallet(String? walletId) =>
       (super.noSuchMethod(
-        Invocation.method(#getWallet, [walletId]),
-        returnValue: _FakeWallet_2<_i4.CryptoCurrency>(
-          this,
-          Invocation.method(#getWallet, [walletId]),
-        ),
-      ) as _i5.Wallet<_i4.CryptoCurrency>);
+            Invocation.method(#getWallet, [walletId]),
+            returnValue: _FakeWallet_2<_i4.CryptoCurrency>(
+              this,
+              Invocation.method(#getWallet, [walletId]),
+            ),
+          )
+          as _i5.Wallet<_i4.CryptoCurrency>);
 
   @override
   void addWallet(_i5.Wallet<_i4.CryptoCurrency>? wallet) => super.noSuchMethod(
@@ -138,33 +148,43 @@ class MockWallets extends _i1.Mock implements _i9.Wallets {
   _i10.Future<void> deleteWallet(
     _i11.WalletInfo? info,
     _i8.SecureStorageInterface? secureStorage,
-  ) => (super.noSuchMethod(
-    Invocation.method(#deleteWallet, [info, secureStorage]),
-    returnValue: _i10.Future<void>.value(),
-    returnValueForMissingStub: _i10.Future<void>.value(),
-  ) as _i10.Future<void>);
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#deleteWallet, [info, secureStorage]),
+            returnValue: _i10.Future<void>.value(),
+            returnValueForMissingStub: _i10.Future<void>.value(),
+          )
+          as _i10.Future<void>);
 
   @override
   _i10.Future<void> load(
     _i12.Prefs? prefs,
     _i3.MainDB? mainDB,
     bool? isDuress,
-  ) => (super.noSuchMethod(
-    Invocation.method(#load, [prefs, mainDB, isDuress]),
-    returnValue: _i10.Future<void>.value(),
-    returnValueForMissingStub: _i10.Future<void>.value(),
-  ) as _i10.Future<void>);
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#load, [prefs, mainDB, isDuress]),
+            returnValue: _i10.Future<void>.value(),
+            returnValueForMissingStub: _i10.Future<void>.value(),
+          )
+          as _i10.Future<void>);
 
   @override
   _i10.Future<void> loadAfterStackRestore(
     _i12.Prefs? prefs,
     List<_i5.Wallet<_i4.CryptoCurrency>>? wallets,
     bool? isDesktop,
-  ) => (super.noSuchMethod(
-    Invocation.method(#loadAfterStackRestore, [prefs, wallets, isDesktop]),
-    returnValue: _i10.Future<void>.value(),
-    returnValueForMissingStub: _i10.Future<void>.value(),
-  ) as _i10.Future<void>);
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#loadAfterStackRestore, [
+              prefs,
+              wallets,
+              isDesktop,
+            ]),
+            returnValue: _i10.Future<void>.value(),
+            returnValueForMissingStub: _i10.Future<void>.value(),
+          )
+          as _i10.Future<void>);
 }
 
 /// A class which mocks [ThemeService].
@@ -176,22 +196,28 @@ class MockThemeService extends _i1.Mock implements _i13.ThemeService {
   }
 
   @override
-  _i3.MainDB get db => (super.noSuchMethod(
-    Invocation.getter(#db),
-    returnValue: _FakeMainDB_1(this, Invocation.getter(#db)),
-  ) as _i3.MainDB);
+  _i3.MainDB get db =>
+      (super.noSuchMethod(
+            Invocation.getter(#db),
+            returnValue: _FakeMainDB_1(this, Invocation.getter(#db)),
+          )
+          as _i3.MainDB);
 
   @override
-  _i6.HTTP get client => (super.noSuchMethod(
-    Invocation.getter(#client),
-    returnValue: _FakeHTTP_3(this, Invocation.getter(#client)),
-  ) as _i6.HTTP);
+  _i6.HTTP get client =>
+      (super.noSuchMethod(
+            Invocation.getter(#client),
+            returnValue: _FakeHTTP_3(this, Invocation.getter(#client)),
+          )
+          as _i6.HTTP);
 
   @override
-  List<_i14.StackTheme> get installedThemes => (super.noSuchMethod(
-    Invocation.getter(#installedThemes),
-    returnValue: <_i14.StackTheme>[],
-  ) as List<_i14.StackTheme>);
+  List<_i14.StackTheme> get installedThemes =>
+      (super.noSuchMethod(
+            Invocation.getter(#installedThemes),
+            returnValue: <_i14.StackTheme>[],
+          )
+          as List<_i14.StackTheme>);
 
   @override
   set client(_i6.HTTP? value) => super.noSuchMethod(
@@ -208,48 +234,59 @@ class MockThemeService extends _i1.Mock implements _i13.ThemeService {
   @override
   _i10.Future<void> install({required _i15.Uint8List? themeArchiveData}) =>
       (super.noSuchMethod(
-        Invocation.method(#install, [], {#themeArchiveData: themeArchiveData}),
-        returnValue: _i10.Future<void>.value(),
-        returnValueForMissingStub: _i10.Future<void>.value(),
-      ) as _i10.Future<void>);
+            Invocation.method(#install, [], {
+              #themeArchiveData: themeArchiveData,
+            }),
+            returnValue: _i10.Future<void>.value(),
+            returnValueForMissingStub: _i10.Future<void>.value(),
+          )
+          as _i10.Future<void>);
 
   @override
-  _i10.Future<void> remove({required String? themeId}) => (super.noSuchMethod(
-    Invocation.method(#remove, [], {#themeId: themeId}),
-    returnValue: _i10.Future<void>.value(),
-    returnValueForMissingStub: _i10.Future<void>.value(),
-  ) as _i10.Future<void>);
+  _i10.Future<void> remove({required String? themeId}) =>
+      (super.noSuchMethod(
+            Invocation.method(#remove, [], {#themeId: themeId}),
+            returnValue: _i10.Future<void>.value(),
+            returnValueForMissingStub: _i10.Future<void>.value(),
+          )
+          as _i10.Future<void>);
 
   @override
-  _i10.Future<void> checkDefaultThemesOnStartup() => (super.noSuchMethod(
-    Invocation.method(#checkDefaultThemesOnStartup, []),
-    returnValue: _i10.Future<void>.value(),
-    returnValueForMissingStub: _i10.Future<void>.value(),
-  ) as _i10.Future<void>);
+  _i10.Future<void> checkDefaultThemesOnStartup() =>
+      (super.noSuchMethod(
+            Invocation.method(#checkDefaultThemesOnStartup, []),
+            returnValue: _i10.Future<void>.value(),
+            returnValueForMissingStub: _i10.Future<void>.value(),
+          )
+          as _i10.Future<void>);
 
   @override
   _i10.Future<bool> verifyInstalled({required String? themeId}) =>
       (super.noSuchMethod(
-        Invocation.method(#verifyInstalled, [], {#themeId: themeId}),
-        returnValue: _i10.Future<bool>.value(false),
-      ) as _i10.Future<bool>);
+            Invocation.method(#verifyInstalled, [], {#themeId: themeId}),
+            returnValue: _i10.Future<bool>.value(false),
+          )
+          as _i10.Future<bool>);
 
   @override
   _i10.Future<List<_i13.StackThemeMetaData>> fetchThemes() =>
       (super.noSuchMethod(
-        Invocation.method(#fetchThemes, []),
-        returnValue: _i10.Future<List<_i13.StackThemeMetaData>>.value(
-          <_i13.StackThemeMetaData>[],
-        ),
-      ) as _i10.Future<List<_i13.StackThemeMetaData>>);
+            Invocation.method(#fetchThemes, []),
+            returnValue: _i10.Future<List<_i13.StackThemeMetaData>>.value(
+              <_i13.StackThemeMetaData>[],
+            ),
+          )
+          as _i10.Future<List<_i13.StackThemeMetaData>>);
 
   @override
   _i10.Future<_i15.Uint8List> fetchTheme({
     required _i13.StackThemeMetaData? themeMetaData,
-  }) => (super.noSuchMethod(
-    Invocation.method(#fetchTheme, [], {#themeMetaData: themeMetaData}),
-    returnValue: _i10.Future<_i15.Uint8List>.value(_i15.Uint8List(0)),
-  ) as _i10.Future<_i15.Uint8List>);
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#fetchTheme, [], {#themeMetaData: themeMetaData}),
+            returnValue: _i10.Future<_i15.Uint8List>.value(_i15.Uint8List(0)),
+          )
+          as _i10.Future<_i15.Uint8List>);
 
   @override
   _i14.StackTheme? getTheme({required String? themeId}) =>
@@ -271,10 +308,12 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
           as bool);
 
   @override
-  int get lastUnlockedTimeout => (super.noSuchMethod(
-    Invocation.getter(#lastUnlockedTimeout),
-    returnValue: 0,
-  ) as int);
+  int get lastUnlockedTimeout =>
+      (super.noSuchMethod(
+            Invocation.getter(#lastUnlockedTimeout),
+            returnValue: 0,
+          )
+          as int);
 
   @override
   int get lastUnlocked =>
@@ -282,22 +321,28 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
           as int);
 
   @override
-  int get currentNotificationId => (super.noSuchMethod(
-    Invocation.getter(#currentNotificationId),
-    returnValue: 0,
-  ) as int);
+  int get currentNotificationId =>
+      (super.noSuchMethod(
+            Invocation.getter(#currentNotificationId),
+            returnValue: 0,
+          )
+          as int);
 
   @override
-  List<String> get walletIdsSyncOnStartup => (super.noSuchMethod(
-    Invocation.getter(#walletIdsSyncOnStartup),
-    returnValue: <String>[],
-  ) as List<String>);
+  List<String> get walletIdsSyncOnStartup =>
+      (super.noSuchMethod(
+            Invocation.getter(#walletIdsSyncOnStartup),
+            returnValue: <String>[],
+          )
+          as List<String>);
 
   @override
-  _i16.SyncingType get syncType => (super.noSuchMethod(
-    Invocation.getter(#syncType),
-    returnValue: _i16.SyncingType.currentWalletOnly,
-  ) as _i16.SyncingType);
+  _i16.SyncingType get syncType =>
+      (super.noSuchMethod(
+            Invocation.getter(#syncType),
+            returnValue: _i16.SyncingType.currentWalletOnly,
+          )
+          as _i16.SyncingType);
 
   @override
   bool get wifiOnly =>
@@ -305,22 +350,34 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
           as bool);
 
   @override
-  bool get showFavoriteWallets => (super.noSuchMethod(
-    Invocation.getter(#showFavoriteWallets),
-    returnValue: false,
-  ) as bool);
+  bool get showFavoriteWallets =>
+      (super.noSuchMethod(
+            Invocation.getter(#showFavoriteWallets),
+            returnValue: false,
+          )
+          as bool);
 
   @override
-  String get language => (super.noSuchMethod(
-    Invocation.getter(#language),
-    returnValue: _i17.dummyValue<String>(this, Invocation.getter(#language)),
-  ) as String);
+  String get language =>
+      (super.noSuchMethod(
+            Invocation.getter(#language),
+            returnValue: _i17.dummyValue<String>(
+              this,
+              Invocation.getter(#language),
+            ),
+          )
+          as String);
 
   @override
-  String get currency => (super.noSuchMethod(
-    Invocation.getter(#currency),
-    returnValue: _i17.dummyValue<String>(this, Invocation.getter(#currency)),
-  ) as String);
+  String get currency =>
+      (super.noSuchMethod(
+            Invocation.getter(#currency),
+            returnValue: _i17.dummyValue<String>(
+              this,
+              Invocation.getter(#currency),
+            ),
+          )
+          as String);
 
   @override
   bool get randomizePIN =>
@@ -343,10 +400,12 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
           as bool);
 
   @override
-  bool get biometricsDuress => (super.noSuchMethod(
-    Invocation.getter(#biometricsDuress),
-    returnValue: false,
-  ) as bool);
+  bool get biometricsDuress =>
+      (super.noSuchMethod(
+            Invocation.getter(#biometricsDuress),
+            returnValue: false,
+          )
+          as bool);
 
   @override
   int get familiarity =>
@@ -359,34 +418,44 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
           as bool);
 
   @override
-  bool get showTestNetCoins => (super.noSuchMethod(
-    Invocation.getter(#showTestNetCoins),
-    returnValue: false,
-  ) as bool);
+  bool get showTestNetCoins =>
+      (super.noSuchMethod(
+            Invocation.getter(#showTestNetCoins),
+            returnValue: false,
+          )
+          as bool);
 
   @override
-  bool get isAutoBackupEnabled => (super.noSuchMethod(
-    Invocation.getter(#isAutoBackupEnabled),
-    returnValue: false,
-  ) as bool);
+  bool get isAutoBackupEnabled =>
+      (super.noSuchMethod(
+            Invocation.getter(#isAutoBackupEnabled),
+            returnValue: false,
+          )
+          as bool);
 
   @override
-  _i18.BackupFrequencyType get backupFrequencyType => (super.noSuchMethod(
-    Invocation.getter(#backupFrequencyType),
-    returnValue: _i18.BackupFrequencyType.everyTenMinutes,
-  ) as _i18.BackupFrequencyType);
+  _i18.BackupFrequencyType get backupFrequencyType =>
+      (super.noSuchMethod(
+            Invocation.getter(#backupFrequencyType),
+            returnValue: _i18.BackupFrequencyType.everyTenMinutes,
+          )
+          as _i18.BackupFrequencyType);
 
   @override
-  bool get hideBlockExplorerWarning => (super.noSuchMethod(
-    Invocation.getter(#hideBlockExplorerWarning),
-    returnValue: false,
-  ) as bool);
+  bool get hideBlockExplorerWarning =>
+      (super.noSuchMethod(
+            Invocation.getter(#hideBlockExplorerWarning),
+            returnValue: false,
+          )
+          as bool);
 
   @override
-  bool get gotoWalletOnStartup => (super.noSuchMethod(
-    Invocation.getter(#gotoWalletOnStartup),
-    returnValue: false,
-  ) as bool);
+  bool get gotoWalletOnStartup =>
+      (super.noSuchMethod(
+            Invocation.getter(#gotoWalletOnStartup),
+            returnValue: false,
+          )
+          as bool);
 
   @override
   bool get externalCalls =>
@@ -394,40 +463,53 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
           as bool);
 
   @override
-  bool get enableCoinControl => (super.noSuchMethod(
-    Invocation.getter(#enableCoinControl),
-    returnValue: false,
-  ) as bool);
+  bool get enableCoinControl =>
+      (super.noSuchMethod(
+            Invocation.getter(#enableCoinControl),
+            returnValue: false,
+          )
+          as bool);
 
   @override
-  bool get enableSystemBrightness => (super.noSuchMethod(
-    Invocation.getter(#enableSystemBrightness),
-    returnValue: false,
-  ) as bool);
+  bool get enableSystemBrightness =>
+      (super.noSuchMethod(
+            Invocation.getter(#enableSystemBrightness),
+            returnValue: false,
+          )
+          as bool);
 
   @override
-  String get themeId => (super.noSuchMethod(
-    Invocation.getter(#themeId),
-    returnValue: _i17.dummyValue<String>(this, Invocation.getter(#themeId)),
-  ) as String);
+  String get themeId =>
+      (super.noSuchMethod(
+            Invocation.getter(#themeId),
+            returnValue: _i17.dummyValue<String>(
+              this,
+              Invocation.getter(#themeId),
+            ),
+          )
+          as String);
 
   @override
-  String get systemBrightnessLightThemeId => (super.noSuchMethod(
-    Invocation.getter(#systemBrightnessLightThemeId),
-    returnValue: _i17.dummyValue<String>(
-      this,
-      Invocation.getter(#systemBrightnessLightThemeId),
-    ),
-  ) as String);
+  String get systemBrightnessLightThemeId =>
+      (super.noSuchMethod(
+            Invocation.getter(#systemBrightnessLightThemeId),
+            returnValue: _i17.dummyValue<String>(
+              this,
+              Invocation.getter(#systemBrightnessLightThemeId),
+            ),
+          )
+          as String);
 
   @override
-  String get systemBrightnessDarkThemeId => (super.noSuchMethod(
-    Invocation.getter(#systemBrightnessDarkThemeId),
-    returnValue: _i17.dummyValue<String>(
-      this,
-      Invocation.getter(#systemBrightnessDarkThemeId),
-    ),
-  ) as String);
+  String get systemBrightnessDarkThemeId =>
+      (super.noSuchMethod(
+            Invocation.getter(#systemBrightnessDarkThemeId),
+            returnValue: _i17.dummyValue<String>(
+              this,
+              Invocation.getter(#systemBrightnessDarkThemeId),
+            ),
+          )
+          as String);
 
   @override
   bool get useTor =>
@@ -440,28 +522,36 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
           as bool);
 
   @override
-  bool get enableExchange => (super.noSuchMethod(
-    Invocation.getter(#enableExchange),
-    returnValue: false,
-  ) as bool);
+  bool get enableExchange =>
+      (super.noSuchMethod(
+            Invocation.getter(#enableExchange),
+            returnValue: false,
+          )
+          as bool);
 
   @override
-  bool get advancedFiroFeatures => (super.noSuchMethod(
-    Invocation.getter(#advancedFiroFeatures),
-    returnValue: false,
-  ) as bool);
+  bool get advancedFiroFeatures =>
+      (super.noSuchMethod(
+            Invocation.getter(#advancedFiroFeatures),
+            returnValue: false,
+          )
+          as bool);
 
   @override
-  _i19.Level get logLevel => (super.noSuchMethod(
-    Invocation.getter(#logLevel),
-    returnValue: _i19.Level.all,
-  ) as _i19.Level);
+  _i19.Level get logLevel =>
+      (super.noSuchMethod(
+            Invocation.getter(#logLevel),
+            returnValue: _i19.Level.all,
+          )
+          as _i19.Level);
 
   @override
-  ({bool enabled, int minutes}) get autoLockInfo => (super.noSuchMethod(
-    Invocation.getter(#autoLockInfo),
-    returnValue: (enabled: false, minutes: 0),
-  ) as ({bool enabled, int minutes}));
+  ({bool enabled, int minutes}) get autoLockInfo =>
+      (super.noSuchMethod(
+            Invocation.getter(#autoLockInfo),
+            returnValue: (enabled: false, minutes: 0),
+          )
+          as ({bool enabled, int minutes}));
 
   @override
   bool get privacyScreen =>
@@ -469,10 +559,12 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
           as bool);
 
   @override
-  bool get disableScreenShots => (super.noSuchMethod(
-    Invocation.getter(#disableScreenShots),
-    returnValue: false,
-  ) as bool);
+  bool get disableScreenShots =>
+      (super.noSuchMethod(
+            Invocation.getter(#disableScreenShots),
+            returnValue: false,
+          )
+          as bool);
 
   @override
   set lastUnlockedTimeout(int? lastUnlockedTimeout) => super.noSuchMethod(
@@ -721,43 +813,55 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
           as bool);
 
   @override
-  _i10.Future<void> init() => (super.noSuchMethod(
-    Invocation.method(#init, []),
-    returnValue: _i10.Future<void>.value(),
-    returnValueForMissingStub: _i10.Future<void>.value(),
-  ) as _i10.Future<void>);
+  _i10.Future<void> init() =>
+      (super.noSuchMethod(
+            Invocation.method(#init, []),
+            returnValue: _i10.Future<void>.value(),
+            returnValueForMissingStub: _i10.Future<void>.value(),
+          )
+          as _i10.Future<void>);
 
   @override
-  _i10.Future<int> incrementCurrentNotificationIndex() => (super.noSuchMethod(
-    Invocation.method(#incrementCurrentNotificationIndex, []),
-    returnValue: _i10.Future<int>.value(0),
-  ) as _i10.Future<int>);
+  _i10.Future<int> incrementCurrentNotificationIndex() =>
+      (super.noSuchMethod(
+            Invocation.method(#incrementCurrentNotificationIndex, []),
+            returnValue: _i10.Future<int>.value(0),
+          )
+          as _i10.Future<int>);
 
   @override
-  _i10.Future<bool> isExternalCallsSet() => (super.noSuchMethod(
-    Invocation.method(#isExternalCallsSet, []),
-    returnValue: _i10.Future<bool>.value(false),
-  ) as _i10.Future<bool>);
+  _i10.Future<bool> isExternalCallsSet() =>
+      (super.noSuchMethod(
+            Invocation.method(#isExternalCallsSet, []),
+            returnValue: _i10.Future<bool>.value(false),
+          )
+          as _i10.Future<bool>);
 
   @override
-  _i10.Future<void> saveUserID(String? userId) => (super.noSuchMethod(
-    Invocation.method(#saveUserID, [userId]),
-    returnValue: _i10.Future<void>.value(),
-    returnValueForMissingStub: _i10.Future<void>.value(),
-  ) as _i10.Future<void>);
+  _i10.Future<void> saveUserID(String? userId) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveUserID, [userId]),
+            returnValue: _i10.Future<void>.value(),
+            returnValueForMissingStub: _i10.Future<void>.value(),
+          )
+          as _i10.Future<void>);
 
   @override
-  _i10.Future<void> saveSignupEpoch(int? signupEpoch) => (super.noSuchMethod(
-    Invocation.method(#saveSignupEpoch, [signupEpoch]),
-    returnValue: _i10.Future<void>.value(),
-    returnValueForMissingStub: _i10.Future<void>.value(),
-  ) as _i10.Future<void>);
+  _i10.Future<void> saveSignupEpoch(int? signupEpoch) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveSignupEpoch, [signupEpoch]),
+            returnValue: _i10.Future<void>.value(),
+            returnValueForMissingStub: _i10.Future<void>.value(),
+          )
+          as _i10.Future<void>);
 
   @override
-  _i20.AmountUnit amountUnit(_i4.CryptoCurrency? coin) => (super.noSuchMethod(
-    Invocation.method(#amountUnit, [coin]),
-    returnValue: _i20.AmountUnit.normal,
-  ) as _i20.AmountUnit);
+  _i20.AmountUnit amountUnit(_i4.CryptoCurrency? coin) =>
+      (super.noSuchMethod(
+            Invocation.method(#amountUnit, [coin]),
+            returnValue: _i20.AmountUnit.normal,
+          )
+          as _i20.AmountUnit);
 
   @override
   void updateAmountUnit({
@@ -772,10 +876,12 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
   );
 
   @override
-  int maxDecimals(_i4.CryptoCurrency? coin) => (super.noSuchMethod(
-    Invocation.method(#maxDecimals, [coin]),
-    returnValue: 0,
-  ) as int);
+  int maxDecimals(_i4.CryptoCurrency? coin) =>
+      (super.noSuchMethod(
+            Invocation.method(#maxDecimals, [coin]),
+            returnValue: 0,
+          )
+          as int);
 
   @override
   void updateMaxDecimals({
@@ -792,12 +898,13 @@ class MockPrefs extends _i1.Mock implements _i12.Prefs {
   @override
   _i7.FusionInfo getFusionServerInfo(_i4.CryptoCurrency? coin) =>
       (super.noSuchMethod(
-        Invocation.method(#getFusionServerInfo, [coin]),
-        returnValue: _FakeFusionInfo_4(
-          this,
-          Invocation.method(#getFusionServerInfo, [coin]),
-        ),
-      ) as _i7.FusionInfo);
+            Invocation.method(#getFusionServerInfo, [coin]),
+            returnValue: _FakeFusionInfo_4(
+              this,
+              Invocation.method(#getFusionServerInfo, [coin]),
+            ),
+          )
+          as _i7.FusionInfo);
 
   @override
   void setFusionServerInfo(
@@ -842,10 +949,15 @@ class MockLocaleService extends _i1.Mock implements _i22.LocaleService {
   }
 
   @override
-  String get locale => (super.noSuchMethod(
-    Invocation.getter(#locale),
-    returnValue: _i17.dummyValue<String>(this, Invocation.getter(#locale)),
-  ) as String);
+  String get locale =>
+      (super.noSuchMethod(
+            Invocation.getter(#locale),
+            returnValue: _i17.dummyValue<String>(
+              this,
+              Invocation.getter(#locale),
+            ),
+          )
+          as String);
 
   @override
   bool get hasListeners =>
@@ -853,11 +965,13 @@ class MockLocaleService extends _i1.Mock implements _i22.LocaleService {
           as bool);
 
   @override
-  _i10.Future<void> loadLocale({bool? notify = true}) => (super.noSuchMethod(
-    Invocation.method(#loadLocale, [], {#notify: notify}),
-    returnValue: _i10.Future<void>.value(),
-    returnValueForMissingStub: _i10.Future<void>.value(),
-  ) as _i10.Future<void>);
+  _i10.Future<void> loadLocale({bool? notify = true}) =>
+      (super.noSuchMethod(
+            Invocation.method(#loadLocale, [], {#notify: notify}),
+            returnValue: _i10.Future<void>.value(),
+            returnValueForMissingStub: _i10.Future<void>.value(),
+          )
+          as _i10.Future<void>);
 
   @override
   void addListener(_i21.VoidCallback? listener) => super.noSuchMethod(
@@ -893,25 +1007,31 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
   }
 
   @override
-  _i8.SecureStorageInterface get secureStorageInterface => (super.noSuchMethod(
-    Invocation.getter(#secureStorageInterface),
-    returnValue: _FakeSecureStorageInterface_5(
-      this,
-      Invocation.getter(#secureStorageInterface),
-    ),
-  ) as _i8.SecureStorageInterface);
+  _i8.SecureStorageInterface get secureStorageInterface =>
+      (super.noSuchMethod(
+            Invocation.getter(#secureStorageInterface),
+            returnValue: _FakeSecureStorageInterface_5(
+              this,
+              Invocation.getter(#secureStorageInterface),
+            ),
+          )
+          as _i8.SecureStorageInterface);
 
   @override
-  List<_i23.NodeModel> get primaryNodes => (super.noSuchMethod(
-    Invocation.getter(#primaryNodes),
-    returnValue: <_i23.NodeModel>[],
-  ) as List<_i23.NodeModel>);
+  List<_i23.NodeModel> get primaryNodes =>
+      (super.noSuchMethod(
+            Invocation.getter(#primaryNodes),
+            returnValue: <_i23.NodeModel>[],
+          )
+          as List<_i23.NodeModel>);
 
   @override
-  List<_i23.NodeModel> get nodes => (super.noSuchMethod(
-    Invocation.getter(#nodes),
-    returnValue: <_i23.NodeModel>[],
-  ) as List<_i23.NodeModel>);
+  List<_i23.NodeModel> get nodes =>
+      (super.noSuchMethod(
+            Invocation.getter(#nodes),
+            returnValue: <_i23.NodeModel>[],
+          )
+          as List<_i23.NodeModel>);
 
   @override
   bool get hasListeners =>
@@ -919,39 +1039,45 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
           as bool);
 
   @override
-  _i10.Future<void> updateDefaults() => (super.noSuchMethod(
-    Invocation.method(#updateDefaults, []),
-    returnValue: _i10.Future<void>.value(),
-    returnValueForMissingStub: _i10.Future<void>.value(),
-  ) as _i10.Future<void>);
+  _i10.Future<void> updateDefaults() =>
+      (super.noSuchMethod(
+            Invocation.method(#updateDefaults, []),
+            returnValue: _i10.Future<void>.value(),
+            returnValueForMissingStub: _i10.Future<void>.value(),
+          )
+          as _i10.Future<void>);
 
   @override
   _i10.Future<void> setPrimaryNodeFor({
     required _i4.CryptoCurrency? coin,
     required _i23.NodeModel? node,
     bool? shouldNotifyListeners = false,
-  }) => (super.noSuchMethod(
-    Invocation.method(#setPrimaryNodeFor, [], {
-      #coin: coin,
-      #node: node,
-      #shouldNotifyListeners: shouldNotifyListeners,
-    }),
-    returnValue: _i10.Future<void>.value(),
-    returnValueForMissingStub: _i10.Future<void>.value(),
-  ) as _i10.Future<void>);
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#setPrimaryNodeFor, [], {
+              #coin: coin,
+              #node: node,
+              #shouldNotifyListeners: shouldNotifyListeners,
+            }),
+            returnValue: _i10.Future<void>.value(),
+            returnValueForMissingStub: _i10.Future<void>.value(),
+          )
+          as _i10.Future<void>);
 
   @override
   _i23.NodeModel? getPrimaryNodeFor({required _i4.CryptoCurrency? currency}) =>
       (super.noSuchMethod(
-        Invocation.method(#getPrimaryNodeFor, [], {#currency: currency}),
-      ) as _i23.NodeModel?);
+            Invocation.method(#getPrimaryNodeFor, [], {#currency: currency}),
+          )
+          as _i23.NodeModel?);
 
   @override
   List<_i23.NodeModel> getNodesFor(_i4.CryptoCurrency? coin) =>
       (super.noSuchMethod(
-        Invocation.method(#getNodesFor, [coin]),
-        returnValue: <_i23.NodeModel>[],
-      ) as List<_i23.NodeModel>);
+            Invocation.method(#getNodesFor, [coin]),
+            returnValue: <_i23.NodeModel>[],
+          )
+          as List<_i23.NodeModel>);
 
   @override
   _i23.NodeModel? getNodeById({required String? id}) =>
@@ -961,21 +1087,25 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
   @override
   List<_i23.NodeModel> failoverNodesFor({
     required _i4.CryptoCurrency? currency,
-  }) => (super.noSuchMethod(
-    Invocation.method(#failoverNodesFor, [], {#currency: currency}),
-    returnValue: <_i23.NodeModel>[],
-  ) as List<_i23.NodeModel>);
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#failoverNodesFor, [], {#currency: currency}),
+            returnValue: <_i23.NodeModel>[],
+          )
+          as List<_i23.NodeModel>);
 
   @override
   _i10.Future<void> save(
     _i23.NodeModel? node,
     String? password,
     bool? shouldNotifyListeners,
-  ) => (super.noSuchMethod(
-    Invocation.method(#save, [node, password, shouldNotifyListeners]),
-    returnValue: _i10.Future<void>.value(),
-    returnValueForMissingStub: _i10.Future<void>.value(),
-  ) as _i10.Future<void>);
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#save, [node, password, shouldNotifyListeners]),
+            returnValue: _i10.Future<void>.value(),
+            returnValueForMissingStub: _i10.Future<void>.value(),
+          )
+          as _i10.Future<void>);
 
   @override
   _i10.Future<bool> saveEdit(
@@ -984,99 +1114,123 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
     bool? notify, {
     required _i23.NodeModel? opened,
     bool? forgetCertificate = false,
-  }) => (super.noSuchMethod(
-    Invocation.method(
-      #saveEdit,
-      [node, password, notify],
-      {#opened: opened, #forgetCertificate: forgetCertificate},
-    ),
-    returnValue: _i10.Future<bool>.value(false),
-  ) as _i10.Future<bool>);
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #saveEdit,
+              [node, password, notify],
+              {#opened: opened, #forgetCertificate: forgetCertificate},
+            ),
+            returnValue: _i10.Future<bool>.value(false),
+          )
+          as _i10.Future<bool>);
 
   @override
-  bool prepareCertificateTest(_i24.NodeFormData? data) => (super.noSuchMethod(
-    Invocation.method(#prepareCertificateTest, [data]),
-    returnValue: false,
-  ) as bool);
+  bool prepareCertificateTest(_i24.NodeFormData? data) =>
+      (super.noSuchMethod(
+            Invocation.method(#prepareCertificateTest, [data]),
+            returnValue: false,
+          )
+          as bool);
 
   @override
   _i10.Future<bool> saveTrustedCertificate(
     _i23.NodeModel? node,
     _i24.NodeFormData? data,
-  ) => (super.noSuchMethod(
-    Invocation.method(#saveTrustedCertificate, [node, data]),
-    returnValue: _i10.Future<bool>.value(false),
-  ) as _i10.Future<bool>);
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveTrustedCertificate, [node, data]),
+            returnValue: _i10.Future<bool>.value(false),
+          )
+          as _i10.Future<bool>);
 
   @override
   _i10.Future<bool> forgetTrustedCertificate(_i23.NodeModel? shown) =>
       (super.noSuchMethod(
-        Invocation.method(#forgetTrustedCertificate, [shown]),
-        returnValue: _i10.Future<bool>.value(false),
-      ) as _i10.Future<bool>);
+            Invocation.method(#forgetTrustedCertificate, [shown]),
+            returnValue: _i10.Future<bool>.value(false),
+          )
+          as _i10.Future<bool>);
 
   @override
   _i10.Future<bool> commitConnectionTest({
     required _i23.NodeModel? node,
     required _i24.NodeFormData? formData,
-  }) => (super.noSuchMethod(
-    Invocation.method(#commitConnectionTest, [], {
-      #node: node,
-      #formData: formData,
-    }),
-    returnValue: _i10.Future<bool>.value(false),
-  ) as _i10.Future<bool>);
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#commitConnectionTest, [], {
+              #node: node,
+              #formData: formData,
+            }),
+            returnValue: _i10.Future<bool>.value(false),
+          )
+          as _i10.Future<bool>);
 
   @override
-  _i10.Future<bool> setFailover(String? id, bool? value) => (super.noSuchMethod(
-    Invocation.method(#setFailover, [id, value]),
-    returnValue: _i10.Future<bool>.value(false),
-  ) as _i10.Future<bool>);
+  _i10.Future<bool> setFailover(String? id, bool? value) =>
+      (super.noSuchMethod(
+            Invocation.method(#setFailover, [id, value]),
+            returnValue: _i10.Future<bool>.value(false),
+          )
+          as _i10.Future<bool>);
 
   @override
   _i10.Future<void> delete(String? id, bool? shouldNotifyListeners) =>
       (super.noSuchMethod(
-        Invocation.method(#delete, [id, shouldNotifyListeners]),
-        returnValue: _i10.Future<void>.value(),
-        returnValueForMissingStub: _i10.Future<void>.value(),
-      ) as _i10.Future<void>);
+            Invocation.method(#delete, [id, shouldNotifyListeners]),
+            returnValue: _i10.Future<void>.value(),
+            returnValueForMissingStub: _i10.Future<void>.value(),
+          )
+          as _i10.Future<void>);
 
   @override
   _i10.Future<void> setEnabledState(
     String? id,
     bool? enabled,
     bool? shouldNotifyListeners,
-  ) => (super.noSuchMethod(
-    Invocation.method(#setEnabledState, [id, enabled, shouldNotifyListeners]),
-    returnValue: _i10.Future<void>.value(),
-    returnValueForMissingStub: _i10.Future<void>.value(),
-  ) as _i10.Future<void>);
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#setEnabledState, [
+              id,
+              enabled,
+              shouldNotifyListeners,
+            ]),
+            returnValue: _i10.Future<void>.value(),
+            returnValueForMissingStub: _i10.Future<void>.value(),
+          )
+          as _i10.Future<void>);
 
   @override
-  _i10.Future<void> updateDefaultEpicBoxes() => (super.noSuchMethod(
-    Invocation.method(#updateDefaultEpicBoxes, []),
-    returnValue: _i10.Future<void>.value(),
-    returnValueForMissingStub: _i10.Future<void>.value(),
-  ) as _i10.Future<void>);
+  _i10.Future<void> updateDefaultEpicBoxes() =>
+      (super.noSuchMethod(
+            Invocation.method(#updateDefaultEpicBoxes, []),
+            returnValue: _i10.Future<void>.value(),
+            returnValueForMissingStub: _i10.Future<void>.value(),
+          )
+          as _i10.Future<void>);
 
   @override
   _i10.Future<void> setPrimaryEpicBox({
     required _i25.EpicBoxServerModel? epicBox,
     bool? shouldNotifyListeners = false,
-  }) => (super.noSuchMethod(
-    Invocation.method(#setPrimaryEpicBox, [], {
-      #epicBox: epicBox,
-      #shouldNotifyListeners: shouldNotifyListeners,
-    }),
-    returnValue: _i10.Future<void>.value(),
-    returnValueForMissingStub: _i10.Future<void>.value(),
-  ) as _i10.Future<void>);
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#setPrimaryEpicBox, [], {
+              #epicBox: epicBox,
+              #shouldNotifyListeners: shouldNotifyListeners,
+            }),
+            returnValue: _i10.Future<void>.value(),
+            returnValueForMissingStub: _i10.Future<void>.value(),
+          )
+          as _i10.Future<void>);
 
   @override
-  List<_i25.EpicBoxServerModel> getEpicBoxes() => (super.noSuchMethod(
-    Invocation.method(#getEpicBoxes, []),
-    returnValue: <_i25.EpicBoxServerModel>[],
-  ) as List<_i25.EpicBoxServerModel>);
+  List<_i25.EpicBoxServerModel> getEpicBoxes() =>
+      (super.noSuchMethod(
+            Invocation.method(#getEpicBoxes, []),
+            returnValue: <_i25.EpicBoxServerModel>[],
+          )
+          as List<_i25.EpicBoxServerModel>);
 
   @override
   _i25.EpicBoxServerModel? getEpicBoxById({required String? id}) =>
@@ -1087,26 +1241,31 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
   _i10.Future<void> addEpicBox(
     _i25.EpicBoxServerModel? epicBox,
     bool? shouldNotifyListeners,
-  ) => (super.noSuchMethod(
-    Invocation.method(#addEpicBox, [epicBox, shouldNotifyListeners]),
-    returnValue: _i10.Future<void>.value(),
-    returnValueForMissingStub: _i10.Future<void>.value(),
-  ) as _i10.Future<void>);
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#addEpicBox, [epicBox, shouldNotifyListeners]),
+            returnValue: _i10.Future<void>.value(),
+            returnValueForMissingStub: _i10.Future<void>.value(),
+          )
+          as _i10.Future<void>);
 
   @override
   _i10.Future<void> deleteEpicBox(String? id, bool? shouldNotifyListeners) =>
       (super.noSuchMethod(
-        Invocation.method(#deleteEpicBox, [id, shouldNotifyListeners]),
-        returnValue: _i10.Future<void>.value(),
-        returnValueForMissingStub: _i10.Future<void>.value(),
-      ) as _i10.Future<void>);
+            Invocation.method(#deleteEpicBox, [id, shouldNotifyListeners]),
+            returnValue: _i10.Future<void>.value(),
+            returnValueForMissingStub: _i10.Future<void>.value(),
+          )
+          as _i10.Future<void>);
 
   @override
-  _i10.Future<void> updateCommunityNodes() => (super.noSuchMethod(
-    Invocation.method(#updateCommunityNodes, []),
-    returnValue: _i10.Future<void>.value(),
-    returnValueForMissingStub: _i10.Future<void>.value(),
-  ) as _i10.Future<void>);
+  _i10.Future<void> updateCommunityNodes() =>
+      (super.noSuchMethod(
+            Invocation.method(#updateCommunityNodes, []),
+            returnValue: _i10.Future<void>.value(),
+            returnValueForMissingStub: _i10.Future<void>.value(),
+          )
+          as _i10.Future<void>);
 
   @override
   void addListener(_i21.VoidCallback? listener) => super.noSuchMethod(

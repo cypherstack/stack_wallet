@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../exceptions/electrumx/broadcast_outcome_unknown.dart';
 import '../../models/exchange/response_objects/trade.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../models/trade_wallet_lookup.dart';
@@ -79,7 +80,10 @@ class _ConfirmChangeNowSendViewState
 
   final isDesktop = Util.isDesktop;
 
+  bool _broadcastOutcomeUnknown = false;
+
   Future<void> _attemptSend(BuildContext context) async {
+    if (_broadcastOutcomeUnknown) return;
     final wallet = ref.read(pWallets).getWallet(walletId);
     final coin = wallet.info.coin;
 
@@ -169,8 +173,13 @@ class _ConfirmChangeNowSendViewState
         Navigator.of(context).popUntil(ModalRoute.withName(routeOnSuccessName));
       }
     } catch (e, s) {
+      if (e is BroadcastOutcomeUnknown && mounted) {
+        setState(() => _broadcastOutcomeUnknown = true);
+      }
       Logging.instance.e(
-        "Broadcast transaction failed: ",
+        e is BroadcastOutcomeUnknown
+            ? BroadcastOutcomeUnknown.title
+            : "Broadcast transaction failed: ",
         error: e,
         stackTrace: s,
       );
@@ -184,7 +193,9 @@ class _ConfirmChangeNowSendViewState
         barrierDismissible: true,
         builder: (context) {
           return StackDialog(
-            title: "Broadcast transaction failed",
+            title: e is BroadcastOutcomeUnknown
+                ? BroadcastOutcomeUnknown.title
+                : "Broadcast transaction failed",
             message: e.toString(),
             rightButton: TextButton(
               style: Theme.of(context)
@@ -209,6 +220,7 @@ class _ConfirmChangeNowSendViewState
   }
 
   Future<void> _confirmSend() async {
+    if (_broadcastOutcomeUnknown) return;
     final dynamic unlocked;
 
     final coin = ref.read(pWalletCoin(walletId));
@@ -459,6 +471,7 @@ class _ConfirmChangeNowSendViewState
                         Expanded(
                           child: PrimaryButton(
                             label: "Send",
+                            enabled: !_broadcastOutcomeUnknown,
                             buttonHeight: isDesktop ? ButtonHeight.l : null,
                             onPressed: _confirmSend,
                           ),
@@ -744,6 +757,7 @@ class _ConfirmChangeNowSendViewState
             if (!isDesktop)
               PrimaryButton(
                 label: "Send",
+                enabled: !_broadcastOutcomeUnknown,
                 buttonHeight: isDesktop ? ButtonHeight.l : null,
                 onPressed: _confirmSend,
               ),

@@ -111,6 +111,10 @@ class TransactionV2 {
   bool get isCancelled =>
       _getFromOtherData(key: TxV2OdKeys.isCancelled) == true;
 
+  @ignore
+  bool get broadcastOutcomeUnknown =>
+      _getFromOtherData(key: TxV2OdKeys.broadcastOutcomeUnknown) == true;
+
   String? get contractAddress =>
       _getFromOtherData(key: TxV2OdKeys.contractAddress) as String?;
   int? get nonce => _getFromOtherData(key: TxV2OdKeys.nonce) as int?;
@@ -248,6 +252,10 @@ class TransactionV2 {
     required int minConfirms,
     required int minCoinbaseConfirms,
   }) {
+    if (broadcastOutcomeUnknown && (height == null || height! <= 0)) {
+      return 'Status unknown';
+    }
+
     String prettyConfirms() =>
         "("
         "${getConfirmations(currentChainHeight)}"
@@ -403,6 +411,8 @@ class TransactionV2 {
 }
 
 abstract final class TxV2OdKeys {
+  static const broadcastOutcomeUnknown = 'broadcastOutcomeUnknown';
+  static const rawTransaction = 'rawTransaction';
   static const size = "size";
   static const vSize = "vSize";
   static const isEpiccashTransaction = "isEpiccashTransaction";

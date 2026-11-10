@@ -7,6 +7,12 @@ import '../utilities/prefs.dart';
 import '../utilities/tor_plain_net_option_enum.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 
+typedef _DetachedClient = ({
+  ElectrumClient? client,
+  TorPlainNetworkOption? network,
+  StreamSubscription<BlockHeader>? subscription,
+});
+
 class ClientManager {
   ClientManager._();
   static final ClientManager sharedInstance = ClientManager._();
@@ -46,13 +52,18 @@ class ClientManager {
     String? trustedCertificatePem,
   }) async {
     final key = _keyHelper(cryptoCurrency);
-    final previous = _map[key];
-    final subscription = _subscriptions.remove(key);
+    final previous = _detachClient(
+      key,
+      error: StateError('Electrum client for $key was replaced'),
+    );
     _map[key] = client;
     _mapNet[key] = netType;
     _heights.remove(key);
     _certificates[key] = trustedCertificatePem;
     final firstHeight = _heightCompleters[key] = Completer<int>();
+    // A subscription can fail before a wallet starts waiting for its height.
+    // Observe the error now without changing what later consumers receive.
+    firstHeight.future.ignore();
     _subscriptions[key] = client.subscribeHeaders().listen(
       (event) {
         if (!identical(_map[key], client)) return;
@@ -61,11 +72,73 @@ class ClientManager {
           firstHeight.complete(event.height);
         }
       },
-      onError: (Object err, StackTrace s) =>
-          Logging.instance.e("ClientManager listen", error: err, stackTrace: s),
+      onError: (Object err, StackTrace s) {
+        Logging.instance.e("ClientManager listen", error: err, stackTrace: s);
+        _retireFailedClient(key, client, err, s);
+      },
+      onDone: () => _retireFailedClient(
+        key,
+        client,
+        StateError('Electrum header subscription for $key ended'),
+      ),
     );
-    await subscription?.cancel();
-    await previous?.close();
+    await _closeDetached(previous);
+  }
+
+  void _retireFailedClient(
+    String key,
+    ElectrumClient client,
+    Object error, [
+    StackTrace? stackTrace,
+  ]) {
+    final detached = _detachClient(
+      key,
+      expectedClient: client,
+      error: error,
+      stackTrace: stackTrace,
+    );
+    // A rejected header subscription can leave its RPC connection open. Retire
+    // it as well, so the next wallet request can establish a healthy client.
+    unawaited(
+      _closeDetached(detached).catchError((Object err, StackTrace stack) {
+        Logging.instance.e(
+          'ClientManager cleanup',
+          error: err,
+          stackTrace: stack,
+        );
+      }),
+    );
+  }
+
+  _DetachedClient _detachClient(
+    String key, {
+    ElectrumClient? expectedClient,
+    required Object error,
+    StackTrace? stackTrace,
+  }) {
+    if (expectedClient != null && !identical(_map[key], expectedClient)) {
+      return (client: null, network: null, subscription: null);
+    }
+    final detached = (
+      client: _map.remove(key),
+      network: _mapNet.remove(key),
+      subscription: _subscriptions.remove(key),
+    );
+    _heights.remove(key);
+    _certificates.remove(key);
+    final firstHeight = _heightCompleters.remove(key);
+    if (firstHeight != null && !firstHeight.isCompleted) {
+      firstHeight.completeError(error, stackTrace);
+    }
+    return detached;
+  }
+
+  Future<void> _closeDetached(_DetachedClient detached) async {
+    try {
+      await detached.subscription?.cancel();
+    } finally {
+      await detached.client?.close();
+    }
   }
 
   Future<int> getChainHeightFor(CryptoCurrency cryptoCurrency) async {
@@ -101,17 +174,13 @@ class ClientManager {
     ElectrumClient? expectedClient,
   }) async {
     final key = _keyHelper(cryptoCurrency);
-    if (expectedClient != null && !identical(_map[key], expectedClient)) {
-      return (null, null);
-    }
-    final client = _map.remove(key);
-    final network = _mapNet.remove(key);
-    final subscription = _subscriptions.remove(key);
-    _heights.remove(key);
-    _heightCompleters.remove(key);
-    _certificates.remove(key);
-    await subscription?.cancel();
-    return (client, network);
+    final detached = _detachClient(
+      key,
+      expectedClient: expectedClient,
+      error: StateError('Electrum client for $key was removed'),
+    );
+    await detached.subscription?.cancel();
+    return (detached.client, detached.network);
   }
 
   Future<void> closeAll() async {
@@ -120,18 +189,12 @@ class ClientManager {
   }
 
   Future<void> _kill() async {
-    for (final sub in _subscriptions.values) {
-      await sub.cancel();
-    }
-    for (final client in _map.values) {
-      await client.close();
-    }
-
-    _heightCompleters.clear();
-    _heights.clear();
-    _subscriptions.clear();
-    _mapNet.clear();
-    _map.clear();
-    _certificates.clear();
+    // Detach synchronously before awaiting cancellation. Old callbacks must
+    // never remove a successor that is added while cleanup is in progress.
+    final detached = [
+      for (final key in _map.keys.toList())
+        _detachClient(key, error: StateError('Electrum clients were closed')),
+    ];
+    await Future.wait(detached.map(_closeDetached));
   }
 }

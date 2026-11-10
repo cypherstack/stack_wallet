@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:bitcoindart/bitcoindart.dart' as bitcoin;
 import 'package:flutter/foundation.dart';
 // import 'package:frostdart/frostdart.dart' as frost;
 // import 'package:frostdart/frostdart_bindings_generated.dart';
@@ -9,6 +10,7 @@ import 'package:isar_community/isar.dart';
 
 import '../../../electrumx_rpc/cached_electrumx_client.dart';
 import '../../../electrumx_rpc/electrumx_client.dart';
+import '../../../exceptions/electrumx/broadcast_outcome_unknown.dart';
 import '../../../models/balance.dart';
 import '../../../models/input.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
@@ -666,7 +668,10 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
 
       final hex = txData.raw!;
 
-      final txHash = await electrumXClient.broadcastTransaction(rawTx: hex);
+      final txHash = await electrumXClient.broadcastTransaction(
+        rawTx: hex,
+        expectedTxId: bitcoin.Transaction.fromHex(hex).getId(),
+      );
       Logging.instance.d("Sent txHash: $txHash");
 
       // mark utxos as used
@@ -682,6 +687,9 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
       );
 
       return txData;
+    } on BroadcastOutcomeUnknown catch (e) {
+      await preservePendingBroadcast(txData: txData, txid: e.txid);
+      rethrow;
     } catch (e, s) {
       Logging.instance.e(
         "Exception rethrown from confirmSend(): ",

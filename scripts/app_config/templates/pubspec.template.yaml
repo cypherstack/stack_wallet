@@ -231,6 +231,7 @@ dependencies:
       url: https://github.com/cypherstack/electrum_adapter.git
       ref: b0d8a16c8a4d6976bd0f1f98723e222706cc567c # v5.0.0
   stream_channel: ^2.1.0
+  json_rpc_2: ^4.1.0
   solana:
     git: # TODO [prio=low]: Revert to official package once Tor support is merged upstream.
       url: https://github.com/cypherstack/espresso-cash-public.git

@@ -13,6 +13,7 @@ import 'package:meta/meta.dart';
 import 'package:pointycastle/digests/sha256.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../../exceptions/electrumx/broadcast_outcome_unknown.dart';
 import '../../../exceptions/wallet/insufficient_balance_exception.dart';
 import '../../../exceptions/wallet/paynym_send_exception.dart';
 import '../../../models/input.dart';
@@ -705,6 +706,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
 
           final txData = TxData(
             raw: txn.item1,
+            txid: txn.item3,
             recipients: [
               TxRecipient(
                 address: targetPaymentCodeString,
@@ -736,6 +738,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
 
           final txData = TxData(
             raw: txn.item1,
+            txid: txn.item3,
             recipients: [
               TxRecipient(
                 address: targetPaymentCodeString,
@@ -768,6 +771,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
 
         final txData = TxData(
           raw: txn.item1,
+          txid: txn.item3,
           recipients: [
             TxRecipient(
               address: targetPaymentCodeString,
@@ -806,9 +810,9 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
     }
   }
 
-  // return tuple with string value equal to the raw tx hex and the int value
-  // equal to its vSize
-  Future<Tuple2<String, int>> _createNotificationTx({
+  // Return the signed bytes, virtual size, and ID from the constructed
+  // transaction. Re-parsing legacy bytes with the pinned coinlib is unreliable.
+  Future<Tuple3<String, int, String>> _createNotificationTx({
     required String targetPaymentCodeString,
     required List<StandardInput> inputsWithKeys,
     required BigInt change,
@@ -1019,7 +1023,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
         }
       }
 
-      return Tuple2(clTx.toHex(), clTx.vSize());
+      return Tuple3(clTx.toHex(), clTx.vSize(), clTx.txid);
     } catch (e, s) {
       Logging.instance.e("_createNotificationTx(): ", error: e, stackTrace: s);
       rethrow;
@@ -1031,6 +1035,7 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       Logging.instance.d("confirmNotificationTx txData: $txData");
       final txHash = await electrumXClient.broadcastTransaction(
         rawTx: txData.raw!,
+        expectedTxId: txData.txid,
       );
       Logging.instance.d("Sent txHash: $txHash");
 
@@ -1045,6 +1050,9 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       }
 
       return txData.copyWith(txid: txHash, txHash: txHash);
+    } on BroadcastOutcomeUnknown catch (e) {
+      await preservePendingBroadcast(txData: txData, txid: e.txid);
+      rethrow;
     } catch (e, s) {
       Logging.instance.e(
         "Exception rethrown from confirmSend(): ",

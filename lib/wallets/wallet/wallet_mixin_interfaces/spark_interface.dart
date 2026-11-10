@@ -13,6 +13,7 @@ import 'package:logger/logger.dart';
 
 import '../../../db/drift/database.dart' show Drift;
 import '../../../db/sqlite/firo_cache.dart';
+import '../../../exceptions/electrumx/broadcast_outcome_unknown.dart';
 import '../../../models/balance.dart';
 import '../../../models/electrumx_response/spark_models.dart';
 import '../../../models/input.dart';
@@ -1414,6 +1415,7 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
         try {
           final txHash = await electrumXClient.broadcastTransaction(
             rawTx: transactions[i].raw!,
+            expectedTxId: transactions[i].tempTx?.txid ?? transactions[i].txid,
           );
           Logging.instance.d("Sent txHash: $txHash");
 
@@ -1428,6 +1430,26 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
           });
           confirmedTx = await updateSentCachedTxData(txData: confirmedTx);
           confirmed[confirmed.length - 1] = confirmedTx;
+        } on BroadcastOutcomeUnknown catch (e) {
+          try {
+            await mainDB.isar.writeTxn(() async {
+              await mainDB.isar.sparkCoins.putAll(
+                transactions[i].usedSparkCoins!,
+              );
+            });
+          } catch (cacheError, stack) {
+            Logging.instance.e(
+              'Could not reserve Spark coins after an uncertain broadcast',
+              error: cacheError,
+              stackTrace: stack,
+            );
+          }
+          await preservePendingBroadcast(txData: transactions[i], txid: e.txid);
+          throw BroadcastOutcomeUnknown(
+            txid: e.txid,
+            cause: e.cause,
+            confirmedTxids: confirmed.map((tx) => tx.txid!).toList(),
+          );
         } catch (e) {
           if (confirmed.isNotEmpty) {
             final txids = confirmed.map((e) => e.txid).join(", ");

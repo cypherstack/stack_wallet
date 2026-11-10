@@ -9,6 +9,7 @@ import 'package:decimal/decimal.dart';
 import 'package:isar_community/isar.dart';
 
 import '../../../db/sqlite/firo_cache.dart';
+import '../../../exceptions/electrumx/broadcast_outcome_unknown.dart';
 import '../../../models/input.dart';
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
@@ -1276,9 +1277,16 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
       'ProReg payload missing from signed transaction hex',
     );
 
-    final broadcastedTxHash = await electrumXClient.broadcastTransaction(
-      rawTx: finalTransactionHex,
-    );
+    final String broadcastedTxHash;
+    try {
+      broadcastedTxHash = await electrumXClient.broadcastTransaction(
+        rawTx: finalTransactionHex,
+        expectedTxId: finalTx.tempTx?.txid ?? finalTx.txid,
+      );
+    } on BroadcastOutcomeUnknown catch (e) {
+      await preservePendingBroadcast(txData: finalTx, txid: e.txid);
+      rethrow;
+    }
     if (broadcastedTxHash.toUint8ListFromHex.length != 32) {
       throw Exception("Failed to broadcast transaction: $broadcastedTxHash");
     }

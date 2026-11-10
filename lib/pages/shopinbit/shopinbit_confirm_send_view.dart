@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../exceptions/electrumx/broadcast_outcome_unknown.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
@@ -68,7 +69,10 @@ class _ShopInBitConfirmSendViewState
 
   final isDesktop = Util.isDesktop;
 
+  bool _broadcastOutcomeUnknown = false;
+
   Future<void> _attemptSend(BuildContext context) async {
+    if (_broadcastOutcomeUnknown) return;
     final parentWallet = ref.read(pWallets).getWallet(walletId);
     final coin = parentWallet.info.coin;
 
@@ -148,8 +152,13 @@ class _ShopInBitConfirmSendViewState
         }
       }
     } catch (e, s) {
+      if (e is BroadcastOutcomeUnknown && mounted) {
+        setState(() => _broadcastOutcomeUnknown = true);
+      }
       Logging.instance.e(
-        "Broadcast transaction failed: ",
+        e is BroadcastOutcomeUnknown
+            ? BroadcastOutcomeUnknown.title
+            : "Broadcast transaction failed: ",
         error: e,
         stackTrace: s,
       );
@@ -164,7 +173,9 @@ class _ShopInBitConfirmSendViewState
           barrierDismissible: true,
           builder: (context) {
             return StackDialog(
-              title: "Broadcast transaction failed",
+              title: e is BroadcastOutcomeUnknown
+                  ? BroadcastOutcomeUnknown.title
+                  : "Broadcast transaction failed",
               message: e.toString(),
               rightButton: TextButton(
                 style: Theme.of(context)
@@ -190,6 +201,7 @@ class _ShopInBitConfirmSendViewState
   }
 
   Future<void> _confirmSend() async {
+    if (_broadcastOutcomeUnknown) return;
     final dynamic unlocked;
 
     final coin = ref.read(pWalletCoin(walletId));
@@ -460,6 +472,7 @@ class _ShopInBitConfirmSendViewState
                         Expanded(
                           child: PrimaryButton(
                             label: "Send",
+                            enabled: !_broadcastOutcomeUnknown,
                             buttonHeight: isDesktop ? ButtonHeight.l : null,
                             onPressed: _confirmSend,
                           ),
@@ -763,6 +776,7 @@ class _ShopInBitConfirmSendViewState
             if (!isDesktop)
               PrimaryButton(
                 label: "Send",
+                enabled: !_broadcastOutcomeUnknown,
                 buttonHeight: isDesktop ? ButtonHeight.l : null,
                 onPressed: _confirmSend,
               ),

@@ -17,6 +17,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:namecoin/namecoin.dart';
 
+import '../../exceptions/electrumx/broadcast_outcome_unknown.dart';
 import '../../models/isar/models/transaction_note.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../pages_desktop_specific/coin_control/desktop_coin_control_use_dialog.dart';
@@ -76,7 +77,10 @@ class _ConfirmNameTransactionViewState
   late final FocusNode _noteFocusNode;
   late final TextEditingController noteController;
 
+  bool _broadcastOutcomeUnknown = false;
+
   Future<void> _attemptSend() async {
+    if (_broadcastOutcomeUnknown) return;
     final wallet = ref.read(pWallets).getWallet(walletId);
     final coin = wallet.info.coin;
 
@@ -165,7 +169,12 @@ class _ConfirmNameTransactionViewState
         }
       }
     } catch (e, s) {
-      const niceError = "Broadcast name transaction failed";
+      if (e is BroadcastOutcomeUnknown && mounted) {
+        setState(() => _broadcastOutcomeUnknown = true);
+      }
+      final niceError = e is BroadcastOutcomeUnknown
+          ? BroadcastOutcomeUnknown.title
+          : "Broadcast name transaction failed";
 
       Logging.instance.e(niceError, error: e, stackTrace: s);
 
@@ -912,6 +921,7 @@ class _ConfirmNameTransactionViewState
                       : const EdgeInsets.all(0),
               child: PrimaryButton(
                 label: "Send",
+                enabled: !_broadcastOutcomeUnknown,
                 buttonHeight: isDesktop ? ButtonHeight.l : null,
                 onPressed: () async {
                   final dynamic unlocked;

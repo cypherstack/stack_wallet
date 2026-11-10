@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../../exceptions/electrumx/broadcast_outcome_unknown.dart';
 import '../../../../frost_route_generator.dart';
 import '../../../../pages_desktop_specific/my_stack_view/my_stack_view.dart';
 import '../../../../providers/frost_wallet/frost_wallet_providers.dart';
@@ -39,6 +40,7 @@ class _FrostSendStep4State extends ConsumerState<FrostSendStep4> {
   final List<bool> _expandedStates = [];
 
   bool _broadcastLock = false;
+  bool _broadcastOutcomeUnknown = false;
 
   late final CryptoCurrency cryptoCurrency;
 
@@ -175,8 +177,9 @@ class _FrostSendStep4State extends ConsumerState<FrostSendStep4> {
           const SizedBox(height: 12),
           PrimaryButton(
             label: "Approve transaction",
+            enabled: !_broadcastOutcomeUnknown,
             onPressed: () async {
-              if (_broadcastLock) {
+              if (_broadcastLock || _broadcastOutcomeUnknown) {
                 return;
               }
               _broadcastLock = true;
@@ -217,13 +220,18 @@ class _FrostSendStep4State extends ConsumerState<FrostSendStep4> {
                   }
                 }
               } catch (e, s) {
+                if (e is BroadcastOutcomeUnknown && mounted) {
+                  setState(() => _broadcastOutcomeUnknown = true);
+                }
                 Logging.instance.f("$e\n$s", error: e, stackTrace: s);
                 if (context.mounted) {
                   return await showDialog<void>(
                     context: context,
                     builder:
                         (_) => StackOkDialog(
-                          title: "Broadcast error",
+                          title: e is BroadcastOutcomeUnknown
+                              ? BroadcastOutcomeUnknown.title
+                              : "Broadcast error",
                           message: e.toString(),
                           desktopPopRootNavigator: Util.isDesktop,
                           onOkPressed:

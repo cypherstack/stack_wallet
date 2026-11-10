@@ -17,9 +17,11 @@ import 'package:electrum_adapter/electrum_adapter.dart' as electrum_adapter;
 import 'package:electrum_adapter/electrum_adapter.dart';
 import 'package:electrum_adapter/methods/specific/firo.dart';
 import 'package:event_bus/event_bus.dart';
+import 'package:json_rpc_2/json_rpc_2.dart' show RpcException;
 import 'package:mutex/mutex.dart';
 
 import '../app_config.dart';
+import '../exceptions/electrumx/broadcast_outcome_unknown.dart';
 import '../exceptions/electrumx/no_such_transaction.dart';
 import '../models/electrumx_response/spark_models.dart';
 import '../services/event_bus/events/global/tor_connection_status_changed_event.dart';
@@ -35,6 +37,7 @@ import '../utilities/tor_plain_net_option_enum.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import '../wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
 import 'client_manager.dart';
+import 'electrum_request_timeouts.dart';
 
 class WifiOnlyException implements Exception {}
 
@@ -82,7 +85,7 @@ class ElectrumXNode {
 }
 
 class ElectrumXClient {
-  static const _defaultRequestTimeout = Duration(seconds: 60);
+  final ElectrumRequestTimeouts requestTimeouts;
 
   final CryptoCurrency cryptoCurrency;
   final TorPlainNetworkOption netType;
@@ -139,7 +142,17 @@ class ElectrumXClient {
     TorService? torService,
     EventBus? globalEventBusForTesting,
     this.trustedCertificatePem,
+    this.requestTimeouts = const ElectrumRequestTimeouts(),
   }) {
+    for (final limit in [
+      requestTimeouts.standard,
+      requestTimeouts.history,
+      requestTimeouts.firoSet,
+    ]) {
+      if (limit <= Duration.zero) {
+        throw ArgumentError.value(limit, 'requestTimeouts', 'Must be positive');
+      }
+    }
     _prefs = prefs;
     _torService = torService ?? TorService.sharedInstance;
     _host = host;
@@ -189,12 +202,14 @@ class ElectrumXClient {
     required CryptoCurrency cryptoCurrency,
     TorService? torService,
     EventBus? globalEventBusForTesting,
+    ElectrumRequestTimeouts requestTimeouts = const ElectrumRequestTimeouts(),
   }) {
     return ElectrumXClient(
       host: node.address,
       port: node.port,
       useSSL: node.useSSL,
       trustedCertificatePem: node.trustedCertificatePem,
+      requestTimeouts: requestTimeouts,
       prefs: prefs,
       torService: torService,
       failovers: failovers,
@@ -257,17 +272,6 @@ class ElectrumXClient {
     }
 
     ensureCurrent();
-    final failover = currentFailoverIndex == -1
-        ? null
-        : _failovers[currentFailoverIndex];
-    final useHost = failover?.address ?? host;
-    final usePort = failover?.port ?? port;
-    final ssl = failover?.useSSL ?? useSSL;
-    final pem = ssl
-        ? (failover == null
-              ? trustedCertificatePem
-              : failover.trustedCertificatePem)
-        : null;
     ({InternetAddress host, int port})? proxy;
     if (AppConfig.hasFeature(AppFeature.tor) && _prefs.useTor) {
       if (_torService.status == TorConnectionStatus.connected) {
@@ -288,87 +292,119 @@ class ElectrumXClient {
         client.useSSL == tls &&
         ClientManager.sharedInstance.trustedCertificateFor(cryptoCurrency) ==
             (tls ? pin : null);
-    bool shareable(ElectrumClient client) =>
-        !client.peer.isClosed &&
-        client.proxyInfo?.host.address == proxy?.host.address &&
-        client.proxyInfo?.port == proxy?.port &&
-        (failover != null
-            ? matches(client, useHost, usePort, ssl, pem)
-            : matches(client, host, port, useSSL, trustedCertificatePem) ||
-                  _failovers.any(
-                    (n) => matches(
-                      client,
-                      n.address,
-                      n.port,
-                      n.useSSL,
-                      n.trustedCertificatePem,
-                    ),
-                  ));
-    final existing = getElectrumAdapter();
-    if (existing != null && shareable(existing)) {
-      _adapter = existing;
-      return;
-    }
-    if (existing != null) {
-      await _release(existing);
+    // Setup fails before the caller RPC is sent. Try each remaining configured
+    // node once, including for callers that use the adapter directly.
+    for (var index = currentFailoverIndex; index < _failovers.length; index++) {
       ensureCurrent();
-    }
-    ElectrumClient? candidate;
-    bool kept = false;
-    try {
-      final channel = await electrum_adapter.connect(
-        useHost,
-        port: usePort,
-        useSSL: ssl,
-        proxyInfo: proxy,
-        connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
-        connectionDeadline: connectionTimeoutForSpecialCaseJsonRPCClients,
-        acceptUnverified: false,
-        onBadCertificate: trustedCertificateCheck(pem),
-      );
-      candidate = cryptoCurrency is Firo
-          ? FiroElectrumClient(
-              channel,
-              useHost,
-              usePort,
-              ssl,
-              proxy,
-              requestTimeout: _defaultRequestTimeout,
-            )
-          : ElectrumClient(
-              channel,
-              useHost,
-              usePort,
-              ssl,
-              proxy,
-              requestTimeout: _defaultRequestTimeout,
-            );
-      _pendingClient = candidate;
-      ensureCurrent();
-      await candidate.requestWithTimeout(
-        'server.version',
-        timeout: connectionTimeoutForSpecialCaseJsonRPCClients,
-      );
-      ensureCurrent();
-      final other = getElectrumAdapter();
-      if (other != null && shareable(other)) {
-        _adapter = other;
-      } else {
-        _adapter = candidate;
-        await ClientManager.sharedInstance.addClient(
-          candidate,
-          cryptoCurrency: cryptoCurrency,
-          netType: netType,
-          trustedCertificatePem: pem,
+      currentFailoverIndex = index;
+      final failover = index == -1 ? null : _failovers[index];
+      final useHost = failover?.address ?? host;
+      final usePort = failover?.port ?? port;
+      final ssl = failover?.useSSL ?? useSSL;
+      final pem = ssl
+          ? (failover == null
+                ? trustedCertificatePem
+                : failover.trustedCertificatePem)
+          : null;
+      bool shareable(ElectrumClient client) =>
+          !client.peer.isClosed &&
+          client.proxyInfo?.host.address == proxy?.host.address &&
+          client.proxyInfo?.port == proxy?.port &&
+          (failover != null
+              ? matches(client, useHost, usePort, ssl, pem)
+              : matches(client, host, port, useSSL, trustedCertificatePem) ||
+                    _failovers.any(
+                      (n) => matches(
+                        client,
+                        n.address,
+                        n.port,
+                        n.useSSL,
+                        n.trustedCertificatePem,
+                      ),
+                    ));
+      final existing = getElectrumAdapter();
+      if (existing != null && shareable(existing)) {
+        _adapter = existing;
+        return;
+      }
+      if (existing != null) {
+        await _release(existing);
+        ensureCurrent();
+      }
+
+      // Invalid saved approvals are a local configuration error. They must not
+      // be mistaken for a failed network attempt or bypassed by failover.
+      final certificateCheck = trustedCertificateCheck(pem);
+      ElectrumClient? candidate;
+      bool negotiated = false;
+      bool kept = false;
+      try {
+        final channel = await electrum_adapter.connect(
+          useHost,
+          port: usePort,
+          useSSL: ssl,
+          proxyInfo: proxy,
+          connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
+          connectionDeadline: connectionTimeoutForSpecialCaseJsonRPCClients,
+          acceptUnverified: false,
+          onBadCertificate: certificateCheck,
+        );
+        candidate = cryptoCurrency is Firo
+            ? FiroElectrumClient(
+                channel,
+                useHost,
+                usePort,
+                ssl,
+                proxy,
+                requestTimeout: requestTimeouts.standard,
+              )
+            : ElectrumClient(
+                channel,
+                useHost,
+                usePort,
+                ssl,
+                proxy,
+                requestTimeout: requestTimeouts.standard,
+              );
+        _pendingClient = candidate;
+        ensureCurrent();
+        await candidate.requestWithTimeout(
+          'server.version',
+          timeout: connectionTimeoutForSpecialCaseJsonRPCClients,
         );
         ensureCurrent();
-        kept = true;
+        negotiated = true;
+        final other = getElectrumAdapter();
+        if (other != null && shareable(other)) {
+          _adapter = other;
+        } else {
+          _adapter = candidate;
+          await ClientManager.sharedInstance.addClient(
+            candidate,
+            cryptoCurrency: cryptoCurrency,
+            netType: netType,
+            trustedCertificatePem: pem,
+          );
+          ensureCurrent();
+          kept = true;
+        }
+      } catch (error) {
+        // Closing the owner or changing its network settings cancels the whole
+        // operation. Publication failures and programming errors are not node
+        // faults; StateError can instead mean the negotiating peer has closed.
+        ensureCurrent();
+        if (negotiated || (error is Error && error is! StateError)) rethrow;
+        if (index == _failovers.length - 1) {
+          currentFailoverIndex = -1;
+          rethrow;
+        }
+      } finally {
+        if (identical(_pendingClient, candidate)) _pendingClient = null;
+        if (!kept && candidate != null) await _release(candidate);
       }
-    } finally {
-      if (identical(_pendingClient, candidate)) _pendingClient = null;
-      if (!kept && candidate != null) await _release(candidate);
+      ensureCurrent();
+      if (negotiated) return;
     }
-    ensureCurrent();
   });
 
   /// Send raw rpc command
@@ -377,8 +413,15 @@ class ElectrumXClient {
     List<dynamic> args = const [],
     String? requestID,
     int retries = 2,
-    Duration requestTimeout = _defaultRequestTimeout,
+    Duration? requestTimeout,
   }) async {
+    if (command == 'blockchain.transaction.broadcast') {
+      return broadcastTransaction(
+        rawTx: args.single as String,
+        requestID: requestID,
+        requestTimeout: requestTimeout,
+      );
+    }
     if (!(await _allow())) {
       throw WifiOnlyException();
     }
@@ -395,7 +438,7 @@ class ElectrumXClient {
       final response = await _adapter!.requestWithTimeout(
         command,
         parameters: args,
-        timeout: requestTimeout,
+        timeout: requestTimeout ?? requestTimeouts.forMethod(command),
       );
 
       if (response is Map &&
@@ -473,10 +516,17 @@ class ElectrumXClient {
   Future<List<dynamic>> batchRequest({
     required String command,
     required List<dynamic> args,
-    Duration requestTimeout = _defaultRequestTimeout,
+    Duration? requestTimeout,
     int retries = 2,
   }) async {
     if (args.isEmpty) return [];
+    if (command == 'blockchain.transaction.broadcast') {
+      throw ArgumentError.value(
+        command,
+        'command',
+        'Submit transactions individually with broadcastTransaction',
+      );
+    }
     if (!(await _allow())) {
       throw WifiOnlyException();
     }
@@ -497,7 +547,7 @@ class ElectrumXClient {
             _adapter!.requestWithTimeout(
               command,
               parameters: arg,
-              timeout: requestTimeout,
+              timeout: requestTimeout ?? requestTimeouts.forMethod(command),
             ),
           );
         }
@@ -662,17 +712,162 @@ class ElectrumXClient {
   Future<String> broadcastTransaction({
     required String rawTx,
     String? requestID,
+    String? expectedTxId,
+    Duration? requestTimeout,
   }) async {
-    try {
-      final response = await request(
-        requestID: requestID,
-        command: 'blockchain.transaction.broadcast',
-        args: [rawTx],
-      );
-      return response as String;
-    } catch (e) {
-      rethrow;
+    final timeout = requestTimeout ?? requestTimeouts.standard;
+    if (timeout <= Duration.zero) {
+      throw ArgumentError.value(timeout, 'requestTimeout', 'Must be positive');
     }
+    if (!(await _allow())) throw WifiOnlyException();
+    if (_requireMutex) {
+      await _torConnectingLock.protect(checkElectrumAdapter);
+    } else {
+      await checkElectrumAdapter();
+    }
+    // Setup failures above are unsent. Once submitted, a missing reply leaves
+    // the outcome unknown, so never replay through the generic RPC retry path.
+    final generation = _connectionGeneration;
+    final torPreference = _prefs.useTor;
+    final submittedClient = _adapter!;
+    try {
+      final response = await submittedClient.requestWithTimeout(
+        'blockchain.transaction.broadcast',
+        parameters: [rawTx],
+        timeout: timeout,
+      );
+      if (response is! String ||
+          (expectedTxId != null && response != expectedTxId)) {
+        throw const FormatException('Unexpected broadcast transaction ID');
+      }
+      return response;
+    } catch (error) {
+      // Validation rejections are definitive. Already-known transactions and
+      // server-side transport/internal failures still need reconciliation.
+      if (error is RpcException) {
+        final message = error.message.toLowerCase();
+        final uncertain =
+            error.code == -27 || // RPC_VERIFY_ALREADY_IN_CHAIN
+            error.code == -32603 || // JSON-RPC internal error
+            [
+              'txn-already-known',
+              'txn-already-in-mempool',
+              'already known',
+              'already in block chain',
+              'already in blockchain',
+              'already in the mempool',
+              'already in mempool',
+              'already have transaction',
+              'timed out',
+              'timeout',
+              'connection lost',
+              'connection closed',
+              'connection reset',
+              'connection refused',
+              'connection failed',
+              'transport',
+              'disconnected',
+              'unavailable',
+              'failed to connect',
+              'cannot connect',
+              'internal error',
+              'internal server error',
+            ].any(message.contains);
+        if (!uncertain) {
+          rethrow;
+        }
+      }
+      try {
+        if (expectedTxId != null &&
+            await _reconcileBroadcast(
+              expectedTxId,
+              rawTx,
+              submittedClient,
+              generation,
+              torPreference,
+              timeout,
+            )) {
+          return expectedTxId;
+        }
+      } catch (_) {
+        // A failed reconciliation still leaves the submitted outcome unknown.
+      }
+      throw BroadcastOutcomeUnknown(txid: expectedTxId, cause: error);
+    }
+  }
+
+  Future<bool> _reconcileBroadcast(
+    String txid,
+    String rawTx,
+    ElectrumClient submittedClient,
+    int generation,
+    bool torPreference,
+    Duration timeout,
+  ) async {
+    Future<bool> find(ElectrumClient client) async {
+      try {
+        final raw = await client.requestWithTimeout(
+          'blockchain.transaction.get',
+          parameters: [txid, false],
+          timeout: timeout,
+        );
+        // Compare the serialized transaction, not a server-supplied ID alone.
+        return raw is String && raw.toLowerCase() == rawTx.toLowerCase();
+      } catch (_) {
+        return false;
+      }
+    }
+
+    bool current() =>
+        !_closed &&
+        generation == _connectionGeneration &&
+        _prefs.useTor == torPreference &&
+        !(AppConfig.hasFeature(AppFeature.tor) &&
+            torPreference &&
+            _prefs.torKillSwitch &&
+            (submittedClient.proxyInfo == null ||
+                _torService.status != TorConnectionStatus.connected));
+    if (!current() || !(await _allow())) return false;
+    if (!submittedClient.peer.isClosed && await find(submittedClient)) {
+      return true;
+    }
+    // Use separate short-lived clients so reconciliation cannot replace a
+    // managed client or interfere with other wallets sharing its subscription.
+    final endpoints = [
+      (host, port, useSSL, trustedCertificatePem),
+      for (final node in _failovers)
+        (node.address, node.port, node.useSSL, node.trustedCertificatePem),
+    ];
+    for (final (address, endpointPort, ssl, pem) in endpoints) {
+      if (!current() || !(await _allow())) return false;
+      if (!submittedClient.peer.isClosed &&
+          submittedClient.host == address &&
+          submittedClient.port == endpointPort &&
+          submittedClient.useSSL == ssl) {
+        continue;
+      }
+      ElectrumClient? client;
+      try {
+        client = await ElectrumClient.connect(
+          host: address,
+          port: endpointPort,
+          useSSL: ssl,
+          proxyInfo: submittedClient.proxyInfo,
+          connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
+          connectionDeadline: connectionTimeoutForSpecialCaseJsonRPCClients,
+          requestTimeout: timeout,
+          acceptUnverified: false,
+          onBadCertificate: ssl ? trustedCertificateCheck(pem) : null,
+        );
+        if (!current()) return false;
+        if (await find(client)) return true;
+      } catch (_) {
+        // One node's failure or missing transaction cannot establish rejection.
+      } finally {
+        await client?.close();
+      }
+    }
+    return false;
   }
 
   /// Return the confirmed and unconfirmed balances for the scripthash of a given scripthash
@@ -726,7 +921,6 @@ class ElectrumXClient {
         final response = await request(
           requestID: requestID,
           command: 'blockchain.scripthash.get_history',
-          requestTimeout: const Duration(minutes: 5),
           args: [scripthash],
         );
         result = response;
@@ -935,7 +1129,11 @@ class ElectrumXClient {
     Logging.instance.d("attempting to fetch lelantus.getanonymityset...");
     await checkElectrumAdapter();
     final Map<String, dynamic> response = await (_adapter as FiroElectrumClient)
-        .getLelantusAnonymitySet(groupId: groupId, blockHash: blockhash);
+        .getLelantusAnonymitySet(
+          groupId: groupId,
+          blockHash: blockhash,
+          timeout: requestTimeouts.firoSet,
+        );
     Logging.instance.d("Fetching lelantus.getanonymityset finished");
     return response;
   }
@@ -970,7 +1168,10 @@ class ElectrumXClient {
 
     while (retryCount > 0 && response is! List) {
       response = await (_adapter as FiroElectrumClient)
-          .getLelantusUsedCoinSerials(startNumber: startNumber);
+          .getLelantusUsedCoinSerials(
+            startNumber: startNumber,
+            timeout: requestTimeouts.firoSet,
+          );
       Logging.instance.d("Fetching lelantus.getusedcoinserials finished");
 
       retryCount--;
@@ -1018,6 +1219,7 @@ class ElectrumXClient {
           await (_adapter as FiroElectrumClient).getSparkAnonymitySet(
             coinGroupId: coinGroupId,
             startBlockHash: startBlockHash,
+            timeout: requestTimeouts.firoSet,
           );
       Logging.instance.d(
         "Finished ElectrumXClient.getSparkAnonymitySet(coinGroupId"
@@ -1200,7 +1402,6 @@ class ElectrumXClient {
         requestID: requestID,
         command: "spark.getusedcoinstagstxhashes",
         args: ["$startNumber"],
-        requestTimeout: firoSetRequestTimeout,
       );
 
       final map = Map<String, dynamic>.from(response as Map);
@@ -1348,7 +1549,6 @@ class ElectrumXClient {
         requestID: requestID,
         command: command,
         args: ["$coinGroupId", latestBlock, "$startIndex", "$endIndex"],
-        requestTimeout: firoSetRequestTimeout,
       );
 
       final map = Map<String, dynamic>.from(response as Map);

@@ -76,22 +76,31 @@ class MockWallets extends _i1.Mock implements _i8.Wallets {
   }
 
   @override
-  _i2.NodeService get nodeService => (super.noSuchMethod(
-    Invocation.getter(#nodeService),
-    returnValue: _FakeNodeService_0(this, Invocation.getter(#nodeService)),
-  ) as _i2.NodeService);
+  _i2.NodeService get nodeService =>
+      (super.noSuchMethod(
+            Invocation.getter(#nodeService),
+            returnValue: _FakeNodeService_0(
+              this,
+              Invocation.getter(#nodeService),
+            ),
+          )
+          as _i2.NodeService);
 
   @override
-  _i3.MainDB get mainDB => (super.noSuchMethod(
-    Invocation.getter(#mainDB),
-    returnValue: _FakeMainDB_1(this, Invocation.getter(#mainDB)),
-  ) as _i3.MainDB);
+  _i3.MainDB get mainDB =>
+      (super.noSuchMethod(
+            Invocation.getter(#mainDB),
+            returnValue: _FakeMainDB_1(this, Invocation.getter(#mainDB)),
+          )
+          as _i3.MainDB);
 
   @override
-  List<_i5.Wallet<_i4.CryptoCurrency>> get wallets => (super.noSuchMethod(
-    Invocation.getter(#wallets),
-    returnValue: <_i5.Wallet<_i4.CryptoCurrency>>[],
-  ) as List<_i5.Wallet<_i4.CryptoCurrency>>);
+  List<_i5.Wallet<_i4.CryptoCurrency>> get wallets =>
+      (super.noSuchMethod(
+            Invocation.getter(#wallets),
+            returnValue: <_i5.Wallet<_i4.CryptoCurrency>>[],
+          )
+          as List<_i5.Wallet<_i4.CryptoCurrency>>);
 
   @override
   set nodeService(_i2.NodeService? value) => super.noSuchMethod(
@@ -108,12 +117,13 @@ class MockWallets extends _i1.Mock implements _i8.Wallets {
   @override
   _i5.Wallet<_i4.CryptoCurrency> getWallet(String? walletId) =>
       (super.noSuchMethod(
-        Invocation.method(#getWallet, [walletId]),
-        returnValue: _FakeWallet_2<_i4.CryptoCurrency>(
-          this,
-          Invocation.method(#getWallet, [walletId]),
-        ),
-      ) as _i5.Wallet<_i4.CryptoCurrency>);
+            Invocation.method(#getWallet, [walletId]),
+            returnValue: _FakeWallet_2<_i4.CryptoCurrency>(
+              this,
+              Invocation.method(#getWallet, [walletId]),
+            ),
+          )
+          as _i5.Wallet<_i4.CryptoCurrency>);
 
   @override
   void addWallet(_i5.Wallet<_i4.CryptoCurrency>? wallet) => super.noSuchMethod(
@@ -125,33 +135,43 @@ class MockWallets extends _i1.Mock implements _i8.Wallets {
   _i9.Future<void> deleteWallet(
     _i10.WalletInfo? info,
     _i7.SecureStorageInterface? secureStorage,
-  ) => (super.noSuchMethod(
-    Invocation.method(#deleteWallet, [info, secureStorage]),
-    returnValue: _i9.Future<void>.value(),
-    returnValueForMissingStub: _i9.Future<void>.value(),
-  ) as _i9.Future<void>);
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#deleteWallet, [info, secureStorage]),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
+          )
+          as _i9.Future<void>);
 
   @override
   _i9.Future<void> load(
     _i11.Prefs? prefs,
     _i3.MainDB? mainDB,
     bool? isDuress,
-  ) => (super.noSuchMethod(
-    Invocation.method(#load, [prefs, mainDB, isDuress]),
-    returnValue: _i9.Future<void>.value(),
-    returnValueForMissingStub: _i9.Future<void>.value(),
-  ) as _i9.Future<void>);
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#load, [prefs, mainDB, isDuress]),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
+          )
+          as _i9.Future<void>);
 
   @override
   _i9.Future<void> loadAfterStackRestore(
     _i11.Prefs? prefs,
     List<_i5.Wallet<_i4.CryptoCurrency>>? wallets,
     bool? isDesktop,
-  ) => (super.noSuchMethod(
-    Invocation.method(#loadAfterStackRestore, [prefs, wallets, isDesktop]),
-    returnValue: _i9.Future<void>.value(),
-    returnValueForMissingStub: _i9.Future<void>.value(),
-  ) as _i9.Future<void>);
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#loadAfterStackRestore, [
+              prefs,
+              wallets,
+              isDesktop,
+            ]),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
+          )
+          as _i9.Future<void>);
 }
 
 /// A class which mocks [ThemeService].
@@ -163,22 +183,28 @@ class MockThemeService extends _i1.Mock implements _i12.ThemeService {
   }
 
   @override
-  _i3.MainDB get db => (super.noSuchMethod(
-    Invocation.getter(#db),
-    returnValue: _FakeMainDB_1(this, Invocation.getter(#db)),
-  ) as _i3.MainDB);
+  _i3.MainDB get db =>
+      (super.noSuchMethod(
+            Invocation.getter(#db),
+            returnValue: _FakeMainDB_1(this, Invocation.getter(#db)),
+          )
+          as _i3.MainDB);
 
   @override
-  _i6.HTTP get client => (super.noSuchMethod(
-    Invocation.getter(#client),
-    returnValue: _FakeHTTP_3(this, Invocation.getter(#client)),
-  ) as _i6.HTTP);
+  _i6.HTTP get client =>
+      (super.noSuchMethod(
+            Invocation.getter(#client),
+            returnValue: _FakeHTTP_3(this, Invocation.getter(#client)),
+          )
+          as _i6.HTTP);
 
   @override
-  List<_i13.StackTheme> get installedThemes => (super.noSuchMethod(
-    Invocation.getter(#installedThemes),
-    returnValue: <_i13.StackTheme>[],
-  ) as List<_i13.StackTheme>);
+  List<_i13.StackTheme> get installedThemes =>
+      (super.noSuchMethod(
+            Invocation.getter(#installedThemes),
+            returnValue: <_i13.StackTheme>[],
+          )
+          as List<_i13.StackTheme>);
 
   @override
   set client(_i6.HTTP? value) => super.noSuchMethod(
@@ -195,48 +221,59 @@ class MockThemeService extends _i1.Mock implements _i12.ThemeService {
   @override
   _i9.Future<void> install({required _i14.Uint8List? themeArchiveData}) =>
       (super.noSuchMethod(
-        Invocation.method(#install, [], {#themeArchiveData: themeArchiveData}),
-        returnValue: _i9.Future<void>.value(),
-        returnValueForMissingStub: _i9.Future<void>.value(),
-      ) as _i9.Future<void>);
+            Invocation.method(#install, [], {
+              #themeArchiveData: themeArchiveData,
+            }),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
+          )
+          as _i9.Future<void>);
 
   @override
-  _i9.Future<void> remove({required String? themeId}) => (super.noSuchMethod(
-    Invocation.method(#remove, [], {#themeId: themeId}),
-    returnValue: _i9.Future<void>.value(),
-    returnValueForMissingStub: _i9.Future<void>.value(),
-  ) as _i9.Future<void>);
+  _i9.Future<void> remove({required String? themeId}) =>
+      (super.noSuchMethod(
+            Invocation.method(#remove, [], {#themeId: themeId}),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
+          )
+          as _i9.Future<void>);
 
   @override
-  _i9.Future<void> checkDefaultThemesOnStartup() => (super.noSuchMethod(
-    Invocation.method(#checkDefaultThemesOnStartup, []),
-    returnValue: _i9.Future<void>.value(),
-    returnValueForMissingStub: _i9.Future<void>.value(),
-  ) as _i9.Future<void>);
+  _i9.Future<void> checkDefaultThemesOnStartup() =>
+      (super.noSuchMethod(
+            Invocation.method(#checkDefaultThemesOnStartup, []),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
+          )
+          as _i9.Future<void>);
 
   @override
   _i9.Future<bool> verifyInstalled({required String? themeId}) =>
       (super.noSuchMethod(
-        Invocation.method(#verifyInstalled, [], {#themeId: themeId}),
-        returnValue: _i9.Future<bool>.value(false),
-      ) as _i9.Future<bool>);
+            Invocation.method(#verifyInstalled, [], {#themeId: themeId}),
+            returnValue: _i9.Future<bool>.value(false),
+          )
+          as _i9.Future<bool>);
 
   @override
   _i9.Future<List<_i12.StackThemeMetaData>> fetchThemes() =>
       (super.noSuchMethod(
-        Invocation.method(#fetchThemes, []),
-        returnValue: _i9.Future<List<_i12.StackThemeMetaData>>.value(
-          <_i12.StackThemeMetaData>[],
-        ),
-      ) as _i9.Future<List<_i12.StackThemeMetaData>>);
+            Invocation.method(#fetchThemes, []),
+            returnValue: _i9.Future<List<_i12.StackThemeMetaData>>.value(
+              <_i12.StackThemeMetaData>[],
+            ),
+          )
+          as _i9.Future<List<_i12.StackThemeMetaData>>);
 
   @override
   _i9.Future<_i14.Uint8List> fetchTheme({
     required _i12.StackThemeMetaData? themeMetaData,
-  }) => (super.noSuchMethod(
-    Invocation.method(#fetchTheme, [], {#themeMetaData: themeMetaData}),
-    returnValue: _i9.Future<_i14.Uint8List>.value(_i14.Uint8List(0)),
-  ) as _i9.Future<_i14.Uint8List>);
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#fetchTheme, [], {#themeMetaData: themeMetaData}),
+            returnValue: _i9.Future<_i14.Uint8List>.value(_i14.Uint8List(0)),
+          )
+          as _i9.Future<_i14.Uint8List>);
 
   @override
   _i13.StackTheme? getTheme({required String? themeId}) =>
@@ -253,25 +290,31 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
   }
 
   @override
-  _i7.SecureStorageInterface get secureStorageInterface => (super.noSuchMethod(
-    Invocation.getter(#secureStorageInterface),
-    returnValue: _FakeSecureStorageInterface_4(
-      this,
-      Invocation.getter(#secureStorageInterface),
-    ),
-  ) as _i7.SecureStorageInterface);
+  _i7.SecureStorageInterface get secureStorageInterface =>
+      (super.noSuchMethod(
+            Invocation.getter(#secureStorageInterface),
+            returnValue: _FakeSecureStorageInterface_4(
+              this,
+              Invocation.getter(#secureStorageInterface),
+            ),
+          )
+          as _i7.SecureStorageInterface);
 
   @override
-  List<_i15.NodeModel> get primaryNodes => (super.noSuchMethod(
-    Invocation.getter(#primaryNodes),
-    returnValue: <_i15.NodeModel>[],
-  ) as List<_i15.NodeModel>);
+  List<_i15.NodeModel> get primaryNodes =>
+      (super.noSuchMethod(
+            Invocation.getter(#primaryNodes),
+            returnValue: <_i15.NodeModel>[],
+          )
+          as List<_i15.NodeModel>);
 
   @override
-  List<_i15.NodeModel> get nodes => (super.noSuchMethod(
-    Invocation.getter(#nodes),
-    returnValue: <_i15.NodeModel>[],
-  ) as List<_i15.NodeModel>);
+  List<_i15.NodeModel> get nodes =>
+      (super.noSuchMethod(
+            Invocation.getter(#nodes),
+            returnValue: <_i15.NodeModel>[],
+          )
+          as List<_i15.NodeModel>);
 
   @override
   bool get hasListeners =>
@@ -279,39 +322,45 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
           as bool);
 
   @override
-  _i9.Future<void> updateDefaults() => (super.noSuchMethod(
-    Invocation.method(#updateDefaults, []),
-    returnValue: _i9.Future<void>.value(),
-    returnValueForMissingStub: _i9.Future<void>.value(),
-  ) as _i9.Future<void>);
+  _i9.Future<void> updateDefaults() =>
+      (super.noSuchMethod(
+            Invocation.method(#updateDefaults, []),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
+          )
+          as _i9.Future<void>);
 
   @override
   _i9.Future<void> setPrimaryNodeFor({
     required _i4.CryptoCurrency? coin,
     required _i15.NodeModel? node,
     bool? shouldNotifyListeners = false,
-  }) => (super.noSuchMethod(
-    Invocation.method(#setPrimaryNodeFor, [], {
-      #coin: coin,
-      #node: node,
-      #shouldNotifyListeners: shouldNotifyListeners,
-    }),
-    returnValue: _i9.Future<void>.value(),
-    returnValueForMissingStub: _i9.Future<void>.value(),
-  ) as _i9.Future<void>);
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#setPrimaryNodeFor, [], {
+              #coin: coin,
+              #node: node,
+              #shouldNotifyListeners: shouldNotifyListeners,
+            }),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
+          )
+          as _i9.Future<void>);
 
   @override
   _i15.NodeModel? getPrimaryNodeFor({required _i4.CryptoCurrency? currency}) =>
       (super.noSuchMethod(
-        Invocation.method(#getPrimaryNodeFor, [], {#currency: currency}),
-      ) as _i15.NodeModel?);
+            Invocation.method(#getPrimaryNodeFor, [], {#currency: currency}),
+          )
+          as _i15.NodeModel?);
 
   @override
   List<_i15.NodeModel> getNodesFor(_i4.CryptoCurrency? coin) =>
       (super.noSuchMethod(
-        Invocation.method(#getNodesFor, [coin]),
-        returnValue: <_i15.NodeModel>[],
-      ) as List<_i15.NodeModel>);
+            Invocation.method(#getNodesFor, [coin]),
+            returnValue: <_i15.NodeModel>[],
+          )
+          as List<_i15.NodeModel>);
 
   @override
   _i15.NodeModel? getNodeById({required String? id}) =>
@@ -321,21 +370,25 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
   @override
   List<_i15.NodeModel> failoverNodesFor({
     required _i4.CryptoCurrency? currency,
-  }) => (super.noSuchMethod(
-    Invocation.method(#failoverNodesFor, [], {#currency: currency}),
-    returnValue: <_i15.NodeModel>[],
-  ) as List<_i15.NodeModel>);
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#failoverNodesFor, [], {#currency: currency}),
+            returnValue: <_i15.NodeModel>[],
+          )
+          as List<_i15.NodeModel>);
 
   @override
   _i9.Future<void> save(
     _i15.NodeModel? node,
     String? password,
     bool? shouldNotifyListeners,
-  ) => (super.noSuchMethod(
-    Invocation.method(#save, [node, password, shouldNotifyListeners]),
-    returnValue: _i9.Future<void>.value(),
-    returnValueForMissingStub: _i9.Future<void>.value(),
-  ) as _i9.Future<void>);
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#save, [node, password, shouldNotifyListeners]),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
+          )
+          as _i9.Future<void>);
 
   @override
   _i9.Future<bool> saveEdit(
@@ -344,99 +397,123 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
     bool? notify, {
     required _i15.NodeModel? opened,
     bool? forgetCertificate = false,
-  }) => (super.noSuchMethod(
-    Invocation.method(
-      #saveEdit,
-      [node, password, notify],
-      {#opened: opened, #forgetCertificate: forgetCertificate},
-    ),
-    returnValue: _i9.Future<bool>.value(false),
-  ) as _i9.Future<bool>);
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #saveEdit,
+              [node, password, notify],
+              {#opened: opened, #forgetCertificate: forgetCertificate},
+            ),
+            returnValue: _i9.Future<bool>.value(false),
+          )
+          as _i9.Future<bool>);
 
   @override
-  bool prepareCertificateTest(_i16.NodeFormData? data) => (super.noSuchMethod(
-    Invocation.method(#prepareCertificateTest, [data]),
-    returnValue: false,
-  ) as bool);
+  bool prepareCertificateTest(_i16.NodeFormData? data) =>
+      (super.noSuchMethod(
+            Invocation.method(#prepareCertificateTest, [data]),
+            returnValue: false,
+          )
+          as bool);
 
   @override
   _i9.Future<bool> saveTrustedCertificate(
     _i15.NodeModel? node,
     _i16.NodeFormData? data,
-  ) => (super.noSuchMethod(
-    Invocation.method(#saveTrustedCertificate, [node, data]),
-    returnValue: _i9.Future<bool>.value(false),
-  ) as _i9.Future<bool>);
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveTrustedCertificate, [node, data]),
+            returnValue: _i9.Future<bool>.value(false),
+          )
+          as _i9.Future<bool>);
 
   @override
   _i9.Future<bool> forgetTrustedCertificate(_i15.NodeModel? shown) =>
       (super.noSuchMethod(
-        Invocation.method(#forgetTrustedCertificate, [shown]),
-        returnValue: _i9.Future<bool>.value(false),
-      ) as _i9.Future<bool>);
+            Invocation.method(#forgetTrustedCertificate, [shown]),
+            returnValue: _i9.Future<bool>.value(false),
+          )
+          as _i9.Future<bool>);
 
   @override
   _i9.Future<bool> commitConnectionTest({
     required _i15.NodeModel? node,
     required _i16.NodeFormData? formData,
-  }) => (super.noSuchMethod(
-    Invocation.method(#commitConnectionTest, [], {
-      #node: node,
-      #formData: formData,
-    }),
-    returnValue: _i9.Future<bool>.value(false),
-  ) as _i9.Future<bool>);
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#commitConnectionTest, [], {
+              #node: node,
+              #formData: formData,
+            }),
+            returnValue: _i9.Future<bool>.value(false),
+          )
+          as _i9.Future<bool>);
 
   @override
-  _i9.Future<bool> setFailover(String? id, bool? value) => (super.noSuchMethod(
-    Invocation.method(#setFailover, [id, value]),
-    returnValue: _i9.Future<bool>.value(false),
-  ) as _i9.Future<bool>);
+  _i9.Future<bool> setFailover(String? id, bool? value) =>
+      (super.noSuchMethod(
+            Invocation.method(#setFailover, [id, value]),
+            returnValue: _i9.Future<bool>.value(false),
+          )
+          as _i9.Future<bool>);
 
   @override
   _i9.Future<void> delete(String? id, bool? shouldNotifyListeners) =>
       (super.noSuchMethod(
-        Invocation.method(#delete, [id, shouldNotifyListeners]),
-        returnValue: _i9.Future<void>.value(),
-        returnValueForMissingStub: _i9.Future<void>.value(),
-      ) as _i9.Future<void>);
+            Invocation.method(#delete, [id, shouldNotifyListeners]),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
+          )
+          as _i9.Future<void>);
 
   @override
   _i9.Future<void> setEnabledState(
     String? id,
     bool? enabled,
     bool? shouldNotifyListeners,
-  ) => (super.noSuchMethod(
-    Invocation.method(#setEnabledState, [id, enabled, shouldNotifyListeners]),
-    returnValue: _i9.Future<void>.value(),
-    returnValueForMissingStub: _i9.Future<void>.value(),
-  ) as _i9.Future<void>);
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#setEnabledState, [
+              id,
+              enabled,
+              shouldNotifyListeners,
+            ]),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
+          )
+          as _i9.Future<void>);
 
   @override
-  _i9.Future<void> updateDefaultEpicBoxes() => (super.noSuchMethod(
-    Invocation.method(#updateDefaultEpicBoxes, []),
-    returnValue: _i9.Future<void>.value(),
-    returnValueForMissingStub: _i9.Future<void>.value(),
-  ) as _i9.Future<void>);
+  _i9.Future<void> updateDefaultEpicBoxes() =>
+      (super.noSuchMethod(
+            Invocation.method(#updateDefaultEpicBoxes, []),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
+          )
+          as _i9.Future<void>);
 
   @override
   _i9.Future<void> setPrimaryEpicBox({
     required _i17.EpicBoxServerModel? epicBox,
     bool? shouldNotifyListeners = false,
-  }) => (super.noSuchMethod(
-    Invocation.method(#setPrimaryEpicBox, [], {
-      #epicBox: epicBox,
-      #shouldNotifyListeners: shouldNotifyListeners,
-    }),
-    returnValue: _i9.Future<void>.value(),
-    returnValueForMissingStub: _i9.Future<void>.value(),
-  ) as _i9.Future<void>);
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#setPrimaryEpicBox, [], {
+              #epicBox: epicBox,
+              #shouldNotifyListeners: shouldNotifyListeners,
+            }),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
+          )
+          as _i9.Future<void>);
 
   @override
-  List<_i17.EpicBoxServerModel> getEpicBoxes() => (super.noSuchMethod(
-    Invocation.method(#getEpicBoxes, []),
-    returnValue: <_i17.EpicBoxServerModel>[],
-  ) as List<_i17.EpicBoxServerModel>);
+  List<_i17.EpicBoxServerModel> getEpicBoxes() =>
+      (super.noSuchMethod(
+            Invocation.method(#getEpicBoxes, []),
+            returnValue: <_i17.EpicBoxServerModel>[],
+          )
+          as List<_i17.EpicBoxServerModel>);
 
   @override
   _i17.EpicBoxServerModel? getEpicBoxById({required String? id}) =>
@@ -447,26 +524,31 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
   _i9.Future<void> addEpicBox(
     _i17.EpicBoxServerModel? epicBox,
     bool? shouldNotifyListeners,
-  ) => (super.noSuchMethod(
-    Invocation.method(#addEpicBox, [epicBox, shouldNotifyListeners]),
-    returnValue: _i9.Future<void>.value(),
-    returnValueForMissingStub: _i9.Future<void>.value(),
-  ) as _i9.Future<void>);
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#addEpicBox, [epicBox, shouldNotifyListeners]),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
+          )
+          as _i9.Future<void>);
 
   @override
   _i9.Future<void> deleteEpicBox(String? id, bool? shouldNotifyListeners) =>
       (super.noSuchMethod(
-        Invocation.method(#deleteEpicBox, [id, shouldNotifyListeners]),
-        returnValue: _i9.Future<void>.value(),
-        returnValueForMissingStub: _i9.Future<void>.value(),
-      ) as _i9.Future<void>);
+            Invocation.method(#deleteEpicBox, [id, shouldNotifyListeners]),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
+          )
+          as _i9.Future<void>);
 
   @override
-  _i9.Future<void> updateCommunityNodes() => (super.noSuchMethod(
-    Invocation.method(#updateCommunityNodes, []),
-    returnValue: _i9.Future<void>.value(),
-    returnValueForMissingStub: _i9.Future<void>.value(),
-  ) as _i9.Future<void>);
+  _i9.Future<void> updateCommunityNodes() =>
+      (super.noSuchMethod(
+            Invocation.method(#updateCommunityNodes, []),
+            returnValue: _i9.Future<void>.value(),
+            returnValueForMissingStub: _i9.Future<void>.value(),
+          )
+          as _i9.Future<void>);
 
   @override
   void addListener(_i18.VoidCallback? listener) => super.noSuchMethod(

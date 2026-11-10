@@ -18,6 +18,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar_community/isar.dart';
 
+import '../../exceptions/electrumx/broadcast_outcome_unknown.dart';
 import '../../models/input.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../models/isar/models/transaction_note.dart';
@@ -120,6 +121,7 @@ class _ConfirmTransactionViewState
   late final TextEditingController onChainNoteController;
 
   bool _spendsOrdinal = false;
+  bool _broadcastOutcomeUnknown = false;
 
   Future<void> _checkForOrdinalSpend(
     bool updateStateInPostFrameCallback,
@@ -315,6 +317,7 @@ class _ConfirmTransactionViewState
   }
 
   Future<void> _attemptSend(BuildContext context) async {
+    if (_broadcastOutcomeUnknown) return;
     final wallet = ref.read(pWallets).getWallet(walletId);
     final coin = wallet.info.coin;
 
@@ -508,7 +511,12 @@ class _ConfirmTransactionViewState
         return;
       }
     } catch (e, s) {
-      const message = "Broadcast transaction failed";
+      if (e is BroadcastOutcomeUnknown && mounted) {
+        setState(() => _broadcastOutcomeUnknown = true);
+      }
+      final message = e is BroadcastOutcomeUnknown
+          ? BroadcastOutcomeUnknown.title
+          : "Broadcast transaction failed";
       Logging.instance.e(message, error: e, stackTrace: s);
       // pop sending dialog
       if (context.mounted) {
@@ -1586,6 +1594,7 @@ class _ConfirmTransactionViewState
                   : const EdgeInsets.all(0),
               child: PrimaryButton(
                 label: "Send",
+                enabled: !_broadcastOutcomeUnknown,
                 buttonHeight: isDesktop ? ButtonHeight.l : null,
                 onPressed: () async {
                   if (isDesktop) {

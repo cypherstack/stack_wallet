@@ -560,6 +560,8 @@ class WalletInfo implements IsarId {
 }
 
 abstract class WalletInfoKeys {
+  /// Signed transactions whose outcome and transaction ID are unknown.
+  static const unknownElectrumBroadcasts = 'unknownElectrumBroadcasts';
   static const String tokenContractAddresses = "tokenContractAddressesKey";
   static const String epiccashData = "epiccashDataKey";
   static const String mimblewimblecoinData = "mimblewimblecoinDataKey";

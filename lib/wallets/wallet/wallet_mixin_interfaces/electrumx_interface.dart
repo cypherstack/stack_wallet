@@ -11,6 +11,7 @@ import '../../../db/drift/database.dart';
 import '../../../electrumx_rpc/cached_electrumx_client.dart';
 import '../../../electrumx_rpc/client_manager.dart';
 import '../../../electrumx_rpc/electrumx_client.dart';
+import '../../../exceptions/electrumx/broadcast_outcome_unknown.dart';
 import '../../../models/coinlib/exp2pkh_address.dart';
 import '../../../models/input.dart';
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
@@ -1871,6 +1872,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
       final txHash = await electrumXClient.broadcastTransaction(
         rawTx: txData.raw!,
+        expectedTxId: txData.tempTx?.txid ?? txData.txid,
       );
       Logging.instance.d("Sent txHash: $txHash");
 
@@ -1901,6 +1903,9 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       );
 
       return await updateSentCachedTxData(txData: txData);
+    } on BroadcastOutcomeUnknown catch (e) {
+      await preservePendingBroadcast(txData: txData, txid: e.txid);
+      rethrow;
     } catch (e, s) {
       Logging.instance.e(
         "Exception rethrown from confirmSend(): ",

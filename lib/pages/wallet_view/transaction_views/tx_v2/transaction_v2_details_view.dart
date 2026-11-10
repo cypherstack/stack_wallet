@@ -191,6 +191,7 @@ class _TransactionV2DetailsViewState
     if (_transaction.type
         case TransactionType.sentToSelf || TransactionType.outgoing) {
       supportsRbf =
+          !_transaction.broadcastOutcomeUnknown &&
           _transaction.subType == TransactionSubType.none &&
           wallet is RbfInterface;
     } else {
