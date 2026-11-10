@@ -46,6 +46,7 @@ import '../../../../widgets/desktop/qr_code_scanner_dialog.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/icon_widgets/addressbook_icon.dart';
 import '../../../../widgets/icon_widgets/clipboard_icon.dart';
+import '../../../../widgets/icon_widgets/qrcode_icon.dart';
 import '../../../../widgets/icon_widgets/x_icon.dart';
 import '../../../../widgets/stack_text_field.dart';
 import '../../../../widgets/textfield_icon_button.dart';
@@ -225,9 +226,8 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
       }
     }
 
+    bool wasCancelled = false;
     try {
-      bool wasCancelled = false;
-
       if (mounted) {
         unawaited(
           showDialog<dynamic>(
@@ -310,7 +310,7 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
         );
       }
     } catch (e) {
-      if (mounted) {
+      if (mounted && !wasCancelled) {
         // pop building dialog
         Navigator.of(context, rootNavigator: true).pop();
 
@@ -387,11 +387,21 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
     }
   }
 
+  // Controller assignments used for display must not edit the stored amount.
+  void _updateAmountDisplay(VoidCallback update) {
+    final wasLocked = _cryptoAmountChangeLock;
+    _cryptoAmountChangeLock = true;
+    try {
+      update();
+    } finally {
+      _cryptoAmountChangeLock = wasLocked;
+    }
+  }
+
   void _cryptoAmountChanged() async {
     if (!_cryptoAmountChangeLock) {
       // Get the token's decimal places for proper amount parsing. May still
-      // be null while the token wallet is loading (e.g. a locale change
-      // fires the relocalization listener before init completes).
+      // be null while the token wallet is loading.
       final tokenWallet = ref.read(pCurrentSolanaTokenWallet);
       if (tokenWallet == null) return;
 
@@ -697,7 +707,7 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
     listenForAmountRelocalization(
       ref.listen,
       controllers: [cryptoAmountController, baseAmountController],
-      onRelocalized: _cryptoAmountChanged,
+      updateControllers: _updateAmountDisplay,
     );
 
     final tokenWallet = ref.watch(pCurrentSolanaTokenWallet);
@@ -1043,6 +1053,13 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
                                 }
                               },
                               child: const AddressBookIcon(),
+                            ),
+                          if (sendToController.text.isEmpty)
+                            TextFieldIconButton(
+                              semanticsLabel: "Scan QR Button. Opens Camera For Scanning QR Code.",
+                              key: const Key("sendViewScanQrButtonKey"),
+                              onTap: scanQr,
+                              child: const QrCodeIcon(),
                             ),
                         ],
                       ),

@@ -18,8 +18,6 @@ final _wiProvider = ChangeNotifierProvider.family<Watcher, String>((
     collection: collection,
   );
 
-  ref.onDispose(() => watcher.dispose());
-
   return watcher;
 });
 
@@ -35,9 +33,8 @@ final pWalletCoin = Provider.family<CryptoCurrency, String>((ref, walletId) {
 
 final pWalletBalance = Provider.family<Balance, String>((ref, walletId) {
   return ref.watch(
-    _wiProvider(
-      walletId,
-    ).select((value) => (value.value as WalletInfo).cachedBalance),
+    _wiProvider(walletId)
+        .select((value) => (value.value as WalletInfo).cachedBalance),
   );
 });
 
@@ -46,9 +43,8 @@ final pWalletBalanceSecondary = Provider.family<Balance, String>((
   walletId,
 ) {
   return ref.watch(
-    _wiProvider(
-      walletId,
-    ).select((value) => (value.value as WalletInfo).cachedBalanceSecondary),
+    _wiProvider(walletId)
+        .select((value) => (value.value as WalletInfo).cachedBalanceSecondary),
   );
 });
 
@@ -57,25 +53,22 @@ final pWalletBalanceTertiary = Provider.family<Balance, String>((
   walletId,
 ) {
   return ref.watch(
-    _wiProvider(
-      walletId,
-    ).select((value) => (value.value as WalletInfo).cachedBalanceTertiary),
+    _wiProvider(walletId)
+        .select((value) => (value.value as WalletInfo).cachedBalanceTertiary),
   );
 });
 
 final pWalletChainHeight = Provider.family<int, String>((ref, walletId) {
   return ref.watch(
-    _wiProvider(
-      walletId,
-    ).select((value) => (value.value as WalletInfo).cachedChainHeight),
+    _wiProvider(walletId)
+        .select((value) => (value.value as WalletInfo).cachedChainHeight),
   );
 });
 
 final pWalletIsFavourite = Provider.family<bool, String>((ref, walletId) {
   return ref.watch(
-    _wiProvider(
-      walletId,
-    ).select((value) => (value.value as WalletInfo).isFavourite),
+    _wiProvider(walletId)
+        .select((value) => (value.value as WalletInfo).isFavourite),
   );
 });
 
@@ -90,9 +83,8 @@ final pWalletReceivingAddress = Provider.family<String, String>((
   walletId,
 ) {
   return ref.watch(
-    _wiProvider(
-      walletId,
-    ).select((value) => (value.value as WalletInfo).cachedReceivingAddress),
+    _wiProvider(walletId)
+        .select((value) => (value.value as WalletInfo).cachedReceivingAddress),
   );
 });
 
