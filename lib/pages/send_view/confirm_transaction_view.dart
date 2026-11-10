@@ -33,7 +33,6 @@ import '../../themes/stack_colors.dart';
 import '../../themes/theme_providers.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
-import '../../utilities/amount/fee_rate_formatter.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
