@@ -129,6 +129,7 @@ class _PayInvoiceConfirmViewState extends ConsumerState<PayInvoiceConfirmView> {
       context: context,
       barrierDismissible: false,
       builder: (context) => StackDialog(
+        width: Util.isDesktop ? 500 : null,
         title: "Higher fee",
         message:
             "The payment needs a fee of ${formatter.format(actual)}, more "
@@ -137,10 +138,12 @@ class _PayInvoiceConfirmViewState extends ConsumerState<PayInvoiceConfirmView> {
             "and hand out the payment ${_wallet.slatepackTerms.noun}.",
         leftButton: SecondaryButton(
           label: "Cancel payment",
+          buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
           onPressed: () => Navigator.of(context).pop(false),
         ),
         rightButton: PrimaryButton(
           label: "Continue",
+          buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
           onPressed: () => Navigator.of(context).pop(true),
         ),
       ),

@@ -1537,6 +1537,7 @@ class _TransactionV2DetailsViewState
                         final go = await showDialog<bool>(
                           context: context,
                           builder: (context) => StackDialog(
+                            width: Util.isDesktop ? 500 : null,
                             title: finalized
                                 ? "Cancel a finalized transaction?"
                                 : "Cancel this transaction?",
@@ -1553,9 +1554,15 @@ class _TransactionV2DetailsViewState
                                       "spendable again.",
                             leftButton: SecondaryButton(
                               label: "Keep",
+                              buttonHeight: Util.isDesktop
+                                  ? ButtonHeight.l
+                                  : null,
                               onPressed: () => Navigator.of(context).pop(false),
                             ),
                             rightButton: PrimaryButton(
+                              buttonHeight: Util.isDesktop
+                                  ? ButtonHeight.l
+                                  : null,
                               label: finalized
                                   ? "Cancel anyway"
                                   : "Cancel transaction",

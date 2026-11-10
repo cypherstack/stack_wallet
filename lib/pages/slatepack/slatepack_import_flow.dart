@@ -303,6 +303,7 @@ abstract final class SlatepackImportFlow {
     final go = await showDialog<bool>(
       context: context,
       builder: (context) => StackDialog(
+        width: Util.isDesktop ? 500 : null,
         title: title,
         message: message,
         leftButton: SecondaryButton(
