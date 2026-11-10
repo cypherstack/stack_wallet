@@ -1,3 +1,4 @@
+import 'package:stackwallet/widgets/date_picker/restore_from_date_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
@@ -27,6 +28,48 @@ void main() {
     Util.screenWidth = null;
   });
 
+  testWidgets('remounting date mode retains the visible selection', (
+    tester,
+  ) async {
+    final controller = StartHeightPickerController();
+    final nav = GlobalKey<NavigatorState>();
+    Widget app(bool visible) => MaterialApp(
+      navigatorKey: nav,
+      theme: ThemeData(extensions: [StackColors.fromStackColorTheme(theme)]),
+      home: Scaffold(
+        body: visible
+            ? StartHeightPicker(coin: mwc, controller: controller)
+            : const SizedBox(),
+      ),
+    );
+    await tester.pumpWidget(app(true));
+    tester
+        .widget<RestoreFromDatePicker>(find.byType(RestoreFromDatePicker))
+        .onTap();
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pumpAndSettle();
+    expect(find.byType(Dialog), findsOneWidget);
+    nav.currentState!.pop([DateTime(2024, 6, 1)]);
+    await tester.pumpAndSettle();
+    final selected = tester
+        .widget<RestoreFromDatePicker>(find.byType(RestoreFromDatePicker))
+        .controller
+        .text;
+    expect(selected, isNotEmpty);
+    expect(controller.height, greaterThan(0));
+    await tester.pumpWidget(app(false));
+    await tester.pumpWidget(app(true));
+    expect(
+      tester
+          .widget<RestoreFromDatePicker>(find.byType(RestoreFromDatePicker))
+          .controller
+          .text,
+      selected,
+    );
+    await tester.pumpWidget(const SizedBox());
+    controller.dispose();
+  });
+
   group("StartHeightPicker.isSupported", () {
     test("covers exactly the coins whose rescan honours a start height", () {
       expect(
@@ -51,12 +94,23 @@ void main() {
   });
 
   group("StartHeightPicker.heightFromDate", () {
-    test("Mimblewimblecoin gets the same estimate Epic Cash does", () {
+    test("Epic Cash and Mimblewimblecoin count from their own genesis", () {
       final date = DateTime.utc(2024, 6, 1);
-      final height = StartHeightPicker.heightFromDate(mwc, date);
-      expect(height, isNotNull);
-      expect(height, greaterThan(0));
-      expect(height, StartHeightPicker.heightFromDate(epic, date));
+      final seconds = date.millisecondsSinceEpoch ~/ 1000;
+      expect(
+        StartHeightPicker.heightFromDate(epic, date),
+        (seconds - Epiccash.genesisBlockTime) ~/ 61,
+      );
+      expect(
+        StartHeightPicker.heightFromDate(mwc, date),
+        (seconds - Mimblewimblecoin.genesisBlockTime) ~/ 61,
+      );
+    });
+
+    test("a date before the MWC genesis maps to zero for MWC only", () {
+      final date = DateTime.utc(2019, 9, 1);
+      expect(StartHeightPicker.heightFromDate(mwc, date), 0);
+      expect(StartHeightPicker.heightFromDate(epic, date), greaterThan(0));
     });
 
     test("clamps dates before the genesis block to zero", () {

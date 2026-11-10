@@ -1,3 +1,5 @@
+import 'package:stackwallet/providers/ui/verify_recovery_phrase/mnemonic_word_count_state_provider.dart';
+import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -83,6 +85,61 @@ void main() {
       isNull,
     );
   });
+
+  for (final height in [null, 3000000]) {
+    testWidgets("short seed ignores hidden height $height", (tester) async {
+      final container = ProviderContainer(
+        overrides: [themeProvider.overrideWithValue(StateController(theme))],
+      );
+      addTearDown(container.dispose);
+      container.read(mnemonicWordCountStateProvider.state).state = 25;
+      RouteSettings? pushed;
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            theme: ThemeData(
+              extensions: [StackColors.fromStackColorTheme(theme)],
+            ),
+            onGenerateRoute: (settings) {
+              pushed = settings;
+              return MaterialPageRoute<void>(builder: (_) => const SizedBox());
+            },
+            home: RestoreOptionsView(walletName: "wallet", coin: coin),
+          ),
+        ),
+      );
+      final picker = tester.widget<StartHeightPicker>(
+        find.byType(StartHeightPicker),
+      );
+      if (height == null) {
+        tester
+            .widget<CustomTextButton>(
+              find.descendant(
+                of: find.byType(StartHeightPicker),
+                matching: find.byType(CustomTextButton),
+              ),
+            )
+            .onTap!();
+      } else {
+        picker.controller.setHeight(height);
+      }
+      await tester.pump();
+      container.read(mnemonicWordCountStateProvider.state).state = 16;
+      await tester.pumpAndSettle();
+      expect(find.byType(StartHeightPicker), findsNothing);
+      final button = tester.widget<RestoreOptionsNextButton>(
+        find.byType(RestoreOptionsNextButton),
+      );
+      expect(button.onPressed, isNotNull);
+      button.onPressed!();
+      await tester.pumpAndSettle();
+      expect(
+        (pushed!.arguments! as Tuple5<String, dynamic, int, int, String>).item4,
+        0,
+      );
+    });
+  }
 
   testWidgets("shows URI validation errors", (tester) async {
     final heightController = StartHeightPickerController();

@@ -37,6 +37,8 @@ import 'textfield_icon_button.dart';
 /// height into panels that show no picker at all.
 class StartHeightPickerController extends ChangeNotifier {
   int? _height;
+  DateTime? _date;
+  DateTime? get date => _date;
   bool _isUsingDate = true;
 
   /// The chosen block height, or null while nothing has been chosen yet.
@@ -50,10 +52,15 @@ class StartHeightPickerController extends ChangeNotifier {
   /// what [height] reports.
   void setHeight(int height) => _update(height: height, isUsingDate: false);
 
-  void _update({required int? height, required bool isUsingDate}) {
-    if (_height == height && _isUsingDate == isUsingDate) {
+  void _update({
+    required int? height,
+    required bool isUsingDate,
+    DateTime? date,
+  }) {
+    if (_height == height && _isUsingDate == isUsingDate && _date == date) {
       return;
     }
+    _date = date;
     _height = height;
     _isUsingDate = isUsingDate;
     notifyListeners();
@@ -79,9 +86,13 @@ class StartHeightPicker extends StatefulWidget {
       coin is Epiccash ||
       coin is Mimblewimblecoin;
 
+  static bool supportsDate(CryptoCurrency coin) =>
+      coin is! Monero || coin.network == CryptoCurrencyNetwork.main;
+
   /// The block height [coin] was at on [date], or null if [coin] has no date to
   /// height mapping.
   static int? heightFromDate(CryptoCurrency coin, DateTime date) {
+    if (!supportsDate(coin)) return null;
     try {
       final int height;
       if (coin is Monero) {
@@ -91,10 +102,13 @@ class StartHeightPicker extends StatefulWidget {
       } else if (coin is Salvium) {
         height = csSalvium.getHeightByDate(date);
       } else if (coin is Epiccash || coin is Mimblewimblecoin) {
-        // Epic Cash and Mimblewimblecoin share a genesis timestamp and target
-        // block time. Seconds per block is deliberately overestimated so the
-        // result scans from slightly too early rather than skipping history.
-        const genesisEpochSeconds = 1565370278;
+        // Epic Cash and Mimblewimblecoin share a target block time but not a
+        // genesis timestamp. Seconds per block is deliberately overestimated
+        // so the result scans from slightly too early rather than skipping
+        // history.
+        final genesisEpochSeconds = coin is Epiccash
+            ? Epiccash.genesisBlockTime
+            : Mimblewimblecoin.genesisBlockTime;
         const overestimatedSecondsPerBlock = 61;
         height =
             (date.millisecondsSinceEpoch ~/ 1000 - genesisEpochSeconds) ~/
@@ -132,6 +146,16 @@ class _StartHeightPickerState extends State<StartHeightPicker> {
   }
 
   @override
+  void didUpdateWidget(covariant StartHeightPicker oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller.removeListener(_onControllerChanged);
+      widget.controller.addListener(_onControllerChanged);
+      _syncBlockHeightField();
+    }
+  }
+
+  @override
   void dispose() {
     widget.controller.removeListener(_onControllerChanged);
     _dateController.dispose();
@@ -147,6 +171,8 @@ class _StartHeightPickerState extends State<StartHeightPicker> {
   }
 
   void _syncBlockHeightField() {
+    _date = widget.controller.date;
+    _dateController.text = _date == null ? "" : Format.formatDate(_date!);
     if (widget.controller.isUsingDate) {
       return;
     }
@@ -161,7 +187,9 @@ class _StartHeightPickerState extends State<StartHeightPicker> {
   /// Pushes the current selection into the controller, optionally switching
   /// between date and block height mode first.
   void _apply({bool? isUsingDate}) {
-    final usingDate = isUsingDate ?? widget.controller.isUsingDate;
+    final usingDate =
+        StartHeightPicker.supportsDate(widget.coin) &&
+        (isUsingDate ?? widget.controller.isUsingDate);
     widget.controller._update(
       height: usingDate
           ? (_date == null
@@ -169,6 +197,7 @@ class _StartHeightPickerState extends State<StartHeightPicker> {
                 : StartHeightPicker.heightFromDate(widget.coin, _date!))
           : int.tryParse(_blockHeightController.text),
       isUsingDate: usingDate,
+      date: _date,
     );
   }
 
@@ -195,7 +224,9 @@ class _StartHeightPickerState extends State<StartHeightPicker> {
 
   @override
   Widget build(BuildContext context) {
-    final isUsingDate = widget.controller.isUsingDate;
+    final isUsingDate =
+        StartHeightPicker.supportsDate(widget.coin) &&
+        widget.controller.isUsingDate;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -206,17 +237,18 @@ class _StartHeightPickerState extends State<StartHeightPicker> {
               isUsingDate ? "Choose start date" : "Block height",
               style: Util.isDesktop
                   ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textDark3,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textDark3,
                     )
                   : STextStyles.smallMed12(context),
               textAlign: TextAlign.left,
             ),
-            CustomTextButton(
-              text: isUsingDate ? "Use block height" : "Use date",
-              onTap: () => _apply(isUsingDate: !isUsingDate),
-            ),
+            if (StartHeightPicker.supportsDate(widget.coin))
+              CustomTextButton(
+                text: isUsingDate ? "Use block height" : "Use date",
+                onTap: () => _apply(isUsingDate: !isUsingDate),
+              ),
           ],
         ),
         SizedBox(height: Util.isDesktop ? 16 : 8),
@@ -278,9 +310,9 @@ class _StartHeightPickerState extends State<StartHeightPicker> {
                   : "Enter the initial block height of the wallet",
               style: Util.isDesktop
                   ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textSubtitle1,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textSubtitle1,
                     )
                   : STextStyles.smallMed12(context).copyWith(fontSize: 10),
             ),

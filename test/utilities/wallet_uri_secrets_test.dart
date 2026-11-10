@@ -22,8 +22,10 @@ void main() {
       () {
         try {
           WalletUriData.fromUriString(uri);
-        } catch (_) {
-          // The parse is expected to fail; the log it writes is what matters.
+        } catch (e) {
+          // The parse is expected to fail; whatever it logs or throws must not
+          // carry the pasted text.
+          lines.add(e.toString());
         }
       },
       zoneSpecification: ZoneSpecification(
@@ -33,9 +35,9 @@ void main() {
     return lines.join("\n");
   }
 
-  group("a malformed wallet URI must not reach the log", () {
-    // Each of these makes Uri.parse itself throw, which is the only path that
-    // ever logged the caller's text.
+  group("a malformed wallet URI must not reach the log or the error", () {
+    // Each of these makes Uri.parse itself throw a FormatException whose
+    // source is the caller's text.
     final malformed = <String, String>{
       "label pasted in front": "Wallet URI: monero_wallet:?seed=$seed",
       "invalid port": "monero_wallet://$address:1x?seed=$seed",
@@ -46,7 +48,7 @@ void main() {
     malformed.forEach((name, uri) {
       test(name, () {
         final log = logsWhileParsing(uri);
-        expect(log, contains("<redacted>"), reason: "redaction not applied");
+        expect(log, contains("FormatException"));
         expect(log, isNot(contains("abandon")));
         expect(log, isNot(contains("ability")));
         expect(log, isNot(contains(uri)));
@@ -57,7 +59,7 @@ void main() {
       final log = logsWhileParsing(
         "monero_wallet://$address:1x?view_key=$viewKey&spend_key=$spendKey",
       );
-      expect(log, contains("<redacted>"));
+      expect(log, contains("FormatException"));
       expect(log, isNot(contains(viewKey)));
       expect(log, isNot(contains(spendKey)));
     });

@@ -155,9 +155,8 @@ class _UnlockWalletKeysDesktopState
                 key: const Key("enterPasswordUnlockWalletKeysDesktopFieldKey"),
                 focusNode: passwordFocusNode,
                 controller: passwordController,
-                style: STextStyles.desktopTextMedium(
-                  context,
-                ).copyWith(height: 2),
+                style: STextStyles.desktopTextMedium(context)
+                    .copyWith(height: 2),
                 obscureText: hidePassword,
                 enableSuggestions: false,
                 autocorrect: false,
@@ -199,9 +198,9 @@ class _UnlockWalletKeysDesktopState
                                       hidePassword
                                           ? Assets.svg.eye
                                           : Assets.svg.eyeSlash,
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textDark3,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark3,
                                       width: 24,
                                       height: 19,
                                     ),
