@@ -9,6 +9,8 @@ import 'package:stackwallet/models/isar/models/isar_models.dart';
 import 'package:stackwallet/pages/receive_view/addresses/address_tag_data.dart';
 import 'package:stackwallet/providers/db/main_db_provider.dart';
 
+import '../../support/isar_test_utils.dart';
+
 void main() {
   const walletId = "wallet-1";
   late Directory tempDir;
@@ -46,6 +48,7 @@ void main() {
   );
 
   setUpAll(() async {
+    await initializeTestIsar();
     tempDir = await Directory.systemTemp.createTemp("stack-tag-test-");
     isar = await Isar.open(
       [AddressSchema, AddressLabelSchema, TransactionSchema],
