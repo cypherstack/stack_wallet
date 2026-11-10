@@ -108,6 +108,21 @@ void main() {
     expect(stored("tx-refresh", 0).value, 1200);
   });
 
+  test(
+    "refresh preserves new output metadata alongside inherited labels",
+    () async {
+      await db.putTransactionNote(note("tx-metadata", "savings"));
+      await db.updateUTXOs(walletId, [utxo(txid: "tx-metadata")]);
+
+      await db.updateUTXOs(walletId, [
+        utxo(txid: "tx-metadata").copyWith(otherData: '{"maturity":42}'),
+      ]);
+
+      expect(stored("tx-metadata", 0).name, "savings");
+      expect(stored("tx-metadata", 0).otherData, '{"maturity":42}');
+    },
+  );
+
   test("refresh labels legacy blank outputs with an existing note", () async {
     await isar.writeTxn(() async {
       await isar.transactionNotes.put(note("tx-legacy", "legacy"));

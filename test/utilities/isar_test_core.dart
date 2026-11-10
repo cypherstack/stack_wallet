@@ -27,9 +27,9 @@ Future<void> initializeIsarCoreForTests() async {
 
   await Isar.initializeIsarCore(
     libraries: {
-      Abi.current(): _packageRoot(
-        "isar_community_flutter_libs",
-      ).resolve(relativeLibPath).toFilePath(),
+      Abi.current(): _packageRoot("isar_community_flutter_libs")
+          .resolve(relativeLibPath)
+          .toFilePath(),
     },
   );
 }

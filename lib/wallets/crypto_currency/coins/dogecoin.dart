@@ -241,9 +241,9 @@ class Dogecoin extends Bip39HDCurrency with ElectrumXCurrencyInterface {
   Uri defaultBlockExplorer(String txid) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return Uri.parse("https://chain.so/tx/DOGE/$txid");
+        return Uri.parse("https://sochain.com/doge/tx/$txid");
       case CryptoCurrencyNetwork.test:
-        return Uri.parse("https://chain.so/tx/DOGETEST/$txid");
+        return Uri.parse("https://sochain.com/dogetest/tx/$txid");
       default:
         throw Exception(
           "Unsupported network for defaultBlockExplorer(): $network",
