@@ -47,25 +47,24 @@ class _TransactionNoteWatcher extends ChangeNotifier {
   }
 }
 
-final _wiProvider = ChangeNotifierProvider.family<
-  _TransactionNoteWatcher,
-  ({String walletId, String txid})
->((ref, key) {
-  final isar = ref.watch(mainDBProvider).isar;
+final _wiProvider =
+    ChangeNotifierProvider.family<
+      _TransactionNoteWatcher,
+      ({String walletId, String txid})
+    >((ref, key) {
+      final isar = ref.watch(mainDBProvider).isar;
 
-  final watcher = _TransactionNoteWatcher(
-    isar.transactionNotes
-        .where()
-        .txidWalletIdEqualTo(key.txid, key.walletId)
-        .findFirstSync(),
-    key,
-    isar,
-  );
+      final watcher = _TransactionNoteWatcher(
+        isar.transactionNotes
+            .where()
+            .txidWalletIdEqualTo(key.txid, key.walletId)
+            .findFirstSync(),
+        key,
+        isar,
+      );
 
-  ref.onDispose(() => watcher.dispose());
-
-  return watcher;
-});
+      return watcher;
+    });
 
 final pTransactionNote =
     Provider.family<TransactionNote?, ({String walletId, String txid})>((

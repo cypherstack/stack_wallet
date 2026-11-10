@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../models/paymint/fee_object_model.dart';
 import '../../../../pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import '../../../../providers/providers.dart';
+import '../../../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../../../providers/ui/preview_tx_button_state_provider.dart';
 import '../../../../providers/wallet/desktop_fee_providers.dart';
 import '../../../../providers/wallet/public_private_balance_state_provider.dart';
@@ -39,8 +41,8 @@ class DesktopSendFeeForm extends ConsumerStatefulWidget {
   final String walletId;
   final bool isToken;
   final void Function(int) onCustomFeeSliderChanged;
-  final void Function(bool) onCustomFeeOptionChanged;
-  final void Function(EthEIP1559Fee)? onCustomEip1559FeeOptionChanged;
+  final VoidCallback onCustomFeeOptionChanged;
+  final void Function(EthEIP1559Fee?)? onCustomEip1559FeeOptionChanged;
 
   @override
   ConsumerState<DesktopSendFeeForm> createState() => _DesktopSendFeeFormState();
@@ -55,17 +57,9 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
   ];
 
   late final CryptoCurrency cryptoCurrency;
+  Future<FeeObject>? _fees;
 
   bool get isEth => cryptoCurrency is Ethereum;
-
-  bool _isCustomFeeValue = false;
-  bool get _isCustomFee => _isCustomFeeValue;
-  set _isCustomFee(bool newValue) {
-    if (_isCustomFeeValue != newValue) {
-      _isCustomFeeValue = newValue;
-      widget.onCustomFeeOptionChanged.call(_isCustomFeeValue);
-    }
-  }
 
   (FeeRateType, String?, String?)? feeSelectionResult;
 
@@ -100,10 +94,26 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
   void initState() {
     super.initState();
     cryptoCurrency = ref.read(pWalletCoin(widget.walletId));
+
+    // The fee rate type provider is global and never disposed. Reset it here
+    // so a stale custom selection from another wallet/send form can't cause a
+    // send using an unset custom fee rate.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.read(feeRateTypeDesktopStateProvider.state).state =
+            FeeRateType.average;
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    // Keep the send amount alive for the fee estimates.
+    ref.listen(sendAmountProvider, (_, __) {});
+    final isCustomFee = ref.watch(feeRateTypeDesktopStateProvider).isCustom;
+    final locale = ref.watch(
+      localeServiceChangeNotifierProvider.select((value) => value.locale),
+    );
     final canEditFees =
         isEth ||
         cryptoCurrency is Solana ||
@@ -124,6 +134,7 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
               CustomTextButton(
                 text: "Edit",
                 onTap: () async {
+                  final wasCustomFee = isCustomFee;
                   feeSelectionResult =
                       await showDialog<(FeeRateType, String?, String?)?>(
                         context: context,
@@ -134,12 +145,9 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
                       );
 
                   if (feeSelectionResult != null) {
-                    if (_isCustomFee &&
-                        feeSelectionResult!.$1 != FeeRateType.custom) {
-                      _isCustomFee = false;
-                    } else if (!_isCustomFee &&
-                        feeSelectionResult!.$1 == FeeRateType.custom) {
-                      _isCustomFee = true;
+                    final selectedIsCustomFee = feeSelectionResult!.$1.isCustom;
+                    if (wasCustomFee != selectedIsCustomFee) {
+                      widget.onCustomFeeOptionChanged.call();
                     }
                   }
 
@@ -150,27 +158,35 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
           ),
           child: Text(
             "Transaction fee"
-            "${_isCustomFee ? "" : " (${isEth ? "max" : "estimated"})"}",
+            "${isCustomFee ? "" : " (${isEth ? "max" : "estimated"})"}",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldActiveSearchIconRight,
             ),
             textAlign: TextAlign.left,
           ),
         ),
         const SizedBox(height: 10),
-        if (!_isCustomFee)
+        if (cryptoCurrency is Xelis)
+          const Padding(
+            padding: EdgeInsets.all(10),
+            child: Text('Calculated when reviewing'),
+          )
+        else if (!isCustomFee)
           Padding(
             padding: const EdgeInsets.all(10),
             child: (feeSelectionResult?.$2 == null)
                 ? FutureBuilder(
-                    future: ref.watch(
-                      pWallets.select(
-                        (value) => value.getWallet(widget.walletId).fees,
-                      ),
-                    ),
+                    future: _fees ??= ref
+                        .read(pWallets)
+                        .getWallet(widget.walletId)
+                        .fees,
                     builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.done &&
+                          snapshot.hasError) {
+                        _fees = null;
+                      }
                       if (snapshot.connectionState == ConnectionState.done &&
                           snapshot.hasData) {
                         return DesktopFeeItem(
@@ -322,9 +338,9 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
                         feeSelectionResult?.$2 ?? "",
                         style: STextStyles.desktopTextExtraExtraSmall(context)
                             .copyWith(
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textFieldActiveText,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFieldActiveText,
                             ),
                         textAlign: TextAlign.left,
                       ),
@@ -340,15 +356,16 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
                     ],
                   ),
           ),
-        if (_isCustomFee && isEth)
+        if (isCustomFee && isEth)
           EthFeeForm(
+            locale: locale,
             minGasLimit: widget.isToken
                 ? kEthereumTokenMinGasLimit
                 : kEthereumMinGasLimit,
             stateChanged: (value) =>
                 widget.onCustomEip1559FeeOptionChanged?.call(value),
           ),
-        if (_isCustomFee && !isEth)
+        if (isCustomFee && !isEth)
           Padding(
             padding: const EdgeInsets.only(bottom: 12, top: 16),
             child: FeeSlider(

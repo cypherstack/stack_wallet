@@ -177,6 +177,26 @@ class DB {
       hive.openBox<dynamic>(boxNamePriceCache),
       _loadWalletBoxes(),
     ]);
+    // Claim old prices before the UI can change the saved currency preference.
+    await migrateLegacyPriceCache();
+  }
+
+  Future<void> migrateLegacyPriceCache() async {
+    final cache = hive.box<dynamic>(boxNamePriceCache);
+    if (cache.get('cache') is! Map) return;
+    await mutex.protect(() async {
+      final legacy = cache.get('cache');
+      if (legacy is! Map) return;
+      // Old snapshots have no currency metadata. Preserve them only under the
+      // saved preference (USD was the default), never every requested currency.
+      final currency =
+          get<dynamic>(boxName: boxNamePrefs, key: 'currency') as String? ??
+          'USD';
+      final key = 'cache_${currency.toLowerCase()}';
+      if (!cache.containsKey(key)) await cache.put(key, legacy);
+      // Write first so an interrupted migration can safely be repeated.
+      await cache.delete('cache');
+    });
   }
 
   Future<void> _loadWalletBoxes() async {

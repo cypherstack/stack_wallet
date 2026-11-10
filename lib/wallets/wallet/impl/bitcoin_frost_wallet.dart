@@ -22,6 +22,7 @@ import '../../../services/event_bus/events/global/wallet_sync_status_changed_eve
 import '../../../services/event_bus/global_event_bus.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/extensions/extensions.dart';
+import '../../../utilities/flutter_secure_storage_interface.dart';
 import '../../../utilities/logger.dart';
 import '../../../wl_gen/interfaces/frost_interface.dart';
 import '../../crypto_currency/crypto_currency.dart';
@@ -125,6 +126,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
           .getUTXOs(walletId)
           .filter()
           .isBlockedEqualTo(false)
+          .group((q) => q.usedEqualTo(false).or().usedIsNull())
           .findAll();
 
       if (utxos.isEmpty) {
@@ -152,7 +154,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         fractionDigits: cryptoCurrency.fractionDigits,
       );
       final Set<UTXO> utxosToUse = {};
-      final Set<UTXO> utxosRemaining = {};
+      final List<UTXO> utxosRemaining = [];
       for (int i = 0; i < utxos.length; i++) {
         final utxo = utxos[i];
         sum += Amount(
@@ -162,7 +164,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         utxosToUse.add(utxo);
         if (sum > total) {
           if (i + 1 < utxos.length) {
-            utxosRemaining.addAll(utxos.sublist(i));
+            utxosRemaining.addAll(utxos.sublist(i + 1));
           }
           break;
         }
@@ -212,7 +214,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         } on FrostInsufficientFundsException catch (_) {
           if (utxosRemaining.isNotEmpty) {
             // add extra utxo
-            final utxo = utxosRemaining.take(1).first;
+            final utxo = utxosRemaining.removeAt(0);
             final dData = await getDerivationData(utxo.address);
             final publicKey = cryptoCurrency.addressToPubkey(
               address: utxo.address!,
@@ -230,7 +232,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
 
       return txData.copyWith(
         frostMSConfig: config,
-        utxos: utxosToUse.map((e) => StandardInput(e)).toSet(),
+        utxos: inputs.map((e) => StandardInput(e.utxo)).toSet(),
       );
     } catch (_) {
       rethrow;
@@ -837,7 +839,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         const changeChain = 1;
         final List<Future<({int index, List<Address> addresses})>>
         receiveFutures = [
-          _checkGapsLinearly(serializedKeys, receiveChain, secure: true),
+          _checkGapsLinearly(serializedKeys!, receiveChain, secure: true),
         ];
         final List<Future<({int index, List<Address> addresses})>>
         changeFutures = [
@@ -870,8 +872,9 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         }
 
         int highestChangeIndexWithHistory = 0;
-        // If restoring a wallet that never sent any funds with change, then set changeArray
-        // manually. If we didn't do this, it'd store an empty array.
+        // If restoring a wallet that never sent any funds with change, then
+        // set changeArray manually.
+        // If we didn't do this, it'd store an empty array.
         for (final tuple in changeResults) {
           if (tuple.addresses.isEmpty) {
             await checkChangeAddressForTransactions();
@@ -898,7 +901,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
 
         await mainDB.updateOrPutAddresses(addressesToStore);
 
-        await _legacyInsecureScan(serializedKeys);
+        await _legacyInsecureScan(serializedKeys!);
       });
 
       GlobalEventBus.instance.fire(
@@ -1110,6 +1113,22 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
   }
 
   // =================== Secure storage ========================================
+
+  static Future<void> deleteSecureStorage({
+    required String walletId,
+    required SecureStorageInterface secureStorage,
+  }) async {
+    for (final suffix in const [
+      'serializedFROSTKeys',
+      'serializedFROSTKeysPrevGen',
+      'multisigConfig',
+      'multisigConfigPrevGen',
+      'multisigIdFROST',
+      'recoveryStringFROST',
+    ]) {
+      await secureStorage.delete(key: '{$walletId}_$suffix');
+    }
+  }
 
   Future<String?> getSerializedKeys() async =>
       await secureStorageInterface.read(key: "{$walletId}_serializedFROSTKeys");
@@ -1414,7 +1433,8 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         throw Exception();
       } catch (_, s) {
         Logging.instance.e(
-          "checkReceivingAddressForTransactions called but reuse address flag set: $s",
+          "checkReceivingAddressForTransactions called but reuse address flag"
+          " set: $s",
           stackTrace: s,
         );
       }
@@ -1584,7 +1604,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
   }
 
   Future<Address> _generateAddressSafe({
-    required final int chain,
+    required int chain,
     required int startingIndex,
   }) async {
     final serializedKeys = (await getSerializedKeys())!;

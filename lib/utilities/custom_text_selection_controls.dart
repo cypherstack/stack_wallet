@@ -16,7 +16,7 @@ class CustomMaterialTextSelectionControls
   CustomMaterialTextSelectionControls({required this.onPaste});
   ValueChanged<TextSelectionDelegate> onPaste;
   @override
-  Future<void> handlePaste(final TextSelectionDelegate delegate) async {
+  Future<void> handlePaste(TextSelectionDelegate delegate) async {
     return onPaste(delegate);
   }
 }
@@ -26,7 +26,7 @@ class CustomCupertinoTextSelectionControls
   CustomCupertinoTextSelectionControls({required this.onPaste});
   ValueChanged<TextSelectionDelegate> onPaste;
   @override
-  Future<void> handlePaste(final TextSelectionDelegate delegate) async {
+  Future<void> handlePaste(TextSelectionDelegate delegate) async {
     return onPaste(delegate);
   }
 }

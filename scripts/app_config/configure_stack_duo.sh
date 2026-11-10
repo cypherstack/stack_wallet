@@ -33,8 +33,6 @@ dart "${APP_PROJECT_ROOT_DIR}/tool/gen_interfaces.dart" \
       TOR \
       FROST
 
-export INCLUDE_EPIC_SO="OFF"
-export INCLUDE_MWC_SO="OFF"
 
 pushd "${APP_PROJECT_ROOT_DIR}"
 BUILT_COMMIT_HASH=$(git log -1 --pretty=format:"%H")
@@ -81,6 +79,8 @@ final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   BitcoinFrost(CryptoCurrencyNetwork.test),
   BitcoinFrost(CryptoCurrencyNetwork.test4),
 ]);
+
+const List<EthContract> _defaultEthTokens = [];
 
 final ({String from, String fromFuzzyNet, String to, String toFuzzyNet})
 _swapDefaults = (
