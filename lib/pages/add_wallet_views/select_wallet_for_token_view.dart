@@ -74,13 +74,6 @@ class _SelectWalletForTokenViewState
 
   @override
   Widget build(BuildContext context) {
-    final ethWalletInfos = ref
-        .watch(pAllWalletsInfo)
-        .where((e) => e.coin == widget.entity.cryptoCurrency)
-        .toList();
-
-    final _hasEthWallets = ethWalletInfos.isNotEmpty;
-
     // The wallet info is written to the db when a new wallet is created, but
     // the wallet is only added to pWallets once its flow completes. Rebuild
     // when that happens and skip wallets that are not registered yet.
@@ -91,13 +84,16 @@ class _SelectWalletForTokenViewState
         .map((e) => e.walletId)
         .toSet();
 
+    final ethWalletInfos = ref
+        .watch(pAllWalletsInfo)
+        .where((e) => e.coin == widget.entity.cryptoCurrency)
+        .where((e) => registeredWalletIds.contains(e.walletId))
+        .toList();
+
+    final _hasEthWallets = ethWalletInfos.isNotEmpty;
     final List<String> ethWalletIds = [];
 
-    for (final walletId
-        in ethWalletInfos
-            .map((e) => e.walletId)
-            .where(registeredWalletIds.contains)
-            .toList()) {
+    for (final walletId in ethWalletInfos.map((e) => e.walletId)) {
       final walletContracts = ref.read(pWalletTokenAddresses(walletId));
       if (!walletContracts.contains(widget.entity.token.address)) {
         ethWalletIds.add(walletId);
