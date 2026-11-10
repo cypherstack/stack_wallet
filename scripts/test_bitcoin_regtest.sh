@@ -11,7 +11,8 @@ set -euo pipefail
 # ios or android.
 # INDEXER is electrs (default), fulcrum, or all to run every file against both.
 # BITCOIND, ELECTRS and FULCRUM name the binaries; otherwise they come from
-# PATH (bitcoind, electrs, Fulcrum). Only the selected indexers are needed.
+# PATH (bitcoind, electrs, Fulcrum) or from scripts/fetch_bitcoin_regtest_bins.sh.
+# Only the selected indexers are needed.
 # Set FLUTTER_BIN to use a Flutter executable other than the one on PATH.
 #
 # On Linux and Windows the test starts the nodes itself. The macOS app is
@@ -23,9 +24,17 @@ cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.."
 flutter_bin="${FLUTTER_BIN:-flutter}"
 dart_bin="$(dirname -- "$(command -v "$flutter_bin")")/dart"
 [[ -x "$dart_bin" ]] || dart_bin=dart
-bitcoind="${BITCOIND:-$(command -v bitcoind || true)}"
-electrs="${ELECTRS:-$(command -v electrs || true)}"
-fulcrum="${FULCRUM:-$(command -v Fulcrum || true)}"
+# Where scripts/fetch_bitcoin_regtest_bins.sh puts them.
+bins="${REGTEST_BIN_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/stack_wallet_regtest}"
+first_executable() {
+  local path
+  for path in "$@"; do
+    if [[ -n "$path" && -x "$path" ]]; then printf '%s' "$path"; return; fi
+  done
+}
+bitcoind="${BITCOIND:-$(first_executable "$(command -v bitcoind || true)" "$bins"/bitcoin-*/bin/bitcoind)}"
+electrs="${ELECTRS:-$(first_executable "$(command -v electrs || true)" "$bins"/electrs-*/bin/electrs)}"
+fulcrum="${FULCRUM:-$(first_executable "$(command -v Fulcrum || true)" "$bins"/Fulcrum-*/Fulcrum)}"
 host_os="$(uname -s | tr '[:upper:]' '[:lower:]' | sed -E 's/darwin/macos/; s/^(mingw|msys|cygwin).*/windows/')"
 device="${1:-$host_os}"
 if (( $# > 0 )); then shift; fi
@@ -54,7 +63,8 @@ esac
 for name in bitcoind "${indexers[@]}"; do
   path="${!name}"
   if [[ -z "$path" || ! -x "$path" ]]; then
-    printf 'Set %s to a %s executable.\n' "$(tr '[:lower:]' '[:upper:]' <<<"$name")" "$name" >&2
+    printf 'No %s found. Run scripts/fetch_bitcoin_regtest_bins.sh or set %s.\n' \
+      "$name" "$(tr '[:lower:]' '[:upper:]' <<<"$name")" >&2
     exit 2
   fi
 done
