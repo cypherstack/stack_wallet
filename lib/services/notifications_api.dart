@@ -38,7 +38,10 @@ abstract final class NotificationApi {
     );
   }
 
-  static Future<void> init({bool initScheduled = false}) async {
+  static Future<void> init({
+    bool initScheduled = false,
+    bool requestPermissions = true,
+  }) async {
     if (_initCalledCompleter == null) {
       _initCalledCompleter = Completer<void>();
     } else {
@@ -50,11 +53,19 @@ abstract final class NotificationApi {
     }
 
     const android = AndroidInitializationSettings('app_icon_alpha');
-    const iOS = DarwinInitializationSettings();
+    final iOS = DarwinInitializationSettings(
+      requestAlertPermission: requestPermissions,
+      requestBadgePermission: requestPermissions,
+      requestSoundPermission: requestPermissions,
+    );
     const linux = LinuxInitializationSettings(
       defaultActionName: "temporary_stack_wallet",
     );
-    const macOS = DarwinInitializationSettings();
+    final macOS = DarwinInitializationSettings(
+      requestAlertPermission: requestPermissions,
+      requestBadgePermission: requestPermissions,
+      requestSoundPermission: requestPermissions,
+    );
     final (windowsAppUserModelId, windowsGuid) = switch (AppConfig.appName) {
       "Campfire" => (
         "CypherStack.Campfire",
