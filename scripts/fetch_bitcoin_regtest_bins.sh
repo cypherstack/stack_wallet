@@ -109,5 +109,5 @@ printf '\nInstalled in %s. scripts/test_bitcoin_regtest.sh looks there.\n' "$dir
 for path in "$dir/bitcoin-$bitcoin_version/bin/bitcoind" \
   "$dir/electrs-$electrs_version/bin/electrs" \
   "$dir/Fulcrum-$fulcrum_version-$fulcrum_platform/Fulcrum"; do
-  [[ -x "$path" ]] && printf '  %s\n' "$path"
+  if [[ -x "$path" ]]; then printf '  %s\n' "$path"; fi
 done
