@@ -1095,6 +1095,31 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     }
   }
 
+  /// Strips the prefixes an Epicbox or MWCMQS address can be pasted with.
+  /// Only rewrites the field when that changes the text, so typing stays
+  /// intact.
+  String _formatRelayAddress(String text) {
+    final String Function(String)? format = coin is Epiccash
+        ? formatAddress
+        : coin is Mimblewimblecoin
+        ? formatAddressMwc
+        : null;
+    if (format == null) return text;
+    String address = text.trim();
+    if (address.contains("\n")) {
+      address = address.substring(0, address.indexOf("\n"));
+    }
+    final formatted = format(address);
+    if (formatted != address) {
+      sendToController.value = TextEditingValue(
+        text: formatted,
+        selection: TextSelection.collapsed(offset: formatted.length),
+      );
+      return formatted;
+    }
+    return text;
+  }
+
   Future<void> _checkSparkNameAndOrSetAddress(
     String content, {
     bool setController = true,
@@ -1431,38 +1456,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     final previewEnabled = ref.watch(pPreviewTxButtonEnabled(walletId));
     final needsEthFee = coin is Ethereum && isCustomFee;
 
-    // add listener for epic cash to strip http:// and https:// prefixes if the address also ocntains an @ symbol (indicating an epicbox address)
-    if (coin is Epiccash) {
-      sendToController.addListener(() {
-        _address = sendToController.text;
-
-        if (_address != null && _address!.isNotEmpty) {
-          _address = _address!.trim();
-          if (_address!.contains("\n")) {
-            _address = _address!.substring(0, _address!.indexOf("\n"));
-          }
-
-          sendToController.text = formatAddress(_address!);
-        }
-      });
-    }
-
     final balType = ref.watch(publicPrivateBalanceStateProvider);
-
-    if (coin is Mimblewimblecoin) {
-      sendToController.addListener(() {
-        _address = sendToController.text;
-
-        if (_address != null && _address!.isNotEmpty) {
-          _address = _address!.trim();
-          if (_address!.contains("\n")) {
-            _address = _address!.substring(0, _address!.indexOf("\n"));
-          }
-
-          sendToController.text = formatAddressMwc(_address!);
-        }
-      });
-    }
 
     final isMwebEnabled = ref.watch(
       pWalletInfo(walletId).select((s) => s.isMwebEnabled),
@@ -1885,6 +1879,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 selectAll: false,
               ),
               onChanged: (newValue) async {
+                newValue = _formatRelayAddress(newValue);
                 final trimmed = newValue;
 
                 if (AddressUtils.mayBePaymentUri(trimmed, _address ?? "")) {
