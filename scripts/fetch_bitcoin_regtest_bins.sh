@@ -68,6 +68,13 @@ fetch_electrs() {
     printf 'electrs needs cargo (https://rustup.rs); skipping it.\n' >&2
     return
   fi
+  # On macOS, link against the selected Xcode's SDK. Without this, a newer
+  # Command Line Tools SDK than that Xcode's linker understands is picked up
+  # and the build fails with "tapi error: malformed file".
+  if [[ "$os" == Darwin && -z "${SDKROOT:-}" ]]; then
+    SDKROOT="$(xcrun --sdk macosx --show-sdk-path)"
+    export SDKROOT
+  fi
   # librocksdb-sys compiles RocksDB, which takes several minutes.
   cargo install --locked electrs --version "$electrs_version" --root "$out"
 }
