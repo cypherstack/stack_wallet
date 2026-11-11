@@ -5,12 +5,10 @@ import 'package:electrum_adapter/electrum_adapter.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as rpc;
 import 'package:stackwallet/app_config.dart';
-import 'package:stackwallet/electrumx_rpc/client_manager.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/utilities/tor_plain_net_option_enum.dart';
 import 'package:stackwallet/wallets/crypto_currency/coins/firo.dart';
 import 'package:stream_channel/stream_channel.dart';
 
@@ -26,6 +24,11 @@ class MockElectrumServer {
     this.useSSL = true,
   }) : _handlers = Map<String, MockElectrumHandler>.from(handlers),
        _latestHeader = initialHeader ?? BlockHeader('00', 1) {
+    _handlers.putIfAbsent(
+      'server.version',
+      () =>
+          (_) => ['mock', '1.4'],
+    );
     _handlers.putIfAbsent(
       'blockchain.headers.subscribe',
       () =>
@@ -137,62 +140,42 @@ class ManagedElectrumXClient extends ElectrumXClient {
 
   @override
   Future<void> checkElectrumAdapter() async {
-    ({InternetAddress host, int port})? proxyInfo;
-
-    if (AppConfig.hasFeature(AppFeature.tor)) {
-      if (_prefsForTest.useTor) {
-        if (_torServiceForTest.status != TorConnectionStatus.connected) {
-          if (_prefsForTest.torKillSwitch) {
-            throw Exception(
-              'Tor preference and killswitch set but Tor is not enabled, '
-              'not connecting to Electrum adapter',
-            );
-          }
-        } else {
-          proxyInfo = _torServiceForTest.getProxyInfo();
-        }
-
-        if (netType == TorPlainNetworkOption.clear) {
-          await (await ClientManager.sharedInstance.remove(
-            cryptoCurrency: cryptoCurrency,
-          )).$1?.close();
-        }
-      } else if (netType == TorPlainNetworkOption.tor) {
-        await (await ClientManager.sharedInstance.remove(
-          cryptoCurrency: cryptoCurrency,
-        )).$1?.close();
-      }
+    if (AppConfig.hasFeature(AppFeature.tor) &&
+        _prefsForTest.useTor &&
+        _torServiceForTest.status != TorConnectionStatus.connected &&
+        _prefsForTest.torKillSwitch) {
+      throw Exception(
+        'Tor preference and killswitch set but Tor is not enabled, '
+        'not connecting to Electrum adapter',
+      );
     }
-
-    final existing = getElectrumAdapter();
-    if (existing != null && !existing.peer.isClosed) {
-      await super.checkElectrumAdapter();
-      return;
-    }
-    if (existing != null) {
-      await (await ClientManager.sharedInstance.remove(
-        cryptoCurrency: cryptoCurrency,
-      )).$1?.close();
-    }
-
-    final server = proxyInfo != null ? (torServer ?? clearServer) : clearServer;
-    final adapter = cryptoCurrency is Firo
-        ? await server.createFiroElectrumClient(proxyInfo: proxyInfo)
-        : await server.createElectrumClient(proxyInfo: proxyInfo);
-
-    await ClientManager.sharedInstance.addClient(
-      adapter,
-      cryptoCurrency: cryptoCurrency,
-      netType: netType,
-    );
     await super.checkElectrumAdapter();
+  }
+
+  /// Serves this client from the in-memory mock: the Tor server when the
+  /// client chose a proxy, otherwise the clearnet server.
+  @override
+  Future<ElectrumClient> openConnection({
+    required String host,
+    required int port,
+    required bool useSSL,
+    required ({InternetAddress host, int port})? proxy,
+    required bool Function(X509Certificate)? onBadCertificate,
+  }) async {
+    final server = proxy != null ? (torServer ?? clearServer) : clearServer;
+    return cryptoCurrency is Firo
+        ? await server.createFiroElectrumClient(proxyInfo: proxy)
+        : await server.createElectrumClient(proxyInfo: proxy);
   }
 }
 
 Future<void> tearDownManagedElectrum({
+  Iterable<ElectrumXClient> clients = const [],
   Iterable<MockElectrumServer> servers = const [],
 }) async {
-  await ClientManager.sharedInstance.closeAll();
+  for (final client in clients) {
+    await client.closeAdapter();
+  }
   for (final server in servers) {
     await server.close();
   }

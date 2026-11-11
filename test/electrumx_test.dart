@@ -87,6 +87,7 @@ void main() {
   late FakeTorService torService;
   late EventBus eventBus;
   final servers = <MockElectrumServer>[];
+  final clients = <ElectrumXClient>[];
 
   setUpAll(() async {
     logDir = await Directory.systemTemp.createTemp('electrumx_test_logs');
@@ -110,7 +111,7 @@ void main() {
     required CryptoCurrency coin,
     TorPlainNetworkOption netType = TorPlainNetworkOption.both,
   }) {
-    return ManagedElectrumXClient(
+    final client = ManagedElectrumXClient(
       host: clearServer.host,
       port: 50002,
       useSSL: true,
@@ -123,6 +124,8 @@ void main() {
       torServer: torServer,
       globalEventBusForTesting: eventBus,
     );
+    clients.add(client);
+    return client;
   }
 
   Matcher throwsCurrentCastError() => throwsA(
@@ -138,6 +141,7 @@ void main() {
     torService = FakeTorService();
     eventBus = EventBus();
     servers.clear();
+    clients.clear();
 
     when(prefs.wifiOnly).thenReturn(false);
     when(prefs.useTor).thenReturn(false);
@@ -145,7 +149,7 @@ void main() {
   });
 
   tearDown(() async {
-    await tearDownManagedElectrum(servers: servers);
+    await tearDownManagedElectrum(clients: clients, servers: servers);
   });
 
   group('factory constructors and getters', () {
@@ -206,7 +210,9 @@ void main() {
       final result = await client.ping(requestID: 'ping-1');
 
       expect(result, isTrue);
-      expect(server.requestCount('blockchain.headers.subscribe'), 1);
+      // Setup negotiates once; no header subscription is opened per client.
+      expect(server.requestCount('server.version'), 1);
+      expect(server.requestCount('blockchain.headers.subscribe'), 0);
       expect(server.requestCount('server.ping'), 1);
     });
 
