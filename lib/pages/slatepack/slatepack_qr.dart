@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -7,14 +8,13 @@ import '../../utilities/text_styles.dart';
 import '../../widgets/qr.dart';
 import '../../widgets/rounded_container.dart';
 
-/// Longest slatepack shown as a QR code. Measured armored Grin slatepacks
-/// (characters): S1 360 plain, 806-955 encrypted; I1 348 plain, 719-855
-/// encrypted; S2 1837-2185; I2 1881-2068; S3 2683-2871. S1 and I1 fit one
-/// QR at any error correction level, S2 and I2 only at L or M, so the cap
-/// sits above S1/I1 and below S2/I2, which fall back to copy, share or save.
-const kSlatepackQrMaxLength = 1000;
+/// Most bytes one QR code holds: version 40 in byte mode at error correction
+/// level L, which is the level [QR] draws at. Anything up to that is drawn. A
+/// code near the limit is dense, and tapping it shows it full size.
+const kSlatepackQrMaxBytes = 2953;
 
-bool slatepackFitsQr(String text) => text.length <= kSlatepackQrMaxLength;
+bool slatepackFitsQr(String text) =>
+    utf8.encode(text).length <= kSlatepackQrMaxBytes;
 
 /// QR code for a slatepack, or a note when it is too long for one. Tapping
 /// the code shows it full size.
