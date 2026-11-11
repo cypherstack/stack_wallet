@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../models/slatepack_models.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../utilities/amount/amount.dart';
+import '../../utilities/logger.dart';
 import '../../utilities/show_loading.dart';
 import '../../utilities/util.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/slatepack_interface.dart';
@@ -214,6 +215,10 @@ abstract final class SlatepackImportFlow {
     );
     if (confirmed != true || !context.mounted) return false;
 
+    // Looked up before the wallet is asked, so the response can still be
+    // shown if the screen that started the import is gone by then.
+    final root = Navigator.of(context, rootNavigator: true);
+
     final result = await _withLoading(
       context,
       "Processing ${terms.noun}...",
@@ -226,10 +231,32 @@ abstract final class SlatepackImportFlow {
       },
       errorTitle: "${terms.title} receive error",
     );
-    if (result == null || !context.mounted) return false;
+    if (result == null) return false;
 
     unawaited(wallet.refresh());
-    await showSlatepackDialog(context: context, terms: terms, result: result);
+
+    // The transaction is received now and the sender cannot finalize it
+    // without the response, so the response is shown wherever it still can
+    // be.
+    if (context.mounted) {
+      await showSlatepackDialog(context: context, terms: terms, result: result);
+    } else if (root.mounted) {
+      Logging.instance.w(
+        "Received ${terms.noun} ${result.slateId} after the screen that "
+        "imported it had closed. Showing the response from the root "
+        "navigator.",
+      );
+      await showSlatepackDialog(
+        context: root.context,
+        terms: terms,
+        result: result,
+      );
+    } else {
+      Logging.instance.e(
+        "Received ${terms.noun} ${result.slateId} but there was nowhere left "
+        "to show the response.",
+      );
+    }
     return true;
   }
 
@@ -273,9 +300,17 @@ abstract final class SlatepackImportFlow {
       },
       errorTitle: "${terms.title} finalize error",
     );
-    if (result == null || !context.mounted) return false;
+    if (result == null) return false;
 
     unawaited(wallet.refresh());
+
+    if (!context.mounted) {
+      Logging.instance.w(
+        "Finalized ${terms.noun} ${inspection.slateId} after the screen that "
+        "imported it had closed. Broadcast: ${result.posted}.",
+      );
+      return true;
+    }
 
     if (result.posted) {
       unawaited(

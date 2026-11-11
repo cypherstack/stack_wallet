@@ -1,13 +1,19 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/models/slatepack_models.dart';
+import 'package:stackwallet/pages/slatepack/slatepack_dialog.dart';
 import 'package:stackwallet/pages/slatepack/slatepack_import_flow.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/amount/amount_unit.dart';
+import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
 
@@ -16,8 +22,15 @@ import '../../sample_data/theme_json.dart';
 /// Epic Cash wallet whose inspection is canned, so run() can be driven
 /// without a native wallet.
 class _InspectOnlyWallet extends EpiccashWallet {
-  _InspectOnlyWallet(this.state, {this.invoices = false, this.localIsSend})
-    : super(CryptoCurrencyNetwork.main);
+  _InspectOnlyWallet(
+    this.state, {
+    this.invoices = false,
+    this.localIsSend,
+    this.receiveGate,
+  }) : super(CryptoCurrencyNetwork.main);
+
+  /// When set, receiving waits for it and then succeeds.
+  final Completer<void>? receiveGate;
 
   final SlateState state;
   final bool invoices;
@@ -54,8 +67,20 @@ class _InspectOnlyWallet extends EpiccashWallet {
   @override
   Future<SlatepackResult> receiveSlatepack(String slatepack) async {
     receiveCalls++;
-    return SlatepackResult(success: false, error: "not in tests");
+    if (receiveGate == null) {
+      return SlatepackResult(success: false, error: "not in tests");
+    }
+    await receiveGate!.future;
+    return SlatepackResult(
+      success: true,
+      slatepack: '{"response": true}',
+      slateId: "test-slate",
+      state: SlateState.s2,
+    );
   }
+
+  @override
+  Future<void> refresh({bool doScan = true}) async {}
 
   @override
   Future<FinalizeResult> finalizeSlatepack(String slatepack) async {
@@ -199,12 +224,21 @@ void main() {
       WidgetTester tester,
       _InspectOnlyWallet wallet, {
       String text = "{}",
+      ValueNotifier<bool>? shown,
+      void Function(bool)? onDone,
     }) async {
       bool? outcome;
+      shown ??= ValueNotifier(true);
       final coin = wallet.cryptoCurrency;
+      // The loading overlay reads its indicator from the theme.
+      final previousThemes = StackFileSystem.themesDir;
+      StackFileSystem.themesDir = Directory("test/sample_data").absolute;
+      addTearDown(() => StackFileSystem.themesDir = previousThemes);
+      final theme = StackTheme.fromJson(json: lightThemeJsonMap);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            themeProvider.overrideWithProvider(StateProvider((ref) => theme)),
             pAmountFormatter(coin).overrideWithValue(
               AmountFormatter(
                 unit: AmountUnit.normal,
@@ -216,24 +250,26 @@ void main() {
           ],
           child: MaterialApp(
             theme: ThemeData(
-              extensions: [
-                StackColors.fromStackColorTheme(
-                  StackTheme.fromJson(json: lightThemeJsonMap),
-                ),
-              ],
+              extensions: [StackColors.fromStackColorTheme(theme)],
             ),
             home: Scaffold(
-              body: Builder(
-                builder: (context) => TextButton(
-                  onPressed: () async {
-                    outcome = await SlatepackImportFlow.run(
-                      context: context,
-                      wallet: wallet,
-                      text: text,
-                    );
-                  },
-                  child: const Text("go"),
-                ),
+              body: ValueListenableBuilder(
+                valueListenable: shown,
+                builder: (context, isShown, _) => !isShown
+                    ? const SizedBox()
+                    : Builder(
+                        builder: (context) => TextButton(
+                          onPressed: () async {
+                            outcome = await SlatepackImportFlow.run(
+                              context: context,
+                              wallet: wallet,
+                              text: text,
+                            );
+                            onDone?.call(outcome!);
+                          },
+                          child: const Text("go"),
+                        ),
+                      ),
               ),
             ),
           ),
@@ -330,6 +366,43 @@ void main() {
       // Once for the inspection and once for the finalize.
       expect(wallet.seen, [armored, armored]);
       await closeDialog(tester);
+    });
+
+    testWidgets("the response is shown even if the importing screen closed "
+        "while the slate was received", (tester) async {
+      tester.view.physicalSize = const Size(1400, 2400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final gate = Completer<void>();
+      final wallet = _InspectOnlyWallet(SlateState.s1, receiveGate: gate);
+      final shown = ValueNotifier(true);
+      addTearDown(shown.dispose);
+      bool? done;
+      await runFlow(tester, wallet, shown: shown, onDone: (v) => done = v);
+      expect(find.text("Receive slate"), findsOneWidget);
+      await tester.tap(find.text("Receive"));
+      // Summary closes, loading overlay delay, then the wallet is asked.
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(wallet.receiveCalls, 1);
+      expect(find.byType(SlatepackDialog), findsNothing);
+
+      shown.value = false;
+      await tester.pump();
+      expect(find.text("go"), findsNothing);
+
+      gate.complete();
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.byType(SlatepackDialog), findsOneWidget);
+      expect(find.text('{"response": true}'), findsOneWidget);
+
+      await tester.tap(find.text("Done"));
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(done, isTrue);
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets("invoice with invoice support is a placeholder", (
