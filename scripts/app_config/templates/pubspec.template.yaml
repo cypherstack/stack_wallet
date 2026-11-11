@@ -243,7 +243,7 @@ dependencies:
   camera_linux:
     git:
       url: https://github.com/cypherstack/camera-linux
-      ref: ecb412474c5d240347b04ac1eb9f019802ff7034
+      ref: 82e2d82188cc4676a02559118af110c8161b4eed
   zxing2: ^0.2.3
   camera_windows: ^0.3.0+1
   camera_platform_interface: ^2.8.0
