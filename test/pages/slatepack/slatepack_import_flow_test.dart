@@ -16,6 +16,7 @@ import 'package:stackwallet/utilities/amount/amount_unit.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
+import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 
 import '../../sample_data/theme_json.dart';
 
@@ -27,10 +28,13 @@ class _InspectOnlyWallet extends EpiccashWallet {
     this.invoices = false,
     this.localIsSend,
     this.receiveGate,
+    this.receiveError,
   }) : super(CryptoCurrencyNetwork.main);
 
-  /// When set, receiving waits for it and then succeeds.
+  /// When set, receiving waits for it and then succeeds, or throws
+  /// [receiveError] if that is set.
   final Completer<void>? receiveGate;
+  final Exception? receiveError;
 
   final SlateState state;
   final bool invoices;
@@ -71,6 +75,7 @@ class _InspectOnlyWallet extends EpiccashWallet {
       return SlatepackResult(success: false, error: "not in tests");
     }
     await receiveGate!.future;
+    if (receiveError != null) throw receiveError!;
     return SlatepackResult(
       success: true,
       slatepack: '{"response": true}',
@@ -387,6 +392,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
       expect(wallet.receiveCalls, 1);
       expect(find.byType(SlatepackDialog), findsNothing);
+      expect(find.byType(CustomLoadingOverlay), findsOneWidget);
 
       shown.value = false;
       await tester.pump();
@@ -402,6 +408,46 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
       await tester.pump(const Duration(milliseconds: 400));
       expect(done, isTrue);
+      // Nothing is left over the app once the response is closed.
+      expect(
+        find.byType(CustomLoadingOverlay, skipOffstage: false),
+        findsNothing,
+      );
+      expect(find.byType(ModalBarrier), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets("an error is shown even if the importing screen closed "
+        "while the slate was received", (tester) async {
+      final gate = Completer<void>();
+      final wallet = _InspectOnlyWallet(
+        SlateState.s1,
+        receiveGate: gate,
+        receiveError: Exception("the slate was refused"),
+      );
+      final shown = ValueNotifier(true);
+      addTearDown(shown.dispose);
+      bool? done;
+      await runFlow(tester, wallet, shown: shown, onDone: (v) => done = v);
+      await tester.tap(find.text("Receive"));
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(wallet.receiveCalls, 1);
+
+      shown.value = false;
+      await tester.pump();
+      gate.complete();
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.text("the slate was refused"), findsOneWidget);
+      expect(
+        find.byType(CustomLoadingOverlay, skipOffstage: false),
+        findsNothing,
+      );
+
+      await closeDialog(tester);
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(done, isFalse);
       expect(tester.takeException(), isNull);
     });
 

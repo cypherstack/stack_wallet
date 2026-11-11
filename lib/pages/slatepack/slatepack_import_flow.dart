@@ -5,10 +5,11 @@ import 'package:flutter/material.dart';
 import '../../models/slatepack_models.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../utilities/amount/amount.dart';
+import '../../themes/stack_colors.dart';
 import '../../utilities/logger.dart';
-import '../../utilities/show_loading.dart';
 import '../../utilities/util.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/slatepack_interface.dart';
+import '../../widgets/custom_loading_overlay.dart';
 import '../../widgets/stack_dialog.dart';
 import 'slatepack_dialog.dart';
 import 'slatepack_popup.dart';
@@ -339,26 +340,52 @@ abstract final class SlatepackImportFlow {
     Future<T> Function() action, {
     required String errorTitle,
   }) async {
-    Exception? ex;
-    final result = await showLoading<T>(
-      // Let the overlay open before the work starts, so an early error
-      // does not pop the wrong route.
-      whileFuture: Future<void>.delayed(const Duration(milliseconds: 300))
-          .then((_) => action()),
+    // The overlay is this flow's own route on the root navigator, so it can
+    // be taken down again even if the screen that started the import is gone
+    // by the time the wallet answers.
+    final root = Navigator.of(context, rootNavigator: true);
+    final overlayColor = Theme.of(context)
+        .extension<StackColors>()!
+        .overlay
+        .withValues(alpha: 0.6);
+    final overlay = DialogRoute<void>(
       context: context,
-      message: message,
-      rootNavigator: true,
-      onException: (e) => ex = e,
+      barrierDismissible: false,
+      themes: InheritedTheme.capture(from: context, to: root.context),
+      builder: (_) => PopScope(
+        canPop: false,
+        child: Container(
+          color: overlayColor,
+          child: CustomLoadingOverlay(message: message, eventBus: null),
+        ),
+      ),
     );
+    unawaited(root.push(overlay));
 
-    if (ex != null || result == null) {
+    T? result;
+    Object? error;
+    try {
+      // Let the overlay paint before the wallet is asked.
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      result = await action();
+    } catch (e, s) {
+      Logging.instance.w(errorTitle, error: e, stackTrace: s);
+      error = e;
+    }
+
+    if (root.mounted && overlay.isActive) {
+      root.removeRoute(overlay);
+    }
+
+    if (error != null || result == null) {
+      // An error is worth showing even after the importing screen closed.
+      final text =
+          error?.toString().replaceFirst("Exception: ", "") ??
+          "Unexpected result without an error";
       if (context.mounted) {
-        await _message(
-          context,
-          errorTitle,
-          ex?.toString().replaceFirst("Exception: ", "") ??
-              "Unexpected result without an error",
-        );
+        await _message(context, errorTitle, text);
+      } else if (root.mounted) {
+        await _message(root.context, errorTitle, text);
       }
       return null;
     }
