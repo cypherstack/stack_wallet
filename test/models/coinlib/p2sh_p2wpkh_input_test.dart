@@ -77,6 +77,12 @@ void main() {
     );
   });
 
+  String nestedAddress(ElectrumXInterface wallet) =>
+      coinlib.P2SHAddress.fromRedeemScript(
+        coinlib.P2WPKH.fromPublicKey(key.pubkey).script,
+        version: wallet.cryptoCurrency.networkParams.p2shPrefix,
+      ).toString();
+
   coinlib.Transaction sign(coinlib.Input input) => coinlib.Transaction(
     version: unsigned.version,
     locktime: unsigned.locktime,
@@ -186,6 +192,7 @@ void main() {
           txid: Uint8List.fromList(input.prevOut.hash.reversed.toList()).toHex,
           vout: input.prevOut.n,
           value: 1000000000,
+          address: nestedAddress(wallet),
           name: '',
           isBlocked: false,
           blockedReason: null,
@@ -248,6 +255,7 @@ void main() {
                   .toHex,
               vout: i + 1,
               value: 1000000000,
+              address: i == 0 ? nestedAddress(_LitecoinWallet()) : null,
               name: '',
               isBlocked: false,
               blockedReason: null,

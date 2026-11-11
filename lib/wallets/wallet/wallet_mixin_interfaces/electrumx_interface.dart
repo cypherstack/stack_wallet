@@ -473,9 +473,17 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         );
 
       case DerivePathType.bip49:
-        return P2shP2wpkhInput(
+        final address = input.utxo.address;
+        if (address == null) {
+          throw UnsupportedError("P2SH input has no address to verify");
+        }
+        return P2shP2wpkhInput.spending(
           prevOut: prevOut,
           publicKey: input.key!.publicKey,
+          scriptPubKey: coinlib.Address.fromString(
+            normalizeAddress(address),
+            cryptoCurrency.networkParams,
+          ).program.script.compiled,
           sequence: sequence,
         );
 
