@@ -70,7 +70,7 @@ DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 ARCH="$(uname -m)"
 OS_NAME="$(uname -s)"
 OS_VER="$(uname -r)"
-echo "Benchmark: ${LABEL}" | banner   
+echo "Benchmark: ${LABEL}" | banner
 echo "Host: $HOST"
 echo "OS: $OS_NAME $OS_VER ($ARCH)"
 echo "Branch: $BRANCH"
@@ -80,16 +80,16 @@ echo "Flags: ${MAKE_FLAGS:-(none)}"
 echo ""
 
 # Disk before
-DISK_BEFORE=$(du -sk . 2>/dev/null | cut -f1)
+DISK_BEFORE=$(du -sk . 2>/dev/null | cut -f1 || echo 0)
 
 # Clean unless warm
 if [ $WARM -eq 0 ]; then
-  echo "Cleaning" | banner  
+  echo "Cleaning" | banner
   make clean 2>&1 | tail -1
 fi
 
 # Build
-echo "Building: make ${BUILD_TARGET} ${MAKE_FLAGS} " | banner  
+echo "Building: make ${BUILD_TARGET} ${MAKE_FLAGS} " | banner
 sccache --zero-stats >/dev/null 2>&1 || true
 START=$(date +%s)
 # A failing build must still be timed and recorded, so errexit is off for the build and its status is taken from make.
@@ -103,11 +103,11 @@ WALL=$((END - START))
 # Disk after
 SCC_NOTE=""
 if command -v sccache >/dev/null 2>&1; then
-  SCC_REQ=$(sccache --show-stats 2>/dev/null | awk '/^Compile requests executed/ {print $NF}')
-  SCC_HIT=$(sccache --show-stats 2>/dev/null | awk '/^Cache hits  / {print $NF}')
+  SCC_REQ=$(sccache --show-stats 2>/dev/null | awk '/^Compile requests executed/ {print $NF}' || echo 0)
+  SCC_HIT=$(sccache --show-stats 2>/dev/null | awk '/^Cache hits  / {print $NF}' || echo 0)
   [ -n "${SCC_REQ:-}" ] && [ "${SCC_REQ:-0}" != "0" ] && SCC_NOTE="sccache ${SCC_HIT:-0}/${SCC_REQ} hits"
 fi
-DISK_AFTER=$(du -sk . 2>/dev/null | cut -f1)
+DISK_AFTER=$(du -sk . 2>/dev/null | cut -f1 || echo 0)
 DISK_DELTA=$((DISK_AFTER - DISK_BEFORE))
 
 # Write CSV header if new file
@@ -124,7 +124,7 @@ if [ $RC -eq 0 ]; then
 else
   echo "✗ Build FAILED after ${WALL}s"
 fi
-echo "Results appended: $OUTFILE" | banner  
+echo "Results appended: $OUTFILE" | banner
 
 # Show all runs
 echo ""

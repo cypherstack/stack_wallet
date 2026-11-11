@@ -64,22 +64,46 @@ add_rustup_to_path
 # copy installed another way) must not stop the toolchain setup.
 brew install pandoc weasyprint toilet figlet || echo "[WARN] optional report tools were not fully installed; only bm/ report rendering needs them."
 
-# The Homebrew cask always installs the latest Flutter, but the app is built
-# and tested against one pinned release. Install that tag from source instead.
-FLUTTER_VERSION="${FLUTTER_VERSION:-3.47.4}"
+# The Homebrew cask always installs the latest Flutter, but CI builds and tests
+# one pinned release. Install that tag from source instead.
+FLUTTER_VERSION="${FLUTTER_VERSION:-3.47.2}"
+# Both the CI version and the version pinned by the Nix shell/BOM work. An
+# explicit FLUTTER_VERSION only accepts that version.
+if [[ -n "${FLUTTER_ACCEPTED_VERSIONS:-}" ]]; then
+  :
+elif [[ "$FLUTTER_VERSION" == "3.47.2" ]]; then
+  FLUTTER_ACCEPTED_VERSIONS="3.47.2 3.47.4"
+else
+  FLUTTER_ACCEPTED_VERSIONS="$FLUTTER_VERSION"
+fi
 FLUTTER_DIR="${FLUTTER_DIR:-$HOME/development/flutter}"
+case "$FLUTTER_DIR" in
+  /*) ;;
+  *) FLUTTER_DIR="$PWD/$FLUTTER_DIR" ;;
+esac
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 flutter_installed_version() {
   "$1" --version --machine 2>/dev/null | sed -n 's/.*"frameworkVersion": *"\([^"]*\)".*/\1/p' | head -n 1
+}
+
+flutter_version_ok() {
+  local accepted
+  for accepted in $FLUTTER_ACCEPTED_VERSIONS; do
+    [[ "$1" == "$accepted" ]] && return 0
+  done
+  return 1
 }
 
 FLUTTER_BIN="$(command -v flutter 2>/dev/null || true)"
 [[ -z "$FLUTTER_BIN" && -x "$FLUTTER_DIR/bin/flutter" ]] && FLUTTER_BIN="$FLUTTER_DIR/bin/flutter"
 CURRENT_FLUTTER=""
 [[ -n "$FLUTTER_BIN" ]] && CURRENT_FLUTTER="$(flutter_installed_version "$FLUTTER_BIN")"
+FLUTTER_PATH_TO_PERSIST=""
 
-if [[ "$CURRENT_FLUTTER" == "$FLUTTER_VERSION" ]]; then
-  echo "Flutter $FLUTTER_VERSION already installed ($FLUTTER_BIN)."
+if flutter_version_ok "$CURRENT_FLUTTER"; then
+  echo "Flutter $CURRENT_FLUTTER already installed ($FLUTTER_BIN)."
+  [[ "$FLUTTER_BIN" == "$FLUTTER_DIR/bin/flutter" ]] && FLUTTER_PATH_TO_PERSIST="$FLUTTER_DIR/bin"
 else
   [[ -n "$CURRENT_FLUTTER" ]] && echo "Found Flutter $CURRENT_FLUTTER at $FLUTTER_BIN, need $FLUTTER_VERSION."
   if [[ -d "$FLUTTER_DIR/.git" ]]; then
@@ -93,17 +117,28 @@ else
     mkdir -p "$(dirname "$FLUTTER_DIR")"
     git clone --branch "$FLUTTER_VERSION" --depth 1 https://github.com/flutter/flutter.git "$FLUTTER_DIR"
   fi
+  FLUTTER_BIN="$FLUTTER_DIR/bin/flutter"
+  FLUTTER_PATH_TO_PERSIST="$FLUTTER_DIR/bin"
 fi
-export PATH="$FLUTTER_DIR/bin:$PATH"
+
+# Only prepend the managed SDK when the selected Flutter is not already on PATH.
+FLUTTER_BIN_DIR="$(dirname "$FLUTTER_BIN")"
+case ":$PATH:" in
+  *":$FLUTTER_BIN_DIR:"*) ;;
+  *) export PATH="$FLUTTER_BIN_DIR:$PATH" ;;
+esac
 
 if ! command -v rustup >/dev/null 2>&1; then
   die "rustup not found in PATH. Check brew install."
 fi
 
-echo "Ensuring Rust 1.99.1 toolchain..."
-rustup toolchain install 1.99.1
-rustup default 1.99.1
-rustup target add aarch64-apple-darwin x86_64-apple-darwin aarch64-apple-ios --toolchain 1.99.1 >/dev/null 2>&1 || true
+RUST_VERSION="${RUST_VERSION:-1.99.1}"
+echo "Ensuring Rust $RUST_VERSION toolchain..."
+rustup toolchain install "$RUST_VERSION"
+rustup target add aarch64-apple-darwin x86_64-apple-darwin aarch64-apple-ios --toolchain "$RUST_VERSION" >/dev/null 2>&1 || true
+# Pin this checkout instead of changing the user's global rustup default; the
+# native-asset crates also carry their own rust-toolchain.toml.
+rustup override set "$RUST_VERSION" --path "$REPO_ROOT" >/dev/null 2>&1 || true
 
 # Homebrew's rustup formula is keg-only and does not necessarily create the
 # cargo/rustc shims in ~/.cargo/bin — `rustup toolchain install` alone may leave
@@ -112,10 +147,10 @@ rustup target add aarch64-apple-darwin x86_64-apple-darwin aarch64-apple-ios --t
 if [ ! -x "$HOME/.cargo/bin/cargo" ]; then
   echo "cargo shims missing in ~/.cargo/bin; creating them via rustup-init..."
   if command -v rustup-init >/dev/null 2>&1; then
-    rustup-init -y --no-modify-path --default-toolchain 1.99.1 || true
+    rustup-init -y --no-modify-path --default-toolchain "$RUST_VERSION" || true
   else
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-      | sh -s -- -y --no-modify-path --default-toolchain 1.99.1 || true
+      | sh -s -- -y --no-modify-path --default-toolchain "$RUST_VERSION" || true
   fi
 fi
 
@@ -141,8 +176,8 @@ else
 fi
 
 rustup --version
-rustc --version
-rustup run 1.99.1 rustc --version
+rustup run "$RUST_VERSION" rustc --version
+rustup run "$RUST_VERSION" cargo --version
 pod --version
 go version
 autoreconf --version | head -n 1 || true
@@ -160,11 +195,14 @@ if [ ! -f "$ZSHRC" ]; then
   touch "$ZSHRC"
   echo "→ Created $ZSHRC (macOS ships without one)"
 fi
+BREW_PREFIX="$(brew --prefix)"
 grep -qF 'brew shellenv' "$ZSHRC" 2>/dev/null || \
-  echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$ZSHRC"
-grep -qF "$FLUTTER_DIR/bin" "$ZSHRC" 2>/dev/null || \
-  echo "export PATH=\"$FLUTTER_DIR/bin:\$PATH\"" >> "$ZSHRC"
+  printf 'eval "$(%s/bin/brew shellenv)"\n' "$BREW_PREFIX" >> "$ZSHRC"
+if [[ -n "$FLUTTER_PATH_TO_PERSIST" ]]; then
+  grep -qF "$FLUTTER_PATH_TO_PERSIST" "$ZSHRC" 2>/dev/null || \
+    printf 'export PATH="%s:$PATH"\n' "$FLUTTER_PATH_TO_PERSIST" >> "$ZSHRC"
+fi
 grep -qF '$HOME/.cargo/bin' "$ZSHRC" 2>/dev/null || \
-  echo 'export PATH="/opt/homebrew/opt/rustup/bin:$HOME/.cargo/bin:$PATH"' >> "$ZSHRC"
+  printf 'export PATH="%s/opt/rustup/bin:$HOME/.cargo/bin:$PATH"\n' "$BREW_PREFIX" >> "$ZSHRC"
 echo "→ PATH entries ensured in $ZSHRC"
 echo "  Open a new terminal (or run: source $ZSHRC) before 'make build-macos'."

@@ -14,6 +14,7 @@
       let
         pkgs = import nixpkgs { inherit system; };
         lib = pkgs.lib;
+        rustVersion = "1.99.1";
 
         commonPackages = with pkgs; [
           flutter
@@ -40,10 +41,12 @@
           opencv
           sysprof
           libsysprof-capture
+          patchelf
+          binutils
         ]);
 
         macPackages = lib.optionals pkgs.stdenv.isDarwin (with pkgs; [
-          cocoapods 
+          cocoapods
           libiconv
           autoconf
           automake
@@ -60,27 +63,28 @@
             echo "Stack Wallet Dev-Environment activated!"
             echo "Target System: ${system}"
             echo "==================================================="
-          
+
             export APP_PROJECT_ROOT_DIR=$(pwd)
             export PATH="$HOME/.cargo/bin:$PATH"
 
             # The standalone Dart in the Nix Flutter wrapper cannot find the Flutter SDK on its own,
             # so `dart run`/`dart pub` in a Flutter project fail ("Flutter users should use flutter pub").
             export FLUTTER_ROOT="$(dirname "$(dirname "$(readlink -f "$(command -v flutter)")")")"
-            
+
             # ==========================================
              # RUST TOOLCHAIN AUTOMATION
              # Host Rust toolchain; native-assets crates select their own pinned toolchain.
              # ==========================================
-             if ! rustup toolchain list | grep -q "1.99.1"; then
+             if ! rustup toolchain list | grep -q "${rustVersion}"; then
                echo "Initializing Rust toolchain (this happens only once)..."
-               rustup toolchain install --no-self-update 1.99.1
+               rustup toolchain install --no-self-update ${rustVersion}
              fi
 
-             rustup default 1.99.1
-             
+             # Pin this checkout without replacing the user's global rustup default.
+             rustup override set ${rustVersion} --path "$PWD" >/dev/null 2>&1 || true
+
              if [[ "${system}" == *"darwin"* ]]; then
-               rustup target add aarch64-apple-darwin aarch64-apple-ios --toolchain 1.99.1
+               rustup target add aarch64-apple-darwin aarch64-apple-ios --toolchain ${rustVersion}
              fi
 
             if ! command -v cargo-ndk >/dev/null 2>&1; then
@@ -121,7 +125,7 @@
               export DEVELOPER_DIR="$(env -u DEVELOPER_DIR xcode-select -p 2>/dev/null || echo /Applications/Xcode.app/Contents/Developer)"
               export SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
               export MACOSX_DEPLOYMENT_TARGET="12.0"
-              
+
               # --- NIX C++ COMPILER OVERRIDE ---
               export CC=/usr/bin/clang
               export CXX=/usr/bin/clang++
@@ -131,8 +135,8 @@
               export NM=/usr/bin/nm
               export RANLIB=/usr/bin/ranlib
               export STRIP=/usr/bin/strip
-              
-              export BINDGEN_EXTRA_CLANG_ARGS="-isysroot $SDKROOT" 
+
+              export BINDGEN_EXTRA_CLANG_ARGS="-isysroot $SDKROOT"
               export PROTOC="${pkgs.protobuf}/bin/protoc"
 
               mkdir -p .nix-bin
@@ -141,7 +145,7 @@
               ln -sf /usr/bin/xcodebuild .nix-bin/xcodebuild
               ln -sf /usr/bin/clang .nix-bin/clang
               ln -sf /usr/bin/clang++ .nix-bin/clang++
-              
+
               # SMART LIPO & XCRUN WRAPPER
               # lipo wrapper: the Nix store copy of FlutterMacOS.framework is
               # read-only, so make its containing dir writable before handing

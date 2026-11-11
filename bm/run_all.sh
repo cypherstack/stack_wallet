@@ -36,6 +36,9 @@ echo "D: warm, from source"
 bash bm/bench.sh --warm PREBUILTS=0
 echo ""
 
+echo "Collecting disk and artifact sizes..."
+bash bm/collect.sh || true
+echo ""
 echo "Done. Results: bm/results/$HOST.csv"
 echo "View: python3 bm/compare.py bm/results/"
 echo "PDF:  python3 bm/compare.py bm/results/ > report.md && ./bm/render.sh report.md"

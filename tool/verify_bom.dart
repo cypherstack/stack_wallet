@@ -1,4 +1,5 @@
-// Checks the local toolchain and the pinned native plugins against stack-bom.toml.
+// Checks the local toolchain and the pinned native plugins against
+// stack-bom.toml.
 //
 //   dart tool/verify_bom.dart            check, exit 1 on a mismatch
 //   dart tool/verify_bom.dart --update   rewrite the [plugins] section from pubspec.lock
@@ -62,9 +63,12 @@ Map<String, Map<String, String>> _readBom(String text) {
 
 Future<String?> _run(String exe, List<String> args) async {
   try {
-    final r = await Process.run(exe, args);
+    // runInShell lets Windows start flutter.bat. Only stdout is parsed: Flutter
+    // writes startup-lock warnings to stderr, and appending those to the JSON
+    // breaks --machine output.
+    final r = await Process.run(exe, args, runInShell: Platform.isWindows);
     if (r.exitCode != 0) return null;
-    return '${r.stdout}${r.stderr}'.trim();
+    return '${r.stdout}'.trim();
   } on ProcessException {
     return null;
   }
@@ -135,27 +139,42 @@ Future<void> main(List<String> args) async {
   final tc = bom['toolchain'] ?? {};
 
   // Flutter / Dart
-  final fl = await _run('flutter', ['--version', '--machine']);
+  final configuredFlutter = Platform.environment['FLUTTER']?.trim() ?? '';
+  final fl = await _run(
+    configuredFlutter.isEmpty ? 'flutter' : configuredFlutter,
+    ['--version', '--machine'],
+  );
   if (fl == null) {
     _fail('flutter not found in PATH');
   } else {
-    final info =
-        jsonDecode(fl.substring(fl.indexOf('{'))) as Map<String, dynamic>;
-    final v = info['frameworkVersion'] as String;
-    final d = info['dartSdkVersion'] as String;
-    if (_cmp(v, tc['flutter_min'] ?? '0') < 0) {
-      _fail('Flutter $v is older than the minimum ${tc['flutter_min']}');
-    } else if (v != tc['flutter']) {
-      _warn(
-        'Flutter $v (recommended ${tc['flutter']}, minimum ${tc['flutter_min']})',
-      );
+    final start = fl.indexOf('{');
+    final end = fl.lastIndexOf('}');
+    if (start < 0 || end <= start) {
+      _fail('unexpected output from flutter --version --machine');
     } else {
-      _ok('Flutter $v');
-    }
-    if (d.startsWith(tc['dart_prefix'] ?? '')) {
-      _ok('Dart $d');
-    } else {
-      _fail('Dart $d does not match ${tc['dart_prefix']}.x');
+      try {
+        final info =
+            jsonDecode(fl.substring(start, end + 1)) as Map<String, dynamic>;
+        final v = info['frameworkVersion'] as String;
+        final d = info['dartSdkVersion'] as String;
+        if (_cmp(v, tc['flutter_min'] ?? '0') < 0) {
+          _fail('Flutter $v is older than the minimum ${tc['flutter_min']}');
+        } else if (v != tc['flutter']) {
+          _warn(
+            'Flutter $v (recommended ${tc['flutter']}, '
+            'minimum ${tc['flutter_min']})',
+          );
+        } else {
+          _ok('Flutter $v');
+        }
+        if (d.startsWith(tc['dart_prefix'] ?? '')) {
+          _ok('Dart $d');
+        } else {
+          _fail('Dart $d does not match ${tc['dart_prefix']}.x');
+        }
+      } on FormatException {
+        _fail('could not parse flutter --version --machine output');
+      }
     }
   }
 
@@ -192,7 +211,8 @@ Future<void> main(List<String> args) async {
       _ok('Xcode ${xm.group(1)}');
     } else if (xm.group(1) == mac['xcode_dnix']) {
       _warn(
-        'Xcode ${xm.group(1)} is the version dnix pins; ${mac['xcode']} is recommended for app builds',
+        'Xcode ${xm.group(1)} is the version dnix pins; '
+        '${mac['xcode']} is recommended for app builds',
       );
     } else {
       _warn('Xcode ${xm.group(1)} (recommended ${mac['xcode']})');
@@ -206,12 +226,20 @@ Future<void> main(List<String> args) async {
     _warn('pubspec.lock not found, plugin pins not checked');
   } else {
     for (final n in _pluginNames) {
-      if (!refs.containsKey(n)) continue;
-      if (pinned[n] == refs[n]) {
-        _ok('$n ${refs[n]!.substring(0, 7)}');
+      final ref = refs[n];
+      final pin = pinned[n];
+      if (ref == null) {
+        _fail(
+          '$n is missing from pubspec.lock (path dependency or not resolved)',
+        );
+      } else if (pin == null) {
+        _fail('$n is missing from [plugins] in $_bomFile (run --update)');
+      } else if (pin == ref) {
+        _ok('$n ${ref.substring(0, 7)}');
       } else {
         _fail(
-          '$n is ${refs[n]!.substring(0, 7)} in pubspec.lock but ${pinned[n]?.substring(0, 7)} in $_bomFile (run --update)',
+          '$n is ${ref.substring(0, 7)} in pubspec.lock but '
+          '${pin.substring(0, 7)} in $_bomFile (run --update)',
         );
       }
     }

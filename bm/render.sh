@@ -56,6 +56,8 @@ else
   echo "  ⚠ No PDF engine found. HTML ready: $HTML_FILE"
 fi
 
-[ "$OPEN" -eq 1 ] && open "$PDF_FILE" 2>/dev/null || open "$HTML_FILE" 2>/dev/null || true
+if [ "$OPEN" -eq 1 ]; then
+  open "$PDF_FILE" 2>/dev/null || open "$HTML_FILE" 2>/dev/null || true
+fi
 
 echo "Done."

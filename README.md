@@ -68,8 +68,8 @@ Use this only when you are not building through Nix/flake.
 1. Install host tools:
    - `make bootstrap-macos`
 2. Run build:
-   - Open a new terminal (or run `source ~/.zshrc`) so the Homebrew setup's
-     Rust 1.99.1 selection is active.
+   - Open a new terminal (or run `source ~/.zshrc`) so the Homebrew and
+     Flutter PATH entries are active.
    - `make build-macos`
 
 The Homebrew bootstrap installs the native build tools and configures Rust

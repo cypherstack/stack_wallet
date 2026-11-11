@@ -1,5 +1,5 @@
 # ==============================================================================
-# Stack Wallet build helper (macOS). Wraps scripts/build_app.sh; see docs/building.md
+# Stack Wallet build helper. Wraps scripts/build_app.sh; see docs/building.md
 # Usage: make <target> VERSION=x.x.x BUILD_NUM=xxx
 # ==============================================================================
 
@@ -15,23 +15,28 @@ DART         := $(DART_BIN)
 APP_PROJECT_ROOT_DIR := $(CURDIR)
 # Platform detection from uname.
 PLATFORM       ?= $(shell uname -s 2>/dev/null)
-PUB_CACHE    ?= $(APP_PROJECT_ROOT_DIR)/.pub-cache
+# Linux builds use a project-local pub cache so cargo finds the repo-local
+# .cargo/config.toml that carries PROTOC through Flutter's filtered hook environment.
+# Other targets leave PUB_CACHE unset, so Flutter uses its normal per-user cache
+# and `make` and the IDE share native-asset outputs instead of rebuilding them.
+LINUX_PUB_CACHE ?= $(APP_PROJECT_ROOT_DIR)/.pub-cache
+PUB_CACHE    ?=
 PROTOC_PATH  := $(shell which protoc 2>/dev/null)
 # Toolchain installed for host-side checks/targets. Native-assets crates pick their own
 # pinned toolchain via rust-toolchain.toml; do not export RUSTUP_TOOLCHAIN globally.
 RUST_VERSION ?= 1.99.1
-SKIP_NATIVE                  ?= 0
 MACOS_ENV_UNSET = -u LD -u LDFLAGS -u NIX_LDFLAGS -u NIX_CFLAGS_LINK \
 	-u CFLAGS -u CXXFLAGS -u CPPFLAGS \
 	-u SDKROOT -u BINDGEN_EXTRA_CLANG_ARGS \
 	-u IPHONEOS_DEPLOYMENT_TARGET -u TVOS_DEPLOYMENT_TARGET -u WATCHOS_DEPLOYMENT_TARGET \
 	-u XROS_DEPLOYMENT_TARGET -u XR_DEPLOYMENT_TARGET
-MACOS_ENV_SET = MACOSX_DEPLOYMENT_TARGET=12.0
 
 export APP_PROJECT_ROOT_DIR
+ifneq ($(strip $(PUB_CACHE)),)
 export PUB_CACHE
+endif
 
-.PHONY: help check-reqs check-reqs-macos check-sdk-macos bootstrap-macos bootstrap-xcode bootstrap-xcode-download sccache-setup cache-stats verify-bom clean clean-app clean-native build-macos build-linux build-windows diagnose-env-macos test-mwc build-android android-dev-key build-ios
+.PHONY: help check-reqs check-reqs-macos check-sdk-macos bootstrap-macos bootstrap-xcode bootstrap-xcode-download sccache-setup cache-stats verify-bom clean clean-app clean-native build-macos build-linux build-windows diagnose-env-macos build-android android-dev-key build-ios
 
 help: ## Show available commands
 	@echo "Available targets:"
@@ -77,6 +82,11 @@ endif
 ifeq ($(PLATFORM),Darwin)
 	@command -v autoreconf >/dev/null 2>&1 || { echo >&2 "[ERROR] autoconf/autoreconf not installed."; exit 1; }
 	@command -v aclocal >/dev/null 2>&1 || { echo >&2 "[ERROR] automake/aclocal not installed."; exit 1; }
+endif
+ifeq ($(PLATFORM),Linux)
+	@command -v python3 >/dev/null 2>&1 || { echo >&2 "[ERROR] python3 not installed (needed to prepare the Linux release bundle)."; exit 1; }
+	@command -v patchelf >/dev/null 2>&1 || { echo >&2 "[ERROR] patchelf not installed (Ubuntu 24.04: apt-get install patchelf binutils)."; exit 1; }
+	@command -v readelf >/dev/null 2>&1 || { echo >&2 "[ERROR] readelf not installed (apt-get install binutils)."; exit 1; }
 endif
 	@echo "[OK] All core CLI requirements found!"
 
@@ -149,7 +159,7 @@ sccache-setup: ## Opt-in: use sccache for the Rust/C builds run by native-asset 
 	@echo "also pass CARGO_BUILD_RUSTC_WRAPPER=sccache from the environment. See sccache --show-stats."
 
 verify-bom: ## Check the local toolchain and the pinned plugins against stack-bom.toml
-	@dart tool/verify_bom.dart
+	@FLUTTER="$(FLUTTER)" $(DART) tool/verify_bom.dart
 
 cache-stats: ## Show sccache statistics (hit rate) after a build
 	@command -v sccache >/dev/null 2>&1 || { echo >&2 "[ERROR] sccache not installed."; exit 1; }
@@ -163,8 +173,8 @@ clean: ## Remove artifacts and fix permissions
 	@if [ -f "Cargo.toml" ]; then cargo clean; fi
 	@rm -rf macos/Pods macos/Podfile.lock ios/Pods ios/Podfile.lock build/
 	@echo "Cleaning local pub cache residues..."
-	@chmod -R u+w $(PUB_CACHE)/git/ 2>/dev/null || true
-	@find $(PUB_CACHE)/git/ -type d \( -name "build" -o -name "target" \) -path "*flutter_lib*" -exec rm -rf {} + 2>/dev/null || true
+	@chmod -R u+w $(LINUX_PUB_CACHE)/git/ 2>/dev/null || true
+	@find $(LINUX_PUB_CACHE)/git/ -type d \( -name "build" -o -name "target" \) -path "*flutter_lib*" -exec rm -rf {} + 2>/dev/null || true
 	@echo "[OK] Project is now in a pristine state."
 
 # --- PLATFORM BUILDS ---
@@ -172,6 +182,8 @@ clean: ## Remove artifacts and fix permissions
 PREBUILTS ?= 1
 # Linux only: SYSTEM_DEPS=1 uses the system libsecret/jsoncpp packages instead of building them (like the CI image).
 SYSTEM_DEPS ?= 0
+LINUX_ARCH   := $(shell uname -m | sed -e 's/x86_64/x64/' -e 's/aarch64/arm64/')
+LINUX_BUNDLE ?= build/linux/$(LINUX_ARCH)/release/bundle
 
 clean-app: ## Remove app build output (build/, Pods) but keep the native-asset build outputs, so the next build is fast
 	@chflags -R nouchg build/ macos/ 2>/dev/null || true
@@ -185,25 +197,14 @@ clean-native: ## Remove only the native-asset build outputs (forces the Rust/Go/
 	@echo "[OK] Removed .dart_tool/hooks_runner and build/native_assets."
 
 build-macos: check-reqs-macos check-sdk-macos ## Build macOS release (same steps as upstream CI; PREBUILTS=0 compiles native assets from source)
-	@# pubspec.yaml is generated; build_app.sh only regenerates it from the template when unchanged,
-	@# so a previous PREBUILTS setting would otherwise stick.
-	@rm -f pubspec.yaml
 	@echo "--- Configuring project (scripts/build_app.sh)..."
-	@cd scripts && echo yes | env $(MACOS_ENV_UNSET) ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p macos -a stack_wallet -s $(if $(filter 1,$(PREBUILTS)),-d)
+	@cd scripts && echo yes | env $(MACOS_ENV_UNSET) ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p macos -a $(APP_NAME) -s $(if $(filter 1,$(PREBUILTS)),-d)
 	@echo "--- Resolving dependencies..."
 	@env $(MACOS_ENV_UNSET) $(FLUTTER) pub get
 	@cd scripts && env $(MACOS_ENV_UNSET) bash prebuild.sh
 	@echo "--- Final Compilation..."
 	@env $(MACOS_ENV_UNSET) $(FLUTTER) build macos --release
 
-
-test-mwc: ## Run MWC FFI integration test on macOS (assumes prior `make build-macos`)
-	@# Flutter's first-launch helper rewrites MACOSX_DEPLOYMENT_TARGET=10.15; reassert 12.0.
-	@sed -i.bak -e "s/MACOSX_DEPLOYMENT_TARGET = 10\\.15;/MACOSX_DEPLOYMENT_TARGET = 12.0;/g" -e "s/MACOSX_DEPLOYMENT_TARGET = 11\\.0;/MACOSX_DEPLOYMENT_TARGET = 12.0;/g" macos/Runner.xcodeproj/project.pbxproj 2>/dev/null || true
-	@rm -f macos/Runner.xcodeproj/project.pbxproj.bak
-	@chmod -R u+w macos/Runner.xcodeproj macos 2>/dev/null || true
-	@env $(MACOS_ENV_UNSET) $(MACOS_ENV_SET) \
-		$(FLUTTER) test integration_test/mwc_ffi_test.dart -d macos
 
 diagnose-env-macos: ## Print macOS build env and tool resolution
 	@echo "--- Toolchain diagnostics ---"
@@ -228,6 +229,7 @@ diagnose-env-macos: ## Print macOS build env and tool resolution
 	@echo "NIX_LDFLAGS=$${NIX_LDFLAGS:-<unset>}"
 	@echo "NIX_CFLAGS_LINK=$${NIX_CFLAGS_LINK:-<unset>}"
 
+build-linux: export PUB_CACHE := $(LINUX_PUB_CACHE)
 build-linux: check-reqs ## Build Linux Release through Flutter native-assets hooks
 	@echo "--- Running prebuild bootstrap..."
 	@cd scripts && bash prebuild.sh
@@ -247,25 +249,6 @@ build-linux: check-reqs ## Build Linux Release through Flutter native-assets hoo
 	fi
 	@echo "--- Building app..."
 	@$(FLUTTER) pub get
-	@mkdir -p scripts/linux/pc
-	@printf '%s\n' \
-		'prefix=$(CURDIR)/scripts/linux/build/libsecret' \
-		'exec_prefix=$${prefix}' \
-		'libdir=$${prefix}/_build/libsecret' \
-		'includedir=$${prefix}' \
-		'' \
-		'Name: libsecret-1' \
-		'Description: GObject bindings for Secret Service API' \
-		'Version: 0.21.4' \
-		'Libs: -L$${libdir} -lsecret-1' \
-		'Cflags: -I$${includedir} -I$${includedir}/_build' \
-		> scripts/linux/pc/libsecret-1.pc
-	@if command -v podman >/dev/null 2>&1 || command -v docker >/dev/null 2>&1; then \
-		: 'coinlib BuildKit git fetch fails on NixOS; scope the legacy-builder workaround here'; \
-		DOCKER_BUILDKIT=0 $(FLUTTER) pub run coinlib:build_linux; \
-	else \
-		echo "[WARN] podman/docker not found; skipping coinlib:build_linux"; \
-	fi
 	@if [ "$(SYSTEM_DEPS)" = "1" ]; then \
 		USE_SYSTEM_SECURE_STORAGE_DEPS=1 PROTOC="$(PROTOC_PATH)" $(FLUTTER) build linux --release; \
 	else \
@@ -279,19 +262,19 @@ build-linux: check-reqs ## Build Linux Release through Flutter native-assets hoo
 		PKG_CONFIG_LIBDIR="$(CURDIR)/scripts/linux/pc:$$SYSPROF_PC_DIR:$$PC_PATH" \
 		PROTOC="$(PROTOC_PATH)" $(FLUTTER) build linux --release; \
 	fi
+	@echo "--- Preparing release bundle..."
+	@python3 scripts/linux/prepare_release_bundle.py $(LINUX_BUNDLE)
 
 # Windows: run from Git Bash. Same steps as the "build-windows" job in .github/workflows/build.yaml.
-# WINDOWS_COPY_ASSETS=1 replaces the asset links with copies (needed on runners that cannot create symlinks).
+# WINDOWS_COPY_ASSETS=1 makes link_assets.sh copy instead of creating symlinks, for hosts
+# where the user cannot create them (for example the GitHub-hosted runner).
 WINDOWS_COPY_ASSETS ?= 0
 
 build-windows: ## Build Windows release (Git Bash; same steps as CI)
 	@command -v flutter >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
 	@command -v go >/dev/null 2>&1 || { echo >&2 "[ERROR] Go not installed."; exit 1; }
 	@cd scripts && bash prebuild.sh
-	@# link_assets.sh (run by build_app.sh) cannot remove the real directories a previous copy run left behind.
-	@if [ "$(WINDOWS_COPY_ASSETS)" = "1" ]; then bash scripts/windows/replace_asset_links.sh --clean; fi
-	@cd scripts && echo yes | MWEBD_FETCH=1 ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p windows -a $(APP_NAME) -d -s
-	@if [ "$(WINDOWS_COPY_ASSETS)" = "1" ]; then bash scripts/windows/replace_asset_links.sh; fi
+	@cd scripts && echo yes | MWEBD_FETCH=1 WINDOWS_COPY_ASSETS=$(WINDOWS_COPY_ASSETS) ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p windows -a $(APP_NAME) -d -s
 	@$(FLUTTER) pub get
 	@$(DART) run coinlib:build_windows
 	@$(FLUTTER) build windows --release
@@ -323,4 +306,3 @@ build-ios: check-sdk-macos ## Build iOS Runner.app without code signing (same st
 	@cd scripts && echo yes | ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p ios -a $(APP_NAME) -d -s
 	@$(FLUTTER) pub get
 	@$(FLUTTER) build ios --release --no-codesign
-

@@ -7,10 +7,9 @@ Usage:
   python3 bm/compare.py bm/results/ > report.md   # markdown for bm/render.sh
 """
 
-import csv, sys, os, json
+import csv, sys, os
 from collections import defaultdict
 from pathlib import Path
-from statistics import mean, stdev, median
 
 PIPE = "│"
 
