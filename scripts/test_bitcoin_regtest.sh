@@ -9,7 +9,8 @@ set -euo pipefail
 # device is a flutter device id; it defaults to the host (linux, macos or
 # windows). For an iOS simulator or Android emulator id, set REGTEST_TARGET to
 # ios or android.
-# INDEXER is electrs (default), fulcrum, or all to run every file against both.
+# INDEXER is electrs (default; fulcrum on Windows), fulcrum, or all to run
+# every file against both. On Windows run it from Git Bash.
 # BITCOIND, ELECTRS and FULCRUM name the binaries; otherwise they come from
 # PATH (bitcoind, electrs, Fulcrum) or from scripts/fetch_bitcoin_regtest_bins.sh.
 # Only the selected indexers are needed.
@@ -32,9 +33,9 @@ first_executable() {
     if [[ -n "$path" && -x "$path" ]]; then printf '%s' "$path"; return; fi
   done
 }
-bitcoind="${BITCOIND:-$(first_executable "$(command -v bitcoind || true)" "$bins"/bitcoin-*/bin/bitcoind)}"
+bitcoind="${BITCOIND:-$(first_executable "$(command -v bitcoind || true)" "$bins"/bitcoin-*/bin/bitcoind "$bins"/bitcoin-*/bin/bitcoind.exe)}"
 electrs="${ELECTRS:-$(first_executable "$(command -v electrs || true)" "$bins"/electrs-*/bin/electrs)}"
-fulcrum="${FULCRUM:-$(first_executable "$(command -v Fulcrum || true)" "$bins"/Fulcrum-*/Fulcrum)}"
+fulcrum="${FULCRUM:-$(first_executable "$(command -v Fulcrum || true)" "$bins"/Fulcrum-*/Fulcrum "$bins"/Fulcrum-*/Fulcrum.exe)}"
 host_os="$(uname -s | tr '[:upper:]' '[:lower:]' | sed -E 's/darwin/macos/; s/^(mingw|msys|cygwin).*/windows/')"
 device="${1:-$host_os}"
 if (( $# > 0 )); then shift; fi
@@ -53,7 +54,10 @@ esac
 # REGTEST_HOST_NODES=1 runs the nodes on the host for desktop targets too.
 [[ "${REGTEST_HOST_NODES:-0}" == 1 ]] && host_nodes=1
 
-case "${INDEXER:-electrs}" in
+# electrs has no Windows build, so Windows defaults to Fulcrum.
+default_indexer=electrs
+[[ "$target" == windows ]] && default_indexer=fulcrum
+case "${INDEXER:-$default_indexer}" in
   electrs) indexers=(electrs) ;;
   fulcrum) indexers=(fulcrum) ;;
   all) indexers=(electrs fulcrum) ;;

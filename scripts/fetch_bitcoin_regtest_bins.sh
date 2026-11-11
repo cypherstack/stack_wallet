@@ -4,11 +4,13 @@ set -euo pipefail
 # Fetches the node programs the Bitcoin regtest integration tests use into
 # REGTEST_BIN_DIR (default ~/.cache/stack_wallet_regtest), where
 # scripts/test_bitcoin_regtest.sh finds them:
-#   bitcoind 31.1  release tarball from bitcoincore.org, checked against its
+#   bitcoind 31.1  release archive from bitcoincore.org, checked against its
 #                  SHA256SUMS
-#   electrs 0.10.10  built with cargo install (needs Rust and clang)
-#   Fulcrum 1.11.1   release tarball from GitHub, checked against its shasums;
-#                    Linux only, as there is no macOS release
+#   electrs 0.10.10  built with cargo install (needs Rust and clang); not on
+#                    Windows
+#   Fulcrum 1.11.1   release archive from GitHub, checked against its shasums;
+#                    Linux and Windows, as there is no macOS release
+# On Windows run it from Git Bash.
 # Usage: bash scripts/fetch_bitcoin_regtest_bins.sh [bitcoind] [electrs] [fulcrum]
 # With no arguments it fetches all that apply to this host. Works with macOS's
 # bash 3.2.
@@ -21,13 +23,30 @@ mkdir -p "$dir"
 
 os="$(uname -s)"
 arch="$(uname -m)"
+archive=tar.gz
+exe=
+case "$os" in MINGW*|MSYS*|CYGWIN*) os=Windows ;; esac
 case "$os/$arch" in
   Linux/x86_64) bitcoin_platform=x86_64-linux-gnu; fulcrum_platform=x86_64-linux ;;
   Linux/aarch64|Linux/arm64) bitcoin_platform=aarch64-linux-gnu; fulcrum_platform=arm64-linux ;;
   Darwin/arm64) bitcoin_platform=arm64-apple-darwin; fulcrum_platform= ;;
   Darwin/x86_64) bitcoin_platform=x86_64-apple-darwin; fulcrum_platform= ;;
+  Windows/x86_64) bitcoin_platform=win64; fulcrum_platform=win64; archive=zip; exe=.exe ;;
   *) printf 'Unsupported host %s/%s.\n' "$os" "$arch" >&2; exit 2 ;;
 esac
+
+extract() {
+  if [[ "$1" == *.zip ]]; then
+    if command -v unzip >/dev/null; then
+      unzip -q -o "$1" -d "$dir"
+    else
+      powershell -NoProfile -Command \
+        "Expand-Archive -Force -LiteralPath '$(cygpath -w "$1")' -DestinationPath '$(cygpath -w "$dir")'"
+    fi
+  else
+    tar -xzf "$1" -C "$dir"
+  fi
+}
 
 sha256() {
   if command -v sha256sum >/dev/null; then sha256sum "$1" | cut -d' ' -f1
@@ -53,16 +72,20 @@ fetch_checked() {
 
 fetch_bitcoind() {
   local base="https://bitcoincore.org/bin/bitcoin-core-$bitcoin_version"
-  local tarball="bitcoin-$bitcoin_version-$bitcoin_platform.tar.gz"
+  local tarball="bitcoin-$bitcoin_version-$bitcoin_platform.$archive"
   local out="$dir/bitcoin-$bitcoin_version"
-  if [[ -x "$out/bin/bitcoind" ]]; then return; fi
+  if [[ -x "$out/bin/bitcoind$exe" ]]; then return; fi
   curl -fsSL --retry 3 -o "$dir/bitcoin-SHA256SUMS" "$base/SHA256SUMS"
   fetch_checked "$base/$tarball" "$dir/$tarball" "$dir/bitcoin-SHA256SUMS"
-  tar -xzf "$dir/$tarball" -C "$dir"
+  extract "$dir/$tarball"
 }
 
 fetch_electrs() {
   local out="$dir/electrs-$electrs_version"
+  if [[ "$os" == Windows ]]; then
+    printf 'electrs does not support Windows; use fulcrum here.\n' >&2
+    return
+  fi
   if [[ -x "$out/bin/electrs" ]]; then return; fi
   if ! command -v cargo >/dev/null; then
     printf 'electrs needs cargo (https://rustup.rs); skipping it.\n' >&2
@@ -85,13 +108,13 @@ fetch_fulcrum() {
     return
   fi
   local base="https://github.com/cculianu/Fulcrum/releases/download/v$fulcrum_version"
-  local tarball="Fulcrum-$fulcrum_version-$fulcrum_platform.tar.gz"
+  local tarball="Fulcrum-$fulcrum_version-$fulcrum_platform.$archive"
   local out="$dir/Fulcrum-$fulcrum_version-$fulcrum_platform"
-  if [[ -x "$out/Fulcrum" ]]; then return; fi
+  if [[ -x "$out/Fulcrum$exe" ]]; then return; fi
   curl -fsSL --retry 3 -o "$dir/fulcrum-shasums.txt" \
     "$base/Fulcrum-$fulcrum_version-shasums.txt"
   fetch_checked "$base/$tarball" "$dir/$tarball" "$dir/fulcrum-shasums.txt"
-  tar -xzf "$dir/$tarball" -C "$dir"
+  extract "$dir/$tarball"
 }
 
 wanted=("$@")
@@ -106,8 +129,8 @@ for program in "${wanted[@]}"; do
 done
 
 printf '\nInstalled in %s. scripts/test_bitcoin_regtest.sh looks there.\n' "$dir"
-for path in "$dir/bitcoin-$bitcoin_version/bin/bitcoind" \
+for path in "$dir/bitcoin-$bitcoin_version/bin/bitcoind$exe" \
   "$dir/electrs-$electrs_version/bin/electrs" \
-  "$dir/Fulcrum-$fulcrum_version-$fulcrum_platform/Fulcrum"; do
+  "$dir/Fulcrum-$fulcrum_version-$fulcrum_platform/Fulcrum$exe"; do
   if [[ -x "$path" ]]; then printf '  %s\n' "$path"; fi
 done

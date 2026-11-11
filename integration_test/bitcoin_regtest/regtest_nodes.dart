@@ -259,11 +259,13 @@ class RegtestNodes {
   /// never contacts public servers.
   Future<void> _startFulcrum(String path) async {
     final config = File('${root.path}/fulcrum.conf');
+    // Forward slashes work on Windows too and need no escaping in the config.
+    final dir = root.path.replaceAll(r'\', '/');
     await config.writeAsString(
       [
-        'datadir = ${root.path}/fulcrum',
+        'datadir = $dir/fulcrum',
         'bitcoind = 127.0.0.1:$rpcPort',
-        'rpccookie = ${root.path}/bitcoind/regtest/.cookie',
+        'rpccookie = $dir/bitcoind/regtest/.cookie',
         'tcp = 127.0.0.1:$electrumPort',
         'stats = 127.0.0.1:$_monitoringPort',
         'peering = false',
