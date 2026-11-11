@@ -454,4 +454,23 @@ void main() {
       );
     });
   });
+
+  test("web URLs are send addresses, not payment URIs", () {
+    for (final input in [
+      "http:",
+      "http://",
+      "http://127.0.0.1:3415",
+      "https://wallet.example.com/v2/foreign",
+      "HTTPS://wallet.example.com",
+    ]) {
+      expect(AddressUtils.parsePaymentUri(input), isNull, reason: input);
+    }
+    // Ordinary payment URIs still parse.
+    expect(
+      AddressUtils.parsePaymentUri(
+        "bitcoin:1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa?amount=0.1",
+      )?.address,
+      "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+    );
+  });
 }
