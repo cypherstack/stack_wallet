@@ -44,6 +44,7 @@ class DesktopManageBlockExplorersDialog extends ConsumerWidget {
         .where(
           (e) => showTestNet || e.network == CryptoCurrencyNetwork.main,
         )
+        .where(hasDefaultBlockExplorer)
         .toList();
 
     return DesktopDialog(
