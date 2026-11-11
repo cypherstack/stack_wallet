@@ -98,3 +98,16 @@ Electrum server log lines (printed by the runner when it started the nodes).
 App data and logs stay in each test's temp dir; the desktop test sets the
 logs path pref first, because the app's default
 logs dir ignores the data dir override and is shared with real installs.
+
+## Troubleshooting
+
+- macOS build fails with `tapi error: malformed file` and `unknown
+  architecture ... arm64e.x1-macos` while compiling Rust build scripts: the
+  Command Line Tools have a newer macOS SDK than the selected Xcode's linker
+  understands (compare `xcode-select -p` with
+  `ls /Library/Developer/CommandLineTools/SDKs`). This breaks any Stack Wallet
+  macOS build, not only these tests. Setting `SDKROOT` or `DEVELOPER_DIR` does
+  not help, because the Rust build hooks do not see them; select an Xcode at
+  least as new as the Command Line Tools (`sudo xcode-select -s ...`) or
+  update the two together. `fetch_bitcoin_regtest_bins.sh` already builds
+  electrs against the selected Xcode's SDK.
