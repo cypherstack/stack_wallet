@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:event_bus/event_bus.dart';
@@ -8,6 +9,7 @@ import 'package:stackwallet/electrumx_rpc/client_manager.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/services/node_service.dart';
+import 'package:stackwallet/services/event_bus/events/global/tor_status_changed_event.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/services/tor_service.dart';
@@ -213,4 +215,61 @@ void main() {
     );
     expect(peer.isClosed, true);
   });
+
+  for (final action in ['revoke', 'Tor change', 'close owner', 'close all']) {
+    test('$action also closes a connection draining after failover', () async {
+      final primary = await TlsElectrumServer.start(
+        ignoredMethods: {'blockchain.transaction.get'},
+      );
+      servers.add(primary);
+      final fallback = await start('node_b');
+      final fallbackNode = node(fallback, certificateName: 'node_b');
+      final connection = client(
+        node(primary, certificateName: 'node_a'),
+        failovers: [fallbackNode],
+      );
+      addTearDown(connection.closeAdapter);
+      await connection.checkElectrumAdapter();
+      await ClientManager.sharedInstance.getChainHeightFor(coin);
+      final previous = connection.getElectrumAdapter()!;
+      final pending = connection
+          .getTransaction(txHash: 'a' * 64)
+          .then<Object?>((value) => value, onError: (Object e) => e);
+      await _until(
+        () => primary.methods.contains('blockchain.transaction.get'),
+      );
+      connection.currentFailoverIndex = 0;
+      await connection.checkElectrumAdapter();
+      expect(connection.getElectrumAdapter()!.port, fallback.port);
+      expect(previous.peer.isClosed, false);
+
+      switch (action) {
+        case 'revoke':
+          final revoked = client(node(primary), failovers: [fallbackNode]);
+          addTearDown(revoked.closeAdapter);
+          // The current fallback is still permitted, but the retired primary
+          // must immediately lose its old certificate approval.
+          await revoked.checkElectrumAdapter();
+          expect(revoked.getElectrumAdapter()!.port, fallback.port);
+        case 'Tor change':
+          bus.fire(TorPreferenceChangedEvent(status: TorStatus.enabled));
+        case 'close owner':
+          await connection.closeAdapter();
+        case 'close all':
+          await ClientManager.sharedInstance.closeAll();
+      }
+      await _until(() => previous.peer.isClosed);
+      expect(await pending, isA<StateError>());
+    });
+  }
+}
+
+Future<void> _until(bool Function() ready) async {
+  final watch = Stopwatch()..start();
+  while (!ready()) {
+    if (watch.elapsed > const Duration(seconds: 3)) {
+      throw TimeoutException('Waiting for TLS lifecycle');
+    }
+    await Future<void>.delayed(const Duration(milliseconds: 5));
+  }
 }

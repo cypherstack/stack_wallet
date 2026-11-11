@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:event_bus/event_bus.dart';
@@ -30,12 +29,10 @@ class _Prefs extends Mock implements Prefs {
 class _Tor extends Mock implements TorService {
   _Tor(this.proxyInfo);
   final ({InternetAddress host, int port}) proxyInfo;
-  final requested = Completer<void>();
   @override
   TorConnectionStatus get status => TorConnectionStatus.connected;
   @override
   ({InternetAddress host, int port}) getProxyInfo() {
-    if (!requested.isCompleted) requested.complete();
     return proxyInfo;
   }
 }
@@ -95,7 +92,9 @@ void main() {
         (value) => value,
         onError: (Object error) => error,
       );
-      await tor.requested.future.timeout(const Duration(seconds: 2));
+      // Wait for actual socket setup, not just a proxy-settings lookup. The
+      // connection must finish late to exercise stale approval cleanup.
+      await proxy.connected.future.timeout(const Duration(seconds: 2));
       await oldClient.closeAdapter();
       expect(await newClient.ping(), true);
       final replacement = newClient.getElectrumAdapter();

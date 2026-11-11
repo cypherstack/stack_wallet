@@ -35,6 +35,7 @@ import '../utilities/tor_plain_net_option_enum.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import '../wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
 import 'client_manager.dart';
+import 'draining_electrum_client.dart';
 import 'electrum_request_timeouts.dart';
 
 class WifiOnlyException implements Exception {}
@@ -244,7 +245,14 @@ class ElectrumXClient {
     }
   }
 
-  Future<void> _release(ElectrumClient client) async {
+  Future<void> _release(ElectrumClient client, {bool drain = false}) async {
+    if (drain) {
+      await ClientManager.sharedInstance.retireClient(
+        cryptoCurrency: cryptoCurrency,
+        client: client,
+      );
+      return;
+    }
     final removed = ClientManager.sharedInstance.remove(
       cryptoCurrency: cryptoCurrency,
       expectedClient: client,
@@ -265,6 +273,9 @@ class ElectrumXClient {
     if (current != null && !identical(current, pending)) {
       await _release(current);
     }
+    await ClientManager.sharedInstance.closeRetiredClients(
+      cryptoCurrency: cryptoCurrency,
+    );
   }
 
   Future<void> checkElectrumAdapter() => _adapterMutex.protect(() async {
@@ -286,6 +297,7 @@ class ElectrumXClient {
     }
     bool matches(
       ElectrumClient client,
+      String? certificate,
       String h,
       int p,
       bool tls,
@@ -294,8 +306,34 @@ class ElectrumXClient {
         client.host == h &&
         client.port == p &&
         client.useSSL == tls &&
-        ClientManager.sharedInstance.trustedCertificateFor(cryptoCurrency) ==
-            (tls ? pin : null);
+        certificate == (tls ? pin : null);
+    bool sameProxy(ElectrumClient client) =>
+        client.proxyInfo?.host.address == proxy?.host.address &&
+        client.proxyInfo?.port == proxy?.port;
+    bool permitted(ElectrumClient client, String? certificate) =>
+        sameProxy(client) &&
+        (matches(
+              client,
+              certificate,
+              host,
+              port,
+              useSSL,
+              trustedCertificatePem,
+            ) ||
+            _failovers.any(
+              (node) => matches(
+                client,
+                certificate,
+                node.address,
+                node.port,
+                node.useSSL,
+                node.trustedCertificatePem,
+              ),
+            ));
+    await ClientManager.sharedInstance.closeRetiredClients(
+      cryptoCurrency: cryptoCurrency,
+      keep: permitted,
+    );
     // Setup fails before the caller RPC is sent. Try each remaining configured
     // node once, including for callers that use the adapter directly.
     for (var index = currentFailoverIndex; index < _failovers.length; index++) {
@@ -310,29 +348,31 @@ class ElectrumXClient {
                 ? trustedCertificatePem
                 : failover.trustedCertificatePem)
           : null;
+      String? managedCertificate() =>
+          ClientManager.sharedInstance.trustedCertificateFor(cryptoCurrency);
       bool shareable(ElectrumClient client) =>
           !client.peer.isClosed &&
-          client.proxyInfo?.host.address == proxy?.host.address &&
-          client.proxyInfo?.port == proxy?.port &&
+          sameProxy(client) &&
           (failover != null
-              ? matches(client, useHost, usePort, ssl, pem)
-              : matches(client, host, port, useSSL, trustedCertificatePem) ||
-                    _failovers.any(
-                      (n) => matches(
-                        client,
-                        n.address,
-                        n.port,
-                        n.useSSL,
-                        n.trustedCertificatePem,
-                      ),
-                    ));
+              ? matches(
+                  client,
+                  managedCertificate(),
+                  useHost,
+                  usePort,
+                  ssl,
+                  pem,
+                )
+              : permitted(client, managedCertificate()));
       final existing = getElectrumAdapter();
       if (existing != null && shareable(existing)) {
         _adapter = existing;
         return;
       }
       if (existing != null) {
-        await _release(existing);
+        await _release(
+          existing,
+          drain: permitted(existing, managedCertificate()),
+        );
         ensureCurrent();
       }
 
@@ -361,7 +401,7 @@ class ElectrumXClient {
           onBadCertificate: certificateCheck,
         );
         candidate = cryptoCurrency is Firo
-            ? FiroElectrumClient(
+            ? ManagedFiroElectrumClient(
                 channel,
                 useHost,
                 usePort,
@@ -369,7 +409,7 @@ class ElectrumXClient {
                 proxy,
                 requestTimeout: requestTimeouts.standard,
               )
-            : ElectrumClient(
+            : ManagedElectrumClient(
                 channel,
                 useHost,
                 usePort,
@@ -395,6 +435,8 @@ class ElectrumXClient {
             cryptoCurrency: cryptoCurrency,
             netType: netType,
             trustedCertificatePem: pem,
+            drainPrevious:
+                other != null && permitted(other, managedCertificate()),
           );
           ensureCurrent();
           kept = true;

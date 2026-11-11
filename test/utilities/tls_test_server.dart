@@ -238,6 +238,7 @@ class TlsTestProxy {
   final int destinationPort;
   final Duration greetingDelay;
   final destinations = <String>[];
+  final connected = Completer<void>();
   final _sockets = <Socket>[];
   late final StreamSubscription<Socket> _subscription;
   ({InternetAddress host, int port}) get info =>
@@ -258,6 +259,7 @@ class TlsTestProxy {
 
   Future<void> _forward(Socket client) async {
     _sockets.add(client);
+    if (!connected.isCompleted) connected.complete();
     final input = _SocketReader(client);
     bool inputForwarded = false;
     try {
