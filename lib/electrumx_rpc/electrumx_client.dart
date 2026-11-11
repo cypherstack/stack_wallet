@@ -17,6 +17,7 @@ import 'package:electrum_adapter/electrum_adapter.dart' as electrum_adapter;
 import 'package:electrum_adapter/electrum_adapter.dart';
 import 'package:electrum_adapter/methods/specific/firo.dart';
 import 'package:event_bus/event_bus.dart';
+import 'package:meta/meta.dart' show protected;
 import 'package:mutex/mutex.dart';
 
 import '../app_config.dart';
@@ -34,7 +35,6 @@ import '../utilities/tls_certificate.dart';
 import '../utilities/tor_plain_net_option_enum.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import '../wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
-import 'client_manager.dart';
 import 'draining_electrum_client.dart';
 import 'electrum_request_timeouts.dart';
 
@@ -101,15 +101,19 @@ class ElectrumXClient {
 
   bool _closed = false;
   int _connectionGeneration = 0;
+
+  /// This client's own connection. No other [ElectrumXClient] uses it.
   ElectrumClient? _adapter;
+
+  /// The certificate [_adapter] was opened with; null for platform roots.
+  String? _adapterCertificate;
   ElectrumClient? _pendingClient;
 
-  ElectrumClient? getElectrumAdapter() => _closed
-      ? null
-      : ClientManager.sharedInstance.getClient(
-          cryptoCurrency: cryptoCurrency,
-          netType: netType,
-        );
+  /// This client's superseded connections that are still finishing requests
+  /// it sent before a failover.
+  final _retiring = <ElectrumClient>{};
+
+  ElectrumClient? getElectrumAdapter() => _closed ? null : _adapter;
 
   late Prefs _prefs;
   late TorService _torService;
@@ -245,37 +249,75 @@ class ElectrumXClient {
     }
   }
 
-  Future<void> _release(ElectrumClient client, {bool drain = false}) async {
-    if (drain) {
-      await ClientManager.sharedInstance.retireClient(
-        cryptoCurrency: cryptoCurrency,
-        client: client,
-      );
-      return;
-    }
-    final removed = ClientManager.sharedInstance.remove(
-      cryptoCurrency: cryptoCurrency,
-      expectedClient: client,
+  /// Requests this client already sent on a superseded connection still
+  /// finish; the connection closes after the last one. Their own deadlines
+  /// bound the drain.
+  Future<void> _retire(ElectrumClient client) async {
+    if (client is! DrainingElectrumClient) return client.close();
+    _retiring.add(client);
+    unawaited(
+      client.done.then<void>(
+        (_) => _retiring.remove(client),
+        onError: (Object _) {
+          _retiring.remove(client);
+        },
+      ),
     );
-    try {
-      await client.close();
-    } finally {
-      await removed;
-    }
+    await client.retire();
   }
 
+  /// Closes the current, pending and draining connections at once, for
+  /// closing the owner and for Tor preference changes.
   Future<void> _resetAdapter() async {
     _connectionGeneration++;
-    final pending = _pendingClient;
-    final current = _adapter;
+    final clients = <ElectrumClient>{
+      if (_pendingClient != null) _pendingClient!,
+      if (_adapter != null) _adapter!,
+      ..._retiring,
+    };
     _pendingClient = _adapter = null;
-    if (pending != null) await _release(pending);
-    if (current != null && !identical(current, pending)) {
-      await _release(current);
-    }
-    await ClientManager.sharedInstance.closeRetiredClients(
-      cryptoCurrency: cryptoCurrency,
+    _adapterCertificate = null;
+    _retiring.clear();
+    await Future.wait(clients.map((client) => client.close()));
+  }
+
+  /// Opens one connection for [checkElectrumAdapter]. Tests override this to
+  /// supply an in-memory transport; the setup and failover logic is shared.
+  @protected
+  Future<ElectrumClient> openConnection({
+    required String host,
+    required int port,
+    required bool useSSL,
+    required ({InternetAddress host, int port})? proxy,
+    required bool Function(X509Certificate)? onBadCertificate,
+  }) async {
+    final channel = await electrum_adapter.connect(
+      host,
+      port: port,
+      useSSL: useSSL,
+      proxyInfo: proxy,
+      connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
+      connectionDeadline: connectionTimeoutForSpecialCaseJsonRPCClients,
+      acceptUnverified: false,
+      onBadCertificate: onBadCertificate,
     );
+    return cryptoCurrency is Firo
+        ? ManagedFiroElectrumClient(
+            channel,
+            host,
+            port,
+            useSSL,
+            proxy,
+            requestTimeout: requestTimeouts.standard,
+          )
+        : ManagedElectrumClient(
+            channel,
+            host,
+            port,
+            useSSL,
+            proxy,
+            requestTimeout: requestTimeouts.standard,
+          );
   }
 
   Future<void> checkElectrumAdapter() => _adapterMutex.protect(() async {
@@ -295,45 +337,17 @@ class ElectrumXClient {
         throw StateError('Tor is not connected');
       }
     }
-    bool matches(
-      ElectrumClient client,
-      String? certificate,
-      String h,
-      int p,
-      bool tls,
-      String? pin,
-    ) =>
-        client.host == h &&
-        client.port == p &&
-        client.useSSL == tls &&
-        certificate == (tls ? pin : null);
-    bool sameProxy(ElectrumClient client) =>
+    // Only this client's own nodes are ever connected, and they cannot change
+    // for its lifetime. A connection therefore needs to be checked against
+    // the selected endpoint and approval, and against the current Tor route.
+    bool sameRoute(ElectrumClient client) =>
         client.proxyInfo?.host.address == proxy?.host.address &&
         client.proxyInfo?.port == proxy?.port;
-    bool permitted(ElectrumClient client, String? certificate) =>
-        sameProxy(client) &&
-        (matches(
-              client,
-              certificate,
-              host,
-              port,
-              useSSL,
-              trustedCertificatePem,
-            ) ||
-            _failovers.any(
-              (node) => matches(
-                client,
-                certificate,
-                node.address,
-                node.port,
-                node.useSSL,
-                node.trustedCertificatePem,
-              ),
-            ));
-    await ClientManager.sharedInstance.closeRetiredClients(
-      cryptoCurrency: cryptoCurrency,
-      keep: permitted,
-    );
+    // Draining connections still obey Tor route changes.
+    final offRoute = _retiring.where((client) => !sameRoute(client)).toList();
+    _retiring.removeAll(offRoute);
+    await Future.wait(offRoute.map((client) => client.close()));
+    ensureCurrent();
     // Setup fails before the caller RPC is sent. Try each remaining configured
     // node once, including for callers that use the adapter directly.
     for (var index = currentFailoverIndex; index < _failovers.length; index++) {
@@ -348,31 +362,26 @@ class ElectrumXClient {
                 ? trustedCertificatePem
                 : failover.trustedCertificatePem)
           : null;
-      String? managedCertificate() =>
-          ClientManager.sharedInstance.trustedCertificateFor(cryptoCurrency);
-      bool shareable(ElectrumClient client) =>
-          !client.peer.isClosed &&
-          sameProxy(client) &&
-          (failover != null
-              ? matches(
-                  client,
-                  managedCertificate(),
-                  useHost,
-                  usePort,
-                  ssl,
-                  pem,
-                )
-              : permitted(client, managedCertificate()));
-      final existing = getElectrumAdapter();
-      if (existing != null && shareable(existing)) {
-        _adapter = existing;
+      final existing = _adapter;
+      // At the primary index any open connection of this client is kept: a
+      // successful failover request resets the index, and later requests stay
+      // on the working failover. A failover index selects that endpoint and
+      // its own approval.
+      if (existing != null &&
+          !existing.peer.isClosed &&
+          sameRoute(existing) &&
+          (failover == null ||
+              (existing.host == useHost &&
+                  existing.port == usePort &&
+                  existing.useSSL == ssl &&
+                  _adapterCertificate == pem))) {
         return;
       }
 
       // Invalid saved approvals are a local configuration error. They must not
       // be mistaken for a failed network attempt or bypassed by failover.
-      // Check before retiring the shared connection: an attempt that cannot
-      // connect must not take the coin's working connection down with it.
+      // Check before retiring the current connection: an attempt that cannot
+      // connect must not take this client's working connection down with it.
       final bool Function(X509Certificate)? certificateCheck;
       try {
         certificateCheck = trustedCertificateCheck(pem);
@@ -382,43 +391,21 @@ class ElectrumXClient {
         rethrow;
       }
       if (existing != null) {
-        await _release(
-          existing,
-          drain: permitted(existing, managedCertificate()),
-        );
+        _adapter = null;
+        _adapterCertificate = null;
+        // Requests already sent on it finish, unless the Tor route changed.
+        await (sameRoute(existing) ? _retire(existing) : existing.close());
         ensureCurrent();
       }
       ElectrumClient? candidate;
-      bool negotiated = false;
-      bool kept = false;
       try {
-        final channel = await electrum_adapter.connect(
-          useHost,
+        candidate = await openConnection(
+          host: useHost,
           port: usePort,
           useSSL: ssl,
-          proxyInfo: proxy,
-          connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
-          connectionDeadline: connectionTimeoutForSpecialCaseJsonRPCClients,
-          acceptUnverified: false,
+          proxy: proxy,
           onBadCertificate: certificateCheck,
         );
-        candidate = cryptoCurrency is Firo
-            ? ManagedFiroElectrumClient(
-                channel,
-                useHost,
-                usePort,
-                ssl,
-                proxy,
-                requestTimeout: requestTimeouts.standard,
-              )
-            : ManagedElectrumClient(
-                channel,
-                useHost,
-                usePort,
-                ssl,
-                proxy,
-                requestTimeout: requestTimeouts.standard,
-              );
         _pendingClient = candidate;
         ensureCurrent();
         await candidate.requestWithTimeout(
@@ -426,39 +413,26 @@ class ElectrumXClient {
           timeout: connectionTimeoutForSpecialCaseJsonRPCClients,
         );
         ensureCurrent();
-        negotiated = true;
-        final other = getElectrumAdapter();
-        if (other != null && shareable(other)) {
-          _adapter = other;
-        } else {
-          _adapter = candidate;
-          await ClientManager.sharedInstance.addClient(
-            candidate,
-            cryptoCurrency: cryptoCurrency,
-            netType: netType,
-            trustedCertificatePem: pem,
-            drainPrevious:
-                other != null && permitted(other, managedCertificate()),
-          );
-          ensureCurrent();
-          kept = true;
-        }
+        _adapter = candidate;
+        _adapterCertificate = pem;
       } catch (error) {
         // Closing the owner or changing its network settings cancels the whole
-        // operation. Publication failures and programming errors are not node
-        // faults; StateError can instead mean the negotiating peer has closed.
+        // operation. Programming errors are not node faults; StateError can
+        // instead mean the negotiating peer has closed.
         ensureCurrent();
-        if (negotiated || (error is Error && error is! StateError)) rethrow;
+        if (error is Error && error is! StateError) rethrow;
         if (index == _failovers.length - 1) {
           currentFailoverIndex = -1;
           rethrow;
         }
       } finally {
         if (identical(_pendingClient, candidate)) _pendingClient = null;
-        if (!kept && candidate != null) await _release(candidate);
+        if (candidate != null && !identical(_adapter, candidate)) {
+          await candidate.close();
+        }
       }
       ensureCurrent();
-      if (negotiated) return;
+      if (_adapter != null) return;
     }
   });
 

@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../electrumx_rpc/client_manager.dart';
 import '../providers/global/active_wallet_provider.dart';
 import '../providers/providers.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
@@ -16,18 +15,9 @@ Future<void> Function() nodeChangeNotifier(WidgetRef ref, CryptoCurrency coin) {
   final activeWallet = ref.read(currentWalletIdProvider.notifier);
 
   return () async {
-    // Retire the coin's previous connection even when its wallet was removed
-    // and none of the loaded wallets ever used that connection.
-    final (removed, _) = await ClientManager.sharedInstance.remove(
-      cryptoCurrency: coin,
-    );
-    await removed?.close();
-    // Connections still finishing requests after a failover may use the old
-    // or revoked approval. Loaded wallets close them while updating, but no
-    // wallet of this coin may be loaded.
-    await ClientManager.sharedInstance.closeRetiredClients(
-      cryptoCurrency: coin,
-    );
+    // Every Electrum connection belongs to one client. updateNode() closes the
+    // wallet's previous client, with any connection it still drains, so a
+    // revoked approval or replaced node outlives no loaded wallet.
     for (final wallet in wallets.wallets.where((e) => e.info.coin == coin)) {
       final shouldRefresh = switch (prefs.syncType) {
         SyncingType.currentWalletOnly => activeWallet.state == wallet.walletId,

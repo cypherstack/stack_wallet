@@ -9,7 +9,6 @@ import 'package:meta/meta.dart';
 
 import '../../../db/drift/database.dart';
 import '../../../electrumx_rpc/cached_electrumx_client.dart';
-import '../../../electrumx_rpc/client_manager.dart';
 import '../../../electrumx_rpc/electrumx_client.dart';
 import '../../../models/coinlib/exp2pkh_address.dart';
 import '../../../models/input.dart';
@@ -25,6 +24,7 @@ import '../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../utilities/extensions/extensions.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/paynym_is_api.dart';
+import '../../../utilities/tor_plain_net_option_enum.dart';
 import '../../crypto_currency/coins/firo.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
 import '../../isar/models/wallet_info.dart';
@@ -1033,9 +1033,21 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         await _initializeServerVersionAndCheckGenesisHash();
       }
 
-      return await ClientManager.sharedInstance.getChainHeightFor(
-        cryptoCurrency,
-      );
+      // The network restriction the shared header subscription enforced.
+      if (prefs.useTor) {
+        if (electrumXClient.netType == TorPlainNetworkOption.clear) {
+          throw Exception(
+            "Non-TOR only client for ${cryptoCurrency.identifier} found.",
+          );
+        }
+      } else if (electrumXClient.netType == TorPlainNetworkOption.tor) {
+        throw Exception(
+          "TOR only client for ${cryptoCurrency.identifier} found.",
+        );
+      }
+
+      final tip = await electrumXClient.getBlockHeadTip();
+      return tip["height"] as int;
     } catch (e, s) {
       if (retries > 0) {
         retries--;
