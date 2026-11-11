@@ -1131,19 +1131,15 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         .toList();
 
     final newNode = await _getCurrentElectrumXNode();
+    ElectrumXClient? previous;
     try {
-      await electrumXClient.closeAdapter();
-    } catch (e, s) {
-      if (e.toString().contains("initialized")) {
-        // Ignore.  This should happen every first time the wallet is opened.
-      } else {
-        Logging.instance.e(
-          "Error closing electrumXClient",
-          error: e,
-          stackTrace: s,
-        );
-      }
+      previous = electrumXClient;
+    } catch (e) {
+      // Not initialized: this happens every first time the wallet is opened.
+      if (!e.toString().contains("initialized")) rethrow;
     }
+    // Replace before closing, so an overlapping update closes this client
+    // instead of overwriting it while it is still open.
     electrumXClient = ElectrumXClient.from(
       node: newNode,
       prefs: prefs,
@@ -1153,6 +1149,37 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     electrumXCachedClient = CachedElectrumXClient.from(
       electrumXClient: electrumXClient,
     );
+    try {
+      await previous?.closeAdapter();
+    } catch (e, s) {
+      Logging.instance.e(
+        "Error closing electrumXClient",
+        error: e,
+        stackTrace: s,
+      );
+    }
+  }
+
+  @override
+  Future<void> exit() async {
+    await super.exit();
+    // This wallet no longer syncs. Its connection closes once a refresh in
+    // progress ends; the client reconnects if the wallet is opened again.
+    unawaited(releaseConnectionWhenIdle());
+  }
+
+  @visibleForTesting
+  Future<void> releaseConnectionWhenIdle() async {
+    try {
+      await refreshMutex.protect(() async {});
+      if (!shouldAutoSync) await electrumXClient.disconnect();
+    } catch (e, s) {
+      Logging.instance.w(
+        "Releasing the Electrum connection of $walletId",
+        error: e,
+        stackTrace: s,
+      );
+    }
   }
 
   //============================================================================

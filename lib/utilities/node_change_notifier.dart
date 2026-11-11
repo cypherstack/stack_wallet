@@ -25,8 +25,18 @@ Future<void> Function() nodeChangeNotifier(WidgetRef ref, CryptoCurrency coin) {
           prefs.walletIdsSyncOnStartup.contains(wallet.walletId),
         SyncingType.allWalletsOnStartup => true,
       };
+      // A refresh already running fails with the replaced client, and
+      // refresh() hands back that same run. Sync again once it ends.
+      final wasRefreshing = wallet.refreshMutex.isLocked;
       final update = wallet.updateNode();
-      unawaited(shouldRefresh ? update.then((_) => wallet.refresh()) : update);
+      unawaited(
+        shouldRefresh
+            ? update.then((_) async {
+                await wallet.refresh();
+                if (wasRefreshing) await wallet.refresh();
+              })
+            : update,
+      );
     }
   };
 }

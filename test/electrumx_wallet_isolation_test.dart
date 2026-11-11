@@ -109,6 +109,20 @@ class _Server {
     _held.clear();
   }
 
+  /// Announces a new block to every connection, as a subscribed server does.
+  void notifyHeader(int height) {
+    final notification = {
+      'jsonrpc': '2.0',
+      'method': 'blockchain.headers.subscribe',
+      'params': [
+        {'height': height, 'hex': '00' * 80},
+      ],
+    };
+    for (final socket in sockets) {
+      socket.write('${jsonEncode(notification)}\n');
+    }
+  }
+
   Future<void> close() async {
     for (final socket in sockets) {
       socket.destroy();
@@ -243,6 +257,48 @@ void main() {
     });
   }
 
+  test('header notifications after a tip request are not unknown', () async {
+    final server = await start();
+    final prints = <String>[];
+    // The adapter reports unhandled notifications with print().
+    await runZoned(
+      () async {
+        final tipClient = client(server);
+        expect((await tipClient.getBlockHeadTip())['height'], 100);
+        server.notifyHeader(101);
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+      },
+      zoneSpecification: ZoneSpecification(
+        print: (self, parent, zone, line) => prints.add(line),
+      ),
+    );
+    expect(
+      prints.where((line) => line.contains('blockchain.headers')),
+      isEmpty,
+    );
+  });
+
+  test('disconnect lets in-flight requests finish, then reconnects', () async {
+    final server = await start();
+    final owner = client(server);
+    final inFlight = owner.request(command: 'probe.held');
+    await _until(() => server.holding);
+    final connection = owner.getElectrumAdapter()!;
+
+    await owner.disconnect();
+    expect(owner.getElectrumAdapter(), isNull);
+    expect(connection.peer.isClosed, false);
+
+    server.release();
+    expect(await inFlight.timeout(const Duration(seconds: 2)), {
+      'held': 'done',
+    });
+    await _until(() => connection.peer.isClosed);
+
+    expect((await owner.getBlockHeadTip())['height'], 100);
+    expect(server.accepted, 2);
+  });
+
   group('wallet chain height', () {
     NodeModel nodeModel(
       _Server server, {
@@ -312,5 +368,28 @@ void main() {
       );
       expect(server.methods, isNot(contains('blockchain.headers.subscribe')));
     });
+
+    test(
+      'an exited wallet releases its connection after its refresh',
+      () async {
+        final server = await start();
+        final exited = await wallet(nodeModel(server), _Prefs());
+        expect(await exited.fetchChainHeight(), 100);
+        final connection = exited.electrumXClient.getElectrumAdapter()!;
+
+        // exit() runs this. A refresh in progress keeps the connection.
+        await exited.refreshMutex.acquire();
+        final released = exited.releaseConnectionWhenIdle();
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        expect(connection.peer.isClosed, false);
+        exited.refreshMutex.release();
+        await released;
+        await _until(() => connection.peer.isClosed);
+
+        // Opening the wallet again reconnects.
+        expect(await exited.fetchChainHeight(), 100);
+        expect(server.accepted, 2);
+      },
+    );
   });
 }

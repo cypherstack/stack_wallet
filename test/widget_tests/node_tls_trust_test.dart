@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:logger/logger.dart' show Level;
 import 'package:mockito/mockito.dart';
+import 'package:mutex/mutex.dart';
 import 'package:platform/platform.dart';
 import 'package:stackwallet/db/hive/db.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
@@ -55,6 +56,8 @@ class _LoadedWallet extends Fake implements Wallet {
   final WalletInfo info;
   int updates = 0;
   int refreshes = 0;
+  @override
+  final refreshMutex = Mutex();
   @override
   Future<void> updateNode() async => updates++;
   @override
@@ -296,6 +299,9 @@ void main() {
     final first = _LoadedWallet(coin, 'first');
     final second = _LoadedWallet(coin, 'second');
     final other = _LoadedWallet(Litecoin(CryptoCurrencyNetwork.main), 'ltc');
+    // The second wallet is mid-refresh. That run fails with the replaced
+    // client, so the wallet is refreshed once more afterwards.
+    await second.refreshMutex.acquire();
     await pump(
       tester,
       NodeOptionsSheet(nodeId: 'custom-node', coin: coin, popBackToRoute: '/'),
@@ -303,9 +309,10 @@ void main() {
     );
     await tester.tap(find.text('Connect'));
     await tester.pumpAndSettle();
+    second.refreshMutex.release();
 
     expect([first.updates, second.updates, other.updates], [1, 1, 0]);
-    expect([first.refreshes, second.refreshes, other.refreshes], [1, 1, 0]);
+    expect([first.refreshes, second.refreshes, other.refreshes], [1, 2, 0]);
   });
 
   testWidgets('node card Connect carries an already approved certificate', (

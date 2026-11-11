@@ -13,6 +13,8 @@ import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:decimal/decimal.dart';
+import 'package:electrum_adapter/client/subscribing_client.dart'
+    show registerSubscribable;
 import 'package:electrum_adapter/electrum_adapter.dart' as electrum_adapter;
 import 'package:electrum_adapter/electrum_adapter.dart';
 import 'package:electrum_adapter/methods/specific/firo.dart';
@@ -226,6 +228,16 @@ class ElectrumXClient {
     }
     return true;
   }
+
+  /// Lets the current connection finish this client's requests, then close.
+  /// Unlike [closeAdapter], the client stays usable: the next request opens
+  /// a new connection.
+  Future<void> disconnect() => _adapterMutex.protect(() async {
+    final current = _adapter;
+    _adapter = null;
+    _adapterCertificate = null;
+    if (current != null) await _retire(current);
+  });
 
   Future<void> closeAdapter() async {
     _closed = true;
@@ -671,6 +683,10 @@ class ElectrumXClient {
   ///   "hex": "00000020890208a0ae3a3892aa047c5468725846577cfcd9b512b50000000000000000005dc2b02f2d297a9064ee103036c14d678f9afc7e3d9409cf53fd58b82e938e8ecbeca05a2d2103188ce804c4"
   /// }
   Future<Map<String, dynamic>> getBlockHeadTip({String? requestID}) async {
+    // This request subscribes the connection to new headers. Registering the
+    // method lets the adapter accept those notifications instead of reporting
+    // each one as an unknown method.
+    registerSubscribable('blockchain.headers', 0);
     try {
       final response = await request(
         requestID: requestID,

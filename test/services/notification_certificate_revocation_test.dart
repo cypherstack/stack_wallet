@@ -4,10 +4,12 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:logger/logger.dart' show Level;
 import 'package:stackwallet/db/hive/db.dart';
+import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/notification_model.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/notifications_service.dart';
+import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/services/trade_service.dart';
 import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
@@ -24,7 +26,11 @@ class _Wallet extends Fake implements ElectrumXInterface<Bitcoin> {
   String get walletId => 'watched-wallet';
   @override
   Bitcoin get cryptoCurrency => Bitcoin(CryptoCurrencyNetwork.main);
+  @override
+  late ElectrumXClient electrumXClient;
 }
+
+class _Tor extends Fake implements TorService {}
 
 class _Prefs extends Fake implements Prefs {
   @override
@@ -55,7 +61,7 @@ void main() {
   });
   tearDownAll(() => logs.delete(recursive: true));
 
-  /// Watches one transaction of a Bitcoin wallet whose primary node is
+  /// Watches two transactions of a Bitcoin wallet whose primary node is
   /// [server], checking every 50ms until the test stops it.
   Future<({NodeService service, NodeModel node})> watch(
     TlsElectrumServer server,
@@ -108,6 +114,38 @@ void main() {
         coinName: coin.identifier,
       ),
     );
+    await watched.put(
+      1,
+      NotificationModel(
+        id: 1,
+        title: 'Transaction (0/${coin.minConfirms})',
+        description: '',
+        iconAssetName: '',
+        date: DateTime.now(),
+        walletId: wallet.walletId,
+        read: false,
+        shouldWatchForUpdates: true,
+        txid: 'b' * 64,
+        coinName: coin.identifier,
+      ),
+    );
+    final client = ElectrumXClient.from(
+      node: ElectrumXNode(
+        address: node.host,
+        port: node.port,
+        name: node.name,
+        id: node.id,
+        useSSL: true,
+        trustedCertificatePem: node.trustedCertificatePem,
+        torEnabled: true,
+        clearnetEnabled: true,
+      ),
+      prefs: _Prefs(),
+      torService: _Tor(),
+      failovers: const [],
+      cryptoCurrency: coin,
+    );
+    wallet.electrumXClient = client;
     // The shared registry keeps the wallet added by an earlier test.
     if (!Wallets.sharedInstance.wallets.any(
       (e) => e.walletId == wallet.walletId,
@@ -125,6 +163,7 @@ void main() {
     addTearDown(() async {
       notifications.stopCheckingWatchedTransactions();
       NotificationsService.notificationRefreshInterval = interval;
+      await client.closeAdapter();
       await server.close();
       await tearDownHiveCeTest();
     });
@@ -135,58 +174,21 @@ void main() {
     return (service: service, node: node);
   }
 
-  test('Forget retires a pending background notification connection', () async {
-    final server = await TlsElectrumServer.start(respond: false);
-    final (:service, :node) = await watch(server);
-    final notifications = NotificationsService.instance;
-    await _until(
-      () => server.methods.contains('server.version'),
-      'notification RPC setup',
-    );
-    notifications.stopCheckingWatchedTransactions();
-    expect(server.disconnections, 0);
-    await service.save(
-      NodeModel.fromStackBackup({
-        ...node.toMap(),
-        'id': 'other-coin',
-        'coinName': 'litecoin',
-      }),
-      null,
-      true,
-    );
-    await Future<void>.delayed(const Duration(milliseconds: 20));
-    expect(
-      server.disconnections,
-      0,
-      reason: 'unrelated node changes keep the connection',
-    );
-    await service.forgetTrustedCertificate(node);
-    await _until(
-      () => server.disconnections > 0,
-      'Forget to disconnect the notification',
-    );
-    expect(
-      DB.instance.hive
-          .box<NodeModel>(DB.boxNameNodeModels)
-          .get(node.id)!
-          .trustedCertificatePem,
-      null,
-    );
-    expect(server.methods, isNot(contains('blockchain.transaction.get')));
-  });
-
-  test('a finished notification check closes its own connection', () async {
+  test('notification checks use the wallet connection', () async {
+    // A node or approval change replaces the wallet's client through
+    // updateNode(), so the checks need no connection of their own.
     final server = await TlsElectrumServer.start();
     await watch(server);
     await _until(
-      () => server.methods.contains('blockchain.transaction.get'),
-      'the notification check',
-    );
-    await _until(
-      () => server.disconnections == server.accepted,
-      'the check to close its connection',
+      () =>
+          server.methods
+              .where((method) => method == 'blockchain.transaction.get')
+              .length >=
+          2,
+      'both watched transactions to be checked',
     );
     NotificationsService.instance.stopCheckingWatchedTransactions();
-    expect(server.accepted, greaterThanOrEqualTo(1));
+    expect(server.accepted, 1);
+    expect(server.disconnections, 0);
   });
 }

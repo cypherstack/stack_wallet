@@ -28,6 +28,7 @@ import '../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.da
 import '../../../providers/global/secure_store_provider.dart';
 import '../../../providers/providers.dart';
 import '../../../services/transaction_notification_tracker.dart';
+import '../../../services/wallets.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/address_utils.dart';
 import '../../../utilities/assets.dart';
@@ -51,6 +52,7 @@ import '../../../wallets/wallet/intermediate/external_wallet.dart';
 import '../../../wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
 import '../../../wallets/wallet/supporting/mimblewimblecoin_wallet_info_extension.dart';
 import '../../../wallets/wallet/wallet.dart';
+import '../../../wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../widgets/desktop/desktop_scaffold.dart';
@@ -332,8 +334,9 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           walletId: info.walletId,
         );
 
+        Wallet? restored;
         try {
-          final wallet = await Wallet.create(
+          final wallet = restored = await Wallet.create(
             walletInfo: info,
             mainDB: ref.read(mainDBProvider),
             secureStorageInterface: ref.read(secureStoreProvider),
@@ -480,6 +483,14 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
             );
 
             if (mounted) setState(() => _hideSeedWords = false);
+          }
+        } finally {
+          // A cancelled or failed restore never adds the wallet, so nothing
+          // else will close its Electrum connection.
+          final unused = restored;
+          if (unused is ElectrumXInterface &&
+              !Wallets.sharedInstance.wallets.contains(unused)) {
+            await unused.electrumXClient.closeAdapter();
           }
         }
 
