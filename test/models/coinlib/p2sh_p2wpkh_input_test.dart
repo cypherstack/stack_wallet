@@ -323,6 +323,33 @@ void main() {
         () => wallet.restoreMwebPegInInputs(parsed, funding.reversed.toList()),
         throwsStateError,
       );
+      // A changed outpoint on a non-BIP49 input also fails.
+      final movedNative = StandardInput(
+        UTXO(
+          walletId: 'mweb',
+          txid: funding.last.utxo.txid,
+          vout: 3,
+          value: 1000000000,
+          name: '',
+          isBlocked: false,
+          blockedReason: null,
+          isCoinbase: false,
+          blockHash: null,
+          blockHeight: null,
+          blockTime: null,
+        ),
+        derivePathType: DerivePathType.bip84,
+        key: funding.last.key,
+      );
+      expect(
+        () =>
+            wallet.restoreMwebPegInInputs(parsed, [funding.first, movedNative]),
+        throwsStateError,
+      );
+      expect(
+        () => wallet.restoreMwebPegInInputs(parsed, [...funding, movedNative]),
+        throwsStateError,
+      );
     },
   );
 

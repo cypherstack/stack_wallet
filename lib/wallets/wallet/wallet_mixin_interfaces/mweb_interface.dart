@@ -5,6 +5,7 @@ import 'dart:math' as math;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as cl;
 import 'package:drift/drift.dart';
 import 'package:fixnum/fixnum.dart';
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:isar_community/isar.dart';
 import 'package:mweb_client/mweb_client.dart';
 
@@ -446,18 +447,27 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     cl.Transaction transaction,
     List<BaseInput> fundingInputs,
   ) {
+    if (fundingInputs.length > transaction.inputs.length) {
+      throw StateError("MWEB funding input missing");
+    }
     for (var i = 0; i < fundingInputs.length; i++) {
       final data = fundingInputs[i];
-      if (data is StandardInput &&
-          data.derivePathType == DerivePathType.bip49) {
+      if (data is! StandardInput) continue;
+
+      final prevOut = cl.OutPoint(
+        Uint8List.fromList(data.utxo.txid.toUint8ListFromHex.reversed.toList()),
+        data.utxo.vout,
+      );
+      if (prevOut != transaction.inputs[i].prevOut) {
+        throw StateError("MWEB funding input changed");
+      }
+
+      if (data.derivePathType == DerivePathType.bip49) {
         // Coinlib's parser does not recognize wrapped witness inputs.
         final input = standardInputToCoinlibInput(
           data,
           sequence: transaction.inputs[i].sequence,
         );
-        if (input.prevOut != transaction.inputs[i].prevOut) {
-          throw StateError("MWEB funding input changed");
-        }
         transaction = transaction.replaceInput(input, i);
       }
     }
@@ -480,10 +490,19 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     );
 
     if (txData.type == TxType.mwebPegIn) {
-      cl.Transaction clTx = restoreMwebPegInInputs(
-        cl.Transaction.fromBytes(Uint8List.fromList(response.rawTx)),
-        txData.usedUTXOs!,
+      final parsed = cl.Transaction.fromBytes(
+        Uint8List.fromList(response.rawTx),
       );
+      // Parsing only round-trips when there are no BIP49 inputs.
+      assert(
+        txData.usedUTXOs!.any(
+              (e) =>
+                  e is StandardInput &&
+                  e.derivePathType == DerivePathType.bip49,
+            ) ||
+            listEquals(response.rawTx, parsed.toBytes()),
+      );
+      cl.Transaction clTx = restoreMwebPegInInputs(parsed, txData.usedUTXOs!);
 
       final List<cl.Output> prevOuts = [];
 
