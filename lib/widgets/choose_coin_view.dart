@@ -15,8 +15,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import '../providers/providers.dart';
 import '../app_config.dart';
+import '../pages/settings_views/global_settings_view/advanced_views/manage_explorer_view.dart';
 import '../themes/coin_icon_provider.dart';
 import '../themes/stack_colors.dart';
+import '../utilities/block_explorers.dart';
 import '../utilities/constants.dart';
 import '../utilities/text_styles.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
@@ -59,6 +61,9 @@ class _ChooseCoinViewState extends ConsumerState<ChooseCoinView> {
     _coins.removeWhere(
       (e) => e.identifier == Firo(CryptoCurrencyNetwork.test).identifier,
     );
+    if (widget.nextRouteName == ManageExplorerView.routeName) {
+      _coins.removeWhere((e) => !hasDefaultBlockExplorer(e));
+    }
     super.initState();
   }
 

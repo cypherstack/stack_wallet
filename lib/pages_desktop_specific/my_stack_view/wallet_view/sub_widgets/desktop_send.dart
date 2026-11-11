@@ -828,7 +828,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         _applyUri(paymentData);
       } else {
         _setOpReturnData(null);
-        _address = qrCodeData.split("\n").first.trim();
+        _address = stripRelayPrefixes(
+          coin,
+          qrCodeData.split("\n").first.trim(),
+        );
         sendToController.text = _address ?? "";
 
         _setValidAddressProviders(_address);
@@ -1044,7 +1047,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       _clearRecipientForms();
 
       // auto fill address
-      _address = paymentData.address;
+      _address = stripRelayPrefixes(coin, paymentData.address.trim());
       sendToController.text = _address!;
 
       // autofill notes field.
@@ -1099,17 +1102,12 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   /// Only rewrites the field when that changes the text, so typing stays
   /// intact.
   String _formatRelayAddress(String text) {
-    final String Function(String)? format = coin is Epiccash
-        ? formatAddress
-        : coin is Mimblewimblecoin
-        ? formatAddressMwc
-        : null;
-    if (format == null) return text;
+    if (coin is! Epiccash && coin is! Mimblewimblecoin) return text;
     String address = text.trim();
     if (address.contains("\n")) {
       address = address.substring(0, address.indexOf("\n"));
     }
-    final formatted = format(address);
+    final formatted = stripRelayPrefixes(coin, address);
     if (formatted != address) {
       sendToController.value = TextEditingValue(
         text: formatted,
@@ -2308,6 +2306,15 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     );
   }
 }
+
+/// [address] without the prefixes an Epicbox or MWCMQS address can be scanned
+/// or pasted with. Other coins' addresses come back unchanged.
+String stripRelayPrefixes(CryptoCurrency coin, String address) =>
+    coin is Epiccash
+    ? formatAddress(address)
+    : coin is Mimblewimblecoin
+    ? formatAddressMwc(address)
+    : address;
 
 String formatAddress(String epicAddress) {
   // strip http:// or https:// prefixes if the address contains an @ symbol (and is thus an epicbox address)
