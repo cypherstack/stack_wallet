@@ -1,12 +1,11 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:camera_linux/camera_linux.dart';
-import 'package:camera_macos/camera_macos_arguments.dart';
+import 'package:camera_macos/camera_macos_arguments.dart' hide CameraImageData;
 import 'package:camera_macos/camera_macos_device.dart';
 import 'package:camera_macos/camera_macos_platform_interface.dart';
 import 'package:camera_platform_interface/camera_platform_interface.dart';
@@ -36,9 +35,13 @@ class QrCodeScannerDialog extends StatefulWidget {
 }
 
 class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
-  // Created in _initializeCamera: the constructor loads libcamera_linux.so
-  // and throws if it can't.
+  // Created in _initializeCamera. camera_linux implements the camera platform
+  // interface; its image stream delivers JPEG frames and the scan loop takes
+  // the newest one.
   CameraLinux? _cameraLinuxPlugin;
+  StreamSubscription<CameraImageData>? _linuxFrameSub;
+  StreamSubscription<CameraErrorEvent>? _linuxErrorSub;
+  Uint8List? _latestLinuxFrame;
   final CameraWindows? _cameraWindowsPlugin = Platform.isWindows
       ? CameraWindows()
       : null;
@@ -47,7 +50,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
   bool _isScanning = false;
   int _cameraId = -1;
   String? _macOSDeviceId;
-  final int _imageDelayInMs = Platform.isLinux ? 500 : 250;
+  final int _imageDelayInMs = 250;
   int _consecutiveFailures = 0;
   // Time since the last usable frame, to notice a camera that opened but
   // stopped (or never started) returning images.
@@ -67,7 +70,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
   // frame from a repeat; the error event tells us the camera is gone at once.
   int? _lastWindowsFrameFingerprint;
   bool _loggedRepeatedWindowsFrame = false;
-  bool _windowsCameraLost = false;
+  bool _cameraLost = false;
   StreamSubscription<CameraErrorEvent>? _windowsErrorSub;
   bool _cameraStopped = false;
 
@@ -98,16 +101,44 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
     try {
       if (Platform.isLinux) {
         final plugin = _cameraLinuxPlugin = CameraLinux();
-        // This only starts a capture thread. If OpenCV can't open a camera
-        // the thread just exits, and captureImage() keeps returning nothing,
-        // so wait for a first frame before calling the camera open.
-        await plugin.initializeCamera();
-        if (!await _waitForFirstLinuxFrame(plugin)) {
-          plugin.stopCamera();
-          if (!mounted) return false;
-          throw TimeoutException("No image from the camera", _frameTimeout);
+        final List<CameraDescription> cameras = await plugin.availableCameras();
+        if (cameras.isEmpty) {
+          throw CameraException('No cameras available', 'No cameras found.');
         }
-        Logging.instance.d("Linux Camera initialized");
+        Logging.instance.d(
+          "Linux cameras: ${cameras.map((c) => c.name).toList()}",
+        );
+        // 640x480. low is 320x240 on Linux, too small for QR codes.
+        _cameraId = await plugin.createCameraWithSettings(
+          cameras.first,
+          const MediaSettings(
+            resolutionPreset: ResolutionPreset.medium,
+            enableAudio: false,
+          ),
+        );
+        // Throws a CameraException with the driver's reason when the device
+        // can't be opened. A camera that opens but never delivers a frame is
+        // caught by the frame timeout in the scan loop.
+        await plugin.initializeCamera(_cameraId);
+        if (!mounted) {
+          await plugin.dispose(_cameraId);
+          return false;
+        }
+        _linuxErrorSub = plugin
+            .onCameraError(_cameraId)
+            .listen((e) => _onCameraLost(e.description));
+        // A capture failure is reported on the frame stream as well as
+        // through onCameraError, so it needs a handler here too or it escapes
+        // as an uncaught error. _onCameraLost ignores the second report.
+        _linuxFrameSub = plugin
+            .onStreamedFrameAvailable(_cameraId)
+            .listen(
+              (frame) => _latestLinuxFrame = frame.planes.first.bytes,
+              onError: (Object e) => _onCameraLost(
+                e is CameraException ? (e.description ?? e.code) : "$e",
+              ),
+            );
+        Logging.instance.d("Linux camera initialized with ID: $_cameraId");
       } else if (Platform.isWindows && _cameraWindowsPlugin != null) {
         final List<CameraDescription> cameras = await _cameraWindowsPlugin
             .availableCameras();
@@ -183,7 +214,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
         // the error event is the one that matters.
         _windowsErrorSub = _cameraWindowsPlugin
             .onCameraError(_cameraId)
-            .listen((e) => _onWindowsCameraLost(e.description));
+            .listen((e) => _onCameraLost(e.description));
         Logging.instance.d(
           "Windows Camera initialized with ID: $_cameraId, "
           "preview $_windowsPreviewSize",
@@ -218,29 +249,6 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
     }
   }
 
-  /// Polls [plugin] until it returns a frame. Returns false on timeout or if
-  /// the dialog closes first.
-  Future<bool> _waitForFirstLinuxFrame(CameraLinux plugin) async {
-    final stopwatch = Stopwatch()..start();
-    Object? lastError;
-    while (mounted && stopwatch.elapsed < _frameTimeout) {
-      try {
-        if ((await plugin.captureImage()).isNotEmpty) {
-          return true;
-        }
-      } catch (e) {
-        // captureImage() can throw on the null pointer it gets when there is
-        // no frame yet.
-        lastError = e;
-      }
-      await Future<void>.delayed(const Duration(milliseconds: 250));
-    }
-    if (lastError != null) {
-      Logging.instance.w("No frame from Linux camera", error: lastError);
-    }
-    return false;
-  }
-
   /// Shows an error once no new frame has arrived for [_frameTimeout].
   void _checkFrameTimeout() {
     if (_sinceLastFrame.elapsed >= _frameTimeout &&
@@ -254,16 +262,17 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
     }
   }
 
-  /// The plugin reported a capture engine error. Its preview keeps the last
-  /// frame and it never restarts the stream, so stop scanning and say so now
-  /// rather than waiting for the frame timeout.
-  void _onWindowsCameraLost(String description) {
-    // The engine can report one failure several times, and an event already
+  /// The plugin reported a capture error (Windows: the capture engine failed
+  /// and keeps showing the last frame; Linux: the device went away). Neither
+  /// restarts the stream, so stop scanning and say so now rather than waiting
+  /// for the frame timeout.
+  void _onCameraLost(String description) {
+    // An engine can report one failure several times, and an event already
     // queued can still arrive after the dialog started closing.
-    if (_windowsCameraLost || !_isScanning) return;
-    _windowsCameraLost = true;
+    if (_cameraLost || !_isScanning) return;
+    _cameraLost = true;
     _isScanning = false;
-    Logging.instance.w("Windows camera error: $description");
+    Logging.instance.w("Camera error: $description");
     // FormatMessage text ends in ".\r\n", and unknown errors come through
     // empty.
     final detail = description.trim().replaceFirst(RegExp(r"\.$"), "");
@@ -286,8 +295,12 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
 
     try {
       if (Platform.isLinux && _cameraLinuxPlugin != null) {
-        _cameraLinuxPlugin!.stopCamera();
-        Logging.instance.d("Linux Camera stopped");
+        await _linuxFrameSub?.cancel();
+        _linuxFrameSub = null;
+        await _linuxErrorSub?.cancel();
+        _linuxErrorSub = null;
+        await _cameraLinuxPlugin!.dispose(_cameraId);
+        Logging.instance.d("Linux camera stopped with ID: $_cameraId");
       } else if (Platform.isWindows && _cameraWindowsPlugin != null) {
         await _windowsErrorSub?.cancel();
         _windowsErrorSub = null;
@@ -407,10 +420,12 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
     _sinceLastFrame.start();
     while (_isScanning) {
       try {
-        String? base64Image;
+        Uint8List? imageBytes;
         img.Image? windowsFrame;
         if (Platform.isLinux && _cameraLinuxPlugin != null) {
-          base64Image = await _cameraLinuxPlugin!.captureImage();
+          // The newest frame from the image stream, or nothing new yet.
+          imageBytes = _latestLinuxFrame;
+          _latestLinuxFrame = null;
         } else if (Platform.isWindows) {
           windowsFrame = await _captureWindowsPreviewFrame();
         } else if (Platform.isMacOS) {
@@ -428,10 +443,10 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
             _checkFrameTimeout();
             continue;
           }
-          base64Image = base64Encode(img.encodePng(image));
+          imageBytes = img.encodePng(image);
         }
         if (windowsFrame == null &&
-            (base64Image == null || base64Image.isEmpty)) {
+            (imageBytes == null || imageBytes.isEmpty)) {
           // Logging.instance
           //     .log("Failed to capture image", level: LogLevel.Error);
           // Spammy.
@@ -439,8 +454,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
           _checkFrameTimeout();
           continue;
         }
-        final img.Image? image =
-            windowsFrame ?? img.decodeImage(base64Decode(base64Image!));
+        final img.Image? image = windowsFrame ?? img.decodeImage(imageBytes!);
         // TODO [prio=low]: Optimize this process. Docs say:
         // > WARNING Since this will check the image data against all known
         // > decoders, it is much slower than using an explicit decoder
@@ -458,10 +472,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
             _cameraError = null;
             // Windows already shows the live preview.
             if (windowsFrame == null) {
-              _image = Image.memory(
-                base64Decode(base64Image!),
-                fit: BoxFit.cover,
-              );
+              _image = Image.memory(imageBytes!, fit: BoxFit.cover);
             } else {
               _hasWindowsFrame = true;
             }
