@@ -145,6 +145,7 @@ class ElectrumXClient {
     for (final limit in [
       requestTimeouts.standard,
       requestTimeouts.history,
+      requestTimeouts.transactionBatch,
       requestTimeouts.firoSet,
       requestTimeouts.broadcast,
     ]) {
@@ -940,6 +941,7 @@ class ElectrumXClient {
     final response = await batchRequest(
       command: 'blockchain.transaction.get',
       args: txHashes.map((e) => [e, true]).toList(),
+      requestTimeout: requestTimeouts.transactionBatch,
     );
     final List<Map<String, dynamic>> result = [];
     for (int i = 0; i < response.length; i++) {

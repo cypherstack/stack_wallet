@@ -240,6 +240,83 @@ void main() {
     },
   );
 
+  test('transaction batches have a separate five-minute default', () {
+    const policy = ElectrumRequestTimeouts();
+    expect(policy.transactionBatch, const Duration(minutes: 5));
+    expect(
+      policy.forMethod('blockchain.transaction.get'),
+      const Duration(seconds: 60),
+    );
+  });
+
+  test(
+    '100 verbose transactions may outlive the single-request deadline',
+    () async {
+      final server = await start();
+      final client = clientFor(
+        server,
+        policy: const ElectrumRequestTimeouts(
+          standard: _short,
+          transactionBatch: _long,
+        ),
+      );
+      final txids = List.generate(100, (index) => 'tx-$index');
+      // The server returns the complete JSON response array after 250ms.
+      // Each member must use the batch budget, not the adapter's short default.
+      expect(await client.getBatchTransactions(txHashes: txids), [
+        for (final txid in txids) {'txid': txid},
+      ]);
+      expect(
+        server.received
+            .where(
+              (request) => request['method'] == 'blockchain.transaction.get',
+            )
+            .map((request) => request['params'])
+            .toList(),
+        [
+          for (final txid in txids) [txid, true],
+        ],
+      );
+      await expectLater(
+        client.getTransaction(txHash: 'single'),
+        _deadline(_short),
+      );
+    },
+  );
+
+  test(
+    'a configured transaction-batch deadline can be shorter than standard',
+    () async {
+      final server = await start();
+      final client = clientFor(
+        server,
+        policy: const ElectrumRequestTimeouts(
+          standard: _long,
+          transactionBatch: _short,
+        ),
+      );
+      expect(await client.getTransaction(txHash: 'single'), {'txid': 'single'});
+      await expectLater(
+        client.getBatchTransactions(txHashes: ['first', 'second']),
+        _deadline(_short),
+      );
+    },
+  );
+
+  test('transaction-batch policy must be positive', () async {
+    final server = await start();
+    for (final invalid in [Duration.zero, const Duration(milliseconds: -1)]) {
+      expect(
+        () => clientFor(
+          server,
+          policy: ElectrumRequestTimeouts(transactionBatch: invalid),
+        ),
+        throwsArgumentError,
+      );
+    }
+    expect(server.accepted, 0);
+  });
+
   test('broadcast has its own five-minute default policy', () {
     const policy = ElectrumRequestTimeouts();
     expect(policy.broadcast, const Duration(minutes: 5));
