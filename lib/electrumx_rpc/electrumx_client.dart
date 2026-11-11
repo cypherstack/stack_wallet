@@ -121,8 +121,7 @@ class ElectrumXClient {
   StreamSubscription<TorPreferenceChangedEvent>? _torPreferenceListener;
   StreamSubscription<TorConnectionStatusChangedEvent>? _torStatusListener;
 
-  final Mutex _torConnectingLock = Mutex();
-  bool _requireMutex = false;
+  Completer<void>? _torConnectionGate;
 
   final _adapterMutex = Mutex();
 
@@ -165,24 +164,16 @@ class ElectrumXClient {
     // Listen for tor status changes.
     _torStatusListener = bus.on<TorConnectionStatusChangedEvent>().listen((
       event,
-    ) async {
+    ) {
       if (_closed) return;
       switch (event.newStatus) {
         case TorConnectionStatus.connecting:
-          await _torConnectingLock.acquire();
-          if (_closed) {
-            _torConnectingLock.release();
-            return;
-          }
-          _requireMutex = true;
+          _torConnectionGate ??= Completer<void>();
           break;
 
         case TorConnectionStatus.connected:
         case TorConnectionStatus.disconnected:
-          if (_torConnectingLock.isLocked) {
-            _torConnectingLock.release();
-          }
-          _requireMutex = false;
+          _releaseTorWaiters();
           break;
       }
     });
@@ -233,11 +224,24 @@ class ElectrumXClient {
 
   Future<void> closeAdapter() async {
     _closed = true;
-    _requireMutex = false;
-    if (_torConnectingLock.isLocked) _torConnectingLock.release();
+    _releaseTorWaiters();
     await _torPreferenceListener?.cancel();
     await _torStatusListener?.cancel();
     await _resetAdapter();
+  }
+
+  void _releaseTorWaiters() {
+    final gate = _torConnectionGate;
+    _torConnectionGate = null;
+    gate?.complete();
+  }
+
+  Future<void> _waitForTor() async {
+    // Tor readiness is a signal, not a lock held by an individual request.
+    // Adapter setup remains serialized by _adapterMutex.
+    while (_torConnectionGate != null) {
+      await _torConnectionGate!.future;
+    }
   }
 
   Future<void> _release(ElectrumClient client) async {
@@ -426,13 +430,8 @@ class ElectrumXClient {
       throw WifiOnlyException();
     }
 
-    if (_requireMutex) {
-      await _torConnectingLock.protect(
-        () async => await checkElectrumAdapter(),
-      );
-    } else {
-      await checkElectrumAdapter();
-    }
+    await _waitForTor();
+    await checkElectrumAdapter();
 
     try {
       final response = await _adapter!.requestWithTimeout(
@@ -524,13 +523,8 @@ class ElectrumXClient {
       throw WifiOnlyException();
     }
 
-    if (_requireMutex) {
-      await _torConnectingLock.protect(
-        () async => await checkElectrumAdapter(),
-      );
-    } else {
-      await checkElectrumAdapter();
-    }
+    await _waitForTor();
+    await checkElectrumAdapter();
 
     try {
       final futures = <Future<dynamic>>[];
