@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:logger/logger.dart' show Level;
 import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/electrumx_rpc/client_manager.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/models/notification_model.dart';
 import 'package:stackwallet/services/node_service.dart';
@@ -14,7 +13,6 @@ import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/utilities/tor_plain_net_option_enum.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 
@@ -50,19 +48,33 @@ Future<void> _until(bool Function() done, String waitingFor) async {
 }
 
 void main() {
-  test('Forget retires a pending background notification connection', () async {
-    await setUpHiveCeTest();
-    final logs = await Directory.systemTemp.createTemp('notification_tls');
+  late Directory logs;
+  setUpAll(() async {
+    logs = await Directory.systemTemp.createTemp('notification_tls');
     await Logging.instance.initialize(logs.path, level: Level.off);
-    DB.instance.hive.registerAdapter(NodeModelAdapter());
-    DB.instance.hive.registerAdapter(NotificationModelAdapter());
+  });
+  tearDownAll(() => logs.delete(recursive: true));
+
+  /// Watches one transaction of a Bitcoin wallet whose primary node is
+  /// [server], checking every 50ms until the test stops it.
+  Future<({NodeService service, NodeModel node})> watch(
+    TlsElectrumServer server,
+  ) async {
+    await setUpHiveCeTest();
+    final nodeAdapter = NodeModelAdapter();
+    if (!DB.instance.hive.isAdapterRegistered(nodeAdapter.typeId)) {
+      DB.instance.hive.registerAdapter(nodeAdapter);
+    }
+    final notificationAdapter = NotificationModelAdapter();
+    if (!DB.instance.hive.isAdapterRegistered(notificationAdapter.typeId)) {
+      DB.instance.hive.registerAdapter(notificationAdapter);
+    }
     final nodes = await DB.instance.hive.openBox<NodeModel>(
       DB.boxNameNodeModels,
     );
     final watched = await DB.instance.hive.openBox<NotificationModel>(
       DB.boxNameWatchedTransactions,
     );
-    final server = await TlsElectrumServer.start(respond: false);
     final wallet = _Wallet();
     final coin = wallet.cryptoCurrency;
     final node = NodeModel(
@@ -96,7 +108,12 @@ void main() {
         coinName: coin.identifier,
       ),
     );
-    Wallets.sharedInstance.addWallet(wallet);
+    // The shared registry keeps the wallet added by an earlier test.
+    if (!Wallets.sharedInstance.wallets.any(
+      (e) => e.walletId == wallet.walletId,
+    )) {
+      Wallets.sharedInstance.addWallet(wallet);
+    }
     final service = NodeService(secureStorageInterface: FakeSecureStorage());
     final notifications = NotificationsService.instance;
     await notifications.init(
@@ -108,15 +125,20 @@ void main() {
     addTearDown(() async {
       notifications.stopCheckingWatchedTransactions();
       NotificationsService.notificationRefreshInterval = interval;
-      await ClientManager.sharedInstance.closeAll();
       await server.close();
       await tearDownHiveCeTest();
-      await logs.delete(recursive: true);
     });
     NotificationsService.notificationRefreshInterval = const Duration(
       milliseconds: 50,
     );
     notifications.startCheckingWatchedNotifications();
+    return (service: service, node: node);
+  }
+
+  test('Forget retires a pending background notification connection', () async {
+    final server = await TlsElectrumServer.start(respond: false);
+    final (:service, :node) = await watch(server);
+    final notifications = NotificationsService.instance;
     await _until(
       () => server.methods.contains('server.version'),
       'notification RPC setup',
@@ -143,14 +165,28 @@ void main() {
       () => server.disconnections > 0,
       'Forget to disconnect the notification',
     );
-    expect(nodes.get(node.id)!.trustedCertificatePem, null);
     expect(
-      ClientManager.sharedInstance.getClient(
-        cryptoCurrency: coin,
-        netType: TorPlainNetworkOption.both,
-      ),
+      DB.instance.hive
+          .box<NodeModel>(DB.boxNameNodeModels)
+          .get(node.id)!
+          .trustedCertificatePem,
       null,
     );
     expect(server.methods, isNot(contains('blockchain.transaction.get')));
+  });
+
+  test('a finished notification check closes its own connection', () async {
+    final server = await TlsElectrumServer.start();
+    await watch(server);
+    await _until(
+      () => server.methods.contains('blockchain.transaction.get'),
+      'the notification check',
+    );
+    await _until(
+      () => server.disconnections == server.accepted,
+      'the check to close its connection',
+    );
+    NotificationsService.instance.stopCheckingWatchedTransactions();
+    expect(server.accepted, greaterThanOrEqualTo(1));
   });
 }

@@ -9,8 +9,6 @@ import 'package:logger/logger.dart' show Level;
 import 'package:mockito/mockito.dart';
 import 'package:platform/platform.dart';
 import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/electrumx_rpc/client_manager.dart';
-import 'package:stackwallet/electrumx_rpc/draining_electrum_client.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
@@ -26,21 +24,41 @@ import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/test_node_connection.dart';
-import 'package:stackwallet/utilities/tor_plain_net_option_enum.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import 'package:stackwallet/widgets/node_card.dart';
 import 'package:stackwallet/widgets/node_options_sheet.dart';
-import 'package:stream_channel/stream_channel.dart';
 
 import '../sample_data/theme_json.dart';
 import '../utilities/tls_test_server.dart';
 
 class _Wallets extends Fake implements Wallets {
+  _Wallets([this.wallets = const []]);
   @override
-  List<Wallet> get wallets => [];
+  final List<Wallet> wallets;
+}
+
+/// A loaded wallet that records the node-change calls it receives.
+class _LoadedWallet extends Fake implements Wallet {
+  _LoadedWallet(CryptoCurrency coin, this.walletId)
+    : info = WalletInfo.createNew(
+        coin: coin,
+        name: walletId,
+        walletIdOverride: walletId,
+      );
+  @override
+  final String walletId;
+  @override
+  final WalletInfo info;
+  int updates = 0;
+  int refreshes = 0;
+  @override
+  Future<void> updateNode() async => updates++;
+  @override
+  Future<void> refresh() async => refreshes++;
 }
 
 class _Prefs extends Mock implements Prefs {
@@ -101,7 +119,6 @@ void main() {
     Util.layoutPlatform = FakePlatform(operatingSystem: 'macos');
   });
   tearDown(() async {
-    await ClientManager.sharedInstance.closeAll();
     await DB.instance.hive.close();
     Util.layoutPlatform = const LocalPlatform();
   });
@@ -110,6 +127,7 @@ void main() {
     WidgetTester tester,
     Widget child, {
     TestNodeConnectionCallback? testConnection,
+    List<Wallet> wallets = const [],
   }) async {
     tester.view.physicalSize = const Size(1200, 1800);
     tester.view.devicePixelRatio = 1;
@@ -121,7 +139,7 @@ void main() {
           nodeServiceChangeNotifierProvider.overrideWithValue(nodes),
           secureStoreProvider.overrideWithValue(storage),
           prefsChangeNotifierProvider.overrideWithValue(_Prefs()),
-          pWallets.overrideWithValue(_Wallets()),
+          pWallets.overrideWithValue(_Wallets(wallets)),
           testNodeConnectionProvider.overrideWithValue(
             testConnection ??
                 ({
@@ -269,47 +287,26 @@ void main() {
     expect(nodes.getNodeById(id: 'other-node')!.isPrimary, false);
   });
 
-  testWidgets('a node change closes connections still finishing requests', (
+  testWidgets('a node change updates every loaded wallet of the coin', (
     tester,
   ) async {
-    // A failed-over connection is still waiting on a request. No wallet of
-    // this coin is loaded, so only the node change itself can close it.
-    final channel = StreamChannelController<dynamic>();
-    final draining = ManagedElectrumClient(
-      channel.local,
-      'node.example',
-      50002,
-      true,
-      null,
-      requestTimeout: null,
-    );
-    final manager = ClientManager.sharedInstance;
-    late final Future<Object?> pending;
-    // The client's plumbing needs the real event loop, not the fake clock.
-    await tester.runAsync(() async {
-      await manager.addClient(
-        draining,
-        cryptoCurrency: coin,
-        netType: TorPlainNetworkOption.both,
-      );
-      pending = draining
-          .requestWithTimeout('probe')
-          .then<Object?>((_) => null, onError: (Object error) => error);
-      await manager.retireClient(cryptoCurrency: coin, client: draining);
-    });
-    expect(draining.peer.isClosed, false);
-
+    // Each wallet owns its Electrum connection. Replacing the wallet's client
+    // in updateNode() is what closes the old connection, including one still
+    // finishing requests after a failover.
+    final first = _LoadedWallet(coin, 'first');
+    final second = _LoadedWallet(coin, 'second');
+    final other = _LoadedWallet(Litecoin(CryptoCurrencyNetwork.main), 'ltc');
     await pump(
       tester,
       NodeOptionsSheet(nodeId: 'custom-node', coin: coin, popBackToRoute: '/'),
+      wallets: [first, second, other],
     );
     await tester.tap(find.text('Connect'));
     await tester.pumpAndSettle();
 
-    expect(draining.peer.isClosed, true);
-    expect(await tester.runAsync(() => pending), isA<StateError>());
-    await tester.runAsync(() => channel.foreign.sink.close());
-  }, timeout: const Timeout(Duration(seconds: 30)));
+    expect([first.updates, second.updates, other.updates], [1, 1, 0]);
+    expect([first.refreshes, second.refreshes, other.refreshes], [1, 1, 0]);
+  });
 
   testWidgets('node card Connect carries an already approved certificate', (
     tester,
