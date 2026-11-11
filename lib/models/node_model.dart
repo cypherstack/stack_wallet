@@ -12,6 +12,7 @@ import 'package:hive_ce/hive.dart';
 
 import '../utilities/default_nodes.dart';
 import '../utilities/flutter_secure_storage_interface.dart';
+import '../utilities/tls_certificate.dart';
 
 part 'type_adaptors/node_model.g.dart';
 
@@ -49,6 +50,8 @@ class NodeModel {
   final bool isPrimary;
   // @HiveField(15)
   final String? nodeApiSecret;
+  // @HiveField(16)
+  final String? trustedCertificatePem;
 
   NodeModel({
     required this.host,
@@ -67,6 +70,7 @@ class NodeModel {
     this.loginName,
     this.trusted,
     this.nodeApiSecret,
+    this.trustedCertificatePem,
   });
 
   factory NodeModel.fromStackBackup(
@@ -97,7 +101,23 @@ class NodeModel {
         fallback: legacyPrimaryNodeIds?.contains(id) ?? false,
       ),
       nodeApiSecret: map['nodeApiSecret'] as String?,
+      trustedCertificatePem: _backupCertificatePem(
+        map['trustedCertificatePem'],
+      ),
     );
+  }
+
+  /// A PEM that cannot be parsed would make every connection to this node
+  /// throw, so a damaged backup value is dropped. The node then uses the
+  /// platform roots until its certificate is reviewed again.
+  static String? _backupCertificatePem(Object? value) {
+    if (value is! String) return null;
+    try {
+      certificateDer(value);
+      return value;
+    } catch (_) {
+      return null;
+    }
   }
 
   static bool _backupBool(Object? value, {required bool fallback}) =>
@@ -117,6 +137,14 @@ class NodeModel {
     return null;
   }
 
+  /// Whether [host], [port] and [useSSL] name this node's endpoint, the
+  /// identity a trusted certificate is bound to.
+  bool sameEndpoint({
+    required String host,
+    required int port,
+    required bool useSSL,
+  }) => this.host == host && this.port == port && this.useSSL == useSSL;
+
   NodeModel copyWith({
     String? host,
     int? port,
@@ -133,7 +161,14 @@ class NodeModel {
     bool? clearnetEnabled,
     bool? isPrimary,
     String? nodeApiSecret,
+    String? trustedCertificatePem,
+    bool clearTrustedCertificate = false,
   }) {
+    final endpointChanged = !sameEndpoint(
+      host: host ?? this.host,
+      port: port ?? this.port,
+      useSSL: useSSL ?? this.useSSL,
+    );
     return NodeModel(
       host: host ?? this.host,
       port: port ?? this.port,
@@ -151,6 +186,10 @@ class NodeModel {
       forceNoTor: forceNoTor ?? this.forceNoTor,
       isPrimary: isPrimary ?? this.isPrimary,
       nodeApiSecret: nodeApiSecret ?? this.nodeApiSecret,
+      trustedCertificatePem: clearTrustedCertificate
+          ? null
+          : trustedCertificatePem ??
+                (endpointChanged ? null : this.trustedCertificatePem),
     );
   }
 
@@ -177,6 +216,7 @@ class NodeModel {
     map['forceNoTor'] = forceNoTor;
     map['isPrimary'] = isPrimary;
     map['nodeApiSecret'] = nodeApiSecret;
+    map['trustedCertificatePem'] = trustedCertificatePem;
     return map;
   }
 
