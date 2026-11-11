@@ -5,7 +5,6 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:logger/logger.dart' show Level;
 import 'package:mockito/mockito.dart';
-import 'package:stackwallet/electrumx_rpc/client_manager.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import 'package:stackwallet/services/tor_service.dart';
@@ -52,10 +51,8 @@ void main() {
   });
   tearDownAll(() => logs.delete(recursive: true));
   setUp(() => bus = EventBus(sync: true));
-  tearDown(() async {
-    await ClientManager.sharedInstance.closeAll();
-    bus.destroy();
-  });
+  // Each client closes itself through addTearDown in clientFor.
+  tearDown(() => bus.destroy());
 
   Future<TlsElectrumServer> start({bool stallVersion = false}) async {
     final server = await TlsElectrumServer.start(

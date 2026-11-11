@@ -5,7 +5,6 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:logger/logger.dart' show Level;
 import 'package:mockito/mockito.dart';
-import 'package:stackwallet/electrumx_rpc/client_manager.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import 'package:stackwallet/services/tor_service.dart';
@@ -50,10 +49,8 @@ void main() {
   });
   tearDownAll(() => logDirectory.delete(recursive: true));
   setUp(() => bus = EventBus());
-  tearDown(() async {
-    await ClientManager.sharedInstance.closeAll();
-    bus.destroy();
-  });
+  // Each client closes itself through addTearDown in clientFor.
+  tearDown(() => bus.destroy());
 
   Future<TlsElectrumServer> start({
     String? certificateName,
@@ -204,10 +201,6 @@ void main() {
     expect(unapproved.accepted, 1);
     expect(unapproved.requests, 0);
     expect(approved.accepted, 1);
-    expect(
-      ClientManager.sharedInstance.trustedCertificateFor(client.cryptoCurrency),
-      TlsElectrumServer.certificate('node_b'),
-    );
     await _until(() => primary.disconnections == 1);
   });
 
@@ -286,7 +279,7 @@ void main() {
   );
 
   test(
-    'invalid fallback approval leaves the shared connection in place',
+    'invalid fallback approval leaves the working connection in place',
     () async {
       final primary = await start();
       final invalid = await start(certificateName: 'node_a');
@@ -305,8 +298,8 @@ void main() {
         node(healthy),
       ]);
       await client.checkElectrumAdapter().timeout(const Duration(seconds: 3));
-      final shared = client.getElectrumAdapter()!;
-      expect(shared.port, primary.port);
+      final working = client.getElectrumAdapter()!;
+      expect(working.port, primary.port);
 
       // A request on the primary failed, so the next attempt starts at the
       // first failover, whose saved approval is damaged.
@@ -316,15 +309,15 @@ void main() {
         throwsA(isA<FormatException>()),
       );
 
-      expect(client.getElectrumAdapter(), same(shared));
-      expect(shared.peer.isClosed, false);
+      expect(client.getElectrumAdapter(), same(working));
+      expect(working.peer.isClosed, false);
       expect(client.currentFailoverIndex, -1);
       expect(invalid.accepted, 0);
       expect(healthy.accepted, 0);
 
       // The next attempt reuses the primary connection without reconnecting.
       await client.checkElectrumAdapter().timeout(const Duration(seconds: 3));
-      expect(client.getElectrumAdapter(), same(shared));
+      expect(client.getElectrumAdapter(), same(working));
       expect(primary.accepted, 1);
       expect(primary.disconnections, 0);
     },

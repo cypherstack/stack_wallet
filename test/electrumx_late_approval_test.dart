@@ -4,7 +4,6 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:logger/logger.dart' show Level;
 import 'package:mockito/mockito.dart';
-import 'package:stackwallet/electrumx_rpc/client_manager.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import 'package:stackwallet/services/tor_service.dart';
@@ -80,7 +79,6 @@ void main() {
       addTearDown(() async {
         await oldClient.closeAdapter();
         await newClient.closeAdapter();
-        await ClientManager.sharedInstance.closeAll();
         bus.destroy();
         await proxy.close();
         await oldServer.close();

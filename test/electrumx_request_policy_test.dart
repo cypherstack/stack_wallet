@@ -6,7 +6,6 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:logger/logger.dart' show Level;
 import 'package:mockito/mockito.dart';
-import 'package:stackwallet/electrumx_rpc/client_manager.dart';
 import 'package:stackwallet/electrumx_rpc/electrum_request_timeouts.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
@@ -176,10 +175,8 @@ void main() {
   });
   tearDownAll(() => logs.delete(recursive: true));
   setUp(() => bus = EventBus());
-  tearDown(() async {
-    await ClientManager.sharedInstance.closeAll();
-    bus.destroy();
-  });
+  // Each client closes itself through addTearDown in clientFor.
+  tearDown(() => bus.destroy());
 
   Future<_PolicyServer> start() async {
     final server = await _PolicyServer.start();
@@ -506,7 +503,7 @@ void main() {
 
   for (final verbose in [false, true]) {
     for (final callerTimeout in [_short, _long]) {
-      test('shared getTransaction uses caller timeout $callerTimeout '
+      test('getTransaction uses its own client timeout $callerTimeout '
           '(verbose: $verbose)', () async {
         final server = await start();
         final coin = Bitcoin(CryptoCurrencyNetwork.main);
@@ -522,10 +519,14 @@ void main() {
           coin: coin,
           policy: ElectrumRequestTimeouts(standard: callerTimeout),
         );
+        // Another client of the coin with a different policy has its own
+        // connection; it cannot lend the caller its deadline.
         await owner.checkElectrumAdapter();
-        await ClientManager.sharedInstance.getChainHeightFor(coin);
         await caller.checkElectrumAdapter();
-        expect(caller.getElectrumAdapter(), same(owner.getElectrumAdapter()));
+        expect(
+          caller.getElectrumAdapter(),
+          isNot(same(owner.getElectrumAdapter())),
+        );
 
         final result = caller.getTransaction(txHash: 'tx', verbose: verbose);
         if (callerTimeout == _short) {
@@ -536,7 +537,7 @@ void main() {
             verbose ? {'txid': 'tx'} : {'rawtx': 'raw-transaction'},
           );
         }
-        expect(server.accepted, 1);
+        expect(server.accepted, 2);
         expect(
           server.methods.where(
             (method) => method == 'blockchain.transaction.get',
@@ -559,7 +560,7 @@ void main() {
     ),
   ]) {
     for (final callerTimeout in [_short, _long]) {
-      test('shared $method uses caller timeout $callerTimeout', () async {
+      test('$method uses its own client timeout $callerTimeout', () async {
         final server = await start();
         final coin = method == 'blockchain.getfeerate'
             ? Bitcoin(CryptoCurrencyNetwork.main)
@@ -576,10 +577,14 @@ void main() {
           coin: coin,
           policy: ElectrumRequestTimeouts(standard: callerTimeout),
         );
+        // Another client of the coin with a different policy has its own
+        // connection; it cannot lend the caller its deadline.
         await owner.checkElectrumAdapter();
-        await ClientManager.sharedInstance.getChainHeightFor(coin);
         await caller.checkElectrumAdapter();
-        expect(caller.getElectrumAdapter(), same(owner.getElectrumAdapter()));
+        expect(
+          caller.getElectrumAdapter(),
+          isNot(same(owner.getElectrumAdapter())),
+        );
 
         final result = switch (method) {
           'spark.getsparklatestcoinid' => caller.getSparkLatestCoinId(),
@@ -595,7 +600,7 @@ void main() {
         } else {
           expect(await result, expected);
         }
-        expect(server.accepted, 1);
+        expect(server.accepted, 2);
         final sent = server.received
             .where((request) => request['method'] == method)
             .single;

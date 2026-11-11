@@ -6,7 +6,6 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:logger/logger.dart' show Level;
 import 'package:mockito/mockito.dart';
-import 'package:stackwallet/electrumx_rpc/client_manager.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/logger.dart';
@@ -33,7 +32,6 @@ void main() {
     final sockets = <Socket>[];
     int accepted = 0;
     addTearDown(() async {
-      await ClientManager.sharedInstance.closeAll();
       for (final s in sockets) {
         s.destroy();
       }

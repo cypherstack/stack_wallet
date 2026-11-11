@@ -6,7 +6,6 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:logger/logger.dart' show Level;
 import 'package:mockito/mockito.dart';
-import 'package:stackwallet/electrumx_rpc/client_manager.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/services/tor_service.dart';
 import 'package:stackwallet/utilities/logger.dart';
@@ -192,9 +191,13 @@ void main() {
   final servers = <TlsElectrumServer>[];
   late EventBus bus;
 
+  final clients = <ElectrumXClient>[];
   setUp(() => bus = EventBus());
   tearDown(() async {
-    await ClientManager.sharedInstance.closeAll();
+    for (final client in clients) {
+      await client.closeAdapter();
+    }
+    clients.clear();
     bus.destroy();
     for (final server in servers) {
       await server.close();
@@ -230,69 +233,66 @@ void main() {
     ElectrumXNode primary, {
     List<ElectrumXNode> failovers = const [],
     CryptoCurrency? currency,
-  }) => ElectrumXClient.from(
-    node: primary,
-    prefs: _Prefs(),
-    torService: _Tor(),
-    failovers: failovers,
-    cryptoCurrency: currency ?? coin,
-    globalEventBusForTesting: bus,
-  );
+  }) {
+    final client = ElectrumXClient.from(
+      node: primary,
+      prefs: _Prefs(),
+      torService: _Tor(),
+      failovers: failovers,
+      cryptoCurrency: currency ?? coin,
+      globalEventBusForTesting: bus,
+    );
+    clients.add(client);
+    return client;
+  }
 
   for (final currency in [coin, Firo(CryptoCurrencyNetwork.main)]) {
-    for (final sameOwner in [false, true]) {
-      for (final timeout in [false, true]) {
-        test('${currency.runtimeType} failover preserves pending work '
-            '(same owner=$sameOwner, timeout=$timeout)', () async {
-          final primary = await _PubServer.start(autoVersion: true);
-          final fallback = await _PubServer.start(autoVersion: true);
-          addTearDown(primary.close);
-          addTearDown(fallback.close);
-          primary.onRequest = (rpc) {
-            if (rpc.method == 'probe' && !timeout) {
-              rpc.reply({'error': 'try the fallback'});
-            }
-          };
-          fallback.onRequest = (rpc) {
-            if (rpc.method == 'probe') rpc.reply({'via': 'fallback'});
-          };
-          final actor = client(
-            node(primary.port, 'primary'),
-            currency: currency,
-            failovers: [node(fallback.port, 'fallback')],
-          );
-          final reader = sameOwner
-              ? actor
-              : client(node(primary.port, 'primary'), currency: currency);
-          addTearDown(actor.closeAdapter);
-          if (!sameOwner) addTearDown(reader.closeAdapter);
-          await actor.checkElectrumAdapter();
-          await ClientManager.sharedInstance.getChainHeightFor(currency);
-          final previous = actor.getElectrumAdapter()!;
-          final pending = reader
-              .getTransaction(txHash: 'a' * 64)
-              .then<Object?>((value) => value, onError: (Object e) => e);
-          await _until(
-            () => primary.requests.any(
-              (r) => r.method == 'blockchain.transaction.get',
-            ),
-          );
+    for (final timeout in [false, true]) {
+      test('${currency.runtimeType} failover preserves its own pending work '
+          '(timeout=$timeout)', () async {
+        final primary = await _PubServer.start(autoVersion: true);
+        final fallback = await _PubServer.start(autoVersion: true);
+        addTearDown(primary.close);
+        addTearDown(fallback.close);
+        primary.onRequest = (rpc) {
+          if (rpc.method == 'probe' && !timeout) {
+            rpc.reply({'error': 'try the fallback'});
+          }
+        };
+        fallback.onRequest = (rpc) {
+          if (rpc.method == 'probe') rpc.reply({'via': 'fallback'});
+        };
+        final actor = client(
+          node(primary.port, 'primary'),
+          currency: currency,
+          failovers: [node(fallback.port, 'fallback')],
+        );
+        await actor.checkElectrumAdapter();
+        final previous = actor.getElectrumAdapter()!;
+        final pending = actor
+            .getTransaction(txHash: 'a' * 64)
+            .then<Object?>((value) => value, onError: (Object e) => e);
+        await _until(
+          () => primary.requests.any(
+            (r) => r.method == 'blockchain.transaction.get',
+          ),
+        );
 
-          expect(
-            await actor.request(
-              command: 'probe',
-              requestTimeout: const Duration(milliseconds: 150),
-            ),
-            {'via': 'fallback'},
-          );
-          expect(previous.peer.isClosed, false);
-          primary.requests
-              .singleWhere((r) => r.method == 'blockchain.transaction.get')
-              .reply({'confirmations': 7});
-          expect(await pending, {'confirmations': 7});
-          await _until(() => previous.peer.isClosed);
-        });
-      }
+        expect(
+          await actor.request(
+            command: 'probe',
+            requestTimeout: const Duration(milliseconds: 150),
+          ),
+          {'via': 'fallback'},
+        );
+        expect(actor.getElectrumAdapter()!.port, fallback.port);
+        expect(previous.peer.isClosed, false);
+        primary.requests
+            .singleWhere((r) => r.method == 'blockchain.transaction.get')
+            .reply({'confirmations': 7});
+        expect(await pending, {'confirmations': 7});
+        await _until(() => previous.peer.isClosed);
+      });
     }
   }
 
@@ -311,8 +311,8 @@ void main() {
       final result = await connection.getTransaction(txHash: 'a' * 64);
       expect(result['confirmations'], 3);
       expect(connection.getElectrumAdapter()!.port, failover.port);
-      // server.version, headers.subscribe, ping, transaction.get: one session.
-      expect(failover.requests, 4);
+      // server.version, ping, transaction.get: one session.
+      expect(failover.requests, 3);
       expect(failover.disconnections, 0);
     },
   );
@@ -326,9 +326,7 @@ void main() {
       node(primary.port, 'primary'),
       failovers: [node(fallback.port, 'fallback')],
     );
-    addTearDown(connection.closeAdapter);
     await connection.checkElectrumAdapter();
-    await ClientManager.sharedInstance.getChainHeightFor(coin);
     final previous = connection.getElectrumAdapter()!;
     final pending = previous
         .requestWithTimeout(
@@ -391,26 +389,8 @@ void main() {
     );
   }
 
-  test('another client for the coin shares the failover connection', () async {
-    final failover = await startPlain();
-    final dead = await deadPort();
-    final first = client(
-      node(dead, 'primary'),
-      failovers: [node(failover.port, 'failover')],
-    );
-    first.currentFailoverIndex = 0;
-    expect(await first.ping(), true);
-    final second = client(
-      node(dead, 'primary'),
-      failovers: [node(failover.port, 'failover')],
-    );
-    final result = await second.getTransaction(txHash: 'b' * 64);
-    expect(result['confirmations'], 3);
-    expect(failover.disconnections, 0);
-  });
-
-  test("a failover retry reuses another owner's healthy selected connection", () async {
-    // A shared failover endpoint that answers setup and holds one request.
+  test("a failover to another owner's node opens its own connection", () async {
+    // A failover endpoint that answers setup and holds one request.
     final listener = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
     final sockets = <Socket>[];
     var accepted = 0;
@@ -450,8 +430,6 @@ void main() {
     final failoverNode = node(listener.port, 'failover');
     final w1 = client(node(dead, 'primary'), failovers: [failoverNode]);
     final w2 = client(node(dead, 'primary'), failovers: [failoverNode]);
-    addTearDown(w1.closeAdapter);
-    addTearDown(w2.closeAdapter);
 
     // W1 has already failed over to the shared node and is healthy on it.
     w1.currentFailoverIndex = 0;
@@ -459,35 +437,38 @@ void main() {
     expect(w1.currentFailoverIndex, -1);
     final shared = w1.getElectrumAdapter()!;
 
-    // W1 keeps a request in flight on the shared connection.
+    // W1 keeps a request in flight on its connection.
     final inflight = w1.getTransaction(txHash: 'a' * 64);
     await held.future.timeout(const Duration(seconds: 2));
 
     // W2's primary is also dead; its failover retry selects the same node.
     w2.currentFailoverIndex = 0;
     await w2.checkElectrumAdapter();
+    expect(w2.getElectrumAdapter()!.port, listener.port);
     expect(
       w2.getElectrumAdapter(),
-      same(shared),
-      reason: 'the healthy selected failover is reused, not reopened',
+      isNot(same(shared)),
+      reason: 'each owner connects for itself',
     );
+    expect(accepted, 2);
     expect(
       shared.peer.isClosed,
       false,
       reason: "another owner's connection must not be closed",
     );
-    expect(accepted, 1, reason: 'no spare session is opened');
 
+    // W2 closing cannot affect W1's in-flight request either.
+    await w2.closeAdapter();
     release!();
     expect(
       (await inflight.timeout(const Duration(seconds: 2)))['confirmations'],
       7,
-      reason: 'the in-flight RPC on the shared connection is not cut off',
+      reason: "W1's in-flight RPC is not cut off",
     );
   });
 
   test(
-    'a concurrent primary publication cannot replace the selected fallback',
+    "another owner's primary connection cannot change the selected fallback",
     () async {
       final primary = await _PubServer.start(autoVersion: true);
       final fallback = await _PubServer.start();
@@ -507,18 +488,14 @@ void main() {
         node(primary.port, 'primary'),
         failovers: [node(fallback.port, 'fallback')],
       );
-      addTearDown(first.closeAdapter);
-      addTearDown(second.closeAdapter);
       final pending = first
           .request(command: 'probe')
           .then<Object?>((value) => value, onError: (Object e) => e);
       await _until(() => fallback.versions.isNotEmpty);
-      // The second owner publishes a fresh primary while the fallback waits.
+      // The second owner connects to the primary while the fallback waits.
       await second.checkElectrumAdapter();
       expect(second.getElectrumAdapter()!.port, primary.port);
-      // Let the primary's header subscription finish before it is replaced.
-      await ClientManager.sharedInstance.getChainHeightFor(coin);
-      final publishedPrimary = second.getElectrumAdapter()!;
+      final secondPrimary = second.getElectrumAdapter()!;
       final reading = second
           .getTransaction(txHash: 'a' * 64)
           .then<Object?>((value) => value, onError: (Object e) => e);
@@ -533,12 +510,14 @@ void main() {
         'via': 'fallback',
       }, reason: 'the selected fallback must serve the retry, not the primary');
       expect(first.getElectrumAdapter()!.port, fallback.port);
-      expect(publishedPrimary.peer.isClosed, false);
+      expect(secondPrimary.peer.isClosed, false);
       primary.requests
           .singleWhere((rpc) => rpc.method == 'blockchain.transaction.get')
           .reply({'confirmations': 7});
       expect(await reading, {'confirmations': 7});
-      await _until(() => publishedPrimary.peer.isClosed);
+      // The second owner keeps its own primary connection.
+      expect(second.getElectrumAdapter(), same(secondPrimary));
+      expect(secondPrimary.peer.isClosed, false);
       expect(
         fallback.requests.where((r) => r.method == 'probe').length,
         1,

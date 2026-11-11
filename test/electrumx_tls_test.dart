@@ -5,7 +5,6 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:logger/logger.dart' show Level;
-import 'package:stackwallet/electrumx_rpc/client_manager.dart';
 import 'package:stackwallet/electrumx_rpc/electrumx_client.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/services/node_service.dart';
@@ -33,7 +32,7 @@ class _Tor extends Mock implements TorService {}
 /// Serves one primary node and no failovers to a wallet under test.
 class _Nodes extends NodeService {
   _Nodes(this.node) : super(secureStorageInterface: FakeSecureStorage());
-  final NodeModel node;
+  NodeModel node;
   @override
   NodeModel? getPrimaryNodeFor({required CryptoCurrency currency}) => node;
   @override
@@ -52,9 +51,13 @@ void main() {
   late EventBus bus;
   final prefs = _Prefs();
 
+  final clients = <ElectrumXClient>[];
   setUp(() => bus = EventBus());
   tearDown(() async {
-    await ClientManager.sharedInstance.closeAll();
+    for (final client in clients) {
+      await client.closeAdapter();
+    }
+    clients.clear();
     bus.destroy();
     for (final server in servers) {
       await server.close();
@@ -87,14 +90,18 @@ void main() {
   ElectrumXClient client(
     ElectrumXNode node, {
     List<ElectrumXNode> failovers = const [],
-  }) => ElectrumXClient.from(
-    node: node,
-    prefs: prefs,
-    torService: _Tor(),
-    failovers: failovers,
-    cryptoCurrency: coin,
-    globalEventBusForTesting: bus,
-  );
+  }) {
+    final client = ElectrumXClient.from(
+      node: node,
+      prefs: prefs,
+      torService: _Tor(),
+      failovers: failovers,
+      cryptoCurrency: coin,
+      globalEventBusForTesting: bus,
+    );
+    clients.add(client);
+    return client;
+  }
 
   test('live client connects using the approved primary certificate', () async {
     final server = await start('node_a');
@@ -147,76 +154,83 @@ void main() {
     expect(failover.requests, 0);
   });
 
-  test('a client with the same approval shares the connection', () async {
+  test('a client with the same approval opens its own connection', () async {
     final server = await start('node_a');
     final first = client(node(server, certificateName: 'node_a'));
     await first.checkElectrumAdapter();
-    // Let the header subscription settle before another client joins.
-    await first.getElectrumAdapter()!.request('server.version');
     final second = client(node(server, certificateName: 'node_a'));
     await second.checkElectrumAdapter();
-    expect(second.getElectrumAdapter(), same(first.getElectrumAdapter()));
+    expect(
+      second.getElectrumAdapter(),
+      isNot(same(first.getElectrumAdapter())),
+    );
+    expect(server.accepted, 2);
     expect(server.disconnections, 0);
   });
 
-  test(
-    'revoking approval cannot reuse a previously trusted connection',
-    () async {
-      final server = await start('node_a');
-      final trusted = client(node(server, certificateName: 'node_a'));
-      await trusted.checkElectrumAdapter();
-      await trusted.getElectrumAdapter()!.request('server.version');
-      final peer = trusted.getElectrumAdapter()!.peer;
-      // No wallet closed the connection; the next client for this endpoint
-      // carries the revocation itself.
-      final revoked = client(node(server));
-      await expectLater(
-        revoked.checkElectrumAdapter(),
-        throwsA(isA<HandshakeException>()),
-      );
-      expect(peer.isClosed, true);
-      expect(revoked.getElectrumAdapter(), null);
-    },
-  );
-
-  test('a fresh wallet applies a revocation no loaded wallet could', () async {
+  test('a revoked client never reuses a trusted connection', () async {
     final server = await start('node_a');
-    // A wallet connected under the approval and was then deleted, which
-    // leaves the coin-wide connection open. With no wallet of the coin
-    // loaded, saving the revocation had no wallet to notify.
     final trusted = client(node(server, certificateName: 'node_a'));
     await trusted.checkElectrumAdapter();
-    await trusted.getElectrumAdapter()!.request('server.version');
     final peer = trusted.getElectrumAdapter()!.peer;
-    final fresh = BitcoinWallet<Bitcoin>(CryptoCurrencyNetwork.main)
-      ..prefs = prefs
-      ..nodeService = _Nodes(
-        NodeModel(
-          host: '127.0.0.1',
-          port: server.port,
-          name: 'TLS node',
-          id: 'tls-node',
-          useSSL: true,
-          enabled: true,
-          coinName: 'bitcoin',
-          isFailover: false,
-          isDown: false,
-          trusted: false,
-          torEnabled: true,
-          clearnetEnabled: true,
-          isPrimary: true,
-        ),
-      );
-    // Wallet.load() calls this before the wallet has any client to close.
-    await fresh.updateNode();
+    final revoked = client(node(server));
     await expectLater(
-      fresh.electrumXClient.request(command: 'server.version'),
+      revoked.checkElectrumAdapter(),
       throwsA(isA<HandshakeException>()),
     );
+    expect(revoked.getElectrumAdapter(), null);
+    // The trusted connection belongs to its own client. A revocation reaches
+    // it through that client being replaced, as updateNode() does.
+    expect(peer.isClosed, false);
+    await trusted.closeAdapter();
     expect(peer.isClosed, true);
   });
 
-  for (final action in ['revoke', 'Tor change', 'close owner', 'close all']) {
+  test(
+    'updateNode closes the wallet connection a revocation replaces',
+    () async {
+      final server = await start('node_a');
+      NodeModel nodeModel({String? pem}) => NodeModel(
+        host: '127.0.0.1',
+        port: server.port,
+        name: 'TLS node',
+        id: 'tls-node',
+        useSSL: true,
+        enabled: true,
+        coinName: 'bitcoin',
+        isFailover: false,
+        isDown: false,
+        trusted: false,
+        torEnabled: true,
+        clearnetEnabled: true,
+        isPrimary: true,
+        trustedCertificatePem: pem,
+      );
+      final nodes = _Nodes(
+        nodeModel(pem: TlsElectrumServer.certificate('node_a')),
+      );
+      final wallet = BitcoinWallet<Bitcoin>(CryptoCurrencyNetwork.main)
+        ..prefs = prefs
+        ..nodeService = nodes;
+      // Wallet.load() calls this before the wallet has any client to close.
+      await wallet.updateNode();
+      final trusted = wallet.electrumXClient;
+      clients.add(trusted);
+      await trusted.request(command: 'server.version');
+      final peer = trusted.getElectrumAdapter()!.peer;
+
+      nodes.node = nodeModel();
+      await wallet.updateNode();
+      clients.add(wallet.electrumXClient);
+      expect(peer.isClosed, true);
+      await expectLater(
+        wallet.electrumXClient.request(command: 'server.version'),
+        throwsA(isA<HandshakeException>()),
+      );
+    },
+  );
+
+  for (final action in ['Tor change', 'close owner']) {
     test('$action also closes a connection draining after failover', () async {
       final primary = await TlsElectrumServer.start(
         ignoredMethods: {'blockchain.transaction.get'},
@@ -228,9 +242,7 @@ void main() {
         node(primary, certificateName: 'node_a'),
         failovers: [fallbackNode],
       );
-      addTearDown(connection.closeAdapter);
       await connection.checkElectrumAdapter();
-      await ClientManager.sharedInstance.getChainHeightFor(coin);
       final previous = connection.getElectrumAdapter()!;
       final pending = connection
           .getTransaction(txHash: 'a' * 64)
@@ -244,19 +256,11 @@ void main() {
       expect(previous.peer.isClosed, false);
 
       switch (action) {
-        case 'revoke':
-          final revoked = client(node(primary), failovers: [fallbackNode]);
-          addTearDown(revoked.closeAdapter);
-          // The current fallback is still permitted, but the retired primary
-          // must immediately lose its old certificate approval.
-          await revoked.checkElectrumAdapter();
-          expect(revoked.getElectrumAdapter()!.port, fallback.port);
         case 'Tor change':
           bus.fire(TorPreferenceChangedEvent(status: TorStatus.enabled));
         case 'close owner':
+          // A revocation or node change replaces the owner via updateNode().
           await connection.closeAdapter();
-        case 'close all':
-          await ClientManager.sharedInstance.closeAll();
       }
       await _until(() => previous.peer.isClosed);
       expect(await pending, isA<StateError>());
