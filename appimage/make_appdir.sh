@@ -46,7 +46,5 @@ install -Dm644 "$icon" \
   "$appdir/usr/share/icons/hicolor/${width}x${width}/apps/$id.png"
 install -Dm644 "$root/appimage/$app/$id.desktop" \
   "$appdir/usr/share/applications/$id.desktop"
-# appimagetool validates this with appstreamcli when it is installed; the
-# <launchable> must resolve to the desktop file above.
-install -Dm644 "$root/flatpak/$id.metainfo.xml" \
-  "$appdir/usr/share/metainfo/$id.appdata.xml"
+# No usr/share/metainfo: appimagetool would validate it with appstreamcli,
+# which fetches every <url> and fails the build when one is unreachable.
