@@ -15,8 +15,10 @@ import 'package:stackwallet/models/isar/models/blockchain_data/utxo.dart';
 import 'package:stackwallet/utilities/enums/derive_path_type_enum.dart';
 import 'package:stackwallet/utilities/extensions/extensions.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import 'package:stackwallet/wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
 import 'package:stackwallet/wallets/wallet/impl/bitcoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/litecoin_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/namecoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 
 import '../../support/isar_test_utils.dart';
@@ -184,8 +186,24 @@ void main() {
   for (final wallet in <ElectrumXInterface>[
     BitcoinWallet(CryptoCurrencyNetwork.main),
     LitecoinWallet(CryptoCurrencyNetwork.main),
+    NamecoinWallet(CryptoCurrencyNetwork.main),
   ]) {
     test('${wallet.cryptoCurrency.ticker} converts and signs BIP49 inputs', () {
+      final currency = wallet.cryptoCurrency as Bip39HDCurrency;
+      expect(
+        currency.supportedDerivationPathTypes,
+        contains(DerivePathType.bip49),
+      );
+      expect(
+        currency
+            .getAddressForPublicKey(
+              publicKey: key.pubkey,
+              derivePathType: DerivePathType.bip49,
+            )
+            .address
+            .toString(),
+        nestedAddress(wallet),
+      );
       final standard = StandardInput(
         UTXO(
           walletId: 'test',
