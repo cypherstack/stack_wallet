@@ -294,6 +294,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         );
 
         bool isRestoring = true;
+        Wallet? restored;
         // show restoring in progress
 
         if (mounted) {
@@ -312,6 +313,13 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                     await ref
                         .read(pWallets)
                         .deleteWallet(info, ref.read(secureStoreProvider));
+
+                    // Stop the cancelled restore's network work now: its
+                    // recover() fails and the wallet is never added.
+                    final cancelled = restored;
+                    if (cancelled is ElectrumXInterface) {
+                      await cancelled.electrumXClient.closeAdapter();
+                    }
                   },
                 );
               },
@@ -334,7 +342,6 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           walletId: info.walletId,
         );
 
-        Wallet? restored;
         try {
           final wallet = restored = await Wallet.create(
             walletInfo: info,
