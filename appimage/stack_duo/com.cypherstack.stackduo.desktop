@@ -2,6 +2,7 @@
 Name=Stack Duo
 Comment=An open-source, multicoin wallet for everyone
 Exec=stack_duo
-Icon=stack_duo
+Icon=com.cypherstack.stackduo
+StartupWMClass=com.cypherstack.stackduo
 Type=Application
 Categories=Finance;

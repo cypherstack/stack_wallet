@@ -2,6 +2,7 @@
 Name=Stack Wallet
 Comment=Open-source non-custodial cryptocurrency wallet
 Exec=stack_wallet
-Icon=stack_wallet
+Icon=com.cypherstack.stackwallet
+StartupWMClass=com.cypherstack.stackwallet
 Type=Application
 Categories=Finance;
