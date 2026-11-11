@@ -1565,7 +1565,7 @@ class _TransactionV2DetailsViewState
                                   : null,
                               label: finalized
                                   ? "Cancel anyway"
-                                  : "Cancel transaction",
+                                  : "Yes, cancel",
                               onPressed: () => Navigator.of(context).pop(true),
                             ),
                           ),
