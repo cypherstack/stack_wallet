@@ -80,9 +80,14 @@ fi
 
 work="$(mktemp -d "${TMPDIR:-/tmp}/stack_btc_regtest_run.XXXXXX")"
 nodes_pid=""
+nodes_stop_file=""
 stop_nodes() {
   if [[ -n "$nodes_pid" ]]; then
-    kill -TERM "$nodes_pid" 2>/dev/null || true
+    if [[ -n "$nodes_stop_file" ]]; then
+      touch "$nodes_stop_file"
+    else
+      kill -TERM "$nodes_pid" 2>/dev/null || true
+    fi
     for _ in $(seq 60); do
       kill -0 "$nodes_pid" 2>/dev/null || break
       sleep 0.5
@@ -90,6 +95,7 @@ stop_nodes() {
     kill -KILL "$nodes_pid" 2>/dev/null || true
     wait "$nodes_pid" 2>/dev/null || true
     nodes_pid=""
+    nodes_stop_file=""
   fi
 }
 cleanup() { stop_nodes; rm -rf -- "$work"; }
@@ -103,9 +109,16 @@ fi
 # Starts the nodes for one test file and sets node_defines.
 start_nodes() {
   local indexer="$1" path="$2" log="$work/nodes.log"
+  local stop_args=(--until-signal)
+  if [[ "$host_os" == windows ]]; then
+    nodes_stop_file="$work/stop-nodes"
+    rm -f "$nodes_stop_file"
+    # Native Dart cannot observe POSIX Git Bash paths directly.
+    stop_args=(--stop-file "$(cygpath -w "$nodes_stop_file")")
+  fi
   rm -f "$log"
   "$nodes_bin" --bitcoind "$bitcoind" --indexer "$indexer" --indexer-path "$path" \
-    --until-signal < /dev/null > "$log" 2>&1 &
+    "${stop_args[@]}" < /dev/null > "$log" 2>&1 &
   nodes_pid=$!
   for _ in $(seq 360); do
     grep -q '^REGTEST_READY ' "$log" 2>/dev/null && break

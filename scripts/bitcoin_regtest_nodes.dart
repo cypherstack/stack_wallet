@@ -1,12 +1,13 @@
 // Starts bitcoind and an Electrum server for the Bitcoin regtest integration
 // tests and keeps them running until stdin closes (or, with --until-signal,
-// until SIGINT or SIGTERM). Used by scripts/test_bitcoin_regtest.sh for
+// until SIGINT or SIGTERM, or --stop-file PATH until that file exists).
+// Used by scripts/test_bitcoin_regtest.sh for
 // targets that cannot start processes themselves (the sandboxed macOS app,
 // iOS and Android).
 //
 //   dart run scripts/bitcoin_regtest_nodes.dart \
 //     --bitcoind PATH --indexer electrs|fulcrum --indexer-path PATH \
-//     [--until-signal]
+//     [--until-signal | --stop-file PATH]
 //
 // Once ready it prints one line, "REGTEST_READY <json>", with the RPC port,
 // user and password and the Electrum port, all on 127.0.0.1.
@@ -28,10 +29,12 @@ Future<void> main(List<String> args) async {
   final bitcoind = options['bitcoind'];
   final indexer = options['indexer'] ?? 'electrs';
   final indexerPath = options['indexer-path'];
+  final stopFile = options['stop-file'];
   if (bitcoind == null || indexerPath == null) {
     stderr.writeln(
       'usage: bitcoin_regtest_nodes.dart --bitcoind PATH '
-      '--indexer electrs|fulcrum --indexer-path PATH',
+      '--indexer electrs|fulcrum --indexer-path PATH '
+      '[--until-signal | --stop-file PATH]',
     );
     exit(64);
   }
@@ -61,9 +64,14 @@ Future<void> main(List<String> args) async {
     if (!done.isCompleted) done.complete();
   }
 
-  if (!untilSignal) {
+  if (!untilSignal && stopFile == null) {
     stdin.listen((_) {}, onDone: finish, onError: (_) => finish());
   }
+  final stopTimer = stopFile == null
+      ? null
+      : Timer.periodic(const Duration(milliseconds: 100), (_) {
+          if (File(stopFile).existsSync()) finish();
+        });
   final signals = [
     ProcessSignal.sigint,
     if (!Platform.isWindows) ProcessSignal.sigterm,
@@ -72,6 +80,7 @@ Future<void> main(List<String> args) async {
     for (final signal in signals) signal.watch().listen((_) => finish()),
   ];
   await done.future;
+  stopTimer?.cancel();
   for (final subscription in subscriptions) {
     await subscription.cancel();
   }
