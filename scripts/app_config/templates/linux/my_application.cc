@@ -17,6 +17,38 @@ static void first_frame_cb(MyApplication* self, FlView *view)
     gtk_widget_show(gtk_widget_get_toplevel(GTK_WIDGET(view)));
 }
 
+// X11 window icon from the PNG that CMake installs into data/. Wayland
+// ignores this and takes the icon from the .desktop file matching
+// APPLICATION_ID. GTK drops icon lists over 262144 longs, and a single
+// 512x512 image is already over, so pass scaled copies.
+static void set_window_icon(GtkWindow* window) {
+  g_autofree gchar* exe = g_file_read_link("/proc/self/exe", nullptr);
+  if (exe == nullptr) {
+    return;
+  }
+  g_autofree gchar* dir = g_path_get_dirname(exe);
+  g_autofree gchar* path =
+      g_build_filename(dir, "data", "app_icon.png", nullptr);
+  g_autoptr(GError) error = nullptr;
+  g_autoptr(GdkPixbuf) source = gdk_pixbuf_new_from_file(path, &error);
+  if (source == nullptr) {
+    g_debug("No window icon: %s", error->message);
+    return;
+  }
+
+  static const int sizes[] = {16, 24, 32, 48, 64, 128, 256};
+  GList* icons = nullptr;
+  for (int size : sizes) {
+    GdkPixbuf* icon =
+        gdk_pixbuf_scale_simple(source, size, size, GDK_INTERP_BILINEAR);
+    if (icon != nullptr) {
+      icons = g_list_append(icons, icon);
+    }
+  }
+  gtk_window_set_icon_list(window, icons);
+  g_list_free_full(icons, g_object_unref);
+}
+
 // Implements GApplication::activate.
 static void my_application_activate(GApplication* application) {
   MyApplication* self = MY_APPLICATION(application);
@@ -37,6 +69,7 @@ static void my_application_activate(GApplication* application) {
     gtk_window_set_title(window, "PlaceHolderName");
   }
 
+  set_window_icon(window);
   gtk_window_set_default_size(window, 1220, 500);
   gtk_widget_show(GTK_WIDGET(window));
 
