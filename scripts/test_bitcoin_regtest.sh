@@ -78,7 +78,12 @@ work="$(mktemp -d "${TMPDIR:-/tmp}/stack_btc_regtest_run.XXXXXX")"
 nodes_pid=""
 stop_nodes() {
   if [[ -n "$nodes_pid" ]]; then
-    exec 3>&- || true          # closing its stdin stops it cleanly
+    kill -TERM "$nodes_pid" 2>/dev/null || true
+    for _ in $(seq 60); do
+      kill -0 "$nodes_pid" 2>/dev/null || break
+      sleep 0.5
+    done
+    kill -KILL "$nodes_pid" 2>/dev/null || true
     wait "$nodes_pid" 2>/dev/null || true
     nodes_pid=""
   fi
@@ -94,12 +99,10 @@ fi
 # Starts the nodes for one test file and sets node_defines.
 start_nodes() {
   local indexer="$1" path="$2" log="$work/nodes.log"
-  rm -f "$work/stdin" "$log"
-  mkfifo "$work/stdin"
+  rm -f "$log"
   "$nodes_bin" --bitcoind "$bitcoind" --indexer "$indexer" --indexer-path "$path" \
-    < "$work/stdin" > "$log" 2>&1 &
+    --until-signal < /dev/null > "$log" 2>&1 &
   nodes_pid=$!
-  exec 3> "$work/stdin"
   for _ in $(seq 360); do
     grep -q '^REGTEST_READY ' "$log" 2>/dev/null && break
     if ! kill -0 "$nodes_pid" 2>/dev/null; then
@@ -152,7 +155,16 @@ for indexer in "${indexers[@]}"; do
     else
       code=$?
     fi
+    # flutter test can leave the macOS app running after the test ends. Only
+    # this checkout's own debug build is stopped.
+    if [[ "$target" == macos ]]; then
+      pkill -f "$PWD/build/macos/Build/Products/Debug/" 2>/dev/null || true
+    fi
     stop_nodes
+    if (( code != 0 && host_nodes )) && [[ -f "$work/nodes.log" ]]; then
+      printf -- '--- regtest node log\n' >&2
+      tail -n 60 "$work/nodes.log" >&2
+    fi
     case "$code" in
       0) ;;
       130|143) exit "$code" ;;

@@ -1,10 +1,12 @@
 // Starts bitcoind and an Electrum server for the Bitcoin regtest integration
-// tests and keeps them running until stdin closes or the process is told to
-// stop. Used by scripts/test_bitcoin_regtest.sh for targets that cannot start
-// processes themselves (the sandboxed macOS app, iOS and Android).
+// tests and keeps them running until stdin closes (or, with --until-signal,
+// until SIGINT or SIGTERM). Used by scripts/test_bitcoin_regtest.sh for
+// targets that cannot start processes themselves (the sandboxed macOS app,
+// iOS and Android).
 //
 //   dart run scripts/bitcoin_regtest_nodes.dart \
-//     --bitcoind PATH --indexer electrs|fulcrum --indexer-path PATH
+//     --bitcoind PATH --indexer electrs|fulcrum --indexer-path PATH \
+//     [--until-signal]
 //
 // Once ready it prints one line, "REGTEST_READY <json>", with the RPC port,
 // user and password and the Electrum port, all on 127.0.0.1.
@@ -16,10 +18,12 @@ import 'dart:io';
 import '../integration_test/bitcoin_regtest/regtest_nodes.dart';
 
 Future<void> main(List<String> args) async {
+  final untilSignal = args.contains('--until-signal');
+  final rest = [...args]..remove('--until-signal');
   final options = <String, String>{};
-  for (var i = 0; i + 1 < args.length; i += 2) {
-    if (!args[i].startsWith('--')) break;
-    options[args[i].substring(2)] = args[i + 1];
+  for (var i = 0; i + 1 < rest.length; i += 2) {
+    if (!rest[i].startsWith('--')) break;
+    options[rest[i].substring(2)] = rest[i + 1];
   }
   final bitcoind = options['bitcoind'];
   final indexer = options['indexer'] ?? 'electrs';
@@ -57,7 +61,9 @@ Future<void> main(List<String> args) async {
     if (!done.isCompleted) done.complete();
   }
 
-  stdin.listen((_) {}, onDone: finish, onError: (_) => finish());
+  if (!untilSignal) {
+    stdin.listen((_) {}, onDone: finish, onError: (_) => finish());
+  }
   final signals = [
     ProcessSignal.sigint,
     if (!Platform.isWindows) ProcessSignal.sigterm,

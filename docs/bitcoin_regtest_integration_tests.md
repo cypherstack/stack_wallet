@@ -1,9 +1,9 @@
 # Bitcoin regtest integration tests
 
 `integration_test/bitcoin_regtest` mines coins on a private Bitcoin regtest
-chain and sends them between Stack wallets. Each test file starts its own
-`bitcoind` and Electrum server on free loopback ports under a temp dir and
-removes them when it ends, so runs are independent and need no network.
+chain and sends them between Stack wallets. Every test file gets a fresh
+`bitcoind` and Electrum server on free loopback ports under a temp dir, so
+runs are independent and need no network.
 
 The wallets are the app's real `BitcoinWallet`s: Isar and Hive storage,
 `NodeService`, ElectrumX sync, coin selection and coinlib signing. Most tests
@@ -11,24 +11,46 @@ call `prepareSend`, `prepareRbfSend` and `confirmSend` the way the send and
 boost views do. `desktop_send_test.dart` runs the whole app instead and sends
 through the desktop send form, so it needs a desktop device.
 
-Configure/build the app and native dependencies first: [building.md](building.md).
-You also need `bitcoind` from Bitcoin Core (tested with 31.1) and one or both
-Electrum servers:
-
-- Fulcrum (tested with 1.11.1, which Stack's own Bitcoin server runs). Peering
-  is turned off so it never contacts public servers.
-- electrs 0.10 (romanz/electrs; tested with 0.10.10), as shipped by Umbrel,
-  Start9 and most self-hosted nodes. Blockstream's and mempool's electrs forks
-  take different flags and are not supported.
+## Quick start (macOS or Linux)
 
 ```sh
-INDEXER=all BITCOIND=/path/to/bitcoind ELECTRS=/path/to/electrs \
-  FULCRUM=/path/to/Fulcrum bash scripts/test_bitcoin_regtest.sh
+bash scripts/fetch_bitcoin_regtest_bins.sh
+(cd scripts && ./prebuild.sh && echo yes | ./build_app.sh -v 0.0.1 -b 1 -p macos -a stack_wallet -d)
+bash scripts/test_bitcoin_regtest.sh
+```
+
+Use `-p linux` on Linux. The first build takes a few minutes; see
+[building.md](building.md) for the toolchain.
+
+`fetch_bitcoin_regtest_bins.sh` puts the node programs in
+`~/.cache/stack_wallet_regtest` (or `REGTEST_BIN_DIR`), where the runner looks
+for them after `BITCOIND`, `ELECTRS`, `FULCRUM` and `PATH`:
+
+- `bitcoind` 31.1 from bitcoincore.org, checked against its `SHA256SUMS`.
+- electrs 0.10.10 (romanz/electrs), built with `cargo install`, so it needs
+  Rust and clang. This is what Umbrel, Start9 and most self-hosted nodes run.
+  Blockstream's and mempool's electrs forks take different flags and are not
+  supported.
+- Fulcrum 1.11.1, which Stack's own Bitcoin server runs, from its GitHub
+  release, checked against the release's sums. Linux only: there is no macOS
+  release. Peering is turned off so it never contacts public servers.
+
+## Runner
+
+```sh
+INDEXER=all bash scripts/test_bitcoin_regtest.sh [device] [flutter test options]
 ```
 
 `INDEXER` is `electrs` (the default), `fulcrum` or `all`; only the selected
-servers' binaries are needed. The device defaults to the host (linux or
-macos). On Linux without a display the script runs Flutter under `xvfb-run`.
+servers are needed. The device defaults to the host (`linux`, `macos` or
+`windows`). On Linux without a display the script runs Flutter under
+`xvfb-run`. The script works with the bash 3.2 that ships with macOS.
+
+On Linux and Windows the test starts the nodes itself. The macOS app is
+sandboxed, so it can run neither `bitcoind` nor read its cookie; there the
+runner starts the nodes on the host with `scripts/bitcoin_regtest_nodes.dart`
+and passes their ports and an RPC password to the test. `REGTEST_HOST_NODES=1`
+does the same on Linux and Windows.
 
 The script passes `--dart-define=STACK_BITCOIN_REGTEST=true`, which adds a
 Bitcoin regtest coin (`bitcoinRegtest`, `bcrt` addresses) to
@@ -42,6 +64,6 @@ Bitcoin regtest coin (`bitcoinRegtest`, `bcrt` addresses) to
 | `desktop_send_test.dart` | onboarding, then the desktop send form: address, amount, the default fee (Stack's fallback rate, since regtest has no estimates), confirm and password; the node checks the payment |
 
 On failure the output ends with the app log and the last `bitcoind` and
-Electrum server log lines. App data and logs stay in each test's temp dir;
+Electrum server log lines (printed by the runner when it started the nodes). App data and logs stay in each test's temp dir;
 the desktop test sets the logs path pref first, because the app's default
 logs dir ignores the data dir override and is shared with real installs.
