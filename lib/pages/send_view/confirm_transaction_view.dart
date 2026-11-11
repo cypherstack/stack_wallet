@@ -165,6 +165,7 @@ class _ConfirmTransactionViewState
     final note = onChainNoteController.text;
     final localNote = noteController.text;
     final db = ref.read(mainDBProvider);
+    final format = ref.read(pAmountFormatter(wallet.cryptoCurrency)).format;
 
     final result = await wallet.createSlatepack(
       amount: recipient.amount,
@@ -173,6 +174,37 @@ class _ConfirmTransactionViewState
     );
     if (!result.success || result.slatepack == null) {
       throw Exception(result.error ?? "Failed to create ${terms.noun}");
+    }
+
+    // The user confirmed one amount, so a slate for any other amount must not
+    // be handed over.
+    final createdAmount = result.amount;
+    if (createdAmount != null && createdAmount != recipient.amount) {
+      final slateId = result.slateId;
+      final cancelError = slateId == null
+          ? "it has no slate id"
+          : await wallet.cancelPendingTransactionAndPost(slateId);
+      final outcome = cancelError.isEmpty
+          ? "The transaction was cancelled."
+          : "The transaction could not be cancelled ($cancelError). Cancel it"
+                " from its details before trying again.";
+      throw Exception(
+        "The ${terms.noun} was created for ${format(createdAmount)} instead of"
+        " the confirmed ${format(recipient.amount)}. $outcome",
+      );
+    }
+
+    // The confirmed fee is an estimate and the wallet may pick other inputs
+    // when it builds the slate, so a different fee is reported, not refused.
+    final createdFee = result.fee;
+    final confirmedFee = widget.txData.fee;
+    final feeChange =
+        createdFee != null && confirmedFee != null && createdFee != confirmedFee
+        ? "The ${terms.noun} pays a fee of ${format(createdFee)} instead of"
+              " the estimated ${format(confirmedFee)}."
+        : null;
+    if (feeChange != null) {
+      Logging.instance.w("$feeChange Slate id: ${result.slateId}");
     }
 
     var noteSaved = localNote.isEmpty;
@@ -195,17 +227,26 @@ class _ConfirmTransactionViewState
     closeSendingDialog();
 
     if (context.mounted) {
-      if (!noteSaved) {
+      if (!noteSaved || feeChange != null) {
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.warning,
-            message:
+            message: [
+              ?feeChange,
+              if (!noteSaved)
                 "Transaction created, but the local note could not be saved.",
+            ].join(" "),
             context: context,
           ),
         );
       }
       await showSlatepackDialog(context: context, terms: terms, result: result);
+    } else {
+      Logging.instance.w(
+        "Created ${terms.noun} ${result.slateId} but the confirmation view"
+        " closed before it could be shown. The pending transaction is in the"
+        " wallet's history and can be cancelled there.",
+      );
     }
 
     widget.onSuccess.call();
@@ -225,11 +266,14 @@ class _ConfirmTransactionViewState
     final sendProgressController = ProgressAndSuccessController();
     var isSendingDialogOpen = true;
 
+    // Looked up now so the dialog can still be closed if this view is gone by
+    // the time the send returns.
+    final navigator = Navigator.of(context, rootNavigator: true);
+
     void closeSendingDialog() {
-      if (!context.mounted || !isSendingDialogOpen) {
+      if (!navigator.mounted || !isSendingDialogOpen) {
         return;
       }
-      final navigator = Navigator.of(context, rootNavigator: true);
       if (navigator.canPop()) {
         navigator.pop();
       }
@@ -376,12 +420,15 @@ class _ConfirmTransactionViewState
         return;
       }
     } catch (e, s) {
-      const message = "Broadcast transaction failed";
+      // Nothing is broadcast when a slatepack is created.
+      final message =
+          wallet is SlatepackInterface && widget.txData.isSlatepackSend
+          ? "Could not create the ${wallet.slatepackTerms.noun}"
+          : "Broadcast transaction failed";
       Logging.instance.e(message, error: e, stackTrace: s);
       // pop sending dialog
+      closeSendingDialog();
       if (context.mounted) {
-        closeSendingDialog();
-
         await showDialog<void>(
           context: context,
           useSafeArea: false,
