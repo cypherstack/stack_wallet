@@ -388,9 +388,13 @@ class MimblewimblecoinWallet extends MimblewimbleWallet {
 
   @override
   Future<int> nativeFee(int satoshiAmount) async {
+    final int available = info.cachedBalance.spendable.raw.toInt();
+    // With nothing to spend, libmwc treats amount == available as send all,
+    // retries with amount minus the required fee and aborts the app on the
+    // negative amount. There is no fee to estimate, so skip the call.
+    if (satoshiAmount <= 0 || available <= 0) return 0;
     final String wallet = await _ensureWalletOpen();
     try {
-      final int available = info.cachedBalance.spendable.raw.toInt();
       final transactionFees = await libMwc.getTransactionFees(
         wallet: wallet,
         amount: satoshiAmount,
