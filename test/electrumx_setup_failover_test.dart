@@ -285,6 +285,51 @@ void main() {
     },
   );
 
+  test(
+    'invalid fallback approval leaves the shared connection in place',
+    () async {
+      final primary = await start();
+      final invalid = await start(certificateName: 'node_a');
+      final healthy = await start();
+      final client = clientFor(primary.port, [
+        ElectrumXNode(
+          address: '127.0.0.1',
+          port: invalid.port,
+          name: 'invalid approval',
+          id: '${invalid.port}',
+          useSSL: true,
+          torEnabled: true,
+          clearnetEnabled: true,
+          trustedCertificatePem: 'invalid PEM',
+        ),
+        node(healthy),
+      ]);
+      await client.checkElectrumAdapter().timeout(const Duration(seconds: 3));
+      final shared = client.getElectrumAdapter()!;
+      expect(shared.port, primary.port);
+
+      // A request on the primary failed, so the next attempt starts at the
+      // first failover, whose saved approval is damaged.
+      client.currentFailoverIndex = 0;
+      await expectLater(
+        client.checkElectrumAdapter().timeout(const Duration(seconds: 3)),
+        throwsA(isA<FormatException>()),
+      );
+
+      expect(client.getElectrumAdapter(), same(shared));
+      expect(shared.peer.isClosed, false);
+      expect(client.currentFailoverIndex, -1);
+      expect(invalid.accepted, 0);
+      expect(healthy.accepted, 0);
+
+      // The next attempt reuses the primary connection without reconnecting.
+      await client.checkElectrumAdapter().timeout(const Duration(seconds: 3));
+      expect(client.getElectrumAdapter(), same(shared));
+      expect(primary.accepted, 1);
+      expect(primary.disconnections, 0);
+    },
+  );
+
   test('concurrent setup callers share the successful fallback', () async {
     final primary = await start(ignoredMethods: {'server.version'});
     final fallback = await start();

@@ -368,16 +368,11 @@ class ElectrumXClient {
         _adapter = existing;
         return;
       }
-      if (existing != null) {
-        await _release(
-          existing,
-          drain: permitted(existing, managedCertificate()),
-        );
-        ensureCurrent();
-      }
 
       // Invalid saved approvals are a local configuration error. They must not
       // be mistaken for a failed network attempt or bypassed by failover.
+      // Check before retiring the shared connection: an attempt that cannot
+      // connect must not take the coin's working connection down with it.
       final bool Function(X509Certificate)? certificateCheck;
       try {
         certificateCheck = trustedCertificateCheck(pem);
@@ -385,6 +380,13 @@ class ElectrumXClient {
         // Fail this attempt, but let the next one retry a recovered primary.
         currentFailoverIndex = -1;
         rethrow;
+      }
+      if (existing != null) {
+        await _release(
+          existing,
+          drain: permitted(existing, managedCertificate()),
+        );
+        ensureCurrent();
       }
       ElectrumClient? candidate;
       bool negotiated = false;
