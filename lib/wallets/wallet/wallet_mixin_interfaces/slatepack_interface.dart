@@ -37,9 +37,12 @@ mixin SlatepackInterface<T extends CryptoCurrency> on Wallet<T> {
   /// Throws when the text cannot be decoded at all.
   Future<SlateInspection> inspectSlatepack(String armored);
 
-  /// Amount and fee of this wallet's transaction for [slateId], or null when
-  /// the wallet has none.
-  Future<({Amount amount, Amount fee})?> localTxForSlate(String slateId);
+  /// Amount, fee and direction of this wallet's transaction for [slateId], or
+  /// null when the wallet has none. `isSend` is true for a send this wallet
+  /// started, which is the only kind it can finalize.
+  Future<({Amount amount, Amount fee, bool isSend})?> localTxForSlate(
+    String slateId,
+  );
 
   /// Start a send (S1). [message] is dropped when [supportsOnChainNote] is
   /// false. [recipientAddress] encrypts the slatepack to that address where

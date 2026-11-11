@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/slatepack_models.dart';
 import '../../notifications/show_flush_bar.dart';
+import '../../utilities/amount/amount.dart';
 import '../../utilities/show_loading.dart';
 import '../../utilities/util.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/slatepack_interface.dart';
@@ -66,25 +67,61 @@ abstract final class SlatepackImportFlow {
   }) async {
     final terms = wallet.slatepackTerms;
 
-    final inspection = await _withLoading(
+    final read = await _withLoading(
       context,
       "Reading ${terms.noun}...",
-      () => wallet.inspectSlatepack(text),
+      () async {
+        final inspection = await wallet.inspectSlatepack(text);
+        final route = routeFor(
+          inspection.state,
+          supportsInvoices: wallet.supportsInvoices,
+        );
+        return (
+          inspection: inspection,
+          route: route,
+          // Only the wallet that started a send can finalize it.
+          local: route == SlatepackRoute.finalizeSend
+              ? await wallet.localTxForSlate(inspection.slateId)
+              : null,
+        );
+      },
       errorTitle: "Could not read ${terms.noun}",
     );
-    if (inspection == null || !context.mounted) return false;
+    if (read == null || !context.mounted) return false;
 
-    final route = routeFor(
-      inspection.state,
-      supportsInvoices: wallet.supportsInvoices,
-    );
+    final inspection = read.inspection;
+    final route = read.route;
 
     switch (route) {
       case SlatepackRoute.receive:
         return _receive(context, wallet, text, inspection);
 
       case SlatepackRoute.finalizeSend:
-        return _finalize(context, wallet, text, inspection);
+        final local = read.local;
+        if (local == null || !local.isSend) {
+          await _message(
+            context,
+            "Cannot finalize this ${terms.noun}",
+            local == null
+                ? "This wallet did not start the transaction this "
+                      "${terms.noun} belongs to. Only the wallet that "
+                      "started a send can finalize it. If the send was made "
+                      "here moments ago, let the wallet finish syncing and "
+                      "try again."
+                : "This ${terms.noun} belongs to a transaction this wallet "
+                      "received, not one it started. Only the wallet that "
+                      "started a send can finalize it.",
+          );
+          return false;
+        }
+        return _finalize(
+          context,
+          wallet,
+          text,
+          inspection,
+          amount: local.amount,
+          fee: local.fee,
+        );
 
       case SlatepackRoute.payInvoice:
         // TODO(S5): PayInvoiceConfirmView.
@@ -184,31 +221,26 @@ abstract final class SlatepackImportFlow {
     BuildContext context,
     SlatepackInterface wallet,
     String text,
-    SlateInspection inspection,
-  ) async {
+    SlateInspection inspection, {
+    required Amount amount,
+    required Amount fee,
+  }) async {
     final terms = wallet.slatepackTerms;
 
-    // An S2 may carry amount 0, so the summary comes from our own record of
-    // the send when there is one.
-    final local = await wallet.localTxForSlate(inspection.slateId);
-    if (!context.mounted) return false;
-
+    // An S2 may carry amount 0, so the summary shows [amount] and [fee] from
+    // our own record of the send.
     final confirmed = await showSlatepackPopup<bool>(
       context: context,
       child: SlatepackSummaryDialog(
         title: "Finalize ${terms.noun}",
         coin: wallet.cryptoCurrency,
         actionLabel: "Finalize",
-        amount: local?.amount ?? inspection.amount,
-        fee: local?.fee ?? inspection.fee,
+        amount: amount,
+        fee: fee,
         details: [
           if (inspection.slateId.isNotEmpty) ("Slate ID", inspection.slateId),
           ("Encrypted", inspection.isEncrypted ? "Yes" : "No"),
         ],
-        note: local == null
-            ? "No matching send was found in this wallet's history. "
-                  "Finalizing only works for a send this wallet started."
-            : null,
       ),
     );
     if (confirmed != true || !context.mounted) return false;
