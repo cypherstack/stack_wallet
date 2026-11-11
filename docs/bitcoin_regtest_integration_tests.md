@@ -52,6 +52,27 @@ runner starts the nodes on the host with `scripts/bitcoin_regtest_nodes.dart`
 and passes their ports and an RPC password to the test. `REGTEST_HOST_NODES=1`
 does the same on Linux and Windows.
 
+## Windows
+
+Run everything from Git Bash, with Flutter and Rust on `PATH`. electrs has no
+Windows build, so the fetch script gets Bitcoin Core and Fulcrum (win64 zips,
+checked against their published sums) and the runner defaults to Fulcrum.
+
+```sh
+bash scripts/fetch_bitcoin_regtest_bins.sh bitcoind fulcrum
+(cd scripts && MWEBD_FETCH=1 ./build_app.sh -v 0.0.1 -b 1 -p windows -a stack_wallet -d -s)
+dart run coinlib:build_windows
+bash scripts/test_bitcoin_regtest.sh
+```
+
+Use the same checkout setup as a normal Windows build (see
+[building.md](building.md)): `lib/external_api_keys.dart` must exist, and if
+the `assets/` symlinks did not survive the checkout, copy
+`asset_sources/<dir>/stack_wallet` into `assets/<dir>`. Windows Defender may
+quarantine the Monero wallet DLL (a false positive), so keep the checkout
+under an excluded folder. The test starts the nodes itself; leftover test data
+stays in `%TEMP%` because Windows cannot delete the open log file.
+
 ## Mobile
 
 The nodes run on the host and the simulator or emulator connects to them, so
