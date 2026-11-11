@@ -1304,8 +1304,8 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/grin"
-      ref: "6ff6fe60461f312128e3389c87b729081fc80587"
-      resolved-ref: "6ff6fe60461f312128e3389c87b729081fc80587"
+      ref: aab5d382700d60f2bb14f76b4c5df4583abac97b
+      resolved-ref: aab5d382700d60f2bb14f76b4c5df4583abac97b
       url: "ssh://git@git.cypherstack.com:222/sneurlax/grin_native.git"
     source: git
     version: "0.1.0"
@@ -1313,8 +1313,8 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/grin_native"
-      ref: "6ff6fe60461f312128e3389c87b729081fc80587"
-      resolved-ref: "6ff6fe60461f312128e3389c87b729081fc80587"
+      ref: aab5d382700d60f2bb14f76b4c5df4583abac97b
+      resolved-ref: aab5d382700d60f2bb14f76b4c5df4583abac97b
       url: "ssh://git@git.cypherstack.com:222/sneurlax/grin_native.git"
     source: git
     version: "0.1.0"

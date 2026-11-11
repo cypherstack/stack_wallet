@@ -72,7 +72,7 @@ dependencies:
 #    git:
 #      url: ssh://git@git.cypherstack.com:222/sneurlax/grin_native.git
 #      path: packages/grin_native
-#      ref: 6ff6fe60461f312128e3389c87b729081fc80587
+#      ref: aab5d382700d60f2bb14f76b4c5df4583abac97b
 # %%END_ENABLE_GRIN%%
 
 # %%ENABLE_TOR%%
@@ -109,7 +109,7 @@ dependencies:
     git:
       url: ssh://git@git.cypherstack.com:222/sneurlax/grin_native.git
       path: packages/grin
-      ref: 6ff6fe60461f312128e3389c87b729081fc80587
+      ref: aab5d382700d60f2bb14f76b4c5df4583abac97b
 
   # cs_monero compat (unpublished)
   compat:
@@ -372,7 +372,7 @@ dependency_overrides:
     git:
       url: ssh://git@git.cypherstack.com:222/sneurlax/grin_native.git
       path: packages/grin
-      ref: 6ff6fe60461f312128e3389c87b729081fc80587
+      ref: aab5d382700d60f2bb14f76b4c5df4583abac97b
 
 # %%ENABLE_ISAR%%
 #  isar_community:
