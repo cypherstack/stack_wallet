@@ -333,7 +333,14 @@ class ElectrumXClient {
 
       // Invalid saved approvals are a local configuration error. They must not
       // be mistaken for a failed network attempt or bypassed by failover.
-      final certificateCheck = trustedCertificateCheck(pem);
+      final bool Function(X509Certificate)? certificateCheck;
+      try {
+        certificateCheck = trustedCertificateCheck(pem);
+      } on FormatException {
+        // Fail this attempt, but let the next one retry a recovered primary.
+        currentFailoverIndex = -1;
+        rethrow;
+      }
       ElectrumClient? candidate;
       bool negotiated = false;
       bool kept = false;

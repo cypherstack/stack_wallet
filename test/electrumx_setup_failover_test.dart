@@ -243,6 +243,48 @@ void main() {
     },
   );
 
+  test(
+    'invalid fallback approval fails closed without trapping later setup',
+    () async {
+      final ignoredMethods = {'server.version'};
+      final primary = await start(ignoredMethods: ignoredMethods);
+      final invalid = await start(certificateName: 'node_a');
+      final healthy = await start();
+      final client = clientFor(primary.port, [
+        ElectrumXNode(
+          address: '127.0.0.1',
+          port: invalid.port,
+          name: 'invalid approval',
+          id: '${invalid.port}',
+          useSSL: true,
+          torEnabled: true,
+          clearnetEnabled: true,
+          trustedCertificatePem: 'invalid PEM',
+        ),
+        node(healthy),
+      ]);
+
+      await expectLater(
+        client.checkElectrumAdapter().timeout(const Duration(seconds: 3)),
+        throwsA(isA<FormatException>()),
+      );
+
+      expect(primary.accepted, 1);
+      expect(invalid.accepted, 0);
+      expect(healthy.accepted, 0);
+      expect(client.getElectrumAdapter(), isNull);
+      expect(client.currentFailoverIndex, -1);
+
+      ignoredMethods.clear();
+      await client.checkElectrumAdapter().timeout(const Duration(seconds: 3));
+
+      expect(client.getElectrumAdapter()!.port, primary.port);
+      expect(primary.accepted, 2);
+      expect(invalid.accepted, 0);
+      expect(healthy.accepted, 0);
+    },
+  );
+
   test('concurrent setup callers share the successful fallback', () async {
     final primary = await start(ignoredMethods: {'server.version'});
     final fallback = await start();
