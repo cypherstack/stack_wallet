@@ -111,7 +111,7 @@ void main() {
     TorPlainNetworkOption netType = TorPlainNetworkOption.both,
   }) {
     return ManagedElectrumXClient(
-      host: 'mock.stackwallet.dev',
+      host: clearServer.host,
       port: 50002,
       useSSL: true,
       prefs: prefs,

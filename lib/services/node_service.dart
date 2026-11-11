@@ -16,6 +16,7 @@ import 'package:http/http.dart';
 import '../app_config.dart';
 import '../db/hive/db.dart';
 import '../models/epicbox_server_model.dart';
+import '../models/node_form_data.dart';
 import '../models/node_model.dart';
 import '../utilities/default_epicboxes.dart';
 import '../utilities/default_nodes.dart';
@@ -67,11 +68,7 @@ class NodeService extends ChangeNotifier {
             isPrimary: false,
           );
 
-          await DB.instance.put<NodeModel>(
-            boxName: DB.boxNameNodeModels,
-            key: _id,
-            value: node,
-          );
+          await _writeNode(_id, (current) => current == null ? node : null);
         }
       }
     }
@@ -79,38 +76,33 @@ class NodeService extends ChangeNotifier {
     for (final defaultNode in AppConfig.coins.map(
       (e) => e.defaultNode(isPrimary: true),
     )) {
-      final savedNode = DB.instance.get<NodeModel>(
-        boxName: DB.boxNameNodeModels,
-        key: defaultNode.id,
-      );
-      if (savedNode == null) {
-        // save the default node to hive only if no other nodes for the specific coin exist
-        if (getNodesFor(
-          AppConfig.getCryptoCurrencyByPrettyName(defaultNode.coinName),
-        ).isEmpty) {
-          await DB.instance.put<NodeModel>(
-            boxName: DB.boxNameNodeModels,
-            key: defaultNode.id,
-            value: defaultNode,
-          );
+      await _writeNode(defaultNode.id, (savedNode) {
+        if (savedNode == null) {
+          return getNodesFor(
+                AppConfig.getCryptoCurrencyByPrettyName(defaultNode.coinName),
+              ).isEmpty
+              ? defaultNode
+              : null;
         }
-      } else {
-        // update all fields but copy over previously set enabled and trusted states
-        await DB.instance.put<NodeModel>(
-          boxName: DB.boxNameNodeModels,
-          key: savedNode.id,
-          value: defaultNode.copyWith(
-            enabled: savedNode.enabled,
-            isFailover: savedNode.isFailover,
-            trusted: savedNode.trusted,
-            torEnabled: savedNode.torEnabled,
-            clearnetEnabled: savedNode.clearnetEnabled,
-            loginName: savedNode.loginName,
-            isPrimary: savedNode.isPrimary,
-            forceNoTor: savedNode.forceNoTor,
-          ),
+        return defaultNode.copyWith(
+          enabled: savedNode.enabled,
+          isFailover: savedNode.isFailover,
+          trusted: savedNode.trusted,
+          torEnabled: savedNode.torEnabled,
+          clearnetEnabled: savedNode.clearnetEnabled,
+          loginName: savedNode.loginName,
+          isPrimary: savedNode.isPrimary,
+          forceNoTor: savedNode.forceNoTor,
+          trustedCertificatePem:
+              savedNode.sameEndpoint(
+                host: defaultNode.host,
+                port: defaultNode.port,
+                useSSL: defaultNode.useSSL,
+              )
+              ? savedNode.trustedCertificatePem
+              : null,
         );
-      }
+      });
     }
   }
 
@@ -119,39 +111,47 @@ class NodeService extends ChangeNotifier {
     required NodeModel node,
     bool shouldNotifyListeners = false,
   }) async {
-    // current
-    final currentPrimaries = primaryNodes.where(
-      (e) => e.coinName == coin.identifier && e.id != node.id,
-    );
-    final List<NodeModel> toStore = [];
-    for (final node in currentPrimaries) {
-      final updated = node.copyWith(
-        loginName: node.loginName,
-        trusted: node.trusted,
-        isPrimary: false,
+    await DB.instance.mutex.protect(() async {
+      await _promote(getNodeById(id: node.id) ?? node);
+    });
+    if (shouldNotifyListeners) notifyListeners();
+  }
+
+  // The caller holds DB's write lock; only primary flags change.
+  Future<void> _promote(NodeModel node) async {
+    final box = DB.instance.hive.box<NodeModel>(DB.boxNameNodeModels);
+    for (final other in primaryNodes.where(
+      (other) => other.coinName == node.coinName && other.id != node.id,
+    )) {
+      await box.put(
+        other.id,
+        other.copyWith(
+          loginName: other.loginName,
+          trusted: other.trusted,
+          isPrimary: false,
+        ),
       );
-      toStore.add(updated);
     }
-    toStore.add(
+    await box.put(
+      node.id,
       node.copyWith(
         loginName: node.loginName,
         trusted: node.trusted,
         isPrimary: true,
       ),
     );
-
-    for (final node in toStore) {
-      await DB.instance.put<NodeModel>(
-        boxName: DB.boxNameNodeModels,
-        key: node.id,
-        value: node,
-      );
-    }
-
-    if (shouldNotifyListeners) {
-      notifyListeners();
-    }
   }
+
+  // Normal Hive boxes cache immutable NodeModels. Identity detects any write,
+  // including Forget of an empty approval, without another persisted revision.
+  Future<bool> _writeNode(String id, NodeModel? Function(NodeModel?) next) =>
+      DB.instance.mutex.protect(() async {
+        final box = DB.instance.hive.box<NodeModel>(DB.boxNameNodeModels);
+        final node = next(box.get(id));
+        if (node == null) return false;
+        await box.put(id, node);
+        return true;
+      });
 
   NodeModel? getPrimaryNodeFor({required CryptoCurrency currency}) {
     return primaryNodes
@@ -198,9 +198,9 @@ class NodeService extends ChangeNotifier {
   }
 
   List<NodeModel> failoverNodesFor({required CryptoCurrency currency}) {
-    return getNodesFor(
-      currency,
-    ).where((e) => e.isFailover && !e.isDown).toList();
+    return getNodesFor(currency)
+        .where((e) => e.isFailover && !e.isDown)
+        .toList();
   }
 
   /// Adds a new node to the database.
@@ -218,18 +218,143 @@ class NodeService extends ChangeNotifier {
       value: node,
     );
 
-    // Save password to secure storage.
-    if (password != null) {
-      await secureStorageInterface.write(
-        key: "${node.id}_nodePW",
-        value: password,
-      );
-    } else {
-      await secureStorageInterface.delete(key: "${node.id}_nodePW");
-    }
+    await _savePassword(node.id, password);
     if (shouldNotifyListeners) {
       notifyListeners();
     }
+  }
+
+  Future<void> _savePassword(String id, String? password) async {
+    if (password == null) {
+      await secureStorageInterface.delete(key: "${id}_nodePW");
+    } else {
+      await secureStorageInterface.write(key: "${id}_nodePW", value: password);
+    }
+  }
+
+  Future<bool> saveEdit(
+    NodeModel node,
+    String? password,
+    bool notify, {
+    required NodeModel opened,
+    bool forgetCertificate = false,
+  }) async {
+    if (getNodeById(id: node.id) == null) return false;
+    await _savePassword(node.id, password);
+    final saved = await _writeNode(node.id, (current) {
+      if (current == null) return null;
+      final pem = identical(current, opened) || forgetCertificate
+          ? node.trustedCertificatePem
+          : node.sameEndpoint(
+              host: current.host,
+              port: current.port,
+              useSSL: current.useSSL,
+            )
+          ? current.trustedCertificatePem
+          : null;
+      return node.copyWith(
+        loginName: node.loginName,
+        trusted: node.trusted,
+        isPrimary: current.isPrimary,
+        trustedCertificatePem: pem,
+        clearTrustedCertificate: pem == null,
+      );
+    });
+    if (saved && notify) notifyListeners();
+    return saved;
+  }
+
+  bool prepareCertificateTest(NodeFormData data) {
+    final source = data.source;
+    if (source == null) return true;
+    final current = getNodeById(id: source.id);
+    if (current == null) return false;
+    if (!identical(source, current)) {
+      if (!data.certificateForgotten) {
+        data.trustedCertificatePem = data.matchesEndpointOf(current)
+            ? current.trustedCertificatePem
+            : null;
+      }
+      data.source = current;
+    }
+    return true;
+  }
+
+  Future<bool> saveTrustedCertificate(NodeModel node, NodeFormData data) async {
+    final pem = data.trustedCertificatePem;
+    final saved = await _writeNode(
+      node.id,
+      (current) =>
+          identical(current, node) &&
+              pem != null &&
+              data.matchesEndpointOf(current!) &&
+              current.trustedCertificatePem != pem
+          ? current.copyWith(
+              loginName: current.loginName,
+              trusted: current.trusted,
+              trustedCertificatePem: pem,
+            )
+          : null,
+    );
+    if (saved) notifyListeners();
+    return saved;
+  }
+
+  Future<bool> forgetTrustedCertificate(NodeModel shown) async {
+    final saved = await _writeNode(
+      shown.id,
+      (current) =>
+          current != null &&
+              shown.sameEndpoint(
+                host: current.host,
+                port: current.port,
+                useSSL: current.useSSL,
+              )
+          ? current.copyWith(
+              loginName: current.loginName,
+              trusted: current.trusted,
+              clearTrustedCertificate: true,
+            )
+          : null,
+    );
+    if (saved) notifyListeners();
+    return saved;
+  }
+
+  Future<bool> commitConnectionTest({
+    required NodeModel node,
+    required NodeFormData formData,
+  }) async {
+    final saved = await DB.instance.mutex.protect(() async {
+      if (!identical(getNodeById(id: node.id), node)) return false;
+      final pem = formData.matchesEndpointOf(node)
+          ? formData.trustedCertificatePem
+          : node.trustedCertificatePem;
+      await _promote(
+        node.copyWith(
+          loginName: node.loginName,
+          trusted: node.trusted,
+          trustedCertificatePem: pem,
+          clearTrustedCertificate: pem == null,
+        ),
+      );
+      return true;
+    });
+    if (saved) notifyListeners();
+    return saved;
+  }
+
+  Future<bool> setFailover(String id, bool value) async {
+    final saved = await _writeNode(
+      id,
+      (node) => node?.copyWith(
+        loginName: node.loginName,
+        trusted: node.trusted,
+        isFailover: value,
+      ),
+    );
+    if (saved) notifyListeners();
+    return saved;
   }
 
   Future<void> delete(String id, bool shouldNotifyListeners) async {
@@ -271,14 +396,9 @@ class NodeService extends ChangeNotifier {
     bool enabled,
     bool shouldNotifyListeners,
   ) async {
-    final model = DB.instance.get<NodeModel>(
-      boxName: DB.boxNameNodeModels,
-      key: id,
-    )!;
-    await DB.instance.put<NodeModel>(
-      boxName: DB.boxNameNodeModels,
-      key: model.id,
-      value: model.copyWith(
+    await _writeNode(
+      id,
+      (model) => model?.copyWith(
         enabled: enabled,
         loginName: model.loginName,
         trusted: model.trusted,
