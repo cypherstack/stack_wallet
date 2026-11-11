@@ -82,6 +82,10 @@ jobs:
         run: make build-linux VERSION=0.0.0 BUILD_NUM=${{ github.run_number }}
 
   ios:
+    # The fork has a single hosted macOS concurrency slot. Running macOS and
+    # iOS together leaves one job queued until GitHub cancels it; serialise them.
+    needs: macos
+    if: always()
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v6
