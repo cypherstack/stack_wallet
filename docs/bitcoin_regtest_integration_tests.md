@@ -32,8 +32,8 @@ for them after `BITCOIND`, `ELECTRS`, `FULCRUM` and `PATH`:
   Blockstream's and mempool's electrs forks take different flags and are not
   supported.
 - Fulcrum 1.11.1, which Stack's own Bitcoin server runs, from its GitHub
-  release, checked against the release's sums. Linux only: there is no macOS
-  release. Peering is turned off so it never contacts public servers.
+  release, checked against the release's sums. Linux and Windows releases
+  are available; there is no macOS release. Peering is turned off so it never contacts public servers.
 
 ## Runner
 
@@ -41,8 +41,8 @@ for them after `BITCOIND`, `ELECTRS`, `FULCRUM` and `PATH`:
 INDEXER=all bash scripts/test_bitcoin_regtest.sh [device] [flutter test options]
 ```
 
-`INDEXER` is `electrs` (the default), `fulcrum` or `all`; only the selected
-servers are needed. The device defaults to the host (`linux`, `macos` or
+`INDEXER` is `electrs`, `fulcrum` or `all`; only the selected servers are
+needed. The default is `fulcrum` on Windows and `electrs` elsewhere. The device defaults to the host (`linux`, `macos` or
 `windows`). On Linux without a display the script runs Flutter under
 `xvfb-run`. The script works with the bash 3.2 that ships with macOS.
 
