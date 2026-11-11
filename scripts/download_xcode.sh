@@ -95,6 +95,16 @@ if [[ "$TARGET_DIR" != *.app || "$TARGET_DIR" == "/" ]]; then
     exit 1
 fi
 
+# A relative cache or target dir must not change meaning after the extraction cd below.
+case "$CACHE_DIR" in
+    /*) ;;
+    *) CACHE_DIR="$PWD/$CACHE_DIR" ;;
+esac
+case "$TARGET_DIR" in
+    /*) ;;
+    *) TARGET_DIR="$PWD/$TARGET_DIR" ;;
+esac
+
 # sudo is only needed when the target directory is not writable (for example /Applications).
 SUDO=""
 mkdir -p "$(dirname "$TARGET_DIR")" 2>/dev/null || true
@@ -106,6 +116,28 @@ fi
 DOWNLOAD_URL="${XCODE_XIP_URL:-https://archive.org/download/${IA_ITEM}/${FILE_NAME}}"
 TORRENT_URL="https://archive.org/download/${IA_ITEM}/${IA_ITEM}_archive.torrent"
 XIP_PATH="${CACHE_DIR}/${FILE_NAME}"
+XIP_PART="${XIP_PATH}.part"
+
+finish_install() {
+    if [[ $ASSUME_YES -eq 1 ]]; then
+        if [[ "$(xcode-select -p 2>/dev/null || true)" != "${TARGET_DIR}/Contents/Developer" ]]; then
+            sudo xcode-select -s "${TARGET_DIR}/Contents/Developer"
+        fi
+        if ! xcodebuild -license check >/dev/null 2>&1; then
+            sudo xcodebuild -license accept
+        fi
+        if ! xcodebuild -checkFirstLaunchStatus >/dev/null 2>&1; then
+            sudo xcodebuild -runFirstLaunch
+        fi
+        echo "[SUCCESS] Xcode ${XCODE_VERSION} (${BUILD_NUM}) installed and selected."
+        xcodebuild -version
+    else
+        echo "[SUCCESS] Installed ${TARGET_DIR}. Finish with:"
+        echo "  sudo xcode-select -s \"${TARGET_DIR}/Contents/Developer\""
+        echo "  sudo xcodebuild -license        # read and accept"
+        echo "  sudo xcodebuild -runFirstLaunch"
+    fi
+}
 
 echo "================================================================="
 echo " Xcode from archive.org (hash + signature verified)"
@@ -122,9 +154,9 @@ if [[ -d "$TARGET_DIR" ]]; then
     CURRENT_BUILD="$("$TARGET_DIR/Contents/Developer/usr/bin/xcodebuild" -version 2>/dev/null | awk '/Build version/ {print $3}' || true)"
     if [[ "$CURRENT_BUILD" == "$BUILD_NUM" ]]; then
         echo "[OK] Xcode ${XCODE_VERSION} (${BUILD_NUM}) is already installed at ${TARGET_DIR}."
-        if [[ "$(xcode-select -p 2>/dev/null || true)" != "${TARGET_DIR}/Contents/Developer" ]]; then
-            echo "Run to select it:  sudo xcode-select -s \"${TARGET_DIR}/Contents/Developer\""
-        fi
+        # With -y, finish selection/license/first-launch now instead of exiting
+        # before the setup the caller explicitly asked for.
+        finish_install
         exit 0
     fi
     echo "[WARN] ${TARGET_DIR} exists with build '${CURRENT_BUILD}', expected '${BUILD_NUM}'. It will be replaced."
@@ -151,12 +183,37 @@ if [[ "$FREE_KB" -lt $((20 * 1024 * 1024)) ]]; then
     exit 1
 fi
 
-# 1. Resumable download
+# 1. Resumable download. A verified archive is reused; a partial .part file is
+# resumed with curl -C - instead of being treated as a complete archive.
+if [[ -f "$XIP_PATH" ]]; then
+    CACHED_SHA1="$(shasum -a 1 "$XIP_PATH" | awk '{print $1}')"
+    if [[ "$CACHED_SHA1" == "$EXPECTED_SHA1" ]]; then
+        echo "Using cached archive: $XIP_PATH"
+    else
+        echo "[WARN] Cached archive does not match the expected SHA-1; downloading again." >&2
+        rm -f "$XIP_PATH"
+    fi
+fi
 if [[ ! -f "$XIP_PATH" ]]; then
-    echo "Downloading ${FILE_NAME} (resumable; torrent alternative: ${TORRENT_URL})..."
-    curl -fL -C - --retry 8 --retry-delay 5 --retry-all-errors --progress-bar -o "$XIP_PATH" "$DOWNLOAD_URL"
-else
-    echo "Using cached archive: $XIP_PATH"
+    if [[ -f "$XIP_PART" ]]; then
+        echo "Resuming partial download: $XIP_PART"
+    else
+        echo "Downloading ${FILE_NAME} (resumable; torrent alternative: ${TORRENT_URL})..."
+    fi
+    if ! curl -fL -C - --retry 8 --retry-delay 5 --retry-all-errors --progress-bar -o "$XIP_PART" "$DOWNLOAD_URL"; then
+        echo "[WARN] Could not resume; restarting the download from scratch." >&2
+        rm -f "$XIP_PART"
+        curl -fL --retry 8 --retry-delay 5 --retry-all-errors --progress-bar -o "$XIP_PART" "$DOWNLOAD_URL"
+    fi
+    PART_SHA1="$(shasum -a 1 "$XIP_PART" | awk '{print $1}')"
+    if [[ "$PART_SHA1" != "$EXPECTED_SHA1" ]]; then
+        echo "[ERROR] SHA-1 mismatch, the download is corrupt or altered." >&2
+        echo "  expected: $EXPECTED_SHA1" >&2
+        echo "  got     : $PART_SHA1" >&2
+        rm -f "$XIP_PART"
+        exit 1
+    fi
+    mv "$XIP_PART" "$XIP_PATH"
 fi
 
 # 2. Integrity: SHA-1 from archive.org metadata
@@ -209,15 +266,4 @@ $SUDO xattr -dr com.apple.quarantine "$TARGET_DIR" 2>/dev/null || true
 rm -rf "$EXTRACT_DIR"
 
 # 6. Select and first-launch only with -y; otherwise print the commands.
-if [[ $ASSUME_YES -eq 1 ]]; then
-    sudo xcode-select -s "${TARGET_DIR}/Contents/Developer"
-    sudo xcodebuild -license accept
-    sudo xcodebuild -runFirstLaunch
-    echo "[SUCCESS] Xcode ${XCODE_VERSION} (${BUILD_NUM}) installed and selected."
-    xcodebuild -version
-else
-    echo "[SUCCESS] Installed ${TARGET_DIR}. Finish with:"
-    echo "  sudo xcode-select -s \"${TARGET_DIR}/Contents/Developer\""
-    echo "  sudo xcodebuild -license        # read and accept"
-    echo "  sudo xcodebuild -runFirstLaunch"
-fi
+finish_install

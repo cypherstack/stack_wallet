@@ -127,6 +127,7 @@ lib/wl_gen/generated/
 /tool/build
 bm/results/
 /.cargo/config.toml
+/scripts/linux/pc/
 
 # Nix dev shell: generated wrappers
 .nix-bin/

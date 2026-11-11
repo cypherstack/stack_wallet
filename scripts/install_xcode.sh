@@ -45,7 +45,17 @@ SELECTED_DEV="$(xcode-select -p 2>/dev/null || true)"
 if [[ "$SELECTED_DEV" == /*.app/Contents/Developer && -x "$SELECTED_DEV/usr/bin/xcodebuild" ]]; then
   echo "Xcode already configured: ${SELECTED_DEV%/Contents/Developer}"
 else
-  XCODE_APP="$(ls -d "$XCODE_APPS_DIR"/Xcode*.app 2>/dev/null | head -1 || true)"
+  if [[ -n "${XCODE_APP:-}" ]]; then
+    if [[ ! -x "$XCODE_APP/Contents/Developer/usr/bin/xcodebuild" ]]; then
+      die "[ERROR] XCODE_APP is not a full Xcode.app: $XCODE_APP"
+    fi
+  elif [[ -d "$XCODE_APPS_DIR/Xcode.app" ]]; then
+    XCODE_APP="$XCODE_APPS_DIR/Xcode.app"
+  else
+    # Prefer the newest versioned install; alphabetically Xcode_16.2.app comes
+    # before Xcode_27.1.app, and Xcodes.app is not Xcode.
+    XCODE_APP="$(find "$XCODE_APPS_DIR" -maxdepth 1 -type d -name 'Xcode*.app' ! -name 'Xcodes.app' -print 2>/dev/null | sort -V | tail -n 1 || true)"
+  fi
   if [[ -z "$XCODE_APP" ]]; then
     die "[ERROR] Full Xcode is required for macOS/iOS builds (Command Line Tools alone are not enough). Install it, then re-run this script:
   - Mac App Store: search 'Xcode' and install, or run 'mas install 497799835' if you already have 'mas' set up
@@ -55,5 +65,13 @@ else
   sudo xcode-select -s "$XCODE_APP/Contents/Developer"
 fi
 
-sudo xcodebuild -license accept 2>/dev/null || true
-sudo xcodebuild -runFirstLaunch 2>/dev/null || true
+# Only ask for sudo when the license or first-launch setup is actually pending;
+# an already-configured Xcode should not trigger these on every bootstrap run.
+if ! xcodebuild -license check >/dev/null 2>&1; then
+  echo "Accepting the Xcode license..."
+  sudo xcodebuild -license accept
+fi
+if ! xcodebuild -checkFirstLaunchStatus >/dev/null 2>&1; then
+  echo "Running Xcode first-launch setup..."
+  sudo xcodebuild -runFirstLaunch
+fi

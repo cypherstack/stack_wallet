@@ -47,7 +47,7 @@ sudo apt-get install libc6:i386 libncurses5:i386 libstdc++6:i386 lib32z1 libbz2-
 ### Build dependencies
 Install basic dependencies
 ```
-sudo apt-get install libssl-dev curl unzip automake build-essential file pkg-config git python3 libtool libtinfo6 cmake libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm lld g++ gcc gperf libopencv-dev python3-typogrify xsltproc valac gobject-introspection meson pipx libgcrypt20-dev libglib2.0-dev libsecret-1-dev
+sudo apt-get install libssl-dev curl unzip automake build-essential file pkg-config git python3 libtool libtinfo6 cmake libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm lld g++ gcc gperf libopencv-dev python3-typogrify xsltproc valac gobject-introspection meson pipx libgcrypt20-dev libglib2.0-dev libsecret-1-dev patchelf
 pipx install meson==0.64.1 markdown==3.4.1 markupsafe==2.1.1 jinja2==3.1.2 pygments==2.13.0 toml==0.10.2 typogrify==2.0.7 tomli==2.0.1
 ```
 
@@ -182,7 +182,7 @@ Note on Emulators: Only x86_64 emulators are supported, x86 emulators will not w
 
 #### Windows
 
-On Windows the CI job `build-windows` builds natively on `windows-2022` (it does not use WSL2), and `make build-windows` runs the same steps from Git Bash: `scripts/prebuild.sh`, `scripts/build_app.sh -p windows -d -s`, `flutter pub get`, `dart run coinlib:build_windows`, `flutter build windows --release`. It needs Flutter, Go and a Visual Studio C++ toolchain on the machine. Where the user cannot create symbolic links (for example the GitHub-hosted runner), add `WINDOWS_COPY_ASSETS=1` so the asset directories are copied instead of linked. The WSL2 route described at the top of this guide still works.
+On Windows the CI job `build-windows` builds natively on `windows-2022` (it does not use WSL2), and `make build-windows` runs the same steps from Git Bash: `scripts/prebuild.sh`, `scripts/build_app.sh -p windows -d -s`, `flutter pub get`, `dart run coinlib:build_windows`, `flutter build windows --release`. It needs Flutter, Go and a Visual Studio C++ toolchain on the machine. Where the user cannot create symbolic links (for example the GitHub-hosted runner), add `WINDOWS_COPY_ASSETS=1`; `link_assets.sh` then copies the asset directories instead of linking them. The WSL2 route described at the top of this guide still works.
 
 #### Android and iOS
 
@@ -431,8 +431,8 @@ To test Tor usage, run Stack Wallet from Android Studio.  Click the Flutter DevT
 
 The `Makefile` is a thin wrapper around the steps above. `make build-macos` runs
 the same sequence as CI: `scripts/build_app.sh -p macos -a stack_wallet -s`, `flutter pub get`,
-`scripts/prebuild.sh` and `flutter build macos --release`. It does not change the app's
-name or bundle ID. Run `make help` for all targets.
+`scripts/prebuild.sh` and `flutter build macos --release`. `APP_NAME` selects the app
+variant (`stack_wallet`, `stack_duo` or `campfire`). Run `make help` for all targets.
 
 ```
 make build-macos VERSION=2.1.0 BUILD_NUM=210              # prebuilt native assets (-d), fast
@@ -444,9 +444,10 @@ make build-macos VERSION=2.1.0 BUILD_NUM=210 PREBUILTS=0  # compile native asset
 Two ways to get Flutter 3.47.x, Rust 1.99.1, Go, CMake and CocoaPods. Both need a full Xcode.app.
 
 - **Homebrew:** `make bootstrap-macos` runs `scripts/install_macos_build_tools.sh`. It installs the
-  Homebrew packages, clones the pinned Flutter tag (3.47.4, the same patch release as the Nix shell; CI and the
-  rest of this guide use 3.47.2; builds were verified with both; override with `FLUTTER_VERSION` / `FLUTTER_DIR`),
-  installs the pinned Rust toolchain via rustup and adds the PATH entries to `~/.zshrc`.
+  Homebrew packages, then uses an existing Flutter 3.47.2 or 3.47.4 or clones the pinned 3.47.2 tag
+  (override with `FLUTTER_VERSION` / `FLUTTER_DIR`). It installs the pinned Rust toolchain via rustup,
+  pins it for this checkout with `rustup override` (without changing your global default) and adds the
+  PATH entries to `~/.zshrc`.
 - **Nix:** `nix develop` (or `direnv allow` with the included `.envrc`) provides the toolchain from
   `flake.lock`. nixpkgs has no Flutter 3.47.2 (it goes from 3.47.0 to 3.47.4), so this shell uses
   Flutter 3.47.4; Rust 1.99.1 is installed through rustup on first entry. Xcode itself always comes from the host.
@@ -485,4 +486,4 @@ in a cold build (12 vs. 13 minutes).
 
 ### Linux
 
-`make build-linux` runs the Linux flow (`scripts/build_app.sh -p linux`, local libsecret and secp256k1 helper builds, `flutter build linux --release`). It needs `protoc`, Meson and Ninja; inside `nix develop` they are provided. Before building it writes `.cargo/config.toml` with `[env] PROTOC = "<protoc found in PATH>"` if the file does not exist (it is git-ignored). This is needed on NixOS, where a generic-Linux `protoc` shipped inside a crate cannot run and the exported variable does not reach the build hooks.
+`make build-linux` runs the Linux flow (`scripts/build_app.sh -p linux`, local libsecret and secp256k1 helper builds, `flutter build linux --release`, then `scripts/linux/prepare_release_bundle.py` so the bundle is safe to package). It needs `protoc`, Meson, Ninja, `patchelf`, `readelf` and `python3`; inside `nix develop` they are provided. Before building it writes `.cargo/config.toml` with `[env] PROTOC = "<protoc found in PATH>"` if the file does not exist (it is git-ignored). This is needed on NixOS, where a generic-Linux `protoc` shipped inside a crate cannot run and the exported variable does not reach the build hooks. Linux builds use a repo-local `.pub-cache` so cargo finds that file; other targets keep the normal per-user cache.
