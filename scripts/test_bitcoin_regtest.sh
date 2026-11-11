@@ -30,6 +30,9 @@ bins="${REGTEST_BIN_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/stack_wallet_regtest}"
 first_executable() {
   local path
   for path in "$@"; do
+    # Git Bash calls "foo" executable when only foo.exe exists; programs it
+    # starts need the real name.
+    if [[ -n "$path" && -f "$path.exe" ]]; then printf '%s' "$path.exe"; return; fi
     if [[ -n "$path" && -x "$path" ]]; then printf '%s' "$path"; return; fi
   done
 }
