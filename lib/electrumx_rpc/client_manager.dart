@@ -103,8 +103,13 @@ class ClientManager {
     );
     // A rejected header subscription can leave its RPC connection open. Retire
     // it as well, so the next wallet request can establish a healthy client.
+    // Other wallets' requests already sent on it finish first: a failed
+    // subscription does not mean those responses will not arrive.
     unawaited(
-      _closeDetached(detached).catchError((Object err, StackTrace stack) {
+      _closeDetached(detached, drainFor: key).catchError((
+        Object err,
+        StackTrace stack,
+      ) {
         Logging.instance.e(
           'ClientManager cleanup',
           error: err,

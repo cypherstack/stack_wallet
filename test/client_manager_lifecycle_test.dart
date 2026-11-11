@@ -5,6 +5,7 @@ import 'package:electrum_adapter/electrum_adapter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:logger/logger.dart' show Level;
 import 'package:stackwallet/electrumx_rpc/client_manager.dart';
+import 'package:stackwallet/electrumx_rpc/draining_electrum_client.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/tor_plain_net_option_enum.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
@@ -193,6 +194,59 @@ void main() {
       isNull,
     );
     await expectHealthyReplacement();
+  });
+
+  test('subscription failure lets other in-flight requests finish', () async {
+    final channel = StreamChannelController<dynamic>();
+    final server = channel.foreign;
+    final ids = <String, Object?>{};
+    final serverSubscription = server.stream.listen((dynamic request) {
+      ids[request['method'] as String] = request['id'];
+    });
+    addTearDown(() async {
+      await serverSubscription.cancel();
+      await server.sink.close();
+    });
+    final client = ManagedElectrumClient(
+      channel.local,
+      'test.electrum',
+      50001,
+      false,
+      null,
+      requestTimeout: const Duration(seconds: 5),
+    );
+    addTearDown(client.close);
+    await manager.addClient(
+      client,
+      cryptoCurrency: coin,
+      netType: TorPlainNetworkOption.both,
+    );
+    // Another wallet's request is waiting on the same connection.
+    final probe = client.requestWithTimeout('probe');
+    await _until(
+      () =>
+          ids.containsKey('blockchain.headers.subscribe') &&
+          ids.containsKey('probe'),
+    );
+
+    server.sink.add({
+      'jsonrpc': '2.0',
+      'id': ids['blockchain.headers.subscribe'],
+      'error': {'code': -32000, 'message': 'header subscription rejected'},
+    });
+    await _until(
+      () =>
+          manager.getClient(
+            cryptoCurrency: coin,
+            netType: TorPlainNetworkOption.both,
+          ) ==
+          null,
+    );
+    expect(client.peer.isClosed, false);
+
+    server.sink.add({'jsonrpc': '2.0', 'id': ids['probe'], 'result': 'done'});
+    expect(await probe.timeout(const Duration(seconds: 2)), 'done');
+    await _until(() => client.peer.isClosed);
   });
 
   test('subscription timeout releases its first-height waiter', () async {
