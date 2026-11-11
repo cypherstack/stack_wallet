@@ -20,32 +20,20 @@ sed -i.bak \
   "${PUBSPEC_FILE}"
 rm -f "${PUBSPEC_FILE}.bak"
 
+# STACK_PLUGINS replaces the native plugin set, for test builds only. The
+# Bitcoin regtest tests use "TOR" on the iOS simulator, which the device-only
+# Monero-family frameworks cannot link for.
+# shellcheck disable=SC2206
+STACK_PLUGIN_MARKERS=(${STACK_PLUGINS:-MWC MWEBD XMR WOW SAL TOR EPIC FIRO XEL FROST})
+
 dart "${APP_PROJECT_ROOT_DIR}/tool/process_pubspec_deps.dart" \
       "${PUBSPEC_FILE}" \
-      MWC \
-      MWEBD \
-      XMR \
-      WOW \
-      SAL \
-      TOR \
-      EPIC \
-      FIRO \
-      XEL \
-      FROST
+      "${STACK_PLUGIN_MARKERS[@]}"
 
 dart "${APP_PROJECT_ROOT_DIR}/tool/gen_interfaces.dart" \
       "${APP_PROJECT_ROOT_DIR}/tool/wl_templates" \
       "${APP_PROJECT_ROOT_DIR}/lib/wl_gen/generated" \
-      MWC \
-      MWEBD \
-      XMR \
-      WOW \
-      SAL \
-      TOR \
-      EPIC \
-      FIRO \
-      XEL \
-      FROST
+      "${STACK_PLUGIN_MARKERS[@]}"
 
 
 MWEBD_EXE_SHA256=""

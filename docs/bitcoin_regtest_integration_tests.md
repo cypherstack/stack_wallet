@@ -52,6 +52,36 @@ runner starts the nodes on the host with `scripts/bitcoin_regtest_nodes.dart`
 and passes their ports and an RPC password to the test. `REGTEST_HOST_NODES=1`
 does the same on Linux and Windows.
 
+## Mobile
+
+The nodes run on the host and the simulator or emulator connects to them, so
+these run on a Mac (iOS) or a Mac or Linux machine (Android). The desktop UI
+test is skipped. Physical devices are not supported: the nodes listen on the
+host's loopback only.
+
+iOS simulator: the Monero, Wownero and Salvium frameworks are device-only, so
+configure a build with only the Tor plugin. Stack's ElectrumX client needs
+Tor's service even with Tor off.
+
+```sh
+(cd scripts && ./prebuild.sh && echo yes | STACK_PLUGINS=TOR ./build_app.sh -v 0.0.1 -b 1 -p ios -a stack_wallet -d)
+xcrun simctl boot <simulator udid>              # xcrun simctl list devices
+REGTEST_TARGET=ios bash scripts/test_bitcoin_regtest.sh <simulator udid>
+```
+
+Android emulator (x86_64): the full build works. The emulator reaches the
+host's loopback as `10.0.2.2`, which the runner passes to the test.
+
+```sh
+(cd scripts && ./prebuild.sh && echo yes | ./build_app.sh -v 0.0.1 -b 1 -p android -a stack_wallet -d)
+REGTEST_TARGET=android bash scripts/test_bitcoin_regtest.sh emulator-5554
+```
+
+Configuring for one platform rewrites generated files, so use a separate
+checkout (or worktree) per platform.
+
+## Tests
+
 The script passes `--dart-define=STACK_BITCOIN_REGTEST=true`, which adds a
 Bitcoin regtest coin (`bitcoinRegtest`, `bcrt` addresses) to
 `AppConfig.coins`. Builds without that define do not contain it.
@@ -64,6 +94,7 @@ Bitcoin regtest coin (`bitcoinRegtest`, `bcrt` addresses) to
 | `desktop_send_test.dart` | onboarding, then the desktop send form: address, amount, the default fee (Stack's fallback rate, since regtest has no estimates), confirm and password; the node checks the payment |
 
 On failure the output ends with the app log and the last `bitcoind` and
-Electrum server log lines (printed by the runner when it started the nodes). App data and logs stay in each test's temp dir;
-the desktop test sets the logs path pref first, because the app's default
+Electrum server log lines (printed by the runner when it started the nodes).
+App data and logs stay in each test's temp dir; the desktop test sets the
+logs path pref first, because the app's default
 logs dir ignores the data dir override and is shared with real installs.
