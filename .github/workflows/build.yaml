@@ -666,7 +666,7 @@ jobs:
           tar -xzf "stack_wallet-linux-x86_64-${VERSION}.tar.gz"
           appimage/make_appdir.sh stack_wallet bundle AppDir
           curl -fsSL -o appimagetool \
-            https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+            https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x appimagetool
           ARCH=x86_64 ./appimagetool --appimage-extract-and-run AppDir \
             "stack_wallet-appimage-x86_64-${VERSION}.AppImage"
@@ -1119,7 +1119,7 @@ jobs:
           tar -xzf "campfire-linux-x86_64-${VERSION}.tar.gz"
           appimage/make_appdir.sh campfire bundle AppDir
           curl -fsSL -o appimagetool \
-            https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+            https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x appimagetool
           ARCH=x86_64 ./appimagetool --appimage-extract-and-run AppDir \
             "campfire-appimage-x86_64-${VERSION}.AppImage"
@@ -1574,7 +1574,7 @@ jobs:
           tar -xzf "stack_duo-linux-x86_64-${VERSION}.tar.gz"
           appimage/make_appdir.sh stack_duo bundle AppDir
           curl -fsSL -o appimagetool \
-            https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+            https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x appimagetool
           ARCH=x86_64 ./appimagetool --appimage-extract-and-run AppDir \
             "stack_duo-appimage-x86_64-${VERSION}.AppImage"
