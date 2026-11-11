@@ -401,6 +401,25 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
     }
   }
 
+  /// Strips the prefixes an Epicbox address can be pasted with. Only
+  /// rewrites the field when that changes the text, so typing stays intact.
+  String _formatRelayAddress(String text) {
+    if (coin is! Epiccash) return text;
+    String address = text.trim();
+    if (address.contains("\n")) {
+      address = address.substring(0, address.indexOf("\n"));
+    }
+    final formatted = AddressUtils().formatEpicCashAddress(address);
+    if (formatted != address) {
+      sendToController.value = TextEditingValue(
+        text: formatted,
+        selection: TextSelection.collapsed(offset: formatted.length),
+      );
+      return formatted;
+    }
+    return text;
+  }
+
   Future<void> _checkSparkNameAndOrSetAddress(
     String content, {
     bool setController = true,
@@ -1548,24 +1567,6 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
       }
     });
 
-    // add listener for epic cash to strip http:// and https:// prefixes if the address also ocntains an @ symbol (indicating an epicbox address)
-    if (coin is Epiccash) {
-      sendToController.addListener(() {
-        _address = sendToController.text.trim();
-
-        if (_address != null && _address!.isNotEmpty) {
-          _address = _address!.trim();
-          if (_address!.contains("\n")) {
-            _address = _address!.substring(0, _address!.indexOf("\n"));
-          }
-
-          sendToController.text = AddressUtils().formatEpicCashAddress(
-            _address!,
-          );
-        }
-      });
-    }
-
     Decimal? price;
     if (ref.watch(prefsChangeNotifierProvider.select((s) => s.externalCalls))) {
       price = ref.watch(
@@ -1836,6 +1837,7 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
                                     selectAll: false,
                                   ),
                                   onChanged: (newValue) async {
+                                    newValue = _formatRelayAddress(newValue);
                                     final trimmed = newValue.trim();
 
                                     if (AddressUtils.mayBePaymentUri(
