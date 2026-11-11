@@ -58,6 +58,21 @@ abstract final class SlatepackImportFlow {
     SlateState.unknown => SlatepackRoute.unsupported,
   };
 
+  static final _armored = RegExp(
+    r"BEGINSLATE(PACK|_BIN)\.[\s\S]*?ENDSLATE\1\.?",
+  );
+
+  /// The slatepack in [text] without what came along with it. A pasted or
+  /// scanned message often has a greeting, a quote or blank lines around the
+  /// armored slatepack, so only the part from its begin marker to its end
+  /// marker is kept. Text without such a frame, like a JSON slate, is only
+  /// trimmed.
+  static String normalize(String text) {
+    final trimmed = text.trim();
+    if (trimmed.startsWith("{")) return trimmed;
+    return _armored.firstMatch(trimmed)?.group(0) ?? trimmed;
+  }
+
   /// Returns true once the slatepack has been acted on, so the caller can
   /// clear its input.
   static Future<bool> run({
@@ -66,12 +81,13 @@ abstract final class SlatepackImportFlow {
     required String text,
   }) async {
     final terms = wallet.slatepackTerms;
+    final slatepack = normalize(text);
 
     final read = await _withLoading(
       context,
       "Reading ${terms.noun}...",
       () async {
-        final inspection = await wallet.inspectSlatepack(text);
+        final inspection = await wallet.inspectSlatepack(slatepack);
         final route = routeFor(
           inspection.state,
           supportsInvoices: wallet.supportsInvoices,
@@ -94,7 +110,7 @@ abstract final class SlatepackImportFlow {
 
     switch (route) {
       case SlatepackRoute.receive:
-        return _receive(context, wallet, text, inspection);
+        return _receive(context, wallet, slatepack, inspection);
 
       case SlatepackRoute.finalizeSend:
         final local = read.local;
@@ -117,7 +133,7 @@ abstract final class SlatepackImportFlow {
         return _finalize(
           context,
           wallet,
-          text,
+          slatepack,
           inspection,
           amount: local.amount,
           fee: local.fee,

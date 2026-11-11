@@ -31,9 +31,14 @@ class _InspectOnlyWallet extends EpiccashWallet {
   @override
   bool get supportsInvoices => invoices;
 
+  /// What the flow handed to the wallet.
+  final seen = <String>[];
+
   @override
-  Future<SlateInspection> inspectSlatepack(String armored) async =>
-      SlateInspection(state: state, slateId: "test-slate");
+  Future<SlateInspection> inspectSlatepack(String armored) async {
+    seen.add(armored);
+    return SlateInspection(state: state, slateId: "test-slate");
+  }
 
   @override
   Future<({Amount amount, Amount fee, bool isSend})?> localTxForSlate(
@@ -54,6 +59,7 @@ class _InspectOnlyWallet extends EpiccashWallet {
 
   @override
   Future<FinalizeResult> finalizeSlatepack(String slatepack) async {
+    seen.add(slatepack);
     finalizeCalls++;
     return FinalizeResult(success: false, error: "not in tests");
   }
@@ -129,11 +135,71 @@ void main() {
     expect(SlateState.fromCode(null), SlateState.unknown);
   });
 
+  group("normalize", () {
+    const armored =
+        "BEGINSLATEPACK. 4H1qx1wHe668tFW yC2gfL8PPd8kSgv. "
+        "ENDSLATEPACK.";
+
+    test("trims whitespace", () {
+      expect(SlatepackImportFlow.normalize("  \n$armored\r\n "), armored);
+      expect(SlatepackImportFlow.normalize(armored), armored);
+    });
+
+    test("drops text around the armored frame", () {
+      expect(
+        SlatepackImportFlow.normalize(
+          "Here is the slatepack:\n\n$armored\n\nSend it back soon.",
+        ),
+        armored,
+      );
+      expect(SlatepackImportFlow.normalize("> $armored <"), armored);
+    });
+
+    test("keeps line breaks inside the frame", () {
+      const wrapped =
+          "BEGINSLATEPACK. 4H1qx1wHe668tFW\nyC2gfL8PPd8kSgv. ENDSLATEPACK.";
+      expect(SlatepackImportFlow.normalize("Hi\n$wrapped\nBye"), wrapped);
+    });
+
+    test("accepts the binary markers and a missing final period", () {
+      const binary = "BEGINSLATE_BIN. 4H1qx1wHe668tFW. ENDSLATE_BIN.";
+      expect(SlatepackImportFlow.normalize("x $binary y"), binary);
+      expect(
+        SlatepackImportFlow.normalize(
+          "BEGINSLATEPACK. 4H1qx1wHe668tFW. ENDSLATEPACK",
+        ),
+        "BEGINSLATEPACK. 4H1qx1wHe668tFW. ENDSLATEPACK",
+      );
+    });
+
+    test("takes the first of two slatepacks", () {
+      expect(SlatepackImportFlow.normalize("$armored\n$armored"), armored);
+    });
+
+    test("leaves JSON slates alone apart from trimming", () {
+      const json = '{"id": "abc", "note": "BEGINSLATEPACK. x. ENDSLATEPACK."}';
+      expect(SlatepackImportFlow.normalize(" $json\n"), json);
+    });
+
+    test("leaves other text alone apart from trimming", () {
+      expect(
+        SlatepackImportFlow.normalize(" not a slatepack "),
+        "not a slatepack",
+      );
+      expect(
+        SlatepackImportFlow.normalize("BEGINSLATEPACK. cut off"),
+        "BEGINSLATEPACK. cut off",
+      );
+      expect(SlatepackImportFlow.normalize("  "), "");
+    });
+  });
+
   group("run", () {
     Future<bool?> runFlow(
       WidgetTester tester,
-      _InspectOnlyWallet wallet,
-    ) async {
+      _InspectOnlyWallet wallet, {
+      String text = "{}",
+    }) async {
       bool? outcome;
       final coin = wallet.cryptoCurrency;
       await tester.pumpWidget(
@@ -163,7 +229,7 @@ void main() {
                     outcome = await SlatepackImportFlow.run(
                       context: context,
                       wallet: wallet,
-                      text: "{}",
+                      text: text,
                     );
                   },
                   child: const Text("go"),
@@ -250,6 +316,19 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
       await tester.pump(const Duration(milliseconds: 400));
       expect(wallet.finalizeCalls, 1);
+      await closeDialog(tester);
+    });
+
+    testWidgets("the wallet only sees the slatepack itself", (tester) async {
+      const armored = "BEGINSLATEPACK. 4H1qx1wHe668tFW. ENDSLATEPACK.";
+      final wallet = _InspectOnlyWallet(SlateState.s2, localIsSend: true);
+      await runFlow(tester, wallet, text: "Here you go:\n$armored\nThanks\n");
+      await tester.tap(find.text("Finalize"));
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump(const Duration(milliseconds: 400));
+      // Once for the inspection and once for the finalize.
+      expect(wallet.seen, [armored, armored]);
       await closeDialog(tester);
     });
 
