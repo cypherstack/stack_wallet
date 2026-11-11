@@ -551,6 +551,10 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                       onPressed: _busy
                           ? null
                           : () async {
+                              final service = ref.read(
+                                nodeServiceChangeNotifierProvider,
+                              );
+                              final notify = nodeChangeNotifier(ref, coin);
                               Navigator.popUntil(
                                 context,
                                 ModalRoute.withName(
@@ -558,9 +562,8 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                                 ),
                               );
 
-                              await ref
-                                  .read(nodeServiceChangeNotifierProvider)
-                                  .delete(nodeId!, true);
+                              await service.delete(nodeId!, true);
+                              await notify();
                             },
                     ),
                   ),

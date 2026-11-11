@@ -19,6 +19,7 @@ import 'package:stackwallet/providers/global/secure_store_provider.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
+import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/connection_check/electrum_connection_check.dart';
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
@@ -62,6 +63,19 @@ class _LoadedWallet extends Fake implements Wallet {
   Future<void> updateNode() async => updates++;
   @override
   Future<void> refresh() async => refreshes++;
+}
+
+/// Opens [child] on a route of its own, for views that pop themselves.
+class _Opener extends StatelessWidget {
+  const _Opener(this.child);
+  final Widget child;
+  @override
+  Widget build(BuildContext context) => TextButton(
+    onPressed: () =>
+        Navigator.of(context)
+            .push(MaterialPageRoute<void>(builder: (_) => child)),
+    child: const Text('Open'),
+  );
 }
 
 class _Prefs extends Mock implements Prefs {
@@ -143,6 +157,10 @@ void main() {
           secureStoreProvider.overrideWithValue(storage),
           prefsChangeNotifierProvider.overrideWithValue(_Prefs()),
           pWallets.overrideWithValue(_Wallets(wallets)),
+          // The mobile layout's background reads the theme from a provider.
+          themeProvider.overrideWithValue(
+            StateController(StackTheme.fromJson(json: lightThemeJsonMap)),
+          ),
           testNodeConnectionProvider.overrideWithValue(
             testConnection ??
                 ({
@@ -313,6 +331,46 @@ void main() {
 
     expect([first.updates, second.updates, other.updates], [1, 1, 0]);
     expect([first.refreshes, second.refreshes, other.refreshes], [1, 2, 0]);
+  });
+
+  // A deleted node's approval must stop being trusted by loaded wallets.
+  testWidgets('desktop Delete node updates the loaded wallets of the coin', (
+    tester,
+  ) async {
+    final loaded = _LoadedWallet(coin, 'loaded');
+    final other = _LoadedWallet(Litecoin(CryptoCurrencyNetwork.main), 'ltc');
+    await pump(tester, _Opener(details()), wallets: [loaded, other]);
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Edit'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete node'));
+    await tester.pumpAndSettle();
+
+    expect(nodes.getNodeById(id: 'custom-node'), isNull);
+    expect([loaded.updates, other.updates], [1, 0]);
+  });
+
+  testWidgets('mobile node delete updates the loaded wallets of the coin', (
+    tester,
+  ) async {
+    Util.layoutPlatform = FakePlatform(operatingSystem: 'android');
+    final loaded = _LoadedWallet(coin, 'loaded');
+    await pump(
+      tester,
+      AddEditNodeView(
+        viewType: AddEditNodeViewType.edit,
+        coin: coin,
+        nodeId: 'custom-node',
+        routeOnSuccessOrDelete: '/',
+      ),
+      wallets: [loaded],
+    );
+    await tester.tap(find.byKey(const Key('deleteNodeAppBarButtonKey')));
+    await tester.pumpAndSettle();
+
+    expect(nodes.getNodeById(id: 'custom-node'), isNull);
+    expect(loaded.updates, 1);
   });
 
   testWidgets('node card Connect carries an already approved certificate', (

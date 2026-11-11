@@ -262,9 +262,14 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                                       final service = ref.read(
                                         nodeServiceChangeNotifierProvider,
                                       );
+                                      final notify = nodeChangeNotifier(
+                                        ref,
+                                        coin,
+                                      );
                                       Navigator.of(context).pop();
 
                                       await service.delete(node!.id, true);
+                                      await notify();
                                     },
                             ),
                           ),
