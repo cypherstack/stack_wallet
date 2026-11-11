@@ -12,7 +12,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tuple/tuple.dart';
@@ -54,6 +53,7 @@ import '../../home_view/home_view.dart';
 import '../add_token_view/edit_wallet_tokens_view.dart';
 import '../new_wallet_options/new_wallet_options_view.dart';
 import '../new_wallet_recovery_phrase_view/new_wallet_recovery_phrase_view.dart';
+import '../select_wallet_for_sol_token_view.dart';
 import '../select_wallet_for_token_view.dart';
 import 'sub_widgets/word_table.dart';
 import 'verify_mnemonic_passphrase_dialog.dart';
@@ -306,6 +306,15 @@ class _VerifyRecoveryPhraseViewState
             .state;
       }
 
+      // The Solana token wallet picker skips wallets that are not in pWallets
+      // yet, so tell it to rebuild now that this one is.
+      if (_coin is Solana) {
+        final trigger = ref.read(
+          newSolWalletTriggerTempUntilHiveCompletelyDeleted.notifier,
+        );
+        trigger.state = !trigger.state;
+      }
+
       if (mounted &&
           ref.read(pNewWalletOptions)?.convertToViewOnly == true &&
           widget.wallet is ViewOnlyOptionInterface) {
@@ -355,9 +364,8 @@ class _VerifyRecoveryPhraseViewState
               context,
             ).popUntil(ModalRoute.withName(SelectWalletForTokenView.routeName));
           } else {
-            Navigator.of(
-              context,
-            ).popUntil(ModalRoute.withName(DesktopHomeView.routeName));
+            Navigator.of(context)
+                .popUntil(ModalRoute.withName(DesktopHomeView.routeName));
             if (_coin is Ethereum || _coin is Solana) {
               unawaited(
                 Navigator.of(context).pushNamed(
@@ -450,10 +458,6 @@ class _VerifyRecoveryPhraseViewState
     }
 
     result.insert(random.nextInt(wordsToShow), chosenWord);
-
-    if (kDebugMode) {
-      print("Mnemonic game correct word: $chosenWord");
-    }
 
     return Tuple2(result, chosenWord);
   }
@@ -549,9 +553,9 @@ class _VerifyRecoveryPhraseViewState
                 SizedBox(height: isDesktop ? 16 : 12),
                 Container(
                   decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultBG,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),
@@ -563,10 +567,10 @@ class _VerifyRecoveryPhraseViewState
                     ),
                     child: Text(
                       "${correctIndex + 1}",
+                      key: const Key('recoveryPhraseWordIndex'),
                       textAlign: TextAlign.center,
-                      style: STextStyles.subtitle600(
-                        context,
-                      ).copyWith(fontSize: 32, letterSpacing: 0.25),
+                      style: STextStyles.subtitle600(context)
+                          .copyWith(fontSize: 32, letterSpacing: 0.25),
                     ),
                   ),
                 ),

@@ -3,6 +3,7 @@ part of 'firo_cache.dart';
 enum FCFuncName {
   _updateSparkAnonSetCoinsWith,
   _updateSparkUsedTagsWith,
+  _reset,
   _close,
 }
 
@@ -10,8 +11,9 @@ class FCTask {
   final id = const Uuid().v4();
   final FCFuncName func;
   final dynamic data;
+  final int generation;
 
-  FCTask({required this.func, required this.data});
+  FCTask({required this.func, required this.data, this.generation = 0});
 }
 
 class _FiroCacheWorker {
@@ -102,7 +104,13 @@ class _FiroCacheWorker {
     Database setCacheDb,
     Database usedTagsCacheDb,
     Mutex mutex,
+    String setCacheFilePath,
+    String usedTagsCacheFilePath,
   ) {
+    Database? activeSet = setCacheDb;
+    Database? activeTags = usedTagsCacheDb;
+    var setGeneration = 0;
+    var tagGeneration = 0;
     receivePort.listen((message) {
       final task = message as FCTask;
 
@@ -111,25 +119,55 @@ class _FiroCacheWorker {
           final FCResult result;
           switch (task.func) {
             case FCFuncName._close:
-              setCacheDb.close();
-              usedTagsCacheDb.close();
+              activeSet?.close();
+              activeTags?.close();
               receivePort.close();
               sendPort.send((task.id, null));
               return;
 
+            case FCFuncName._reset:
+              final (sets, nextSet, nextTags) = task.data as (bool, int, int);
+              // Change generation in the same serialized worker operation as
+              // the reset, including when a filesystem failure needs a retry.
+              if (sets) setGeneration = nextSet;
+              tagGeneration = nextTags;
+              if (sets) {
+                activeSet?.close();
+                activeSet = null;
+                await _FiroCache._recreateSetFile(setCacheFilePath);
+                activeSet = sqlite3.open(
+                  setCacheFilePath,
+                  mode: OpenMode.readWrite,
+                );
+              }
+              activeTags?.close();
+              activeTags = null;
+              await _FiroCache._recreateTagsFile(usedTagsCacheFilePath);
+              activeTags = sqlite3.open(
+                usedTagsCacheFilePath,
+                mode: OpenMode.readWrite,
+              );
+              sendPort.send((task.id, null));
+              return;
+
             case FCFuncName._updateSparkAnonSetCoinsWith:
+              // A handle is missing only while a failed reset awaits retry.
+              final setDb = activeSet;
+              if (task.generation != setGeneration || setDb == null) {
+                throw const FiroCacheResetException();
+              }
               final data =
                   task.data as (SparkAnonymitySetMeta, List<RawSparkCoin>);
-              result = _updateSparkAnonSetCoinsWith(
-                setCacheDb,
-                data.$2,
-                data.$1,
-              );
+              result = _updateSparkAnonSetCoinsWith(setDb, data.$2, data.$1);
               break;
 
             case FCFuncName._updateSparkUsedTagsWith:
+              final tagsDb = activeTags;
+              if (task.generation != tagGeneration || tagsDb == null) {
+                throw const FiroCacheResetException();
+              }
               result = _updateSparkUsedTagsWith(
-                usedTagsCacheDb,
+                tagsDb,
                 task.data as List<List<dynamic>>,
               );
               break;
@@ -159,6 +197,8 @@ class _FiroCacheWorker {
       setCacheDb,
       usedTagsCacheDb,
       mutex,
+      args.$2,
+      args.$3,
     );
   }
 }

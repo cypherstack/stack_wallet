@@ -296,6 +296,17 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
     _updatePreviewButtonState(_address, _amountToSend);
   }
 
+  // Controller assignments used for display must not edit the stored amount.
+  void _updateAmountDisplay(VoidCallback update) {
+    final wasLocked = _cryptoAmountChangeLock;
+    _cryptoAmountChangeLock = true;
+    try {
+      update();
+    } finally {
+      _cryptoAmountChangeLock = wasLocked;
+    }
+  }
+
   void _cryptoAmountChanged() async {
     if (!_cryptoAmountChangeLock) {
       final tokenWallet = ref.read(pCurrentSolanaTokenWallet);
@@ -670,7 +681,7 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
     listenForAmountRelocalization(
       ref.listen,
       controllers: [cryptoAmountController, baseAmountController],
-      onRelocalized: _cryptoAmountChanged,
+      updateControllers: _updateAmountDisplay,
     );
 
     final tokenWallet = ref.watch(pCurrentSolanaTokenWallet);
@@ -708,6 +719,9 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
         ),
       );
     }
+    final amountFormatter = ref.watch(
+      pAmountFormatter(tokenWallet.cryptoCurrency),
+    );
 
     return Background(
       child: Scaffold(
@@ -1325,14 +1339,8 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
                                                 if (snapshot.connectionState ==
                                                         ConnectionState.done &&
                                                     snapshot.hasData) {
-                                                  final formattedFee = ref
-                                                      .watch(
-                                                        pAmountFormatter(
-                                                          tokenWallet
-                                                              .cryptoCurrency,
-                                                        ),
-                                                      )
-                                                      .format(
+                                                  final formattedFee =
+                                                      amountFormatter.format(
                                                         snapshot.data!,
                                                         withUnitName: true,
                                                         indicatePrecisionLoss:

@@ -243,12 +243,9 @@ dependencies:
   camera_linux:
     git:
       url: https://github.com/cypherstack/camera-linux
-      ref: ecb412474c5d240347b04ac1eb9f019802ff7034
+      ref: 82e2d82188cc4676a02559118af110c8161b4eed
   zxing2: ^0.2.3
-  camera_windows:
-    git: # TODO [prio=low]: Revert to official after https://github.com/flutter/packages/pull/7067.
-      url: https://github.com/cypherstack/packages.git
-      path: packages/camera/camera_windows
+  camera_windows: ^0.3.0+1
   camera_platform_interface: ^2.8.0
   camera_macos: ^0.1.1
   blockchain_utils: ^3.3.0
@@ -275,12 +272,14 @@ dependencies:
   mobile_app_privacy:
     git:
       url: https://github.com/cypherstack/mobile_app_privacy
-      ref: e60766bc420861b9e8c804627d84cbd570b04ff6
+      ref: 21f95309522dd48face32c0c4a3ca2ac8df092fb
 
   # required for web3dart to use EthereumAddress class...
   wallet: 0.0.18
 
 dev_dependencies:
+  args: ^2.7.0
+  test: ^1.31.1
   flutter_test:
     sdk: flutter
   integration_test:

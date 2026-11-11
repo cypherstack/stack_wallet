@@ -1531,9 +1531,31 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
     return current + increment;
   }
 
+  /// Restarts allowed for one refresh while shared cache resets retire it.
+  static const int maxSparkRefreshResetRetries = 5;
+
   // Linearly make calls so there is less chance of timing out or otherwise
   // breaking
   Future<void> refreshSparkData(
+    (double startingPercent, double endingPercent)? refreshProgressRange,
+  ) async {
+    for (var retries = 0; ; retries++) {
+      try {
+        await _refreshSparkData(refreshProgressRange);
+        return;
+      } on FiroCacheResetException {
+        // A shared local reset retired this batch, not the node connection.
+        // Restart against the new epoch; cache reads await the local reset.
+        if (retries >= maxSparkRefreshResetRetries) rethrow;
+        Logging.instance.d(
+          'Retrying Spark refresh after a shared cache reset '
+          '(${retries + 1}/$maxSparkRefreshResetRetries)',
+        );
+      }
+    }
+  }
+
+  Future<void> _refreshSparkData(
     (double startingPercent, double endingPercent)? refreshProgressRange,
   ) async {
     final start = DateTime.now();
@@ -1832,6 +1854,8 @@ mixin SparkInterface<T extends ElectrumXCurrencyInterface>
       );
 
       await sparkNamesUpdateFuture;
+    } on FiroCacheResetException {
+      rethrow;
     } catch (e, s) {
       Logging.instance.e(
         "$runtimeType $walletId ${info.name}: ",

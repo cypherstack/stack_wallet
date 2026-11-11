@@ -726,6 +726,7 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
 
   @override
   Future<void> exit() async {
+    await super.exit();
     Logging.instance.i("exit called on $walletId");
     if (wallet != null) {
       csSalvium.stopAutoSaving(wallet!);
@@ -862,10 +863,6 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
     final _syncStatus = syncStatus;
 
     if (_syncStatus != null) {
-      if (_syncStatus.progress() == 1 && refreshMutex.isLocked) {
-        refreshMutex.release();
-      }
-
       WalletSyncStatus? status;
       xmrAndWowSyncSpecificFunctionThatShouldBeGottenRidOfInTheFuture(true);
 
@@ -1099,21 +1096,17 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
 
     // this acquire should be almost instant due to above check.
     // Slight possibility of race but should be irrelevant
-    await refreshMutex.acquire();
+    await refreshMutex.protect(() async {
+      csSalvium.startSyncing(wallet!);
+      _setSyncStatus(StartingSyncStatus());
 
-    csSalvium.startSyncing(wallet!);
-    _setSyncStatus(StartingSyncStatus());
+      await updateTransactions();
+      await updateBalance();
 
-    await updateTransactions();
-    await updateBalance();
-
-    if (info.otherData[WalletInfoKeys.reuseAddress] != true) {
-      await checkReceivingAddressForTransactions();
-    }
-
-    if (refreshMutex.isLocked) {
-      refreshMutex.release();
-    }
+      if (info.otherData[WalletInfoKeys.reuseAddress] != true) {
+        await checkReceivingAddressForTransactions();
+      }
+    });
 
     final synced = wallet != null && await csSalvium.isSynced(wallet!);
 
