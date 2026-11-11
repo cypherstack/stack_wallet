@@ -182,8 +182,8 @@ class NotificationsService extends ChangeNotifier {
               prefs: prefs,
               cryptoCurrency: wallet.cryptoCurrency,
             );
-            // This client is not owned by a loaded wallet. Retire its pending
-            // setup too when an approval or node changes.
+            // This client and its connection belong to this check alone. A
+            // node or approval change closes it before the check finishes.
             void retire() {
               if (!identical(
                     nodeService.getPrimaryNodeFor(currency: coin),
@@ -203,6 +203,7 @@ class NotificationsService extends ChangeNotifier {
               tx = await client.getTransaction(txHash: txid);
             } finally {
               nodeService.removeListener(retire);
+              await client.closeAdapter();
             }
 
             int confirmations = tx["confirmations"] as int? ?? 0;
