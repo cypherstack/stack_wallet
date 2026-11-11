@@ -116,7 +116,13 @@ class StackEnv {
     } finally {
       await MainDB.instance.isar.close();
       await DB.instance.hive.close();
-      if (root.existsSync()) await root.delete(recursive: true);
+      // The logger isolate keeps its file open, which Windows will not
+      // delete; the OS temp dir is cleaned later there.
+      try {
+        if (root.existsSync()) await root.delete(recursive: true);
+      } on FileSystemException {
+        if (!Platform.isWindows) rethrow;
+      }
     }
   }
 }
