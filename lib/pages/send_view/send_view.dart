@@ -332,7 +332,7 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
       _clearRecipientForms();
 
       // auto fill address
-      _address = paymentData.address.trim();
+      _address = _stripRelayPrefixes(paymentData.address.trim());
 
       // autofill notes field
       if (paymentData.message != null) {
@@ -401,6 +401,12 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
     }
   }
 
+  /// [address] without the prefixes an Epicbox address can be scanned or
+  /// pasted with. Other coins' addresses come back unchanged.
+  String _stripRelayPrefixes(String address) => coin is Epiccash
+      ? AddressUtils().formatEpicCashAddress(address)
+      : address;
+
   /// Strips the prefixes an Epicbox address can be pasted with. Only
   /// rewrites the field when that changes the text, so typing stays intact.
   String _formatRelayAddress(String text) {
@@ -409,7 +415,7 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
     if (address.contains("\n")) {
       address = address.substring(0, address.indexOf("\n"));
     }
-    final formatted = AddressUtils().formatEpicCashAddress(address);
+    final formatted = _stripRelayPrefixes(address);
     if (formatted != address) {
       sendToController.value = TextEditingValue(
         text: formatted,
@@ -539,7 +545,9 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
         _applyUri(paymentData);
       } else {
         _setOpReturnData(null);
-        _address = qrResult.rawContent!.split("\n").first.trim();
+        _address = _stripRelayPrefixes(
+          qrResult.rawContent!.split("\n").first.trim(),
+        );
         sendToController.text = _address ?? "";
 
         _setValidAddressProviders(_address);
