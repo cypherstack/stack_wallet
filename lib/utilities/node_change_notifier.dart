@@ -22,6 +22,12 @@ Future<void> Function() nodeChangeNotifier(WidgetRef ref, CryptoCurrency coin) {
       cryptoCurrency: coin,
     );
     await removed?.close();
+    // Connections still finishing requests after a failover may use the old
+    // or revoked approval. Loaded wallets close them while updating, but no
+    // wallet of this coin may be loaded.
+    await ClientManager.sharedInstance.closeRetiredClients(
+      cryptoCurrency: coin,
+    );
     for (final wallet in wallets.wallets.where((e) => e.info.coin == coin)) {
       final shouldRefresh = switch (prefs.syncType) {
         SyncingType.currentWalletOnly => activeWallet.state == wallet.walletId,
