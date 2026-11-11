@@ -264,36 +264,33 @@ class _ConfirmTransactionViewState
     final coin = wallet.info.coin;
 
     final sendProgressController = ProgressAndSuccessController();
-    var isSendingDialogOpen = true;
 
     // Looked up now so the dialog can still be closed if this view is gone by
     // the time the send returns.
     final navigator = Navigator.of(context, rootNavigator: true);
 
+    // The dialog's own route is kept so that closing it removes that route
+    // and nothing else, whatever is on top of it by then.
+    final sendingRoute = DialogRoute<void>(
+      context: context,
+      useSafeArea: false,
+      barrierDismissible: false,
+      themes: InheritedTheme.capture(from: context, to: navigator.context),
+      builder: (context) {
+        return SendingTransactionDialog(
+          coin: coin,
+          controller: sendProgressController,
+        );
+      },
+    );
+
     void closeSendingDialog() {
-      if (!navigator.mounted || !isSendingDialogOpen) {
-        return;
+      if (navigator.mounted && sendingRoute.isActive) {
+        navigator.removeRoute(sendingRoute);
       }
-      if (navigator.canPop()) {
-        navigator.pop();
-      }
-      isSendingDialogOpen = false;
     }
 
-    unawaited(
-      showDialog<dynamic>(
-        context: context,
-        useRootNavigator: true,
-        useSafeArea: false,
-        barrierDismissible: false,
-        builder: (context) {
-          return SendingTransactionDialog(
-            coin: coin,
-            controller: sendProgressController,
-          );
-        },
-      ).whenComplete(() => isSendingDialogOpen = false),
-    );
+    unawaited(navigator.push(sendingRoute));
 
     final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
 
@@ -406,9 +403,8 @@ class _ConfirmTransactionViewState
         }
       }
     } on BadHttpAddressException catch (_) {
+      closeSendingDialog();
       if (context.mounted) {
-        // pop building dialog
-        closeSendingDialog();
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.warning,

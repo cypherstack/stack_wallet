@@ -336,4 +336,47 @@ void main() {
     await tester.pump(_sendTimer);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('closing the sending dialog leaves a route opened above it '
+      'alone', (tester) async {
+    final gate = Completer<void>();
+    final wallet = _Wallet(gate: gate);
+    final shown = ValueNotifier(true);
+    addTearDown(shown.dispose);
+    await _confirmSend(tester, wallet, shown: shown);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.byType(SendingTransactionDialog), findsOneWidget);
+
+    final root = Navigator.of(
+      tester.element(find.byType(SendingTransactionDialog)),
+      rootNavigator: true,
+    );
+    unawaited(
+      root.push(
+        MaterialPageRoute<void>(builder: (_) => const Text('opened above')),
+      ),
+    );
+    shown.value = false;
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('opened above'), findsOneWidget);
+
+    gate.complete();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('opened above'), findsOneWidget);
+    expect(
+      find.byType(SendingTransactionDialog, skipOffstage: false),
+      findsNothing,
+    );
+
+    root.pop();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('opened above'), findsNothing);
+    expect(find.byType(SendingTransactionDialog), findsNothing);
+    await tester.pump(_sendTimer);
+    expect(tester.takeException(), isNull);
+  });
 }
