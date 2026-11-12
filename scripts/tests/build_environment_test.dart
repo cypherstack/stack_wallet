@@ -17,11 +17,7 @@ class HostFixture {
   String architecture = 'arm64';
   bool rustupOnPath = true;
   bool rustupInHome = false;
-  bool windowsRustupOnPath = true;
-  bool windowsRustupInHome = false;
-  bool windowsInterop = true;
   bool nix = true;
-  bool wslHost = false;
   int wslExit = 0;
   String selected = '/Applications/Xcode.app/Contents/Developer';
   final applications = <String>['/Applications/Xcode.app'];
@@ -41,7 +37,6 @@ class HostFixture {
       'HOME': '/Users/test',
       'USERPROFILE': r'C:\Users\test',
       'DEVELOPER_DIR': '/Applications/Caller-selected.app/Contents/Developer',
-      if (wslHost) 'WSL_DISTRO_NAME': 'Current-Distribution',
     },
     listXcodes: () async => applications.toList(),
     run: (executable, arguments, environment) async {
@@ -64,18 +59,6 @@ class HostFixture {
       }
       if (executable == 'wsl.exe') {
         return ProcessResult(0, wslExit, 'nix fixture', '');
-      }
-      if (executable == 'cmd.exe') {
-        if (!windowsInterop) throw ProcessException(executable, arguments);
-        final available = arguments.last == 'rustup --version'
-            ? windowsRustupOnPath
-            : windowsRustupInHome;
-        return ProcessResult(
-          0,
-          available ? 0 : 1,
-          'Windows rustup fixture',
-          '',
-        );
       }
       if (executable == '/usr/bin/xcode-select') {
         return ProcessResult(0, selected.isEmpty ? 1 : 0, selected, '');
@@ -219,95 +202,17 @@ void main() {
     );
   });
 
-  test(
-    'legacy WSL configuration probes the distribution Windows hooks use',
-    () async {
-      fixture.os = 'linux';
-      fixture.wslHost = true;
-      fixture.nix = false; // Nix in this configuring shell is irrelevant.
-      fixture.rustupOnPath = false; // Its Linux Rustup is also irrelevant.
-      expect(
-        await fixture.check(
-          platform: 'windows',
-          distribution: 'Other-Distribution',
-        ),
-        isEmpty,
-      );
-      final call = fixture.calls.last;
-      expect(call.executable, 'wsl.exe');
-      expect(call.arguments.take(2), ['--distribution', 'Other-Distribution']);
-      expect(fixture.calls.any((call) => call.executable == 'nix'), isFalse);
-      expect(fixture.calls.first.executable, 'cmd.exe');
-      expect(fixture.calls.first.arguments, [
-        '/d',
-        '/s',
-        '/c',
-        'rustup --version',
-      ]);
-      expect(
-        fixture.calls.any((call) => call.executable.endsWith('rustup')),
-        isFalse,
-      );
-    },
-  );
-
-  test(
-    'Linux Rustup cannot satisfy legacy Windows Flutter requirements',
-    () async {
-      fixture.os = 'linux';
-      fixture.wslHost = true;
-      fixture.windowsRustupOnPath = false;
-      final errors = await fixture.check(platform: 'windows', mode: 'prebuilt');
-      expect(errors.single, contains('Install Rustup on native Windows'));
-      expect(errors.single, contains('including with -d'));
-      expect(
-        fixture.calls.every((call) => call.executable == 'cmd.exe'),
-        isTrue,
-      );
-    },
-  );
-
-  test('legacy WSL Rustup fallback expands the Windows user profile', () async {
-    fixture.os = 'linux';
-    fixture.wslHost = true;
-    fixture.windowsRustupOnPath = false;
-    fixture.windowsRustupInHome = true;
-    expect(await fixture.check(platform: 'windows', mode: 'prebuilt'), isEmpty);
-    expect(fixture.calls.last.arguments, [
-      '/d',
-      '/s',
-      '/c',
-      r'""%USERPROFILE%\.cargo\bin\rustup.exe" --version"',
-    ]);
-    expect(fixture.calls.every((call) => call.executable == 'cmd.exe'), isTrue);
-  });
-
-  test(
-    'missing WSL interoperability explains native Windows configuration',
-    () async {
-      fixture.os = 'linux';
-      fixture.wslHost = true;
-      fixture.windowsInterop = false;
-      expect(
-        (await fixture.check(platform: 'windows', mode: 'prebuilt')).single,
-        contains('configure from Git Bash on Windows'),
-      );
-    },
-  );
-
-  test('Linux Flutter in WSL still checks Linux Rustup', () async {
-    fixture.os = 'linux';
-    fixture.wslHost = true;
-    fixture.windowsInterop = false;
-    expect(await fixture.check(platform: 'linux', mode: 'prebuilt'), isEmpty);
-    expect(fixture.calls.single.executable, 'rustup');
-  });
-
-  test('Linux cross configuration outside WSL probes local Nix', () async {
-    fixture.os = 'linux';
-    expect(await fixture.check(platform: 'windows'), isEmpty);
-    expect(fixture.calls.last.executable, 'nix');
-  });
+  for (final os in ['linux', 'macos']) {
+    test('Windows configuration on a $os host is rejected', () async {
+      fixture.os = os;
+      for (final mode in ['source', 'prebuilt']) {
+        expect(await fixture.check(platform: 'windows', mode: mode), [
+          'Configure Windows builds from Git Bash on Windows.',
+        ]);
+      }
+      expect(fixture.calls, isEmpty);
+    });
+  }
 
   test('global GA Xcode wins over an alphabetically earlier beta', () async {
     fixture.applications.insert(0, '/Applications/Xcode-27.0-Beta.app');

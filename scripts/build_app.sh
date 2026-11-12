@@ -102,7 +102,14 @@ fi
 confirmDisclaimer
 
 # Check requirements before replacing any generated app/platform files.
-dart "${APP_PROJECT_ROOT_DIR}/tool/check_native_overrides.dart" "$APP_NAMED_ID" "$APP_BUILD_PLATFORM"
+# Windows apps are configured from Git Bash and built by native Windows Flutter.
+if [ "$APP_BUILD_PLATFORM" = windows ]; then
+    case "$(uname -s)" in
+        MINGW*|MSYS*) ;;
+        *) echo "Configure Windows builds from Git Bash on Windows." >&2; exit 1 ;;
+    esac
+fi
+dart "${APP_PROJECT_ROOT_DIR}/tool/check_native_overrides.dart" "$APP_NAMED_ID"
 DNIX_DISTRIBUTION_ARGS=()
 if [ -n "$DNIX_WSL_DISTRIBUTION" ]; then
     DNIX_DISTRIBUTION_ARGS=("$DNIX_WSL_DISTRIBUTION")
@@ -142,7 +149,7 @@ if [[ "$APP_BUILD_PLATFORM" != "linux" ]]; then
 fi
 
 # Asset generation can resolve dependencies; inspect the resulting checkouts too.
-dart "${APP_PROJECT_ROOT_DIR}/tool/check_native_overrides.dart" "$APP_NAMED_ID" "$APP_BUILD_PLATFORM"
+dart "${APP_PROJECT_ROOT_DIR}/tool/check_native_overrides.dart" "$APP_NAMED_ID"
 
 # Build platform native deps that are not provided by pub packages. The crypto
 # plugins (flutter_libepiccash, flutter_libmwc, frostdart, tor_ffi_plugin) are native-assets

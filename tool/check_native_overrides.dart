@@ -1,100 +1,15 @@
 // Plain Dart: inspect dependency checkouts without running any native hooks.
-import 'dart:convert';
 import 'dart:io';
 
 import 'native_dependency_contract.dart';
 
-typedef OverrideCommandRunner = Future<ProcessResult> Function(
-  String executable,
-  List<String> arguments,
-);
-
-Future<ProcessResult> _run(String executable, List<String> arguments) =>
-    Process.run(executable, arguments);
-
-String windowsOverrideCommand(String script, String app) {
-  String literal(String value) => "'${value.replaceAll("'", "''")}'";
-  // Preserve PATH order, then unwrap Flutter's dart.bat to avoid cmd.exe
-  // expanding percent signs in script paths or arguments.
-  return r"$ErrorActionPreference = 'Stop'; "
-      r'[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false); '
-      r'$launcher = Get-Command dart -CommandType Application '
-      r'-ErrorAction Stop; '
-      r'$dart = $launcher.Source; '
-      r"if ([System.IO.Path]::GetExtension($dart) -ine '.exe') { "
-      r'$dart = Join-Path '
-      r'([System.IO.Path]::GetDirectoryName($launcher.Source)) '
-      r"'cache\dart-sdk\bin\dart.exe'; "
-      r'if (!(Test-Path -LiteralPath $dart -PathType Leaf)) { '
-      r"throw 'Put native Windows Flutter or a Dart SDK on the Windows PATH, "
-      r"or configure from Git Bash.' } }; "
-      '& \$dart ${literal(script)} ${literal(app)} windows; '
-      r'exit $LASTEXITCODE';
-}
-
-String encodePowerShell(String command) => base64Encode([
-  for (final unit in command.codeUnits) ...[unit & 0xff, unit >> 8],
-]);
-
-Future<ProcessResult> checkWindowsOverridesFromWsl({
-  required String script,
-  required String app,
-  OverrideCommandRunner run = _run,
-}) async {
-  try {
-    final converted = await run('wslpath', ['-w', script]);
-    if (converted.exitCode != 0 || converted.stdout.toString().trim().isEmpty) {
-      throw StateError('wslpath could not translate the override guard path.');
-    }
-    return await run('powershell.exe', [
-      '-NoProfile',
-      '-NonInteractive',
-      '-EncodedCommand',
-      encodePowerShell(
-        windowsOverrideCommand(converted.stdout.toString().trim(), app),
-      ),
-    ]);
-  } on ProcessException catch (error) {
-    throw StateError(
-      'Could not check the native Windows dependency cache from WSL: $error. '
-      'Enable WSL interoperability and put Windows Flutter on the Windows '
-      'PATH, or configure from Git Bash.',
-    );
-  }
-}
-
-Future<void> main(List<String> args) async {
-  if (args.isEmpty ||
-      args.length > 2 ||
-      (args.length == 2 &&
-          !{'android', 'ios', 'macos', 'linux', 'windows'}.contains(args[1]))) {
-    stderr.writeln(
-      'Usage: dart tool/check_native_overrides.dart <app> [targetPlatform]',
-    );
+void main(List<String> args) {
+  if (args.length != 1) {
+    stderr.writeln('Usage: dart tool/check_native_overrides.dart <app>');
     exitCode = 64;
     return;
   }
   try {
-    enabledDnixPackages(args.first); // Validate before dispatching to Windows.
-    if (args.length == 2 &&
-        args[1] == 'windows' &&
-        Platform.isLinux &&
-        (Platform.environment['WSL_DISTRO_NAME']?.isNotEmpty ?? false)) {
-      final result = await checkWindowsOverridesFromWsl(
-        script: File.fromUri(Platform.script).absolute.path,
-        app: args.first,
-      );
-      stdout.write(result.stdout);
-      stderr.write(result.stderr);
-      if (result.exitCode != 0) {
-        stderr.writeln(
-          'Windows override check failed. Fix the reported issue or '
-          'configure from native Windows Git Bash.',
-        );
-      }
-      exitCode = result.exitCode;
-      return;
-    }
     final project = File.fromUri(Platform.script).parent.parent;
     final overrides = nativeBuildOverrides(project, args.first);
     if (overrides.isNotEmpty) {

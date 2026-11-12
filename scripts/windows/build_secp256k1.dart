@@ -27,20 +27,18 @@ class SecpBuildException implements Exception {
 class WindowsSecpBuilder {
   WindowsSecpBuilder({
     required this.root,
-    required this.nativeWindows,
     required this.environment,
     this.run = _run,
     this.cleanup = _removeWork,
   });
 
   final Directory root;
-  final bool nativeWindows;
   final Map<String, String> environment;
   final CommandRunner run;
   final void Function(Directory) cleanup;
   late String cmake;
-  String? visualStudio;
-  ({String root, String version})? windowsSdk;
+  late String visualStudio;
+  late ({String root, String version}) windowsSdk;
 
   static int compareVersions(String a, String b) {
     final left = a.split('.').map(int.parse).toList();
@@ -140,56 +138,49 @@ class WindowsSecpBuilder {
   // No checkout, output creation, or compilation: safe before app config.
   Future<void> check() async {
     await checked('git', ['--version']);
-    if (nativeWindows) {
-      final programFiles = environment['ProgramFiles(x86)'];
-      if (programFiles == null) {
-        throw SecpBuildException(
-          'ProgramFiles(x86) is missing. Run native Windows Dart.',
-        );
-      }
-      final vswhere =
-          '$programFiles/Microsoft Visual Studio/Installer/vswhere.exe';
-      if (!File(vswhere).existsSync()) {
-        throw SecpBuildException(
-          'Install Visual Studio 2022 Desktop development with C++, '
-          'including CMake tools and a Windows SDK (vswhere.exe is missing).',
-        );
-      }
-      final result = await checked(vswhere, [
-        '-latest',
-        '-products',
-        '*',
-        '-version',
-        '[17.0,18.0)',
-        '-requires',
-        'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
-        '-property',
-        'installationPath',
-      ]);
-      visualStudio = result.stdout.toString().trim();
-      final toolsVersion = File(
-        '$visualStudio/VC/Auxiliary/Build/Microsoft.VCToolsVersion.default.txt',
+    final programFiles = environment['ProgramFiles(x86)'];
+    if (programFiles == null) {
+      throw SecpBuildException(
+        'ProgramFiles(x86) is missing. Run native Windows Dart.',
       );
-      if (visualStudio!.isEmpty || !toolsVersion.existsSync()) {
-        throw SecpBuildException(
-          'Install the Visual Studio 2022 C++ build tools and Windows SDK.',
-        );
-      }
-      windowsSdk = await findWindowsSdk();
-    } else {
-      await checked('x86_64-w64-mingw32-gcc', ['--version']);
-      await checked('make', ['--version']);
     }
+    final vswhere =
+        '$programFiles/Microsoft Visual Studio/Installer/vswhere.exe';
+    if (!File(vswhere).existsSync()) {
+      throw SecpBuildException(
+        'Install Visual Studio 2022 Desktop development with C++, '
+        'including CMake tools and a Windows SDK (vswhere.exe is missing).',
+      );
+    }
+    final result = await checked(vswhere, [
+      '-latest',
+      '-products',
+      '*',
+      '-version',
+      '[17.0,18.0)',
+      '-requires',
+      'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
+      '-property',
+      'installationPath',
+    ]);
+    visualStudio = result.stdout.toString().trim();
+    final toolsVersion = File(
+      '$visualStudio/VC/Auxiliary/Build/Microsoft.VCToolsVersion.default.txt',
+    );
+    if (visualStudio.isEmpty || !toolsVersion.existsSync()) {
+      throw SecpBuildException(
+        'Install the Visual Studio 2022 C++ build tools and Windows SDK.',
+      );
+    }
+    windowsSdk = await findWindowsSdk();
     final bundledCmake =
         '$visualStudio/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe';
-    cmake = nativeWindows && File(bundledCmake).existsSync()
-        ? bundledCmake
-        : 'cmake';
+    cmake = File(bundledCmake).existsSync() ? bundledCmake : 'cmake';
     final cmakeVersion = await checked(cmake, ['--version']);
     final version = RegExp(r'^cmake version (\d+\.\d+(?:\.\d+)?)')
         .firstMatch(cmakeVersion.stdout.toString())
         ?.group(1);
-    final minimum = nativeWindows ? '3.21' : '3.13';
+    const minimum = '3.21';
     if (version == null || compareVersions(version, minimum) < 0) {
       throw SecpBuildException(
         'CMake $minimum or newer is required for Windows secp256k1 '
@@ -227,18 +218,12 @@ class WindowsSecpBuilder {
         source,
         '-B',
         buildDir,
-        if (nativeWindows) ...[
-          '-G',
-          'Visual Studio 17 2022',
-          '-A',
-          'x64',
-          '-DCMAKE_GENERATOR_INSTANCE=$visualStudio',
-          '-DCMAKE_SYSTEM_VERSION=${windowsSdk!.version}',
-        ] else ...[
-          '-G',
-          'Unix Makefiles',
-          '-DCMAKE_TOOLCHAIN_FILE=$source/cmake/x86_64-w64-mingw32.toolchain.cmake',
-        ],
+        '-G',
+        'Visual Studio 17 2022',
+        '-A',
+        'x64',
+        '-DCMAKE_GENERATOR_INSTANCE=$visualStudio',
+        '-DCMAKE_SYSTEM_VERSION=${windowsSdk.version}',
         '-DCMAKE_BUILD_TYPE=RelWithDebInfo',
         '-DBUILD_SHARED_LIBS=ON',
         '-DSECP256K1_ENABLE_MODULE_RECOVERY=ON',
@@ -255,9 +240,7 @@ class WindowsSecpBuilder {
         'RelWithDebInfo',
         '--parallel',
       ]);
-      final library = File(
-        '$buildDir/src/${nativeWindows ? 'RelWithDebInfo/' : ''}libsecp256k1-2.dll',
-      );
+      final library = File('$buildDir/src/RelWithDebInfo/libsecp256k1-2.dll');
       if (!library.existsSync() || library.lengthSync() == 0) {
         throw SecpBuildException(
           'CMake did not produce the expected DLL: ${library.path}',
@@ -292,14 +275,13 @@ Future<void> main(List<String> args) async {
     exitCode = 64;
     return;
   }
-  if (!Platform.isWindows && !Platform.isLinux) {
-    stderr.writeln('Windows secp256k1 requires native Windows or Linux/WSL.');
+  if (!Platform.isWindows) {
+    stderr.writeln('Windows secp256k1 requires native Windows.');
     exitCode = 1;
     return;
   }
   final builder = WindowsSecpBuilder(
     root: File.fromUri(Platform.script).parent.parent.parent,
-    nativeWindows: Platform.isWindows,
     environment: Platform.environment,
   );
   try {

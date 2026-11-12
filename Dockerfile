@@ -18,7 +18,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       libsecret-1-dev libssl-dev libtss2-dev \
       ocl-icd-opencl-dev opencl-headers valac zlib1g-dev \
       g++-aarch64-linux-gnu gcc-aarch64-linux-gnu \
-      g++-mingw-w64-x86-64 gcc-mingw-w64-x86-64 \
       openjdk-21-jdk-headless \
  && rm -rf /var/lib/apt/lists/*
 
@@ -93,7 +92,7 @@ RUN git config --system --add safe.directory '*'
 RUN flutter --version && rustup --version && node --version && go version
 
 
-# Android-only image: no Linux/Windows cross-compilers or OpenCV/OpenCL;
+# Android-only image: no Linux cross-compilers or OpenCV/OpenCL;
 # Rust toolchains and targets are installed by hooks at runtime.
 FROM ubuntu:24.04 AS android
 

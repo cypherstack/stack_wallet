@@ -113,7 +113,6 @@ jobs:
         run: |
           dart scripts/tests/configure_native_assets_test.dart
           dart scripts/tests/native_dependency_contract_test.dart
-          dart scripts/tests/windows_native_overrides_test.dart
       - name: Test build prerequisites
         run: dart scripts/tests/build_environment_test.dart
       - name: Test Windows secp256k1 helper

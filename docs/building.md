@@ -296,22 +296,11 @@ app configuration and stops on failed build commands. After `-i`, run:
 dart scripts/windows/build_secp256k1.dart
 ```
 
-Native Windows uses MSVC; Linux/WSL cross-compiles with CMake and MinGW. Both
-use secp256k1 **v0.5.0** (`e3a885d42a7800c1ccebad94ad1e2b82c4df5c65`).
-Their DLLs are not expected to be byte-identical across these toolchains; dnix's
+The helper builds secp256k1 **v0.5.0**
+(`e3a885d42a7800c1ccebad94ad1e2b82c4df5c65`) with MSVC. dnix's
 hash-verification guarantee applies to its four packages, not secp256k1. Each
 build recompiles the DLL; `-i` skips this step during configuration. The old MXE
 setup and Epic-specific CMake upgrade are not needed for dnix.
-
-If configuring from the legacy Linux/WSL shell, use a Linux Dart SDK there and
-keep Rustup on the native Windows Flutter host. The prerequisite check probes
-Windows Rustup through `cmd.exe` and Nix in the distribution chosen for the
-native Windows hooks, so WSL interoperability must be enabled. The secp256k1
-compatibility wrapper rejects Windows Dart wrappers found on WSL's PATH.
-Configuration also dispatches the override guard to Windows Dart to inspect
-the Windows pub cache. To repeat that check manually from WSL, run
-`dart tool/check_native_overrides.dart <app> windows`; from native Windows,
-the target argument is optional.
 
 ## Configure and build
 

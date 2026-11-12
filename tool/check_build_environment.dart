@@ -102,65 +102,36 @@ Future<List<String>> checkBuildEnvironment({
       'Apple source builds need the native Xcode requirement.',
     );
   }
+  if (platform == 'windows' && host.os != 'windows') {
+    return ['Configure Windows builds from Git Bash on Windows.'];
+  }
   final errors = <String>[];
-  // Legacy WSL configuration invokes native Windows Flutter later. Probe the
-  // Windows Rustup it will use, not the unrelated Linux Rustup in this shell.
-  final windowsFromWsl =
-      platform == 'windows' &&
-      host.os == 'linux' &&
-      (host.variables['WSL_DISTRO_NAME']?.isNotEmpty ?? false);
   var hasRustup = false;
-  if (windowsFromWsl) {
-    for (final command in [
-      'rustup --version',
-      r'""%USERPROFILE%\.cargo\bin\rustup.exe" --version"',
-    ]) {
-      if ((await host.command('cmd.exe', [
-            '/d',
-            '/s',
-            '/c',
-            command,
-          ]))?.exitCode ==
-          0) {
-        hasRustup = true;
-        break;
-      }
-    }
-  } else {
-    final home = host.variables[host.os == 'windows' ? 'USERPROFILE' : 'HOME'];
-    final separator = host.os == 'windows' ? r'\' : '/';
-    for (final executable in [
-      'rustup',
-      if (home != null)
-        '$home$separator.cargo${separator}bin${separator}rustup',
-    ]) {
-      if ((await host.command(executable, ['--version']))?.exitCode == 0) {
-        hasRustup = true;
-        break;
-      }
+  final home = host.variables[host.os == 'windows' ? 'USERPROFILE' : 'HOME'];
+  final separator = host.os == 'windows' ? r'\' : '/';
+  for (final executable in [
+    'rustup',
+    if (home != null) '$home$separator.cargo${separator}bin${separator}rustup',
+  ]) {
+    if ((await host.command(executable, ['--version']))?.exitCode == 0) {
+      hasRustup = true;
+      break;
     }
   }
   if (!hasRustup) {
     final xelis = app == 'stack_wallet'
         ? ' Stack Wallet also needs Rust 1.99.1 for Xelis.'
         : '';
-    final flutterHost = windowsFromWsl ? 'native Windows' : 'the Flutter host';
-    final interoperability = windowsFromWsl
-        ? ' WSL must be able to launch cmd.exe; configure from Git Bash on '
-              'Windows if interoperability is unavailable.'
-        : '';
     errors.add(
-      'Install Rustup on $flutterHost (https://rustup.rs/). '
+      'Install Rustup on the Flutter host (https://rustup.rs/). '
       'Every app needs Rust 1.90.0 for DNSSEC, including with -d.$xelis '
-      'The hooks install their pinned toolchains automatically.'
-      '$interoperability',
+      'The hooks install their pinned toolchains automatically.',
     );
   }
   if (mode == 'prebuilt') return errors;
 
-  // Windows hooks select the default/requested distro, which can differ from
-  // this shell's current WSL distribution. Probe through wsl.exe in both cases.
-  if (host.os == 'windows' || windowsFromWsl) {
+  // Windows hooks run Nix in the default or requested WSL distribution.
+  if (host.os == 'windows') {
     final result = await host.command(
       'wsl.exe',
       [

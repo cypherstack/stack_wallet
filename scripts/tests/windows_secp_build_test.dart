@@ -17,7 +17,7 @@ void main() {
   bool missingDll = false;
   bool cleanupLocked = false;
 
-  test('secp pin matches resolved coinlib Windows recipes', () async {
+  test('secp pin matches the resolved coinlib Windows recipe', () async {
     // Resolve the dependency selected by pub, not a copied pin or cache path.
     // Updating coinlib must review this contract too.
     final library = await Isolate.resolvePackageUri(
@@ -26,24 +26,13 @@ void main() {
     expect(library, isNotNull, reason: 'Run flutter pub get before this test.');
     final native = File.fromUri(library!.resolve('../bin/build_windows.dart'))
         .readAsStringSync();
-    final cross = File.fromUri(
-      library.resolve('../bin/build_windows_crosscompile.dart'),
-    ).readAsStringSync();
     final nativePin = RegExp(
       r'''["']checkout["']\s*,\s*["']([0-9a-f]{40})["']''',
     ).firstMatch(native)?.group(1);
-    final crossPin = RegExp(r'git\s+checkout\s+([0-9a-f]{40})\b')
-        .firstMatch(cross)
-        ?.group(1);
     expect(
       nativePin,
       secpRevision,
       reason: 'Review the resolved coinlib native Windows secp revision.',
-    );
-    expect(
-      crossPin,
-      secpRevision,
-      reason: 'Review the resolved coinlib cross-build secp revision.',
     );
   });
 
@@ -91,9 +80,8 @@ void main() {
   });
   tearDown(() => root.delete(recursive: true));
 
-  WindowsSecpBuilder builder({bool nativeWindows = true}) => WindowsSecpBuilder(
+  WindowsSecpBuilder builder() => WindowsSecpBuilder(
     root: root,
-    nativeWindows: nativeWindows,
     environment: {'ProgramFiles(x86)': programFiles},
     cleanup: (directory) {
       if (cleanupLocked) {
@@ -113,7 +101,7 @@ void main() {
             : result('    KitsRoot10    REG_SZ    $sdkRoot\n');
       }
       if (args.length == 1 && args.single == '--version') {
-        if (executable == 'cmake' && nativeWindows) {
+        if (executable == 'cmake') {
           return result('cmake version 3.12.0');
         }
         return result(
@@ -135,7 +123,7 @@ void main() {
         if (operation == '--build') {
           if (!missingDll) {
             final file = File(
-              '${args[1]}/src/${nativeWindows ? 'RelWithDebInfo/' : ''}libsecp256k1-2.dll',
+              '${args[1]}/src/RelWithDebInfo/libsecp256k1-2.dll',
             );
             file.parent.createSync(recursive: true);
             file.writeAsStringSync('fixture Windows library');
@@ -179,19 +167,11 @@ void main() {
     expect(Directory('${root.path}/build').existsSync(), isFalse);
   });
 
-  for (final native in [true, false]) {
-    test(
-      'rejects unsupported CMake on ${native ? 'Windows' : 'Linux'}',
-      () async {
-        cmakeVersion = native ? 'cmake version 3.20.6' : 'cmake version 3.12.4';
-        await expectLater(
-          builder(nativeWindows: native).check(),
-          throwsA(isA<SecpBuildException>()),
-        );
-        expect(Directory('${root.path}/build').existsSync(), isFalse);
-      },
-    );
-  }
+  test('rejects unsupported CMake', () async {
+    cmakeVersion = 'cmake version 3.20.6';
+    await expectLater(builder().check(), throwsA(isA<SecpBuildException>()));
+    expect(Directory('${root.path}/build').existsSync(), isFalse);
+  });
 
   test(
     'native build pins v0.5.0 and writes DLL relative to repository',
@@ -232,19 +212,6 @@ void main() {
       expect(Directory('${root.path}/build').listSync(), hasLength(1));
     },
   );
-
-  test('WSL uses the same revision, with its MinGW toolchain', () async {
-    await builder(nativeWindows: false).build();
-    expect(operation('checkout').single.args.last, secpRevision);
-    expect(operation('-S').single.args, contains('Unix Makefiles'));
-    expect(
-      operation('-S').single.args
-          .any((a) => a.endsWith('/cmake/x86_64-w64-mingw32.toolchain.cmake')),
-      isTrue,
-    );
-    expect(File('${root.path}/build/secp256k1.dll').existsSync(), isTrue);
-    expect(calls.any((c) => c.executable.contains('mingw32-g++')), isFalse);
-  });
 
   test('an existing DLL is rebuilt on every invocation', () async {
     await builder().build();
@@ -308,56 +275,4 @@ void main() {
     );
     expect(File('${root.path}/build/secp256k1.dll').existsSync(), isFalse);
   });
-
-  group('WSL entry point', () {
-    late Directory bin;
-    late File shim;
-    late File recorded;
-    setUp(() {
-      bin = Directory('${root.path}/bin')..createSync();
-      final repository = File.fromUri(Platform.script).parent.parent.parent;
-      shim = File('${root.path}/build_secp256k1_wsl.sh');
-      File('${repository.path}/scripts/windows/build_secp256k1_wsl.sh')
-          .copySync(shim.path);
-      recorded = File('${root.path}/dart-arguments');
-      final fakeDart = File('${bin.path}/dart')
-        ..writeAsStringSync(r'''#!/bin/sh
-if [ "$1" = --version ]; then
-  printf 'Dart SDK version: fixture on "%s"\n' "$FIXTURE_DART_HOST" >&2
-  exit 0
-fi
-printf '%s\n' "$@" > "$FIXTURE_ARGUMENTS"
-exit 37
-''');
-      expect(Process.runSync('chmod', ['+x', fakeDart.path]).exitCode, 0);
-    });
-    Future<ProcessResult> invoke(String host) => Process.run(
-      '/bin/bash',
-      [shim.path, '--check'],
-      environment: {
-        'PATH': '${bin.path}:/usr/bin:/bin',
-        'FIXTURE_DART_HOST': host,
-        'FIXTURE_ARGUMENTS': recorded.path,
-      },
-    );
-
-    test('Linux SDK runs the helper and propagates its status', () async {
-      final result = await invoke('linux_x64');
-      expect(result.exitCode, 37);
-      expect(recorded.readAsLinesSync(), [
-        '${root.path}/build_secp256k1.dart',
-        '--check',
-      ]);
-    });
-
-    test(
-      'Windows Flutter on WSL PATH fails before invoking the helper',
-      () async {
-        final result = await invoke('windows_x64');
-        expect(result.exitCode, 1);
-        expect(result.stderr, contains("Linux SDK's bin directory"));
-        expect(recorded.existsSync(), isFalse);
-      },
-    );
-  }, skip: Platform.isWindows ? 'Requires POSIX bash' : false);
 }

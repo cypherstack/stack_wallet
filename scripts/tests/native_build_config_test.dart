@@ -98,6 +98,14 @@ printf '0000000000000000000000000000000000000000\n'
     final dart = Platform.resolvedExecutable.replaceAll("'", "'\\''");
     script('bin/dart', "exec '$dart' \"\$@\"");
     script('bin/sha256sum', "printf 'fixture-hash  mwebd.exe\\n'");
+    // build_app.sh configures Windows only from Git Bash.
+    script('bin/uname', r'''
+if [ "${1:-}" = -s ] && [ -n "${DNIX_TEST_UNAME:-}" ]; then
+  printf '%s\n' "$DNIX_TEST_UNAME"
+else
+  exec /usr/bin/uname "$@"
+fi
+''');
     // The real preflight/helper have separate tests with injected native tools.
     // These fixtures exercise their position in the configuration flow and cwd.
     File(p.join(root.path, 'tool/check_native_overrides.dart'))
@@ -105,7 +113,7 @@ printf '0000000000000000000000000000000000000000\n'
 import 'dart:convert';
 import 'dart:io';
 void main(List<String> args) {
-  if (args.length != 2) exit(64);
+  if (args.length != 1) exit(64);
   final root = File.fromUri(Platform.script).parent.parent;
   final calls = File('\${root.path}/override-checks');
   final count = calls.existsSync() ? calls.readAsLinesSync().length : 0;
@@ -188,6 +196,7 @@ void main(List<String> args) {
       environment: {
         'PATH': '${bin.path}:${Platform.environment['PATH']}',
         'DNIX_WSL_DISTRIBUTION': '',
+        if (platform == 'windows') 'DNIX_TEST_UNAME': 'MINGW64_NT-10.0',
         ...environment,
       },
     );
@@ -201,7 +210,7 @@ void main(List<String> args) {
       final calls = overrideChecks.readAsLinesSync();
       expect(calls, hasLength(previousChecks + 2));
       for (final call in calls.skip(previousChecks)) {
-        expect(jsonDecode(call), [app, platform]);
+        expect(jsonDecode(call), [app]);
       }
       final pubspec = loadYaml(
         File(p.join(root.path, 'pubspec.yaml')).readAsStringSync(),
@@ -384,6 +393,19 @@ void main(List<String> args) {
         File(p.join(root.path, 'build/secp256k1.dll')).existsSync(),
         isFalse,
       );
+    });
+
+    test('Windows configuration outside Git Bash changes nothing', () async {
+      final spec = File(p.join(root.path, 'pubspec.yaml'))
+        ..writeAsStringSync('unchanged');
+      await configure(
+        'stack_wallet',
+        platform: 'windows',
+        environment: {'DNIX_TEST_UNAME': 'Linux'},
+        expectedExit: 1,
+      );
+      expect(spec.readAsStringSync(), 'unchanged');
+      expect(File(p.join(root.path, 'override-checks')).existsSync(), isFalse);
     });
 
     test('renderer rejects invalid modes and WSL names', () {
