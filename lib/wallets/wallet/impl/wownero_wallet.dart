@@ -11,14 +11,20 @@ import '../../../wl_gen/interfaces/cs_wownero_interface.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/lib_wownero_wallet.dart';
+import '../wallet_mixin_interfaces/sync_dependent_fee_estimate_interface.dart';
 
-class WowneroWallet extends LibWowneroWallet {
+class WowneroWallet extends LibWowneroWallet
+    implements SyncDependentFeeEstimateInterface {
   WowneroWallet(CryptoCurrencyNetwork network)
     : super(Wownero(network), lib_monero_compat.WalletType.wownero);
 
   @override
+  bool get canEstimateFee =>
+      wallet != null && syncStatus is lib_monero_compat.SyncedSyncStatus;
+
+  @override
   Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate) async {
-    if (wallet == null || syncStatus is! lib_monero_compat.SyncedSyncStatus) {
+    if (!canEstimateFee) {
       return Amount.zeroWith(fractionDigits: cryptoCurrency.fractionDigits);
     }
 
@@ -51,8 +57,7 @@ class WowneroWallet extends LibWowneroWallet {
               recipients: [
                 // This address is only used for getting an approximate fee, never for sending
                 TxRecipient(
-                  address:
-                      "WW3iVcnoAY6K9zNdU4qmdvZELefx6xZz4PMpTwUifRkvMQckyadhSPYMVPJhBdYE8P9c27fg9RPmVaWNFx1cDaj61HnetqBiy",
+                  address: "WW3iVcnoAY6K9zNdU4qmdvZELefx6xZz4PMpTwUifRkvMQckyadhSPYMVPJhBdYE8P9c27fg9RPmVaWNFx1cDaj61HnetqBiy",
                   amount: amount,
                   isChange: false,
                   addressType: AddressType.cryptonote,

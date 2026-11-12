@@ -30,6 +30,7 @@ import '../../providers/providers.dart';
 import '../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../providers/ui/preview_tx_button_state_provider.dart';
 import '../../providers/wallet/public_private_balance_state_provider.dart';
+import '../../providers/wallet/send_fee_providers.dart';
 import '../../route_generator.dart';
 import '../../services/openalias/open_alias_service.dart';
 import '../../services/spark_names_service.dart';
@@ -55,21 +56,18 @@ import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
-import '../../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
-import '../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/models/tx_data.dart';
 import '../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
 import '../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../wallets/wallet/impl/salvium_wallet.dart';
-import '../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
-import '../../widgets/animated_text.dart';
 import '../../widgets/background.dart';
+import '../../widgets/calculating_future_builder.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/dialogs/firo_exchange_address_dialog.dart';
@@ -118,14 +116,7 @@ class SendView extends ConsumerStatefulWidget {
   ConsumerState<SendView> createState() => _SendViewState();
 }
 
-class _SendViewState extends ConsumerState<SendView> {
-  static const stringsToLoopThrough = [
-    "Calculating",
-    "Calculating.",
-    "Calculating..",
-    "Calculating...",
-  ];
-
+class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
   late final String walletId;
   late final CryptoCurrency coin;
   late final ClipboardInterface clipboard;
@@ -608,12 +599,8 @@ class _SendViewState extends ConsumerState<SendView> {
       cryptoAmountController.text = "";
       _cryptoAmountChangeLock = false;
     }
-    // setState(() {
-    //   _calculateFeesFuture = calculateFees(
-    //       Format.decimalAmountToSatoshis(
-    //           _amountToSend!));
-    // });
     ref.read(pSendAmount.notifier).state = amount;
+    _syncFeeAmount(amount);
   }
 
   bool _xelisSendAll = false;
@@ -667,45 +654,9 @@ class _SendViewState extends ConsumerState<SendView> {
       }
 
       ref.read(pSendAmount.notifier).state = amount;
-
-      _cryptoAmountChangedFeeUpdateTimer?.cancel();
-      _cryptoAmountChangedFeeUpdateTimer = Timer(updateFeesTimerDuration, () {
-        if (coin is! Epiccash &&
-            coin is! Mimblewimblecoin &&
-            !_baseFocus.hasFocus) {
-          setState(() {
-            _calculateFeesFuture = calculateFees(
-              amount ?? 0.toAmountAsRaw(fractionDigits: coin.fractionDigits),
-            );
-          });
-        }
-      });
+      _syncFeeAmount(amount);
     }
   }
-
-  final updateFeesTimerDuration = const Duration(milliseconds: 500);
-
-  Timer? _cryptoAmountChangedFeeUpdateTimer;
-  Timer? _baseAmountChangedFeeUpdateTimer;
-
-  void _baseAmountChanged() {
-    _baseAmountChangedFeeUpdateTimer?.cancel();
-    _baseAmountChangedFeeUpdateTimer = Timer(updateFeesTimerDuration, () {
-      if (coin is! Epiccash &&
-          coin is! Mimblewimblecoin &&
-          !_cryptoFocus.hasFocus) {
-        setState(() {
-          _calculateFeesFuture = calculateFees(
-            ref.read(pSendAmount) == null
-                ? 0.toAmountAsRaw(fractionDigits: coin.fractionDigits)
-                : ref.read(pSendAmount)!,
-          );
-        });
-      }
-    });
-  }
-
-  late Amount _currentFee;
 
   void _setValidAddressProviders(String? address) {
     if (_recipientIndexes != null) {
@@ -744,12 +695,6 @@ class _SendViewState extends ConsumerState<SendView> {
     }
   }
 
-  late Future<Amount> _calculateFeesFuture;
-
-  final Map<(Amount, FeeRateType), Amount> cachedFees = {};
-  final Map<(Amount, FeeRateType), Amount> cachedFiroSparkFees = {};
-  final Map<(Amount, FeeRateType), Amount> cachedFiroPublicFees = {};
-
   void _setOpReturnData(String? data) {
     if (!mounted) {
       return;
@@ -757,127 +702,9 @@ class _SendViewState extends ConsumerState<SendView> {
     ref.read(pOpReturnData.notifier).state = data;
   }
 
-  Amount _addOpReturnFeeIfNeeded({
-    required Amount fee,
-    required BigInt feeRate,
-    required FiroWallet wallet,
-  }) {
-    final opReturnData = ref.read(pOpReturnData);
-    if (opReturnData == null ||
-        opReturnData.isEmpty ||
-        ref.read(publicPrivateBalanceStateProvider) != BalanceType.public) {
-      return fee;
-    }
-
-    final extraOutputVSize = AddressUtils.opReturnOutputVSizeFromHex(
-      opReturnData,
-    );
-    final extraFee = wallet.estimateTxFee(
-      vSize: extraOutputVSize,
-      feeRatePerKB: feeRate,
-    );
-
-    return fee +
-        Amount(
-          rawValue: BigInt.from(extraFee),
-          fractionDigits: coin.fractionDigits,
-        );
-  }
-
-  Future<Amount> calculateFees(Amount amount) async {
+  void _syncFeeAmount(Amount? amount) {
     // Xelis obtains the exact fee when preparing the reviewed transaction.
-    if (coin is Xelis) {
-      return Amount.zeroWith(fractionDigits: coin.fractionDigits);
-    }
-    final feeRateType = ref.read(feeRateTypeMobileStateProvider);
-    final cacheKey = (amount, feeRateType);
-    final hasOpReturnData =
-        isFiro &&
-        ref.read(publicPrivateBalanceStateProvider) == BalanceType.public &&
-        (ref.read(pOpReturnData)?.isNotEmpty ?? false);
-
-    if (isFiro) {
-      switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
-        case BalanceType.public:
-          if (!hasOpReturnData && cachedFiroPublicFees[cacheKey] != null) {
-            return cachedFiroPublicFees[cacheKey]!;
-          }
-          break;
-        case BalanceType.private:
-          if (cachedFiroSparkFees[cacheKey] != null) {
-            return cachedFiroSparkFees[cacheKey]!;
-          }
-          break;
-      }
-    } else if (cachedFees[cacheKey] != null) {
-      return cachedFees[cacheKey]!;
-    }
-
-    final wallet = ref.read(pWallets).getWallet(walletId);
-    final feeObject = await wallet.fees;
-
-    late final BigInt feeRate;
-
-    switch (feeRateType) {
-      case FeeRateType.fast:
-        feeRate = feeObject.fast;
-        break;
-      case FeeRateType.average:
-        feeRate = feeObject.medium;
-        break;
-      case FeeRateType.slow:
-        feeRate = feeObject.slow;
-        break;
-      default:
-        feeRate = BigInt.from(-1);
-    }
-
-    Amount fee;
-    if (coin is CryptonoteCurrency) {
-      final int specialMoneroId;
-      switch (feeRateType) {
-        case FeeRateType.fast:
-          specialMoneroId = (wallet as CryptonoteWallet).getTxPriorityHigh();
-          break;
-        case FeeRateType.average:
-          specialMoneroId = (wallet as CryptonoteWallet).getTxPriorityMedium();
-          break;
-        case FeeRateType.slow:
-          specialMoneroId = (wallet as CryptonoteWallet).getTxPriorityNormal();
-          break;
-        default:
-          throw ArgumentError("custom fee not available for monero");
-      }
-
-      fee = await wallet.estimateFeeFor(amount, BigInt.from(specialMoneroId));
-      cachedFees[cacheKey] = fee;
-      return fee;
-    } else if (isFiro) {
-      final firoWallet = wallet as FiroWallet;
-
-      switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
-        case BalanceType.public:
-          fee = await firoWallet.estimateFeeFor(amount, feeRate);
-          fee = _addOpReturnFeeIfNeeded(
-            fee: fee,
-            feeRate: feeRate,
-            wallet: firoWallet,
-          );
-          if (!hasOpReturnData) {
-            cachedFiroPublicFees[cacheKey] = fee;
-          }
-          return fee;
-
-        case BalanceType.private:
-          fee = await firoWallet.estimateFeeForSpark(amount);
-          cachedFiroSparkFees[cacheKey] = fee;
-          return fee;
-      }
-    } else {
-      fee = await wallet.estimateFeeFor(amount, feeRate);
-      cachedFees[cacheKey] = fee;
-      return fee;
-    }
+    if (hasFees && coin is! Xelis) followFeeAmount(amount);
   }
 
   Future<void> _createSlatepack() async {
@@ -1231,7 +1058,7 @@ class _SendViewState extends ConsumerState<SendView> {
       final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
 
       Future<TxData> txDataFuture;
-      final feeRateType = ref.read(feeRateTypeMobileStateProvider);
+      final feeRateType = ref.read(pFeeRateType);
       final satsPerVByte = feeRateType.customSatsPerVByte(customFeeRate);
 
       if (isPaynymSend) {
@@ -1553,40 +1380,7 @@ class _SendViewState extends ConsumerState<SendView> {
 
   late final bool hasFees;
 
-  void _onFeeSelectPressed() {
-    showModalBottomSheet<dynamic>(
-      backgroundColor: Colors.transparent,
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) => TransactionFeeSelectionSheet(
-        walletId: walletId,
-        amount:
-            ref.read(pSendAmount) ??
-            Amount.zeroWith(fractionDigits: coin.fractionDigits),
-        updateChosen: (feeRateType, fee) {
-          if (feeRateType.isCustom) {
-            return;
-          }
-
-          setState(() {
-            if (fee != null) {
-              _currentFee = fee;
-              _calculateFeesFuture = Future.value(fee);
-            } else {
-              _calculateFeesFuture = calculateFees(
-                ref.read(pSendAmount) ??
-                    Amount.zeroWith(fractionDigits: coin.fractionDigits),
-              );
-            }
-            customFeeRate = 1;
-            _ethFee.value = null;
-          });
-        },
-      ),
-    );
-  }
+  void _onFeeSelectPressed() => showFeeSheet(this);
 
   @override
   void initState() {
@@ -1597,18 +1391,16 @@ class _SendViewState extends ConsumerState<SendView> {
 
     _data = widget.autoFillData;
     walletId = widget.walletId;
+    fees = SendFeeRates(ref.read, walletId: walletId, isToken: false);
     clipboard = widget.clipboard;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.refresh(feeSheetSessionCacheProvider);
       ref.refresh(pIsExchangeAddress);
     });
-    hasFees = coin is! Epiccash && coin is! NanoCurrency && coin is! Tezos;
-    _currentFee = 0.toAmountAsRaw(fractionDigits: coin.fractionDigits);
-
-    _calculateFeesFuture = calculateFees(
-      0.toAmountAsRaw(fractionDigits: coin.fractionDigits),
-    );
+    hasFees = hasSendFee(coin);
+    if (hasFees && coin is! Xelis) {
+      retryFeeOnFocusLoss([_cryptoFocus, _baseFocus]);
+    }
 
     sendToController = TextEditingController();
     cryptoAmountController = TextEditingController();
@@ -1620,7 +1412,6 @@ class _SendViewState extends ConsumerState<SendView> {
 
     onCryptoAmountChanged = _cryptoAmountChanged;
     cryptoAmountController.addListener(onCryptoAmountChanged);
-    baseAmountController.addListener(_baseAmountChanged);
 
     if (_data != null) {
       final hasAmount = _data.amount != null;
@@ -1656,48 +1447,14 @@ class _SendViewState extends ConsumerState<SendView> {
       );
     }
 
-    // if (coin is! Epiccash) {
-    // _cryptoFocus.addListener(() {
-    //   if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
-    //     if (_amountToSend == null) {
-    //       setState(() {
-    //         _calculateFeesFuture = calculateFees(0);
-    //       });
-    //     } else {
-    //       setState(() {
-    //         _calculateFeesFuture = calculateFees(
-    //             Format.decimalAmountToSatoshis(_amountToSend!, coin));
-    //       });
-    //     }
-    //   }
-    // });
-
-    // _baseFocus.addListener(() {
-    //   if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
-    //     if (_amountToSend == null) {
-    //       setState(() {
-    //         _calculateFeesFuture = calculateFees(0);
-    //       });
-    //     } else {
-    //       setState(() {
-    //         _calculateFeesFuture = calculateFees(
-    //             Format.decimalAmountToSatoshis(_amountToSend!, coin));
-    //       });
-    //     }
-    //   }
-    // });
-    // }
     super.initState();
   }
 
   @override
   void dispose() {
-    _cryptoAmountChangedFeeUpdateTimer?.cancel();
-    _baseAmountChangedFeeUpdateTimer?.cancel();
     _ethFee.dispose();
 
     cryptoAmountController.removeListener(onCryptoAmountChanged);
-    baseAmountController.removeListener(_baseAmountChanged);
 
     sendToController.dispose();
     cryptoAmountController.dispose();
@@ -1719,7 +1476,11 @@ class _SendViewState extends ConsumerState<SendView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    final isCustomFee = ref.watch(feeRateTypeMobileStateProvider).isCustom;
+    final isCustomFee = ref.watch(pFeeRateType).isCustom;
+    listenForCustomFeeLevel(ref, coin, () {
+      customFeeRate = 1;
+      _ethFee.value = null;
+    });
     final String locale = ref.watch(
       localeServiceChangeNotifierProvider.select((value) => value.locale),
     );
@@ -1743,6 +1504,8 @@ class _SendViewState extends ConsumerState<SendView> {
     final amountFormatter = ref.watch(pAmountFormatter(coin));
 
     final balType = ref.watch(publicPrivateBalanceStateProvider);
+    final canPick = canPickFeeRateType(coin, balType);
+    final hasCustomFee = isCustomFee && canPick;
     // ethFee is checked in the ValueListenableBuilder around the preview
     // button so fee keystrokes don't rebuild this whole view.
     final previewEnabled =
@@ -1769,18 +1532,7 @@ class _SendViewState extends ConsumerState<SendView> {
 
     ref.listen(publicPrivateBalanceStateProvider, (previous, next) {
       selectedUTXOs = {};
-
-      if (ref.read(pSendAmount) == null) {
-        setState(() {
-          _calculateFeesFuture = calculateFees(
-            0.toAmountAsRaw(fractionDigits: coin.fractionDigits),
-          );
-        });
-      } else {
-        setState(() {
-          _calculateFeesFuture = calculateFees(ref.read(pSendAmount)!);
-        });
-      }
+      retryFee();
 
       if (previous != next &&
           next == BalanceType.private &&
@@ -2725,7 +2477,12 @@ class _SendViewState extends ConsumerState<SendView> {
                                             if (spendable == amount) {
                                               // this is now a send all
                                             } else {
-                                              amount += _currentFee;
+                                              amount +=
+                                                  shownFee ??
+                                                  Amount.zeroWith(
+                                                    fractionDigits:
+                                                        coin.fractionDigits,
+                                                  );
                                             }
                                           }
 
@@ -2869,22 +2626,15 @@ class _SendViewState extends ConsumerState<SendView> {
                               ),
                             ),
                             const SizedBox(height: 12),
-                            if (coin is! Epiccash &&
-                                coin is! Mimblewimblecoin &&
-                                coin is! NanoCurrency &&
-                                coin is! Tezos)
+                            if (hasFees)
                               Text(
-                                coin is Xelis
+                                coin is Xelis || hasCustomFee
                                     ? "Transaction fee"
                                     : "Transaction fee (estimated)",
                                 style: STextStyles.smallMed12(context),
                                 textAlign: TextAlign.left,
                               ),
-                            if (coin is! Epiccash &&
-                                coin is! Mimblewimblecoin &&
-                                coin is! NanoCurrency &&
-                                coin is! Tezos)
-                              const SizedBox(height: 8),
+                            if (hasFees) const SizedBox(height: 8),
                             if (coin is Xelis)
                               Padding(
                                 padding: const EdgeInsets.all(12),
@@ -2893,10 +2643,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                   style: STextStyles.itemSubtitle(context),
                                 ),
                               )
-                            else if (coin is! Epiccash &&
-                                coin is! Mimblewimblecoin &&
-                                coin is! NanoCurrency &&
-                                coin is! Tezos)
+                            else if (hasFees)
                               Stack(
                                 children: [
                                   TextField(
@@ -2925,149 +2672,74 @@ class _SendViewState extends ConsumerState<SendView> {
                                             Constants.size.circularBorderRadius,
                                           ),
                                         ),
-                                        onPressed:
-                                            isFiro &&
-                                                ref
+                                        onPressed: canPick
+                                            ? _onFeeSelectPressed
+                                            : null,
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                if (canPick) ...[
+                                                  Text(
+                                                    ref
                                                         .watch(
-                                                          publicPrivateBalanceStateProvider
-                                                              .state,
+                                                          pFeeRateType.state,
                                                         )
-                                                        .state !=
-                                                    BalanceType.public
-                                            ? null
-                                            : _onFeeSelectPressed,
-                                        child:
-                                            (isFiro &&
-                                                ref
-                                                        .watch(
-                                                          publicPrivateBalanceStateProvider
-                                                              .state,
-                                                        )
-                                                        .state !=
-                                                    BalanceType.public)
-                                            ? Row(
-                                                children: [
-                                                  FutureBuilder(
-                                                    future:
-                                                        _calculateFeesFuture,
-                                                    builder: (context, snapshot) {
-                                                      if (snapshot.connectionState ==
-                                                              ConnectionState
-                                                                  .done &&
-                                                          snapshot.hasData) {
-                                                        _currentFee =
-                                                            snapshot.data!;
-                                                        final formattedFee =
-                                                            amountFormatter.format(
-                                                              snapshot.data!,
-                                                              withUnitName:
-                                                                  true,
-                                                              indicatePrecisionLoss:
-                                                                  false,
-                                                            );
-                                                        return Text(
-                                                          "~$formattedFee",
-                                                          style:
-                                                              STextStyles.itemSubtitle(
-                                                                context,
-                                                              ),
-                                                        );
-                                                      } else {
-                                                        return AnimatedText(
-                                                          stringsToLoopThrough:
-                                                              stringsToLoopThrough,
-                                                          style:
-                                                              STextStyles.itemSubtitle(
-                                                                context,
-                                                              ),
-                                                        );
-                                                      }
-                                                    },
+                                                        .state
+                                                        .prettyName,
+                                                    style:
+                                                        STextStyles.itemSubtitle12(
+                                                          context,
+                                                        ),
                                                   ),
+                                                  const SizedBox(width: 10),
                                                 ],
-                                              )
-                                            : Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
-                                                children: [
-                                                  Row(
-                                                    children: [
-                                                      Text(
-                                                        ref
-                                                            .watch(
-                                                              feeRateTypeMobileStateProvider
-                                                                  .state,
-                                                            )
-                                                            .state
-                                                            .prettyName,
-                                                        style:
-                                                            STextStyles.itemSubtitle12(
-                                                              context,
-                                                            ),
+                                                CalculatingFutureBuilder(
+                                                  future: watchFee(),
+                                                  style:
+                                                      STextStyles.itemSubtitle(
+                                                        context,
                                                       ),
-                                                      const SizedBox(width: 10),
-                                                      FutureBuilder(
-                                                        future:
-                                                            _calculateFeesFuture,
-                                                        builder: (context, snapshot) {
-                                                          if (snapshot.connectionState ==
-                                                                  ConnectionState
-                                                                      .done &&
-                                                              snapshot
-                                                                  .hasData) {
-                                                            _currentFee =
-                                                                snapshot.data!;
-                                                            final formattedFee =
-                                                                amountFormatter.format(
-                                                                  snapshot
-                                                                      .data!,
-                                                                  withUnitName:
-                                                                      true,
-                                                                  indicatePrecisionLoss:
-                                                                      false,
-                                                                );
-                                                            return Text(
-                                                              isCustomFee
-                                                                  ? ""
-                                                                  : "~$formattedFee",
-                                                              style:
-                                                                  STextStyles.itemSubtitle(
-                                                                    context,
-                                                                  ),
-                                                            );
-                                                          } else {
-                                                            return AnimatedText(
-                                                              stringsToLoopThrough:
-                                                                  stringsToLoopThrough,
-                                                              style:
-                                                                  STextStyles.itemSubtitle(
-                                                                    context,
-                                                                  ),
-                                                            );
-                                                          }
-                                                        },
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  SvgPicture.asset(
-                                                    Assets.svg.chevronDown,
-                                                    width: 8,
-                                                    height: 4,
-                                                    color: Theme.of(context)
-                                                        .extension<
-                                                          StackColors
-                                                        >()!
-                                                        .textSubtitle2,
-                                                  ),
-                                                ],
+                                                  builder: (fee) {
+                                                    final formattedFee =
+                                                        amountFormatter.format(
+                                                          fee,
+                                                          withUnitName: true,
+                                                          indicatePrecisionLoss:
+                                                              false,
+                                                        );
+                                                    return Text(
+                                                      hasCustomFee
+                                                          ? ""
+                                                          : "~$formattedFee",
+                                                      style:
+                                                          STextStyles.itemSubtitle(
+                                                            context,
+                                                          ),
+                                                    );
+                                                  },
+                                                ),
+                                              ],
+                                            ),
+                                            if (canPick)
+                                              SvgPicture.asset(
+                                                Assets.svg.chevronDown,
+                                                width: 8,
+                                                height: 4,
+                                                color: Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .textSubtitle2,
                                               ),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ],
                               ),
-                            if (isCustomFee && !isEth)
+                            if (hasCustomFee && !isEth)
                               Padding(
                                 padding: const EdgeInsets.only(
                                   bottom: 12,

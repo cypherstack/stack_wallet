@@ -1,126 +1,122 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../models/paymint/fee_object_model.dart';
-import '../../../../pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import '../../../../providers/providers.dart';
 import '../../../../providers/ui/fee_rate_type_state_provider.dart';
-import '../../../../providers/ui/preview_tx_button_state_provider.dart';
-import '../../../../providers/wallet/desktop_fee_providers.dart';
 import '../../../../providers/wallet/public_private_balance_state_provider.dart';
+import '../../../../providers/wallet/send_fee_providers.dart';
 import '../../../../themes/stack_colors.dart';
-import '../../../../utilities/address_utils.dart';
 import '../../../../utilities/amount/amount.dart';
 import '../../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../../utilities/eth_commons.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
-import '../../../../wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
-import '../../../../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
-import '../../../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
-import '../../../../wallets/wallet/impl/firo_wallet.dart';
-import '../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
-import '../../../../widgets/animated_text.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../../widgets/desktop/desktop_fee_dialog.dart';
 import '../../../../widgets/eth_fee_form.dart';
 import '../../../../widgets/fee_slider.dart';
 
+class SendFeeAmount extends ChangeNotifier {
+  Amount? _value;
+  bool _isTyped = false;
+
+  Amount? get value => _value;
+
+  /// Whether the fee follows [value] once typing pauses.
+  bool get isTyped => _isTyped;
+
+  void typed(Amount? amount) => _set(amount, isTyped: true);
+
+  /// Each sync notifies, so a fee that failed is retried on the same amount
+  /// too.
+  void sync(Amount? amount) => _set(amount, isTyped: false);
+
+  void _set(Amount? amount, {required bool isTyped}) {
+    _value = amount;
+    _isTyped = isTyped;
+    notifyListeners();
+  }
+}
+
 class DesktopSendFeeForm extends ConsumerStatefulWidget {
   const DesktopSendFeeForm({
     super.key,
     required this.walletId,
     required this.isToken,
+    required this.amount,
     required this.onCustomFeeSliderChanged,
-    required this.onCustomFeeOptionChanged,
     this.onCustomEip1559FeeOptionChanged,
   });
 
   final String walletId;
   final bool isToken;
+  final SendFeeAmount amount;
   final void Function(int) onCustomFeeSliderChanged;
-  final VoidCallback onCustomFeeOptionChanged;
   final void Function(EthEIP1559Fee?)? onCustomEip1559FeeOptionChanged;
 
   @override
   ConsumerState<DesktopSendFeeForm> createState() => _DesktopSendFeeFormState();
 }
 
-class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
-  final stringsToLoopThrough = [
-    "Calculating",
-    "Calculating.",
-    "Calculating..",
-    "Calculating...",
-  ];
-
+class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm>
+    with SendFeeForm {
   late final CryptoCurrency cryptoCurrency;
-  Future<FeeObject>? _fees;
 
   bool get isEth => cryptoCurrency is Ethereum;
-
-  (FeeRateType, String?, String?)? feeSelectionResult;
-
-  Amount _addFiroOpReturnFee({
-    required Amount fee,
-    required BigInt feeRate,
-    required FiroWallet wallet,
-  }) {
-    final opReturnData = ref.read(pOpReturnData);
-    if (opReturnData == null ||
-        opReturnData.isEmpty ||
-        ref.read(publicPrivateBalanceStateProvider) != BalanceType.public) {
-      return fee;
-    }
-
-    final extraOutputVSize = AddressUtils.opReturnOutputVSizeFromHex(
-      opReturnData,
-    );
-    final extraFee = wallet.estimateTxFee(
-      vSize: extraOutputVSize,
-      feeRatePerKB: feeRate,
-    );
-
-    return fee +
-        Amount(
-          rawValue: BigInt.from(extraFee),
-          fractionDigits: cryptoCurrency.fractionDigits,
-        );
-  }
 
   @override
   void initState() {
     super.initState();
     cryptoCurrency = ref.read(pWalletCoin(widget.walletId));
+    fees = SendFeeRates(
+      ref.read,
+      walletId: widget.walletId,
+      isToken: widget.isToken,
+    );
+    feeAmount = widget.amount.value;
+    widget.amount.addListener(_amountChanged);
 
-    // The fee rate type provider is global and never disposed. Reset it here
-    // so a stale custom selection from another wallet/send form can't cause a
-    // send using an unset custom fee rate.
+    // A send form opened over another one shares its fee rate type, and a
+    // Custom level picked in the other form has no custom fee rate in this one.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        ref.read(feeRateTypeDesktopStateProvider.state).state =
-            FeeRateType.average;
+        ref.read(pFeeRateType.state).state = FeeRateType.average;
       }
     });
   }
 
+  void _amountChanged() => widget.amount.isTyped
+      ? followFeeAmount(widget.amount.value)
+      : setFeeAmount(widget.amount.value);
+
+  void _editFee() => chooseFee(
+    (fees, amount) => showDialog<void>(
+      context: context,
+      builder: (_) => DesktopFeeDialog(fees: fees, amount: amount),
+    ),
+  );
+
+  @override
+  void dispose() {
+    widget.amount.removeListener(_amountChanged);
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Keep the send amount alive for the fee estimates.
-    ref.listen(sendAmountProvider, (_, __) {});
-    final isCustomFee = ref.watch(feeRateTypeDesktopStateProvider).isCustom;
+    ref.listen(publicPrivateBalanceStateProvider, (_, __) => retryFee());
+    final feeRateType = ref.watch(pFeeRateType);
+    final isCustomFee = feeRateType.isCustom;
     final locale = ref.watch(
       localeServiceChangeNotifierProvider.select((value) => value.locale),
     );
-    final canEditFees =
-        isEth ||
-        cryptoCurrency is Solana ||
-        (cryptoCurrency is ElectrumXCurrencyInterface &&
-            !(((cryptoCurrency is Firo) &&
-                (ref.watch(publicPrivateBalanceStateProvider.state).state ==
-                    BalanceType.private))));
+    final canPick = canPickFeeRateType(
+      cryptoCurrency,
+      ref.watch(publicPrivateBalanceStateProvider.state).state,
+    );
+    final canEditFees = canPick && cryptoCurrency is! Xelis;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -131,34 +127,13 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               child,
-              CustomTextButton(
-                text: "Edit",
-                onTap: () async {
-                  final wasCustomFee = isCustomFee;
-                  feeSelectionResult =
-                      await showDialog<(FeeRateType, String?, String?)?>(
-                        context: context,
-                        builder: (_) => DesktopFeeDialog(
-                          walletId: widget.walletId,
-                          isToken: widget.isToken,
-                        ),
-                      );
-
-                  if (feeSelectionResult != null) {
-                    final selectedIsCustomFee = feeSelectionResult!.$1.isCustom;
-                    if (wasCustomFee != selectedIsCustomFee) {
-                      widget.onCustomFeeOptionChanged.call();
-                    }
-                  }
-
-                  setState(() {});
-                },
-              ),
+              CustomTextButton(text: "Edit", onTap: _editFee),
             ],
           ),
           child: Text(
-            "Transaction fee"
-            "${isCustomFee ? "" : " (${isEth ? "max" : "estimated"})"}",
+            isCustomFee && canPick || cryptoCurrency is Xelis
+                ? "Transaction fee"
+                : "Transaction fee (${isEth ? "max" : "estimated"})",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
               color: Theme.of(context)
                   .extension<StackColors>()!
@@ -173,188 +148,15 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
             padding: EdgeInsets.all(10),
             child: Text('Calculated when reviewing'),
           )
-        else if (!isCustomFee)
+        else if (!isCustomFee || !canPick)
           Padding(
             padding: const EdgeInsets.all(10),
-            child: (feeSelectionResult?.$2 == null)
-                ? FutureBuilder(
-                    future: _fees ??= ref
-                        .read(pWallets)
-                        .getWallet(widget.walletId)
-                        .fees,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.done &&
-                          snapshot.hasError) {
-                        _fees = null;
-                      }
-                      if (snapshot.connectionState == ConnectionState.done &&
-                          snapshot.hasData) {
-                        return DesktopFeeItem(
-                          feeObject: snapshot.data,
-                          feeRateType: FeeRateType.average,
-                          walletId: widget.walletId,
-                          isButton: false,
-                          feeFor:
-                              ({
-                                required Amount amount,
-                                required FeeRateType feeRateType,
-                                required BigInt feeRate,
-                                required CryptoCurrency coin,
-                              }) async {
-                                if (!widget.isToken &&
-                                    coin is Firo &&
-                                    ref.read(
-                                          publicPrivateBalanceStateProvider,
-                                        ) ==
-                                        BalanceType.public &&
-                                    (ref.read(pOpReturnData)?.isNotEmpty ??
-                                        false)) {
-                                  final wallet =
-                                      ref
-                                              .read(pWallets)
-                                              .getWallet(widget.walletId)
-                                          as FiroWallet;
-                                  final fee = await wallet.estimateFeeFor(
-                                    amount,
-                                    feeRate,
-                                  );
-                                  return _addFiroOpReturnFee(
-                                    fee: fee,
-                                    feeRate: feeRate,
-                                    wallet: wallet,
-                                  );
-                                }
-
-                                if (ref
-                                        .read(
-                                          widget.isToken
-                                              ? tokenFeeSessionCacheProvider
-                                              : feeSheetSessionCacheProvider,
-                                        )
-                                        .average[amount] ==
-                                    null) {
-                                  if (widget.isToken == false) {
-                                    final wallet = ref
-                                        .read(pWallets)
-                                        .getWallet(widget.walletId);
-
-                                    if (coin is CryptonoteCurrency) {
-                                      final fee = await wallet.estimateFeeFor(
-                                        amount,
-                                        BigInt.from(
-                                          (wallet as CryptonoteWallet)
-                                              .getTxPriorityMedium(),
-                                        ),
-                                      );
-                                      ref
-                                              .read(
-                                                feeSheetSessionCacheProvider,
-                                              )
-                                              .average[amount] =
-                                          fee;
-                                    } else if ((coin is Firo) &&
-                                        ref
-                                                .read(
-                                                  publicPrivateBalanceStateProvider
-                                                      .state,
-                                                )
-                                                .state !=
-                                            BalanceType.public) {
-                                      final firoWallet = wallet as FiroWallet;
-
-                                      if (ref
-                                              .read(
-                                                publicPrivateBalanceStateProvider
-                                                    .state,
-                                              )
-                                              .state ==
-                                          BalanceType.private) {
-                                        ref
-                                            .read(feeSheetSessionCacheProvider)
-                                            .average[amount] = await firoWallet
-                                            .estimateFeeForSpark(amount);
-                                      }
-                                    } else {
-                                      ref
-                                          .read(feeSheetSessionCacheProvider)
-                                          .average[amount] = await wallet
-                                          .estimateFeeFor(amount, feeRate);
-                                    }
-                                  } else {
-                                    // Token fee estimation (works for ERC20 and SOL tokens).
-                                    try {
-                                      final tokenWallet = ref.read(
-                                        pCurrentTokenWallet,
-                                      )!;
-                                      final fee = await tokenWallet
-                                          .estimateFeeFor(amount, feeRate);
-                                      ref
-                                              .read(
-                                                tokenFeeSessionCacheProvider,
-                                              )
-                                              .average[amount] =
-                                          fee;
-                                    } catch (_) {
-                                      // Token wallet not available.
-                                      debugPrint(
-                                        "Token fee estimation not available",
-                                      );
-                                    }
-                                  }
-                                }
-                                return ref
-                                    .read(
-                                      widget.isToken
-                                          ? tokenFeeSessionCacheProvider
-                                          : feeSheetSessionCacheProvider,
-                                    )
-                                    .average[amount]!;
-                              },
-                          isSelected: true,
-                        );
-                      } else {
-                        return Row(
-                          children: [
-                            AnimatedText(
-                              stringsToLoopThrough: stringsToLoopThrough,
-                              style:
-                                  STextStyles.desktopTextExtraExtraSmall(
-                                    context,
-                                  ).copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textFieldActiveText,
-                                  ),
-                            ),
-                          ],
-                        );
-                      }
-                    },
-                  )
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        feeSelectionResult?.$2 ?? "",
-                        style: STextStyles.desktopTextExtraExtraSmall(context)
-                            .copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textFieldActiveText,
-                            ),
-                        textAlign: TextAlign.left,
-                      ),
-                      Text(
-                        feeSelectionResult?.$3 ?? "",
-                        style: STextStyles.desktopTextExtraExtraSmall(context)
-                            .copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textFieldActiveSearchIconRight,
-                            ),
-                      ),
-                    ],
-                  ),
+            child: DesktopFeeItem(
+              fees: fees,
+              feeRateType: canPick ? feeRateType : FeeRateType.average,
+              amount: feeAmount,
+              isButton: false,
+            ),
           ),
         if (isCustomFee && isEth)
           EthFeeForm(
@@ -365,7 +167,7 @@ class _DesktopSendFeeFormState extends ConsumerState<DesktopSendFeeForm> {
             stateChanged: (value) =>
                 widget.onCustomEip1559FeeOptionChanged?.call(value),
           ),
-        if (isCustomFee && !isEth)
+        if (isCustomFee && canPick && !isEth)
           Padding(
             padding: const EdgeInsets.only(bottom: 12, top: 16),
             child: FeeSlider(

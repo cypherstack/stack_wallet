@@ -165,6 +165,7 @@ void main() {
                 pWalletInfo(walletId).overrideWithValue(info),
                 pWalletCoin(walletId).overrideWithValue(coin),
                 pWalletName(walletId).overrideWithValue(info.name),
+                pWalletBalance(walletId).overrideWithValue(info.cachedBalance),
                 pTokenBalance((
                   walletId: walletId,
                   contractAddress: contract.address,

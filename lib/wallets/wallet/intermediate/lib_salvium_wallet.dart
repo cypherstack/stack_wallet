@@ -1415,12 +1415,6 @@ abstract class LibSalviumWallet<T extends CryptonoteCurrency>
       : csSalvium.getRefreshFromBlockHeight(wallet!);
 
   @override
-  int getTxPriorityHigh() => csSalvium.getTxPriorityHigh();
-
-  @override
-  int getTxPriorityMedium() => csSalvium.getTxPriorityMedium();
-
-  @override
   int getTxPriorityNormal() => csSalvium.getTxPriorityNormal();
 
   @override
