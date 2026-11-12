@@ -7,6 +7,7 @@ import 'package:isar_community/isar.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/services/event_bus/events/global/blocks_remaining_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/refresh_percent_changed_event.dart';
+import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
@@ -201,6 +202,96 @@ void main() {
       expect(h.wallet.info.grinData!.pendingScanFrom, 1000);
     },
   );
+
+  test('a scan that fails part way resumes after the last batch it '
+      'saved', () async {
+    h.backend.scanBlocks = false;
+    final statuses = <WalletSyncStatus>[];
+    h.bus.on<WalletSyncStatusChangedEvent>().listen(
+      (e) => statuses.add(e.newStatus),
+    );
+    await h.wallet.init(isRestore: true);
+    await h.wallet.recover(isRescan: false);
+    await eventually(() => h.wallet.info.grinData!.pendingScanFrom == null);
+    final api = h.backend.api;
+
+    api.scanError = grinError(
+      9,
+      details: {'scanned_height': 20000, 'tip_height': 50000},
+    );
+    await h.wallet.recover(isRescan: true);
+    await eventually(() => statuses.contains(WalletSyncStatus.unableToSync));
+    expect(h.wallet.info.grinData!.pendingScanFrom, 20001);
+
+    // A failure before anything new was saved leaves the height alone.
+    statuses.clear();
+    api.scanError = grinError(
+      9,
+      details: {'scanned_height': 20000, 'tip_height': 50000},
+    );
+    await h.wallet.refresh();
+    await eventually(() => statuses.contains(WalletSyncStatus.unableToSync));
+    expect(
+      api.calls.where((c) => c.startsWith('scan:')).last,
+      'scan:20001:false',
+    );
+    expect(h.wallet.info.grinData!.pendingScanFrom, 20001);
+
+    api.scanError = null;
+    await h.wallet.refresh();
+    await eventually(() => h.wallet.info.grinData!.pendingScanFrom == null);
+  });
+
+  test('a scan cancelled before it started keeps its resume height, '
+      'whatever the wallet scanned last', () async {
+    h.backend.scanBlocks = false;
+    await h.wallet.init(isRestore: true);
+    await h.wallet.recover(isRescan: false);
+    await eventually(() => h.wallet.info.grinData!.pendingScanFrom == null);
+    final api = h.backend.api;
+
+    // A synced wallet's last scanned height is the tip. A rescan whose
+    // scan never ran must still start from the restore height next time.
+    api.lastScanned = 50000;
+    api.scanError = grinError(14);
+    await h.wallet.recover(isRescan: true);
+    await eventually(
+      () => api.calls.where((c) => c.startsWith('scan:')).length == 2,
+    );
+    await pumpEventQueue();
+    expect(h.wallet.info.grinData!.pendingScanFrom, 1000);
+    expect(api.calls, isNot(contains('lastScannedHeight')));
+  });
+
+  test('a rescan asked for while the scan waits for Tor does not run the '
+      'scan it replaces', () async {
+    h.prefs.tor = true;
+    h.tor.current = TorConnectionStatus.connecting;
+    await h.wallet.init(isRestore: true);
+    await h.wallet.recover(isRescan: false);
+    await pumpEventQueue();
+    final api = h.backend.api;
+    expect(api.calls.where((c) => c.startsWith('scan:')), isEmpty);
+
+    var rescanned = false;
+    final rescan = h.wallet
+        .recover(isRescan: true)
+        .then((_) => rescanned = true);
+    await pumpEventQueue();
+    expect(rescanned, isFalse);
+
+    h.tor.current = TorConnectionStatus.connected;
+    h.bus.fire(
+      TorConnectionStatusChangedEvent(TorConnectionStatus.connected, ''),
+    );
+    await rescan.timeout(const Duration(seconds: 5));
+    await eventually(() => api.scanRunning);
+    expect(api.calls.where((c) => c.startsWith('scan:')).toList(), [
+      'scan:1000:false',
+    ]);
+    api.finishScan();
+    await eventually(() => h.wallet.info.grinData!.pendingScanFrom == null);
+  });
 
   test('progress is reported as percent and blocks remaining', () async {
     final percents = <double>[];

@@ -142,6 +142,16 @@ void main() {
       expect(failures.first.result.path, _path);
     });
 
+    test("a Grin library that is missing is reported for Grin wallets", () {
+      final failures = _startup({"grin_ffi.dll"});
+      expect(failures.map((f) => f.displayName), ["Grin wallets"]);
+      expect(failures.single.result.problem, NativeLibraryProblem.missing);
+      expect(
+        failures.single.result.path,
+        r"C:\Program Files\Stack Wallet\grin_ffi.dll",
+      );
+    });
+
     test("failures are handed over once", () {
       _startup({_dll});
       expect(takeNativeLibraryFailures(), isEmpty);
@@ -189,7 +199,8 @@ void main() {
         os: "windows",
         executable: _exe,
         open: (name) {
-          if (name != "salvium_libwallet2_api_c.dll") {
+          if (name != "salvium_libwallet2_api_c.dll" &&
+              name != "grin_ffi.dll") {
             throw ArgumentError(_notFound);
           }
         },

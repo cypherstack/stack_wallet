@@ -216,6 +216,10 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
   Future<void>? _initializing;
   Future<void>? _closing;
   Future<void>? _scanJob;
+
+  /// Set by [_stopScanJob]. A job that has not handed its scan to the
+  /// library yet ends without starting it.
+  bool _scanStopRequested = false;
   bool _exited = false;
 
   _AppliedNetwork? _applied;
@@ -317,13 +321,18 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
               password: stored,
             );
           } on GrinWalletNotFoundException {
-            if (existing != null) {
+            if (existing == null) {
+              api = await _createNew(dir, stored);
+            } else if (existing.pendingScanFrom != null) {
+              // A restore or rescan stopped before the wallet was created.
+              // The scan it still owes rebuilds everything.
+              api = await _recreate(dir);
+            } else {
               throw GrinWalletException(
                 "The Grin wallet files are missing. Restore this wallet from "
                 "its recovery phrase.",
               );
             }
-            api = await _createNew(dir, stored);
           }
         } else {
           if (existing != null) {
@@ -349,8 +358,8 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
 
   /// A wallet Stack just made: its first refresh must not scan from genesis.
   Future<GrinWalletApi> _createNew(String dir, String password) async {
-    final api = await backend.create(
-      config: _buildConfig(dir),
+    final api = await _createClearingLeftovers(
+      dir: dir,
       mnemonic: await getMnemonic(),
       password: password,
       isNewWallet: true,
@@ -452,6 +461,13 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
       await api.close();
     } catch (e) {
       Logging.instance.w("Grin close failed: ${describeGrinError(e)}");
+      // An open handle keeps the directory busy until the app restarts, so
+      // try once more.
+      try {
+        await api.close();
+      } catch (e) {
+        Logging.instance.w("Grin close failed again: ${describeGrinError(e)}");
+      }
     }
   }
 
@@ -481,21 +497,26 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
         }
         _claimOwnership();
         try {
-          _api = await _createFromMnemonic(await _ensureWalletDir());
+          final dir = await _ensureWalletDir();
+          // Saved before the wallet exists. If anything from here on is
+          // interrupted, the next start still knows a scan is owed; a
+          // wallet created without that would be scanned from the first
+          // block by its first refresh.
+          final height = info.restoreHeight;
+          await info.updateGrinData(
+            grinData: GrinWalletData(
+              creationHeight: height,
+              pendingScanFrom: height,
+            ),
+            isar: mainDB.isar,
+          );
+          _api = await _createFromMnemonic(dir);
         } catch (e) {
           await _releaseOwnership();
           rethrow;
         }
       });
       await _storeAddress();
-      final height = info.restoreHeight;
-      await info.updateGrinData(
-        grinData: GrinWalletData(
-          creationHeight: height,
-          pendingScanFrom: height,
-        ),
-        isar: mainDB.isar,
-      );
       highestPercent = 0;
     });
   }
@@ -503,11 +524,11 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
   /// Keeps the history and scans again from the restore height. Creates the
   /// wallet from the mnemonic first if its files are missing.
   Future<void> _rescan() async {
-    _api?.cancelScan();
-    final running = _scanJob;
-    if (running != null) await running;
+    await _stopScanJob();
 
     await refreshMutex.protect(() async {
+      // First, so a rescan that fails or is interrupted below is still owed.
+      await _markScanFromRestoreHeight();
       if (_api == null) {
         final closing = _closing;
         if (closing != null) await closing;
@@ -530,7 +551,7 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
                 // Rebuilt from the mnemonic below.
               }
             }
-            _api = await _createFromMnemonic(dir);
+            _api = await _recreate(dir);
           } catch (e) {
             await _releaseOwnership();
             rethrow;
@@ -538,14 +559,47 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
         });
         await _storeAddress();
       }
-      final height = info.restoreHeight;
-      await info.updateGrinData(
-        grinData: (info.grinData ?? GrinWalletData(creationHeight: height))
-            .withPendingScanFrom(height),
-        isar: mainDB.isar,
-      );
       highestPercent = 0;
     });
+  }
+
+  /// Cancels the running scan job, if any, and waits for it to end.
+  ///
+  /// The library can only cancel a scan it has been given. A job that is
+  /// still waiting for its turn or for the network has not called it yet,
+  /// so the request is also kept for the job to see.
+  Future<void> _stopScanJob() async {
+    final running = _scanJob;
+    if (running == null) return;
+    _scanStopRequested = true;
+    _api?.cancelScan();
+    await running;
+  }
+
+  Future<void> _markScanFromRestoreHeight() async {
+    final height = info.restoreHeight;
+    await info.updateGrinData(
+      grinData: (info.grinData ?? GrinWalletData(creationHeight: height))
+          .withPendingScanFrom(height),
+      isar: mainDB.isar,
+    );
+  }
+
+  /// Builds the native wallet again from the mnemonic when its files are
+  /// gone. The new wallet numbers its log from zero, so the stored history,
+  /// which refers to the old log, is dropped; the scan from the restore
+  /// height finds the funds again.
+  Future<GrinWalletApi> _recreate(String dir) async {
+    await _markScanFromRestoreHeight();
+    final api = await _createFromMnemonic(dir);
+    _slatepacks = const {};
+    await mainDB.isar.writeTxn(() async {
+      await mainDB.isar.transactionV2s
+          .where()
+          .walletIdEqualTo(walletId)
+          .deleteAll();
+    });
+    return api;
   }
 
   /// Writes the password (reusing a stored one), then creates the wallet
@@ -562,21 +616,34 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
         value: password,
       );
     }
-    final mnemonic = await getMnemonic();
+    return _createClearingLeftovers(
+      dir: dir,
+      mnemonic: await getMnemonic(),
+      password: password,
+      isNewWallet: false,
+    );
+  }
+
+  /// Creates the native wallet. Data left by an interrupted create or
+  /// delete, which holds no seed, is cleared once and the create repeated.
+  Future<GrinWalletApi> _createClearingLeftovers({
+    required String dir,
+    required String mnemonic,
+    required String password,
+    required bool isNewWallet,
+  }) async {
+    Future<GrinWalletApi> create() => backend.create(
+      config: _buildConfig(dir),
+      mnemonic: mnemonic,
+      password: password,
+      isNewWallet: isNewWallet,
+    );
     try {
-      return await backend.create(
-        config: _buildConfig(dir),
-        mnemonic: mnemonic,
-        password: password,
-      );
+      return await create();
     } on GrinWalletExistsException catch (e) {
       if (e.details?["reason"] != "leftover_wallet_data") rethrow;
       await backend.delete(walletDir: dir);
-      return await backend.create(
-        config: _buildConfig(dir),
-        mnemonic: mnemonic,
-        password: password,
-      );
+      return await create();
     }
   }
 
@@ -599,6 +666,7 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
     final running = _scanJob;
     if (running != null) return running;
     late final Future<void> job;
+    _scanStopRequested = false;
     job = _scan().whenComplete(() {
       if (identical(_scanJob, job)) _scanJob = null;
       if (!_exited) ensurePeriodicRefreshTimer();
@@ -621,13 +689,18 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
       );
       try {
         await _requireNetwork();
+        // Stopped before it started: nothing was scanned.
+        if (_scanStopRequested) return;
         if (_pauseObserver?.isPaused ?? false) return;
         await api.scan(startHeight: from);
         await _setPendingScanFrom(null);
         succeeded = true;
       } on GrinCancelledException catch (e) {
-        await _setPendingScanFrom(await _resumeHeight(api, e, from));
+        await _saveScanProgress(e, from);
       } catch (e) {
+        // The batches before the failure are saved, so a scan over a poor
+        // connection still gets further each time.
+        if (e is GrinException) await _saveScanProgress(e, from);
         Logging.instance.w("Grin scan failed: ${describeGrinError(e)}");
         _fireSyncStatus(WalletSyncStatus.unableToSync);
       } finally {
@@ -646,18 +719,16 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
     if (!_exited && _api != null && _scanPending) await refresh();
   }
 
-  Future<int> _resumeHeight(
-    GrinWalletApi api,
-    GrinCancelledException cancelled,
-    int from,
-  ) async {
-    final scanned = cancelled.details?["scanned_height"];
-    if (scanned is int) return math.max(scanned + 1, 0);
-    try {
-      return await api.lastScannedHeight() + 1;
-    } catch (_) {
-      return from;
-    }
+  /// Moves the resume height past what the ended scan says it saved.
+  ///
+  /// An error without a height (a scan cancelled before it started, or one
+  /// that failed before it read the chain tip) saved nothing, and the
+  /// resume height stays. The wallet's last scanned height is no stand-in:
+  /// a refresh moves it to the tip, which would end a rescan early.
+  Future<void> _saveScanProgress(GrinException ended, int from) async {
+    final scanned = ended.scannedHeight;
+    if (scanned == null || scanned < from) return;
+    await _setPendingScanFrom(scanned + 1);
   }
 
   void _reportScanProgress(GrinWalletApi api) {
