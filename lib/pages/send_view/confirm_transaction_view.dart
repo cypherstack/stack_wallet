@@ -45,11 +45,13 @@ import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/models/tx_data.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
 import '../../wallets/wallet/impl/solana_wallet.dart';
+import '../../wallets/wallet/supporting/grin/grin_errors.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/slatepack_interface.dart';
 import '../../utilities/enums/slatepack_method.dart';
 import '../../models/slatepack_models.dart';
+import '../slatepack/slatepack_import_flow.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -272,6 +274,46 @@ class _ConfirmTransactionViewState
     }
   }
 
+  /// Ends a direct send the recipient completed but the node did not take.
+  ///
+  /// The transaction is finalized and in the history, so this screen is
+  /// done: sending again from it would be a second payment. Repost is
+  /// offered here and stays available from the transaction's details.
+  Future<void> _finalizedNotBroadcast(
+    BuildContext context,
+    SlatepackInterface wallet, {
+    required String slateId,
+    required String note,
+    required void Function() closeSendingDialog,
+  }) async {
+    Logging.instance.w("Send finalized but not broadcast. Slate id: $slateId");
+    if (note.isNotEmpty) {
+      try {
+        await ref
+            .read(mainDBProvider)
+            .putTransactionNote(
+              TransactionNote(walletId: walletId, txid: slateId, value: note),
+            );
+      } catch (_) {
+        // The transaction exists either way.
+      }
+    }
+    closeSendingDialog();
+
+    if (context.mounted) {
+      await SlatepackImportFlow.notPosted(context, wallet, slateId);
+    }
+
+    widget.onSuccess.call();
+    if (context.mounted) {
+      if (widget.onSuccessInsteadOfRouteOnSuccess == null) {
+        Navigator.of(context).popUntil(ModalRoute.withName(routeOnSuccessName));
+      } else {
+        widget.onSuccessInsteadOfRouteOnSuccess!.call();
+      }
+    }
+  }
+
   Future<void> _attemptSend(BuildContext context) async {
     final wallet = ref.read(pWallets).getWallet(walletId);
     final coin = wallet.info.coin;
@@ -431,6 +473,19 @@ class _ConfirmTransactionViewState
         return;
       }
     } catch (e, s) {
+      if (e is GrinWalletException &&
+          e.finalizedNotBroadcast &&
+          wallet is SlatepackInterface) {
+        await _finalizedNotBroadcast(
+          context,
+          wallet,
+          slateId: e.slateId!,
+          note: note,
+          closeSendingDialog: closeSendingDialog,
+        );
+        return;
+      }
+
       // Nothing is broadcast when a slatepack is created.
       final message =
           wallet is SlatepackInterface && widget.txData.isSlatepackSend

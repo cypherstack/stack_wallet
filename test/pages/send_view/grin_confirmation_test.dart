@@ -4,9 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isar_community/isar.dart';
+import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
+import 'package:stackwallet/models/isar/models/transaction_note.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
+import 'package:stackwallet/pages/send_view/sub_widgets/sending_transaction_dialog.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
+import 'package:stackwallet/providers/db/main_db_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
@@ -25,6 +30,35 @@ import 'package:stackwallet/widgets/desktop/primary_button.dart';
 import '../../sample_data/theme_json.dart';
 import '../../wallets/support/grin_fakes.dart';
 import '../../wallets/support/xelis_test_fakes.dart';
+
+/// A Grin test wallet that does not refresh, so a send can run inside a
+/// widget test.
+class _QuietWallet extends GrinTestWallet {
+  _QuietWallet(GrinHarness h)
+    : super(
+        testWalletId: h.walletId,
+        backend: h.backend,
+        tor: h.tor,
+        bus: h.bus,
+        secrets: h.secrets,
+        testPrefs: h.prefs,
+      );
+
+  final reposted = <String>[];
+
+  @override
+  Future<void> refresh() async {}
+
+  @override
+  Future<void> repost(String txid) async => reposted.add(txid);
+}
+
+class _Notes extends Fake implements MainDB {
+  final notes = <TransactionNote>[];
+  @override
+  Future<void> putTransactionNote(TransactionNote note) async =>
+      notes.add(note);
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -59,7 +93,13 @@ void main() {
     otherData: slatepackMethodOtherData(SlatepackMethod.http),
   );
 
-  Future<void> pumpConfirm(WidgetTester tester, TxData txData) async {
+  Future<void> pumpConfirm(
+    WidgetTester tester,
+    TxData txData, {
+    GrinTestWallet? sender,
+    MainDB? db,
+    VoidCallback? onSuccess,
+  }) async {
     tester.view.physicalSize = const Size(1400, 2400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -68,12 +108,13 @@ void main() {
     addTearDown(() => StackFileSystem.themesDir = previousThemesDir);
     StackFileSystem.themesDir = Directory('test/sample_data').absolute;
 
-    final wallet = h.wallet;
+    final wallet = sender ?? h.wallet;
     final coin = wallet.cryptoCurrency;
     final theme = StackTheme.fromJson(json: lightThemeJsonMap);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          if (db != null) mainDBProvider.overrideWithValue(db),
           pWallets.overrideWithValue(ConfirmationWallets(wallet)),
           pWalletCoin(h.walletId).overrideWithValue(coin),
           prefsChangeNotifierProvider.overrideWithValue(ConfirmationPrefs()),
@@ -95,7 +136,8 @@ void main() {
             body: ConfirmTransactionView(
               txData: txData,
               walletId: h.walletId,
-              onSuccess: () {},
+              onSuccess: onSuccess ?? () {},
+              onSuccessInsteadOfRouteOnSuccess: () {},
             ),
           ),
         ),
@@ -157,6 +199,54 @@ void main() {
     await pumpConfirm(tester, direct('https://payee.example'));
     expect(find.textContaining('Tor is not connected'), findsOneWidget);
     expect(sendEnabled(tester), isFalse);
+  });
+
+  testWidgets('a direct send the node did not take ends the send and offers '
+      'repost', (tester) async {
+    final wallet = _QuietWallet(h);
+    await tester.runAsync(wallet.init);
+    addTearDown(() async {
+      try {
+        await wallet.exit();
+      } catch (_) {}
+    });
+    h.backend.api.sendError = grinError(
+      9,
+      details: {'slate_id': 'slate-f', 'finalized': true},
+    );
+    final notes = _Notes();
+    var succeeded = false;
+    await pumpConfirm(
+      tester,
+      direct('https://payee.example').copyWith(note: 'for lunch'),
+      sender: wallet,
+      db: notes,
+      onSuccess: () => succeeded = true,
+    );
+    await tester.ensureVisible(find.byKey(const Key('slatepackClearnetAck')));
+    await tester.tap(find.byKey(const Key('slatepackClearnetAck')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Send'));
+    await tester.tap(find.text('Send'));
+    await tester.pumpAndSettle();
+    Navigator.of(tester.element(find.byType(DesktopAuthSend))).pop(true);
+    for (var i = 0; i < 8; i++) {
+      await tester.pump(const Duration(milliseconds: 500));
+    }
+
+    expect(h.backend.api.calls, contains('sendHttp'));
+    expect(find.byType(SendingTransactionDialog), findsNothing);
+    expect(find.text('Broadcast transaction failed'), findsNothing);
+    expect(find.text('Finalized, not broadcast'), findsOneWidget);
+    expect(succeeded, isFalse);
+    expect(notes.notes.single.txid, 'slate-f');
+    expect(notes.notes.single.value, 'for lunch');
+
+    await tester.tap(find.text('Later'));
+    await tester.pumpAndSettle();
+    expect(wallet.reposted, isEmpty);
+    expect(succeeded, isTrue);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('a slatepack send has no transport warnings', (tester) async {
