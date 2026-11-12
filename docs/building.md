@@ -138,11 +138,12 @@ below when keeping multiple builds of 27.0 installed.
 
 ### Install with xcodes
 
-Install the [xcodes CLI](https://github.com/XcodesOrg/xcodes), then run our
+Install the [xcodes CLI](https://github.com/XcodesOrg/xcodes) from
+[Homebrew core](https://formulae.brew.sh/formula/xcodes), then run our
 standalone helper from the repository root:
 
 ```sh
-brew install xcodesorg/made/xcodes
+brew install xcodes
 dart tool/setup_xcode.dart
 ```
 

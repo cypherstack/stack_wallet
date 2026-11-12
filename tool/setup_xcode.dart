@@ -126,7 +126,7 @@ if ! find_xcode; then
   if [ -z "$XCODES" ] || [ ! -x "$XCODES" ]; then
     echo 'xcodes was not found on your PATH when setup was launched.' >&2
     echo 'Install it or add it to PATH, then rerun this helper.' >&2
-    echo 'Homebrew option: brew install xcodesorg/made/xcodes' >&2
+    echo 'Homebrew option: brew install xcodes' >&2
     exit 1
   fi
   if ! help=$("$XCODES" install --help); then
