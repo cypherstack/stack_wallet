@@ -7,8 +7,11 @@ import 'package:grin/grin.dart';
 import 'package:isar_community/isar.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
+import 'package:stackwallet/models/slatepack_models.dart';
 import 'package:stackwallet/pages/slatepack/pay_invoice_confirm_view.dart';
+import 'package:stackwallet/pages/slatepack/slatepack_dialog.dart';
 import 'package:stackwallet/pages/slatepack/slatepack_import_flow.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
@@ -19,6 +22,7 @@ import 'package:stackwallet/utilities/amount/amount_unit.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/slatepack_interface.dart';
+import 'package:stackwallet/widgets/desktop/primary_button.dart';
 
 import '../../sample_data/theme_json.dart';
 import '../../wallets/support/grin_fakes.dart';
@@ -44,6 +48,13 @@ class _FlowWallet extends GrinTestWallet {
   bool repostable = false;
   final reposted = <String>[];
 
+  /// What paying an invoice returns, if not the library's answer.
+  SlatepackResult? payment;
+
+  /// What a cancel answers: "" or the failure.
+  String cancelResult = '';
+  final cancelled = <String>[];
+
   @override
   Future<void> refresh() async {}
 
@@ -57,6 +68,20 @@ class _FlowWallet extends GrinTestWallet {
 
   @override
   Future<void> repost(String txid) async => reposted.add(txid);
+
+  @override
+  Future<SlatepackResult> processInvoice(
+    String i1, {
+    required Amount confirmedAmount,
+  }) async =>
+      payment ??
+      await super.processInvoice(i1, confirmedAmount: confirmedAmount);
+
+  @override
+  Future<String> cancelPendingTransactionAndPost(String slateId) async {
+    cancelled.add(slateId);
+    return cancelResult;
+  }
 }
 
 void main() {
@@ -66,6 +91,7 @@ void main() {
   late Isar isar;
   late GrinHarness h;
   late _FlowWallet wallet;
+  var spendable = 100000;
 
   setUpAll(() async => dataRoot = await setUpGrinTests());
   tearDownAll(() => dataRoot.delete(recursive: true));
@@ -73,6 +99,7 @@ void main() {
     isarRoot = await Directory.systemTemp.createTemp('stack_grin_isar_');
     isar = await openTestIsar(isarRoot);
     h = await GrinHarness.create();
+    spendable = 100000;
     wallet = _FlowWallet(h);
     await wallet.init();
   });
@@ -117,8 +144,8 @@ void main() {
           pWalletCoin(h.walletId).overrideWithValue(coin),
           pWalletBalance(h.walletId).overrideWithValue(
             Balance(
-              total: _grin(100000),
-              spendable: _grin(100000),
+              total: _grin(spendable),
+              spendable: _grin(spendable),
               blockedTotal: _grin(0),
               pendingSpendable: _grin(0),
             ),
@@ -174,6 +201,114 @@ void main() {
     expect(h.backend.api.calls, contains('estimateFee'));
     expect(h.backend.api.calls, isNot(contains('processInvoice')));
   });
+
+  Future<void> settle(WidgetTester tester) async {
+    for (var i = 0; i < 4; i++) {
+      await tester.pump(const Duration(milliseconds: 400));
+    }
+  }
+
+  bool payEnabled(WidgetTester tester) => tester
+      .widget<PrimaryButton>(find.byKey(const Key('payInvoiceButton')))
+      .enabled;
+
+  /// Opens the pay screen on an invoice the wallet can afford.
+  Future<void> openInvoice(WidgetTester tester) async {
+    spendable = 1000000000;
+    h.backend.api.decoded = decoded(GrinSlateState.i1, amount: 5000);
+    await runFlow(tester);
+    expect(find.byType(PayInvoiceConfirmView), findsOneWidget);
+  }
+
+  /// Presses Pay and passes the unlock step.
+  Future<void> pay(WidgetTester tester) async {
+    await tester.tap(find.byKey(const Key('payInvoiceButton')));
+    await settle(tester);
+    Navigator.of(tester.element(find.byType(DesktopAuthSend))).pop(true);
+    await settle(tester);
+  }
+
+  SlatepackResult paidWith({required int fee, String? slateId}) =>
+      SlatepackResult(
+        success: true,
+        slatepack: 'BEGINSLATEPACK. paid ENDSLATEPACK.',
+        state: SlateState.i2,
+        slateId: slateId,
+        amount: _grin(5000),
+        fee: _grin(fee),
+      );
+
+  testWidgets('a failed fee estimate can be tried again', (tester) async {
+    h.backend.api.estimateError = grinError(9);
+    await openInvoice(tester);
+    expect(find.text('Could not estimate'), findsOneWidget);
+    expect(find.byKey(const Key('payInvoiceButton')), findsNothing);
+
+    h.backend.api.estimateError = null;
+    await tester.tap(find.byKey(const Key('payInvoiceRetryEstimate')));
+    await settle(tester);
+    expect(find.text('Could not estimate'), findsNothing);
+    expect(find.byKey(const Key('payInvoiceRetryEstimate')), findsNothing);
+    expect(payEnabled(tester), isTrue);
+  });
+
+  testWidgets('paying at the estimated fee shows the payment Slatepack', (
+    tester,
+  ) async {
+    await openInvoice(tester);
+    await pay(tester);
+    expect(h.backend.api.calls, contains('processInvoice'));
+    expect(find.text('Higher fee'), findsNothing);
+    expect(find.byType(SlatepackDialog), findsOneWidget);
+    expect(wallet.cancelled, isEmpty);
+  });
+
+  testWidgets('declining a higher fee cancels the payment', (tester) async {
+    wallet.payment = paidWith(fee: 30000000, slateId: 'slate-p');
+    await openInvoice(tester);
+    await pay(tester);
+    expect(find.text('Higher fee'), findsOneWidget);
+    await tester.tap(find.text('Cancel payment'));
+    await settle(tester);
+
+    expect(wallet.cancelled, ['slate-p']);
+    expect(find.byType(SlatepackDialog), findsNothing);
+    expect(find.text('Payment cancelled'), findsOneWidget);
+    await tester.tap(find.text('OK'));
+    await settle(tester);
+    expect(find.byType(PayInvoiceConfirmView), findsNothing);
+  });
+
+  for (final slateId in [null, 'slate-p']) {
+    testWidgets('a payment that could not be cancelled closes the screen and '
+        'points at the transaction details, slate id $slateId', (tester) async {
+      wallet.payment = paidWith(fee: 30000000, slateId: slateId);
+      wallet.cancelResult = 'The node did not answer.';
+      await openInvoice(tester);
+      await pay(tester);
+      await tester.tap(find.text('Cancel payment'));
+      await settle(tester);
+
+      expect(wallet.cancelled, slateId == null ? isEmpty : ['slate-p']);
+      expect(find.text('Cancel failed'), findsOneWidget);
+      expect(
+        find.textContaining(
+          slateId == null
+              ? 'Could not cancel automatically.'
+              : 'The node did not answer.',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining('Cancel the payment from the transaction details'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('OK'));
+      await settle(tester);
+      // Paying again from here would be a second payment.
+      expect(find.byType(PayInvoiceConfirmView), findsNothing);
+    });
+  }
 
   testWidgets('an I1 without an amount is refused', (tester) async {
     h.backend.api.decoded = decoded(GrinSlateState.i1);

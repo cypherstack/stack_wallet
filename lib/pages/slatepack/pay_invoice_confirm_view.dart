@@ -8,6 +8,7 @@ import '../../providers/global/wallets_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
+import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
@@ -28,7 +29,9 @@ import 'slatepack_import_flow.dart';
 
 /// Review of someone else's invoice (I1) before paying it. Modelled on the
 /// send confirm screen. The invoice carries no fee, so the fee is the
-/// wallet's estimate. Pops true once the payment slatepack (I2) was made.
+/// wallet's estimate. Pops true once a payment was made and still stands:
+/// the payment slatepack (I2) was shown, or the payment could not be
+/// cancelled again.
 class PayInvoiceConfirmView extends ConsumerStatefulWidget {
   const PayInvoiceConfirmView({
     super.key,
@@ -54,8 +57,8 @@ class PayInvoiceConfirmView extends ConsumerStatefulWidget {
 
 class _PayInvoiceConfirmViewState extends ConsumerState<PayInvoiceConfirmView> {
   late final SlatepackInterface _wallet;
-  late final Future<Amount> _feeFuture;
   Amount? _estimatedFee;
+  bool _estimateFailed = false;
   bool _busy = false;
 
   Amount get _amount => widget.inspection.amount!;
@@ -65,10 +68,26 @@ class _PayInvoiceConfirmViewState extends ConsumerState<PayInvoiceConfirmView> {
     super.initState();
     _wallet =
         ref.read(pWallets).getWallet(widget.walletId) as SlatepackInterface;
-    _feeFuture = _wallet.estimateFeeFor(_amount, BigInt.zero).then((fee) {
-      _estimatedFee = fee;
-      return fee;
-    });
+    unawaited(_estimateFee());
+  }
+
+  Future<void> _estimateFee() async {
+    try {
+      final fee = await _wallet.estimateFeeFor(_amount, BigInt.zero);
+      if (mounted) setState(() => _estimatedFee = fee);
+    } catch (e, s) {
+      Logging.instance.w(
+        "Could not estimate the fee of an invoice payment",
+        error: e,
+        stackTrace: s,
+      );
+      if (mounted) setState(() => _estimateFailed = true);
+    }
+  }
+
+  void _retryEstimate() {
+    setState(() => _estimateFailed = false);
+    unawaited(_estimateFee());
   }
 
   Future<void> _pay() async {
@@ -150,23 +169,40 @@ class _PayInvoiceConfirmViewState extends ConsumerState<PayInvoiceConfirmView> {
     );
   }
 
+  /// Cancels the payment just made. The screen closes either way: when the
+  /// cancel fails the payment still exists with its funds locked, and paying
+  /// from here again would be a second one.
   Future<void> _cancelPayment(String? slateId) async {
-    if (slateId == null) return;
-    final message = await SlatepackImportFlow.withLoading(
-      context,
-      "Cancelling payment...",
-      () => _wallet.cancelPendingTransactionAndPost(slateId),
-      errorTitle: "Cancel failed",
-    );
-    if (!mounted || message == null) return;
+    String? failure;
+    if (slateId == null) {
+      failure = "Could not cancel automatically.";
+    } else {
+      final message = await SlatepackImportFlow.withLoading(
+        context,
+        "Cancelling payment...",
+        () async {
+          try {
+            return await _wallet.cancelPendingTransactionAndPost(slateId);
+          } catch (e) {
+            return e.toString().replaceFirst("Exception: ", "");
+          }
+        },
+        errorTitle: "Cancel failed",
+      );
+      if (!mounted) return;
+      if (message == null || message.isNotEmpty) {
+        failure = message ?? "Could not cancel automatically.";
+      }
+    }
     await SlatepackImportFlow.showMessage(
       context,
-      message.isEmpty ? "Payment cancelled" : "Cancel failed",
-      message.isEmpty
+      failure == null ? "Payment cancelled" : "Cancel failed",
+      failure == null
           ? "The funds are unlocked. Nothing was handed out."
-          : "$message Cancel it from the transaction details.",
+          : "$failure The funds are still locked. Cancel the payment from "
+                "the transaction details.",
     );
-    if (mounted && message.isEmpty) Navigator.of(context).pop(false);
+    if (mounted) Navigator.of(context).pop(failure != null);
   }
 
   @override
@@ -202,14 +238,13 @@ class _PayInvoiceConfirmViewState extends ConsumerState<PayInvoiceConfirmView> {
           ),
         ),
         const SizedBox(height: 12),
-        FutureBuilder<Amount>(
-          future: _feeFuture,
-          builder: (context, snapshot) {
-            final fee = snapshot.data;
+        Builder(
+          builder: (context) {
+            final fee = _estimatedFee;
             final String feeText;
             final String totalText;
             final String remainingText;
-            if (snapshot.hasError) {
+            if (_estimateFailed) {
               feeText = "Could not estimate";
               totalText = "-";
               remainingText = "-";
@@ -260,17 +295,27 @@ class _PayInvoiceConfirmViewState extends ConsumerState<PayInvoiceConfirmView> {
           color: colors.warningBackground,
           child: Text(
             "Paying locks the funds until the payee finalizes the "
-            "transaction, or until you cancel it. Only pay invoices you "
-            "expect.",
+            "transaction. Cancelling unlocks them in this wallet, but a "
+            "payee who already has your payment "
+            "${_wallet.slatepackTerms.noun} can still complete the payment "
+            "until the funds are spent in another transaction. Only pay "
+            "invoices you expect.",
             style: STextStyles.label(context)
                 .copyWith(color: colors.warningForeground),
           ),
         ),
         const SizedBox(height: 24),
-        FutureBuilder<Amount>(
-          future: _feeFuture,
-          builder: (context, snapshot) {
-            final fee = snapshot.data;
+        Builder(
+          builder: (context) {
+            if (_estimateFailed) {
+              return SecondaryButton(
+                key: const Key("payInvoiceRetryEstimate"),
+                label: "Estimate the fee again",
+                buttonHeight: isDesktop ? ButtonHeight.l : null,
+                onPressed: _retryEstimate,
+              );
+            }
+            final fee = _estimatedFee;
             final canPay = !_busy && fee != null && _amount + fee <= spendable;
             return PrimaryButton(
               key: const Key("payInvoiceButton"),
