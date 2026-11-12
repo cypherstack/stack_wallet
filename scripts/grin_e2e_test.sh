@@ -12,8 +12,16 @@ set -euo pipefail
 #
 # The first run compiles the library a second time with the feature on; the
 # build hook keeps both builds under .dart_tool, so later runs and normal
-# builds reuse them. The app bundle under build/ holds the test library
-# after a run, until the next normal build replaces it.
+# builds reuse them. The run leaves the test library in the app bundle under
+# build/, so the script removes every Grin library from build/ when it ends.
+# The next normal build puts the release library back; a bundle packaged
+# without building again fails to load Grin instead of shipping the test
+# chain.
+#
+# A run that is killed outright (SIGKILL, power loss) cannot clean up. Then
+# pubspec.yaml still has the define and build/ still has the test library:
+# configure the app again (scripts/build_app.sh) and delete build/ before
+# building anything that will be distributed.
 #
 # Usage: bash scripts/grin_e2e_test.sh [device] [flutter test options]
 # The device defaults to the host desktop. Set FLUTTER_BIN to use a Flutter
@@ -55,6 +63,16 @@ restore() {
     rm -f -- pubspec.lock
   fi
   rm -rf -- "$backup_dir"
+  remove_test_libraries
+}
+
+# Deletes the Grin libraries the run left under build/. They were built with
+# the test chain and must not be packaged.
+remove_test_libraries() {
+  [[ -d build ]] || return 0
+  find build -depth \( -name 'libgrin_ffi.so' -o -name 'libgrin_ffi.dylib' \
+    -o -name 'grin_ffi.dll' -o -name 'grin_ffi.framework' \
+    -o -name 'grin_ffi.framework.dSYM' \) -exec rm -rf -- {} + || true
 }
 trap restore EXIT
 trap 'exit 130' INT
