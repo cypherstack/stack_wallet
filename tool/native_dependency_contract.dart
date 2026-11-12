@@ -124,8 +124,10 @@ typedef NativeMetadataLoader = Future<Map<String, dynamic>> Function(
 
 Future<XcodeRequirement> loadXcodeRequirement(
   Directory project, {
+  String app = 'stack_wallet',
   NativeMetadataLoader? readMetadata,
 }) async {
+  final enabled = enabledDnixPackages(app);
   final compatibility = jsonDecode(
     File.fromUri(
       project.uri.resolve('tool/native_dependency_compatibility.json'),
@@ -139,6 +141,7 @@ Future<XcodeRequirement> loadXcodeRequirement(
   XcodeRequirement? required;
   var allPinned = true;
   for (final dependency in readNativeDependencies(project)) {
+    if (!enabled.contains(dependency.name)) continue;
     final metadata =
         await (readMetadata?.call(dependency) ??
             _readMetadata(dependency, cache));

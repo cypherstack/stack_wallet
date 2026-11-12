@@ -2,7 +2,6 @@
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:crypto/crypto.dart';
 import 'package:test/test.dart';
 
 import '../windows/build_secp256k1.dart';
@@ -14,7 +13,6 @@ void main() {
   late String sdkRoot;
   late List<({String executable, List<String> args, String? cwd})> calls;
   late String cmakeVersion;
-  late Map<String, String> compilerFlags;
   String? failAt;
   bool missingDll = false;
   bool cleanupLocked = false;
@@ -75,12 +73,10 @@ void main() {
     installSdk('10.0.22621.0');
     calls = [];
     cmakeVersion = 'cmake version 3.31.6';
-    compilerFlags = {};
     failAt = null;
     missingDll = false;
     cleanupLocked = false;
     for (final entry in {
-      'scripts/windows/build_secp256k1.dart': 'fixture recipe',
       'Program Files (x86)/Microsoft Visual Studio/Installer/vswhere.exe':
           'fixture',
       'Visual Studio/VC/Auxiliary/Build/Microsoft.VCToolsVersion.default.txt':
@@ -98,7 +94,7 @@ void main() {
   WindowsSecpBuilder builder({bool nativeWindows = true}) => WindowsSecpBuilder(
     root: root,
     nativeWindows: nativeWindows,
-    environment: {'ProgramFiles(x86)': programFiles, ...compilerFlags},
+    environment: {'ProgramFiles(x86)': programFiles},
     cleanup: (directory) {
       if (cleanupLocked) {
         throw FileSystemException('fixture locked directory', directory.path);
@@ -115,10 +111,6 @@ void main() {
         return args.contains('/reg:64')
             ? result('', 1)
             : result('    KitsRoot10    REG_SZ    $sdkRoot\n');
-      }
-      if (executable == 'certutil.exe' || executable == 'sha256sum') {
-        final file = File(args[executable == 'certutil.exe' ? 1 : 0]);
-        return result('${sha256.convert(file.readAsBytesSync())}\n');
       }
       if (args.length == 1 && args.single == '--version') {
         if (executable == 'cmake' && nativeWindows) {
@@ -237,10 +229,7 @@ void main() {
         File('${root.path}/build/secp256k1.dll').readAsStringSync(),
         'fixture Windows library',
       );
-      expect(
-        File('${root.path}/build/secp256k1.dll.json').existsSync(),
-        isTrue,
-      );
+      expect(Directory('${root.path}/build').listSync(), hasLength(1));
     },
   );
 
@@ -257,98 +246,51 @@ void main() {
     expect(calls.any((c) => c.executable.contains('mingw32-g++')), isFalse);
   });
 
-  test('matching receipt avoids fetching and recompiling', () async {
+  test('an existing DLL is rebuilt on every invocation', () async {
     await builder().build();
-    calls.clear();
-    await builder().build();
-    expect(operation('fetch'), isEmpty);
-    expect(operation('--build'), isEmpty);
-  });
-
-  test('modified DLL invalidates the cache', () async {
-    await builder().build();
-    File('${root.path}/build/secp256k1.dll').writeAsStringSync('corrupted');
     calls.clear();
     await builder().build();
     expect(operation('fetch'), hasLength(1));
+    expect(operation('--build'), hasLength(1));
     expect(
       File('${root.path}/build/secp256k1.dll').readAsStringSync(),
       'fixture Windows library',
     );
   });
 
-  test('changed compiler host or recipe invalidates the cache', () async {
-    await builder().build();
-    calls.clear();
-    await builder(nativeWindows: false).build();
-    expect(operation('fetch'), hasLength(1));
-    File('${root.path}/scripts/windows/build_secp256k1.dart')
-        .writeAsStringSync('changed recipe');
-    calls.clear();
-    await builder(nativeWindows: false).build();
-    expect(operation('fetch'), hasLength(1));
-  });
-
-  test('changed CMake identity invalidates the cache', () async {
-    await builder().build();
-    cmakeVersion = 'cmake version 4.1.0';
-    calls.clear();
-    await builder().build();
-    expect(operation('fetch'), hasLength(1));
-  });
-
-  test('new SDK version invalidates cache and is selected for CMake', () async {
-    await builder().build();
+  test('the newest complete SDK is selected for CMake', () async {
     installSdk('10.0.26100.0');
-    calls.clear();
     await builder().build();
-    expect(operation('fetch'), hasLength(1));
     expect(
       operation('-S').single.args,
       contains('-DCMAKE_SYSTEM_VERSION=10.0.26100.0'),
     );
   });
 
-  test('changed explicit compiler flags invalidate the cache', () async {
-    await builder().build();
-    compilerFlags = {'CL': '/O1', 'LDFLAGS': '-s'};
-    calls.clear();
-    await builder().build();
-    expect(operation('fetch'), hasLength(1));
-  });
-
   for (final operation in ['init', 'fetch', 'checkout', '-S', '--build']) {
-    test(
-      '$operation failure propagates without publishing a receipt',
-      () async {
-        failAt = operation;
-        await expectLater(
-          builder().build(),
-          throwsA(isA<SecpBuildException>()),
-        );
-        expect(
-          File('${root.path}/build/secp256k1.dll.json').existsSync(),
-          isFalse,
-        );
-        expect(File('${root.path}/build/secp256k1.dll').existsSync(), isFalse);
-      },
-    );
+    test('$operation failure propagates without publishing a DLL', () async {
+      failAt = operation;
+      await expectLater(builder().build(), throwsA(isA<SecpBuildException>()));
+      expect(File('${root.path}/build/secp256k1.dll').existsSync(), isFalse);
+    });
   }
 
-  test('a successful CMake exit without the DLL is rejected', () async {
-    missingDll = true;
-    await expectLater(builder().build(), throwsA(isA<SecpBuildException>()));
-    expect(File('${root.path}/build/secp256k1.dll.json').existsSync(), isFalse);
-  });
+  test(
+    'a missing built DLL is rejected and preserves the previous DLL',
+    () async {
+      final output = File('${root.path}/build/secp256k1.dll');
+      output.parent.createSync(recursive: true);
+      output.writeAsStringSync('previous Windows library');
+      missingDll = true;
+      await expectLater(builder().build(), throwsA(isA<SecpBuildException>()));
+      expect(output.readAsStringSync(), 'previous Windows library');
+    },
+  );
 
   test('locked cleanup leaves a successfully published DLL usable', () async {
     cleanupLocked = true;
     await builder().build();
     expect(File('${root.path}/build/secp256k1.dll').existsSync(), isTrue);
-    expect(File('${root.path}/build/secp256k1.dll.json').existsSync(), isTrue);
-    calls.clear();
-    await builder().build();
-    expect(operation('fetch'), isEmpty);
   });
 
   test('locked cleanup never masks the original build failure', () async {
@@ -364,7 +306,7 @@ void main() {
         ),
       ),
     );
-    expect(File('${root.path}/build/secp256k1.dll.json').existsSync(), isFalse);
+    expect(File('${root.path}/build/secp256k1.dll').existsSync(), isFalse);
   });
 
   group('WSL entry point', () {

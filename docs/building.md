@@ -74,10 +74,11 @@ check for missing locks.
 Their old host Rust toolchain lists, `cbindgen`, `cargo-lipo`, and manually built
 Epic/MWC/Tor dependencies are no longer required. **Keep Rustup for every app**:
 unconditional `cs_openalias` depends on the source-built `dnssec_resolver`.
-Stack Wallet also needs it for Xelis, as does an optional Isar source build
-(`-f`). These hooks install their pinned toolchains automatically. Nix supplies
-the four dnix packages' own
-pinned toolchains, independently of the Rust installed on the host.
+Stack Wallet also needs it for Xelis. These hooks install their pinned toolchains
+automatically. The optional Isar source build (`-f`) separately uses Rust
+**1.99.1**, installing it through Rustup if missing without changing your default
+toolchain. Nix supplies the four dnix packages' own pinned toolchains,
+independently of the Rust installed on the host.
 
 The macOS app deployment target is now **12.0** to accommodate the native
 libraries. iOS remains 15.0, and the current Flutter Android minimum is API 24.
@@ -169,8 +170,10 @@ The helper and preflight read `toolchains.xcode` and, when available,
 which lack a build-number pin, `tool/native_dependency_compatibility.json`
 records the reviewed release for each exact Git revision. Updating a revision
 requires either an upstream build-number pin or a reviewed compatibility entry.
-On a fresh checkout, metadata is fetched from the pinned GitHub commits when
-it is absent from the pub cache; this also applies to `--print`.
+Preflight checks only packages enabled for the selected app; the standalone
+setup helper checks all four packages. On a fresh checkout, metadata is fetched
+from the pinned GitHub commits when it is absent from the pub cache; this also
+applies to `--print`.
 
 The installer runs in a clean environment without shell startup files or build
 commands. `xcodes` handles Apple account prompts; `sudo -k` prompts directly for
@@ -296,9 +299,9 @@ dart scripts/windows/build_secp256k1.dart
 Native Windows uses MSVC; Linux/WSL cross-compiles with CMake and MinGW. Both
 use secp256k1 **v0.5.0** (`e3a885d42a7800c1ccebad94ad1e2b82c4df5c65`).
 Their DLLs are not expected to be byte-identical across these toolchains; dnix's
-hash-verification guarantee applies to its four packages, not secp256k1. The
-helper reuses a DLL only when its build receipt and checksum match. The old
-MXE setup and Epic-specific CMake upgrade are not needed for dnix.
+hash-verification guarantee applies to its four packages, not secp256k1. Each
+build recompiles the DLL; `-i` skips this step during configuration. The old MXE
+setup and Epic-specific CMake upgrade are not needed for dnix.
 
 If configuring from the legacy Linux/WSL shell, use a Linux Dart SDK there and
 keep Rustup on the native Windows Flutter host. The prerequisite check probes
@@ -419,7 +422,7 @@ dart scripts/tests/build_input_test.dart
 Configuration tests exercise all three apps, both modes, persistent WSL settings,
 Linux builds, and Windows output locations using stubbed native tools. Separate
 tests cover prerequisite failures, Xcode setup, Windows tool discovery, and the
-secp256k1 cache. A small Windows CI job runs the PowerShell prebuild regression
+secp256k1 build helper. A small Windows CI job runs the PowerShell prebuild regression
 tests. Actual native Windows to WSL builds are tested in dnix's CI; these app
 tests do not run WSL.
 

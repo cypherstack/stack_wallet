@@ -45,7 +45,8 @@ void main() {
         "& \$dart 'C:\\Users\\O''Brien & %HOME%\\工具\\check.dart' 'stack_wallet' windows;",
       ),
     );
-    expect(command, contains('Get-Command dart.exe -CommandType Application'));
+    expect(command, contains('Get-Command dart -CommandType Application'));
+    expect(command, isNot(contains('Get-Command dart.exe')));
     expect(command, contains(r"'cache\dart-sdk\bin\dart.exe'"));
     expect(command, endsWith(r'exit $LASTEXITCODE'));
     expect(result.exitCode, 23);

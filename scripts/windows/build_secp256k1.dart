@@ -1,5 +1,4 @@
 // Plain Dart: usable before pub get without the app's native-assets hooks.
-import 'dart:convert';
 import 'dart:io';
 
 const secpRevision = 'e3a885d42a7800c1ccebad94ad1e2b82c4df5c65'; // v0.5.0
@@ -42,7 +41,6 @@ class WindowsSecpBuilder {
   late String cmake;
   String? visualStudio;
   ({String root, String version})? windowsSdk;
-  late Map<String, String> identity;
 
   static int compareVersions(String a, String b) {
     final left = a.split('.').map(int.parse).toList();
@@ -139,25 +137,9 @@ class WindowsSecpBuilder {
     return result;
   }
 
-  Future<String> hash(File file) async {
-    final result = await checked(
-      nativeWindows ? 'certutil.exe' : 'sha256sum',
-      nativeWindows ? ['-hashfile', file.path, 'SHA256'] : [file.path],
-    );
-    final match = RegExp(
-      r'^[a-fA-F0-9]{64}(?=\s|$)',
-      multiLine: true,
-    ).firstMatch(result.stdout.toString());
-    if (match == null) {
-      throw SecpBuildException('Could not read SHA-256 for ${file.path}.');
-    }
-    return match.group(0)!.toLowerCase();
-  }
-
   // No checkout, output creation, or compilation: safe before app config.
   Future<void> check() async {
     await checked('git', ['--version']);
-    String compiler;
     if (nativeWindows) {
       final programFiles = environment['ProgramFiles(x86)'];
       if (programFiles == null) {
@@ -193,12 +175,9 @@ class WindowsSecpBuilder {
           'Install the Visual Studio 2022 C++ build tools and Windows SDK.',
         );
       }
-      compiler = '${visualStudio!}\n${toolsVersion.readAsStringSync().trim()}';
       windowsSdk = await findWindowsSdk();
     } else {
-      compiler = (await checked('x86_64-w64-mingw32-gcc', [
-        '--version',
-      ])).stdout.toString();
+      await checked('x86_64-w64-mingw32-gcc', ['--version']);
       await checked('make', ['--version']);
     }
     final bundledCmake =
@@ -217,58 +196,14 @@ class WindowsSecpBuilder {
         '(found ${version ?? 'an unrecognized version'} at $cmake).',
       );
     }
-    identity = {
-      'revision': secpRevision,
-      'host': nativeWindows ? 'windows-msvc-x64' : 'linux-mingw-x64',
-      'recipe': await hash(
-        File('${root.path}/scripts/windows/build_secp256k1.dart'),
-      ),
-      'cmake': '${cmakeVersion.stdout}'.trim(),
-      'compiler': compiler.trim(),
-      if (windowsSdk != null)
-        'sdk': '${windowsSdk!.root}\n${windowsSdk!.version}',
-      // Only explicit compile/link flags, not unrelated process environment.
-      for (final flag in [
-        'CFLAGS',
-        'CXXFLAGS',
-        'CPPFLAGS',
-        'LDFLAGS',
-        'CL',
-        '_CL_',
-        'LINK',
-        '_LINK_',
-      ])
-        flag: environment[flag] ?? '',
-    };
   }
 
   Future<void> build() async {
     // --check runs before configuration in a separate process. Revalidate here
-    // to identify the tools and inputs actually used by this build/cache lookup.
+    // to discover the tools and SDK actually used by this build.
     await check();
     final output = File('${root.path}/build/secp256k1.dll');
-    final receipt = File('${output.path}.json');
-    if (output.existsSync() && receipt.existsSync()) {
-      try {
-        final recorded =
-            jsonDecode(receipt.readAsStringSync()) as Map<String, dynamic>;
-        if (identity.entries.every((e) => recorded[e.key] == e.value) &&
-            recorded['sha256'] == await hash(output)) {
-          stdout.writeln(
-            'Reusing ${output.path} (verified local build cache).',
-          );
-          return;
-        }
-      } on FormatException {
-        // An incomplete/invalid receipt is a cache miss.
-      } on TypeError {
-        // An unrelated JSON value is also a cache miss.
-      }
-    }
     output.parent.createSync(recursive: true);
-    // An interrupted rebuild must not leave a receipt claiming an old DLL
-    // is current.
-    if (receipt.existsSync()) receipt.deleteSync();
     final work = output.parent.createTempSync('secp256k1-windows-');
     try {
       final source = '${work.path}/source';
@@ -328,14 +263,9 @@ class WindowsSecpBuilder {
           'CMake did not produce the expected DLL: ${library.path}',
         );
       }
-      final newReceipt = File('${work.path}/receipt.json');
-      newReceipt.writeAsStringSync(
-        '${jsonEncode({...identity, 'sha256': await hash(library)})}\n',
-      );
-      // Both temporary files are under build/ on the destination filesystem.
-      // Publish complete files; a failed/interrupted publish has no valid receipt.
+      // The temporary DLL is on the destination filesystem. Publish it only
+      // after a successful build, preserving any previous DLL on build failure.
       library.renameSync(output.path);
-      newReceipt.renameSync(receipt.path);
       stdout.writeln(
         'Built ${output.path} from secp256k1 v0.5.0 ($secpRevision).',
       );

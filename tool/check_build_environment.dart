@@ -309,6 +309,7 @@ Future<void> main(List<String> args) async {
       try {
         requirement = await loadXcodeRequirement(
           File.fromUri(Platform.script).parent.parent,
+          app: args[1],
         );
       } catch (error) {
         stderr.writeln('Cannot determine the required Xcode: $error');

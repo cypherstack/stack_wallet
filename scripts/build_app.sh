@@ -156,8 +156,8 @@ if [ "$SKIP_NATIVE_DEPS_BUILD" -eq 0 ]; then
             popd
             ;;
         windows)
-            # -d only selects dnix prebuilts. This separate library is skipped
-            # with -i, or reused when its local build receipt still matches.
+            # -d only selects dnix prebuilts. Rebuild this separate library
+            # unless -i skips platform native dependencies.
             pushd "${APP_PROJECT_ROOT_DIR}"
             dart "${APP_PROJECT_ROOT_DIR}/scripts/windows/build_secp256k1.dart"
             popd

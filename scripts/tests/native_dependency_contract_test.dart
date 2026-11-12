@@ -68,6 +68,28 @@ void main() {
     expect(actual.upstreamBuildPinned, isTrue);
   });
 
+  test('Xcode metadata is loaded only for the selected app', () async {
+    for (final entry in const {
+      'stack_wallet': dnixPackageNames,
+      'stack_duo': {'frostdart', 'tor_ffi_plugin'},
+      'campfire': {'tor_ffi_plugin'},
+    }.entries) {
+      final loaded = <String>[];
+      await loadXcodeRequirement(
+        project,
+        app: entry.key,
+        readMetadata: (dependency) async {
+          expect(entry.value, contains(dependency.name));
+          loaded.add(dependency.name);
+          return {
+            'toolchains': {'xcode': '28.1', 'xcodeBuild': '28B123'},
+          };
+        },
+      );
+      expect(loaded, unorderedEquals(entry.value), reason: entry.key);
+    }
+  });
+
   test('new version-only revision cannot inherit the previous build', () async {
     final template = File.fromUri(
       project.uri.resolve('scripts/app_config/templates/pubspec.template.yaml'),

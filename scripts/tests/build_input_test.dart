@@ -120,6 +120,54 @@ exit 91
     }
   }, skip: Platform.isWindows ? 'Requires POSIX bash' : false);
 
+  for (final toolchainStatus in [0, 42]) {
+    test('Isar toolchain invocation handles exit $toolchainStatus', () async {
+      final workspace = Directory(p.join(root.path, 'isar source'))
+        ..createSync();
+      final core = Directory(p.join(workspace.path, 'isar_core_ffi'))
+        ..createSync();
+      File(p.join(core.path, 'Cargo.toml')).writeAsStringSync('fixture');
+      final calls = File(p.join(root.path, 'rustup-call'));
+      final result = await Process.run(
+        'bash',
+        [
+          '-c',
+          r'''
+source "$1"
+rustup() {
+  printf '%s\n' "$PWD" "$@" > "$ISAR_TEST_CALLS"
+  return "$ISAR_TEST_STATUS"
+}
+cargo() { return 99; }
+build_isar_core "$2" "$3"
+''',
+          'isar-toolchain-test',
+          p.join(repository.path, 'scripts/app_config/templates/isar_build.sh'),
+          core.path,
+          workspace.path,
+        ],
+        environment: {
+          'ISAR_TEST_CALLS': calls.path,
+          'ISAR_TEST_STATUS': '$toolchainStatus',
+        },
+      );
+      expect(
+        result.exitCode,
+        toolchainStatus == 0 ? 0 : 1,
+        reason: '${result.stderr}',
+      );
+      expect(calls.readAsLinesSync(), [
+        core.path,
+        'run',
+        '--install',
+        '1.99.1',
+        'cargo',
+        'build',
+        '--release',
+      ]);
+    }, skip: Platform.isWindows ? 'Requires POSIX bash' : false);
+  }
+
   group('prebuild', () {
     const coins = [
       'bitcoin',

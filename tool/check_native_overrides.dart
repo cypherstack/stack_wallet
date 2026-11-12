@@ -14,15 +14,14 @@ Future<ProcessResult> _run(String executable, List<String> arguments) =>
 
 String windowsOverrideCommand(String script, String app) {
   String literal(String value) => "'${value.replaceAll("'", "''")}'";
-  // Flutter normally exposes dart.bat. Invoke its SDK executable directly so
-  // cmd.exe cannot expand percent signs in script paths or arguments.
+  // Preserve PATH order, then unwrap Flutter's dart.bat to avoid cmd.exe
+  // expanding percent signs in script paths or arguments.
   return r"$ErrorActionPreference = 'Stop'; "
       r'[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false); '
-      r'$sdk = Get-Command dart.exe -CommandType Application '
-      r'-ErrorAction SilentlyContinue | Select-Object -First 1; '
-      r'if ($null -ne $sdk) { $dart = $sdk.Source } else { '
       r'$launcher = Get-Command dart -CommandType Application '
       r'-ErrorAction Stop; '
+      r'$dart = $launcher.Source; '
+      r"if ([System.IO.Path]::GetExtension($dart) -ine '.exe') { "
       r'$dart = Join-Path '
       r'([System.IO.Path]::GetDirectoryName($launcher.Source)) '
       r"'cache\dart-sdk\bin\dart.exe'; "
