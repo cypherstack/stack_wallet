@@ -444,8 +444,11 @@ bash scripts/grin_e2e_test.sh macos
 
 Extra arguments go to `flutter test`. The first run compiles the library a
 second time with the feature on, which takes several minutes and about 1 GB
-under `.dart_tool`. After a run, the app bundle under `build/` holds the
-test library until the next normal build.
+under `.dart_tool`. When the run ends, the script deletes the Grin libraries
+it left under `build/`, because they contain the test chain; the next normal
+build puts the release library back. A run that is killed outright cannot
+clean up: configure the app again and delete `build/` before building
+anything that will be distributed.
 
 To check that a bundle was built without `test_utils`, run the symbol gate
 on it. It expects exactly 36 `grin_` exports and no `grin_test_` ones:
