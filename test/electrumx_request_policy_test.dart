@@ -213,7 +213,7 @@ void main() {
       final client = clientFor(server, policy: policy);
       expect(policy.standard, const Duration(seconds: 60));
       expect(policy.history, const Duration(minutes: 5));
-      expect(policy.firoSet, const Duration(minutes: 2));
+      expect(policy.firoSet, const Duration(hours: 3));
 
       expect(await client.getHistory(scripthash: 'single'), [
         {'height': 1, 'tx_hash': 'single'},
@@ -320,7 +320,7 @@ void main() {
     expect(policy.forMethod(_broadcastMethod), policy.broadcast);
     expect(policy.standard, const Duration(seconds: 60));
     expect(policy.history, const Duration(minutes: 5));
-    expect(policy.firoSet, const Duration(minutes: 2));
+    expect(policy.firoSet, const Duration(hours: 3));
   });
 
   for (final generic in [false, true]) {

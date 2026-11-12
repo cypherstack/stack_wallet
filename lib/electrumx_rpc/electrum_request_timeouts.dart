@@ -4,7 +4,7 @@ class ElectrumRequestTimeouts {
     this.standard = const Duration(seconds: 60),
     this.history = const Duration(minutes: 5),
     this.transactionBatch = const Duration(minutes: 5),
-    this.firoSet = const Duration(minutes: 2),
+    this.firoSet = const Duration(hours: 3),
     this.broadcast = const Duration(minutes: 5),
   });
 
@@ -13,6 +13,10 @@ class ElectrumRequestTimeouts {
 
   /// Deadline for the combined response to a verbose transaction batch.
   final Duration transactionBatch;
+
+  /// Deadline for a Firo set download. The full Spark used-tag set alone is
+  /// tens of megabytes and arrives as one response, so this is long enough
+  /// for very slow connections to finish it.
   final Duration firoSet;
   final Duration broadcast;
 
