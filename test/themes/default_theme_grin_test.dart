@@ -3,10 +3,14 @@ import 'dart:io';
 
 import 'package:archive/archive_io.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
 /// The default themes are binary archives, so a coin missing from them only
 /// shows as a placeholder icon at runtime.
 void main() {
+  // Themes are keyed by the coin's main net id.
+  final grin = Grin(CryptoCurrencyNetwork.main).mainNetId;
+
   for (final app in ["stack_wallet", "stack_duo"]) {
     for (final name in ["light", "dark"]) {
       test("the $app $name theme has Grin's colour and icons", () {
@@ -29,12 +33,12 @@ void main() {
         expect(json["version"], greaterThanOrEqualTo(19));
 
         final colors = (json["colors"] as Map)["coin"] as Map;
-        expect(colors["grin"], matches(RegExp(r"^0x[0-9A-Fa-f]{8}$")));
+        expect(colors[grin], matches(RegExp(r"^0x[0-9A-Fa-f]{8}$")));
 
         final coins = (json["assets"] as Map)["coins"] as Map;
         expect(coins, isNotEmpty);
         for (final entry in coins.entries) {
-          final path = (entry.value as Map)["grin"] as String?;
+          final path = (entry.value as Map)[grin] as String?;
           expect(path, isNotNull, reason: "${entry.key} has no grin entry");
           expect(
             files,
