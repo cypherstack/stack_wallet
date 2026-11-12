@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:grin/grin.dart';
 import 'package:isar_community/isar.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import 'package:stackwallet/models/slatepack_models.dart';
 import 'package:stackwallet/services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/events/global/tor_status_changed_event.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
@@ -64,6 +66,11 @@ void main() {
     final calls = h.backend.api.calls;
     return calls.skip(calls.lastIndexOf(call)).contains('getTransactions');
   }
+
+  Future<TransactionV2> storedTx() async => (await isar.transactionV2s
+      .where()
+      .txidWalletIdEqualTo('slate-1', h.wallet.walletId)
+      .findFirst())!;
 
   Future<void> storeHistory(List<GrinTxLogEntry> entries) async {
     h.backend.api.transactions = GrinTxList(
@@ -256,6 +263,29 @@ void main() {
       final api = h.backend.api;
       expect(api.calls, isNot(contains('receiveSlatepack')));
       expect(api.calls, isNot(contains('issueInvoice')));
+    },
+  );
+
+  test(
+    'a refresh that changes a transaction tells whoever watches it',
+    () async {
+      await h.wallet.init();
+      await storeHistory([entryOf(id: 1)]);
+      final seen = <SlatepackTxInfo?>[];
+      final watch = isar.transactionV2s
+          .where()
+          .txidWalletIdEqualTo('slate-1', h.wallet.walletId)
+          .watch()
+          .listen((rows) => seen.addAll(rows.map(h.wallet.slatepackTxInfo)));
+      addTearDown(watch.cancel);
+      expect(h.wallet.slatepackTxInfo(await storedTx())!.canRepost, isFalse);
+
+      await storeHistory([
+        entryOf(id: 1, state: GrinSlateState.s3, hasStoredTx: true),
+      ]);
+      await eventually(() => seen.isNotEmpty);
+      expect(seen.last!.canRepost, isTrue);
+      expect(seen.last!.canShowSlatepack, isFalse);
     },
   );
 
