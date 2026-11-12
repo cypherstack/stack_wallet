@@ -54,7 +54,7 @@ class _FakeScanner implements BarcodeScannerInterface {
 }
 
 void main() {
-  Future<void> pumpSendView(WidgetTester tester, String scanned) async {
+  Future<void> pumpSendView(WidgetTester tester, [String scanned = '']) async {
     tester.view.physicalSize = const Size(800, 1200);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -114,6 +114,22 @@ void main() {
       .controller!
       .text;
 
+  TextSelection addressSelection(WidgetTester tester) => tester
+      .widget<TextField>(find.byKey(const Key('sendViewAddressFieldKey')))
+      .controller!
+      .selection;
+
+  Future<void> type(WidgetTester tester, String text, int cursor) async {
+    tester.testTextInput.updateEditingValue(
+      TextEditingValue(
+        text: text,
+        selection: TextSelection.collapsed(offset: cursor),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  }
+
   Future<void> scan(WidgetTester tester) async {
     final button = find.byKey(const Key('sendViewScanQrButtonKey'));
     await tester.ensureVisible(button);
@@ -157,6 +173,32 @@ void main() {
     await scan(tester);
 
     expect(addressField(tester), 'https://receiver.example:3415');
+    await dispose(tester);
+  });
+
+  testWidgets('typing an http receiver address keeps the cursor in place', (
+    tester,
+  ) async {
+    await pumpSendView(tester);
+    const address = 'https://receiver.example:3415';
+    await tester.showKeyboard(find.byKey(const Key('sendViewAddressFieldKey')));
+
+    for (var i = 1; i <= address.length; i++) {
+      await type(tester, address.substring(0, i), i);
+
+      expect(addressField(tester), address.substring(0, i));
+      expect(addressSelection(tester), TextSelection.collapsed(offset: i));
+    }
+
+    // An edit in the middle of the address.
+    const edited = 'https://my-receiver.example:3415';
+    await type(tester, edited, 'https://my-'.length);
+
+    expect(addressField(tester), edited);
+    expect(
+      addressSelection(tester),
+      const TextSelection.collapsed(offset: 'https://my-'.length),
+    );
     await dispose(tester);
   });
 }
