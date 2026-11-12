@@ -10,6 +10,7 @@ import '../../../../models/slatepack_models.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
+import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
@@ -29,11 +30,13 @@ class SlatepackTxDetails extends StatelessWidget {
     required this.wallet,
     required this.transaction,
     required this.info,
+    this.clipboard = const ClipboardWrapper(),
   });
 
   final SlatepackInterface wallet;
   final TransactionV2 transaction;
   final SlatepackTxInfo info;
+  final ClipboardInterface clipboard;
 
   Future<void> _showAgain(BuildContext context) async {
     final slatepack = await SlatepackImportFlow.withLoading(
@@ -88,6 +91,7 @@ class SlatepackTxDetails extends StatelessWidget {
       child: PaymentProofExportDialog(
         proof: proof,
         fileName: "${info.slateId ?? transaction.txid}.proof.json",
+        clipboard: clipboard,
       ),
     );
   }
@@ -129,7 +133,7 @@ class SlatepackTxDetails extends StatelessWidget {
                   tooltip: "Copy",
                   icon: Icon(Icons.copy, size: 16, color: colors.infoItemIcons),
                   onPressed: () async {
-                    await Clipboard.setData(ClipboardData(text: value));
+                    await clipboard.setData(ClipboardData(text: value));
                     if (context.mounted) {
                       await showFloatingFlushBar(
                         type: FlushBarType.info,
@@ -195,10 +199,12 @@ class PaymentProofExportDialog extends StatelessWidget {
     super.key,
     required this.proof,
     required this.fileName,
+    this.clipboard = const ClipboardWrapper(),
   });
 
   final String proof;
   final String fileName;
+  final ClipboardInterface clipboard;
 
   String get _pretty {
     try {
@@ -269,7 +275,7 @@ class PaymentProofExportDialog extends StatelessWidget {
                   label: "Copy",
                   buttonHeight: isDesktop ? ButtonHeight.l : null,
                   onPressed: () async {
-                    await Clipboard.setData(ClipboardData(text: _pretty));
+                    await clipboard.setData(ClipboardData(text: _pretty));
                     if (context.mounted) {
                       await showFloatingFlushBar(
                         type: FlushBarType.info,

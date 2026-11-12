@@ -737,6 +737,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     baseAmountController.text = "";
     memoController.text = "";
     nonceController.text = "";
+    _slatepackRecipientController.text = "";
     _address = "";
     _addressToggleFlag = false;
     _clearRecipientForms();

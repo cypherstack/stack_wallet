@@ -1374,6 +1374,7 @@ class _SendViewState extends ConsumerState<SendView> {
     onChainNoteController.text = "";
     feeController.text = "";
     memoController.text = "";
+    _slatepackRecipientController.text = "";
     _address = "";
     _addressToggleFlag = false;
     _clearRecipientForms();

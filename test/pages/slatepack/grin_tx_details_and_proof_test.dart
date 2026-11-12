@@ -16,6 +16,7 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/amount/amount_unit.dart';
+import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 
 import '../../sample_data/theme_json.dart';
@@ -220,6 +221,98 @@ void main() {
     expect(wallet.exported, ['slate-1']);
     expect(find.text('Payment proof'), findsOneWidget);
     expect(find.textContaining('"excess": "08ab"'), findsOneWidget);
+  });
+
+  testWidgets('rows and proofs are copied through the given clipboard', (
+    tester,
+  ) async {
+    final clipboard = FakeClipboard();
+    await pump(
+      tester,
+      SlatepackTxDetails(
+        wallet: wallet,
+        transaction: tx,
+        clipboard: clipboard,
+        info: const SlatepackTxInfo(
+          slateId: 'slate-1',
+          kernelExcess: '08ab',
+          hasPaymentProof: true,
+        ),
+      ),
+    );
+    await tester.tap(find.byTooltip('Copy').first);
+    await settle(tester);
+    expect((await clipboard.getData('text/plain'))!.text, '08ab');
+    // The notice is gone before the next step.
+    await tester.pump(const Duration(seconds: 5));
+    await settle(tester);
+
+    await tester.tap(find.text('Export payment proof'));
+    await settle(tester);
+    await tester.tap(find.text('Copy'));
+    await settle(tester);
+    expect(
+      (await clipboard.getData('text/plain'))!.text,
+      contains('"excess": "08ab"'),
+    );
+    await tester.pump(const Duration(seconds: 5));
+    await settle(tester);
+  });
+
+  group('what cancelling says', () {
+    SlatepackCancelPrompt prompt(
+      SlateState? state, {
+      required bool incoming,
+      bool finalized = false,
+    }) => SlatepackCancelPrompt.of(
+      state == null
+          ? null
+          : SlatepackTxInfo(
+              state: state,
+              finalizedAwaitingConfirmation: finalized,
+            ),
+      incoming: incoming,
+    );
+    const ends = 'The other party can no longer complete it';
+
+    test('a send or an invoice this wallet still has to finalize ends '
+        'with the cancel', () {
+      expect(prompt(SlateState.s1, incoming: false).message, contains(ends));
+      expect(prompt(SlateState.i1, incoming: true).message, contains(ends));
+      expect(prompt(null, incoming: false).message, contains(ends));
+      expect(
+        prompt(SlateState.s1, incoming: false).confirmLabel,
+        'Yes, cancel',
+      );
+    });
+
+    test('a paid invoice can still be completed by the payee', () {
+      final p = prompt(SlateState.i2, incoming: false);
+      expect(p.title, 'Cancel this transaction?');
+      expect(p.message, isNot(contains(ends)));
+      expect(p.message, contains('changes this wallet only'));
+      expect(p.message, contains('they can still complete it'));
+    });
+
+    test('an answered payment can still be completed by the sender', () {
+      for (final p in [
+        prompt(SlateState.s2, incoming: true),
+        // Wallets that keep no slate state answer what they receive.
+        prompt(null, incoming: true),
+        prompt(SlateState.unknown, incoming: true),
+      ]) {
+        expect(p.message, isNot(contains(ends)));
+        expect(p.message, contains('this wallet only'));
+        expect(p.message, contains('they can still complete the payment'));
+      }
+    });
+
+    test('a finalized transaction says it may still confirm', () {
+      final p = prompt(SlateState.s3, incoming: false, finalized: true);
+      expect(p.title, 'Cancel a finalized transaction?');
+      expect(p.message, contains('may still reach the chain'));
+      expect(p.confirmLabel, 'Cancel anyway');
+    });
   });
 
   testWidgets('an S1 waiting for an answer can be shown again', (tester) async {
