@@ -205,7 +205,7 @@ void main() {
     h.backend.api.decoded = decoded(GrinSlateState.s2);
     h.backend.api.finalizeError = grinError(
       9,
-      details: {'slate_id': 'slate-x'},
+      details: {'slate_id': 'slate-x', 'finalized': true},
     );
     wallet.local = (amount: _grin(5000), fee: _grin(100), isSend: true);
     await runFlow(tester);

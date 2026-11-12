@@ -827,6 +827,7 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
       switch (event.newStatus) {
         case TorConnectionStatus.connecting:
           _torConnecting ??= Completer<void>();
+          unawaited(_applyTransport());
         case TorConnectionStatus.connected:
         case TorConnectionStatus.disconnected:
           _releaseTorWaiters();
@@ -859,6 +860,10 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
   /// before the preference they belong to. A running scan is cancelled first
   /// so the change does not wait a whole batch; it resumes on the next
   /// refresh.
+  ///
+  /// While Tor connects the applied transport stays, unless it is a direct
+  /// one: the library would keep using it, for a whole scan batch at worst.
+  /// The network is then turned off until Tor connects or gives up.
   Future<void> _applyTransport({bool refreshAfter = true}) async {
     Future<void>? cancelledScan;
     final changed = await _transportMutex.protect(() async {
@@ -866,7 +871,9 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
       if (api == null || _exited) return false;
       final network = _resolveNetwork();
       final transport = network.transport;
-      if (transport is GrinHold) return false;
+      if (transport is GrinHold && _applied?.transport is! GrinDirect) {
+        return false;
+      }
       if (network == _applied) return false;
 
       if (_scanJob != null) {
@@ -877,12 +884,16 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
         nodeUrl: network.nodeUrl,
         apiSecret: network.apiSecret,
         socksProxy: transport is GrinProxy ? transport.address : null,
-        networkEnabled: transport is! GrinBlocked,
+        networkEnabled: transport is GrinDirect || transport is GrinProxy,
       );
       _applied = network;
       return true;
     });
     if (!changed) return;
+
+    // On hold: the Tor event that ends the wait applies the next transport
+    // and refreshes.
+    if (_applied?.transport is GrinHold) return;
 
     if (_applied?.transport is GrinBlocked) {
       _fireDisconnected();
@@ -942,17 +953,23 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
     return api;
   }
 
+  static const _scanningMessage =
+      "Wait for the Grin wallet to finish scanning and try again.";
+
   void _refuseWhileScanning() {
-    if (_scanPending) {
-      throw GrinWalletException(
-        "Wait for the Grin wallet to finish scanning and try again.",
-      );
-    }
+    if (_scanPending) throw GrinWalletException(_scanningMessage);
   }
 
   /// [message] replaces the fixed text for a library error and keeps its
-  /// type, code and slate id.
+  /// type, code, slate id and flags.
+  ///
+  /// An error that names a slate means the wallet recorded a transaction
+  /// before the call failed. The history is refreshed so that transaction
+  /// can be reposted or cancelled from it.
   Exception _fail(String operation, Object error, {String? message}) {
+    if (error is GrinException && error.slateId != null && !_exited) {
+      unawaited(refresh());
+    }
     final ex = _failStatic(operation, error);
     if (message == null || ex is! GrinWalletException) return ex;
     return GrinWalletException(
@@ -960,6 +977,8 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
       type: ex.type,
       code: ex.code,
       slateId: ex.slateId,
+      finalized: ex.finalized,
+      released: ex.released,
     );
   }
 
@@ -1283,11 +1302,17 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
           throw GrinWalletException("Grin has no relay.");
 
         case SlatepackMethod.slatepack:
+          await _checkFeeUnchanged(amount: amount, sendAll: sendAll, fee: fee);
           final slatepack = await _initSend(
             amount: amount,
             recipientAddress: address.isEmpty ? null : address,
             sendAll: sendAll,
           );
+          if (fee != null && slatepack.fee != fee.raw) {
+            // The inputs are locked and nothing was handed out yet.
+            await _giveUpSend(slatepack.slateId);
+            throw GrinWalletException(_feeChanged);
+          }
           unawaited(refresh());
           return txData.copyWith(
             txid: slatepack.slateId,
@@ -1302,6 +1327,7 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
             clearnetAcknowledged: txData.grinClearnetAcknowledged,
             plaintextAcknowledged: txData.grinPlaintextAcknowledged,
           );
+          await _checkFeeUnchanged(amount: amount, sendAll: sendAll, fee: fee);
           final GrinSendResult result;
           try {
             result = await api.sendHttp(
@@ -1316,9 +1342,9 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
               ),
             );
           } on GrinSlateException catch (e) {
-            throw _fail("sendHttp", e, message: _badAnswer);
+            throw _fail("sendHttp", e, message: _badAnswerMessage(e));
           } on GrinTransactionException catch (e) {
-            throw _fail("sendHttp", e, message: _badAnswer);
+            throw _fail("sendHttp", e, message: _badAnswerMessage(e));
           }
           unawaited(refresh());
           return txData.copyWith(
@@ -1331,8 +1357,53 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
     }
   }
 
-  static const _badAnswer =
-      "The recipient's answer failed checks. Nothing was sent or locked.";
+  /// The text for an HTTP send whose answer from the recipient was refused.
+  ///
+  /// Without a slate id the answer failed before anything was locked. With
+  /// one it failed at finalization, after the inputs were locked: the
+  /// library then cancels the send again and says so, or could not and
+  /// leaves it in the history to cancel.
+  static String _badAnswerMessage(GrinException error) {
+    const failed = "The recipient's answer failed checks.";
+    if (error.slateId == null) return "$failed Nothing was sent or locked.";
+    if (error.released) {
+      return "$failed Nothing was sent and no funds are locked.";
+    }
+    return "$failed Nothing was sent. $grinLeftPendingNote";
+  }
+
+  static const _feeChanged =
+      "The fee changed after you reviewed this send. Nothing was sent. "
+      "Review it again.";
+
+  /// Throws when a send of [amount] no longer costs [fee], the fee the user
+  /// confirmed. The wallet's outputs can change between review and confirm.
+  Future<void> _checkFeeUnchanged({
+    required BigInt amount,
+    required bool sendAll,
+    required Amount? fee,
+  }) async {
+    if (fee == null) return;
+    final api = await _requireNetwork();
+    final estimate = await api.estimateFee(
+      amount: amount,
+      minimumConfirmations: cryptoCurrency.minConfirms,
+      selectionStrategyIsAll: sendAll,
+      amountIncludesFee: sendAll,
+    );
+    if (estimate.fee != fee.raw) throw GrinWalletException(_feeChanged);
+  }
+
+  /// Cancels a send that was started and must not go on. If the cancel
+  /// fails the send stays in the history, where it can be cancelled.
+  Future<void> _giveUpSend(String slateId) async {
+    try {
+      await _requireApi().cancelTransaction(slateId: slateId);
+    } catch (e) {
+      Logging.instance.w("Grin send not cancelled: ${describeGrinError(e)}");
+    }
+    unawaited(refresh());
+  }
 
   Future<GrinSlatepack> _initSend({
     required BigInt amount,
@@ -1506,7 +1577,13 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
           cryptoCurrency.grinNetwork,
         );
       } on GrinSlateException {
-        // Encrypted; only the wallet can read it.
+        // Not readable without the wallet, which is busy until the scan
+        // ends. An encrypted Slatepack and a damaged one look the same
+        // here.
+        throw GrinWalletException(
+          "This Slatepack cannot be read while the Grin wallet is scanning. "
+          "If it is encrypted, wait for the scan to finish and try again.",
+        );
       }
     }
     return await _requireApi().decodeSlatepack(armored);
@@ -1587,7 +1664,9 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
   @override
   Future<SlatepackResult> receiveSlatepack(String s1) async {
     try {
-      final result = await _requireApi().receiveSlatepack(s1);
+      _refuseWhileScanning();
+      final api = await _requireNetwork();
+      final result = await api.receiveSlatepack(s1);
       unawaited(refresh());
       return _result(result);
     } catch (e) {
@@ -1602,12 +1681,12 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
   @override
   Future<FinalizeResult> finalizeSlatepack(String s2) async {
     try {
+      _refuseWhileScanning();
       final api = await _requireNetwork();
       final result = await api.finalizeSlatepack(s2);
       unawaited(refresh());
       return _finalized(result);
     } catch (e) {
-      if (e is GrinNodeException) unawaited(refresh());
       return _finalizeFailure(
         "finalizeSlatepack",
         e,
@@ -1635,7 +1714,9 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
       if (nano <= BigInt.zero) {
         throw GrinWalletException("The amount must be more than zero.");
       }
-      final result = await _requireApi().issueInvoice(
+      _refuseWhileScanning();
+      final api = await _requireNetwork();
+      final result = await api.issueInvoice(
         GrinInvoiceArgs(
           amount: nano,
           recipientAddress: (payer?.isEmpty ?? true) ? null : payer,
@@ -1695,12 +1776,12 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
   @override
   Future<FinalizeResult> finalizeInvoice(String i2) async {
     try {
+      _refuseWhileScanning();
       final api = await _requireNetwork();
       final result = await api.finalizeInvoice(i2);
       unawaited(refresh());
       return _finalized(result);
     } catch (e) {
-      if (e is GrinNodeException) unawaited(refresh());
       return _finalizeFailure(
         "finalizeInvoice",
         e,
@@ -1720,16 +1801,21 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
       if (logIds.isEmpty) {
         await api.cancelTransaction(slateId: slateId);
       } else {
+        // A self-send has two entries. One of them may already be
+        // cancelled or gone; the other is still cancelled.
         var cancelled = 0;
+        GrinException? failure;
         for (final id in logIds) {
           try {
             await api.cancelTransaction(txId: id);
             cancelled++;
-          } on GrinTransactionException {
-            // A self-send's other half may already be cancelled.
-            if (id == logIds.last && cancelled == 0) rethrow;
+          } on GrinTransactionException catch (e) {
+            failure ??= e;
+          } on GrinNotFoundException catch (e) {
+            failure ??= e;
           }
         }
+        if (cancelled == 0 && failure != null) throw failure;
       }
       unawaited(refresh());
       return "";
@@ -1773,6 +1859,7 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
       if (tx == null || !_otherDataFlag(tx, TxV2OdKeys.grinHasStoredTx)) {
         throw GrinWalletException("No finalized transaction is stored.");
       }
+      _refuseWhileScanning();
       final api = await _requireNetwork();
       final logIds = _logIds(tx);
       await api.repost(

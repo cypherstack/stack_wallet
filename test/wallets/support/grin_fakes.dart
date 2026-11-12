@@ -87,6 +87,12 @@ class FakeGrinWalletApi implements GrinWalletApi {
   Object? repostError;
   Object? verifyError;
 
+  /// Fails a cancel by log id, or by slate id under the key -1.
+  final cancelErrors = <int, Object>{};
+
+  /// The fee initSend reports, if not the estimate's.
+  BigInt? sendFee;
+
   /// Fails the next close once; the wallet stays open.
   Object? closeError;
   GrinSlateInfo? decoded;
@@ -256,7 +262,7 @@ class FakeGrinWalletApi implements GrinWalletApi {
     _check('initSend');
     if (sendError != null) throw sendError!;
     initSends.add(args);
-    return slatepackOf(GrinSlateState.s1, amount: args.amount);
+    return slatepackOf(GrinSlateState.s1, amount: args.amount, fee: sendFee);
   }
 
   @override
@@ -328,6 +334,8 @@ class FakeGrinWalletApi implements GrinWalletApi {
   @override
   Future<void> cancelTransaction({int? txId, String? slateId}) async {
     _check('cancelTransaction');
+    final error = cancelErrors[txId ?? -1];
+    if (error != null) throw error;
     cancelled.add((txId: txId, slateId: slateId));
   }
 
@@ -401,17 +409,20 @@ GrinBalance balanceOf({
   refreshedFromNode: true,
 );
 
-GrinSlatepack slatepackOf(GrinSlateState state, {BigInt? amount}) =>
-    GrinSlatepack(
-      slateId: 'slate-${state.wireName}',
-      state: state,
-      armoredSlatepack: 'BEGINSLATEPACK. secret ENDSLATEPACK.',
-      amount: amount ?? BigInt.zero,
-      fee: GrinBigInts.fee,
-      sender: 'grin1sender',
-      recipients: const [],
-      isEncrypted: false,
-    );
+GrinSlatepack slatepackOf(
+  GrinSlateState state, {
+  BigInt? amount,
+  BigInt? fee,
+}) => GrinSlatepack(
+  slateId: 'slate-${state.wireName}',
+  state: state,
+  armoredSlatepack: 'BEGINSLATEPACK. secret ENDSLATEPACK.',
+  amount: amount ?? BigInt.zero,
+  fee: fee ?? GrinBigInts.fee,
+  sender: 'grin1sender',
+  recipients: const [],
+  isEncrypted: false,
+);
 
 GrinFinalizeResult finalizedOf() => GrinFinalizeResult(
   slateId: 'slate-S3',

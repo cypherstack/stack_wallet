@@ -52,7 +52,7 @@ void main() {
 
     test('a node error with a slate id means finalized, not broadcast', () {
       final safe = sanitizeGrinError(
-        grinError(9, details: {'slate_id': 's'}),
+        grinError(9, details: {'slate_id': 's', 'finalized': true}),
       ) as GrinWalletException;
       expect(safe.finalizedNotBroadcast, isTrue);
       expect(
@@ -61,6 +61,33 @@ void main() {
         ) as GrinWalletException).finalizedNotBroadcast,
         isFalse,
       );
+    });
+
+    test('a slate id alone means a transaction was left behind', () {
+      final safe = sanitizeGrinError(
+        grinError(12, details: {'slate_id': 's'}),
+      ) as GrinWalletException;
+      expect(safe.leftPendingTransaction, isTrue);
+      expect(safe.finalizedNotBroadcast, isFalse);
+      expect(safe.message, endsWith(grinLeftPendingNote));
+    });
+
+    test('released means nothing is locked', () {
+      final safe = sanitizeGrinError(
+        grinError(12, details: {'slate_id': 's', 'released': true}),
+      ) as GrinWalletException;
+      expect(safe.released, isTrue);
+      expect(safe.leftPendingTransaction, isFalse);
+      expect(safe.message, grinReleasedMessage);
+    });
+
+    test('the flags mean nothing without a slate id', () {
+      final safe = sanitizeGrinError(
+        grinError(9, details: {'finalized': true, 'released': true}),
+      ) as GrinWalletException;
+      expect(safe.finalized, isFalse);
+      expect(safe.released, isFalse);
+      expect(safe.message, 'Could not reach the Grin node.');
     });
 
     test('other errors keep only their type', () {

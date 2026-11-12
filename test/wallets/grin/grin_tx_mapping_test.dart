@@ -181,6 +181,30 @@ void main() {
       );
     });
 
+    test('a self-send with one half cancelled is not cancelled yet', () {
+      GrinTxLogEntry received(GrinTxType type) => entryOf(
+        id: 2,
+        type: type,
+        state: GrinSlateState.s2,
+        credited: 590,
+        fee: null,
+        counterparty: own,
+      );
+      final sent = entryOf(
+        id: 1,
+        type: GrinTxType.txSentCancelled,
+        debited: 1000,
+        credited: 400,
+        counterparty: own,
+      );
+      final half = map([sent, received(GrinTxType.txReceived)]).single;
+      expect(od(half)[TxV2OdKeys.isCancelled], isFalse);
+      expect(label(half), isNot('Cancelled'));
+      final both = map([sent, received(GrinTxType.txReceivedCancelled)]).single;
+      expect(od(both)[TxV2OdKeys.isCancelled], isTrue);
+      expect(label(both), 'Cancelled');
+    });
+
     test('confirmed', () {
       expect(
         label(

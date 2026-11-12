@@ -212,7 +212,7 @@ void main() {
     test('a node error naming the slate is finalized, not posted', () async {
       h.backend.api.finalizeError = grinError(
         9,
-        details: {'slate_id': 'slate-9'},
+        details: {'slate_id': 'slate-9', 'finalized': true},
       );
       final result = await h.wallet.finalizeSlatepack('s2');
       expect(result.success, isTrue);
@@ -238,7 +238,7 @@ void main() {
     test('an invoice node error is offered for repost too', () async {
       h.backend.api.finalizeError = grinError(
         9,
-        details: {'slate_id': 'slate-i'},
+        details: {'slate_id': 'slate-i', 'finalized': true},
       );
       final result = await h.wallet.finalizeInvoice('i2');
       expect(result.success, isTrue);
