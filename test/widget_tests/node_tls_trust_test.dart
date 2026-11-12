@@ -575,5 +575,52 @@ void main() {
     await tester.pumpAndSettle();
     expect(node().isPrimary, false);
     expect(node().trustedCertificatePem, null);
+    expect(find.text(changedDuringTest), findsOneWidget);
+  });
+
+  testWidgets('node card Connect reports a node changed during its test', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      NodeCard(nodeId: 'custom-node', coin: coin, popBackToRoute: '/'),
+    );
+    await tester.tap(find.text('Node'));
+    await tester.pumpAndSettle();
+    testGate = Completer<void>();
+    await tester.tap(find.text('Connect', findRichText: true));
+    await tester.pump();
+    final before = node();
+    await DB.instance.put<NodeModel>(
+      boxName: DB.boxNameNodeModels,
+      key: before.id,
+      value: before.copyWith(loginName: null, trusted: null),
+    );
+    testGate!.complete();
+    // Check before settling: the message is only shown for 1.5 seconds.
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.text(changedDuringTest), findsOneWidget);
+    await tester.pumpAndSettle();
+    expect(node().isPrimary, false);
+  });
+
+  testWidgets('node card Connect runs one test at a time', (tester) async {
+    await pump(
+      tester,
+      NodeCard(nodeId: 'custom-node', coin: coin, popBackToRoute: '/'),
+    );
+    await tester.tap(find.text('Node'));
+    await tester.pumpAndSettle();
+    testGate = Completer<void>();
+    await tester.tap(find.text('Connect', findRichText: true));
+    await tester.pump();
+    await tester.tap(find.text('Connect', findRichText: true));
+    await tester.pump();
+    testGate!.complete();
+    await tester.pumpAndSettle();
+    expect(tests, 1);
+    expect(node().isPrimary, true);
   });
 }
+
+const changedDuringTest = 'The node changed during the test. Please try again.';

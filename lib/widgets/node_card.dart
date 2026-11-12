@@ -55,6 +55,7 @@ class _NodeCardState extends ConsumerState<NodeCard> {
   String _status = "Disconnected";
   late final String nodeId;
   bool _advancedIsExpanded = false;
+  bool _connecting = false;
 
   @override
   void initState() {
@@ -130,45 +131,63 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                       text: "Connect",
                       enabled: _status == "Disconnected",
                       onTap: () async {
-                        // Carry the saved certificate so an approved node is
-                        // not reviewed again, and keep a new approval below.
-                        final service = ref.read(
-                          nodeServiceChangeNotifierProvider,
-                        );
-                        final notify = nodeChangeNotifier(ref, widget.coin);
-                        final nodeFormData = NodeFormData.fromNode(_node);
-                        nodeFormData.password = await _node.getPassword(
-                          ref.read(secureStoreProvider),
-                        );
+                        // One test at a time, so taps cannot stack dialogs.
+                        if (_connecting) return;
+                        _connecting = true;
+                        try {
+                          // Carry the saved certificate so an approved node is
+                          // not reviewed again, and keep a new approval below.
+                          final service = ref.read(
+                            nodeServiceChangeNotifierProvider,
+                          );
+                          final notify = nodeChangeNotifier(ref, widget.coin);
+                          final nodeFormData = NodeFormData.fromNode(_node);
+                          nodeFormData.password = await _node.getPassword(
+                            ref.read(secureStoreProvider),
+                          );
 
-                        if (context.mounted) {
-                          final canConnect =
-                              await ref.read(testNodeConnectionProvider)(
-                                context: context,
-                                nodeFormData: nodeFormData,
-                                cryptoCurrency: widget.coin,
-                              );
+                          if (context.mounted) {
+                            final canConnect =
+                                await ref.read(testNodeConnectionProvider)(
+                                  context: context,
+                                  nodeFormData: nodeFormData,
+                                  cryptoCurrency: widget.coin,
+                                );
 
-                          if (!canConnect) {
-                            if (context.mounted) {
+                            if (!canConnect) {
+                              if (context.mounted) {
+                                unawaited(
+                                  showFloatingFlushBar(
+                                    type: FlushBarType.warning,
+                                    iconAsset: Assets.svg.circleAlert,
+                                    message: "Could not connect to node",
+                                    context: context,
+                                  ),
+                                );
+                              }
+                              return;
+                            }
+
+                            if (await service.commitConnectionTest(
+                              node: _node,
+                              formData: nodeFormData,
+                            )) {
+                              await notify();
+                            } else if (context.mounted) {
                               unawaited(
                                 showFloatingFlushBar(
                                   type: FlushBarType.warning,
                                   iconAsset: Assets.svg.circleAlert,
-                                  message: "Could not connect to node",
+                                  message:
+                                      "The node changed during the test. "
+                                      "Please try again.",
                                   context: context,
                                 ),
                               );
                             }
-                            return;
                           }
-
-                          if (await service.commitConnectionTest(
-                            node: _node,
-                            formData: nodeFormData,
-                          )) {
-                            await notify();
-                          }
+                        } finally {
+                          _connecting = false;
                         }
                       },
                     ),

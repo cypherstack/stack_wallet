@@ -8,12 +8,15 @@
  *
  */
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
 
 import '../models/node_form_data.dart';
+import '../notifications/show_flush_bar.dart';
 import '../pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
 import '../providers/global/secure_store_provider.dart';
 import '../providers/providers.dart';
@@ -235,6 +238,16 @@ class NodeOptionsSheet extends ConsumerWidget {
                                     formData: nodeFormData,
                                   )) {
                                     await notify();
+                                  } else if (context.mounted) {
+                                    unawaited(
+                                      showFloatingFlushBar(
+                                        type: FlushBarType.warning,
+                                        message:
+                                            "The node changed during the "
+                                            "test. Please try again.",
+                                        context: context,
+                                      ),
+                                    );
                                   }
                                 }
                               },
