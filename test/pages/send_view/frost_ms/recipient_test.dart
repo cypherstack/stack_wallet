@@ -17,18 +17,10 @@ import 'package:stackwallet/utilities/amount/amount_unit.dart';
 import 'package:stackwallet/utilities/barcode_scanner_interface.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
 import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/widgets/desktop/qr_code_scanner_dialog.dart';
 
 import '../../../sample_data/theme_json.dart';
-
-/// Monero that validates addresses without the native library.
-class _TestMonero extends Monero {
-  _TestMonero() : super(CryptoCurrencyNetwork.main);
-
-  @override
-  bool validateAddress(String address) => address.startsWith("address");
-}
+import '../support/fake_wallets.dart' show TestMonero;
 
 class _TestLocaleService extends LocaleService {
   String _locale = "en_US";
@@ -57,7 +49,7 @@ class _FakeScanner implements BarcodeScannerInterface {
 }
 
 void main() {
-  final coin = _TestMonero();
+  final coin = TestMonero();
   const RecipientId id = (walletId: "wallet", index: 1);
 
   Amount xmr(String value) => Amount.tryParseCanonicalAmount(
