@@ -223,6 +223,67 @@ class SlatepackTxInfo {
   final bool hasPaymentProof;
 }
 
+/// The texts of the dialog that asks before a slatepack transaction is
+/// cancelled.
+class SlatepackCancelPrompt {
+  const SlatepackCancelPrompt({
+    required this.title,
+    required this.message,
+    required this.confirmLabel,
+  });
+
+  final String title;
+  final String message;
+  final String confirmLabel;
+
+  /// What cancelling does depends on what the other party already holds.
+  /// [info] is null for wallets that keep no slate state; [incoming] is the
+  /// direction of the transaction.
+  factory SlatepackCancelPrompt.of(
+    SlatepackTxInfo? info, {
+    required bool incoming,
+  }) {
+    if (info?.finalizedAwaitingConfirmation ?? false) {
+      return const SlatepackCancelPrompt(
+        title: "Cancel a finalized transaction?",
+        message:
+            "This transaction is finalized and may still reach the chain, "
+            "for example if the other party or a node posts it. Cancelling "
+            "unlocks the funds in this wallet only. If it confirms later "
+            "the wallet shows it again. Try Repost first if it is stuck.",
+        confirmLabel: "Cancel anyway",
+      );
+    }
+    final state = info?.state ?? SlateState.unknown;
+    final String message;
+    if (state == SlateState.i2) {
+      // An invoice this wallet paid: the payee finalizes alone.
+      message =
+          "Cancelling changes this wallet only: the funds it locked become "
+          "spendable here again. If the payee already has your payment, "
+          "they can still complete it until those funds are spent in "
+          "another transaction.";
+    } else if (state == SlateState.s2 ||
+        (state == SlateState.unknown && incoming)) {
+      // A payment this wallet answered: the sender finalizes alone.
+      message =
+          "Cancelling removes this transaction from this wallet only. If "
+          "the sender already has your response, they can still complete "
+          "the payment, and the funds may then only show after a rescan.";
+    } else {
+      // This wallet has to finalize, and will not after a cancel.
+      message =
+          "The other party can no longer complete it, and any funds it "
+          "locked become spendable again.";
+    }
+    return SlatepackCancelPrompt(
+      title: "Cancel this transaction?",
+      message: message,
+      confirmLabel: "Yes, cancel",
+    );
+  }
+}
+
 /// A checked payment proof.
 class PaymentProofCheck {
   const PaymentProofCheck({

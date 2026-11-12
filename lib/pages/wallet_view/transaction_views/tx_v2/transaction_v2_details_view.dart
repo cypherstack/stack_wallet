@@ -104,6 +104,7 @@ class _TransactionV2DetailsViewState
   late final bool isSlatepackWallet;
   late final bool showOnChainNote;
   SlatepackTxInfo? _slatepackInfo;
+  StreamSubscription<List<TransactionV2>>? _slatepackTxUpdates;
 
   bool get isTokenTx => tokenContract != null;
 
@@ -214,6 +215,18 @@ class _TransactionV2DetailsViewState
     _slatepackInfo = wallet is SlatepackInterface
         ? wallet.slatepackTxInfo(_transaction)
         : null;
+    if (_slatepackInfo != null) {
+      // A slatepack transaction changes while this screen is open: it gets
+      // finalized, confirmed or cancelled, and the actions offered follow.
+      _slatepackTxUpdates = ref
+          .read(mainDBProvider)
+          .isar
+          .transactionV2s
+          .where()
+          .txidWalletIdEqualTo(_transaction.txid, walletId)
+          .watch()
+          .listen(_onSlatepackTxChanged);
+    }
 
     hasTxKeyProbably =
         (wallet is CryptonoteWallet) &&
@@ -447,8 +460,19 @@ class _TransactionV2DetailsViewState
     super.initState();
   }
 
+  void _onSlatepackTxChanged(List<TransactionV2> stored) {
+    if (!mounted || stored.isEmpty) return;
+    final wallet = ref.read(pWallets).getWallet(walletId);
+    if (wallet is! SlatepackInterface) return;
+    setState(() {
+      _transaction = stored.first;
+      _slatepackInfo = wallet.slatepackTxInfo(stored.first);
+    });
+  }
+
   @override
   void dispose() {
+    _slatepackTxUpdates?.cancel();
     super.dispose();
   }
 
@@ -1531,27 +1555,17 @@ class _TransactionV2DetailsViewState
                           return;
                         }
 
-                        final bool finalized =
-                            _slatepackInfo?.finalizedAwaitingConfirmation ??
-                            false;
+                        final prompt = SlatepackCancelPrompt.of(
+                          _slatepackInfo,
+                          incoming:
+                              _transaction.type == TransactionType.incoming,
+                        );
                         final go = await showDialog<bool>(
                           context: context,
                           builder: (context) => StackDialog(
                             width: Util.isDesktop ? 500 : null,
-                            title: finalized
-                                ? "Cancel a finalized transaction?"
-                                : "Cancel this transaction?",
-                            message: finalized
-                                ? "This transaction is finalized and may "
-                                      "still reach the chain, for example if "
-                                      "the other party or a node posts it. "
-                                      "Cancelling unlocks the funds in this "
-                                      "wallet only. If it confirms later the "
-                                      "wallet shows it again. Try Repost "
-                                      "first if it is stuck."
-                                : "The other party can no longer complete "
-                                      "it, and any funds it locked become "
-                                      "spendable again.",
+                            title: prompt.title,
+                            message: prompt.message,
                             leftButton: SecondaryButton(
                               label: "Keep",
                               buttonHeight: Util.isDesktop
@@ -1563,9 +1577,7 @@ class _TransactionV2DetailsViewState
                               buttonHeight: Util.isDesktop
                                   ? ButtonHeight.l
                                   : null,
-                              label: finalized
-                                  ? "Cancel anyway"
-                                  : "Yes, cancel",
+                              label: prompt.confirmLabel,
                               onPressed: () => Navigator.of(context).pop(true),
                             ),
                           ),
