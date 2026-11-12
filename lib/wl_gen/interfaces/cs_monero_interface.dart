@@ -60,6 +60,19 @@ abstract class CsMoneroInterface {
 
   Future<String> getTxKey(WrappedWallet wallet, String txid);
 
+  Future<String> signMessage(
+    WrappedWallet wallet, {
+    required String message,
+    required String address,
+  });
+
+  Future<bool> verifyMessage(
+    WrappedWallet wallet, {
+    required String message,
+    required String address,
+    required String signature,
+  });
+
   Future<void> save(WrappedWallet wallet);
 
   Future<String> getPublicViewKey(WrappedWallet wallet);
