@@ -154,6 +154,7 @@ void main() {
     expect(local, isNotNull);
     expect(local!.fee, grin(100));
     expect(local.amount, grin(1900));
+    expect(local.isSend, isTrue);
   });
 
   group('createSlatepack', () {

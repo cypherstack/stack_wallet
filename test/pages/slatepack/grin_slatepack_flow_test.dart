@@ -189,7 +189,7 @@ void main() {
     tester,
   ) async {
     h.backend.api.decoded = decoded(GrinSlateState.i2);
-    wallet.local = (amount: _grin(5000), fee: _grin(0));
+    wallet.local = (amount: _grin(5000), fee: _grin(0), isSend: false);
     await runFlow(tester);
     expect(find.text('Finalize invoice'), findsOneWidget);
     expect(find.text('0.000005000 GRIN'), findsOneWidget);
@@ -207,7 +207,7 @@ void main() {
       9,
       details: {'slate_id': 'slate-x'},
     );
-    wallet.local = (amount: _grin(5000), fee: _grin(100));
+    wallet.local = (amount: _grin(5000), fee: _grin(100), isSend: true);
     await runFlow(tester);
     await tester.tap(find.text('Finalize'));
     for (var i = 0; i < 4; i++) {
