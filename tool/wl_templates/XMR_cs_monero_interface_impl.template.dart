@@ -178,6 +178,25 @@ class _CsMoneroInterfaceImpl extends CsMoneroInterface {
       wallet.get<lib_monero.Wallet>().getTxKey(txid);
 
   @override
+  Future<String> signMessage(
+    WrappedWallet wallet, {
+    required String message,
+    required String address,
+  }) => wallet.get<lib_monero.Wallet>().signMessage(message, address);
+
+  @override
+  Future<bool> verifyMessage(
+    WrappedWallet wallet, {
+    required String message,
+    required String address,
+    required String signature,
+  }) => wallet.get<lib_monero.Wallet>().verifyMessage(
+    message,
+    address,
+    signature,
+  );
+
+  @override
   Future<void> save(WrappedWallet wallet) =>
       wallet.get<lib_monero.Wallet>().save();
 

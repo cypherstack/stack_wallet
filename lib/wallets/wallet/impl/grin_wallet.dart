@@ -1441,19 +1441,41 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
     return await _requireApi().decodeSlatepack(armored);
   }
 
-  /// Amount and fee of the stored transaction for [slateId].
+  /// Amount, fee and direction of the stored transaction for [slateId]. An
+  /// invoice this wallet issued is a receive; a payment of someone's
+  /// invoice is a send.
   @override
-  Future<({Amount amount, Amount fee})?> localTxForSlate(String slateId) async {
-    final tx = await _storedTx(slateId);
-    if (tx == null) return null;
+  Future<({Amount amount, Amount fee, bool isSend})?> localTxForSlate(
+    String slateId,
+  ) async {
+    var tx = await _storedTx(slateId);
+    if (tx == null) {
+      // The slate may have been made a moment ago, before a refresh stored
+      // its transaction. Not during a scan, which the read would wait for.
+      if (_scanJob != null) return null;
+      try {
+        await updateTransactions();
+      } catch (e) {
+        Logging.instance.w(
+          "Grin history refresh failed: ${describeGrinError(e)}",
+        );
+      }
+      tx = await _storedTx(slateId);
+      if (tx == null) return null;
+    }
     final fractionDigits = cryptoCurrency.fractionDigits;
-    final amount = tx.type == TransactionType.incoming
+    final incoming = tx.type == TransactionType.incoming;
+    final amount = incoming
         ? tx.getAmountReceivedInThisWallet(fractionDigits: fractionDigits)
         : tx.getAmountSentFromThisWallet(
             fractionDigits: fractionDigits,
             subtractFee: true,
           );
-    return (amount: amount, fee: tx.getFee(fractionDigits: fractionDigits));
+    return (
+      amount: amount,
+      fee: tx.getFee(fractionDigits: fractionDigits),
+      isSend: !incoming,
+    );
   }
 
   /// Starts a Slatepack send and returns the S1. Locks the inputs. With a

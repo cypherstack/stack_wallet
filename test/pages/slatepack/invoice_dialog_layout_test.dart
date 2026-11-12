@@ -38,7 +38,7 @@ class _FlowWallet extends GrinTestWallet {
         testPrefs: h.prefs,
       );
 
-  ({Amount amount, Amount fee})? local;
+  ({Amount amount, Amount fee, bool isSend})? local;
   bool repostable = false;
   final reposted = <String>[];
 
@@ -46,7 +46,7 @@ class _FlowWallet extends GrinTestWallet {
   Future<void> refresh() async {}
 
   @override
-  Future<({Amount amount, Amount fee})?> localTxForSlate(
+  Future<({Amount amount, Amount fee, bool isSend})?> localTxForSlate(
     String slateId,
   ) async => local;
 

@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/slatepack_models.dart';
 import 'package:stackwallet/utilities/enums/slatepack_method.dart';
 import 'package:stackwallet/utilities/slatepack_terms.dart';
@@ -22,7 +26,36 @@ Map<String, dynamic> _slate({required int signatures, int participants = 2}) {
   };
 }
 
+TransactionV2 _tx(int n, TransactionType type, String slateId) => TransactionV2(
+  walletId: "wallet",
+  blockHash: null,
+  hash: "hash$n",
+  txid: "txid$n",
+  timestamp: 0,
+  height: null,
+  inputs: const [],
+  outputs: const [],
+  version: 0,
+  type: type,
+  subType: TransactionSubType.none,
+  otherData: jsonEncode({"slateId": slateId}),
+);
+
 void main() {
+  test("local transaction for a slate", () {
+    const id = "0436430c-2b02-624c-2032-570501212b00";
+    final received = _tx(1, TransactionType.incoming, id);
+    final sent = _tx(2, TransactionType.outgoing, id);
+    // Contains the id without being the transaction for it.
+    final other = _tx(3, TransactionType.outgoing, "$id-other");
+
+    expect(MimblewimbleWallet.localTxMatching([other], id), isNull);
+    expect(MimblewimbleWallet.localTxMatching([other, received], id), received);
+    // A send to self holds both sides, and the send is what gets finalized.
+    expect(MimblewimbleWallet.localTxMatching([received, sent], id), sent);
+    expect(MimblewimbleWallet.localTxMatching([sent, received], id), sent);
+  });
+
   SlateInspection inspect(
     Map<String, dynamic> json, {
     String? sender,

@@ -39,3 +39,15 @@ Uri getBlockExplorerTransactionUrlFor({
     return Uri.parse(url);
   }
 }
+
+/// Whether [coin] has a default block explorer. Coins without one throw from
+/// [CryptoCurrency.defaultBlockExplorer], so they cannot be offered where an
+/// explorer URL is shown or edited.
+bool hasDefaultBlockExplorer(CryptoCurrency coin) {
+  try {
+    coin.defaultBlockExplorer("[TXID]");
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
