@@ -14,20 +14,12 @@ import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/amount/amount_unit.dart';
 import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 
 import '../../../sample_data/theme_json.dart';
-
-/// Monero that validates addresses without the native library.
-class _TestMonero extends Monero {
-  _TestMonero() : super(CryptoCurrencyNetwork.main);
-
-  @override
-  bool validateAddress(String address) => address.startsWith("address");
-}
+import '../support/fake_wallets.dart' show TestMonero;
 
 void main() {
-  final coin = _TestMonero();
+  final coin = TestMonero();
 
   PaymentUriData uri(List<String?> amounts, {List<String>? addresses}) =>
       PaymentUriData(

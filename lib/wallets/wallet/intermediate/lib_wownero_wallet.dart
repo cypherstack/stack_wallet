@@ -1427,12 +1427,6 @@ abstract class LibWowneroWallet<T extends CryptonoteCurrency>
       : csWownero.getRefreshFromBlockHeight(wallet!);
 
   @override
-  int getTxPriorityHigh() => csWownero.getTxPriorityHigh();
-
-  @override
-  int getTxPriorityMedium() => csWownero.getTxPriorityMedium();
-
-  @override
   int getTxPriorityNormal() => csWownero.getTxPriorityNormal();
 
   @override
