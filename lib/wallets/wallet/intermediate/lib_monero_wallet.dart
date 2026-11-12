@@ -42,13 +42,14 @@ import '../../isar/models/wallet_info.dart';
 import '../../models/tx_data.dart';
 import '../wallet.dart';
 import '../wallet_mixin_interfaces/multi_address_interface.dart';
+import '../wallet_mixin_interfaces/sign_verify_interface.dart';
 import '../wallet_mixin_interfaces/view_only_option_interface.dart';
 import 'cryptonote_wallet.dart';
 
 abstract class LibMoneroWallet<T extends CryptonoteCurrency>
     extends CryptonoteWallet<T>
     with ViewOnlyOptionInterface<T>
-    implements MultiAddressInterface<T> {
+    implements MultiAddressInterface<T>, SignVerifyInterface {
   @override
   int get isarTransactionVersion => 2;
 
@@ -173,6 +174,47 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
       throw Exception("Cannot get tx key in uninitialized libMoneroWallet");
     }
     return csMonero.getTxKey(wallet!, txid);
+  }
+
+  @override
+  Future<String> signMessage(String message, {required Address address}) async {
+    if (isViewOnly) {
+      throw Exception("Cannot sign a message in a view only wallet");
+    }
+    if (wallet == null) {
+      throw Exception("Wallet not open");
+    }
+
+    final signature = await csMonero.signMessage(
+      wallet!,
+      message: message,
+      address: address.value,
+    );
+
+    // wallet2 returns an empty string on failure instead of throwing
+    if (signature.isEmpty) {
+      throw Exception("Failed to sign message with ${address.value}");
+    }
+
+    return signature;
+  }
+
+  @override
+  Future<bool> verifyMessage(
+    String message, {
+    required String address,
+    required String signature,
+  }) async {
+    if (wallet == null) {
+      throw Exception("Wallet not open");
+    }
+
+    return await csMonero.verifyMessage(
+      wallet!,
+      message: message,
+      address: address.trim(),
+      signature: signature.trim(),
+    );
   }
 
   void _setListener() {

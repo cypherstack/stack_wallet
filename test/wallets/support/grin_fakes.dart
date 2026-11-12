@@ -83,6 +83,9 @@ class FakeGrinWalletApi implements GrinWalletApi {
   Object? estimateError;
   Object? sendError;
   Object? scanError;
+
+  /// Fails the next close once; the wallet stays open.
+  Object? closeError;
   GrinSlateInfo? decoded;
   int lastScanned = 0;
   int cancelScannedHeight = 0;
@@ -351,6 +354,11 @@ class FakeGrinWalletApi implements GrinWalletApi {
   Future<void> close() async {
     if (_closed) return;
     calls.add('close');
+    final error = closeError;
+    if (error != null) {
+      closeError = null;
+      throw error;
+    }
     _closed = true;
     final scan = _scan;
     if (scan != null && !scan.isCompleted) scan.completeError(grinError(14));
