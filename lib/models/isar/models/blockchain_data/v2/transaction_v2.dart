@@ -289,8 +289,10 @@ class TransactionV2 {
         if (isConfirmed(currentChainHeight, minConfirms, minCoinbaseConfirms)) {
           return "Received";
         } else {
-          if ((onChainNote == null && numberOfMessages == 1) |
-              (onChainNote != null && numberOfMessages == 2)) {
+          // The wallet stores one message entry per participant, with or
+          // without a note. A receive has both entries once it is signed,
+          // and the sender still has to finalize.
+          if (numberOfMessages == 2) {
             return "Receiving (waiting for sender)";
           } else if ((numberOfMessages ?? 0) > 1) {
             return "Receiving (waiting for confirmations)"; // TODO test if the sender still has to open again after the receiver has 2 messages present, ie. sender->receiver->sender->node (yes) vs. sender->receiver->node (no)
@@ -302,8 +304,9 @@ class TransactionV2 {
         if (isConfirmed(currentChainHeight, minConfirms, minCoinbaseConfirms)) {
           return "Sent (confirmed)";
         } else {
-          if ((onChainNote == null && numberOfMessages == 1) |
-              (onChainNote != null && numberOfMessages == 2)) {
+          // A send has only its own entry until it is finalized with the
+          // receiver's response.
+          if (numberOfMessages == 1) {
             return "Sending (waiting for receiver)";
           } else if ((numberOfMessages ?? 0) > 1) {
             return "Sending (waiting for confirmations)";
@@ -334,8 +337,10 @@ class TransactionV2 {
         if (isConfirmed(currentChainHeight, minConfirms, minCoinbaseConfirms)) {
           return "Received";
         } else {
-          if ((onChainNote == null && numberOfMessages == 1) |
-              (onChainNote != null && numberOfMessages == 2)) {
+          // The wallet stores one message entry per participant, with or
+          // without a note. A receive has both entries once it is signed,
+          // and the sender still has to finalize.
+          if (numberOfMessages == 2) {
             return "Receiving (waiting for sender)";
           } else if ((numberOfMessages ?? 0) > 1) {
             return "Receiving (waiting for confirmations)"; // TODO test if the sender still has to open again after the receiver has 2 messages present, ie. sender->receiver->sender->node (yes) vs. sender->receiver->node (no)
@@ -347,8 +352,9 @@ class TransactionV2 {
         if (isConfirmed(currentChainHeight, minConfirms, minCoinbaseConfirms)) {
           return "Sent (confirmed)";
         } else {
-          if ((onChainNote == null && numberOfMessages == 1) |
-              (onChainNote != null && numberOfMessages == 2)) {
+          // A send has only its own entry until it is finalized with the
+          // receiver's response.
+          if (numberOfMessages == 1) {
             return "Sending (waiting for receiver)";
           } else if ((numberOfMessages ?? 0) > 1) {
             return "Sending (waiting for confirmations)";
