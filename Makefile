@@ -113,10 +113,13 @@ endif
 
 bootstrap-macos: ## Install required macOS build tools via Homebrew helper script
 ifeq ($(PLATFORM),Darwin)
+# Call install_xcode.sh directly instead of `$(MAKE) bootstrap-xcode`: a recipe
+# line containing $(MAKE) is executed even under `make -n`, which would make a
+# dry run accept the Xcode license and run first-launch setup for real.
 	@if [ -n "$$IN_NIX_SHELL" ] || [ -n "$$NIX_BUILD_TOP" ]; then \
 		echo "[WARN] Nix environment detected; skipping the Homebrew package install (use nix/flake-provided toolchain instead)."; \
 		echo "[WARN] Xcode itself is never provided by Nix (Apple's license forbids redistributing it), so that part still runs:"; \
-		$(MAKE) bootstrap-xcode || exit 1; \
+		bash scripts/install_xcode.sh || exit 1; \
 	else \
 		bash scripts/install_macos_build_tools.sh || exit 1; \
 		rustup target add aarch64-apple-darwin x86_64-apple-darwin aarch64-apple-ios --toolchain $(RUST_VERSION) >/dev/null 2>&1 || true; \
@@ -159,6 +162,7 @@ sccache-setup: ## Opt-in: use sccache for the Rust/C builds run by native-asset 
 	@echo "also pass CARGO_BUILD_RUSTC_WRAPPER=sccache from the environment. See sccache --show-stats."
 
 verify-bom: ## Check the local toolchain and the pinned plugins against stack-bom.toml
+	@[ -n "$(DART)" ] || { echo >&2 "[ERROR] Dart not installed (needed for verify-bom). Install Flutter or pass DART=/path/to/dart."; exit 1; }
 	@FLUTTER="$(FLUTTER)" $(DART) tool/verify_bom.dart
 
 cache-stats: ## Show sccache statistics (hit rate) after a build

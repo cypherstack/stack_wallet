@@ -27,7 +27,3 @@ fi
 # Legacy location used by parts of the build pipeline.
 mkdir -p ../../../../../build
 cp "$SECP_SO" ../../../../../build/libsecp256k1.so
-
-# Location expected by Flutter/CMake install step.
-mkdir -p ../../../../../build/linux/x64/release/secp256k1/lib
-cp "$SECP_SO" ../../../../../build/linux/x64/release/secp256k1/lib/libsecp256k1.so
