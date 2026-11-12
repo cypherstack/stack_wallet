@@ -1891,7 +1891,12 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                     _applyUri(parsed);
                   } else {
                     _setOpReturnData(null);
-                    await _checkSparkNameAndOrSetAddress(newValue);
+                    // The text is already in the field; writing it back
+                    // would move the cursor on every keystroke.
+                    await _checkSparkNameAndOrSetAddress(
+                      newValue,
+                      setController: false,
+                    );
                   }
                 } else {
                   _setOpReturnData(null);

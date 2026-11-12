@@ -1943,8 +1943,12 @@ class _SendViewState extends ConsumerState<SendView> {
                                         _applyUri(parsed);
                                       } else {
                                         _setOpReturnData(null);
+                                        // The text is already in the field;
+                                        // writing it back would move the
+                                        // cursor on every keystroke.
                                         await _checkSparkNameAndOrSetAddress(
                                           newValue,
+                                          setController: false,
                                         );
                                       }
                                     } else {
