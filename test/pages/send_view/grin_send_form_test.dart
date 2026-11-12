@@ -14,6 +14,7 @@ import 'package:stackwallet/providers/global/locale_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/providers/global/price_provider.dart';
 import 'package:stackwallet/providers/global/wallets_provider.dart';
+import 'package:stackwallet/providers/ui/preview_tx_button_state_provider.dart';
 import 'package:stackwallet/services/locale_service.dart';
 import 'package:stackwallet/services/price_service.dart';
 import 'package:stackwallet/themes/coin_icon_provider.dart';
@@ -21,6 +22,7 @@ import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_unit.dart';
+import 'package:stackwallet/utilities/enums/slatepack_method.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
@@ -160,6 +162,43 @@ void main() {
         tester.widget<TextField>(field).controller!.text,
         isEmpty,
         reason: 'the next Slatepack would be encrypted to the last recipient',
+      );
+    });
+
+    testWidgets('editing a receiver address keeps the cursor in place, '
+        'desktop=$desktop', (tester) async {
+      await mount(tester, desktop: desktop);
+      final form = find.byType(desktop ? DesktopSend : SendView);
+      ProviderScope.containerOf(tester.element(form))
+              .read(pSelectedSlatepackMethod(h.walletId).notifier)
+              .state =
+          SlatepackMethod.http;
+      await tester.pumpAndSettle();
+      final field = find.byKey(const Key('sendViewAddressFieldKey'));
+      await tester.ensureVisible(field);
+      await tester.showKeyboard(field);
+
+      Future<void> type(String text, int cursor) async {
+        tester.testTextInput.updateEditingValue(
+          TextEditingValue(
+            text: text,
+            selection: TextSelection.collapsed(offset: cursor),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+      }
+
+      await type('https://receiver.example:3415', 29);
+      // Then an insertion in the middle of it.
+      const edited = 'https://my-receiver.example:3415';
+      await type(edited, 'https://my-'.length);
+
+      final controller = tester.widget<TextField>(field).controller!;
+      expect(controller.text, edited);
+      expect(
+        controller.selection,
+        const TextSelection.collapsed(offset: 'https://my-'.length),
       );
     });
   }
