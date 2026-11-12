@@ -128,7 +128,9 @@ not supported. Enable KVM for hardware-accelerated emulation on Linux.
 
 ## Mac host
 
-Install Flutter 3.47.2 and Nix on an Apple Silicon Mac. **Xcode 27.0 is required
+On an Apple Silicon Mac, install Flutter 3.47.2 and
+[Nix](https://nixos.org/download/) for source mode. Check `nix --version` from
+the same environment that runs Flutter. **Xcode 27.0 is required
 for verified source builds of the Apple libraries** (release build **27A266a**);
 a different version can produce different hashes. Prebuilt mode still needs Xcode to build the Flutter
 app. Install 27.0 alongside your existing Xcode, under `/Applications` with a
