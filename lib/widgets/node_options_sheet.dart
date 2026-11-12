@@ -30,7 +30,7 @@ import '../utilities/text_styles.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import 'rounded_white_container.dart';
 
-class NodeOptionsSheet extends ConsumerWidget {
+class NodeOptionsSheet extends ConsumerStatefulWidget {
   const NodeOptionsSheet({
     super.key,
     required this.nodeId,
@@ -43,7 +43,17 @@ class NodeOptionsSheet extends ConsumerWidget {
   final String popBackToRoute;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<NodeOptionsSheet> createState() => _NodeOptionsSheetState();
+}
+
+class _NodeOptionsSheetState extends ConsumerState<NodeOptionsSheet> {
+  bool _connecting = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final nodeId = widget.nodeId;
+    final coin = widget.coin;
+    final popBackToRoute = widget.popBackToRoute;
     final maxHeight = MediaQuery.of(context).size.height * 0.60;
     final node = ref.watch(
       nodeServiceChangeNotifierProvider.select(
@@ -207,48 +217,57 @@ class NodeOptionsSheet extends ConsumerWidget {
                         onPressed: status == "Connected"
                             ? null
                             : () async {
-                                // Carry the saved certificate so an approved
-                                // node is not reviewed again, and keep a new
-                                // approval below.
-                                final service = ref.read(
-                                  nodeServiceChangeNotifierProvider,
-                                );
-                                final notify = nodeChangeNotifier(ref, coin);
-                                final nodeFormData = NodeFormData.fromNode(
-                                  node,
-                                );
-                                nodeFormData.password = await node.getPassword(
-                                  ref.read(secureStoreProvider),
-                                );
-                                if (context.mounted) {
-                                  final canConnect =
-                                      await ref.read(
-                                        testNodeConnectionProvider,
-                                      )(
-                                        context: context,
-                                        nodeFormData: nodeFormData,
-                                        cryptoCurrency: coin,
+                                // One test at a time, so taps cannot stack
+                                // dialogs.
+                                if (_connecting) return;
+                                _connecting = true;
+                                try {
+                                  // Carry the saved certificate so an approved
+                                  // node is not reviewed again, and keep a new
+                                  // approval below.
+                                  final service = ref.read(
+                                    nodeServiceChangeNotifierProvider,
+                                  );
+                                  final notify = nodeChangeNotifier(ref, coin);
+                                  final nodeFormData = NodeFormData.fromNode(
+                                    node,
+                                  );
+                                  nodeFormData.password = await node
+                                      .getPassword(
+                                        ref.read(secureStoreProvider),
                                       );
-                                  if (!canConnect) {
-                                    return;
-                                  }
+                                  if (context.mounted) {
+                                    final canConnect =
+                                        await ref.read(
+                                          testNodeConnectionProvider,
+                                        )(
+                                          context: context,
+                                          nodeFormData: nodeFormData,
+                                          cryptoCurrency: coin,
+                                        );
+                                    if (!canConnect) {
+                                      return;
+                                    }
 
-                                  if (await service.commitConnectionTest(
-                                    node: node,
-                                    formData: nodeFormData,
-                                  )) {
-                                    await notify();
-                                  } else if (context.mounted) {
-                                    unawaited(
-                                      showFloatingFlushBar(
-                                        type: FlushBarType.warning,
-                                        message:
-                                            "The node changed during the "
-                                            "test. Please try again.",
-                                        context: context,
-                                      ),
-                                    );
+                                    if (await service.commitConnectionTest(
+                                      node: node,
+                                      formData: nodeFormData,
+                                    )) {
+                                      await notify();
+                                    } else if (context.mounted) {
+                                      unawaited(
+                                        showFloatingFlushBar(
+                                          type: FlushBarType.warning,
+                                          message:
+                                              "The node changed during the "
+                                              "test. Please try again.",
+                                          context: context,
+                                        ),
+                                      );
+                                    }
                                   }
+                                } finally {
+                                  _connecting = false;
                                 }
                               },
                         child: Text(

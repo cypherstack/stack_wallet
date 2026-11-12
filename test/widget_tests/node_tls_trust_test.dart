@@ -621,6 +621,25 @@ void main() {
     expect(tests, 1);
     expect(node().isPrimary, true);
   });
+
+  testWidgets('options Connect runs one test at a time', (tester) async {
+    await pump(
+      tester,
+      NodeOptionsSheet(nodeId: 'custom-node', coin: coin, popBackToRoute: '/'),
+    );
+    testGate = Completer<void>();
+    await tester.tap(find.text('Connect'));
+    await tester.pump();
+    await tester.tap(find.text('Connect'));
+    await tester.pump();
+    testGate!.complete();
+    // Check before settling: a warning is only shown for 1.5 seconds.
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.text(changedDuringTest), findsNothing);
+    await tester.pumpAndSettle();
+    expect(tests, 1);
+    expect(node().isPrimary, true);
+  });
 }
 
 const changedDuringTest = 'The node changed during the test. Please try again.';
