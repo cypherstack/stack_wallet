@@ -6,6 +6,7 @@ import 'package:isar_community/isar.dart';
 import 'package:stackwallet/models/slatepack_models.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/wallets/wallet/impl/grin_wallet.dart';
+import 'package:stackwallet/wallets/wallet/supporting/grin/grin_errors.dart';
 
 import '../support/grin_fakes.dart';
 
@@ -84,6 +85,28 @@ void main() {
       expect(args.minimumConfirmations, 10);
     },
   );
+
+  test('a payment that failed after it was recorded names its slate', () async {
+    final api = h.backend.api;
+    api.decoded = slateInfoOf(GrinSlateState.i1, amount: 1000);
+    api.invoiceError = grinError(11, details: {'slate_id': 'slate-p'});
+    final kept = await h.wallet.processInvoice(
+      'i1',
+      confirmedAmount: grin(1000),
+    );
+    expect(kept.success, isFalse);
+    expect(kept.slateId, 'slate-p');
+    expect(kept.error, contains(grinLeftPendingNote));
+    expect(kept.error, isNot(contains(remoteText)));
+
+    api.invoiceError = grinError(11);
+    final nothing = await h.wallet.processInvoice(
+      'i1',
+      confirmedAmount: grin(1000),
+    );
+    expect(nothing.success, isFalse);
+    expect(nothing.slateId, isNull);
+  });
 
   test('issuing and finalizing an invoice', () async {
     final i1 = await h.wallet.issueInvoice(

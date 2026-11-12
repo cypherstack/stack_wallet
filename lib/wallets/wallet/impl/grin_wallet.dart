@@ -1765,9 +1765,15 @@ class GrinWallet extends Bip39Wallet<Grin> with SlatepackInterface<Grin> {
       unawaited(refresh());
       return _result(result);
     } catch (e) {
+      final failure = _fail("processInvoice", e);
       return SlatepackResult(
         success: false,
-        error: _fail("processInvoice", e).toString(),
+        error: failure.toString(),
+        // Set when the payment stays in the wallet although the call failed.
+        slateId:
+            failure is GrinWalletException && failure.leftPendingTransaction
+            ? failure.slateId
+            : null,
       );
     }
   }

@@ -310,6 +310,39 @@ void main() {
     });
   }
 
+  testWidgets('a payment that failed after the wallet recorded it closes the '
+      'screen', (tester) async {
+    wallet.payment = SlatepackResult(
+      success: false,
+      error: 'The payment failed. Open it in the transaction history.',
+      slateId: 'slate-p',
+    );
+    await openInvoice(tester);
+    await pay(tester);
+
+    expect(find.text('Invoice payment failed'), findsOneWidget);
+    expect(find.textContaining('transaction history'), findsOneWidget);
+    expect(find.byType(SlatepackDialog), findsNothing);
+    expect(wallet.cancelled, isEmpty);
+    await tester.tap(find.text('OK'));
+    await settle(tester);
+    expect(find.byType(PayInvoiceConfirmView), findsNothing);
+  });
+
+  testWidgets('a payment that failed and left nothing keeps the screen', (
+    tester,
+  ) async {
+    wallet.payment = SlatepackResult(success: false, error: 'No.');
+    await openInvoice(tester);
+    await pay(tester);
+
+    expect(find.text('Invoice payment failed'), findsOneWidget);
+    await tester.tap(find.text('OK'));
+    await settle(tester);
+    expect(find.byType(PayInvoiceConfirmView), findsOneWidget);
+    expect(payEnabled(tester), isTrue);
+  });
+
   testWidgets('an I1 without an amount is refused', (tester) async {
     h.backend.api.decoded = decoded(GrinSlateState.i1);
     await runFlow(tester);

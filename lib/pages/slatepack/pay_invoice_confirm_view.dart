@@ -30,8 +30,8 @@ import 'slatepack_import_flow.dart';
 /// Review of someone else's invoice (I1) before paying it. Modelled on the
 /// send confirm screen. The invoice carries no fee, so the fee is the
 /// wallet's estimate. Pops true once a payment was made and still stands:
-/// the payment slatepack (I2) was shown, or the payment could not be
-/// cancelled again.
+/// the payment slatepack (I2) was shown, the payment failed after the wallet
+/// recorded it, or the payment could not be cancelled again.
 class PayInvoiceConfirmView extends ConsumerStatefulWidget {
   const PayInvoiceConfirmView({
     super.key,
@@ -117,7 +117,7 @@ class _PayInvoiceConfirmViewState extends ConsumerState<PayInvoiceConfirmView> {
           widget.invoice,
           confirmedAmount: _amount,
         );
-        if (!r.success || r.slatepack == null) {
+        if ((!r.success || r.slatepack == null) && r.slateId == null) {
           throw Exception(r.error ?? "Failed to pay the invoice");
         }
         return r;
@@ -126,6 +126,18 @@ class _PayInvoiceConfirmViewState extends ConsumerState<PayInvoiceConfirmView> {
     );
     if (result == null || !mounted) return;
     unawaited(_wallet.refresh());
+
+    if (!result.success || result.slatepack == null) {
+      // The payment failed but stays in the wallet, where it can be
+      // cancelled. Paying this invoice again from here cannot work.
+      await SlatepackImportFlow.showMessage(
+        context,
+        "Invoice payment failed",
+        result.error ?? "Failed to pay the invoice",
+      );
+      if (mounted) Navigator.of(context).pop(true);
+      return;
+    }
 
     final estimate = _estimatedFee;
     final actual = result.fee;

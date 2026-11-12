@@ -84,6 +84,7 @@ class FakeGrinWalletApi implements GrinWalletApi {
   Object? sendError;
   Object? scanError;
   Object? finalizeError;
+  Object? invoiceError;
   Object? repostError;
   Object? verifyError;
 
@@ -310,6 +311,7 @@ class FakeGrinWalletApi implements GrinWalletApi {
   ) async {
     _check('processInvoice');
     invoicePayments.add(args);
+    if (invoiceError != null) throw invoiceError!;
     return slatepackOf(GrinSlateState.i2);
   }
 
