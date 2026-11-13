@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:fixnum/fixnum.dart';
 import 'package:zcash_flutter/zcash_flutter.dart' as zcash;
 
 import '../../../models/node_model.dart';
@@ -28,6 +29,12 @@ abstract interface class ZcashLightwalletdSyncClient
 }
 
 abstract interface class ZcashLightwalletdTransparentClient {
+  Future<Set<String>> getTransparentAddressActivity(
+    List<String> addresses, {
+    required int startHeight,
+    required int chainHeight,
+  });
+
   Future<zcash.ZcashTransparentRefresh> getTransparentRefresh(
     zcash.ZcashTransparentState state, {
     int maxRangeSize = 1000,
@@ -343,6 +350,56 @@ class _ProductionZcashLightwalletdClient
   _ProductionZcashLightwalletdClient(this._client);
 
   final zcash.LightwalletdClient _client;
+
+  @override
+  Future<Set<String>> getTransparentAddressActivity(
+    List<String> addresses, {
+    required int startHeight,
+    required int chainHeight,
+  }) async {
+    if (startHeight < 1 || chainHeight < startHeight) {
+      throw ArgumentError(
+        'transparent activity range must be positive and ordered',
+      );
+    }
+    if (addresses.isEmpty || addresses.any((address) => address.isEmpty)) {
+      throw ArgumentError.value(
+        addresses,
+        'addresses',
+        'must contain non-empty transparent addresses',
+      );
+    }
+    final active = <String>{};
+    // Each address is intentionally queried separately because lightwalletd's
+    // transaction-history filter has a single-address contract. This reveals
+    // the registered window's common ownership to the configured endpoint;
+    // cap discovery and limit concurrency to gap-sized batches. Raw
+    // transactions are discarded here: they are activity markers for the
+    // frontier, not restored history entries (the UTXO refresh remains the
+    // source of valued transparent state).
+    for (var start = 0; start < addresses.length; start += 20) {
+      final end = start + 20 < addresses.length ? start + 20 : addresses.length;
+      final batch = addresses.sublist(start, end);
+      final results = await Future.wait([
+        for (final address in batch)
+          _client
+              .getTaddressTxids(
+                zcash.TransparentAddressBlockFilter(
+                  address: address,
+                  range: zcash.BlockRange(
+                    start: zcash.BlockID(height: Int64(startHeight)),
+                    end: zcash.BlockID(height: Int64(chainHeight)),
+                  ),
+                ),
+              )
+              .isEmpty,
+      ]);
+      for (var i = 0; i < batch.length; i++) {
+        if (!results[i]) active.add(batch[i]);
+      }
+    }
+    return active;
+  }
 
   @override
   Future<zcash.LightdInfo> getInfo() => _client.getInfo();

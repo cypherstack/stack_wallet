@@ -20,6 +20,7 @@ import '../intermediate/zcash_account_session.dart';
 import '../intermediate/zcash_pending_send_store.dart';
 import '../intermediate/zcash_send.dart';
 import '../intermediate/zcash_transparent_shielding.dart';
+import '../intermediate/zcash_transparent_receiver_discovery.dart';
 import '../intermediate/zcash_wallet_state.dart';
 import '../intermediate/zcash_wallet_state_controller.dart';
 import '../intermediate/zcash_zip318_migration.dart';
@@ -57,6 +58,7 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
   String? _unifiedAddress;
   List<zcash.ZcashTransparentReceiver> _additionalTransparentReceivers =
       const [];
+  ZcashTransparentReceiverDiscovery? _transparentReceiverDiscovery;
 
   @override
   int get isarTransactionVersion => 2;
@@ -164,36 +166,45 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
     _accountFingerprint = metadata.fingerprint;
     _accountMetadata = metadata;
     _viewingKeys = viewingKeys;
+    final transparentDiscovery = ZcashTransparentReceiverDiscovery(
+      network: cryptoCurrency.nativeNetwork,
+      viewingKeys: viewingKeys,
+    );
+    _transparentReceiverDiscovery = transparentDiscovery;
     _unifiedAddress = derived.ua;
     final transparentAddress = derived.transparentAddress;
     if (metadata.hasTransparent && transparentAddress == null) {
       throw StateError('Zcash account has no transparent UA receiver');
     }
     if (transparentAddress case final address?) {
-      final key = zcash.deriveNativeTransparentSpendingKey(
-        seedHex: seed.seedHex,
+      final externalViewingKey = viewingKeys.transparent.externalIvk;
+      if (externalViewingKey == null || externalViewingKey.isEmpty) {
+        throw StateError('Zcash account has no external transparent IVK');
+      }
+      final derivedAddress = zcash.deriveNativeTransparentAddressFromViewingKey(
+        viewingKeyHex: externalViewingKey,
         network: cryptoCurrency.nativeNetwork,
         childIndex: derived.nextValidIndex,
+        scope: zcash.ZcashTransparentKeyScope.external,
       );
-      try {
-        if (key.address != address) {
-          throw StateError(
-            'Zcash UA transparent receiver does not match its signing key',
-          );
-        }
-      } finally {
-        key.destroy();
+      if (derivedAddress != address) {
+        throw StateError(
+          'Zcash UA transparent receiver does not match its viewing key',
+        );
       }
       final defaultAddress = viewingKeys.transparent.defaultExternalAddress;
-      _additionalTransparentReceivers = defaultAddress == address
-          ? const []
-          : [
-              zcash.ZcashTransparentReceiver(
-                address: address,
-                scope: zcash.ZcashTransparentReceiverScope.external,
-                childIndex: derived.nextValidIndex,
-              ),
-            ];
+      final receivers = <String, zcash.ZcashTransparentReceiver>{
+        for (final receiver in transparentDiscovery.initialReceivers())
+          if (receiver.address != defaultAddress) receiver.address: receiver,
+      };
+      if (address != defaultAddress) {
+        receivers[address] = zcash.ZcashTransparentReceiver(
+          address: address,
+          scope: zcash.ZcashTransparentReceiverScope.external,
+          childIndex: derived.nextValidIndex,
+        );
+      }
+      _additionalTransparentReceivers = receivers.values.toList();
     }
     final existing = await getCurrentReceivingAddress();
     final cached = info.cachedReceivingAddress;
@@ -693,6 +704,20 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
         }
         await _releaseCurrentPrepared();
 
+        final persisted = await store.load();
+        if (persisted != null) {
+          final defaultAddress =
+              _viewingKeys?.transparent.defaultExternalAddress;
+          final retained = <String, zcash.ZcashTransparentReceiver>{
+            for (final receiver in _additionalTransparentReceivers)
+              receiver.address: receiver,
+            for (final receiver in persisted.syncState.transparent.receivers)
+              if (receiver.address != defaultAddress)
+                receiver.address: receiver,
+          };
+          _additionalTransparentReceivers = retained.values.toList();
+        }
+
         // Reset only the encrypted chain checkpoint. Receiver rows, wallet
         // identity, and durable broadcast reservations must survive a rescan.
         await store.reset();
@@ -856,6 +881,7 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
     _viewingKeys = null;
     _unifiedAddress = null;
     _additionalTransparentReceivers = const [];
+    _transparentReceiverDiscovery = null;
     await session?.close();
   }
 
@@ -952,6 +978,16 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
       accountMetadata: accountMetadata,
       viewingKeys: viewingKeys,
       additionalTransparentReceivers: _additionalTransparentReceivers,
+      transparentDiscovery: _transparentReceiverDiscovery,
+      transparentActivity: client is ZcashLightwalletdTransparentClient
+          ? (addresses, startHeight, chainHeight) =>
+                (client as ZcashLightwalletdTransparentClient)
+                    .getTransparentAddressActivity(
+                      addresses,
+                      startHeight: startHeight,
+                      chainHeight: chainHeight,
+                    )
+          : null,
       refreshTransparent: client is ZcashLightwalletdTransparentClient
           ? (state) => (client as ZcashLightwalletdTransparentClient)
                 .getTransparentRefresh(

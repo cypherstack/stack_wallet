@@ -72,6 +72,13 @@ final class SendClient
   Future<int> getTipHeight() async => 42;
 
   @override
+  Future<Set<String>> getTransparentAddressActivity(
+    List<String> addresses, {
+    required int startHeight,
+    required int chainHeight,
+  }) async => const {};
+
+  @override
   Future<zcash.ZcashTransparentRefresh> getTransparentRefresh(
     zcash.ZcashTransparentState state, {
     int maxRangeSize = 1000,

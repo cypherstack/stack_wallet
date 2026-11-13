@@ -66,17 +66,43 @@ class SyncWalletSessionClient extends WalletSessionClient
   SyncWalletSessionClient({
     required super.chainName,
     required super.tipHeight,
-    this.transparentValueZatoshis = 0,
+    this.restoredTransparentOutputs = const [],
+    this.activeTransparentAddresses = const {},
   });
 
-  final int transparentValueZatoshis;
+  final List<
+    ({
+      zcash.ZcashTransparentReceiverScope scope,
+      int childIndex,
+      int valueZatoshis,
+    })
+  >
+  restoredTransparentOutputs;
+  final Set<String> activeTransparentAddresses;
   bool failTip = false;
   int treeStateCalls = 0;
   int transparentRefreshCalls = 0;
   int? receivedMaxRangeSize;
   int? receivedMaxUtxos;
   List<String>? queriedTransparentAddresses;
+  List<zcash.ZcashTransparentReceiver>? queriedTransparentReceivers;
+  final List<List<String>> transparentActivityQueries = [];
+  final List<({int startHeight, int endHeight})> transparentActivityRanges = [];
   String transparentTipHash = '44' * 32;
+
+  @override
+  Future<Set<String>> getTransparentAddressActivity(
+    List<String> addresses, {
+    required int startHeight,
+    required int chainHeight,
+  }) async {
+    transparentActivityQueries.add([...addresses]);
+    transparentActivityRanges.add((
+      startHeight: startHeight,
+      endHeight: chainHeight,
+    ));
+    return addresses.where(activeTransparentAddresses.contains).toSet();
+  }
 
   @override
   Future<zcash.ZcashTransparentRefresh> getTransparentRefresh(
@@ -88,22 +114,37 @@ class SyncWalletSessionClient extends WalletSessionClient
     receivedMaxRangeSize = maxRangeSize;
     receivedMaxUtxos = maxUtxos;
     queriedTransparentAddresses = state.addresses;
-    final address = state.addresses.single;
+    queriedTransparentReceivers = state.receivers;
+    final restored = [
+      for (final output in restoredTransparentOutputs)
+        (
+          output,
+          state.receivers.singleWhere(
+            (receiver) =>
+                receiver.scope == output.scope &&
+                receiver.childIndex == output.childIndex,
+          ),
+        ),
+    ];
     return zcash.ZcashTransparentRefresh(
       network: state.network,
       accountFingerprint: state.accountFingerprint,
-      queriedAddresses: [address],
+      queriedAddresses: state.addresses,
       chainHeight: tipHeight,
       chainTipHash: transparentTipHash,
       canonicalBlockHashes: {tipHeight: transparentTipHash},
       unspentOutputs: [
-        if (transparentValueZatoshis > 0)
+        for (final (output, receiver) in restored)
           zcash.ZcashTransparentOutputObservation(
-            address: address,
-            protocolTxid: '11' * 32,
-            outputIndex: 0,
+            address: receiver.address,
+            protocolTxid:
+                (output.scope == zcash.ZcashTransparentReceiverScope.external
+                    ? '11'
+                    : '22') *
+                32,
+            outputIndex: output.childIndex,
             scriptHex: '51',
-            valueZatoshis: transparentValueZatoshis,
+            valueZatoshis: output.valueZatoshis,
             minedHeight: tipHeight,
             blockHash: transparentTipHash,
             blockTime: 1700000000,
@@ -448,6 +489,29 @@ void main() {
   });
 
   test('transparent receiver refresh reaches balance and history', () async {
+    const mnemonic =
+        'abandon abandon abandon abandon abandon abandon abandon abandon '
+        'abandon abandon abandon about';
+    final seed = zcash.nativeMnemonicToSeed(mnemonic);
+    final viewing = zcash
+        .deriveNativeViewingKeys(
+          seedHex: seed.seedHex,
+          network: zcash.ZcashNetwork.mainnet,
+        )
+        .transparent;
+    String receiver(
+      zcash.ZcashTransparentReceiverScope scope,
+      int childIndex,
+    ) => zcash.deriveNativeTransparentAddressFromViewingKey(
+      viewingKeyHex: scope == zcash.ZcashTransparentReceiverScope.external
+          ? viewing.externalIvk!
+          : viewing.internalIvk!,
+      network: zcash.ZcashNetwork.mainnet,
+      childIndex: childIndex,
+      scope: scope == zcash.ZcashTransparentReceiverScope.external
+          ? zcash.ZcashTransparentKeyScope.external
+          : zcash.ZcashTransparentKeyScope.internal,
+    );
     final node = walletNode(
       host: 'https://transparent.example',
       id: 'transparent',
@@ -457,7 +521,23 @@ void main() {
     final client = SyncWalletSessionClient(
       chainName: 'main',
       tipHeight: 42,
-      transparentValueZatoshis: 125000,
+      activeTransparentAddresses: {
+        receiver(zcash.ZcashTransparentReceiverScope.external, 19),
+        receiver(zcash.ZcashTransparentReceiverScope.external, 25),
+        receiver(zcash.ZcashTransparentReceiverScope.internal, 4),
+      },
+      restoredTransparentOutputs: const [
+        (
+          scope: zcash.ZcashTransparentReceiverScope.external,
+          childIndex: 25,
+          valueZatoshis: 75000,
+        ),
+        (
+          scope: zcash.ZcashTransparentReceiverScope.internal,
+          childIndex: 4,
+          valueZatoshis: 50000,
+        ),
+      ],
     );
     final wallet = await Wallet.create(
       walletInfo: WalletInfo(
@@ -471,9 +551,7 @@ void main() {
       secureStorageInterface: secrets,
       nodeService: nodes,
       prefs: SessionPrefs(),
-      mnemonic:
-          'abandon abandon abandon abandon abandon abandon abandon abandon '
-          'abandon abandon abandon about',
+      mnemonic: mnemonic,
       mnemonicPassphrase: '',
     ) as ZcashWallet;
     wallet.configureAccountSessionFactory(
@@ -492,22 +570,49 @@ void main() {
           (row) => row.type == AddressType.p2pkh,
         );
     expect(transparentRows, hasLength(1));
-    expect(client.queriedTransparentAddresses, [transparentRows.single.value]);
+    expect(client.queriedTransparentAddresses, hasLength(71));
+    expect(client.transparentActivityQueries, hasLength(3));
+    expect(
+      client.transparentActivityRanges,
+      everyElement((startHeight: 42, endHeight: 42)),
+    );
+    expect(
+      client.queriedTransparentReceivers,
+      containsAll([
+        isA<zcash.ZcashTransparentReceiver>()
+            .having(
+              (receiver) => receiver.scope,
+              'scope',
+              zcash.ZcashTransparentReceiverScope.external,
+            )
+            .having((receiver) => receiver.childIndex, 'childIndex', 25),
+        isA<zcash.ZcashTransparentReceiver>()
+            .having(
+              (receiver) => receiver.scope,
+              'scope',
+              zcash.ZcashTransparentReceiverScope.internal,
+            )
+            .having((receiver) => receiver.childIndex, 'childIndex', 4),
+      ]),
+    );
     expect(wallet.info.cachedBalance.total.raw, BigInt.from(125000));
     expect(wallet.info.cachedBalance.spendable.raw, BigInt.zero);
     final transactions = await MainDB.instance.isar.transactionV2s
         .where()
         .walletIdEqualTo(wallet.walletId)
         .findAll();
-    expect(transactions, hasLength(1));
-    expect(transactions.single.assetPools, ['transparent']);
-    expect(transactions.single.timestamp, 1700000000);
-    expect(transactions.single.isMetadataMissing('timestamp'), isFalse);
-    expect(transactions.single.isMetadataMissing('fee'), isFalse);
+    expect(transactions, hasLength(2));
     expect(
-      transactions.single.getFee(fractionDigits: 8).raw,
-      BigInt.from(1000),
+      transactions.map((tx) => tx.assetPools),
+      everyElement(equals(['transparent'])),
     );
+    expect(transactions.every((tx) => tx.timestamp == 1700000000), isTrue);
+    expect(
+      transactions.every((tx) => !tx.isMetadataMissing('timestamp')),
+      isTrue,
+    );
+    expect(transactions.every((tx) => !tx.isMetadataMissing('fee')), isTrue);
+    expect(transactions.first.getFee(fractionDigits: 8).raw, BigInt.from(1000));
 
     client.transparentTipHash = '55' * 32;
     await expectLater(wallet.recover(isRescan: false), throwsA(anything));
@@ -516,7 +621,7 @@ void main() {
                 .where()
                 .walletIdEqualTo(wallet.walletId)
                 .findAll())
-            .single;
+            .first;
     expect(retained.blockHash, '44' * 32);
     expect(wallet.info.cachedBalance.total.raw, BigInt.from(125000));
     await wallet.exit();
@@ -524,7 +629,23 @@ void main() {
     final restartClient = SyncWalletSessionClient(
       chainName: 'main',
       tipHeight: 42,
-      transparentValueZatoshis: 125000,
+      activeTransparentAddresses: {
+        receiver(zcash.ZcashTransparentReceiverScope.external, 19),
+        receiver(zcash.ZcashTransparentReceiverScope.external, 25),
+        receiver(zcash.ZcashTransparentReceiverScope.internal, 4),
+      },
+      restoredTransparentOutputs: const [
+        (
+          scope: zcash.ZcashTransparentReceiverScope.external,
+          childIndex: 25,
+          valueZatoshis: 75000,
+        ),
+        (
+          scope: zcash.ZcashTransparentReceiverScope.internal,
+          childIndex: 4,
+          valueZatoshis: 50000,
+        ),
+      ],
     );
     final reopened = await Wallet.load(
       walletId: wallet.walletId,
@@ -544,6 +665,20 @@ void main() {
 
     expect(restartClient.treeStateCalls, 0);
     expect(restartClient.transparentRefreshCalls, 1);
+    expect(restartClient.queriedTransparentAddresses, hasLength(71));
+    expect(restartClient.transparentActivityQueries, hasLength(1));
+    expect(restartClient.transparentActivityRanges.single, (
+      startHeight: 42,
+      endHeight: 42,
+    ));
+    expect(reopened.info.cachedBalance.total.raw, BigInt.from(125000));
+
+    await reopened.recover(isRescan: true);
+
+    expect(restartClient.treeStateCalls, 1);
+    expect(restartClient.transparentRefreshCalls, 2);
+    expect(restartClient.queriedTransparentAddresses, hasLength(71));
+    expect(restartClient.transparentActivityQueries, hasLength(2));
     expect(reopened.info.cachedBalance.total.raw, BigInt.from(125000));
     await reopened.exit();
   });

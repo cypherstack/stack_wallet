@@ -7,9 +7,82 @@ import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/zcash_wallet_state.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/zcash_wallet_state_controller.dart';
+import 'package:stackwallet/wallets/wallet/intermediate/zcash_transparent_receiver_discovery.dart';
 import 'package:zcash_flutter/zcash_flutter.dart' as zcash;
 
 void main() {
+  test('transparent discovery queries exactly birthday through '
+      'caught-up tip', () async {
+    final directory = await Directory.systemTemp.createTemp(
+      'zcash_controller_transparent_range_',
+    );
+    addTearDown(() => directory.delete(recursive: true));
+    final seed = zcash.nativeMnemonicToSeed(
+      'abandon abandon abandon abandon abandon abandon abandon abandon '
+      'abandon abandon abandon about',
+    );
+    final account = zcash.deriveNativeAccountMetadata(
+      seedHex: seed.seedHex,
+      network: zcash.ZcashNetwork.mainnet,
+    );
+    final viewingKeys = zcash.deriveNativeViewingKeys(
+      seedHex: seed.seedHex,
+      network: zcash.ZcashNetwork.mainnet,
+    );
+    final discovery = ZcashTransparentReceiverDiscovery(
+      network: zcash.ZcashNetwork.mainnet,
+      viewingKeys: viewingKeys,
+    );
+    final defaultAddress = viewingKeys.transparent.defaultExternalAddress;
+    final ranges = <({int start, int end})>[];
+    final controller = await ZcashWalletStateController.open(
+      store: ZcashEncryptedWalletStateStore(
+        path: '${directory.path}/wallet.state',
+        walletId: 'wallet-range',
+        network: 'main',
+        accountFingerprint: account.fingerprint,
+        secureStorage: FakeSecureStorage(),
+      ),
+      accountFingerprint: account.fingerprint,
+      network: 'main',
+      birthdayHeight: 100,
+      loadBirthdayTreeState: (_) async => const zcash.TreeState(
+        hash:
+            '0000000000000000000000000000000000000000000000000000000000000000',
+        height: 99,
+        time: 1,
+      ),
+      scanExecutor: _UnusedScanExecutor(),
+      openSync: (_, _) => const _ImmediateSyncSession(
+        zcash.ZcashSyncCaughtUp(chainHeight: 150),
+      ),
+      accountMetadata: account,
+      viewingKeys: viewingKeys,
+      additionalTransparentReceivers: discovery.initialReceivers().where(
+        (receiver) => receiver.address != defaultAddress,
+      ),
+      transparentDiscovery: discovery,
+      transparentActivity: (addresses, start, end) async {
+        ranges.add((start: start, end: end));
+        return const {};
+      },
+      refreshTransparent: (state) async => zcash.ZcashTransparentRefresh(
+        network: state.network,
+        accountFingerprint: state.accountFingerprint,
+        queriedAddresses: state.addresses,
+        chainHeight: 150,
+        chainTipHash: '22' * 32,
+        canonicalBlockHashes: {150: '22' * 32},
+        unspentOutputs: const [],
+        observedSpends: const [],
+      ),
+    );
+
+    await controller.refresh();
+
+    expect(ranges, [(start: 100, end: 150)]);
+  });
+
   test('registers the UA transparent child at its exact '
       'regtest index', () async {
     final directory = await Directory.systemTemp.createTemp(

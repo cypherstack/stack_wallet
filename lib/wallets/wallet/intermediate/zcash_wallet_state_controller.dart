@@ -9,6 +9,7 @@ import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../utilities/amount/amount.dart';
+import 'zcash_transparent_receiver_discovery.dart';
 import 'zcash_wallet_state.dart';
 
 abstract interface class ZcashScanExecutor {
@@ -66,6 +67,12 @@ typedef ZcashTransparentRefreshCallback =
     Future<zcash.ZcashTransparentRefresh> Function(
       zcash.ZcashTransparentState state,
     );
+
+typedef ZcashTransparentActivityCallback = Future<Set<String>> Function(
+  List<String> addresses,
+  int startHeight,
+  int chainHeight,
+);
 
 class ZcashReorgDetectedException implements Exception {
   const ZcashReorgDetectedException(this.outcome);
@@ -306,6 +313,11 @@ class ZcashWalletStateController {
     this._sync,
     this._observedChainHeight,
     this._refreshTransparent,
+    this._transparentActivity,
+    this._transparentDiscovery,
+    this._accountMetadata,
+    this._viewingKeys,
+    this._birthdayHeight,
   );
 
   final ZcashEncryptedWalletStateStore _store;
@@ -313,6 +325,11 @@ class ZcashWalletStateController {
   final ZcashSyncSession _sync;
   int _observedChainHeight;
   final ZcashTransparentRefreshCallback? _refreshTransparent;
+  final ZcashTransparentActivityCallback? _transparentActivity;
+  final ZcashTransparentReceiverDiscovery? _transparentDiscovery;
+  final zcash.ZcashAccountMetadata? _accountMetadata;
+  final zcash.ZcashViewingKeys? _viewingKeys;
+  final int _birthdayHeight;
   Future<ZcashWalletSnapshot>? _refreshInFlight;
 
   static Future<ZcashWalletStateController> open({
@@ -328,6 +345,8 @@ class ZcashWalletStateController {
     Iterable<zcash.ZcashTransparentReceiver> additionalTransparentReceivers =
         const [],
     ZcashTransparentRefreshCallback? refreshTransparent,
+    ZcashTransparentActivityCallback? transparentActivity,
+    ZcashTransparentReceiverDiscovery? transparentDiscovery,
   }) async {
     if (birthdayHeight < 1) {
       throw ArgumentError.value(
@@ -339,6 +358,15 @@ class ZcashWalletStateController {
     if ((accountMetadata == null) != (viewingKeys == null)) {
       throw ArgumentError(
         'accountMetadata and viewingKeys must be supplied together',
+      );
+    }
+    if (transparentDiscovery != null &&
+        (accountMetadata == null ||
+            viewingKeys == null ||
+            transparentActivity == null)) {
+      throw ArgumentError(
+        'transparent discovery requires account viewing material and an '
+        'activity source',
       );
     }
     if (store.accountFingerprint != accountFingerprint ||
@@ -405,6 +433,11 @@ class ZcashWalletStateController {
       sync,
       persisted.observedChainHeight,
       refreshTransparent,
+      transparentActivity,
+      transparentDiscovery,
+      accountMetadata,
+      viewingKeys,
+      birthdayHeight,
     );
   }
 
@@ -454,6 +487,7 @@ class ZcashWalletStateController {
           'transparent receivers require lightwalletd transparent refresh',
         );
       }
+      await _discoverTransparentReceivers(caughtUpHeight);
       final refresh = await refreshTransparent(_state.transparent);
       if (refresh.chainHeight != caughtUpHeight) {
         throw StateError(
@@ -471,6 +505,109 @@ class ZcashWalletStateController {
       ),
     );
     return snapshot;
+  }
+
+  Future<void> _discoverTransparentReceivers(int chainHeight) async {
+    final discover = _transparentDiscovery;
+    final activity = _transparentActivity;
+    final account = _accountMetadata;
+    final viewingKeys = _viewingKeys;
+    if (discover == null ||
+        activity == null ||
+        account == null ||
+        viewingKeys == null) {
+      return;
+    }
+
+    final knownByAddress = {
+      for (final receiver in _state.transparent.receivers)
+        receiver.address: receiver,
+    };
+    // A just-created wallet can be initialized while the served tip is still
+    // the block immediately preceding its birthday. Keep the range valid in
+    // that transient state; ordinary restores query birthday..tip exactly.
+    final activityStartHeight = _birthdayHeight <= chainHeight
+        ? _birthdayHeight
+        : chainHeight;
+    final activeAddresses = await activity(
+      knownByAddress.keys.toList(growable: false),
+      activityStartHeight,
+      chainHeight,
+    );
+    _validateTransparentActivity(activeAddresses, knownByAddress.keys.toSet());
+
+    while (true) {
+      final additions = <zcash.ZcashTransparentReceiver>[];
+      for (final scope in zcash.ZcashTransparentReceiverScope.values) {
+        final scoped =
+            knownByAddress.values
+                .where((receiver) => receiver.scope == scope)
+                .toList()
+              ..sort((a, b) => a.childIndex.compareTo(b.childIndex));
+        var contiguousThrough = -1;
+        for (final receiver in scoped) {
+          if (receiver.childIndex != contiguousThrough + 1) break;
+          contiguousThrough = receiver.childIndex;
+        }
+        final activeChildren = scoped
+            .where((receiver) => activeAddresses.contains(receiver.address))
+            .map((receiver) => receiver.childIndex);
+        final highestActive = activeChildren.isEmpty
+            ? -1
+            : activeChildren.reduce((a, b) => a > b ? a : b);
+        final requestedThrough =
+            (highestActive < 0
+                    ? discover.gapLimit - 1
+                    : highestActive + discover.gapLimit)
+                .clamp(0, discover.hardChildLimit - 1);
+        if (requestedThrough > contiguousThrough) {
+          additions.addAll(
+            discover.deriveRange(
+              scope,
+              contiguousThrough + 1,
+              requestedThrough + 1,
+            ),
+          );
+        }
+      }
+      if (additions.isEmpty) return;
+
+      _state.transparent.registerAccountReceivers(
+        account: account,
+        viewingKeys: viewingKeys,
+        additionalReceivers: additions,
+      );
+      for (final receiver in additions) {
+        knownByAddress[receiver.address] = receiver;
+      }
+      await _store.save(
+        ZcashPersistedWalletState(
+          syncState: _state,
+          observedChainHeight: _observedChainHeight,
+        ),
+      );
+      final newlyActive = await activity(
+        additions.map((receiver) => receiver.address).toList(growable: false),
+        activityStartHeight,
+        chainHeight,
+      );
+      _validateTransparentActivity(
+        newlyActive,
+        additions.map((receiver) => receiver.address).toSet(),
+      );
+      activeAddresses.addAll(newlyActive);
+    }
+  }
+
+  static void _validateTransparentActivity(
+    Set<String> active,
+    Set<String> queried,
+  ) {
+    if (active.difference(queried).isNotEmpty) {
+      throw StateError(
+        'lightwalletd returned activity for an unqueried transparent address',
+      );
+    }
   }
 }
 
