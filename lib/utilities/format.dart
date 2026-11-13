@@ -68,8 +68,9 @@ abstract class Format {
       return dayAndYear;
     }
 
-    final minutes =
-        date.minute < 10 ? "0${date.minute}" : date.minute.toString();
+    final minutes = date.minute < 10
+        ? "0${date.minute}"
+        : date.minute.toString();
     return "$dayAndYear, ${date.hour}:$minutes";
   }
 
@@ -141,6 +142,8 @@ abstract class Format {
         return "Every app start";
       case BackupFrequencyType.afterClosingAWallet:
         return "After closing a cryptocurrency wallet";
+      case BackupFrequencyType.afterChanges:
+        return "After editing a note or contact";
     }
   }
 }
