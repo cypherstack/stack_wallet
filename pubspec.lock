@@ -1264,9 +1264,9 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "7548bf1c6e79a82e991c3feb61c1908dfe324275"
-      resolved-ref: "7548bf1c6e79a82e991c3feb61c1908dfe324275"
-      url: "https://github.com/cypherstack/fusiondart.git"
+      ref: ec816e17a3ef64b776464ac458e176c5b9c08119
+      resolved-ref: ec816e17a3ef64b776464ac458e176c5b9c08119
+      url: "ssh://git@git.cypherstack.com:222/sneurlax/fusiondart.git"
     source: git
     version: "1.0.0"
   glob:
@@ -1711,10 +1711,11 @@ packages:
   mweb_client:
     dependency: "direct main"
     description:
-      name: mweb_client
-      sha256: "263ba560dab7e63a1d03875d455a19cc4a1ab9720786cd9d6ffcc42127d06732"
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: "8acad159e9f0563e19373baecb6efdf137df7c1d"
+      resolved-ref: "8acad159e9f0563e19373baecb6efdf137df7c1d"
+      url: "ssh://git@git.cypherstack.com:222/sneurlax/mweb_client.git"
+    source: git
     version: "0.2.0"
   namecoin:
     dependency: "direct main"

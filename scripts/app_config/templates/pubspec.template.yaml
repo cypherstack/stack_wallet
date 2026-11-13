@@ -116,8 +116,8 @@ dependencies:
 
   fusiondart:
     git:
-      url: https://github.com/cypherstack/fusiondart.git
-      ref: 7548bf1c6e79a82e991c3feb61c1908dfe324275
+      url: ssh://git@git.cypherstack.com:222/sneurlax/fusiondart.git
+      ref: ec816e17a3ef64b776464ac458e176c5b9c08119
 
   # Utility plugins
   http: ^1.6.0
@@ -263,7 +263,10 @@ dependencies:
   drift: 2.34.4
   drift_flutter: 0.3.1
   path: ^1.9.1
-  mweb_client: ^0.2.0
+  mweb_client:
+    git:
+      url: ssh://git@git.cypherstack.com:222/sneurlax/mweb_client.git
+      ref: 8acad159e9f0563e19373baecb6efdf137df7c1d
   fixnum: ^1.1.1
   saf_util: ^0.11.0
   saf_stream: ^0.12.3
