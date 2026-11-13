@@ -74,6 +74,8 @@ secp256k1.dll
 ## other generated project files
 
 pubspec.yaml
+!crypto_plugins/firo_bls_dart/**/pubspec.yaml
+crypto_plugins/firo_bls_dart/**/target/
 
 /android/app/build.gradle
 /android/app/src/debug/AndroidManifest.xml
