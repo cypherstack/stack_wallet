@@ -1517,6 +1517,26 @@ class _TransactionV2DetailsViewState
                           return;
                         }
 
+                        final proceed = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => StackDialog(
+                            title: "Cancel this transaction?",
+                            message:
+                                "The other party can no longer complete it, "
+                                "and any funds it locked become spendable "
+                                "again.",
+                            leftButton: SecondaryButton(
+                              label: "Keep",
+                              onPressed: () => Navigator.of(context).pop(false),
+                            ),
+                            rightButton: PrimaryButton(
+                              label: "Cancel transaction",
+                              onPressed: () => Navigator.of(context).pop(true),
+                            ),
+                          ),
+                        );
+                        if (proceed != true || !context.mounted) return;
+
                         unawaited(
                           showDialog<void>(
                             barrierDismissible: false,
@@ -1571,7 +1591,7 @@ class _TransactionV2DetailsViewState
                       }
                     },
                     child: Text(
-                      "Cancel Transaction",
+                      "Cancel transaction",
                       style: STextStyles.button(context),
                     ),
                   ),
