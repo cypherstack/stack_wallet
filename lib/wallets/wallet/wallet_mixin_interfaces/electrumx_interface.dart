@@ -9,7 +9,6 @@ import 'package:meta/meta.dart';
 
 import '../../../db/drift/database.dart';
 import '../../../electrumx_rpc/cached_electrumx_client.dart';
-import '../../../electrumx_rpc/client_manager.dart';
 import '../../../electrumx_rpc/electrumx_client.dart';
 import '../../../models/coinlib/exp2pkh_address.dart';
 import '../../../models/input.dart';
@@ -25,6 +24,7 @@ import '../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../utilities/extensions/extensions.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/paynym_is_api.dart';
+import '../../../utilities/tor_plain_net_option_enum.dart';
 import '../../crypto_currency/coins/firo.dart';
 import '../../crypto_currency/interfaces/electrumx_currency_interface.dart';
 import '../../isar/models/wallet_info.dart';
@@ -1033,9 +1033,21 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         await _initializeServerVersionAndCheckGenesisHash();
       }
 
-      return await ClientManager.sharedInstance.getChainHeightFor(
-        cryptoCurrency,
-      );
+      // The network restriction the shared header subscription enforced.
+      if (prefs.useTor) {
+        if (electrumXClient.netType == TorPlainNetworkOption.clear) {
+          throw Exception(
+            "Non-TOR only client for ${cryptoCurrency.identifier} found.",
+          );
+        }
+      } else if (electrumXClient.netType == TorPlainNetworkOption.tor) {
+        throw Exception(
+          "TOR only client for ${cryptoCurrency.identifier} found.",
+        );
+      }
+
+      final tip = await electrumXClient.getBlockHeadTip();
+      return tip["height"] as int;
     } catch (e, s) {
       if (retries > 0) {
         retries--;
@@ -1094,6 +1106,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
       port: node.port,
       name: node.name,
       useSSL: node.useSSL,
+      trustedCertificatePem: node.trustedCertificatePem,
       id: node.id,
       torEnabled: node.torEnabled,
       clearnetEnabled: node.clearnetEnabled,
@@ -1110,6 +1123,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
             name: e.name,
             id: e.id,
             useSSL: e.useSSL,
+            trustedCertificatePem: e.trustedCertificatePem,
             torEnabled: e.torEnabled,
             clearnetEnabled: e.clearnetEnabled,
           ),
@@ -1117,19 +1131,15 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         .toList();
 
     final newNode = await _getCurrentElectrumXNode();
+    ElectrumXClient? previous;
     try {
-      await electrumXClient.closeAdapter();
-    } catch (e, s) {
-      if (e.toString().contains("initialized")) {
-        // Ignore.  This should happen every first time the wallet is opened.
-      } else {
-        Logging.instance.e(
-          "Error closing electrumXClient",
-          error: e,
-          stackTrace: s,
-        );
-      }
+      previous = electrumXClient;
+    } catch (e) {
+      // Not initialized: this happens every first time the wallet is opened.
+      if (!e.toString().contains("initialized")) rethrow;
     }
+    // Replace before closing, so an overlapping update closes this client
+    // instead of overwriting it while it is still open.
     electrumXClient = ElectrumXClient.from(
       node: newNode,
       prefs: prefs,
@@ -1139,6 +1149,37 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
     electrumXCachedClient = CachedElectrumXClient.from(
       electrumXClient: electrumXClient,
     );
+    try {
+      await previous?.closeAdapter();
+    } catch (e, s) {
+      Logging.instance.e(
+        "Error closing electrumXClient",
+        error: e,
+        stackTrace: s,
+      );
+    }
+  }
+
+  @override
+  Future<void> exit() async {
+    await super.exit();
+    // This wallet no longer syncs. Its connection closes once a refresh in
+    // progress ends; the client reconnects if the wallet is opened again.
+    unawaited(releaseConnectionWhenIdle());
+  }
+
+  @visibleForTesting
+  Future<void> releaseConnectionWhenIdle() async {
+    try {
+      await refreshMutex.protect(() async {});
+      if (!shouldAutoSync) await electrumXClient.disconnect();
+    } catch (e, s) {
+      Logging.instance.w(
+        "Releasing the Electrum connection of $walletId",
+        error: e,
+        stackTrace: s,
+      );
+    }
   }
 
   //============================================================================

@@ -1292,6 +1292,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
       port: node.port,
       name: node.name,
       useSSL: node.useSSL,
+      trustedCertificatePem: node.trustedCertificatePem,
       id: node.id,
       torEnabled: node.torEnabled,
       clearnetEnabled: node.clearnetEnabled,
@@ -1309,6 +1310,7 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
             name: e.name,
             id: e.id,
             useSSL: e.useSSL,
+            trustedCertificatePem: e.trustedCertificatePem,
             torEnabled: e.torEnabled,
             clearnetEnabled: e.clearnetEnabled,
           ),
@@ -1316,19 +1318,15 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
         .toList();
 
     final newNode = await _getCurrentElectrumXNode();
+    ElectrumXClient? previous;
     try {
-      await electrumXClient.closeAdapter();
-    } catch (e, s) {
-      if (e.toString().contains("initialized")) {
-        // Ignore.  This should happen every first time the wallet is opened.
-      } else {
-        Logging.instance.e(
-          "Error closing electrumXClient",
-          error: e,
-          stackTrace: s,
-        );
-      }
+      previous = electrumXClient;
+    } catch (e) {
+      // Not initialized: this happens every first time the wallet is opened.
+      if (!e.toString().contains("initialized")) rethrow;
     }
+    // Replace before closing, so an overlapping update closes this client
+    // instead of overwriting it while it is still open.
     electrumXClient = ElectrumXClient.from(
       node: newNode,
       prefs: prefs,
@@ -1339,6 +1337,34 @@ class BitcoinFrostWallet<T extends FrostCurrency> extends Wallet<T>
     electrumXCachedClient = CachedElectrumXClient.from(
       electrumXClient: electrumXClient,
     );
+    try {
+      await previous?.closeAdapter();
+    } catch (e, s) {
+      Logging.instance.e(
+        "Error closing electrumXClient",
+        error: e,
+        stackTrace: s,
+      );
+    }
+  }
+
+  @override
+  Future<void> exit() async {
+    await super.exit();
+    // This wallet no longer syncs. Its connection closes once a refresh in
+    // progress ends; the client reconnects if the wallet is opened again.
+    unawaited(() async {
+      try {
+        await refreshMutex.protect(() async {});
+        if (!shouldAutoSync) await electrumXClient.disconnect();
+      } catch (e, s) {
+        Logging.instance.w(
+          "Releasing the Electrum connection of $walletId",
+          error: e,
+          stackTrace: s,
+        );
+      }
+    }());
   }
 
   bool _duplicateTxCheck(

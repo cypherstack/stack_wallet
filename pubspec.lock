@@ -912,11 +912,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "76ffad6ecc1e31de47d9187fd39c831db0aa987f"
-      resolved-ref: "76ffad6ecc1e31de47d9187fd39c831db0aa987f"
+      ref: b0d8a16c8a4d6976bd0f1f98723e222706cc567c
+      resolved-ref: b0d8a16c8a4d6976bd0f1f98723e222706cc567c
       url: "https://github.com/cypherstack/electrum_adapter.git"
     source: git
-    version: "4.0.1"
+    version: "5.0.0"
   emojis:
     dependency: "direct main"
     description:
@@ -2174,10 +2174,10 @@ packages:
     dependency: "direct main"
     description:
       name: socks_socket
-      sha256: "09149ed1278584554aeacc60c7aeec5bd80154e6ce1136f00d97485d09d5a338"
+      sha256: "536e0876f94d878c09d0673d69d20f61894becce4476f0abd45a50a2ff387cf9"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.0"
+    version: "2.1.0"
   solana:
     dependency: "direct main"
     description:
