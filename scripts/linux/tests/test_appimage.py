@@ -71,6 +71,8 @@ class AppImageScriptsTest(unittest.TestCase):
         self.assertIn("releases/download/${APPIMAGE_RUNTIME_VERSION}", script)
         self.assertIn("--proto '=https'", script)
         self.assertIn("--proto-redir '=https'", script)
+        self.assertIn("--connect-timeout 30", script)
+        self.assertIn("--max-time 300", script)
         self.assertIn("--runtime-file", script)
         self.assertIn("verify_sha256", script)
         self.assertRegex(script, r'APPIMAGETOOL_SHA256="[0-9a-f]{64}"')
@@ -80,6 +82,21 @@ class AppImageScriptsTest(unittest.TestCase):
         workflow = BUILD_WORKFLOW.read_text()
         self.assertNotIn("AppImage/appimagetool/releases/download/continuous", workflow)
         self.assertEqual(workflow.count("appimage/build_appimage.sh"), 3)
+        self.assertEqual(workflow.count("build-appimage:\n"), 1)
+        self.assertEqual(workflow.count("build-campfire-appimage:\n"), 1)
+        self.assertEqual(workflow.count("build-stack-duo-appimage:\n"), 1)
+        for job, needs in {
+            "build-appimage": "build-linux",
+            "build-campfire-appimage": "build-campfire-linux",
+            "build-stack-duo-appimage": "build-stack-duo-linux",
+        }.items():
+            self.assertIn(
+                f"  {job}:\n"
+                "    runs-on: ubuntu-24.04\n"
+                f"    needs: {needs}\n"
+                "    permissions:\n      contents: read\n    steps:\n",
+                workflow,
+            )
         for app in APP_IDS:
             self.assertIn(f"appimage/build_appimage.sh {app} bundle", workflow)
 

@@ -25,6 +25,7 @@ download_verified() {
   local expected=$2
   local destination=$3
   curl --fail --silent --show-error --location --retry 3 \
+    --connect-timeout 30 --max-time 300 \
     --proto '=https' --proto-redir '=https' \
     --output "$destination" "$url"
   verify_sha256 "$destination" "$expected"

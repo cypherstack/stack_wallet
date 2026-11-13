@@ -634,6 +634,8 @@ jobs:
   build-appimage:
     runs-on: ubuntu-24.04
     needs: build-linux
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v6
 
@@ -1083,6 +1085,8 @@ jobs:
   build-campfire-appimage:
     runs-on: ubuntu-24.04
     needs: build-campfire-linux
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v6
 
@@ -1534,6 +1538,8 @@ jobs:
   build-stack-duo-appimage:
     runs-on: ubuntu-24.04
     needs: build-stack-duo-linux
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v6
 
