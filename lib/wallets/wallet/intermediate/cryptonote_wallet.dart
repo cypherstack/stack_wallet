@@ -24,14 +24,14 @@ abstract class CryptonoteWallet<T extends CryptonoteCurrency>
   @override
   Future<void> init({bool? isRestore, int? wordCount});
 
-  Future<CWKeyData?> getKeys();
+  Future<CWKeyData> getKeys();
 
   Future<String> getTxKeyFor({required String txid});
 
   Future<(String, String)>
   hackToCreateNewViewOnlyWalletDataFromNewlyCreatedWalletThisFunctionShouldNotBeCalledUnlessYouKnowWhatYouAreDoing();
 
-  void setRefreshFromBlockHeight(int newHeight);
+  Future<void> setRefreshFromBlockHeight(int newHeight);
 
   Future<int> getRefreshFromBlockHeight();
 

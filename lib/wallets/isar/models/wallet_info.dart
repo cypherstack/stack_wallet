@@ -13,6 +13,8 @@ import 'wallet_info_meta.dart';
 
 part 'wallet_info.g.dart';
 
+enum WalletRecoveryType { mnemonic, privateKeys }
+
 @Collection(accessor: "walletInfo", inheritance: false)
 class WalletInfo implements IsarId {
   @override
@@ -143,6 +145,22 @@ class WalletInfo implements IsarId {
   @ignore
   bool get isViewOnly =>
       otherData[WalletInfoKeys.isViewOnlyKey] as bool? ?? false;
+
+  @ignore
+  WalletRecoveryType get recoveryType {
+    final index = otherData[WalletInfoKeys.recoveryTypeIndexKey] as int?;
+    if (index != null &&
+        index >= 0 &&
+        index < WalletRecoveryType.values.length) {
+      return WalletRecoveryType.values[index];
+    }
+
+    if (otherData[WalletInfoKeys.isRestoredFromKeysKey] == true) {
+      return WalletRecoveryType.privateKeys;
+    }
+
+    return WalletRecoveryType.mnemonic;
+  }
 
   @ignore
   ViewOnlyWalletType? get viewOnlyWalletType {
@@ -584,4 +602,6 @@ abstract class WalletInfoKeys {
       "solanaCustomTokenMintAddressesKey";
   static const String firoMasternodeCollateralDismissed =
       "firoMasternodeCollateralDismissedKey";
+  static const String isRestoredFromKeysKey = "isRestoredFromKeysKey";
+  static const String recoveryTypeIndexKey = "recoveryTypeIndexKey";
 }

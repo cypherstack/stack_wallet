@@ -241,20 +241,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           ),
         });
       } else if (widget.coin is Mimblewimblecoin) {
-        // final int secondsSinceEpoch =
-        //     widget.restoreFromDate!.millisecondsSinceEpoch ~/ 1000;
-        final int secondsSinceEpoch =
-            DateTime.now().millisecondsSinceEpoch ~/ 1000;
-        const int mimblewimblecoinFirstBlock = 1573462801;
-        const double overestimateSecondsPerBlock = 61;
-        final int chosenSeconds =
-            secondsSinceEpoch - mimblewimblecoinFirstBlock;
-        final int approximateHeight =
-            chosenSeconds ~/ overestimateSecondsPerBlock;
-        height = approximateHeight;
-        if (height < 0) {
-          height = 0;
-        }
+        // Preserve the selected restore height supplied by restore options.
         otherDataJsonString = jsonEncode({
           WalletInfoKeys.mimblewimblecoinData: jsonEncode(
             ExtraMimblewimblecoinWalletInfo(
@@ -698,14 +685,17 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
     await Future<void>.delayed(const Duration(milliseconds: 100));
 
     if (mounted) {
-      await showDialog<dynamic>(
+      final confirmed = await showDialog<bool>(
         context: context,
         useSafeArea: false,
         barrierDismissible: true,
         builder: (context) {
-          return ConfirmRecoveryDialog(onConfirm: attemptRestore);
+          return const ConfirmRecoveryDialog();
         },
       );
+      if (confirmed == true) {
+        await attemptRestore();
+      }
     }
   }
 

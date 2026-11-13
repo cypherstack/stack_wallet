@@ -41,6 +41,7 @@ class AddressUtils {
   };
 
   static String condenseAddress(String address) {
+    if (address.length < 10) return address;
     return '${address.substring(0, 5)}...${address.substring(address.length - 5)}';
   }
 
@@ -314,6 +315,55 @@ class AddressUtils {
     }
   }
 
+  /// Parses a wallet URI and returns a Map.
+  ///
+  /// Returns null on failure to parse.
+  static Map<String, dynamic>? _parseWalletUri(
+    String uri,
+    CryptoCurrency? preferredCoin,
+  ) {
+    final separatorIndex = uri.indexOf(":");
+    if (separatorIndex <= 0) return null;
+    final scheme = uri
+        .substring(0, separatorIndex)
+        .toLowerCase()
+        .replaceAll("-", "_");
+    final possibleCoins = AppConfig.coins.where(
+      (coin) =>
+          "${coin.uriScheme}_wallet" == scheme &&
+          coin.network == CryptoCurrencyNetwork.main,
+    );
+    final CryptoCurrency selectedCoin;
+    if (preferredCoin != null &&
+        "${preferredCoin.uriScheme}_wallet" == scheme) {
+      selectedCoin = preferredCoin;
+    } else {
+      if (possibleCoins.length != 1) return null;
+      selectedCoin = possibleCoins.first;
+    }
+
+    // Wallet URIs contain secret recovery material. Parse them separately
+    // from payment URIs to avoid their logging and multi-recipient rules.
+    final compatible =
+        scheme.replaceAll("_", "") + uri.substring(separatorIndex);
+    final parsed = Uri.tryParse(compatible);
+    if (parsed == null) return null;
+    final Map<String, dynamic> parsedData = {"address": parsed.path};
+    for (final entry in parsed.queryParameters.entries) {
+      var value = entry.value;
+      if (value.length >= 2 &&
+          ((value.startsWith('"') && value.endsWith('"')) ||
+              (value.startsWith("'") && value.endsWith("'")))) {
+        value = value.substring(1, value.length - 1);
+      }
+      parsedData[entry.key.toLowerCase().replaceAll("-", "_")] = value;
+    }
+
+    parsedData["coin"] = selectedCoin;
+
+    return parsedData;
+  }
+
   /// Builds a uri string with the given address and query parameters (if any)
   static String buildUriString(
     String scheme,
@@ -583,4 +633,149 @@ class PaymentUriData {
       "paymentId: $paymentId, "
       "additionalParams: $additionalParams"
       " }";
+}
+
+class WalletUriData {
+  final CryptoCurrency coin;
+  final String? address;
+  final String? seed;
+  final String? spendKey;
+  final String? viewKey;
+  final int? height;
+
+  bool get isViewOnly => spendKey == null && seed == null;
+
+  WalletUriData({
+    required this.coin,
+    this.address,
+    this.seed,
+    this.spendKey,
+    this.viewKey,
+    this.height,
+  });
+
+  factory WalletUriData.fromUriString(
+    String uri, {
+    CryptoCurrency? preferredCoin,
+    bool Function(String address)? addressValidator,
+  }) {
+    final Map<String, dynamic>? map;
+    try {
+      map = AddressUtils._parseWalletUri(uri, preferredCoin);
+    } on FormatException {
+      // FormatException may carry the input URI, including private keys.
+      throw const FormatException("Invalid wallet URI");
+    }
+
+    if (map == null) {
+      throw const FormatException("Invalid wallet URI");
+    }
+
+    return WalletUriData.fromJson(
+      map,
+      map["coin"] as CryptoCurrency,
+      addressValidator: addressValidator,
+    );
+  }
+
+  /// Factory constructor with validation logic according to the spec:
+  /// https://github.com/monero-project/monero/wiki/URI-Formatting#wallet-definition-scheme
+  factory WalletUriData.fromJson(
+    Map<String, dynamic> json,
+    CryptoCurrency coin, {
+    bool Function(String address)? addressValidator,
+  }) {
+    String? optionalString(String key) {
+      final value = json[key];
+      return value is String && value.trim().isNotEmpty ? value.trim() : null;
+    }
+
+    final address = optionalString("address");
+    final spendKey = optionalString("spend_key");
+    final viewKey = optionalString("view_key");
+    final seed = optionalString("seed") ?? optionalString("mnemonic_seed");
+    final heightValue = json["height"];
+    final rawHeight = heightValue == null
+        ? null
+        : heightValue.toString().trim();
+    final txid = optionalString("txid");
+
+    if (json.containsKey("height") &&
+        (rawHeight == null || rawHeight.isEmpty)) {
+      throw const FormatException("Invalid restore height.");
+    }
+
+    final height = rawHeight == null ? null : int.tryParse(rawHeight);
+    if (rawHeight != null && (height == null || height < 0)) {
+      throw const FormatException("Invalid restore height.");
+    }
+
+    if (txid != null) {
+      throw UnsupportedError("Transaction-ID wallet restores are unsupported");
+    }
+
+    // Must have seed XOR view_key (spend_key is optional).
+    // May have seed only, view_key + spend_key, or view_key only.
+    final hasSeed = seed != null;
+    final hasKeys = viewKey != null || spendKey != null;
+
+    if (hasSeed && hasKeys) {
+      throw const FormatException(
+        "Invalid: cannot specify both seed and keys.",
+      );
+    }
+    if (!hasSeed && !hasKeys) {
+      throw const FormatException(
+        "Invalid: must specify either seed or view_key.",
+      );
+    }
+
+    if (spendKey != null && viewKey == null) {
+      throw const FormatException("Invalid: spend_key requires view_key.");
+    }
+
+    if (hasKeys && address == null) {
+      throw const FormatException(
+        "Invalid: an address is required with private keys.",
+      );
+    }
+    final addressPattern = RegExp(
+      r"^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{95}$",
+    );
+    if (hasKeys && !addressPattern.hasMatch(address!)) {
+      throw const FormatException("Invalid wallet address.");
+    }
+    if (hasKeys && addressValidator != null && !addressValidator(address!)) {
+      throw const FormatException("Invalid wallet address.");
+    }
+
+    final privateKeyPattern = RegExp(r"^[0-9a-fA-F]{64}$");
+    if (viewKey != null && !privateKeyPattern.hasMatch(viewKey)) {
+      throw const FormatException("Invalid private view key.");
+    }
+    if (spendKey != null && !privateKeyPattern.hasMatch(spendKey)) {
+      throw const FormatException("Invalid private spend key.");
+    }
+
+    return WalletUriData(
+      coin: coin,
+      address: address,
+      spendKey: spendKey,
+      viewKey: viewKey,
+      seed: seed,
+      height: height,
+    );
+  }
+
+  @override
+  String toString() {
+    return "WalletUriData { "
+        "coin: $coin, "
+        "address: $address, "
+        "seed: ${seed == null ? null : '<redacted>'}, "
+        "spendKey: ${spendKey == null ? null : '<redacted>'}, "
+        "viewKey: ${viewKey == null ? null : '<redacted>'}, "
+        "height: $height, "
+        " }";
+  }
 }
