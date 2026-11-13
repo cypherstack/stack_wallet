@@ -271,10 +271,6 @@ void main(List<String> args) {
           );
           expectMode(prebuilt ? 'prebuilt' : 'source');
           expect(
-            File(p.join(root.path, 'native-cwd')).readAsStringSync(),
-            root.resolveSymbolicLinksSync(),
-          );
-          expect(
             File(p.join(root.path, 'build/secp256k1.dll')).existsSync(),
             isTrue,
           );

@@ -38,7 +38,7 @@ class WindowsSecpBuilder {
   final void Function(Directory) cleanup;
   late String cmake;
   late String visualStudio;
-  late ({String root, String version}) windowsSdk;
+  late String windowsSdkVersion;
 
   static int compareVersions(String a, String b) {
     final left = a.split('.').map(int.parse).toList();
@@ -51,7 +51,7 @@ class WindowsSecpBuilder {
     return 0;
   }
 
-  Future<({String root, String version})> findWindowsSdk() async {
+  Future<String> findWindowsSdkVersion() async {
     final roots = <String>{};
     for (final view in ['64', '32']) {
       try {
@@ -78,7 +78,7 @@ class WindowsSecpBuilder {
         // Standalone SDK installers may register only one registry view.
       }
     }
-    final usable = <({String root, String version})>[];
+    final usable = <String>[];
     for (final sdkRoot in roots) {
       final include = Directory('$sdkRoot/Include');
       if (!include.existsSync()) continue;
@@ -97,7 +97,7 @@ class WindowsSecpBuilder {
           'bin/$version/x64/mt.exe',
         ];
         if (files.every((file) => File('$sdkRoot/$file').existsSync())) {
-          usable.add((root: sdkRoot, version: version));
+          usable.add(version);
         }
       }
     }
@@ -107,7 +107,7 @@ class WindowsSecpBuilder {
         'and tools. No complete SDK was found under KitsRoot10.',
       );
     }
-    usable.sort((a, b) => compareVersions(b.version, a.version));
+    usable.sort((a, b) => compareVersions(b, a));
     return usable.first;
   }
 
@@ -172,7 +172,7 @@ class WindowsSecpBuilder {
         'Install the Visual Studio 2022 C++ build tools and Windows SDK.',
       );
     }
-    windowsSdk = await findWindowsSdk();
+    windowsSdkVersion = await findWindowsSdkVersion();
     final bundledCmake =
         '$visualStudio/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe';
     cmake = File(bundledCmake).existsSync() ? bundledCmake : 'cmake';
@@ -223,7 +223,7 @@ class WindowsSecpBuilder {
         '-A',
         'x64',
         '-DCMAKE_GENERATOR_INSTANCE=$visualStudio',
-        '-DCMAKE_SYSTEM_VERSION=${windowsSdk.version}',
+        '-DCMAKE_SYSTEM_VERSION=$windowsSdkVersion',
         '-DCMAKE_BUILD_TYPE=RelWithDebInfo',
         '-DBUILD_SHARED_LIBS=ON',
         '-DSECP256K1_ENABLE_MODULE_RECOVERY=ON',
