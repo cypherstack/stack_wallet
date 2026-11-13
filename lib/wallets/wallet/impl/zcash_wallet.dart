@@ -1,7 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:isar_community/isar.dart';
+import 'package:mutex/mutex.dart';
 import 'package:path/path.dart' as path;
 import 'package:zcash_flutter/zcash_flutter.dart' as zcash;
 
@@ -13,6 +16,8 @@ import '../../crypto_currency/crypto_currency.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/bip39_wallet.dart';
 import '../intermediate/zcash_account_session.dart';
+import '../intermediate/zcash_pending_send_store.dart';
+import '../intermediate/zcash_send.dart';
 import '../intermediate/zcash_wallet_state.dart';
 import '../intermediate/zcash_wallet_state_controller.dart';
 
@@ -27,6 +32,13 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
       ZcashAccountSession(network: network);
   ZcashAccountSession? _accountSession;
   ZcashWalletStateController? _stateController;
+  ZcashEncryptedWalletStateStore? _stateStore;
+  ZcashPendingSendStore? _pendingSendStore;
+  ZcashScanExecutor? _scanExecutor;
+  ZcashWalletSendService _sendService =
+      const ZcashProductionWalletSendService();
+  final _sendMutex = Mutex();
+  ZcashPreparedWalletSend? _preparedSend;
   String? _ufvk;
   String? _accountFingerprint;
 
@@ -40,6 +52,13 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
       throw StateError('The Zcash account session is already initialized');
     }
     _accountSessionFactory = factory;
+  }
+
+  void configureSendService(ZcashWalletSendService service) {
+    if (_stateController != null || _preparedSend != null) {
+      throw StateError('The Zcash send service is already in use');
+    }
+    _sendService = service;
   }
 
   @override
@@ -95,15 +114,13 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
       }
     }
     await mainDB.updateOrPutAddresses(receiverRows);
-    var nodeReady = false;
     try {
       if (nodeService.getPrimaryNodeFor(currency: cryptoCurrency) != null) {
         await updateNode();
-        nodeReady = true;
       }
       await super.init();
     } catch (_) {
-      if (nodeReady) await _closeAccountSession();
+      if (_accountSession != null) await _closeAccountSession();
       rethrow;
     }
   }
@@ -111,18 +128,143 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
   @override
   Future<void> checkSaveInitialReceivingAddress() async {}
 
-  Never _unsupported() => throw UnsupportedError(
-    'Zcash chain operations are not part of the wallet identity slice',
+  @override
+  Future<TxData> prepareSend({required TxData txData}) => _sendMutex.protect(
+    () async {
+      final recipients = txData.recipients;
+      if (recipients == null || recipients.length != 1) {
+        throw UnsupportedError(
+          'Zcash currently requires exactly one recipient; multi-recipient '
+          'ZIP-321 needs a backend multi-output reservation artifact',
+        );
+      }
+      final requested = recipients.single;
+      if (requested.isChange ||
+          requested.amount.fractionDigits != cryptoCurrency.fractionDigits ||
+          requested.amount.raw <= BigInt.zero ||
+          requested.amount.raw > BigInt.from(zcash.maxMoneyZatoshis)) {
+        throw ArgumentError('Invalid Zcash recipient amount');
+      }
+      final resolved = _resolveStackPayment(
+        address: requested.address,
+        amount: requested.amount.raw,
+        memo: txData.memo,
+      );
+      final session = _requireAccountSession();
+      final syncClient = session.syncClient;
+      final stateStore = _stateStore;
+      final pendingStore = _pendingSendStore;
+      final scanExecutor = _scanExecutor;
+      if (syncClient == null ||
+          stateStore == null ||
+          pendingStore == null ||
+          scanExecutor == null) {
+        throw StateError('Zcash send requires an initialized sync session');
+      }
+      final snapshot = await _requireStateController().refresh();
+      final persisted = await stateStore.load();
+      if (persisted == null ||
+          persisted.observedChainHeight != snapshot.chainHeight) {
+        throw StateError('Zcash sync state is unavailable or not current');
+      }
+      final saplingChange = await _saplingChangeAddress();
+      final seed = zcash.nativeMnemonicToSeed(
+        await getMnemonic(),
+        passphrase: await getMnemonicPassphrase(),
+      );
+      final root = await StackFileSystem.applicationRootDirectory();
+      final pending = await pendingStore.load();
+      await _releaseUnbroadcastPrepared(store: pendingStore, pending: pending);
+      final prepared = await _sendService.prepare(
+        ZcashSendPreparationRequest(
+          network: cryptoCurrency.network,
+          sessionGeneration: session.generation,
+          state: persisted.syncState,
+          pendingSends: pending,
+          syncClient: syncClient,
+          scanExecutor: scanExecutor,
+          seedHex: seed.seedHex,
+          saplingChangeAddress: saplingChange,
+          recipient: resolved.address,
+          amountZatoshis: resolved.amount.toInt(),
+          memo: resolved.memo,
+          targetHeight: snapshot.chainHeight + 1,
+          expiryHeight: snapshot.chainHeight + 41,
+          resolveSaplingProvingParameters: () =>
+              zcash.SaplingProvingParameterCache(
+                cacheRoot: Directory(
+                  path.join(root.path, 'zcash', 'sapling-params'),
+                ),
+              ).resolve(),
+        ),
+      );
+      // This is the durability boundary: no prepared transaction is exposed
+      // to review until its selected nullifiers are committed on disk.
+      await pendingStore.save(pending);
+      _preparedSend = prepared;
+      return txData.copyWith(
+        raw: prepared.transactionHex,
+        txid: prepared.txid,
+        fee: _amount(prepared.feeZatoshis),
+        memo: txData.memo,
+        recipients: [
+          requested.copyWith(
+            address: prepared.encodedRecipient,
+            amount: _amount(prepared.amountZatoshis),
+          ),
+        ],
+        vExtraData: _preparedDigest(prepared),
+      );
+    },
   );
 
   @override
-  Future<TxData> prepareSend({required TxData txData}) async => _unsupported();
+  Future<TxData> confirmSend({required TxData txData}) => _sendMutex.protect(
+    () async {
+      final prepared = _preparedSend;
+      if (prepared == null || !_matchesPrepared(txData, prepared)) {
+        throw StateError(
+          'Zcash confirmation must use the exact prepared transaction artifact',
+        );
+      }
+      final session = _requireAccountSession();
+      if (session.generation != prepared.sessionGeneration) {
+        throw StateError(
+          'The Zcash node changed after preparation; prepare again',
+        );
+      }
+      final store = _pendingSendStore!;
+      final pending = await store.load();
+      try {
+        await _sendService.broadcast(
+          prepared: prepared,
+          pendingSends: pending,
+          chainHeight: info.cachedChainHeight,
+          persist: () => store.save(pending),
+          submit: session.submitTransactionHex,
+        );
+      } finally {
+        await store.save(pending);
+      }
+      _preparedSend = null;
+      return txData;
+    },
+  );
 
   @override
-  Future<TxData> confirmSend({required TxData txData}) async => _unsupported();
+  Future<void> cancelSend({required TxData txData}) =>
+      _sendMutex.protect(() async {
+        final prepared = _preparedSend;
+        if (prepared == null || !_matchesPrepared(txData, prepared)) return;
+        final store = _pendingSendStore;
+        if (store == null) return;
+        final pending = await store.load();
+        await _releaseUnbroadcastPrepared(store: store, pending: pending);
+      });
 
   @override
-  Future<void> recover({required bool isRescan}) async => _unsupported();
+  Future<void> recover({required bool isRescan}) async =>
+      throw UnsupportedError('Zcash rescan is not implemented yet');
 
   @override
   Future<void> updateNode() async {
@@ -172,22 +314,48 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
 
   @override
   Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate) async =>
-      _unsupported();
+      _amount(10000);
 
   @override
-  Future<FeeObject> get fees async => _unsupported();
+  Future<FeeObject> get fees async => FeeObject(
+    numberOfBlocksFast: 1,
+    numberOfBlocksAverage: 1,
+    numberOfBlocksSlow: 1,
+    fast: BigInt.from(10000),
+    medium: BigInt.from(10000),
+    slow: BigInt.from(10000),
+  );
 
   @override
   Future<bool> pingCheck() async => await _accountSession?.ping() ?? false;
 
   @override
   Future<void> exit() async {
-    await _closeAccountSession();
-    await super.exit();
+    try {
+      await _sendMutex.protect(() async {
+        try {
+          final store = _pendingSendStore;
+          if (store != null) {
+            await _releaseUnbroadcastPrepared(
+              store: store,
+              pending: await store.load(),
+            );
+          }
+        } finally {
+          await _closeAccountSession();
+        }
+      });
+    } finally {
+      await super.exit();
+    }
   }
 
   Future<void> _closeAccountSession() async {
     _stateController = null;
+    _stateStore = null;
+    _pendingSendStore = null;
+    _scanExecutor = null;
+    _preparedSend = null;
     final session = _accountSession;
     _accountSession = null;
     await session?.close();
@@ -221,22 +389,24 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
     final root = await StackFileSystem.applicationRootDirectory();
     final network = cryptoCurrency.nativeNetwork.ffiLabel;
     final source = _ZcashSessionSyncDataSource(client);
+    final scanExecutor = ZcashNativeIsolateScanExecutor(
+      ufvk: ufvk,
+      network: network,
+    );
+    final stateStore = ZcashEncryptedWalletStateStore(
+      path: path.join(root.path, 'zcash', '$walletId.state'),
+      walletId: walletId,
+      network: network,
+      accountFingerprint: fingerprint,
+      secureStorage: secureStorageInterface,
+    );
     _stateController = await ZcashWalletStateController.open(
-      store: ZcashEncryptedWalletStateStore(
-        path: path.join(root.path, 'zcash', '$walletId.state'),
-        walletId: walletId,
-        network: network,
-        accountFingerprint: fingerprint,
-        secureStorage: secureStorageInterface,
-      ),
+      store: stateStore,
       accountFingerprint: fingerprint,
       network: network,
       birthdayHeight: birthdayHeight,
       loadBirthdayTreeState: source.getTreeState,
-      scanExecutor: ZcashNativeIsolateScanExecutor(
-        ufvk: ufvk,
-        network: network,
-      ),
+      scanExecutor: scanExecutor,
       openSync: (state, executor) => openZcashSyncSession(
         state: state,
         source: source,
@@ -244,7 +414,113 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
         network: network,
       ),
     );
+    _stateStore = stateStore;
+    _scanExecutor = scanExecutor;
+    _pendingSendStore = ZcashEncryptedPendingSendStore(
+      path: path.join(root.path, 'zcash', '$walletId.pending'),
+      walletId: walletId,
+      network: network,
+      accountFingerprint: fingerprint,
+      secureStorage: secureStorageInterface,
+    );
   }
+
+  Amount _amount(int zatoshis) => Amount(
+    rawValue: BigInt.from(zatoshis),
+    fractionDigits: cryptoCurrency.fractionDigits,
+  );
+
+  ZcashAccountSession _requireAccountSession() =>
+      _accountSession ??
+      (throw StateError('Zcash requires an initialized account session'));
+
+  Future<String> _saplingChangeAddress() async {
+    final rows = await mainDB.getAddresses(walletId).findAll();
+    final matches = rows.where((row) => row.type == AddressType.zcashSapling);
+    if (matches.length != 1) {
+      throw StateError(
+        'Zcash wallet has no unambiguous Sapling change receiver',
+      );
+    }
+    return matches.single.value;
+  }
+
+  Future<void> _releaseUnbroadcastPrepared({
+    required ZcashPendingSendStore store,
+    required zcash.IronwoodPendingSendState pending,
+  }) async {
+    final prepared = _preparedSend;
+    if (prepared == null) return;
+    final records = pending.records.where(
+      (record) => record.txid.toLowerCase() == prepared.txid.toLowerCase(),
+    );
+    if (records.length == 1 &&
+        records.single.broadcastState ==
+            zcash.IronwoodPendingBroadcastState.prepared) {
+      pending.releaseRejected(prepared.txid);
+      await store.save(pending);
+    }
+    _preparedSend = null;
+  }
+
+  ({String address, BigInt amount, Uint8List? memo}) _resolveStackPayment({
+    required String address,
+    required BigInt amount,
+    required String? memo,
+  }) {
+    final stackMemo = memo == null || memo.isEmpty
+        ? null
+        : Uint8List.fromList(utf8.encode(memo));
+    if (!address.toLowerCase().startsWith('zcash:')) {
+      return (address: address, amount: amount, memo: stackMemo);
+    }
+    final request = zcash.parseZcashUri(address);
+    if (request == null) throw ArgumentError('Invalid ZIP-321 payment request');
+    if (request.payments.length != 1) {
+      throw UnsupportedError(
+        'Multi-recipient ZIP-321 requires backend multi-output reservations',
+      );
+    }
+    final payment = request.payments.single;
+    if (payment.amountZatoshis != null && payment.amountZatoshis != amount) {
+      throw ArgumentError(
+        'ZIP-321 amount conflicts with the Stack send amount',
+      );
+    }
+    if (payment.memo != null &&
+        stackMemo != null &&
+        !_bytesEqual(payment.memo!, stackMemo)) {
+      throw ArgumentError('ZIP-321 memo conflicts with the Stack send memo');
+    }
+    return (
+      address: payment.address,
+      amount: payment.amountZatoshis ?? amount,
+      memo: payment.memo ?? stackMemo,
+    );
+  }
+
+  Uint8List _preparedDigest(ZcashPreparedWalletSend prepared) =>
+      Uint8List.fromList(
+        sha256
+            .convert(
+              utf8.encode(
+                '${prepared.txid}|${prepared.transactionHex}|'
+                '${prepared.encodedRecipient}|${prepared.amountZatoshis}|'
+                '${prepared.feeZatoshis}',
+              ),
+            )
+            .bytes,
+      );
+
+  bool _matchesPrepared(TxData txData, ZcashPreparedWalletSend prepared) =>
+      txData.txid == prepared.txid &&
+      txData.raw == prepared.transactionHex &&
+      txData.fee?.raw == BigInt.from(prepared.feeZatoshis) &&
+      txData.recipients?.length == 1 &&
+      txData.recipients!.single.address == prepared.encodedRecipient &&
+      txData.recipients!.single.amount.raw ==
+          BigInt.from(prepared.amountZatoshis) &&
+      _bytesEqual(txData.vExtraData, _preparedDigest(prepared));
 
   List<Address> _receiverRows(zcash.UnifiedAddressSet derived) {
     final values = <(String, AddressType)>[
@@ -293,4 +569,15 @@ class _ZcashSessionSyncDataSource implements ZcashSyncDataSource {
   @override
   Future<zcash.TreeState> getTreeState(int height) =>
       client.getTreeState(height);
+}
+
+bool _bytesEqual(List<int>? left, List<int>? right) {
+  if (identical(left, right)) return true;
+  if (left == null || right == null || left.length != right.length) {
+    return false;
+  }
+  for (var i = 0; i < left.length; i++) {
+    if (left[i] != right[i]) return false;
+  }
+  return true;
 }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:zcash_flutter/zcash_flutter.dart' as zcash;
 
@@ -24,6 +25,37 @@ abstract interface class ZcashLightwalletdSyncClient
   Future<zcash.TreeState> getTreeState(int height);
 
   Future<String?> getBlockHash(int height);
+}
+
+abstract interface class ZcashLightwalletdSendClient {
+  Future<ZcashSubmissionAcknowledgement> submitTransaction(
+    Uint8List transaction,
+  );
+}
+
+class ZcashSubmissionAcknowledgement {
+  const ZcashSubmissionAcknowledgement({
+    required this.errorCode,
+    required this.errorMessage,
+  });
+
+  final int errorCode;
+  final String errorMessage;
+
+  bool get accepted => errorCode == 0;
+}
+
+class ZcashBroadcastRejectedException implements Exception {
+  const ZcashBroadcastRejectedException({
+    required this.errorCode,
+    required this.message,
+  });
+
+  final int errorCode;
+  final String message;
+
+  @override
+  String toString() => 'ZcashBroadcastRejectedException($errorCode): $message';
 }
 
 class ZcashEndpoint {
@@ -190,6 +222,36 @@ class ZcashAccountSession {
     }
   }
 
+  Future<ZcashSubmissionAcknowledgement> submitTransactionHex(
+    String transactionHex,
+  ) async {
+    if (_closed) throw StateError('The Zcash account session is closed');
+    final client = _client;
+    if (client is! ZcashLightwalletdSendClient) {
+      throw StateError('The active Zcash session cannot submit transactions');
+    }
+    final submitter = client as ZcashLightwalletdSendClient;
+    final bytes = _decodeTransactionHex(transactionHex);
+    late final ZcashSubmissionAcknowledgement acknowledgement;
+    try {
+      acknowledgement = await submitter
+          .submitTransaction(bytes)
+          .timeout(requestTimeout);
+    } on TimeoutException {
+      throw ZcashReadinessTimeoutException(
+        phase: 'sendTransaction',
+        timeout: requestTimeout,
+      );
+    }
+    if (!acknowledgement.accepted) {
+      throw ZcashBroadcastRejectedException(
+        errorCode: acknowledgement.errorCode,
+        message: acknowledgement.errorMessage,
+      );
+    }
+    return acknowledgement;
+  }
+
   Future<ZcashSessionReadiness> _readiness(
     ZcashLightwalletdClient client,
   ) async {
@@ -259,7 +321,7 @@ class ZcashAccountSession {
 }
 
 class _ProductionZcashLightwalletdClient
-    implements ZcashLightwalletdSyncClient {
+    implements ZcashLightwalletdSyncClient, ZcashLightwalletdSendClient {
   _ProductionZcashLightwalletdClient(this._client);
 
   final zcash.LightwalletdClient _client;
@@ -292,5 +354,33 @@ class _ProductionZcashLightwalletdClient
   }
 
   @override
+  Future<ZcashSubmissionAcknowledgement> submitTransaction(
+    Uint8List transaction,
+  ) async {
+    final response = await _client.sendTransaction(transaction);
+    return ZcashSubmissionAcknowledgement(
+      errorCode: response.errorCode,
+      errorMessage: response.errorMessage,
+    );
+  }
+
+  @override
   Future<void> close() => _client.close();
+}
+
+Uint8List _decodeTransactionHex(String value) {
+  if (value.isEmpty || value.length.isOdd) {
+    throw const FormatException(
+      'A Zcash transaction must be nonempty, even-length hexadecimal',
+    );
+  }
+  final bytes = Uint8List(value.length ~/ 2);
+  for (var i = 0; i < bytes.length; i++) {
+    final byte = int.tryParse(value.substring(i * 2, i * 2 + 2), radix: 16);
+    if (byte == null) {
+      throw const FormatException('A Zcash transaction must be hexadecimal');
+    }
+    bytes[i] = byte;
+  }
+  return bytes;
 }

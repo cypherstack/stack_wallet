@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stackwallet/models/node_model.dart';
@@ -48,6 +49,34 @@ class FakeLightwalletdClient implements ZcashLightwalletdClient {
   }
 }
 
+class SubmittingLightwalletdClient extends FakeLightwalletdClient
+    implements ZcashLightwalletdSendClient {
+  SubmittingLightwalletdClient({
+    this.errorCode = 0,
+    this.errorMessage = '',
+    this.neverSubmit = false,
+  }) : super(chainName: 'main', tipHeight: 42);
+
+  final int errorCode;
+  final String errorMessage;
+  final bool neverSubmit;
+  final List<Uint8List> submitted = [];
+
+  @override
+  Future<ZcashSubmissionAcknowledgement> submitTransaction(
+    Uint8List transaction,
+  ) async {
+    submitted.add(Uint8List.fromList(transaction));
+    if (neverSubmit) {
+      return Completer<ZcashSubmissionAcknowledgement>().future;
+    }
+    return ZcashSubmissionAcknowledgement(
+      errorCode: errorCode,
+      errorMessage: errorMessage,
+    );
+  }
+}
+
 NodeModel node({
   String host = 'https://lightwalletd.example',
   int port = 443,
@@ -68,6 +97,71 @@ NodeModel node({
 );
 
 void main() {
+  test(
+    'submits exact prepared bytes and returns an explicit acknowledgement',
+    () async {
+      final client = SubmittingLightwalletdClient();
+      final session = ZcashAccountSession(
+        network: CryptoCurrencyNetwork.main,
+        clientFactory: (_) => client,
+      );
+      await session.replaceNode(node());
+
+      final acknowledgement = await session.submitTransactionHex('00ff10');
+
+      expect(client.submitted, [
+        Uint8List.fromList([0, 255, 16]),
+      ]);
+      expect(acknowledgement.accepted, isTrue);
+      expect(acknowledgement.errorCode, 0);
+      await session.close();
+    },
+  );
+
+  test('surfaces lightwalletd rejection explicitly', () async {
+    final client = SubmittingLightwalletdClient(
+      errorCode: -26,
+      errorMessage: 'bad-tx',
+    );
+    final session = ZcashAccountSession(
+      network: CryptoCurrencyNetwork.main,
+      clientFactory: (_) => client,
+    );
+    await session.replaceNode(node());
+
+    await expectLater(
+      session.submitTransactionHex('00'),
+      throwsA(
+        isA<ZcashBroadcastRejectedException>()
+            .having((e) => e.errorCode, 'errorCode', -26)
+            .having((e) => e.message, 'message', 'bad-tx'),
+      ),
+    );
+    await session.close();
+  });
+
+  test('bounds an indeterminate lightwalletd submission', () async {
+    final client = SubmittingLightwalletdClient(neverSubmit: true);
+    final session = ZcashAccountSession(
+      network: CryptoCurrencyNetwork.main,
+      clientFactory: (_) => client,
+      requestTimeout: const Duration(milliseconds: 10),
+    );
+    await session.replaceNode(node());
+
+    await expectLater(
+      session.submitTransactionHex('00'),
+      throwsA(
+        isA<ZcashReadinessTimeoutException>().having(
+          (e) => e.phase,
+          'phase',
+          'sendTransaction',
+        ),
+      ),
+    );
+    await session.close();
+  });
+
   test('opens a bounded ready session from a Stack node', () async {
     final client = FakeLightwalletdClient(chainName: 'main', tipHeight: 42);
     ZcashEndpoint? openedEndpoint;
