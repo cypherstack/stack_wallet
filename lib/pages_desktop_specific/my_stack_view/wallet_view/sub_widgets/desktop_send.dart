@@ -1184,6 +1184,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   }
 
   bool get _supportsMultiRecipient =>
+      coin is Zcash ||
       ref.read(pWallets).getWallet(walletId).supportsMultiRecipient;
 
   RecipientId _recipientId(int index) => (walletId: walletId, index: index);
@@ -1373,6 +1374,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         _note = paymentData.message;
       } else if (paymentData.label != null) {
         _note = paymentData.label;
+      }
+
+      final paymentMemo = paymentUriMemoText(coin, paymentData);
+      if (paymentMemo != null) {
+        memoController.text = paymentMemo;
       }
 
       // firo-qt treats message as the spark memo when paying a spark address

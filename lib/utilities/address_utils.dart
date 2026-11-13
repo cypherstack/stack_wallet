@@ -11,6 +11,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:zcash/zcash.dart' as zcash;
+
 import '../app_config.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import 'logger.dart';
@@ -256,6 +258,47 @@ class AddressUtils {
     const cashAddrSchemes = {"bitcoincash", "bchtest", "ecash", "ectest"};
     final parsedUri = Uri.tryParse(uri);
     final scheme = parsedUri?.scheme.toLowerCase();
+    if (scheme == "zcash") {
+      try {
+        final request = zcash.parseZcashUri(uri);
+        if (request == null) {
+          throw const FormatException("Invalid ZIP-321 payment request");
+        }
+        if (request.payments.length > 1 && !allowMultipleRecipients) {
+          throw const FormatException(
+            "Multiple recipients are not supported here",
+          );
+        }
+
+        final recipients = [
+          for (final payment in request.payments)
+            PaymentUriRecipient(
+              address: payment.address,
+              amount: payment.amountZatoshis == null
+                  ? null
+                  : _formatZcashAmount(payment.amountZatoshis!),
+              label: payment.label,
+              message: payment.message,
+              memoBytes: payment.memo == null
+                  ? null
+                  : Uint8List.fromList(payment.memo!),
+              additionalParams: Map.unmodifiable(payment.other),
+            ),
+        ];
+
+        return PaymentUriData(
+          scheme: "zcash",
+          recipients: recipients,
+          message: recipients.length == 1 ? recipients.single.message : null,
+          additionalParams: recipients.length == 1
+              ? recipients.single.additionalParams
+              : const {},
+        );
+      } catch (e, s) {
+        logging?.i("Invalid payment URI: $uri", error: e, stackTrace: s);
+        return null;
+      }
+    }
     if (parsedUri != null &&
         (scheme == "xel" ||
             (!parsedUri.hasQuery && cashAddrSchemes.contains(scheme)))) {
@@ -321,6 +364,23 @@ class AddressUtils {
     String address,
     Map<String, String> params,
   ) {
+    if (scheme.toLowerCase() == "zcash") {
+      final rawQuery = params.entries
+          .map((entry) {
+            final value = const {"amount", "memo"}.contains(entry.key)
+                ? entry.value
+                : Uri.encodeComponent(entry.value);
+            return "${entry.key}=$value";
+          })
+          .join("&");
+      final raw = "zcash:$address${rawQuery.isEmpty ? '' : '?$rawQuery'}";
+      final request = zcash.parseZcashUri(raw);
+      if (request == null) {
+        throw const FormatException("Invalid ZIP-321 payment request");
+      }
+      return zcash.formatZcashUri(request);
+    }
+
     // Filter unrecognized parameters.
     final filteredParams = _filterParams(params);
     String uriString;
@@ -346,6 +406,27 @@ class AddressUtils {
     String? message,
   }) {
     final normalizedScheme = scheme.toLowerCase();
+    if (normalizedScheme == "zcash") {
+      BigInt? amountZatoshis;
+      if (amount != null && amount.isNotEmpty) {
+        final parsed = zcash.parseZcashUri("zcash:$address?amount=$amount");
+        if (parsed == null) {
+          throw ArgumentError.value(amount, "amount", "invalid Zcash amount");
+        }
+        amountZatoshis = parsed.payments.single.amountZatoshis;
+      }
+      return zcash.formatZcashUri(
+        zcash.ZcashPaymentRequest(
+          payments: [
+            zcash.ZcashPaymentTarget(
+              address: address,
+              amountZatoshis: amountZatoshis,
+              message: message?.isEmpty == true ? null : message,
+            ),
+          ],
+        ),
+      );
+    }
     final usesMoneroParameters =
         normalizedScheme == "monero" || normalizedScheme == "wownero";
     final params = <String, String>{
@@ -515,6 +596,19 @@ class AddressUtils {
     // value(8) + compact script length(1, since max script is 83 bytes) + script
     return 8 + 1 + scriptBytes;
   }
+}
+
+String _formatZcashAmount(BigInt zatoshis) {
+  final whole = zatoshis ~/ BigInt.from(100000000);
+  final fraction = zatoshis % BigInt.from(100000000);
+  if (fraction == BigInt.zero) {
+    return whole.toString();
+  }
+  final decimals = fraction
+      .toString()
+      .padLeft(8, "0")
+      .replaceFirst(RegExp(r"0+$"), "");
+  return "$whole.$decimals";
 }
 
 class PaymentUriRecipient {

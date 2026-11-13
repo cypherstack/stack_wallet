@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stackwallet/utilities/address_utils.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
@@ -275,6 +278,107 @@ void main() {
       ),
       "firo:$firoAddress?amount=10.0123&message=Some+kind+of+message%21",
     );
+  });
+
+  group("ZIP-321 Zcash payment URIs", () {
+    const shielded =
+        "zs1zqa7llmm3m3l8wglp7c2zjuygymhqe76a88nvjhpqfpjhef0jcnzrpxq";
+    const shielded2 =
+        "zs1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqsqkztjk";
+
+    test("delegates strict parsing and keeps per-recipient metadata", () {
+      final result = AddressUtils.parsePaymentUri(
+        "zcash:?address=$shielded&amount=1.23456789&memo=SGVsbG8"
+        "&label=Alice&message=First&note=one"
+        "&address.2=$shielded2&amount.2=0.00000001"
+        "&memo.2=AAE&label.2=Bob&message.2=Second&note.2=two",
+        allowMultipleRecipients: true,
+      );
+
+      expect(result, isNotNull);
+      expect(result!.scheme, "zcash");
+      expect(result.recipients, hasLength(2));
+      expect(result.recipients[0].amount, "1.23456789");
+      expect(result.recipients[0].memoBytes, [72, 101, 108, 108, 111]);
+      expect(result.recipients[0].memoText, "Hello");
+      expect(result.recipients[0].label, "Alice");
+      expect(result.recipients[0].message, "First");
+      expect(result.recipients[0].additionalParams, {"note": "one"});
+      expect(result.recipients[1].amount, "0.00000001");
+      expect(result.recipients[1].memoBytes, [0, 1]);
+      expect(result.recipients[1].label, "Bob");
+      expect(result.recipients[1].message, "Second");
+      expect(result.recipients[1].additionalParams, {"note": "two"});
+      expect(result.message, isNull);
+    });
+
+    test("rejects requests the ZIP-321 parser rejects", () {
+      for (final uri in [
+        "zcash:$shielded?amount=1&amount=2",
+        "zcash:$shielded?req-future=1",
+        "zcash:?address.0=$shielded",
+        "zcash:?address.0002=$shielded",
+        "zcash:$shielded?amount=0.000000001",
+        "zcash:$shielded?amount=21000000.00000001",
+        "zcash:t1Rv3KSTF8D7hDMMZfcE87ZYZMQ2Np2mfUE?memo=AQID",
+      ]) {
+        expect(AddressUtils.parsePaymentUri(uri), isNull, reason: uri);
+      }
+    });
+
+    test("enforces the 512-byte memo boundary", () {
+      String encodedMemo(int length) =>
+          base64Url.encode(Uint8List(length)).replaceAll("=", "");
+
+      expect(
+        AddressUtils.parsePaymentUri("zcash:$shielded?memo=${encodedMemo(512)}")
+            ?.recipients
+            .single
+            .memoBytes,
+        hasLength(512),
+      );
+      expect(
+        AddressUtils.parsePaymentUri(
+          "zcash:$shielded?memo=${encodedMemo(513)}",
+        ),
+        isNull,
+      );
+    });
+
+    test("does not silently drop multiple recipients", () {
+      const uri =
+          "zcash:?address=$shielded&amount=1"
+          "&address.2=$shielded2&amount.2=2";
+
+      expect(AddressUtils.parsePaymentUri(uri), isNull);
+      expect(
+        AddressUtils.parsePaymentUri(
+          uri,
+          allowMultipleRecipients: true,
+        )?.recipients,
+        hasLength(2),
+      );
+    });
+
+    test("uses the canonical formatter for receiving requests", () {
+      final uri = AddressUtils.buildPaymentUriString(
+        scheme: "zcash",
+        address: shielded,
+        amount: "1.23000000",
+        message: "For lunch",
+      );
+
+      expect(uri, "zcash:$shielded?amount=1.23&message=For%20lunch");
+      expect(AddressUtils.parsePaymentUri(uri)?.amount, "1.23");
+    });
+
+    test("bare Zcash addresses keep their existing URI shape", () {
+      expect(
+        AddressUtils.buildUriString("zcash", shielded, const {}),
+        "zcash:$shielded",
+      );
+      expect(AddressUtils.parsePaymentUri(shielded), isNull);
+    });
   });
 
   test("build Monero-family payment URIs with standard query parameters", () {
