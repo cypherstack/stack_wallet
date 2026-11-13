@@ -164,6 +164,21 @@ class ZcashEncryptedWalletStateStore {
     }
   }
 
+  /// Removes the local chain checkpoint so the next open starts from the
+  /// validated wallet birthday. The per-wallet encryption key is retained so
+  /// a newly scanned checkpoint can be authenticated with the same wallet
+  /// identity.
+  Future<void> reset() async {
+    final temporaryPath = '$path.tmp';
+    await _refuseSymlink(path);
+    await _refuseSymlink(temporaryPath);
+
+    final file = File(path);
+    final temporary = File(temporaryPath);
+    if (await file.exists()) await file.delete();
+    if (await temporary.exists()) await temporary.delete();
+  }
+
   Future<void> _removeInterruptedWrite() async {
     final temporaryPath = '$path.tmp';
     await _refuseSymlink(temporaryPath);

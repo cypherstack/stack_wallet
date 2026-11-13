@@ -117,6 +117,40 @@ void main() {
     expect(await interrupted.exists(), isFalse);
   });
 
+  test(
+    'reset removes only the encrypted checkpoint and temporary write',
+    () async {
+      final path = '${directory.path}/wallet.state';
+      final store = ZcashEncryptedWalletStateStore(
+        path: path,
+        walletId: 'wallet-1',
+        network: 'main',
+        accountFingerprint: 'account-a',
+        secureStorage: secrets,
+      );
+      await store.save(
+        ZcashPersistedWalletState(
+          syncState: walletState(),
+          observedChainHeight: 99,
+        ),
+      );
+      await File('$path.tmp').writeAsString('interrupted');
+      final keyBefore = await secrets.read(
+        key: 'zcash_wallet_state_key_v1_wallet-1',
+      );
+
+      await store.reset();
+
+      expect(await File(path).exists(), isFalse);
+      expect(await File('$path.tmp').exists(), isFalse);
+      expect(
+        await secrets.read(key: 'zcash_wallet_state_key_v1_wallet-1'),
+        keyBefore,
+      );
+      expect(await store.load(), isNull);
+    },
+  );
+
   test('refuses symlink state paths and foreign account contexts', () async {
     final target = File('${directory.path}/target');
     await target.writeAsString('do not overwrite');

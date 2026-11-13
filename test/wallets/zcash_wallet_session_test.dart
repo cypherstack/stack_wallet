@@ -1,8 +1,11 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:isar_community/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
@@ -62,6 +65,15 @@ class SyncWalletSessionClient extends WalletSessionClient
     implements ZcashLightwalletdSyncClient {
   SyncWalletSessionClient({required super.chainName, required super.tipHeight});
 
+  bool failTip = false;
+  int treeStateCalls = 0;
+
+  @override
+  Future<int> getTipHeight() {
+    if (failTip) throw StateError('test tip failure');
+    return super.getTipHeight();
+  }
+
   @override
   Future<String?> getBlockHash(int height) async => null;
 
@@ -70,11 +82,14 @@ class SyncWalletSessionClient extends WalletSessionClient
       throw StateError('caught-up fixture must not request blocks');
 
   @override
-  Future<zcash.TreeState> getTreeState(int height) async => zcash.TreeState(
-    hash: '0000000000000000000000000000000000000000000000000000000000000000',
-    height: height,
-    time: 1,
-  );
+  Future<zcash.TreeState> getTreeState(int height) async {
+    treeStateCalls++;
+    return zcash.TreeState(
+      hash: '0000000000000000000000000000000000000000000000000000000000000000',
+      height: height,
+      time: 1,
+    );
+  }
 }
 
 NodeModel walletNode({required String host, required String id}) => NodeModel(
@@ -253,6 +268,114 @@ void main() {
     expect(wallet.info.cachedBalance.total.raw, BigInt.zero);
     expect(await wallet.updateUTXOs(), isFalse);
     expect(client.tipCalls, 3);
+    await wallet.exit();
+  });
+
+  test('restore syncs in place and rescan restarts at the birthday', () async {
+    final node = walletNode(host: 'https://rescan.example', id: 'rescan');
+    final client = SyncWalletSessionClient(chainName: 'main', tipHeight: 42);
+    final wallet = await Wallet.create(
+      walletInfo: WalletInfo(
+        walletId: 'zcash-rescan',
+        name: 'Zcash rescan fixture',
+        mainAddressType: AddressType.zcashUnified,
+        coinName: 'zcash',
+        restoreHeight: 43,
+      ),
+      mainDB: MainDB.instance,
+      secureStorageInterface: MemorySecrets(),
+      nodeService: MutableZcashNodes(node),
+      prefs: SessionPrefs(),
+      mnemonic:
+          'abandon abandon abandon abandon abandon abandon abandon abandon '
+          'abandon abandon abandon about',
+      mnemonicPassphrase: '',
+    ) as ZcashWallet;
+    wallet.configureAccountSessionFactory(
+      (network) =>
+          ZcashAccountSession(network: network, clientFactory: (_) => client),
+    );
+    await wallet.init(isRestore: true);
+    expect(client.treeStateCalls, 1);
+
+    await wallet.recover(isRescan: false);
+    expect(client.treeStateCalls, 1);
+    expect(wallet.info.cachedChainHeight, 42);
+
+    await MainDB.instance.updateOrPutTransactionV2s([
+      TransactionV2(
+        walletId: wallet.walletId,
+        blockHash: 'stale-block',
+        hash: 'stale-hash',
+        txid: 'stale-txid',
+        timestamp: 1,
+        height: 1,
+        inputs: const [],
+        outputs: const [],
+        version: 1,
+        type: TransactionType.incoming,
+        subType: TransactionSubType.none,
+        otherData: null,
+      ),
+    ]);
+    final receiversBefore = await MainDB.instance
+        .getAddresses(wallet.walletId)
+        .findAll();
+
+    await wallet.recover(isRescan: true);
+
+    expect(client.treeStateCalls, 2);
+    expect(
+      await MainDB.instance.isar.transactionV2s
+          .where()
+          .walletIdEqualTo(wallet.walletId)
+          .findAll(),
+      isEmpty,
+    );
+    final receiversAfter = await MainDB.instance
+        .getAddresses(wallet.walletId)
+        .findAll();
+    expect(
+      receiversAfter.map(
+        (row) => (row.value, row.type, row.subType, row.derivationIndex),
+      ),
+      unorderedEquals(
+        receiversBefore.map(
+          (row) => (row.value, row.type, row.subType, row.derivationIndex),
+        ),
+      ),
+    );
+    expect(wallet.info.cachedChainHeight, 42);
+    expect(wallet.info.cachedBalance.total.raw, BigInt.zero);
+
+    await MainDB.instance.updateOrPutTransactionV2s([
+      TransactionV2(
+        walletId: wallet.walletId,
+        blockHash: 'last-known-block',
+        hash: 'last-known-hash',
+        txid: 'last-known-txid',
+        timestamp: 2,
+        height: 2,
+        inputs: const [],
+        outputs: const [],
+        version: 1,
+        type: TransactionType.incoming,
+        subType: TransactionSubType.none,
+        otherData: null,
+      ),
+    ]);
+    client.failTip = true;
+
+    await expectLater(wallet.recover(isRescan: true), throwsStateError);
+
+    expect(
+      await MainDB.instance.isar.transactionV2s
+          .where()
+          .txidWalletIdEqualTo('last-known-txid', wallet.walletId)
+          .findFirst(),
+      isNotNull,
+    );
+    expect(wallet.info.cachedChainHeight, 42);
     await wallet.exit();
   });
 }

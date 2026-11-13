@@ -9,6 +9,7 @@ import 'package:path/path.dart' as path;
 import 'package:zcash_flutter/zcash_flutter.dart' as zcash;
 
 import '../../../models/isar/models/blockchain_data/address.dart';
+import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/paymint/fee_object_model.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/stack_file_system.dart';
@@ -263,8 +264,58 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
       });
 
   @override
-  Future<void> recover({required bool isRescan}) async =>
-      throw UnsupportedError('Zcash rescan is not implemented yet');
+  Future<void> recover({required bool isRescan}) => _sendMutex.protect(
+    () => refreshMutex.protect(() async {
+      if (isRescan) {
+        final store = _stateStore;
+        if (store == null) {
+          throw StateError(
+            'Zcash rescan requires an initialized sync checkpoint',
+          );
+        }
+        final pendingStore = _pendingSendStore;
+        if (pendingStore != null) {
+          await _releaseUnbroadcastPrepared(
+            store: pendingStore,
+            pending: await pendingStore.load(),
+          );
+        }
+
+        // Reset only the encrypted chain checkpoint. Receiver rows, wallet
+        // identity, and durable broadcast reservations must survive a rescan.
+        await store.reset();
+        _stateController = null;
+        _stateStore = null;
+        _scanExecutor = null;
+        await _initializeStateController(_requireAccountSession());
+      }
+
+      final snapshot = await _requireStateController().refresh();
+      final mapper = ZcashStackStateMapper(walletId: walletId);
+      final transactions = mapper.transactions(snapshot.history);
+      if (isRescan) {
+        // The caught-up snapshot is the complete history derived from the
+        // birthday. Replace it atomically, without deleting receive addresses.
+        await mainDB.isar.writeTxn(() async {
+          await mainDB.isar.transactionV2s
+              .where()
+              .walletIdEqualTo(walletId)
+              .deleteAll();
+          await mainDB.isar.transactionV2s.putAll(transactions);
+        });
+      } else {
+        await mainDB.updateOrPutTransactionV2s(transactions);
+      }
+      await info.updateBalance(
+        newBalance: mapper.balance(snapshot.balance),
+        isar: mainDB.isar,
+      );
+      await info.updateCachedChainHeight(
+        newHeight: snapshot.chainHeight,
+        isar: mainDB.isar,
+      );
+    }),
+  );
 
   @override
   Future<void> updateNode() async {
