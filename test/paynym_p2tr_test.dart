@@ -106,6 +106,50 @@ void main() {
     );
   });
 
+  test('notification UTXOs put nested SegWit after legacy and native', () {
+    final utxos = [
+      _utxo('taproot', 10, 'bc1ptaproot'),
+      _utxo('nested-oldest', 1, '3nested'),
+      _utxo('testnet-nested', 2, '2nested'),
+      _utxo('native-newest', 300, 'bc1qnative'),
+      _utxo('legacy', 200, '1legacy'),
+    ]..sort(comparePaynymNotificationUtxos);
+
+    expect(utxos.map((utxo) => utxo.txid).toList(), [
+      'legacy',
+      'native-newest',
+      'nested-oldest',
+      'testnet-nested',
+      'taproot',
+    ]);
+  });
+
+  test('notification refuses a BIP49 designated input', () {
+    final nested = StandardInput(
+      _utxo('nested', 1, '3nested'),
+      derivePathType: DerivePathType.bip49,
+    );
+    final legacy = StandardInput(
+      _utxo('legacy', 1, '1legacy'),
+      derivePathType: DerivePathType.bip44,
+    );
+
+    expect(
+      () => validatePaynymNotificationInputs([nested, legacy]),
+      throwsA(
+        isA<PaynymSendException>().having(
+          (error) => error.message,
+          'message',
+          contains('Nested SegWit (BIP49)'),
+        ),
+      ),
+    );
+    expect(
+      () => validatePaynymNotificationInputs([legacy, nested]),
+      returnsNormally,
+    );
+  });
+
   group('PaynymAccountLite taproot inference', () {
     test('inferTaproot returns true for taproot-enabled payment code', () {
       final result = PaynymAccountLite.inferTaproot(taprootPaymentCodeString);
