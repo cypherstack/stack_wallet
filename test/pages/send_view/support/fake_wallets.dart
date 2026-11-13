@@ -5,6 +5,7 @@ import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/models/isar/models/solana/sol_contract.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/enums/slatepack_method.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/cryptonote_currency.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
@@ -280,6 +281,15 @@ class FakeFiroWallet extends FakeWallet<Firo> implements FiroWallet<Firo> {
 class FakeEpiccashWallet extends FakeWallet<Epiccash>
     implements EpiccashWallet {
   FakeEpiccashWallet() : super(Epiccash(CryptoCurrencyNetwork.main), testFees);
+
+  @override
+  List<SlatepackMethod> get supportedMethods => const [
+    SlatepackMethod.relay,
+    SlatepackMethod.slatepack,
+  ];
+
+  @override
+  bool get supportsOnChainNote => true;
 }
 
 /// Monero checking only an address prefix, as tests lack its native library.
