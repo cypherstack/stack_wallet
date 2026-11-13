@@ -6,7 +6,7 @@ import '../../crypto_currency/crypto_currency.dart';
 import 'zcash_account_session.dart';
 import 'zcash_wallet_state_controller.dart';
 
-enum ZcashSendSourcePool { transparent, ironwood, sapling }
+enum ZcashSendSourcePool { transparent, orchard, ironwood, sapling }
 
 abstract class ZcashPreparedWalletSend {
   const ZcashPreparedWalletSend({

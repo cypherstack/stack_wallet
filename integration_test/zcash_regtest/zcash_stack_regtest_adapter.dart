@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:isar_community/isar.dart';
 import 'package:regtest_support/regtest_support.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
@@ -7,6 +9,7 @@ import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/impl/zcash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/zcash_send.dart';
+import 'package:stackwallet/wallets/wallet/intermediate/zcash_wallet_state_controller.dart';
 import 'package:zcash_flutter/zcash_flutter.dart' as zcash;
 
 import '../regtest_support/stack_wallet_fixture.dart';
@@ -92,7 +95,58 @@ final class ZcashRegtestConsensusConfiguration {
     );
     await wallet.init(isRestore: isRestore);
   }
+
+  ZcashZip318MigrationIntent zip318Intent(
+    TransferRequest<ZcashRegtestPool> request,
+    ZcashWalletStateInspection inspection, {
+    int canonicalFeeZatoshis = 15000,
+    int anchorBoundaryModulus = 144,
+  }) {
+    final parameters = zcash.Zip318Parameters(
+      nu63ActivationHeight: nu63ActivationHeight,
+      anchorBoundaryModulus: anchorBoundaryModulus,
+    );
+    return ZcashZip318MigrationIntent(
+      scheduledTransfer: zcash.Zip318ScheduledTransfer(
+        denominationZatoshis: request.value.toInt(),
+        feeZatoshis: canonicalFeeZatoshis,
+        broadcastHeight: inspection.chainHeight,
+        expiryHeight: zcash.Zip318Schedule.canonicalExpiryHeight(
+          inspection.chainHeight,
+          parameters,
+        ),
+      ),
+      parameters: parameters,
+      consent: const zcash.Zip318ConsentChecklist(
+        disclosedPoolCrossingAmounts: true,
+        displayedOrchardBalanceAtRisk: true,
+        confirmedFullSchedule: true,
+        presentedNetworkPrivacyOptions: true,
+        separatesSyncFromBroadcast: true,
+        limitsOverdueCatchUp: true,
+      ),
+    );
+  }
 }
+
+final class ZcashZip318MigrationIntent {
+  const ZcashZip318MigrationIntent({
+    required this.scheduledTransfer,
+    required this.parameters,
+    required this.consent,
+  });
+
+  final zcash.Zip318ScheduledTransfer scheduledTransfer;
+  final zcash.Zip318Parameters parameters;
+  final zcash.Zip318ConsentChecklist consent;
+}
+
+typedef ZcashZip318MigrationIntentProvider =
+    FutureOr<ZcashZip318MigrationIntent> Function(
+      ZcashWallet wallet,
+      TransferRequest<ZcashRegtestPool> request,
+      ZcashWalletStateInspection inspection,
+    );
 
 /// The exact Stack review artifact and independently resolved destination.
 final class ZcashStackPreparedTransfer {
@@ -136,7 +190,9 @@ final class ZcashStackTransferCapabilities
           ZcashRegtestPool,
           ZcashStackPreparedTransfer
         > {
-  const ZcashStackTransferCapabilities();
+  const ZcashStackTransferCapabilities({this.zip318IntentProvider});
+
+  final ZcashZip318MigrationIntentProvider? zip318IntentProvider;
 
   @override
   Future<String> receiver(ZcashWallet wallet, ZcashRegtestPool pool) async {
@@ -238,43 +294,58 @@ final class ZcashStackTransferCapabilities
       ...before.values.where(
         (value) =>
             !value.isSpent &&
+            value.isSpendable &&
             (value.pool == ZcashRegtestPool.sapling.wireName ||
                 value.pool == ZcashRegtestPool.ironwood.wireName),
       ),
     ];
-    if (spendable.isEmpty &&
-        before.values.any(
-          (value) =>
-              !value.isSpent && value.pool == ZcashRegtestPool.orchard.wireName,
-        )) {
-      throw const ZcashStackCapabilityUnavailableException(
-        'Orchard to Ironwood ZIP-318 migration',
-      );
-    }
-    final reviewed = await wallet.prepareSend(
-      txData: TxData(
-        recipients: [
-          TxRecipient(
-            address: request.requestedReceiver,
-            amount: Amount(rawValue: request.value, fractionDigits: 8),
-            isChange: false,
-            addressType:
-                wallet.cryptoCurrency.getAddressType(
-                  request.requestedReceiver,
-                ) ??
-                (throw ArgumentError.value(
-                  request.requestedReceiver,
-                  'request.requestedReceiver',
-                  'is not a valid Zcash receiver',
-                )),
-          ),
-        ],
-      ),
+    final orchardSpendable = before.values.any(
+      (value) =>
+          !value.isSpent &&
+          value.isSpendable &&
+          value.pool == ZcashRegtestPool.orchard.wireName,
     );
+    final txData = TxData(
+      recipients: [
+        TxRecipient(
+          address: request.requestedReceiver,
+          amount: Amount(rawValue: request.value, fractionDigits: 8),
+          isChange: false,
+          addressType:
+              wallet.cryptoCurrency.getAddressType(request.requestedReceiver) ??
+              (throw ArgumentError.value(
+                request.requestedReceiver,
+                'request.requestedReceiver',
+                'is not a valid Zcash receiver',
+              )),
+        ),
+      ],
+    );
+    final TxData reviewed;
+    if (spendable.isEmpty &&
+        orchardSpendable &&
+        request.requestedPool == ZcashRegtestPool.ironwood) {
+      final provider = zip318IntentProvider;
+      if (provider == null) {
+        throw const ZcashStackCapabilityUnavailableException(
+          'ZIP-318 schedule and consent',
+        );
+      }
+      final intent = await provider(wallet, request, before);
+      reviewed = await wallet.prepareOrchardMigration(
+        txData: txData,
+        scheduledTransfer: intent.scheduledTransfer,
+        parameters: intent.parameters,
+        consent: intent.consent,
+      );
+    } else {
+      reviewed = await wallet.prepareSend(txData: txData);
+    }
     final native = wallet.preparedSendFor(reviewed);
     final sourcePool = switch (native.sourcePool) {
-      ZcashSendSourcePool.sapling => ZcashRegtestPool.sapling,
       ZcashSendSourcePool.transparent => ZcashRegtestPool.transparent,
+      ZcashSendSourcePool.orchard => ZcashRegtestPool.orchard,
+      ZcashSendSourcePool.sapling => ZcashRegtestPool.sapling,
       ZcashSendSourcePool.ironwood => ZcashRegtestPool.ironwood,
     };
     final actualPool = _pool(native.actualOutputPool.jsonValue);

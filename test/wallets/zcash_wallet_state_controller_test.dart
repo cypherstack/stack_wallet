@@ -479,10 +479,13 @@ void main() {
     const incompleteNullifier =
         '33333333333333333333333333333333'
         '33333333333333333333333333333333';
+    const orchardNullifier =
+        '44444444444444444444444444444444'
+        '44444444444444444444444444444444';
     const scan = zcash.ZcashScanResult(
       scannedBlocks: 1,
-      discoveredNotes: 3,
-      totalValue: 60000,
+      discoveredNotes: 4,
+      totalValue: 100000,
       scannedHeightRange: zcash.CompactBlockScanRange(start: 100, end: 100),
       notes: [
         zcash.ZcashScannedNote(
@@ -521,6 +524,19 @@ void main() {
           rho: '00',
           noteVersion: 'v3',
         ),
+        zcash.ZcashScannedNote(
+          height: 100,
+          tx: transaction,
+          output: 3,
+          value: 40000,
+          pool: 'orchard',
+          nullifier: orchardNullifier,
+          recipient: 'uregtest1orchard',
+          rseed: '00',
+          rho: '00',
+          noteVersion: 'v2',
+          witness: '00',
+        ),
       ],
     );
     final state = zcash.ZcashWalletSyncState.atBirthday(
@@ -529,6 +545,7 @@ void main() {
       accountFingerprint: 'account-a',
     );
     state.sapling.apply(scan, accountFingerprint: 'account-a');
+    state.orchard.apply(scan, accountFingerprint: 'account-a');
     state.ironwood.apply(scan, accountFingerprint: 'account-a');
 
     final values = const ZcashStackStateMapper(walletId: 'wallet-1')
@@ -548,6 +565,10 @@ void main() {
           .singleWhere((value) => value.id == incompleteNullifier)
           .isSpendable,
       isFalse,
+    );
+    expect(
+      values.singleWhere((value) => value.id == orchardNullifier).isSpendable,
+      isTrue,
     );
   });
 }

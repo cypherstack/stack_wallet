@@ -9,6 +9,7 @@ import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
@@ -17,6 +18,7 @@ import 'package:stackwallet/wallets/wallet/impl/zcash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/zcash_account_session.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/zcash_send.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/zcash_wallet_state_controller.dart';
+import 'package:stackwallet/wallets/wallet/intermediate/zcash_zip318_migration.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:zcash_flutter/zcash_flutter.dart' as zcash;
 
@@ -176,6 +178,46 @@ final class RecordingSendService implements ZcashWalletSendService {
   }
 }
 
+final class RecordingZip318Service implements ZcashZip318MigrationService {
+  ZcashZip318PreparationRequest? request;
+  ZcashPreparedZip318Migration? broadcastPrepared;
+
+  @override
+  Future<ZcashPreparedZip318Migration> prepare(
+    ZcashZip318PreparationRequest request,
+  ) async {
+    this.request = request;
+    return _fixtureZip318Prepared(
+      sessionGeneration: request.sessionGeneration,
+      requestedAddress: request.recipientAddress,
+    );
+  }
+
+  @override
+  Future<ZcashZip318BroadcastReceipt> broadcast({
+    required ZcashPreparedZip318Migration prepared,
+    required ZcashZip318PendingState pending,
+    required zcash.Zip318BroadcastSession session,
+    required int chainHeight,
+    required Future<void> Function() persist,
+    required Future<String> Function(String transactionHex) submit,
+  }) async {
+    broadcastPrepared = prepared;
+    pending.requireBroadcastable(prepared, chainHeight: chainHeight);
+    session.claim(prepared.plan, chainHeight: chainHeight);
+    pending.mark(prepared.txid, ZcashZip318PendingBroadcastState.submitting);
+    await persist();
+    await submit(prepared.transactionHex);
+    pending.mark(prepared.txid, ZcashZip318PendingBroadcastState.acknowledged);
+    await persist();
+    return ZcashZip318BroadcastReceipt(
+      txid: prepared.txid,
+      sourceNullifier: prepared.plan.funding.note.nullifier!,
+      broadcastHeight: chainHeight,
+    );
+  }
+}
+
 final class UnusedScanExecutor implements ZcashScanExecutor {
   @override
   Future<zcash.ZcashScanResult> scan(zcash.ScanInputEnvelope envelope) =>
@@ -290,6 +332,82 @@ final class FixtureParameterSource implements zcash.SaplingParameterSource {
   @override
   Stream<List<int>> open(zcash.SaplingParameterArtifact artifact) =>
       Stream.value(bytes[artifact.fileName]!);
+}
+
+ZcashPreparedZip318Migration _fixtureZip318Prepared({
+  required int sessionGeneration,
+  required String requestedAddress,
+}) {
+  const parameters = zcash.Zip318Parameters(
+    nu63ActivationHeight: 10,
+    meanDelayBlocks: 1,
+    maxDelayBlocks: 2,
+    anchorBoundaryModulus: 5,
+    anchorAgeCapBoundaries: 8,
+    expiryModulusBlocks: 100,
+  );
+  const transfer = zcash.Zip318ScheduledTransfer(
+    denominationZatoshis: 1000000,
+    feeZatoshis: 15000,
+    broadcastHeight: 42,
+    expiryHeight: 100,
+  );
+  final note = zcash.ZcashScannedNote(
+    height: 11,
+    tx: 'aa' * 32,
+    output: 0,
+    value: 2000000,
+    pool: 'orchard',
+    nullifier: 'bb' * 32,
+    recipient: requestedAddress,
+    rseed: 'cc' * 32,
+    rho: 'dd' * 32,
+    noteVersion: 'v2',
+    witness: 'ee' * 40,
+  );
+  final plan = zcash.Zip318TransferPlan.forTransfer(
+    transfer: transfer,
+    funding: zcash.Zip318FundingSelection(note: note, changeZatoshis: 985000),
+    anchorHeight: 20,
+    orchardAnchorHex: '11' * 32,
+    ironwoodAnchorHex: '22' * 32,
+    observedTipHeight: 42,
+    recipientAddress: requestedAddress,
+    parameters: parameters,
+  );
+  return ZcashPreparedZip318Migration(
+    plan: plan,
+    transaction: zcash.IronwoodBuildResult(
+      network: zcash.ZcashAddressNetwork.regtest,
+      transactionHex: '0a0b0c',
+      txid: '33' * 32,
+      version: 'v6',
+      consensusBranchId: 'nu6.3',
+      expiryHeight: 100,
+      feeZatoshis: 15000,
+      feeRule: 'zip317',
+      proofValidity: 'real',
+      ironwoodAnchor: '22' * 32,
+      ironwoodAnchorSource: 'anchor',
+      vin: 0,
+      vout: 0,
+      ironwoodActions: 1,
+      orchardSpends: 1,
+      orchardActions: 2,
+      orchardChangeOutputs: 1,
+      zip318Canonical: true,
+      totalInputZatoshis: 2000000,
+      orchardInputZatoshis: 2000000,
+      orchardChangeZatoshis: 985000,
+      nonIronwoodOutputZatoshis: 0,
+      ironwoodOutputZatoshis: 1000000,
+      rng: 'system',
+    ),
+    sessionGeneration: sessionGeneration,
+    encodedRecipient: requestedAddress,
+    selectedReceiver: zcash.ZcashAddressReceiverType.orchard,
+    selectedReceiverAddress: requestedAddress,
+  );
 }
 
 void main() {
@@ -416,6 +534,113 @@ void main() {
       Uint8List.fromList([0, 255, 16]),
     ]);
     await wallet.exit();
+  });
+
+  test('wallet migration path reserves, broadcasts, and restores ZIP 318 '
+      'state', () async {
+    final secrets = MemorySecrets();
+    final client = SendClient(chainName: 'test');
+    final migrationService = RecordingZip318Service();
+    final wallet = await _wallet(
+      client,
+      RecordingSendService(),
+      'zip318-wallet-path',
+      network: CryptoCurrencyNetwork.regtest,
+      migrationService: migrationService,
+      secureStorage: secrets,
+    );
+    final recipient = (await wallet.getCurrentReceivingAddress())!.value;
+    const transfer = zcash.Zip318ScheduledTransfer(
+      denominationZatoshis: 1000000,
+      feeZatoshis: 15000,
+      broadcastHeight: 42,
+      expiryHeight: 100,
+    );
+    const parameters = zcash.Zip318Parameters(
+      nu63ActivationHeight: 10,
+      meanDelayBlocks: 1,
+      maxDelayBlocks: 2,
+      anchorBoundaryModulus: 5,
+      anchorAgeCapBoundaries: 8,
+      expiryModulusBlocks: 100,
+    );
+    const consent = zcash.Zip318ConsentChecklist(
+      disclosedPoolCrossingAmounts: true,
+      displayedOrchardBalanceAtRisk: true,
+      confirmedFullSchedule: true,
+      presentedNetworkPrivacyOptions: true,
+      separatesSyncFromBroadcast: true,
+      limitsOverdueCatchUp: true,
+    );
+
+    final prepared = await wallet.prepareOrchardMigration(
+      txData: TxData(
+        recipients: [
+          TxRecipient(
+            address: recipient,
+            amount: Amount(rawValue: BigInt.from(1000000), fractionDigits: 8),
+            isChange: false,
+            addressType: AddressType.zcashUnified,
+          ),
+        ],
+      ),
+      scheduledTransfer: transfer,
+      parameters: parameters,
+      consent: consent,
+    );
+    final native = wallet.preparedSendFor(prepared);
+    expect(native, isA<ZcashPreparedZip318Migration>());
+    expect(native.encodedRecipient, recipient);
+    expect(native.selectedReceiver, zcash.ZcashAddressReceiverType.orchard);
+    expect(native.actualOutputPool, zcash.ProposalOutputPool.ironwood);
+    expect(prepared.raw, '0a0b0c');
+    expect(prepared.fee!.raw, BigInt.from(15000));
+
+    await wallet.confirmSend(txData: prepared);
+    expect(migrationService.broadcastPrepared, same(native));
+    expect(client.submitted, [
+      Uint8List.fromList([10, 11, 12]),
+    ]);
+    await wallet.exit();
+
+    final restoredService = RecordingZip318Service();
+    final restored = await Wallet.load(
+      walletId: 'zcash-send-zip318-wallet-path',
+      mainDB: MainDB.instance,
+      secureStorageInterface: secrets,
+      nodeService: SendNodes(),
+      prefs: SessionPrefs(),
+    ) as ZcashWallet;
+    restored.configureAccountSessionFactory(
+      (network) => ZcashAccountSession(
+        network: network,
+        clientFactory: (_) => SendClient(chainName: 'test'),
+      ),
+    );
+    restored.configureSendService(RecordingSendService());
+    restored.configureZip318MigrationService(restoredService);
+    restored.configureRegtestConsensus(nu63ActivationHeight: 130);
+    await restored.init();
+    await expectLater(
+      restored.prepareOrchardMigration(
+        txData: TxData(
+          recipients: [
+            TxRecipient(
+              address: recipient,
+              amount: Amount(rawValue: BigInt.from(1000000), fractionDigits: 8),
+              isChange: false,
+              addressType: AddressType.zcashUnified,
+            ),
+          ],
+        ),
+        scheduledTransfer: transfer,
+        parameters: parameters,
+        consent: consent,
+      ),
+      throwsA(isA<StateError>()),
+    );
+    expect(restoredService.request!.reservedNullifiers, {'bb' * 32});
+    await restored.exit();
   });
 
   test(
@@ -819,6 +1044,8 @@ Future<ZcashWallet> _wallet(
   RecordingSendService service,
   String id, {
   CryptoCurrencyNetwork network = CryptoCurrencyNetwork.main,
+  ZcashZip318MigrationService? migrationService,
+  SecureStorageInterface? secureStorage,
 }) async {
   final currency = Zcash(network);
   final wallet = await Wallet.create(
@@ -830,7 +1057,7 @@ Future<ZcashWallet> _wallet(
       restoreHeight: 43,
     ),
     mainDB: MainDB.instance,
-    secureStorageInterface: MemorySecrets(),
+    secureStorageInterface: secureStorage ?? MemorySecrets(),
     nodeService: SendNodes(),
     prefs: SessionPrefs(),
     mnemonic:
@@ -843,6 +1070,9 @@ Future<ZcashWallet> _wallet(
         ZcashAccountSession(network: network, clientFactory: (_) => client),
   );
   wallet.configureSendService(service);
+  if (migrationService != null) {
+    wallet.configureZip318MigrationService(migrationService);
+  }
   if (network == CryptoCurrencyNetwork.regtest) {
     wallet.configureRegtestConsensus(nu63ActivationHeight: 130);
   }

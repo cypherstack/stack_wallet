@@ -169,6 +169,12 @@ class ZcashStackStateMapper {
       return switch (note.pool) {
         'sapling' =>
           note.recipient != null && note.rseed != null && note.witness != null,
+        'orchard' =>
+          note.recipient != null &&
+              note.rseed != null &&
+              note.rho != null &&
+              note.noteVersion == 'v2' &&
+              note.witness != null,
         'ironwood' =>
           note.recipient != null &&
               note.rseed != null &&

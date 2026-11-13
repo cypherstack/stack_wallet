@@ -22,6 +22,8 @@ import '../intermediate/zcash_send.dart';
 import '../intermediate/zcash_transparent_shielding.dart';
 import '../intermediate/zcash_wallet_state.dart';
 import '../intermediate/zcash_wallet_state_controller.dart';
+import '../intermediate/zcash_zip318_migration.dart';
+import '../intermediate/zcash_zip318_migration_store.dart';
 
 typedef ZcashAccountSessionFactory = ZcashAccountSession Function(
   CryptoCurrencyNetwork network,
@@ -37,9 +39,13 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
   ZcashEncryptedWalletStateStore? _stateStore;
   ZcashPendingSendStore? _pendingSendStore;
   ZcashTransparentShieldingStore? _transparentShieldingStore;
+  ZcashZip318MigrationStore? _zip318MigrationStore;
   ZcashScanExecutor? _scanExecutor;
   ZcashWalletSendService _sendService =
       const ZcashProductionWalletSendService();
+  ZcashZip318MigrationService _zip318MigrationService =
+      ZcashProductionZip318MigrationService();
+  static final _zip318BroadcastSession = zcash.Zip318BroadcastSession();
   final _sendMutex = Mutex();
   ZcashPreparedWalletSend? _preparedSend;
   int? _regtestNu63ActivationHeight;
@@ -69,6 +75,13 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
       throw StateError('The Zcash send service is already in use');
     }
     _sendService = service;
+  }
+
+  void configureZip318MigrationService(ZcashZip318MigrationService service) {
+    if (_stateController != null || _preparedSend != null) {
+      throw StateError('The Zcash ZIP 318 service is already in use');
+    }
+    _zip318MigrationService = service;
   }
 
   void configureRegtestConsensus({required int nu63ActivationHeight}) {
@@ -503,6 +516,81 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
         return _txDataForPrepared(artifact, isChange: true);
       });
 
+  /// Prepares one due ZIP 318 Orchard-to-Ironwood migration through the same
+  /// exact-artifact review and confirmation boundary as an ordinary send.
+  Future<TxData> prepareOrchardMigration({
+    required TxData txData,
+    required zcash.Zip318ScheduledTransfer scheduledTransfer,
+    required zcash.Zip318Parameters parameters,
+    required zcash.Zip318ConsentChecklist consent,
+  }) => _sendMutex.protect(() async {
+    final recipients = txData.recipients;
+    if (recipients == null || recipients.length != 1) {
+      throw UnsupportedError('ZIP 318 requires exactly one migration output');
+    }
+    final requested = recipients.single;
+    if (requested.isChange ||
+        requested.amount.fractionDigits != cryptoCurrency.fractionDigits ||
+        requested.amount.raw !=
+            BigInt.from(scheduledTransfer.denominationZatoshis) ||
+        txData.memo?.isNotEmpty == true) {
+      throw ArgumentError('ZIP 318 review does not match its schedule');
+    }
+    final session = _requireAccountSession();
+    final syncClient = session.syncClient;
+    final stateStore = _stateStore;
+    final migrationStore = _zip318MigrationStore;
+    if (syncClient == null || stateStore == null || migrationStore == null) {
+      throw StateError('ZIP 318 requires an initialized sync session');
+    }
+    final snapshot = await _requireStateController().refresh();
+    final persisted = await stateStore.load();
+    if (persisted == null ||
+        persisted.observedChainHeight != snapshot.chainHeight) {
+      throw StateError('Zcash sync state is unavailable or not current');
+    }
+    await _releaseCurrentPrepared();
+    final pending = await migrationStore.load();
+    final seed = zcash.nativeMnemonicToSeed(
+      await getMnemonic(),
+      passphrase: await getMnemonicPassphrase(),
+    );
+    final ufvk = _ufvk;
+    if (ufvk == null) throw StateError('Zcash account identity is unavailable');
+    final prepared = await _zip318MigrationService.prepare(
+      ZcashZip318PreparationRequest(
+        network: cryptoCurrency.network,
+        sessionGeneration: session.generation,
+        orchardNotes: persisted.syncState.orchard.notes,
+        orchardSpends: persisted.syncState.orchard.spends,
+        reservedNullifiers: pending.reservedNullifiersAt(snapshot.chainHeight),
+        observedTipHeight: snapshot.chainHeight,
+        scheduledTransfer: scheduledTransfer,
+        recipientAddress: requested.address,
+        ufvk: ufvk,
+        seedHex: seed.seedHex,
+        parameters: parameters,
+        consent: consent,
+        fetchTreeState: syncClient.getTreeState,
+      ),
+    );
+    pending.addPrepared(prepared, createdHeight: snapshot.chainHeight);
+    await migrationStore.save(pending);
+    _preparedSend = prepared;
+    return txData.copyWith(
+      raw: prepared.transactionHex,
+      txid: prepared.txid,
+      fee: _amount(prepared.feeZatoshis),
+      recipients: [
+        requested.copyWith(
+          address: prepared.encodedRecipient,
+          amount: _amount(prepared.amountZatoshis),
+        ),
+      ],
+      vExtraData: _preparedDigest(prepared),
+    );
+  });
+
   @override
   Future<TxData> confirmSend({required TxData txData}) => _sendMutex.protect(
     () async {
@@ -523,18 +611,38 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
         _preparedSend = null;
         return txData;
       }
-      final store = _pendingSendStore!;
-      final pending = await store.load();
-      try {
-        await _sendService.broadcast(
-          prepared: prepared,
-          pendingSends: pending,
-          chainHeight: info.cachedChainHeight,
-          persist: () => store.save(pending),
-          submit: session.submitTransactionHex,
-        );
-      } finally {
-        await store.save(pending);
+      if (prepared case final ZcashPreparedZip318Migration migration) {
+        final store = _zip318MigrationStore!;
+        final pending = await store.load();
+        try {
+          await _zip318MigrationService.broadcast(
+            prepared: migration,
+            pending: pending,
+            session: _zip318BroadcastSession,
+            chainHeight: _requireStateController().inspection.chainHeight,
+            persist: () => store.save(pending),
+            submit: (transactionHex) async {
+              await session.submitTransactionHex(transactionHex);
+              return migration.txid;
+            },
+          );
+        } finally {
+          await store.save(pending);
+        }
+      } else {
+        final store = _pendingSendStore!;
+        final pending = await store.load();
+        try {
+          await _sendService.broadcast(
+            prepared: prepared,
+            pendingSends: pending,
+            chainHeight: _requireStateController().inspection.chainHeight,
+            persist: () => store.save(pending),
+            submit: session.submitTransactionHex,
+          );
+        } finally {
+          await store.save(pending);
+        }
       }
       _preparedSend = null;
       return txData;
@@ -686,6 +794,7 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
     _stateStore = null;
     _pendingSendStore = null;
     _transparentShieldingStore = null;
+    _zip318MigrationStore = null;
     _scanExecutor = null;
     _preparedSend = null;
     final session = _accountSession;
@@ -804,6 +913,13 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
     _scanExecutor = scanExecutor;
     _pendingSendStore = pendingStore;
     _transparentShieldingStore = shieldingStore;
+    _zip318MigrationStore = ZcashEncryptedZip318MigrationStore(
+      path: path.join(root.path, 'zcash', '$walletId.zip318'),
+      walletId: walletId,
+      network: network,
+      accountFingerprint: fingerprint,
+      secureStorage: secureStorageInterface,
+    );
   }
 
   Future<void> _migrateLegacyState({
@@ -975,6 +1091,16 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
       _preparedSend = null;
       return;
     }
+    if (prepared case ZcashPreparedZip318Migration()) {
+      final store = _zip318MigrationStore;
+      if (store != null) {
+        await _releaseUnbroadcastZip318(
+          store: store,
+          pending: await store.load(),
+        );
+      }
+      return;
+    }
     final store = _pendingSendStore;
     if (store != null) {
       await _releaseUnbroadcastPrepared(
@@ -999,6 +1125,17 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
       pending.releaseRejected(prepared.txid);
       await store.save(pending);
     }
+    _preparedSend = null;
+  }
+
+  Future<void> _releaseUnbroadcastZip318({
+    required ZcashZip318MigrationStore store,
+    required ZcashZip318PendingState pending,
+  }) async {
+    final prepared = _preparedSend;
+    if (prepared is! ZcashPreparedZip318Migration) return;
+    pending.releasePrepared(prepared.txid);
+    await store.save(pending);
     _preparedSend = null;
   }
 

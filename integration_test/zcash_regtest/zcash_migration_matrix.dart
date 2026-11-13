@@ -9,6 +9,7 @@ final class ZcashStagedMigrationCase {
     required this.destinationPool,
     required this.expectedSelectedReceiver,
     required this.isProductionSupported,
+    this.postActivationBlocks = 0,
   });
 
   final String name;
@@ -16,6 +17,7 @@ final class ZcashStagedMigrationCase {
   final ZcashRegtestPool destinationPool;
   final ZcashRegtestReceiver expectedSelectedReceiver;
   final bool isProductionSupported;
+  final int postActivationBlocks;
 
   void requireProductionSupport() {
     if (!isProductionSupported) {
@@ -26,8 +28,7 @@ final class ZcashStagedMigrationCase {
   }
 }
 
-/// Production-backed migration cases. Unsupported rows remain in the matrix
-/// so CI reports the capability gap instead of silently omitting a pool.
+/// Production-backed migration cases.
 const zcashStagedMigrationMatrix = <ZcashStagedMigrationCase>[
   ZcashStagedMigrationCase(
     name: 'sapling-to-ironwood',
@@ -43,7 +44,11 @@ const zcashStagedMigrationMatrix = <ZcashStagedMigrationCase>[
     sourcePool: ZcashRegtestPool.orchard,
     destinationPool: ZcashRegtestPool.ironwood,
     expectedSelectedReceiver: ZcashRegtestReceiver.orchard,
-    isProductionSupported: false,
+    isProductionSupported: true,
+    // ZIP 318 draws from shared boundary anchors above activation and needs
+    // at least two complete 144-block boundaries to form a useful anonymity
+    // set in the staged local network.
+    postActivationBlocks: 288,
   ),
 ];
 
@@ -119,6 +124,9 @@ runZcashMigrationCase<Wallet, Endpoint>({
   );
   await scenario.advanceToPreActivation(ZcashRegtestUpgrade.nu63);
   final activated = await scenario.crossActivation(ZcashRegtestUpgrade.nu63);
+  if (migrationCase.postActivationBlocks > 0) {
+    await scenario.chain.mine(migrationCase.postActivationBlocks);
+  }
   final prepared = await scenario.prepareMigration(
     value: migrationValue,
     sourcePool: migrationCase.sourcePool,
