@@ -21,6 +21,7 @@ import '../../models/send_view_auto_fill_data.dart';
 import '../../providers/providers.dart';
 import '../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../providers/ui/preview_tx_button_state_provider.dart';
+import '../../providers/wallet/send_fee_providers.dart';
 import '../../route_generator.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/address_utils.dart';
@@ -43,8 +44,8 @@ import '../../wallets/isar/providers/solana/current_sol_token_wallet_provider.da
 import '../../wallets/isar/providers/solana/sol_token_balance_provider.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/models/tx_data.dart';
-import '../../widgets/animated_text.dart';
 import '../../widgets/background.dart';
+import '../../widgets/calculating_future_builder.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../widgets/icon_widgets/qrcode_icon.dart';
@@ -93,7 +94,8 @@ class SolTokenSendView extends ConsumerStatefulWidget {
   ConsumerState<SolTokenSendView> createState() => _SolTokenSendViewState();
 }
 
-class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
+class _SolTokenSendViewState extends ConsumerState<SolTokenSendView>
+    with SendFeeForm {
   late final String walletId;
   late final String tokenMint;
   late final ClipboardInterface clipboard;
@@ -121,12 +123,6 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
 
   bool _cryptoAmountChangeLock = false;
   late VoidCallback onCryptoAmountChanged;
-
-  final updateFeesTimerDuration = const Duration(milliseconds: 500);
-
-  Timer? _cryptoAmountChangedFeeUpdateTimer;
-  Timer? _baseAmountChangedFeeUpdateTimer;
-  late Future<Amount> _calculateFeesFuture;
 
   void _onTokenSendViewPasteAddressFieldButtonPressed() async {
     final ClipboardData? data = await clipboard.getData(Clipboard.kTextPlain);
@@ -294,6 +290,18 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
       _cryptoAmountChangeLock = false;
     }
     _updatePreviewButtonState(_address, _amountToSend);
+    followFeeAmount(_amountToSend);
+  }
+
+  // Controller assignments used for display must not edit the stored amount.
+  void _updateAmountDisplay(VoidCallback update) {
+    final wasLocked = _cryptoAmountChangeLock;
+    _cryptoAmountChangeLock = true;
+    try {
+      update();
+    } finally {
+      _cryptoAmountChangeLock = wasLocked;
+    }
   }
 
   void _cryptoAmountChanged() async {
@@ -336,27 +344,8 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
       }
 
       _updatePreviewButtonState(_address, _amountToSend);
-
-      _cryptoAmountChangedFeeUpdateTimer?.cancel();
-      _cryptoAmountChangedFeeUpdateTimer = Timer(updateFeesTimerDuration, () {
-        if (mounted) {
-          setState(() {
-            _calculateFeesFuture = calculateFees();
-          });
-        }
-      });
+      followFeeAmount(_amountToSend);
     }
-  }
-
-  void _baseAmountChanged() {
-    _baseAmountChangedFeeUpdateTimer?.cancel();
-    _baseAmountChangedFeeUpdateTimer = Timer(updateFeesTimerDuration, () {
-      if (mounted && !_cryptoFocus.hasFocus) {
-        setState(() {
-          _calculateFeesFuture = calculateFees();
-        });
-      }
-    });
   }
 
   String? _updateInvalidAddressText(String address) {
@@ -378,48 +367,6 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
         Solana(CryptoCurrencyNetwork.main).validateAddress(address);
     ref.read(previewTokenTxButtonStateProvider.state).state =
         (isValidAddress && amount != null && amount > Amount.zero);
-  }
-
-  Future<Amount> calculateFees() async {
-    final solana = Solana(CryptoCurrencyNetwork.main);
-    final minimumFee = Amount(
-      rawValue: BigInt.from(5000),
-      fractionDigits: solana.fractionDigits,
-    );
-    try {
-      final wallet = ref.read(pCurrentSolanaTokenWallet);
-      if (wallet == null) {
-        return minimumFee;
-      }
-
-      final feeObject = await wallet.fees;
-
-      late final BigInt feeRate;
-
-      switch (ref.read(feeRateTypeMobileStateProvider.state).state) {
-        case FeeRateType.fast:
-          feeRate = feeObject.fast;
-          break;
-        case FeeRateType.average:
-          feeRate = feeObject.medium;
-          break;
-        case FeeRateType.slow:
-          feeRate = feeObject.slow;
-          break;
-        default:
-          feeRate = BigInt.from(-1);
-      }
-
-      final Amount fee = await wallet.estimateFeeFor(Amount.zero, feeRate);
-      return fee;
-    } catch (e, s) {
-      Logging.instance.w(
-        "Failed to calculate Solana token fees: ",
-        error: e,
-        stackTrace: s,
-      );
-      return minimumFee;
-    }
   }
 
   Future<void> _previewTransaction() async {
@@ -509,7 +456,7 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
             ),
           ],
           memo: memoController.text.isEmpty ? null : memoController.text,
-          feeRateType: ref.read(feeRateTypeMobileStateProvider),
+          feeRateType: ref.read(pFeeRateType),
           note: noteController.text,
         ),
       );
@@ -595,15 +542,14 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
 
   @override
   void initState() {
-    ref.refresh(feeSheetSessionCacheProvider);
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(feeRateTypeMobileStateProvider.state).state = FeeRateType.slow;
+      ref.read(pFeeRateType.state).state = FeeRateType.slow;
     });
 
-    _calculateFeesFuture = calculateFees();
     _data = widget.autoFillData;
     walletId = widget.walletId;
+    fees = SendFeeRates(ref.read, walletId: walletId, isToken: true);
+    retryFeeOnFocusLoss([_cryptoFocus, _baseFocus]);
     tokenMint = widget.tokenMint;
     clipboard = widget.clipboard;
 
@@ -616,7 +562,6 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
 
     onCryptoAmountChanged = _cryptoAmountChanged;
     cryptoAmountController.addListener(onCryptoAmountChanged);
-    baseAmountController.addListener(_baseAmountChanged);
 
     if (_data != null) {
       if (_data.amount != null) {
@@ -640,11 +585,7 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
 
   @override
   void dispose() {
-    _cryptoAmountChangedFeeUpdateTimer?.cancel();
-    _baseAmountChangedFeeUpdateTimer?.cancel();
-
     cryptoAmountController.removeListener(onCryptoAmountChanged);
-    baseAmountController.removeListener(_baseAmountChanged);
 
     sendToController.dispose();
     memoController.dispose();
@@ -670,7 +611,7 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
     listenForAmountRelocalization(
       ref.listen,
       controllers: [cryptoAmountController, baseAmountController],
-      onRelocalized: _cryptoAmountChanged,
+      updateControllers: _updateAmountDisplay,
     );
 
     final tokenWallet = ref.watch(pCurrentSolanaTokenWallet);
@@ -708,6 +649,9 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
         ),
       );
     }
+    final amountFormatter = ref.watch(
+      pAmountFormatter(tokenWallet.cryptoCurrency),
+    );
 
     return Background(
       child: Scaffold(
@@ -1270,36 +1214,7 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
                                         Constants.size.circularBorderRadius,
                                       ),
                                     ),
-                                    onPressed: () {
-                                      showModalBottomSheet<dynamic>(
-                                        backgroundColor: Colors.transparent,
-                                        context: context,
-                                        shape: const RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.vertical(
-                                            top: Radius.circular(20),
-                                          ),
-                                        ),
-                                        builder: (_) =>
-                                            TransactionFeeSelectionSheet(
-                                              walletId: walletId,
-                                              isToken: true,
-                                              amount:
-                                                  _amountToSend ??
-                                                  Amount.zeroWith(
-                                                    fractionDigits: tokenWallet
-                                                        .tokenDecimals,
-                                                  ),
-                                              updateChosen: (_, fee) {
-                                                setState(() {
-                                                  _calculateFeesFuture =
-                                                      fee == null
-                                                      ? calculateFees()
-                                                      : Future.value(fee);
-                                                });
-                                              },
-                                            ),
-                                      );
-                                    },
+                                    onPressed: () => showFeeSheet(this),
                                     child: Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
@@ -1308,10 +1223,7 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
                                           children: [
                                             Text(
                                               ref
-                                                  .watch(
-                                                    feeRateTypeMobileStateProvider
-                                                        .state,
-                                                  )
+                                                  .watch(pFeeRateType.state)
                                                   .state
                                                   .prettyName,
                                               style: STextStyles.itemSubtitle12(
@@ -1319,47 +1231,32 @@ class _SolTokenSendViewState extends ConsumerState<SolTokenSendView> {
                                               ),
                                             ),
                                             const SizedBox(width: 10),
-                                            FutureBuilder(
-                                              future: _calculateFeesFuture,
-                                              builder: (context, snapshot) {
-                                                if (snapshot.connectionState ==
-                                                        ConnectionState.done &&
-                                                    snapshot.hasData) {
-                                                  final formattedFee = ref
-                                                      .watch(
-                                                        pAmountFormatter(
-                                                          tokenWallet
-                                                              .cryptoCurrency,
-                                                        ),
-                                                      )
-                                                      .format(
-                                                        snapshot.data!,
-                                                        withUnitName: true,
-                                                        indicatePrecisionLoss:
-                                                            false,
-                                                      );
-                                                  return Text(
-                                                    "~$formattedFee",
-                                                    style:
-                                                        STextStyles.itemSubtitle(
-                                                          context,
-                                                        ),
-                                                  );
-                                                } else {
-                                                  return AnimatedText(
-                                                    stringsToLoopThrough:
-                                                        const [
-                                                          "Calculating",
-                                                          "Calculating.",
-                                                          "Calculating..",
-                                                          "Calculating...",
-                                                        ],
-                                                    style:
-                                                        STextStyles.itemSubtitle(
-                                                          context,
-                                                        ),
-                                                  );
-                                                }
+                                            CalculatingFutureBuilder(
+                                              future: watchFee(),
+                                              style: STextStyles.itemSubtitle(
+                                                context,
+                                              ),
+                                              fallback: Amount(
+                                                rawValue: BigInt.from(5000),
+                                                fractionDigits: tokenWallet
+                                                    .cryptoCurrency
+                                                    .fractionDigits,
+                                              ),
+                                              builder: (fee) {
+                                                final formattedFee =
+                                                    amountFormatter.format(
+                                                      fee,
+                                                      withUnitName: true,
+                                                      indicatePrecisionLoss:
+                                                          false,
+                                                    );
+                                                return Text(
+                                                  "~$formattedFee",
+                                                  style:
+                                                      STextStyles.itemSubtitle(
+                                                        context,
+                                                      ),
+                                                );
                                               },
                                             ),
                                           ],

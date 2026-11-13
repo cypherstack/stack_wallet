@@ -886,6 +886,16 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
               electrumXClient,
               cryptoCurrency.network,
             );
+        // Handle errors as they happen while address discovery runs in
+        // parallel; the outcome is checked once discovery completes. A cache
+        // reset cancels these operations without waiting for RPCs.
+        final sparkCacheResult =
+            Future.wait([sparkUsedCoinTagsFuture, ...sparkAnonSetFutures])
+                .then<AsyncError?>(
+                  (_) => null,
+                  onError: (Object error, StackTrace stack) =>
+                      AsyncError(error, stack),
+                );
 
         // receiving addresses
         Logging.instance.i("checking receiving addresses...");
@@ -929,7 +939,11 @@ class FiroWallet<T extends ElectrumXCurrencyInterface> extends Bip39HDWallet<T>
 
         await Future.wait([updateTransactions(), updateUTXOs()]);
 
-        await Future.wait([sparkUsedCoinTagsFuture, ...sparkAnonSetFutures]);
+        final cacheError = await sparkCacheResult;
+        if (cacheError != null &&
+            cacheError.error is! FiroCacheResetException) {
+          Error.throwWithStackTrace(cacheError.error, cacheError.stackTrace);
+        }
 
         await recoverSparkWallet(latestSparkCoinId: latestSparkCoinId);
       });

@@ -11,6 +11,7 @@ import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_field_relocalization.dart';
 import '../../utilities/amount/amount_formatter.dart';
+import '../../utilities/amount/amount_parser.dart';
 import '../../utilities/amount/amount_input_formatter.dart';
 import '../../utilities/amount/amount_unit.dart';
 import '../../utilities/enums/fee_rate_type_enum.dart';
@@ -58,14 +59,31 @@ class _SalviumCreateStakeViewState
   }
 
   void _parseAmount(String string) {
-    final cryptoAmount = ref
-        .read(pAmountFormatter(ref.read(pWalletCoin(widget.walletId))))
-        .tryParseEditable(string);
+    if (_updatingAmountDisplay) return;
+    final coin = ref.read(pWalletCoin(widget.walletId));
+    final cryptoAmount = AmountParser.tryParseEditable(
+      string,
+      locale: ref.read(localeServiceChangeNotifierProvider).locale,
+      unit: ref.read(pAmountUnit(coin)),
+      coin: coin,
+    );
 
     if (_amount != cryptoAmount) {
       setState(() {
         _amount = cryptoAmount;
       });
+    }
+  }
+
+  bool _updatingAmountDisplay = false;
+
+  void _updateAmountDisplay(VoidCallback update) {
+    final wasUpdating = _updatingAmountDisplay;
+    _updatingAmountDisplay = true;
+    try {
+      update();
+    } finally {
+      _updatingAmountDisplay = wasUpdating;
     }
   }
 
@@ -289,7 +307,18 @@ class _SalviumCreateStakeViewState
     final locale = ref.watch(
       localeServiceChangeNotifierProvider.select((s) => s.locale),
     );
-    listenForAmountRelocalization(ref.listen, controllers: [_amountController]);
+    listenForAmountRelocalization(
+      ref.listen,
+      controllers: [_amountController],
+      updateControllers: _updateAmountDisplay,
+    );
+    ref.listen<AmountFormatter>(pAmountFormatter(coin), (previous, next) {
+      if (previous?.unit != next.unit && _amount != null) {
+        _updateAmountDisplay(() {
+          _amountController.text = next.formatEditable(_amount!);
+        });
+      }
+    });
 
     return ConditionalParent(
       condition: !Util.isDesktop,

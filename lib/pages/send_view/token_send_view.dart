@@ -21,12 +21,14 @@ import '../../models/send_view_auto_fill_data.dart';
 import '../../providers/providers.dart';
 import '../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../providers/ui/preview_tx_button_state_provider.dart';
+import '../../providers/wallet/send_fee_providers.dart';
 import '../../route_generator.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/address_utils.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_field_relocalization.dart';
 import '../../utilities/amount/amount_formatter.dart';
+import '../../utilities/amount/amount_parser.dart';
 import '../../utilities/amount/amount_input_formatter.dart';
 import '../../utilities/amount/amount_unit.dart';
 import '../../utilities/assets.dart';
@@ -44,8 +46,8 @@ import '../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import '../../wallets/isar/providers/eth/token_balance_provider.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/models/tx_data.dart';
-import '../../widgets/animated_text.dart';
 import '../../widgets/background.dart';
+import '../../widgets/calculating_future_builder.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/eth_fee_form.dart';
 import '../../widgets/icon_widgets/addressbook_icon.dart';
@@ -84,7 +86,8 @@ class TokenSendView extends ConsumerStatefulWidget {
   ConsumerState<TokenSendView> createState() => _TokenSendViewState();
 }
 
-class _TokenSendViewState extends ConsumerState<TokenSendView> {
+class _TokenSendViewState extends ConsumerState<TokenSendView>
+    with SendFeeForm {
   late final String walletId;
   late final CryptoCurrency coin;
   late final EthContract tokenContract;
@@ -111,12 +114,6 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
 
   bool _cryptoAmountChangeLock = false;
   late VoidCallback onCryptoAmountChanged;
-
-  final updateFeesTimerDuration = const Duration(milliseconds: 500);
-
-  Timer? _cryptoAmountChangedFeeUpdateTimer;
-  Timer? _baseAmountChangedFeeUpdateTimer;
-  late Future<Amount> _calculateFeesFuture;
 
   final _ethFee = ValueNotifier<EthEIP1559Fee?>(null);
 
@@ -280,28 +277,36 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
           .formatEditable(_amountToSend!);
       _cryptoAmountChangeLock = false;
     } else {
-      _amountToSend = Amount.zero;
+      _amountToSend = null;
       _cachedAmountToSend = null;
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = "";
       _cryptoAmountChangeLock = false;
     }
-    // setState(() {
-    //   _calculateFeesFuture = calculateFees(
-    //       Format.decimalAmountToSatoshis(
-    //           _amountToSend!));
-    // });
     _updatePreviewButtonState(_address, _amountToSend);
+    followFeeAmount(_amountToSend);
+  }
+
+  // Controller assignments used for display must not edit the stored amount.
+  void _updateAmountDisplay(VoidCallback update) {
+    final wasLocked = _cryptoAmountChangeLock;
+    _cryptoAmountChangeLock = true;
+    try {
+      update();
+    } finally {
+      _cryptoAmountChangeLock = wasLocked;
+    }
   }
 
   void _cryptoAmountChanged() async {
     if (!_cryptoAmountChangeLock) {
-      final cryptoAmount = ref
-          .read(pAmountFormatter(coin))
-          .tryParseEditable(
-            cryptoAmountController.text,
-            tokenContract: tokenContract,
-          );
+      final cryptoAmount = AmountParser.tryParseEditable(
+        cryptoAmountController.text,
+        locale: ref.read(localeServiceChangeNotifierProvider).locale,
+        unit: ref.read(pAmountUnit(coin)),
+        coin: coin,
+        tokenContract: tokenContract,
+      );
       if (cryptoAmount != null) {
         _amountToSend = cryptoAmount;
         if (_cachedAmountToSend != null &&
@@ -331,27 +336,8 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
       }
 
       _updatePreviewButtonState(_address, _amountToSend);
-
-      _cryptoAmountChangedFeeUpdateTimer?.cancel();
-      _cryptoAmountChangedFeeUpdateTimer = Timer(updateFeesTimerDuration, () {
-        if (mounted && coin is! Epiccash && !_baseFocus.hasFocus) {
-          setState(() {
-            _calculateFeesFuture = calculateFees();
-          });
-        }
-      });
+      followFeeAmount(_amountToSend);
     }
-  }
-
-  void _baseAmountChanged() {
-    _baseAmountChangedFeeUpdateTimer?.cancel();
-    _baseAmountChangedFeeUpdateTimer = Timer(updateFeesTimerDuration, () {
-      if (mounted && coin is! Epiccash && !_cryptoFocus.hasFocus) {
-        setState(() {
-          _calculateFeesFuture = calculateFees();
-        });
-      }
-    });
   }
 
   String? _updateInvalidAddressText(String address) {
@@ -377,30 +363,6 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
         .validateAddress(address ?? "");
     ref.read(previewTokenTxButtonStateProvider.state).state =
         (isValidAddress && amount != null && amount > Amount.zero);
-  }
-
-  Future<Amount> calculateFees() async {
-    final wallet = ref.read(pCurrentTokenWallet)!;
-    final feeObject = await wallet.fees;
-
-    late final BigInt feeRate;
-
-    switch (ref.read(feeRateTypeMobileStateProvider.state).state) {
-      case FeeRateType.fast:
-        feeRate = feeObject.fast;
-        break;
-      case FeeRateType.average:
-        feeRate = feeObject.medium;
-        break;
-      case FeeRateType.slow:
-        feeRate = feeObject.slow;
-        break;
-      default:
-        feeRate = BigInt.from(-1);
-    }
-
-    final Amount fee = await wallet.estimateFeeFor(Amount.zero, feeRate);
-    return fee;
   }
 
   Future<void> _previewTransaction() async {
@@ -503,7 +465,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
               )!,
             ),
           ],
-          feeRateType: ref.read(feeRateTypeMobileStateProvider),
+          feeRateType: ref.read(pFeeRateType),
           note: noteController.text,
           ethEIP1559Fee: _ethFee.value,
         ),
@@ -589,11 +551,10 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
 
   @override
   void initState() {
-    ref.refresh(feeSheetSessionCacheProvider);
-
-    _calculateFeesFuture = calculateFees();
     _data = widget.autoFillData;
     walletId = widget.walletId;
+    fees = SendFeeRates(ref.read, walletId: walletId, isToken: true);
+    retryFeeOnFocusLoss([_cryptoFocus, _baseFocus]);
     coin = widget.coin;
     tokenContract = widget.tokenContract;
     clipboard = widget.clipboard;
@@ -606,7 +567,6 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
 
     onCryptoAmountChanged = _cryptoAmountChanged;
     cryptoAmountController.addListener(onCryptoAmountChanged);
-    baseAmountController.addListener(_baseAmountChanged);
 
     if (_data != null) {
       if (_data.amount != null) {
@@ -626,12 +586,9 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
 
   @override
   void dispose() {
-    _cryptoAmountChangedFeeUpdateTimer?.cancel();
-    _baseAmountChangedFeeUpdateTimer?.cancel();
     _ethFee.dispose();
 
     cryptoAmountController.removeListener(onCryptoAmountChanged);
-    baseAmountController.removeListener(_baseAmountChanged);
 
     sendToController.dispose();
     cryptoAmountController.dispose();
@@ -649,15 +606,23 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    final isCustomFee = ref.watch(feeRateTypeMobileStateProvider).isCustom;
+    final isCustomFee = ref.watch(pFeeRateType).isCustom;
+    listenForCustomFeeLevel(ref, coin, () => _ethFee.value = null);
     final String locale = ref.watch(
       localeServiceChangeNotifierProvider.select((value) => value.locale),
     );
     listenForAmountRelocalization(
       ref.listen,
       controllers: [cryptoAmountController, baseAmountController],
-      onRelocalized: _cryptoAmountChanged,
+      updateControllers: _updateAmountDisplay,
     );
+    ref.listen<AmountFormatter>(pAmountFormatter(coin), (previous, next) {
+      if (previous?.unit != next.unit && _amountToSend != null) {
+        _updateAmountDisplay(() {
+          cryptoAmountController.text = next.formatEditable(_amountToSend!);
+        });
+      }
+    });
     // ethFee is checked in the ValueListenableBuilder around the preview
     // button so fee keystrokes don't rebuild this whole view.
     final previewEnabled = ref
@@ -1199,44 +1164,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                         Constants.size.circularBorderRadius,
                                       ),
                                     ),
-                                    onPressed: () {
-                                      showModalBottomSheet<dynamic>(
-                                        backgroundColor: Colors.transparent,
-                                        context: context,
-                                        shape: const RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.vertical(
-                                            top: Radius.circular(20),
-                                          ),
-                                        ),
-                                        builder: (_) =>
-                                            TransactionFeeSelectionSheet(
-                                              walletId: walletId,
-                                              isToken: true,
-                                              amount:
-                                                  _amountToSend ??
-                                                  Amount.zeroWith(
-                                                    fractionDigits:
-                                                        tokenContract.decimals,
-                                                  ),
-                                              updateChosen: (feeRateType, fee) {
-                                                if (feeRateType.isCustom) {
-                                                  return;
-                                                }
-
-                                                setState(() {
-                                                  if (fee != null) {
-                                                    _calculateFeesFuture =
-                                                        Future.value(fee);
-                                                  } else {
-                                                    _calculateFeesFuture =
-                                                        calculateFees();
-                                                  }
-                                                  _ethFee.value = null;
-                                                });
-                                              },
-                                            ),
-                                      );
-                                    },
+                                    onPressed: () => showFeeSheet(this),
                                     child: Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
@@ -1245,10 +1173,7 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                           children: [
                                             Text(
                                               ref
-                                                  .watch(
-                                                    feeRateTypeMobileStateProvider
-                                                        .state,
-                                                  )
+                                                  .watch(pFeeRateType.state)
                                                   .state
                                                   .prettyName,
                                               style: STextStyles.itemSubtitle12(
@@ -1256,46 +1181,31 @@ class _TokenSendViewState extends ConsumerState<TokenSendView> {
                                               ),
                                             ),
                                             const SizedBox(width: 10),
-                                            FutureBuilder(
-                                              future: _calculateFeesFuture,
-                                              builder: (context, snapshot) {
-                                                if (snapshot.connectionState ==
-                                                        ConnectionState.done &&
-                                                    snapshot.hasData) {
-                                                  final formattedFee = ref
-                                                      .watch(
-                                                        pAmountFormatter(coin),
-                                                      )
-                                                      .format(
-                                                        snapshot.data!,
-                                                        withUnitName: true,
-                                                        indicatePrecisionLoss:
-                                                            false,
-                                                      );
-                                                  return Text(
-                                                    isCustomFee
-                                                        ? ""
-                                                        : "~$formattedFee",
-                                                    style:
-                                                        STextStyles.itemSubtitle(
-                                                          context,
-                                                        ),
-                                                  );
-                                                } else {
-                                                  return AnimatedText(
-                                                    stringsToLoopThrough:
-                                                        const [
-                                                          "Calculating",
-                                                          "Calculating.",
-                                                          "Calculating..",
-                                                          "Calculating...",
-                                                        ],
-                                                    style:
-                                                        STextStyles.itemSubtitle(
-                                                          context,
-                                                        ),
-                                                  );
-                                                }
+                                            CalculatingFutureBuilder(
+                                              future: watchFee(),
+                                              style: STextStyles.itemSubtitle(
+                                                context,
+                                              ),
+                                              builder: (fee) {
+                                                final formattedFee = ref
+                                                    .watch(
+                                                      pAmountFormatter(coin),
+                                                    )
+                                                    .format(
+                                                      fee,
+                                                      withUnitName: true,
+                                                      indicatePrecisionLoss:
+                                                          false,
+                                                    );
+                                                return Text(
+                                                  isCustomFee
+                                                      ? ""
+                                                      : "~$formattedFee",
+                                                  style:
+                                                      STextStyles.itemSubtitle(
+                                                        context,
+                                                      ),
+                                                );
                                               },
                                             ),
                                           ],

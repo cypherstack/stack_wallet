@@ -61,8 +61,6 @@ final _wiProvider = ChangeNotifierProvider.family<_Watcher, bool>((
     isar,
   );
 
-  ref.onDispose(() => watcher.dispose());
-
   return watcher;
 });
 
@@ -75,7 +73,7 @@ final pFavouriteWalletInfos = Provider.family<List<WalletInfo>, bool>((
   final infos = ref.watch(_wiProvider(isFavourite)).value;
 
   if (isDuress) {
-    infos.retainWhere((e) => e.isDuressVisible);
+    return infos.where((e) => e.isDuressVisible).toList();
   }
 
   return infos;

@@ -23,12 +23,13 @@ import '../../../../pages/send_view/sub_widgets/building_transaction_dialog.dart
 import '../../../../providers/providers.dart';
 import '../../../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../../../providers/ui/preview_tx_button_state_provider.dart';
-import '../../../../providers/wallet/desktop_fee_providers.dart';
+import '../../../../providers/wallet/send_fee_providers.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/address_utils.dart';
 import '../../../../utilities/amount/amount.dart';
 import '../../../../utilities/amount/amount_field_relocalization.dart';
 import '../../../../utilities/amount/amount_formatter.dart';
+import '../../../../utilities/amount/amount_parser.dart';
 import '../../../../utilities/amount/amount_input_formatter.dart';
 import '../../../../utilities/amount/amount_unit.dart';
 import '../../../../utilities/clipboard_interface.dart';
@@ -255,7 +256,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
               )!,
             ),
           ],
-          feeRateType: ref.read(feeRateTypeDesktopStateProvider),
+          feeRateType: ref.read(pFeeRateType),
           nonce: nonce,
           ethEIP1559Fee: _ethFee.value,
         ),
@@ -367,20 +368,32 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
     }
   }
 
+  final _feeAmount = SendFeeAmount();
+
   void _syncFeeAmount(Amount? amount) {
-    final tokenDecimals = ref.read(pCurrentTokenWallet)!.tokenContract.decimals;
-    ref.read(sendAmountProvider.notifier).state =
-        amount ?? Amount.zeroWith(fractionDigits: tokenDecimals);
+    if (mounted) _feeAmount.sync(amount);
+  }
+
+  // Controller assignments used for display must not edit the stored amount.
+  void _updateAmountDisplay(VoidCallback update) {
+    final wasLocked = _cryptoAmountChangeLock;
+    _cryptoAmountChangeLock = true;
+    try {
+      update();
+    } finally {
+      _cryptoAmountChangeLock = wasLocked;
+    }
   }
 
   void _cryptoAmountChanged() async {
     if (!_cryptoAmountChangeLock) {
-      final cryptoAmount = ref
-          .read(pAmountFormatter(coin))
-          .tryParseEditable(
-            cryptoAmountController.text,
-            tokenContract: ref.read(pCurrentTokenWallet)!.tokenContract,
-          );
+      final cryptoAmount = AmountParser.tryParseEditable(
+        cryptoAmountController.text,
+        locale: ref.read(localeServiceChangeNotifierProvider).locale,
+        unit: ref.read(pAmountUnit(coin)),
+        coin: coin,
+        tokenContract: ref.read(pCurrentTokenWallet)!.tokenContract,
+      );
 
       if (cryptoAmount != null) {
         _amountToSend = cryptoAmount;
@@ -414,6 +427,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
       }
 
       _updatePreviewButtonState(_address, _amountToSend);
+      _feeAmount.typed(_amountToSend);
     }
   }
 
@@ -586,7 +600,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
       cryptoAmountController.text = amountString;
       _cryptoAmountChangeLock = false;
     } else {
-      _amountToSend = Decimal.zero.toAmount(fractionDigits: tokenDecimals);
+      _amountToSend = null;
       _cachedAmountToSend = null;
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = "";
@@ -594,6 +608,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
     }
 
     _updatePreviewButtonState(_address, _amountToSend);
+    _feeAmount.typed(_amountToSend);
   }
 
   Future<void> sendAllTapped() async {
@@ -613,7 +628,6 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.refresh(tokenFeeSessionCacheProvider);
       ref.read(previewTokenTxButtonStateProvider.state).state = false;
     });
 
@@ -649,25 +663,13 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
 
     _cryptoFocus.addListener(() {
       if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (_amountToSend == null) {
-            ref.refresh(sendAmountProvider);
-          } else {
-            ref.read(sendAmountProvider.state).state = _amountToSend!;
-          }
-        });
+        _syncFeeAmount(_amountToSend);
       }
     });
 
     _baseFocus.addListener(() {
       if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (_amountToSend == null) {
-            ref.refresh(sendAmountProvider);
-          } else {
-            ref.read(sendAmountProvider.state).state = _amountToSend!;
-          }
-        });
+        _syncFeeAmount(_amountToSend);
       }
     });
 
@@ -678,6 +680,7 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
   void dispose() {
     cryptoAmountController.removeListener(onCryptoAmountChanged);
     _ethFee.dispose();
+    _feeAmount.dispose();
 
     sendToController.dispose();
     cryptoAmountController.dispose();
@@ -700,9 +703,17 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
     listenForAmountRelocalization(
       ref.listen,
       controllers: [cryptoAmountController, baseAmountController],
-      onRelocalized: _cryptoAmountChanged,
+      updateControllers: _updateAmountDisplay,
     );
-    final isCustomFee = ref.watch(feeRateTypeDesktopStateProvider).isCustom;
+    ref.listen<AmountFormatter>(pAmountFormatter(coin), (previous, next) {
+      if (previous?.unit != next.unit && _amountToSend != null) {
+        _updateAmountDisplay(() {
+          cryptoAmountController.text = next.formatEditable(_amountToSend!);
+        });
+      }
+    });
+    final isCustomFee = ref.watch(pFeeRateType).isCustom;
+    listenForCustomFeeLevel(ref, coin, () => _ethFee.value = null);
     // ethFee is checked in the ValueListenableBuilder around the preview
     // button so fee keystrokes don't rebuild this whole view.
     final previewEnabled = ref
@@ -1085,10 +1096,8 @@ class _DesktopTokenSendState extends ConsumerState<DesktopTokenSend> {
         DesktopSendFeeForm(
           walletId: walletId,
           isToken: true,
+          amount: _feeAmount,
           onCustomFeeSliderChanged: (value) => {},
-          onCustomFeeOptionChanged: () {
-            _ethFee.value = null;
-          },
           onCustomEip1559FeeOptionChanged: (value) {
             _ethFee.value = value;
           },
