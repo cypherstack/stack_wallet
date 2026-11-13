@@ -24,6 +24,7 @@ import '../../utilities/enums/exchange_rate_type_enum.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/prefs.dart';
 import '../../utilities/stack_file_system.dart';
+import 'chainflip/chainflip_exchange.dart';
 import 'change_now/change_now_exchange.dart';
 import 'cyphergoat/cyphergoat_exchange.dart';
 import 'exolix/exolix_exchange.dart';
@@ -51,10 +52,9 @@ class ExchangeDataLoadingService {
 
   static int get currentCacheVersion =>
       DB.instance.get<dynamic>(
-            boxName: DB.boxNameDBInfo,
-            key: "exchange_data_cache_version",
-          )
-          as int? ??
+        boxName: DB.boxNameDBInfo,
+        key: "exchange_data_cache_version",
+      ) as int? ??
       0;
 
   Future<void> _updateCurrentCacheVersion(int version) async {
@@ -215,6 +215,7 @@ class ExchangeDataLoadingService {
           loadExolixCurrencies(),
           loadLetsExchangeCurrencies(),
           loadCypherGoatCurrencies(),
+          loadChainflipCurrencies(),
         ];
 
         // If using Tor, don't load data for exchanges which don't support Tor.
@@ -420,6 +421,28 @@ class ExchangeDataLoadingService {
   //     Logging.instance.w("loadMajesticBankCurrencies: $responseCurrencies");
   //   }
   // }
+
+  Future<void> loadChainflipCurrencies() async {
+    if (_isar == null) {
+      await initDB();
+    }
+    final responseCurrencies = await ChainflipExchange.instance
+        .getAllCurrencies(false);
+
+    if (responseCurrencies.value != null) {
+      await (await isar).writeTxn(() async {
+        final idsToDelete = await (await isar).currencies
+            .where()
+            .exchangeNameEqualTo(ChainflipExchange.exchangeName)
+            .idProperty()
+            .findAll();
+        await (await isar).currencies.deleteAll(idsToDelete);
+        await (await isar).currencies.putAll(responseCurrencies.value!);
+      });
+    } else {
+      Logging.instance.w("loadChainflipCurrencies: $responseCurrencies");
+    }
+  }
 
   Future<void> loadTrocadorCurrencies() async {
     if (_isar == null) {
