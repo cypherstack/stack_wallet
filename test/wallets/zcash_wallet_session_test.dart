@@ -58,6 +58,25 @@ class WalletSessionClient implements ZcashLightwalletdClient {
   }
 }
 
+class SyncWalletSessionClient extends WalletSessionClient
+    implements ZcashLightwalletdSyncClient {
+  SyncWalletSessionClient({required super.chainName, required super.tipHeight});
+
+  @override
+  Future<String?> getBlockHash(int height) async => null;
+
+  @override
+  Future<zcash.ZcashLightwalletdScanSource> getBlockRange(int start, int end) =>
+      throw StateError('caught-up fixture must not request blocks');
+
+  @override
+  Future<zcash.TreeState> getTreeState(int height) async => zcash.TreeState(
+    hash: '0000000000000000000000000000000000000000000000000000000000000000',
+    height: height,
+    time: 1,
+  );
+}
+
 NodeModel walletNode({required String host, required String id}) => NodeModel(
   host: host,
   port: 443,
@@ -199,5 +218,41 @@ void main() {
     expect(client.closeCalls, 1);
     await wallet.exit();
     expect(client.closeCalls, 1);
+  });
+
+  test('sync hooks share state and update Stack caches', () async {
+    final node = walletNode(host: 'https://sync.example', id: 'sync');
+    final client = SyncWalletSessionClient(chainName: 'main', tipHeight: 42);
+    final wallet = await Wallet.create(
+      walletInfo: WalletInfo(
+        walletId: 'zcash-sync-hooks',
+        name: 'Zcash sync hooks fixture',
+        mainAddressType: AddressType.zcashUnified,
+        coinName: 'zcash',
+        restoreHeight: 43,
+      ),
+      mainDB: MainDB.instance,
+      secureStorageInterface: MemorySecrets(),
+      nodeService: MutableZcashNodes(node),
+      prefs: SessionPrefs(),
+      mnemonic:
+          'abandon abandon abandon abandon abandon abandon abandon abandon '
+          'abandon abandon abandon about',
+      mnemonicPassphrase: '',
+    ) as ZcashWallet;
+    wallet.configureAccountSessionFactory(
+      (network) =>
+          ZcashAccountSession(network: network, clientFactory: (_) => client),
+    );
+    await wallet.init(isRestore: true);
+
+    await wallet.updateChainHeight();
+    await Future.wait([wallet.updateTransactions(), wallet.updateBalance()]);
+
+    expect(wallet.info.cachedChainHeight, 42);
+    expect(wallet.info.cachedBalance.total.raw, BigInt.zero);
+    expect(await wallet.updateUTXOs(), isFalse);
+    expect(client.tipCalls, 3);
+    await wallet.exit();
   });
 }

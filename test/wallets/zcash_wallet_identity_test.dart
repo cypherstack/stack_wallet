@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:isar_community/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/node_model.dart';
@@ -71,6 +72,15 @@ void main() {
         created.cryptoCurrency.validateAddress(createdAddress.value),
         isTrue,
       );
+      final persistedReceivers = await MainDB.instance
+          .getAddresses(created.walletId)
+          .findAll();
+      expect(persistedReceivers.map((address) => address.type).toSet(), {
+        AddressType.zcashUnified,
+        AddressType.zcashSapling,
+        AddressType.p2pkh,
+      });
+      expect(persistedReceivers, hasLength(3));
       expect(created.info.cachedReceivingAddress, createdAddress.value);
       expect(await created.pingCheck(), isFalse);
       await expectLater(created.updateNode(), throwsStateError);

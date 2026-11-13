@@ -1,13 +1,20 @@
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
 import 'package:isar_community/isar.dart';
+import 'package:path/path.dart' as path;
 import 'package:zcash_flutter/zcash_flutter.dart' as zcash;
 
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/paymint/fee_object_model.dart';
 import '../../../utilities/amount/amount.dart';
+import '../../../utilities/stack_file_system.dart';
 import '../../crypto_currency/crypto_currency.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/bip39_wallet.dart';
 import '../intermediate/zcash_account_session.dart';
+import '../intermediate/zcash_wallet_state.dart';
+import '../intermediate/zcash_wallet_state_controller.dart';
 
 typedef ZcashAccountSessionFactory = ZcashAccountSession Function(
   CryptoCurrencyNetwork network,
@@ -19,6 +26,12 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
   ZcashAccountSessionFactory _accountSessionFactory = (network) =>
       ZcashAccountSession(network: network);
   ZcashAccountSession? _accountSession;
+  ZcashWalletStateController? _stateController;
+  String? _ufvk;
+  String? _accountFingerprint;
+
+  @override
+  int get isarTransactionVersion => 2;
 
   int get accountSessionGeneration => _accountSession?.generation ?? 0;
 
@@ -47,25 +60,41 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
       seedHex: seed.seedHex,
       network: cryptoCurrency.nativeNetwork,
     );
+    final metadata = zcash.deriveNativeAccountMetadata(
+      seedHex: seed.seedHex,
+      network: cryptoCurrency.nativeNetwork,
+    );
+    _ufvk = metadata.ufvk;
+    _accountFingerprint = sha256
+        .convert(
+          utf8.encode(
+            '${cryptoCurrency.nativeNetwork.ffiLabel}|${metadata.ufvk}',
+          ),
+        )
+        .toString();
     final existing = await getCurrentReceivingAddress();
     final cached = info.cachedReceivingAddress;
     if ((existing != null && existing.value != derived.ua) ||
         (cached.isNotEmpty && cached != derived.ua)) {
       throw StateError('Zcash wallet address does not match the saved wallet');
     }
-    if (existing == null) {
-      await mainDB.updateOrPutAddresses([
-        Address(
-          walletId: walletId,
-          value: derived.ua,
-          publicKey: const [],
-          derivationIndex: 0,
-          derivationPath: null,
-          type: AddressType.zcashUnified,
-          subType: AddressSubType.receiving,
-        ),
-      ]);
+    final receiverRows = _receiverRows(derived);
+    final persisted = await mainDB.getAddresses(walletId).findAll();
+    for (final expected in receiverRows) {
+      final sameSlot = persisted.where(
+        (address) =>
+            address.type == expected.type &&
+            address.subType == expected.subType &&
+            address.derivationIndex == expected.derivationIndex,
+      );
+      if (sameSlot.isNotEmpty &&
+          sameSlot.every((address) => address.value != expected.value)) {
+        throw StateError(
+          'Zcash wallet receiver does not match the saved wallet',
+        );
+      }
     }
+    await mainDB.updateOrPutAddresses(receiverRows);
     var nodeReady = false;
     try {
       if (nodeService.getPrimaryNodeFor(currency: cryptoCurrency) != null) {
@@ -107,19 +136,39 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
       cryptoCurrency.network,
     );
     await session.replaceNode(node);
+    _stateController = null;
+    await _initializeStateController(session);
   }
 
   @override
-  Future<void> updateTransactions() async => _unsupported();
+  Future<void> updateTransactions() async {
+    final snapshot = await _requireStateController().refresh();
+    await mainDB.updateOrPutTransactionV2s(
+      ZcashStackStateMapper(walletId: walletId).transactions(snapshot.history),
+    );
+  }
 
   @override
-  Future<void> updateBalance() async => _unsupported();
+  Future<void> updateBalance() async {
+    final snapshot = await _requireStateController().refresh();
+    await info.updateBalance(
+      newBalance: ZcashStackStateMapper(walletId: walletId)
+          .balance(snapshot.balance),
+      isar: mainDB.isar,
+    );
+  }
 
   @override
-  Future<bool> updateUTXOs() async => _unsupported();
+  Future<bool> updateUTXOs() async => false;
 
   @override
-  Future<void> updateChainHeight() async => _unsupported();
+  Future<void> updateChainHeight() async {
+    final snapshot = await _requireStateController().refresh();
+    await info.updateCachedChainHeight(
+      newHeight: snapshot.chainHeight,
+      isar: mainDB.isar,
+    );
+  }
 
   @override
   Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate) async =>
@@ -138,8 +187,110 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
   }
 
   Future<void> _closeAccountSession() async {
+    _stateController = null;
     final session = _accountSession;
     _accountSession = null;
     await session?.close();
   }
+
+  ZcashWalletStateController _requireStateController() {
+    final controller = _stateController;
+    if (controller == null) {
+      throw StateError(
+        'Zcash sync requires an explicit lightwalletd node and a validated '
+        'positive restore height',
+      );
+    }
+    return controller;
+  }
+
+  Future<void> _initializeStateController(ZcashAccountSession session) async {
+    final client = session.syncClient;
+    if (client == null) return;
+    final ufvk = _ufvk;
+    final fingerprint = _accountFingerprint;
+    if (ufvk == null || fingerprint == null) {
+      throw StateError('Zcash account identity is not initialized');
+    }
+    final birthdayHeight = info.restoreHeight;
+    if (birthdayHeight < 1) {
+      throw StateError(
+        'Zcash requires a validated positive restore height before syncing',
+      );
+    }
+    final root = await StackFileSystem.applicationRootDirectory();
+    final network = cryptoCurrency.nativeNetwork.ffiLabel;
+    final source = _ZcashSessionSyncDataSource(client);
+    _stateController = await ZcashWalletStateController.open(
+      store: ZcashEncryptedWalletStateStore(
+        path: path.join(root.path, 'zcash', '$walletId.state'),
+        walletId: walletId,
+        network: network,
+        accountFingerprint: fingerprint,
+        secureStorage: secureStorageInterface,
+      ),
+      accountFingerprint: fingerprint,
+      network: network,
+      birthdayHeight: birthdayHeight,
+      loadBirthdayTreeState: source.getTreeState,
+      scanExecutor: ZcashNativeIsolateScanExecutor(
+        ufvk: ufvk,
+        network: network,
+      ),
+      openSync: (state, executor) => openZcashSyncSession(
+        state: state,
+        source: source,
+        scanExecutor: executor,
+        network: network,
+      ),
+    );
+  }
+
+  List<Address> _receiverRows(zcash.UnifiedAddressSet derived) {
+    final values = <(String, AddressType)>[
+      (derived.ua, AddressType.zcashUnified),
+      if (derived.saplingAddress case final address?)
+        (address, AddressType.zcashSapling),
+      if (derived.transparentAddress case final address?)
+        (
+          address,
+          cryptoCurrency.getAddressType(address) ??
+              (throw StateError(
+                'Derived Zcash transparent receiver has no address type',
+              )),
+        ),
+    ];
+    return [
+      for (final (value, type) in values)
+        Address(
+          walletId: walletId,
+          value: value,
+          publicKey: const [],
+          derivationIndex: 0,
+          derivationPath: null,
+          type: type,
+          subType: AddressSubType.receiving,
+        ),
+    ];
+  }
+}
+
+class _ZcashSessionSyncDataSource implements ZcashSyncDataSource {
+  const _ZcashSessionSyncDataSource(this.client);
+
+  final ZcashLightwalletdSyncClient client;
+
+  @override
+  Future<String?> getBlockHash(int height) => client.getBlockHash(height);
+
+  @override
+  Future<zcash.ZcashLightwalletdScanSource> getBlockRange(int start, int end) =>
+      client.getBlockRange(start, end);
+
+  @override
+  Future<int> getTipHeight() => client.getTipHeight();
+
+  @override
+  Future<zcash.TreeState> getTreeState(int height) =>
+      client.getTreeState(height);
 }
