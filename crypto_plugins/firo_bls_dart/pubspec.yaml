@@ -1,0 +1,31 @@
+name: bls_dart
+description: >-
+  BLS12-381 min_pk signature operations for Dart & Flutter.
+  Verify, aggregate, and batch-verify signatures using the blst library
+  via flutter_rust_bridge. Matches the Sui Move bls12381_min_pk_verify DST.
+version: 0.1.2
+homepage: https://github.com/OpenSauceDev/walrus
+repository: https://github.com/OpenSauceDev/walrus/tree/main/bls_dart
+issue_tracker: https://github.com/OpenSauceDev/walrus/issues
+topics:
+  - cryptography
+  - bls
+  - walrus
+  - sui
+
+environment:
+  sdk: ^3.11.0
+  flutter: ">=3.29.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  rust_lib_bls_dart: ^0.0.3
+  flutter_rust_bridge: 2.13.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  integration_test:
+    sdk: flutter
