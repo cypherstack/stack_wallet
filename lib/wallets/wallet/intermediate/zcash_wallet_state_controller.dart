@@ -59,6 +59,11 @@ abstract interface class ZcashSyncSession {
   Future<zcash.ZcashSyncOutcome> syncToTip();
 }
 
+abstract interface class ZcashReorgRecoverableSyncSession
+    implements ZcashSyncSession {
+  Future<void> resumeFrom(zcash.ZcashReorgRecovery recovery);
+}
+
 typedef ZcashSyncSessionFactory = ZcashSyncSession Function(
   zcash.ZcashWalletSyncState state,
   ZcashScanExecutor scanExecutor,
@@ -85,6 +90,21 @@ class ZcashReorgDetectedException implements Exception {
   String toString() =>
       'ZcashReorgDetectedException: chain reorganized; persisted state was not '
       'advanced';
+}
+
+class ZcashRecoveryLimitException implements Exception {
+  const ZcashRecoveryLimitException({
+    required this.attempts,
+    required this.cause,
+  });
+
+  final int attempts;
+  final Object cause;
+
+  @override
+  String toString() =>
+      'ZcashRecoveryLimitException: refused another recovery after '
+      '$attempts attempts in one refresh: $cause';
 }
 
 class ZcashWalletSnapshot {
@@ -341,7 +361,19 @@ class ZcashStackStateMapper {
   }
 }
 
+class _ZcashTransparentHistoryDiscovery {
+  const _ZcashTransparentHistoryDiscovery({
+    required this.transactions,
+    required this.frontiers,
+  });
+
+  final List<ZcashAuthenticatedTransparentTransaction> transactions;
+  final Map<String, int> frontiers;
+}
+
 class ZcashWalletStateController {
+  static const maximumRecoveryCyclesPerRefresh = 2;
+
   ZcashWalletStateController._(
     this._store,
     this._state,
@@ -353,11 +385,15 @@ class ZcashWalletStateController {
     this._accountMetadata,
     this._viewingKeys,
     this._birthdayHeight,
-  );
+    Map<String, int> transparentHistoryFrontiers,
+    this._loadBirthdayTreeState,
+    this._scanExecutor,
+    this._openSync,
+  ) : _transparentHistoryFrontiers = Map.of(transparentHistoryFrontiers);
 
   final ZcashEncryptedWalletStateStore _store;
-  final zcash.ZcashWalletSyncState _state;
-  final ZcashSyncSession _sync;
+  zcash.ZcashWalletSyncState _state;
+  ZcashSyncSession _sync;
   int _observedChainHeight;
   final ZcashTransparentRefreshCallback? _refreshTransparent;
   final ZcashTransparentActivityCallback? _transparentActivity;
@@ -365,6 +401,10 @@ class ZcashWalletStateController {
   final zcash.ZcashAccountMetadata? _accountMetadata;
   final zcash.ZcashViewingKeys? _viewingKeys;
   final int _birthdayHeight;
+  final Future<zcash.TreeState> Function(int height) _loadBirthdayTreeState;
+  final ZcashScanExecutor _scanExecutor;
+  final ZcashSyncSessionFactory _openSync;
+  Map<String, int> _transparentHistoryFrontiers;
   Future<ZcashWalletSnapshot>? _refreshInFlight;
 
   static Future<ZcashWalletStateController> open({
@@ -473,6 +513,10 @@ class ZcashWalletStateController {
       accountMetadata,
       viewingKeys,
       birthdayHeight,
+      persisted.transparentHistoryFrontiers,
+      loadBirthdayTreeState,
+      scanExecutor,
+      openSync,
     );
   }
 
@@ -498,22 +542,95 @@ class ZcashWalletStateController {
   }
 
   Future<ZcashWalletSnapshot> _refresh() async {
-    final outcome = await _sync.syncToTip();
     late final int caughtUpHeight;
-    switch (outcome) {
-      case zcash.ZcashSyncCaughtUp(:final chainHeight):
-        final scannedThrough = _state.cursor.nextHeight - 1;
-        if (chainHeight < scannedThrough) {
-          throw StateError(
-            'lightwalletd tip $chainHeight is behind persisted scan position '
-            '$scannedThrough',
+    var recoveryCycles = 0;
+    var restartedFromBirthday = false;
+    syncLoop:
+    while (true) {
+      final zcash.ZcashSyncOutcome outcome;
+      try {
+        outcome = await _sync.syncToTip();
+      } on zcash.ZcashReorgTooDeepException catch (error) {
+        if (restartedFromBirthday ||
+            recoveryCycles >= maximumRecoveryCyclesPerRefresh) {
+          throw ZcashRecoveryLimitException(
+            attempts: recoveryCycles,
+            cause: error,
           );
         }
-        caughtUpHeight = chainHeight;
-      case zcash.ZcashSyncReorged():
-        throw ZcashReorgDetectedException(outcome);
-      case zcash.ZcashSyncAdvanced():
-        throw StateError('syncToTip returned before reaching a terminal state');
+        recoveryCycles++;
+        restartedFromBirthday = true;
+        await _restartFromBirthday();
+        continue syncLoop;
+      }
+      switch (outcome) {
+        case zcash.ZcashSyncCaughtUp(:final chainHeight):
+          final scannedThrough = _state.cursor.nextHeight - 1;
+          if (chainHeight < scannedThrough) {
+            throw StateError(
+              'lightwalletd tip $chainHeight is behind persisted scan '
+              'position $scannedThrough',
+            );
+          }
+          caughtUpHeight = chainHeight;
+          break syncLoop;
+        case zcash.ZcashSyncReorged(:final recovery):
+          if (recoveryCycles >= maximumRecoveryCyclesPerRefresh) {
+            throw ZcashRecoveryLimitException(
+              attempts: recoveryCycles,
+              cause: outcome,
+            );
+          }
+          recoveryCycles++;
+          if (recovery.forkHeight < _birthdayHeight - 1) {
+            if (restartedFromBirthday) {
+              throw ZcashRecoveryLimitException(
+                attempts: recoveryCycles,
+                cause: outcome,
+              );
+            }
+            restartedFromBirthday = true;
+            await _restartFromBirthday();
+            continue syncLoop;
+          }
+          final sync = _sync;
+          if (sync is! ZcashReorgRecoverableSyncSession) {
+            throw ZcashReorgDetectedException(outcome);
+          }
+          _state.sapling.rollbackTo(recovery.forkHeight);
+          _state.orchard.rollbackTo(recovery.forkHeight);
+          _state.ironwood.rollbackTo(recovery.forkHeight);
+          final transparentHeight = _state.transparent.refreshedThroughHeight;
+          if (transparentHeight != null &&
+              transparentHeight > recovery.forkHeight) {
+            _state.transparent.rollbackTo(
+              height: recovery.forkHeight,
+              blockHash: recovery.forkBlockHash,
+            );
+          } else if (transparentHeight == recovery.forkHeight &&
+              _state.transparent.refreshedThroughBlockHash !=
+                  recovery.forkBlockHash) {
+            throw StateError(
+              'transparent state disagrees with the authenticated reorg '
+              'fork',
+            );
+          }
+          await sync.resumeFrom(recovery);
+          _observedChainHeight = recovery.forkHeight;
+          final rewindHeight = recovery.forkHeight;
+          _transparentHistoryFrontiers = {
+            for (final entry in _transparentHistoryFrontiers.entries)
+              entry.key: entry.value > rewindHeight
+                  ? rewindHeight
+                  : entry.value,
+          };
+          await _saveState();
+          continue syncLoop;
+        case zcash.ZcashSyncAdvanced():
+          throw StateError(
+            'syncToTip returned before reaching a terminal state',
+          );
+      }
     }
     final refreshTransparent = _refreshTransparent;
     if (_state.transparent.addresses.isNotEmpty) {
@@ -529,7 +646,7 @@ class ZcashWalletStateController {
       refresh = mergeAuthenticatedTransparentHistory(
         state: _state.transparent,
         refresh: refresh,
-        transactions: transparentHistory,
+        transactions: transparentHistory.transactions,
       );
       if (refresh.chainHeight != caughtUpHeight) {
         throw StateError(
@@ -538,19 +655,59 @@ class ZcashWalletStateController {
         );
       }
       _state.transparent.applyRefresh(refresh);
+      // The queried ranges become durable only after their transactions and
+      // canonical blocks have passed merge validation and state application.
+      _transparentHistoryFrontiers = transparentHistory.frontiers;
     }
     _observedChainHeight = caughtUpHeight;
-    await _store.save(
-      ZcashPersistedWalletState(
-        syncState: _state,
-        observedChainHeight: _observedChainHeight,
-      ),
-    );
+    await _saveState();
     return snapshot;
   }
 
-  Future<List<ZcashAuthenticatedTransparentTransaction>>
-  _discoverTransparentReceivers(int chainHeight) async {
+  Future<void> _restartFromBirthday() async {
+    final retainedReceivers = _state.transparent.receivers;
+    final treeState = await _loadBirthdayTreeState(_birthdayHeight - 1);
+    if (treeState.height != _birthdayHeight - 1) {
+      throw StateError(
+        'birthday tree state height ${treeState.height} does not precede '
+        'restore height $_birthdayHeight',
+      );
+    }
+    final account = _accountMetadata;
+    final viewingKeys = _viewingKeys;
+    final defaultAddress = viewingKeys?.transparent.defaultExternalAddress;
+    final state = zcash.ZcashWalletSyncState.atBirthday(
+      cursor: zcash.ZcashLightwalletdSyncCursor.fromTreeState(treeState),
+      network: zcash.ZcashAddressNetwork.fromJson(_store.network),
+      accountFingerprint: _store.accountFingerprint,
+      transparent: account == null || viewingKeys == null
+          ? null
+          : zcash.ZcashTransparentState.fromAccount(
+              account: account,
+              viewingKeys: viewingKeys,
+              additionalReceivers: retainedReceivers.where(
+                (receiver) => receiver.address != defaultAddress,
+              ),
+            ),
+    );
+    final sync = _openSync(state, _scanExecutor);
+    final replacement = ZcashPersistedWalletState(
+      syncState: state,
+      observedChainHeight: treeState.height,
+    );
+    // The encrypted store replaces its file by atomic rename. Keep both the
+    // durable and in-memory checkpoints on the old chain until the complete
+    // birthday state and its new sync session have been validated and saved.
+    await _store.save(replacement);
+    _state = state;
+    _sync = sync;
+    _observedChainHeight = treeState.height;
+    _transparentHistoryFrontiers = {};
+  }
+
+  Future<_ZcashTransparentHistoryDiscovery> _discoverTransparentReceivers(
+    int chainHeight,
+  ) async {
     final discover = _transparentDiscovery;
     final activity = _transparentActivity;
     final account = _accountMetadata;
@@ -559,23 +716,25 @@ class ZcashWalletStateController {
         activity == null ||
         account == null ||
         viewingKeys == null) {
-      return const [];
+      return _ZcashTransparentHistoryDiscovery(
+        transactions: const [],
+        frontiers: _transparentHistoryFrontiers,
+      );
     }
+
+    // Keep progress speculative until the enclosing refresh authenticates and
+    // applies every result, then persist it atomically with the wallet state.
+    final nextFrontiers = Map<String, int>.of(_transparentHistoryFrontiers);
 
     final knownByAddress = {
       for (final receiver in _state.transparent.receivers)
         receiver.address: receiver,
     };
-    // A just-created wallet can be initialized while the served tip is still
-    // the block immediately preceding its birthday. Keep the range valid in
-    // that transient state; ordinary restores query birthday..tip exactly.
-    final activityStartHeight = _birthdayHeight <= chainHeight
-        ? _birthdayHeight
-        : chainHeight;
-    final initialActivity = await activity(
+    final initialActivity = await _loadTransparentActivity(
+      activity,
       knownByAddress.keys.toList(growable: false),
-      activityStartHeight,
       chainHeight,
+      nextFrontiers,
     );
     _validateTransparentActivity(
       initialActivity.activeAddresses,
@@ -642,7 +801,10 @@ class ZcashWalletStateController {
         }
       }
       if (additions.isEmpty) {
-        return transactions.values.toList(growable: false);
+        return _ZcashTransparentHistoryDiscovery(
+          transactions: transactions.values.toList(growable: false),
+          frontiers: Map.unmodifiable(nextFrontiers),
+        );
       }
 
       _state.transparent.registerAccountReceivers(
@@ -657,12 +819,14 @@ class ZcashWalletStateController {
         ZcashPersistedWalletState(
           syncState: _state,
           observedChainHeight: _observedChainHeight,
+          transparentHistoryFrontiers: _transparentHistoryFrontiers,
         ),
       );
-      final additionalActivity = await activity(
+      final additionalActivity = await _loadTransparentActivity(
+        activity,
         additions.map((receiver) => receiver.address).toList(growable: false),
-        activityStartHeight,
         chainHeight,
+        nextFrontiers,
       );
       _validateTransparentActivity(
         additionalActivity.activeAddresses,
@@ -672,6 +836,55 @@ class ZcashWalletStateController {
       recordTransactions(additionalActivity.transactions);
     }
   }
+
+  Future<ZcashTransparentActivityResult> _loadTransparentActivity(
+    ZcashTransparentActivityCallback activity,
+    List<String> addresses,
+    int chainHeight,
+    Map<String, int> nextFrontiers,
+  ) async {
+    final byStartHeight = <int, List<String>>{};
+    final initialFrontier = _birthdayHeight <= chainHeight
+        ? _birthdayHeight - 1
+        : chainHeight - 1;
+    for (final address in addresses) {
+      final frontier = nextFrontiers[address] ?? initialFrontier;
+      if (frontier > chainHeight) {
+        throw StateError(
+          'transparent history frontier $frontier is above chain tip '
+          '$chainHeight',
+        );
+      }
+      final startHeight = frontier + 1;
+      if (startHeight <= chainHeight) {
+        (byStartHeight[startHeight] ??= []).add(address);
+      }
+    }
+
+    final active = <String>{};
+    final transactions = <ZcashAuthenticatedTransparentTransaction>[];
+    for (final entry in byStartHeight.entries) {
+      final result = await activity(entry.value, entry.key, chainHeight);
+      _validateTransparentActivity(result.activeAddresses, entry.value.toSet());
+      active.addAll(result.activeAddresses);
+      transactions.addAll(result.transactions);
+      for (final address in entry.value) {
+        nextFrontiers[address] = chainHeight;
+      }
+    }
+    return ZcashTransparentActivityResult(
+      activeAddresses: active,
+      transactions: transactions,
+    );
+  }
+
+  Future<void> _saveState() => _store.save(
+    ZcashPersistedWalletState(
+      syncState: _state,
+      observedChainHeight: _observedChainHeight,
+      transparentHistoryFrontiers: _transparentHistoryFrontiers,
+    ),
+  );
 
   static void _validateTransparentActivity(
     Set<String> active,
@@ -755,13 +968,19 @@ zcash.ZcashTransparentRefresh mergeAuthenticatedTransparentHistory({
   final spends = <String, zcash.ZcashTransparentSpendObservation>{
     for (final spend in refresh.observedSpends) spend.spentOutpoint: spend,
   };
+  final persistedOwnedOutputs = {
+    for (final output in state.outputs) output.outpoint: output,
+  };
   for (final entry in byProtocolTxid.entries) {
     for (final input in entry.value.summary.transparent.inputs) {
       final prevoutTxid = zcash.reverseTxidByteOrder(
         normalizeZcashTransactionId(input.prevoutTxid),
       );
       final outpoint = '$prevoutTxid:${input.prevoutIndex}';
-      if (!ownedOutputs.containsKey(outpoint)) continue;
+      final persistedOutput = persistedOwnedOutputs[outpoint];
+      if (!ownedOutputs.containsKey(outpoint) && persistedOutput == null) {
+        continue;
+      }
       final observed = zcash.ZcashTransparentSpendObservation(
         spentOutpoint: outpoint,
         spendingProtocolTxid: entry.key,
@@ -770,6 +989,15 @@ zcash.ZcashTransparentRefresh mergeAuthenticatedTransparentHistory({
         blockTime: entry.value.blockTime,
         feeZatoshis: null,
       );
+      if (persistedOutput?.spendingProtocolTxid case final spendingTxid?
+          when spendingTxid != observed.spendingProtocolTxid ||
+              persistedOutput!.spentHeight != observed.spentHeight ||
+              persistedOutput.spentBlockHash != observed.blockHash) {
+        throw StateError(
+          'transparent history conflicts with the persisted spend for one '
+          'outpoint',
+        );
+      }
       final existing = spends[outpoint];
       if (existing != null &&
           (existing.spendingProtocolTxid != observed.spendingProtocolTxid ||
@@ -849,13 +1077,21 @@ ZcashSyncSession openZcashSyncSession({
     network: network,
     rangeSize: rangeSize,
   ),
+  source,
 );
 
-class _ZcashChainSyncSession implements ZcashSyncSession {
-  const _ZcashChainSyncSession(this._sync);
+class _ZcashChainSyncSession implements ZcashReorgRecoverableSyncSession {
+  const _ZcashChainSyncSession(this._sync, this._source);
 
   final zcash.ZcashChainSync _sync;
+  final ZcashSyncDataSource _source;
 
   @override
   Future<zcash.ZcashSyncOutcome> syncToTip() => _sync.syncToTip();
+
+  @override
+  Future<void> resumeFrom(zcash.ZcashReorgRecovery recovery) async {
+    final treeState = await _source.getTreeState(recovery.forkHeight);
+    _sync.resumeFrom(recovery: recovery, treeState: treeState);
+  }
 }

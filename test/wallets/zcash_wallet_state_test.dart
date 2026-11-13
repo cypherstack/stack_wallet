@@ -47,6 +47,7 @@ void main() {
       ZcashPersistedWalletState(
         syncState: walletState(),
         observedChainHeight: 99,
+        transparentHistoryFrontiers: const {'t1fixture': 123},
       ),
     );
 
@@ -56,6 +57,7 @@ void main() {
     expect(reopened!.syncState.cursor.nextHeight, 100);
     expect(reopened.observedChainHeight, 99);
     expect(reopened.syncState.accountFingerprint, 'account-a');
+    expect(reopened.transparentHistoryFrontiers, {'t1fixture': 123});
   });
 
   test(

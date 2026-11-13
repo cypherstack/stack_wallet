@@ -702,11 +702,8 @@ void main() {
     expect(restartClient.treeStateCalls, 0);
     expect(restartClient.transparentRefreshCalls, 1);
     expect(restartClient.queriedTransparentAddresses, hasLength(71));
-    expect(restartClient.transparentActivityQueries, hasLength(1));
-    expect(restartClient.transparentActivityRanges.single, (
-      startHeight: 42,
-      endHeight: 42,
-    ));
+    expect(restartClient.transparentActivityQueries, isEmpty);
+    expect(restartClient.transparentActivityRanges, isEmpty);
     expect(reopened.info.cachedBalance.total.raw, BigInt.from(125000));
 
     await reopened.recover(isRescan: true);
@@ -714,7 +711,11 @@ void main() {
     expect(restartClient.treeStateCalls, 1);
     expect(restartClient.transparentRefreshCalls, 2);
     expect(restartClient.queriedTransparentAddresses, hasLength(71));
-    expect(restartClient.transparentActivityQueries, hasLength(2));
+    expect(restartClient.transparentActivityQueries, hasLength(1));
+    expect(restartClient.transparentActivityRanges.single, (
+      startHeight: 42,
+      endHeight: 42,
+    ));
     expect(reopened.info.cachedBalance.total.raw, BigInt.from(125000));
     await reopened.exit();
   });

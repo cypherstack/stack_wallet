@@ -16,15 +16,19 @@ class ZcashStatePersistenceException implements Exception {
 }
 
 class ZcashPersistedWalletState {
-  const ZcashPersistedWalletState({
+  ZcashPersistedWalletState({
     required this.syncState,
     required this.observedChainHeight,
-  });
+    Map<String, int> transparentHistoryFrontiers = const {},
+  }) : transparentHistoryFrontiers = Map.unmodifiable(
+         transparentHistoryFrontiers,
+       );
 
   static const version = 1;
 
   final zcash.ZcashWalletSyncState syncState;
   final int observedChainHeight;
+  final Map<String, int> transparentHistoryFrontiers;
 
   ZcashPersistedWalletState rebindAccountFingerprint({
     required String from,
@@ -66,6 +70,7 @@ class ZcashPersistedWalletState {
     return ZcashPersistedWalletState(
       syncState: zcash.ZcashWalletSyncState.fromJson(json),
       observedChainHeight: observedChainHeight,
+      transparentHistoryFrontiers: transparentHistoryFrontiers,
     );
   }
 
@@ -73,6 +78,7 @@ class ZcashPersistedWalletState {
     'version': version,
     'observed_chain_height': observedChainHeight,
     'sync_state': syncState.toJson(),
+    'transparent_history_frontiers': transparentHistoryFrontiers,
   };
 
   factory ZcashPersistedWalletState.fromJson(Map<String, Object?> json) {
@@ -83,16 +89,37 @@ class ZcashPersistedWalletState {
     }
     final height = json['observed_chain_height'];
     final state = json['sync_state'];
+    final rawFrontiers = json['transparent_history_frontiers'];
     if (height is! num || state is! Map) {
       throw const ZcashStatePersistenceException(
         'wallet-state payload is malformed',
       );
+    }
+    final frontiers = <String, int>{};
+    if (rawFrontiers != null) {
+      if (rawFrontiers is! Map) {
+        throw const ZcashStatePersistenceException(
+          'transparent history frontiers are malformed',
+        );
+      }
+      for (final entry in rawFrontiers.entries) {
+        if (entry.key is! String ||
+            (entry.key as String).isEmpty ||
+            entry.value is! num ||
+            (entry.value as num).toInt() < 0) {
+          throw const ZcashStatePersistenceException(
+            'transparent history frontiers are malformed',
+          );
+        }
+        frontiers[entry.key as String] = (entry.value as num).toInt();
+      }
     }
     return ZcashPersistedWalletState(
       syncState: zcash.ZcashWalletSyncState.fromJson(
         state.cast<String, Object?>(),
       ),
       observedChainHeight: height.toInt(),
+      transparentHistoryFrontiers: Map.unmodifiable(frontiers),
     );
   }
 }

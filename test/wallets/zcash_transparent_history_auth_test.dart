@@ -6,6 +6,7 @@ import 'package:zcash_flutter/zcash_flutter.dart' as zcash;
 
 zcash.ZcashTransactionSummary _summary(
   String txid, {
+  List<Map<String, Object?>> inputs = const [],
   List<Map<String, Object?>> outputs = const [],
 }) => zcash.ZcashTransactionSummary.fromJson({
   'network': 'mainnet',
@@ -18,10 +19,10 @@ zcash.ZcashTransactionSummary _summary(
   'lock_time': 0,
   'expiry_height': 0,
   'transparent': {
-    'present': outputs.isNotEmpty,
-    'vin': 0,
+    'present': inputs.isNotEmpty || outputs.isNotEmpty,
+    'vin': inputs.length,
     'vout': outputs.length,
-    'inputs': const <Map<String, Object?>>[],
+    'inputs': inputs,
     'outputs': outputs,
   },
   'sapling': {'present': false, 'spends': 0, 'outputs': 0},
@@ -290,4 +291,134 @@ void main() {
       throwsStateError,
     );
   });
+
+  test(
+    'an incremental spend joins against an output from the prior refresh',
+    () {
+      const address = 't1OwnedAddress';
+      const spendTxid =
+          '111112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f';
+      const account = zcash.ZcashAccountMetadata(
+        network: zcash.ZcashAddressNetwork.mainnet,
+        accountIndex: 0,
+        ufvk: 'uview-main-account',
+        transparentAccountXpub: 'xpub-account',
+        receivers: zcash.ZcashAccountReceiverSet(
+          orchard: true,
+          sapling: true,
+          transparent: true,
+          p2pkh: true,
+          p2sh: false,
+          unknown: 0,
+          total: 3,
+        ),
+        receiverKinds: [
+          zcash.ZcashAccountReceiverKind(
+            kind: zcash.ZcashAddressReceiverType.p2pkh,
+            pool: zcash.ZcashAddressPool.transparent,
+          ),
+        ],
+      );
+      const viewingKeys = zcash.ZcashViewingKeys(
+        network: zcash.ZcashAddressNetwork.mainnet,
+        accountIndex: 0,
+        transparent: zcash.ZcashTransparentViewingKeys(
+          available: true,
+          externalIvk: 'external-ivk',
+          internalIvk: 'internal-ivk',
+          defaultExternalAddress: address,
+          defaultExternalIndex: 0,
+        ),
+        sapling: zcash.ZcashSaplingViewingKey(available: true),
+        orchard: zcash.ZcashOrchardViewingKey(available: true),
+      );
+      final state = zcash.ZcashTransparentState.fromAccount(
+        account: account,
+        viewingKeys: viewingKeys,
+      );
+      final fundingProtocolTxid = zcash.reverseTxidByteOrder(txid);
+      final first = mergeAuthenticatedTransparentHistory(
+        state: state,
+        refresh: zcash.ZcashTransparentRefresh(
+          network: state.network,
+          accountFingerprint: state.accountFingerprint,
+          queriedAddresses: state.addresses,
+          chainHeight: 50,
+          chainTipHash: 'aa' * 32,
+          canonicalBlockHashes: {50: 'aa' * 32},
+          unspentOutputs: [
+            zcash.ZcashTransparentOutputObservation(
+              address: address,
+              protocolTxid: fundingProtocolTxid,
+              outputIndex: 0,
+              scriptHex: '51',
+              valueZatoshis: 100000,
+              minedHeight: 50,
+              blockHash: 'aa' * 32,
+              blockTime: 1700000000,
+              isCoinbase: false,
+            ),
+          ],
+          observedSpends: const [],
+        ),
+        transactions: [
+          ZcashAuthenticatedTransparentTransaction(
+            summary: _summary(
+              txid,
+              outputs: const [
+                {
+                  'output_index': 0,
+                  'address': address,
+                  'script_hex': '51',
+                  'value_zatoshis': 100000,
+                },
+              ],
+            ),
+            height: 50,
+            blockHash: 'aa' * 32,
+            blockTime: 1700000000,
+          ),
+        ],
+      );
+      state.applyRefresh(first);
+
+      final second = mergeAuthenticatedTransparentHistory(
+        state: state,
+        refresh: zcash.ZcashTransparentRefresh(
+          network: state.network,
+          accountFingerprint: state.accountFingerprint,
+          queriedAddresses: state.addresses,
+          chainHeight: 51,
+          chainTipHash: 'bb' * 32,
+          canonicalBlockHashes: {50: 'aa' * 32, 51: 'bb' * 32},
+          unspentOutputs: const [],
+          observedSpends: const [],
+        ),
+        transactions: [
+          ZcashAuthenticatedTransparentTransaction(
+            summary: _summary(
+              spendTxid,
+              inputs: const [
+                {'prevout_txid': txid, 'prevout_index': 0},
+              ],
+            ),
+            height: 51,
+            blockHash: 'bb' * 32,
+            blockTime: 1700000100,
+          ),
+        ],
+      );
+      state.applyRefresh(second);
+
+      expect(second.observedSpends, hasLength(1));
+      expect(
+        second.observedSpends.single.spentOutpoint,
+        '$fundingProtocolTxid:0',
+      );
+      expect(
+        state.outputs.single.spendingProtocolTxid,
+        zcash.reverseTxidByteOrder(spendTxid),
+      );
+    },
+  );
 }
