@@ -233,28 +233,60 @@ abstract class MimblewimbleWallet extends Bip39Wallet with SlatepackInterface {
   }
 
   @override
-  Future<({Amount amount, Amount fee})?> localTxForSlate(String slateId) async {
+  Future<({Amount amount, Amount fee, bool isSend})?> localTxForSlate(
+    String slateId,
+  ) async {
     if (slateId.isEmpty) return null;
 
-    final List<TransactionV2> candidates = await mainDB.isar.transactionV2s
-        .where()
-        .walletIdEqualTo(walletId)
-        .filter()
-        .otherDataContains(slateId)
-        .findAll();
+    Future<TransactionV2?> find() async => localTxMatching(
+      await mainDB.isar.transactionV2s
+          .where()
+          .walletIdEqualTo(walletId)
+          .filter()
+          .otherDataContains(slateId)
+          .findAll(),
+      slateId,
+    );
 
-    for (final TransactionV2 tx in candidates) {
-      if (tx.slateId != slateId) continue;
-      final int digits = cryptoCurrency.fractionDigits;
-      final Amount amount = tx.type == TransactionType.incoming
-          ? tx.getAmountReceivedInThisWallet(fractionDigits: digits)
-          : tx.getAmountSentFromThisWallet(
+    TransactionV2? tx = await find();
+    if (tx == null) {
+      // The stored history only changes on a refresh, and a refresh is
+      // skipped while another one runs, so a send made moments ago may not be
+      // in it yet.
+      await updateTransactions();
+      tx = await find();
+    }
+    if (tx == null) return null;
+
+    final int digits = cryptoCurrency.fractionDigits;
+    final bool isSend = tx.type == TransactionType.outgoing;
+    return (
+      amount: isSend
+          ? tx.getAmountSentFromThisWallet(
               fractionDigits: digits,
               subtractFee: true,
-            );
-      return (amount: amount, fee: tx.getFee(fractionDigits: digits));
+            )
+          : tx.getAmountReceivedInThisWallet(fractionDigits: digits),
+      fee: tx.getFee(fractionDigits: digits),
+      isSend: isSend,
+    );
+  }
+
+  /// The transaction for [slateId] among [candidates]. A wallet that sent to
+  /// itself holds both sides of the slate, and then the send is the one
+  /// returned.
+  @visibleForTesting
+  static TransactionV2? localTxMatching(
+    Iterable<TransactionV2> candidates,
+    String slateId,
+  ) {
+    TransactionV2? match;
+    for (final TransactionV2 tx in candidates) {
+      if (tx.slateId != slateId) continue;
+      if (tx.type == TransactionType.outgoing) return tx;
+      match ??= tx;
     }
-    return null;
+    return match;
   }
 
   // ================= Native wallet hooks =====================================

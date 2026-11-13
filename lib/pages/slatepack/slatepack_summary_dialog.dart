@@ -4,13 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
-import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/detail_item.dart';
-import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
 import 'slatepack_popup.dart';
 
@@ -25,7 +23,6 @@ class SlatepackSummaryDialog extends ConsumerWidget {
     this.amount,
     this.fee,
     this.details = const [],
-    this.note,
   });
 
   final String title;
@@ -36,9 +33,6 @@ class SlatepackSummaryDialog extends ConsumerWidget {
 
   /// Extra label and value rows shown under the amount and fee.
   final List<(String, String)> details;
-
-  /// Shown above the buttons, e.g. a warning.
-  final String? note;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -72,17 +66,6 @@ class SlatepackSummaryDialog extends ConsumerWidget {
               ],
             ),
           ),
-          if (note != null) ...[
-            const SizedBox(height: 16),
-            RoundedContainer(
-              color: colors.warningBackground,
-              child: Text(
-                note!,
-                style: STextStyles.label(context)
-                    .copyWith(color: colors.warningForeground),
-              ),
-            ),
-          ],
           const SizedBox(height: 24),
           Row(
             children: [

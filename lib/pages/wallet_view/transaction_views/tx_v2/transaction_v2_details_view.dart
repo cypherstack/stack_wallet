@@ -1468,6 +1468,7 @@ class _TransactionV2DetailsViewState
                   ),
                 ),
                 if (isSlatepackWallet &&
+                    _transaction.slateId != null &&
                     _transaction.getConfirmations(currentHeight) < 1 &&
                     _transaction.isCancelled == false)
                   const SizedBox(height: 40),
@@ -1478,6 +1479,7 @@ class _TransactionV2DetailsViewState
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         floatingActionButton:
             (isSlatepackWallet &&
+                _transaction.slateId != null &&
                 _transaction.getConfirmations(currentHeight) < 1 &&
                 _transaction.isCancelled == false)
             ? ConditionalParent(
@@ -1514,6 +1516,26 @@ class _TransactionV2DetailsViewState
                           );
                           return;
                         }
+
+                        final proceed = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => StackDialog(
+                            title: "Cancel this transaction?",
+                            message:
+                                "The other party can no longer complete it, "
+                                "and any funds it locked become spendable "
+                                "again.",
+                            leftButton: SecondaryButton(
+                              label: "Keep",
+                              onPressed: () => Navigator.of(context).pop(false),
+                            ),
+                            rightButton: PrimaryButton(
+                              label: "Cancel transaction",
+                              onPressed: () => Navigator.of(context).pop(true),
+                            ),
+                          ),
+                        );
+                        if (proceed != true || !context.mounted) return;
 
                         unawaited(
                           showDialog<void>(
@@ -1569,7 +1591,7 @@ class _TransactionV2DetailsViewState
                       }
                     },
                     child: Text(
-                      "Cancel Transaction",
+                      "Cancel transaction",
                       style: STextStyles.button(context),
                     ),
                   ),

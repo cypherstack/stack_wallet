@@ -118,10 +118,20 @@ class SlatepackDialog extends StatelessWidget {
     }
   }
 
-  Future<void> _share() async {
+  /// [context] is the Share button's. An iPad anchors the share sheet to the
+  /// button's rect and will not open it without one.
+  Future<void> _share(BuildContext context) async {
+    final box = context.findRenderObject();
+    final origin = box is RenderBox && box.hasSize
+        ? box.localToGlobal(Offset.zero) & box.size
+        : null;
     try {
       await SharePlus.instance.share(
-        ShareParams(text: slatepack, subject: title),
+        ShareParams(
+          text: slatepack,
+          subject: title,
+          sharePositionOrigin: origin,
+        ),
       );
     } catch (e, s) {
       Logging.instance.e(
@@ -250,10 +260,12 @@ class SlatepackDialog extends StatelessWidget {
               if (!isDesktop) ...[
                 const SizedBox(width: 12),
                 Expanded(
-                  child: SecondaryButton(
-                    label: "Share",
-                    icon: _icon(context, Assets.svg.share),
-                    onPressed: _share,
+                  child: Builder(
+                    builder: (context) => SecondaryButton(
+                      label: "Share",
+                      icon: _icon(context, Assets.svg.share),
+                      onPressed: () => _share(context),
+                    ),
                   ),
                 ),
               ],
