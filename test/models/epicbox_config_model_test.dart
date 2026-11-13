@@ -5,7 +5,7 @@ import 'package:stackwallet/models/epicbox_config_model.dart';
 
 void main() {
   test('serializes the insecure flag under the key the plugin reads', () {
-    const config = EpicBoxConfigModel(
+    final config = EpicBoxConfigModel(
       host: 'relay.example',
       port: 8443,
       protocolInsecure: true,
@@ -22,7 +22,7 @@ void main() {
   });
 
   test('round-trips through fromString', () {
-    const config = EpicBoxConfigModel(
+    final config = EpicBoxConfigModel(
       host: 'relay.example',
       port: 8443,
       protocolInsecure: true,
@@ -69,7 +69,7 @@ void main() {
   });
 
   test('copyWith applies its arguments', () {
-    const config = EpicBoxConfigModel(host: 'relay.example', port: 443);
+    final config = EpicBoxConfigModel(host: 'relay.example', port: 443);
 
     final changed = config.copyWith(
       port: 8443,
