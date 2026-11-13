@@ -221,6 +221,52 @@ void main() {
       expect(result.scannedBlocks, 0);
     },
   );
+
+  test('unvalued spend does not claim a wallet net amount', () {
+    const transaction =
+        '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+    const scan = zcash.ZcashScanResult(
+      scannedBlocks: 1,
+      discoveredNotes: 0,
+      totalValue: 0,
+      scannedHeightRange: zcash.CompactBlockScanRange(start: 100, end: 100),
+      notes: [],
+      spends: [
+        zcash.ZcashObservedSpend(
+          height: 100,
+          tx: transaction,
+          pool: 'sapling',
+          nullifier:
+              '11111111111111111111111111111111'
+              '11111111111111111111111111111111',
+          index: 0,
+        ),
+      ],
+    );
+    final state = zcash.ZcashWalletSyncState.atBirthday(
+      cursor: zcash.ZcashLightwalletdSyncCursor.fromTreeState(
+        const zcash.TreeState(
+          hash:
+              '00000000000000000000000000000000'
+              '00000000000000000000000000000000',
+          height: 99,
+          time: 1,
+        ),
+      ),
+      network: zcash.ZcashAddressNetwork.mainnet,
+      accountFingerprint: 'account-a',
+    );
+    state.sapling.apply(scan, accountFingerprint: 'account-a');
+    state.orchard.apply(scan, accountFingerprint: 'account-a');
+    state.ironwood.apply(scan, accountFingerprint: 'account-a');
+
+    final mapped = const ZcashStackStateMapper(walletId: 'wallet-1')
+        .transactions(state.history())
+        .single;
+
+    expect(mapped.walletNetAmountRaw, isNull);
+    expect(mapped.isMetadataMissing('walletNetAmount'), isTrue);
+  });
 }
 
 class _GatedSyncSession implements ZcashSyncSession {
