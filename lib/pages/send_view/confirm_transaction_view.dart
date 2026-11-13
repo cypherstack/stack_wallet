@@ -33,7 +33,6 @@ import '../../themes/stack_colors.dart';
 import '../../themes/theme_providers.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
-import '../../utilities/amount/fee_rate_formatter.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
@@ -66,6 +65,7 @@ import '../../wl_gen/interfaces/libepiccash_interface.dart';
 import '../pinpad_views/lock_screen_view.dart';
 import '../wallet_view/wallet_view.dart';
 import 'sub_widgets/epic_slatepack_dialog.dart';
+import 'sub_widgets/fee_amount_with_rate.dart';
 import 'sub_widgets/multi_recipient.dart';
 import 'sub_widgets/mwc_slatepack_dialog.dart';
 import 'sub_widgets/sending_transaction_dialog.dart';
@@ -688,8 +688,10 @@ class _ConfirmTransactionViewState
       fee = widget.txData.fee;
       amountWithoutChange = widget.txData.amountWithoutChange!;
     }
-
-    final feeRate = formatApproximateFeeRate(fee?.raw, widget.txData.vSize);
+    final feeRateVSize = widget.txData.fee == null ? null : widget.txData.vSize;
+    final feeRateLocale = ref.watch(
+      localeServiceChangeNotifierProvider.select((value) => value.locale),
+    );
 
     return ConditionalParent(
       condition: !isDesktop,
@@ -865,14 +867,25 @@ class _ConfirmTransactionViewState
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            "Transaction fee",
-                            style: STextStyles.smallMed12(context),
+                          Expanded(
+                            child: Text(
+                              "Transaction fee",
+                              style: STextStyles.smallMed12(context),
+                            ),
                           ),
-                          SelectableText(
-                            ref.watch(pAmountFormatter(coin)).format(fee!),
-                            style: STextStyles.itemSubtitle12(context),
-                            textAlign: TextAlign.right,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: FeeAmountWithRate(
+                              formattedAmount: ref
+                                  .watch(pAmountFormatter(coin))
+                                  .format(fee!),
+                              feeRaw: fee.raw,
+                              vSize: feeRateVSize,
+                              locale: feeRateLocale,
+                              amountStyle: STextStyles.itemSubtitle12(context),
+                              rateStyle: STextStyles.smallMed12(context),
+                              alignment: WrapAlignment.end,
+                            ),
                           ),
                         ],
                       ),
@@ -888,24 +901,6 @@ class _ConfirmTransactionViewState
                             widget.txData.nonce.toString(),
                             style: STextStyles.itemSubtitle12(context),
                             textAlign: TextAlign.right,
-                          ),
-                        ],
-                      ),
-                    ),
-                  if (feeRate != null) const SizedBox(height: 12),
-                  if (feeRate != null)
-                    RoundedWhiteContainer(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "sats/vByte",
-                            style: STextStyles.smallMed12(context),
-                          ),
-                          const SizedBox(height: 4),
-                          SelectableText(
-                            feeRate,
-                            style: STextStyles.itemSubtitle12(context),
                           ),
                         ],
                       ),
@@ -1501,34 +1496,15 @@ class _ConfirmTransactionViewState
                   color: Theme.of(context)
                       .extension<StackColors>()!
                       .textFieldDefaultBG,
-                  child: SelectableText(
-                    ref.watch(pAmountFormatter(coin)).format(fee!),
-                    style: STextStyles.itemSubtitle(context),
-                  ),
-                ),
-              ),
-            if (isDesktop && !widget.isPaynymTransaction && feeRate != null)
-              Padding(
-                padding: const EdgeInsets.only(left: 32),
-                child: Text(
-                  "sats/vByte",
-                  style: STextStyles.desktopTextExtraExtraSmall(context),
-                ),
-              ),
-            if (isDesktop && !widget.isPaynymTransaction && feeRate != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 10, left: 32, right: 32),
-                child: RoundedContainer(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 18,
-                  ),
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .textFieldDefaultBG,
-                  child: SelectableText(
-                    feeRate,
-                    style: STextStyles.itemSubtitle(context),
+                  child: FeeAmountWithRate(
+                    formattedAmount: ref
+                        .watch(pAmountFormatter(coin))
+                        .format(fee!),
+                    feeRaw: fee.raw,
+                    vSize: feeRateVSize,
+                    locale: feeRateLocale,
+                    amountStyle: STextStyles.itemSubtitle(context),
+                    rateStyle: STextStyles.desktopTextExtraExtraSmall(context),
                   ),
                 ),
               ),
