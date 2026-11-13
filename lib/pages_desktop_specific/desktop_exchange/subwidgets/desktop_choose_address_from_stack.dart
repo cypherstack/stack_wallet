@@ -28,6 +28,7 @@ import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../widgets/desktop/secondary_button.dart';
+import '../../../widgets/hideable_balance.dart';
 import '../../../widgets/icon_widgets/x_icon.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_dialog.dart';
@@ -108,9 +109,9 @@ class _DesktopChooseFromStackState
               });
             },
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldActiveText,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldActiveText,
               height: 1.8,
             ),
             decoration:
@@ -167,9 +168,9 @@ class _DesktopChooseFromStackState
                 return Column(
                   children: [
                     RoundedWhiteContainer(
-                      borderColor: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.background,
+                      borderColor: Theme.of(context)
+                          .extension<StackColors>()!
+                          .background,
                       child: Center(
                         child: Text(
                           "No ${widget.coin.ticker.toUpperCase()} wallets",
@@ -234,12 +235,16 @@ class _BalanceDisplay extends ConsumerWidget {
               ref.watch(pWalletBalanceSecondary(walletId)).total +
               ref.watch(pWalletBalanceTertiary(walletId)).total;
 
-    return Text(
-      ref.watch(pAmountFormatter(coin)).format(total),
-      style: STextStyles.desktopTextExtraSmall(context).copyWith(
-        color: Theme.of(context).extension<StackColors>()!.textSubtitle1,
+    return HideableBalance(
+      iconColor: Theme.of(context).extension<StackColors>()!.textSubtitle1,
+      iconSize: 16,
+      child: Text(
+        ref.watch(pAmountFormatter(coin)).format(total),
+        style: STextStyles.desktopTextExtraSmall(context).copyWith(
+          color: Theme.of(context).extension<StackColors>()!.textSubtitle1,
+        ),
+        textAlign: TextAlign.right,
       ),
-      textAlign: TextAlign.right,
     );
   }
 }
@@ -267,9 +272,9 @@ class _WalletRow extends ConsumerWidget {
                   ref.watch(pWalletName(walletId)),
                   style: STextStyles.desktopTextExtraExtraSmall(context)
                       .copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textDark,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark,
                       ),
                 ),
               ],

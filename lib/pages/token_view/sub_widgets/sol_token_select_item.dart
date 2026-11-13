@@ -27,6 +27,7 @@ import '../../../wallets/wallet/impl/sub_wallets/solana_token_wallet.dart';
 import '../../../wallets/wallet/wallet.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/dialogs/basic_dialog.dart';
+import '../../../widgets/hideable_balance.dart';
 import '../../../widgets/icon_widgets/sol_token_icon.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../sol_token_view.dart';
@@ -104,12 +105,12 @@ class _SolTokenSelectItemState extends ConsumerState<SolTokenSelectItem> {
       return;
     }
 
-    ref.read(solanaTokenServiceStateProvider.state).state =
-        Wallet.loadSolTokenWallet(
-              solWallet: solanaWallet,
-              contract: widget.token,
-            )
-            as SolanaTokenWallet;
+    ref
+        .read(solanaTokenServiceStateProvider.state)
+        .state = Wallet.loadSolTokenWallet(
+      solWallet: solanaWallet,
+      contract: widget.token,
+    ) as SolanaTokenWallet;
 
     final success = await showLoading<bool>(
       whileFuture: _loadTokenWallet(context, ref),
@@ -186,27 +187,39 @@ class _SolTokenSelectItemState extends ConsumerState<SolTokenSelectItem> {
                           Text(
                             widget.token.name,
                             style: isDesktop
-                                ? STextStyles.desktopTextExtraSmall(
-                                    context,
-                                  ).copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.textDark,
-                                  )
+                                ? STextStyles.desktopTextExtraSmall(context)
+                                      .copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textDark,
+                                      )
                                 : STextStyles.titleBold12(context),
                           ),
                           const Spacer(),
-                          Text(
-                            balanceString,
-                            style: isDesktop
-                                ? STextStyles.desktopTextExtraSmall(
-                                    context,
-                                  ).copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.textDark,
-                                  )
-                                : STextStyles.itemSubtitle(context),
+                          HideableBalance(
+                            key: ValueKey(
+                              "hideBalance_${widget.walletId}_"
+                              "${widget.token.address}",
+                            ),
+                            iconColor: isDesktop
+                                ? Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark
+                                : Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .infoItemLabel,
+                            iconSize: 16,
+                            child: Text(
+                              balanceString,
+                              style: isDesktop
+                                  ? STextStyles.desktopTextExtraSmall(context)
+                                        .copyWith(
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textDark,
+                                        )
+                                  : STextStyles.itemSubtitle(context),
+                            ),
                           ),
                         ],
                       ),

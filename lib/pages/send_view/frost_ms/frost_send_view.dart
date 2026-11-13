@@ -43,6 +43,7 @@ import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/fee_slider.dart';
 import '../../../widgets/frost_scaffold.dart';
+import '../../../widgets/hideable_balance.dart';
 import '../../../widgets/icon_widgets/x_icon.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_dialog.dart';
@@ -341,22 +342,28 @@ class _FrostSendViewState extends ConsumerState<FrostSendView> {
                         onTap: () {},
                         child: Container(
                           color: Colors.transparent,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                ref
-                                    .watch(pAmountFormatter(coin))
-                                    .format(
-                                      ref
-                                          .watch(pWalletBalance(walletId))
-                                          .spendable,
-                                    ),
-                                style: STextStyles.titleBold12(context)
-                                    .copyWith(fontSize: 10),
-                                textAlign: TextAlign.right,
-                              ),
-                            ],
+                          child: HideableBalance(
+                            iconColor: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark,
+                            iconSize: 16,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  ref
+                                      .watch(pAmountFormatter(coin))
+                                      .format(
+                                        ref
+                                            .watch(pWalletBalance(walletId))
+                                            .spendable,
+                                      ),
+                                  style: STextStyles.titleBold12(context)
+                                      .copyWith(fontSize: 10),
+                                  textAlign: TextAlign.right,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
