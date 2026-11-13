@@ -29,7 +29,7 @@ abstract interface class ZcashLightwalletdSyncClient
 }
 
 abstract interface class ZcashLightwalletdTransparentClient {
-  Future<Set<String>> getTransparentAddressActivity(
+  Future<ZcashTransparentActivityResult> getTransparentAddressActivity(
     List<String> addresses, {
     required int startHeight,
     required int chainHeight,
@@ -40,6 +40,172 @@ abstract interface class ZcashLightwalletdTransparentClient {
     int maxRangeSize = 1000,
     int maxUtxos = 10000,
   });
+}
+
+class ZcashAuthenticatedTransparentTransaction {
+  const ZcashAuthenticatedTransparentTransaction({
+    required this.summary,
+    required this.height,
+    required this.blockHash,
+    required this.blockTime,
+  });
+
+  final zcash.ZcashTransactionSummary summary;
+  final int height;
+  final String blockHash;
+  final int? blockTime;
+}
+
+class ZcashTransparentActivityResult {
+  ZcashTransparentActivityResult({
+    required Set<String> activeAddresses,
+    Iterable<ZcashAuthenticatedTransparentTransaction> transactions = const [],
+  }) : activeAddresses = Set.unmodifiable(activeAddresses),
+       transactions = List.unmodifiable(transactions);
+
+  final Set<String> activeAddresses;
+  final List<ZcashAuthenticatedTransparentTransaction> transactions;
+
+  static final empty = ZcashTransparentActivityResult(
+    activeAddresses: const {},
+  );
+}
+
+class ZcashDecodedTransparentTransactionCandidate {
+  const ZcashDecodedTransparentTransactionCandidate({
+    required this.summary,
+    required this.computedTxid,
+    required this.height,
+    required this.rawTransactionHex,
+  });
+
+  final zcash.ZcashTransactionSummary summary;
+  final String computedTxid;
+  final int height;
+  final String rawTransactionHex;
+}
+
+String normalizeZcashTransactionId(String value) {
+  if (!RegExp(r'^[0-9a-fA-F]{64}$').hasMatch(value)) {
+    throw const FormatException(
+      'Zcash transaction ids must be exactly 64 hexadecimal characters',
+    );
+  }
+  return value.toLowerCase();
+}
+
+ZcashDecodedTransparentTransactionCandidate _normalizeCandidate(
+  ZcashDecodedTransparentTransactionCandidate candidate,
+) {
+  final decoded = normalizeZcashTransactionId(candidate.summary.txid);
+  final computed = normalizeZcashTransactionId(candidate.computedTxid);
+  if (decoded != computed) {
+    throw StateError(
+      'decoded transparent transaction id does not match its raw bytes',
+    );
+  }
+  final json = candidate.summary.toJson()..['txid'] = decoded;
+  return ZcashDecodedTransparentTransactionCandidate(
+    summary: zcash.ZcashTransactionSummary.fromJson(json),
+    computedTxid: computed,
+    height: candidate.height,
+    rawTransactionHex: candidate.rawTransactionHex.toLowerCase(),
+  );
+}
+
+Future<bool> collectZcashTransparentTransactionStream({
+  required Stream<ZcashDecodedTransparentTransactionCandidate> stream,
+  required Map<String, ZcashDecodedTransparentTransactionCandidate> into,
+  int maxTransactions = 10000,
+}) async {
+  var active = false;
+  await for (final value in stream) {
+    active = true;
+    final candidate = _normalizeCandidate(value);
+    final txid = candidate.computedTxid;
+    final existing = into[txid];
+    if (existing != null &&
+        (existing.height != candidate.height ||
+            existing.rawTransactionHex != candidate.rawTransactionHex)) {
+      throw StateError(
+        'lightwalletd returned conflicting transparent transaction data',
+      );
+    }
+    if (existing == null && into.length >= maxTransactions) {
+      throw StateError(
+        'transparent history exceeds the bounded '
+        '$maxTransactions-transaction limit',
+      );
+    }
+    into[txid] = candidate;
+  }
+  return active;
+}
+
+Future<List<ZcashAuthenticatedTransparentTransaction>>
+authenticateZcashTransparentTransactions({
+  required Iterable<ZcashDecodedTransparentTransactionCandidate> candidates,
+  required int startHeight,
+  required int chainHeight,
+  required Future<zcash.CompactBlock> Function(int height) loadBlock,
+  int maxTransactions = 10000,
+}) async {
+  final unique = <String, ZcashDecodedTransparentTransactionCandidate>{};
+  for (final value in candidates) {
+    final candidate = _normalizeCandidate(value);
+    if (candidate.height < startHeight || candidate.height > chainHeight) {
+      throw StateError(
+        'transparent transaction height is outside the requested range',
+      );
+    }
+    final existing = unique[candidate.computedTxid];
+    if (existing != null &&
+        (existing.height != candidate.height ||
+            existing.rawTransactionHex != candidate.rawTransactionHex)) {
+      throw StateError(
+        'one transparent transaction was returned with conflicting data',
+      );
+    }
+    unique[candidate.computedTxid] = candidate;
+    if (unique.length > maxTransactions) {
+      throw StateError(
+        'transparent history exceeds the bounded '
+        '$maxTransactions-transaction limit',
+      );
+    }
+  }
+
+  final blocks = <int, zcash.CompactBlock>{};
+  for (final height in unique.values.map((value) => value.height).toSet()) {
+    final block = await loadBlock(height);
+    if (block.height.toInt() != height || block.hash.length != 32) {
+      throw StateError(
+        'lightwalletd returned an invalid block for transparent history',
+      );
+    }
+    blocks[height] = block;
+  }
+  final authenticated = <ZcashAuthenticatedTransparentTransaction>[];
+  for (final candidate in unique.values) {
+    final block = blocks[candidate.height]!;
+    final protocolTxid = zcash.reverseTxidByteOrder(candidate.computedTxid);
+    if (!block.vtx.any(
+      (transaction) => _hex(transaction.txid) == protocolTxid,
+    )) {
+      throw StateError(
+        'transparent transaction is absent from its claimed canonical block',
+      );
+    }
+    authenticated.add(
+      ZcashAuthenticatedTransparentTransaction(
+        summary: candidate.summary,
+        height: candidate.height,
+        blockHash: _hex(block.hash),
+        blockTime: block.hasTime() && block.time > 0 ? block.time : null,
+      ),
+    );
+  }
+  return authenticated;
 }
 
 abstract interface class ZcashLightwalletdSendClient {
@@ -339,6 +505,7 @@ class ZcashAccountSession {
           port: endpoint.port,
           useTls: endpoint.useTls,
         ),
+        endpoint.network,
       );
 }
 
@@ -347,12 +514,13 @@ class _ProductionZcashLightwalletdClient
         ZcashLightwalletdSyncClient,
         ZcashLightwalletdTransparentClient,
         ZcashLightwalletdSendClient {
-  _ProductionZcashLightwalletdClient(this._client);
+  _ProductionZcashLightwalletdClient(this._client, this.endpointNetwork);
 
   final zcash.LightwalletdClient _client;
+  final CryptoCurrencyNetwork endpointNetwork;
 
   @override
-  Future<Set<String>> getTransparentAddressActivity(
+  Future<ZcashTransparentActivityResult> getTransparentAddressActivity(
     List<String> addresses, {
     required int startHeight,
     required int chainHeight,
@@ -370,35 +538,88 @@ class _ProductionZcashLightwalletdClient
       );
     }
     final active = <String>{};
+    final rawByTxid = <String, ZcashDecodedTransparentTransactionCandidate>{};
     // Each address is intentionally queried separately because lightwalletd's
     // transaction-history filter has a single-address contract. This reveals
     // the registered window's common ownership to the configured endpoint;
-    // cap discovery and limit concurrency to gap-sized batches. Raw
-    // transactions are discarded here: they are activity markers for the
-    // frontier, not restored history entries (the UTXO refresh remains the
-    // source of valued transparent state).
+    // cap discovery and limit concurrency to gap-sized batches. The resulting
+    // transactions are authenticated against their claimed
+    // canonical blocks below before they can enter restored wallet state.
     for (var start = 0; start < addresses.length; start += 20) {
       final end = start + 20 < addresses.length ? start + 20 : addresses.length;
       final batch = addresses.sublist(start, end);
       final results = await Future.wait([
         for (final address in batch)
-          _client
-              .getTaddressTxids(
-                zcash.TransparentAddressBlockFilter(
-                  address: address,
-                  range: zcash.BlockRange(
-                    start: zcash.BlockID(height: Int64(startHeight)),
-                    end: zcash.BlockID(height: Int64(chainHeight)),
-                  ),
-                ),
-              )
-              .isEmpty,
+          collectZcashTransparentTransactionStream(
+            stream: _transparentTransactions(
+              address,
+              startHeight: startHeight,
+              chainHeight: chainHeight,
+            ),
+            into: rawByTxid,
+          ),
       ]);
       for (var i = 0; i < batch.length; i++) {
-        if (!results[i]) active.add(batch[i]);
+        if (results[i]) active.add(batch[i]);
       }
     }
-    return active;
+    final authenticated = await authenticateZcashTransparentTransactions(
+      candidates: rawByTxid.values,
+      startHeight: startHeight,
+      chainHeight: chainHeight,
+      loadBlock: (height) => _client
+          .getBlockRangeByHeight(
+            height,
+            height,
+            poolTypes: const [zcash.PoolType.TRANSPARENT],
+          )
+          .single,
+    );
+    return ZcashTransparentActivityResult(
+      activeAddresses: active,
+      transactions: authenticated,
+    );
+  }
+
+  Stream<ZcashDecodedTransparentTransactionCandidate> _transparentTransactions(
+    String address, {
+    required int startHeight,
+    required int chainHeight,
+  }) async* {
+    final stream = _client.getTaddressTxids(
+      zcash.TransparentAddressBlockFilter(
+        address: address,
+        range: zcash.BlockRange(
+          start: zcash.BlockID(height: Int64(startHeight)),
+          end: zcash.BlockID(height: Int64(chainHeight)),
+        ),
+      ),
+    );
+    await for (final raw in stream) {
+      final height = raw.height.toInt();
+      if (height < startHeight || height > chainHeight) {
+        throw StateError(
+          'transparent transaction height is outside the requested range',
+        );
+      }
+      if (raw.data.isEmpty || raw.data.length > 2000000) {
+        throw StateError('transparent transaction has an invalid byte length');
+      }
+      final txHex = _hex(raw.data);
+      yield ZcashDecodedTransparentTransactionCandidate(
+        summary: zcash.decodeNativeTransaction(
+          txHex: txHex,
+          network: switch (endpointNetwork) {
+            CryptoCurrencyNetwork.main => zcash.ZcashNetwork.mainnet,
+            CryptoCurrencyNetwork.regtest => zcash.ZcashNetwork.regtest,
+            _ => zcash.ZcashNetwork.testnet,
+          },
+        ),
+        computedTxid: zcash.transactionTxid(txHex: txHex).txid,
+        height: height,
+        rawTransactionHex: txHex,
+      );
+    }
   }
 
   @override
@@ -454,6 +675,9 @@ class _ProductionZcashLightwalletdClient
   @override
   Future<void> close() => _client.close();
 }
+
+String _hex(List<int> bytes) =>
+    [for (final byte in bytes) byte.toRadixString(16).padLeft(2, '0')].join();
 
 Uint8List _decodeTransactionHex(String value) {
   if (value.isEmpty || value.length.isOdd) {

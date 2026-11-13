@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
+import 'package:stackwallet/wallets/wallet/intermediate/zcash_account_session.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/zcash_wallet_state.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/zcash_wallet_state_controller.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/zcash_transparent_receiver_discovery.dart';
@@ -64,7 +65,7 @@ void main() {
       transparentDiscovery: discovery,
       transparentActivity: (addresses, start, end) async {
         ranges.add((start: start, end: end));
-        return const {};
+        return ZcashTransparentActivityResult.empty;
       },
       refreshTransparent: (state) async => zcash.ZcashTransparentRefresh(
         network: state.network,

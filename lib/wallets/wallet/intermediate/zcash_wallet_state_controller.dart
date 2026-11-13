@@ -9,6 +9,7 @@ import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../utilities/amount/amount.dart';
+import 'zcash_account_session.dart';
 import 'zcash_transparent_receiver_discovery.dart';
 import 'zcash_wallet_state.dart';
 
@@ -68,11 +69,12 @@ typedef ZcashTransparentRefreshCallback =
       zcash.ZcashTransparentState state,
     );
 
-typedef ZcashTransparentActivityCallback = Future<Set<String>> Function(
-  List<String> addresses,
-  int startHeight,
-  int chainHeight,
-);
+typedef ZcashTransparentActivityCallback =
+    Future<ZcashTransparentActivityResult> Function(
+      List<String> addresses,
+      int startHeight,
+      int chainHeight,
+    );
 
 class ZcashReorgDetectedException implements Exception {
   const ZcashReorgDetectedException(this.outcome);
@@ -487,8 +489,15 @@ class ZcashWalletStateController {
           'transparent receivers require lightwalletd transparent refresh',
         );
       }
-      await _discoverTransparentReceivers(caughtUpHeight);
-      final refresh = await refreshTransparent(_state.transparent);
+      final transparentHistory = await _discoverTransparentReceivers(
+        caughtUpHeight,
+      );
+      var refresh = await refreshTransparent(_state.transparent);
+      refresh = mergeAuthenticatedTransparentHistory(
+        state: _state.transparent,
+        refresh: refresh,
+        transactions: transparentHistory,
+      );
       if (refresh.chainHeight != caughtUpHeight) {
         throw StateError(
           'shielded sync reached $caughtUpHeight while transparent refresh '
@@ -507,7 +516,8 @@ class ZcashWalletStateController {
     return snapshot;
   }
 
-  Future<void> _discoverTransparentReceivers(int chainHeight) async {
+  Future<List<ZcashAuthenticatedTransparentTransaction>>
+  _discoverTransparentReceivers(int chainHeight) async {
     final discover = _transparentDiscovery;
     final activity = _transparentActivity;
     final account = _accountMetadata;
@@ -516,7 +526,7 @@ class ZcashWalletStateController {
         activity == null ||
         account == null ||
         viewingKeys == null) {
-      return;
+      return const [];
     }
 
     final knownByAddress = {
@@ -529,12 +539,40 @@ class ZcashWalletStateController {
     final activityStartHeight = _birthdayHeight <= chainHeight
         ? _birthdayHeight
         : chainHeight;
-    final activeAddresses = await activity(
+    final initialActivity = await activity(
       knownByAddress.keys.toList(growable: false),
       activityStartHeight,
       chainHeight,
     );
-    _validateTransparentActivity(activeAddresses, knownByAddress.keys.toSet());
+    _validateTransparentActivity(
+      initialActivity.activeAddresses,
+      knownByAddress.keys.toSet(),
+    );
+    final activeAddresses = initialActivity.activeAddresses.toSet();
+    final transactions = <String, ZcashAuthenticatedTransparentTransaction>{};
+    void recordTransactions(
+      Iterable<ZcashAuthenticatedTransparentTransaction> additions,
+    ) {
+      for (final transaction in additions) {
+        final existing = transactions[transaction.summary.txid];
+        if (existing != null &&
+            (existing.height != transaction.height ||
+                existing.blockHash != transaction.blockHash)) {
+          throw StateError(
+            'lightwalletd returned conflicting authentication for one '
+            'transparent transaction',
+          );
+        }
+        transactions[transaction.summary.txid] = transaction;
+        if (transactions.length > 10000) {
+          throw StateError(
+            'transparent history exceeds the bounded 10000-transaction limit',
+          );
+        }
+      }
+    }
+
+    recordTransactions(initialActivity.transactions);
 
     while (true) {
       final additions = <zcash.ZcashTransparentReceiver>[];
@@ -570,7 +608,9 @@ class ZcashWalletStateController {
           );
         }
       }
-      if (additions.isEmpty) return;
+      if (additions.isEmpty) {
+        return transactions.values.toList(growable: false);
+      }
 
       _state.transparent.registerAccountReceivers(
         account: account,
@@ -586,16 +626,17 @@ class ZcashWalletStateController {
           observedChainHeight: _observedChainHeight,
         ),
       );
-      final newlyActive = await activity(
+      final additionalActivity = await activity(
         additions.map((receiver) => receiver.address).toList(growable: false),
         activityStartHeight,
         chainHeight,
       );
       _validateTransparentActivity(
-        newlyActive,
+        additionalActivity.activeAddresses,
         additions.map((receiver) => receiver.address).toSet(),
       );
-      activeAddresses.addAll(newlyActive);
+      activeAddresses.addAll(additionalActivity.activeAddresses);
+      recordTransactions(additionalActivity.transactions);
     }
   }
 
@@ -609,6 +650,144 @@ class ZcashWalletStateController {
       );
     }
   }
+}
+
+zcash.ZcashTransparentRefresh mergeAuthenticatedTransparentHistory({
+  required zcash.ZcashTransparentState state,
+  required zcash.ZcashTransparentRefresh refresh,
+  required List<ZcashAuthenticatedTransparentTransaction> transactions,
+}) {
+  if (transactions.isEmpty) return refresh;
+  final canonicalHashes = {...refresh.canonicalBlockHashes};
+  final byProtocolTxid = <String, ZcashAuthenticatedTransparentTransaction>{};
+  for (final transaction in transactions) {
+    if (transaction.summary.network != state.network ||
+        transaction.height < 1 ||
+        transaction.height > refresh.chainHeight) {
+      throw StateError(
+        'authenticated transparent transaction has invalid chain context',
+      );
+    }
+    final existingHash = canonicalHashes[transaction.height];
+    if (existingHash != null && existingHash != transaction.blockHash) {
+      throw StateError(
+        'transparent history conflicts with an authenticated canonical block',
+      );
+    }
+    canonicalHashes[transaction.height] = transaction.blockHash;
+    final protocolTxid = zcash.reverseTxidByteOrder(
+      normalizeZcashTransactionId(transaction.summary.txid),
+    );
+    final existing = byProtocolTxid[protocolTxid];
+    if (existing != null &&
+        (existing.height != transaction.height ||
+            existing.blockHash != transaction.blockHash)) {
+      throw StateError(
+        'transparent history authenticates one transaction twice differently',
+      );
+    }
+    byProtocolTxid[protocolTxid] = transaction;
+  }
+
+  final knownAddresses = state.addresses.toSet();
+  final ownedOutputs =
+      <
+        String,
+        ({
+          zcash.ZcashTransparentOutputSummary output,
+          ZcashAuthenticatedTransparentTransaction transaction,
+        })
+      >{};
+  for (final entry in byProtocolTxid.entries) {
+    for (final output in entry.value.summary.transparent.outputs) {
+      if (output.address case final address?
+          when knownAddresses.contains(address)) {
+        final outpoint = '${entry.key}:${output.outputIndex}';
+        final existing = ownedOutputs[outpoint];
+        if (existing != null &&
+            (existing.output.address != output.address ||
+                existing.output.scriptHex != output.scriptHex ||
+                existing.output.valueZatoshis != output.valueZatoshis ||
+                existing.transaction.height != entry.value.height ||
+                existing.transaction.blockHash != entry.value.blockHash)) {
+          throw StateError(
+            'transparent history returned conflicting owned outpoint data',
+          );
+        }
+        ownedOutputs[outpoint] = (output: output, transaction: entry.value);
+      }
+    }
+  }
+
+  final spends = <String, zcash.ZcashTransparentSpendObservation>{
+    for (final spend in refresh.observedSpends) spend.spentOutpoint: spend,
+  };
+  for (final entry in byProtocolTxid.entries) {
+    for (final input in entry.value.summary.transparent.inputs) {
+      final prevoutTxid = zcash.reverseTxidByteOrder(
+        normalizeZcashTransactionId(input.prevoutTxid),
+      );
+      final outpoint = '$prevoutTxid:${input.prevoutIndex}';
+      if (!ownedOutputs.containsKey(outpoint)) continue;
+      final observed = zcash.ZcashTransparentSpendObservation(
+        spentOutpoint: outpoint,
+        spendingProtocolTxid: entry.key,
+        spentHeight: entry.value.height,
+        blockHash: entry.value.blockHash,
+        blockTime: entry.value.blockTime,
+        feeZatoshis: null,
+      );
+      final existing = spends[outpoint];
+      if (existing != null &&
+          (existing.spendingProtocolTxid != observed.spendingProtocolTxid ||
+              existing.spentHeight != observed.spentHeight ||
+              existing.blockHash != observed.blockHash)) {
+        throw StateError(
+          'transparent history returned conflicting spends for one outpoint',
+        );
+      }
+      spends[outpoint] = observed;
+    }
+  }
+
+  final unspentOutpoints = {
+    for (final output in refresh.unspentOutputs) output.outpoint,
+  };
+  final historicalOutputs = <zcash.ZcashTransparentOutputObservation>[];
+  for (final entry in ownedOutputs.entries) {
+    if (unspentOutpoints.contains(entry.key) ||
+        !spends.containsKey(entry.key)) {
+      continue;
+    }
+    final output = entry.value.output;
+    final transaction = entry.value.transaction;
+    historicalOutputs.add(
+      zcash.ZcashTransparentOutputObservation(
+        address: output.address!,
+        protocolTxid: zcash.reverseTxidByteOrder(
+          normalizeZcashTransactionId(transaction.summary.txid),
+        ),
+        outputIndex: output.outputIndex,
+        scriptHex: output.scriptHex,
+        valueZatoshis: output.valueZatoshis,
+        minedHeight: transaction.height,
+        blockHash: transaction.blockHash,
+        blockTime: transaction.blockTime,
+        isCoinbase: transaction.summary.transparent.isCoinbase,
+      ),
+    );
+  }
+  return zcash.ZcashTransparentRefresh(
+    network: refresh.network,
+    accountFingerprint: refresh.accountFingerprint,
+    queriedAddresses: refresh.queriedAddresses,
+    chainHeight: refresh.chainHeight,
+    chainTipHash: refresh.chainTipHash,
+    canonicalBlockHashes: canonicalHashes,
+    unspentOutputs: refresh.unspentOutputs,
+    historicalOutputs: historicalOutputs,
+    observedSpends: spends.values.toList(growable: false),
+  );
 }
 
 abstract interface class ZcashSyncDataSource {

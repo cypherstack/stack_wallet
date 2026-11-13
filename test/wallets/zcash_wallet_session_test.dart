@@ -28,6 +28,34 @@ class MutableZcashNodes extends Fake implements NodeService {
   NodeModel? getPrimaryNodeFor({required CryptoCurrency currency}) => primary;
 }
 
+zcash.ZcashTransactionSummary transparentSummary({
+  required String txid,
+  List<Map<String, Object?>> inputs = const [],
+  List<Map<String, Object?>> outputs = const [],
+}) => zcash.ZcashTransactionSummary.fromJson({
+  'network': 'mainnet',
+  'txid': txid,
+  'version': 'v5',
+  'header': 2147483653,
+  'version_group_id': 654776626,
+  'consensus_branch_id': 'nu5',
+  'consensus_branch_id_hex': 'c2d6d0b4',
+  'lock_time': 0,
+  'expiry_height': 0,
+  'transparent': {
+    'present': true,
+    'vin': inputs.length,
+    'vout': outputs.length,
+    'is_coinbase': false,
+    'inputs': inputs,
+    'outputs': outputs,
+  },
+  'sapling': {'present': false, 'spends': 0, 'outputs': 0},
+  'orchard': {'present': false, 'actions': 0},
+  'ironwood': {'present': false, 'actions': 0},
+  'sprout': {'present': false, 'joinsplits': 0},
+});
+
 class WalletSessionClient implements ZcashLightwalletdClient {
   WalletSessionClient({
     required this.chainName,
@@ -68,6 +96,7 @@ class SyncWalletSessionClient extends WalletSessionClient
     required super.tipHeight,
     this.restoredTransparentOutputs = const [],
     this.activeTransparentAddresses = const {},
+    this.authenticatedTransparentTransactions = const [],
   });
 
   final List<
@@ -79,6 +108,8 @@ class SyncWalletSessionClient extends WalletSessionClient
   >
   restoredTransparentOutputs;
   final Set<String> activeTransparentAddresses;
+  final List<ZcashAuthenticatedTransparentTransaction>
+  authenticatedTransparentTransactions;
   bool failTip = false;
   int treeStateCalls = 0;
   int transparentRefreshCalls = 0;
@@ -91,7 +122,7 @@ class SyncWalletSessionClient extends WalletSessionClient
   String transparentTipHash = '44' * 32;
 
   @override
-  Future<Set<String>> getTransparentAddressActivity(
+  Future<ZcashTransparentActivityResult> getTransparentAddressActivity(
     List<String> addresses, {
     required int startHeight,
     required int chainHeight,
@@ -101,7 +132,12 @@ class SyncWalletSessionClient extends WalletSessionClient
       startHeight: startHeight,
       endHeight: chainHeight,
     ));
-    return addresses.where(activeTransparentAddresses.contains).toSet();
+    return ZcashTransparentActivityResult(
+      activeAddresses: addresses
+          .where(activeTransparentAddresses.contains)
+          .toSet(),
+      transactions: authenticatedTransparentTransactions,
+    );
   }
 
   @override
@@ -682,6 +718,115 @@ void main() {
     expect(reopened.info.cachedBalance.total.raw, BigInt.from(125000));
     await reopened.exit();
   });
+
+  test(
+    'restore reconstructs fully-spent transparent transaction history',
+    () async {
+      const mnemonic =
+          'abandon abandon abandon abandon abandon abandon abandon abandon '
+          'abandon abandon abandon about';
+      final seed = zcash.nativeMnemonicToSeed(mnemonic);
+      final viewing = zcash
+          .deriveNativeViewingKeys(
+            seedHex: seed.seedHex,
+            network: zcash.ZcashNetwork.mainnet,
+          )
+          .transparent;
+      final address = zcash.deriveNativeTransparentAddressFromViewingKey(
+        viewingKeyHex: viewing.externalIvk!,
+        network: zcash.ZcashNetwork.mainnet,
+        childIndex: 0,
+        scope: zcash.ZcashTransparentKeyScope.external,
+      );
+      final receiveTxid = '11' * 32;
+      final spendTxid = '22' * 32;
+      final authenticated = [
+        ZcashAuthenticatedTransparentTransaction(
+          summary: transparentSummary(
+            txid: receiveTxid,
+            outputs: [
+              {
+                'output_index': 0,
+                'address': address,
+                'script_hex': '76a914${'33' * 20}88ac',
+                'value_zatoshis': 125000,
+              },
+            ],
+          ),
+          height: 42,
+          blockHash: '44' * 32,
+          blockTime: 1700000000,
+        ),
+        ZcashAuthenticatedTransparentTransaction(
+          summary: transparentSummary(
+            txid: spendTxid,
+            inputs: [
+              {'prevout_txid': receiveTxid, 'prevout_index': 0},
+            ],
+          ),
+          height: 42,
+          blockHash: '44' * 32,
+          blockTime: 1700000000,
+        ),
+      ];
+      final client = SyncWalletSessionClient(
+        chainName: 'main',
+        tipHeight: 42,
+        activeTransparentAddresses: {address},
+        authenticatedTransparentTransactions: authenticated,
+      );
+      final nodes = MutableZcashNodes(
+        walletNode(host: 'https://history.example', id: 'history'),
+      );
+      final wallet = await Wallet.create(
+        walletInfo: WalletInfo(
+          walletId: 'zcash-fully-spent-history',
+          name: 'Zcash fully spent history fixture',
+          mainAddressType: AddressType.zcashUnified,
+          coinName: 'zcash',
+          restoreHeight: 43,
+        ),
+        mainDB: MainDB.instance,
+        secureStorageInterface: MemorySecrets(),
+        nodeService: nodes,
+        prefs: SessionPrefs(),
+        mnemonic: mnemonic,
+        mnemonicPassphrase: '',
+      ) as ZcashWallet;
+      wallet.configureAccountSessionFactory(
+        (network) =>
+            ZcashAccountSession(network: network, clientFactory: (_) => client),
+      );
+      await wallet.init(isRestore: true);
+      await wallet.recover(isRescan: false);
+
+      expect(wallet.info.cachedBalance.total.raw, BigInt.zero);
+      final history = await MainDB.instance.isar.transactionV2s
+          .where()
+          .walletIdEqualTo(wallet.walletId)
+          .findAll();
+      expect(history, hasLength(2));
+      expect(
+        history.map((row) => row.txid),
+        containsAll([receiveTxid, spendTxid]),
+      );
+      expect(
+        history
+            .singleWhere((row) => row.txid == receiveTxid)
+            .walletNetAmountRaw,
+        BigInt.from(125000),
+      );
+      expect(
+        history.singleWhere((row) => row.txid == spendTxid).walletNetAmountRaw,
+        BigInt.from(-125000),
+      );
+      expect(
+        history.map((row) => row.assetPools),
+        everyElement(['transparent']),
+      );
+      await wallet.exit();
+    },
+  );
 
   test('restore syncs in place and rescan restarts at the birthday', () async {
     final node = walletNode(host: 'https://rescan.example', id: 'rescan');
