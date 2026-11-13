@@ -13,12 +13,14 @@ import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:decimal/decimal.dart';
+import 'package:electrum_adapter/client/subscribing_client.dart'
+    show registerSubscribable;
 import 'package:electrum_adapter/electrum_adapter.dart' as electrum_adapter;
 import 'package:electrum_adapter/electrum_adapter.dart';
 import 'package:electrum_adapter/methods/specific/firo.dart';
 import 'package:event_bus/event_bus.dart';
+import 'package:meta/meta.dart' show protected;
 import 'package:mutex/mutex.dart';
-import 'package:stream_channel/stream_channel.dart';
 
 import '../app_config.dart';
 import '../exceptions/electrumx/no_such_transaction.dart';
@@ -31,10 +33,12 @@ import '../utilities/amount/amount.dart';
 import '../utilities/extensions/impl/string.dart';
 import '../utilities/logger.dart';
 import '../utilities/prefs.dart';
+import '../utilities/tls_certificate.dart';
 import '../utilities/tor_plain_net_option_enum.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import '../wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
-import 'client_manager.dart';
+import 'draining_electrum_client.dart';
+import 'electrum_request_timeouts.dart';
 
 class WifiOnlyException implements Exception {}
 
@@ -51,6 +55,7 @@ class ElectrumXNode {
     required this.useSSL,
     required this.torEnabled,
     required this.clearnetEnabled,
+    this.trustedCertificatePem,
   });
   final String address;
   final int port;
@@ -59,6 +64,7 @@ class ElectrumXNode {
   final bool useSSL;
   final bool torEnabled;
   final bool clearnetEnabled;
+  final String? trustedCertificatePem;
 
   factory ElectrumXNode.from(ElectrumXNode node) {
     return ElectrumXNode(
@@ -69,6 +75,7 @@ class ElectrumXNode {
       useSSL: node.useSSL,
       torEnabled: node.torEnabled,
       clearnetEnabled: node.clearnetEnabled,
+      trustedCertificatePem: node.trustedCertificatePem,
     );
   }
 
@@ -79,6 +86,8 @@ class ElectrumXNode {
 }
 
 class ElectrumXClient {
+  final ElectrumRequestTimeouts requestTimeouts;
+
   final CryptoCurrency cryptoCurrency;
   final TorPlainNetworkOption netType;
 
@@ -90,12 +99,23 @@ class ElectrumXClient {
 
   bool get useSSL => _useSSL;
   late bool _useSSL;
+  final String? trustedCertificatePem;
 
-  // StreamChannel<dynamic>? get electrumAdapterChannel => _electrumAdapterChannel;
-  StreamChannel<dynamic>? _electrumAdapterChannel;
+  bool _closed = false;
+  int _connectionGeneration = 0;
 
-  ElectrumClient? getElectrumAdapter() => ClientManager.sharedInstance
-      .getClient(cryptoCurrency: cryptoCurrency, netType: netType);
+  /// This client's own connection. No other [ElectrumXClient] uses it.
+  ElectrumClient? _adapter;
+
+  /// The certificate [_adapter] was opened with; null for platform roots.
+  String? _adapterCertificate;
+  ElectrumClient? _pendingClient;
+
+  /// This client's superseded connections that are still finishing requests
+  /// it sent before a failover.
+  final _retiring = <ElectrumClient>{};
+
+  ElectrumClient? getElectrumAdapter() => _closed ? null : _adapter;
 
   late Prefs _prefs;
   late TorService _torService;
@@ -105,17 +125,10 @@ class ElectrumXClient {
 
   final Duration connectionTimeoutForSpecialCaseJsonRPCClients;
 
-  // add finalizer to cancel stream subscription when all references to an
-  // instance of ElectrumX becomes inaccessible
-  static final Finalizer<ElectrumXClient> _finalizer = Finalizer((p0) {
-    p0._torPreferenceListener?.cancel();
-    p0._torStatusListener?.cancel();
-  });
   StreamSubscription<TorPreferenceChangedEvent>? _torPreferenceListener;
   StreamSubscription<TorConnectionStatusChangedEvent>? _torStatusListener;
 
-  final Mutex _torConnectingLock = Mutex();
-  bool _requireMutex = false;
+  Completer<void>? _torConnectionGate;
 
   final _adapterMutex = Mutex();
 
@@ -132,7 +145,20 @@ class ElectrumXClient {
     ),
     TorService? torService,
     EventBus? globalEventBusForTesting,
+    this.trustedCertificatePem,
+    this.requestTimeouts = const ElectrumRequestTimeouts(),
   }) {
+    for (final limit in [
+      requestTimeouts.standard,
+      requestTimeouts.history,
+      requestTimeouts.transactionBatch,
+      requestTimeouts.firoSet,
+      requestTimeouts.broadcast,
+    ]) {
+      if (limit <= Duration.zero) {
+        throw ArgumentError.value(limit, 'requestTimeouts', 'Must be positive');
+      }
+    }
     _prefs = prefs;
     _torService = torService ?? TorService.sharedInstance;
     _host = host;
@@ -145,19 +171,16 @@ class ElectrumXClient {
     // Listen for tor status changes.
     _torStatusListener = bus.on<TorConnectionStatusChangedEvent>().listen((
       event,
-    ) async {
+    ) {
+      if (_closed) return;
       switch (event.newStatus) {
         case TorConnectionStatus.connecting:
-          await _torConnectingLock.acquire();
-          _requireMutex = true;
+          _torConnectionGate ??= Completer<void>();
           break;
 
         case TorConnectionStatus.connected:
         case TorConnectionStatus.disconnected:
-          if (_torConnectingLock.isLocked) {
-            _torConnectingLock.release();
-          }
-          _requireMutex = false;
+          _releaseTorWaiters();
           break;
       }
     });
@@ -166,21 +189,7 @@ class ElectrumXClient {
     _torPreferenceListener = bus.on<TorPreferenceChangedEvent>().listen((
       event,
     ) async {
-      // not sure if we need to do anything specific here
-      // switch (event.status) {
-      //   case TorStatus.enabled:
-      //   case TorStatus.disabled:
-      // }
-
-      // setting to null should force the creation of a new json rpc client
-      // on the next request sent through this electrumx instance
-      _electrumAdapterChannel = null;
-      await (await ClientManager.sharedInstance.remove(
-        cryptoCurrency: cryptoCurrency,
-      )).$1?.close();
-
-      // Also close any chain height services that are currently open.
-      // await ChainHeightServiceManager.dispose();
+      if (!_closed) await _resetAdapter();
     });
   }
 
@@ -191,11 +200,14 @@ class ElectrumXClient {
     required CryptoCurrency cryptoCurrency,
     TorService? torService,
     EventBus? globalEventBusForTesting,
+    ElectrumRequestTimeouts requestTimeouts = const ElectrumRequestTimeouts(),
   }) {
     return ElectrumXClient(
       host: node.address,
       port: node.port,
       useSSL: node.useSSL,
+      trustedCertificatePem: node.trustedCertificatePem,
+      requestTimeouts: requestTimeouts,
       prefs: prefs,
       torService: torService,
       failovers: failovers,
@@ -217,121 +229,224 @@ class ElectrumXClient {
     return true;
   }
 
+  /// Lets the current connection finish this client's requests, then close.
+  /// Unlike [closeAdapter], the client stays usable: the next request opens
+  /// a new connection.
+  Future<void> disconnect() => _adapterMutex.protect(() async {
+    final current = _adapter;
+    _adapter = null;
+    _adapterCertificate = null;
+    if (current != null) await _retire(current);
+  });
+
   Future<void> closeAdapter() async {
-    await getElectrumAdapter()?.close();
+    _closed = true;
+    _releaseTorWaiters();
+    await _torPreferenceListener?.cancel();
+    await _torStatusListener?.cancel();
+    await _resetAdapter();
   }
 
-  Future<void> checkElectrumAdapter() async {
-    await _adapterMutex.protect(() async {
-      ({InternetAddress host, int port})? proxyInfo;
-
-      if (AppConfig.hasFeature(AppFeature.tor)) {
-        // If we're supposed to use Tor...
-        if (_prefs.useTor) {
-          // But Tor isn't running...
-          if (_torService.status != TorConnectionStatus.connected) {
-            // And the killswitch isn't set...
-            if (!_prefs.torKillSwitch) {
-              // Then we'll just proceed and connect to ElectrumX through
-              // clearnet at the bottom of this function.
-              Logging.instance.w(
-                "Tor preference set but Tor is not enabled, killswitch not set,"
-                " connecting to Electrum adapter through clearnet",
-              );
-            } else {
-              // ... But if the killswitch is set, then we throw an exception.
-              throw Exception(
-                "Tor preference and killswitch set but Tor is not enabled, "
-                "not connecting to Electrum adapter",
-              );
-              // TODO [prio=low]: Try to start Tor.
-            }
-          } else {
-            // Get the proxy info from the TorService.
-            proxyInfo = _torService.getProxyInfo();
-          }
-
-          if (netType == TorPlainNetworkOption.clear) {
-            _electrumAdapterChannel = null;
-            await ClientManager.sharedInstance.remove(
-              cryptoCurrency: cryptoCurrency,
-            );
-          }
-        } else {
-          if (netType == TorPlainNetworkOption.tor) {
-            _electrumAdapterChannel = null;
-            await ClientManager.sharedInstance.remove(
-              cryptoCurrency: cryptoCurrency,
-            );
-          }
-        }
-      }
-      // If the current ElectrumAdapterClient is closed, create a new one.
-      if (getElectrumAdapter() != null && getElectrumAdapter()!.peer.isClosed) {
-        _electrumAdapterChannel = null;
-        await ClientManager.sharedInstance.remove(
-          cryptoCurrency: cryptoCurrency,
-        );
-      }
-
-      final String useHost;
-      final int usePort;
-      final bool useUseSSL;
-
-      if (currentFailoverIndex == -1) {
-        useHost = host;
-        usePort = port;
-        useUseSSL = useSSL;
-      } else {
-        _electrumAdapterChannel = null;
-        await ClientManager.sharedInstance.remove(
-          cryptoCurrency: cryptoCurrency,
-        );
-        useHost = _failovers[currentFailoverIndex].address;
-        usePort = _failovers[currentFailoverIndex].port;
-        useUseSSL = _failovers[currentFailoverIndex].useSSL;
-      }
-
-      _electrumAdapterChannel ??= await electrum_adapter.connect(
-        useHost,
-        port: usePort,
-        connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
-        aliveTimerDuration: connectionTimeoutForSpecialCaseJsonRPCClients,
-        acceptUnverified: false,
-        useSSL: useUseSSL,
-        proxyInfo: proxyInfo,
-      );
-
-      if (getElectrumAdapter() == null) {
-        final ElectrumClient newClient;
-        if (cryptoCurrency is Firo) {
-          newClient = FiroElectrumClient(
-            _electrumAdapterChannel!,
-            useHost,
-            usePort,
-            useUseSSL,
-            proxyInfo,
-          );
-        } else {
-          newClient = ElectrumClient(
-            _electrumAdapterChannel!,
-            useHost,
-            usePort,
-            useUseSSL,
-            proxyInfo,
-          );
-        }
-
-        await newClient.request('server.version');
-
-        await ClientManager.sharedInstance.addClient(
-          newClient,
-          cryptoCurrency: cryptoCurrency,
-          netType: netType,
-        );
-      }
-    });
+  void _releaseTorWaiters() {
+    final gate = _torConnectionGate;
+    _torConnectionGate = null;
+    gate?.complete();
   }
+
+  Future<void> _waitForTor() async {
+    // Tor readiness is a signal, not a lock held by an individual request.
+    // Adapter setup remains serialized by _adapterMutex.
+    while (_torConnectionGate != null) {
+      await _torConnectionGate!.future;
+    }
+  }
+
+  /// Requests this client already sent on a superseded connection still
+  /// finish; the connection closes after the last one. Their own deadlines
+  /// bound the drain.
+  Future<void> _retire(ElectrumClient client) async {
+    if (client is! DrainingElectrumClient) return client.close();
+    _retiring.add(client);
+    unawaited(
+      client.done.then<void>(
+        (_) => _retiring.remove(client),
+        onError: (Object _) {
+          _retiring.remove(client);
+        },
+      ),
+    );
+    await client.retire();
+  }
+
+  /// Closes the current, pending and draining connections at once, for
+  /// closing the owner and for Tor preference changes.
+  Future<void> _resetAdapter() async {
+    _connectionGeneration++;
+    final clients = <ElectrumClient>{
+      if (_pendingClient != null) _pendingClient!,
+      if (_adapter != null) _adapter!,
+      ..._retiring,
+    };
+    _pendingClient = _adapter = null;
+    _adapterCertificate = null;
+    _retiring.clear();
+    await Future.wait(clients.map((client) => client.close()));
+  }
+
+  /// Opens one connection for [checkElectrumAdapter]. Tests override this to
+  /// supply an in-memory transport; the setup and failover logic is shared.
+  @protected
+  Future<ElectrumClient> openConnection({
+    required String host,
+    required int port,
+    required bool useSSL,
+    required ({InternetAddress host, int port})? proxy,
+    required bool Function(X509Certificate)? onBadCertificate,
+  }) async {
+    final channel = await electrum_adapter.connect(
+      host,
+      port: port,
+      useSSL: useSSL,
+      proxyInfo: proxy,
+      connectionTimeout: connectionTimeoutForSpecialCaseJsonRPCClients,
+      connectionDeadline: connectionTimeoutForSpecialCaseJsonRPCClients,
+      acceptUnverified: false,
+      onBadCertificate: onBadCertificate,
+    );
+    return cryptoCurrency is Firo
+        ? ManagedFiroElectrumClient(
+            channel,
+            host,
+            port,
+            useSSL,
+            proxy,
+            requestTimeout: requestTimeouts.standard,
+          )
+        : ManagedElectrumClient(
+            channel,
+            host,
+            port,
+            useSSL,
+            proxy,
+            requestTimeout: requestTimeouts.standard,
+          );
+  }
+
+  Future<void> checkElectrumAdapter() => _adapterMutex.protect(() async {
+    final generation = _connectionGeneration;
+    void ensureCurrent() {
+      if (_closed || generation != _connectionGeneration) {
+        throw StateError('Electrum client changed');
+      }
+    }
+
+    ensureCurrent();
+    ({InternetAddress host, int port})? proxy;
+    if (AppConfig.hasFeature(AppFeature.tor) && _prefs.useTor) {
+      if (_torService.status == TorConnectionStatus.connected) {
+        proxy = _torService.getProxyInfo();
+      } else if (_prefs.torKillSwitch) {
+        throw StateError('Tor is not connected');
+      }
+    }
+    // Only this client's own nodes are ever connected, and they cannot change
+    // for its lifetime. A connection therefore needs to be checked against
+    // the selected endpoint and approval, and against the current Tor route.
+    bool sameRoute(ElectrumClient client) =>
+        client.proxyInfo?.host.address == proxy?.host.address &&
+        client.proxyInfo?.port == proxy?.port;
+    // Draining connections still obey Tor route changes.
+    final offRoute = _retiring.where((client) => !sameRoute(client)).toList();
+    _retiring.removeAll(offRoute);
+    await Future.wait(offRoute.map((client) => client.close()));
+    ensureCurrent();
+    // Setup fails before the caller RPC is sent. Try each remaining configured
+    // node once, including for callers that use the adapter directly.
+    for (var index = currentFailoverIndex; index < _failovers.length; index++) {
+      ensureCurrent();
+      currentFailoverIndex = index;
+      final failover = index == -1 ? null : _failovers[index];
+      final useHost = failover?.address ?? host;
+      final usePort = failover?.port ?? port;
+      final ssl = failover?.useSSL ?? useSSL;
+      final pem = ssl
+          ? (failover == null
+                ? trustedCertificatePem
+                : failover.trustedCertificatePem)
+          : null;
+      final existing = _adapter;
+      // At the primary index any open connection of this client is kept: a
+      // successful failover request resets the index, and later requests stay
+      // on the working failover. A failover index selects that endpoint and
+      // its own approval.
+      if (existing != null &&
+          !existing.peer.isClosed &&
+          sameRoute(existing) &&
+          (failover == null ||
+              (existing.host == useHost &&
+                  existing.port == usePort &&
+                  existing.useSSL == ssl &&
+                  _adapterCertificate == pem))) {
+        return;
+      }
+
+      // Invalid saved approvals are a local configuration error. They must not
+      // be mistaken for a failed network attempt or bypassed by failover.
+      // Check before retiring the current connection: an attempt that cannot
+      // connect must not take this client's working connection down with it.
+      final bool Function(X509Certificate)? certificateCheck;
+      try {
+        certificateCheck = trustedCertificateCheck(pem);
+      } on FormatException {
+        // Fail this attempt, but let the next one retry a recovered primary.
+        currentFailoverIndex = -1;
+        rethrow;
+      }
+      if (existing != null) {
+        _adapter = null;
+        _adapterCertificate = null;
+        // Requests already sent on it finish, unless the Tor route changed.
+        await (sameRoute(existing) ? _retire(existing) : existing.close());
+        ensureCurrent();
+      }
+      ElectrumClient? candidate;
+      try {
+        candidate = await openConnection(
+          host: useHost,
+          port: usePort,
+          useSSL: ssl,
+          proxy: proxy,
+          onBadCertificate: certificateCheck,
+        );
+        _pendingClient = candidate;
+        ensureCurrent();
+        await candidate.requestWithTimeout(
+          'server.version',
+          timeout: connectionTimeoutForSpecialCaseJsonRPCClients,
+        );
+        ensureCurrent();
+        _adapter = candidate;
+        _adapterCertificate = pem;
+      } catch (error) {
+        // Closing the owner or changing its network settings cancels the whole
+        // operation. Programming errors are not node faults; StateError can
+        // instead mean the negotiating peer has closed.
+        ensureCurrent();
+        if (error is Error && error is! StateError) rethrow;
+        if (index == _failovers.length - 1) {
+          currentFailoverIndex = -1;
+          rethrow;
+        }
+      } finally {
+        if (identical(_pendingClient, candidate)) _pendingClient = null;
+        if (candidate != null && !identical(_adapter, candidate)) {
+          await candidate.close();
+        }
+      }
+      ensureCurrent();
+      if (_adapter != null) return;
+    }
+  });
 
   /// Send raw rpc command
   Future<dynamic> request({
@@ -339,22 +454,21 @@ class ElectrumXClient {
     List<dynamic> args = const [],
     String? requestID,
     int retries = 2,
-    Duration requestTimeout = const Duration(seconds: 60),
+    Duration? requestTimeout,
   }) async {
     if (!(await _allow())) {
       throw WifiOnlyException();
     }
 
-    if (_requireMutex) {
-      await _torConnectingLock.protect(
-        () async => await checkElectrumAdapter(),
-      );
-    } else {
-      await checkElectrumAdapter();
-    }
+    await _waitForTor();
+    await checkElectrumAdapter();
 
     try {
-      final response = await getElectrumAdapter()!.request(command, args);
+      final response = await _adapter!.requestWithTimeout(
+        command,
+        parameters: args,
+        timeout: requestTimeout ?? requestTimeouts.forMethod(command),
+      );
 
       if (response is Map &&
           response.keys.contains("error") &&
@@ -431,26 +545,28 @@ class ElectrumXClient {
   Future<List<dynamic>> batchRequest({
     required String command,
     required List<dynamic> args,
-    Duration requestTimeout = const Duration(seconds: 60),
+    Duration? requestTimeout,
     int retries = 2,
   }) async {
+    if (args.isEmpty) return [];
     if (!(await _allow())) {
       throw WifiOnlyException();
     }
 
-    if (_requireMutex) {
-      await _torConnectingLock.protect(
-        () async => await checkElectrumAdapter(),
-      );
-    } else {
-      await checkElectrumAdapter();
-    }
+    await _waitForTor();
+    await checkElectrumAdapter();
 
     try {
       final futures = <Future<dynamic>>[];
-      getElectrumAdapter()!.peer.withBatch(() {
+      _adapter!.peer.withBatch(() {
         for (final arg in args) {
-          futures.add(getElectrumAdapter()!.request(command, arg));
+          futures.add(
+            _adapter!.requestWithTimeout(
+              command,
+              parameters: arg,
+              timeout: requestTimeout ?? requestTimeouts.forMethod(command),
+            ),
+          );
         }
       });
       final response = await Future.wait(futures);
@@ -567,6 +683,10 @@ class ElectrumXClient {
   ///   "hex": "00000020890208a0ae3a3892aa047c5468725846577cfcd9b512b50000000000000000005dc2b02f2d297a9064ee103036c14d678f9afc7e3d9409cf53fd58b82e938e8ecbeca05a2d2103188ce804c4"
   /// }
   Future<Map<String, dynamic>> getBlockHeadTip({String? requestID}) async {
+    // This request subscribes the connection to new headers. Registering the
+    // method lets the adapter accept those notifications instead of reporting
+    // each one as an unknown method.
+    registerSubscribable('blockchain.headers', 0);
     try {
       final response = await request(
         requestID: requestID,
@@ -614,16 +734,12 @@ class ElectrumXClient {
     required String rawTx,
     String? requestID,
   }) async {
-    try {
-      final response = await request(
-        requestID: requestID,
-        command: 'blockchain.transaction.broadcast',
-        args: [rawTx],
-      );
-      return response as String;
-    } catch (e) {
-      rethrow;
-    }
+    final response = await request(
+      requestID: requestID,
+      command: 'blockchain.transaction.broadcast',
+      args: [rawTx],
+    );
+    return response as String;
   }
 
   /// Return the confirmed and unconfirmed balances for the scripthash of a given scripthash
@@ -677,7 +793,6 @@ class ElectrumXClient {
         final response = await request(
           requestID: requestID,
           command: 'blockchain.scripthash.get_history',
-          requestTimeout: const Duration(minutes: 5),
           args: [scripthash],
         );
         result = response;
@@ -829,9 +944,10 @@ class ElectrumXClient {
   }) async {
     Logging.instance.d("attempting to fetch blockchain.transaction.get...");
     await checkElectrumAdapter();
-    final dynamic response = await getElectrumAdapter()!.request(
+    final dynamic response = await _adapter!.requestWithTimeout(
       'blockchain.transaction.get',
-      [txHash, verbose],
+      parameters: [txHash, verbose],
+      timeout: requestTimeouts.forMethod('blockchain.transaction.get'),
     );
     Logging.instance.d("Fetching blockchain.transaction.get finished");
 
@@ -853,6 +969,7 @@ class ElectrumXClient {
     final response = await batchRequest(
       command: 'blockchain.transaction.get',
       args: txHashes.map((e) => [e, true]).toList(),
+      requestTimeout: requestTimeouts.transactionBatch,
     );
     final List<Map<String, dynamic>> result = [];
     for (int i = 0; i < response.length; i++) {
@@ -885,9 +1002,12 @@ class ElectrumXClient {
   }) async {
     Logging.instance.d("attempting to fetch lelantus.getanonymityset...");
     await checkElectrumAdapter();
-    final Map<String, dynamic> response =
-        await (getElectrumAdapter() as FiroElectrumClient)
-            .getLelantusAnonymitySet(groupId: groupId, blockHash: blockhash);
+    final Map<String, dynamic> response = await (_adapter as FiroElectrumClient)
+        .getLelantusAnonymitySet(
+          groupId: groupId,
+          blockHash: blockhash,
+          timeout: requestTimeouts.firoSet,
+        );
     Logging.instance.d("Fetching lelantus.getanonymityset finished");
     return response;
   }
@@ -902,8 +1022,11 @@ class ElectrumXClient {
   }) async {
     Logging.instance.d("attempting to fetch lelantus.getmintmetadata...");
     await checkElectrumAdapter();
-    final dynamic response = await (getElectrumAdapter() as FiroElectrumClient)
-        .getLelantusMintData(mints: mints);
+    final dynamic response = await _adapter!.requestWithTimeout(
+      'lelantus.getmintmetadata',
+      parameters: [mints],
+      timeout: requestTimeouts.forMethod('lelantus.getmintmetadata'),
+    );
     Logging.instance.d("Fetching lelantus.getmintmetadata finished");
     return response;
   }
@@ -921,9 +1044,11 @@ class ElectrumXClient {
     dynamic response;
 
     while (retryCount > 0 && response is! List) {
-      response = await (getElectrumAdapter() as FiroElectrumClient)
-          .getLelantusUsedCoinSerials(startNumber: startNumber);
-      // TODO add 2 minute timeout.
+      response = await (_adapter as FiroElectrumClient)
+          .getLelantusUsedCoinSerials(
+            startNumber: startNumber,
+            timeout: requestTimeouts.firoSet,
+          );
       Logging.instance.d("Fetching lelantus.getusedcoinserials finished");
 
       retryCount--;
@@ -938,8 +1063,10 @@ class ElectrumXClient {
   Future<int> getLelantusLatestCoinId({String? requestID}) async {
     Logging.instance.d("attempting to fetch lelantus.getlatestcoinid...");
     await checkElectrumAdapter();
-    final int response = await (getElectrumAdapter() as FiroElectrumClient)
-        .getLatestCoinId();
+    final int response = await _adapter!.requestWithTimeout(
+      'lelantus.getlatestcoinid',
+      timeout: requestTimeouts.forMethod('lelantus.getlatestcoinid'),
+    ) as int;
     Logging.instance.d("Fetching lelantus.getlatestcoinid finished");
     return response;
   }
@@ -968,11 +1095,11 @@ class ElectrumXClient {
       final start = DateTime.now();
       await checkElectrumAdapter();
       final Map<String, dynamic> response =
-          await (getElectrumAdapter() as FiroElectrumClient)
-              .getSparkAnonymitySet(
-                coinGroupId: coinGroupId,
-                startBlockHash: startBlockHash,
-              );
+          await (_adapter as FiroElectrumClient).getSparkAnonymitySet(
+            coinGroupId: coinGroupId,
+            startBlockHash: startBlockHash,
+            timeout: requestTimeouts.firoSet,
+          );
       Logging.instance.d(
         "Finished ElectrumXClient.getSparkAnonymitySet(coinGroupId"
         "=$coinGroupId, startBlockHash=$startBlockHash). "
@@ -996,7 +1123,7 @@ class ElectrumXClient {
   //     final start = DateTime.now();
   //     await _checkElectrumAdapter();
   //     final Map<String, dynamic> response =
-  //         await (getElectrumAdapter() as FiroElectrumClient)
+  //         await (_adapter as FiroElectrumClient)
   //             .getUsedCoinsTags(startNumber: startNumber);
   //     // TODO: Add 2 minute timeout.
   //     // Why 2 minutes?
@@ -1043,7 +1170,7 @@ class ElectrumXClient {
   //     );
   //     await checkElectrumAdapter();
   //     final List<dynamic> response =
-  //         await (getElectrumAdapter() as FiroElectrumClient)
+  //         await (_adapter as FiroElectrumClient)
   //             .getSparkMintMetaData(sparkCoinHashes: sparkCoinHashes);
   //     Logging.instance.log(
   //       "Fetching spark.getsparkmintmetadata finished",
@@ -1063,8 +1190,10 @@ class ElectrumXClient {
     try {
       Logging.instance.d("attempting to fetch spark.getsparklatestcoinid...");
       await checkElectrumAdapter();
-      final int response = await (getElectrumAdapter() as FiroElectrumClient)
-          .getSparkLatestCoinId();
+      final int response = await _adapter!.requestWithTimeout(
+        'spark.getsparklatestcoinid',
+        timeout: requestTimeouts.forMethod('spark.getsparklatestcoinid'),
+      ) as int;
       Logging.instance.d("Fetching spark.getsparklatestcoinid finished");
       return response;
     } catch (e, s) {
@@ -1364,7 +1493,10 @@ class ElectrumXClient {
   /// }
   Future<Map<String, dynamic>> getFeeRate({String? requestID}) async {
     await checkElectrumAdapter();
-    return await getElectrumAdapter()!.getFeeRate();
+    return await _adapter!.requestWithTimeout(
+      'blockchain.getfeerate',
+      timeout: requestTimeouts.forMethod('blockchain.getfeerate'),
+    ) as Map<String, dynamic>;
   }
 
   /// Return the estimated transaction fee per kilobyte for a transaction to be

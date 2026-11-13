@@ -30,12 +30,7 @@ class MoneroNodeConnectionResponse {
   final int? port;
   final bool success;
 
-  MoneroNodeConnectionResponse(
-    this.cert,
-    this.url,
-    this.port,
-    this.success,
-  );
+  MoneroNodeConnectionResponse(this.cert, this.url, this.port, this.success);
 }
 
 Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
@@ -43,10 +38,7 @@ Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
   String? username,
   String? password,
   bool allowBadX509Certificate, {
-  required ({
-    InternetAddress host,
-    int port,
-  })? proxyInfo,
+  required ({InternetAddress host, int port})? proxyInfo,
 }) async {
   if (uri.host.endsWith(".onion")) {
     if (proxyInfo == null) {
@@ -80,8 +72,9 @@ Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
             // node asking us for authentication, but we don't have any crendentials.
             return MoneroNodeConnectionResponse(null, null, null, false);
           }
-          authenticateHeaderValue =
-              line.replaceFirst('WWW-authenticate: ', '').trim();
+          authenticateHeaderValue = line
+              .replaceFirst('WWW-authenticate: ', '')
+              .trim();
         }
       }
       // header to authenticate was present, we need to remake the request with digest
@@ -91,8 +84,12 @@ Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
 
         // generate the Authorization header for the second request.
         final authHeader = digestAuth.getAuthString('POST', uri.path);
-        final rawRequestAuthenticated =
-            DaemonRpc.rawRequestRpc(uri, 'get_info', {}, authHeader);
+        final rawRequestAuthenticated = DaemonRpc.rawRequestRpc(
+          uri,
+          'get_info',
+          {},
+          authHeader,
+        );
         // resend with an authenticated request
         response = await socket.send(rawRequestAuthenticated);
       }
@@ -103,7 +100,7 @@ Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
 
       return MoneroNodeConnectionResponse(null, null, null, success);
     } catch (e, s) {
-      Logging.instance.w("$e\n$s", error: e, stackTrace: s,);
+      Logging.instance.w("$e\n$s", error: e, stackTrace: s);
       return MoneroNodeConnectionResponse(null, null, null, false);
     } finally {
       await socket?.close();
@@ -114,10 +111,7 @@ Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
     try {
       if (proxyInfo != null) {
         SocksTCPClient.assignToHttpClient(httpClient, [
-          ProxySettings(
-            proxyInfo.host,
-            proxyInfo.port,
-          ),
+          ProxySettings(proxyInfo.host, proxyInfo.port),
         ]);
       }
 
@@ -127,8 +121,12 @@ Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
         }
 
         if (badCertResponse == null) {
-          badCertResponse =
-              MoneroNodeConnectionResponse(cert, url, port, false);
+          badCertResponse = MoneroNodeConnectionResponse(
+            cert,
+            url,
+            port,
+            false,
+          );
         } else {
           return false;
         }
@@ -150,7 +148,7 @@ Future<MoneroNodeConnectionResponse> testMoneroNodeConnection(
       if (badCertResponse != null) {
         return badCertResponse!;
       } else {
-        Logging.instance.w("$e\n$s", error: e, stackTrace: s,);
+        Logging.instance.w("$e\n$s", error: e, stackTrace: s);
         return MoneroNodeConnectionResponse(null, null, null, false);
       }
     } finally {
@@ -204,7 +202,7 @@ Future<bool> showBadX509CertificateDialog(
 extension on SOCKSSocket {
   /// write the raw request to the socket and return the response as String
   Future<String> send(String rawRequest) async {
-    write(rawRequest);
+    await write(rawRequest);
     final buffer = StringBuffer();
     await for (final response in inputStream) {
       buffer.write(utf8.decode(response));
