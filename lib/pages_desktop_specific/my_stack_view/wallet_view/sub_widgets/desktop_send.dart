@@ -1145,7 +1145,14 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       ?.map(
         (index) =>
             ref.read(pRecipient(_recipientId(index))) ??
-            (address: "", amount: null, label: null),
+            (
+              address: "",
+              amount: null,
+              label: null,
+              memoBytes: null,
+              message: null,
+              additionalParams: const {},
+            ),
       )
       .toList();
 
@@ -1212,8 +1219,22 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         ? resolved.address
         : _address ?? "";
     _setMultiRecipients([
-      (address: address, amount: ref.read(pSendAmount), label: null),
-      (address: "", amount: null, label: null),
+      (
+        address: address,
+        amount: ref.read(pSendAmount),
+        label: null,
+        memoBytes: null,
+        message: null,
+        additionalParams: const {},
+      ),
+      (
+        address: "",
+        amount: null,
+        label: null,
+        memoBytes: null,
+        message: null,
+        additionalParams: const {},
+      ),
     ]);
   }
 

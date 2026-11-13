@@ -179,7 +179,14 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
       ?.map(
         (index) =>
             ref.read(pRecipient(_recipientId(index))) ??
-            (address: "", amount: null, label: null),
+            (
+              address: "",
+              amount: null,
+              label: null,
+              memoBytes: null,
+              message: null,
+              additionalParams: const {},
+            ),
       )
       .toList();
 
@@ -249,8 +256,22 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
         ? resolved.address
         : _address ?? "";
     _setMultiRecipients([
-      (address: address, amount: ref.read(pSendAmount), label: null),
-      (address: "", amount: null, label: null),
+      (
+        address: address,
+        amount: ref.read(pSendAmount),
+        label: null,
+        memoBytes: null,
+        message: null,
+        additionalParams: const {},
+      ),
+      (
+        address: "",
+        amount: null,
+        label: null,
+        memoBytes: null,
+        message: null,
+        additionalParams: const {},
+      ),
     ]);
   }
 
