@@ -46,6 +46,7 @@ import '../frost_ms/restore/restore_frost_ms_wallet_view.dart';
 import '../new_wallet_options/new_wallet_options_view.dart';
 import '../new_wallet_recovery_phrase_warning_view/new_wallet_recovery_phrase_warning_view.dart';
 import '../restore_wallet_view/restore_options_view/restore_options_view.dart';
+import '../../hardware_wallet/hardware_wallet_connect_view.dart';
 
 class NameYourWalletView extends ConsumerStatefulWidget {
   const NameYourWalletView({
@@ -96,13 +97,11 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
       }
 
       if (mounted) {
-        ref.read(mnemonicWordCountStateProvider.state).state =
-            coin.defaultSeedPhraseLength;
-
-        ref.read(pNewWalletOptions.notifier).state = null;
-
         switch (widget.addWalletType) {
           case AddWalletType.New:
+            ref.read(mnemonicWordCountStateProvider.state).state =
+                coin.defaultSeedPhraseLength;
+            ref.read(pNewWalletOptions.notifier).state = null;
             unawaited(
               Navigator.of(context).pushNamed(
                 coin.possibleMnemonicLengths.length > 1 ||
@@ -116,9 +115,21 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
             break;
 
           case AddWalletType.Restore:
+            ref.read(mnemonicWordCountStateProvider.state).state =
+                coin.defaultSeedPhraseLength;
+            ref.read(pNewWalletOptions.notifier).state = null;
             unawaited(
               Navigator.of(context).pushNamed(
                 RestoreOptionsView.routeName,
+                arguments: Tuple2(name, coin),
+              ),
+            );
+            break;
+
+          case AddWalletType.Hardware:
+            unawaited(
+              Navigator.of(context).pushNamed(
+                HardwareWalletConnectView.routeName,
                 arguments: Tuple2(name, coin),
               ),
             );

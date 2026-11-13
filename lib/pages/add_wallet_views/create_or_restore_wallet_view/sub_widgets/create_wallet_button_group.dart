@@ -30,8 +30,9 @@ class CreateWalletButtonGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment:
-          isDesktop ? CrossAxisAlignment.center : CrossAxisAlignment.stretch,
+      crossAxisAlignment: isDesktop
+          ? CrossAxisAlignment.center
+          : CrossAxisAlignment.stretch,
       children: [
         ConstrainedBox(
           constraints: BoxConstraints(
@@ -45,10 +46,7 @@ class CreateWalletButtonGroup extends StatelessWidget {
             onPressed: () {
               Navigator.of(context).pushNamed(
                 NameYourWalletView.routeName,
-                arguments: Tuple2(
-                  AddWalletType.New,
-                  coin,
-                ),
+                arguments: Tuple2(AddWalletType.New, coin),
               );
             },
             child: Text(
@@ -59,9 +57,7 @@ class CreateWalletButtonGroup extends StatelessWidget {
             ),
           ),
         ),
-        SizedBox(
-          height: isDesktop ? 16 : 12,
-        ),
+        SizedBox(height: isDesktop ? 16 : 12),
         ConstrainedBox(
           constraints: BoxConstraints(
             minHeight: isDesktop ? 70 : 0,
@@ -74,10 +70,7 @@ class CreateWalletButtonGroup extends StatelessWidget {
             onPressed: () {
               Navigator.of(context).pushNamed(
                 NameYourWalletView.routeName,
-                arguments: Tuple2(
-                  AddWalletType.Restore,
-                  coin,
-                ),
+                arguments: Tuple2(AddWalletType.Restore, coin),
               );
             },
             child: Text(
@@ -92,6 +85,36 @@ class CreateWalletButtonGroup extends StatelessWidget {
             ),
           ),
         ),
+        if (isDesktop && coin.supportsHardwareWallet) ...[
+          SizedBox(height: isDesktop ? 16 : 12),
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: isDesktop ? 70 : 0,
+              minWidth: isDesktop ? 480 : 0,
+            ),
+            child: TextButton(
+              style: Theme.of(context)
+                  .extension<StackColors>()!
+                  .getSecondaryEnabledButtonStyle(context),
+              onPressed: () {
+                Navigator.of(context).pushNamed(
+                  NameYourWalletView.routeName,
+                  arguments: Tuple2(AddWalletType.Hardware, coin),
+                );
+              },
+              child: Text(
+                "Hardware wallet",
+                style: isDesktop
+                    ? STextStyles.desktopButtonSecondaryEnabled(context)
+                    : STextStyles.button(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
+                      ),
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }

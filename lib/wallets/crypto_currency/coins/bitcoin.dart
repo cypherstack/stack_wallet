@@ -61,6 +61,12 @@ class Bitcoin extends Bip39HDCurrency
   bool get torSupport => true;
 
   @override
+  // Only mainnet Bitcoin is supported: the Ledger Bitcoin service and connect
+  // flow derive the fixed BIP84 path m/84'/0'/0' (coin type 0). Testnet would
+  // require coin type 1', so it would derive a mismatched xpub.
+  bool get supportsHardwareWallet => network == CryptoCurrencyNetwork.main;
+
+  @override
   List<DerivePathType> get supportedDerivationPathTypes => [
     DerivePathType.bip44,
     DerivePathType.bip49,
