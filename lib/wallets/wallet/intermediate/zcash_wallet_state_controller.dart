@@ -239,11 +239,33 @@ class ZcashStackStateMapper {
     );
   }
 
-  List<TransactionV2> transactions(zcash.ZcashTransactionHistory history) => [
-    for (final entry in history.entries) _transaction(entry),
-  ];
+  List<TransactionV2> transactions(
+    zcash.ZcashTransactionHistory history, {
+    zcash.IronwoodPendingSendState? pendingSends,
+  }) {
+    final pendingByTxid = {
+      for (final record
+          in pendingSends?.records ?? const <zcash.IronwoodPendingSendRecord>[])
+        record.txid.toLowerCase(): record,
+    };
+    return [
+      for (final entry in history.entries)
+        _transaction(entry, pendingByTxid[entry.txid.toLowerCase()]),
+    ];
+  }
 
-  TransactionV2 _transaction(zcash.ZcashHistoryEntry entry) {
+  TransactionV2 _transaction(
+    zcash.ZcashHistoryEntry entry,
+    zcash.IronwoodPendingSendRecord? pending,
+  ) {
+    final externalZatoshis = pending == null
+        ? entry.spentZatoshis -
+              entry.receivedZatoshis -
+              (entry.feeZatoshis ?? 0)
+        : pending.paymentOutputs.fold<int>(
+            0,
+            (total, output) => total + output.amountZatoshis,
+          );
     final inputs = <InputV2>[
       if (entry.spentZatoshis > 0)
         InputV2.isarCantDoRequiredInDefaultConstructor(
@@ -260,6 +282,17 @@ class ZcashStackStateMapper {
         ),
     ];
     final outputs = <OutputV2>[
+      // Exact shielded recipients, per-output values, and memos remain only in
+      // the authenticated encrypted pending-send store. MainDB is not
+      // encrypted, so its durable history contains one address-free aggregate
+      // output instead of privacy-sensitive ZIP-321 payment details.
+      if (entry.isOutgoing && externalZatoshis > 0)
+        OutputV2.isarCantDoRequiredInDefaultConstructor(
+          scriptPubKeyHex: '',
+          valueStringSats: externalZatoshis.toString(),
+          addresses: const [],
+          walletOwns: false,
+        ),
       if (entry.receivedZatoshis > 0)
         OutputV2.isarCantDoRequiredInDefaultConstructor(
           scriptPubKeyHex: '',

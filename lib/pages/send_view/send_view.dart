@@ -172,7 +172,6 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
   Set<StandardInput> selectedUTXOs = {};
 
   bool get _supportsMultiRecipient =>
-      coin is Zcash ||
       ref.read(pWallets).getWallet(walletId).supportsMultiRecipient;
 
   RecipientId _recipientId(int index) => (walletId: walletId, index: index);

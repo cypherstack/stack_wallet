@@ -63,6 +63,9 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
   @override
   int get isarTransactionVersion => 2;
 
+  @override
+  bool get supportsMultiRecipient => true;
+
   int get accountSessionGeneration => _accountSession?.generation ?? 0;
 
   void configureAccountSessionFactory(ZcashAccountSessionFactory factory) {
@@ -262,97 +265,119 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
   Future<void> checkSaveInitialReceivingAddress() async {}
 
   @override
-  Future<TxData> prepareSend({required TxData txData}) =>
-      _sendMutex.protect(() async {
-        final recipients = txData.recipients;
-        if (recipients == null || recipients.length != 1) {
-          throw UnsupportedError(
-            'Zcash currently requires exactly one recipient; multi-recipient '
-            'ZIP-321 needs a backend multi-output reservation artifact',
-          );
-        }
-        final requested = recipients.single;
+  Future<TxData> prepareSend({required TxData txData}) => _sendMutex.protect(
+    () async {
+      final recipients = txData.recipients;
+      if (recipients == null || recipients.isEmpty) {
+        throw ArgumentError('Zcash requires at least one recipient');
+      }
+      var total = BigInt.zero;
+      final resolved = <({String address, BigInt amount, Uint8List? memo})>[];
+      for (final requested in recipients) {
         if (requested.isChange ||
             requested.amount.fractionDigits != cryptoCurrency.fractionDigits ||
             requested.amount.raw <= BigInt.zero ||
             requested.amount.raw > BigInt.from(zcash.maxMoneyZatoshis)) {
           throw ArgumentError('Invalid Zcash recipient amount');
         }
-        final resolved = _resolveStackPayment(
-          address: requested.address,
-          amount: requested.amount.raw,
-          memo: txData.memo,
-        );
-        final session = _requireAccountSession();
-        final syncClient = session.syncClient;
-        final stateStore = _stateStore;
-        final pendingStore = _pendingSendStore;
-        final scanExecutor = _scanExecutor;
-        if (syncClient == null ||
-            stateStore == null ||
-            pendingStore == null ||
-            scanExecutor == null) {
-          throw StateError('Zcash send requires an initialized sync session');
+        total += requested.amount.raw;
+        if (total > BigInt.from(zcash.maxMoneyZatoshis)) {
+          throw ArgumentError('Zcash recipient total exceeds MAX_MONEY');
         }
-        final snapshot = await _requireStateController().refresh();
-        await _reconcileTransparentShielding();
-        final persisted = await stateStore.load();
-        if (persisted == null ||
-            persisted.observedChainHeight != snapshot.chainHeight) {
-          throw StateError('Zcash sync state is unavailable or not current');
-        }
-        final saplingChange = await _saplingChangeAddress();
-        final ironwoodChange = await _ironwoodChangeAddress();
-        final seed = zcash.nativeMnemonicToSeed(
-          await getMnemonic(),
-          passphrase: await getMnemonicPassphrase(),
-        );
-        final root = await StackFileSystem.applicationRootDirectory();
-        await _releaseCurrentPrepared();
-        final pending = await pendingStore.load();
-        final prepared = await _sendService.prepare(
-          ZcashSendPreparationRequest(
-            network: cryptoCurrency.network,
-            sessionGeneration: session.generation,
-            state: persisted.syncState,
-            pendingSends: pending,
-            syncClient: syncClient,
-            scanExecutor: scanExecutor,
-            seedHex: seed.seedHex,
-            saplingChangeAddress: saplingChange,
-            ironwoodChangeAddress: ironwoodChange,
-            recipient: resolved.address,
-            amountZatoshis: resolved.amount.toInt(),
-            memo: resolved.memo,
-            targetHeight: snapshot.chainHeight + 1,
-            expiryHeight: snapshot.chainHeight + 41,
-            resolveSaplingProvingParameters: () =>
-                zcash.SaplingProvingParameterCache(
-                  cacheRoot: Directory(
-                    path.join(root.path, 'zcash', 'sapling-params'),
-                  ),
-                ).resolve(),
-            regtestNu63ActivationHeight: _regtestNu63ActivationHeight,
+        resolved.add(
+          _resolveStackPayment(
+            address: requested.address,
+            amount: requested.amount.raw,
+            memo: recipients.length == 1 ? txData.memo : null,
+            memoBytes: requested.memoBytes,
           ),
         );
-        // This is the durability boundary: no prepared transaction is exposed
-        // to review until its selected nullifiers are committed on disk.
-        await pendingStore.save(pending);
-        _preparedSend = prepared;
-        return txData.copyWith(
-          raw: prepared.transactionHex,
-          txid: prepared.txid,
-          fee: _amount(prepared.feeZatoshis),
-          memo: txData.memo,
-          recipients: [
-            requested.copyWith(
-              address: prepared.encodedRecipient,
-              amount: _amount(prepared.amountZatoshis),
-            ),
+      }
+      final session = _requireAccountSession();
+      final syncClient = session.syncClient;
+      final stateStore = _stateStore;
+      final pendingStore = _pendingSendStore;
+      final scanExecutor = _scanExecutor;
+      if (syncClient == null ||
+          stateStore == null ||
+          pendingStore == null ||
+          scanExecutor == null) {
+        throw StateError('Zcash send requires an initialized sync session');
+      }
+      final snapshot = await _requireStateController().refresh();
+      await _reconcileTransparentShielding();
+      final persisted = await stateStore.load();
+      if (persisted == null ||
+          persisted.observedChainHeight != snapshot.chainHeight) {
+        throw StateError('Zcash sync state is unavailable or not current');
+      }
+      final saplingChange = await _saplingChangeAddress();
+      final ironwoodChange = await _ironwoodChangeAddress();
+      final seed = zcash.nativeMnemonicToSeed(
+        await getMnemonic(),
+        passphrase: await getMnemonicPassphrase(),
+      );
+      final root = await StackFileSystem.applicationRootDirectory();
+      await _releaseCurrentPrepared();
+      final pending = await pendingStore.load();
+      final prepared = await _sendService.prepare(
+        ZcashSendPreparationRequest(
+          network: cryptoCurrency.network,
+          sessionGeneration: session.generation,
+          state: persisted.syncState,
+          pendingSends: pending,
+          syncClient: syncClient,
+          scanExecutor: scanExecutor,
+          seedHex: seed.seedHex,
+          saplingChangeAddress: saplingChange,
+          ironwoodChangeAddress: ironwoodChange,
+          recipient: resolved.first.address,
+          amountZatoshis: resolved.first.amount.toInt(),
+          memo: resolved.first.memo,
+          payments: [
+            for (final payment in resolved)
+              ZcashSendPayment(
+                recipient: payment.address,
+                amountZatoshis: payment.amount.toInt(),
+                memo: payment.memo,
+              ),
           ],
-          vExtraData: _preparedDigest(prepared),
-        );
-      });
+          targetHeight: snapshot.chainHeight + 1,
+          expiryHeight: snapshot.chainHeight + 41,
+          resolveSaplingProvingParameters: () =>
+              zcash.SaplingProvingParameterCache(
+                cacheRoot: Directory(
+                  path.join(root.path, 'zcash', 'sapling-params'),
+                ),
+              ).resolve(),
+          regtestNu63ActivationHeight: _regtestNu63ActivationHeight,
+        ),
+      );
+      // This is the durability boundary: no prepared transaction is exposed
+      // to review until its selected nullifiers are committed on disk.
+      await pendingStore.save(pending);
+      _preparedSend = prepared;
+      final outputs = _preparedPaymentOutputs(prepared);
+      if (outputs.length != recipients.length) {
+        throw StateError('Prepared Zcash output count changed unexpectedly');
+      }
+      return txData.copyWith(
+        raw: prepared.transactionHex,
+        txid: prepared.txid,
+        fee: _amount(prepared.feeZatoshis),
+        memo: txData.memo,
+        recipients: [
+          for (var index = 0; index < outputs.length; index++)
+            recipients[index].copyWith(
+              address: outputs[index].encodedRecipient,
+              amount: _amount(outputs[index].amountZatoshis),
+              memoBytes: outputs[index].memo,
+            ),
+        ],
+        vExtraData: _preparedDigest(prepared),
+      );
+    },
+  );
 
   /// Sweeps every mature, unreserved transparent output into this wallet's
   /// Ironwood receiver. This is intentionally a wallet-maintenance operation,
@@ -551,6 +576,65 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
         return _txDataForPrepared(artifact, isChange: true);
       });
 
+  /// Rehydrates the exact signed ordinary-send artifact and its ordered
+  /// outputs after process restart. The durable reservation remains the
+  /// authority; no transaction is rebuilt and no key material is persisted.
+  Future<TxData?> recoverPreparedSend() => _sendMutex.protect(() async {
+    if (_preparedSend != null) {
+      throw StateError('another Zcash transaction is already prepared');
+    }
+    final stateStore = _stateStore;
+    final pendingStore = _pendingSendStore;
+    final session = _requireAccountSession();
+    if (stateStore == null || pendingStore == null) {
+      throw StateError('Zcash send state is not initialized');
+    }
+    final persisted = await stateStore.load();
+    if (persisted == null) return null;
+    final pending = await pendingStore.load();
+    pending.recoverInterruptedSubmissions();
+    await pendingStore.save(pending);
+    final chainHeight = _requireStateController().inspection.chainHeight;
+    final resumable = pending.records
+        .where(
+          (record) =>
+              !record.isConfirmed &&
+              !record.isExpiredAt(chainHeight) &&
+              (record.broadcastState ==
+                      zcash.IronwoodPendingBroadcastState.prepared ||
+                  record.broadcastState ==
+                      zcash.IronwoodPendingBroadcastState.indeterminate),
+        )
+        .toList(growable: false);
+    if (resumable.isEmpty) return null;
+    if (resumable.length != 1) {
+      throw StateError('multiple Zcash sends need reconciliation');
+    }
+    final record = resumable.single;
+    final sourceNotes =
+        record.sourcePool == zcash.ShieldedPendingSourcePool.ironwood
+        ? persisted.syncState.ironwood.notes
+        : persisted.syncState.sapling.notes;
+    final notes = [
+      for (final note in sourceNotes)
+        if (note.nullifier != null &&
+            record.selectedNullifiers.contains(note.nullifier))
+          note,
+    ];
+    if (notes.length != record.selectedNullifiers.length) {
+      throw StateError(
+        'reserved Zcash inputs are missing from canonical wallet state',
+      );
+    }
+    final artifact = ZcashRecoveredPreparedSend(
+      record: record,
+      notes: notes,
+      sessionGeneration: session.generation,
+    );
+    _preparedSend = artifact;
+    return _txDataForPrepared(artifact, isChange: false);
+  });
+
   /// Prepares one due ZIP 318 Orchard-to-Ironwood migration through the same
   /// exact-artifact review and confirmation boundary as an ordinary send.
   Future<TxData> prepareOrchardMigration({
@@ -729,7 +813,10 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
 
       final snapshot = await _requireStateController().refresh();
       final mapper = ZcashStackStateMapper(walletId: walletId);
-      final transactions = mapper.transactions(snapshot.history);
+      final transactions = mapper.transactions(
+        snapshot.history,
+        pendingSends: await _pendingSendStore?.load(),
+      );
       if (isRescan) {
         // The caught-up snapshot is the complete history derived from the
         // birthday. Replace it atomically, without deleting receive addresses.
@@ -803,7 +890,10 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
     final snapshot = await _requireStateController().refresh();
     await _reconcileTransparentShielding();
     await mainDB.updateOrPutTransactionV2s(
-      ZcashStackStateMapper(walletId: walletId).transactions(snapshot.history),
+      ZcashStackStateMapper(walletId: walletId).transactions(
+        snapshot.history,
+        pendingSends: await _pendingSendStore?.load(),
+      ),
     );
   }
 
@@ -1118,12 +1208,16 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
     txid: prepared.txid,
     fee: _amount(prepared.feeZatoshis),
     recipients: [
-      TxRecipient(
-        address: prepared.encodedRecipient,
-        amount: _amount(prepared.amountZatoshis),
-        isChange: isChange,
-        addressType: AddressType.zcashUnified,
-      ),
+      for (final output in prepared.paymentOutputs)
+        TxRecipient(
+          address: output.encodedRecipient,
+          amount: _amount(output.amountZatoshis),
+          isChange: isChange,
+          addressType:
+              cryptoCurrency.getAddressType(output.encodedRecipient) ??
+              AddressType.zcashUnified,
+          memoBytes: output.memo,
+        ),
     ],
     vExtraData: _preparedDigest(prepared),
   );
@@ -1231,12 +1325,22 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
     required String address,
     required BigInt amount,
     required String? memo,
+    Uint8List? memoBytes,
   }) {
     final stackMemo = memo == null || memo.isEmpty
         ? null
         : Uint8List.fromList(utf8.encode(memo));
+    if (memoBytes != null &&
+        stackMemo != null &&
+        !_bytesEqual(memoBytes, stackMemo)) {
+      throw ArgumentError('Recipient memo conflicts with the Stack send memo');
+    }
+    final suppliedMemo = memoBytes ?? stackMemo;
+    if (suppliedMemo != null && suppliedMemo.length > 512) {
+      throw ArgumentError('Zcash memo exceeds 512 bytes');
+    }
     if (!address.toLowerCase().startsWith('zcash:')) {
-      return (address: address, amount: amount, memo: stackMemo);
+      return (address: address, amount: amount, memo: suppliedMemo);
     }
     final request = zcash.parseZcashUri(address);
     if (request == null) throw ArgumentError('Invalid ZIP-321 payment request');
@@ -1252,39 +1356,63 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
       );
     }
     if (payment.memo != null &&
-        stackMemo != null &&
-        !_bytesEqual(payment.memo!, stackMemo)) {
+        suppliedMemo != null &&
+        !_bytesEqual(payment.memo!, suppliedMemo)) {
       throw ArgumentError('ZIP-321 memo conflicts with the Stack send memo');
     }
     return (
       address: payment.address,
       amount: payment.amountZatoshis ?? amount,
-      memo: payment.memo ?? stackMemo,
+      memo: payment.memo ?? suppliedMemo,
     );
   }
 
-  Uint8List _preparedDigest(ZcashPreparedWalletSend prepared) =>
-      Uint8List.fromList(
-        sha256
-            .convert(
-              utf8.encode(
-                '${prepared.txid}|${prepared.transactionHex}|'
-                '${prepared.encodedRecipient}|${prepared.amountZatoshis}|'
-                '${prepared.feeZatoshis}',
-              ),
-            )
-            .bytes,
-      );
+  List<({String encodedRecipient, int amountZatoshis, Uint8List? memo})>
+  _preparedPaymentOutputs(ZcashPreparedWalletSend prepared) =>
+      prepared.paymentOutputs;
 
-  bool _matchesPrepared(TxData txData, ZcashPreparedWalletSend prepared) =>
-      txData.txid == prepared.txid &&
-      txData.raw == prepared.transactionHex &&
-      txData.fee?.raw == BigInt.from(prepared.feeZatoshis) &&
-      txData.recipients?.length == 1 &&
-      txData.recipients!.single.address == prepared.encodedRecipient &&
-      txData.recipients!.single.amount.raw ==
-          BigInt.from(prepared.amountZatoshis) &&
-      _bytesEqual(txData.vExtraData, _preparedDigest(prepared));
+  Uint8List _preparedDigest(ZcashPreparedWalletSend prepared) {
+    final outputCommitment = _preparedPaymentOutputs(prepared)
+        .map(
+          (output) =>
+              '${output.encodedRecipient}:${output.amountZatoshis}:'
+              '${output.memo == null ? '' : base64Url.encode(output.memo!)}',
+        )
+        .join('|');
+    return Uint8List.fromList(
+      sha256
+          .convert(
+            utf8.encode(
+              '${prepared.txid}|${prepared.transactionHex}|'
+              '$outputCommitment|'
+              '${prepared.feeZatoshis}',
+            ),
+          )
+          .bytes,
+    );
+  }
+
+  bool _matchesPrepared(TxData txData, ZcashPreparedWalletSend prepared) {
+    final recipients = txData.recipients;
+    final outputs = _preparedPaymentOutputs(prepared);
+    if (txData.txid != prepared.txid ||
+        txData.raw != prepared.transactionHex ||
+        txData.fee?.raw != BigInt.from(prepared.feeZatoshis) ||
+        recipients == null ||
+        recipients.length != outputs.length ||
+        !_bytesEqual(txData.vExtraData, _preparedDigest(prepared))) {
+      return false;
+    }
+    for (var index = 0; index < outputs.length; index++) {
+      if (recipients[index].address != outputs[index].encodedRecipient ||
+          recipients[index].amount.raw !=
+              BigInt.from(outputs[index].amountZatoshis) ||
+          !_bytesEqual(recipients[index].memoBytes, outputs[index].memo)) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   List<Address> _receiverRows(zcash.UnifiedAddressSet derived) {
     final values = <(String, AddressType)>[

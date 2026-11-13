@@ -89,9 +89,9 @@ void main() {
 
   test('converts known ZIP-321 amounts without losing metadata', () {
     final request = AddressUtils.parsePaymentUri(
-      'zcash:?address=$_shielded&amount=1&memo=SGVsbG8&message=First'
+      'zcash:?address=$_shielded&amount=1&memo=SGVsbG8&message=First&note=one'
       '&address.2=$_shielded2&amount.2=0.00000001&memo.2=AAE'
-      '&message.2=Second',
+      '&message.2=Second&note.2=two',
       allowMultipleRecipients: true,
     )!;
 
@@ -106,6 +106,40 @@ void main() {
       '\u0000\u0001',
     ]);
     expect(request.recipients.map((e) => e.message), ['First', 'Second']);
+    expect(recipients.map((e) => e.memoBytes), [
+      [72, 101, 108, 108, 111],
+      [0, 1],
+    ]);
+    expect(recipients.map((e) => e.message), ['First', 'Second']);
+    final outputs = recipients.toTxRecipients(coin);
+    expect(outputs.map((e) => e.memoBytes), [
+      [72, 101, 108, 108, 111],
+      [0, 1],
+    ]);
+    expect(outputs.map((e) => e.message), ['First', 'Second']);
+    expect(outputs.map((e) => e.additionalParams), [
+      {'note': 'one'},
+      {'note': 'two'},
+    ]);
+  });
+
+  test('preserves ordered repeated addresses with distinct memos', () {
+    final request = AddressUtils.parsePaymentUri(
+      'zcash:?address=$_shielded&amount=1&memo=AQ'
+      '&address.1=$_shielded&amount.1=1&memo.1=Ag',
+      allowMultipleRecipients: true,
+    )!;
+
+    final outputs = parseUriRecipients(request, coin)!.toTxRecipients(coin);
+    expect(outputs.map((output) => output.address), [_shielded, _shielded]);
+    expect(outputs.map((output) => output.amount.raw), [
+      BigInt.from(100000000),
+      BigInt.from(100000000),
+    ]);
+    expect(outputs.map((output) => output.memoBytes), [
+      [1],
+      [2],
+    ]);
   });
 
   test('only maps a losslessly decoded single memo into the text field', () {

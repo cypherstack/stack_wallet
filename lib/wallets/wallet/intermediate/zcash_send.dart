@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:zcash_flutter/zcash_flutter.dart' as zcash;
@@ -7,6 +8,12 @@ import 'zcash_account_session.dart';
 import 'zcash_wallet_state_controller.dart';
 
 enum ZcashSendSourcePool { transparent, orchard, ironwood, sapling }
+
+typedef ZcashPreparedPaymentOutput = ({
+  String encodedRecipient,
+  int amountZatoshis,
+  Uint8List? memo,
+});
 
 abstract class ZcashPreparedWalletSend {
   const ZcashPreparedWalletSend({
@@ -36,6 +43,14 @@ abstract class ZcashPreparedWalletSend {
 
   List<zcash.ZcashScannedNote> get selectedNotes;
 
+  List<ZcashPreparedPaymentOutput> get paymentOutputs => [
+    (
+      encodedRecipient: encodedRecipient,
+      amountZatoshis: amountZatoshis,
+      memo: memo,
+    ),
+  ];
+
   void requireValueConservation() {
     if (inputZatoshis != amountZatoshis + feeZatoshis + changeZatoshis) {
       throw StateError(
@@ -60,6 +75,55 @@ final class ZcashPreparedIronwoodSend extends ZcashPreparedWalletSend {
   }
 
   final zcash.IronwoodPreparedPayment prepared;
+
+  @override
+  String get transactionHex => prepared.transactionHex;
+  @override
+  String get txid => prepared.txid;
+  @override
+  int get amountZatoshis => prepared.plan.amountZatoshis;
+  @override
+  int get feeZatoshis => prepared.plan.feeZatoshis;
+  @override
+  int get inputZatoshis => prepared.plan.inputZatoshis;
+  @override
+  int get changeZatoshis => prepared.plan.changeZatoshis;
+  @override
+  int get expiryHeight => prepared.expiryHeight;
+  @override
+  ZcashSendSourcePool get sourcePool => ZcashSendSourcePool.ironwood;
+  @override
+  List<zcash.ZcashScannedNote> get selectedNotes =>
+      List.unmodifiable(prepared.plan.notes);
+}
+
+final class ZcashPreparedIronwoodBatch extends ZcashPreparedWalletSend {
+  ZcashPreparedIronwoodBatch({
+    required this.prepared,
+    required super.sessionGeneration,
+  }) : outputs = List.unmodifiable(prepared.plan.outputs),
+       super(
+         encodedRecipient: prepared.plan.outputs.first.encodedAddress,
+         selectedReceiver: prepared.plan.outputs.first.selectedReceiver,
+         selectedReceiverAddress: prepared.plan.outputs.first.receiverAddress,
+         actualOutputPool: prepared.plan.outputs.first.actualOutputPool,
+         memo: prepared.plan.outputs.first.memo,
+       ) {
+    requireValueConservation();
+  }
+
+  final zcash.IronwoodPreparedPayments prepared;
+  final List<zcash.ProposalOutput> outputs;
+
+  @override
+  List<ZcashPreparedPaymentOutput> get paymentOutputs => [
+    for (final output in outputs)
+      (
+        encodedRecipient: output.encodedAddress,
+        amountZatoshis: output.amountZatoshis,
+        memo: output.memo,
+      ),
+  ];
 
   @override
   String get transactionHex => prepared.transactionHex;
@@ -118,6 +182,106 @@ final class ZcashPreparedSaplingPayment extends ZcashPreparedWalletSend {
       List.unmodifiable(prepared.plan.notes);
 }
 
+final class ZcashRecoveredPreparedSend extends ZcashPreparedWalletSend {
+  ZcashRecoveredPreparedSend({
+    required this.record,
+    required List<zcash.ZcashScannedNote> notes,
+    required super.sessionGeneration,
+  }) : _notes = List.unmodifiable(notes),
+       _outputs = List.unmodifiable([
+         for (final output in record.paymentOutputs)
+           (
+             encodedRecipient: output.encodedRecipient,
+             amountZatoshis: output.amountZatoshis,
+             memo: output.memoHex == null
+                 ? null
+                 : Uint8List.fromList([
+                     for (var i = 0; i < output.memoHex!.length; i += 2)
+                       int.parse(
+                         output.memoHex!.substring(i, i + 2),
+                         radix: 16,
+                       ),
+                   ]),
+           ),
+       ]),
+       super(
+         encodedRecipient: record.paymentOutputs.first.encodedRecipient,
+         selectedReceiver: _receiverType(
+           record.paymentOutputs.first.actualDestinationPool,
+         ),
+         selectedReceiverAddress: record.paymentOutputs.first.receiverAddress,
+         actualOutputPool: _proposalPool(
+           record.paymentOutputs.first.actualDestinationPool,
+         ),
+         memo: record.paymentOutputs.first.memoHex == null
+             ? null
+             : Uint8List.fromList([
+                 for (
+                   var i = 0;
+                   i < record.paymentOutputs.first.memoHex!.length;
+                   i += 2
+                 )
+                   int.parse(
+                     record.paymentOutputs.first.memoHex!.substring(i, i + 2),
+                     radix: 16,
+                   ),
+               ]),
+       ) {
+    requireValueConservation();
+  }
+
+  final zcash.IronwoodPendingSendRecord record;
+  final List<zcash.ZcashScannedNote> _notes;
+  final List<ZcashPreparedPaymentOutput> _outputs;
+
+  @override
+  List<ZcashPreparedPaymentOutput> get paymentOutputs => _outputs;
+  @override
+  String get transactionHex => record.transactionHex;
+  @override
+  String get txid => record.txid;
+  @override
+  int get amountZatoshis => record.amountZatoshis;
+  @override
+  int get feeZatoshis => record.feeZatoshis;
+  @override
+  int get inputZatoshis => _notes.fold(0, (sum, note) => sum + note.value);
+  @override
+  int get changeZatoshis => inputZatoshis - amountZatoshis - feeZatoshis;
+  @override
+  int get expiryHeight => record.expiryHeight;
+  @override
+  ZcashSendSourcePool get sourcePool =>
+      record.sourcePool == zcash.ShieldedPendingSourcePool.ironwood
+      ? ZcashSendSourcePool.ironwood
+      : ZcashSendSourcePool.sapling;
+  @override
+  List<zcash.ZcashScannedNote> get selectedNotes => _notes;
+}
+
+zcash.ZcashAddressReceiverType _receiverType(
+  zcash.IronwoodDestinationPool pool,
+) => switch (pool) {
+  zcash.IronwoodDestinationPool.transparent =>
+    zcash.ZcashAddressReceiverType.p2pkh,
+  zcash.IronwoodDestinationPool.sapling =>
+    zcash.ZcashAddressReceiverType.sapling,
+  zcash.IronwoodDestinationPool.orchard =>
+    zcash.ZcashAddressReceiverType.orchard,
+  zcash.IronwoodDestinationPool.ironwood =>
+    zcash.ZcashAddressReceiverType.unified,
+};
+
+zcash.ProposalOutputPool _proposalPool(zcash.IronwoodDestinationPool pool) =>
+    switch (pool) {
+      zcash.IronwoodDestinationPool.transparent =>
+        zcash.ProposalOutputPool.transparent,
+      zcash.IronwoodDestinationPool.sapling => zcash.ProposalOutputPool.sapling,
+      zcash.IronwoodDestinationPool.orchard => zcash.ProposalOutputPool.orchard,
+      zcash.IronwoodDestinationPool.ironwood =>
+        zcash.ProposalOutputPool.ironwood,
+    };
+
 final class ZcashPreparedTransparentShielding extends ZcashPreparedWalletSend {
   ZcashPreparedTransparentShielding({
     required this.prepared,
@@ -156,6 +320,18 @@ final class ZcashPreparedTransparentShielding extends ZcashPreparedWalletSend {
   List<zcash.ZcashScannedNote> get selectedNotes => const [];
 }
 
+class ZcashSendPayment {
+  const ZcashSendPayment({
+    required this.recipient,
+    required this.amountZatoshis,
+    this.memo,
+  });
+
+  final String recipient;
+  final int amountZatoshis;
+  final Uint8List? memo;
+}
+
 class ZcashSendPreparationRequest {
   const ZcashSendPreparationRequest({
     required this.network,
@@ -170,6 +346,7 @@ class ZcashSendPreparationRequest {
     required this.recipient,
     required this.amountZatoshis,
     required this.memo,
+    this.payments = const [],
     required this.targetHeight,
     required this.expiryHeight,
     required this.resolveSaplingProvingParameters,
@@ -188,11 +365,22 @@ class ZcashSendPreparationRequest {
   final String recipient;
   final int amountZatoshis;
   final Uint8List? memo;
+  final List<ZcashSendPayment> payments;
   final int targetHeight;
   final int expiryHeight;
   final Future<zcash.SaplingProvingParameters> Function()
   resolveSaplingProvingParameters;
   final int? regtestNu63ActivationHeight;
+
+  List<ZcashSendPayment> get effectivePayments => payments.isEmpty
+      ? [
+          ZcashSendPayment(
+            recipient: recipient,
+            amountZatoshis: amountZatoshis,
+            memo: memo,
+          ),
+        ]
+      : List.unmodifiable(payments);
 }
 
 abstract interface class ZcashIronwoodSpendMaterialProvider {
@@ -276,11 +464,51 @@ final class ZcashProductionWalletSendService implements ZcashWalletSendService {
             return '';
           },
         );
+      case ZcashPreparedIronwoodBatch():
+        pendingSends.requireBroadcastablePayments(
+          prepared.prepared,
+          chainHeight: chainHeight,
+        );
+        pendingSends.markSubmitting(prepared.txid);
+        await persist();
+        try {
+          await submit(prepared.transactionHex);
+          pendingSends.markAcknowledged(prepared.txid);
+        } on ZcashBroadcastRejectedException {
+          pendingSends.releaseRejected(prepared.txid);
+          rethrow;
+        } on Object {
+          pendingSends.markIndeterminate(prepared.txid);
+          rethrow;
+        }
       case ZcashPreparedSaplingPayment():
         pendingSends.requireBroadcastableSaplingPayment(
           prepared.prepared,
           chainHeight: chainHeight,
         );
+        pendingSends.markSubmitting(prepared.txid);
+        await persist();
+        try {
+          await submit(prepared.transactionHex);
+          pendingSends.markAcknowledged(prepared.txid);
+        } on ZcashBroadcastRejectedException {
+          pendingSends.releaseRejected(prepared.txid);
+          rethrow;
+        } on Object {
+          pendingSends.markIndeterminate(prepared.txid);
+          rethrow;
+        }
+      case ZcashRecoveredPreparedSend():
+        final matches = pendingSends.records.where(
+          (record) => record.txid.toLowerCase() == prepared.txid.toLowerCase(),
+        );
+        if (matches.length != 1 ||
+            jsonEncode(matches.single.toJson()) !=
+                jsonEncode(prepared.record.toJson())) {
+          throw StateError(
+            'recovered Zcash artifact no longer matches durable state',
+          );
+        }
         pendingSends.markSubmitting(prepared.txid);
         await persist();
         try {
@@ -302,9 +530,19 @@ final class ZcashProductionWalletSendService implements ZcashWalletSendService {
   Future<ZcashPreparedWalletSend> prepare(
     ZcashSendPreparationRequest request,
   ) async {
-    final output = _resolveOutput(request);
-    final ironwood = await _tryPrepareIronwood(request, output);
+    final outputs = [
+      for (final payment in request.effectivePayments)
+        _resolveOutput(request, payment),
+    ];
+    final ironwood = await _tryPrepareIronwood(request, outputs);
     if (ironwood != null) return ironwood;
+    if (outputs.length != 1) {
+      throw zcash.IronwoodSelectionException(
+        zcash.IronwoodSelectionRefusal.insufficientFunds,
+        'multi-recipient sends require spendable Ironwood notes',
+      );
+    }
+    final output = outputs.single;
     if (output.actualOutputPool != zcash.ProposalOutputPool.ironwood) {
       throw zcash.IronwoodSelectionException(
         zcash.IronwoodSelectionRefusal.insufficientFunds,
@@ -316,24 +554,27 @@ final class ZcashProductionWalletSendService implements ZcashWalletSendService {
     return _prepareSaplingPathB(request, output);
   }
 
-  zcash.ProposalOutput _resolveOutput(ZcashSendPreparationRequest request) {
+  zcash.ProposalOutput _resolveOutput(
+    ZcashSendPreparationRequest request,
+    ZcashSendPayment payment,
+  ) {
     final nativeNetwork = _nativeNetwork(request.network);
     final metadata = zcash.decodeNativeAddress(
-      address: request.recipient,
+      address: payment.recipient,
       network: nativeNetwork,
     );
     final inventory =
         metadata.receiverType == zcash.ZcashAddressReceiverType.unified
         ? zcash.inventoryUnifiedAddressReceivers(
-            address: request.recipient,
+            address: payment.recipient,
             network: nativeNetwork,
           )
         : null;
     return zcash.resolveProposalOutput(
       recipient: zcash.ProposalRecipient(
-        address: request.recipient,
-        amountZatoshis: request.amountZatoshis,
-        memo: request.memo,
+        address: payment.recipient,
+        amountZatoshis: payment.amountZatoshis,
+        memo: payment.memo,
       ),
       address: metadata,
       unifiedReceivers: inventory,
@@ -344,9 +585,9 @@ final class ZcashProductionWalletSendService implements ZcashWalletSendService {
     );
   }
 
-  Future<ZcashPreparedIronwoodSend?> _tryPrepareIronwood(
+  Future<ZcashPreparedWalletSend?> _tryPrepareIronwood(
     ZcashSendPreparationRequest request,
-    zcash.ProposalOutput output,
+    List<zcash.ProposalOutput> outputs,
   ) async {
     final spent = {
       for (final spend in request.state.ironwood.spends) spend.nullifier,
@@ -373,9 +614,39 @@ final class ZcashProductionWalletSendService implements ZcashWalletSendService {
     );
     try {
       final provingParameters =
-          output.actualOutputPool == zcash.ProposalOutputPool.sapling
+          outputs.any(
+            (output) =>
+                output.actualOutputPool == zcash.ProposalOutputPool.sapling,
+          )
           ? await request.resolveSaplingProvingParameters()
           : null;
+      if (outputs.length > 1) {
+        final prepared = zcash.prepareNativeIronwoodPayments(
+          network: _nativeNetwork(request.network),
+          scan: material.scan,
+          outputs: outputs,
+          ironwoodChangeAddress: request.ironwoodChangeAddress,
+          targetHeight: request.targetHeight,
+          expiryHeight: request.expiryHeight,
+          seedHex: request.seedHex,
+          reservations: request.pendingSends,
+          maxNotes: maxSpendNotes,
+          provingParameters: provingParameters,
+          regtestNu63ActivationHeight: request.regtestNu63ActivationHeight,
+          now: DateTime.now().toUtc(),
+          allowExperimentalIronwoodBuild: true,
+          backend: ironwoodPaymentBackend,
+        );
+        request.pendingSends.addPreparedPayments(
+          prepared,
+          createdHeight: request.targetHeight - 1,
+        );
+        return ZcashPreparedIronwoodBatch(
+          prepared: prepared,
+          sessionGeneration: request.sessionGeneration,
+        );
+      }
+      final output = outputs.single;
       final prepared = zcash.prepareNativeIronwoodPayment(
         network: _nativeNetwork(request.network),
         scan: material.scan,

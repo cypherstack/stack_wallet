@@ -1184,7 +1184,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   }
 
   bool get _supportsMultiRecipient =>
-      coin is Zcash ||
       ref.read(pWallets).getWallet(walletId).supportsMultiRecipient;
 
   RecipientId _recipientId(int index) => (walletId: walletId, index: index);
