@@ -509,6 +509,10 @@ final class ZcashProductionWalletSendService implements ZcashWalletSendService {
             'recovered Zcash artifact no longer matches durable state',
           );
         }
+        pendingSends.requireBroadcastableRecord(
+          prepared.record,
+          chainHeight: chainHeight,
+        );
         pendingSends.markSubmitting(prepared.txid);
         await persist();
         try {

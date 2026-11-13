@@ -25,12 +25,14 @@ import '../intermediate/zcash_wallet_state.dart';
 import '../intermediate/zcash_wallet_state_controller.dart';
 import '../intermediate/zcash_zip318_migration.dart';
 import '../intermediate/zcash_zip318_migration_store.dart';
+import '../wallet_mixin_interfaces/recoverable_prepared_send_interface.dart';
 
 typedef ZcashAccountSessionFactory = ZcashAccountSession Function(
   CryptoCurrencyNetwork network,
 );
 
-class ZcashWallet extends Bip39Wallet<Zcash> {
+class ZcashWallet extends Bip39Wallet<Zcash>
+    implements RecoverablePreparedSendWallet {
   ZcashWallet(CryptoCurrencyNetwork network) : super(Zcash(network));
 
   ZcashAccountSessionFactory _accountSessionFactory = (network) =>
@@ -579,6 +581,7 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
   /// Rehydrates the exact signed ordinary-send artifact and its ordered
   /// outputs after process restart. The durable reservation remains the
   /// authority; no transaction is rebuilt and no key material is persisted.
+  @override
   Future<TxData?> recoverPreparedSend() => _sendMutex.protect(() async {
     if (_preparedSend != null) {
       throw StateError('another Zcash transaction is already prepared');
@@ -589,17 +592,17 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
     if (stateStore == null || pendingStore == null) {
       throw StateError('Zcash send state is not initialized');
     }
+    final snapshot = await _requireStateController().refresh();
     final persisted = await stateStore.load();
     if (persisted == null) return null;
     final pending = await pendingStore.load();
     pending.recoverInterruptedSubmissions();
     await pendingStore.save(pending);
-    final chainHeight = _requireStateController().inspection.chainHeight;
     final resumable = pending.records
         .where(
           (record) =>
               !record.isConfirmed &&
-              !record.isExpiredAt(chainHeight) &&
+              !record.isExpiredAt(snapshot.chainHeight) &&
               (record.broadcastState ==
                       zcash.IronwoodPendingBroadcastState.prepared ||
                   record.broadcastState ==
@@ -711,62 +714,70 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
   });
 
   @override
-  Future<TxData> confirmSend({required TxData txData}) => _sendMutex.protect(
-    () async {
-      final prepared = _preparedSend;
-      if (prepared == null || !_matchesPrepared(txData, prepared)) {
-        throw StateError(
-          'Zcash confirmation must use the exact prepared transaction artifact',
-        );
-      }
-      final session = _requireAccountSession();
-      if (session.generation != prepared.sessionGeneration) {
-        throw StateError(
-          'The Zcash node changed after preparation; prepare again',
-        );
-      }
-      if (prepared case ZcashPreparedTransparentShielding()) {
-        await _broadcastTransparentShielding(prepared, session);
-        _preparedSend = null;
-        return txData;
-      }
-      if (prepared case final ZcashPreparedZip318Migration migration) {
-        final store = _zip318MigrationStore!;
-        final pending = await store.load();
-        try {
-          await _zip318MigrationService.broadcast(
-            prepared: migration,
-            pending: pending,
-            session: _zip318BroadcastSession,
-            chainHeight: _requireStateController().inspection.chainHeight,
-            persist: () => store.save(pending),
-            submit: (transactionHex) async {
-              await session.submitTransactionHex(transactionHex);
-              return migration.txid;
-            },
-          );
-        } finally {
-          await store.save(pending);
-        }
-      } else {
-        final store = _pendingSendStore!;
-        final pending = await store.load();
-        try {
-          await _sendService.broadcast(
-            prepared: prepared,
-            pendingSends: pending,
-            chainHeight: _requireStateController().inspection.chainHeight,
-            persist: () => store.save(pending),
-            submit: session.submitTransactionHex,
-          );
-        } finally {
-          await store.save(pending);
-        }
-      }
+  Future<TxData> confirmSend({
+    required TxData txData,
+  }) => _sendMutex.protect(() async {
+    final prepared = _preparedSend;
+    if (prepared == null || !_matchesPrepared(txData, prepared)) {
+      throw StateError(
+        'Zcash confirmation must use the exact prepared transaction artifact',
+      );
+    }
+    final session = _requireAccountSession();
+    _requirePreparedSession(prepared, session);
+    // Revalidate expiry against a freshly synchronized tip. A prepared
+    // artifact can cross its consensus expiry boundary while the review UI
+    // is open or while a recovered send is waiting after restart.
+    final chainHeight = (await _requireStateController().refresh()).chainHeight;
+    // updateNode intentionally remains usable during a potentially long scan.
+    // Recheck after that await, and again in each submit callback, so bytes
+    // can never cross an endpoint-generation boundary.
+    _requirePreparedSession(prepared, session);
+    if (prepared case ZcashPreparedTransparentShielding()) {
+      await _broadcastTransparentShielding(prepared, session);
       _preparedSend = null;
       return txData;
-    },
-  );
+    }
+    if (prepared case final ZcashPreparedZip318Migration migration) {
+      final store = _zip318MigrationStore!;
+      final pending = await store.load();
+      try {
+        await _zip318MigrationService.broadcast(
+          prepared: migration,
+          pending: pending,
+          session: _zip318BroadcastSession,
+          chainHeight: chainHeight,
+          persist: () => store.save(pending),
+          submit: (transactionHex) async {
+            _requirePreparedSession(prepared, session);
+            await session.submitTransactionHex(transactionHex);
+            return migration.txid;
+          },
+        );
+      } finally {
+        await store.save(pending);
+      }
+    } else {
+      final store = _pendingSendStore!;
+      final pending = await store.load();
+      try {
+        await _sendService.broadcast(
+          prepared: prepared,
+          pendingSends: pending,
+          chainHeight: chainHeight,
+          persist: () => store.save(pending),
+          submit: (transactionHex) {
+            _requirePreparedSession(prepared, session);
+            return session.submitTransactionHex(transactionHex);
+          },
+        );
+      } finally {
+        await store.save(pending);
+      }
+    }
+    _preparedSend = null;
+    return txData;
+  });
 
   @override
   Future<void> cancelSend({required TxData txData}) =>
@@ -1235,6 +1246,7 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
       state.markSubmitting(prepared.txid);
     });
     try {
+      _requirePreparedSession(prepared, session);
       await session.submitTransactionHex(prepared.transactionHex);
       await store.update((state) {
         state.markAcknowledged(prepared.txid);
@@ -1249,6 +1261,19 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
         state.markIndeterminate(prepared.txid);
       });
       rethrow;
+    }
+  }
+
+  void _requirePreparedSession(
+    ZcashPreparedWalletSend prepared,
+    ZcashAccountSession session,
+  ) {
+    final active = _requireAccountSession();
+    if (!identical(active, session) ||
+        active.generation != prepared.sessionGeneration) {
+      throw StateError(
+        'The Zcash node changed after preparation; prepare again',
+      );
     }
   }
 

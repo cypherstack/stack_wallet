@@ -1,9 +1,11 @@
-import 'dart:io';
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as path;
 import 'package:regtest_support/regtest_support.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
@@ -17,7 +19,9 @@ import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/impl/zcash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/zcash_account_session.dart';
+import 'package:stackwallet/wallets/wallet/intermediate/zcash_pending_send_store.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/zcash_send.dart';
+import 'package:stackwallet/wallets/wallet/intermediate/zcash_wallet_state.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/zcash_wallet_state_controller.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/zcash_zip318_migration.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
@@ -54,6 +58,10 @@ final class SendClient
 
   final String chainName;
   final List<Uint8List> submitted = [];
+  bool failTip = false;
+  int tipHeightCalls = 0;
+  Completer<void>? nextTipHeightEntered;
+  Future<void>? nextTipHeightGate;
 
   @override
   Future<void> close() async {}
@@ -70,7 +78,17 @@ final class SendClient
       zcash.LightdInfo(chainName: chainName);
 
   @override
-  Future<int> getTipHeight() async => 42;
+  Future<int> getTipHeight() async {
+    tipHeightCalls++;
+    if (failTip) throw StateError('fresh chain tip unavailable');
+    final entered = nextTipHeightEntered;
+    final gate = nextTipHeightGate;
+    nextTipHeightEntered = null;
+    nextTipHeightGate = null;
+    entered?.complete();
+    if (gate != null) await gate;
+    return 42;
+  }
 
   @override
   Future<ZcashTransparentActivityResult> getTransparentAddressActivity(
@@ -567,6 +585,120 @@ void main() {
     ]);
     await wallet.exit();
   });
+
+  test(
+    'recovery refreshes chain state before filtering reservations',
+    () async {
+      final client = SendClient();
+      final wallet = await _wallet(
+        client,
+        RecordingSendService(),
+        'recover-tip',
+      );
+      final callsBeforeRecovery = client.tipHeightCalls;
+      client.failTip = true;
+
+      await expectLater(
+        wallet.recoverPreparedSend(),
+        throwsA(
+          isA<StateError>().having(
+            (error) => error.message,
+            'message',
+            contains('fresh chain tip unavailable'),
+          ),
+        ),
+      );
+      expect(client.tipHeightCalls, callsBeforeRecovery + 1);
+      await wallet.exit();
+    },
+  );
+
+  test(
+    'confirmation refreshes chain state immediately before broadcast',
+    () async {
+      final client = SendClient();
+      final service = RecordingSendService();
+      final wallet = await _wallet(client, service, 'confirm-tip');
+      final address = (await wallet.getCurrentReceivingAddress())!.value;
+      final prepared = await wallet.prepareSend(
+        txData: TxData(
+          recipients: [
+            TxRecipient(
+              address: address,
+              amount: Amount(rawValue: BigInt.from(40000), fractionDigits: 8),
+              isChange: false,
+              addressType: AddressType.zcashUnified,
+            ),
+          ],
+        ),
+      );
+      final callsBeforeConfirmation = client.tipHeightCalls;
+      client.failTip = true;
+
+      await expectLater(
+        wallet.confirmSend(txData: prepared),
+        throwsA(
+          isA<StateError>().having(
+            (error) => error.message,
+            'message',
+            contains('fresh chain tip unavailable'),
+          ),
+        ),
+      );
+      expect(client.tipHeightCalls, callsBeforeConfirmation + 1);
+      expect(service.broadcastPrepared, isNull);
+      expect(client.submitted, isEmpty);
+      client.failTip = false;
+      await wallet.cancelSend(txData: prepared);
+      await wallet.exit();
+    },
+  );
+
+  test(
+    'confirmation refuses a node replacement during its final refresh',
+    () async {
+      final client = SendClient();
+      final service = RecordingSendService();
+      final wallet = await _wallet(client, service, 'confirm-node-race');
+      final address = (await wallet.getCurrentReceivingAddress())!.value;
+      final prepared = await wallet.prepareSend(
+        txData: TxData(
+          recipients: [
+            TxRecipient(
+              address: address,
+              amount: Amount(rawValue: BigInt.from(40000), fractionDigits: 8),
+              isChange: false,
+              addressType: AddressType.zcashUnified,
+            ),
+          ],
+        ),
+      );
+      final refreshEntered = Completer<void>();
+      final releaseRefresh = Completer<void>();
+      client.nextTipHeightEntered = refreshEntered;
+      client.nextTipHeightGate = releaseRefresh.future;
+
+      final confirmation = wallet.confirmSend(txData: prepared);
+      await refreshEntered.future;
+      await wallet.updateNode();
+      releaseRefresh.complete();
+
+      await expectLater(
+        confirmation,
+        throwsA(
+          isA<StateError>().having(
+            (error) => error.message,
+            'message',
+            contains('node changed after preparation'),
+          ),
+        ),
+      );
+      expect(service.broadcastPrepared, isNull);
+      expect(client.submitted, isEmpty);
+      await wallet.cancelSend(txData: prepared);
+      await wallet.exit();
+    },
+  );
 
   test('ordered repeated recipients and memos are digest-covered without '
       'consuming UI metadata', () async {
@@ -1170,6 +1302,37 @@ void main() {
         [2],
       ]);
 
+      var expiredPersisted = false;
+      var expiredSubmitted = false;
+      await expectLater(
+        const ZcashProductionWalletSendService().broadcast(
+          prepared: artifact,
+          pendingSends: restored,
+          chainHeight: record.expiryHeight,
+          persist: () async => expiredPersisted = true,
+          submit: (_) async {
+            expiredSubmitted = true;
+            return const ZcashSubmissionAcknowledgement(
+              errorCode: 0,
+              errorMessage: '',
+            );
+          },
+        ),
+        throwsA(
+          isA<zcash.IronwoodPendingSendException>().having(
+            (error) => error.refusal,
+            'refusal',
+            zcash.IronwoodPendingSendRefusal.expiredRequiresRebuild,
+          ),
+        ),
+      );
+      expect(expiredPersisted, isFalse);
+      expect(expiredSubmitted, isFalse);
+      expect(
+        restored.records.single.broadcastState,
+        zcash.IronwoodPendingBroadcastState.prepared,
+      );
+
       var persisted = 0;
       await const ZcashProductionWalletSendService().broadcast(
         prepared: artifact,
@@ -1211,6 +1374,138 @@ void main() {
         ),
         throwsA(isA<StateError>()),
       );
+    },
+  );
+
+  test(
+    'real wallet restart resumes encrypted artifact and discard releases it',
+    () async {
+      final secrets = MemorySecrets();
+      final original = await _wallet(
+        SendClient(chainName: 'test'),
+        RecordingSendService(),
+        'restart-user-flow',
+        network: CryptoCurrencyNetwork.regtest,
+        secureStorage: secrets,
+        restoreHeight: 1,
+      );
+      final walletId = original.walletId;
+      await original.exit();
+
+      const phrase =
+          'abandon abandon abandon abandon abandon abandon abandon abandon '
+          'abandon abandon abandon about';
+      final seed = zcash.nativeMnemonicToSeed(phrase);
+      final metadata = zcash.deriveNativeAccountMetadata(
+        seedHex: seed.seedHex,
+        network: zcash.ZcashNetwork.regtest,
+      );
+      final fixture = await _prepareMultiIronwoodPayment();
+      const coveredRange = zcash.CompactBlockScanRange(start: 40, end: 40);
+      const emptyCoveredScan = zcash.ZcashScanResult(
+        scannedBlocks: 1,
+        discoveredNotes: 0,
+        totalValue: 0,
+        notes: [],
+        scannedHeightRange: coveredRange,
+      );
+      fixture.state.sapling.apply(
+        emptyCoveredScan,
+        accountFingerprint: fixture.state.accountFingerprint,
+      );
+      fixture.state.orchard.apply(
+        emptyCoveredScan,
+        accountFingerprint: fixture.state.accountFingerprint,
+      );
+      const caughtUpScan = zcash.ZcashScanResult(
+        scannedBlocks: 2,
+        discoveredNotes: 0,
+        totalValue: 0,
+        notes: [],
+        scannedHeightRange: zcash.CompactBlockScanRange(start: 41, end: 42),
+      );
+      fixture.state.sapling.apply(
+        caughtUpScan,
+        accountFingerprint: fixture.state.accountFingerprint,
+      );
+      fixture.state.orchard.apply(
+        caughtUpScan,
+        accountFingerprint: fixture.state.accountFingerprint,
+      );
+      fixture.state.ironwood.apply(
+        caughtUpScan,
+        accountFingerprint: fixture.state.accountFingerprint,
+      );
+      final alignedState = zcash.ZcashWalletSyncState(
+        // The persisted fixture is caught up through height 42. Recovery now
+        // refreshes before examining reservations, so its cursor must agree
+        // with the lightwalletd tip instead of relying on cached inspection.
+        cursor: zcash.ZcashLightwalletdSyncCursor.origin(height: 43),
+        network: fixture.state.network,
+        accountFingerprint: fixture.state.accountFingerprint,
+        sapling: fixture.state.sapling,
+        orchard: fixture.state.orchard,
+        ironwood: fixture.state.ironwood,
+        transparent: fixture.state.transparent,
+      );
+      final reboundState =
+          ZcashPersistedWalletState(
+            syncState: alignedState,
+            observedChainHeight: 42,
+          ).rebindAccountFingerprint(
+            from: alignedState.accountFingerprint,
+            to: metadata.fingerprint,
+          );
+      final root = await StackFileSystem.applicationRootDirectory();
+      final stateStore = ZcashEncryptedWalletStateStore(
+        path: path.join(root.path, 'zcash', '$walletId.state'),
+        walletId: walletId,
+        network: zcash.ZcashAddressNetwork.regtest.name,
+        accountFingerprint: metadata.fingerprint,
+        secureStorage: secrets,
+      );
+      final pendingStore = ZcashEncryptedPendingSendStore(
+        path: path.join(root.path, 'zcash', '$walletId.pending'),
+        walletId: walletId,
+        network: zcash.ZcashAddressNetwork.regtest.name,
+        accountFingerprint: metadata.fingerprint,
+        secureStorage: secrets,
+      );
+      await stateStore.save(reboundState);
+      await pendingStore.save(fixture.pending);
+
+      final restored = await Wallet.load(
+        walletId: walletId,
+        mainDB: MainDB.instance,
+        secureStorageInterface: secrets,
+        nodeService: SendNodes(),
+        prefs: SessionPrefs(),
+      ) as ZcashWallet;
+      restored.configureAccountSessionFactory(
+        (network) => ZcashAccountSession(
+          network: network,
+          clientFactory: (_) => SendClient(chainName: 'test'),
+        ),
+      );
+      restored.configureRegtestConsensus(nu63ActivationHeight: 130);
+      await restored.init();
+
+      final recovered = await restored.recoverPreparedSend();
+      expect(recovered, isNotNull);
+      expect(recovered!.raw, fixture.prepared.transactionHex);
+      expect(recovered.txid, fixture.prepared.txid);
+      expect(recovered.recipients!.map((recipient) => recipient.address), [
+        fixture.address,
+        fixture.address,
+      ]);
+      expect(recovered.recipients!.map((recipient) => recipient.memoBytes), [
+        [1],
+        [2],
+      ]);
+
+      await restored.cancelSend(txData: recovered);
+      expect((await pendingStore.load()).records, isEmpty);
+      await restored.exit();
     },
   );
 }
@@ -1367,6 +1662,7 @@ Future<ZcashWallet> _wallet(
   CryptoCurrencyNetwork network = CryptoCurrencyNetwork.main,
   ZcashZip318MigrationService? migrationService,
   SecureStorageInterface? secureStorage,
+  int restoreHeight = 43,
 }) async {
   final currency = Zcash(network);
   final wallet = await Wallet.create(
@@ -1375,7 +1671,7 @@ Future<ZcashWallet> _wallet(
       name: 'Zcash send fixture',
       mainAddressType: AddressType.zcashUnified,
       coinName: currency.identifier,
-      restoreHeight: 43,
+      restoreHeight: restoreHeight,
     ),
     mainDB: MainDB.instance,
     secureStorageInterface: secureStorage ?? MemorySecrets(),
