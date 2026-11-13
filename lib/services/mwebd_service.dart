@@ -23,6 +23,7 @@ final class MwebdService {
     CryptoCurrencyNetwork.test => "litecoin.stackwallet.com:19335",
     CryptoCurrencyNetwork.stage => throw UnimplementedError(),
     CryptoCurrencyNetwork.test4 => throw UnimplementedError(),
+    CryptoCurrencyNetwork.regtest => throw UnimplementedError(),
   };
 
   final Map<CryptoCurrencyNetwork, ({DynamicObject server, MwebClient client})>
@@ -146,6 +147,7 @@ final class MwebdService {
         CryptoCurrencyNetwork.test => "testnet",
         CryptoCurrencyNetwork.stage => throw UnimplementedError(),
         CryptoCurrencyNetwork.test4 => throw UnimplementedError(),
+        CryptoCurrencyNetwork.regtest => throw UnimplementedError(),
       };
 
       final dir = await StackFileSystem.applicationMwebdDirectory(chain);
