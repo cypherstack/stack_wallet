@@ -28,9 +28,10 @@ Future<void> migrateWalletsToIsar({
     DB.boxNameAllWalletsData,
   );
 
-  final names =
-      DB.instance.get<dynamic>(boxName: DB.boxNameAllWalletsData, key: 'names')
-          as Map?;
+  final names = DB.instance.get<dynamic>(
+    boxName: DB.boxNameAllWalletsData,
+    key: 'names',
+  ) as Map?;
 
   if (names == null) {
     // no wallets to migrate
@@ -162,9 +163,8 @@ Future<void> migrateWalletsToIsar({
       coinName: old.coinIdentifier,
       walletId: old.walletId,
       name: old.name,
-      mainAddressType: AppConfig.getCryptoCurrencyFor(
-        old.coinIdentifier,
-      )!.defaultAddressType,
+      mainAddressType: AppConfig.getCryptoCurrencyFor(old.coinIdentifier)!
+          .defaultAddressType,
       favouriteOrderIndex: favourites.indexOf(old.walletId),
       cachedChainHeight: walletBox.get(DBKeys.storedChainHeight) as int? ?? 0,
       cachedBalanceString: walletBox.get(DBKeys.cachedBalance) as String?,

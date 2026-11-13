@@ -714,9 +714,9 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
           Text(
             "Import ${_slatepackTerms.title}",
             style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldActiveSearchIconRight,
             ),
             textAlign: TextAlign.left,
           ),
