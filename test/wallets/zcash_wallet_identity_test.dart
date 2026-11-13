@@ -3,8 +3,10 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
+import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/wallet/impl/zcash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
@@ -12,7 +14,10 @@ import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'support/xelis_test_fakes.dart';
 import '../support/isar_test_utils.dart';
 
-class OfflineNodes extends Fake implements NodeService {}
+class OfflineNodes extends Fake implements NodeService {
+  @override
+  NodeModel? getPrimaryNodeFor({required CryptoCurrency currency}) => null;
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -67,6 +72,8 @@ void main() {
         isTrue,
       );
       expect(created.info.cachedReceivingAddress, createdAddress.value);
+      expect(await created.pingCheck(), isFalse);
+      await expectLater(created.updateNode(), throwsStateError);
       await created.exit();
 
       final reopened = await Wallet.load(
