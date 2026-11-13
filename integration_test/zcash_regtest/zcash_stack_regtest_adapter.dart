@@ -274,6 +274,7 @@ final class ZcashStackTransferCapabilities
     final native = wallet.preparedSendFor(reviewed);
     final sourcePool = switch (native.sourcePool) {
       ZcashSendSourcePool.sapling => ZcashRegtestPool.sapling,
+      ZcashSendSourcePool.transparent => ZcashRegtestPool.transparent,
       ZcashSendSourcePool.ironwood => ZcashRegtestPool.ironwood,
     };
     final actualPool = _pool(native.actualOutputPool.jsonValue);

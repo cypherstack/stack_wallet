@@ -10,6 +10,130 @@ import 'package:stackwallet/wallets/wallet/intermediate/zcash_wallet_state_contr
 import 'package:zcash_flutter/zcash_flutter.dart' as zcash;
 
 void main() {
+  test('registers the UA transparent child at its exact '
+      'regtest index', () async {
+    final directory = await Directory.systemTemp.createTemp(
+      'zcash_controller_transparent_receiver_',
+    );
+    addTearDown(() => directory.delete(recursive: true));
+    final seed = zcash.nativeMnemonicToSeed(
+      'abandon abandon abandon abandon abandon abandon abandon abandon '
+      'abandon abandon abandon about',
+    );
+    final account = zcash.deriveNativeAccountMetadata(
+      seedHex: seed.seedHex,
+      network: zcash.ZcashNetwork.regtest,
+    );
+    final viewingKeys = zcash.deriveNativeViewingKeys(
+      seedHex: seed.seedHex,
+      network: zcash.ZcashNetwork.regtest,
+    );
+    final address = await zcash.deriveAddress(
+      seedHex: seed.seedHex,
+      network: zcash.ZcashNetwork.regtest,
+    );
+    final store = ZcashEncryptedWalletStateStore(
+      path: '${directory.path}/wallet.state',
+      walletId: 'wallet-1',
+      network: 'regtest',
+      accountFingerprint: account.fingerprint,
+      secureStorage: FakeSecureStorage(),
+    );
+
+    final controller = await ZcashWalletStateController.open(
+      store: store,
+      accountFingerprint: account.fingerprint,
+      network: 'regtest',
+      birthdayHeight: 100,
+      loadBirthdayTreeState: (_) async => const zcash.TreeState(
+        hash:
+            '0000000000000000000000000000000000000000000000000000000000000000',
+        height: 99,
+        time: 1,
+      ),
+      scanExecutor: _UnusedScanExecutor(),
+      openSync: (_, _) =>
+          const _ImmediateSyncSession(zcash.ZcashSyncCaughtUp(chainHeight: 99)),
+      accountMetadata: account,
+      viewingKeys: viewingKeys,
+      additionalTransparentReceivers: [
+        zcash.ZcashTransparentReceiver(
+          address: address.transparentAddress!,
+          scope: zcash.ZcashTransparentReceiverScope.external,
+          childIndex: address.nextValidIndex,
+        ),
+      ],
+      refreshTransparent: (state) async {
+        expect(state.addresses, contains(address.transparentAddress));
+        return zcash.ZcashTransparentRefresh(
+          network: state.network,
+          accountFingerprint: state.accountFingerprint,
+          queriedAddresses: state.addresses,
+          chainHeight: 99,
+          chainTipHash: '22' * 32,
+          canonicalBlockHashes: {99: '22' * 32},
+          unspentOutputs: [
+            zcash.ZcashTransparentOutputObservation(
+              address: address.transparentAddress!,
+              protocolTxid: '11' * 32,
+              outputIndex: 0,
+              scriptHex: '51',
+              valueZatoshis: 100000,
+              minedHeight: 99,
+              blockHash: '22' * 32,
+              blockTime: 1700000000,
+              isCoinbase: false,
+            ),
+          ],
+          observedSpends: const [],
+        );
+      },
+    );
+    await controller.refresh();
+
+    final transparent = (await store.load())!.syncState.transparent;
+    expect(
+      address.nextValidIndex,
+      isNot(viewingKeys.transparent.defaultExternalIndex),
+    );
+    expect(
+      transparent.receivers,
+      contains(
+        isA<zcash.ZcashTransparentReceiver>()
+            .having(
+              (receiver) => receiver.address,
+              'address',
+              address.transparentAddress,
+            )
+            .having(
+              (receiver) => receiver.childIndex,
+              'child',
+              address.nextValidIndex,
+            ),
+      ),
+    );
+    expect(
+      transparent.unspentOutputs.single.address,
+      address.transparentAddress,
+    );
+    final key = zcash.deriveNativeTransparentSpendingKey(
+      seedHex: seed.seedHex,
+      network: zcash.ZcashNetwork.regtest,
+      childIndex: address.nextValidIndex,
+    );
+    try {
+      expect(key.address, address.transparentAddress);
+      expect(
+        key.address,
+        transparent.coinSet.tracked.single.utxo.address,
+        reason:
+            'the synced UA receiver must have the exact spendable child key',
+      );
+    } finally {
+      key.destroy();
+    }
+  });
+
   test('concurrent refresh callers share one serialized sync', () async {
     final directory = await Directory.systemTemp.createTemp(
       'zcash_controller_test_',

@@ -6,7 +6,7 @@ import '../../crypto_currency/crypto_currency.dart';
 import 'zcash_account_session.dart';
 import 'zcash_wallet_state_controller.dart';
 
-enum ZcashSendSourcePool { ironwood, sapling }
+enum ZcashSendSourcePool { transparent, ironwood, sapling }
 
 abstract class ZcashPreparedWalletSend {
   const ZcashPreparedWalletSend({
@@ -116,6 +116,44 @@ final class ZcashPreparedSaplingPayment extends ZcashPreparedWalletSend {
   @override
   List<zcash.ZcashScannedNote> get selectedNotes =>
       List.unmodifiable(prepared.plan.notes);
+}
+
+final class ZcashPreparedTransparentShielding extends ZcashPreparedWalletSend {
+  ZcashPreparedTransparentShielding({
+    required this.prepared,
+    required this.targetHeight,
+    required super.sessionGeneration,
+    required super.encodedRecipient,
+    required super.selectedReceiverAddress,
+  }) : super(
+         selectedReceiver: zcash.ZcashAddressReceiverType.unified,
+         actualOutputPool: zcash.ProposalOutputPool.ironwood,
+         memo: null,
+       ) {
+    requireValueConservation();
+  }
+
+  final zcash.ShieldingPreparedSend prepared;
+  final int targetHeight;
+
+  @override
+  String get transactionHex => prepared.transactionHex;
+  @override
+  String get txid => prepared.txid;
+  @override
+  int get amountZatoshis => prepared.shieldedZatoshis;
+  @override
+  int get feeZatoshis => prepared.feeZatoshis;
+  @override
+  int get inputZatoshis => prepared.selection.inputZatoshis;
+  @override
+  int get changeZatoshis => prepared.selection.changeZatoshis;
+  @override
+  int get expiryHeight => targetHeight + 40;
+  @override
+  ZcashSendSourcePool get sourcePool => ZcashSendSourcePool.transparent;
+  @override
+  List<zcash.ZcashScannedNote> get selectedNotes => const [];
 }
 
 class ZcashSendPreparationRequest {

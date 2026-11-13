@@ -319,6 +319,8 @@ class ZcashWalletStateController {
     required ZcashSyncSessionFactory openSync,
     zcash.ZcashAccountMetadata? accountMetadata,
     zcash.ZcashViewingKeys? viewingKeys,
+    Iterable<zcash.ZcashTransparentReceiver> additionalTransparentReceivers =
+        const [],
     ZcashTransparentRefreshCallback? refreshTransparent,
   }) async {
     if (birthdayHeight < 1) {
@@ -358,6 +360,7 @@ class ZcashWalletStateController {
             : zcash.ZcashTransparentState.fromAccount(
                 account: accountMetadata,
                 viewingKeys: viewingKeys,
+                additionalReceivers: additionalTransparentReceivers,
               ),
       );
       persisted = ZcashPersistedWalletState(
@@ -385,6 +388,7 @@ class ZcashWalletStateController {
       persisted.syncState.transparent.registerAccountReceivers(
         account: accountMetadata,
         viewingKeys: viewingKeys,
+        additionalReceivers: additionalTransparentReceivers,
       );
       await store.save(persisted);
     }
