@@ -289,6 +289,7 @@ const _AddresstypeEnumValueMap = {
   'xelis': 17,
   'fact0rn': 18,
   'mweb': 19,
+  'zcashUnified': 20,
 };
 const _AddresstypeValueEnumMap = {
   0: AddressType.p2pkh,
@@ -311,6 +312,7 @@ const _AddresstypeValueEnumMap = {
   17: AddressType.xelis,
   18: AddressType.fact0rn,
   19: AddressType.mweb,
+  20: AddressType.zcashUnified,
 };
 
 Id _addressGetId(Address object) {

@@ -53,6 +53,7 @@ import 'impl/sub_wallets/solana_token_wallet.dart';
 import 'impl/tezos_wallet.dart';
 import 'impl/wownero_wallet.dart';
 import 'impl/xelis_wallet.dart';
+import 'impl/zcash_wallet.dart';
 import 'intermediate/cryptonote_wallet.dart';
 import 'wallet_mixin_interfaces/electrumx_interface.dart';
 import 'wallet_mixin_interfaces/mnemonic_interface.dart';
@@ -429,6 +430,9 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       case const (Xelis):
         return XelisWallet(net);
+
+      case const (Zcash):
+        return ZcashWallet(net);
 
       default:
         // should never hit in reality

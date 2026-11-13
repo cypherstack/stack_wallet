@@ -34,7 +34,14 @@ abstract class AppConfig {
 
   static final List<CryptoCurrency> _coins = List.unmodifiable([
     ..._supportedCoins,
-    ...resolveOptInCoins(extraCoins, factories: const {}),
+    ...resolveOptInCoins(
+      extraCoins,
+      factories: {
+        'zcash': () => Zcash(CryptoCurrencyNetwork.main),
+        'zcashTestnet': () => Zcash(CryptoCurrencyNetwork.test),
+        'zcashRegtest': () => Zcash(CryptoCurrencyNetwork.regtest),
+      },
+    ),
   ]);
 
   static List<CryptoCurrency> get coins => _coins;
