@@ -176,6 +176,133 @@ void main() {
   });
 
   test(
+    'new wallet persists the validated next lightwalletd height before sync',
+    () async {
+      final node = walletNode(host: 'https://birthday.example', id: 'birthday');
+      final client = SyncWalletSessionClient(chainName: 'main', tipHeight: 42);
+      final wallet = await Wallet.create(
+        walletInfo: WalletInfo(
+          walletId: 'zcash-new-wallet-birthday',
+          name: 'Zcash birthday fixture',
+          mainAddressType: AddressType.zcashUnified,
+          coinName: 'zcash',
+        ),
+        mainDB: MainDB.instance,
+        secureStorageInterface: MemorySecrets(),
+        nodeService: MutableZcashNodes(node),
+        prefs: SessionPrefs(),
+        mnemonic:
+            'abandon abandon abandon abandon abandon abandon abandon abandon '
+            'abandon abandon abandon about',
+        mnemonicPassphrase: '',
+      ) as ZcashWallet;
+      wallet.configureAccountSessionFactory(
+        (network) =>
+            ZcashAccountSession(network: network, clientFactory: (_) => client),
+      );
+
+      await wallet.init(isRestore: false);
+
+      expect(wallet.info.restoreHeight, 43);
+      expect(
+        (await MainDB.instance.isar.walletInfo
+                .where()
+                .walletIdEqualTo(wallet.walletId)
+                .findFirst())
+            ?.restoreHeight,
+        43,
+      );
+      expect(client.treeStateCalls, 1);
+      await wallet.exit();
+    },
+  );
+
+  test(
+    'restore without a positive birthday fails before node access',
+    () async {
+      final node = walletNode(host: 'https://restore.example', id: 'restore');
+      final client = SyncWalletSessionClient(chainName: 'main', tipHeight: 42);
+      final wallet = await Wallet.create(
+        walletInfo: WalletInfo(
+          walletId: 'zcash-missing-restore-birthday',
+          name: 'Zcash missing birthday fixture',
+          mainAddressType: AddressType.zcashUnified,
+          coinName: 'zcash',
+        ),
+        mainDB: MainDB.instance,
+        secureStorageInterface: MemorySecrets(),
+        nodeService: MutableZcashNodes(node),
+        prefs: SessionPrefs(),
+        mnemonic:
+            'abandon abandon abandon abandon abandon abandon abandon abandon '
+            'abandon abandon abandon about',
+        mnemonicPassphrase: '',
+      ) as ZcashWallet;
+      wallet.configureAccountSessionFactory(
+        (network) =>
+            ZcashAccountSession(network: network, clientFactory: (_) => client),
+      );
+
+      await expectLater(
+        wallet.init(isRestore: true),
+        throwsA(
+          isA<StateError>().having(
+            (error) => error.message,
+            'message',
+            contains('explicit positive block height'),
+          ),
+        ),
+      );
+
+      expect(client.infoCalls, 0);
+      expect(client.tipCalls, 0);
+      expect(client.closeCalls, 0);
+      await wallet.exit();
+    },
+  );
+
+  test('new wallet rejects an out-of-range lightwalletd tip', () async {
+    final node = walletNode(host: 'https://invalid-tip.example', id: 'bad-tip');
+    final client = SyncWalletSessionClient(chainName: 'main', tipHeight: -1);
+    final wallet = await Wallet.create(
+      walletInfo: WalletInfo(
+        walletId: 'zcash-invalid-tip-birthday',
+        name: 'Zcash invalid tip fixture',
+        mainAddressType: AddressType.zcashUnified,
+        coinName: 'zcash',
+      ),
+      mainDB: MainDB.instance,
+      secureStorageInterface: MemorySecrets(),
+      nodeService: MutableZcashNodes(node),
+      prefs: SessionPrefs(),
+      mnemonic:
+          'abandon abandon abandon abandon abandon abandon abandon abandon '
+          'abandon abandon abandon about',
+      mnemonicPassphrase: '',
+    ) as ZcashWallet;
+    wallet.configureAccountSessionFactory(
+      (network) =>
+          ZcashAccountSession(network: network, clientFactory: (_) => client),
+    );
+
+    await expectLater(
+      wallet.init(isRestore: false),
+      throwsA(
+        isA<StateError>().having(
+          (error) => error.message,
+          'message',
+          contains('lightwalletd tip must be between'),
+        ),
+      ),
+    );
+
+    expect(wallet.info.restoreHeight, 0);
+    expect(client.closeCalls, 1);
+    await wallet.exit();
+    expect(client.closeCalls, 1);
+  });
+
+  test(
     'wallet init, updateNode, ping, and exit own one account session',
     () async {
       final firstNode = walletNode(host: 'https://first.example', id: 'first');
@@ -196,6 +323,7 @@ void main() {
           name: 'Zcash session fixture',
           mainAddressType: AddressType.zcashUnified,
           coinName: 'zcash',
+          restoreHeight: 1,
         ),
         mainDB: MainDB.instance,
         secureStorageInterface: MemorySecrets(),
@@ -255,6 +383,7 @@ void main() {
         name: 'Zcash init rollback fixture',
         mainAddressType: AddressType.zcashUnified,
         coinName: 'zcash',
+        restoreHeight: 1,
       ),
       mainDB: MainDB.instance,
       secureStorageInterface: MemorySecrets(),

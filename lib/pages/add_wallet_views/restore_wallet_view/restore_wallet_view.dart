@@ -47,6 +47,7 @@ import '../../../wallets/isar/models/wallet_info.dart';
 import '../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../../wallets/wallet/impl/xelis_wallet.dart';
+import '../../../wallets/wallet/impl/zcash_wallet.dart';
 import '../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../wallets/wallet/intermediate/external_wallet.dart';
 import '../../../wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
@@ -373,6 +374,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
               break;
 
             case XelisWallet():
+              await wallet.init(isRestore: true);
+              break;
+
+            case ZcashWallet():
               await wallet.init(isRestore: true);
               break;
 

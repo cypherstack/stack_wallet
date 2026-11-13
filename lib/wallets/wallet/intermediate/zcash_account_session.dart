@@ -169,6 +169,8 @@ class ZcashReadinessTimeoutException implements Exception {
 }
 
 class ZcashAccountSession {
+  static const int maximumBlockHeight = 0xffffffff;
+
   ZcashAccountSession({
     required this.network,
     ZcashLightwalletdClientFactory? clientFactory,
@@ -294,6 +296,11 @@ class ZcashAccountSession {
       throw ZcashReadinessTimeoutException(
         phase: 'getTipHeight',
         timeout: requestTimeout,
+      );
+    }
+    if (tipHeight < 0 || tipHeight > maximumBlockHeight) {
+      throw StateError(
+        'Zcash lightwalletd tip must be between 0 and $maximumBlockHeight',
       );
     }
     return ZcashSessionReadiness(info: info, tipHeight: tipHeight);

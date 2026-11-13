@@ -130,6 +130,12 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
 
   @override
   Future<void> init({bool? isRestore}) async {
+    if (info.restoreHeight < 1 && isRestore != false) {
+      throw StateError(
+        'Restoring Zcash requires an explicit positive block height; '
+        'a missing birthday must not skip wallet history',
+      );
+    }
     zcash.requireProductionWalletNativeCapabilities(zcash.nativeCapabilities());
     final seed = zcash.nativeMnemonicToSeed(
       await getMnemonic(),
@@ -213,8 +219,26 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
     }
     await mainDB.updateOrPutAddresses(receiverRows);
     try {
+      ZcashSessionReadiness? readiness;
       if (nodeService.getPrimaryNodeFor(currency: cryptoCurrency) != null) {
-        await updateNode();
+        readiness = await _replaceConfiguredNode();
+      }
+      if (info.restoreHeight < 1) {
+        readiness ??= await _replaceConfiguredNode();
+        if (readiness.tipHeight >= ZcashAccountSession.maximumBlockHeight) {
+          throw StateError(
+            'The Zcash lightwalletd tip cannot produce a bounded wallet '
+            'birthday',
+          );
+        }
+        await info.updateRestoreHeight(
+          newRestoreHeight: readiness.tipHeight + 1,
+          isar: mainDB.isar,
+        );
+      }
+      if (readiness != null) {
+        _validateBirthdayAgainst(readiness);
+        await _initializeStateController(_requireAccountSession());
       }
       await super.init();
     } catch (_) {
@@ -707,6 +731,17 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
 
   @override
   Future<void> updateNode() async {
+    try {
+      final readiness = await _replaceConfiguredNode();
+      _validateBirthdayAgainst(readiness);
+      await _initializeStateController(_requireAccountSession());
+    } catch (_) {
+      await _closeAccountSession();
+      rethrow;
+    }
+  }
+
+  Future<ZcashSessionReadiness> _replaceConfiguredNode() async {
     final node = nodeService.getPrimaryNodeFor(currency: cryptoCurrency);
     if (node == null) {
       throw StateError(
@@ -716,9 +751,26 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
     final session = _accountSession ??= _accountSessionFactory(
       cryptoCurrency.network,
     );
-    await session.replaceNode(node);
+    final readiness = await session.replaceNode(node);
     _stateController = null;
-    await _initializeStateController(session);
+    return readiness;
+  }
+
+  void _validateBirthdayAgainst(ZcashSessionReadiness readiness) {
+    final birthdayHeight = info.restoreHeight;
+    if (birthdayHeight < 1 ||
+        birthdayHeight > ZcashAccountSession.maximumBlockHeight) {
+      throw StateError(
+        'Zcash restore height must be between 1 and '
+        '${ZcashAccountSession.maximumBlockHeight}',
+      );
+    }
+    if (birthdayHeight > readiness.tipHeight + 1) {
+      throw StateError(
+        'Zcash restore height $birthdayHeight is above the validated '
+        'lightwalletd tip ${readiness.tipHeight}',
+      );
+    }
   }
 
   @override
