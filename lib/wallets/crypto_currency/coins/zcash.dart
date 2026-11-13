@@ -90,8 +90,11 @@ class Zcash extends Bip39Currency {
 
   @override
   NodeModel defaultNode({required bool isPrimary}) => throw UnsupportedError(
-    'Zcash node access is not part of the wallet identity slice',
+    'Zcash requires an explicitly configured lightwalletd node',
   );
+
+  @override
+  NodeModel? defaultNodeOrNull({required bool isPrimary}) => null;
 
   @override
   int get defaultSeedPhraseLength => 24;
@@ -123,7 +126,19 @@ class Zcash extends Bip39Currency {
   );
 
   @override
-  Uri defaultBlockExplorer(String txid) => throw UnsupportedError(
-    'Zcash transaction lookup is not part of the wallet identity slice',
-  );
+  Uri defaultBlockExplorer(String txid) => switch (network) {
+    CryptoCurrencyNetwork.main => Uri.https(
+      'mainnet.zcashexplorer.app',
+      '/transactions/$txid',
+    ),
+    CryptoCurrencyNetwork.test => Uri.https(
+      'testnet.zcashexplorer.app',
+      '/transactions/$txid',
+    ),
+    CryptoCurrencyNetwork.regtest => throw UnsupportedError(
+      'Zcash regtest transactions do not have a public block explorer',
+    ),
+    CryptoCurrencyNetwork.stage || CryptoCurrencyNetwork.test4 =>
+      throw StateError('Unsupported Zcash network: $network'),
+  };
 }
