@@ -917,9 +917,17 @@ class _DesktopTransactionCardRowState
 
     final currentHeight = ref.watch(pWalletChainHeight(walletId));
 
-    final Amount amount;
+    final Amount? amount;
     final fractionDigits = contract?.decimals ?? coin.fractionDigits;
-    if (_transaction.subType == TransactionSubType.cashFusion) {
+    final knownWalletNet = _transaction.walletNetAmountRaw;
+    if (_transaction.hasPartialMetadata && knownWalletNet == null) {
+      amount = null;
+    } else if (knownWalletNet != null) {
+      amount = Amount(
+        rawValue: knownWalletNet.abs(),
+        fractionDigits: fractionDigits,
+      );
+    } else if (_transaction.subType == TransactionSubType.cashFusion) {
       amount = _transaction.getAmountReceivedInThisWallet(
         fractionDigits: fractionDigits,
       );
@@ -1036,7 +1044,9 @@ class _DesktopTransactionCardRowState
               Expanded(
                 flex: 4,
                 child: Text(
-                  Format.extractDateFrom(_transaction.timestamp),
+                  _transaction.isMetadataMissing('timestamp')
+                      ? 'Unknown'
+                      : Format.extractDateFrom(_transaction.timestamp),
                   style: STextStyles.label(context),
                 ),
               ),
@@ -1044,9 +1054,11 @@ class _DesktopTransactionCardRowState
                 flex: 6,
                 child: Builder(
                   builder: (context) {
-                    final formattedAmount = ref
-                        .watch(pAmountFormatter(coin))
-                        .format(amount, tokenContract: contract);
+                    final formattedAmount = amount == null
+                        ? 'Unknown'
+                        : ref
+                              .watch(pAmountFormatter(coin))
+                              .format(amount, tokenContract: contract);
 
                     return Text(
                       "$prefix$formattedAmount",
@@ -1060,12 +1072,12 @@ class _DesktopTransactionCardRowState
                   },
                 ),
               ),
-              if (price != null)
+              if (price != null && amount != null)
                 Expanded(
                   flex: 4,
                   child: Builder(
                     builder: (context) {
-                      final formattedFiat = (amount.decimal * price!)
+                      final formattedFiat = (amount!.decimal * price!)
                           .toAmount(fractionDigits: 2)
                           .fiatString(locale: locale);
 
