@@ -10,10 +10,12 @@
 
 import 'dart:io';
 
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 
 import '../app_config.dart';
+import 'flatpak_data_directory.dart';
 import 'prefs.dart';
 import 'util.dart';
 
@@ -33,6 +35,49 @@ abstract class StackFileSystem {
   static bool get _createSubDirs =>
       Util.isDesktop || AppConfig.appName == "Campfire";
 
+  static Future<Directory>? _linuxRootResolution;
+
+  /// The Linux desktop data root: the -d directory if one was given,
+  /// otherwise the Flatpak or home directory default.
+  @visibleForTesting
+  static Future<Directory> linuxRootDirectory(
+    Map<String, String> environment,
+  ) async {
+    if (_overrideDesktopDirPath != null) {
+      return Directory(_overrideDesktopDirPath!);
+    }
+    // Resolved once per process: the Flatpak migration must run before
+    // Hive opens and never again. A second resolution could switch the
+    // root out from under an already open Hive/Isar, redo the whole copy
+    // after a failure, and its unlock() would drop the fcntl lock Hive
+    // holds on hive/dbinfo.lock (those locks are per process).
+    return _linuxRootResolution ??= _resolveLinuxRoot(environment);
+  }
+
+  static Future<Directory> _resolveLinuxRoot(
+    Map<String, String> environment,
+  ) async {
+    try {
+      return await FlatpakDataDirectory.resolve(
+            environment: environment,
+            appDirectoryName: AppConfig.appDefaultDataDirName,
+            onError: (error) => stderr.writeln(
+              "Flatpak data migration failed; using legacy data: $error",
+            ),
+          ) ??
+          Directory(
+            path.join(
+              environment['HOME']!,
+              ".${AppConfig.appDefaultDataDirName}",
+            ),
+          );
+    } catch (_) {
+      // Only a successful resolution is sticky.
+      _linuxRootResolution = null;
+      rethrow;
+    }
+  }
+
   static Future<Directory> applicationRootDirectory() async {
     Directory appDirectory;
 
@@ -43,16 +88,7 @@ abstract class StackFileSystem {
         path.join(appDirectory.path, ".${AppConfig.appDefaultDataDirName}"),
       );
     } else if (Platform.isLinux) {
-      if (_overrideDesktopDirPath != null) {
-        appDirectory = Directory(_overrideDesktopDirPath!);
-      } else {
-        appDirectory = Directory(
-          path.join(
-            Platform.environment['HOME']!,
-            ".${AppConfig.appDefaultDataDirName}",
-          ),
-        );
-      }
+      appDirectory = await linuxRootDirectory(Platform.environment);
     } else if (Platform.isWindows) {
       if (_overrideDesktopDirPath != null) {
         appDirectory = Directory(_overrideDesktopDirPath!);
@@ -211,6 +247,16 @@ abstract class StackFileSystem {
       if (await dir.exists()) {
         return dir;
       }
+    }
+
+    // Keep logs with a -d data directory instead of the shared documents
+    // directory, which every instance would otherwise write to.
+    if (_overrideDesktopDirPath != null) {
+      final dir = Directory(path.join(_overrideDesktopDirPath!, "logs"));
+      if (!dir.existsSync()) {
+        await dir.create(recursive: true);
+      }
+      return dir;
     }
 
     final appDocsDir = await getApplicationDocumentsDirectory();
