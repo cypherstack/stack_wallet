@@ -85,6 +85,7 @@ exit 91
         (option: 'a', value: 'unknown', message: 'Invalid app id'),
         (option: 'v', value: '1.2.3/invalid', message: 'Invalid version'),
         (option: 'b', value: '12-invalid', message: 'Invalid build number'),
+        (option: 'w', value: '', message: 'Invalid WSL distribution'),
       ]) {
         test('rejects invalid -${invalid.option} before writes '
             'from $location', () async {

@@ -2,6 +2,7 @@
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import '../windows/build_secp256k1.dart';
@@ -190,9 +191,11 @@ void main() {
         'https://github.com/bitcoin-core/secp256k1.git',
         secpRevision,
       ]);
+      final checkout = operation('checkout').single.cwd!;
       expect(
-        operation('checkout').single.cwd,
-        startsWith('${root.path}/build/'),
+        p.isWithin('${root.path}/build', checkout),
+        isTrue,
+        reason: checkout,
       );
       final configure = operation('-S').single.args;
       expect(

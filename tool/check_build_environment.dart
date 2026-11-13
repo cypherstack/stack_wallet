@@ -105,6 +105,9 @@ Future<List<String>> checkBuildEnvironment({
   if (platform == 'windows' && host.os != 'windows') {
     return ['Configure Windows builds from Git Bash on Windows.'];
   }
+  if ({'ios', 'macos'}.contains(platform) && host.os != 'macos') {
+    return ['Apple targets require a macOS build host.'];
+  }
   final errors = <String>[];
   var hasRustup = false;
   final home = host.variables[host.os == 'windows' ? 'USERPROFILE' : 'HOME'];
@@ -192,9 +195,7 @@ Future<List<String>> checkBuildEnvironment({
   }
 
   if (platform == 'ios' || platform == 'macos') {
-    if (host.os != 'macos') {
-      errors.add('Apple targets require a macOS build host.');
-    } else if (host.architecture == 'arm64') {
+    if (host.architecture == 'arm64') {
       final requirement = xcodeRequirement!;
       final selected = await selectedDnixXcode(
         host,

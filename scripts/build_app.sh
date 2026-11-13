@@ -53,7 +53,8 @@ while getopts "v:b:p:a:w:idfsh" opt; do
         d) DNIX_BUILD_MODE=prebuilt ;;
         f) BUILD_ISAR_FROM_SOURCE=1 ;;
         s) USE_SYSTEM_SECURE_STORAGE_DEPS=1 ;;
-        w) DNIX_WSL_DISTRIBUTION="$OPTARG" ;;
+        w) [ -n "$OPTARG" ] || { echo "Invalid WSL distribution: -w needs a name"; usage; }
+           DNIX_WSL_DISTRIBUTION="$OPTARG" ;;
         h) usage 0 ;;
         *) usage ;;
     esac

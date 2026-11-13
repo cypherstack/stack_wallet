@@ -252,6 +252,8 @@ Install:
 - Windows Developer Mode for symlinks used by Flutter and the asset scripts.
 - Rustup on Windows for every app's DNSSEC hook and Stack Wallet's Xelis hook.
 - WSL2 and Nix inside its Linux distribution for dnix source mode.
+- Go and `mingw-w64` in the default WSL distribution for Stack Wallet's MWEB
+  build, unless you set `MWEBD_FETCH=1` (see [MWEB and secp256k1](#mweb-and-secp256k1)).
 
 Follow Microsoft's [WSL installation guide](https://learn.microsoft.com/en-us/windows/wsl/install)
 to install Ubuntu 24.04, then follow the [Nix installation instructions](https://nixos.org/download/)

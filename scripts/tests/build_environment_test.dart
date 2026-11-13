@@ -202,6 +202,20 @@ void main() {
     );
   });
 
+  for (final os in ['linux', 'windows']) {
+    test('Apple targets on a $os host are rejected in both modes', () async {
+      fixture.os = os;
+      for (final platform in ['ios', 'macos']) {
+        for (final mode in ['source', 'prebuilt']) {
+          expect(await fixture.check(platform: platform, mode: mode), [
+            'Apple targets require a macOS build host.',
+          ]);
+        }
+      }
+      expect(fixture.calls, isEmpty);
+    });
+  }
+
   for (final os in ['linux', 'macos']) {
     test('Windows configuration on a $os host is rejected', () async {
       fixture.os = os;
