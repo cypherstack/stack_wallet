@@ -59,7 +59,7 @@ final class ZcashPreparedIronwoodSend extends ZcashPreparedWalletSend {
     requireValueConservation();
   }
 
-  final zcash.IronwoodPreparedSend prepared;
+  final zcash.IronwoodPreparedPayment prepared;
 
   @override
   String get transactionHex => prepared.transactionHex;
@@ -128,6 +128,7 @@ class ZcashSendPreparationRequest {
     required this.scanExecutor,
     required this.seedHex,
     required this.saplingChangeAddress,
+    required this.ironwoodChangeAddress,
     required this.recipient,
     required this.amountZatoshis,
     required this.memo,
@@ -145,6 +146,7 @@ class ZcashSendPreparationRequest {
   final ZcashScanExecutor scanExecutor;
   final String seedHex;
   final String saplingChangeAddress;
+  final String ironwoodChangeAddress;
   final String recipient;
   final int amountZatoshis;
   final Uint8List? memo;
@@ -153,6 +155,36 @@ class ZcashSendPreparationRequest {
   final Future<zcash.SaplingProvingParameters> Function()
   resolveSaplingProvingParameters;
   final int? regtestNu63ActivationHeight;
+}
+
+abstract interface class ZcashIronwoodSpendMaterialProvider {
+  Future<zcash.ZcashSpendMaterial> acquire({
+    required ZcashSendPreparationRequest request,
+    required List<zcash.ZcashScannedNote> candidates,
+  });
+}
+
+final class ZcashNativeIronwoodSpendMaterialProvider
+    implements ZcashIronwoodSpendMaterialProvider {
+  const ZcashNativeIronwoodSpendMaterialProvider();
+
+  @override
+  Future<zcash.ZcashSpendMaterial> acquire({
+    required ZcashSendPreparationRequest request,
+    required List<zcash.ZcashScannedNote> candidates,
+  }) => zcash.acquireNativeSpendMaterial(
+    wallet: request.state,
+    request: zcash.ZcashSpendMaterialRequest.ironwood(
+      accountFingerprint: request.state.accountFingerprint,
+      notes: candidates,
+      anchorHeight: request.targetHeight - 1,
+    ),
+    source: _StackSpendMaterialSource(
+      network: _nativeNetwork(request.network).ffiLabel,
+      client: request.syncClient,
+      scanExecutor: request.scanExecutor,
+    ),
+  );
 }
 
 abstract interface class ZcashWalletSendService {
@@ -171,9 +203,16 @@ abstract interface class ZcashWalletSendService {
 }
 
 final class ZcashProductionWalletSendService implements ZcashWalletSendService {
-  const ZcashProductionWalletSendService({this.maxSpendNotes = 50});
+  const ZcashProductionWalletSendService({
+    this.maxSpendNotes = 50,
+    this.spendMaterialProvider =
+        const ZcashNativeIronwoodSpendMaterialProvider(),
+    this.ironwoodPaymentBackend,
+  });
 
   final int maxSpendNotes;
+  final ZcashIronwoodSpendMaterialProvider spendMaterialProvider;
+  final zcash.IronwoodPaymentBackend? ironwoodPaymentBackend;
 
   @override
   Future<void> broadcast({
@@ -188,8 +227,8 @@ final class ZcashProductionWalletSendService implements ZcashWalletSendService {
   }) async {
     switch (prepared) {
       case ZcashPreparedIronwoodSend():
-        await zcash.broadcastIronwoodSend(
-          send: prepared.prepared,
+        await zcash.broadcastIronwoodPayment(
+          payment: prepared.prepared,
           chainHeight: chainHeight,
           pendingSends: pendingSends,
           isRejection: (error) => error is ZcashBroadcastRejectedException,
@@ -226,16 +265,16 @@ final class ZcashProductionWalletSendService implements ZcashWalletSendService {
     ZcashSendPreparationRequest request,
   ) async {
     final output = _resolveOutput(request);
-    if (output.actualOutputPool != zcash.ProposalOutputPool.ironwood) {
-      throw UnsupportedError(
-        'Stack can route this recipient to ${output.actualOutputPool.name}, '
-        'but the backend cannot yet persist a durable reservation for that '
-        'actual output pool',
-      );
-    }
-
     final ironwood = await _tryPrepareIronwood(request, output);
     if (ironwood != null) return ironwood;
+    if (output.actualOutputPool != zcash.ProposalOutputPool.ironwood) {
+      throw zcash.IronwoodSelectionException(
+        zcash.IronwoodSelectionRefusal.insufficientFunds,
+        'A ${output.actualOutputPool.name} output after NU6.3 must be funded '
+        'from Ironwood, but this wallet has no spendable Ironwood notes for '
+        'the payment and its ZIP 317 fee',
+      );
+    }
     return _prepareSaplingPathB(request, output);
   }
 
@@ -290,38 +329,33 @@ final class ZcashProductionWalletSendService implements ZcashWalletSendService {
     }
     if (candidates.isEmpty) return null;
 
-    final material = await zcash.acquireNativeSpendMaterial(
-      wallet: request.state,
-      request: zcash.ZcashSpendMaterialRequest.ironwood(
-        accountFingerprint: request.state.accountFingerprint,
-        notes: candidates,
-        anchorHeight: request.targetHeight - 1,
-      ),
-      source: _StackSpendMaterialSource(
-        network: _nativeNetwork(request.network).ffiLabel,
-        client: request.syncClient,
-        scanExecutor: request.scanExecutor,
-      ),
+    final material = await spendMaterialProvider.acquire(
+      request: request,
+      candidates: candidates,
     );
     try {
-      final prepared = zcash.prepareNativeIronwoodSend(
+      final provingParameters =
+          output.actualOutputPool == zcash.ProposalOutputPool.sapling
+          ? await request.resolveSaplingProvingParameters()
+          : null;
+      final prepared = zcash.prepareNativeIronwoodPayment(
         network: _nativeNetwork(request.network),
         scan: material.scan,
-        toAddress: output.receiverAddress,
-        amountZatoshis: output.amountZatoshis,
+        output: output,
+        ironwoodChangeAddress: request.ironwoodChangeAddress,
         targetHeight: request.targetHeight,
         expiryHeight: request.expiryHeight,
         seedHex: request.seedHex,
         reservations: request.pendingSends,
         maxNotes: maxSpendNotes,
-        memo: output.memo,
+        provingParameters: provingParameters,
         regtestNu63ActivationHeight: request.regtestNu63ActivationHeight,
         now: DateTime.now().toUtc(),
         allowExperimentalIronwoodBuild: true,
+        backend: ironwoodPaymentBackend,
       );
-      request.pendingSends.addPrepared(
+      request.pendingSends.addPreparedPayment(
         prepared,
-        actualDestinationPool: zcash.IronwoodDestinationPool.ironwood,
         createdHeight: request.targetHeight - 1,
       );
       return ZcashPreparedIronwoodSend(

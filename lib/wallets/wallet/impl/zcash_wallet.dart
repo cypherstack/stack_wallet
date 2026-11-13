@@ -225,6 +225,7 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
         throw StateError('Zcash sync state is unavailable or not current');
       }
       final saplingChange = await _saplingChangeAddress();
+      final ironwoodChange = await _ironwoodChangeAddress();
       final seed = zcash.nativeMnemonicToSeed(
         await getMnemonic(),
         passphrase: await getMnemonicPassphrase(),
@@ -242,6 +243,7 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
           scanExecutor: scanExecutor,
           seedHex: seed.seedHex,
           saplingChangeAddress: saplingChange,
+          ironwoodChangeAddress: ironwoodChange,
           recipient: resolved.address,
           amountZatoshis: resolved.amount.toInt(),
           memo: resolved.memo,
@@ -646,6 +648,17 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
     if (matches.length != 1) {
       throw StateError(
         'Zcash wallet has no unambiguous Sapling change receiver',
+      );
+    }
+    return matches.single.value;
+  }
+
+  Future<String> _ironwoodChangeAddress() async {
+    final rows = await mainDB.getAddresses(walletId).findAll();
+    final matches = rows.where((row) => row.type == AddressType.zcashUnified);
+    if (matches.length != 1) {
+      throw StateError(
+        'Zcash wallet has no unambiguous Unified Address for Ironwood change',
       );
     }
     return matches.single.value;

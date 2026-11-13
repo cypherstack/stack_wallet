@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:regtest_support/regtest_support.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
@@ -181,6 +182,116 @@ final class UnusedScanExecutor implements ZcashScanExecutor {
       throw StateError('routing refusal must happen before scanning');
 }
 
+final class FixtureSpendMaterialProvider
+    implements ZcashIronwoodSpendMaterialProvider {
+  @override
+  Future<zcash.ZcashSpendMaterial> acquire({
+    required ZcashSendPreparationRequest request,
+    required List<zcash.ZcashScannedNote> candidates,
+  }) async => zcash.ZcashSpendMaterial.verified(
+    accountFingerprint: request.state.accountFingerprint,
+    pool: 'ironwood',
+    anchorHeight: request.targetHeight - 1,
+    anchorBlockHash: '44' * 32,
+    scan: zcash.ZcashScanResult(
+      scannedBlocks: 1,
+      discoveredNotes: candidates.length,
+      totalValue: candidates.fold(0, (sum, note) => sum + note.value),
+      notes: candidates,
+      scannedHeightRange: zcash.CompactBlockScanRange(
+        start: candidates
+            .map((note) => note.height)
+            .reduce((left, right) => left < right ? left : right),
+        end: request.targetHeight - 1,
+      ),
+      ironwoodAnchor: 'cc' * 32,
+    ),
+  );
+}
+
+final class FixtureIronwoodPaymentBackend
+    implements zcash.IronwoodPaymentBackend {
+  final List<zcash.IronwoodPaymentNativeRequest> builds = [];
+
+  @override
+  zcash.IronwoodFeeQuote quote(zcash.IronwoodPaymentNativeRequest request) {
+    final input = request.ironwoodSpends.fold<int>(
+      0,
+      (sum, spend) => sum + spend.valueZatoshis,
+    );
+    final nonIronwood = request.outputs.fold<int>(
+      0,
+      (sum, output) => sum + output.valueZatoshis,
+    );
+    return zcash.IronwoodFeeQuote(
+      network: zcash.ZcashAddressNetwork.regtest,
+      feeZatoshis: 10000,
+      feeRule: 'zip317',
+      consensusBranchId: 'nu6.3',
+      totalInputZatoshis: input,
+      nonIronwoodOutputZatoshis: nonIronwood,
+      maxIronwoodOutputZatoshis: input - nonIronwood - 10000,
+      ironwoodSpends: request.ironwoodSpends.length,
+      orchardSpends: 0,
+      saplingSpends: 0,
+      transparentInputs: 0,
+    );
+  }
+
+  @override
+  zcash.IronwoodBuildResult build(zcash.IronwoodPaymentNativeRequest request) {
+    builds.add(request);
+    final input = request.ironwoodSpends.fold<int>(
+      0,
+      (sum, spend) => sum + spend.valueZatoshis,
+    );
+    final nonIronwood = request.outputs.fold<int>(
+      0,
+      (sum, output) => sum + output.valueZatoshis,
+    );
+    final transparent = request.outputs.where(
+      (output) => output.address.startsWith('t'),
+    );
+    final sapling = request.outputs.where(
+      (output) => output.address.startsWith('z'),
+    );
+    return zcash.IronwoodBuildResult(
+      network: zcash.ZcashAddressNetwork.regtest,
+      transactionHex: 'ff' * 20,
+      txid: 'ee' * 32,
+      version: 'v6',
+      expiryHeight: request.expiryHeight!,
+      feeZatoshis: 10000,
+      feeRule: 'zip317',
+      proofValidity: 'real',
+      ironwoodAnchor: request.anchorHex,
+      ironwoodAnchorSource: 'anchor',
+      vin: 0,
+      vout: transparent.length,
+      saplingOutputs: sapling.isEmpty ? 0 : 2,
+      ironwoodActions: 1,
+      ironwoodSpends: request.ironwoodSpends.length,
+      ironwoodChangeOutputs: request.ironwoodChangeZatoshis == null ? 0 : 1,
+      totalInputZatoshis: input,
+      ironwoodInputZatoshis: input,
+      ironwoodChangeZatoshis: request.ironwoodChangeZatoshis ?? 0,
+      nonIronwoodOutputZatoshis: nonIronwood,
+      ironwoodOutputZatoshis: request.ironwoodOutput.valueZatoshis!,
+      rng: 'system',
+    );
+  }
+}
+
+final class FixtureParameterSource implements zcash.SaplingParameterSource {
+  const FixtureParameterSource(this.bytes);
+
+  final Map<String, List<int>> bytes;
+
+  @override
+  Stream<List<int>> open(zcash.SaplingParameterArtifact artifact) =>
+      Stream.value(bytes[artifact.fileName]!);
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(initializeTestIsar);
@@ -250,6 +361,7 @@ void main() {
     expect(service.request!.memo, [0x68, 0x69]);
     expect(service.request!.amountZatoshis, 40000);
     expect(service.request!.targetHeight, 43);
+    expect(service.request!.ironwoodChangeAddress, address);
 
     final reviewed = prepared.copyWith(note: 'local-only review note');
     final confirmed = await wallet.confirmSend(txData: reviewed);
@@ -375,6 +487,7 @@ void main() {
             scanExecutor: UnusedScanExecutor(),
             seedHex: seed.seedHex,
             saplingChangeAddress: address.saplingAddress!,
+            ironwoodChangeAddress: address.ua,
             recipient: address.transparentAddress!,
             amountZatoshis: 40000,
             memo: Uint8List.fromList([0, 255, 1]),
@@ -394,6 +507,311 @@ void main() {
       );
     },
   );
+
+  test('production routing does not reject a valid transparent output before '
+      'selecting source funds', () async {
+    const phrase =
+        'abandon abandon abandon abandon abandon abandon abandon abandon '
+        'abandon abandon abandon about';
+    final seed = zcash.nativeMnemonicToSeed(phrase);
+    final address = await zcash.deriveAddress(
+      seedHex: seed.seedHex,
+      network: zcash.ZcashNetwork.mainnet,
+    );
+    final state = zcash.ZcashWalletSyncState.atBirthday(
+      cursor: zcash.ZcashLightwalletdSyncCursor.origin(height: 1),
+      network: zcash.ZcashAddressNetwork.mainnet,
+      accountFingerprint: 'fixture-account',
+    );
+
+    await expectLater(
+      const ZcashProductionWalletSendService().prepare(
+        ZcashSendPreparationRequest(
+          network: CryptoCurrencyNetwork.main,
+          sessionGeneration: 1,
+          state: state,
+          pendingSends: zcash.IronwoodPendingSendState(),
+          syncClient: SendClient(),
+          scanExecutor: UnusedScanExecutor(),
+          seedHex: seed.seedHex,
+          saplingChangeAddress: address.saplingAddress!,
+          ironwoodChangeAddress: address.ua,
+          recipient: address.transparentAddress!,
+          amountZatoshis: 40000,
+          memo: null,
+          targetHeight: 43,
+          expiryHeight: 83,
+          resolveSaplingProvingParameters: () =>
+              throw StateError('no source funds in this fixture'),
+        ),
+      ),
+      throwsA(isNot(isA<UnsupportedError>())),
+    );
+  });
+
+  test('production prepares and durably reserves Ironwood payments to every '
+      'ordinary destination pool', () async {
+    const phrase =
+        'abandon abandon abandon abandon abandon abandon abandon abandon '
+        'abandon abandon abandon about';
+    final seed = zcash.nativeMnemonicToSeed(phrase);
+    final address = await zcash.deriveAddress(
+      seedHex: seed.seedHex,
+      network: zcash.ZcashNetwork.regtest,
+    );
+    final parameterRoot = await Directory.systemTemp.createTemp(
+      'stack_zcash_routed_params_',
+    );
+    addTearDown(() => parameterRoot.delete(recursive: true));
+    final spendBytes = [1, 2, 3];
+    final outputBytes = [4, 5, 6];
+    final manifest = zcash.SaplingParameterManifest(
+      version: 'fixture-v1',
+      spend: zcash.SaplingParameterArtifact(
+        fileName: 'spend.params',
+        expectedBytes: spendBytes.length,
+        sha256Hex: sha256.convert(spendBytes).toString(),
+      ),
+      output: zcash.SaplingParameterArtifact(
+        fileName: 'output.params',
+        expectedBytes: outputBytes.length,
+        sha256Hex: sha256.convert(outputBytes).toString(),
+      ),
+    );
+    final parameters =
+        await zcash.SaplingProvingParameterCache(
+          cacheRoot: parameterRoot,
+          manifest: manifest,
+        ).resolve(
+          source: FixtureParameterSource({
+            manifest.spend.fileName: spendBytes,
+            manifest.output.fileName: outputBytes,
+          }),
+        );
+    var provingParameterResolutions = 0;
+
+    for (final destination in [
+      (
+        address: address.ua,
+        pool: zcash.ProposalOutputPool.ironwood,
+        pendingPool: zcash.IronwoodDestinationPool.ironwood,
+      ),
+      (
+        address: address.saplingAddress!,
+        pool: zcash.ProposalOutputPool.sapling,
+        pendingPool: zcash.IronwoodDestinationPool.sapling,
+      ),
+      (
+        address: address.transparentAddress!,
+        pool: zcash.ProposalOutputPool.transparent,
+        pendingPool: zcash.IronwoodDestinationPool.transparent,
+      ),
+    ]) {
+      final state = _ironwoodFundedState();
+      final pending = zcash.IronwoodPendingSendState();
+      final backend = FixtureIronwoodPaymentBackend();
+      final prepared =
+          await ZcashProductionWalletSendService(
+            spendMaterialProvider: FixtureSpendMaterialProvider(),
+            ironwoodPaymentBackend: backend,
+          ).prepare(
+            ZcashSendPreparationRequest(
+              network: CryptoCurrencyNetwork.regtest,
+              sessionGeneration: 1,
+              state: state,
+              pendingSends: pending,
+              syncClient: SendClient(chainName: 'test'),
+              scanExecutor: UnusedScanExecutor(),
+              seedHex: seed.seedHex,
+              saplingChangeAddress: address.saplingAddress!,
+              ironwoodChangeAddress: address.ua,
+              recipient: destination.address,
+              amountZatoshis: 40000,
+              memo: null,
+              targetHeight: 43,
+              expiryHeight: 83,
+              resolveSaplingProvingParameters: () async {
+                provingParameterResolutions++;
+                return parameters;
+              },
+              regtestNu63ActivationHeight: 40,
+            ),
+          );
+
+      expect(prepared, isA<ZcashPreparedIronwoodSend>());
+      expect(prepared.actualOutputPool, destination.pool);
+      expect(prepared.encodedRecipient, destination.address);
+      expect(pending.records, hasLength(1));
+      expect(pending.records.single.recipient, destination.address);
+      expect(
+        pending.records.single.actualDestinationPool,
+        destination.pendingPool,
+      );
+      expect(pending.records.single.amountZatoshis, 40000);
+      expect(pending.records.single.feeZatoshis, 10000);
+      final build = backend.builds.single;
+      expect(
+        build.provingParameters != null,
+        destination.pool == zcash.ProposalOutputPool.sapling,
+      );
+      if (destination.pool == zcash.ProposalOutputPool.ironwood) {
+        expect(build.outputs, isEmpty);
+        expect(build.ironwoodOutput.address, destination.address);
+      } else {
+        expect(build.outputs.single.address, destination.address);
+        expect(build.ironwoodOutput.address, address.ua);
+      }
+    }
+
+    expect(provingParameterResolutions, 1);
+  });
+
+  test('routed payment broadcast preserves restart, rejection, and '
+      'indeterminate reservation semantics', () async {
+    final acknowledged = await _prepareTransparentIronwoodPayment();
+    final restored = zcash.IronwoodPendingSendState.fromJson(
+      acknowledged.pending.toJson(),
+    );
+    var persisted = 0;
+    await acknowledged.service.broadcast(
+      prepared: acknowledged.prepared,
+      pendingSends: restored,
+      chainHeight: 43,
+      persist: () async => persisted++,
+      submit: (_) async =>
+          const ZcashSubmissionAcknowledgement(errorCode: 0, errorMessage: ''),
+    );
+    expect(persisted, 1);
+    expect(
+      restored.records.single.broadcastState,
+      zcash.IronwoodPendingBroadcastState.acknowledged,
+    );
+
+    final rejected = await _prepareTransparentIronwoodPayment();
+    await expectLater(
+      rejected.service.broadcast(
+        prepared: rejected.prepared,
+        pendingSends: rejected.pending,
+        chainHeight: 43,
+        persist: () async {},
+        submit: (_) async => throw const ZcashBroadcastRejectedException(
+          errorCode: -26,
+          message: 'consensus rejected',
+        ),
+      ),
+      throwsA(
+        isA<zcash.IronwoodBroadcastException>().having(
+          (error) => error.refusal,
+          'refusal',
+          zcash.IronwoodBroadcastRefusal.rejected,
+        ),
+      ),
+    );
+    expect(rejected.pending.records, isEmpty);
+
+    final indeterminate = await _prepareTransparentIronwoodPayment();
+    await expectLater(
+      indeterminate.service.broadcast(
+        prepared: indeterminate.prepared,
+        pendingSends: indeterminate.pending,
+        chainHeight: 43,
+        persist: () async {},
+        submit: (_) async => throw StateError('connection closed'),
+      ),
+      throwsA(
+        isA<zcash.IronwoodBroadcastException>().having(
+          (error) => error.refusal,
+          'refusal',
+          zcash.IronwoodBroadcastRefusal.undetermined,
+        ),
+      ),
+    );
+    expect(
+      indeterminate.pending.records.single.broadcastState,
+      zcash.IronwoodPendingBroadcastState.indeterminate,
+    );
+  });
+}
+
+zcash.ZcashWalletSyncState _ironwoodFundedState() {
+  const fingerprint = 'fixture-account';
+  final state = zcash.ZcashWalletSyncState.atBirthday(
+    cursor: zcash.ZcashLightwalletdSyncCursor.origin(height: 1),
+    network: zcash.ZcashAddressNetwork.regtest,
+    accountFingerprint: fingerprint,
+  );
+  state.ironwood.apply(
+    zcash.ZcashScanResult(
+      scannedBlocks: 1,
+      discoveredNotes: 1,
+      totalValue: 100000,
+      notes: [
+        zcash.ZcashScannedNote(
+          height: 40,
+          tx: 'aa' * 32,
+          output: 0,
+          value: 100000,
+          pool: 'ironwood',
+          nullifier: 'bb' * 32,
+          commitmentPosition: 0,
+          recipient: 'uregtest1-wallet-note',
+          rseed: '11' * 32,
+          rho: '22' * 32,
+          noteVersion: 'v3',
+          witness: '33' * 40,
+        ),
+      ],
+      scannedHeightRange: const zcash.CompactBlockScanRange(start: 40, end: 40),
+      ironwoodAnchor: 'cc' * 32,
+    ),
+    accountFingerprint: fingerprint,
+  );
+  return state;
+}
+
+Future<
+  ({
+    ZcashProductionWalletSendService service,
+    zcash.IronwoodPendingSendState pending,
+    ZcashPreparedWalletSend prepared,
+  })
+>
+_prepareTransparentIronwoodPayment() async {
+  const phrase =
+      'abandon abandon abandon abandon abandon abandon abandon abandon '
+      'abandon abandon abandon about';
+  final seed = zcash.nativeMnemonicToSeed(phrase);
+  final address = await zcash.deriveAddress(
+    seedHex: seed.seedHex,
+    network: zcash.ZcashNetwork.regtest,
+  );
+  final pending = zcash.IronwoodPendingSendState();
+  final service = ZcashProductionWalletSendService(
+    spendMaterialProvider: FixtureSpendMaterialProvider(),
+    ironwoodPaymentBackend: FixtureIronwoodPaymentBackend(),
+  );
+  final prepared = await service.prepare(
+    ZcashSendPreparationRequest(
+      network: CryptoCurrencyNetwork.regtest,
+      sessionGeneration: 1,
+      state: _ironwoodFundedState(),
+      pendingSends: pending,
+      syncClient: SendClient(chainName: 'test'),
+      scanExecutor: UnusedScanExecutor(),
+      seedHex: seed.seedHex,
+      saplingChangeAddress: address.saplingAddress!,
+      ironwoodChangeAddress: address.ua,
+      recipient: address.transparentAddress!,
+      amountZatoshis: 40000,
+      memo: null,
+      targetHeight: 43,
+      expiryHeight: 83,
+      resolveSaplingProvingParameters: () =>
+          throw StateError('transparent output needs no Sapling parameters'),
+      regtestNu63ActivationHeight: 40,
+    ),
+  );
+  return (service: service, pending: pending, prepared: prepared);
 }
 
 Future<ZcashWallet> _wallet(
