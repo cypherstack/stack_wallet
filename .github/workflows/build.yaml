@@ -664,11 +664,7 @@ jobs:
         run: |
           VERSION="${{ steps.ver.outputs.version }}"
           tar -xzf "stack_wallet-linux-x86_64-${VERSION}.tar.gz"
-          appimage/make_appdir.sh stack_wallet bundle AppDir
-          curl -fsSL -o appimagetool \
-            https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
-          chmod +x appimagetool
-          ARCH=x86_64 ./appimagetool --appimage-extract-and-run AppDir \
+          appimage/build_appimage.sh stack_wallet bundle \
             "stack_wallet-appimage-x86_64-${VERSION}.AppImage"
 
       - uses: actions/upload-artifact@v7
@@ -1117,11 +1113,7 @@ jobs:
         run: |
           VERSION="${{ steps.ver.outputs.version }}"
           tar -xzf "campfire-linux-x86_64-${VERSION}.tar.gz"
-          appimage/make_appdir.sh campfire bundle AppDir
-          curl -fsSL -o appimagetool \
-            https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
-          chmod +x appimagetool
-          ARCH=x86_64 ./appimagetool --appimage-extract-and-run AppDir \
+          appimage/build_appimage.sh campfire bundle \
             "campfire-appimage-x86_64-${VERSION}.AppImage"
 
       - uses: actions/upload-artifact@v7
@@ -1572,11 +1564,7 @@ jobs:
         run: |
           VERSION="${{ steps.ver.outputs.version }}"
           tar -xzf "stack_duo-linux-x86_64-${VERSION}.tar.gz"
-          appimage/make_appdir.sh stack_duo bundle AppDir
-          curl -fsSL -o appimagetool \
-            https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
-          chmod +x appimagetool
-          ARCH=x86_64 ./appimagetool --appimage-extract-and-run AppDir \
+          appimage/build_appimage.sh stack_duo bundle \
             "stack_duo-appimage-x86_64-${VERSION}.AppImage"
 
       - uses: actions/upload-artifact@v7
