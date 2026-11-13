@@ -73,9 +73,10 @@ class NodeService extends ChangeNotifier {
       }
     }
 
-    for (final defaultNode in AppConfig.coins.map(
-      (e) => e.defaultNode(isPrimary: true),
-    )) {
+    for (final defaultNode
+        in AppConfig.coins
+            .map((coin) => coin.defaultNodeOrNull(isPrimary: true))
+            .nonNulls) {
       await _writeNode(defaultNode.id, (savedNode) {
         if (savedNode == null) {
           return getNodesFor(

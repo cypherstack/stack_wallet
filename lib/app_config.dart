@@ -5,6 +5,7 @@ import 'models/isar/models/ethereum/eth_contract.dart';
 import 'utilities/default_eth_tokens.dart';
 import 'wallets/crypto_currency/crypto_currency.dart';
 import 'wallets/crypto_currency/intermediate/frost_currency.dart';
+import 'wallets/crypto_currency/opt_in_coin_registry.dart';
 
 part 'app_config.g.dart';
 
@@ -28,7 +29,15 @@ abstract class AppConfig {
 
   static ({String light, String dark})? get appIconAsset => _appIconAsset;
 
-  static List<CryptoCurrency> get coins => _supportedCoins;
+  /// Comma-separated currencies added only to explicitly opted-in builds.
+  static const extraCoins = String.fromEnvironment("STACK_EXTRA_COINS");
+
+  static final List<CryptoCurrency> _coins = List.unmodifiable([
+    ..._supportedCoins,
+    ...resolveOptInCoins(extraCoins, factories: const {}),
+  ]);
+
+  static List<CryptoCurrency> get coins => _coins;
 
   static List<EthContract> get defaultEthTokens => _defaultEthTokens;
 

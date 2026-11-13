@@ -2079,6 +2079,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.1"
+  regtest_support:
+    dependency: "direct dev"
+    description:
+      path: "."
+      ref: "3c4958c5b777279a3019e96f0d13754fcc436107"
+      resolved-ref: "3c4958c5b777279a3019e96f0d13754fcc436107"
+      url: "ssh://git@git.cypherstack.com:222/sneurlax/regtest_support.git"
+    source: git
+    version: "0.1.0"
   retry:
     dependency: transitive
     description:
