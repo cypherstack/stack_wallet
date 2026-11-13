@@ -98,6 +98,25 @@ class MoneroWallet extends LibMoneroWallet
   );
 
   @override
+  Future<WrappedWallet> getRestoredFromKeysWallet({
+    required String path,
+    required String password,
+    required String address,
+    required String privateViewKey,
+    required String privateSpendKey,
+    int height = 0,
+  }) => csMonero.getRestoredFromKeysWallet(
+    walletId: walletId,
+    path: path,
+    password: password,
+    address: address,
+    privateViewKey: privateViewKey,
+    privateSpendKey: privateSpendKey,
+    height: height,
+    network: moneroNetworkType(cryptoCurrency.network),
+  );
+
+  @override
   void invalidSeedLengthCheck(int length) {
     if (length != 25 && length != 16) {
       throw Exception("Invalid monero mnemonic length found: $length");

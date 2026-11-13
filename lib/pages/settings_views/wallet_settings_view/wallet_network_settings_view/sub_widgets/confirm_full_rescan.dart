@@ -9,19 +9,55 @@
  */
 
 import 'package:flutter/material.dart';
+
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../utilities/text_styles.dart';
 import '../../../../../utilities/util.dart';
+import '../../../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../../../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
 import '../../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../../widgets/desktop/primary_button.dart';
 import '../../../../../widgets/desktop/secondary_button.dart';
 import '../../../../../widgets/stack_dialog.dart';
+import '../../../../../widgets/start_height_picker.dart';
 
-class ConfirmFullRescanDialog extends StatelessWidget {
-  const ConfirmFullRescanDialog({super.key, required this.onConfirm});
+class ConfirmFullRescanDialog extends StatefulWidget {
+  const ConfirmFullRescanDialog({
+    super.key,
+    required this.coin,
+    required this.onConfirm,
+  });
 
-  final VoidCallback onConfirm;
+  final CryptoCurrency coin;
+  final void Function(int height) onConfirm;
+
+  @override
+  State<ConfirmFullRescanDialog> createState() =>
+      _ConfirmFullRescanDialogState();
+}
+
+class _ConfirmFullRescanDialogState extends State<ConfirmFullRescanDialog> {
+  late final StartHeightPickerController _heightController;
+
+  @override
+  void initState() {
+    super.initState();
+    _heightController = StartHeightPickerController();
+  }
+
+  @override
+  void dispose() {
+    _heightController.dispose();
+    super.dispose();
+  }
+
+  bool get _showHeightPicker =>
+      widget.coin is CryptonoteCurrency ||
+      widget.coin is Epiccash ||
+      widget.coin is Mimblewimblecoin;
+
+  int get _selectedHeight => _showHeightPicker ? _heightController.height : 0;
 
   @override
   Widget build(BuildContext context) {
@@ -35,9 +71,7 @@ class ConfirmFullRescanDialog extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(
-                    left: 32,
-                  ),
+                  padding: const EdgeInsets.only(left: 32),
                   child: Text(
                     "Rescan blockchain",
                     style: STextStyles.desktopH3(context),
@@ -60,9 +94,14 @@ class ConfirmFullRescanDialog extends StatelessWidget {
                     "Warning! It may take a while. If you exit before completion, you will have to redo the process.",
                     style: STextStyles.desktopTextSmall(context),
                   ),
-                  const SizedBox(
-                    height: 43,
-                  ),
+                  if (_showHeightPicker) ...[
+                    const SizedBox(height: 24),
+                    StartHeightPicker(
+                      coin: widget.coin,
+                      controller: _heightController,
+                    ),
+                  ],
+                  const SizedBox(height: 43),
                   Row(
                     children: [
                       Expanded(
@@ -72,15 +111,13 @@ class ConfirmFullRescanDialog extends StatelessWidget {
                           label: "Cancel",
                         ),
                       ),
-                      const SizedBox(
-                        width: 16,
-                      ),
+                      const SizedBox(width: 16),
                       Expanded(
                         child: PrimaryButton(
                           buttonHeight: ButtonHeight.l,
                           onPressed: () {
                             Navigator.of(context).pop();
-                            onConfirm.call();
+                            widget.onConfirm(_selectedHeight);
                           },
                           label: "Rescan",
                         ),
@@ -98,34 +135,59 @@ class ConfirmFullRescanDialog extends StatelessWidget {
         onWillPop: () async {
           return true;
         },
-        child: StackDialog(
-          title: "Rescan blockchain",
-          message:
-              "Warning! It may take a while. If you exit before completion, you will have to redo the process.",
-          leftButton: TextButton(
-            style: Theme.of(context)
-                .extension<StackColors>()!
-                .getSecondaryEnabledButtonStyle(context),
-            child: Text(
-              "Cancel",
-              style: STextStyles.itemSubtitle12(context),
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          rightButton: TextButton(
-            style: Theme.of(context)
-                .extension<StackColors>()!
-                .getPrimaryEnabledButtonStyle(context),
-            child: Text(
-              "Rescan",
-              style: STextStyles.button(context),
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-              onConfirm.call();
-            },
+        child: StackDialogBase(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SelectableText(
+                "Rescan blockchain",
+                style: STextStyles.pageTitleH2(context),
+              ),
+              const SizedBox(height: 8),
+              SelectableText(
+                "Warning! It may take a while. If you exit before completion, you will have to redo the process.",
+                style: STextStyles.smallMed14(context),
+              ),
+              if (_showHeightPicker) ...[
+                const SizedBox(height: 16),
+                StartHeightPicker(
+                  coin: widget.coin,
+                  controller: _heightController,
+                ),
+              ],
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      style: Theme.of(context)
+                          .extension<StackColors>()!
+                          .getSecondaryEnabledButtonStyle(context),
+                      child: Text(
+                        "Cancel",
+                        style: STextStyles.itemSubtitle12(context),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextButton(
+                      style: Theme.of(context)
+                          .extension<StackColors>()!
+                          .getPrimaryEnabledButtonStyle(context),
+                      child: Text("Rescan", style: STextStyles.button(context)),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        widget.onConfirm(_selectedHeight);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       );

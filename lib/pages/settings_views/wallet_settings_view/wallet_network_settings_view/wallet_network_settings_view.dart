@@ -131,7 +131,7 @@ class _WalletNetworkSettingsViewState
     }
   }
 
-  Future<void> _attemptRescan() async {
+  Future<void> _attemptRescan(int height) async {
     if (!Platform.isLinux) await WakelockPlus.enable();
 
     try {
@@ -147,6 +147,10 @@ class _WalletNetworkSettingsViewState
 
         try {
           final wallet = ref.read(pWallets).getWallet(widget.walletId);
+
+          if (height > 0 && wallet is CryptonoteWallet) {
+            wallet.setRefreshFromBlockHeight(height);
+          }
 
           await wallet.recover(isRescan: true);
 
@@ -449,6 +453,11 @@ class _WalletNetworkSettingsViewState
                                                 barrierDismissible: true,
                                                 builder: (context) {
                                                   return ConfirmFullRescanDialog(
+                                                    coin: ref.read(
+                                                      pWalletCoin(
+                                                        widget.walletId,
+                                                      ),
+                                                    ),
                                                     onConfirm: _attemptRescan,
                                                   );
                                                 },
@@ -1078,6 +1087,7 @@ class _WalletNetworkSettingsViewState
                           await Navigator.of(context).push(
                             FadePageRoute<void>(
                               ConfirmFullRescanDialog(
+                                coin: ref.read(pWalletCoin(widget.walletId)),
                                 onConfirm: _attemptRescan,
                               ),
                               const RouteSettings(),
