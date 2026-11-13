@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 
+import '../services/exchange/chainflip/chainflip_exchange.dart';
 import '../services/exchange/change_now/change_now_exchange.dart';
 import '../services/exchange/cyphergoat/cyphergoat_exchange.dart';
 import '../services/exchange/exolix/exolix_exchange.dart';
@@ -58,6 +59,8 @@ class _EXCHANGE {
 
   String get letsexchange => "${_path}letsexchange.svg";
 
+  String get chainflip => "${_path}chainflip.svg";
+
   String getIconFor({required String exchangeName}) {
     switch (exchangeName) {
       case SimpleSwapExchange.exchangeName:
@@ -78,6 +81,8 @@ class _EXCHANGE {
         return cypherGoat;
       case LetsExchangeExchange.exchangeName:
         return letsexchange;
+      case ChainflipExchange.exchangeName:
+        return chainflip;
       default:
         throw ArgumentError(
           "Invalid exchange name passed to "

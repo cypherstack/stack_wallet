@@ -19,6 +19,7 @@ const kCypherGoatApiKey = "";
 const kCypherGoatAffiliate = "";
 const kTrocadorApiKey = "";
 const kTrocadorRefCode = "";
+const kChainflipApiKey = "";
 '@ | Out-File $KEYS -Encoding UTF8
 }
 
