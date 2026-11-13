@@ -2,6 +2,7 @@
 Name=Campfire
 Comment=Your privacy. Your wallet. Your Firo.
 Exec=campfire
-Icon=campfire
+Icon=com.cypherstack.campfire
+StartupWMClass=com.cypherstack.campfire
 Type=Application
 Categories=Finance;

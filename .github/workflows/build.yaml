@@ -661,6 +661,8 @@ jobs:
   build-appimage:
     runs-on: ubuntu-24.04
     needs: build-linux
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v6
 
@@ -691,16 +693,7 @@ jobs:
         run: |
           VERSION="${{ steps.ver.outputs.version }}"
           tar -xzf "stack_wallet-linux-x86_64-${VERSION}.tar.gz"
-          mkdir -p AppDir
-          cp -r bundle/* AppDir/
-          cp appimage/stack_wallet/AppRun AppDir/AppRun
-          chmod +x AppDir/AppRun
-          cp appimage/stack_wallet/stack_wallet.desktop AppDir/
-          cp asset_sources/icon/stack_wallet/icon.png AppDir/stack_wallet.png
-          curl -fsSL -o appimagetool \
-            https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
-          chmod +x appimagetool
-          ARCH=x86_64 ./appimagetool --appimage-extract-and-run AppDir \
+          appimage/build_appimage.sh stack_wallet bundle \
             "stack_wallet-appimage-x86_64-${VERSION}.AppImage"
 
       - uses: actions/upload-artifact@v7
@@ -1115,6 +1108,8 @@ jobs:
   build-campfire-appimage:
     runs-on: ubuntu-24.04
     needs: build-campfire-linux
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v6
 
@@ -1145,16 +1140,7 @@ jobs:
         run: |
           VERSION="${{ steps.ver.outputs.version }}"
           tar -xzf "campfire-linux-x86_64-${VERSION}.tar.gz"
-          mkdir -p AppDir
-          cp -r bundle/* AppDir/
-          cp appimage/campfire/AppRun AppDir/AppRun
-          chmod +x AppDir/AppRun
-          cp appimage/campfire/campfire.desktop AppDir/
-          cp asset_sources/icon/campfire/icon.png AppDir/campfire.png
-          curl -fsSL -o appimagetool \
-            https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
-          chmod +x appimagetool
-          ARCH=x86_64 ./appimagetool --appimage-extract-and-run AppDir \
+          appimage/build_appimage.sh campfire bundle \
             "campfire-appimage-x86_64-${VERSION}.AppImage"
 
       - uses: actions/upload-artifact@v7
@@ -1569,6 +1555,8 @@ jobs:
   build-stack-duo-appimage:
     runs-on: ubuntu-24.04
     needs: build-stack-duo-linux
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v6
 
@@ -1599,16 +1587,7 @@ jobs:
         run: |
           VERSION="${{ steps.ver.outputs.version }}"
           tar -xzf "stack_duo-linux-x86_64-${VERSION}.tar.gz"
-          mkdir -p AppDir
-          cp -r bundle/* AppDir/
-          cp appimage/stack_duo/AppRun AppDir/AppRun
-          chmod +x AppDir/AppRun
-          cp appimage/stack_duo/stack_duo.desktop AppDir/
-          cp asset_sources/icon/stack_duo/icon.png AppDir/stack_duo.png
-          curl -fsSL -o appimagetool \
-            https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
-          chmod +x appimagetool
-          ARCH=x86_64 ./appimagetool --appimage-extract-and-run AppDir \
+          appimage/build_appimage.sh stack_duo bundle \
             "stack_duo-appimage-x86_64-${VERSION}.AppImage"
 
       - uses: actions/upload-artifact@v7

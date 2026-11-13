@@ -12,5 +12,6 @@
   </description>
   <url type="homepage">https://stackwallet.com</url>
   <url type="bugtracker">https://github.com/cypherstack/stack_wallet/issues</url>
+  <launchable type="desktop-id">com.cypherstack.stackduo.desktop</launchable>
   <content_rating type="oars-1.1"/>
 </component>
