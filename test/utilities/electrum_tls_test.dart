@@ -122,7 +122,7 @@ void main() {
     expect(server.requests, 0);
   });
 
-  test('approval pins the certificate even after it expired', () async {
+  test('approval accepts the certificate even after it expired', () async {
     final server = await start(certificateName: 'expired');
     final rejected = await check(server);
     expect(rejected.success, false);

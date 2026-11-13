@@ -30,8 +30,8 @@ String? certificatePemFingerprint(String pem) {
 
 /// The check a TLS connection runs when the platform rejects the server's
 /// certificate. It accepts exactly the certificate approved for the node,
-/// whatever its hostname or validity, because the approval pins that
-/// certificate. Null when nothing is approved, so the platform's verdict
+/// whatever its hostname or validity. A certificate the platform trusts
+/// never reaches it. Null when nothing is approved, so the platform's verdict
 /// stands. Throws a [FormatException] for a damaged PEM before connecting.
 bool Function(X509Certificate)? trustedCertificateCheck(
   String? certificatePem,
