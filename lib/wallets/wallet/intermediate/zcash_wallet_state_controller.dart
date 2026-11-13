@@ -1,0 +1,325 @@
+import 'dart:convert';
+import 'dart:isolate';
+
+import 'package:zcash_flutter/zcash_flutter.dart' as zcash;
+
+import '../../../models/balance.dart';
+import '../../../models/isar/models/blockchain_data/transaction.dart';
+import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
+import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
+import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import '../../../utilities/amount/amount.dart';
+import 'zcash_wallet_state.dart';
+
+abstract interface class ZcashScanExecutor {
+  Future<zcash.ZcashScanResult> scan(zcash.ScanInputEnvelope envelope);
+}
+
+typedef ZcashNativeScanRequest = (String ufvk, String network, String envelope);
+typedef ZcashNativeScanWorker = Future<String> Function(
+  ZcashNativeScanRequest request,
+);
+
+/// Runs the synchronous native compact-block scanner outside Flutter's owner
+/// isolate. Only strings cross the isolate boundary; native bindings are
+/// opened in the worker and the result is parsed back on the owner isolate.
+class ZcashNativeIsolateScanExecutor implements ZcashScanExecutor {
+  const ZcashNativeIsolateScanExecutor({
+    required this.ufvk,
+    required this.network,
+    this.worker = _runNativeScanIsolate,
+  });
+
+  final String ufvk;
+  final String network;
+  final ZcashNativeScanWorker worker;
+
+  @override
+  Future<zcash.ZcashScanResult> scan(zcash.ScanInputEnvelope envelope) async {
+    final raw = await worker((ufvk, network, envelope.encode()));
+    return zcash.ZcashScanResult.fromRawJson(
+      raw,
+      context: 'scan_compact_blocks/stack_wallet_isolate',
+      redactSensitive: [ufvk],
+    );
+  }
+}
+
+Future<String> _runNativeScanIsolate(ZcashNativeScanRequest request) =>
+    Isolate.run(() => _scanNativeRaw(request));
+
+String _scanNativeRaw(ZcashNativeScanRequest request) => zcash
+    .ZcashFfiBindings
+    .instance
+    .scanCompactBlocksRaw(request.$1, request.$2, request.$3);
+
+abstract interface class ZcashSyncSession {
+  Future<zcash.ZcashSyncOutcome> syncToTip();
+}
+
+typedef ZcashSyncSessionFactory = ZcashSyncSession Function(
+  zcash.ZcashWalletSyncState state,
+  ZcashScanExecutor scanExecutor,
+);
+
+class ZcashReorgDetectedException implements Exception {
+  const ZcashReorgDetectedException(this.outcome);
+
+  final zcash.ZcashSyncReorged outcome;
+
+  @override
+  String toString() =>
+      'ZcashReorgDetectedException: chain reorganized; persisted state was not '
+      'advanced';
+}
+
+class ZcashWalletSnapshot {
+  const ZcashWalletSnapshot({
+    required this.chainHeight,
+    required this.balance,
+    required this.history,
+  });
+
+  final int chainHeight;
+  final zcash.ZcashAccountBalance balance;
+  final zcash.ZcashTransactionHistory history;
+}
+
+class ZcashStackStateMapper {
+  const ZcashStackStateMapper({required this.walletId});
+
+  static const _fractionDigits = 8;
+  static const unknownTimestampSentinel = 0;
+  static const unknownVersionSentinel = -1;
+
+  final String walletId;
+
+  Balance balance(zcash.ZcashAccountBalance native) {
+    Amount amount(int value) =>
+        Amount(rawValue: BigInt.from(value), fractionDigits: _fractionDigits);
+
+    return Balance(
+      total: amount(native.totalZatoshis),
+      spendable: amount(native.spendableZatoshis),
+      blockedTotal: amount(native.totalZatoshis - native.spendableZatoshis),
+      pendingSpendable: Amount.zeroWith(fractionDigits: _fractionDigits),
+    );
+  }
+
+  List<TransactionV2> transactions(zcash.ZcashTransactionHistory history) => [
+    for (final entry in history.entries) _transaction(entry),
+  ];
+
+  TransactionV2 _transaction(zcash.ZcashHistoryEntry entry) {
+    final inputs = <InputV2>[
+      if (entry.spentZatoshis > 0)
+        InputV2.isarCantDoRequiredInDefaultConstructor(
+          scriptSigHex: null,
+          scriptSigAsm: null,
+          sequence: null,
+          outpoint: null,
+          addresses: const [],
+          valueStringSats: entry.spentZatoshis.toString(),
+          witness: null,
+          innerRedeemScriptAsm: null,
+          coinbase: null,
+          walletOwns: true,
+        ),
+    ];
+    final outputs = <OutputV2>[
+      if (entry.receivedZatoshis > 0)
+        OutputV2.isarCantDoRequiredInDefaultConstructor(
+          scriptPubKeyHex: '',
+          valueStringSats: entry.receivedZatoshis.toString(),
+          addresses: const [],
+          walletOwns: true,
+        ),
+    ];
+    return TransactionV2(
+      walletId: walletId,
+      blockHash: entry.blockHash,
+      hash: entry.txid,
+      txid: entry.txid,
+      timestamp: unknownTimestampSentinel,
+      height: entry.height,
+      inputs: inputs,
+      outputs: outputs,
+      version: unknownVersionSentinel,
+      type: entry.isOutgoing
+          ? TransactionType.outgoing
+          : TransactionType.incoming,
+      subType: TransactionSubType.none,
+      otherData: jsonEncode({
+        'zcashMetadataStatus': 'partial',
+        'zcashMissingFields': [
+          'timestamp',
+          if (entry.blockHash == null) 'blockHash',
+          'fee',
+          'memo',
+          'transactionVersion',
+        ],
+        'zcashPools': entry.pools.toList()..sort(),
+        'zcashReceivedZatoshis': entry.receivedZatoshis,
+        'zcashSpentZatoshis': entry.spentZatoshis,
+        'zcashUnvaluedSpends': entry.unvaluedSpends,
+      }),
+    );
+  }
+}
+
+class ZcashWalletStateController {
+  ZcashWalletStateController._(
+    this._store,
+    this._state,
+    this._sync,
+    this._observedChainHeight,
+  );
+
+  final ZcashEncryptedWalletStateStore _store;
+  final zcash.ZcashWalletSyncState _state;
+  final ZcashSyncSession _sync;
+  int _observedChainHeight;
+  Future<ZcashWalletSnapshot>? _refreshInFlight;
+
+  static Future<ZcashWalletStateController> open({
+    required ZcashEncryptedWalletStateStore store,
+    required String accountFingerprint,
+    required String network,
+    required int birthdayHeight,
+    required Future<zcash.TreeState> Function(int height) loadBirthdayTreeState,
+    required ZcashScanExecutor scanExecutor,
+    required ZcashSyncSessionFactory openSync,
+  }) async {
+    if (birthdayHeight < 1) {
+      throw ArgumentError.value(
+        birthdayHeight,
+        'birthdayHeight',
+        'must leave a preceding tree-state height',
+      );
+    }
+    if (store.accountFingerprint != accountFingerprint ||
+        store.network != network) {
+      throw const ZcashStatePersistenceException(
+        'wallet-state store context does not match the requested account',
+      );
+    }
+
+    var persisted = await store.load();
+    if (persisted == null) {
+      final treeState = await loadBirthdayTreeState(birthdayHeight - 1);
+      if (treeState.height != birthdayHeight - 1) {
+        throw StateError(
+          'birthday tree state height ${treeState.height} does not precede '
+          'restore height $birthdayHeight',
+        );
+      }
+      final state = zcash.ZcashWalletSyncState.atBirthday(
+        cursor: zcash.ZcashLightwalletdSyncCursor.fromTreeState(treeState),
+        network: zcash.ZcashAddressNetwork.fromJson(network),
+        accountFingerprint: accountFingerprint,
+      );
+      persisted = ZcashPersistedWalletState(
+        syncState: state,
+        observedChainHeight: treeState.height,
+      );
+      await store.save(persisted);
+    }
+    if (persisted.syncState.accountFingerprint != accountFingerprint) {
+      throw const ZcashStatePersistenceException(
+        'wallet state belongs to a different account',
+      );
+    }
+    if (persisted.syncState.cursor.nextHeight < birthdayHeight) {
+      throw const ZcashStatePersistenceException(
+        'wallet state precedes the validated restore height',
+      );
+    }
+    final sync = openSync(persisted.syncState, scanExecutor);
+    return ZcashWalletStateController._(
+      store,
+      persisted.syncState,
+      sync,
+      persisted.observedChainHeight,
+    );
+  }
+
+  ZcashWalletSnapshot get snapshot => ZcashWalletSnapshot(
+    chainHeight: _observedChainHeight,
+    balance: _state.balance(),
+    history: _state.history(),
+  );
+
+  Future<ZcashWalletSnapshot> refresh() {
+    final active = _refreshInFlight;
+    if (active != null) return active;
+    final future = _refresh();
+    _refreshInFlight = future;
+    future.whenComplete(() {
+      if (identical(_refreshInFlight, future)) _refreshInFlight = null;
+    }).ignore();
+    return future;
+  }
+
+  Future<ZcashWalletSnapshot> _refresh() async {
+    final outcome = await _sync.syncToTip();
+    switch (outcome) {
+      case zcash.ZcashSyncCaughtUp(:final chainHeight):
+        final scannedThrough = _state.cursor.nextHeight - 1;
+        if (chainHeight < scannedThrough) {
+          throw StateError(
+            'lightwalletd tip $chainHeight is behind persisted scan position '
+            '$scannedThrough',
+          );
+        }
+        _observedChainHeight = chainHeight;
+      case zcash.ZcashSyncReorged():
+        throw ZcashReorgDetectedException(outcome);
+      case zcash.ZcashSyncAdvanced():
+        throw StateError('syncToTip returned before reaching a terminal state');
+    }
+    await _store.save(
+      ZcashPersistedWalletState(
+        syncState: _state,
+        observedChainHeight: _observedChainHeight,
+      ),
+    );
+    return snapshot;
+  }
+}
+
+abstract interface class ZcashSyncDataSource {
+  Future<int> getTipHeight();
+
+  Future<zcash.ZcashLightwalletdScanSource> getBlockRange(int start, int end);
+
+  Future<zcash.TreeState> getTreeState(int height);
+
+  Future<String?> getBlockHash(int height);
+}
+
+ZcashSyncSession openZcashSyncSession({
+  required zcash.ZcashWalletSyncState state,
+  required ZcashSyncDataSource source,
+  required ZcashScanExecutor scanExecutor,
+  required String network,
+  int rangeSize = 100,
+}) => _ZcashChainSyncSession(
+  state.syncThrough(
+    chainTip: source.getTipHeight,
+    fetchRange: source.getBlockRange,
+    fetchTreeState: source.getTreeState,
+    servedBlockHashAt: source.getBlockHash,
+    scan: scanExecutor.scan,
+    network: network,
+    rangeSize: rangeSize,
+  ),
+);
+
+class _ZcashChainSyncSession implements ZcashSyncSession {
+  const _ZcashChainSyncSession(this._sync);
+
+  final zcash.ZcashChainSync _sync;
+
+  @override
+  Future<zcash.ZcashSyncOutcome> syncToTip() => _sync.syncToTip();
+}

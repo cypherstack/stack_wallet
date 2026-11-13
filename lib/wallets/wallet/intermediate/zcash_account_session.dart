@@ -17,6 +17,15 @@ abstract interface class ZcashLightwalletdClient {
   Future<void> close();
 }
 
+abstract interface class ZcashLightwalletdSyncClient
+    implements ZcashLightwalletdClient {
+  Future<zcash.ZcashLightwalletdScanSource> getBlockRange(int start, int end);
+
+  Future<zcash.TreeState> getTreeState(int height);
+
+  Future<String?> getBlockHash(int height);
+}
+
 class ZcashEndpoint {
   const ZcashEndpoint({
     required this.host,
@@ -139,6 +148,11 @@ class ZcashAccountSession {
   /// prepared against an earlier account session.
   int get generation => _generation;
 
+  ZcashLightwalletdSyncClient? get syncClient {
+    final client = _client;
+    return client is ZcashLightwalletdSyncClient ? client : null;
+  }
+
   Future<ZcashSessionReadiness> replaceNode(NodeModel node) async {
     if (_closed) {
       throw StateError('The Zcash account session is closed');
@@ -244,7 +258,8 @@ class ZcashAccountSession {
       );
 }
 
-class _ProductionZcashLightwalletdClient implements ZcashLightwalletdClient {
+class _ProductionZcashLightwalletdClient
+    implements ZcashLightwalletdSyncClient {
   _ProductionZcashLightwalletdClient(this._client);
 
   final zcash.LightwalletdClient _client;
@@ -254,6 +269,27 @@ class _ProductionZcashLightwalletdClient implements ZcashLightwalletdClient {
 
   @override
   Future<int> getTipHeight() => _client.getTipHeight();
+
+  @override
+  Future<zcash.ZcashLightwalletdScanSource> getBlockRange(
+    int start,
+    int end,
+  ) async => zcash.ZcashLightwalletdScanSource(
+    await _client.getBlockRangeByHeight(start, end).toList(),
+  );
+
+  @override
+  Future<zcash.TreeState> getTreeState(int height) async => zcash
+      .treeStateFromLightwalletd(await _client.getTreeStateAtHeight(height));
+
+  @override
+  Future<String?> getBlockHash(int height) async {
+    try {
+      return (await getBlockRange(height, height)).lastBlockHash;
+    } on Object {
+      return null;
+    }
+  }
 
   @override
   Future<void> close() => _client.close();
