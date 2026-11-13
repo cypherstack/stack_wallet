@@ -290,6 +290,42 @@ class Trade {
     );
   }
 
+  /// Normalized (see [isTerminalStatusValue]) statuses after which a trade
+  /// will not progress any further.
+  static const Set<String> terminalStatuses = {
+    "finished",
+    "completed",
+    "success",
+    "failed",
+    "error",
+    "refunded",
+    "overdue",
+    "expired",
+    "closed",
+    "cancelled",
+    "canceled",
+    "not found",
+    "aml check failed", // LetsExchange "aml_check_failed"
+  };
+
+  /// Case, whitespace and `_`/`-` separator insensitive. CypherGoat passes
+  /// through free-form statuses from the exchanges it routes to, so a status
+  /// that starts with a terminal term (e.g. "Refunded to sender") also counts.
+  /// Anything unrecognized is treated as still active.
+  static bool isTerminalStatusValue(String status) {
+    final normalized = status.trim().toLowerCase().replaceAll(
+      RegExp(r"[\s_-]+"),
+      " ",
+    );
+    return terminalStatuses.any((e) {
+      if (!normalized.startsWith(e)) return false;
+      final rest = normalized.substring(e.length);
+      return rest.isEmpty || !rest.startsWith(RegExp(r"[a-z0-9]"));
+    });
+  }
+
+  bool get isTerminalStatus => isTerminalStatusValue(status);
+
   @override
   String toString() {
     return toMap().toString();

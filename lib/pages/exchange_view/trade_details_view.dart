@@ -21,6 +21,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../app_config.dart';
 import '../../models/exchange/change_now/cn_exchange_transaction_status.dart';
+import '../../models/exchange/response_objects/trade.dart';
 import '../../models/isar/models/blockchain_data/transaction.dart';
 import '../../models/isar/stack_theme.dart';
 import '../../notifications/show_flush_bar.dart';
@@ -44,6 +45,7 @@ import '../../utilities/assets.dart';
 import '../../utilities/clipboard_interface.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/format.dart';
+import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
@@ -59,8 +61,10 @@ import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../wallet_view/transaction_views/edit_note_view.dart';
 import '../wallet_view/transaction_views/transaction_details_view.dart' as tdv;
+import 'delete_trade_confirmation_dialog.dart';
 import 'edit_trade_note_view.dart';
 import 'send_from_view.dart';
+import 'trade_operation_guard.dart';
 
 class TradeDetailsView extends ConsumerStatefulWidget {
   const TradeDetailsView({
@@ -89,34 +93,111 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
   late final ClipboardInterface clipboard;
   late final Transaction? transactionIfSentFromStack;
   late final String? walletId;
+  final _operationGuard = TradeOperationGuard();
 
   @override
-  initState() {
+  void initState() {
+    super.initState();
     tradeId = widget.tradeId;
     clipboard = widget.clipboard;
     transactionIfSentFromStack = widget.transactionIfSentFromStack;
     walletId = widget.walletId;
 
     if (ref.read(prefsChangeNotifierProvider).externalCalls) {
-      WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-        final trade = ref
-            .read(tradesServiceProvider)
-            .trades
-            .firstWhere((e) => e.tradeId == tradeId);
-
-        if (mounted && trade.exchangeName != "Majestic Bank") {
-          final exchange = Exchange.fromName(trade.exchangeName);
-          final response = await exchange.updateTrade(trade);
-
-          if (mounted && response.value != null) {
-            await ref
-                .read(tradesServiceProvider)
-                .edit(trade: response.value!, shouldNotifyListeners: true);
-          }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!_operationGuard.deletionRequested) {
+          _operationGuard.trackStatusRefresh(_refreshTrade());
         }
       });
     }
-    super.initState();
+  }
+
+  Future<void> _refreshTrade() async {
+    try {
+      final tradesService = ref.read(tradesServiceProvider);
+      final trade = tradesService.get(tradeId);
+      if (!mounted || trade == null || trade.exchangeName == "Majestic Bank") {
+        return;
+      }
+
+      final exchange = Exchange.fromName(trade.exchangeName);
+      final response = await exchange.updateTrade(trade);
+
+      if (!mounted ||
+          _operationGuard.deletionRequested ||
+          response.value == null ||
+          tradesService.get(tradeId) == null) {
+        return;
+      }
+
+      await tradesService.edit(
+        trade: response.value!,
+        shouldNotifyListeners: true,
+      );
+    } catch (e, s) {
+      Logging.instance.e("Failed to refresh trade", error: e, stackTrace: s);
+    }
+  }
+
+  Future<void> _deleteTrade(Trade trade) async {
+    final shouldDelete = await showDeleteTradeConfirmationDialog(
+      context: context,
+      isTerminalStatus: trade.isTerminalStatus,
+    );
+    if (!shouldDelete || !mounted) {
+      return;
+    }
+
+    final tradesService = ref.read(tradesServiceProvider);
+    final notesService = ref.read(tradeNoteServiceProvider);
+    final lookupService = ref.read(tradeSentFromStackLookupProvider);
+    setState(() {});
+
+    try {
+      final deleted = await _operationGuard.deleteAfterRefresh(() async {
+        await tradesService.delete(trade: trade, shouldNotifyListeners: true);
+
+        // Notes and txid lookups are keyed by trade id rather than uuid, so
+        // keep them if another copy of this trade is still stored.
+        if (tradesService.trades.any((e) => e.tradeId == trade.tradeId)) {
+          return;
+        }
+        try {
+          await notesService.delete(tradeId: trade.tradeId);
+          final lookups = lookupService.all
+              .where((e) => e.tradeId == trade.tradeId)
+              .toList();
+          for (final lookup in lookups) {
+            await lookupService.delete(tradeWalletLookup: lookup);
+          }
+        } catch (e, s) {
+          Logging.instance.w(
+            "Failed to remove data for deleted trade",
+            error: e,
+            stackTrace: s,
+          );
+        }
+      });
+      if (deleted && mounted) {
+        // Desktop hosts this view in a nested Navigator that owns a single
+        // route; popping that one empties it and leaves the hosting dialog's
+        // barrier on screen. The root navigator owns the visible route in
+        // every host, mobile included.
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+    } catch (e, s) {
+      Logging.instance.e("Failed to delete trade", error: e, stackTrace: s);
+      if (mounted) {
+        setState(() {});
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message: "Failed to delete trade. Please try again.",
+            context: context,
+          ),
+        );
+      }
+    }
   }
 
   String _fetchIconAssetForStatus(String statusString, IThemeAssets assets) {
@@ -166,10 +247,11 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
         transactionIfSentFromStack != null && walletId != null;
 
     final trade = ref.watch(
-      tradesServiceProvider.select(
-        (value) => value.trades.firstWhere((e) => e.tradeId == tradeId),
-      ),
+      tradesServiceProvider.select((value) => value.get(tradeId)),
     );
+    if (trade == null) {
+      return const SizedBox.shrink();
+    }
 
     final bool hasTx =
         sentFromStack ||
@@ -214,17 +296,19 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
             trade.status == "wait" ||
             trade.status == "Waiting");
 
+    void deleteTrade() => unawaited(_deleteTrade(trade));
+
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(
         child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             leading: AppBarBackButton(
               onPressed: () async {
                 Navigator.of(context).pop();
@@ -234,6 +318,36 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
               "Trade details",
               style: STextStyles.navBarTitle(context),
             ),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(top: 10, bottom: 10, right: 10),
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: AppBarIconButton(
+                    key: const Key("tradeDetailsViewDeleteTradeButtonKey"),
+                    size: 36,
+                    shadows: const [],
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .background,
+                    icon: SvgPicture.asset(
+                      Assets.svg.trash,
+                      colorFilter: ColorFilter.mode(
+                        Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
+                        BlendMode.srcIn,
+                      ),
+                      width: 20,
+                      height: 20,
+                    ),
+                    onPressed: _operationGuard.deletionRequested
+                        ? null
+                        : deleteTrade,
+                  ),
+                ),
+              ),
+            ],
           ),
           body: SafeArea(
             child: Padding(
@@ -259,9 +373,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   RoundedWhiteContainer(
-                    borderColor: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.backgroundAppBar,
+                    borderColor: Theme.of(context)
+                        .extension<StackColors>()!
+                        .backgroundAppBar,
                     padding: const EdgeInsets.all(0),
                     child: ListView(
                       primary: false,
@@ -297,6 +411,13 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                         );
                       },
                     ),
+                  const SizedBox(height: 16),
+                  SecondaryButton(
+                    label: "Delete trade",
+                    buttonHeight: ButtonHeight.l,
+                    enabled: !_operationGuard.deletionRequested,
+                    onPressed: deleteTrade,
+                  ),
                   const SizedBox(height: 32),
                 ],
               ),
@@ -315,9 +436,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
               child: Container(
                 decoration: isDesktop
                     ? BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.backgroundAppBar,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .backgroundAppBar,
                         borderRadius: BorderRadius.vertical(
                           top: Radius.circular(
                             Constants.size.circularBorderRadius,
@@ -436,9 +557,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                   SelectableText(
                     trade.status,
                     style: STextStyles.itemSubtitle(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.colorForStatus(trade.status),
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .colorForStatus(trade.status),
                     ),
                   ),
                 ],
@@ -453,9 +574,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     : const EdgeInsets.all(12),
                 color: isDesktop
                     ? Theme.of(context).extension<StackColors>()!.popupBG
-                    : Theme.of(
-                        context,
-                      ).extension<StackColors>()!.warningBackground,
+                    : Theme.of(context)
+                          .extension<StackColors>()!
+                          .warningBackground,
                 child: ConditionalParent(
                   condition: isDesktop,
                   builder: (child) => Column(
@@ -481,9 +602,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                     STextStyles.desktopTextExtraExtraSmall(
                                       context,
                                     ).copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textDark,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark,
                                     ),
                               ),
                             ],
@@ -500,34 +621,32 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       text:
                           "You must send at least ${sendAmount.toStringAsFixed(trade.payInCurrency.toLowerCase() == "xmr" ? 12 : 8)} ${trade.payInCurrency.toUpperCase()}. ",
                       style: isDesktop
-                          ? STextStyles.desktopTextExtraExtraSmall(
-                              context,
-                            ).copyWith(
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.accentColorRed,
-                            )
+                          ? STextStyles.desktopTextExtraExtraSmall(context)
+                                .copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .accentColorRed,
+                                )
                           : STextStyles.label(context).copyWith(
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.warningForeground,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .warningForeground,
                             ),
                       children: [
                         TextSpan(
                           text:
                               "If you send less than ${sendAmount.toStringAsFixed(trade.payInCurrency.toLowerCase() == "xmr" ? 12 : 8)} ${trade.payInCurrency.toUpperCase()}, your transaction may not be converted and it may not be refunded.",
                           style: isDesktop
-                              ? STextStyles.desktopTextExtraExtraSmall(
-                                  context,
-                                ).copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.accentColorRed,
-                                )
+                              ? STextStyles.desktopTextExtraExtraSmall(context)
+                                    .copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorRed,
+                                    )
                               : STextStyles.label(context).copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.warningForeground,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .warningForeground,
                                 ),
                         ),
                       ],
@@ -670,9 +789,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                       Assets.svg.copy,
                                       width: 12,
                                       height: 12,
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.infoItemIcons,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .infoItemIcons,
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
@@ -766,9 +885,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                             Assets.svg.qrcode,
                             width: 12,
                             height: 12,
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.infoItemIcons,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .infoItemIcons,
                           ),
                           const SizedBox(width: 4),
                           Text(
@@ -818,9 +937,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                       Assets.svg.copy,
                                       width: 12,
                                       height: 12,
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.infoItemIcons,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .infoItemIcons,
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
@@ -894,9 +1013,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                     Assets.svg.pencil,
                                     width: 10,
                                     height: 10,
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.infoItemIcons,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .infoItemIcons,
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
@@ -972,9 +1091,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                       Assets.svg.pencil,
                                       width: 10,
                                       height: 10,
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.infoItemIcons,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .infoItemIcons,
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
@@ -1024,9 +1143,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                           ),
                           style: STextStyles.desktopTextExtraExtraSmall(context)
                               .copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textDark,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark,
                               ),
                         ),
                     ],
@@ -1129,9 +1248,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                           },
                           child: SvgPicture.asset(
                             Assets.svg.copy,
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.infoItemIcons,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .infoItemIcons,
                             width: 12,
                           ),
                         ),
