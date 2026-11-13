@@ -27,6 +27,14 @@ abstract interface class ZcashLightwalletdSyncClient
   Future<String?> getBlockHash(int height);
 }
 
+abstract interface class ZcashLightwalletdTransparentClient {
+  Future<zcash.ZcashTransparentRefresh> getTransparentRefresh(
+    zcash.ZcashTransparentState state, {
+    int maxRangeSize = 1000,
+    int maxUtxos = 10000,
+  });
+}
+
 abstract interface class ZcashLightwalletdSendClient {
   Future<ZcashSubmissionAcknowledgement> submitTransaction(
     Uint8List transaction,
@@ -321,7 +329,10 @@ class ZcashAccountSession {
 }
 
 class _ProductionZcashLightwalletdClient
-    implements ZcashLightwalletdSyncClient, ZcashLightwalletdSendClient {
+    implements
+        ZcashLightwalletdSyncClient,
+        ZcashLightwalletdTransparentClient,
+        ZcashLightwalletdSendClient {
   _ProductionZcashLightwalletdClient(this._client);
 
   final zcash.LightwalletdClient _client;
@@ -352,6 +363,18 @@ class _ProductionZcashLightwalletdClient
       return null;
     }
   }
+
+  @override
+  Future<zcash.ZcashTransparentRefresh> getTransparentRefresh(
+    zcash.ZcashTransparentState state, {
+    int maxRangeSize = 1000,
+    int maxUtxos = 10000,
+  }) => zcash.fetchTransparentRefreshFromLightwalletd(
+    state: state,
+    client: _client,
+    maxRangeSize: maxRangeSize,
+    maxUtxos: maxUtxos,
+  );
 
   @override
   Future<ZcashSubmissionAcknowledgement> submitTransaction(

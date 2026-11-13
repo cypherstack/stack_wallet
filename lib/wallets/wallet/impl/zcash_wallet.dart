@@ -43,6 +43,9 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
   int? _regtestNu63ActivationHeight;
   String? _ufvk;
   String? _accountFingerprint;
+  String? _legacyAccountFingerprint;
+  zcash.ZcashAccountMetadata? _accountMetadata;
+  zcash.ZcashViewingKeys? _viewingKeys;
 
   @override
   int get isarTransactionVersion => 2;
@@ -122,14 +125,29 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
       seedHex: seed.seedHex,
       network: cryptoCurrency.nativeNetwork,
     );
+    final viewingKeys = zcash.deriveNativeViewingKeys(
+      seedHex: seed.seedHex,
+      network: cryptoCurrency.nativeNetwork,
+    );
     _ufvk = metadata.ufvk;
-    _accountFingerprint = sha256
+    _legacyAccountFingerprint = sha256
         .convert(
           utf8.encode(
             '${cryptoCurrency.nativeNetwork.ffiLabel}|${metadata.ufvk}',
           ),
         )
         .toString();
+    _accountFingerprint = metadata.fingerprint;
+    _accountMetadata = metadata;
+    _viewingKeys = viewingKeys;
+    final transparentAddress = viewingKeys.transparent.defaultExternalAddress;
+    if (metadata.hasTransparent &&
+        (transparentAddress == null ||
+            transparentAddress != derived.transparentAddress)) {
+      throw StateError(
+        'Zcash transparent viewing keys do not match the derived receiver',
+      );
+    }
     final existing = await getCurrentReceivingAddress();
     final cached = info.cachedReceivingAddress;
     if ((existing != null && existing.value != derived.ua) ||
@@ -391,6 +409,9 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
   }
 
   @override
+  // Transparent outputs remain in the authenticated Zcash state. Mirroring
+  // them into Stack's generic UTXO rows would expose coin-control toggles that
+  // the shielded send planner does not honor, so report no generic UTXO work.
   Future<bool> updateUTXOs() async => false;
 
   @override
@@ -448,6 +469,9 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
     _preparedSend = null;
     final session = _accountSession;
     _accountSession = null;
+    _legacyAccountFingerprint = null;
+    _accountMetadata = null;
+    _viewingKeys = null;
     await session?.close();
   }
 
@@ -467,7 +491,13 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
     if (client == null) return;
     final ufvk = _ufvk;
     final fingerprint = _accountFingerprint;
-    if (ufvk == null || fingerprint == null) {
+    final legacyFingerprint = _legacyAccountFingerprint;
+    final accountMetadata = _accountMetadata;
+    final viewingKeys = _viewingKeys;
+    if (ufvk == null ||
+        fingerprint == null ||
+        accountMetadata == null ||
+        viewingKeys == null) {
       throw StateError('Zcash account identity is not initialized');
     }
     final birthdayHeight = info.restoreHeight;
@@ -483,13 +513,37 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
       ufvk: ufvk,
       network: network,
     );
+    final statePath = path.join(root.path, 'zcash', '$walletId.state');
+    final pendingPath = path.join(root.path, 'zcash', '$walletId.pending');
     final stateStore = ZcashEncryptedWalletStateStore(
-      path: path.join(root.path, 'zcash', '$walletId.state'),
+      path: statePath,
       walletId: walletId,
       network: network,
       accountFingerprint: fingerprint,
       secureStorage: secureStorageInterface,
     );
+    final pendingStore = ZcashEncryptedPendingSendStore(
+      path: pendingPath,
+      walletId: walletId,
+      network: network,
+      accountFingerprint: fingerprint,
+      secureStorage: secureStorageInterface,
+    );
+    if (legacyFingerprint != null && legacyFingerprint != fingerprint) {
+      await _migrateLegacyState(
+        target: stateStore,
+        path: statePath,
+        network: network,
+        legacyFingerprint: legacyFingerprint,
+        canonicalFingerprint: fingerprint,
+      );
+      await _migrateLegacyPendingSends(
+        target: pendingStore,
+        path: pendingPath,
+        network: network,
+        legacyFingerprint: legacyFingerprint,
+      );
+    }
     _stateController = await ZcashWalletStateController.open(
       store: stateStore,
       accountFingerprint: fingerprint,
@@ -503,16 +557,78 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
         scanExecutor: executor,
         network: network,
       ),
+      accountMetadata: accountMetadata,
+      viewingKeys: viewingKeys,
+      refreshTransparent: client is ZcashLightwalletdTransparentClient
+          ? (state) => (client as ZcashLightwalletdTransparentClient)
+                .getTransparentRefresh(
+                  state,
+                  maxRangeSize: 1000,
+                  maxUtxos: 10000,
+                )
+          : null,
     );
     _stateStore = stateStore;
     _scanExecutor = scanExecutor;
-    _pendingSendStore = ZcashEncryptedPendingSendStore(
-      path: path.join(root.path, 'zcash', '$walletId.pending'),
-      walletId: walletId,
-      network: network,
-      accountFingerprint: fingerprint,
-      secureStorage: secureStorageInterface,
-    );
+    _pendingSendStore = pendingStore;
+  }
+
+  Future<void> _migrateLegacyState({
+    required ZcashEncryptedWalletStateStore target,
+    required String path,
+    required String network,
+    required String legacyFingerprint,
+    required String canonicalFingerprint,
+  }) async {
+    try {
+      await target.load();
+      return;
+    } on ZcashStatePersistenceException catch (canonicalError) {
+      final legacy = ZcashEncryptedWalletStateStore(
+        path: path,
+        walletId: walletId,
+        network: network,
+        accountFingerprint: legacyFingerprint,
+        secureStorage: secureStorageInterface,
+      );
+      try {
+        final persisted = await legacy.load();
+        if (persisted == null) rethrow;
+        await target.save(
+          persisted.rebindAccountFingerprint(
+            from: legacyFingerprint,
+            to: canonicalFingerprint,
+          ),
+        );
+      } on ZcashStatePersistenceException {
+        throw canonicalError;
+      }
+    }
+  }
+
+  Future<void> _migrateLegacyPendingSends({
+    required ZcashEncryptedPendingSendStore target,
+    required String path,
+    required String network,
+    required String legacyFingerprint,
+  }) async {
+    try {
+      await target.load();
+      return;
+    } on ZcashStatePersistenceException catch (canonicalError) {
+      final legacy = ZcashEncryptedPendingSendStore(
+        path: path,
+        walletId: walletId,
+        network: network,
+        accountFingerprint: legacyFingerprint,
+        secureStorage: secureStorageInterface,
+      );
+      try {
+        await target.save(await legacy.load());
+      } on ZcashStatePersistenceException {
+        throw canonicalError;
+      }
+    }
   }
 
   Amount _amount(int zatoshis) => Amount(

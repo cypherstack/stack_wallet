@@ -62,11 +62,58 @@ class WalletSessionClient implements ZcashLightwalletdClient {
 }
 
 class SyncWalletSessionClient extends WalletSessionClient
-    implements ZcashLightwalletdSyncClient {
-  SyncWalletSessionClient({required super.chainName, required super.tipHeight});
+    implements ZcashLightwalletdSyncClient, ZcashLightwalletdTransparentClient {
+  SyncWalletSessionClient({
+    required super.chainName,
+    required super.tipHeight,
+    this.transparentValueZatoshis = 0,
+  });
 
+  final int transparentValueZatoshis;
   bool failTip = false;
   int treeStateCalls = 0;
+  int transparentRefreshCalls = 0;
+  int? receivedMaxRangeSize;
+  int? receivedMaxUtxos;
+  List<String>? queriedTransparentAddresses;
+  String transparentTipHash = '44' * 32;
+
+  @override
+  Future<zcash.ZcashTransparentRefresh> getTransparentRefresh(
+    zcash.ZcashTransparentState state, {
+    int maxRangeSize = 1000,
+    int maxUtxos = 10000,
+  }) async {
+    transparentRefreshCalls++;
+    receivedMaxRangeSize = maxRangeSize;
+    receivedMaxUtxos = maxUtxos;
+    queriedTransparentAddresses = state.addresses;
+    final address = state.addresses.single;
+    return zcash.ZcashTransparentRefresh(
+      network: state.network,
+      accountFingerprint: state.accountFingerprint,
+      queriedAddresses: [address],
+      chainHeight: tipHeight,
+      chainTipHash: transparentTipHash,
+      canonicalBlockHashes: {tipHeight: transparentTipHash},
+      unspentOutputs: [
+        if (transparentValueZatoshis > 0)
+          zcash.ZcashTransparentOutputObservation(
+            address: address,
+            protocolTxid: '11' * 32,
+            outputIndex: 0,
+            scriptHex: '51',
+            valueZatoshis: transparentValueZatoshis,
+            minedHeight: tipHeight,
+            blockHash: transparentTipHash,
+            blockTime: 1700000000,
+            creationFeeZatoshis: 1000,
+            isCoinbase: false,
+          ),
+      ],
+      observedSpends: const [],
+    );
+  }
 
   @override
   Future<int> getTipHeight() {
@@ -271,6 +318,107 @@ void main() {
     await wallet.exit();
   });
 
+  test('transparent receiver refresh reaches balance and history', () async {
+    final node = walletNode(
+      host: 'https://transparent.example',
+      id: 'transparent',
+    );
+    final nodes = MutableZcashNodes(node);
+    final secrets = MemorySecrets();
+    final client = SyncWalletSessionClient(
+      chainName: 'main',
+      tipHeight: 42,
+      transparentValueZatoshis: 125000,
+    );
+    final wallet = await Wallet.create(
+      walletInfo: WalletInfo(
+        walletId: 'zcash-transparent',
+        name: 'Zcash transparent fixture',
+        mainAddressType: AddressType.zcashUnified,
+        coinName: 'zcash',
+        restoreHeight: 43,
+      ),
+      mainDB: MainDB.instance,
+      secureStorageInterface: secrets,
+      nodeService: nodes,
+      prefs: SessionPrefs(),
+      mnemonic:
+          'abandon abandon abandon abandon abandon abandon abandon abandon '
+          'abandon abandon abandon about',
+      mnemonicPassphrase: '',
+    ) as ZcashWallet;
+    wallet.configureAccountSessionFactory(
+      (network) =>
+          ZcashAccountSession(network: network, clientFactory: (_) => client),
+    );
+    await wallet.init(isRestore: true);
+
+    await wallet.recover(isRescan: false);
+
+    expect(client.transparentRefreshCalls, 1);
+    expect(client.receivedMaxRangeSize, 1000);
+    expect(client.receivedMaxUtxos, 10000);
+    final transparentRows =
+        (await MainDB.instance.getAddresses(wallet.walletId).findAll()).where(
+          (row) => row.type == AddressType.p2pkh,
+        );
+    expect(transparentRows, hasLength(1));
+    expect(client.queriedTransparentAddresses, [transparentRows.single.value]);
+    expect(wallet.info.cachedBalance.total.raw, BigInt.from(125000));
+    expect(wallet.info.cachedBalance.spendable.raw, BigInt.zero);
+    final transactions = await MainDB.instance.isar.transactionV2s
+        .where()
+        .walletIdEqualTo(wallet.walletId)
+        .findAll();
+    expect(transactions, hasLength(1));
+    expect(transactions.single.assetPools, ['transparent']);
+    expect(transactions.single.timestamp, 1700000000);
+    expect(transactions.single.isMetadataMissing('timestamp'), isFalse);
+    expect(transactions.single.isMetadataMissing('fee'), isFalse);
+    expect(
+      transactions.single.getFee(fractionDigits: 8).raw,
+      BigInt.from(1000),
+    );
+
+    client.transparentTipHash = '55' * 32;
+    await expectLater(wallet.recover(isRescan: false), throwsA(anything));
+    final retained =
+        (await MainDB.instance.isar.transactionV2s
+                .where()
+                .walletIdEqualTo(wallet.walletId)
+                .findAll())
+            .single;
+    expect(retained.blockHash, '44' * 32);
+    expect(wallet.info.cachedBalance.total.raw, BigInt.from(125000));
+    await wallet.exit();
+
+    final restartClient = SyncWalletSessionClient(
+      chainName: 'main',
+      tipHeight: 42,
+      transparentValueZatoshis: 125000,
+    );
+    final reopened = await Wallet.load(
+      walletId: wallet.walletId,
+      mainDB: MainDB.instance,
+      secureStorageInterface: secrets,
+      nodeService: nodes,
+      prefs: SessionPrefs(),
+    ) as ZcashWallet;
+    reopened.configureAccountSessionFactory(
+      (network) => ZcashAccountSession(
+        network: network,
+        clientFactory: (_) => restartClient,
+      ),
+    );
+    await reopened.init(isRestore: false);
+    await reopened.recover(isRescan: false);
+
+    expect(restartClient.treeStateCalls, 0);
+    expect(restartClient.transparentRefreshCalls, 1);
+    expect(reopened.info.cachedBalance.total.raw, BigInt.from(125000));
+    await reopened.exit();
+  });
+
   test('restore syncs in place and rescan restarts at the birthday', () async {
     final node = walletNode(host: 'https://rescan.example', id: 'rescan');
     final client = SyncWalletSessionClient(chainName: 'main', tipHeight: 42);
@@ -300,6 +448,7 @@ void main() {
 
     await wallet.recover(isRescan: false);
     expect(client.treeStateCalls, 1);
+    expect(client.transparentRefreshCalls, 1);
     expect(wallet.info.cachedChainHeight, 42);
 
     await MainDB.instance.updateOrPutTransactionV2s([
@@ -325,6 +474,7 @@ void main() {
     await wallet.recover(isRescan: true);
 
     expect(client.treeStateCalls, 2);
+    expect(client.transparentRefreshCalls, 2);
     expect(
       await MainDB.instance.isar.transactionV2s
           .where()

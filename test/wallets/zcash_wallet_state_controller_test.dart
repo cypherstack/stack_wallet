@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/zcash_wallet_state.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/zcash_wallet_state_controller.dart';
@@ -190,13 +191,15 @@ void main() {
     );
     final metadata =
         jsonDecode(transactions.single.otherData!) as Map<String, dynamic>;
-    expect(metadata['zcashMetadataStatus'], 'partial');
-    expect(metadata['zcashMissingFields'], [
+    expect(metadata[TxV2OdKeys.metadataStatus], 'partial');
+    expect(metadata[TxV2OdKeys.missingMetadata], [
       'timestamp',
       'fee',
       'memo',
       'transactionVersion',
     ]);
+    expect(transactions.single.walletNetAmountRaw, BigInt.from(12));
+    expect(transactions.single.assetPools, ['orchard', 'sapling']);
     expect(metadata, isNot(contains('onChainMemo')));
   });
 

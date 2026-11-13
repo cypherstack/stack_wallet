@@ -26,6 +26,49 @@ class ZcashPersistedWalletState {
   final zcash.ZcashWalletSyncState syncState;
   final int observedChainHeight;
 
+  ZcashPersistedWalletState rebindAccountFingerprint({
+    required String from,
+    required String to,
+  }) {
+    if (from.isEmpty || to.isEmpty || syncState.accountFingerprint != from) {
+      throw const ZcashStatePersistenceException(
+        'legacy wallet state does not match the expected account',
+      );
+    }
+    final json = syncState.toJson();
+    json['account_fingerprint'] = to;
+
+    void rebindOptionalStore(String field) {
+      final store = (json[field] as Map).cast<String, Object?>();
+      final held = store['account_fingerprint'];
+      if (held == null) return;
+      if (held != from) {
+        throw const ZcashStatePersistenceException(
+          'legacy note store belongs to a different account',
+        );
+      }
+      store['account_fingerprint'] = to;
+      json[field] = store;
+    }
+
+    for (final pool in ['sapling', 'orchard', 'ironwood']) {
+      rebindOptionalStore(pool);
+    }
+    final transparent = (json['transparent'] as Map).cast<String, Object?>();
+    if (transparent['account_fingerprint'] != from) {
+      throw const ZcashStatePersistenceException(
+        'legacy transparent state belongs to a different account',
+      );
+    }
+    transparent['account_fingerprint'] = to;
+    json['transparent'] = transparent;
+
+    return ZcashPersistedWalletState(
+      syncState: zcash.ZcashWalletSyncState.fromJson(json),
+      observedChainHeight: observedChainHeight,
+    );
+  }
+
   Map<String, Object?> toJson() => {
     'version': version,
     'observed_chain_height': observedChainHeight,

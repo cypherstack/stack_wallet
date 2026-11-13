@@ -132,6 +132,14 @@ class TransactionV2 {
     return value is String ? BigInt.tryParse(value) : null;
   }
 
+  @ignore
+  List<String> get assetPools {
+    final value = _getFromOtherData(key: TxV2OdKeys.assetPools);
+    return value is List
+        ? List<String>.unmodifiable(value.whereType<String>())
+        : const [];
+  }
+
   String? get contractAddress =>
       _getFromOtherData(key: TxV2OdKeys.contractAddress) as String?;
   int? get nonce => _getFromOtherData(key: TxV2OdKeys.nonce) as int?;
@@ -446,4 +454,5 @@ abstract final class TxV2OdKeys {
   static const metadataStatusPartial = "partial";
   static const missingMetadata = "missingMetadata";
   static const walletNetAmountRaw = "walletNetAmountRaw";
+  static const assetPools = "assetPools";
 }

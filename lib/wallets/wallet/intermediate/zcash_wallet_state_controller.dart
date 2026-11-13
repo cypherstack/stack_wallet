@@ -62,6 +62,11 @@ typedef ZcashSyncSessionFactory = ZcashSyncSession Function(
   ZcashScanExecutor scanExecutor,
 );
 
+typedef ZcashTransparentRefreshCallback =
+    Future<zcash.ZcashTransparentRefresh> Function(
+      zcash.ZcashTransparentState state,
+    );
+
 class ZcashReorgDetectedException implements Exception {
   const ZcashReorgDetectedException(this.outcome);
 
@@ -253,7 +258,7 @@ class ZcashStackStateMapper {
       blockHash: entry.blockHash,
       hash: entry.txid,
       txid: entry.txid,
-      timestamp: unknownTimestampSentinel,
+      timestamp: entry.timestamp ?? unknownTimestampSentinel,
       height: entry.height,
       inputs: inputs,
       outputs: outputs,
@@ -263,15 +268,23 @@ class ZcashStackStateMapper {
           : TransactionType.incoming,
       subType: TransactionSubType.none,
       otherData: jsonEncode({
-        'zcashMetadataStatus': 'partial',
-        'zcashMissingFields': [
-          'timestamp',
+        TxV2OdKeys.metadataStatus: TxV2OdKeys.metadataStatusPartial,
+        TxV2OdKeys.missingMetadata: [
+          if (entry.timestamp == null) 'timestamp',
           if (entry.blockHash == null) 'blockHash',
-          'fee',
+          if (entry.feeZatoshis == null) 'fee',
           'memo',
           'transactionVersion',
+          if (entry.unvaluedSpends > 0) 'walletNetAmount',
         ],
-        'zcashPools': entry.pools.toList()..sort(),
+        if (entry.unvaluedSpends == 0)
+          TxV2OdKeys.walletNetAmountRaw: entry.netZatoshis.toString(),
+        if (entry.feeZatoshis case final fee?)
+          TxV2OdKeys.overrideFee: Amount(
+            rawValue: BigInt.from(fee),
+            fractionDigits: _fractionDigits,
+          ).toJsonString(),
+        TxV2OdKeys.assetPools: entry.pools.toList()..sort(),
         'zcashReceivedZatoshis': entry.receivedZatoshis,
         'zcashSpentZatoshis': entry.spentZatoshis,
         'zcashUnvaluedSpends': entry.unvaluedSpends,
@@ -286,12 +299,14 @@ class ZcashWalletStateController {
     this._state,
     this._sync,
     this._observedChainHeight,
+    this._refreshTransparent,
   );
 
   final ZcashEncryptedWalletStateStore _store;
   final zcash.ZcashWalletSyncState _state;
   final ZcashSyncSession _sync;
   int _observedChainHeight;
+  final ZcashTransparentRefreshCallback? _refreshTransparent;
   Future<ZcashWalletSnapshot>? _refreshInFlight;
 
   static Future<ZcashWalletStateController> open({
@@ -302,12 +317,20 @@ class ZcashWalletStateController {
     required Future<zcash.TreeState> Function(int height) loadBirthdayTreeState,
     required ZcashScanExecutor scanExecutor,
     required ZcashSyncSessionFactory openSync,
+    zcash.ZcashAccountMetadata? accountMetadata,
+    zcash.ZcashViewingKeys? viewingKeys,
+    ZcashTransparentRefreshCallback? refreshTransparent,
   }) async {
     if (birthdayHeight < 1) {
       throw ArgumentError.value(
         birthdayHeight,
         'birthdayHeight',
         'must leave a preceding tree-state height',
+      );
+    }
+    if ((accountMetadata == null) != (viewingKeys == null)) {
+      throw ArgumentError(
+        'accountMetadata and viewingKeys must be supplied together',
       );
     }
     if (store.accountFingerprint != accountFingerprint ||
@@ -330,6 +353,12 @@ class ZcashWalletStateController {
         cursor: zcash.ZcashLightwalletdSyncCursor.fromTreeState(treeState),
         network: zcash.ZcashAddressNetwork.fromJson(network),
         accountFingerprint: accountFingerprint,
+        transparent: accountMetadata == null || viewingKeys == null
+            ? null
+            : zcash.ZcashTransparentState.fromAccount(
+                account: accountMetadata,
+                viewingKeys: viewingKeys,
+              ),
       );
       persisted = ZcashPersistedWalletState(
         syncState: state,
@@ -347,12 +376,25 @@ class ZcashWalletStateController {
         'wallet state precedes the validated restore height',
       );
     }
+    if (accountMetadata != null && viewingKeys != null) {
+      if (accountMetadata.fingerprint != accountFingerprint) {
+        throw const ZcashStatePersistenceException(
+          'native account metadata does not match the wallet fingerprint',
+        );
+      }
+      persisted.syncState.transparent.registerAccountReceivers(
+        account: accountMetadata,
+        viewingKeys: viewingKeys,
+      );
+      await store.save(persisted);
+    }
     final sync = openSync(persisted.syncState, scanExecutor);
     return ZcashWalletStateController._(
       store,
       persisted.syncState,
       sync,
       persisted.observedChainHeight,
+      refreshTransparent,
     );
   }
 
@@ -379,6 +421,7 @@ class ZcashWalletStateController {
 
   Future<ZcashWalletSnapshot> _refresh() async {
     final outcome = await _sync.syncToTip();
+    late final int caughtUpHeight;
     switch (outcome) {
       case zcash.ZcashSyncCaughtUp(:final chainHeight):
         final scannedThrough = _state.cursor.nextHeight - 1;
@@ -388,12 +431,29 @@ class ZcashWalletStateController {
             '$scannedThrough',
           );
         }
-        _observedChainHeight = chainHeight;
+        caughtUpHeight = chainHeight;
       case zcash.ZcashSyncReorged():
         throw ZcashReorgDetectedException(outcome);
       case zcash.ZcashSyncAdvanced():
         throw StateError('syncToTip returned before reaching a terminal state');
     }
+    final refreshTransparent = _refreshTransparent;
+    if (_state.transparent.addresses.isNotEmpty) {
+      if (refreshTransparent == null) {
+        throw StateError(
+          'transparent receivers require lightwalletd transparent refresh',
+        );
+      }
+      final refresh = await refreshTransparent(_state.transparent);
+      if (refresh.chainHeight != caughtUpHeight) {
+        throw StateError(
+          'shielded sync reached $caughtUpHeight while transparent refresh '
+          'reached ${refresh.chainHeight}',
+        );
+      }
+      _state.transparent.applyRefresh(refresh);
+    }
+    _observedChainHeight = caughtUpHeight;
     await _store.save(
       ZcashPersistedWalletState(
         syncState: _state,

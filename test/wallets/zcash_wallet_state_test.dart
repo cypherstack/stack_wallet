@@ -151,6 +151,25 @@ void main() {
     },
   );
 
+  test('rebinds a validated legacy account fingerprint for migration', () {
+    final legacy = ZcashPersistedWalletState(
+      syncState: walletState(fingerprint: 'legacy-account'),
+      observedChainHeight: 99,
+    );
+
+    final migrated = legacy.rebindAccountFingerprint(
+      from: 'legacy-account',
+      to: 'canonical-account',
+    );
+
+    expect(migrated.syncState.accountFingerprint, 'canonical-account');
+    expect(
+      migrated.syncState.transparent.accountFingerprint,
+      'canonical-account',
+    );
+    expect(migrated.observedChainHeight, 99);
+  });
+
   test('refuses symlink state paths and foreign account contexts', () async {
     final target = File('${directory.path}/target');
     await target.writeAsString('do not overwrite');
@@ -212,7 +231,9 @@ void main() {
     final foreign = zcash.ZcashWalletSyncState.atBirthday(
       cursor: zcash.ZcashLightwalletdSyncCursor.fromTreeState(
         const zcash.TreeState(
-          hash: '0000000000000000000000000000000000000000000000000000000000000000',
+          hash:
+              '00000000000000000000000000000000'
+              '00000000000000000000000000000000',
           height: 99,
           time: 1,
         ),
@@ -239,11 +260,15 @@ void main() {
       notes: [
         zcash.ZcashScannedNote(
           height: 99,
-          tx: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+          tx:
+              '0123456789abcdef0123456789abcdef'
+              '0123456789abcdef0123456789abcdef',
           output: 0,
           value: 123,
           pool: 'sapling',
-          nullifier: '1111111111111111111111111111111111111111111111111111111111111111',
+          nullifier:
+              '11111111111111111111111111111111'
+              '11111111111111111111111111111111',
           recipient: 'secret-sapling-recipient',
           rseed: 'aabb',
           witness: 'ccdd',

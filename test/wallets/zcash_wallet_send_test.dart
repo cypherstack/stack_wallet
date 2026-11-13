@@ -42,7 +42,10 @@ final class SendNodes extends Fake implements NodeService {
 }
 
 final class SendClient
-    implements ZcashLightwalletdSyncClient, ZcashLightwalletdSendClient {
+    implements
+        ZcashLightwalletdSyncClient,
+        ZcashLightwalletdTransparentClient,
+        ZcashLightwalletdSendClient {
   SendClient({this.chainName = 'main'});
 
   final String chainName;
@@ -64,6 +67,22 @@ final class SendClient
 
   @override
   Future<int> getTipHeight() async => 42;
+
+  @override
+  Future<zcash.ZcashTransparentRefresh> getTransparentRefresh(
+    zcash.ZcashTransparentState state, {
+    int maxRangeSize = 1000,
+    int maxUtxos = 10000,
+  }) async => zcash.ZcashTransparentRefresh(
+    network: state.network,
+    accountFingerprint: state.accountFingerprint,
+    queriedAddresses: state.addresses,
+    chainHeight: 42,
+    chainTipHash: '44' * 32,
+    canonicalBlockHashes: {42: '44' * 32},
+    unspentOutputs: const [],
+    observedSpends: const [],
+  );
 
   @override
   Future<zcash.TreeState> getTreeState(int height) async => zcash.TreeState(
