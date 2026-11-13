@@ -18,10 +18,7 @@ Future<int> setBlockExplorerForCoin({
   required Uri url,
 }) async {
   return await MainDB.instance.putTransactionBlockExplorer(
-    TransactionBlockExplorer(
-      ticker: coin.ticker,
-      url: url.toString(),
-    ),
+    TransactionBlockExplorer(ticker: coin.ticker, url: url.toString()),
   );
 }
 
@@ -30,8 +27,9 @@ Uri getBlockExplorerTransactionUrlFor({
   required CryptoCurrency coin,
   required String txid,
 }) {
-  String? url =
-      MainDB.instance.getTransactionBlockExplorer(cryptoCurrency: coin)?.url;
+  String? url = MainDB.instance
+      .getTransactionBlockExplorer(cryptoCurrency: coin)
+      ?.url;
   if (url == null) {
     return coin.defaultBlockExplorer(txid);
   } else {
