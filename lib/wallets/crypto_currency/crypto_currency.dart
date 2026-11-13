@@ -79,6 +79,15 @@ abstract class CryptoCurrency {
 
   NodeModel defaultNode({required bool isPrimary});
 
+  /// Returns the bundled default node, or `null` when this currency requires
+  /// the user or test harness to configure a node explicitly.
+  ///
+  /// Existing currencies inherit the historical [defaultNode] behavior. New
+  /// integrations should override this instead of inventing an unverified
+  /// public endpoint merely to satisfy application startup.
+  NodeModel? defaultNodeOrNull({required bool isPrimary}) =>
+      defaultNode(isPrimary: isPrimary);
+
   int get defaultSeedPhraseLength;
   int get fractionDigits;
   bool get hasBuySupport;
