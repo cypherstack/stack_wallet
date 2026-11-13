@@ -9,6 +9,7 @@
  */
 
 import 'dart:convert';
+import 'dart:typed_data';
 
 import '../app_config.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
@@ -520,15 +521,46 @@ class PaymentUriRecipient {
   final String address;
   final String? amount;
   final String? label;
+  final String? message;
+  final Uint8List? _memoBytes;
+  final Map<String, String> additionalParams;
 
-  const PaymentUriRecipient({required this.address, this.amount, this.label});
+  Uint8List? get memoBytes =>
+      _memoBytes == null ? null : Uint8List.fromList(_memoBytes);
+
+  PaymentUriRecipient({
+    required this.address,
+    this.amount,
+    this.label,
+    this.message,
+    Uint8List? memoBytes,
+    Map<String, String> additionalParams = const {},
+  }) : _memoBytes = memoBytes == null ? null : Uint8List.fromList(memoBytes),
+       additionalParams = additionalParams.isEmpty
+           ? const {}
+           : Map.unmodifiable(Map.of(additionalParams));
+
+  String? get memoText {
+    final bytes = _memoBytes;
+    if (bytes == null) {
+      return null;
+    }
+    try {
+      return utf8.decode(bytes, allowMalformed: false);
+    } on FormatException {
+      return null;
+    }
+  }
 
   @override
   String toString() =>
       "PaymentUriRecipient { "
       "address: $address, "
       "amount: $amount, "
-      "label: $label"
+      "label: $label, "
+      "messageLength: ${message?.length}, "
+      "memoBytes: ${_memoBytes?.length}, "
+      "additionalParamKeys: ${additionalParams.keys.toList()}"
       " }";
 }
 
@@ -552,6 +584,10 @@ class PaymentUriData {
   );
 
   String? get memo {
+    final recipientMemo = recipients.first.memoText;
+    if (recipientMemo != null) {
+      return recipientMemo;
+    }
     for (final value in [
       paymentId,
       additionalParams["memo"],

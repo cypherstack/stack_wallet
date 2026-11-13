@@ -43,9 +43,23 @@ void main() {
   test("parses each recipient's amount in the coin's units", () {
     final recipients = parseUriRecipients(uri(["1.5", "0.000000000001"]), coin);
 
-    expect(recipients, [
-      (address: "address0", amount: xmr("1.5"), label: "Alice"),
-      (address: "address1", amount: xmr("0.000000000001"), label: null),
+    expect(recipients, <RecipientData>[
+      (
+        address: "address0",
+        amount: xmr("1.5"),
+        label: "Alice",
+        memoBytes: null,
+        message: null,
+        additionalParams: const <String, String>{},
+      ),
+      (
+        address: "address1",
+        amount: xmr("0.000000000001"),
+        label: null,
+        memoBytes: null,
+        message: null,
+        additionalParams: const <String, String>{},
+      ),
     ]);
     expect(recipients!.total, xmr("1.500000000001"));
   });
@@ -82,13 +96,37 @@ void main() {
       address: "address0",
       amount: xmr("1"),
       label: null,
+      memoBytes: null,
+      message: null,
+      additionalParams: const {},
     );
 
     expect([valid, valid].isValidFor(coin), isTrue);
     for (final RecipientData invalid in [
-      (address: "bad", amount: xmr("2"), label: null),
-      (address: "address1", amount: null, label: null),
-      (address: "address1", amount: xmr("0"), label: null),
+      (
+        address: "bad",
+        amount: xmr("2"),
+        label: null,
+        memoBytes: null,
+        message: null,
+        additionalParams: const {},
+      ),
+      (
+        address: "address1",
+        amount: null,
+        label: null,
+        memoBytes: null,
+        message: null,
+        additionalParams: const {},
+      ),
+      (
+        address: "address1",
+        amount: xmr("0"),
+        label: null,
+        memoBytes: null,
+        message: null,
+        additionalParams: const {},
+      ),
     ]) {
       expect([valid, invalid].isValidFor(coin), isFalse);
     }
@@ -96,9 +134,23 @@ void main() {
 
   test("has no total while an amount is missing", () {
     expect(
-      [
-        (address: "address0", amount: xmr("1"), label: null),
-        (address: "address1", amount: null, label: null),
+      <RecipientData>[
+        (
+          address: "address0",
+          amount: xmr("1"),
+          label: null,
+          memoBytes: null,
+          message: null,
+          additionalParams: const <String, String>{},
+        ),
+        (
+          address: "address1",
+          amount: null,
+          label: null,
+          memoBytes: null,
+          message: null,
+          additionalParams: const <String, String>{},
+        ),
       ].total,
       isNull,
     );
@@ -201,6 +253,9 @@ void main() {
           address: address,
           amount: xmr("1"),
           label: null,
+          memoBytes: null,
+          message: null,
+          additionalParams: const {},
         );
       }
       int added = 0;
