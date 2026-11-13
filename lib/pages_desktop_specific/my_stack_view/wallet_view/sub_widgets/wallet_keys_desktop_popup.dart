@@ -17,6 +17,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../models/keys/cw_key_data.dart';
 import '../../../../models/keys/key_data_interface.dart';
 import '../../../../models/keys/view_only_wallet_data.dart';
+import '../../../../models/keys/wallet_recovery_material.dart';
 import '../../../../models/keys/xpriv_data.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
@@ -40,24 +41,28 @@ import 'qr_code_desktop_popup_content.dart';
 class WalletKeysDesktopPopup extends ConsumerWidget {
   const WalletKeysDesktopPopup({
     super.key,
-    required this.words,
-    required this.walletId,
-    this.frostData,
+    required this.recoveryMaterial,
     this.clipboardInterface = const ClipboardWrapper(),
-    this.keyData,
   });
 
-  final List<String> words;
-  final String walletId;
-  final ({
-    String myName,
-    String config,
-    String keys,
-    ({String config, String keys})? prevGen,
-  })?
-  frostData;
+  final WalletRecoveryMaterial recoveryMaterial;
   final ClipboardInterface clipboardInterface;
-  final KeyDataInterface? keyData;
+
+  List<String>? get words => switch (recoveryMaterial) {
+    final MnemonicWalletRecoveryMaterial data => data.words,
+    _ => null,
+  };
+  String get walletId => recoveryMaterial.walletId;
+  FrostWalletRecoveryData? get frostData => switch (recoveryMaterial) {
+    final FrostWalletRecoveryMaterial data => data.data,
+    _ => null,
+  };
+  KeyDataInterface? get keyData => switch (recoveryMaterial) {
+    final MnemonicWalletRecoveryMaterial data => data.supplementalKeyData,
+    final PrivateKeyWalletRecoveryMaterial data => data.keyData,
+    final ViewOnlyWalletRecoveryMaterial data => data.keyData,
+    _ => null,
+  };
 
   static const String routeName = "walletKeysDesktopPopup";
 
@@ -250,15 +255,15 @@ class WalletKeysDesktopPopup extends ConsumerWidget {
                       )
                     : CustomTabView(
                         titles: [
-                          if (words.isNotEmpty) "Mnemonic",
+                          if (words != null) "Mnemonic",
                           if (keyData is XPrivData) "XPriv(s)",
                           if (keyData is CWKeyData) "Keys",
                         ],
                         children: [
-                          if (words.isNotEmpty)
+                          if (words != null)
                             Padding(
                               padding: const EdgeInsets.only(top: 16),
-                              child: _Mnemonic(words: words),
+                              child: _Mnemonic(words: words!),
                             ),
                           if (keyData is XPrivData)
                             WalletXPrivs(
@@ -272,7 +277,7 @@ class WalletKeysDesktopPopup extends ConsumerWidget {
                             ),
                         ],
                       )
-              : _Mnemonic(words: words),
+              : _Mnemonic(words: words!),
           const SizedBox(height: 32),
         ],
       ),
