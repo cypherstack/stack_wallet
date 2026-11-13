@@ -9,6 +9,7 @@
  */
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../models/isar/stack_theme.dart';
 import 'theme_providers.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
@@ -20,22 +21,26 @@ final coinImageProvider = Provider.family<String, CryptoCurrency>((ref, coin) {
     // just update your wallet or theme
     return assets.stackIcon;
   } else if (assets is ThemeAssetsV2) {
-    return (assets).coinImages[coin.mainNetId]!;
+    return assets.coinImages[coin.mainNetId] ?? assets.coinPlaceholder;
   } else {
-    return (assets as ThemeAssetsV3).coinImages[coin.mainNetId]!;
+    final themed = assets as ThemeAssetsV3;
+    return themed.coinImages[coin.mainNetId] ?? themed.coinPlaceholder;
   }
 });
 
-final coinImageSecondaryProvider =
-    Provider.family<String, CryptoCurrency>((ref, coin) {
+final coinImageSecondaryProvider = Provider.family<String, CryptoCurrency>((
+  ref,
+  coin,
+) {
   final assets = ref.watch(themeAssetsProvider);
 
   if (assets is ThemeAssets) {
     // just update your wallet or theme
     return assets.stackIcon;
   } else if (assets is ThemeAssetsV2) {
-    return (assets).coinSecondaryImages[coin.mainNetId]!;
+    return assets.coinSecondaryImages[coin.mainNetId] ?? assets.coinPlaceholder;
   } else {
-    return (assets as ThemeAssetsV3).coinSecondaryImages[coin.mainNetId]!;
+    final themed = assets as ThemeAssetsV3;
+    return themed.coinSecondaryImages[coin.mainNetId] ?? themed.coinPlaceholder;
   }
 });

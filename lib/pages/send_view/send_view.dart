@@ -88,6 +88,7 @@ import '../address_book_views/address_book_view.dart';
 import '../coin_control/coin_control_view.dart';
 import 'confirm_transaction_view.dart';
 import 'frost_ms/recipient.dart';
+import 'send_memo_support.dart';
 import 'sub_widgets/building_transaction_dialog.dart';
 import 'sub_widgets/dual_balance_selection_sheet.dart';
 import 'sub_widgets/epic_slatepack_dialog.dart';
@@ -1213,7 +1214,7 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
           ),
         );
       } else {
-        final memo = coin is Stellar ? memoController.text : null;
+        final memo = optionalSendMemo(coin, memoController.text);
         txDataFuture = wallet.prepareSend(
           txData: TxData(
             xelisSendAll: coin is Xelis && _xelisSendAll,
@@ -1452,7 +1453,7 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
     coin = widget.coin;
     isFiro = coin is Firo;
     isEth = coin is Ethereum;
-    hasOptionalMemo = coin is Stellar || coin is Solana;
+    hasOptionalMemo = supportsOptionalSendMemo(coin);
 
     _data = widget.autoFillData;
     walletId = widget.walletId;

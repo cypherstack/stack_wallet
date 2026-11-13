@@ -45,8 +45,9 @@ final coinIconProvider = Provider.family<String, CryptoCurrency>((ref, coin) {
         return assets.stackIcon;
     }
   } else if (assets is ThemeAssetsV2) {
-    return (assets).coinIcons[coin.mainNetId]!;
+    return assets.coinIcons[coin.mainNetId] ?? assets.coinPlaceholder;
   } else {
-    return (assets as ThemeAssetsV3).coinIcons[coin.mainNetId]!;
+    final themed = assets as ThemeAssetsV3;
+    return themed.coinIcons[coin.mainNetId] ?? themed.coinPlaceholder;
   }
 });

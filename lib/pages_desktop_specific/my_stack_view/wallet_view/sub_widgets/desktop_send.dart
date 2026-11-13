@@ -28,6 +28,7 @@ import '../../../../models/send_view_auto_fill_data.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages/send_view/confirm_transaction_view.dart';
 import '../../../../pages/send_view/frost_ms/recipient.dart';
+import '../../../../pages/send_view/send_memo_support.dart';
 import '../../../../pages/send_view/sub_widgets/building_transaction_dialog.dart';
 import '../../../../pages/send_view/sub_widgets/epic_slatepack_dialog.dart';
 import '../../../../pages/send_view/sub_widgets/multi_recipient.dart';
@@ -864,7 +865,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           ),
         );
       } else {
-        final memo = hasOptionalMemo ? memoController.text : null;
+        final memo = optionalSendMemo(coin, memoController.text);
         txDataFuture = wallet.prepareSend(
           txData: TxData(
             xelisSendAll: coin is Xelis && _xelisSendAll,
@@ -1635,7 +1636,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     coin = ref.read(pWalletInfo(walletId)).coin;
     clipboard = widget.clipboard;
 
-    hasOptionalMemo = coin is Stellar || coin is Solana;
+    hasOptionalMemo = supportsOptionalSendMemo(coin);
     isMimblewimblecoin = coin is Mimblewimblecoin;
     isEpiccash = coin is Epiccash;
 
