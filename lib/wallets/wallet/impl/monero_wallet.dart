@@ -8,8 +8,10 @@ import '../../../wl_gen/interfaces/cs_salvium_interface.dart'
     show WrappedWallet;
 import '../../crypto_currency/crypto_currency.dart';
 import '../intermediate/lib_monero_wallet.dart';
+import '../wallet_mixin_interfaces/sync_dependent_fee_estimate_interface.dart';
 
-class MoneroWallet extends LibMoneroWallet {
+class MoneroWallet extends LibMoneroWallet
+    implements SyncDependentFeeEstimateInterface {
   MoneroWallet(CryptoCurrencyNetwork network)
     : super(Monero(network), lib_monero_compat.WalletType.monero);
 
@@ -17,8 +19,12 @@ class MoneroWallet extends LibMoneroWallet {
   bool get supportsMultiRecipient => true;
 
   @override
+  bool get canEstimateFee =>
+      wallet != null && syncStatus is lib_monero_compat.SyncedSyncStatus;
+
+  @override
   Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate) async {
-    if (wallet == null || syncStatus is! lib_monero_compat.SyncedSyncStatus) {
+    if (!canEstimateFee) {
       return Amount.zeroWith(fractionDigits: cryptoCurrency.fractionDigits);
     }
 

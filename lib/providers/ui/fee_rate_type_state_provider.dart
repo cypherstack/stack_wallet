@@ -12,10 +12,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../utilities/enums/fee_rate_type_enum.dart';
 
-final feeRateTypeMobileStateProvider = StateProvider.autoDispose<FeeRateType>(
-  (_) => FeeRateType.average,
-);
-
-final feeRateTypeDesktopStateProvider = StateProvider<FeeRateType>(
+final pFeeRateType = StateProvider.autoDispose<FeeRateType>(
   (_) => FeeRateType.average,
 );

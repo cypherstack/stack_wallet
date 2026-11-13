@@ -130,6 +130,7 @@ void main() {
     pWalletInfo(walletId).overrideWithValue(info),
     pWalletCoin(walletId).overrideWithValue(coin),
     pWalletName(walletId).overrideWithValue(info.name),
+    pWalletBalance(walletId).overrideWithValue(info.cachedBalance),
     prefsChangeNotifierProvider.overrideWithValue(prefs),
     localeServiceChangeNotifierProvider.overrideWithValue(_Locale()),
     priceAnd24hChangeNotifierProvider.overrideWithValue(_Price()),

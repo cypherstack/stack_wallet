@@ -28,12 +28,11 @@ import '../../../../pages/send_view/confirm_transaction_view.dart';
 import '../../../../pages/send_view/frost_ms/recipient.dart';
 import '../../../../pages/send_view/sub_widgets/building_transaction_dialog.dart';
 import '../../../../pages/send_view/sub_widgets/multi_recipient.dart';
-import '../../../../pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import '../../../../providers/providers.dart';
 import '../../../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../../../providers/ui/preview_tx_button_state_provider.dart';
-import '../../../../providers/wallet/desktop_fee_providers.dart';
 import '../../../../providers/wallet/public_private_balance_state_provider.dart';
+import '../../../../providers/wallet/send_fee_providers.dart';
 import '../../../../services/openalias/open_alias_service.dart';
 import '../../../../services/spark_names_service.dart';
 import '../../../../themes/stack_colors.dart';
@@ -55,7 +54,6 @@ import '../../../../utilities/prefs.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
-import '../../../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/models/tx_data.dart';
 import '../../../../wallets/wallet/impl/firo_wallet.dart';
@@ -418,7 +416,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
       TxData txData;
       Future<TxData> txDataFuture;
-      final feeRateType = ref.read(feeRateTypeDesktopStateProvider);
+      final feeRateType = ref.read(pFeeRateType);
       final satsPerVByte = feeRateType.customSatsPerVByte(customFeeRate);
 
       if (isPaynymSend) {
@@ -730,9 +728,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     setState(() {});
   }
 
+  final _feeAmount = SendFeeAmount();
+
   void _syncFeeAmount(Amount? amount) {
-    ref.read(sendAmountProvider.notifier).state =
-        amount ?? Amount.zeroWith(fractionDigits: coin.fractionDigits);
+    if (mounted) _feeAmount.sync(amount);
   }
 
   void _setOpReturnData(String? data) {
@@ -796,6 +795,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       }
 
       ref.read(pSendAmount.notifier).state = amount;
+      _feeAmount.typed(amount);
     }
   }
 
@@ -1034,7 +1034,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         ? ""
         : ref.read(pAmountFormatter(coin)).formatEditable(total);
     ref.read(pSendAmount.notifier).state = total;
-    _syncFeeAmount(total);
     _setValidAddressProviders(_address);
   }
 
@@ -1269,6 +1268,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     //           _amountToSend!));
     // });
     ref.read(pSendAmount.notifier).state = amount;
+    _feeAmount.typed(amount);
   }
 
   String _getSendAllTitle(bool showCoinControl, Set<UTXO> selectedUTXOs) {
@@ -1325,7 +1325,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.refresh(feeSheetSessionCacheProvider);
       ref.refresh(pIsExchangeAddress);
       ref.read(pValidSendToAddress.state).state = false;
       ref.read(pValidSparkSendToAddress.state).state = false;
@@ -1383,23 +1382,13 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
     _cryptoFocus.addListener(() {
       if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
-        if (ref.read(pSendAmount) == null) {
-          if (ref.read(sendAmountProvider) != Amount.zero && mounted) {
-            ref.read(sendAmountProvider.state).state = Amount.zero;
-          }
-        } else {
-          ref.read(sendAmountProvider.state).state = ref.read(pSendAmount)!;
-        }
+        _syncFeeAmount(ref.read(pSendAmount));
       }
     });
 
     _baseFocus.addListener(() {
       if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
-        if (ref.read(pSendAmount) == null) {
-          ref.refresh(sendAmountProvider);
-        } else {
-          ref.read(sendAmountProvider.state).state = ref.read(pSendAmount)!;
-        }
+        _syncFeeAmount(ref.read(pSendAmount));
       }
     });
 
@@ -1410,6 +1399,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   void dispose() {
     cryptoAmountController.removeListener(onCryptoAmountChanged);
     _ethFee.dispose();
+    _feeAmount.dispose();
 
     sendToController.dispose();
     cryptoAmountController.dispose();
@@ -1448,7 +1438,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         _xelisSendAll = xelisSendAll;
       }
     });
-    final isCustomFee = ref.watch(feeRateTypeDesktopStateProvider).isCustom;
+    final isCustomFee = ref.watch(pFeeRateType).isCustom;
+    listenForCustomFeeLevel(ref, coin, () {
+      customFeeRate = 1;
+      _ethFee.value = null;
+    });
     // ethFee is checked in the ValueListenableBuilder around the preview
     // button so fee keystrokes don't rebuild this whole view.
     final previewEnabled = ref.watch(pPreviewTxButtonEnabled(walletId));
@@ -2217,18 +2211,12 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             ),
           ),
         if (!isPaynymSend) const SizedBox(height: 20),
-        if (coin is! NanoCurrency &&
-            coin is! Epiccash &&
-            coin is! Tezos &&
-            coin is! Mimblewimblecoin)
+        if (hasSendFee(coin))
           DesktopSendFeeForm(
             walletId: walletId,
             isToken: false,
+            amount: _feeAmount,
             onCustomFeeSliderChanged: (value) => customFeeRate = value,
-            onCustomFeeOptionChanged: () {
-              customFeeRate = 1;
-              _ethFee.value = null;
-            },
             onCustomEip1559FeeOptionChanged: (value) {
               _ethFee.value = value;
             },
