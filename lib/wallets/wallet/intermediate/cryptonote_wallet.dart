@@ -59,7 +59,5 @@ abstract class CryptonoteWallet<T extends CryptonoteCurrency>
   Future<void> internalCommitTx(CsPendingTransaction tx);
 
   // tx prio forwarding
-  int getTxPriorityHigh();
-  int getTxPriorityMedium();
   int getTxPriorityNormal();
 }

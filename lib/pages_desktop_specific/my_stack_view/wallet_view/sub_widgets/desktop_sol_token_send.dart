@@ -643,7 +643,6 @@ class _DesktopSolTokenSendState extends ConsumerState<DesktopSolTokenSend> {
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // ref.refresh(tokenFeeSessionCacheProvider); // Ethereum-specific
       ref.read(previewTokenTxButtonStateProvider.state).state = false;
     });
 

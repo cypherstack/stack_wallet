@@ -1486,12 +1486,6 @@ abstract class LibMoneroWallet<T extends CryptonoteCurrency>
       : csMonero.getRefreshFromBlockHeight(wallet!);
 
   @override
-  int getTxPriorityHigh() => csMonero.getTxPriorityHigh();
-
-  @override
-  int getTxPriorityMedium() => csMonero.getTxPriorityMedium();
-
-  @override
   int getTxPriorityNormal() => csMonero.getTxPriorityNormal();
 
   @override
