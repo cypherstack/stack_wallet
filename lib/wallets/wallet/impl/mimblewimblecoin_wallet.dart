@@ -35,6 +35,7 @@ import '../../crypto_currency/crypto_currency.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/bip39_wallet.dart';
 import '../supporting/mimblewimblecoin_wallet_info_extension.dart';
+import '../supporting/mimblewimblecoin_wallet_math.dart';
 import '../supporting/restore_progress.dart';
 
 class MimblewimblecoinWallet extends Bip39Wallet {
@@ -618,7 +619,9 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     // With nothing to spend, libmwc treats amount == available as send all,
     // retries with amount minus the required fee and aborts the app on the
     // negative amount. There is no fee to estimate, so skip the call.
-    if (satoshiAmount <= 0 || available <= 0) return 0;
+    if (shouldSkipMwcFeeEstimate(amount: satoshiAmount, available: available)) {
+      return 0;
+    }
     final wallet = await _ensureWalletOpen();
     try {
       final transactionFees = await libMwc.getTransactionFees(
@@ -841,16 +844,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   }
 
   int _calculateRestoreHeightFrom({required DateTime date}) {
-    final int secondsSinceEpoch = date.millisecondsSinceEpoch ~/ 1000;
-    const int mimblewimblecoinFirstBlock = 1573462801;
-    const double overestimateSecondsPerBlock = 61;
-    final int chosenSeconds = secondsSinceEpoch - mimblewimblecoinFirstBlock;
-    final int approximateHeight = chosenSeconds ~/ overestimateSecondsPerBlock;
-    int height = approximateHeight;
-    if (height < 0) {
-      height = 0;
-    }
-    return height;
+    return estimateMwcRestoreHeight(date);
   }
 
   // ============== Overrides ==================================================
