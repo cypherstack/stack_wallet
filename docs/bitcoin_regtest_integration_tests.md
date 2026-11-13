@@ -33,7 +33,8 @@ for them after `BITCOIND`, `ELECTRS`, `FULCRUM` and `PATH`:
   supported.
 - Fulcrum 1.11.1, which Stack's own Bitcoin server runs, from its GitHub
   release, checked against the release's sums. Linux and Windows releases
-  are available; there is no macOS release. Peering is turned off so it never contacts public servers.
+  are available; there is no macOS release. Peering is turned off so it never
+  contacts public servers.
 
 ## Runner
 
@@ -42,15 +43,16 @@ INDEXER=all bash scripts/test_bitcoin_regtest.sh [device] [flutter test options]
 ```
 
 `INDEXER` is `electrs`, `fulcrum` or `all`; only the selected servers are
-needed. The default is `fulcrum` on Windows and `electrs` elsewhere. The device defaults to the host (`linux`, `macos` or
-`windows`). On Linux without a display the script runs Flutter under
+needed. The default is `fulcrum` on Windows and `electrs` elsewhere. The device
+defaults to the host (`linux`, `macos` or `windows`). On Linux without a display the script runs Flutter under
 `xvfb-run`. The script works with the bash 3.2 that ships with macOS.
 
 On Linux and Windows the test starts the nodes itself. The macOS app is
 sandboxed, so it can run neither `bitcoind` nor read its cookie; there the
 runner starts the nodes on the host with `scripts/bitcoin_regtest_nodes.dart`
 and passes their ports and an RPC password to the test. `REGTEST_HOST_NODES=1`
-does the same on Linux and Windows.
+does the same on Linux and Windows. The Windows host-run override remains
+unverified on Windows; use the default mode for the verified Windows path.
 
 ## Windows
 

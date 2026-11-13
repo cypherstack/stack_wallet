@@ -126,14 +126,14 @@ start_nodes() {
   for _ in $(seq 360); do
     grep -q '^REGTEST_READY ' "$log" 2>/dev/null && break
     if ! kill -0 "$nodes_pid" 2>/dev/null; then
-      cat "$log" >&2; nodes_pid=""; return 1
+      cat "$log" >&2; stop_nodes; return 1
     fi
     sleep 0.5
   done
   local ready
   ready="$(grep -m1 '^REGTEST_READY ' "$log" || true)"
   if [[ -z "$ready" ]]; then
-    printf 'The regtest nodes did not start:\n' >&2; cat "$log" >&2; return 1
+    printf 'The regtest nodes did not start:\n' >&2; cat "$log" >&2; stop_nodes; return 1
   fi
   field() { sed -E "s/.*\"$1\":\"?([^\",}]*)\"?.*/\\1/" <<<"$ready"; }
   node_defines=(

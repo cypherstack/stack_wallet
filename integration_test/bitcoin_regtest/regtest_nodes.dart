@@ -22,7 +22,7 @@ class RegtestRpc {
   final int port;
   final String user;
   final String password;
-  final _http = HttpClient();
+  final _clients = <HttpClient>{};
   int _id = 0;
 
   /// One call, against [wallet] when given.
@@ -31,8 +31,32 @@ class RegtestRpc {
     List<dynamic> params = const [],
     String? wallet,
   ]) async {
+    // Mining the initial mature coinbase can be slow on a loaded disk.
+    // Keep it bounded, while allowing more time than ordinary RPC queries.
+    final timeout = method == 'generatetoaddress'
+        ? const Duration(minutes: 2)
+        : const Duration(seconds: 30);
+    final client = HttpClient();
+    _clients.add(client);
+    try {
+      return await _call(client, method, params, wallet).timeout(
+        timeout,
+        onTimeout: () => throw TimeoutException('bitcoind $method', timeout),
+      );
+    } finally {
+      _clients.remove(client);
+      client.close(force: true);
+    }
+  }
+
+  Future<dynamic> _call(
+    HttpClient client,
+    String method,
+    List<dynamic> params,
+    String? wallet,
+  ) async {
     final path = wallet == null ? '/' : '/wallet/$wallet';
-    final request = await _http.post(host, port, path);
+    final request = await client.post(host, port, path);
     request.headers
       ..set(
         HttpHeaders.authorizationHeader,
@@ -59,7 +83,11 @@ class RegtestRpc {
     return body['result'];
   }
 
-  void close() => _http.close(force: true);
+  void close() {
+    for (final client in _clients.toList()) {
+      client.close(force: true);
+    }
+  }
 }
 
 /// One Electrum protocol call on a fresh connection.
@@ -148,6 +176,26 @@ class RegtestNodes {
     password: rpcPassword,
   );
 
+  Future<void>? _stopping;
+  Future<void>? _cancellation;
+  bool _cancelled = false;
+
+  void _checkCancelled() {
+    if (_cancelled) throw StateError('Regtest startup cancelled');
+  }
+
+  Future<T> _duringStartup<T>(Future<T> operation) {
+    _checkCancelled();
+    final cancellation = _cancellation;
+    if (cancellation == null) return operation;
+    return Future.any([
+      operation,
+      cancellation.then<T>((_) {
+        throw StateError('Regtest startup cancelled');
+      }),
+    ]);
+  }
+
   Process? _bitcoind;
   Process? _indexer;
   final _log = <String>[];
@@ -156,6 +204,7 @@ class RegtestNodes {
     required String bitcoind,
     required String indexer,
     required String indexerPath,
+    Future<void>? cancellation,
   }) async {
     if (indexer != 'electrs' && indexer != 'fulcrum') {
       throw ArgumentError.value(indexer, 'indexer', 'electrs or fulcrum');
@@ -171,20 +220,30 @@ class RegtestNodes {
     );
     final root = await Directory.systemTemp.createTemp('stack_btc_regtest_');
     final nodes = RegtestNodes._(root, indexer, await _freePorts(4), password);
+    nodes._cancellation = cancellation?.then((_) {
+      nodes._cancelled = true;
+    });
     try {
+      nodes._checkCancelled();
       await nodes._startBitcoind(bitcoind);
       // Indexers wait while bitcoind is in initial block download, which a
       // new regtest chain only leaves once it has a block. Mine the miner
       // wallet's coinbase to maturity first.
-      await nodes.rpc.call('createwallet', ['miner']);
-      final address = await nodes.rpc.call('getnewaddress', [], 'miner');
-      await nodes.rpc.call('generatetoaddress', [101, address]);
+      await nodes._duringStartup(nodes.rpc.call('createwallet', ['miner']));
+      final address = await nodes._duringStartup(
+        nodes.rpc.call('getnewaddress', [], 'miner'),
+      );
+      await nodes._duringStartup(
+        nodes.rpc.call('generatetoaddress', [101, address]),
+      );
+      nodes._checkCancelled();
       if (indexer == 'fulcrum') {
         await nodes._startFulcrum(indexerPath);
       } else {
         await nodes._startElectrs(indexerPath);
       }
-      await nodes.waitForIndexer();
+      await nodes._duringStartup(nodes.waitForIndexer());
+      nodes._checkCancelled();
     } catch (_) {
       await nodes.stop();
       rethrow;
@@ -226,19 +285,23 @@ class RegtestNodes {
       '-printtoconsole',
     ]);
     _capture('bitcoind', _bitcoind!);
+    _checkCancelled();
     final cookie = File('${data.path}/regtest/.cookie');
-    await _until('bitcoind RPC', () async {
-      if (!cookie.existsSync()) return false;
-      try {
-        await rpc.call('getblockchaininfo');
-        return true;
-      } on Object {
-        return false;
-      }
-    });
+    await _duringStartup(
+      _until('bitcoind RPC', () async {
+        if (!cookie.existsSync()) return false;
+        try {
+          await rpc.call('getblockchaininfo');
+          return true;
+        } on Object {
+          return false;
+        }
+      }),
+    );
   }
 
   Future<void> _startElectrs(String path) async {
+    _checkCancelled();
     _indexer = await Process.start(path, [
       '--skip-default-conf-files',
       '--network=regtest',
@@ -253,6 +316,7 @@ class RegtestNodes {
       '--log-filters=INFO',
     ]);
     _capture('electrs', _indexer!);
+    _checkCancelled();
   }
 
   /// Fulcrum takes most settings from a config file. Peering is off so it
@@ -273,8 +337,10 @@ class RegtestNodes {
         'polltime = 0.5',
       ].join('\n'),
     );
+    _checkCancelled();
     _indexer = await Process.start(path, [config.path]);
     _capture('fulcrum', _indexer!);
+    _checkCancelled();
   }
 
   void _capture(String name, Process process) {
@@ -314,6 +380,7 @@ class RegtestNodes {
     check,
     context: () => logTail,
     failed: () async {
+      if (_cancelled) return 'Regtest startup cancelled';
       for (final (name, process) in [
         ('bitcoind', _bitcoind),
         (indexer, _indexer),
@@ -328,24 +395,36 @@ class RegtestNodes {
     },
   );
 
-  Future<void> stop() async {
+  Future<void> stop() => _stopping ??= _stop();
+
+  Future<void> _stop() async {
+    final cancelled = _cancelled;
+    _cancelled = true;
     _indexer?.kill();
+    if (cancelled) rpc.close();
     if (_bitcoind != null) {
-      try {
-        await rpc.call('stop');
-      } on Object {
+      if (cancelled) {
         _bitcoind!.kill();
+      } else {
+        try {
+          await rpc.call('stop').timeout(const Duration(seconds: 3));
+        } on Object {
+          rpc.close();
+          _bitcoind!.kill();
+        }
       }
     }
-    for (final process in [_indexer, _bitcoind]) {
-      await process?.exitCode.timeout(
-        const Duration(seconds: 20),
-        onTimeout: () {
-          process.kill(ProcessSignal.sigkill);
-          return -1;
-        },
-      );
-    }
+    await Future.wait([
+      for (final process in [_indexer, _bitcoind])
+        if (process != null)
+          process.exitCode.timeout(
+            const Duration(seconds: 20),
+            onTimeout: () {
+              process.kill(ProcessSignal.sigkill);
+              return process.exitCode;
+            },
+          ),
+    ]);
     rpc.close();
     if (root.existsSync()) await root.delete(recursive: true);
   }

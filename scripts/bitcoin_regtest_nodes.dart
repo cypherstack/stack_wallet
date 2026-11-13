@@ -39,26 +39,6 @@ Future<void> main(List<String> args) async {
     exit(64);
   }
 
-  final RegtestNodes nodes;
-  try {
-    nodes = await RegtestNodes.start(
-      bitcoind: bitcoind,
-      indexer: indexer,
-      indexerPath: indexerPath,
-    );
-  } catch (e) {
-    stderr.writeln('REGTEST_FAILED $e');
-    exit(1);
-  }
-  final ready = {
-    'rpcPort': nodes.rpcPort,
-    'rpcUser': RegtestNodes.rpcUser,
-    'rpcPassword': nodes.rpcPassword,
-    'electrumPort': nodes.electrumPort,
-    'indexer': indexer,
-  };
-  stdout.writeln('REGTEST_READY ${jsonEncode(ready)}');
-
   final done = Completer<void>();
   void finish() {
     if (!done.isCompleted) done.complete();
@@ -79,6 +59,31 @@ Future<void> main(List<String> args) async {
   final subscriptions = [
     for (final signal in signals) signal.watch().listen((_) => finish()),
   ];
+  final RegtestNodes nodes;
+  try {
+    nodes = await RegtestNodes.start(
+      bitcoind: bitcoind,
+      indexer: indexer,
+      indexerPath: indexerPath,
+      cancellation: done.future,
+    );
+  } catch (e) {
+    stopTimer?.cancel();
+    for (final subscription in subscriptions) {
+      await subscription.cancel();
+    }
+    if (!done.isCompleted) stderr.writeln('REGTEST_FAILED $e');
+    exit(done.isCompleted ? 0 : 1);
+  }
+  final ready = {
+    'rpcPort': nodes.rpcPort,
+    'rpcUser': RegtestNodes.rpcUser,
+    'rpcPassword': nodes.rpcPassword,
+    'electrumPort': nodes.electrumPort,
+    'indexer': indexer,
+  };
+  stdout.writeln('REGTEST_READY ${jsonEncode(ready)}');
+
   await done.future;
   stopTimer?.cancel();
   for (final subscription in subscriptions) {
