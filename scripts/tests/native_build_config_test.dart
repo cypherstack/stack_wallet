@@ -98,6 +98,10 @@ printf '0000000000000000000000000000000000000000\n'
     final dart = Platform.resolvedExecutable.replaceAll("'", "'\\''");
     script('bin/dart', "exec '$dart' \"\$@\"");
     script('bin/sha256sum', "printf 'fixture-hash  mwebd.exe\\n'");
+    script(
+      'bin/flutter',
+      r'''printf '%s\n' "$*" >> "$APP_PROJECT_ROOT_DIR/flutter-calls"''',
+    );
     // build_app.sh configures Windows only from Git Bash.
     script('bin/uname', r'''
 if [ "${1:-}" = -s ] && [ -n "${DNIX_TEST_UNAME:-}" ]; then
@@ -290,6 +294,9 @@ void main(List<String> args) {
         expect(File(p.join(root.path, 'linux-deps')).readAsLinesSync(), [
           'secure_storage_deps',
           'secp256k1',
+        ]);
+        expect(File(p.join(root.path, 'flutter-calls')).readAsLinesSync(), [
+          'pub get',
         ]);
         expect(
           File(p.join(root.path, 'native-cwd')).readAsStringSync().trim(),

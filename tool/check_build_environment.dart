@@ -1,4 +1,5 @@
 // Run directly with Dart before build_app.sh changes any generated files.
+import 'dart:async';
 import 'dart:ffi';
 import 'dart:io';
 
@@ -82,6 +83,17 @@ fi
 nix --version
 ''';
 
+/// Only Apple source builds on an Apple Silicon Mac check the pinned Xcode.
+bool needsXcodeRequirement(
+  BuildEnvironment host, {
+  required String platform,
+  required String mode,
+}) =>
+    mode == 'source' &&
+    {'ios', 'macos'}.contains(platform) &&
+    host.os == 'macos' &&
+    host.architecture == 'arm64';
+
 Future<List<String>> checkBuildEnvironment({
   required BuildEnvironment host,
   required String platform,
@@ -96,8 +108,8 @@ Future<List<String>> checkBuildEnvironment({
     throw ArgumentError('Invalid platform, app or dnix build mode.');
   }
   final distribution = validatedDistribution(wslDistribution);
-  final appleSource = mode == 'source' && {'ios', 'macos'}.contains(platform);
-  if (appleSource && xcodeRequirement == null) {
+  if (needsXcodeRequirement(host, platform: platform, mode: mode) &&
+      xcodeRequirement == null) {
     throw ArgumentError(
       'Apple source builds need the native Xcode requirement.',
     );
@@ -130,6 +142,34 @@ Future<List<String>> checkBuildEnvironment({
       'Every app needs Rust 1.90.0 for DNSSEC, including with -d.$xelis '
       'The hooks install their pinned toolchains automatically.',
     );
+  }
+  // Stack Wallet's Windows configuration builds mwebd.exe with Go and MinGW in
+  // the default WSL distribution (tool/build_standalone_mwebd_windows.dart),
+  // unless MWEBD_FETCH=1 downloads it or CI builds it natively.
+  if (app == 'stack_wallet' &&
+      platform == 'windows' &&
+      host.variables['MWEBD_FETCH'] != '1' &&
+      host.variables['CI'] != 'true') {
+    final result = await host.command(
+      'wsl.exe',
+      [
+        '--cd',
+        '/',
+        '--exec',
+        'bash',
+        '-l',
+        '-c',
+        'command -v go && command -v x86_64-w64-mingw32-gcc',
+      ],
+      environment: {...host.variables, 'WSL_UTF8': '1'},
+    );
+    if (result?.exitCode != 0) {
+      errors.add(
+        "Stack Wallet's Windows MWEB build needs Go and x86_64-w64-mingw32-gcc "
+        'in the default WSL distribution. Install Go and mingw-w64 there, or '
+        'set MWEBD_FETCH=1 to download the published build.',
+      );
+    }
   }
   if (mode == 'prebuilt') return errors;
 
@@ -276,8 +316,9 @@ Future<void> main(List<String> args) async {
     return;
   }
   try {
+    final host = BuildEnvironment.current();
     XcodeRequirement? requirement;
-    if (args[2] == 'source' && {'ios', 'macos'}.contains(args[0])) {
+    if (needsXcodeRequirement(host, platform: args[0], mode: args[2])) {
       try {
         requirement = await loadXcodeRequirement(
           File.fromUri(Platform.script).parent.parent,
@@ -286,14 +327,19 @@ Future<void> main(List<String> args) async {
       } catch (error) {
         stderr.writeln('Cannot determine the required Xcode: $error');
         stderr.writeln(
-          'See docs/building.md for dependency setup instructions.',
+          error is SocketException ||
+                  error is HttpException ||
+                  error is TlsException ||
+                  error is TimeoutException
+              ? 'Check your network connection and retry.'
+              : 'See docs/building.md for dependency setup instructions.',
         );
         exitCode = 1;
         return;
       }
     }
     final errors = await checkBuildEnvironment(
-      host: BuildEnvironment.current(),
+      host: host,
       platform: args[0],
       app: args[1],
       mode: args[2],

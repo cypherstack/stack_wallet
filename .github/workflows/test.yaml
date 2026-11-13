@@ -44,6 +44,7 @@ jobs:
           submodules: recursive
 
       # -d selects verified dnix prebuilts for Frost, Tor, Epic and MWC.
+      # -s (CI only) skips building jsoncpp and libsecret; the image has them.
       - name: Configure app (prebuilt native assets)
         run: |
           cd scripts

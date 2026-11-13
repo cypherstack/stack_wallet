@@ -206,7 +206,7 @@ Future<Map<String, dynamic>> _readMetadata(
       if (response.statusCode != HttpStatus.ok) {
         throw HttpException(
           'Unable to read pinned dnix metadata '
-          '(HTTP ${response.statusCode}). Run flutter pub get and retry.',
+          '(HTTP ${response.statusCode}).',
           uri: uri,
         );
       }

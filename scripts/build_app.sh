@@ -6,11 +6,11 @@ source "$(dirname -- "${BASH_SOURCE[0]}")/env.sh"
 
 # Function to display usage.
 usage() {
-    echo "Usage: $0 -v <version> -b <build_number> -p <platform> -a <app> [-d] [-i] [-f] [-s] [-w <wsl-distro>]"
+    echo "Usage: $0 -v <version> -b <build_number> -p <platform> -a <app> [-d] [-i] [-f] [-w <wsl-distro>]"
     echo "  Default: build dnix libraries from source with Nix and verify their hashes."
     echo "  -d: use verified dnix prebuilts; other packages may still build from source."
     echo "  -i: skip platform native dependencies (secure storage and secp256k1)."
-    echo "  -f: build Isar from source. -s: use system Linux secure-storage libraries."
+    echo "  -f: build Isar from source."
     echo "  -w: dnix WSL distribution (default: DNIX_WSL_DISTRIBUTION or WSL default)."
     exit "${1:-1}"
 }
@@ -147,9 +147,12 @@ dart "${APP_PROJECT_ROOT_DIR}/tool/configure_native_assets.dart" \
 if [[ "$APP_BUILD_PLATFORM" != "linux" ]]; then
     # run icon and image generators after project config has completed for non linux
     "${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/asset_generators.sh" "${APP_BUILD_PLATFORM}"
+else
+    # Linux skips asset generation; resolve here so the check below is current.
+    (cd "${APP_PROJECT_ROOT_DIR}" && flutter pub get)
 fi
 
-# Asset generation can resolve dependencies; inspect the resulting checkouts too.
+# Inspect the checkouts that the configured dependencies resolve to.
 dart "${APP_PROJECT_ROOT_DIR}/tool/check_native_overrides.dart" "$APP_NAMED_ID"
 
 # Build platform native deps that are not provided by pub packages. The crypto

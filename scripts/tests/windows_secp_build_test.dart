@@ -1,4 +1,5 @@
 // Run with: dart scripts/tests/windows_secp_build_test.dart
+import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
@@ -17,6 +18,7 @@ void main() {
   String? failAt;
   bool missingDll = false;
   bool cleanupLocked = false;
+  Encoding? vswhereEncoding;
 
   test('secp pin matches the resolved coinlib Windows recipe', () async {
     // Resolve the dependency selected by pub, not a copied pin or cache path.
@@ -66,6 +68,7 @@ void main() {
     failAt = null;
     missingDll = false;
     cleanupLocked = false;
+    vswhereEncoding = null;
     for (final entry in {
       'Program Files (x86)/Microsoft Visual Studio/Installer/vswhere.exe':
           'fixture',
@@ -90,11 +93,14 @@ void main() {
       }
       directory.deleteSync(recursive: true);
     },
-    run: (executable, args, {workingDirectory}) async {
+    run: (executable, args, {workingDirectory, stdoutEncoding}) async {
       calls.add((executable: executable, args: args, cwd: workingDirectory));
       ProcessResult result([String out = '', int status = 0]) =>
           ProcessResult(0, status, out, status == 0 ? '' : 'fixture failure');
-      if (executable.endsWith('vswhere.exe')) return result(visualStudio);
+      if (executable.endsWith('vswhere.exe')) {
+        vswhereEncoding = stdoutEncoding;
+        return result(visualStudio);
+      }
       if (executable == 'reg.exe') {
         // A standalone SDK registered only in the 32-bit registry view.
         return args.contains('/reg:64')
@@ -144,6 +150,11 @@ void main() {
     await builder().check();
     expect(Directory('${root.path}/build').existsSync(), isFalse);
     expect(operation('fetch'), isEmpty);
+    expect(
+      calls.singleWhere((c) => c.executable.endsWith('vswhere.exe')).args,
+      contains('-utf8'),
+    );
+    expect(vswhereEncoding, utf8);
     expect(calls.any((c) => c.executable == 'cmake'), isFalse);
     expect(
       calls.any(

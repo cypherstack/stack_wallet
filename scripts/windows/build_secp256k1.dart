@@ -1,4 +1,5 @@
 // Plain Dart: usable before pub get without the app's native-assets hooks.
+import 'dart:convert';
 import 'dart:io';
 
 const secpRevision = 'e3a885d42a7800c1ccebad94ad1e2b82c4df5c65'; // v0.5.0
@@ -7,13 +8,20 @@ typedef CommandRunner = Future<ProcessResult> Function(
   String executable,
   List<String> arguments, {
   String? workingDirectory,
+  Encoding? stdoutEncoding,
 });
 
 Future<ProcessResult> _run(
   String executable,
   List<String> arguments, {
   String? workingDirectory,
-}) => Process.run(executable, arguments, workingDirectory: workingDirectory);
+  Encoding? stdoutEncoding,
+}) => Process.run(
+  executable,
+  arguments,
+  workingDirectory: workingDirectory,
+  stdoutEncoding: stdoutEncoding ?? systemEncoding,
+);
 
 void _removeWork(Directory directory) => directory.deleteSync(recursive: true);
 
@@ -115,6 +123,7 @@ class WindowsSecpBuilder {
     String executable,
     List<String> arguments, {
     String? workingDirectory,
+    Encoding? stdoutEncoding,
   }) async {
     final ProcessResult result;
     try {
@@ -122,6 +131,7 @@ class WindowsSecpBuilder {
         executable,
         arguments,
         workingDirectory: workingDirectory,
+        stdoutEncoding: stdoutEncoding,
       );
     } on ProcessException catch (error) {
       throw SecpBuildException('Cannot run $executable: ${error.message}');
@@ -152,7 +162,10 @@ class WindowsSecpBuilder {
         'including CMake tools and a Windows SDK (vswhere.exe is missing).',
       );
     }
+    // Without -utf8, vswhere writes the console code page, which Dart would
+    // misread for a non-ASCII installation path.
     final result = await checked(vswhere, [
+      '-utf8',
       '-latest',
       '-products',
       '*',
@@ -162,7 +175,7 @@ class WindowsSecpBuilder {
       'Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
       '-property',
       'installationPath',
-    ]);
+    ], stdoutEncoding: utf8);
     visualStudio = result.stdout.toString().trim();
     final toolsVersion = File(
       '$visualStudio/VC/Auxiliary/Build/Microsoft.VCToolsVersion.default.txt',

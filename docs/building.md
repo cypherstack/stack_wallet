@@ -54,13 +54,15 @@ Normal builds use the pinned Git packages. If you explicitly override a package
 with a local checkout, that package's `dnix.lock` must be present for verified
 builds. Without it, dnix falls back to `dev` and skips hash verification even
 when source or prebuilt mode is selected. The override guard above does not
-check for missing locks.
+check for missing locks. With `-d`, a checkout that keeps its `dnix.lock` gets
+that lock's release library, so local native changes are not built; remove the
+lock to build them in `dev` mode.
 
 ### Which tools are still required?
 
 | Component | Requirements |
 |---|---|
-| The four dnix packages, source mode | [Nix](https://nixos.org/download/); on Windows, Nix inside WSL2; for Apple targets, Xcode **27.0**, as pinned by the packages |
+| The four dnix packages, source mode | [Nix](https://nixos.org/download/); on Windows, Nix inside WSL2; on a Mac, Xcode **27.0** for every target, including `flutter test`, as pinned by the packages |
 | The four dnix packages, `-d` | No Nix or package-specific Rust/C toolchain needed for these libraries |
 | Flutter and platform plugins | Target SDKs and the platform's C/C++ build tools in either mode |
 | OpenAlias / DNSSEC (every app) | Rustup on the Flutter host in both modes; `dnssec_resolver` builds from source with Rust **1.90.0** |
@@ -68,7 +70,7 @@ check for missing locks.
 | Spark (Stack Wallet and Campfire) | CMake and a C++ compiler; its native-assets hook still builds from source |
 | Coinlib secp256k1 | A separate platform build, described below |
 | MWEB (Stack Wallet) | Go; CI uses **1.24.13**. The Windows executable has a separate WSL build or prebuilt download |
-| Linux secure storage | System libraries with `-s`, or the dependencies to build libsecret and JsonCPP |
+| Linux secure storage | The dependencies to build libsecret and JsonCPP |
 
 `-d` applies to the dnix packages, not every native library in the application.
 Their old host Rust toolchain lists, `cbindgen`, `cargo-lipo`, and manually built
@@ -99,8 +101,7 @@ sudo apt-get install build-essential clang cmake ninja-build pkg-config \
   libjsoncpp-dev libsecret-1-dev
 ```
 
-Use `-s` to link the system secure-storage libraries, as CI does. If you leave
-out `-s`, `build_app.sh` builds JsonCPP and libsecret and also needs:
+`build_app.sh` builds JsonCPP and libsecret, which also needs:
 
 ```sh
 sudo apt-get install meson libgirepository1.0-dev valac xsltproc \
@@ -188,13 +189,13 @@ to its own settings.
 
 1. Sign in to [Apple Developer Downloads](https://developer.apple.com/download/all/?q=Xcode),
    find the **Xcode 27.0 release**, and download its `.xip` archive.
-2. Expand the archive in Finder. Rename the extracted app to `Xcode-27.0.app`
+2. Expand the archive in Finder. Rename the extracted app to `Xcode-27.0-27A266a.app`
    **before** moving it into `/Applications`, preserving your existing Xcode.
 3. Open a separate Terminal window and finish setup:
 
    ```sh
-   sudo -k /Applications/Xcode-27.0.app/Contents/Developer/usr/bin/xcodebuild -runFirstLaunch
-   DEVELOPER_DIR=/Applications/Xcode-27.0.app/Contents/Developer xcodebuild -version
+   sudo -k /Applications/Xcode-27.0-27A266a.app/Contents/Developer/usr/bin/xcodebuild -runFirstLaunch
+   DEVELOPER_DIR=/Applications/Xcode-27.0-27A266a.app/Contents/Developer xcodebuild -version
    ```
 
    The first command installs Apple's components and accepts the Xcode license.
@@ -207,7 +208,7 @@ In your normal build terminal, select 27.0 for Flutter and Xcode commands in tha
 shell only. Substitute the path printed by the helper (`xcodes` may name the bundle `Xcode-27.0.0.app`):
 
 ```sh
-export DEVELOPER_DIR=/Applications/Xcode-27.0.app/Contents/Developer
+export DEVELOPER_DIR=/Applications/Xcode-27.0-27A266a.app/Contents/Developer
 xcodebuild -version
 flutter doctor
 ```
@@ -321,7 +322,7 @@ compile. On Windows you can also use
 All four configuration arguments are required:
 
 ```sh
-bash scripts/build_app.sh -a stack_wallet -p linux -v 1.2.3 -b 123 -s
+bash scripts/build_app.sh -a stack_wallet -p linux -v 1.2.3 -b 123
 flutter pub get
 dart tool/check_native_overrides.dart stack_wallet
 flutter build linux --release
@@ -332,7 +333,7 @@ script's confirmation before proceeding. To use verified dnix prebuilts,
 add `-d` to the configuration command. For example:
 
 ```sh
-bash scripts/build_app.sh -a stack_wallet -p linux -v 1.2.3 -b 123 -s -d
+bash scripts/build_app.sh -a stack_wallet -p linux -v 1.2.3 -b 123 -d
 ```
 
 | Option | Meaning |
@@ -342,7 +343,6 @@ bash scripts/build_app.sh -a stack_wallet -p linux -v 1.2.3 -b 123 -s -d
 | `-v`, `-b` | App version and numeric build number |
 | `-d` | Verified dnix prebuilts; default is verified source builds |
 | `-i` | Skip the script's secure-storage and secp256k1 builds; native-assets hooks still run |
-| `-s` | Use system Linux secure-storage libraries |
 | `-f` | Use the existing optional Isar source-build helper; requires its cached source and Rust |
 | `-w` | Set the dnix WSL distribution; overrides `DNIX_WSL_DISTRIBUTION` |
 | `-h` | Show help |
@@ -357,8 +357,12 @@ Choose `-p` for your target and then run the corresponding Flutter build:
 | iOS | `flutter build ios --release` |
 | Windows | `flutter build windows --release` |
 
-Configuration checks Rustup, source-mode Nix/WSL/Xcode requirements, and the
-Windows secp256k1 tools before replacing generated files. A dnix requirement
+Android release builds need `android/key.properties` pointing at your keystore,
+with `keyAlias`, `keyPassword`, `storeFile` and `storePassword`.
+
+Configuration checks Rustup, source-mode Nix/WSL/Xcode requirements, the
+Windows secp256k1 tools, and the WSL tools for Stack Wallet's Windows MWEB build
+before replacing generated files. A dnix requirement
 failure explains how to use `-d` instead; `-d` still requires Rustup for DNSSEC.
 The icon/splash `dart run` commands use only those executables' dependency
 closures and do **not** run the app's native hooks. App hooks run with later

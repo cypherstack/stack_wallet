@@ -18,7 +18,9 @@ class HostFixture {
   bool rustupOnPath = true;
   bool rustupInHome = false;
   bool nix = true;
+  bool mwebTools = true;
   int wslExit = 0;
+  final extraVariables = <String, String>{};
   String selected = '/Applications/Xcode.app/Contents/Developer';
   final applications = <String>['/Applications/Xcode.app'];
   final versions = <String, String>{
@@ -37,6 +39,7 @@ class HostFixture {
       'HOME': '/Users/test',
       'USERPROFILE': r'C:\Users\test',
       'DEVELOPER_DIR': '/Applications/Caller-selected.app/Contents/Developer',
+      ...extraVariables,
     },
     listXcodes: () async => applications.toList(),
     run: (executable, arguments, environment) async {
@@ -58,6 +61,9 @@ class HostFixture {
         return ProcessResult(0, 0, 'nix fixture', '');
       }
       if (executable == 'wsl.exe') {
+        if (arguments.contains('bash')) {
+          return ProcessResult(0, mwebTools ? 0 : 1, '', '');
+        }
         return ProcessResult(0, wslExit, 'nix fixture', '');
       }
       if (executable == '/usr/bin/xcode-select') {
@@ -216,6 +222,83 @@ void main() {
     });
   }
 
+  test(
+    'only Apple source builds on Apple Silicon need Xcode metadata',
+    () async {
+      for (final (os, architecture, error) in [
+        ('linux', 'x64', 'Apple targets require a macOS build host.'),
+        ('windows', 'x64', 'Apple targets require a macOS build host.'),
+        ('macos', 'x64', 'dnix source builds require an Apple Silicon Mac.'),
+      ]) {
+        fixture.os = os;
+        fixture.architecture = architecture;
+        final errors = await checkBuildEnvironment(
+          host: fixture.host,
+          platform: 'ios',
+          app: 'stack_wallet',
+          mode: 'source',
+        );
+        expect(errors.first, startsWith(error));
+      }
+      fixture.os = 'macos';
+      fixture.architecture = 'arm64';
+      expect(
+        () => checkBuildEnvironment(
+          host: fixture.host,
+          platform: 'ios',
+          app: 'stack_wallet',
+          mode: 'source',
+        ),
+        throwsArgumentError,
+      );
+    },
+  );
+
+  test(
+    'Stack Wallet on Windows checks the WSL MWEB tools in both modes',
+    () async {
+      fixture.os = 'windows';
+      fixture.mwebTools = false;
+      for (final mode in ['source', 'prebuilt']) {
+        final errors = await fixture.check(platform: 'windows', mode: mode);
+        expect(errors.single, contains('x86_64-w64-mingw32-gcc'));
+        expect(errors.single, contains('MWEBD_FETCH=1'));
+      }
+      final probe = fixture.calls.firstWhere(
+        (call) => call.arguments.contains('bash'),
+      );
+      expect(probe.executable, 'wsl.exe');
+      expect(probe.arguments, isNot(contains('--distribution')));
+      expect(
+        probe.arguments,
+        containsAllInOrder(['--exec', 'bash', '-l', '-c']),
+      );
+    },
+  );
+
+  test('MWEBD_FETCH, CI and other apps skip the MWEB tools check', () async {
+    fixture.os = 'windows';
+    fixture.mwebTools = false;
+    expect(
+      await fixture.check(
+        platform: 'windows',
+        app: 'campfire',
+        mode: 'prebuilt',
+      ),
+      isEmpty,
+    );
+    fixture.extraVariables['MWEBD_FETCH'] = '1';
+    expect(await fixture.check(platform: 'windows', mode: 'prebuilt'), isEmpty);
+    fixture.extraVariables
+      ..remove('MWEBD_FETCH')
+      ..['CI'] = 'true';
+    expect(await fixture.check(platform: 'windows', mode: 'prebuilt'), isEmpty);
+    expect(
+      fixture.calls.where((call) => call.arguments.contains('bash')),
+      isEmpty,
+    );
+  });
+
   for (final os in ['linux', 'macos']) {
     test('Windows configuration on a $os host is rejected', () async {
       fixture.os = os;
@@ -229,7 +312,7 @@ void main() {
   }
 
   test('global GA Xcode wins over an alphabetically earlier beta', () async {
-    fixture.applications.insert(0, '/Applications/Xcode-27.0-Beta.app');
+    fixture.applications.add('/Applications/Xcode-27.0-Beta.app');
     fixture.versions['/Applications/Xcode-27.0-Beta.app/Contents/Developer'] =
         'Xcode 27.0\nBuild version 27A111b\n';
     expect(await fixture.check(), isEmpty);
@@ -260,7 +343,7 @@ void main() {
     'dnix scan chooses the first matching version, not a later GA',
     () async {
       fixture.selected = '/Library/Developer/CommandLineTools';
-      fixture.applications.insert(0, '/Applications/Xcode-27.0-Beta.app');
+      fixture.applications.add('/Applications/Xcode-27.0-Beta.app');
       fixture.versions['/Applications/Xcode-27.0-Beta.app/Contents/Developer'] =
           'Xcode 27.0\nBuild version 27A111b\n';
       final errors = await fixture.check();

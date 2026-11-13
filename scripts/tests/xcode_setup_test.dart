@@ -176,7 +176,7 @@ cp -R "$SPARE" "$4/Xcode-27.0.0.app"
       'skips a sorting-first beta and reuses a manually installed release',
       () async {
         xcode('Xcode-27.0-Beta.app', build: '27A5001a');
-        xcode("Xcode-27.0 user's.app");
+        xcode("Xcode-27.0-user's.app");
         File('${bin.path}/xcodes').deleteSync();
         final result = await runInstaller();
         expect(result.exitCode, 0, reason: '${result.stderr}');
@@ -185,7 +185,7 @@ cp -R "$SPARE" "$4/Xcode-27.0.0.app"
           'setup',
           'checked',
         ]);
-        expect(result.stdout, contains("Xcode-27.0 user's.app"));
+        expect(result.stdout, contains("Xcode-27.0-user's.app"));
       },
     );
 
