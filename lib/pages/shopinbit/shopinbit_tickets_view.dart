@@ -208,9 +208,9 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
                   ? "Opening your car research payment..."
                   : "${invoice.status} • Invoice ${invoice.invoiceId}",
               badgeText: "Resume",
-              badgeColor: Theme.of(
-                context,
-              ).extension<StackColors>()!.accentColorYellow,
+              badgeColor: Theme.of(context)
+                  .extension<StackColors>()!
+                  .accentColorYellow,
               loading: _resuming,
             ),
           ),
@@ -307,9 +307,9 @@ class _ShopInBitTicketsViewState extends ConsumerState<ShopInBitTicketsView> {
         condition: !isDesktop,
         builder: (child) => Background(
           child: Scaffold(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -371,9 +371,8 @@ class _RequestRow extends StatelessWidget {
 
     final subtitleStyle = isDesktop
         ? STextStyles.desktopTextExtraExtraSmall(context)
-        : STextStyles.itemSubtitle12(
-            context,
-          ).copyWith(color: stackColors.textSubtitle1);
+        : STextStyles.itemSubtitle12(context)
+              .copyWith(color: stackColors.textSubtitle1);
 
     return Row(
       children: [
@@ -434,7 +433,7 @@ class _StatusBadge extends StatelessWidget {
       padding: const .symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        color: color.withOpacity(0.2),
+        color: color.withValues(alpha: 0.2),
       ),
       child: Text(text, style: style),
     );

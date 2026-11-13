@@ -262,11 +262,7 @@ class _JDropdownIconButtonState<T> extends State<JDropdownIconButton<T>> {
                 ),
               ),
           onPressed: _isOpen ? close : open,
-          child: SvgPicture.asset(
-            Assets.svg.list,
-            width: 20,
-            height: 20,
-          ),
+          child: SvgPicture.asset(Assets.svg.list, width: 20, height: 20),
         ),
       );
     }
@@ -299,7 +295,7 @@ class _JDropdownButtonMenuState<T> extends State<_JDropdownButtonMenu<T>> {
       child: Stack(
         children: [
           Container(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             // child: widget.content,
           ),
           Positioned(
@@ -315,13 +311,9 @@ class _JDropdownButtonMenuState<T> extends State<_JDropdownButtonMenu<T>> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(
-                    height: 20,
-                  ),
+                  const SizedBox(height: 20),
                   ...widget.items,
-                  const SizedBox(
-                    height: 20,
-                  ),
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
