@@ -12,12 +12,16 @@ abstract class ZcashPreparedWalletSend {
   const ZcashPreparedWalletSend({
     required this.sessionGeneration,
     required this.encodedRecipient,
+    required this.selectedReceiver,
+    required this.selectedReceiverAddress,
     required this.actualOutputPool,
     required this.memo,
   });
 
   final int sessionGeneration;
   final String encodedRecipient;
+  final zcash.ZcashAddressReceiverType selectedReceiver;
+  final String selectedReceiverAddress;
   final zcash.ProposalOutputPool actualOutputPool;
   final Uint8List? memo;
 
@@ -29,6 +33,8 @@ abstract class ZcashPreparedWalletSend {
   int get changeZatoshis;
   int get expiryHeight;
   ZcashSendSourcePool get sourcePool;
+
+  List<zcash.ZcashScannedNote> get selectedNotes;
 
   void requireValueConservation() {
     if (inputZatoshis != amountZatoshis + feeZatoshis + changeZatoshis) {
@@ -45,6 +51,8 @@ final class ZcashPreparedIronwoodSend extends ZcashPreparedWalletSend {
     required this.prepared,
     required super.sessionGeneration,
     required super.encodedRecipient,
+    required super.selectedReceiver,
+    required super.selectedReceiverAddress,
     required super.actualOutputPool,
     required super.memo,
   }) {
@@ -69,6 +77,9 @@ final class ZcashPreparedIronwoodSend extends ZcashPreparedWalletSend {
   int get expiryHeight => prepared.expiryHeight;
   @override
   ZcashSendSourcePool get sourcePool => ZcashSendSourcePool.ironwood;
+  @override
+  List<zcash.ZcashScannedNote> get selectedNotes =>
+      List.unmodifiable(prepared.plan.notes);
 }
 
 final class ZcashPreparedSaplingPayment extends ZcashPreparedWalletSend {
@@ -76,6 +87,8 @@ final class ZcashPreparedSaplingPayment extends ZcashPreparedWalletSend {
     required this.prepared,
     required super.sessionGeneration,
     required super.encodedRecipient,
+    required super.selectedReceiver,
+    required super.selectedReceiverAddress,
     required super.actualOutputPool,
     required super.memo,
   }) {
@@ -100,6 +113,9 @@ final class ZcashPreparedSaplingPayment extends ZcashPreparedWalletSend {
   int get expiryHeight => prepared.expiryHeight;
   @override
   ZcashSendSourcePool get sourcePool => ZcashSendSourcePool.sapling;
+  @override
+  List<zcash.ZcashScannedNote> get selectedNotes =>
+      List.unmodifiable(prepared.plan.notes);
 }
 
 class ZcashSendPreparationRequest {
@@ -312,6 +328,8 @@ final class ZcashProductionWalletSendService implements ZcashWalletSendService {
         prepared: prepared,
         sessionGeneration: request.sessionGeneration,
         encodedRecipient: output.encodedAddress,
+        selectedReceiver: output.selectedReceiver,
+        selectedReceiverAddress: output.receiverAddress,
         actualOutputPool: output.actualOutputPool,
         memo: output.memo,
       );
@@ -374,6 +392,8 @@ final class ZcashProductionWalletSendService implements ZcashWalletSendService {
       prepared: prepared,
       sessionGeneration: request.sessionGeneration,
       encodedRecipient: output.encodedAddress,
+      selectedReceiver: output.selectedReceiver,
+      selectedReceiverAddress: output.receiverAddress,
       actualOutputPool: output.actualOutputPool,
       memo: output.memo,
     );

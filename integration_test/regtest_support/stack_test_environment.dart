@@ -226,6 +226,11 @@ final class StackNodeEndpointDelivery {
 typedef StackWalletInitializer<WalletType extends Wallet> =
     Future<void> Function(WalletType wallet, bool isRestore);
 
+typedef StackWalletInfoFactory = WalletInfo Function(
+  CryptoCurrency currency,
+  String name,
+);
+
 /// Uses Stack's production [Wallet.create], [Wallet.load], and [Wallet.exit]
 /// paths while leaving coin-specific native initialization explicit.
 final class StackMnemonicWalletFactory<WalletType extends Wallet>
@@ -235,6 +240,7 @@ final class StackMnemonicWalletFactory<WalletType extends Wallet>
     required this.currency,
     required this.createRecoveryMaterial,
     required this.initializeWallet,
+    this.walletInfoFactory,
     this.mnemonicPassphrase = '',
   });
 
@@ -242,6 +248,7 @@ final class StackMnemonicWalletFactory<WalletType extends Wallet>
   final CryptoCurrency currency;
   final FutureOr<String> Function() createRecoveryMaterial;
   final StackWalletInitializer<WalletType> initializeWallet;
+  final StackWalletInfoFactory? walletInfoFactory;
   final String mnemonicPassphrase;
 
   @override
@@ -270,7 +277,9 @@ final class StackMnemonicWalletFactory<WalletType extends Wallet>
     Wallet? wallet;
     try {
       wallet = await Wallet.create(
-        walletInfo: WalletInfo.createNew(coin: currency, name: name),
+        walletInfo:
+            walletInfoFactory?.call(currency, name) ??
+            WalletInfo.createNew(coin: currency, name: name),
         mainDB: environment.mainDB,
         secureStorageInterface: environment.secrets,
         nodeService: environment.nodes,

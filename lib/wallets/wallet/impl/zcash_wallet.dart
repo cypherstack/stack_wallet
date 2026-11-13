@@ -40,6 +40,7 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
       const ZcashProductionWalletSendService();
   final _sendMutex = Mutex();
   ZcashPreparedWalletSend? _preparedSend;
+  int? _regtestNu63ActivationHeight;
   String? _ufvk;
   String? _accountFingerprint;
 
@@ -60,6 +61,43 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
       throw StateError('The Zcash send service is already in use');
     }
     _sendService = service;
+  }
+
+  void configureRegtestConsensus({required int nu63ActivationHeight}) {
+    if (cryptoCurrency.network != CryptoCurrencyNetwork.regtest) {
+      throw StateError('Custom Zcash activation heights are regtest-only');
+    }
+    if (nu63ActivationHeight < 2) {
+      throw ArgumentError.value(
+        nu63ActivationHeight,
+        'nu63ActivationHeight',
+        'must stage NU6.3 above genesis',
+      );
+    }
+    if (_stateController != null || _preparedSend != null) {
+      throw StateError('Configure Zcash regtest consensus before sync or send');
+    }
+    _regtestNu63ActivationHeight = nu63ActivationHeight;
+  }
+
+  ZcashWalletStateInspection get synchronizedStateInspection {
+    _requireRegtestInspection();
+    return _requireStateController().inspection;
+  }
+
+  ZcashPreparedWalletSend preparedSendFor(TxData txData) {
+    _requireRegtestInspection();
+    final prepared = _preparedSend;
+    if (prepared == null || !_matchesPrepared(txData, prepared)) {
+      throw StateError('No exact Zcash prepared send matches this artifact');
+    }
+    return prepared;
+  }
+
+  void _requireRegtestInspection() {
+    if (cryptoCurrency.network != CryptoCurrencyNetwork.regtest) {
+      throw StateError('Zcash note inspection is regtest-only');
+    }
   }
 
   @override
@@ -197,6 +235,7 @@ class ZcashWallet extends Bip39Wallet<Zcash> {
                   path.join(root.path, 'zcash', 'sapling-params'),
                 ),
               ).resolve(),
+          regtestNu63ActivationHeight: _regtestNu63ActivationHeight,
         ),
       );
       // This is the durability boundary: no prepared transaction is exposed

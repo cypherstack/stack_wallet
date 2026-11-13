@@ -85,6 +85,48 @@ class ZcashWalletSnapshot {
   final zcash.ZcashTransactionHistory history;
 }
 
+/// Immutable note-level state used by typed integration adapters and support
+/// diagnostics. It contains no viewing or spending key material.
+class ZcashWalletValueInspection {
+  const ZcashWalletValueInspection({
+    required this.id,
+    required this.protocolTxid,
+    required this.outputIndex,
+    required this.pool,
+    required this.value,
+    required this.isSpent,
+    required this.isChange,
+    required this.isSpendable,
+    this.spendingProtocolTxid,
+  });
+
+  final String id;
+  final String protocolTxid;
+  final int outputIndex;
+  final String pool;
+  final BigInt value;
+  final bool isSpent;
+  final bool isChange;
+  final bool isSpendable;
+  final String? spendingProtocolTxid;
+
+  String get txid => zcash.reverseTxidByteOrder(protocolTxid);
+}
+
+/// A synchronized, immutable view of shielded values grouped by actual pool.
+class ZcashWalletStateInspection {
+  ZcashWalletStateInspection({
+    required this.chainHeight,
+    required Map<String, BigInt> balances,
+    required Iterable<ZcashWalletValueInspection> values,
+  }) : balances = Map.unmodifiable(balances),
+       values = List.unmodifiable(values);
+
+  final int chainHeight;
+  final Map<String, BigInt> balances;
+  final List<ZcashWalletValueInspection> values;
+}
+
 class ZcashStackStateMapper {
   const ZcashStackStateMapper({required this.walletId});
 
@@ -93,6 +135,77 @@ class ZcashStackStateMapper {
   static const unknownVersionSentinel = -1;
 
   final String walletId;
+
+  ZcashWalletStateInspection inspection(
+    zcash.ZcashWalletSyncState state, {
+    required int chainHeight,
+  }) {
+    final notes = <zcash.ZcashScannedNote>[
+      ...state.sapling.notes,
+      ...state.orchard.notes,
+      ...state.ironwood.notes,
+    ];
+    final spends = <zcash.ZcashObservedSpend>[
+      ...state.sapling.spends,
+      ...state.orchard.spends,
+      ...state.ironwood.spends,
+    ];
+    final spendsByPoolAndNullifier =
+        <(String, String), zcash.ZcashObservedSpend>{
+          for (final spend in spends) (spend.pool, spend.nullifier): spend,
+        };
+
+    bool isSpent(zcash.ZcashScannedNote note) =>
+        note.nullifier != null &&
+        spendsByPoolAndNullifier.containsKey((note.pool, note.nullifier!));
+
+    bool isSpendable(zcash.ZcashScannedNote note) {
+      if (isSpent(note) || note.nullifier == null) return false;
+      return switch (note.pool) {
+        'sapling' =>
+          note.recipient != null && note.rseed != null && note.witness != null,
+        'ironwood' =>
+          note.recipient != null &&
+              note.rseed != null &&
+              note.rho != null &&
+              note.noteVersion == 'v3' &&
+              note.witness != null,
+        _ => false,
+      };
+    }
+
+    final values = <ZcashWalletValueInspection>[
+      for (final note in notes)
+        ZcashWalletValueInspection(
+          id: note.nullifier ?? '${note.pool}:${note.tx}:${note.output}',
+          protocolTxid: note.tx,
+          outputIndex: note.output,
+          pool: note.pool,
+          value: BigInt.from(note.value),
+          isSpent: isSpent(note),
+          isChange: note.isChange ?? false,
+          isSpendable: isSpendable(note),
+          spendingProtocolTxid: note.nullifier == null
+              ? null
+              : spendsByPoolAndNullifier[(note.pool, note.nullifier!)]?.tx,
+        ),
+    ];
+    final balances = <String, BigInt>{
+      for (final pool in ['transparent', 'sapling', 'orchard', 'ironwood'])
+        pool: BigInt.zero,
+    };
+    for (final value in values) {
+      if (!value.isSpent) {
+        balances[value.pool] =
+            (balances[value.pool] ?? BigInt.zero) + value.value;
+      }
+    }
+    return ZcashWalletStateInspection(
+      chainHeight: chainHeight,
+      balances: balances,
+      values: values,
+    );
+  }
 
   Balance balance(zcash.ZcashAccountBalance native) {
     Amount amount(int value) =>
@@ -248,6 +361,10 @@ class ZcashWalletStateController {
     balance: _state.balance(),
     history: _state.history(),
   );
+
+  ZcashWalletStateInspection get inspection =>
+      const ZcashStackStateMapper(walletId: '')
+          .inspection(_state, chainHeight: _observedChainHeight);
 
   Future<ZcashWalletSnapshot> refresh() {
     final active = _refreshInFlight;

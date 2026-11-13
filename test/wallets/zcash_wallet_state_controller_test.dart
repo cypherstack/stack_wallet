@@ -91,7 +91,7 @@ void main() {
         time: 1,
       ),
       scanExecutor: _UnusedScanExecutor(),
-      openSync: (_, _) => _ImmediateSyncSession(
+      openSync: (_, _) => const _ImmediateSyncSession(
         zcash.ZcashSyncReorged(recovery: recovery, detection: detection),
       ),
     );
@@ -108,26 +108,27 @@ void main() {
   test('maps pool balance and only known shielded history fields', () {
     const transaction =
         '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
-    final scan = zcash.ZcashScanResult(
+    const scan = zcash.ZcashScanResult(
       scannedBlocks: 1,
       discoveredNotes: 2,
       totalValue: 12,
-      scannedHeightRange: const zcash.CompactBlockScanRange(
-        start: 100,
-        end: 100,
-      ),
-      notes: const [
+      scannedHeightRange: zcash.CompactBlockScanRange(start: 100, end: 100),
+      notes: [
         zcash.ZcashScannedNote(
           height: 100,
           tx: transaction,
           output: 0,
           value: 5,
           pool: 'sapling',
-          nullifier: '1111111111111111111111111111111111111111111111111111111111111111',
+          nullifier:
+              '11111111111111111111111111111111'
+              '11111111111111111111111111111111',
           recipient: 'zs-test',
           rseed: '00',
           witness: '00',
-          blockHash: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          blockHash:
+              'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+              'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
         ),
         zcash.ZcashScannedNote(
           height: 100,
@@ -135,20 +136,26 @@ void main() {
           output: 1,
           value: 7,
           pool: 'orchard',
-          nullifier: '2222222222222222222222222222222222222222222222222222222222222222',
+          nullifier:
+              '22222222222222222222222222222222'
+              '22222222222222222222222222222222',
           recipient: 'u-test',
           rho: '00',
           rseed: '00',
           witness: '00',
           noteVersion: 'v2',
-          blockHash: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          blockHash:
+              'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+              'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
         ),
       ],
     );
     final state = zcash.ZcashWalletSyncState.atBirthday(
       cursor: zcash.ZcashLightwalletdSyncCursor.fromTreeState(
         const zcash.TreeState(
-          hash: '0000000000000000000000000000000000000000000000000000000000000000',
+          hash:
+              '00000000000000000000000000000000'
+              '00000000000000000000000000000000',
           height: 99,
           time: 1,
         ),
@@ -160,7 +167,7 @@ void main() {
     state.orchard.apply(scan, accountFingerprint: 'account-a');
     state.ironwood.apply(scan, accountFingerprint: 'account-a');
     final nativeBalance = zcash.ZcashAccountBalance.fromScan(scan: scan);
-    final mapper = ZcashStackStateMapper(walletId: 'wallet-1');
+    const mapper = ZcashStackStateMapper(walletId: 'wallet-1');
 
     final balance = mapper.balance(nativeBalance);
     final transactions = mapper.transactions(state.history());
@@ -266,6 +273,155 @@ void main() {
 
     expect(mapped.walletNetAmountRaw, isNull);
     expect(mapped.isMetadataMissing('walletNetAmount'), isTrue);
+  });
+
+  test(
+    'inspection retains pool, note identity, spend, and change metadata',
+    () {
+      const nullifier =
+          '11111111111111111111111111111111'
+          '11111111111111111111111111111111';
+      const receivedTx =
+          '0123456789abcdef0123456789abcdef'
+          '0123456789abcdef0123456789abcdef';
+      const spendingTx =
+          'abcdef0123456789abcdef0123456789'
+          'abcdef0123456789abcdef0123456789';
+      const scan = zcash.ZcashScanResult(
+        scannedBlocks: 1,
+        discoveredNotes: 1,
+        totalValue: 70000,
+        scannedHeightRange: zcash.CompactBlockScanRange(start: 100, end: 101),
+        notes: [
+          zcash.ZcashScannedNote(
+            height: 100,
+            tx: receivedTx,
+            output: 2,
+            value: 70000,
+            pool: 'sapling',
+            nullifier: nullifier,
+            recipient: 'zregtestsapling1inspection',
+            rseed: '00',
+            isChange: true,
+            witness: '00',
+          ),
+        ],
+        spends: [
+          zcash.ZcashObservedSpend(
+            height: 101,
+            tx: spendingTx,
+            pool: 'sapling',
+            nullifier: nullifier,
+            index: 0,
+          ),
+        ],
+      );
+      final state = zcash.ZcashWalletSyncState.atBirthday(
+        cursor: zcash.ZcashLightwalletdSyncCursor.origin(height: 100),
+        network: zcash.ZcashAddressNetwork.regtest,
+        accountFingerprint: 'account-a',
+      );
+      state.sapling.apply(scan, accountFingerprint: 'account-a');
+
+      final inspection = const ZcashStackStateMapper(walletId: 'wallet-1')
+          .inspection(state, chainHeight: 101);
+
+      expect(inspection.chainHeight, 101);
+      expect(inspection.balances['sapling'], BigInt.zero);
+      expect(inspection.values, hasLength(1));
+      expect(inspection.values.single.id, nullifier);
+      expect(inspection.values.single.pool, 'sapling');
+      expect(inspection.values.single.value, BigInt.from(70000));
+      expect(inspection.values.single.isSpent, isTrue);
+      expect(inspection.values.single.isChange, isTrue);
+      expect(inspection.values.single.isSpendable, isFalse);
+      expect(inspection.values.single.spendingProtocolTxid, spendingTx);
+    },
+  );
+
+  test('inspection only marks complete unspent notes as spendable', () {
+    const transaction =
+        '0123456789abcdef0123456789abcdef'
+        '0123456789abcdef0123456789abcdef';
+    const saplingNullifier =
+        '11111111111111111111111111111111'
+        '11111111111111111111111111111111';
+    const ironwoodNullifier =
+        '22222222222222222222222222222222'
+        '22222222222222222222222222222222';
+    const incompleteNullifier =
+        '33333333333333333333333333333333'
+        '33333333333333333333333333333333';
+    const scan = zcash.ZcashScanResult(
+      scannedBlocks: 1,
+      discoveredNotes: 3,
+      totalValue: 60000,
+      scannedHeightRange: zcash.CompactBlockScanRange(start: 100, end: 100),
+      notes: [
+        zcash.ZcashScannedNote(
+          height: 100,
+          tx: transaction,
+          output: 0,
+          value: 10000,
+          pool: 'sapling',
+          nullifier: saplingNullifier,
+          recipient: 'zregtestsapling1inspection',
+          rseed: '00',
+          witness: '00',
+        ),
+        zcash.ZcashScannedNote(
+          height: 100,
+          tx: transaction,
+          output: 1,
+          value: 20000,
+          pool: 'ironwood',
+          nullifier: ironwoodNullifier,
+          recipient: 'uregtest1inspection',
+          rseed: '00',
+          rho: '00',
+          noteVersion: 'v3',
+          witness: '00',
+        ),
+        zcash.ZcashScannedNote(
+          height: 100,
+          tx: transaction,
+          output: 2,
+          value: 30000,
+          pool: 'ironwood',
+          nullifier: incompleteNullifier,
+          recipient: 'uregtest1incomplete',
+          rseed: '00',
+          rho: '00',
+          noteVersion: 'v3',
+        ),
+      ],
+    );
+    final state = zcash.ZcashWalletSyncState.atBirthday(
+      cursor: zcash.ZcashLightwalletdSyncCursor.origin(height: 100),
+      network: zcash.ZcashAddressNetwork.regtest,
+      accountFingerprint: 'account-a',
+    );
+    state.sapling.apply(scan, accountFingerprint: 'account-a');
+    state.ironwood.apply(scan, accountFingerprint: 'account-a');
+
+    final values = const ZcashStackStateMapper(walletId: 'wallet-1')
+        .inspection(state, chainHeight: 100)
+        .values;
+
+    expect(
+      values.singleWhere((value) => value.id == saplingNullifier).isSpendable,
+      isTrue,
+    );
+    expect(
+      values.singleWhere((value) => value.id == ironwoodNullifier).isSpendable,
+      isTrue,
+    );
+    expect(
+      values
+          .singleWhere((value) => value.id == incompleteNullifier)
+          .isSpendable,
+      isFalse,
+    );
   });
 }
 

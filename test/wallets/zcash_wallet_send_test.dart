@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:regtest_support/regtest_support.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/node_model.dart';
@@ -18,6 +19,7 @@ import 'package:stackwallet/wallets/wallet/intermediate/zcash_wallet_state_contr
 import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:zcash_flutter/zcash_flutter.dart' as zcash;
 
+import '../../integration_test/zcash_regtest/zcash_stack_regtest_adapter.dart';
 import '../support/isar_test_utils.dart';
 import 'support/xelis_test_fakes.dart';
 
@@ -30,7 +32,7 @@ final class SendNodes extends Fake implements NodeService {
     id: 'send',
     useSSL: true,
     enabled: true,
-    coinName: 'zcash',
+    coinName: currency.identifier,
     isFailover: false,
     isDown: false,
     torEnabled: false,
@@ -41,6 +43,9 @@ final class SendNodes extends Fake implements NodeService {
 
 final class SendClient
     implements ZcashLightwalletdSyncClient, ZcashLightwalletdSendClient {
+  SendClient({this.chainName = 'main'});
+
+  final String chainName;
   final List<Uint8List> submitted = [];
 
   @override
@@ -55,7 +60,7 @@ final class SendClient
 
   @override
   Future<zcash.LightdInfo> getInfo() async =>
-      zcash.LightdInfo(chainName: 'main');
+      zcash.LightdInfo(chainName: chainName);
 
   @override
   Future<int> getTipHeight() async => 42;
@@ -77,12 +82,16 @@ final class SendClient
 }
 
 final class FixturePreparedSend extends ZcashPreparedWalletSend {
-  FixturePreparedSend({required super.sessionGeneration})
-    : super(
-        encodedRecipient: 'u1fixture',
-        actualOutputPool: zcash.ProposalOutputPool.ironwood,
-        memo: Uint8List.fromList([0x68, 0x69]),
-      );
+  FixturePreparedSend({
+    required super.sessionGeneration,
+    required String requestedAddress,
+  }) : super(
+         encodedRecipient: requestedAddress,
+         selectedReceiver: zcash.ZcashAddressReceiverType.orchard,
+         selectedReceiverAddress: 'u1selected-ironwood',
+         actualOutputPool: zcash.ProposalOutputPool.ironwood,
+         memo: Uint8List.fromList([0x68, 0x69]),
+       );
 
   @override
   int get amountZatoshis => 40000;
@@ -96,6 +105,19 @@ final class FixturePreparedSend extends ZcashPreparedWalletSend {
   int get inputZatoshis => 100000;
   @override
   ZcashSendSourcePool get sourcePool => ZcashSendSourcePool.ironwood;
+  @override
+  List<zcash.ZcashScannedNote> get selectedNotes => const [
+    zcash.ZcashScannedNote(
+      height: 40,
+      tx: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      output: 0,
+      value: 100000,
+      pool: 'ironwood',
+      nullifier:
+          'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
+          'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+    ),
+  ];
   @override
   String get transactionHex => '00ff10';
   @override
@@ -111,7 +133,10 @@ final class RecordingSendService implements ZcashWalletSendService {
     ZcashSendPreparationRequest request,
   ) async {
     this.request = request;
-    return FixturePreparedSend(sessionGeneration: request.sessionGeneration);
+    return FixturePreparedSend(
+      sessionGeneration: request.sessionGeneration,
+      requestedAddress: request.recipient,
+    );
   }
 
   @override
@@ -155,6 +180,31 @@ void main() {
     });
   });
 
+  test('note and prepared-send inspection is regtest-only', () {
+    final wallet = ZcashWallet(CryptoCurrencyNetwork.main);
+
+    expect(
+      () => wallet.synchronizedStateInspection,
+      throwsA(
+        isA<StateError>().having(
+          (error) => error.message,
+          'message',
+          contains('regtest-only'),
+        ),
+      ),
+    );
+    expect(
+      () => wallet.preparedSendFor(TxData()),
+      throwsA(
+        isA<StateError>().having(
+          (error) => error.message,
+          'message',
+          contains('regtest-only'),
+        ),
+      ),
+    );
+  });
+
   test('prepare and confirm preserve one exact backend artifact', () async {
     final client = SendClient();
     final service = RecordingSendService();
@@ -187,6 +237,50 @@ void main() {
 
     expect(confirmed.txid, prepared.txid);
     expect(service.broadcastPrepared, isA<FixturePreparedSend>());
+    expect(client.submitted, [
+      Uint8List.fromList([0, 255, 16]),
+    ]);
+    await wallet.exit();
+  });
+
+  test('regtest adapter preserves encoded address, selected receiver, actual '
+      'pool, sources, change, and fee', () async {
+    final client = SendClient(chainName: 'test');
+    final service = RecordingSendService();
+    final wallet = await _wallet(
+      client,
+      service,
+      'typed-adapter',
+      network: CryptoCurrencyNetwork.regtest,
+    );
+    const capabilities = ZcashStackTransferCapabilities();
+    final receiver = await capabilities.receiver(
+      wallet,
+      ZcashRegtestPool.ironwood,
+    );
+
+    final prepared = await capabilities.prepare(
+      wallet,
+      TransferRequest(
+        address: receiver,
+        pool: ZcashRegtestPool.ironwood,
+        value: BigInt.from(40000),
+      ),
+    );
+
+    prepared.requireValueConserved();
+    expect(prepared.native.encodedAddress, receiver);
+    expect(prepared.native.selectedReceiver, ZcashRegtestReceiver.orchard);
+    expect(prepared.native.selectedReceiverAddress, 'u1selected-ironwood');
+    expect(prepared.native.actualOutputPool, ZcashRegtestPool.ironwood);
+    expect(prepared.native.sourcePool, ZcashRegtestPool.ironwood);
+    expect(prepared.sources.single.value, BigInt.from(100000));
+    expect(prepared.change.single.value, BigInt.from(50000));
+    expect(prepared.fee, BigInt.from(10000));
+
+    final receipt = await capabilities.confirm(wallet, prepared);
+    receipt.requireValueConserved();
+    receipt.requireActualDestinationPool(ZcashRegtestPool.ironwood);
     expect(client.submitted, [
       Uint8List.fromList([0, 255, 16]),
     ]);
@@ -286,14 +380,16 @@ void main() {
 Future<ZcashWallet> _wallet(
   SendClient client,
   RecordingSendService service,
-  String id,
-) async {
+  String id, {
+  CryptoCurrencyNetwork network = CryptoCurrencyNetwork.main,
+}) async {
+  final currency = Zcash(network);
   final wallet = await Wallet.create(
     walletInfo: WalletInfo(
       walletId: 'zcash-send-$id',
       name: 'Zcash send fixture',
       mainAddressType: AddressType.zcashUnified,
-      coinName: 'zcash',
+      coinName: currency.identifier,
       restoreHeight: 43,
     ),
     mainDB: MainDB.instance,
@@ -310,6 +406,9 @@ Future<ZcashWallet> _wallet(
         ZcashAccountSession(network: network, clientFactory: (_) => client),
   );
   wallet.configureSendService(service);
+  if (network == CryptoCurrencyNetwork.regtest) {
+    wallet.configureRegtestConsensus(nu63ActivationHeight: 130);
+  }
   await wallet.init(isRestore: true);
   return wallet;
 }
