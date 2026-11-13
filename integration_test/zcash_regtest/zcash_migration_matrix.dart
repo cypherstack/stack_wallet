@@ -1,6 +1,7 @@
 import 'package:regtest_support/regtest_support.dart';
 
 import 'zcash_stack_regtest_adapter.dart';
+import 'zcash_staged_chain_driver.dart';
 
 final class ZcashStagedMigrationCase {
   const ZcashStagedMigrationCase({
@@ -49,6 +50,13 @@ const zcashStagedMigrationMatrix = <ZcashStagedMigrationCase>[
     // at least two complete 144-block boundaries to form a useful anonymity
     // set in the staged local network.
     postActivationBlocks: 288,
+  ),
+  ZcashStagedMigrationCase(
+    name: 'transparent-to-ironwood',
+    sourcePool: ZcashRegtestPool.transparent,
+    destinationPool: ZcashRegtestPool.ironwood,
+    expectedSelectedReceiver: ZcashRegtestReceiver.unified,
+    isProductionSupported: true,
   ),
 ];
 
@@ -164,10 +172,25 @@ runZcashMigrationCase<Wallet, Endpoint>({
   final sourceIds = {
     for (final source in prepared.transfer.prepared.sources) source.id,
   };
-  _require(
-    confirmed.confirmed.sourceAfter.spentIds.containsAll(sourceIds),
-    'confirmed wallet state did not consume every prepared source',
-  );
+  if (!confirmed.confirmed.sourceAfter.spentIds.containsAll(sourceIds)) {
+    final sourceRows = [
+      for (final value in confirmed.confirmed.sourceAfter.values)
+        if (sourceIds.contains(value.id))
+          '${value.id}:${value.pool}:${value.value}:${value.state}',
+    ];
+    final rawSources = scenario.chain is ZcashStagedChainDriver
+        ? (scenario.chain as ZcashStagedChainDriver).rawSourceDiagnostics(
+            confirmed.confirmed.receipt.txid,
+          )
+        : 'raw source diagnostics unavailable';
+    throw StateError(
+      'confirmed wallet state did not consume every prepared source: '
+      'expected=$sourceIds actual=${confirmed.confirmed.sourceAfter.spentIds} '
+      'sourceBalance='
+      '${confirmed.confirmed.sourceAfter.balanceOf(migrationCase.sourcePool)} '
+      'matchingValues=$sourceRows\n$rawSources',
+    );
+  }
   final chainDestinations = confirmed.confirmed.transaction.outputs.where(
     (output) =>
         output.pool == migrationCase.destinationPool &&
@@ -250,7 +273,8 @@ void _requireEquivalentState(
   _require(
     actualValues.length == expectedValues.length &&
         actualValues.containsAll(expectedValues),
-    '$context did not preserve value identities and states',
+    '$context did not preserve value identities and states: '
+    'expected=$expectedValues actual=$actualValues',
   );
 }
 

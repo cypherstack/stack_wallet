@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:regtest_support/regtest_support.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
+import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/impl/zcash_wallet.dart';
@@ -123,6 +125,145 @@ void main() {
     expect(prepared.fee, BigInt.from(15000));
     prepared.requireValueConserved();
   });
+
+  test(
+    'routes transparent value through the production shielding operation',
+    () async {
+      final wallet = _TransparentShieldingWallet();
+      const capabilities = ZcashStackTransferCapabilities();
+
+      final prepared = await capabilities.prepare(
+        wallet,
+        TransferRequest(
+          address: 'uregtest1shielded',
+          pool: ZcashRegtestPool.ironwood,
+          value: BigInt.from(90000),
+        ),
+      );
+
+      expect(wallet.shieldingInvoked, isTrue);
+      expect(prepared.native.sourcePool, ZcashRegtestPool.transparent);
+      expect(prepared.native.actualOutputPool, ZcashRegtestPool.ironwood);
+      expect(prepared.native.selectedReceiver, ZcashRegtestReceiver.unified);
+      expect(prepared.sources.single.id, '${'11' * 32}:2');
+      expect(prepared.sources.single.value, BigInt.from(100000));
+      expect(prepared.destination.value, BigInt.from(90000));
+      expect(prepared.change, isEmpty);
+      expect(prepared.fee, BigInt.from(10000));
+      prepared.requireValueConserved();
+    },
+  );
+
+  test(
+    'transparent shielding refuses a mismatched generic transfer intent',
+    () async {
+      final wallet = _TransparentShieldingWallet();
+
+      await expectLater(
+        const ZcashStackTransferCapabilities().prepare(
+          wallet,
+          TransferRequest(
+            address: 'uregtest1shielded',
+            pool: ZcashRegtestPool.ironwood,
+            value: BigInt.from(1),
+          ),
+        ),
+        throwsA(
+          isA<StateError>().having(
+            (error) => error.message,
+            'message',
+            contains('exact self-sweep'),
+          ),
+        ),
+      );
+    },
+  );
+}
+
+final class _TransparentShieldingWallet extends ZcashWallet {
+  _TransparentShieldingWallet()
+    : prepared = _transparentShieldingPrepared(),
+      super(CryptoCurrencyNetwork.regtest);
+
+  final ZcashPreparedTransparentShielding prepared;
+  bool shieldingInvoked = false;
+
+  @override
+  ZcashWalletStateInspection get synchronizedStateInspection =>
+      ZcashWalletStateInspection(
+        chainHeight: 150,
+        balances: {'transparent': BigInt.from(100000)},
+        values: [
+          ZcashWalletValueInspection(
+            id: '${'11' * 32}:2',
+            protocolTxid: '11' * 32,
+            outputIndex: 2,
+            pool: 'transparent',
+            value: BigInt.from(100000),
+            isSpent: false,
+            isChange: false,
+            isSpendable: true,
+          ),
+        ],
+      );
+
+  @override
+  Future<TxData> prepareTransparentShielding() async {
+    shieldingInvoked = true;
+    return TxData(
+      raw: prepared.transactionHex,
+      txid: prepared.txid,
+      recipients: [
+        TxRecipient(
+          address: prepared.encodedRecipient,
+          amount: Amount(
+            rawValue: BigInt.from(prepared.amountZatoshis),
+            fractionDigits: 8,
+          ),
+          isChange: true,
+          addressType: AddressType.zcashUnified,
+        ),
+      ],
+    );
+  }
+
+  @override
+  ZcashPreparedWalletSend preparedSendFor(TxData txData) => prepared;
+}
+
+ZcashPreparedTransparentShielding _transparentShieldingPrepared() {
+  final coins = zcash.TransparentCoinSet.fromUtxos(
+    utxos: [
+      zcash.AddressUtxo(
+        address: 'tmTest',
+        txid: '11' * 32,
+        outputIndex: 2,
+        script: '51',
+        satoshis: 100000,
+        height: 1,
+      ),
+    ],
+    chainHeight: 150,
+    coinbaseOutpoints: const {},
+  );
+  final selection = zcash.TransparentInputSelection.sweep(
+    coins: coins,
+    feeForCoins: (_) => 10000,
+  );
+  return ZcashPreparedTransparentShielding(
+    prepared: zcash.ShieldingPreparedSend(
+      destination: zcash.ShieldingDestination.ironwood,
+      selection: selection,
+      transactionHex: '010203',
+      txid: '33' * 32,
+      feeZatoshis: 10000,
+      shieldedZatoshis: 90000,
+    ),
+    targetHeight: 151,
+    sessionGeneration: 1,
+    encodedRecipient: 'uregtest1shielded',
+    selectedReceiverAddress: 'uregtest1shielded',
+  );
 }
 
 final class _MigrationWallet extends ZcashWallet {

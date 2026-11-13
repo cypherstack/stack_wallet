@@ -52,6 +52,8 @@ class ZcashWallet extends Bip39Wallet<Zcash>
   final _sendMutex = Mutex();
   ZcashPreparedWalletSend? _preparedSend;
   int? _regtestNu63ActivationHeight;
+  String? _regtestSaplingSpendParams;
+  String? _regtestSaplingOutputParams;
   String? _ufvk;
   String? _accountFingerprint;
   String? _legacyAccountFingerprint;
@@ -91,7 +93,11 @@ class ZcashWallet extends Bip39Wallet<Zcash>
     _zip318MigrationService = service;
   }
 
-  void configureRegtestConsensus({required int nu63ActivationHeight}) {
+  void configureRegtestConsensus({
+    required int nu63ActivationHeight,
+    String? saplingSpendParams,
+    String? saplingOutputParams,
+  }) {
     if (cryptoCurrency.network != CryptoCurrencyNetwork.regtest) {
       throw StateError('Custom Zcash activation heights are regtest-only');
     }
@@ -105,12 +111,36 @@ class ZcashWallet extends Bip39Wallet<Zcash>
     if (_stateController != null || _preparedSend != null) {
       throw StateError('Configure Zcash regtest consensus before sync or send');
     }
+    if ((saplingSpendParams == null) != (saplingOutputParams == null)) {
+      throw ArgumentError(
+        'Sapling spend and output parameter paths must be supplied together',
+      );
+    }
     _regtestNu63ActivationHeight = nu63ActivationHeight;
+    _regtestSaplingSpendParams = saplingSpendParams;
+    _regtestSaplingOutputParams = saplingOutputParams;
   }
 
   ZcashWalletStateInspection get synchronizedStateInspection {
     _requireRegtestInspection();
-    return _requireStateController().inspection;
+    return _requireStateController().inspectionForRegtestZip318(
+      fee: 15000,
+      saplingPathBFee: 20000,
+    );
+  }
+
+  Future<ZcashWalletStateInspection>
+  synchronizedStateInspectionWithDurableSends() async {
+    _requireRegtestInspection();
+    final store = _pendingSendStore;
+    if (store == null) {
+      throw StateError('Zcash pending-send state is unavailable');
+    }
+    return _requireStateController().inspectionForRegtestZip318(
+      fee: 15000,
+      saplingPathBFee: 20000,
+      pendingSends: await store.load(),
+    );
   }
 
   ZcashPreparedWalletSend preparedSendFor(TxData txData) {
@@ -346,12 +376,23 @@ class ZcashWallet extends Bip39Wallet<Zcash>
           ],
           targetHeight: snapshot.chainHeight + 1,
           expiryHeight: snapshot.chainHeight + 41,
-          resolveSaplingProvingParameters: () =>
-              zcash.SaplingProvingParameterCache(
-                cacheRoot: Directory(
-                  path.join(root.path, 'zcash', 'sapling-params'),
-                ),
-              ).resolve(),
+          resolveSaplingProvingParameters: () {
+            final spend = _regtestSaplingSpendParams;
+            final output = _regtestSaplingOutputParams;
+            return zcash.SaplingProvingParameterCache(
+              cacheRoot: Directory(
+                path.join(root.path, 'zcash', 'sapling-params'),
+              ),
+            ).resolve(
+              source: spend == null || output == null
+                  ? null
+                  : zcash.FileSaplingParameterSource(
+                      manifest: zcash.officialSaplingParameterManifestV1,
+                      spendFile: File(spend),
+                      outputFile: File(output),
+                    ),
+            );
+          },
           regtestNu63ActivationHeight: _regtestNu63ActivationHeight,
         ),
       );
@@ -423,7 +464,7 @@ class ZcashWallet extends Bip39Wallet<Zcash>
     );
     final treeState = await syncClient.getTreeState(snapshot.chainHeight);
     final anchor = treeState.ironwood?.finalState;
-    if (anchor == null || anchor.isEmpty) {
+    if (anchor == null) {
       throw StateError('Zcash shielding requires the current Ironwood anchor');
     }
     final seed = zcash.nativeMnemonicToSeed(
@@ -1020,9 +1061,13 @@ class ZcashWallet extends Bip39Wallet<Zcash>
     final root = await StackFileSystem.applicationRootDirectory();
     final network = cryptoCurrency.nativeNetwork.ffiLabel;
     final source = _ZcashSessionSyncDataSource(client);
+    final allowStagedOrchard =
+        cryptoCurrency.network == CryptoCurrencyNetwork.regtest &&
+        _regtestNu63ActivationHeight != null;
     final scanExecutor = ZcashNativeIsolateScanExecutor(
       ufvk: ufvk,
       network: network,
+      allowExperimentalOrchardNotes: allowStagedOrchard,
     );
     final statePath = path.join(root.path, 'zcash', '$walletId.state');
     final pendingPath = path.join(root.path, 'zcash', '$walletId.pending');
@@ -1075,6 +1120,7 @@ class ZcashWallet extends Bip39Wallet<Zcash>
         source: source,
         scanExecutor: executor,
         network: network,
+        includeOrchardWitnesses: allowStagedOrchard,
       ),
       accountMetadata: accountMetadata,
       viewingKeys: viewingKeys,

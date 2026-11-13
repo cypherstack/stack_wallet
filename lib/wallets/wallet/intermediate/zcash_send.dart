@@ -694,15 +694,35 @@ final class ZcashProductionWalletSendService implements ZcashWalletSendService {
     ZcashSendPreparationRequest request,
     zcash.ProposalOutput output,
   ) async {
-    final boundary = await request.scanExecutor.scan(
+    // An empty compact-block scan does not promise to emit anchors. Acquire
+    // the exact canonical tree state for the block the payment anchors to,
+    // matching the live Path B contract and avoiding a synthesized tip root.
+    final boundary = await request.syncClient.getTreeState(
+      request.targetHeight - 1,
+    );
+    final saplingFrontier = boundary.sapling?.finalState;
+    if (saplingFrontier == null || saplingFrontier.isEmpty) {
+      throw StateError('Sapling Path B boundary has no Sapling frontier');
+    }
+    final ironwoodFrontier = boundary.ironwood?.finalState;
+    final anchors = await request.scanExecutor.scan(
       zcash.ScanInputEnvelope(
         network: _nativeNetwork(request.network).ffiLabel,
-        priorSaplingFrontier: request.state.cursor.priorSaplingFrontier,
-        priorOrchardFrontier: request.state.cursor.priorOrchardFrontier,
-        priorIronwoodFrontier: request.state.cursor.priorIronwoodFrontier,
+        includeSaplingWitnesses: true,
+        priorSaplingFrontier: saplingFrontier,
+        includeOrchardWitnesses: true,
+        priorIronwoodFrontier:
+            ironwoodFrontier == null || ironwoodFrontier.isEmpty
+            ? null
+            : ironwoodFrontier,
         blocks: const [],
       ),
     );
+    final saplingAnchor = anchors.saplingAnchor;
+    if (saplingAnchor == null || saplingAnchor.length != 64) {
+      throw StateError('Sapling Path B boundary scan has no Sapling root');
+    }
+    final ironwoodAnchor = anchors.ironwoodAnchor;
     final scan = zcash.ZcashScanResult(
       scannedBlocks: 0,
       discoveredNotes: request.state.sapling.notes.length,
@@ -712,8 +732,10 @@ final class ZcashProductionWalletSendService implements ZcashWalletSendService {
       ),
       notes: request.state.sapling.notes,
       spends: request.state.sapling.spends,
-      saplingAnchor: boundary.saplingAnchor,
-      ironwoodAnchor: boundary.ironwoodAnchor,
+      saplingAnchor: saplingAnchor,
+      ironwoodAnchor: ironwoodAnchor == null || ironwoodAnchor.isEmpty
+          ? zcash.orchardFamilyEmptyTreeRootHex
+          : ironwoodAnchor,
     );
     final provingParameters = await request.resolveSaplingProvingParameters();
     final prepared = zcash.prepareNativeSaplingPayment(

@@ -459,6 +459,19 @@ void main() {
       transparent.unspentOutputs.single.address,
       address.transparentAddress,
     );
+    final inspection = controller.inspection;
+    expect(inspection.balances['transparent'], BigInt.from(100000));
+    expect(
+      inspection.values,
+      contains(
+        isA<ZcashWalletValueInspection>()
+            .having((value) => value.id, 'outpoint', '${'11' * 32}:0')
+            .having((value) => value.pool, 'pool', 'transparent')
+            .having((value) => value.value, 'value', BigInt.from(100000))
+            .having((value) => value.isSpent, 'spent', isFalse)
+            .having((value) => value.isSpendable, 'spendable', isTrue),
+      ),
+    );
     final key = zcash.deriveNativeTransparentSpendingKey(
       seedHex: seed.seedHex,
       network: zcash.ZcashNetwork.regtest,
@@ -518,6 +531,101 @@ void main() {
     final snapshots = await Future.wait([first, second, third]);
     expect(snapshots.map((e) => e.chainHeight), everyElement(125));
     expect(sync.calls, 1);
+  });
+
+  test('inspection authenticates transparent maturity and spend state', () {
+    const phrase =
+        'abandon abandon abandon abandon abandon abandon abandon abandon '
+        'abandon abandon abandon about';
+    final seed = zcash.nativeMnemonicToSeed(phrase);
+    final account = zcash.deriveNativeAccountMetadata(
+      seedHex: seed.seedHex,
+      network: zcash.ZcashNetwork.regtest,
+    );
+    final viewingKeys = zcash.deriveNativeViewingKeys(
+      seedHex: seed.seedHex,
+      network: zcash.ZcashNetwork.regtest,
+    );
+    final state = zcash.ZcashWalletSyncState.atBirthday(
+      cursor: zcash.ZcashLightwalletdSyncCursor.origin(height: 1),
+      network: zcash.ZcashAddressNetwork.regtest,
+      accountFingerprint: account.fingerprint,
+    );
+    state.transparent.registerAccountReceivers(
+      account: account,
+      viewingKeys: viewingKeys,
+    );
+    final address = viewingKeys.transparent.defaultExternalAddress!;
+    final protocolTxid = '01${'00' * 31}';
+    final displayTxid = '${'00' * 31}01';
+    final output = zcash.ZcashTransparentOutputObservation(
+      address: address,
+      protocolTxid: protocolTxid,
+      outputIndex: 3,
+      scriptHex: '51',
+      valueZatoshis: 625000000,
+      minedHeight: 2,
+      blockHash: '22' * 32,
+      blockTime: null,
+      isCoinbase: true,
+    );
+    zcash.ZcashTransparentRefresh refresh({
+      required int height,
+      required String tipHash,
+      required List<zcash.ZcashTransparentOutputObservation> outputs,
+      List<zcash.ZcashTransparentSpendObservation> spends = const [],
+    }) => zcash.ZcashTransparentRefresh(
+      network: zcash.ZcashAddressNetwork.regtest,
+      accountFingerprint: account.fingerprint,
+      queriedAddresses: state.transparent.addresses,
+      chainHeight: height,
+      chainTipHash: tipHash,
+      canonicalBlockHashes: {
+        2: '22' * 32,
+        100: 'aa' * 32,
+        101: 'bb' * 32,
+        102: 'cc' * 32,
+      },
+      unspentOutputs: outputs,
+      observedSpends: spends,
+    );
+    const mapper = ZcashStackStateMapper(walletId: 'wallet-1');
+
+    state.transparent.applyRefresh(
+      refresh(height: 100, tipHash: 'aa' * 32, outputs: [output]),
+    );
+    var inspected = mapper.inspection(state, chainHeight: 100).values.single;
+    expect(inspected.id, '$displayTxid:3');
+    expect(inspected.isSpendable, isFalse);
+
+    state.transparent.applyRefresh(
+      refresh(height: 101, tipHash: 'bb' * 32, outputs: [output]),
+    );
+    inspected = mapper.inspection(state, chainHeight: 101).values.single;
+    expect(inspected.isSpendable, isTrue);
+
+    final spendingTxid = '44' * 32;
+    state.transparent.applyRefresh(
+      refresh(
+        height: 102,
+        tipHash: 'cc' * 32,
+        outputs: const [],
+        spends: [
+          zcash.ZcashTransparentSpendObservation(
+            spentOutpoint: '$protocolTxid:3',
+            spendingProtocolTxid: spendingTxid,
+            spentHeight: 102,
+            blockHash: 'cc' * 32,
+            blockTime: null,
+            feeZatoshis: 10000,
+          ),
+        ],
+      ),
+    );
+    inspected = mapper.inspection(state, chainHeight: 102).values.single;
+    expect(inspected.isSpent, isTrue);
+    expect(inspected.isSpendable, isFalse);
+    expect(inspected.spendingProtocolTxid, spendingTxid);
   });
 
   test(
@@ -877,6 +985,45 @@ void main() {
     },
   );
 
+  test('native scan executor opts into Orchard only when configured', () async {
+    final raw = jsonEncode({
+      'scanned_blocks': 1,
+      'discovered_notes': 1,
+      'total_value': 54321,
+      'notes': [
+        {
+          'height': 1,
+          'tx': 'ef' * 32,
+          'output': 1,
+          'value': 54321,
+          'pool': 'orchard',
+          'nullifier': '12' * 32,
+          'commitment_position': 9,
+          'is_change': false,
+        },
+      ],
+      'spends': <Object>[],
+    });
+    final strict = ZcashNativeIsolateScanExecutor(
+      ufvk: 'secret-ufvk',
+      network: 'regtest',
+      worker: (_) async => raw,
+    );
+    final staged = ZcashNativeIsolateScanExecutor(
+      ufvk: 'secret-ufvk',
+      network: 'regtest',
+      allowExperimentalOrchardNotes: true,
+      worker: (_) async => raw,
+    );
+
+    await expectLater(
+      strict.scan(zcash.ScanInputEnvelope(blocks: const [])),
+      throwsStateError,
+    );
+    final result = await staged.scan(zcash.ScanInputEnvelope(blocks: const []));
+    expect(result.notes.single.pool, 'orchard');
+  });
+
   test('unvalued spend does not claim a wallet net amount', () {
     const transaction =
         '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
@@ -1093,6 +1240,119 @@ void main() {
     );
   });
 
+  test(
+    'confirmed Sapling Path B record authenticates external-scope change',
+    () {
+      final sourceNullifier = '11' * 32;
+      final sendTxid = 'aa' * 32;
+      final pending = zcash.IronwoodPendingSendState.fromJson({
+        'pending_send_state_version': 2,
+        'records': [
+          {
+            'pending_send_version': 3,
+            'transaction': '00',
+            'txid': sendTxid,
+            'selected_nullifiers': [sourceNullifier],
+            'source_pool': 'sapling',
+            'recipient': 'uregtest1destination',
+            'actual_destination_pool': 'ironwood',
+            'amount_zatoshis': 1000000,
+            'fee_zatoshis': 20000,
+            'expiry_height': 200,
+            'created_height': 130,
+            'broadcast_state': 'acknowledged',
+            'payment_outputs': [
+              {
+                'encoded_recipient': 'uregtest1destination',
+                'receiver_address': 'uregtest1destination',
+                'actual_destination_pool': 'ironwood',
+                'amount_zatoshis': 1000000,
+              },
+            ],
+            'confirmed_height': 131,
+            'confirmed_block_hash': 'bb' * 32,
+          },
+        ],
+      });
+      final state = zcash.ZcashWalletSyncState.atBirthday(
+        cursor: zcash.ZcashLightwalletdSyncCursor.origin(height: 131),
+        network: zcash.ZcashAddressNetwork.regtest,
+        accountFingerprint: 'account-a',
+      );
+      final scan = zcash.ZcashScanResult(
+        scannedBlocks: 2,
+        discoveredNotes: 3,
+        totalValue: 19980000,
+        scannedHeightRange: const zcash.CompactBlockScanRange(
+          start: 120,
+          end: 131,
+        ),
+        notes: [
+          zcash.ZcashScannedNote(
+            height: 120,
+            tx: '22' * 32,
+            output: 0,
+            value: 10000000,
+            pool: 'sapling',
+            nullifier: sourceNullifier,
+            recipient: 'zregtestsapling1source',
+            rseed: '00',
+            witness: '00',
+          ),
+          zcash.ZcashScannedNote(
+            height: 131,
+            tx: sendTxid,
+            output: 0,
+            value: 8980000,
+            pool: 'sapling',
+            nullifier: '33' * 32,
+            recipient: 'zregtestsapling1source',
+            rseed: '00',
+            witness: '00',
+            isChange: false,
+          ),
+          zcash.ZcashScannedNote(
+            height: 131,
+            tx: sendTxid,
+            output: 1,
+            value: 1000000,
+            pool: 'ironwood',
+            nullifier: '44' * 32,
+          ),
+        ],
+        spends: [
+          zcash.ZcashObservedSpend(
+            height: 131,
+            tx: sendTxid,
+            pool: 'sapling',
+            nullifier: sourceNullifier,
+            index: 0,
+          ),
+        ],
+      );
+      state.sapling.apply(scan, accountFingerprint: 'account-a');
+      state.ironwood.apply(scan, accountFingerprint: 'account-a');
+
+      const mapper = ZcashStackStateMapper(walletId: 'wallet-1');
+      final durableChange = mapper
+          .inspection(state, chainHeight: 131, pendingSends: pending)
+          .values
+          .singleWhere((value) => value.value == BigInt.from(8980000));
+      final restoredChange = mapper
+          .inspection(state, chainHeight: 131, saplingPathBFeeZatoshis: 20000)
+          .values
+          .singleWhere((value) => value.value == BigInt.from(8980000));
+      final wrongFee = mapper
+          .inspection(state, chainHeight: 131, saplingPathBFeeZatoshis: 19999)
+          .values
+          .singleWhere((value) => value.value == BigInt.from(8980000));
+
+      expect(durableChange.isChange, isTrue);
+      expect(restoredChange.isChange, isTrue);
+      expect(wrongFee.isChange, isTrue);
+    },
+  );
+
   test('restore infers same-pool change from a wallet-owned spend', () {
     final sourceNullifier = '11' * 32;
     final sendTxid = 'aa' * 32;
@@ -1212,6 +1472,84 @@ void main() {
         .single;
 
     expect(receipt.isChange, isFalse);
+  });
+
+  test('ZIP 318 change accepts an exact same-tx wallet-owned spend', () {
+    final sourceNullifier = '11' * 32;
+    final txid = 'aa' * 32;
+    final state = zcash.ZcashWalletSyncState.atBirthday(
+      cursor: zcash.ZcashLightwalletdSyncCursor.origin(height: 420),
+      network: zcash.ZcashAddressNetwork.regtest,
+      accountFingerprint: 'account-a',
+    );
+    final scan = zcash.ZcashScanResult(
+      scannedBlocks: 2,
+      discoveredNotes: 3,
+      totalValue: 19985000,
+      scannedHeightRange: const zcash.CompactBlockScanRange(
+        start: 119,
+        end: 420,
+      ),
+      notes: [
+        zcash.ZcashScannedNote(
+          height: 119,
+          tx: '22' * 32,
+          output: 0,
+          value: 10000000,
+          pool: 'orchard',
+          nullifier: sourceNullifier,
+        ),
+        zcash.ZcashScannedNote(
+          height: 420,
+          tx: txid,
+          output: 0,
+          value: 8985000,
+          pool: 'orchard',
+          nullifier: '33' * 32,
+          isChange: false,
+        ),
+        zcash.ZcashScannedNote(
+          height: 420,
+          tx: txid,
+          output: 1,
+          value: 1000000,
+          pool: 'ironwood',
+          nullifier: '44' * 32,
+        ),
+      ],
+      spends: [
+        zcash.ZcashObservedSpend(
+          height: 420,
+          tx: txid,
+          pool: 'orchard',
+          nullifier: sourceNullifier,
+          index: 0,
+        ),
+      ],
+    );
+    state.orchard.apply(scan, accountFingerprint: 'account-a');
+    state.ironwood.apply(scan, accountFingerprint: 'account-a');
+    const mapper = ZcashStackStateMapper(walletId: 'wallet-1');
+
+    final conserved = mapper.inspection(
+      state,
+      chainHeight: 420,
+      zip318FeeZatoshis: 15000,
+    );
+    final mismatched = mapper.inspection(
+      state,
+      chainHeight: 420,
+      zip318FeeZatoshis: 14999,
+    );
+
+    expect(
+      conserved.values.singleWhere((value) => value.id == '33' * 32).isChange,
+      isTrue,
+    );
+    expect(
+      mismatched.values.singleWhere((value) => value.id == '33' * 32).isChange,
+      isTrue,
+    );
   });
 }
 

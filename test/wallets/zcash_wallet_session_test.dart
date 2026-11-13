@@ -702,6 +702,8 @@ void main() {
     expect(restartClient.treeStateCalls, 0);
     expect(restartClient.transparentRefreshCalls, 1);
     expect(restartClient.queriedTransparentAddresses, hasLength(71));
+    // The authenticated history frontier is durable, so reopening at the
+    // same tip refreshes the UTXO snapshot without re-querying raw history.
     expect(restartClient.transparentActivityQueries, isEmpty);
     expect(restartClient.transparentActivityRanges, isEmpty);
     expect(reopened.info.cachedBalance.total.raw, BigInt.from(125000));

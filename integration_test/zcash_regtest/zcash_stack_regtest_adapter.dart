@@ -59,6 +59,8 @@ final class ZcashRegtestConsensusConfiguration {
     required String canonicalPolicy,
     required this.nu63ActivationHeight,
     required this.birthdayHeight,
+    this.saplingSpendParams,
+    this.saplingOutputParams,
   }) : consensusIdentity = zcashRegtestConsensusIdentity(
          genesisId: genesisId,
          canonicalPolicy: canonicalPolicy,
@@ -75,6 +77,8 @@ final class ZcashRegtestConsensusConfiguration {
 
   final int nu63ActivationHeight;
   final int birthdayHeight;
+  final String? saplingSpendParams;
+  final String? saplingOutputParams;
   final ConsensusIdentity<ZcashRegtestUpgrade> consensusIdentity;
 
   WalletInfo walletInfo(CryptoCurrency currency, String name) {
@@ -92,6 +96,8 @@ final class ZcashRegtestConsensusConfiguration {
   Future<void> initializeWallet(ZcashWallet wallet, bool isRestore) async {
     wallet.configureRegtestConsensus(
       nu63ActivationHeight: nu63ActivationHeight,
+      saplingSpendParams: saplingSpendParams,
+      saplingOutputParams: saplingOutputParams,
     );
     await wallet.init(isRestore: isRestore);
   }
@@ -148,6 +154,10 @@ typedef ZcashZip318MigrationIntentProvider =
       ZcashWalletStateInspection inspection,
     );
 
+typedef ZcashConfirmedTransferObserver = FutureOr<void> Function(
+  TransferReceipt<ZcashRegtestPool> receipt,
+);
+
 /// The exact Stack review artifact and independently resolved destination.
 final class ZcashStackPreparedTransfer {
   ZcashStackPreparedTransfer({
@@ -190,9 +200,13 @@ final class ZcashStackTransferCapabilities
           ZcashRegtestPool,
           ZcashStackPreparedTransfer
         > {
-  const ZcashStackTransferCapabilities({this.zip318IntentProvider});
+  const ZcashStackTransferCapabilities({
+    this.zip318IntentProvider,
+    this.confirmedTransferObserver,
+  });
 
   final ZcashZip318MigrationIntentProvider? zip318IntentProvider;
+  final ZcashConfirmedTransferObserver? confirmedTransferObserver;
 
   @override
   Future<String> receiver(ZcashWallet wallet, ZcashRegtestPool pool) async {
@@ -262,7 +276,8 @@ final class ZcashStackTransferCapabilities
     ZcashWallet wallet,
   ) async {
     _requireRegtest(wallet);
-    final inspection = wallet.synchronizedStateInspection;
+    final inspection = await wallet
+        .synchronizedStateInspectionWithDurableSends();
     return WalletObservation(
       height: inspection.chainHeight,
       balances: {
@@ -305,41 +320,57 @@ final class ZcashStackTransferCapabilities
           value.isSpendable &&
           value.pool == ZcashRegtestPool.orchard.wireName,
     );
-    final txData = TxData(
-      recipients: [
-        TxRecipient(
-          address: request.requestedReceiver,
-          amount: Amount(rawValue: request.value, fractionDigits: 8),
-          isChange: false,
-          addressType:
-              wallet.cryptoCurrency.getAddressType(request.requestedReceiver) ??
-              (throw ArgumentError.value(
-                request.requestedReceiver,
-                'request.requestedReceiver',
-                'is not a valid Zcash receiver',
-              )),
-        ),
-      ],
+    final transparentSpendable = before.values.any(
+      (value) =>
+          !value.isSpent &&
+          value.isSpendable &&
+          value.pool == ZcashRegtestPool.transparent.wireName,
     );
     final TxData reviewed;
-    if (spendable.isEmpty &&
-        orchardSpendable &&
+    if (transparentSpendable &&
         request.requestedPool == ZcashRegtestPool.ironwood) {
-      final provider = zip318IntentProvider;
-      if (provider == null) {
-        throw const ZcashStackCapabilityUnavailableException(
-          'ZIP-318 schedule and consent',
-        );
-      }
-      final intent = await provider(wallet, request, before);
-      reviewed = await wallet.prepareOrchardMigration(
-        txData: txData,
-        scheduledTransfer: intent.scheduledTransfer,
-        parameters: intent.parameters,
-        consent: intent.consent,
-      );
+      // Transparent shielding is intentionally a production maintenance
+      // sweep. Its authenticated prepared artifact, not a generic payment
+      // request, determines the exact shielded value and selected outpoints.
+      reviewed = await wallet.prepareTransparentShielding();
     } else {
-      reviewed = await wallet.prepareSend(txData: txData);
+      final txData = TxData(
+        recipients: [
+          TxRecipient(
+            address: request.requestedReceiver,
+            amount: Amount(rawValue: request.value, fractionDigits: 8),
+            isChange: false,
+            addressType:
+                wallet.cryptoCurrency.getAddressType(
+                  request.requestedReceiver,
+                ) ??
+                (throw ArgumentError.value(
+                  request.requestedReceiver,
+                  'request.requestedReceiver',
+                  'is not a valid Zcash receiver',
+                )),
+          ),
+        ],
+      );
+      if (spendable.isEmpty &&
+          orchardSpendable &&
+          request.requestedPool == ZcashRegtestPool.ironwood) {
+        final provider = zip318IntentProvider;
+        if (provider == null) {
+          throw const ZcashStackCapabilityUnavailableException(
+            'ZIP-318 schedule and consent',
+          );
+        }
+        final intent = await provider(wallet, request, before);
+        reviewed = await wallet.prepareOrchardMigration(
+          txData: txData,
+          scheduledTransfer: intent.scheduledTransfer,
+          parameters: intent.parameters,
+          consent: intent.consent,
+        );
+      } else {
+        reviewed = await wallet.prepareSend(txData: txData);
+      }
     }
     final native = wallet.preparedSendFor(reviewed);
     final sourcePool = switch (native.sourcePool) {
@@ -349,6 +380,23 @@ final class ZcashStackTransferCapabilities
       ZcashSendSourcePool.ironwood => ZcashRegtestPool.ironwood,
     };
     final actualPool = _pool(native.actualOutputPool.jsonValue);
+    if (native case ZcashPreparedTransparentShielding()) {
+      if (native.amountZatoshis != request.value.toInt() ||
+          native.selectedReceiverAddress != request.requestedReceiver ||
+          native.encodedRecipient != request.requestedReceiver) {
+        await wallet.cancelSend(txData: reviewed);
+        throw StateError(
+          'transparent shielding is an exact self-sweep; the requested '
+          'receiver and value must match its production artifact '
+          '(requestedValue=${request.value}, '
+          'artifactValue=${native.amountZatoshis}, '
+          'selectedReceiverMatches='
+          '${native.selectedReceiverAddress == request.requestedReceiver}, '
+          'encodedReceiverMatches='
+          '${native.encodedRecipient == request.requestedReceiver})',
+        );
+      }
+    }
     final prepared = ZcashStackPreparedTransfer(
       txData: reviewed,
       encodedAddress: native.encodedRecipient,
@@ -360,14 +408,25 @@ final class ZcashStackTransferCapabilities
     return PreparedTransfer(
       native: prepared,
       sources: [
-        for (final note in native.selectedNotes)
-          TransferSource(
-            id: note.nullifier ?? '${note.pool}:${note.tx}:${note.output}',
-            pool: _pool(note.pool),
-            value: BigInt.from(note.value),
-          ),
+        if (native case ZcashPreparedTransparentShielding(:final prepared))
+          for (final coin in prepared.selection.coins)
+            TransferSource(
+              id: coin.outpoint,
+              pool: ZcashRegtestPool.transparent,
+              value: BigInt.from(coin.satoshis),
+            )
+        else
+          for (final note in native.selectedNotes)
+            TransferSource(
+              id: note.nullifier ?? '${note.pool}:${note.tx}:${note.output}',
+              pool: _pool(note.pool),
+              value: BigInt.from(note.value),
+            ),
       ],
-      destination: PoolValue(pool: actualPool, value: request.value),
+      destination: PoolValue(
+        pool: actualPool,
+        value: BigInt.from(native.amountZatoshis),
+      ),
       change: [
         if (native.changeZatoshis > 0)
           PoolValue(
@@ -391,7 +450,7 @@ final class ZcashStackTransferCapabilities
     if (txid == null || txid != native.txData.txid) {
       throw StateError('Zcash broadcast did not acknowledge the prepared txid');
     }
-    return TransferReceipt(
+    final receipt = TransferReceipt(
       txid: txid,
       sources: prepared.sources,
       destinationOutputs: [
@@ -412,6 +471,8 @@ final class ZcashStackTransferCapabilities
       ],
       fee: prepared.fee,
     );
+    await confirmedTransferObserver?.call(receipt);
+    return receipt;
   }
 
   static ZcashRegtestPool _pool(String value) => switch (value) {

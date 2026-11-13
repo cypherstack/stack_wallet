@@ -29,11 +29,13 @@ class ZcashNativeIsolateScanExecutor implements ZcashScanExecutor {
   const ZcashNativeIsolateScanExecutor({
     required this.ufvk,
     required this.network,
+    this.allowExperimentalOrchardNotes = false,
     this.worker = _runNativeScanIsolate,
   });
 
   final String ufvk;
   final String network;
+  final bool allowExperimentalOrchardNotes;
   final ZcashNativeScanWorker worker;
 
   @override
@@ -43,6 +45,7 @@ class ZcashNativeIsolateScanExecutor implements ZcashScanExecutor {
       raw,
       context: 'scan_compact_blocks/stack_wallet_isolate',
       redactSensitive: [ufvk],
+      allowExperimentalOrchardNotes: allowExperimentalOrchardNotes,
     );
   }
 }
@@ -173,6 +176,9 @@ class ZcashStackStateMapper {
   ZcashWalletStateInspection inspection(
     zcash.ZcashWalletSyncState state, {
     required int chainHeight,
+    int? zip318FeeZatoshis,
+    int? saplingPathBFeeZatoshis,
+    zcash.IronwoodPendingSendState? pendingSends,
   }) {
     final notes = <zcash.ZcashScannedNote>[
       ...state.sapling.notes,
@@ -217,6 +223,69 @@ class ZcashStackStateMapper {
       };
     }
 
+    final notesByNullifier = {
+      for (final note in notes)
+        if (note.nullifier case final nullifier?) nullifier: note,
+    };
+    final inferredStagedChange = <(String, String, int)>{};
+    // Restoration has no local pending record. Recognize only the production
+    // cross-pool migration shape: an authenticated wallet-owned source spend,
+    // a wallet-owned Ironwood destination in that same transaction, and exact
+    // conservation of every discovered output plus the canonical fee. This
+    // deliberately fails closed for partial/external observations.
+    void inferCrossPoolChange({required String pool, required int? fee}) {
+      if (fee == null) return;
+      final poolSpends = spends.where((spend) => spend.pool == pool);
+      final spendTransactions = {for (final spend in poolSpends) spend.tx};
+      for (final txid in spendTransactions) {
+        if (!state.ironwood.notes.any((note) => note.tx == txid)) continue;
+        final sourceValue = poolSpends
+            .where((spend) => spend.tx == txid)
+            .fold<int>(
+              0,
+              (sum, spend) =>
+                  sum + (notesByNullifier[spend.nullifier]?.value ?? 0),
+            );
+        final receivedValue = notes
+            .where((note) => note.tx == txid)
+            .fold<int>(0, (sum, note) => sum + note.value);
+        if (sourceValue != receivedValue + fee) continue;
+        inferredStagedChange.addAll({
+          for (final note in notes)
+            if (note.pool == pool && note.tx == txid)
+              (note.pool, note.tx, note.output),
+        });
+      }
+    }
+
+    inferCrossPoolChange(pool: 'orchard', fee: zip318FeeZatoshis);
+    inferCrossPoolChange(pool: 'sapling', fee: saplingPathBFeeZatoshis);
+    final inferredShieldedChange = <(String, String, int)>{};
+    for (final record in (pendingSends ?? state.pendingIronwoodSends).records) {
+      final protocolTxid = zcash.reverseTxidByteOrder(record.txid);
+      final confirmedSources = record.selectedNullifiers.every((nullifier) {
+        final spend =
+            spendsByPoolAndNullifier[(record.sourcePool.name, nullifier)];
+        return spend?.tx == protocolTxid;
+      });
+      if (!confirmedSources) continue;
+      final selectedValue = record.selectedNullifiers.fold<int>(
+        0,
+        (sum, nullifier) => sum + (notesByNullifier[nullifier]?.value ?? 0),
+      );
+      final change = selectedValue - record.amountZatoshis - record.feeZatoshis;
+      if (change <= 0) continue;
+      inferredShieldedChange.add((
+        protocolTxid,
+        record.sourcePool.name,
+        change,
+      ));
+    }
+
+    final transparentSpendableOutpoints = {
+      for (final coin in state.transparent.coinSet.spendable) coin.outpoint,
+    };
+
     final values = <ZcashWalletValueInspection>[
       for (final note in notes)
         ZcashWalletValueInspection(
@@ -226,17 +295,48 @@ class ZcashStackStateMapper {
           pool: note.pool,
           value: BigInt.from(note.value),
           isSpent: isSpent(note),
-          // A restore can discover an output before the same scan range links
-          // its wallet-owned spend. Once linked, reproduce the native scanner's
-          // account-spent-in-this-transaction rule, constrained to the exact
-          // transaction and value pool.
+          // Sapling Path B currently pays change to the wallet's canonical
+          // Sapling receiver, whose external scope is not sufficient for the
+          // compact scanner to label it as change. The durable confirmed-send
+          // record authenticates the transaction, selected value, fee, and
+          // source pool, so it can identify that exact remainder without
+          // weakening ordinary scan-based change classification.
           isChange:
               note.isChange == true ||
-              walletSpendTransactions.contains((note.pool, note.tx)),
+              // A restore can discover an output before the same scan range
+              // links its wallet-owned spend. Once linked, reproduce the
+              // native scanner's account-spent-in-this-transaction rule,
+              // constrained to the exact transaction and value pool.
+              walletSpendTransactions.contains((note.pool, note.tx)) ||
+              inferredStagedChange.contains((
+                note.pool,
+                note.tx,
+                note.output,
+              )) ||
+              inferredShieldedChange.contains((note.tx, note.pool, note.value)),
           isSpendable: isSpendable(note),
           spendingProtocolTxid: note.nullifier == null
               ? null
               : spendsByPoolAndNullifier[(note.pool, note.nullifier!)]?.tx,
+        ),
+      for (final output in state.transparent.outputs)
+        ZcashWalletValueInspection(
+          // Use the display-order outpoint also used by the transparent
+          // builder and reservation store. The protocol-order txid remains
+          // available separately for authenticated scan diagnostics.
+          id: '${output.txid}:${output.outputIndex}',
+          protocolTxid: output.protocolTxid,
+          outputIndex: output.outputIndex,
+          pool: 'transparent',
+          value: BigInt.from(output.valueZatoshis),
+          isSpent: output.spendState == zcash.ZcashTransparentSpendState.spent,
+          isChange: false,
+          isSpendable:
+              output.spendState == zcash.ZcashTransparentSpendState.unspent &&
+              transparentSpendableOutpoints.contains(
+                '${output.txid}:${output.outputIndex}',
+              ),
+          spendingProtocolTxid: output.spendingProtocolTxid,
         ),
     ];
     final balances = <String, BigInt>{
@@ -538,6 +638,18 @@ class ZcashWalletStateController {
   ZcashWalletStateInspection get inspection =>
       const ZcashStackStateMapper(walletId: '')
           .inspection(_state, chainHeight: _observedChainHeight);
+
+  ZcashWalletStateInspection inspectionForRegtestZip318({
+    required int fee,
+    int? saplingPathBFee,
+    zcash.IronwoodPendingSendState? pendingSends,
+  }) => const ZcashStackStateMapper(walletId: '').inspection(
+    _state,
+    chainHeight: _observedChainHeight,
+    zip318FeeZatoshis: fee,
+    saplingPathBFeeZatoshis: saplingPathBFee,
+    pendingSends: pendingSends,
+  );
 
   Future<ZcashWalletSnapshot> refresh() {
     final active = _refreshInFlight;
@@ -1075,6 +1187,8 @@ ZcashSyncSession openZcashSyncSession({
   required ZcashSyncDataSource source,
   required ZcashScanExecutor scanExecutor,
   required String network,
+  bool includeSaplingWitnesses = true,
+  bool includeOrchardWitnesses = false,
   int rangeSize = 100,
 }) => _ZcashChainSyncSession(
   state.syncThrough(
@@ -1084,6 +1198,8 @@ ZcashSyncSession openZcashSyncSession({
     servedBlockHashAt: source.getBlockHash,
     scan: scanExecutor.scan,
     network: network,
+    includeSaplingWitnesses: includeSaplingWitnesses,
+    includeOrchardWitnesses: includeOrchardWitnesses,
     rangeSize: rangeSize,
   ),
   source,
