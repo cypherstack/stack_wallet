@@ -8,6 +8,7 @@ import '../../notifications/show_flush_bar.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
 import '../../providers/providers.dart';
 import '../../route_generator.dart';
+import '../../services/transaction_note_service.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/constants.dart';
@@ -94,13 +95,13 @@ class _CakePayConfirmSendViewState
       await Future<void>.delayed(const Duration(seconds: 5));
 
       final confirmedTx = results.first as TxData;
-      for (final txid in confirmedTx.txids) {
-        await ref
-            .read(mainDBProvider)
-            .putTransactionNote(
-              TransactionNote(walletId: walletId, txid: txid, value: note),
-            );
-      }
+      await saveTransactionNotesAfterSend(
+        notes: [
+          for (final txid in confirmedTx.txids)
+            TransactionNote(walletId: walletId, txid: txid, value: note),
+        ],
+        persist: ref.read(mainDBProvider).putTransactionNotes,
+      );
 
       if (context.mounted) {
         // pop sending dialog (pushed via showDialog which uses root navigator)
