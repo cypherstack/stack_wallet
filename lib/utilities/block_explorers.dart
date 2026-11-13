@@ -18,10 +18,7 @@ Future<int> setBlockExplorerForCoin({
   required Uri url,
 }) async {
   return await MainDB.instance.putTransactionBlockExplorer(
-    TransactionBlockExplorer(
-      ticker: coin.ticker,
-      url: url.toString(),
-    ),
+    TransactionBlockExplorer(ticker: coin.ticker, url: url.toString()),
   );
 }
 
@@ -30,12 +27,25 @@ Uri getBlockExplorerTransactionUrlFor({
   required CryptoCurrency coin,
   required String txid,
 }) {
-  String? url =
-      MainDB.instance.getTransactionBlockExplorer(cryptoCurrency: coin)?.url;
+  String? url = MainDB.instance
+      .getTransactionBlockExplorer(cryptoCurrency: coin)
+      ?.url;
   if (url == null) {
     return coin.defaultBlockExplorer(txid);
   } else {
     url = url.replaceAll("%5BTXID%5D", txid);
     return Uri.parse(url);
+  }
+}
+
+/// Whether [coin] has a default block explorer. Coins without one throw from
+/// [CryptoCurrency.defaultBlockExplorer], so they cannot be offered where an
+/// explorer URL is shown or edited.
+bool hasDefaultBlockExplorer(CryptoCurrency coin) {
+  try {
+    coin.defaultBlockExplorer("[TXID]");
+    return true;
+  } catch (_) {
+    return false;
   }
 }
