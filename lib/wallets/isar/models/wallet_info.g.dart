@@ -275,6 +275,7 @@ const _WalletInfomainAddressTypeEnumValueMap = {
   'fact0rn': 18,
   'mweb': 19,
   'zcashUnified': 20,
+  'zcashSapling': 21,
 };
 const _WalletInfomainAddressTypeValueEnumMap = {
   0: AddressType.p2pkh,
@@ -298,6 +299,7 @@ const _WalletInfomainAddressTypeValueEnumMap = {
   18: AddressType.fact0rn,
   19: AddressType.mweb,
   20: AddressType.zcashUnified,
+  21: AddressType.zcashSapling,
 };
 
 Id _walletInfoGetId(WalletInfo object) {

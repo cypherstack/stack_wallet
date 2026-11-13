@@ -178,7 +178,8 @@ enum AddressType {
   xelis,
   fact0rn,
   mweb,
-  zcashUnified;
+  zcashUnified,
+  zcashSapling;
 
   String get readableName {
     switch (this) {
@@ -224,6 +225,8 @@ enum AddressType {
         return "MWEB";
       case AddressType.zcashUnified:
         return "Zcash Unified";
+      case AddressType.zcashSapling:
+        return "Zcash Sapling";
     }
   }
 }

@@ -71,10 +71,21 @@ class Zcash extends Bip39Currency {
 
   @override
   AddressType? getAddressType(String address) {
-    if (!validateAddress(address)) return null;
-    return zcash.classifyAddress(address) == zcash.AddressType.unified
-        ? AddressType.zcashUnified
-        : null;
+    try {
+      return switch (zcash
+          .decodeNativeAddress(address: address, network: nativeNetwork)
+          .receiverType) {
+        zcash.ZcashAddressReceiverType.unified => AddressType.zcashUnified,
+        zcash.ZcashAddressReceiverType.sapling => AddressType.zcashSapling,
+        zcash.ZcashAddressReceiverType.p2pkh => AddressType.p2pkh,
+        zcash.ZcashAddressReceiverType.p2sh => AddressType.p2sh,
+        _ => null,
+      };
+    } on StateError {
+      return null;
+    } on FormatException {
+      return null;
+    }
   }
 
   @override
