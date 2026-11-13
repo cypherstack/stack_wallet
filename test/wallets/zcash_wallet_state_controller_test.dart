@@ -1092,6 +1092,127 @@ void main() {
       isTrue,
     );
   });
+
+  test('restore infers same-pool change from a wallet-owned spend', () {
+    final sourceNullifier = '11' * 32;
+    final sendTxid = 'aa' * 32;
+    final state = zcash.ZcashWalletSyncState.atBirthday(
+      cursor: zcash.ZcashLightwalletdSyncCursor.origin(height: 131),
+      network: zcash.ZcashAddressNetwork.regtest,
+      accountFingerprint: 'account-a',
+    );
+    final scan = zcash.ZcashScanResult(
+      scannedBlocks: 2,
+      discoveredNotes: 4,
+      totalValue: 1760000,
+      scannedHeightRange: const zcash.CompactBlockScanRange(
+        start: 120,
+        end: 131,
+      ),
+      notes: [
+        zcash.ZcashScannedNote(
+          height: 120,
+          tx: '22' * 32,
+          output: 0,
+          value: 1000000,
+          pool: 'ironwood',
+          nullifier: sourceNullifier,
+        ),
+        zcash.ZcashScannedNote(
+          height: 131,
+          tx: sendTxid,
+          output: 4,
+          value: 710000,
+          pool: 'ironwood',
+          nullifier: '33' * 32,
+          isChange: false,
+        ),
+        zcash.ZcashScannedNote(
+          height: 131,
+          tx: 'bb' * 32,
+          output: 0,
+          value: 20000,
+          pool: 'ironwood',
+          nullifier: '44' * 32,
+          isChange: false,
+        ),
+        zcash.ZcashScannedNote(
+          height: 131,
+          tx: sendTxid,
+          output: 0,
+          value: 30000,
+          pool: 'sapling',
+          nullifier: '55' * 32,
+          isChange: false,
+        ),
+      ],
+      spends: [
+        zcash.ZcashObservedSpend(
+          height: 131,
+          tx: sendTxid,
+          pool: 'ironwood',
+          nullifier: sourceNullifier,
+          index: 0,
+        ),
+      ],
+    );
+    state.ironwood.apply(scan, accountFingerprint: 'account-a');
+    state.sapling.apply(scan, accountFingerprint: 'account-a');
+
+    final values = const ZcashStackStateMapper(walletId: 'wallet-1')
+        .inspection(state, chainHeight: 131)
+        .values;
+
+    expect(
+      values.singleWhere((value) => value.id == '33' * 32).isChange,
+      isTrue,
+    );
+    expect(
+      values.singleWhere((value) => value.id == '44' * 32).isChange,
+      isFalse,
+    );
+    expect(
+      values.singleWhere((value) => value.id == '55' * 32).isChange,
+      isFalse,
+    );
+  });
+
+  test('independent destination receipt is not inferred as change', () {
+    final receiveTxid = 'aa' * 32;
+    final state = zcash.ZcashWalletSyncState.atBirthday(
+      cursor: zcash.ZcashLightwalletdSyncCursor.origin(height: 131),
+      network: zcash.ZcashAddressNetwork.regtest,
+      accountFingerprint: 'account-b',
+    );
+    final scan = zcash.ZcashScanResult(
+      scannedBlocks: 1,
+      discoveredNotes: 1,
+      totalValue: 80000,
+      scannedHeightRange: const zcash.CompactBlockScanRange(
+        start: 131,
+        end: 131,
+      ),
+      notes: [
+        zcash.ZcashScannedNote(
+          height: 131,
+          tx: receiveTxid,
+          output: 3,
+          value: 80000,
+          pool: 'ironwood',
+          nullifier: '44' * 32,
+          isChange: false,
+        ),
+      ],
+    );
+    state.ironwood.apply(scan, accountFingerprint: 'account-b');
+
+    final receipt = const ZcashStackStateMapper(walletId: 'wallet-2')
+        .inspection(state, chainHeight: 131)
+        .values
+        .single;
+
+    expect(receipt.isChange, isFalse);
+  });
 }
 
 class _GatedSyncSession implements ZcashSyncSession {

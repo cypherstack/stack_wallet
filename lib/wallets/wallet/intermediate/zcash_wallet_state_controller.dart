@@ -188,6 +188,9 @@ class ZcashStackStateMapper {
         <(String, String), zcash.ZcashObservedSpend>{
           for (final spend in spends) (spend.pool, spend.nullifier): spend,
         };
+    final walletSpendTransactions = {
+      for (final spend in spends) (spend.pool, spend.tx),
+    };
 
     bool isSpent(zcash.ZcashScannedNote note) =>
         note.nullifier != null &&
@@ -223,7 +226,13 @@ class ZcashStackStateMapper {
           pool: note.pool,
           value: BigInt.from(note.value),
           isSpent: isSpent(note),
-          isChange: note.isChange ?? false,
+          // A restore can discover an output before the same scan range links
+          // its wallet-owned spend. Once linked, reproduce the native scanner's
+          // account-spent-in-this-transaction rule, constrained to the exact
+          // transaction and value pool.
+          isChange:
+              note.isChange == true ||
+              walletSpendTransactions.contains((note.pool, note.tx)),
           isSpendable: isSpendable(note),
           spendingProtocolTxid: note.nullifier == null
               ? null
