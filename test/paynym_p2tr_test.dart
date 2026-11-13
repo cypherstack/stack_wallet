@@ -80,6 +80,18 @@ void main() {
     ]);
   });
 
+  test('notification UTXOs prefer newer native SegWit over regtest Taproot', () {
+    final utxos = [
+      _utxo('taproot-older', 1, 'bcrt1ptaproot'),
+      _utxo('native-newer', 2, 'bcrt1qnative'),
+    ]..sort(comparePaynymNotificationUtxos);
+
+    expect(utxos.map((utxo) => utxo.txid).toList(), [
+      'native-newer',
+      'taproot-older',
+    ]);
+  });
+
   test('notification requires a non-Taproot designated input', () {
     final segwit = StandardInput(
       _utxo('segwit', 1, 'bc1qsegwit'),

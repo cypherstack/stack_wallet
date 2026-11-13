@@ -53,7 +53,9 @@ String _sendPaynymAddressDerivationPath(int index, {required bool testnet}) =>
 // (P2SH-P2WPKH) witness.
 int _paynymNotificationRank(UTXO utxo) {
   final address = utxo.address ?? '';
-  if (address.startsWith('bc1p') || address.startsWith('tb1p')) return 2;
+  if (address.startsWith('bc1p') ||
+      address.startsWith('tb1p') ||
+      address.startsWith('bcrt1p')) return 2;
   if (address.startsWith('3') || address.startsWith('2')) return 1;
   return 0;
 }
