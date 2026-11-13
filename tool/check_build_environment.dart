@@ -94,6 +94,35 @@ bool needsXcodeRequirement(
     host.os == 'macos' &&
     host.architecture == 'arm64';
 
+/// Go releases required by the MWEB sources Stack Wallet builds: the go.mod of
+/// the mwebd-wrapper commit that flutter_mwebd 0.0.1-pre.12 builds, and the
+/// go.mod of mwebd v0.1.19, which tool/build_standalone_mwebd_windows.dart
+/// builds for Windows. Update these when either pin changes.
+const mwebGoMinimum = (1, 24, 1);
+const windowsMwebGoMinimum = (1, 24, 0);
+
+/// Parses `go version` output such as `go version go1.24.13 linux/amd64`.
+(int, int, int)? parseGoVersion(String output) {
+  final match = RegExp(r'\bgo(\d+)\.(\d+)(?:\.(\d+))?').firstMatch(output);
+  if (match == null) return null;
+  return (
+    int.parse(match[1]!),
+    int.parse(match[2]!),
+    int.parse(match[3] ?? '0'),
+  );
+}
+
+bool _olderThan((int, int, int) version, (int, int, int) minimum) {
+  final (major, minor, patch) = version;
+  final (minMajor, minMinor, minPatch) = minimum;
+  if (major != minMajor) return major < minMajor;
+  if (minor != minMinor) return minor < minMinor;
+  return patch < minPatch;
+}
+
+String _goRelease((int, int, int) version) =>
+    '${version.$1}.${version.$2}.${version.$3}';
+
 Future<List<String>> checkBuildEnvironment({
   required BuildEnvironment host,
   required String platform,
@@ -143,6 +172,23 @@ Future<List<String>> checkBuildEnvironment({
       'The hooks install their pinned toolchains automatically.',
     );
   }
+  // flutter_mwebd's hook builds Stack Wallet's MWEB library with the host's Go
+  // for every target except Windows, whose MWEB executable is checked next.
+  if (app == 'stack_wallet' && platform != 'windows') {
+    final result = await host.command('go', ['version']);
+    final version = result?.exitCode == 0
+        ? parseGoVersion('${result!.stdout}')
+        : null;
+    if (result?.exitCode != 0 ||
+        (version != null && _olderThan(version, mwebGoMinimum))) {
+      errors.add(
+        'Install Go ${_goRelease(mwebGoMinimum)} or newer on the Flutter host '
+        '(https://go.dev/doc/install). Stack Wallet builds its MWEB library '
+        'with Go, including with -d.'
+        '${version == null ? '' : ' Found Go ${_goRelease(version)}.'}',
+      );
+    }
+  }
   // Stack Wallet's Windows configuration builds mwebd.exe with Go and MinGW in
   // the default WSL distribution (tool/build_standalone_mwebd_windows.dart),
   // unless MWEBD_FETCH=1 downloads it or CI builds it natively.
@@ -159,15 +205,21 @@ Future<List<String>> checkBuildEnvironment({
         'bash',
         '-l',
         '-c',
-        'command -v go && command -v x86_64-w64-mingw32-gcc',
+        'command -v x86_64-w64-mingw32-gcc >/dev/null && go version',
       ],
       environment: {...host.variables, 'WSL_UTF8': '1'},
     );
-    if (result?.exitCode != 0) {
+    final version = result?.exitCode == 0
+        ? parseGoVersion('${result!.stdout}')
+        : null;
+    if (result?.exitCode != 0 ||
+        (version != null && _olderThan(version, windowsMwebGoMinimum))) {
       errors.add(
-        "Stack Wallet's Windows MWEB build needs Go and x86_64-w64-mingw32-gcc "
-        'in the default WSL distribution. Install Go and mingw-w64 there, or '
-        'set MWEBD_FETCH=1 to download the published build.',
+        "Stack Wallet's Windows MWEB build needs Go "
+        '${_goRelease(windowsMwebGoMinimum)} or newer and '
+        'x86_64-w64-mingw32-gcc in the default WSL distribution. Install Go '
+        'and mingw-w64 there, or set MWEBD_FETCH=1 to download the published '
+        'build.${version == null ? '' : ' Found Go ${_goRelease(version)}.'}',
       );
     }
   }

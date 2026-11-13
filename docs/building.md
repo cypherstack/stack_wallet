@@ -69,7 +69,7 @@ lock to build them in `dev` mode.
 | Xelis (Stack Wallet) | Rustup; its hook installs Rust **1.99.1** and the required target; Android needs NDK r28 or newer |
 | Spark (Stack Wallet and Campfire) | CMake and a C++ compiler; its native-assets hook still builds from source |
 | Coinlib secp256k1 | A separate platform build, described below |
-| MWEB (Stack Wallet) | Go; CI uses **1.24.13**. The Windows executable has a separate WSL build or prebuilt download |
+| MWEB (Stack Wallet) | Go **1.24.1** or newer; CI uses 1.24.13. The Windows executable has a separate WSL build (Go 1.24.0 or newer) or prebuilt download |
 | Linux secure storage | The dependencies to build libsecret and JsonCPP |
 
 `-d` applies to the dnix packages, not every native library in the application.
@@ -360,9 +360,9 @@ Choose `-p` for your target and then run the corresponding Flutter build:
 Android release builds need `android/key.properties` pointing at your keystore,
 with `keyAlias`, `keyPassword`, `storeFile` and `storePassword`.
 
-Configuration checks Rustup, source-mode Nix/WSL/Xcode requirements, the
-Windows secp256k1 tools, and the WSL tools for Stack Wallet's Windows MWEB build
-before replacing generated files. A dnix requirement
+Configuration checks Rustup, Go for Stack Wallet, source-mode Nix/WSL/Xcode
+requirements, the Windows secp256k1 tools, and the WSL tools for Stack Wallet's
+Windows MWEB build before replacing generated files. A dnix requirement
 failure explains how to use `-d` instead; `-d` still requires Rustup for DNSSEC.
 The icon/splash `dart run` commands use only those executables' dependency
 closures and do **not** run the app's native hooks. App hooks run with later

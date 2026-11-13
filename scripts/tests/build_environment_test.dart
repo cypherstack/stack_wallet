@@ -19,6 +19,8 @@ class HostFixture {
   bool rustupInHome = false;
   bool nix = true;
   bool mwebTools = true;
+  String? goVersion = 'go version go1.24.13 darwin/arm64';
+  String wslGoVersion = 'go version go1.24.13 linux/amd64';
   int wslExit = 0;
   final extraVariables = <String, String>{};
   String selected = '/Applications/Xcode.app/Contents/Developer';
@@ -56,13 +58,17 @@ class HostFixture {
         if (!rustupInHome) throw ProcessException(executable, arguments);
         return ProcessResult(0, 0, 'rustup fixture', '');
       }
+      if (executable == 'go') {
+        if (goVersion == null) throw ProcessException(executable, arguments);
+        return ProcessResult(0, 0, goVersion, '');
+      }
       if (executable == 'nix') {
         if (!nix) throw ProcessException(executable, arguments);
         return ProcessResult(0, 0, 'nix fixture', '');
       }
       if (executable == 'wsl.exe') {
         if (arguments.contains('bash')) {
-          return ProcessResult(0, mwebTools ? 0 : 1, '', '');
+          return ProcessResult(0, mwebTools ? 0 : 1, wslGoVersion, '');
         }
         return ProcessResult(0, wslExit, 'nix fixture', '');
       }
@@ -106,7 +112,9 @@ void main() {
       expect(errors.single, contains('Every app needs Rust 1.90.0'));
       expect(errors.single, contains('including with -d'));
       expect(
-        fixture.calls.every((call) => call.executable.endsWith('rustup')),
+        fixture.calls
+            .where((call) => call.executable != 'go')
+            .every((call) => call.executable.endsWith('rustup')),
         isTrue,
       );
     });
@@ -117,7 +125,7 @@ void main() {
     fixture.nix = false;
     fixture.applications.clear();
     expect(await fixture.check(mode: 'prebuilt'), isEmpty);
-    expect(fixture.calls.single.executable, 'rustup');
+    expect(fixture.calls.map((call) => call.executable), ['rustup', 'go']);
   });
 
   test(
@@ -126,9 +134,16 @@ void main() {
       fixture.rustupOnPath = false;
       fixture.rustupInHome = true;
       expect(await fixture.check(mode: 'prebuilt'), isEmpty);
-      expect(fixture.calls.last.executable, '/Users/test/.cargo/bin/rustup');
       expect(
-        fixture.calls.every((call) => call.arguments.join() == '--version'),
+        fixture.calls
+            .lastWhere((call) => call.executable.endsWith('rustup'))
+            .executable,
+        '/Users/test/.cargo/bin/rustup',
+      );
+      expect(
+        fixture.calls.every(
+          (call) => {'--version', 'version'}.contains(call.arguments.join()),
+        ),
         isTrue,
       );
     },
@@ -253,6 +268,48 @@ void main() {
       );
     },
   );
+
+  for (final platform in ['android', 'ios', 'linux', 'macos']) {
+    test('Stack Wallet needs Go 1.24.1 or newer for $platform', () async {
+      fixture.os = {'ios', 'macos'}.contains(platform) ? 'macos' : 'linux';
+      fixture.architecture = fixture.os == 'linux' ? 'x64' : 'arm64';
+      for (final (output, found) in [
+        (null, null),
+        ('go version go1.24.0 linux/amd64', 'Found Go 1.24.0.'),
+        ('go version go1.22.2 linux/amd64', 'Found Go 1.22.2.'),
+      ]) {
+        fixture.goVersion = output;
+        for (final mode in ['source', 'prebuilt']) {
+          final errors = await fixture.check(platform: platform, mode: mode);
+          expect(errors.single, contains('Go 1.24.1 or newer'));
+          if (found != null) expect(errors.single, contains(found));
+        }
+      }
+      fixture.goVersion = 'go version go1.24.1 linux/amd64';
+      expect(
+        await fixture.check(platform: platform, mode: 'prebuilt'),
+        isEmpty,
+      );
+      fixture.goVersion = null;
+      for (final app in ['stack_duo', 'campfire']) {
+        expect(
+          await fixture.check(platform: platform, app: app, mode: 'prebuilt'),
+          isEmpty,
+        );
+      }
+    });
+  }
+
+  test('Windows targets check Go in WSL, not on the host', () async {
+    fixture.os = 'windows';
+    fixture.goVersion = null;
+    expect(await fixture.check(platform: 'windows', mode: 'prebuilt'), isEmpty);
+    fixture.wslGoVersion = 'go version go1.23.9 linux/amd64';
+    final errors = await fixture.check(platform: 'windows', mode: 'prebuilt');
+    expect(errors.single, contains('Go 1.24.0 or newer'));
+    expect(errors.single, contains('Found Go 1.23.9.'));
+    expect(fixture.calls.any((call) => call.executable == 'go'), isFalse);
+  });
 
   test(
     'Stack Wallet on Windows checks the WSL MWEB tools in both modes',
