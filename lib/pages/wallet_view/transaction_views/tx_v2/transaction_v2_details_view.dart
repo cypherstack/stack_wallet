@@ -115,6 +115,15 @@ class _TransactionV2DetailsViewState
   String get _dateText => _transaction.isMetadataMissing('timestamp')
       ? 'Unknown'
       : Format.extractDateFrom(_transaction.timestamp);
+
+  String get _poolSummary => _transaction.assetPools
+      .map(
+        (pool) => pool.isEmpty
+            ? pool
+            : '${pool[0].toUpperCase()}${pool.substring(1)}',
+      )
+      .join(', ');
+
   Future<void> _boostPressed() async {
     final wallet = ref.read(pWallets).getWallet(walletId);
     if (_boostButtonLock || wallet is! RbfInterface) {
@@ -505,7 +514,9 @@ class _TransactionV2DetailsViewState
 
     final String outputLabel;
 
-    if (data.isEmpty && _transaction.hasPartialMetadata) {
+    if (_transaction.assetPools.isNotEmpty) {
+      outputLabel = 'Pools';
+    } else if (data.isEmpty && _transaction.hasPartialMetadata) {
       outputLabel = "Transaction data";
     } else if (_transaction.subType == TransactionSubType.cashFusion) {
       outputLabel = "Outputs";
@@ -779,6 +790,14 @@ class _TransactionV2DetailsViewState
                                                   CrossAxisAlignment.start,
                                               children: [
                                                 if (data.isEmpty &&
+                                                    _transaction
+                                                        .assetPools
+                                                        .isNotEmpty)
+                                                  SelectableText(
+                                                    _poolSummary,
+                                                    style: detailStyle,
+                                                  )
+                                                else if (data.isEmpty &&
                                                     _transaction
                                                         .hasPartialMetadata)
                                                   SelectableText(

@@ -100,36 +100,61 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.text('Unknown'), findsOneWidget);
   });
+
+  testWidgets('pool metadata is shown with existing transaction details', (
+    tester,
+  ) async {
+    Util.layoutPlatform = FakePlatform(operatingSystem: 'android');
+    final transaction = _partialTransaction(includePools: true);
+
+    await tester.pumpWidget(
+      _harness(
+        TransactionV2DetailsView(
+          transaction: transaction,
+          walletId: transaction.walletId,
+          coin: _coin,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Pools'), findsOneWidget);
+    expect(find.text('Sapling, Ironwood'), findsOneWidget);
+  });
 }
 
 final _coin = Bitcoin(CryptoCurrencyNetwork.main);
 
-TransactionV2 _partialTransaction({bool includeWalletNet = true}) =>
-    TransactionV2(
-      walletId: 'wallet',
-      blockHash: null,
-      hash: 'hash',
-      txid: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
-      timestamp: 0,
-      height: 10,
-      inputs: const [],
-      outputs: const [],
-      version: -1,
-      type: TransactionType.outgoing,
-      subType: TransactionSubType.none,
-      otherData: jsonEncode({
-        TxV2OdKeys.metadataStatus: TxV2OdKeys.metadataStatusPartial,
-        TxV2OdKeys.missingMetadata: [
-          'timestamp',
-          'blockHash',
-          'fee',
-          'memo',
-          'transactionVersion',
-          if (!includeWalletNet) 'walletNetAmount',
-        ],
-        if (includeWalletNet) TxV2OdKeys.walletNetAmountRaw: '-123',
-      }),
-    );
+TransactionV2 _partialTransaction({
+  bool includeWalletNet = true,
+  bool includePools = false,
+}) => TransactionV2(
+  walletId: 'wallet',
+  blockHash: null,
+  hash: 'hash',
+  txid: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+  timestamp: 0,
+  height: 10,
+  inputs: const [],
+  outputs: const [],
+  version: -1,
+  type: TransactionType.outgoing,
+  subType: TransactionSubType.none,
+  otherData: jsonEncode({
+    TxV2OdKeys.metadataStatus: TxV2OdKeys.metadataStatusPartial,
+    TxV2OdKeys.missingMetadata: [
+      'timestamp',
+      'blockHash',
+      'fee',
+      'memo',
+      'transactionVersion',
+      if (!includeWalletNet) 'walletNetAmount',
+    ],
+    if (includeWalletNet) TxV2OdKeys.walletNetAmountRaw: '-123',
+    if (includePools) TxV2OdKeys.assetPools: ['sapling', 'ironwood'],
+  }),
+);
 
 Widget _harness(Widget child) {
   final theme = StackTheme.fromJson(json: lightThemeJsonMap);

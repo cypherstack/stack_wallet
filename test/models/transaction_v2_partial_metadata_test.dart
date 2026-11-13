@@ -30,13 +30,16 @@ void main() {
   test('metadata collections are immutable', () {
     final transaction = _transaction({
       TxV2OdKeys.missingMetadata: ['fee', 42],
+      TxV2OdKeys.assetPools: ['sapling', 'ironwood', 42],
     });
 
     expect(transaction.missingMetadata, ['fee']);
+    expect(transaction.assetPools, ['sapling', 'ironwood']);
     expect(
       () => transaction.missingMetadata.add('memo'),
       throwsUnsupportedError,
     );
+    expect(() => transaction.assetPools.add('orchard'), throwsUnsupportedError);
   });
 }
 
