@@ -45,7 +45,9 @@ build_isar_core() {
         return 0
     fi
 
-    (cd "${isar_core_path}" && cargo build --release) || {
+    # Use the toolchain formerly supplied by the Docker image, without changing
+    # the developer's default. Rustup installs it only when it is missing.
+    (cd "${isar_core_path}" && rustup run --install 1.99.1 cargo build --release) || {
         echo "Error: cargo build failed for isar_core_ffi" >&2
         return 1
     }

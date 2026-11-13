@@ -836,6 +836,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.2"
+  dnix:
+    dependency: transitive
+    description:
+      path: "."
+      ref: "2fd2ed73b9037fe11436f2cde832d7e28d672fa9"
+      resolved-ref: "2fd2ed73b9037fe11436f2cde832d7e28d672fa9"
+      url: "https://github.com/cypherstack/dnix.git"
+    source: git
+    version: "0.1.0"
   dnssec_resolver:
     dependency: transitive
     description:
@@ -1028,8 +1037,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: d5cfb763fa62928a6e6265e1f4412738772151eb
-      resolved-ref: d5cfb763fa62928a6e6265e1f4412738772151eb
+      ref: "63e93b01c3c4c68a52b26a43e4442a4738d5e7e8"
+      resolved-ref: "63e93b01c3c4c68a52b26a43e4442a4738d5e7e8"
       url: "https://github.com/cypherstack/flutter_libepiccash.git"
     source: git
     version: "0.0.1"
@@ -1037,8 +1046,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: d8c5d5488cb00e21d0dc04ad306a65e2d54c4d3c
-      resolved-ref: d8c5d5488cb00e21d0dc04ad306a65e2d54c4d3c
+      ref: "5722fb3ba05c8f52e8e0255c485ae5ea52e9a694"
+      resolved-ref: "5722fb3ba05c8f52e8e0255c485ae5ea52e9a694"
       url: "https://github.com/cypherstack/flutter_libmwc.git"
     source: git
     version: "0.1.0"
@@ -1241,8 +1250,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: c8be6a0ea892d744adfacc8e97df891feca49707
-      resolved-ref: c8be6a0ea892d744adfacc8e97df891feca49707
+      ref: f7fea2a926ea88e2eb6a353579372188d6915314
+      resolved-ref: f7fea2a926ea88e2eb6a353579372188d6915314
       url: "https://github.com/cypherstack/frostdart.git"
     source: git
     version: "0.3.0"
@@ -1654,8 +1663,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: 21f95309522dd48face32c0c4a3ca2ac8df092fb
-      resolved-ref: 21f95309522dd48face32c0c4a3ca2ac8df092fb
+      ref: "21f95309522dd48face32c0c4a3ca2ac8df092fb"
+      resolved-ref: "21f95309522dd48face32c0c4a3ca2ac8df092fb"
       url: "https://github.com/cypherstack/mobile_app_privacy"
     source: git
     version: "0.0.5"
@@ -2409,8 +2418,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: e30ed0d386a40ee4a999aeaf57aafd32921d601e
-      resolved-ref: e30ed0d386a40ee4a999aeaf57aafd32921d601e
+      ref: "6e954a9d5a0aaaafb861049b79041d7ae98c2a08"
+      resolved-ref: "6e954a9d5a0aaaafb861049b79041d7ae98c2a08"
       url: "https://github.com/cypherstack/tor.git"
     source: git
     version: "0.2.0"
@@ -2722,7 +2731,7 @@ packages:
     source: hosted
     version: "1.2.0"
   yaml:
-    dependency: transitive
+    dependency: "direct dev"
     description:
       name: yaml
       sha256: b9da305ac7c39faa3f030eccd175340f968459dae4af175130b3fc47e40d76ce

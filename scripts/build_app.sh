@@ -6,8 +6,13 @@ source "$(dirname -- "${BASH_SOURCE[0]}")/env.sh"
 
 # Function to display usage.
 usage() {
-    echo "Usage: $0 -v <version> -b <build_number> -p <platform> -a <app> [-d] [-i] [-f] [-s]"
-    exit 1
+    echo "Usage: $0 -v <version> -b <build_number> -p <platform> -a <app> [-d] [-i] [-f] [-w <wsl-distro>]"
+    echo "  Default: build dnix libraries from source with Nix and verify their hashes."
+    echo "  -d: use verified dnix prebuilts; other packages may still build from source."
+    echo "  -i: skip platform native dependencies (secure storage and secp256k1)."
+    echo "  -f: build Isar from source."
+    echo "  -w: dnix WSL distribution (default: DNIX_WSL_DISTRIBUTION or WSL default)."
+    exit "${1:-1}"
 }
 
 confirmDisclaimer() {
@@ -31,24 +36,26 @@ unset -v APP_NAMED_ID
 # optional args (with defaults)
 # -i: skip building the platform native deps (secure storage deps, secp256k1).
 SKIP_NATIVE_DEPS_BUILD=0
-# -d: use downloaded/prebuilt binaries instead of building from source where
-#     supported. Enables the NATIVE_PREBUILTS block in the pubspec template so
-#     native-assets plugins use CI prebuilts via hooks user_defines.
-DOWNLOAD_CRYPTO_PLUGINS=0
+# dnix checks the package's pinned hashes in both source and prebuilt mode.
+DNIX_BUILD_MODE=source
+DNIX_WSL_DISTRIBUTION="${DNIX_WSL_DISTRIBUTION:-}"
 BUILD_ISAR_FROM_SOURCE=0
 USE_SYSTEM_SECURE_STORAGE_DEPS=0
 
 # Parse command-line arguments.
-while getopts "v:b:p:a:idfs" opt; do
+while getopts "v:b:p:a:w:idfsh" opt; do
     case "${opt}" in
         v) APP_VERSION_STRING="$OPTARG" ;;
         b) APP_BUILD_NUMBER="$OPTARG" ;;
         p) APP_BUILD_PLATFORM="$OPTARG" ;;
         a) APP_NAMED_ID="$OPTARG" ;;
         i) SKIP_NATIVE_DEPS_BUILD=1 ;;
-        d) DOWNLOAD_CRYPTO_PLUGINS=1 ;;
+        d) DNIX_BUILD_MODE=prebuilt ;;
         f) BUILD_ISAR_FROM_SOURCE=1 ;;
         s) USE_SYSTEM_SECURE_STORAGE_DEPS=1 ;;
+        w) [ -n "$OPTARG" ] || { echo "Invalid WSL distribution: -w needs a name"; usage; }
+           DNIX_WSL_DISTRIBUTION="$OPTARG" ;;
+        h) usage 0 ;;
         *) usage ;;
     esac
 done
@@ -94,6 +101,25 @@ if [[ ! "$APP_BUILD_NUMBER" =~ ^[0-9]+$ ]]; then
 fi
 
 confirmDisclaimer
+
+# Check requirements before replacing any generated app/platform files.
+# Windows apps are configured from Git Bash and built by native Windows Flutter.
+if [ "$APP_BUILD_PLATFORM" = windows ]; then
+    case "$(uname -s)" in
+        MINGW*|MSYS*) ;;
+        *) echo "Configure Windows builds from Git Bash on Windows." >&2; exit 1 ;;
+    esac
+fi
+dart "${APP_PROJECT_ROOT_DIR}/tool/check_native_overrides.dart" "$APP_NAMED_ID"
+DNIX_DISTRIBUTION_ARGS=()
+if [ -n "$DNIX_WSL_DISTRIBUTION" ]; then
+    DNIX_DISTRIBUTION_ARGS=("$DNIX_WSL_DISTRIBUTION")
+fi
+dart "${APP_PROJECT_ROOT_DIR}/tool/check_build_environment.dart" \
+    "$APP_BUILD_PLATFORM" "$APP_NAMED_ID" "$DNIX_BUILD_MODE" "${DNIX_DISTRIBUTION_ARGS[@]}"
+if [ "$APP_BUILD_PLATFORM" = windows ] && [ "$SKIP_NATIVE_DEPS_BUILD" -eq 0 ]; then
+    dart "${APP_PROJECT_ROOT_DIR}/scripts/windows/build_secp256k1.dart" --check
+fi
 set -x
 
 source "${APP_PROJECT_ROOT_DIR}/scripts/app_config/templates/configure_template_files.sh"
@@ -112,20 +138,25 @@ cp -rp "${APP_PROJECT_ROOT_DIR}/asset_sources/other/playstore_icon/${APP_NAMED_I
 "${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/link_assets.sh" "${APP_NAMED_ID}" "${APP_BUILD_PLATFORM}"
 # shellcheck disable=SC1090
 source "${APP_PROJECT_ROOT_DIR}/scripts/app_config/configure_${APP_NAMED_ID}.sh" "${APP_BUILD_PLATFORM}"
-if [ "$DOWNLOAD_CRYPTO_PLUGINS" -eq 1 ]; then
-    # Enable CI prebuilt native assets (hooks user_defines) in pubspec.yaml so
-    # native-assets plugins download verified binaries instead of compiling Rust.
-    dart "${APP_PROJECT_ROOT_DIR}/tool/process_pubspec_deps.dart" "${ACTUAL_PUBSPEC}" NATIVE_PREBUILTS
-fi
+# Record settings for later app builds. Icon/splash executables do not run the
+# application's native hooks; each executable uses its own dependency closure.
+dart "${APP_PROJECT_ROOT_DIR}/tool/configure_native_assets.dart" \
+    "${ACTUAL_PUBSPEC}" "$DNIX_BUILD_MODE" "${DNIX_DISTRIBUTION_ARGS[@]}"
 "${APP_PROJECT_ROOT_DIR}/scripts/app_config/platforms/${APP_BUILD_PLATFORM}/platform_config.sh"
 
 if [[ "$APP_BUILD_PLATFORM" != "linux" ]]; then
     # run icon and image generators after project config has completed for non linux
     "${APP_PROJECT_ROOT_DIR}/scripts/app_config/shared/asset_generators.sh" "${APP_BUILD_PLATFORM}"
+else
+    # Linux skips asset generation; resolve here so the check below is current.
+    (cd "${APP_PROJECT_ROOT_DIR}" && flutter pub get)
 fi
 
+# Inspect the checkouts that the configured dependencies resolve to.
+dart "${APP_PROJECT_ROOT_DIR}/tool/check_native_overrides.dart" "$APP_NAMED_ID"
+
 # Build platform native deps that are not provided by pub packages. The crypto
-# plugins (flutter_libepiccash, flutter_libmwc, frostdart) are native-assets
+# plugins (flutter_libepiccash, flutter_libmwc, frostdart, tor_ffi_plugin) are native-assets
 # packages now; their build hooks compile (or fetch) them during flutter build.
 if [ "$SKIP_NATIVE_DEPS_BUILD" -eq 0 ]; then
     case "$APP_BUILD_PLATFORM" in
@@ -136,12 +167,9 @@ if [ "$SKIP_NATIVE_DEPS_BUILD" -eq 0 ]; then
             popd
             ;;
         windows)
-            # WSL cross-compile of secp256k1.dll. CI builds it natively instead.
-            if [ "$DOWNLOAD_CRYPTO_PLUGINS" -eq 0 ]; then
-                pushd "${APP_PROJECT_ROOT_DIR}/scripts/windows"
-                ./build_secp256k1_wsl.sh
-                popd
-            fi
+            # -d only selects dnix prebuilts. Rebuild this separate library
+            # unless -i skips platform native dependencies.
+            dart "${APP_PROJECT_ROOT_DIR}/scripts/windows/build_secp256k1.dart"
             ;;
     esac
 fi
