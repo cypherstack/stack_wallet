@@ -1,6 +1,6 @@
 # Building on Windows
 
-These steps build the Windows desktop app. Keep Flutter, Dart and the app
+These steps build the Windows desktop app and the Android app. Keep Flutter, Dart and the app
 checkout on Windows, run the configuration script from **Git Bash**, and build
 with Windows Flutter. For how the build fits together, see the
 [overview](../building.md).
@@ -14,7 +14,18 @@ with Windows Flutter. For how the build fits together, see the
 | Windows Developer Mode, for the symlinks Flutter and the asset scripts create | Every build |
 | [Rustup](https://rustup.rs/) on Windows | Every app's DNSSEC hook and Stack Wallet's Xelis hook, in both modes |
 | WSL2 with Ubuntu 24.04, and [Nix](https://nixos.org/download/) inside it | Source mode, the default; not needed with `-d` |
-| Go 1.24.0 or newer and `mingw-w64` in the default WSL distribution | Stack Wallet's [MWEB build](#mweb), unless you set `MWEBD_FETCH=1` |
+| Go 1.24.0 or newer and `mingw-w64` in the default WSL distribution | Stack Wallet's Windows [MWEB build](#mweb), unless you set `MWEBD_FETCH=1` |
+| [Go](https://go.dev/doc/install) 1.24.1 or newer on Windows | Stack Wallet's Android builds |
+| The [Android tools](#android-tools) below | Android builds |
+
+### Android tools
+
+Install [Android Studio](https://developer.android.com/studio/install#windows)
+with its SDK command-line tools, platform tools, CMake, and the SDK platform
+Flutter requires. The app pins NDK **28.2.13676358** in its Android template;
+install it through SDK Manager. Then run `flutter doctor --android-licenses`
+and `flutter doctor`. The app supports Android API 24 and newer. Android
+source builds through dnix need an x86_64 WSL distribution.
 
 ## Set up WSL and Nix
 
@@ -29,7 +40,7 @@ wsl.exe -d Ubuntu-24.04 -- /nix/var/nix/profiles/default/bin/nix --version
 
 Adjust the Nix path if you use a different installation. dnix finds Nix on the
 WSL distribution's PATH or in its standard profile paths. It invokes `wsl.exe`,
-translates paths, builds each Windows DLL in Nix, copies it back to Windows, and
+translates paths, builds each library in Nix, copies it back to Windows, and
 verifies it before Flutter bundles it. You don't need Flutter or Dart inside
 WSL, or to copy these four libraries by hand.
 
@@ -40,7 +51,7 @@ for checkout and environment details.
 
 ## Build
 
-Run these commands in Git Bash. Configuration stops if it isn't run from Git
+Run these commands in Git Bash. Windows configuration stops if it isn't run from Git
 Bash.
 
 1. Clone the repository and create the stubs:
@@ -62,6 +73,11 @@ Bash.
    dart tool/check_native_overrides.dart stack_wallet
    flutter build windows --release
    ```
+
+   For Android, configure with `-p android` and build with
+   `flutter build apk --release`. Android release builds need
+   `android/key.properties` pointing at your keystore, with `keyAlias`,
+   `keyPassword`, `storeFile` and `storePassword`.
 
 Use the version and build number for your checkout, and read the script's
 confirmation before continuing. Add `-d` to the configuration command to use
@@ -91,7 +107,7 @@ distribution.
 
 ## secp256k1
 
-In **both** dnix modes, `build_app.sh` builds secp256k1 unless you pass `-i`.
+In **both** dnix modes, `build_app.sh` builds secp256k1 for the Windows app unless you pass `-i`.
 The helper finds Visual Studio 2022's bundled CMake through `vswhere`, so Git
 Bash does not need a Developer Command Prompt. It checks its tools before
 configuration changes any files and stops on failed build commands. If you

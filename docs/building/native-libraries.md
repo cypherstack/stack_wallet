@@ -56,7 +56,7 @@ to build them in `dev` mode.
 
 | Component | Requirements |
 |---|---|
-| The four dnix packages, source mode | [Nix](https://nixos.org/download/); on Windows, Nix inside WSL2; on a Mac, Xcode **27.0** for every target, including `flutter test`, as pinned by the packages |
+| The four dnix packages, source mode | [Nix](https://nixos.org/download/); on Windows, Nix inside WSL2; on a Mac, Xcode **27.0** for macOS and iOS targets and for `flutter test`, as pinned by the packages |
 | The four dnix packages, `-d` | No Nix or package-specific Rust/C toolchain needed for these libraries |
 | Flutter and platform plugins | Target SDKs and the platform's C/C++ build tools in either mode |
 | OpenAlias / DNSSEC (every app) | Rustup on the Flutter host in both modes; `dnssec_resolver` builds from source with Rust **1.90.0** |
