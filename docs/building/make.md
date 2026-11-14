@@ -20,8 +20,8 @@ make build-macos VERSION=2.1.0 BUILD_NUM=210 PREBUILTS=0  # compile native asset
 |---|---|
 | `make build-macos` | `build_app.sh -p macos -a $(APP_NAME) -s`, `flutter pub get`, `prebuild.sh`, `flutter build macos --release` |
 | `make build-linux` | `build_app.sh -p linux`, local libsecret and secp256k1 helper builds, `flutter build linux --release`, then `prepare_release_bundle.py` |
-| `make build-windows` | Git Bash: `prebuild.sh`, `build_app.sh -p windows -d -s`, `pub get`, `coinlib:build_windows`, `flutter build windows --release` |
-| `make build-android` | CI `build-android` steps; needs the Android SDK/NDK and Java |
+| `make build-windows` | Git Bash: `prebuild.sh`, `build_app.sh -p windows -d -s`, `pub get`, `coinlib:build_windows`, `flutter build windows --release`. Add `WINDOWS_COPY_ASSETS=1` where symbolic links cannot be created (for example the GitHub-hosted runner) |
+| `make build-android` | CI `build-android` steps; needs the Android SDK/NDK and Java. `make android-dev-key` creates a throw-away debug key when `android/key.properties` is missing; APKs built this way are for local testing only |
 | `make build-ios` | CI `build-ios` steps on macOS (`flutter build ios --release --no-codesign`) |
 | `make bootstrap-macos` | Homebrew host setup: Flutter 3.47.x, Rust 1.99.1, Go, CMake, CocoaPods |
 | `make bootstrap-xcode` | Check and select an installed full Xcode.app |
