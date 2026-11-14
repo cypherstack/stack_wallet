@@ -1738,10 +1738,11 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
           cryptoCurrency: cryptoCurrency,
         );
       } catch (e) {
-        // tx no longer exists then delete from local db
+        // tx no longer exists then delete from local db. Match bitcoind's
+        // message alone: ElectrumX and Fulcrum wrap it in "daemon error:
+        // DaemonError(...)", electrs does not.
         if (e.toString().contains(
-          "JSON-RPC error 2: daemon error: DaemonError({'code': -5, "
-          "'message': 'No such mempool or blockchain transaction",
+          "No such mempool or blockchain transaction",
         )) {
           await mainDB.isar.writeTxn(
             () async => await mainDB.isar.transactionV2s
