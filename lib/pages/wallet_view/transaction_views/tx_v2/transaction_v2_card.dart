@@ -129,11 +129,19 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
 
     final currentHeight = ref.watch(pWalletChainHeight(walletId));
 
-    final Amount amount;
+    final Amount? amount;
 
     final fractionDigits = tokenContract?.decimals ?? coin.fractionDigits;
 
-    if (_transaction.subType == TransactionSubType.cashFusion) {
+    final knownWalletNet = _transaction.walletNetAmountRaw;
+    if (_transaction.hasPartialMetadata && knownWalletNet == null) {
+      amount = null;
+    } else if (knownWalletNet != null) {
+      amount = Amount(
+        rawValue: knownWalletNet.abs(),
+        fractionDigits: fractionDigits,
+      );
+    } else if (_transaction.subType == TransactionSubType.cashFusion) {
       amount = _transaction.getAmountReceivedInThisWallet(
         fractionDigits: fractionDigits,
       );
@@ -270,12 +278,14 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
                               fit: BoxFit.scaleDown,
                               child: Builder(
                                 builder: (context) {
-                                  final formattedAmount = ref
-                                      .watch(pAmountFormatter(coin))
-                                      .format(
-                                        amount,
-                                        tokenContract: tokenContract,
-                                      );
+                                  final formattedAmount = amount == null
+                                      ? 'Unknown'
+                                      : ref
+                                            .watch(pAmountFormatter(coin))
+                                            .format(
+                                              amount,
+                                              tokenContract: tokenContract,
+                                            );
 
                                   return Text(
                                     "$prefix$formattedAmount",
@@ -296,20 +306,25 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
                             child: FittedBox(
                               fit: BoxFit.scaleDown,
                               child: Text(
-                                Format.extractDateFrom(_transaction.timestamp),
+                                _transaction.isMetadataMissing('timestamp')
+                                    ? 'Unknown'
+                                    : Format.extractDateFrom(
+                                        _transaction.timestamp,
+                                      ),
                                 style: STextStyles.label(context),
                               ),
                             ),
                           ),
-                          if (price != null) const SizedBox(width: 10),
-                          if (price != null)
+                          if (price != null && amount != null)
+                            const SizedBox(width: 10),
+                          if (price != null && amount != null)
                             Flexible(
                               child: FittedBox(
                                 fit: BoxFit.scaleDown,
                                 child: Builder(
                                   builder: (context) {
                                     final formattedFiat =
-                                        (amount.decimal * price!)
+                                        (amount!.decimal * price!)
                                             .toAmount(fractionDigits: 2)
                                             .fiatString(locale: locale);
 
