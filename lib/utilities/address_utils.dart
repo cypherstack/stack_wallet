@@ -261,6 +261,14 @@ class AddressUtils {
       return null;
     }
 
+    // A web URL is a send address for coins that send over HTTP (Epic Cash's
+    // and Grin's foreign API), never a payment URI. Without this, typing the
+    // "http:" of such an address parsed as a URI with an empty address and
+    // cleared the field.
+    if (scheme == "http" || scheme == "https") {
+      return null;
+    }
+
     try {
       final parsedUri = _parseUri(uri);
       final Map<String, String> parsedData = parsedUri.params;
