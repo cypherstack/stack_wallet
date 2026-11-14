@@ -5,6 +5,7 @@ import 'dart:math' as math;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as cl;
 import 'package:drift/drift.dart';
 import 'package:fixnum/fixnum.dart';
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:isar_community/isar.dart';
 import 'package:mweb_client/mweb_client.dart';
 
@@ -21,6 +22,7 @@ import '../../../services/event_bus/events/global/wallet_sync_status_changed_eve
 import '../../../services/event_bus/global_event_bus.dart';
 import '../../../services/mwebd_service.dart';
 import '../../../utilities/amount/amount.dart';
+import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../utilities/extensions/extensions.dart';
 import '../../../utilities/logger.dart';
@@ -441,6 +443,37 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     }
   }
 
+  cl.Transaction restoreMwebPegInInputs(
+    cl.Transaction transaction,
+    List<BaseInput> fundingInputs,
+  ) {
+    if (fundingInputs.length > transaction.inputs.length) {
+      throw StateError("MWEB funding input missing");
+    }
+    for (var i = 0; i < fundingInputs.length; i++) {
+      final data = fundingInputs[i];
+      if (data is! StandardInput) continue;
+
+      final prevOut = cl.OutPoint(
+        Uint8List.fromList(data.utxo.txid.toUint8ListFromHex.reversed.toList()),
+        data.utxo.vout,
+      );
+      if (prevOut != transaction.inputs[i].prevOut) {
+        throw StateError("MWEB funding input changed");
+      }
+
+      if (data.derivePathType == DerivePathType.bip49) {
+        // Coinlib's parser does not recognize wrapped witness inputs.
+        final input = standardInputToCoinlibInput(
+          data,
+          sequence: transaction.inputs[i].sequence,
+        );
+        transaction = transaction.replaceInput(input, i);
+      }
+    }
+    return transaction;
+  }
+
   Future<TxData> processMwebTransaction({
     required TxData txData,
     required BigInt feeRatePerKB,
@@ -457,11 +490,20 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
     );
 
     if (txData.type == TxType.mwebPegIn) {
-      cl.Transaction clTx = cl.Transaction.fromBytes(
+      final parsed = cl.Transaction.fromBytes(
         Uint8List.fromList(response.rawTx),
       );
+      // Parsing only round-trips when there are no BIP49 inputs.
+      assert(
+        txData.usedUTXOs!.any(
+              (e) =>
+                  e is StandardInput &&
+                  e.derivePathType == DerivePathType.bip49,
+            ) ||
+            listEquals(response.rawTx, parsed.toBytes()),
+      );
+      cl.Transaction clTx = restoreMwebPegInInputs(parsed, txData.usedUTXOs!);
 
-      assert(response.rawTx.toString() == clTx.toBytes().toList().toString());
       final List<cl.Output> prevOuts = [];
 
       for (int i = 0; i < txData.usedUTXOs!.length; i++) {

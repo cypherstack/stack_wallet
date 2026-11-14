@@ -47,26 +47,39 @@ String _receivingPaynymAddressDerivationPath(
 String _sendPaynymAddressDerivationPath(int index, {required bool testnet}) =>
     "${_basePaynymDerivePath(testnet: testnet)}/0/$index";
 
+// Lower ranks are preferred as the designated (first) notification input.
+// Taproot inputs do not expose the public key the receiver needs for ECDH,
+// and other BIP47 implementations may not read it from a nested SegWit
+// (P2SH-P2WPKH) witness.
+int _paynymNotificationRank(UTXO utxo) {
+  final address = utxo.address ?? '';
+  if (address.startsWith('bc1p') || address.startsWith('tb1p')) return 2;
+  if (address.startsWith('3') || address.startsWith('2')) return 1;
+  return 0;
+}
+
 @visibleForTesting
 int comparePaynymNotificationUtxos(UTXO a, UTXO b) {
-  final aIsTaproot =
-      a.address?.startsWith('bc1p') == true ||
-      a.address?.startsWith('tb1p') == true;
-  final bIsTaproot =
-      b.address?.startsWith('bc1p') == true ||
-      b.address?.startsWith('tb1p') == true;
-  if (aIsTaproot != bIsTaproot) {
-    return aIsTaproot ? 1 : -1;
-  }
+  final rank = _paynymNotificationRank(a) - _paynymNotificationRank(b);
+  if (rank != 0) return rank;
   return a.blockTime!.compareTo(b.blockTime!);
 }
 
 @visibleForTesting
 void validatePaynymNotificationInputs(List<StandardInput> inputs) {
-  if (inputs.first.derivePathType == DerivePathType.bip86) {
-    throw PaynymSendException(
-      "A non-Taproot UTXO is required for a PayNym notification transaction.",
-    );
+  switch (inputs.first.derivePathType) {
+    case DerivePathType.bip86:
+      throw PaynymSendException(
+        "A non-Taproot UTXO is required for a PayNym notification "
+        "transaction.",
+      );
+    case DerivePathType.bip49:
+      throw PaynymSendException(
+        "A P2PKH or native SegWit UTXO is required for a PayNym notification "
+        "transaction. Nested SegWit (BIP49) UTXOs cannot carry it.",
+      );
+    default:
+      break;
   }
 }
 
@@ -591,9 +604,9 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
         );
       }
 
-      // Sort spendable by age (oldest first), but push taproot UTXOs to the
-      // end since taproot inputs don't expose the raw public key needed by the
-      // receiver to compute ECDH for BIP47 notification parsing.
+      // Sort spendable by age (oldest first), but push nested SegWit and then
+      // taproot UTXOs to the end so the designated input exposes a public
+      // key every BIP47 receiver can read.
       spendableOutputs.sort(comparePaynymNotificationUtxos);
 
       BigInt satoshisBeingUsed = BigInt.zero;
@@ -862,17 +875,6 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
       );
 
       for (var i = 0; i < inputsWithKeys.length; i++) {
-        final txid = inputsWithKeys[i].utxo.txid;
-
-        final hash = Uint8List.fromList(
-          txid.toUint8ListFromHex.reversed.toList(),
-        );
-
-        final prevOutpoint = coinlib.OutPoint(
-          hash,
-          inputsWithKeys[i].utxo.vout,
-        );
-
         final prevOutput = coinlib.Output.fromAddress(
           BigInt.from(inputsWithKeys[i].utxo.value),
           coinlib.Address.fromString(
@@ -883,43 +885,10 @@ mixin PaynymInterface<T extends PaynymCurrencyInterface>
 
         prevOuts.add(prevOutput);
 
-        final coinlib.Input input;
-
-        switch (inputsWithKeys[i].derivePathType) {
-          case DerivePathType.bip44:
-          case DerivePathType.bch44:
-            input = coinlib.P2PKHInput(
-              prevOut: prevOutpoint,
-              publicKey: inputsWithKeys[i].key!.publicKey,
-              sequence: 0xffffffff - 1,
-            );
-
-          // TODO: fix this as it is (probably) wrong! (unlikely used in paynyms)
-          case DerivePathType.bip49:
-            throw Exception("TODO p2sh");
-          // input = coinlib.P2SHMultisigInput(
-          //   prevOut: prevOutpoint,
-          //   program: coinlib.MultisigProgram.decompile(
-          //     utxoSigningData[i].redeemScript!,
-          //   ),
-          //   sequence: 0xffffffff - 1,
-          // );
-
-          case DerivePathType.bip84:
-            input = coinlib.P2WPKHInput(
-              prevOut: prevOutpoint,
-              publicKey: inputsWithKeys[i].key!.publicKey,
-              sequence: 0xffffffff - 1,
-            );
-
-          case DerivePathType.bip86:
-            input = coinlib.TaprootKeyInput(prevOut: prevOutpoint);
-
-          default:
-            throw UnsupportedError(
-              "Unknown derivation path type found: ${inputsWithKeys[i].derivePathType}",
-            );
-        }
+        final input = standardInputToCoinlibInput(
+          inputsWithKeys[i],
+          sequence: 0xffffffff - 1,
+        );
 
         clTx = clTx.addInput(input);
       }
