@@ -48,22 +48,33 @@ class _SlatepackViewState extends ConsumerState<SlatepackView> {
   late final FocusNode _focusNode;
   late final SlatepackInterface _wallet;
 
+  /// True while a slatepack is being imported, so a second press of Continue
+  /// cannot start the import again.
+  bool _importing = false;
+
   bool get _hasText => _controller.text.trim().isNotEmpty;
 
   Future<void> _continuePressed() async {
-    if (!Util.isDesktop && _focusNode.hasFocus) {
-      _focusNode.unfocus();
-      await Future<void>.delayed(const Duration(milliseconds: 75));
-    }
-    if (!mounted) return;
+    if (_importing) return;
+    setState(() => _importing = true);
+    try {
+      if (!Util.isDesktop && _focusNode.hasFocus) {
+        _focusNode.unfocus();
+        await Future<void>.delayed(const Duration(milliseconds: 75));
+      }
+      if (!mounted) return;
 
-    final done = await SlatepackImportFlow.run(
-      context: context,
-      wallet: _wallet,
-      text: _controller.text,
-    );
-    if (done && mounted) {
-      setState(() => _controller.text = "");
+      final done = await SlatepackImportFlow.run(
+        context: context,
+        wallet: _wallet,
+        text: _controller.text,
+      );
+      if (done && mounted) {
+        setState(() => _controller.text = "");
+      }
+    } finally {
+      _importing = false;
+      if (mounted) setState(() {});
     }
   }
 
@@ -133,7 +144,11 @@ class _SlatepackViewState extends ConsumerState<SlatepackView> {
             "Paste, scan or open a ${terms.noun} you were sent. It is "
             "received or finalized depending on what it is.",
             style: Util.isDesktop
-                ? STextStyles.desktopTextExtraSmall(context)
+                ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textSubtitle1,
+                  )
                 : STextStyles.label(context),
           ),
           const SizedBox(height: 12),
@@ -148,8 +163,8 @@ class _SlatepackViewState extends ConsumerState<SlatepackView> {
           PrimaryButton(
             label: "Continue",
             buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
-            enabled: _hasText,
-            onPressed: _hasText ? _continuePressed : null,
+            enabled: _hasText && !_importing,
+            onPressed: _hasText && !_importing ? _continuePressed : null,
           ),
           if (!Util.isDesktop) SizedBox(height: Constants.size.standardPadding),
         ],

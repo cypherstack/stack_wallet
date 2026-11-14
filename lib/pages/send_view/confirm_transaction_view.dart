@@ -163,6 +163,9 @@ class _ConfirmTransactionViewState
     final terms = wallet.slatepackTerms;
     final recipient = widget.txData.recipients!.first;
     final note = onChainNoteController.text;
+    final localNote = noteController.text;
+    final db = ref.read(mainDBProvider);
+    final format = ref.read(pAmountFormatter(wallet.cryptoCurrency)).format;
 
     final result = await wallet.createSlatepack(
       amount: recipient.amount,
@@ -173,11 +176,77 @@ class _ConfirmTransactionViewState
       throw Exception(result.error ?? "Failed to create ${terms.noun}");
     }
 
+    // The user confirmed one amount, so a slate for any other amount must not
+    // be handed over.
+    final createdAmount = result.amount;
+    if (createdAmount != null && createdAmount != recipient.amount) {
+      final slateId = result.slateId;
+      final cancelError = slateId == null
+          ? "it has no slate id"
+          : await wallet.cancelPendingTransactionAndPost(slateId);
+      final outcome = cancelError.isEmpty
+          ? "The transaction was cancelled."
+          : "The transaction could not be cancelled ($cancelError). Cancel it"
+                " from its details before trying again.";
+      throw Exception(
+        "The ${terms.noun} was created for ${format(createdAmount)} instead of"
+        " the confirmed ${format(recipient.amount)}. $outcome",
+      );
+    }
+
+    // The confirmed fee is an estimate and the wallet may pick other inputs
+    // when it builds the slate, so a different fee is reported, not refused.
+    final createdFee = result.fee;
+    final confirmedFee = widget.txData.fee;
+    final feeChange =
+        createdFee != null && confirmedFee != null && createdFee != confirmedFee
+        ? "The ${terms.noun} pays a fee of ${format(createdFee)} instead of"
+              " the estimated ${format(confirmedFee)}."
+        : null;
+    if (feeChange != null) {
+      Logging.instance.w("$feeChange Slate id: ${result.slateId}");
+    }
+
+    var noteSaved = localNote.isEmpty;
+    if (!noteSaved && result.slateId != null) {
+      try {
+        await db.putTransactionNote(
+          TransactionNote(
+            walletId: walletId,
+            txid: result.slateId!,
+            value: localNote,
+          ),
+        );
+        noteSaved = true;
+      } catch (_) {
+        // The slate already exists and still needs to reach the recipient.
+      }
+    }
+
     unawaited(wallet.refresh());
     closeSendingDialog();
 
     if (context.mounted) {
+      if (!noteSaved || feeChange != null) {
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message: [
+              ?feeChange,
+              if (!noteSaved)
+                "Transaction created, but the local note could not be saved.",
+            ].join(" "),
+            context: context,
+          ),
+        );
+      }
       await showSlatepackDialog(context: context, terms: terms, result: result);
+    } else {
+      Logging.instance.w(
+        "Created ${terms.noun} ${result.slateId} but the confirmation view"
+        " closed before it could be shown. The pending transaction is in the"
+        " wallet's history and can be cancelled there.",
+      );
     }
 
     widget.onSuccess.call();
@@ -195,33 +264,33 @@ class _ConfirmTransactionViewState
     final coin = wallet.info.coin;
 
     final sendProgressController = ProgressAndSuccessController();
-    var isSendingDialogOpen = true;
+
+    // Looked up now so the dialog can still be closed if this view is gone by
+    // the time the send returns.
+    final navigator = Navigator.of(context, rootNavigator: true);
+
+    // The dialog's own route is kept so that closing it removes that route
+    // and nothing else, whatever is on top of it by then.
+    final sendingRoute = DialogRoute<void>(
+      context: context,
+      useSafeArea: false,
+      barrierDismissible: false,
+      themes: InheritedTheme.capture(from: context, to: navigator.context),
+      builder: (context) {
+        return SendingTransactionDialog(
+          coin: coin,
+          controller: sendProgressController,
+        );
+      },
+    );
 
     void closeSendingDialog() {
-      if (!context.mounted || !isSendingDialogOpen) {
-        return;
+      if (navigator.mounted && sendingRoute.isActive) {
+        navigator.removeRoute(sendingRoute);
       }
-      final navigator = Navigator.of(context, rootNavigator: true);
-      if (navigator.canPop()) {
-        navigator.pop();
-      }
-      isSendingDialogOpen = false;
     }
 
-    unawaited(
-      showDialog<dynamic>(
-        context: context,
-        useRootNavigator: true,
-        useSafeArea: false,
-        barrierDismissible: false,
-        builder: (context) {
-          return SendingTransactionDialog(
-            coin: coin,
-            controller: sendProgressController,
-          );
-        },
-      ).whenComplete(() => isSendingDialogOpen = false),
-    );
+    unawaited(navigator.push(sendingRoute));
 
     final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
 
@@ -334,9 +403,8 @@ class _ConfirmTransactionViewState
         }
       }
     } on BadHttpAddressException catch (_) {
+      closeSendingDialog();
       if (context.mounted) {
-        // pop building dialog
-        closeSendingDialog();
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.warning,
@@ -348,12 +416,15 @@ class _ConfirmTransactionViewState
         return;
       }
     } catch (e, s) {
-      const message = "Broadcast transaction failed";
+      // Nothing is broadcast when a slatepack is created.
+      final message =
+          wallet is SlatepackInterface && widget.txData.isSlatepackSend
+          ? "Could not create the ${wallet.slatepackTerms.noun}"
+          : "Broadcast transaction failed";
       Logging.instance.e(message, error: e, stackTrace: s);
       // pop sending dialog
+      closeSendingDialog();
       if (context.mounted) {
-        closeSendingDialog();
-
         await showDialog<void>(
           context: context,
           useSafeArea: false,
