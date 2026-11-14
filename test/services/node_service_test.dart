@@ -14,7 +14,8 @@ void main() {
   bool wasRegistered = false;
   final expectedPrimaryDefaults = AppConfig.coins
       .where((coin) => coin.identifier != 'firo')
-      .map((e) => e.defaultNode(isPrimary: true))
+      .map((coin) => coin.defaultNodeOrNull(isPrimary: true))
+      .nonNulls
       .toList(growable: false);
   final expectedDefaultNodeCount =
       expectedPrimaryDefaults.length +

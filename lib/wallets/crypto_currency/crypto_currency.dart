@@ -32,10 +32,13 @@ enum CryptoCurrencyNetwork {
   main,
   test,
   stage,
-  test4;
+  test4,
+  regtest;
 
   bool get isTestNet =>
-      this == CryptoCurrencyNetwork.test || this == CryptoCurrencyNetwork.test4;
+      this == CryptoCurrencyNetwork.test ||
+      this == CryptoCurrencyNetwork.test4 ||
+      this == CryptoCurrencyNetwork.regtest;
 }
 
 abstract class CryptoCurrency {
@@ -78,6 +81,15 @@ abstract class CryptoCurrency {
   AddressType? getAddressType(String address);
 
   NodeModel defaultNode({required bool isPrimary});
+
+  /// Returns the bundled default node, or `null` when this currency requires
+  /// the user or test harness to configure a node explicitly.
+  ///
+  /// Existing currencies inherit the historical [defaultNode] behavior. New
+  /// integrations should override this instead of inventing an unverified
+  /// public endpoint merely to satisfy application startup.
+  NodeModel? defaultNodeOrNull({required bool isPrimary}) =>
+      defaultNode(isPrimary: isPrimary);
 
   int get defaultSeedPhraseLength;
   int get fractionDigits;
