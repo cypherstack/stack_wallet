@@ -49,6 +49,14 @@ class _FakeScanner implements BarcodeScannerInterface {
 }
 
 void main() {
+  RecipientData data(String address, Amount? amount, String? label) => (
+    address: address,
+    amount: amount,
+    label: label,
+    memoBytes: null,
+    message: null,
+    additionalParams: const {},
+  );
   final coin = TestMonero();
   const RecipientId id = (walletId: "wallet", index: 1);
 
@@ -160,10 +168,7 @@ void main() {
   testWidgets("shows the request's name until the address is changed", (
     tester,
   ) async {
-    await pumpRecipient(
-      tester,
-      initial: (address: "address0", amount: xmr("1"), label: "Alice"),
-    );
+    await pumpRecipient(tester, initial: data("address0", xmr("1"), "Alice"));
 
     expect(find.text('Name in payment request: "Alice"'), findsOneWidget);
     expect(find.text("Recipient 1"), findsOneWidget);
@@ -175,7 +180,7 @@ void main() {
     expect(find.text('Name in payment request: "Alice"'), findsNothing);
     expect(find.text("Recipient 1"), findsOneWidget);
     expect(find.text("Invalid address"), findsOneWidget);
-    expect(recipient(), (address: "bad", amount: xmr("1"), label: null));
+    expect(recipient(), data("bad", xmr("1"), null));
   });
 
   for (final (name, request, amount) in [
@@ -187,19 +192,12 @@ void main() {
     testWidgets("clears the previous request's name when $name", (
       tester,
     ) async {
-      await pumpRecipient(
-        tester,
-        initial: (address: "address0", amount: xmr("1"), label: "Alice"),
-      );
+      await pumpRecipient(tester, initial: data("address0", xmr("1"), "Alice"));
 
       await tester.enterText(addressField(), request);
       await tester.pump();
 
-      expect(recipient(), (
-        address: "address0",
-        amount: xmr(amount),
-        label: null,
-      ));
+      expect(recipient(), data("address0", xmr(amount), null));
       expect(text(tester, addressField()), "address0");
       expect(text(tester, amountField()), amount);
       expect(find.text('Name in payment request: "Alice"'), findsNothing);
@@ -210,10 +208,7 @@ void main() {
   testWidgets("replaces the name with the new request's trimmed name", (
     tester,
   ) async {
-    await pumpRecipient(
-      tester,
-      initial: (address: "address0", amount: xmr("1"), label: "Alice"),
-    );
+    await pumpRecipient(tester, initial: data("address0", xmr("1"), "Alice"));
 
     await tester.enterText(
       addressField(),
@@ -221,7 +216,7 @@ void main() {
     );
     await tester.pump();
 
-    expect(recipient(), (address: "address0", amount: xmr("1"), label: "Bob"));
+    expect(recipient(), data("address0", xmr("1"), "Bob"));
     expect(find.text('Name in payment request: "Bob"'), findsOneWidget);
     expect(find.text('Name in payment request: "Alice"'), findsNothing);
   });
@@ -229,28 +224,18 @@ void main() {
   testWidgets("keeps the request's name when the amount is edited", (
     tester,
   ) async {
-    await pumpRecipient(
-      tester,
-      initial: (address: "address0", amount: xmr("1"), label: "Alice"),
-    );
+    await pumpRecipient(tester, initial: data("address0", xmr("1"), "Alice"));
 
     await tester.enterText(amountField(), "2");
     await tester.pump();
 
-    expect(recipient(), (
-      address: "address0",
-      amount: xmr("2"),
-      label: "Alice",
-    ));
+    expect(recipient(), data("address0", xmr("2"), "Alice"));
     expect(find.text('Name in payment request: "Alice"'), findsOneWidget);
   });
 
   testWidgets("keeps the amount when the display unit changes", (tester) async {
     container.read(unit.notifier).state = AmountUnit.milli;
-    await pumpRecipient(
-      tester,
-      initial: (address: "address0", amount: xmr("1"), label: "Alice"),
-    );
+    await pumpRecipient(tester, initial: data("address0", xmr("1"), "Alice"));
     expect(text(tester, amountField()), "1000");
 
     container.read(unit.notifier).state = AmountUnit.normal;
@@ -271,11 +256,7 @@ void main() {
       useLayout(desktop: desktop);
       await pumpRecipient(
         tester,
-        initial: (
-          address: "address0",
-          amount: xmr("1.000000000001"),
-          label: "Alice",
-        ),
+        initial: data("address0", xmr("1.000000000001"), "Alice"),
       );
 
       localeService.setLocale("de_DE");
@@ -284,7 +265,7 @@ void main() {
       expect(text(tester, amountField()), "1,000000000001");
       expect(
         recipient(),
-        (address: "address0", amount: xmr("1.000000000001"), label: "Alice"),
+        data("address0", xmr("1.000000000001"), "Alice"),
         reason:
             "Changing locale must preserve the stored amount, "
             "not just its text",
@@ -303,11 +284,7 @@ void main() {
 
       await tester.enterText(addressField(), "address1");
       await tester.pump();
-      expect(recipient(), (
-        address: "address1",
-        amount: xmr("2.000000000001"),
-        label: null,
-      ));
+      expect(recipient(), data("address1", xmr("2.000000000001"), null));
     });
   }
 
@@ -329,11 +306,7 @@ void main() {
     expect(text(tester, addressField()), "address5");
     expect(text(tester, amountField()), "0.25");
     expect(find.text('Name in payment request: "Bob"'), findsOneWidget);
-    expect(recipient(), (
-      address: "address5",
-      amount: xmr("0.25"),
-      label: "Bob",
-    ));
+    expect(recipient(), data("address5", xmr("0.25"), "Bob"));
   });
 
   testWidgets("fills in a request typed or pasted into the address field", (
@@ -365,10 +338,10 @@ void main() {
   testWidgets("shows a request's name on one line", (tester) async {
     await pumpRecipient(
       tester,
-      initial: (
-        address: "address0",
-        amount: xmr("1"),
-        label: "Alice\"\nYour wallet (change)\u202E",
+      initial: data(
+        "address0",
+        xmr("1"),
+        "Alice\"\nYour wallet (change)\u202E",
       ),
     );
 
@@ -382,10 +355,7 @@ void main() {
   testWidgets("parses a typed request of the same length as the address", (
     tester,
   ) async {
-    await pumpRecipient(
-      tester,
-      initial: (address: "address12", amount: xmr("1"), label: null),
-    );
+    await pumpRecipient(tester, initial: data("address12", xmr("1"), null));
 
     await tester.enterText(addressField(), "monero:ab");
     await tester.pump();
@@ -399,10 +369,7 @@ void main() {
   testWidgets("hands a request for several recipients to the screen", (
     tester,
   ) async {
-    await pumpRecipient(
-      tester,
-      initial: (address: "address0", amount: xmr("1"), label: null),
-    );
+    await pumpRecipient(tester, initial: data("address0", xmr("1"), null));
 
     await tester.enterText(addressField(), multiRecipientUri);
     await tester.pump();
@@ -411,7 +378,7 @@ void main() {
     expect(messages, isEmpty);
     // The recipient is left as it was until the screen replaces it.
     expect(text(tester, addressField()), "address0");
-    expect(recipient(), (address: "address0", amount: xmr("1"), label: null));
+    expect(recipient(), data("address0", xmr("1"), null));
   });
 
   testWidgets("rejects requests for several recipients without a handler", (
@@ -428,10 +395,7 @@ void main() {
   });
 
   testWidgets("clearing the address drops the name", (tester) async {
-    await pumpRecipient(
-      tester,
-      initial: (address: "address0", amount: xmr("1"), label: "Alice"),
-    );
+    await pumpRecipient(tester, initial: data("address0", xmr("1"), "Alice"));
 
     await tester.tap(
       find.byKey(const Key("sendViewClearAddressFieldButtonKey")),
@@ -440,7 +404,7 @@ void main() {
 
     expect(text(tester, addressField()), "");
     expect(find.text("Recipient 1"), findsOneWidget);
-    expect(recipient(), (address: "", amount: xmr("1"), label: null));
+    expect(recipient(), data("", xmr("1"), null));
   });
 
   testWidgets("scans with the mobile scanner on mobile", (tester) async {
@@ -451,19 +415,15 @@ void main() {
 
     expect(scanner.scans, 1);
     expect(find.byType(QrCodeScannerDialog), findsNothing);
-    expect(recipient(), (
-      address: "address7",
-      amount: xmr("0.5"),
-      label: "Eve",
-    ));
+    expect(recipient(), data("address7", xmr("0.5"), "Eve"));
   });
 
   test("keeps each wallet's recipients separate", () {
     const RecipientId other = (walletId: "other", index: 1);
-    container.read(pRecipient(id).notifier).state = (
-      address: "address0",
-      amount: null,
-      label: null,
+    container.read(pRecipient(id).notifier).state = data(
+      "address0",
+      null,
+      null,
     );
 
     expect(container.read(pRecipient(other)), isNull);

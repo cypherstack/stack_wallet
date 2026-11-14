@@ -35,7 +35,14 @@ import '../../../widgets/textfield_icon_button.dart';
 
 /// A recipient entered on a send screen. [label] is a payment request's
 /// name for [address].
-typedef RecipientData = ({String address, Amount? amount, String? label});
+typedef RecipientData = ({
+  String address,
+  Amount? amount,
+  String? label,
+  Uint8List? memoBytes,
+  String? message,
+  Map<String, String> additionalParams,
+});
 
 /// A recipient form: the sending wallet and the form's index on its screen.
 typedef RecipientId = ({String walletId, int index});
@@ -109,7 +116,13 @@ class _RecipientState extends ConsumerState<Recipient> {
     }
   }
 
-  void _updateRecipientData({String? label, bool replaceLabel = false}) {
+  void _updateRecipientData({
+    String? label,
+    bool replaceLabel = false,
+    Uint8List? memoBytes,
+    String? message,
+    Map<String, String>? additionalParams,
+  }) {
     final address = addressController.text;
     final amount = _parseAmount();
     final previous = ref.read(pRecipient(_id));
@@ -122,6 +135,17 @@ class _RecipientState extends ConsumerState<Recipient> {
       label: replaceLabel
           ? label
           : (previous?.address == address ? previous?.label : null),
+      memoBytes: replaceLabel
+          ? memoBytes
+          : (previous?.address == address ? previous?.memoBytes : null),
+      message: replaceLabel
+          ? message
+          : (previous?.address == address ? previous?.message : null),
+      additionalParams: replaceLabel
+          ? additionalParams ?? const {}
+          : (previous?.address == address
+                ? previous?.additionalParams ?? const {}
+                : const {}),
     );
     widget.onChanged?.call();
   }
@@ -172,6 +196,9 @@ class _RecipientState extends ConsumerState<Recipient> {
       _updateRecipientData(
         label: label == null || label.isEmpty ? null : label,
         replaceLabel: true,
+        memoBytes: paymentData.recipients.single.memoBytes,
+        message: paymentData.recipients.single.message,
+        additionalParams: paymentData.recipients.single.additionalParams,
       );
       if (paymentData.message != null) {
         widget.onMessage?.call(paymentData.message!);
