@@ -61,7 +61,7 @@ class _ManageEpicboxViewState extends ConsumerState<ManageEpicboxView> {
     // update wallet's epicbox config
     final wallet =
         ref.read(pWallets).getWallet(widget.walletId) as EpiccashWallet;
-    await wallet.updateEpicboxConfig(epicBox.host, epicBox.port ?? 443);
+    await wallet.updateRelayConfig(epicBox.host, epicBox.port ?? 443);
 
     if (mounted) {
       unawaited(
@@ -132,9 +132,9 @@ class _ManageEpicboxViewState extends ConsumerState<ManageEpicboxView> {
                     child: Center(
                       child: Icon(
                         Icons.add,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.topNavIconPrimary,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .topNavIconPrimary,
                         size: 20,
                       ),
                     ),
@@ -160,9 +160,9 @@ class _ManageEpicboxViewState extends ConsumerState<ManageEpicboxView> {
                     child: Text(
                       "Default servers",
                       style: STextStyles.smallMed12(context).copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textDark3,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark3,
                       ),
                     ),
                   ),
@@ -188,9 +188,9 @@ class _ManageEpicboxViewState extends ConsumerState<ManageEpicboxView> {
                     child: Text(
                       "Custom servers",
                       style: STextStyles.smallMed12(context).copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textDark3,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark3,
                       ),
                     ),
                   ),

@@ -62,7 +62,7 @@ class _DesktopManageEpicBoxDialogState
     // update wallet's epicbox config
     final wallet =
         ref.read(pWallets).getWallet(widget.walletId) as EpiccashWallet;
-    await wallet.updateEpicboxConfig(epicBox.host, epicBox.port ?? 443);
+    await wallet.updateRelayConfig(epicBox.host, epicBox.port ?? 443);
 
     if (mounted) {
       unawaited(
@@ -152,9 +152,9 @@ class _DesktopManageEpicBoxDialogState
                       child: Text(
                         "Default servers",
                         style: STextStyles.smallMed12(context).copyWith(
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.textDark3,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textDark3,
                         ),
                       ),
                     ),
@@ -179,9 +179,9 @@ class _DesktopManageEpicBoxDialogState
                         child: Text(
                           "Custom servers",
                           style: STextStyles.smallMed12(context).copyWith(
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textDark3,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark3,
                           ),
                         ),
                       ),

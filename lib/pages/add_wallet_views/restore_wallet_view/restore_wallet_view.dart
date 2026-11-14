@@ -49,8 +49,7 @@ import '../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../../wallets/wallet/impl/xelis_wallet.dart';
 import '../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../wallets/wallet/intermediate/external_wallet.dart';
-import '../../../wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
-import '../../../wallets/wallet/supporting/mimblewimblecoin_wallet_info_extension.dart';
+import '../../../wallets/wallet/supporting/mimblewimble_wallet_info_extension.dart';
 import '../../../wallets/wallet/wallet.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -229,7 +228,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       if (widget.coin is Epiccash) {
         otherDataJsonString = jsonEncode({
           WalletInfoKeys.epiccashData: jsonEncode(
-            ExtraEpiccashWalletInfo(
+            ExtraMimblewimbleWalletInfo(
               receivingIndex: 0,
               changeIndex: 0,
               slatesToAddresses: {},
@@ -257,7 +256,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         }
         otherDataJsonString = jsonEncode({
           WalletInfoKeys.mimblewimblecoinData: jsonEncode(
-            ExtraMimblewimblecoinWalletInfo(
+            ExtraMimblewimbleWalletInfo(
               receivingIndex: 0,
               changeIndex: 0,
               slatesToAddresses: {},

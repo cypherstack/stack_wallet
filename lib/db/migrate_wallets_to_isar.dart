@@ -10,7 +10,7 @@ import '../wallets/crypto_currency/crypto_currency.dart';
 import '../wallets/isar/models/token_wallet_info.dart';
 import '../wallets/isar/models/wallet_info.dart';
 import '../wallets/isar/models/wallet_info_meta.dart';
-import '../wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
+import '../wallets/wallet/supporting/mimblewimble_wallet_info_extension.dart';
 import 'hive/db.dart';
 import 'isar/main_db.dart';
 
@@ -28,9 +28,10 @@ Future<void> migrateWalletsToIsar({
     DB.boxNameAllWalletsData,
   );
 
-  final names =
-      DB.instance.get<dynamic>(boxName: DB.boxNameAllWalletsData, key: 'names')
-          as Map?;
+  final names = DB.instance.get<dynamic>(
+    boxName: DB.boxNameAllWalletsData,
+    key: 'names',
+  ) as Map?;
 
   if (names == null) {
     // no wallets to migrate
@@ -53,10 +54,9 @@ Future<void> migrateWalletsToIsar({
   //
   // Get current ordered list of favourite wallet Ids
   //
-  final List<String> favourites =
-      (await DB.instance.hive.openBox<String>(
-        DB.boxNameFavoriteWallets,
-      )).values.toList();
+  final List<String> favourites = (await DB.instance.hive.openBox<String>(
+    DB.boxNameFavoriteWallets,
+  )).values.toList();
 
   final List<(WalletInfo, WalletInfoMeta)> newInfo = [];
   final List<TokenWalletInfo> tokenInfo = [];
@@ -71,11 +71,10 @@ Future<void> migrateWalletsToIsar({
     //
     // First handle transaction notes
     //
-    final newNoteCount =
-        await MainDB.instance.isar.transactionNotes
-            .where()
-            .walletIdEqualTo(old.walletId)
-            .count();
+    final newNoteCount = await MainDB.instance.isar.transactionNotes
+        .where()
+        .walletIdEqualTo(old.walletId)
+        .count();
     if (newNoteCount == 0) {
       final map = walletBox.get('notes') as Map?;
 
@@ -115,11 +114,10 @@ Future<void> migrateWalletsToIsar({
       otherData[WalletInfoKeys.tokenContractAddresses] = tokenContractAddresses;
 
       for (final address in tokenContractAddresses!) {
-        final contract =
-            await MainDB.instance.isar.ethContracts
-                .where()
-                .addressEqualTo(address)
-                .findFirst();
+        final contract = await MainDB.instance.isar.ethContracts
+            .where()
+            .addressEqualTo(address)
+            .findFirst();
         if (contract != null) {
           tokenInfo.add(
             TokenWalletInfo(
@@ -134,7 +132,7 @@ Future<void> migrateWalletsToIsar({
 
     // epiccash specifics
     if (old.coinIdentifier == Epiccash(CryptoCurrencyNetwork.main).identifier) {
-      final epicWalletInfo = ExtraEpiccashWalletInfo.fromMap({
+      final epicWalletInfo = ExtraMimblewimbleWalletInfo.fromMap({
         "receivingIndex": walletBox.get("receivingIndex") as int? ?? 0,
         "changeIndex": walletBox.get("changeIndex") as int? ?? 0,
         "slatesToAddresses": walletBox.get("slate_to_address") as Map? ?? {},
@@ -165,10 +163,8 @@ Future<void> migrateWalletsToIsar({
       coinName: old.coinIdentifier,
       walletId: old.walletId,
       name: old.name,
-      mainAddressType:
-          AppConfig.getCryptoCurrencyFor(
-            old.coinIdentifier,
-          )!.defaultAddressType,
+      mainAddressType: AppConfig.getCryptoCurrencyFor(old.coinIdentifier)!
+          .defaultAddressType,
       favouriteOrderIndex: favourites.indexOf(old.walletId),
       cachedChainHeight: walletBox.get(DBKeys.storedChainHeight) as int? ?? 0,
       cachedBalanceString: walletBox.get(DBKeys.cachedBalance) as String?,

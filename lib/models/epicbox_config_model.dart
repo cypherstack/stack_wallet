@@ -13,15 +13,12 @@ import 'dart:convert';
 import 'package:hive_ce/hive.dart';
 
 import 'epicbox_server_model.dart';
+import 'relay_config_model.dart';
 
 part 'type_adaptors/epicbox_config_model.g.dart';
 
 // @HiveType(typeId: 72)
-class EpicBoxConfigModel {
-  // @HiveField(1)
-  final String host;
-  // @HiveField(2)
-  final int? port;
+class EpicBoxConfigModel extends RelayConfigModel {
   // @HiveField(3)
   final bool? protocolInsecure;
   // @HiveField(4)
@@ -31,9 +28,9 @@ class EpicBoxConfigModel {
   // // @HiveField(6)
   // final String? name;
 
-  EpicBoxConfigModel({
-    required this.host,
-    this.port,
+  const EpicBoxConfigModel({
+    required super.host,
+    super.port,
     this.protocolInsecure,
     this.addressIndex,
     // this.id,
@@ -57,19 +54,9 @@ class EpicBoxConfigModel {
     );
   }
 
-  Map<String, dynamic> toMap() {
-    final Map<String, dynamic> map = {};
-    map['epicbox_domain'] = host;
-    map['epicbox_port'] = port;
-    map['epicbox_protocol_insecure'] = protocolInsecure;
-    map['epicbox_address_index'] = addressIndex;
-    // map['id'] = id;
-    // map['name'] = name;
-    return map;
-  }
-
+  @override
   Map<String, dynamic> toJson() {
-    return {
+    return <String, dynamic>{
       'epicbox_domain': host,
       'epicbox_port': port,
       'epicbox_protocol_insecure': protocolInsecure,
@@ -77,11 +64,6 @@ class EpicBoxConfigModel {
       // 'id': id,
       // 'name': name,
     };
-  }
-
-  @override
-  String toString() {
-    return json.encode(toJson());
   }
 
   static EpicBoxConfigModel fromString(String epicBoxConfigString) {

@@ -50,13 +50,12 @@ import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/crypto_currency/intermediate/frost_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
-import '../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
-import '../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../wallets/wallet/impl/namecoin_wallet.dart';
 import '../../wallets/wallet/impl/salvium_wallet.dart';
 import '../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/slatepack_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
@@ -92,9 +91,8 @@ import '../buy_view/buy_in_wallet_view.dart';
 import '../cashfusion/cashfusion_view.dart';
 import '../churning/churning_view.dart';
 import '../coin_control/coin_control_view.dart';
-import '../epic_finalize_view/epic_finalize_view.dart';
 import '../exchange_view/wallet_initiated_exchange_view.dart';
-import '../finalize_view/finalize_view.dart';
+import '../slatepack/slatepack_view.dart';
 import '../masternodes/masternodes_home_view.dart';
 import '../monkey/monkey_view.dart';
 import '../namecoin_names/namecoin_names_home_view.dart';
@@ -1011,30 +1009,15 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         }
                       },
                     ),
-                    if (wallet is MimblewimblecoinWallet)
+                    if (wallet is SlatepackInterface)
                       WalletNavigationBarItemData(
-                        label: "Finalize",
+                        label: "Slatepack",
                         icon: const FinalizeNavIcon(),
                         onTap: () {
                           if (mounted) {
                             unawaited(
                               Navigator.of(context).pushNamed(
-                                FinalizeView.routeName,
-                                arguments: walletId,
-                              ),
-                            );
-                          }
-                        },
-                      ),
-                    if (wallet is EpiccashWallet)
-                      WalletNavigationBarItemData(
-                        label: "Finalize",
-                        icon: const FinalizeNavIcon(),
-                        onTap: () {
-                          if (mounted) {
-                            unawaited(
-                              Navigator.of(context).pushNamed(
-                                EpicFinalizeView.routeName,
+                                SlatepackView.routeName,
                                 arguments: walletId,
                               ),
                             );

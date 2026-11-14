@@ -1,4 +1,7 @@
+import 'mimblewimble_transaction.dart';
+
 export '../generated/libmwc_interface_impl.dart';
+export 'mimblewimble_transaction.dart';
 
 abstract class LibMwcInterface {
   const LibMwcInterface();
@@ -55,7 +58,7 @@ abstract class LibMwcInterface {
     String message = '',
   });
 
-  Future<List<MwcTransaction>> getTransactions({
+  Future<List<MimblewimbleTransaction>> getTransactions({
     required String wallet,
     required int refreshFromNode,
   });
@@ -141,60 +144,4 @@ abstract class LibMwcInterface {
   Future<String> deleteWallet({required String wallet, required String config});
 
   Future<String> initLogs({required String config});
-}
-
-class MwcTransaction {
-  final String parentKeyId;
-  final int id;
-  final String? txSlateId;
-  final Enum txType;
-  final String creationTs;
-  final String confirmationTs;
-  final bool confirmed;
-  final int numInputs;
-  final int numOutputs;
-  final String amountCredited;
-  final String amountDebited;
-  final String? fee;
-  final String? ttlCutoffHeight;
-  final List<MwcMessage>? messages;
-  final String? storedTx;
-  final String? kernelExcess;
-  final int? kernelLookupMinHeight;
-  final String? paymentProof;
-
-  MwcTransaction({
-    required this.parentKeyId,
-    required this.id,
-    this.txSlateId,
-    required this.txType,
-    required this.creationTs,
-    required this.confirmationTs,
-    required this.confirmed,
-    required this.numInputs,
-    required this.numOutputs,
-    required this.amountCredited,
-    required this.amountDebited,
-    this.fee,
-    this.ttlCutoffHeight,
-    this.messages,
-    this.storedTx,
-    this.kernelExcess,
-    this.kernelLookupMinHeight,
-    this.paymentProof,
-  });
-}
-
-class MwcMessage {
-  final String id;
-  final String publicKey;
-  final String? message;
-  final String? messageSig;
-
-  MwcMessage({
-    required this.id,
-    required this.publicKey,
-    this.message,
-    this.messageSig,
-  });
 }

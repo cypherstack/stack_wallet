@@ -19,10 +19,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:tuple/tuple.dart';
 
-import '../../models/epic_slatepack_models.dart';
 import '../../models/input.dart';
 import '../../models/isar/models/isar_models.dart';
-import '../../models/mwc_slatepack_models.dart';
 import '../../models/paynym/paynym_account_lite.dart';
 import '../../models/send_view_auto_fill_data.dart';
 import '../../notifications/show_flush_bar.dart';
@@ -48,37 +46,35 @@ import '../../utilities/barcode_scanner_interface.dart';
 import '../../utilities/clipboard_interface.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/enums/fee_rate_type_enum.dart';
+import '../../utilities/enums/slatepack_method.dart';
 import '../../utilities/eth_commons.dart';
 import '../../utilities/extensions/extensions.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/prefs.dart';
-import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/models/tx_data.dart';
-import '../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
-import '../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../wallets/wallet/impl/salvium_wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/slatepack_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../widgets/background.dart';
 import '../../widgets/calculating_future_builder.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/dialogs/firo_exchange_address_dialog.dart';
-import '../../widgets/epic_txs_method_toggle.dart';
 import '../../widgets/eth_fee_form.dart';
 import '../../widgets/fee_slider.dart';
 import '../../widgets/icon_widgets/addressbook_icon.dart';
 import '../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../widgets/icon_widgets/qrcode_icon.dart';
 import '../../widgets/icon_widgets/x_icon.dart';
-import '../../widgets/mwc_txs_method_toggle.dart';
+import '../../widgets/slatepack_method_toggle.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../../widgets/stack_text_field.dart';
@@ -89,9 +85,7 @@ import 'confirm_transaction_view.dart';
 import 'frost_ms/recipient.dart';
 import 'sub_widgets/building_transaction_dialog.dart';
 import 'sub_widgets/dual_balance_selection_sheet.dart';
-import 'sub_widgets/epic_slatepack_dialog.dart';
 import 'sub_widgets/multi_recipient.dart';
-import 'sub_widgets/mwc_slatepack_dialog.dart';
 import 'sub_widgets/transaction_fee_selection_sheet.dart';
 
 class SendView extends ConsumerStatefulWidget {
@@ -141,6 +135,7 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
   late final bool hasOptionalMemo;
   late final bool isFiro;
   late final bool isEth;
+  SlatepackInterface? _slatepackWallet;
 
   Amount? _cachedAmountToSend;
   String? _addressValue;
@@ -707,180 +702,6 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
     if (hasFees && coin is! Xelis) followFeeAmount(amount);
   }
 
-  Future<void> _createSlatepack() async {
-    // wait for keyboard to disappear
-    FocusScope.of(context).unfocus();
-    await Future<void>.delayed(const Duration(milliseconds: 100));
-
-    try {
-      if (mounted) {
-        final wallet =
-            ref.read(pWallets).getWallet(walletId) as MimblewimblecoinWallet;
-
-        final amount = ref.read(pSendAmount)!;
-
-        Future<SlatepackResult> wrappedFutureWithDelay() async {
-          await Future<void>.delayed(const Duration(seconds: 1));
-          return wallet.createSlatepack(
-            amount: amount,
-            recipientAddress: null,
-            // No specific recipient for manual slatepack.
-            message: onChainNoteController.text.isNotEmpty == true
-                ? onChainNoteController.text
-                : null,
-            encrypt: false, // No encryption without recipient address.
-          );
-        }
-
-        // Create slatepack.
-        Exception? ex;
-        final slatepackResult = await showLoading(
-          whileFuture: wrappedFutureWithDelay(),
-          context: context,
-          message: "Building slatepack...",
-          delay: const Duration(seconds: 2),
-          onException: (e) => ex = e,
-        );
-
-        if (slatepackResult == null ||
-            !slatepackResult.success ||
-            slatepackResult.slatepack == null ||
-            ex != null) {
-          String error =
-              ex?.toString() ??
-              slatepackResult?.error ??
-              'Failed to create slatepack';
-          if (error.startsWith("Exception:")) {
-            error = error.replaceFirst("Exception:", "").trim();
-          }
-          throw Exception(error);
-        }
-
-        // refresh asap to show the pending slate tx in history
-        unawaited(() async {
-          await Future<void>.delayed(Duration.zero);
-          await wallet.refresh();
-        }());
-
-        // Show slatepack dialog.
-        if (mounted) {
-          await showDialog<void>(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => StackDialogBase(
-              child: MwcSlatepackDialog(slatepackResult: slatepackResult),
-            ),
-          );
-
-          // Clear form after slatepack dialog is closed.
-          clearSendForm();
-        }
-      }
-    } catch (e, s) {
-      Logging.instance.e(
-        'Failed to create MWC slatepack on mobile',
-        error: e,
-        stackTrace: s,
-      );
-
-      if (mounted) {
-        await showDialog<void>(
-          context: context,
-          builder: (context) => StackOkDialog(
-            title: "Slatepack Creation Failed",
-            message: e.toString(),
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> _createEpicSlatepack() async {
-    // wait for keyboard to disappear
-    FocusScope.of(context).unfocus();
-    await Future<void>.delayed(const Duration(milliseconds: 100));
-
-    try {
-      if (mounted) {
-        final wallet = ref.read(pWallets).getWallet(walletId) as EpiccashWallet;
-
-        final amount = ref.read(pSendAmount)!;
-
-        Future<EpicSlatepackResult> wrappedFutureWithDelay() async {
-          await Future<void>.delayed(const Duration(seconds: 1));
-          return wallet.createSlatepack(
-            amount: amount,
-            recipientAddress: null,
-            // No specific recipient for manual slatepack.
-            message: onChainNoteController.text.isNotEmpty == true
-                ? onChainNoteController.text
-                : null,
-          );
-        }
-
-        // Create slatepack.
-        Exception? ex;
-        final slatepackResult = await showLoading(
-          whileFuture: wrappedFutureWithDelay(),
-          context: context,
-          message: "Building slate...",
-          delay: const Duration(seconds: 2),
-          onException: (e) => ex = e,
-        );
-
-        if (slatepackResult == null ||
-            !slatepackResult.success ||
-            slatepackResult.slatepack == null ||
-            ex != null) {
-          String error =
-              ex?.toString() ??
-              slatepackResult?.error ??
-              'Failed to create slate';
-          if (error.startsWith("Exception:")) {
-            error = error.replaceFirst("Exception:", "").trim();
-          }
-          throw Exception(error);
-        }
-
-        // refresh asap to show the pending slate tx in history
-        unawaited(() async {
-          await Future<void>.delayed(Duration.zero);
-          await wallet.refresh();
-        }());
-
-        // Show slatepack dialog.
-        if (mounted) {
-          await showDialog<void>(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => StackDialogBase(
-              child: EpicSlatepackDialog(slatepackResult: slatepackResult),
-            ),
-          );
-
-          // Clear form after slatepack dialog is closed.
-          clearSendForm();
-        }
-      }
-    } catch (e, s) {
-      Logging.instance.e(
-        'Failed to create Epic Cash slate on mobile',
-        error: e,
-        stackTrace: s,
-      );
-
-      if (mounted) {
-        await showDialog<void>(
-          context: context,
-          builder: (context) => StackOkDialog(
-            title: "Slate Creation Failed",
-            message: e.toString(),
-          ),
-        );
-      }
-    }
-  }
-
   /// Looks up the OpenAlias in the address field. Returns null if the lookup
   /// failed or was cancelled.
   Future<OpenAliasResolved?> _resolveOpenAlias(String application) async {
@@ -932,10 +753,13 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
     FocusScope.of(context).unfocus();
     await Future<void>.delayed(const Duration(milliseconds: 100));
     final wallet = ref.read(pWallets).getWallet(walletId);
+    final isSlatepackSend =
+        wallet is SlatepackInterface && ref.read(pIsSlatepack(walletId));
     String? openAlias;
     String? resolvedAddress;
     final application = coin.openAliasApplication;
     if (application != null &&
+        !isSlatepackSend &&
         !coin.validateAddress(_address ?? "") &&
         isOpenAlias(_address ?? "")) {
       var resolved = _openAlias;
@@ -1083,6 +907,21 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
                 ? selectedUTXOs
                 : null,
             opReturnData: ref.read(pOpReturnData),
+          ),
+        );
+      } else if (isSlatepackSend) {
+        // No address: the confirm screen hands out a slatepack instead.
+        txDataFuture = wallet.prepareSend(
+          txData: TxData(
+            recipients: [
+              TxRecipient(
+                address: "",
+                amount: amount,
+                isChange: false,
+                addressType: AddressType.mimbleWimble,
+              ),
+            ],
+            otherData: slatepackMethodOtherData(SlatepackMethod.slatepack),
           ),
         );
       } else if (wallet is FiroWallet) {
@@ -1393,6 +1232,10 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
     walletId = widget.walletId;
     fees = SendFeeRates(ref.read, walletId: walletId, isToken: false);
     clipboard = widget.clipboard;
+    final wallet = ref.read(pWallets).getWallet(walletId);
+    if (wallet is SlatepackInterface) {
+      _slatepackWallet = wallet;
+    }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.refresh(pIsExchangeAddress);
@@ -1509,7 +1352,7 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
     // ethFee is checked in the ValueListenableBuilder around the preview
     // button so fee keystrokes don't rebuild this whole view.
     final previewEnabled =
-        ref.watch(pPreviewTxButtonEnabled(coin)) &&
+        ref.watch(pPreviewTxButtonEnabled(walletId)) &&
         (ref.watch(pOpReturnData) == null || balType != BalanceType.private);
     final needsEthFee = isEth && isCustomFee;
 
@@ -1575,11 +1418,8 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
       );
     }
 
-    final isMwcSlatepack =
-        coin is Mimblewimblecoin && ref.watch(pIsSlatepack(widget.walletId));
-    final isEpicSlatepack =
-        coin is Epiccash && ref.watch(pIsSlatepack(widget.walletId));
-    final isSlatepackMode = isMwcSlatepack || isEpicSlatepack;
+    final isSlatepackMode = ref.watch(pIsSlatepack(widget.walletId));
+    final showOnChainNote = _slatepackWallet?.supportsOnChainNote ?? false;
 
     return Background(
       child: Scaffold(
@@ -1736,20 +1576,12 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
                             ),
                             const SizedBox(height: 16),
 
-                            // MWC Transaction Method Selector.
-                            if (coin is Mimblewimblecoin) ...[
-                              const SizedBox(
+                            if (_slatepackWallet != null) ...[
+                              SizedBox(
                                 height: 40,
-                                child: MwcTxsMethodToggle(),
-                              ),
-                              const SizedBox(height: 16),
-                            ],
-
-                            // Epic Cash Transaction Method Selector.
-                            if (coin is Epiccash) ...[
-                              const SizedBox(
-                                height: 40,
-                                child: EpicTxsMethodToggle(),
+                                child: SlatepackMethodToggle(
+                                  walletId: walletId,
+                                ),
                               ),
                               const SizedBox(height: 16),
                             ],
@@ -2514,14 +2346,14 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
                                 ),
                               ),
                             const SizedBox(height: 12),
-                            if (coin is Epiccash)
+                            if (showOnChainNote)
                               Text(
                                 "On chain Note",
                                 style: STextStyles.smallMed12(context),
                                 textAlign: TextAlign.left,
                               ),
-                            if (coin is Epiccash) const SizedBox(height: 8),
-                            if (coin is Epiccash)
+                            if (showOnChainNote) const SizedBox(height: 8),
+                            if (showOnChainNote)
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(
                                   Constants.size.circularBorderRadius,
@@ -2571,10 +2403,10 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
                                       ),
                                 ),
                               ),
-                            if (coin is Epiccash || coin is Mimblewimblecoin)
+                            if (_slatepackWallet != null)
                               const SizedBox(height: 12),
                             Text(
-                              (coin is Epiccash || coin is Mimblewimblecoin)
+                              _slatepackWallet != null
                                   ? "Local Note (optional)"
                                   : "Note (optional)",
                               style: STextStyles.smallMed12(context),
@@ -2793,11 +2625,7 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
                                     (!needsEthFee || ethFee != null);
                                 return TextButton(
                                   onPressed: enabled
-                                      ? isMwcSlatepack
-                                            ? _createSlatepack
-                                            : isEpicSlatepack
-                                            ? _createEpicSlatepack
-                                            : _previewTransaction
+                                      ? _previewTransaction
                                       : null,
                                   style: enabled
                                       ? Theme.of(context)
@@ -2811,9 +2639,7 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
                                               context,
                                             ),
                                   child: Text(
-                                    isSlatepackMode
-                                        ? "Create slate"
-                                        : "Preview",
+                                    "Preview",
                                     style: STextStyles.button(context),
                                   ),
                                 );

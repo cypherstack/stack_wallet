@@ -9,7 +9,6 @@
  */
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:decimal/decimal.dart';
@@ -44,12 +43,11 @@ import '../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import '../../wallets/isar/providers/solana/current_sol_token_wallet_provider.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/models/tx_data.dart';
-import '../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
-import '../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../wallets/wallet/impl/solana_wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/slatepack_interface.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -65,9 +63,8 @@ import '../../widgets/textfield_icon_button.dart';
 import '../../wl_gen/interfaces/libepiccash_interface.dart';
 import '../pinpad_views/lock_screen_view.dart';
 import '../wallet_view/wallet_view.dart';
-import 'sub_widgets/epic_slatepack_dialog.dart';
 import 'sub_widgets/multi_recipient.dart';
-import 'sub_widgets/mwc_slatepack_dialog.dart';
+import '../slatepack/slatepack_dialog.dart';
 import 'sub_widgets/sending_transaction_dialog.dart';
 import 'sub_widgets/split_transaction_warning.dart';
 
@@ -156,161 +153,39 @@ class _ConfirmTransactionViewState
     }
   }
 
-  /// Handle MWC slatepack creation for manual exchange.
-  Future<void> _handleMwcSlatepackCreation(
+  /// Slatepack sends end here instead of broadcasting: create the S1 and
+  /// show it.
+  Future<void> _createSlatepack(
     BuildContext context,
-    MimblewimblecoinWallet wallet,
+    SlatepackInterface wallet,
+    void Function() closeSendingDialog,
   ) async {
-    try {
-      // Close the progress dialog first.
-      Navigator.of(context).pop();
+    final terms = wallet.slatepackTerms;
+    final recipient = widget.txData.recipients!.first;
+    final note = onChainNoteController.text;
 
-      // Get recipient information from txData.
-      final recipient = widget.txData.recipients?.first;
-      if (recipient == null) {
-        throw Exception('No recipient found in transaction data');
-      }
-
-      // Create slatepack.
-      final slatepackResult = await wallet.createSlatepack(
-        amount: recipient.amount,
-        recipientAddress: recipient.address.isNotEmpty
-            ? recipient.address
-            : null,
-        message: onChainNoteController.text.isNotEmpty
-            ? onChainNoteController.text
-            : null,
-        encrypt: recipient
-            .address
-            .isNotEmpty, // Encrypt if we have a recipient address.
-      );
-
-      if (!slatepackResult.success || slatepackResult.slatepack == null) {
-        throw Exception(slatepackResult.error ?? 'Failed to create slatepack');
-      }
-
-      // Show slatepack dialog.
-      if (context.mounted) {
-        await showDialog<void>(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) =>
-              MwcSlatepackDialog(slatepackResult: slatepackResult),
-        );
-
-        // After slatepack dialog is closed, navigate back to wallet.
-        if (context.mounted) {
-          widget.onSuccess.call();
-          if (widget.onSuccessInsteadOfRouteOnSuccess == null) {
-            Navigator.of(context)
-                .popUntil(ModalRoute.withName(routeOnSuccessName));
-          } else {
-            widget.onSuccessInsteadOfRouteOnSuccess!.call();
-          }
-        }
-      }
-    } catch (e, s) {
-      Logging.instance.e('Failed to create MWC slatepack: $e\n$s');
-
-      if (context.mounted) {
-        // Show user-friendly error message.
-        final errorMessage = e.toString().contains('insufficient funds')
-            ? 'Insufficient funds for this transaction'
-            : e.toString().contains('wallet not open')
-            ? 'Wallet not accessible. Please restart the app.'
-            : 'Failed to create slatepack: ${e.toString()}';
-
-        await showDialog<void>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Slatepack Creation Failed'),
-            content: Text(errorMessage),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('OK'),
-              ),
-            ],
-          ),
-        );
-      }
+    final result = await wallet.createSlatepack(
+      amount: recipient.amount,
+      recipientAddress: recipient.address.isEmpty ? null : recipient.address,
+      message: wallet.supportsOnChainNote && note.isNotEmpty ? note : null,
+    );
+    if (!result.success || result.slatepack == null) {
+      throw Exception(result.error ?? "Failed to create ${terms.noun}");
     }
-  }
 
-  /// Handle Epic Cash slate creation for manual exchange.
-  Future<void> _handleEpicSlatepackCreation(
-    BuildContext context,
-    EpiccashWallet wallet,
-  ) async {
-    try {
-      // Close the progress dialog first.
-      Navigator.of(context).pop();
+    unawaited(wallet.refresh());
+    closeSendingDialog();
 
-      // Get recipient information from txData.
-      final recipient = widget.txData.recipients?.first;
-      if (recipient == null) {
-        throw Exception('No recipient found in transaction data');
-      }
+    if (context.mounted) {
+      await showSlatepackDialog(context: context, terms: terms, result: result);
+    }
 
-      // Create slatepack.
-      final slatepackResult = await wallet.createSlatepack(
-        amount: recipient.amount,
-        recipientAddress: recipient.address.isNotEmpty
-            ? recipient.address
-            : null,
-        message: onChainNoteController.text.isNotEmpty
-            ? onChainNoteController.text
-            : null,
-      );
-
-      if (!slatepackResult.success || slatepackResult.slatepack == null) {
-        throw Exception(slatepackResult.error ?? 'Failed to create slate');
-      }
-
-      // Show slatepack dialog.
-      if (context.mounted) {
-        await showDialog<void>(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) =>
-              EpicSlatepackDialog(slatepackResult: slatepackResult),
-        );
-
-        // After slatepack dialog is closed, navigate back to wallet.
-        if (context.mounted) {
-          widget.onSuccess.call();
-          if (widget.onSuccessInsteadOfRouteOnSuccess == null) {
-            Navigator.of(context)
-                .popUntil(ModalRoute.withName(routeOnSuccessName));
-          } else {
-            widget.onSuccessInsteadOfRouteOnSuccess!.call();
-          }
-        }
-      }
-    } catch (e, s) {
-      Logging.instance.e('Failed to create Epic Cash slate: $e\n$s');
-
-      if (context.mounted) {
-        // Show user-friendly error message.
-        final errorMessage = e.toString().contains('insufficient funds')
-            ? 'Insufficient funds for this transaction'
-            : e.toString().contains('wallet not open')
-            ? 'Wallet not accessible. Please restart the app.'
-            : 'Failed to create slate: ${e.toString()}';
-
-        await showDialog<void>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Slate Creation Failed'),
-            content: Text(errorMessage),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('OK'),
-              ),
-            ],
-          ),
-        );
+    widget.onSuccess.call();
+    if (context.mounted) {
+      if (widget.onSuccessInsteadOfRouteOnSuccess == null) {
+        Navigator.of(context).popUntil(ModalRoute.withName(routeOnSuccessName));
+      } else {
+        widget.onSuccessInsteadOfRouteOnSuccess!.call();
       }
     }
   }
@@ -392,54 +267,18 @@ class _ConfirmTransactionViewState
               break;
           }
         } else {
-          if (coin is Mimblewimblecoin) {
-            // Check if this is a slatepack transaction (manual exchange).
-            final otherDataMap = widget.txData.otherData != null
-                ? jsonDecode(widget.txData.otherData!)
-                : null;
-            final transactionMethod =
-                otherDataMap?['transactionMethod'] as String?;
-
-            if (transactionMethod == 'slatepack') {
-              // Handle slatepack creation instead of direct send.
-              await _handleMwcSlatepackCreation(
-                context,
-                wallet as MimblewimblecoinWallet,
-              );
-              closeSendingDialog();
-              return; // Exit early, don't continue with normal transaction flow.
-            } else {
-              // Handle MWCMQS or HTTP transactions normally.
-              txDataFuture = wallet.confirmSend(
-                txData: widget.txData.copyWith(
-                  noteOnChain: onChainNoteController.text,
-                ),
-              );
+          if (wallet is SlatepackInterface) {
+            if (widget.txData.isSlatepackSend) {
+              await _createSlatepack(context, wallet, closeSendingDialog);
+              return;
             }
-          } else if (coin is Epiccash) {
-            // Check if this is a slatepack transaction (manual exchange).
-            final epicOtherDataMap = widget.txData.otherData != null
-                ? jsonDecode(widget.txData.otherData!)
-                : null;
-            final epicTransactionMethod =
-                epicOtherDataMap?['transactionMethod'] as String?;
-
-            if (epicTransactionMethod == 'slatepack') {
-              // Handle slatepack creation instead of direct send.
-              await _handleEpicSlatepackCreation(
-                context,
-                wallet as EpiccashWallet,
-              );
-              closeSendingDialog();
-              return; // Exit early, don't continue with normal transaction flow.
-            } else {
-              // Handle Epicbox transactions normally.
-              txDataFuture = wallet.confirmSend(
-                txData: widget.txData.copyWith(
-                  noteOnChain: onChainNoteController.text,
-                ),
-              );
-            }
+            txDataFuture = wallet.confirmSend(
+              txData: widget.txData.copyWith(
+                noteOnChain: wallet.supportsOnChainNote
+                    ? onChainNoteController.text
+                    : null,
+              ),
+            );
           } else {
             txDataFuture = wallet.confirmSend(txData: widget.txData);
           }
@@ -691,6 +530,16 @@ class _ConfirmTransactionViewState
 
     final feeRate = formatApproximateFeeRate(fee?.raw, widget.txData.vSize);
 
+    final slatepackWallet = wallet is SlatepackInterface ? wallet : null;
+    final showOnChainNote = slatepackWallet?.supportsOnChainNote ?? false;
+    // A slatepack send without an address goes to whoever gets the slatepack.
+    final String? slatepackRecipient =
+        slatepackWallet != null &&
+            widget.txData.isSlatepackSend &&
+            (widget.txData.recipients?.firstOrNull?.address.isEmpty ?? false)
+        ? "${slatepackWallet.slatepackTerms.title}, exchanged manually"
+        : null;
+
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(
@@ -816,7 +665,8 @@ class _ConfirmTransactionViewState
                           Text(
                             widget.isPaynymTransaction
                                 ? widget.txData.paynymAccountLite!.nymName
-                                : widget
+                                : slatepackRecipient ??
+                                      widget
                                           .txData
                                           .recipients
                                           ?.firstOrNull
@@ -910,11 +760,11 @@ class _ConfirmTransactionViewState
                         ],
                       ),
                     ),
-                  if ((coin is Epiccash || coin is Mimblewimblecoin) &&
-                      widget.txData.noteOnChain!.isNotEmpty)
+                  if (showOnChainNote &&
+                      (widget.txData.noteOnChain ?? "").isNotEmpty)
                     const SizedBox(height: 12),
-                  if ((coin is Epiccash || coin is Mimblewimblecoin) &&
-                      widget.txData.noteOnChain!.isNotEmpty)
+                  if (showOnChainNote &&
+                      (widget.txData.noteOnChain ?? "").isNotEmpty)
                     RoundedWhiteContainer(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -939,9 +789,7 @@ class _ConfirmTransactionViewState
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Text(
-                            (coin is Epiccash || coin is Mimblewimblecoin)
-                                ? "Local Note"
-                                : "Note",
+                            slatepackWallet != null ? "Local Note" : "Note",
                             style: STextStyles.smallMed12(context),
                           ),
                           const SizedBox(height: 4),
@@ -1219,7 +1067,8 @@ class _ConfirmTransactionViewState
                                 // TODO: [prio=med] spark transaction specifics - better handling
                                 widget.isPaynymTransaction
                                     ? widget.txData.paynymAccountLite!.nymName
-                                    : widget
+                                    : slatepackRecipient ??
+                                          widget
                                               .txData
                                               .recipients
                                               ?.firstOrNull
@@ -1355,15 +1204,14 @@ class _ConfirmTransactionViewState
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (coin is Epiccash || coin is Mimblewimblecoin)
+                    if (showOnChainNote)
                       Text(
                         "On chain Note",
                         style: STextStyles.smallMed12(context),
                         textAlign: TextAlign.left,
                       ),
-                    if (coin is Epiccash || coin is Mimblewimblecoin)
-                      const SizedBox(height: 8),
-                    if (coin is Epiccash || coin is Mimblewimblecoin)
+                    if (showOnChainNote) const SizedBox(height: 8),
+                    if (showOnChainNote)
                       ClipRRect(
                         borderRadius: BorderRadius.circular(
                           Constants.size.circularBorderRadius,
@@ -1408,10 +1256,9 @@ class _ConfirmTransactionViewState
                               ),
                         ),
                       ),
-                    if (coin is Epiccash || coin is Mimblewimblecoin)
-                      const SizedBox(height: 12),
+                    if (showOnChainNote) const SizedBox(height: 12),
                     SelectableText(
-                      (coin is Epiccash || coin is Mimblewimblecoin)
+                      slatepackWallet != null
                           ? "Local Note (optional)"
                           : "Note (optional)",
                       style: STextStyles.desktopTextExtraSmall(context)

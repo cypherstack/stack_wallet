@@ -37,8 +37,7 @@ import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
-import '../../../wallets/wallet/impl/epiccash_wallet.dart';
-import '../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
+import '../../../wallets/wallet/wallet_mixin_interfaces/slatepack_interface.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -275,16 +274,16 @@ class _TransactionDetailsViewState
               child: Text(
                 "Cancel",
                 style: STextStyles.button(context).copyWith(
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.accentColorDark,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .accentColorDark,
                 ),
               ),
             ),
             rightButton: TextButton(
-              style: Theme.of(
-                context,
-              ).extension<StackColors>()!.getPrimaryEnabledButtonStyle(context),
+              style: Theme.of(context)
+                  .extension<StackColors>()!
+                  .getPrimaryEnabledButtonStyle(context),
               onPressed: () {
                 Navigator.of(context).pop(true);
               },
@@ -398,9 +397,9 @@ class _TransactionDetailsViewState
         appBar: isDesktop
             ? null
             : AppBar(
-                backgroundColor: Theme.of(
-                  context,
-                ).extension<StackColors>()!.background,
+                backgroundColor: Theme.of(context)
+                    .extension<StackColors>()!
+                    .background,
                 leading: AppBarBackButton(
                   onPressed: () async {
                     // if (FocusScope.of(context).hasFocus) {
@@ -445,9 +444,9 @@ class _TransactionDetailsViewState
                       builder: (child) {
                         return RoundedWhiteContainer(
                           borderColor: isDesktop
-                              ? Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.backgroundAppBar
+                              ? Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .backgroundAppBar
                               : null,
                           padding: const EdgeInsets.all(0),
                           child: child,
@@ -896,15 +895,14 @@ class _TransactionDetailsViewState
                                               )
                                             : GestureDetector(
                                                 onTap: () {
-                                                  Navigator.of(
-                                                    context,
-                                                  ).pushNamed(
-                                                    EditNoteView.routeName,
-                                                    arguments: Tuple2(
-                                                      _transaction.txid,
-                                                      walletId,
-                                                    ),
-                                                  );
+                                                  Navigator.of(context)
+                                                      .pushNamed(
+                                                        EditNoteView.routeName,
+                                                        arguments: Tuple2(
+                                                          _transaction.txid,
+                                                          walletId,
+                                                        ),
+                                                      );
                                                 },
                                                 child: Row(
                                                   children: [
@@ -1487,16 +1485,16 @@ class _TransactionDetailsViewState
                                                     unawaited(
                                                       showDialog<void>(
                                                         context: context,
-                                                        builder: (_) => StackOkDialog(
-                                                          title:
-                                                              "Could not open in block explorer",
-                                                          message:
-                                                              "Failed to open \"${uri.toString()}\"",
-                                                          maxWidth:
-                                                              Util.isDesktop
-                                                              ? 400
-                                                              : null,
-                                                        ),
+                                                        builder: (_) =>
+                                                            StackOkDialog(
+                                                              title: "Could not open in block explorer",
+                                                              message:
+                                                                  "Failed to open \"${uri.toString()}\"",
+                                                              maxWidth:
+                                                                  Util.isDesktop
+                                                                  ? 400
+                                                                  : null,
+                                                            ),
                                                       ),
                                                     );
                                                   }
@@ -1699,66 +1697,15 @@ class _TransactionDetailsViewState
                     onPressed: () async {
                       final wallet = ref.read(pWallets).getWallet(walletId);
 
-                      if (wallet is EpiccashWallet) {
+                      if (wallet is SlatepackInterface) {
                         final String? id = _transaction.slateId;
                         if (id == null) {
                           unawaited(
                             showFloatingFlushBar(
                               type: FlushBarType.warning,
-                              message: "Could not find Epic transaction ID",
-                              context: context,
-                            ),
-                          );
-                          return;
-                        }
-
-                        unawaited(
-                          showDialog<dynamic>(
-                            barrierDismissible: false,
-                            context: context,
-                            builder: (_) =>
-                                const CancellingTransactionProgressDialog(),
-                          ),
-                        );
-
-                        final result = await wallet
-                            .cancelPendingTransactionAndPost(id);
-
-                        if (context.mounted) {
-                          // pop progress dialog
-                          Navigator.of(context).pop();
-
-                          if (result.isEmpty) {
-                            await showDialog<dynamic>(
-                              context: context,
-                              builder: (_) => StackOkDialog(
-                                title: "Transaction cancelled",
-                                maxWidth: Util.isDesktop ? 400 : null,
-                                onOkPressed: (_) {
-                                  Navigator.of(context).popUntil(
-                                    ModalRoute.withName(WalletView.routeName),
-                                  );
-                                },
-                              ),
-                            );
-                          } else {
-                            await showDialog<dynamic>(
-                              context: context,
-                              builder: (_) => StackOkDialog(
-                                title: "Failed to cancel transaction",
-                                message: result,
-                                maxWidth: Util.isDesktop ? 400 : null,
-                              ),
-                            );
-                          }
-                        }
-                      } else if (wallet is MimblewimblecoinWallet) {
-                        final String? id = _transaction.slateId;
-                        if (id == null) {
-                          unawaited(
-                            showFloatingFlushBar(
-                              type: FlushBarType.warning,
-                              message: "Could not find MWC transaction ID",
+                              message:
+                                  "Could not find "
+                                  "${wallet.cryptoCurrency.ticker} transaction ID",
                               context: context,
                             ),
                           );
@@ -1809,8 +1756,7 @@ class _TransactionDetailsViewState
                         unawaited(
                           showFloatingFlushBar(
                             type: FlushBarType.warning,
-                            message:
-                                "ERROR: Wallet type is not Epic Cash or MimbleWimbleCoin",
+                            message: "ERROR: This wallet cannot cancel slatepack transactions",
                             context: context,
                           ),
                         );
@@ -1853,9 +1799,9 @@ class IconCopyButton extends StatelessWidget {
       height: 26,
       width: 26,
       child: RawMaterialButton(
-        fillColor: Theme.of(
-          context,
-        ).extension<StackColors>()!.buttonBackSecondary,
+        fillColor: Theme.of(context)
+            .extension<StackColors>()!
+            .buttonBackSecondary,
         elevation: 0,
         hoverElevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
@@ -1895,9 +1841,9 @@ class IconPencilButton extends StatelessWidget {
       height: 26,
       width: 26,
       child: RawMaterialButton(
-        fillColor: Theme.of(
-          context,
-        ).extension<StackColors>()!.buttonBackSecondary,
+        fillColor: Theme.of(context)
+            .extension<StackColors>()!
+            .buttonBackSecondary,
         elevation: 0,
         hoverElevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),

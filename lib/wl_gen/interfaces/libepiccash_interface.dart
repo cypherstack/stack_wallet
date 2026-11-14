@@ -1,8 +1,8 @@
-import 'dart:math';
-
 import '../../utilities/dynamic_object.dart';
+import 'mimblewimble_transaction.dart';
 
 export '../generated/libepiccash_interface_impl.dart';
+export 'mimblewimble_transaction.dart';
 
 abstract class LibEpicCashInterface {
   const LibEpicCashInterface();
@@ -68,7 +68,7 @@ abstract class LibEpicCashInterface {
     required String transactionId,
   });
 
-  Future<List<EpicTransaction>> getTransactions({
+  Future<List<MimblewimbleTransaction>> getTransactions({
     required DynamicObject wallet,
     required int refreshFromNode,
   });
@@ -127,89 +127,6 @@ abstract class LibEpicCashInterface {
   });
 
   void updateConfig({required DynamicObject wallet, required String config});
-}
-
-class EpicTransaction {
-  final String parentKeyId;
-  final int id;
-  final String? txSlateId;
-  final Enum txType;
-  final String creationTs;
-  final String confirmationTs;
-  final bool confirmed;
-  final int numInputs;
-  final int numOutputs;
-  final String amountCredited;
-  final String amountDebited;
-  final String? fee;
-  final String? ttlCutoffHeight;
-  final List<EpicMessage>? messages;
-  final String? storedTx;
-  final String? kernelExcess;
-  final int? kernelLookupMinHeight;
-  final String? paymentProof;
-
-  EpicTransaction({
-    required this.parentKeyId,
-    required this.id,
-    this.txSlateId,
-    required this.txType,
-    required this.creationTs,
-    required this.confirmationTs,
-    required this.confirmed,
-    required this.numInputs,
-    required this.numOutputs,
-    required this.amountCredited,
-    required this.amountDebited,
-    this.fee,
-    this.ttlCutoffHeight,
-    this.messages,
-    this.storedTx,
-    this.kernelExcess,
-    this.kernelLookupMinHeight,
-    this.paymentProof,
-  });
-
-  @override
-  String toString() {
-    return 'EpicTransaction('
-        'id: $id, '
-        'txSlateId: $txSlateId, '
-        'type: $txType, '
-        'confirmed: $confirmed, '
-        'inputs: $numInputs, '
-        'outputs: $numOutputs, '
-        'credited: $amountCredited, '
-        'debited: $amountDebited, '
-        'fee: $fee, '
-        'created: $creationTs, '
-        'confirmed: $confirmationTs, '
-        'messages: ${messages?.length ?? 0}'
-        ')';
-  }
-}
-
-class EpicMessage {
-  final String id;
-  final String publicKey;
-  final String? message;
-  final String? messageSig;
-
-  EpicMessage({
-    required this.id,
-    required this.publicKey,
-    this.message,
-    this.messageSig,
-  });
-
-  @override
-  String toString() {
-    return 'EpicMessage('
-        'id: $id, '
-        'publicKey: ${publicKey.substring(0, 8)}..., '
-        'message: ${message != null ? '"${message!.substring(0, min(20, message!.length))}..."' : 'null'}'
-        ')';
-  }
 }
 
 class BadHttpAddressException implements Exception {}

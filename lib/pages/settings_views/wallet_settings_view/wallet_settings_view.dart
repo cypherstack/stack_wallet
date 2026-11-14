@@ -302,9 +302,8 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
           }
         });
 
-    _walletBackupPressed = IfNotAlreadyAsync<void>(
-      _walletBackupPressedHelper,
-    ).execute;
+    _walletBackupPressed = IfNotAlreadyAsync<void>(_walletBackupPressedHelper)
+        .execute;
     _walletXPubPressed = IfNotAlreadyAsync<void>(_walletXPubHelper).execute;
     _walletSparkViewKeyPressed = IfNotAlreadyAsync<void>(
       __walletSparkViewKeyPressedHelper,
@@ -376,9 +375,8 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
               iconSize: 16,
               title: "Address book",
               onPressed: () {
-                Navigator.of(
-                  context,
-                ).pushNamed(AddressBookView.routeName, arguments: coin);
+                Navigator.of(context)
+                    .pushNamed(AddressBookView.routeName, arguments: coin);
               },
             ),
             if (coin is FrostCurrency) const SizedBox(height: 8),
@@ -417,10 +415,9 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                 iconSize: 16,
                 title: "Epicbox Servers",
                 onPressed: () {
-                  Navigator.of(context).pushNamed(
-                    ManageEpicboxView.routeName,
-                    arguments: walletId,
-                  );
+                  Navigator.of(
+                    context,
+                  ).pushNamed(ManageEpicboxView.routeName, arguments: walletId);
                 },
               ),
             if (canBackup) const SizedBox(height: 8),
@@ -452,9 +449,8 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
               iconAssetName: Assets.svg.arrowRotate,
               title: "Syncing preferences",
               onPressed: () {
-                Navigator.of(
-                  context,
-                ).pushNamed(SyncingPreferencesView.routeName);
+                Navigator.of(context)
+                    .pushNamed(SyncingPreferencesView.routeName);
               },
             ),
             if (xPubEnabled) const SizedBox(height: 8),
@@ -611,9 +607,9 @@ class _WalletSettingsViewBody extends StatelessWidget {
                               child: Text(
                                 "Log out",
                                 style: STextStyles.button(context).copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.accentColorDark,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .accentColorDark,
                                 ),
                               ),
                             );
@@ -651,7 +647,7 @@ class _EpiBoxInfoFormState extends ConsumerState<EpicBoxInfoForm> {
   void initState() {
     wallet = ref.read(pWallets).getWallet(widget.walletId) as EpiccashWallet;
 
-    wallet.getEpicBoxConfig().then((EpicBoxConfigModel epicBoxConfig) {
+    wallet.getRelayConfig().then((EpicBoxConfigModel epicBoxConfig) {
       hostController.text = epicBoxConfig.host;
       portController.text = "${epicBoxConfig.port ?? 443}";
     });
@@ -691,7 +687,7 @@ class _EpiBoxInfoFormState extends ConsumerState<EpicBoxInfoForm> {
           TextButton(
             onPressed: () async {
               try {
-                await wallet.updateEpicboxConfig(
+                await wallet.updateRelayConfig(
                   hostController.text,
                   int.parse(portController.text),
                 );
@@ -716,9 +712,9 @@ class _EpiBoxInfoFormState extends ConsumerState<EpicBoxInfoForm> {
             child: Text(
               "Save",
               style: STextStyles.button(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.accentColorDark,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .accentColorDark,
               ),
             ),
           ),
@@ -748,7 +744,7 @@ class _MwcmqsInfoFormState extends ConsumerState<MwcMqsInfoForm> {
     wallet =
         ref.read(pWallets).getWallet(widget.walletId) as MimblewimblecoinWallet;
 
-    wallet.getMwcMqsConfig().then((MwcMqsConfigModel mwcmqsConfig) {
+    wallet.getRelayConfig().then((MwcMqsConfigModel mwcmqsConfig) {
       hostController.text = mwcmqsConfig.host;
       portController.text = "${mwcmqsConfig.port ?? 443}";
     });
@@ -788,7 +784,7 @@ class _MwcmqsInfoFormState extends ConsumerState<MwcMqsInfoForm> {
           TextButton(
             onPressed: () async {
               try {
-                await wallet.updateMwcmqsConfig(
+                await wallet.updateRelayConfig(
                   hostController.text,
                   int.parse(portController.text),
                 );
@@ -813,9 +809,9 @@ class _MwcmqsInfoFormState extends ConsumerState<MwcMqsInfoForm> {
             child: Text(
               "Save",
               style: STextStyles.button(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.accentColorDark,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .accentColorDark,
               ),
             ),
           ),

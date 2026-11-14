@@ -13,7 +13,6 @@ import '../../../../utilities/util.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
-import '../../../../wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -104,11 +103,7 @@ class _EditRefreshHeightViewState extends ConsumerState<EditRefreshHeightView> {
     _controller = TextEditingController();
     final wallet = ref.read(pWallets).getWallet(widget.walletId);
     if (wallet is EpiccashWallet) {
-      _controller.text = ref
-          .read(pWalletInfo(widget.walletId))
-          .epicData!
-          .restoreHeight
-          .toString();
+      _controller.text = wallet.mimblewimbleData!.restoreHeight.toString();
     } else if (wallet is CryptonoteWallet && wallet.wallet != null) {
       wallet.getRefreshFromBlockHeight().then((height) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -169,9 +164,9 @@ class _EditRefreshHeightViewState extends ConsumerState<EditRefreshHeightView> {
         builder: (child) {
           return Background(
             child: Scaffold(
-              backgroundColor: Theme.of(
-                context,
-              ).extension<StackColors>()!.background,
+              backgroundColor: Theme.of(context)
+                  .extension<StackColors>()!
+                  .background,
               appBar: AppBar(
                 leading: AppBarBackButton(
                   onPressed: () {
