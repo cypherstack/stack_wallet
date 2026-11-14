@@ -67,6 +67,7 @@ import '../../../../wallets/wallet/impl/salvium_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/recoverable_prepared_send_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
@@ -84,6 +85,7 @@ import '../../../../widgets/icon_widgets/qrcode_icon.dart';
 import '../../../../widgets/icon_widgets/x_icon.dart';
 import '../../../../widgets/mwc_txs_method_toggle.dart';
 import '../../../../widgets/rounded_container.dart';
+import '../../../../widgets/stack_dialog.dart';
 import '../../../../widgets/stack_text_field.dart';
 import '../../../../widgets/textfield_icon_button.dart';
 import '../../../coin_control/desktop_coin_control_use_dialog.dart';
@@ -170,6 +172,51 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
   int customFeeRate = 1;
   final _ethFee = ValueNotifier<EthEIP1559Fee?>(null);
+
+  bool _preparedRecoveryRequested = false;
+
+  Future<void> _resumePreparedSendIfAny() async {
+    if (_preparedRecoveryRequested) return;
+    _preparedRecoveryRequested = true;
+    final wallet = ref.read(pWallets).getWallet(walletId);
+    if (wallet is! RecoverablePreparedSendWallet) return;
+    final TxData? txData;
+    try {
+      txData = await (wallet as RecoverablePreparedSendWallet)
+          .recoverPreparedSend();
+    } on Object catch (_, stackTrace) {
+      Logging.instance.e(
+        'Failed to recover a prepared transaction',
+        stackTrace: stackTrace,
+      );
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (_) => const StackOkDialog(
+          title: 'Unable to resume transaction',
+          message:
+              'The saved transaction could not be resumed. Reopen Send '
+              'to try again.',
+        ),
+      );
+      return;
+    }
+    if (!mounted || txData == null) return;
+    final recovered = txData;
+    await showDialog<void>(
+      context: context,
+      builder: (context) => DesktopDialog(
+        maxHeight: MediaQuery.of(context).size.height - 64,
+        maxWidth: 580,
+        child: ConfirmTransactionView(
+          txData: recovered,
+          walletId: walletId,
+          onSuccess: clearSendForm,
+          routeOnSuccessName: DesktopHomeView.routeName,
+        ),
+      ),
+    );
+  }
 
   Future<void> scanWebcam() async {
     try {
@@ -1558,6 +1605,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       ref.refresh(pIsExchangeAddress);
       ref.read(pValidSendToAddress.state).state = false;
       ref.read(pValidSparkSendToAddress.state).state = false;
+      unawaited(_resumePreparedSendIfAny());
     });
 
     // _calculateFeesFuture = calculateFees(0);

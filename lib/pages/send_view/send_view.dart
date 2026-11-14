@@ -62,6 +62,7 @@ import '../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
 import '../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../wallets/wallet/impl/salvium_wallet.dart';
+import '../../wallets/wallet/wallet_mixin_interfaces/recoverable_prepared_send_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
@@ -1380,6 +1381,49 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
 
   late final bool hasFees;
 
+  bool _preparedRecoveryRequested = false;
+
+  Future<void> _resumePreparedSendIfAny() async {
+    if (_preparedRecoveryRequested) return;
+    _preparedRecoveryRequested = true;
+    final wallet = ref.read(pWallets).getWallet(walletId);
+    if (wallet is! RecoverablePreparedSendWallet) return;
+    final TxData? txData;
+    try {
+      txData = await (wallet as RecoverablePreparedSendWallet)
+          .recoverPreparedSend();
+    } on Object catch (_, stackTrace) {
+      Logging.instance.e(
+        'Failed to recover a prepared transaction',
+        stackTrace: stackTrace,
+      );
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (_) => const StackOkDialog(
+          title: 'Unable to resume transaction',
+          message:
+              'The saved transaction could not be resumed. Reopen Send '
+              'to try again.',
+        ),
+      );
+      return;
+    }
+    if (!mounted || txData == null) return;
+    final recovered = txData;
+    await Navigator.of(context).push(
+      RouteGenerator.getRoute<void>(
+        shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
+        builder: (_) => ConfirmTransactionView(
+          txData: recovered,
+          walletId: walletId,
+          onSuccess: clearSendForm,
+        ),
+        settings: const RouteSettings(name: ConfirmTransactionView.routeName),
+      ),
+    );
+  }
+
   void _onFeeSelectPressed() => showFeeSheet(this);
 
   @override
@@ -1396,6 +1440,7 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.refresh(pIsExchangeAddress);
+      unawaited(_resumePreparedSendIfAny());
     });
     hasFees = hasSendFee(coin);
     if (hasFees && coin is! Xelis) {
