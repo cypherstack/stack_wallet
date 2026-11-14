@@ -33,6 +33,7 @@ import '../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../wallets/wallet/intermediate/lib_salvium_wallet.dart';
 import '../wallets/wallet/wallet.dart';
+import '../wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 import 'event_bus/events/wallet_added_event.dart';
 import 'event_bus/global_event_bus.dart';
 import 'node_service.dart';
@@ -117,6 +118,21 @@ class Wallets {
     final wallet = _wallets[walletId];
     _wallets.remove(walletId);
     await wallet?.exit();
+    // An Electrum wallet owns its connection; no other client will close it.
+    try {
+      if (wallet is ElectrumXInterface) {
+        await wallet.electrumXClient.closeAdapter();
+      } else if (wallet is BitcoinFrostWallet) {
+        await wallet.electrumXClient.closeAdapter();
+      }
+    } catch (e, s) {
+      // A wallet that never loaded has no client.
+      Logging.instance.w(
+        "Closing the Electrum client of $walletId",
+        error: e,
+        stackTrace: s,
+      );
+    }
 
     if (info.coin is Xelis) {
       // Remove unlocked native storage before forgetting its password.

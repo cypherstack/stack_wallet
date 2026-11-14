@@ -9,6 +9,12 @@ Future<void> main(List<String> args) async {
 
   if (args.contains("--fetch")) {
     await _fetchPrebuilt(projectToolDir);
+  } else if (!Platform.isWindows) {
+    stderr.writeln(
+      "Building mwebd.exe requires native Windows. Use --fetch for the "
+      "published release.",
+    );
+    exit(1);
   } else {
     await _buildFromSource(projectToolDir);
   }
@@ -101,7 +107,7 @@ Future<void> _buildFromSource(Directory projectToolDir) async {
   );
   final isCI = Platform.environment['CI'] == 'true';
   final Process build;
-  if (Platform.isWindows && isCI) {
+  if (isCI) {
     build = await Process.start(
       "go",
       [
@@ -115,7 +121,7 @@ Future<void> _buildFromSource(Directory projectToolDir) async {
       runInShell: true,
       mode: ProcessStartMode.inheritStdio,
     );
-  } else if (Platform.isWindows) {
+  } else {
     build = await Process.start(
       "wsl",
       [
@@ -125,25 +131,6 @@ Future<void> _buildFromSource(Directory projectToolDir) async {
         "GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc "
             "go build -v -o ../mwebd.exe github.com/ltcmweb/mwebd/cmd/mwebd",
       ],
-      runInShell: true,
-      mode: ProcessStartMode.inheritStdio,
-    );
-  } else {
-    build = await Process.start(
-      "go",
-      [
-        "build",
-        "-v",
-        "-o",
-        "../mwebd.exe",
-        "github.com/ltcmweb/mwebd/cmd/mwebd",
-      ],
-      environment: {
-        "GOOS": "windows",
-        "GOARCH": "amd64",
-        "CGO_ENABLED": "1",
-        "CC": "x86_64-w64-mingw32-gcc",
-      },
       runInShell: true,
       mode: ProcessStartMode.inheritStdio,
     );
@@ -161,21 +148,14 @@ Future<void> _buildFromSource(Directory projectToolDir) async {
   }
 
   // copy the build mwebd.exe to assets/windows
-  final copy = Platform.isWindows
-      ? await Process.start("cmd", [
-          "/C",
-          "copy",
-          "${Directory.current.parent.path}"
-              "${Platform.pathSeparator}mwebd.exe",
-          "${winAssetsDir.path}"
-              "${Platform.pathSeparator}mwebd.exe",
-        ], mode: ProcessStartMode.inheritStdio)
-      : await Process.start("cp", [
-          "${Directory.current.parent.path}"
-              "${Platform.pathSeparator}mwebd.exe",
-          "${winAssetsDir.path}"
-              "${Platform.pathSeparator}mwebd.exe",
-        ], mode: ProcessStartMode.inheritStdio);
+  final copy = await Process.start("cmd", [
+    "/C",
+    "copy",
+    "${Directory.current.parent.path}"
+        "${Platform.pathSeparator}mwebd.exe",
+    "${winAssetsDir.path}"
+        "${Platform.pathSeparator}mwebd.exe",
+  ], mode: ProcessStartMode.inheritStdio);
   await _waitForProcess(copy);
 
   // cleanup

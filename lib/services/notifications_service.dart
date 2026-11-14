@@ -14,7 +14,6 @@ import 'package:flutter/foundation.dart';
 
 import '../app_config.dart';
 import '../db/hive/db.dart';
-import '../electrumx_rpc/electrumx_client.dart';
 import '../exceptions/electrumx/no_such_transaction.dart';
 import '../models/exchange/response_objects/trade.dart';
 import '../models/notification_model.dart';
@@ -150,37 +149,11 @@ class NotificationsService extends ChangeNotifier {
               }
             }
 
-            final eNode = ElectrumXNode(
-              address: node.host,
-              port: node.port,
-              name: node.name,
-              id: node.id,
-              useSSL: node.useSSL,
-              torEnabled: node.torEnabled,
-              clearnetEnabled: node.clearnetEnabled,
+            // The wallet's own client: no extra connection per check, and a
+            // node or approval change replaces it through updateNode().
+            final tx = await wallet.electrumXClient.getTransaction(
+              txHash: txid,
             );
-            final failovers = nodeService
-                .failoverNodesFor(currency: coin)
-                .map(
-                  (e) => ElectrumXNode(
-                    address: e.host,
-                    port: e.port,
-                    name: e.name,
-                    id: e.id,
-                    useSSL: e.useSSL,
-                    torEnabled: node.torEnabled,
-                    clearnetEnabled: node.clearnetEnabled,
-                  ),
-                )
-                .toList();
-
-            final client = ElectrumXClient.from(
-              node: eNode,
-              failovers: failovers,
-              prefs: prefs,
-              cryptoCurrency: wallet.cryptoCurrency,
-            );
-            final tx = await client.getTransaction(txHash: txid);
 
             int confirmations = tx["confirmations"] as int? ?? 0;
 

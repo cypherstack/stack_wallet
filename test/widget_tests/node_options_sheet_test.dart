@@ -62,9 +62,8 @@ void main() {
     when(wallets.wallets).thenReturn([]);
     when(prefs.syncType).thenReturn(SyncingType.currentWalletOnly);
     when(nodeService.getNodeById(id: node.id)).thenAnswer((_) => node);
-    when(
-      nodeService.getPrimaryNodeFor(currency: bitcoin),
-    ).thenAnswer((_) => primaryNode);
+    when(nodeService.getPrimaryNodeFor(currency: bitcoin))
+        .thenAnswer((_) => primaryNode);
   }
 
   Future<void> pumpSubject(
@@ -209,12 +208,11 @@ void main() {
       primaryNode: otherPrimary,
     );
     when(
-      mockNodeService.setPrimaryNodeFor(
-        coin: bitcoin,
+      mockNodeService.commitConnectionTest(
         node: node,
-        shouldNotifyListeners: true,
+        formData: anyNamed('formData'),
       ),
-    ).thenAnswer((_) async {});
+    ).thenAnswer((_) async => true);
 
     await pumpSubject(
       tester,
@@ -238,10 +236,9 @@ void main() {
     expect(platformOverrides.connectionInvocations.single.host, '127.0.0.1');
 
     verify(
-      mockNodeService.setPrimaryNodeFor(
-        coin: bitcoin,
+      mockNodeService.commitConnectionTest(
         node: node,
-        shouldNotifyListeners: true,
+        formData: anyNamed('formData'),
       ),
     ).called(1);
   });
@@ -285,10 +282,9 @@ void main() {
       expect(platformOverrides.connectionInvocations.single.password, isNull);
 
       verifyNever(
-        mockNodeService.setPrimaryNodeFor(
-          coin: bitcoin,
+        mockNodeService.commitConnectionTest(
           node: anyNamed('node'),
-          shouldNotifyListeners: anyNamed('shouldNotifyListeners'),
+          formData: anyNamed('formData'),
         ),
       );
     },

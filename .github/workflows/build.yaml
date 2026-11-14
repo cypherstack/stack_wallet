@@ -17,8 +17,9 @@ on:
         required: true
         default: '1'
 
-# Configure app uses -d to select pinned Epic/MWC prebuilts when included.
-# Other native-assets packages, including frostdart, still build from source.
+# Configure app uses -d for verified dnix prebuilts (Frost, Tor, Epic and MWC).
+# Every app still builds dnssec_resolver with Rust 1.90.0; Stack Wallet also
+# builds Xelis with Rust 1.99.1, and Stack Wallet/Campfire build Spark with C++.
 jobs:
 
   build-disclaimer:
@@ -76,7 +77,9 @@ jobs:
             -p linux -a stack_wallet -d -s
 
       - name: Get dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          dart tool/check_native_overrides.dart stack_wallet
 
       - name: Decode secrets
         env:
@@ -85,6 +88,8 @@ jobs:
 
       - name: Build
         env:
+          # With -s (CI only) in Configure app, link the image's system
+          # jsoncpp and libsecret instead of building them.
           USE_SYSTEM_SECURE_STORAGE_DEPS: "1"
         run: flutter build linux --release --verbose
 
@@ -143,7 +148,9 @@ jobs:
             -p android -a stack_wallet -d -s
 
       - name: Get dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          dart tool/check_native_overrides.dart stack_wallet
 
       - name: Decode secrets
         env:
@@ -231,6 +238,11 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
+      # OpenAlias/DNSSEC builds from source in every app, including -d.
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.90.0
+
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.47.2'
@@ -253,10 +265,8 @@ jobs:
             -b "${{ steps.ver.outputs.build_number }}" \
             -p windows -a stack_wallet -d -s
 
-      # The Actions windows-2022 runner user lacks SeCreateSymbolicLinkPrivilege,
-      # so link_assets.sh's mklink /D calls either fail or produce broken reparse
-      # points that Flutter's asset resolver cannot traverse. Replace each of
-      # the five gitignored asset directories with real copies instead.
+      # Use real copies of the five gitignored asset directories instead of the
+      # directory links that link_assets.sh creates.
       - name: Replace asset symlinks with copies (CI workaround)
         run: |
           set -euo pipefail
@@ -266,22 +276,22 @@ jobs:
             # Remove whatever link_assets.sh left (reparse point, symlink, or nothing).
             # cmd.exe rmdir on a junction/symlink removes the link, not the target.
             if [ -e "$target" ] || [ -L "$target" ]; then
-              cmd.exe /c rmdir "$(cygpath -w "$target")" 2>/dev/null || rm -rf "$target"
+              MSYS2_ARG_CONV_EXCL="/C${MSYS2_ARG_CONV_EXCL:+;$MSYS2_ARG_CONV_EXCL}" \
+                cmd.exe /C rmdir "$(cygpath -w "$target")" 2>/dev/null || rm -rf "$target"
             fi
             mkdir -p "$target"
             cp -r "${source}/." "$target/"
           done
 
       - name: Get dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          dart tool/check_native_overrides.dart stack_wallet
 
       - name: Decode secrets
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
-
-      - name: Build secp256k1.dll for Windows
-        run: dart run coinlib:build_windows
 
       - name: Build
         run: flutter build windows --release
@@ -322,6 +332,11 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
+      # OpenAlias/DNSSEC builds from source in every app, including -d.
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.90.0
+
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.47.2'
@@ -340,7 +355,9 @@ jobs:
             -p macos -a stack_wallet -d -s
 
       - name: Get dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          dart tool/check_native_overrides.dart stack_wallet
 
       - name: Decode secrets
         env:
@@ -386,10 +403,10 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
+      # OpenAlias/DNSSEC builds from source in every app, including -d.
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: stable
-          targets: aarch64-apple-ios
+          toolchain: 1.90.0
 
       - uses: subosito/flutter-action@v2
         with:
@@ -409,7 +426,9 @@ jobs:
             -p ios -a stack_wallet -d -s
 
       - name: Get dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          dart tool/check_native_overrides.dart stack_wallet
 
       - name: Decode secrets
         env:
@@ -472,7 +491,9 @@ jobs:
             -p linux -a campfire -d -s
 
       - name: Get dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          dart tool/check_native_overrides.dart campfire
 
       - name: Decode secrets
         env:
@@ -481,6 +502,8 @@ jobs:
 
       - name: Build
         env:
+          # With -s (CI only) in Configure app, link the image's system
+          # jsoncpp and libsecret instead of building them.
           USE_SYSTEM_SECURE_STORAGE_DEPS: "1"
         run: flutter build linux --release --verbose
 
@@ -539,7 +562,9 @@ jobs:
             -p linux -a stack_duo -d -s
 
       - name: Get dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          dart tool/check_native_overrides.dart stack_duo
 
       - name: Decode secrets
         env:
@@ -548,6 +573,8 @@ jobs:
 
       - name: Build
         env:
+          # With -s (CI only) in Configure app, link the image's system
+          # jsoncpp and libsecret instead of building them.
           USE_SYSTEM_SECURE_STORAGE_DEPS: "1"
         run: flutter build linux --release --verbose
 
@@ -723,7 +750,9 @@ jobs:
             -p android -a campfire -d -s
 
       - name: Get dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          dart tool/check_native_overrides.dart campfire
 
       - name: Decode secrets
         env:
@@ -811,6 +840,11 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
+      # OpenAlias/DNSSEC builds from source in every app, including -d.
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.90.0
+
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.47.2'
@@ -822,12 +856,6 @@ jobs:
 
       - name: Flutter doctor
         run: flutter doctor -v
-
-      - name: Install Rust toolchains
-        run: |
-          rustup toolchain install 1.85.1
-          rustup toolchain install 1.99.1
-          rustup default 1.99.1
 
       - name: Configure app
         run: |
@@ -844,22 +872,22 @@ jobs:
             target="assets/${dirname}"
             source="asset_sources/${dirname}/campfire"
             if [ -e "$target" ] || [ -L "$target" ]; then
-              cmd.exe /c rmdir "$(cygpath -w "$target")" 2>/dev/null || rm -rf "$target"
+              MSYS2_ARG_CONV_EXCL="/C${MSYS2_ARG_CONV_EXCL:+;$MSYS2_ARG_CONV_EXCL}" \
+                cmd.exe /C rmdir "$(cygpath -w "$target")" 2>/dev/null || rm -rf "$target"
             fi
             mkdir -p "$target"
             cp -r "${source}/." "$target/"
           done
 
       - name: Get dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          dart tool/check_native_overrides.dart campfire
 
       - name: Decode secrets
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
-
-      - name: Build secp256k1.dll for Windows
-        run: dart run coinlib:build_windows
 
       - name: Build
         run: flutter build windows --release
@@ -900,6 +928,11 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
+      # OpenAlias/DNSSEC builds from source in every app, including -d.
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.90.0
+
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.47.2'
@@ -908,12 +941,6 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version: '1.24.13'
-
-      - name: Install Rust toolchains
-        run: |
-          rustup toolchain install 1.85.1
-          rustup toolchain install 1.99.1
-          rustup default 1.99.1
 
       - name: Configure app
         run: |
@@ -924,7 +951,9 @@ jobs:
             -p macos -a campfire -d -s
 
       - name: Get dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          dart tool/check_native_overrides.dart campfire
 
       - name: Decode secrets
         env:
@@ -970,10 +999,10 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
+      # OpenAlias/DNSSEC builds from source in every app, including -d.
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: stable
-          targets: aarch64-apple-ios
+          toolchain: 1.90.0
 
       - uses: subosito/flutter-action@v2
         with:
@@ -984,14 +1013,6 @@ jobs:
         with:
           go-version: '1.24.13'
 
-      - name: Install additional Rust toolchains
-        run: |
-          rustup toolchain install 1.85.1
-          rustup toolchain install 1.99.1
-          rustup default 1.99.1
-          rustup target add aarch64-apple-ios --toolchain 1.99.1
-          rustup target add x86_64-apple-ios --toolchain 1.99.1
-
       - name: Configure app
         run: |
           cd scripts
@@ -1001,7 +1022,9 @@ jobs:
             -p ios -a campfire -d -s
 
       - name: Get dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          dart tool/check_native_overrides.dart campfire
 
       - name: Decode secrets
         env:
@@ -1181,7 +1204,9 @@ jobs:
             -p android -a stack_duo -d -s
 
       - name: Get dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          dart tool/check_native_overrides.dart stack_duo
 
       - name: Decode secrets
         env:
@@ -1269,6 +1294,11 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
+      # OpenAlias/DNSSEC builds from source in every app, including -d.
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.90.0
+
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.47.2'
@@ -1280,12 +1310,6 @@ jobs:
 
       - name: Flutter doctor
         run: flutter doctor -v
-
-      - name: Install Rust toolchains
-        run: |
-          rustup toolchain install 1.85.1
-          rustup toolchain install 1.99.1
-          rustup default 1.99.1
 
       - name: Configure app
         run: |
@@ -1302,22 +1326,22 @@ jobs:
             target="assets/${dirname}"
             source="asset_sources/${dirname}/stack_duo"
             if [ -e "$target" ] || [ -L "$target" ]; then
-              cmd.exe /c rmdir "$(cygpath -w "$target")" 2>/dev/null || rm -rf "$target"
+              MSYS2_ARG_CONV_EXCL="/C${MSYS2_ARG_CONV_EXCL:+;$MSYS2_ARG_CONV_EXCL}" \
+                cmd.exe /C rmdir "$(cygpath -w "$target")" 2>/dev/null || rm -rf "$target"
             fi
             mkdir -p "$target"
             cp -r "${source}/." "$target/"
           done
 
       - name: Get dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          dart tool/check_native_overrides.dart stack_duo
 
       - name: Decode secrets
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
-
-      - name: Build secp256k1.dll for Windows
-        run: dart run coinlib:build_windows
 
       - name: Build
         run: flutter build windows --release
@@ -1358,6 +1382,11 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
+      # OpenAlias/DNSSEC builds from source in every app, including -d.
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.90.0
+
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.47.2'
@@ -1366,14 +1395,6 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version: '1.24.13'
-
-      - name: Install Rust toolchains
-        run: |
-          rustup toolchain install 1.85.1
-          rustup toolchain install 1.99.1
-          rustup default 1.99.1
-          rustup target add aarch64-apple-darwin --toolchain 1.99.1
-          cargo install cargo-lipo
 
       - name: Configure app
         run: |
@@ -1384,7 +1405,9 @@ jobs:
             -p macos -a stack_duo -d -s
 
       - name: Get dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          dart tool/check_native_overrides.dart stack_duo
 
       - name: Decode secrets
         env:
@@ -1430,10 +1453,10 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
+      # OpenAlias/DNSSEC builds from source in every app, including -d.
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: stable
-          targets: aarch64-apple-ios
+          toolchain: 1.90.0
 
       - uses: subosito/flutter-action@v2
         with:
@@ -1444,14 +1467,6 @@ jobs:
         with:
           go-version: '1.24.13'
 
-      - name: Install additional Rust toolchains
-        run: |
-          rustup toolchain install 1.85.1
-          rustup toolchain install 1.99.1
-          rustup default 1.99.1
-          rustup target add aarch64-apple-ios --toolchain 1.99.1
-          rustup target add x86_64-apple-ios --toolchain 1.99.1
-
       - name: Configure app
         run: |
           cd scripts
@@ -1461,7 +1476,9 @@ jobs:
             -p ios -a stack_duo -d -s
 
       - name: Get dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          dart tool/check_native_overrides.dart stack_duo
 
       - name: Decode secrets
         env:

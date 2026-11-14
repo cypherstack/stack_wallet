@@ -12,22 +12,10 @@ APP_BUILD_PLATFORM=$1
 # run icon and image generators
 pushd "${APP_PROJECT_ROOT_DIR}"
 YAML_FILE="${APP_PROJECT_ROOT_DIR}/scripts/app_config/platforms/${APP_BUILD_PLATFORM}/flutter_launcher_icons.yaml"
-if [[ "${APP_BUILD_PLATFORM}" = 'windows' ]]; then
-  cmd.exe /c flutter pub get
-  if command -v cygpath >/dev/null 2>&1; then
-    WIN_PATH_VERSION=$(cygpath -w "${YAML_FILE}")
-  else
-    WIN_PATH_VERSION=$(wslpath -w "${YAML_FILE}")
-  fi
-  cmd.exe /c dart run flutter_launcher_icons -f "${WIN_PATH_VERSION}"
-  # not needed in windows
-#  cmd.exe /c dart run flutter_native_splash:create
-else
-  flutter pub get
-  dart run flutter_launcher_icons -f "${YAML_FILE}"
+flutter pub get
+dart run flutter_launcher_icons -f "${YAML_FILE}"
 
-  if [[ "${APP_BUILD_PLATFORM}" = 'ios' || "${APP_BUILD_PLATFORM}" = 'android' ]]; then
-    dart run flutter_native_splash:create
-  fi
+if [[ "${APP_BUILD_PLATFORM}" = 'ios' || "${APP_BUILD_PLATFORM}" = 'android' ]]; then
+  dart run flutter_native_splash:create
 fi
 popd

@@ -29,6 +29,7 @@ import '../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../../wallets/wallet/impl/xelis_wallet.dart';
 import '../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../wallets/wallet/wallet.dart';
+import '../../../wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
@@ -120,6 +121,8 @@ class _RestoreViewOnlyWalletViewState
 
     if (!Platform.isLinux && !Util.isDesktop) await WakelockPlus.enable();
 
+    Wallet? restored;
+    bool added = false;
     try {
       final info = WalletInfo.createNew(
         coin: widget.coin,
@@ -146,6 +149,12 @@ class _RestoreViewOnlyWalletViewState
                   await ref
                       .read(pWallets)
                       .deleteWallet(info, ref.read(secureStoreProvider));
+
+                  // Stop the cancelled restore's network work now.
+                  final cancelled = restored;
+                  if (cancelled is ElectrumXInterface) {
+                    await cancelled.electrumXClient.closeAdapter();
+                  }
                 },
               );
             },
@@ -212,7 +221,7 @@ class _RestoreViewOnlyWalletViewState
       }
 
       try {
-        final wallet = await Wallet.create(
+        final wallet = restored = await Wallet.create(
           walletInfo: info,
           mainDB: ref.read(mainDBProvider),
           secureStorageInterface: ref.read(secureStoreProvider),
@@ -220,6 +229,7 @@ class _RestoreViewOnlyWalletViewState
           prefs: ref.read(prefsChangeNotifierProvider),
           viewOnlyData: viewOnlyData,
         );
+        if (!mounted || !isRestoring) return;
 
         // TODO: extract interface with isRestore param
         switch (wallet) {
@@ -246,7 +256,7 @@ class _RestoreViewOnlyWalletViewState
         await wallet.recover(isRescan: false);
 
         // check if state is still active before continuing
-        if (mounted) {
+        if (mounted && isRestoring) {
           // don't remove this setMnemonicVerified thing
           await wallet.info.setMnemonicVerified(
             isar: ref.read(mainDBProvider).isar,
@@ -259,13 +269,14 @@ class _RestoreViewOnlyWalletViewState
             );
           }
 
+          if (!mounted || !isRestoring) return;
           ref.read(pWallets).addWallet(wallet);
+          added = true;
 
           if (mounted) {
             if (Util.isDesktop) {
-              Navigator.of(
-                context,
-              ).popUntil(ModalRoute.withName(DesktopHomeView.routeName));
+              Navigator.of(context)
+                  .popUntil(ModalRoute.withName(DesktopHomeView.routeName));
             } else {
               unawaited(
                 Navigator.of(
@@ -307,6 +318,12 @@ class _RestoreViewOnlyWalletViewState
         }
       }
     } finally {
+      // A cancelled or failed restore never adds the wallet, so nothing else
+      // will close its Electrum connection.
+      final unused = restored;
+      if (!added && unused is ElectrumXInterface) {
+        await unused.electrumXClient.closeAdapter();
+      }
       if (!Platform.isLinux && !Util.isDesktop) await WakelockPlus.disable();
     }
   }
@@ -406,12 +423,12 @@ class _RestoreViewOnlyWalletViewState
                                 if (widget.coin is Firo)
                                   isDesktop ? "Spark View Key" : "View Key",
                               ],
-                              onColor: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.popupBG,
-                              offColor: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textFieldDefaultBG,
+                              onColor: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .popupBG,
+                              offColor: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFieldDefaultBG,
                               selectedIndex: _walletType.index - 1,
                               onValueChanged: (value) {
                                 setState(() {
