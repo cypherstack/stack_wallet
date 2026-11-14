@@ -71,6 +71,8 @@ check explains how to use `-d` instead; `-d` still needs Rustup.
   component needs.
 - [Testing the build setup](building/testing.md): configuration tests, Linux
   bundle tests, Xelis integration tests, and checking Tor routing.
+- [Building with `make`](building/make.md): optional Makefile wrapper that runs
+  the same CI build steps.
 
 ## Troubleshooting
 
