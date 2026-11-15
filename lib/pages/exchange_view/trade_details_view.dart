@@ -218,13 +218,13 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
       condition: !isDesktop,
       builder: (child) => Background(
         child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             leading: AppBarBackButton(
               onPressed: () async {
                 Navigator.of(context).pop();
@@ -259,9 +259,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   RoundedWhiteContainer(
-                    borderColor: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.backgroundAppBar,
+                    borderColor: Theme.of(context)
+                        .extension<StackColors>()!
+                        .backgroundAppBar,
                     padding: const EdgeInsets.all(0),
                     child: ListView(
                       primary: false,
@@ -315,9 +315,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
               child: Container(
                 decoration: isDesktop
                     ? BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.backgroundAppBar,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .backgroundAppBar,
                         borderRadius: BorderRadius.vertical(
                           top: Radius.circular(
                             Constants.size.circularBorderRadius,
@@ -436,9 +436,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                   SelectableText(
                     trade.status,
                     style: STextStyles.itemSubtitle(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.colorForStatus(trade.status),
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .colorForStatus(trade.status),
                     ),
                   ),
                 ],
@@ -453,9 +453,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                     : const EdgeInsets.all(12),
                 color: isDesktop
                     ? Theme.of(context).extension<StackColors>()!.popupBG
-                    : Theme.of(
-                        context,
-                      ).extension<StackColors>()!.warningBackground,
+                    : Theme.of(context)
+                          .extension<StackColors>()!
+                          .warningBackground,
                 child: ConditionalParent(
                   condition: isDesktop,
                   builder: (child) => Column(
@@ -481,9 +481,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                     STextStyles.desktopTextExtraExtraSmall(
                                       context,
                                     ).copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textDark,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark,
                                     ),
                               ),
                             ],
@@ -500,34 +500,32 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                       text:
                           "You must send at least ${sendAmount.toStringAsFixed(trade.payInCurrency.toLowerCase() == "xmr" ? 12 : 8)} ${trade.payInCurrency.toUpperCase()}. ",
                       style: isDesktop
-                          ? STextStyles.desktopTextExtraExtraSmall(
-                              context,
-                            ).copyWith(
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.accentColorRed,
-                            )
+                          ? STextStyles.desktopTextExtraExtraSmall(context)
+                                .copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .accentColorRed,
+                                )
                           : STextStyles.label(context).copyWith(
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.warningForeground,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .warningForeground,
                             ),
                       children: [
                         TextSpan(
                           text:
                               "If you send less than ${sendAmount.toStringAsFixed(trade.payInCurrency.toLowerCase() == "xmr" ? 12 : 8)} ${trade.payInCurrency.toUpperCase()}, your transaction may not be converted and it may not be refunded.",
                           style: isDesktop
-                              ? STextStyles.desktopTextExtraExtraSmall(
-                                  context,
-                                ).copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.accentColorRed,
-                                )
+                              ? STextStyles.desktopTextExtraExtraSmall(context)
+                                    .copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorRed,
+                                    )
                               : STextStyles.label(context).copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.warningForeground,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .warningForeground,
                                 ),
                         ),
                       ],
@@ -670,9 +668,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                       Assets.svg.copy,
                                       width: 12,
                                       height: 12,
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.infoItemIcons,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .infoItemIcons,
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
@@ -766,9 +764,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                             Assets.svg.qrcode,
                             width: 12,
                             height: 12,
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.infoItemIcons,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .infoItemIcons,
                           ),
                           const SizedBox(width: 4),
                           Text(
@@ -818,9 +816,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                       Assets.svg.copy,
                                       width: 12,
                                       height: 12,
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.infoItemIcons,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .infoItemIcons,
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
@@ -894,9 +892,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                     Assets.svg.pencil,
                                     width: 10,
                                     height: 10,
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.infoItemIcons,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .infoItemIcons,
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
@@ -972,9 +970,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                       Assets.svg.pencil,
                                       width: 10,
                                       height: 10,
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.infoItemIcons,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .infoItemIcons,
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
@@ -1024,9 +1022,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                           ),
                           style: STextStyles.desktopTextExtraExtraSmall(context)
                               .copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textDark,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark,
                               ),
                         ),
                     ],
@@ -1129,9 +1127,9 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                           },
                           child: SvgPicture.asset(
                             Assets.svg.copy,
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.infoItemIcons,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .infoItemIcons,
                             width: 12,
                           ),
                         ),
