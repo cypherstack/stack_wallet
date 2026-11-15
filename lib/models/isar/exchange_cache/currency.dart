@@ -80,9 +80,8 @@ class Currency {
       return ticker.toLowerCase();
     }
 
-    return _fuzzyCache ??= switch (Exchange.fromName(
-      exchangeName,
-    ).runtimeType) {
+    return _fuzzyCache ??= switch (Exchange.fromName(exchangeName)
+        .runtimeType) {
       // already lower case ticker basically
       const (ChangeNowExchange) => network,
 

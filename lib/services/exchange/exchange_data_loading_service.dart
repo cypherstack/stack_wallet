@@ -51,10 +51,9 @@ class ExchangeDataLoadingService {
 
   static int get currentCacheVersion =>
       DB.instance.get<dynamic>(
-            boxName: DB.boxNameDBInfo,
-            key: "exchange_data_cache_version",
-          )
-          as int? ??
+        boxName: DB.boxNameDBInfo,
+        key: "exchange_data_cache_version",
+      ) as int? ??
       0;
 
   Future<void> _updateCurrentCacheVersion(int version) async {
