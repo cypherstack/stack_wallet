@@ -13,6 +13,7 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../app_config.dart';
 import '../../../exceptions/exchange/exchange_exception.dart';
 import '../../../models/exchange/response_objects/estimate.dart';
 import '../../../models/exchange/response_objects/range.dart';
@@ -47,6 +48,11 @@ class ChainflipExchange extends Exchange {
   /// Minimums, enabled flags and the asset list change server-side; the
   /// cache only spares a `/assets` round trip per quote.
   static const _assetsMaxAge = Duration(minutes: 10);
+
+  /// A quote's `estimatedPrice` is a snapshot and `minimumPrice` is derived
+  /// from it. Reusing an old quote can set a floor the live market cannot
+  /// meet, so the swap retries and refunds after the retry window.
+  static const _quoteMaxAge = Duration(minutes: 2);
 
   final Map<String, ChainflipAsset> _byKey = <String, ChainflipAsset>{};
   List<ChainflipAsset> _assets = <ChainflipAsset>[];
@@ -89,7 +95,11 @@ class ChainflipExchange extends Exchange {
             isFiat: false,
             rateType: SupportedRateType.estimated,
             isAvailable: asset.enabled,
-            isStackCoin: true,
+            isStackCoin: AppConfig.isStackCoin(asset.ticker),
+            // The broker API returns checksummed Ethereum contracts while
+            // Stack Wallet stores default and custom token contracts
+            // lowercase; Solana mints are case-sensitive base58 and must stay
+            // as returned.
             tokenContract: asset.network == "Ethereum"
                 ? asset.contractAddress?.toLowerCase()
                 : asset.contractAddress,
@@ -210,6 +220,7 @@ class ChainflipExchange extends Exchange {
             quote.recommendedRetryDurationInBlocks,
         "recommendedLivePriceSlippageTolerancePercent":
             quote.recommendedLivePriceSlippageTolerancePercent,
+        "quotedAt": DateTime.now().millisecondsSinceEpoch,
       });
 
       return ExchangeResponse(
@@ -544,7 +555,8 @@ class ChainflipExchange extends Exchange {
         if (decoded is Map<dynamic, dynamic> &&
             decoded["sourceAsset"] == fromAsset.id &&
             decoded["destinationAsset"] == toAsset.id &&
-            decoded["amountNative"] == amountNative) {
+            decoded["amountNative"] == amountNative &&
+            _isFreshQuote(decoded["quotedAt"])) {
           return Map<String, dynamic>.from(decoded);
         }
       } catch (_) {
@@ -575,6 +587,14 @@ class ChainflipExchange extends Exchange {
 
     final decoded = jsonDecode(freshRateId);
     return Map<String, dynamic>.from(decoded as Map<dynamic, dynamic>);
+  }
+
+  /// Quotes written before `quotedAt` existed, or older than [_quoteMaxAge],
+  /// are requoted rather than trusted for `minimumPrice`.
+  static bool _isFreshQuote(Object? quotedAt) {
+    if (quotedAt is! int) return false;
+    final age = DateTime.now().millisecondsSinceEpoch - quotedAt;
+    return age >= 0 && age <= _quoteMaxAge.inMilliseconds;
   }
 
   Future<ExchangeResponse<ChainflipSwapStatus>> _statusForTradeId(

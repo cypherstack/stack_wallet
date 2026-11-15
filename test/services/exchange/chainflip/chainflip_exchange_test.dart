@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:decimal/decimal.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isar_community/isar.dart';
+import 'package:stackwallet/app_config.dart';
 import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
@@ -411,8 +412,18 @@ void main() {
       "usdt.sol",
     });
     for (final currency in byId.values) {
-      expect(currency.isStackCoin, isTrue, reason: currency.externalId);
+      expect(
+        currency.isStackCoin,
+        AppConfig.isStackCoin(currency.ticker),
+        reason: currency.externalId,
+      );
       expect(currency.rateType, SupportedRateType.estimated);
+    }
+    for (final id in <String>["usdc.eth", "usdt.eth", "usdc.sol", "usdt.sol"]) {
+      expect(byId[id]!.isStackCoin, isFalse, reason: id);
+    }
+    for (final id in <String>["btc.btc", "eth.eth", "sol.sol"]) {
+      expect(byId[id]!.isStackCoin, isTrue, reason: id);
     }
     expect(byId["usdt.eth"]!.network, "Ethereum");
     expect(byId["usdt.sol"]!.network, "Solana");
@@ -603,6 +614,8 @@ void main() {
     expect(rateId["recommendedSlippageTolerancePercent"], 2.5);
     expect(rateId["recommendedRetryDurationInBlocks"], 150);
     expect(rateId["recommendedLivePriceSlippageTolerancePercent"], 0.5);
+    final quotedAt = rateId["quotedAt"] as int;
+    expect(DateTime.now().millisecondsSinceEpoch - quotedAt, lessThan(5000));
     expect(lastUri.queryParameters["amount"], "1000000");
     expect(lastUri.queryParameters.containsKey("apiKey"), isFalse);
     expect(lastUri.toString(), isNot(contains("test-key")));
@@ -742,6 +755,7 @@ void main() {
         "estimatedPrice": "35.3856642395626881",
         "recommendedSlippageTolerancePercent": 2.5,
         "recommendedRetryDurationInBlocks": 150,
+        "quotedAt": DateTime.now().millisecondsSinceEpoch,
       }),
       exchangeProvider: ChainflipExchange.exchangeName,
     );
@@ -824,6 +838,55 @@ void main() {
     expect(response.value!.payInAmount, "0.01");
     expect(response.value!.payOutAmount, "0.353856642395626881");
     expect(lastUri.queryParameters["livePriceSlippageTolerancePercent"], "0.5");
+    expect(lastUri.queryParameters["minimumPrice"], startsWith("34.50102263"));
+  });
+
+  test("requotes when the estimate is older than the max age", () async {
+    useFake((url, headers) async {
+      if (url.path == "/assets") return _json(_assetsBody());
+      if (url.path == "/quotes-native") return _json(_quoteBody());
+      if (url.path == "/swap") return _json(_depositBody());
+      throw StateError("unexpected ${url.path}");
+    });
+
+    final stale = Estimate(
+      estimatedAmount: Decimal.parse("0.353856642395626881"),
+      fixedRate: false,
+      reversed: false,
+      rateId: jsonEncode(<String, dynamic>{
+        "sourceAsset": "btc.btc",
+        "destinationAsset": "eth.eth",
+        "amountNative": "1000000",
+        "ingressAmountNative": "1000000",
+        "egressAmountNative": "353856642395626881",
+        "estimatedPrice": "35.3856642395626881",
+        "recommendedSlippageTolerancePercent": 2.5,
+        "recommendedRetryDurationInBlocks": 150,
+        "quotedAt": DateTime.now()
+            .subtract(const Duration(minutes: 3))
+            .millisecondsSinceEpoch,
+      }),
+      exchangeProvider: ChainflipExchange.exchangeName,
+    );
+
+    final response = await exchange.createTrade(
+      from: "BTC",
+      fromNetwork: "Bitcoin",
+      to: "ETH",
+      toNetwork: "Ethereum",
+      fixedRate: false,
+      amount: Decimal.parse("0.01"),
+      addressTo: "destination-address",
+      addressRefund: "refund-address",
+      refundExtraId: "",
+      estimate: stale,
+      reversed: false,
+    );
+
+    expect(response.exception, isNull);
+    expect(paths, contains("/quotes-native"));
+    expect(response.value!.payInAmount, "0.01");
+    expect(response.value!.payOutAmount, "0.353856642395626881");
     expect(lastUri.queryParameters["minimumPrice"], startsWith("34.50102263"));
   });
 
