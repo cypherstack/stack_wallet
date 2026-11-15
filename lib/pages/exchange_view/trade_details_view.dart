@@ -27,6 +27,7 @@ import '../../notifications/show_flush_bar.dart';
 import '../../providers/global/trades_service_provider.dart';
 import '../../providers/providers.dart';
 import '../../route_generator.dart';
+import '../../services/exchange/chainflip/chainflip_exchange.dart';
 import '../../services/exchange/change_now/change_now_exchange.dart';
 import '../../services/exchange/cyphergoat/cyphergoat_exchange.dart';
 import '../../services/exchange/exchange.dart';
@@ -1176,6 +1177,11 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                             break;
                           case LetsExchangeExchange.exchangeName:
                             url = "https://letsexchange.io/transaction-status";
+                            break;
+                          case ChainflipExchange.exchangeName:
+                            url = ChainflipExchange.explorerUrlFromOther(
+                              trade.other,
+                            );
                             break;
 
                           default:

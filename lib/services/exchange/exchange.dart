@@ -14,6 +14,7 @@ import '../../models/exchange/response_objects/estimate.dart';
 import '../../models/exchange/response_objects/range.dart';
 import '../../models/exchange/response_objects/trade.dart';
 import '../../models/isar/exchange_cache/currency.dart';
+import 'chainflip/chainflip_exchange.dart';
 import 'change_now/change_now_exchange.dart';
 import 'cyphergoat/cyphergoat_exchange.dart';
 import 'exchange_response.dart';
@@ -47,6 +48,8 @@ abstract class Exchange {
         return LetsExchangeExchange.instance;
       case CypherGoatExchange.exchangeName:
         return CypherGoatExchange.instance;
+      case ChainflipExchange.exchangeName:
+        return ChainflipExchange.instance;
       default:
         final split = name.split(" ");
         if (split.length >= 2) {
@@ -124,6 +127,7 @@ abstract class Exchange {
     TrocadorExchange.instance,
     ExolixExchange.instance, // Maybe??
     NanswapExchange.instance, // Maybe??
+    ChainflipExchange.instance,
   ];
 
   /// List of exchange names which support Tor.
