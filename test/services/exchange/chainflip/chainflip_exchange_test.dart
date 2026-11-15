@@ -391,7 +391,7 @@ void main() {
     return response.value!.status;
   }
 
-  test("offers only the assets Stack Wallet holds", () async {
+  test("offers only the assets Stack Wallet can hold", () async {
     useFake((url, headers) async => _json(_assetsBody()));
 
     final response = await exchange.getAllCurrencies(false);
@@ -401,13 +401,16 @@ void main() {
     };
 
     // The live catalog has 20 assets; ETH on Arbitrum, USDT on BSC/Tron,
-    // Asset Hub, WBTC, cbBTC, FLIP etc. are not offered.
+    // Asset Hub etc. are not offered.
     expect(byId.keys.toSet(), <String>{
       "btc.btc",
       "eth.eth",
       "sol.sol",
+      "cbbtc.eth",
+      "flip.eth",
       "usdc.eth",
       "usdt.eth",
+      "wbtc.eth",
       "usdc.sol",
       "usdt.sol",
     });
@@ -419,7 +422,15 @@ void main() {
       );
       expect(currency.rateType, SupportedRateType.estimated);
     }
-    for (final id in <String>["usdc.eth", "usdt.eth", "usdc.sol", "usdt.sol"]) {
+    for (final id in <String>[
+      "cbbtc.eth",
+      "flip.eth",
+      "usdc.eth",
+      "usdt.eth",
+      "wbtc.eth",
+      "usdc.sol",
+      "usdt.sol",
+    ]) {
       expect(byId[id]!.isStackCoin, isFalse, reason: id);
     }
     for (final id in <String>["btc.btc", "eth.eth", "sol.sol"]) {
@@ -433,8 +444,40 @@ void main() {
     );
   });
 
+  test("skips tokens whose ticker belongs to a Stack coin", () async {
+    useFake(
+      (url, headers) async => _json(<String, dynamic>{
+        "assets": <Map<String, dynamic>>[
+          _asset(
+            id: "btc.eth",
+            ticker: "BTC",
+            network: "Ethereum",
+            decimals: 8,
+            minimalAmountNative: "40000",
+            contractAddress: "0x0000000000000000000000000000000000000001",
+          ),
+          _asset(
+            id: "flip.eth",
+            ticker: "FLIP",
+            network: "Ethereum",
+            decimals: 18,
+            minimalAmountNative: "4000000000000000000",
+            contractAddress: "0x826180541412D574cf1336d22c0C0a287822678A",
+          ),
+        ],
+      }),
+    );
+
+    final response = await exchange.getAllCurrencies(false);
+    expect(response.exception, isNull);
+    expect(
+      response.value!.map((currency) => currency.externalId).toList(),
+      <String>["flip.eth"],
+    );
+  });
+
   test(
-    "matches default wallet token contracts in the currency cache",
+    "matches default and custom token contracts in the currency cache",
     () async {
       useFake((url, headers) async => _json(_assetsBody()));
       final response = await exchange.getAllCurrencies(false);
@@ -459,6 +502,8 @@ void main() {
       final expectedIds = <String, String>{
         DefaultTokens.usdc.address: "usdc.eth",
         DefaultTokens.usdt.address: "usdt.eth",
+        // Custom Ethereum tokens are stored with a lowercase contract.
+        "0x826180541412d574cf1336d22c0c0a287822678a": "flip.eth",
         DefaultSolTokens.list
                 .firstWhere((token) => token.symbol == "USDC")
                 .address:
@@ -478,7 +523,7 @@ void main() {
         expect(
           matches.map((currency) => currency.externalId).toList(),
           <String>[entry.value],
-          reason: "Default wallet contract ${entry.key} must remain selectable",
+          reason: "Wallet token contract ${entry.key} must remain selectable",
         );
       }
     },

@@ -20,7 +20,6 @@ import '../../../models/exchange/response_objects/range.dart';
 import '../../../models/exchange/response_objects/trade.dart';
 import '../../../models/isar/exchange_cache/currency.dart';
 import '../../../models/isar/exchange_cache/pair.dart';
-import '../../../utilities/default_eth_tokens.dart';
 import '../../../utilities/default_sol_tokens.dart';
 import '../exchange.dart';
 import '../exchange_response.dart';
@@ -474,7 +473,7 @@ class ChainflipExchange extends Exchange {
 
     final response = await ChainflipApi.instance.getAllAssets();
     if (response.value != null) {
-      // Only offer assets Stack Wallet itself holds. "Send from" matches
+      // Only offer assets Stack Wallet itself can hold. "Send from" matches
       // wallets by ticker, so e.g. ETH on Arbitrum would be paid from the
       // mainnet ETH wallet.
       _assets = response.value!.where(_isStackCoin).toList();
@@ -843,11 +842,11 @@ class ChainflipExchange extends Exchange {
     final contract = asset.contractAddress;
     if (contract == null || contract.isEmpty) return false;
 
-    if (asset.network == "Ethereum") {
-      final lower = contract.toLowerCase();
-      return lower == DefaultTokens.usdc.address.toLowerCase() ||
-          lower == DefaultTokens.usdt.address.toLowerCase();
-    }
+    // A token sharing a coin's ticker would be paid from that coin's wallet.
+    if (AppConfig.isStackCoin(asset.ticker)) return false;
+
+    // Any ERC-20 can be added to an Ethereum wallet as a custom token.
+    if (asset.network == "Ethereum") return true;
 
     if (asset.network == "Solana") {
       for (final token in DefaultSolTokens.list) {
