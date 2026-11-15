@@ -90,7 +90,9 @@ class ChainflipExchange extends Exchange {
             rateType: SupportedRateType.estimated,
             isAvailable: asset.enabled,
             isStackCoin: true,
-            tokenContract: asset.contractAddress,
+            tokenContract: asset.network == "Ethereum"
+                ? asset.contractAddress?.toLowerCase()
+                : asset.contractAddress,
           ),
         )
         .toList();
@@ -423,11 +425,6 @@ class ChainflipExchange extends Exchange {
 
   @override
   Future<ExchangeResponse<Trade>> updateTrade(Trade trade) async {
-    final assetsResponse = await _loadAssets();
-    if (assetsResponse.exception != null) {
-      return ExchangeResponse(exception: assetsResponse.exception);
-    }
-
     final statusResponse = await _statusForTradeId(trade.tradeId);
     if (statusResponse.exception != null) {
       return ExchangeResponse(exception: statusResponse.exception);
@@ -437,6 +434,10 @@ class ChainflipExchange extends Exchange {
     if (status.pending) {
       return ExchangeResponse(value: trade.copyWith(updatedAt: DateTime.now()));
     }
+
+    // Metadata enriches an existing trade, but must not gate status polling.
+    // Missing decimals leave its saved amounts unchanged.
+    await _loadAssets();
 
     return ExchangeResponse(value: _tradeFromStatus(status, oldTrade: trade));
   }
@@ -769,14 +770,33 @@ class ChainflipExchange extends Exchange {
   /// raw state stays in `Trade.other["state"]`.
   static String _mapState(ChainflipSwapStatus status) {
     if (status.pending) return "Waiting";
+    final refund = status.refundEgress;
+    if (refund != null) {
+      final refundSettled =
+          refund.witnessedAt != null ||
+          (refund.transactionReference?.trim().isNotEmpty ?? false);
+      if (status.swapEgress == null) {
+        if (refund.failure != null) return "Failed";
+        return refundSettled ? "Refunded" : "Sending";
+      }
+      if (status.state == "failed" &&
+          refund.failure == null &&
+          !refundSettled) {
+        return "Sending";
+      }
+    }
+
+    // A closed channel rejects new deposits, not a witnessed swap or refund.
+    if (status.state != "completed" &&
+        status.state != "failed" &&
+        refund == null &&
+        status.depositChannel?.isExpired == true &&
+        (status.deposit == null || status.deposit!.failure != null)) {
+      return "expired";
+    }
+
     switch (status.state) {
       case "completed":
-        // Chainflip ends full and partial refunds as `completed` with a
-        // `refundEgress`; only a refund with no swap output is "Refunded".
-        final refund = status.refundEgress;
-        if (refund != null && status.swapEgress == null) {
-          return refund.failure == null ? "Refunded" : "Failed";
-        }
         return "Completed";
       case "failed":
         return "Failed";

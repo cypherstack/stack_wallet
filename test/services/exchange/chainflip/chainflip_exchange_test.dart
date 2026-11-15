@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:isar_community/isar.dart';
 import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
 import 'package:stackwallet/models/exchange/response_objects/trade.dart';
 import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
@@ -10,6 +11,10 @@ import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
 import 'package:stackwallet/networking/http.dart';
 import 'package:stackwallet/services/exchange/chainflip/chainflip_api.dart';
 import 'package:stackwallet/services/exchange/chainflip/chainflip_exchange.dart';
+import 'package:stackwallet/utilities/default_eth_tokens.dart';
+import 'package:stackwallet/utilities/default_sol_tokens.dart';
+
+import '../../../support/isar_test_utils.dart';
 
 class _FakeHttp extends HTTP {
   _FakeHttp(this.handler);
@@ -264,9 +269,14 @@ Map<String, dynamic> _depositBody() {
 
 Map<String, dynamic> _statusBody({
   required String state,
+  bool deposited = true,
+  bool channelExpired = false,
   bool swapped = true,
   bool refunded = false,
   bool failed = false,
+  String? refundTransactionReference = "tx-refund",
+  int? refundWitnessedAt,
+  bool refundFailed = false,
   String egressAmountNative = "353856642395626881",
 }) {
   return <String, dynamic>{
@@ -281,20 +291,22 @@ Map<String, dynamic> _statusBody({
         "id": "123-Bitcoin-7",
         "depositAddress": "deposit-address",
         "createdAt": 1700000000000,
+        "isExpired": channelExpired,
       },
       "fillOrKillParams": <String, dynamic>{"refundAddress": "refund-address"},
-      "deposit": <String, dynamic>{
-        "amountNative": "1000000",
-        "transactionReference": "tx-in",
-        if (failed)
-          "failure": <String, dynamic>{
-            "mode": "DEPOSIT_REJECTED",
-            "reason": <String, dynamic>{
-              "code": "TransactionRejectedByBroker",
-              "message": "rejected",
+      if (deposited)
+        "deposit": <String, dynamic>{
+          "amountNative": "1000000",
+          "transactionReference": "tx-in",
+          if (failed)
+            "failure": <String, dynamic>{
+              "mode": "DEPOSIT_REJECTED",
+              "reason": <String, dynamic>{
+                "code": "TransactionRejectedByBroker",
+                "message": "rejected",
+              },
             },
-          },
-      },
+        },
       if (swapped)
         "swapEgress": <String, dynamic>{
           "amountNative": egressAmountNative,
@@ -303,7 +315,10 @@ Map<String, dynamic> _statusBody({
       if (refunded)
         "refundEgress": <String, dynamic>{
           "amountNative": "1000000",
-          "transactionReference": "tx-refund",
+          "transactionReference": refundTransactionReference,
+          "witnessedAt": refundWitnessedAt,
+          if (refundFailed)
+            "failure": <String, dynamic>{"mode": "REFUND_OUTPUT_TOO_SMALL"},
         },
     },
   };
@@ -340,6 +355,8 @@ Trade _oldTrade() {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   late ChainflipExchange exchange;
   late Uri lastUri;
   late Map<String, String>? lastHeaders;
@@ -404,6 +421,57 @@ void main() {
       startsWith("https://chainflip-broker.io/assets/"),
     );
   });
+
+  test(
+    "matches default wallet token contracts in the currency cache",
+    () async {
+      useFake((url, headers) async => _json(_assetsBody()));
+      final response = await exchange.getAllCurrencies(false);
+      expect(response.exception, isNull);
+
+      await initializeTestIsar();
+      final directory = await Directory.systemTemp.createTemp(
+        "chainflip_cache_",
+      );
+      final isar = await Isar.open(
+        [CurrencySchema],
+        directory: directory.path,
+        name: "chainflip_currencies",
+        inspector: false,
+      );
+      addTearDown(() async {
+        await isar.close();
+        await directory.delete(recursive: true);
+      });
+      await isar.writeTxn(() => isar.currencies.putAll(response.value!));
+
+      final expectedIds = <String, String>{
+        DefaultTokens.usdc.address: "usdc.eth",
+        DefaultTokens.usdt.address: "usdt.eth",
+        DefaultSolTokens.list
+                .firstWhere((token) => token.symbol == "USDC")
+                .address:
+            "usdc.sol",
+        DefaultSolTokens.list
+                .firstWhere((token) => token.symbol == "USDT")
+                .address:
+            "usdt.sol",
+      };
+      for (final entry in expectedIds.entries) {
+        final matches = await isar.currencies
+            .filter()
+            .tokenContractEqualTo(entry.key)
+            .and()
+            .rateTypeEqualTo(SupportedRateType.estimated)
+            .findAll();
+        expect(
+          matches.map((currency) => currency.externalId).toList(),
+          <String>[entry.value],
+          reason: "Default wallet contract ${entry.key} must remain selectable",
+        );
+      }
+    },
+  );
 
   test("declines assets Stack Wallet does not hold", () async {
     useFake((url, headers) async {
@@ -857,6 +925,163 @@ void main() {
     expect(completed.value!.payInAmount, "0.01");
   });
 
+  test("expires only unfunded or rejected-deposit channels", () async {
+    for (final deposited in <bool>[false, true]) {
+      expect(
+        await statusFor(
+          _statusBody(
+            state: "waiting",
+            deposited: deposited,
+            channelExpired: true,
+            swapped: false,
+            failed: deposited,
+          ),
+        ),
+        "expired",
+        reason: deposited ? "Rejected deposit" : "No deposit",
+      );
+    }
+    expect(
+      await statusFor(
+        _statusBody(state: "waiting", deposited: false, swapped: false),
+      ),
+      "Waiting",
+    );
+  });
+
+  test("keeps expired channels with a live deposit active", () async {
+    for (final entry in <String, String>{
+      "waiting": "Waiting",
+      "receiving": "Confirming",
+      "swapping": "Exchanging",
+      "sending": "Sending",
+    }.entries) {
+      expect(
+        await statusFor(
+          _statusBody(state: entry.key, channelExpired: true, swapped: false),
+        ),
+        entry.value,
+        reason: entry.key,
+      );
+    }
+  });
+
+  test(
+    "tracks full refunds until settlement regardless of raw state",
+    () async {
+      for (final state in <String>["failed", "completed"]) {
+        for (final refund
+            in <
+              ({
+                String? transactionReference,
+                int? witnessedAt,
+                bool failed,
+                String expected,
+              })
+            >[
+              (
+                transactionReference: null,
+                witnessedAt: null,
+                failed: false,
+                expected: "Sending",
+              ),
+              (
+                transactionReference: " \t ",
+                witnessedAt: null,
+                failed: false,
+                expected: "Sending",
+              ),
+              (
+                transactionReference: "tx-refund",
+                witnessedAt: null,
+                failed: false,
+                expected: "Refunded",
+              ),
+              (
+                transactionReference: null,
+                witnessedAt: 1700000001000,
+                failed: false,
+                expected: "Refunded",
+              ),
+              (
+                transactionReference: null,
+                witnessedAt: null,
+                failed: true,
+                expected: "Failed",
+              ),
+              (
+                transactionReference: "tx-refund",
+                witnessedAt: 1700000001000,
+                failed: true,
+                expected: "Failed",
+              ),
+            ]) {
+          useFake((url, headers) async {
+            if (url.path == "/assets") return _json(_assetsBody());
+            if (url.path == "/status-by-id") {
+              return _json(
+                _statusBody(
+                  state: state,
+                  channelExpired: true,
+                  swapped: false,
+                  refunded: true,
+                  failed: true,
+                  refundTransactionReference: refund.transactionReference,
+                  refundWitnessedAt: refund.witnessedAt,
+                  refundFailed: refund.failed,
+                ),
+              );
+            }
+            throw StateError("unexpected ${url.path}");
+          });
+
+          final updated = await exchange.updateTrade(_oldTrade());
+          expect(updated.exception, isNull);
+          expect(
+            updated.value!.status,
+            refund.expected,
+            reason: "$state, $refund",
+          );
+          expect(updated.value!.payOutTxid, isEmpty);
+          final other =
+              jsonDecode(updated.value!.other!) as Map<String, dynamic>;
+          expect(other["state"], state);
+          expect(
+            (other["refundEgress"]
+                as Map<String, dynamic>)["transactionReference"],
+            refund.transactionReference,
+          );
+        }
+      }
+    },
+  );
+
+  test("keeps completed partial refunds as payouts", () async {
+    for (final refundFailed in <bool>[false, true]) {
+      useFake((url, headers) async {
+        if (url.path == "/assets") return _json(_assetsBody());
+        if (url.path == "/status-by-id") {
+          return _json(
+            _statusBody(
+              state: "completed",
+              channelExpired: true,
+              refunded: true,
+              refundTransactionReference: null,
+              refundFailed: refundFailed,
+            ),
+          );
+        }
+        throw StateError("unexpected ${url.path}");
+      });
+
+      final updated = await exchange.updateTrade(_oldTrade());
+      expect(updated.exception, isNull);
+      expect(updated.value!.status, "Completed");
+      expect(updated.value!.payOutTxid, "tx-out");
+      expect(updated.value!.payOutAmount, "0.353856642395626881");
+    }
+  });
+
   test("reports only a full refund as refunded", () async {
     expect(
       await statusFor(
@@ -1173,6 +1398,53 @@ void main() {
     },
   );
 
+  test("reconciles status during a cold assets outage", () async {
+    for (final assetIdsAvailable in <bool>[true, false]) {
+      exchange = ChainflipExchange.forTesting();
+      final body = _statusBody(
+        state: "completed",
+        egressAmountNative: "987654321000000000000",
+      );
+      final status = body["status"] as Map<String, dynamic>;
+      (status["deposit"] as Map<String, dynamic>)["amountNative"] = "2500000";
+      if (!assetIdsAvailable) {
+        status["sourceAsset"] = "";
+        status["destinationAsset"] = "";
+      }
+      useFake((url, headers) async {
+        if (url.path == "/assets") {
+          return _json(<String, dynamic>{"detail": "down"}, code: 503);
+        }
+        if (url.path == "/status-by-id") return _json(body);
+        throw StateError("unexpected ${url.path}");
+      });
+
+      final oldTrade = _oldTrade();
+      final updated = await exchange.updateTrade(oldTrade);
+      expect(updated.exception, isNull);
+      final trade = updated.value!;
+      expect(trade.status, "Completed");
+      expect(trade.uuid, oldTrade.uuid);
+      expect(trade.tradeId, oldTrade.tradeId);
+      expect(trade.payInCurrency, "BTC");
+      expect(trade.payInNetwork, "Bitcoin");
+      expect(trade.payOutCurrency, "ETH");
+      expect(trade.payOutNetwork, "Ethereum");
+      // Without decimals, preserve saved amounts instead of converting the new
+      // native amounts.
+      expect(trade.payInAmount, oldTrade.payInAmount);
+      expect(trade.payOutAmount, oldTrade.payOutAmount);
+      expect(trade.payInTxid, "tx-in");
+      expect(trade.payOutTxid, "tx-out");
+      expect(trade.payInAddress, "deposit-address");
+      expect(trade.payOutAddress, "destination-address");
+      expect(trade.refundAddress, "refund-address");
+      expect(trade.updatedAt.isAfter(oldTrade.updatedAt), isTrue);
+    }
+    expect(paths.where((path) => path == "/status-by-id"), hasLength(2));
+    expect(paths.where((path) => path == "/assets"), hasLength(2));
+  });
+
   test("keeps polling on stale assets when the refresh fails", () async {
     var assetCalls = 0;
     useFake((url, headers) async {
@@ -1194,5 +1466,7 @@ void main() {
     final updated = await exchange.updateTrade(_oldTrade());
     expect(updated.exception, isNull);
     expect(updated.value!.status, "Completed");
+    expect(updated.value!.payOutAmount, "0.353856642395626881");
+    expect(assetCalls, 2);
   });
 }

@@ -115,12 +115,14 @@ class ChainflipDepositChannel {
   final String? depositAddress;
   final int? createdAt;
   final String? sourceChainExpiryBlock;
+  final bool isExpired;
 
   ChainflipDepositChannel({
     required this.id,
     required this.depositAddress,
     required this.createdAt,
     required this.sourceChainExpiryBlock,
+    required this.isExpired,
   });
 
   factory ChainflipDepositChannel.fromJson(Map<String, dynamic>? json) {
@@ -130,6 +132,7 @@ class ChainflipDepositChannel {
         depositAddress: null,
         createdAt: null,
         sourceChainExpiryBlock: null,
+        isExpired: false,
       );
     }
     return ChainflipDepositChannel(
@@ -137,6 +140,7 @@ class ChainflipDepositChannel {
       depositAddress: json["depositAddress"] as String?,
       createdAt: (json["createdAt"] as num?)?.toInt(),
       sourceChainExpiryBlock: json["sourceChainExpiryBlock"]?.toString(),
+      isExpired: json["isExpired"] as bool? ?? false,
     );
   }
 }
@@ -222,12 +226,14 @@ class ChainflipEgress {
   final String? amountNative;
   final num? amount;
   final String? transactionReference;
+  final int? witnessedAt;
   final Map<String, dynamic>? failure;
 
   ChainflipEgress({
     required this.amountNative,
     required this.amount,
     required this.transactionReference,
+    required this.witnessedAt,
     required this.failure,
   });
 
@@ -237,6 +243,7 @@ class ChainflipEgress {
         amountNative: null,
         amount: null,
         transactionReference: null,
+        witnessedAt: null,
         failure: null,
       );
     }
@@ -244,6 +251,7 @@ class ChainflipEgress {
       amountNative: json["amountNative"] as String?,
       amount: json["amount"] as num?,
       transactionReference: json["transactionReference"] as String?,
+      witnessedAt: (json["witnessedAt"] as num?)?.toInt(),
       failure: _asMap(json["failure"]),
     );
   }
