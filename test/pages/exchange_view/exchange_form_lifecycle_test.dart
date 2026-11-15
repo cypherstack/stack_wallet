@@ -10,20 +10,24 @@ import 'package:mockito/mockito.dart';
 import 'package:platform/platform.dart' as platform;
 import 'package:stackwallet/models/exchange/aggregate_currency.dart';
 import 'package:stackwallet/models/exchange/incomplete_exchange.dart';
+import 'package:stackwallet/models/exchange/response_objects/estimate.dart';
 import 'package:stackwallet/models/isar/exchange_cache/currency.dart';
 import 'package:stackwallet/models/isar/exchange_cache/pair.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/pages/exchange_view/exchange_form.dart';
+import 'package:stackwallet/pages_desktop_specific/desktop_exchange/exchange_steps/step_scaffold.dart';
 import 'package:stackwallet/providers/exchange/exchange_form_state_provider.dart';
 import 'package:stackwallet/providers/global/locale_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
+import 'package:stackwallet/services/exchange/exchange_response.dart';
 import 'package:stackwallet/services/locale_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_service.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/utilities/enums/exchange_rate_type_enum.dart';
+import 'package:stackwallet/widgets/desktop/desktop_dialog_close_button.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../sample_data/theme_json.dart';
@@ -248,6 +252,27 @@ class _Harness {
     );
   }
 
+  Estimate setQuote({
+    ExchangeRateType rateType = ExchangeRateType.estimated,
+    String? warning,
+  }) {
+    container.read(efRateTypeProvider.notifier).state = rateType;
+    final quote = Estimate(
+      estimatedAmount: Decimal.fromInt(6),
+      fixedRate: rateType == ExchangeRateType.fixed,
+      reversed: false,
+      warningMessage: warning,
+      exchangeProvider: ChangeNowExchange.exchangeName,
+    );
+    container
+        .read(efEstimatesListProvider(ChangeNowExchange.exchangeName).notifier)
+        .state = Tuple2(
+      ExchangeResponse(value: [quote]),
+      null,
+    );
+    return quote;
+  }
+
   Future<void> update(WidgetTester tester, Key key) {
     final dynamic state = tester.state(find.byKey(key));
     return state.update() as Future<void>;
@@ -255,6 +280,112 @@ class _Harness {
 }
 
 void main() {
+  const warning = 'Low liquidity may result in a worse execution price.';
+
+  for (final desktop in [false, true]) {
+    for (final rateType in ExchangeRateType.values) {
+      final actions = desktop
+          ? [
+              'Cancel',
+              'dismiss',
+              'close',
+              if (rateType == ExchangeRateType.estimated) 'Attempt',
+            ]
+          : ['Cancel', 'dismiss', 'back', 'Attempt'];
+      for (final action in actions) {
+        testWidgets(
+          '${desktop ? 'desktop' : 'mobile'} ${rateType.name} warning $action',
+          (tester) async {
+            final previousPlatform = Util.layoutPlatform;
+            Util.layoutPlatform = platform.FakePlatform(
+              operatingSystem: desktop ? 'linux' : 'android',
+            );
+            addTearDown(() => Util.layoutPlatform = previousPlatform);
+            final harness = _Harness(quotes: true);
+            final quote = harness.setQuote(
+              rateType: rateType,
+              warning: warning,
+            );
+            await harness.pump(tester, [_first]);
+            await tester.pump();
+
+            await tester.tap(find.text('Swap'));
+            await tester.pumpAndSettle();
+            expect(find.text('Trade warning'), findsOneWidget);
+            expect(find.textContaining(warning), findsOneWidget);
+            expect(find.text('Cancel'), findsOneWidget);
+            expect(find.text('Attempt'), findsOneWidget);
+            // No navigation/model publication is permitted before consent.
+            expect(harness.navigationArguments, isNull);
+            expect(harness.container.read(ssss), isNull);
+
+            if (action == 'dismiss') {
+              await tester.tapAt(const Offset(1, 1));
+            } else if (action == 'back') {
+              await tester.binding.handlePopRoute();
+            } else if (action == 'close') {
+              await tester.tap(find.byType(DesktopDialogCloseButton));
+            } else {
+              await tester.tap(find.text(action));
+            }
+            await tester.pumpAndSettle();
+
+            expect(find.text('Trade warning'), findsNothing);
+            if (action == 'Attempt') {
+              final IncompleteExchangeModel model;
+              if (desktop) {
+                expect(find.byType(StepScaffold), findsOneWidget);
+                expect(harness.navigationArguments, isNull);
+                model = harness.container.read(ssss)!;
+              } else {
+                expect(find.text('Next exchange step'), findsOneWidget);
+                model = harness.navigationArguments as IncompleteExchangeModel;
+              }
+              expect(model.estimate, same(quote));
+              expect(model.rateType, rateType);
+              expect(model.sendAmount, Decimal.one);
+              expect(model.receiveAmount, Decimal.fromInt(6));
+              expect(model.rateInfo, '1 UNKNOWN ~6.00000000 RECEIVE');
+            } else {
+              expect(harness.navigationArguments, isNull);
+              expect(harness.container.read(ssss), isNull);
+              expect(find.text('Next exchange step'), findsNothing);
+              expect(find.byKey(_first), findsOneWidget);
+            }
+            expect(tester.takeException(), isNull);
+            await tester.pumpWidget(const SizedBox.shrink());
+          },
+        );
+      }
+    }
+  }
+
+  for (final warning in <String?>[null, '']) {
+    testWidgets('estimated quote without warning ($warning) proceeds', (
+      tester,
+    ) async {
+      final previousPlatform = Util.layoutPlatform;
+      Util.layoutPlatform = platform.FakePlatform(operatingSystem: 'android');
+      addTearDown(() => Util.layoutPlatform = previousPlatform);
+      final harness = _Harness(quotes: true);
+      final quote = harness.setQuote(warning: warning);
+      await harness.pump(tester, [_first]);
+      await tester.pump();
+      await tester.tap(find.text('Swap'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Trade warning'), findsNothing);
+      expect(find.text('Next exchange step'), findsOneWidget);
+      final model = harness.navigationArguments as IncompleteExchangeModel;
+      expect(model.estimate, same(quote));
+      expect(model.rateType, ExchangeRateType.estimated);
+      expect(model.sendAmount, Decimal.one);
+      expect(model.receiveAmount, Decimal.fromInt(6));
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
+
   test('a loading listener can begin a replacement refresh', () {
     final container = ProviderContainer();
     addTearDown(container.dispose);
