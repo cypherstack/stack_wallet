@@ -120,3 +120,4 @@ lib/wl_gen/generated/
 
 /assets/windows/mwebd.exe
 /tool/build
+.epicmail-regtest/

@@ -68,6 +68,7 @@ import 'themes/theme_providers.dart';
 import 'themes/theme_service.dart';
 import 'utilities/constants.dart';
 import 'utilities/desktop_startup_and_reset.dart';
+import 'utilities/epic_regtest_config.dart';
 import 'utilities/enums/backup_frequency_type.dart';
 import 'utilities/flutter_secure_storage_interface.dart';
 import 'utilities/logger.dart';
@@ -97,8 +98,17 @@ void main(List<String> args) async {
     await libXelis.initRustLib();
   }
 
-  if (Util.isDesktop && args.length == 2 && args.first == "-d") {
-    StackFileSystem.setDesktopOverrideDir(args.last);
+  if (Util.isDesktop) {
+    String? desktopDataDir;
+    try {
+      desktopDataDir = EpicRegtestConfig.desktopDataDir(args);
+    } on ArgumentError catch (error) {
+      stderr.writeln(error.message);
+      exit(64);
+    }
+    if (desktopDataDir != null) {
+      StackFileSystem.setDesktopOverrideDir(desktopDataDir);
+    }
   }
 
   final loadCoinlibFuture = loadCoinlibOrRecordFailure(loadCoinlib);

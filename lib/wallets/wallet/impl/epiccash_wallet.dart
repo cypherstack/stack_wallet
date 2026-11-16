@@ -19,6 +19,7 @@ import '../../../models/node_model.dart';
 import '../../../models/slatepack_models.dart';
 import '../../../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import '../../../utilities/amount/amount.dart';
+import '../../../utilities/epic_regtest_config.dart';
 import '../../../utilities/default_epicboxes.dart';
 import '../../../utilities/dynamic_object.dart';
 import '../../../utilities/enums/slatepack_method.dart';
@@ -70,7 +71,7 @@ class EpiccashWallet extends MimblewimbleWallet {
     final String stringConfig = jsonEncode(<String, dynamic>{
       "epicbox_domain": host,
       "epicbox_port": port,
-      "epicbox_protocol_unsecure": false,
+      "epicbox_protocol_unsecure": EpicRegtestConfig.relayUnsecure,
       "epicbox_address_index": 0,
     });
     await secureStorageInterface.write(
@@ -273,7 +274,7 @@ class EpiccashWallet extends MimblewimbleWallet {
     final Map<String, dynamic> config = <String, dynamic>{};
     config["wallet_dir"] = walletDir;
     config["check_node_api_http_addr"] = nodeApiAddress;
-    config["chain"] = "mainnet";
+    config["chain"] = EpicRegtestConfig.chain;
     config["account"] = "default";
     config["api_listen_port"] = port;
     config["api_listen_interface"] = nodeApiAddress.replaceFirst(
@@ -350,8 +351,9 @@ class EpiccashWallet extends MimblewimbleWallet {
     _hackedCheckTorNodePrefs();
     final String host = epicboxConfig.host;
     final int port = epicboxConfig.port ?? 443;
+    final scheme = epicboxConfig.protocolInsecure == true ? 'ws' : 'wss';
     try {
-      return await probeEpicboxServer(Uri.parse('wss://$host:$port'));
+      return await probeEpicboxServer(Uri.parse('$scheme://$host:$port'));
     } catch (e, s) {
       Logging.instance.w(
         "_testEpicboxServer failed on \"$host:$port\"",

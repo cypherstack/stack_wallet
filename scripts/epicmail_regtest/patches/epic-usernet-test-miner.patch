@@ -1,0 +1,50 @@
+diff --git a/core/src/core/block/feijoada.rs b/core/src/core/block/feijoada.rs
+index a8a6860..25ea5b8 100644
+--- a/core/src/core/block/feijoada.rs
++++ b/core/src/core/block/feijoada.rs
+@@ -169 +169 @@ impl PolicyConfig {
+-		policy_era1.insert(PoWType::RandomX, 100);
++		policy_era1.insert(PoWType::RandomX, 0);
+@@ -171 +171 @@ impl PolicyConfig {
+-		policy_era1.insert(PoWType::Cuckatoo, 0);
++		policy_era1.insert(PoWType::Cuckatoo, 100);
+@@ -179 +179 @@ impl PolicyConfig {
+-		policy_era2.insert(PoWType::RandomX, 100);
++		policy_era2.insert(PoWType::RandomX, 0);
+@@ -181 +181 @@ impl PolicyConfig {
+-		policy_era2.insert(PoWType::Cuckatoo, 0);
++		policy_era2.insert(PoWType::Cuckatoo, 100);
+@@ -189 +189 @@ impl PolicyConfig {
+-		policy_era3.insert(PoWType::RandomX, 100);
++		policy_era3.insert(PoWType::RandomX, 0);
+@@ -191 +191 @@ impl PolicyConfig {
+-		policy_era3.insert(PoWType::Cuckatoo, 0);
++		policy_era3.insert(PoWType::Cuckatoo, 100);
+@@ -199 +199 @@ impl PolicyConfig {
+-		policy_era4.insert(PoWType::RandomX, 100);
++		policy_era4.insert(PoWType::RandomX, 0);
+@@ -201 +201 @@ impl PolicyConfig {
+-		policy_era4.insert(PoWType::Cuckatoo, 0);
++		policy_era4.insert(PoWType::Cuckatoo, 100);
+@@ -209 +209 @@ impl PolicyConfig {
+-		policy_era5.insert(PoWType::RandomX, 100);
++		policy_era5.insert(PoWType::RandomX, 0);
+@@ -211 +211 @@ impl PolicyConfig {
+-		policy_era5.insert(PoWType::Cuckatoo, 0);
++		policy_era5.insert(PoWType::Cuckatoo, 100);
+@@ -219 +219 @@ impl PolicyConfig {
+-		policy_era6.insert(PoWType::RandomX, 100);
++		policy_era6.insert(PoWType::RandomX, 0);
+@@ -221 +221 @@ impl PolicyConfig {
+-		policy_era6.insert(PoWType::Cuckatoo, 0);
++		policy_era6.insert(PoWType::Cuckatoo, 100);
+diff --git a/servers/src/mining/mine_block.rs b/servers/src/mining/mine_block.rs
+index aa59700..82ce525 100644
+--- a/servers/src/mining/mine_block.rs
++++ b/servers/src/mining/mine_block.rs
+@@ -30 +30 @@ use crate::keychain::{ExtKeychain, Identifier, Keychain};
+-use chrono::{TimeZone, Utc};
++use chrono::Utc;
+@@ -178 +178 @@ fn build_block(
+-	b.header.timestamp = Utc.timestamp_opt(0, 0).single().expect("Invalid timestamp");
++	b.header.timestamp = Utc::now();

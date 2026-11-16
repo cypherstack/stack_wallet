@@ -3,6 +3,7 @@ import 'dart:convert';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/node_model.dart';
 import '../../../utilities/default_nodes.dart';
+import '../../../utilities/epic_regtest_config.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../../../utilities/enums/slatepack_method.dart';
 import '../../../wl_gen/interfaces/libepiccash_interface.dart';
@@ -73,11 +74,13 @@ class Epiccash extends Bip39Currency {
     switch (network) {
       case CryptoCurrencyNetwork.main:
         return NodeModel(
-          host: "https://epic.stackwallet.com",
-          port: 3413,
+          host: EpicRegtestConfig.enabled
+              ? EpicRegtestConfig.nodeHost
+              : "https://epic.stackwallet.com",
+          port: EpicRegtestConfig.enabled ? EpicRegtestConfig.nodePort : 3413,
           name: DefaultNodes.defaultName,
           id: DefaultNodes.buildId(this),
-          useSSL: true,
+          useSSL: !EpicRegtestConfig.enabled,
           enabled: true,
           coinName: identifier,
           isFailover: true,

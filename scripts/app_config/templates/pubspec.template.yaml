@@ -54,7 +54,7 @@ dependencies:
 #  flutter_libepiccash:
 #    git:
 #      url: https://github.com/cypherstack/flutter_libepiccash.git
-#      ref: 63e93b01c3c4c68a52b26a43e4442a4738d5e7e8
+#      ref: ff496872f9245e32083bfaf8bb46a785b3f59d62
 # %%END_ENABLE_EPIC%%
 
 # %%ENABLE_MWC%%

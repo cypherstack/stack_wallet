@@ -9,29 +9,34 @@
  */
 
 import '../models/epicbox_server_model.dart';
+import 'epic_regtest_config.dart';
 
 abstract class DefaultEpicBoxes {
   static const String defaultName = "Default";
 
   static List<EpicBoxServerModel> get all => [defaultEpicBoxServer, americas];
 
-  static EpicBoxServerModel get epiccashCom => EpicBoxServerModel(
-    host: 'epicbox.epiccash.com',
-    port: 443,
+  static EpicBoxServerModel get epiccashCom => const EpicBoxServerModel(
+    host: EpicRegtestConfig.enabled
+        ? EpicRegtestConfig.relayHost
+        : 'epicbox.epiccash.com',
+    port: EpicRegtestConfig.enabled ? EpicRegtestConfig.relayPort : 443,
     name: 'Official',
     id: 'default_epiccashCom',
-    useSSL: true,
+    useSSL: !EpicRegtestConfig.relayUnsecure,
     enabled: true,
     isFailover: true,
     isDown: false,
   );
 
-  static EpicBoxServerModel get americas => EpicBoxServerModel(
-    host: 'epicbox.stackwallet.com',
-    port: 443,
+  static EpicBoxServerModel get americas => const EpicBoxServerModel(
+    host: EpicRegtestConfig.enabled
+        ? EpicRegtestConfig.relayHost
+        : 'epicbox.stackwallet.com',
+    port: EpicRegtestConfig.enabled ? EpicRegtestConfig.relayPort : 443,
     name: 'Stack Wallet',
     id: 'default_stack',
-    useSSL: true,
+    useSSL: !EpicRegtestConfig.relayUnsecure,
     enabled: true,
     isFailover: true,
     isDown: false,

@@ -109,7 +109,7 @@ class EpicBoxConfigModel extends RelayConfigModel {
     return EpicBoxConfigModel(
       host: server.host,
       port: server.port ?? 443,
-      protocolInsecure: protocolInsecure ?? false,
+      protocolInsecure: protocolInsecure ?? server.useSSL == false,
       addressIndex: addressIndex ?? 0,
       // name: fields[5] as String,
       // id: fields[6] as String,
