@@ -16,7 +16,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
-import 'package:isar_community/isar.dart';
 
 import '../../app_config.dart';
 import '../../models/buy/response_objects/crypto.dart';
@@ -1246,19 +1245,8 @@ class _BuyFormState extends ConsumerState<BuyForm> {
 
                                 if (address!.type == AddressType.p2tr &&
                                     wallet is Bip39HDWallet) {
-                                  // lets assume any wallet that has taproot also has segwit. WCGW
-                                  final address =
-                                      await ref
-                                          .read(mainDBProvider)
-                                          .isar
-                                          .addresses
-                                          .where()
-                                          .walletIdEqualTo(wallet.walletId)
-                                          .filter()
-                                          .typeEqualTo(AddressType.p2wpkh)
-                                          .sortByDerivationIndexDesc()
-                                          .findFirst() ??
-                                      await wallet.generateNextReceivingAddress(
+                                  final address = await wallet
+                                      .getOrCreateCurrentReceivingAddress(
                                         derivePathType: DerivePathType.bip84,
                                       );
 
