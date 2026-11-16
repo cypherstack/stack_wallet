@@ -1215,55 +1215,46 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                 if (AppConfig.isStackCoin(selectedCrypto?.ticker))
                   CustomTextButton(
                     text: "Choose from ${AppConfig.prefix}",
-                    onTap: () {
+                    onTap: () async {
                       try {
                         final coin = AppConfig.getCryptoCurrencyForTicker(
                           selectedCrypto!.ticker,
                         );
-                        Navigator.of(context)
-                            .pushNamed(
-                              ChooseAddressFromStackView.routeName,
-                              arguments: coin,
-                            )
-                            .then((value) async {
-                              if (value
-                                  is ({
-                                    String walletId,
-                                    String address,
-                                    String walletName,
-                                  })) {
-                                final wallet = ref
-                                    .read(pWallets)
-                                    .getWallet(value.walletId);
+                        final value = await Navigator.of(context).pushNamed(
+                          ChooseAddressFromStackView.routeName,
+                          arguments: coin,
+                        );
+                        if (value
+                            is ({
+                              String walletId,
+                              String address,
+                              String walletName,
+                            })) {
+                          final wallet = ref
+                              .read(pWallets)
+                              .getWallet(value.walletId);
 
-                                // _toController.text = manager.walletName;
-                                // model.recipientAddress =
-                                //     await manager.currentReceivingAddress;
+                          final currentAddress = await wallet
+                              .getCurrentReceivingAddress();
 
-                                final address = await wallet
-                                    .getCurrentReceivingAddress();
+                          final Address address;
+                          if (currentAddress!.type == AddressType.p2tr &&
+                              wallet is Bip39HDWallet) {
+                            address = await wallet
+                                .getOrCreateCurrentReceivingAddress(
+                                  derivePathType: DerivePathType.bip84,
+                                );
+                          } else {
+                            address = currentAddress;
+                          }
 
-                                if (address!.type == AddressType.p2tr &&
-                                    wallet is Bip39HDWallet) {
-                                  final address = await wallet
-                                      .getOrCreateCurrentReceivingAddress(
-                                        derivePathType: DerivePathType.bip84,
-                                      );
-
-                                  _receiveAddressController.text =
-                                      address.value;
-                                } else {
-                                  _receiveAddressController.text =
-                                      address.value;
-                                }
-
-                                setState(() {
-                                  _addressToggleFlag =
-                                      _receiveAddressController.text.isNotEmpty;
-                                });
-                                validateAmount();
-                              }
-                            });
+                          _receiveAddressController.text = address.value;
+                          setState(() {
+                            _addressToggleFlag =
+                                _receiveAddressController.text.isNotEmpty;
+                          });
+                          validateAmount();
+                        }
                       } catch (e, s) {
                         Logging.instance.w("", error: e, stackTrace: s);
                       }
