@@ -1,8 +1,9 @@
 # Make build flow
 
 This page is the maintained source for the two build-flow diagrams. GitHub
-renders the Mermaid blocks directly; the PNG versions are generated from the
-same blocks. Keep them in sync with the `Makefile`.
+renders the Mermaid blocks directly; PNGs can be generated locally from the
+same blocks (they are not committed). Keep the source in sync with the
+`Makefile`.
 
 ## 1. Get the tools (once per Mac)
 
@@ -34,15 +35,15 @@ flowchart LR
     B --> H["Homebrew helper<br/>Flutter · Rust · Go"]
     M --> P["Tools on PATH"]
 
-    F --> C["make toolchain<br/>check-reqs-macos"]
+    F --> C["make toolchain-check<br/>check-reqs-macos"]
     H --> C
     P --> C
 
     C --> X{"Full Xcode?"}
     X -- yes --> R["Ready to build"]
     X -- no --> XS["make bootstrap-xcode"]
+    X -- no --> DL["make bootstrap-xcode-download<br/>optional; archive.org, hash + signature"]
     XS --> R
-    XS -. optional .-> DL["make bootstrap-xcode-download<br/>archive.org, hash + signature"]
     DL --> R
 ```
 
@@ -64,31 +65,31 @@ flowchart TD
     O --> WIN["make build-windows"]
     O --> AND["make build-android"]
 
-    MAC --> MC["checks<br/>require-version · check-sdk-macos<br/>toolchain · check-reqs"]
+    MAC --> MC["checks<br/>require-version · check-sdk-macos<br/>toolchain-check · check-reqs-macos"]
     MC --> MP{"PREBUILTS"}
     MP -- "0 default" --> MS["source<br/>Nix + Xcode 27.0"]
     MP -- "1" --> MB["prebuilt -d"]
     MS --> MR["build_app.sh -p macos -s<br/>pub get · prebuild.sh<br/>flutter build macos"]
     MB --> MR
 
-    IOS --> IC["checks<br/>require-version · check-sdk-macos<br/>(macOS-only) · toolchain"]
+    IOS --> IC["checks<br/>require-version · check-sdk-macos<br/>(macOS-only) · toolchain-check"]
     IC --> IP{"PREBUILTS"}
     IP -- "0 default" --> IS["source"]
     IP -- "1 CI" --> IB["prebuilt -d"]
     IS --> IR["prebuild.sh<br/>build_app.sh -p ios -s<br/>pub get · flutter build ios"]
     IB --> IR
 
-    LINUX --> LC["checks<br/>require-version · check-linux<br/>toolchain · check-reqs"]
+    LINUX --> LC["checks<br/>require-version · check-linux<br/>toolchain-check · check-reqs"]
     LC --> LP{"PREBUILTS"}
     LP -- "0 default" --> LS["source (Nix)"]
     LP -- "1" --> LB["prebuilt -d"]
     LS --> LR["prebuild.sh<br/>build_app.sh -p linux<br/>flutter build linux · bundle"]
     LB --> LR
 
-    WIN --> WC["checks<br/>require-version · check-windows<br/>toolchain · flutter · Go"]
+    WIN --> WC["checks<br/>require-version · check-windows<br/>toolchain-check · flutter · Go"]
     WC --> WR["prebuild.sh<br/>build_app.sh -p windows -d<br/>pub get · flutter build windows<br/>always prebuilt"]
 
-    AND --> AC["checks<br/>require-version · toolchain<br/>dev key · SDK"]
+    AND --> AC["checks<br/>require-version · toolchain-check<br/>dev key · SDK"]
     AC --> AH{"Host"}
     AH -- macOS --> AB["prebuilt -d"]
     AH -- Linux --> AP{"PREBUILTS"}

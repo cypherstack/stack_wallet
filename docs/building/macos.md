@@ -16,7 +16,7 @@ toolchain; the same build is also available through:
 | Manual | install the prerequisites below |
 
 With Nix or direnv the flake supplies Flutter, Dart, rustup (which installs
-Rust 1.99.1 on first entry), Go, CMake, Meson, Ninja, pkg-config and protoc.
+the BOM Rust version on first entry), Go, CMake, Meson, Ninja, pkg-config and protoc.
 Xcode always comes from the host. The prerequisites below describe the
 manual/Homebrew path.
 
@@ -24,7 +24,7 @@ manual/Homebrew path.
 
 | What | Needed for |
 |---|---|
-| [Flutter](https://docs.flutter.dev/install/manual) 3.47.2 | Manual and Homebrew modes |
+| [Flutter](https://docs.flutter.dev/install/manual) 3.47.2 minimum, 3.47.4 recommended | Manual and Homebrew modes |
 | Your usual Xcode | Building the app, in both dnix modes |
 | Xcode **27.0**, release build **27A266a**, installed next to your usual Xcode | Source mode (dnix), in every host mode: dnix builds its four packages with it, including during `flutter test`. It doesn't need to be selected; see [Install Xcode 27.0](#install-xcode-270) |
 | [Homebrew](https://brew.sh/) packages below | Manual and Homebrew modes |

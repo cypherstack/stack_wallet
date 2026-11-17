@@ -63,8 +63,8 @@ using.
 2. Run build (pass the release version and a build number; `make` refuses to guess):
    - `make build-macos VERSION=x.y.z BUILD_NUM=nnn`
 
-The flake provides Flutter, Dart, rustup (which installs Rust 1.99.1 on first
-entry), Go, CMake, Meson, Ninja, pkg-config and protoc. Xcode is never provided
+The flake provides Flutter, Dart, rustup (which installs the BOM Rust version
+on first entry), Go, CMake, Meson, Ninja, pkg-config and protoc. Xcode is never provided
 by Nix; the flake uses the Xcode selected by `xcode-select`.
 
 ### macOS with Homebrew (fallback)
