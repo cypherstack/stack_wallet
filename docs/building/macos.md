@@ -15,9 +15,10 @@ toolchain; the same build is also available through:
 | Homebrew | `make bootstrap-macos` |
 | Manual | install the prerequisites below |
 
-With Nix or direnv the flake supplies Flutter, Dart, Rust, Go, CMake, Meson,
-Ninja, pkg-config and protoc. Xcode always comes from the host. The
-prerequisites below describe the manual/Homebrew path.
+With Nix or direnv the flake supplies Flutter, Dart, rustup (which installs
+Rust 1.99.1 on first entry), Go, CMake, Meson, Ninja, pkg-config and protoc.
+Xcode always comes from the host. The prerequisites below describe the
+manual/Homebrew path.
 
 ## Prerequisites
 

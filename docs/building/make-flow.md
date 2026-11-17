@@ -64,31 +64,31 @@ flowchart TD
     O --> WIN["make build-windows"]
     O --> AND["make build-android"]
 
-    MAC --> MC["checks<br/>require-version · check-sdk-macos<br/>toolchain · dnix · check-reqs"]
+    MAC --> MC["checks<br/>require-version · check-sdk-macos<br/>toolchain · check-reqs"]
     MC --> MP{"PREBUILTS"}
     MP -- "0 default" --> MS["source<br/>Nix + Xcode 27.0"]
     MP -- "1" --> MB["prebuilt -d"]
     MS --> MR["build_app.sh -p macos -s<br/>pub get · prebuild.sh<br/>flutter build macos"]
     MB --> MR
 
-    IOS --> IC["checks<br/>macOS-only · require-version<br/>check-sdk · toolchain · dnix"]
+    IOS --> IC["checks<br/>require-version · check-sdk-macos<br/>(macOS-only) · toolchain"]
     IC --> IP{"PREBUILTS"}
     IP -- "0 default" --> IS["source"]
     IP -- "1 CI" --> IB["prebuilt -d"]
     IS --> IR["prebuild.sh<br/>build_app.sh -p ios -s<br/>pub get · flutter build ios"]
     IB --> IR
 
-    LINUX --> LC["checks<br/>require-version · toolchain<br/>dnix · check-reqs"]
+    LINUX --> LC["checks<br/>require-version · check-linux<br/>toolchain · check-reqs"]
     LC --> LP{"PREBUILTS"}
     LP -- "0 default" --> LS["source (Nix)"]
     LP -- "1" --> LB["prebuilt -d"]
     LS --> LR["prebuild.sh<br/>build_app.sh -p linux<br/>flutter build linux · bundle"]
     LB --> LR
 
-    WIN --> WC["checks<br/>require-version · toolchain<br/>flutter · Go"]
+    WIN --> WC["checks<br/>require-version · check-windows<br/>toolchain · flutter · Go"]
     WC --> WR["prebuild.sh<br/>build_app.sh -p windows -d<br/>pub get · flutter build windows<br/>always prebuilt"]
 
-    AND --> AC["checks<br/>require-version · toolchain<br/>dnix-android · dev key · SDK"]
+    AND --> AC["checks<br/>require-version · toolchain<br/>dev key · SDK"]
     AC --> AH{"Host"}
     AH -- macOS --> AB["prebuilt -d"]
     AH -- Linux --> AP{"PREBUILTS"}
@@ -110,25 +110,13 @@ flowchart TD
 | Android on macOS | `1` (fixed) | verified prebuilts (`-d`) |
 | Android on Linux | follows `PREBUILTS` | source by default |
 
-## What changed from the first diagrams
-
-- `make` no longer defaults to `VERSION=2.1.0` / `BUILD_NUM=210`; both are
-  required.
-- `PREBUILTS=1` is no longer the macOS default; `0` (source) is.
-- `PREBUILTS` affects macOS, Linux and iOS, and Android on Linux. It is not
-  macOS-only.
-- `build-ios` follows `PREBUILTS` and has a macOS-only guard.
-- `build-macos` clears the Nix compiler/SDK variables only inside a Nix shell;
-  a Homebrew or manual shell keeps its own flags.
-- direnv is the Nix flake activator, not a fourth toolchain.
-
 ## Regenerating the PNGs
 
 Extract the two Mermaid blocks and render them with Mermaid CLI:
 
 ```sh
 npx --yes @mermaid-js/mermaid-cli -i make-flow-tools.mmd \
-  -o make-flow-tools.png -t dark -b "#0d1117" --size 1600 -s 2
+  -o make-flow-tools.png -t dark -b "#0d1117" --size 1800 -s 2
 npx --yes @mermaid-js/mermaid-cli -i make-flow-build.mmd \
-  -o make-flow-build.png -t dark -b "#0d1117" --size 1600 -s 2
+  -o make-flow-build.png -t dark -b "#0d1117" --size 1800 -s 2
 ```
