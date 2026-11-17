@@ -111,6 +111,10 @@
             # ==========================================
             ${lib.optionalString pkgs.stdenv.hostPlatform.isLinux ''
             # echo "🐧 Linux detected: Patching shebangs for NixOS..."
+              # Flutter's Linux CMake build forces CC=clang/CXX=clang++. libclang
+              # also puts the unwrapped clang first on PATH, which cannot find
+              # the NixOS crt/libstdc++ paths; prefer the clang wrapper.
+              export PATH="${pkgs.llvmPackages.clang}/bin:$PATH"
               export LIBCLANG_PATH="${pkgs.llvmPackages.libclang.lib}/lib"
               export BINDGEN_EXTRA_CLANG_ARGS="-isystem ${pkgs.llvmPackages.libclang.lib}/lib/clang/${clangMajor}/include"
               export PROTOC="${pkgs.protobuf}/bin/protoc"

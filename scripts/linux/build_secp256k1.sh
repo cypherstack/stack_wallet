@@ -27,3 +27,13 @@ fi
 # Legacy location used by parts of the build pipeline.
 mkdir -p ../../../../../build
 cp "$SECP_SO" ../../../../../build/libsecp256k1.so
+
+# The coinlib CMake install step expects the library inside Flutter's build
+# tree. Match Flutter's architecture directory name (x64, arm64).
+case "$(uname -m)" in
+    x86_64|x64) FLUTTER_ARCH=x64 ;;
+    aarch64|arm64) FLUTTER_ARCH=arm64 ;;
+    *) FLUTTER_ARCH="$(uname -m)" ;;
+esac
+mkdir -p "../../../../../build/linux/${FLUTTER_ARCH}/release/secp256k1/lib"
+cp "$SECP_SO" "../../../../../build/linux/${FLUTTER_ARCH}/release/secp256k1/lib/libsecp256k1.so"
