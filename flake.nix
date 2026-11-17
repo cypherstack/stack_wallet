@@ -117,6 +117,8 @@
               # also puts the unwrapped clang first on PATH, which cannot find
               # the NixOS crt/libstdc++ paths; prefer the clang wrapper.
               export PATH="${pkgs.llvmPackages.clang}/bin:$PATH"
+              # stdenv also provides patchelf 0.15; put 0.18 first.
+              export PATH="${pkgs.patchelfUnstable}/bin:$PATH"
               export LIBCLANG_PATH="${pkgs.llvmPackages.libclang.lib}/lib"
               export BINDGEN_EXTRA_CLANG_ARGS="-isystem ${pkgs.llvmPackages.libclang.lib}/lib/clang/${clangMajor}/include"
               export PROTOC="${pkgs.protobuf}/bin/protoc"
