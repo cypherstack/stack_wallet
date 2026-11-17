@@ -1240,6 +1240,29 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                           final Address address;
                           if (currentAddress!.type == AddressType.p2tr &&
                               wallet is Bip39HDWallet) {
+                            if (wallet.isViewOnly) {
+                              // A view only wallet only has the public key of
+                              // its own derivation path, so it cannot derive
+                              // the BIP84 address used below.
+                              if (context.mounted) {
+                                await showDialog<void>(
+                                  context: context,
+                                  useRootNavigator: true,
+                                  builder: (_) => StackOkDialog(
+                                    desktopPopRootNavigator: true,
+                                    title: "Wallet not supported",
+                                    message:
+                                        "Taproot addresses are not allowed, "
+                                        "and a view only Taproot wallet has "
+                                        "no other address type. Choose "
+                                        "another wallet or enter an address.",
+                                    maxWidth: isDesktop ? 400 : null,
+                                  ),
+                                );
+                              }
+                              return;
+                            }
+
                             address = await wallet
                                 .getOrCreateCurrentReceivingAddress(
                                   derivePathType: DerivePathType.bip84,
