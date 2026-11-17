@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Safe to source (source script.sh) or execute directly (./script.sh)
+# Run directly (bash script.sh). On error this exits the shell; do not source.
 if [ -n "${ZSH_VERSION:-}" ]; then
   if [[ "${ZSH_EVAL_CONTEXT:-}" == *file* ]]; then
     set -uo pipefail                           # sourced in zsh, don't -e
@@ -16,7 +16,7 @@ elif [ -n "${BASH_VERSION:-}" ]; then
 else
   set -euo pipefail                            # unknown shell
 fi
-die() { echo "$@" >&2; return 1 2>/dev/null || exit 1; }
+die() { echo "$@" >&2; exit 1; }
 
 if [[ "$(uname -s)" != "Darwin" ]]; then
   die "This installer is for macOS only."

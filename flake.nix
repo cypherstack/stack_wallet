@@ -38,7 +38,7 @@
           ]))
         ];
 
-        linuxPackages = lib.optionals pkgs.stdenv.isLinux (with pkgs; [
+        linuxPackages = lib.optionals pkgs.stdenv.hostPlatform.isLinux (with pkgs; [
           gtk3 glib openssl xz clang libgcrypt gobject-introspection
           llvmPackages.libclang
           llvmPackages.clang
@@ -52,7 +52,7 @@
           opencl-headers
         ]);
 
-        macPackages = lib.optionals pkgs.stdenv.isDarwin (with pkgs; [
+        macPackages = lib.optionals pkgs.stdenv.hostPlatform.isDarwin (with pkgs; [
           cocoapods
           libiconv
           autoconf
@@ -74,7 +74,9 @@
             # Resolve the repository root, not the directory the shell was
             # entered from; .nix-bin and the rustup override are per checkout.
             export APP_PROJECT_ROOT_DIR="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-            export PATH="$HOME/.cargo/bin:$PATH"
+            if [ -d "$HOME/.cargo/bin" ]; then
+              export PATH="$HOME/.cargo/bin:$PATH"
+            fi
 
             # The standalone Dart in the Nix Flutter wrapper cannot find the Flutter SDK on its own,
             # so `dart run`/`dart pub` in a Flutter project fail ("Flutter users should use flutter pub").
@@ -104,7 +106,7 @@
             # ==========================================
             # LINUX (NixOS) SPECIFICS
             # ==========================================
-            ${lib.optionalString pkgs.stdenv.isLinux ''
+            ${lib.optionalString pkgs.stdenv.hostPlatform.isLinux ''
             # echo "🐧 Linux detected: Patching shebangs for NixOS..."
               export LIBCLANG_PATH="${pkgs.llvmPackages.libclang.lib}/lib"
               export BINDGEN_EXTRA_CLANG_ARGS="-isystem ${pkgs.llvmPackages.libclang.lib}/lib/clang/${clangMajor}/include"
@@ -114,20 +116,23 @@
             # ==========================================
             # MACOS XCODE SANDBOX ESCAPE
             # ==========================================
-            ${lib.optionalString pkgs.stdenv.isDarwin ''
+            ${lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ''
               # Nix supplies the host tools, never Apple's compiler or SDK.
               # Flutter, CocoaPods and Xcode use the toolchain selected by
               # xcode-select. Do not export SDKROOT here: it makes an iOS build
               # compile against the macOS SDK.
               SELECTED_DEVELOPER="$(env -u DEVELOPER_DIR xcode-select -p 2>/dev/null || true)"
               case "$SELECTED_DEVELOPER" in
-                *.app/Contents/Developer) ;;
+                *.app/Contents/Developer)
+                  export DEVELOPER_DIR="$SELECTED_DEVELOPER"
+                  ;;
                 *)
                   echo "[WARN] No full Xcode selected. Install Xcode and run 'make bootstrap-xcode'."
-                  SELECTED_DEVELOPER="/Applications/Xcode.app/Contents/Developer"
+                  # Leave DEVELOPER_DIR unset so xcrun can still use the
+                  # Command Line Tools for non-Xcode work.
+                  unset DEVELOPER_DIR
                   ;;
               esac
-              export DEVELOPER_DIR="$SELECTED_DEVELOPER"
               # nixpkgs' Darwin stdenv exports its own macOS SDK here before
               # this hook runs; leave the SDK choice to Xcode per build.
               unset SDKROOT
@@ -144,7 +149,10 @@
               export RANLIB=/usr/bin/ranlib
               export STRIP=/usr/bin/strip
 
-              export BINDGEN_EXTRA_CLANG_ARGS="-isysroot $(/usr/bin/xcrun --sdk macosx --show-sdk-path)"
+              SDK_PATH="$(/usr/bin/xcrun --sdk macosx --show-sdk-path 2>/dev/null || true)"
+              if [ -n "$SDK_PATH" ]; then
+                export BINDGEN_EXTRA_CLANG_ARGS="-isysroot $SDK_PATH"
+              fi
               export PROTOC="${pkgs.protobuf}/bin/protoc"
 
               NIX_BIN="$APP_PROJECT_ROOT_DIR/.nix-bin"
@@ -175,15 +183,14 @@ LIPO_EOF
               # xcrun wrapper: `xcrun -f lipo` must resolve to the wrapper above.
               # Everything else passes straight through, so an iOS build keeps
               # its deployment target and SDK.
-              cat > "$NIX_BIN/xcrun" <<'XCRUN_EOF'
+              cat > "$NIX_BIN/xcrun" <<XCRUN_EOF
 #!/bin/bash
-if [ "$1" = "-f" ] && [ "$2" = "lipo" ]; then
-    echo "__NIX_BIN_DIR__/lipo"
+if [ "\$1" = "-f" ] && [ "\$2" = "lipo" ]; then
+    echo "$NIX_BIN/lipo"
     exit 0
 fi
-exec /usr/bin/xcrun "$@"
+exec /usr/bin/xcrun "\$@"
 XCRUN_EOF
-              sed -i.bak "s|__NIX_BIN_DIR__|$NIX_BIN|" "$NIX_BIN/xcrun" && rm -f "$NIX_BIN/xcrun.bak"
               chmod +x "$NIX_BIN/xcrun"
 
               export PATH="$NIX_BIN:$PATH"

@@ -5,6 +5,9 @@ name: Make build
 # The Makefile builds dnix source by default on macOS and Linux. These jobs use
 # the same verified prebuilts as the release workflow (build.yaml); source and
 # reproducibility builds belong to the dnix packages' own CI.
+#
+# Toolchain versions come from stack-bom.toml via scripts/bom_values.sh. The
+# release workflow (build.yaml) keeps its own DNSSEC 1.90.0 pins.
 on:
   workflow_dispatch:
 
@@ -23,15 +26,28 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
+      - name: Read stack-bom.toml
+        id: bom
+        run: |
+          values="$(scripts/bom_values.sh)"
+          eval "$values"
+          echo "flutter=$FLUTTER_VERSION" >> "$GITHUB_OUTPUT"
+          echo "rust=$RUST_VERSION" >> "$GITHUB_OUTPUT"
+          echo "go=$GO_VERSION" >> "$GITHUB_OUTPUT"
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.47.2'
+          flutter-version: ${{ steps.bom.outputs.flutter }}
           channel: 'stable'
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.24.13'
+          go-version: ${{ steps.bom.outputs.go }}
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ steps.bom.outputs.rust }}
       - name: Install make
         run: command -v make >/dev/null 2>&1 || choco install make -y --no-progress
+      - name: Check the toolchain bill of materials
+        run: make verify-bom
       - name: Build
         run: make build-windows VERSION=0.0.0 BUILD_NUM=${{ github.run_number }} WINDOWS_COPY_ASSETS=1
 
@@ -41,18 +57,28 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
+      - name: Read stack-bom.toml
+        id: bom
+        run: |
+          values="$(scripts/bom_values.sh)"
+          eval "$values"
+          echo "flutter=$FLUTTER_VERSION" >> "$GITHUB_OUTPUT"
+          echo "rust=$RUST_VERSION" >> "$GITHUB_OUTPUT"
+          echo "go=$GO_VERSION" >> "$GITHUB_OUTPUT"
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.47.2'
+          flutter-version: ${{ steps.bom.outputs.flutter }}
           channel: 'stable'
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.24.13'
+          go-version: ${{ steps.bom.outputs.go }}
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ steps.bom.outputs.rust }}
       - name: Tools
-        run: |
-          brew install meson ninja autoconf automake libtool protobuf pkg-config cbindgen || true
-          rustup toolchain install 1.99.1 --profile minimal || true
-          rustup default 1.99.1 || true
+        run: brew install meson ninja autoconf automake libtool protobuf pkg-config cbindgen
+      - name: Check the toolchain bill of materials
+        run: make verify-bom
       - name: Build
         run: make build-macos VERSION=0.0.0 BUILD_NUM=${{ github.run_number }} PREBUILTS=1
 
@@ -62,13 +88,24 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
+      - name: Read stack-bom.toml
+        id: bom
+        run: |
+          values="$(scripts/bom_values.sh)"
+          eval "$values"
+          echo "flutter=$FLUTTER_VERSION" >> "$GITHUB_OUTPUT"
+          echo "rust=$RUST_VERSION" >> "$GITHUB_OUTPUT"
+          echo "go=$GO_VERSION" >> "$GITHUB_OUTPUT"
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.47.2'
+          flutter-version: ${{ steps.bom.outputs.flutter }}
           channel: 'stable'
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.24.13'
+          go-version: ${{ steps.bom.outputs.go }}
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ steps.bom.outputs.rust }}
       - name: Free disk space
         run: |
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
@@ -81,10 +118,6 @@ jobs:
             libgcrypt20-dev libgirepository1.0-dev libgit2-dev libglib2.0-dev libgtk-3-dev libjsoncpp-dev liblzma-dev \
             libncurses5-dev libncursesw5-dev libsecret-1-dev libssl-dev libtss2-dev \
             ocl-icd-opencl-dev opencl-headers valac zlib1g-dev
-      - name: Rust
-        run: |
-          rustup toolchain install 1.99.1 --profile minimal
-          rustup default 1.99.1
       - name: Check the toolchain bill of materials
         run: make verify-bom
       - name: Build
@@ -94,23 +127,33 @@ jobs:
     # The fork has a single hosted macOS concurrency slot. Running macOS and
     # iOS together leaves one job queued until GitHub cancels it; serialise them.
     needs: macos
-    if: always()
+    if: ${{ !cancelled() }}
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
+      - name: Read stack-bom.toml
+        id: bom
+        run: |
+          values="$(scripts/bom_values.sh)"
+          eval "$values"
+          echo "flutter=$FLUTTER_VERSION" >> "$GITHUB_OUTPUT"
+          echo "rust=$RUST_VERSION" >> "$GITHUB_OUTPUT"
+          echo "go=$GO_VERSION" >> "$GITHUB_OUTPUT"
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.47.2'
+          flutter-version: ${{ steps.bom.outputs.flutter }}
           channel: 'stable'
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.24.13'
+          go-version: ${{ steps.bom.outputs.go }}
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ steps.bom.outputs.rust }}
       - name: Tools
-        run: |
-          brew install meson ninja autoconf automake libtool protobuf pkg-config cbindgen || true
-          rustup toolchain install 1.99.1 --profile minimal || true
-          rustup default 1.99.1 || true
+        run: brew install meson ninja autoconf automake libtool protobuf pkg-config cbindgen
+      - name: Check the toolchain bill of materials
+        run: make verify-bom
       - name: Build
         run: make build-ios VERSION=0.0.0 BUILD_NUM=${{ github.run_number }} PREBUILTS=1

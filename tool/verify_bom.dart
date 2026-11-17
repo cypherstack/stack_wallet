@@ -147,6 +147,10 @@ Future<void> _update() async {
   // old behaviour and update every plugin the lock knows about.
   final updateable = declared.isEmpty ? _pluginNames.toSet() : declared;
   final start = text.indexOf('[plugins]');
+  final tailStart = start < 0
+      ? text.length
+      : text.indexOf(RegExp(r'\n\[', multiLine: true), start + 1);
+  final tail = tailStart < 0 ? '' : text.substring(tailStart);
   final head = start < 0
       ? text.trimRight()
       : text.substring(0, start).trimRight();
@@ -167,6 +171,7 @@ Future<void> _update() async {
       written++;
     }
   }
+  buf.write(tail);
   File(_bomFile).writeAsStringSync(buf.toString());
   stdout.writeln('Updated [plugins] in $_bomFile ($written entries).');
 }
@@ -266,16 +271,21 @@ Future<void> main(List<String> args) async {
   final refs = _lockRefs();
   final pinned = bom['plugins'] ?? {};
   final declared = _declaredPlugins();
+  // A fresh checkout has no pubspec.yaml: build_app.sh generates it later.
+  // In that case check every plugin the lock contains, as before.
+  final required = File('pubspec.yaml').existsSync()
+      ? declared
+      : _pluginNames.toSet();
   if (refs.isEmpty) {
     _warn('pubspec.lock not found, plugin pins not checked');
-  } else if (declared.isEmpty) {
+  } else if (required.isEmpty) {
     _warn(
       'pubspec.yaml declares none of the pinned plugins, '
       'plugin pins not checked',
     );
   } else {
     for (final n in _pluginNames) {
-      if (!declared.contains(n)) continue;
+      if (!required.contains(n)) continue;
       final ref = refs[n];
       final pin = pinned[n];
       if (ref == null) {

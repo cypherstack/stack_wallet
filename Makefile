@@ -14,19 +14,26 @@ FLUTTER_BIN  := $(if $(and $(FLUTTER),$(wildcard $(FLUTTER))),$(FLUTTER),$(shell
 DART_BIN     := $(if $(and $(DART),$(wildcard $(DART))),$(DART),$(shell command -v dart 2>/dev/null))
 FLUTTER      := $(FLUTTER_BIN)
 DART         := $(DART_BIN)
-APP_PROJECT_ROOT_DIR := $(CURDIR)
+APP_PROJECT_ROOT_DIR := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 # Platform detection from uname.
 PLATFORM       ?= $(shell uname -s 2>/dev/null)
 # Toolchain source. Nix (nix develop or direnv) is the primary path; Homebrew
 # and manual installs use the host tools already on PATH. The build steps are
 # identical in every mode: only the prerequisite check and the Nix environment
-# sanitising differ. Override with TOOLCHAIN=nix|direnv|brew|manual.
+# sanitising differ. Override with TOOLCHAIN=nix|direnv|brew|manual|host.
 TOOLCHAIN      ?= auto
 DIRENV_ACTIVE  := $(if $(DIRENV_DIR),1,)
 NIX_ACTIVE     := $(if $(or $(IN_NIX_SHELL),$(NIX_STORE)),1,)
+ifneq ($(filter $(TOOLCHAIN),auto nix direnv brew manual host),$(TOOLCHAIN))
+  $(error TOOLCHAIN must be auto, nix, direnv, brew, manual or host)
+endif
 ifeq ($(TOOLCHAIN),auto)
   ifeq ($(DIRENV_ACTIVE),1)
-    TOOLCHAIN_EFFECTIVE := direnv
+    ifeq ($(NIX_ACTIVE),1)
+      TOOLCHAIN_EFFECTIVE := direnv
+    else
+      TOOLCHAIN_EFFECTIVE := host
+    endif
   else
     ifeq ($(NIX_ACTIVE),1)
       TOOLCHAIN_EFFECTIVE := nix
@@ -47,7 +54,7 @@ PROTOC_PATH  := $(shell which protoc 2>/dev/null)
 # Toolchain installed for host-side checks/targets. Native-assets crates pick their own
 # pinned toolchain via rust-toolchain.toml; do not export RUSTUP_TOOLCHAIN globally.
 BOM_FILE     := $(APP_PROJECT_ROOT_DIR)/stack-bom.toml
-BOM_RUST     := $(shell sed -n 's/^rust[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' $(BOM_FILE) 2>/dev/null | head -n1)
+BOM_RUST     := $(shell sed -n 's/^rust[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "$(BOM_FILE)" 2>/dev/null | head -n1)
 RUST_VERSION ?= $(if $(BOM_RUST),$(BOM_RUST),1.99.1)
 # Only strip Nix/Apple variables when a Nix shell actually supplied them. In a
 # Homebrew or manual shell these are the user's own settings and are kept.
@@ -66,7 +73,7 @@ ifneq ($(strip $(PUB_CACHE)),)
 export PUB_CACHE
 endif
 
-.PHONY: help toolchain toolchain-check dnix-check dnix-check-android bootstrap bootstrap-brew require-version check-reqs check-reqs-macos check-sdk-macos bootstrap-macos bootstrap-xcode bootstrap-xcode-download sccache-setup cache-stats verify-bom clean clean-app clean-native build-macos build-linux build-windows diagnose-env-macos build-android android-dev-key build-ios
+.PHONY: help toolchain toolchain-check bootstrap bootstrap-brew require-version check-reqs check-reqs-macos check-sdk-macos check-linux check-windows bootstrap-macos bootstrap-xcode bootstrap-xcode-download sccache-setup cache-stats verify-bom clean clean-app clean-native build-macos build-linux build-windows diagnose-env-macos build-android android-dev-key build-ios
 
 help: ## Show available commands
 	@echo "Available targets:"
@@ -82,8 +89,10 @@ toolchain: ## Show the active toolchain and tool paths
 	@echo "flutter   : $(if $(FLUTTER),$(FLUTTER),missing)"
 	@echo "dart      : $(if $(DART),$(DART),missing)"
 	@echo "rustup    : $$(command -v rustup || echo missing)"
+ifeq ($(PLATFORM),Darwin)
 	@echo "brew      : $$(command -v brew || echo missing)"
 	@echo "xcode     : $$(xcode-select -p 2>/dev/null || echo missing)"
+endif
 
 toolchain-check: ## Fail when the requested toolchain is not active
 ifeq ($(TOOLCHAIN_EFFECTIVE),nix)
@@ -109,22 +118,26 @@ bootstrap: ## Enter the Nix dev shell (primary toolchain; no-op when already ins
 
 bootstrap-brew: bootstrap-macos ## Alias for the Homebrew fallback toolchain
 
-dnix-check: ## Fail when a dnix source build is requested without Nix
-	@if [ "$(PREBUILTS)" = "0" ] && ! command -v nix >/dev/null 2>&1; then \
-		echo >&2 "[ERROR] PREBUILTS=0 (dnix source) needs Nix. Use PREBUILTS=1, or run 'make bootstrap'."; \
-		exit 1; \
-	fi
+check-linux: ## Fail unless the host is Linux
+ifeq ($(PLATFORM),Linux)
+	@:
+else
+	@echo >&2 "[ERROR] build-linux is Linux-only."
+	@exit 1
+endif
 
-dnix-check-android: ## Fail when an Android dnix source build is requested without Nix
-	@if [ "$(ANDROID_PREBUILTS)" = "0" ] && ! command -v nix >/dev/null 2>&1; then \
-		echo >&2 "[ERROR] Android source builds need Nix. Use PREBUILTS=1, or run 'make bootstrap'."; \
-		exit 1; \
-	fi
+check-windows: ## Fail unless running from Git Bash on Windows
+ifeq ($(filter MINGW% MSYS% CYGWIN%,$(PLATFORM)),)
+	@echo >&2 "[ERROR] build-windows must run from Git Bash on Windows."
+	@exit 1
+else
+	@:
+endif
 
 # --- PREREQUISITES ---
 
 require-version: ## Fail unless VERSION and BUILD_NUM are set explicitly
-	@[ -n "$(VERSION)" ] || { echo >&2 "[ERROR] VERSION is not set. Pass VERSION=x.y.z (current release line: $$(git tag -l 'build_*' --sort=-v:refname 2>/dev/null | head -n1))."; exit 1; }
+	@[ -n "$(VERSION)" ] || { echo >&2 "[ERROR] VERSION is not set. Pass VERSION=x.y.z (latest release tag: $$(git tag -l 'build_*' --sort=-v:refname 2>/dev/null | head -n1))."; exit 1; }
 	@[ -n "$(BUILD_NUM)" ] || { echo >&2 "[ERROR] BUILD_NUM is not set. Pass a build number above the latest release tag ($$(git tag -l 'build_*' --sort=-v:refname 2>/dev/null | head -n1))."; exit 1; }
 
 check-reqs: ## Verify essential build tools
@@ -300,7 +313,7 @@ clean-native: ## Remove only the native-asset build outputs (forces the Rust/Go/
 	@rm -rf .dart_tool/hooks_runner build/native_assets
 	@echo "[OK] Removed .dart_tool/hooks_runner and build/native_assets."
 
-build-macos: require-version toolchain-check dnix-check check-reqs-macos check-sdk-macos ## Build macOS release (source by default; PREBUILTS=1 uses verified prebuilts)
+build-macos: require-version toolchain-check check-reqs-macos check-sdk-macos ## Build macOS release (source by default; PREBUILTS=1 uses verified prebuilts)
 	@echo "--- Configuring project (scripts/build_app.sh)..."
 	@cd scripts && echo yes | env $(MACOS_ENV_UNSET) ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p macos -a $(APP_NAME) -s $(if $(filter 1,$(PREBUILTS)),-d)
 	@echo "--- Resolving dependencies..."
@@ -334,7 +347,7 @@ diagnose-env-macos: ## Print macOS build env and tool resolution
 	@echo "NIX_CFLAGS_LINK=$${NIX_CFLAGS_LINK:-<unset>}"
 
 build-linux: export PUB_CACHE := $(LINUX_PUB_CACHE)
-build-linux: require-version toolchain-check dnix-check check-reqs ## Build Linux Release through Flutter native-assets hooks
+build-linux: require-version check-linux toolchain-check check-reqs ## Build Linux Release through Flutter native-assets hooks
 	@echo "--- Running prebuild bootstrap..."
 	@cd scripts && bash prebuild.sh
 	@echo "--- Generating config..."
@@ -376,7 +389,7 @@ build-linux: require-version toolchain-check dnix-check check-reqs ## Build Linu
 # driven by build_app.sh directly, not by this target.
 WINDOWS_COPY_ASSETS ?= 0
 
-build-windows: require-version toolchain-check ## Build Windows release (Git Bash; verified dnix prebuilts)
+build-windows: require-version check-windows toolchain-check ## Build Windows release (Git Bash; verified dnix prebuilts)
 	@command -v flutter >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
 	@command -v go >/dev/null 2>&1 || { echo >&2 "[ERROR] Go not installed."; exit 1; }
 	@cd scripts && bash prebuild.sh
@@ -396,7 +409,7 @@ android-dev-key: ## Create a throw-away debug signing key if android/key.propert
 		printf 'storeFile=../dev-keystore.jks\nstorePassword=android\nkeyPassword=android\nkeyAlias=devkey\n' > android/key.properties; \
 	fi
 
-build-android: require-version toolchain-check dnix-check-android android-dev-key ## Build Android APKs (prebuilt dnix on macOS; Linux follows PREBUILTS)
+build-android: require-version toolchain-check android-dev-key ## Build Android APKs (prebuilt dnix on macOS; Linux follows PREBUILTS)
 	@command -v flutter >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
 	@[ -n "$$ANDROID_SDK_ROOT$$ANDROID_HOME" ] || { echo >&2 "[ERROR] ANDROID_SDK_ROOT is not set (Android SDK/NDK required)."; exit 1; }
 	@cd scripts && bash prebuild.sh
@@ -405,7 +418,7 @@ build-android: require-version toolchain-check dnix-check-android android-dev-ke
 	@$(FLUTTER) build apk --split-per-abi --release
 
 # iOS: same steps as the "build-ios" CI job (device build, no code signing). Run on macOS with Xcode.
-build-ios: require-version check-sdk-macos toolchain-check dnix-check ## Build iOS Runner.app without code signing (same steps as CI)
+build-ios: require-version check-sdk-macos toolchain-check ## Build iOS Runner.app without code signing (same steps as CI)
 	@command -v flutter >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
 	@cd scripts && bash prebuild.sh
 	@cd scripts && echo yes | ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p ios -a $(APP_NAME) $(if $(filter 1,$(PREBUILTS)),-d) -s
