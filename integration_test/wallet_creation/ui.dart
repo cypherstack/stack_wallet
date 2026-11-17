@@ -7,9 +7,12 @@ import 'package:flutter_test/flutter_test.dart';
 
 /// Bounded real-app pumping. Never print finders containing recovery words.
 class TestUI {
-  TestUI(this.tester);
+  TestUI(this.tester, {this.reportPrefix = 'WALLET_CREATION_'});
 
   final WidgetTester tester;
+
+  /// Starts every line this prints, so a runner can pick them out.
+  final String reportPrefix;
   final errors = <Object>[];
   File? errorLog;
   String _stage = 'startup';
@@ -20,7 +23,7 @@ class TestUI {
   }
 
   void report(String message) =>
-      debugPrintSynchronously('WALLET_CREATION_$message');
+      debugPrintSynchronously('$reportPrefix$message');
 
   Future<void> pump() async {
     await tester
