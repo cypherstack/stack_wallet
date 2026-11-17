@@ -53,6 +53,7 @@ import '../../widgets/qr.dart';
 import '../../widgets/rounded_white_container.dart';
 import 'addresses/wallet_addresses_view.dart';
 import 'generate_receiving_uri_qr_code_view.dart';
+import '../slatepack/request_invoice_view.dart';
 import '../slatepack/slatepack_import_flow.dart';
 import 'sub_widgets/slatepack_entry_dialog.dart';
 
@@ -82,6 +83,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
   late final bool _showMultiType;
   late bool supportsMweb;
   SlatepackTerms? _slatepackTerms;
+  SlatepackInterface? _slatepackWallet;
 
   int _currentIndex = 0;
 
@@ -283,6 +285,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
     _supportsSpark = wallet is SparkInterface;
     if (wallet is SlatepackInterface) {
       _slatepackTerms = wallet.slatepackTerms;
+      _slatepackWallet = wallet;
     }
     supportsMweb =
         wallet is MwebInterface &&
@@ -682,6 +685,13 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                         ),
                       ),
                     ),
+                    if (_slatepackWallet?.receiveAddressNote != null) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        _slatepackWallet!.receiveAddressNote!,
+                        style: STextStyles.label(context),
+                      ),
+                    ],
                     const SizedBox(height: 12),
                     PrimaryButton(
                       label: "Copy address",
@@ -718,6 +728,13 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                         onPressed: _importSlatepack,
                       ),
                     ],
+                    if (_slatepackWallet?.supportsInvoices ?? false) ...[
+                      const SizedBox(height: 12),
+                      SecondaryButton(
+                        label: "Request payment",
+                        onPressed: () => showRequestInvoice(context, walletId),
+                      ),
+                    ],
                     const SizedBox(height: 30),
                     RoundedWhiteContainer(
                       child: Padding(
@@ -726,11 +743,15 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                           child: Column(
                             children: [
                               QR(
-                                data: AddressUtils.buildUriString(
-                                  coin.uriScheme,
-                                  address,
-                                  {},
-                                ),
+                                data:
+                                    _slatepackWallet?.receiveQrIsRawAddress ??
+                                        false
+                                    ? address
+                                    : AddressUtils.buildUriString(
+                                        coin.uriScheme,
+                                        address,
+                                        {},
+                                      ),
                                 size: MediaQuery.of(context).size.width / 2,
                               ),
                               const SizedBox(height: 20),

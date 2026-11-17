@@ -255,9 +255,22 @@ class AddressUtils {
     const cashAddrSchemes = {"bitcoincash", "bchtest", "ecash", "ectest"};
     final parsedUri = Uri.tryParse(uri);
     final scheme = parsedUri?.scheme.toLowerCase();
+    // A raw address is not a payment URI. Return before the legacy parser so
+    // address pastes do not turn an expected miss into a logged exception.
+    if (scheme == null || scheme.isEmpty) {
+      return null;
+    }
     if (parsedUri != null &&
         (scheme == "xel" ||
             (!parsedUri.hasQuery && cashAddrSchemes.contains(scheme)))) {
+      return null;
+    }
+
+    // A web URL is a send address for coins that send over HTTP (Epic Cash's
+    // and Grin's foreign API), never a payment URI. Without this, typing the
+    // "http:" of such an address parsed as a URI with an empty address and
+    // cleared the field.
+    if (scheme == "http" || scheme == "https") {
       return null;
     }
 

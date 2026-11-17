@@ -29,6 +29,7 @@ import '../../../../pages/send_view/frost_ms/recipient.dart';
 import '../../../../pages/send_view/sub_widgets/building_transaction_dialog.dart';
 import '../../../../pages/send_view/sub_widgets/multi_recipient.dart';
 import '../../../../pages/slatepack/slatepack_send_flow.dart';
+import '../../../../pages/slatepack/slatepack_recipient_field.dart';
 import '../../../../providers/providers.dart';
 import '../../../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../../../providers/ui/preview_tx_button_state_provider.dart';
@@ -110,6 +111,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   late final ClipboardInterface clipboard;
 
   late TextEditingController sendToController;
+  final _slatepackRecipientController = TextEditingController();
   late TextEditingController cryptoAmountController;
   late TextEditingController baseAmountController;
   late TextEditingController memoController;
@@ -125,6 +127,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
   late final bool hasOptionalMemo;
   late final bool usesSlatepacks;
+
+  String? get _directSendAddressHint {
+    final wallet = ref.read(pWallets).getWallet(walletId);
+    return wallet is SlatepackInterface ? wallet.directSendAddressHint : null;
+  }
 
   void _formatMimblewimbleAddress() {
     var address = sendToController.text.trim();
@@ -268,8 +275,12 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     final nonce = nonceInput.value;
 
     final wallet = ref.read(pWallets).getWallet(walletId);
-    final isSlatepackSend =
-        wallet is SlatepackInterface && ref.read(pIsSlatepack(walletId));
+    final slatepackWallet = wallet is SlatepackInterface ? wallet : null;
+    final selectedSlatepack =
+        slatepackWallet != null && ref.read(pIsSlatepack(walletId));
+    final manualAddressRecipient = slatepackWallet
+        ?.manualSlatepackRecipientForAddress(_address ?? "");
+    final isSlatepackSend = selectedSlatepack || manualAddressRecipient != null;
     String? openAlias;
     String? resolvedAddress;
     final application = coin.openAliasApplication;
@@ -292,10 +303,17 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
     final Amount amount = ref.read(pSendAmount)!;
     if (isSlatepackSend) {
+      final slatepackRecipient = _slatepackRecipientController.text.trim();
       final created = await SlatepackSendFlow.run(
         context: context,
-        wallet: wallet,
+        wallet: slatepackWallet!,
         amount: amount,
+        recipientAddress:
+            manualAddressRecipient ??
+            (slatepackWallet.supportsSlatepackRecipient &&
+                    slatepackRecipient.isNotEmpty
+                ? slatepackRecipient
+                : null),
         message: _onChainNote ?? "",
         localNote: _note ?? "",
         db: ref.read(mainDBProvider),
@@ -733,6 +751,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     baseAmountController.text = "";
     memoController.text = "";
     nonceController.text = "";
+    _slatepackRecipientController.text = "";
     _address = "";
     _addressToggleFlag = false;
     _clearRecipientForms();
@@ -1399,6 +1418,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     _feeAmount.dispose();
 
     sendToController.dispose();
+    _slatepackRecipientController.dispose();
     cryptoAmountController.dispose();
     baseAmountController.dispose();
     memoController.dispose();
@@ -1479,6 +1499,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         ref.watch(pWallets).getWallet(walletId) is CoinControlInterface &&
         ref.watch(pWallets).getWallet(walletId) is! SalviumWallet &&
         (showPrivateBalance ? balType == BalanceType.public : true);
+    final isManualSlatepackCreation =
+        ref.watch(pIsSlatepack(widget.walletId)) ||
+        (wallet is SlatepackInterface &&
+            wallet.manualSlatepackRecipientForAddress(_address ?? "") != null);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1509,6 +1533,17 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 height: 60, // Provide an explicit height to avoid infinite constraints
                 child: SlatepackMethodToggle(walletId: walletId),
               ),
+            ),
+          ),
+
+        if (usesSlatepacks &&
+            ref.watch(pIsSlatepack(widget.walletId)) &&
+            (wallet as SlatepackInterface).supportsSlatepackRecipient)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: SlatepackRecipientField(
+              controller: _slatepackRecipientController,
+              coin: coin,
             ),
           ),
 
@@ -1884,7 +1919,12 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                     _applyUri(parsed);
                   } else {
                     _setOpReturnData(null);
-                    await _checkSparkNameAndOrSetAddress(newValue);
+                    // The field already contains this text. Writing it back
+                    // moves the cursor to the end on every edit.
+                    await _checkSparkNameAndOrSetAddress(
+                      newValue,
+                      setController: false,
+                    );
                   }
                 } else {
                   _setOpReturnData(null);
@@ -1911,7 +1951,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   standardInputDecoration(
                     ref.watch(pIsSlatepack(widget.walletId))
                         ? "Enter ${coin.ticker} address (optional)"
-                        : "Enter ${coin.ticker} address",
+                        : _directSendAddressHint ??
+                              "Enter ${coin.ticker} address",
                     _addressFocusNode,
                     context,
                     desktopMed: true,
@@ -2283,9 +2324,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 (!needsEthFee || ethFee != null);
             return PrimaryButton(
               buttonHeight: ButtonHeight.l,
-              label:
-                  ref.watch(pIsSlatepack(widget.walletId)) &&
-                      wallet is SlatepackInterface
+              label: isManualSlatepackCreation && wallet is SlatepackInterface
                   ? "Create ${wallet.slatepackTerms.noun}"
                   : "Preview send",
               enabled: enabled,

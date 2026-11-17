@@ -950,6 +950,85 @@ void main() {
       }
     }
 
+    for (final view in coinCases) {
+      testWithoutAnimation(
+        "a recipient-capable manual slate still bypasses fee confirmation "
+        "and PIN ($view)",
+        (tester) async {
+          final wallet = FakeRecipientSlateWallet();
+          await view.pump(
+            tester,
+            wallet: wallet,
+            balance: testBalance("10", 8),
+            overrides: [
+              pSelectedSlatepackMethod(wallet.walletId).overrideWithProvider(
+                StateProvider<SlatepackMethod?>(
+                  (_) => SlatepackMethod.slatepack,
+                ),
+              ),
+            ],
+          );
+          await enterAmount(tester, view, "1");
+          await enterField(
+            tester,
+            const Key("slatepackRecipientFieldKey"),
+            "grin1recipient",
+          );
+
+          await view.preview(tester, label: "Create slate");
+
+          expect(wallet.slateCreates, 1);
+          expect(wallet.requestedSlateRecipient, "grin1recipient");
+          expect(wallet.prepared, isNull);
+          expect(wallet.feeEstimates, 0);
+          expect(find.byType(ConfirmTransactionView), findsNothing);
+          expect(find.byType(DesktopAuthSend), findsNothing);
+          expect(find.byType(SlatepackDialog), findsOneWidget);
+        },
+      );
+
+      testWithoutAnimation(
+        "a manual-slate address entered on the Address tab uses the same "
+        "direct flow ($view)",
+        (tester) async {
+          final wallet = FakeRecipientSlateWallet();
+          await view.pump(
+            tester,
+            wallet: wallet,
+            balance: testBalance("10", 8),
+            overrides: [
+              pSelectedSlatepackMethod(wallet.walletId).overrideWithProvider(
+                StateProvider<SlatepackMethod?>((_) => SlatepackMethod.relay),
+              ),
+            ],
+          );
+          await enterField(
+            tester,
+            view.addressField,
+            "https://manual-slate.example",
+          );
+          await enterAmount(tester, view, "1");
+
+          expect(find.text("Create slate"), findsOneWidget);
+          expect(find.textContaining("Transaction fee"), findsNothing);
+          expect(find.text("Calculated when reviewing"), findsNothing);
+
+          await view.preview(tester, label: "Create slate");
+
+          expect(wallet.slateCreates, 1);
+          expect(
+            wallet.requestedSlateRecipient,
+            "https://manual-slate.example",
+          );
+          expect(wallet.prepared, isNull);
+          expect(wallet.feeEstimates, 0);
+          expect(find.byType(ConfirmTransactionView), findsNothing);
+          expect(find.byType(DesktopAuthSend), findsNothing);
+          expect(find.byType(SlatepackDialog), findsOneWidget);
+        },
+      );
+    }
+
     for (final (coin, wallet) in <(String, Wallet Function())>[
       ("Epic Cash", FakeEpiccashWallet.new),
       ("Xelis", FakeXelisWallet.new),

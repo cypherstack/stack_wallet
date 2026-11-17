@@ -235,6 +235,7 @@ class EpiccashWallet extends Bip39Wallet with SlatepackInterface {
     required Amount amount,
     String? recipientAddress,
     String? message,
+    bool sendAll = false,
   }) async {
     try {
       _hackedCheckTorNodePrefs();

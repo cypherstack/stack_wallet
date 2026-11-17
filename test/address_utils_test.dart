@@ -124,6 +124,12 @@ void main() {
     expect(result, isNull);
   });
 
+  test("raw wallet addresses are not payment URIs", () {
+    const grinAddress =
+        "grin1l4wxczk3u50mc82cef6xc22c272ndrkxwfawff6tjzpvm2g70lgq3mnw3d";
+    expect(AddressUtils.parsePaymentUri(grinAddress), isNull);
+  });
+
   test("parse an invalid uri string", () {
     const uri = ":::  8 \\ %23";
     expect(AddressUtils.parsePaymentUri(uri), isNull);
@@ -229,7 +235,7 @@ void main() {
     const jsonString =
         '{"mnemonic":"hello","word","something","who","green","seven"]}';
 
-    expect(AddressUtils.decodeQRSeedData(jsonString), {});
+    expect(AddressUtils.decodeQRSeedData(jsonString), <String, dynamic>{});
   });
 
   test("build a uri string with empty params", () {
@@ -453,5 +459,24 @@ void main() {
         isNull,
       );
     });
+  });
+
+  test("web URLs are send addresses, not payment URIs", () {
+    for (final input in [
+      "http:",
+      "http://",
+      "http://127.0.0.1:3415",
+      "https://wallet.example.com/v2/foreign",
+      "HTTPS://wallet.example.com",
+    ]) {
+      expect(AddressUtils.parsePaymentUri(input), isNull, reason: input);
+    }
+    // Ordinary payment URIs still parse.
+    expect(
+      AddressUtils.parsePaymentUri(
+        "bitcoin:1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa?amount=0.1",
+      )?.address,
+      "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+    );
   });
 }

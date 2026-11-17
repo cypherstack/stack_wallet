@@ -74,6 +74,7 @@ import '../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../widgets/icon_widgets/qrcode_icon.dart';
 import '../../widgets/icon_widgets/x_icon.dart';
 import '../../widgets/slatepack_method_toggle.dart';
+import '../slatepack/slatepack_recipient_field.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../../widgets/stack_text_field.dart';
@@ -116,6 +117,7 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
   late final ClipboardInterface clipboard;
 
   late TextEditingController sendToController;
+  final _slatepackRecipientController = TextEditingController();
   late TextEditingController cryptoAmountController;
   late TextEditingController baseAmountController;
   late TextEditingController noteController;
@@ -755,8 +757,12 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
     await Future<void>.delayed(const Duration(milliseconds: 100));
     if (!mounted) return;
     final wallet = ref.read(pWallets).getWallet(walletId);
-    final isSlatepackSend =
-        wallet is SlatepackInterface && ref.read(pIsSlatepack(walletId));
+    final slatepackWallet = wallet is SlatepackInterface ? wallet : null;
+    final selectedSlatepack =
+        slatepackWallet != null && ref.read(pIsSlatepack(walletId));
+    final manualAddressRecipient = slatepackWallet
+        ?.manualSlatepackRecipientForAddress(_address ?? "");
+    final isSlatepackSend = selectedSlatepack || manualAddressRecipient != null;
     String? openAlias;
     String? resolvedAddress;
     final application = coin.openAliasApplication;
@@ -779,10 +785,17 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
 
     final Amount amount = ref.read(pSendAmount)!;
     if (isSlatepackSend) {
+      final slatepackRecipient = _slatepackRecipientController.text.trim();
       final created = await SlatepackSendFlow.run(
         context: context,
-        wallet: wallet,
+        wallet: slatepackWallet!,
         amount: amount,
+        recipientAddress:
+            manualAddressRecipient ??
+            (slatepackWallet.supportsSlatepackRecipient &&
+                    slatepackRecipient.isNotEmpty
+                ? slatepackRecipient
+                : null),
         message: onChainNoteController.text,
         localNote: noteController.text,
         db: ref.read(mainDBProvider),
@@ -1161,6 +1174,7 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
     onChainNoteController.text = "";
     feeController.text = "";
     memoController.text = "";
+    _slatepackRecipientController.text = "";
     _address = "";
     _addressToggleFlag = false;
     _clearRecipientForms();
@@ -1320,6 +1334,7 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
     }
 
     sendToController.dispose();
+    _slatepackRecipientController.dispose();
     cryptoAmountController.dispose();
     baseAmountController.dispose();
     noteController.dispose();
@@ -1424,6 +1439,10 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
     final wallet = ref.watch(
       pWallets.select((value) => value.getWallet(walletId)),
     );
+    final isManualSlatepackCreation =
+        isSlatepackMode ||
+        (wallet is SlatepackInterface &&
+            wallet.manualSlatepackRecipientForAddress(_address ?? "") != null);
     // Preserve the existing mobile UI: Epic exposes its on-chain note field;
     // MWC only exposed that field on desktop before this refactor.
     final showOnChainNote = coin is Epiccash;
@@ -1594,6 +1613,16 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
                               const SizedBox(height: 16),
                             ],
 
+                            if (isSlatepackMode &&
+                                _slatepackWallet!
+                                    .supportsSlatepackRecipient) ...[
+                              SlatepackRecipientField(
+                                controller: _slatepackRecipientController,
+                                coin: coin,
+                              ),
+                              const SizedBox(height: 16),
+                            ],
+
                             if (!isSlatepackMode)
                               Row(
                                 mainAxisAlignment:
@@ -1693,8 +1722,12 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
                                         _applyUri(parsed);
                                       } else {
                                         _setOpReturnData(null);
+                                        // The field already contains this
+                                        // text. Writing it back moves the
+                                        // cursor to the end on every edit.
                                         await _checkSparkNameAndOrSetAddress(
                                           newValue,
+                                          setController: false,
                                         );
                                       }
                                     } else {
@@ -1718,7 +1751,9 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
                                       standardInputDecoration(
                                         isSlatepackMode
                                             ? "Enter ${coin.ticker} address (optional)"
-                                            : "Enter ${coin.ticker} address",
+                                            : _slatepackWallet
+                                                      ?.directSendAddressHint ??
+                                                  "Enter ${coin.ticker} address",
                                         _addressFocusNode,
                                         context,
                                       ).copyWith(
@@ -2471,7 +2506,7 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
                               ),
                             ),
                             const SizedBox(height: 12),
-                            if (hasFees)
+                            if (hasFees && !isManualSlatepackCreation)
                               Text(
                                 coin is Xelis || coin is Grin || hasCustomFee
                                     ? "Transaction fee"
@@ -2479,8 +2514,10 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
                                 style: STextStyles.smallMed12(context),
                                 textAlign: TextAlign.left,
                               ),
-                            if (hasFees) const SizedBox(height: 8),
-                            if (coin is Xelis || coin is Grin)
+                            if (hasFees && !isManualSlatepackCreation)
+                              const SizedBox(height: 8),
+                            if (!isManualSlatepackCreation &&
+                                (coin is Xelis || coin is Grin))
                               Padding(
                                 padding: const EdgeInsets.all(12),
                                 child: Text(
@@ -2488,7 +2525,7 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
                                   style: STextStyles.itemSubtitle(context),
                                 ),
                               )
-                            else if (hasFees)
+                            else if (hasFees && !isManualSlatepackCreation)
                               Stack(
                                 children: [
                                   TextField(
@@ -2652,7 +2689,7 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
                                               context,
                                             ),
                                   child: Text(
-                                    isSlatepackMode &&
+                                    isManualSlatepackCreation &&
                                             wallet is SlatepackInterface
                                         ? "Create ${wallet.slatepackTerms.noun}"
                                         : "Preview",

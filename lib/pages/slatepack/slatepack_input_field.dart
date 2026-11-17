@@ -36,6 +36,7 @@ class SlatepackInputField extends ConsumerStatefulWidget {
     required this.controller,
     required this.hint,
     required this.terms,
+    this.inputName,
     this.onChanged,
     this.focusNode,
     this.clipboard = const ClipboardWrapper(),
@@ -44,9 +45,12 @@ class SlatepackInputField extends ConsumerStatefulWidget {
   final TextEditingController controller;
   final String hint;
   final SlatepackTerms terms;
+  final String? inputName;
   final void Function(String)? onChanged;
   final FocusNode? focusNode;
   final ClipboardInterface clipboard;
+
+  String get inputNoun => inputName ?? terms.noun;
 
   @override
   ConsumerState<SlatepackInputField> createState() =>
@@ -113,7 +117,7 @@ class _SlatepackInputFieldState extends ConsumerState<SlatepackInputField> {
         }
       } else {
         Logging.instance.w(
-          "Camera permission error while scanning a ${widget.terms.noun}",
+          "Camera permission error while scanning a ${widget.inputNoun}",
           error: e,
           stackTrace: s,
         );
@@ -124,7 +128,7 @@ class _SlatepackInputFieldState extends ConsumerState<SlatepackInputField> {
   Future<void> _openFile() async {
     try {
       final result = await FilePicker.platform.pickFiles(
-        dialogTitle: "Open ${widget.terms.noun} file",
+        dialogTitle: "Open ${widget.inputNoun} file",
         lockParentWindow: true,
       );
       final picked = result?.files.singleOrNull;
@@ -133,7 +137,7 @@ class _SlatepackInputFieldState extends ConsumerState<SlatepackInputField> {
       if (picked.size > kSlatepackFileMaxBytes) {
         throw Exception(
           "File is too large (${picked.size} bytes). "
-          "A ${widget.terms.noun} file is at most "
+          "A ${widget.inputNoun} file is at most "
           "$kSlatepackFileMaxBytes bytes.",
         );
       }
@@ -141,7 +145,7 @@ class _SlatepackInputFieldState extends ConsumerState<SlatepackInputField> {
       final List<int> bytes =
           picked.bytes ?? await File(picked.path!).readAsBytes();
       if (bytes.length > kSlatepackFileMaxBytes) {
-        throw Exception("File is too large to be a ${widget.terms.noun}.");
+        throw Exception("File is too large to be a ${widget.inputNoun}.");
       }
 
       final text = utf8.decode(bytes).trim();
@@ -153,7 +157,7 @@ class _SlatepackInputFieldState extends ConsumerState<SlatepackInputField> {
       _showError("That file is not a text file.");
     } catch (e, s) {
       Logging.instance.w(
-        "Opening ${widget.terms.noun} file failed",
+        "Opening ${widget.inputNoun} file failed",
         error: e,
         stackTrace: s,
       );

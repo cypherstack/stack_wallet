@@ -19,6 +19,7 @@ import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/node_model.dart';
+import 'package:stackwallet/models/slatepack_models.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/node_service.dart';
 import 'package:stackwallet/utilities/logger.dart';
@@ -351,11 +352,11 @@ void main() {
     expect(await alice.pendingSlatepackFor(slateId), s1);
 
     final inspected = await bob.inspectSlatepack(s1);
-    expect(inspected.state, GrinSlateState.s1);
-    expect(inspected.amount, grin(50).raw);
-    expect(inspected.sender, aliceAddress);
+    expect(inspected.state, SlateState.s1);
+    expect(inspected.amount, grin(50));
+    expect(inspected.senderAddress, aliceAddress);
     final s2 = await bob.receiveSlatepack(s1);
-    expect(s2.state, GrinSlateState.s2);
+    expect(s2.state, SlateState.s2);
     expect(s2.slateId, slateId);
 
     await sync(bob);
@@ -368,7 +369,7 @@ void main() {
     expect(bob.info.cachedBalance.pendingSpendable, grin(50));
     expect(bob.info.cachedBalance.spendable, grin(0));
 
-    final s3 = await alice.finalizeSlatepack(s2.armoredSlatepack);
+    final s3 = await alice.finalizeSlatepack(s2.slatepack!);
     expect(s3.posted, isTrue);
     expect(s3.kernelExcess, hasLength(66));
     // Posting mined height 16; ten more give it 11 confirmations.
@@ -385,7 +386,7 @@ void main() {
     expect(data[TxV2OdKeys.grinHasStoredTx], isTrue);
     expect(a.hash, s3.kernelExcess);
     expect(sent(a), grin(50));
-    expect(fee(a), nano(s3.fee));
+    expect(fee(a), confirmed.fee);
 
     b = await row(bob, slateId);
     expect(b.height, 16);
@@ -406,27 +407,21 @@ void main() {
       amount: grin(30),
       payerAddress: aliceAddress,
     );
-    expect(i1.state, GrinSlateState.i1);
+    expect(i1.state, SlateState.i1);
     await sync(bob);
-    var b = await row(bob, i1.slateId);
+    var b = await row(bob, i1.slateId!);
     expect(b.type, TransactionType.incoming);
     expect(label(bob, b), 'Invoice issued (waiting for payer)');
     expect(otherData(b)[TxV2OdKeys.grinSlateState], 'I1');
 
     // An amount other than the invoice's is refused before the library is
     // asked to pay, and nothing is recorded or locked.
-    await expectLater(
-      alice.processInvoice(
-        i1.armoredSlatepack,
-        confirmedAmount: nano(grin(30).raw - BigInt.one),
-      ),
-      throwsA(
-        predicate(
-          (e) => e.toString().contains('does not match'),
-          'amount mismatch',
-        ),
-      ),
+    final refused = await alice.processInvoice(
+      i1.slatepack!,
+      confirmedAmount: nano(grin(30).raw - BigInt.one),
     );
+    expect(refused.success, isFalse);
+    expect(refused.error, contains('does not match'));
     expect(
       chain.backend.calls.where((c) => c.startsWith('processInvoice')),
       isEmpty,
@@ -435,47 +430,47 @@ void main() {
     expect(
       await MainDB.instance.isar.transactionV2s
           .where()
-          .txidWalletIdEqualTo(i1.slateId, alice.walletId)
+          .txidWalletIdEqualTo(i1.slateId!, alice.walletId)
           .findFirst(),
       isNull,
     );
     expect(alice.info.cachedBalance.spendable, before);
 
     final i2 = await alice.processInvoice(
-      i1.armoredSlatepack,
+      i1.slatepack!,
       confirmedAmount: grin(30),
     );
-    expect(i2.state, GrinSlateState.i2);
+    expect(i2.state, SlateState.i2);
     expect(
       chain.backend.calls.where((c) => c.startsWith('processInvoice')),
       hasLength(1),
     );
     await sync(alice);
-    var a = await row(alice, i1.slateId);
+    var a = await row(alice, i1.slateId!);
     expect(a.type, TransactionType.outgoing);
     expect(label(alice, a), 'Paying invoice (waiting for invoicer)');
     expect(otherData(a)[TxV2OdKeys.grinSlateState], 'I2');
     expect(alice.info.cachedBalance.spendable < before, isTrue);
 
-    final i3 = await bob.finalizeInvoice(i2.armoredSlatepack);
+    final i3 = await bob.finalizeInvoice(i2.slatepack!);
     expect(i3.posted, isTrue);
     // Posting mined height 16, to Bob.
     expect(await chain.mine(alice, 10), 26);
     await sync(alice);
     await sync(bob);
 
-    b = await row(bob, i1.slateId);
+    b = await row(bob, i1.slateId!);
     expect(b.height, 16);
     expect(label(bob, b), 'Received');
     expect(received(b), grin(30));
     expect(otherData(b)[TxV2OdKeys.grinKernelExcess], i3.kernelExcess);
-    a = await row(alice, i1.slateId);
+    a = await row(alice, i1.slateId!);
     expect(a.height, 16);
     expect(label(alice, a), 'Sent');
     expect(sent(a), grin(30));
-    expect(fee(a), nano(i2.fee));
+    expect(fee(a), i2.fee!);
     // Bob also got the block 16 coinbase and the fee.
-    expect(bob.info.cachedBalance.total, grin(30 + reward) + nano(i2.fee));
+    expect(bob.info.cachedBalance.total, grin(30 + reward) + i2.fee!);
   }, timeout: _timeout);
 
   testWidgets('cancelling an unfinalized send unlocks its inputs', (
@@ -491,13 +486,13 @@ void main() {
     await sync(alice);
     expect(alice.info.cachedBalance.spendable < before.spendable, isTrue);
     expect(
-      label(alice, await row(alice, slate.slateId)),
+      label(alice, await row(alice, slate.slateId!)),
       'Sending (waiting for response)',
     );
 
-    expect(await alice.cancelPendingTransactionAndPost(slate.slateId), '');
+    expect(await alice.cancelPendingTransactionAndPost(slate.slateId!), '');
     await sync(alice);
-    final tx = await row(alice, slate.slateId);
+    final tx = await row(alice, slate.slateId!);
     expect(tx.isCancelled, isTrue);
     expect(label(alice, tx), 'Cancelled');
     expect(tx.height, isNull);
@@ -506,7 +501,7 @@ void main() {
 
     // A second cancel is reported, not thrown.
     expect(
-      await alice.cancelPendingTransactionAndPost(slate.slateId),
+      await alice.cancelPendingTransactionAndPost(slate.slateId!),
       isNotEmpty,
     );
   }, timeout: _timeout);
@@ -522,20 +517,20 @@ void main() {
 
     // Nothing is stored to post yet.
     await sync(alice);
-    await expectLater(alice.repost(slate.slateId), throwsA(anything));
+    await expectLater(alice.repost(slate.slateId!), throwsA(anything));
     expect(chain.backend.calls.where((c) => c.startsWith('repost')), isEmpty);
 
-    final s2 = await bob.receiveSlatepack(slate.armoredSlatepack);
+    final s2 = await bob.receiveSlatepack(slate.slatepack!);
     (await chain.api(alice)).skipNextBroadcast = true;
-    final s3 = await alice.finalizeSlatepack(s2.armoredSlatepack);
+    final s3 = await alice.finalizeSlatepack(s2.slatepack!);
     expect(s3.posted, isFalse);
     await sync(alice);
-    var tx = await row(alice, slate.slateId);
+    var tx = await row(alice, slate.slateId!);
     expect(otherData(tx)[TxV2OdKeys.grinHasStoredTx], isTrue);
     expect(tx.height, isNull);
     expect(alice.info.cachedChainHeight, 15);
 
-    await alice.repost(slate.slateId);
+    await alice.repost(slate.slateId!);
     expect(
       chain.backend.calls.where((c) => c.startsWith('repost')),
       hasLength(1),
@@ -544,7 +539,7 @@ void main() {
     expect(await chain.mine(alice, 10), 26);
     await sync(alice);
     await sync(bob);
-    tx = await row(alice, slate.slateId);
+    tx = await row(alice, slate.slateId!);
     expect(tx.height, 16);
     expect(label(alice, tx), 'Sent');
     expect(otherData(tx)[TxV2OdKeys.grinKernelExcess], s3.kernelExcess);
@@ -557,13 +552,13 @@ void main() {
       amount: grin(25),
       recipientAddress: await bob.slatepackAddress(),
     );
-    final s2 = await bob.receiveSlatepack(slate.armoredSlatepack);
-    final s3 = await alice.finalizeSlatepack(s2.armoredSlatepack);
+    final s2 = await bob.receiveSlatepack(slate.slatepack!);
+    final s3 = await alice.finalizeSlatepack(s2.slatepack!);
     await chain.mine(alice, 1);
     await sync(alice);
     await sync(bob);
 
-    final json = await alice.exportPaymentProof(slate.slateId);
+    final json = await alice.exportPaymentProof(slate.slateId!);
     final proof = GrinPaymentProof.fromJsonString(json);
     expect(proof.amount, grin(25).raw);
     expect(proof.excess, s3.kernelExcess);
@@ -587,11 +582,11 @@ void main() {
     );
     // The receiving side keeps no proof.
     expect(
-      otherData(await row(bob, slate.slateId))[TxV2OdKeys.grinHasPaymentProof],
+      otherData(await row(bob, slate.slateId!))[TxV2OdKeys.grinHasPaymentProof],
       isFalse,
     );
     await expectLater(
-      bob.exportPaymentProof(slate.slateId),
+      bob.exportPaymentProof(slate.slateId!),
       throwsA(predicate((e) => e.toString().contains('no payment proof'))),
     );
   }, timeout: _timeout);
