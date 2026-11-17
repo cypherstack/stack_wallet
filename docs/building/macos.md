@@ -33,7 +33,7 @@ manual/Homebrew path.
 | [Nix](https://nixos.org/download/) | Source mode (dnix) in every host mode; not needed with `-d` |
 
 ```sh
-brew install autoconf automake libtool cmake cocoapods pkg-config
+brew install autoconf automake libtool cmake cocoapods meson ninja pkg-config
 ```
 
 Check `nix --version` from the same environment that runs Flutter, and use

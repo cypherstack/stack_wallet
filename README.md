@@ -81,8 +81,8 @@ Use this only when you are not building through Nix/flake.
 The default source build needs Nix for the four dnix libraries. `PREBUILTS=1`
 uses the verified prebuilts and needs no Nix for them.
 
-The Homebrew bootstrap installs the native build tools and configures Rust
-1.99.1 for Flutter's native-assets hooks. It replaces the former local
+The Homebrew bootstrap installs the native build tools and configures the BOM
+Rust version for Flutter's native-assets hooks. It replaces the former local
 manual macOS native prebuild path; no submodule setup or manual native
 plugin build is needed.
 
@@ -91,5 +91,5 @@ plugin build is needed.
 Install the prerequisites from [Building on macOS](docs/building/macos.md)
 yourself, then run
 `make build-macos VERSION=x.y.z BUILD_NUM=nnn PREBUILTS=1`.
-`make check-reqs` reports what is missing; `TOOLCHAIN=manual` makes the choice
-explicit. Omit `PREBUILTS=1` only if you also have Nix for the source build.
+`make check-reqs-macos` reports what is missing (`make check-sdk-macos` checks
+full Xcode); `TOOLCHAIN=manual` makes the choice explicit. Omit `PREBUILTS=1` only if you also have Nix for the source build.

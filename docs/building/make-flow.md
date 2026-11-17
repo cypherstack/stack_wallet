@@ -37,7 +37,8 @@ flowchart LR
 
     C --> X{"Full Xcode?"}
     X -- yes --> R["Ready to build"]
-    X -- no --> XS["make bootstrap-xcode"]
+    X -- no --> INSTALL["Install full Xcode<br/>dart tool/setup_xcode.dart"]
+    INSTALL --> XS["make bootstrap-xcode"]
     XS --> R
 ```
 
@@ -63,14 +64,14 @@ flowchart TD
     MC --> MP{"PREBUILTS"}
     MP -- "0 default" --> MS["source<br/>Nix + Xcode 27.0"]
     MP -- "1" --> MB["prebuilt -d"]
-    MS --> MR["build_app.sh -p macos -s<br/>pub get · prebuild.sh<br/>flutter build macos"]
+    MS --> MR["build_app.sh -p macos<br/>pub get · prebuild.sh<br/>flutter build macos"]
     MB --> MR
 
-    IOS --> IC["checks<br/>require-version · check-sdk-macos<br/>(macOS-only) · toolchain-check"]
+    IOS --> IC["checks<br/>require-version · toolchain-check<br/>check-reqs-macos · check-sdk-macos"]
     IC --> IP{"PREBUILTS"}
     IP -- "0 default" --> IS["source"]
     IP -- "1 CI" --> IB["prebuilt -d"]
-    IS --> IR["prebuild.sh<br/>build_app.sh -p ios -s<br/>pub get · flutter build ios"]
+    IS --> IR["prebuild.sh<br/>build_app.sh -p ios<br/>pub get · flutter build ios"]
     IB --> IR
 
     LINUX --> LC["checks<br/>require-version · check-linux<br/>toolchain-check · check-reqs"]
@@ -102,5 +103,6 @@ flowchart TD
 | iOS developer | `0` | source, verified; needs Nix + Xcode 27.0 |
 | macOS/Linux/iOS CI | `1` | verified prebuilts (`-d`) |
 | Windows | `1` (fixed) | verified prebuilts (`-d`) |
-| Android on macOS | `1` (fixed) | verified prebuilts (`-d`) |
-| Android on Linux | follows `PREBUILTS` | source by default |
+| Android on macOS | `1` (default; source builds need an x86_64 Linux host) | verified prebuilts (`-d`) |
+| Android on x86_64 Linux | follows `PREBUILTS` | source by default |
+| Android on non-x86_64 Linux | `1` (default; source builds need x86_64) | verified prebuilts (`-d`) |

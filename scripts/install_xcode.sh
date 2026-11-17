@@ -42,6 +42,7 @@ echo "Checking Xcode..."
 XCODE_APPS_DIR="${XCODE_APPS_DIR:-/Applications}"
 SELECTED_DEV="$(xcode-select -p 2>/dev/null || true)"
 
+JUST_SELECTED=0
 if [[ "$SELECTED_DEV" == /*.app/Contents/Developer && -x "$SELECTED_DEV/usr/bin/xcodebuild" ]]; then
   echo "Xcode already configured: ${SELECTED_DEV%/Contents/Developer}"
 else
@@ -63,15 +64,20 @@ else
   fi
   echo "Xcode found at $XCODE_APP. Setting xcode-select path..."
   sudo xcode-select -s "$XCODE_APP/Contents/Developer"
+  JUST_SELECTED=1
 fi
 
-# Only ask for sudo when the license or first-launch setup is actually pending;
-# an already-configured Xcode should not trigger these on every bootstrap run.
-if ! xcodebuild -license check >/dev/null 2>&1; then
-  echo "Accepting the Xcode license..."
-  sudo xcodebuild -license accept
-fi
-if ! xcodebuild -checkFirstLaunchStatus >/dev/null 2>&1; then
-  echo "Running Xcode first-launch setup..."
-  sudo xcodebuild -runFirstLaunch
+# The license and first-launch checks need root to read the system receipts:
+# as a normal user they exit 69 even on a fully configured Xcode. Only run them
+# after changing the selection, so repeat bootstraps do not ask for sudo again;
+# `dart tool/setup_xcode.dart` handles first-launch for fresh installs.
+if [[ "$JUST_SELECTED" = 1 ]]; then
+  if ! sudo xcodebuild -license check >/dev/null 2>&1; then
+    echo "Accepting the Xcode license..."
+    sudo xcodebuild -license accept
+  fi
+  if ! sudo xcodebuild -checkFirstLaunchStatus >/dev/null 2>&1; then
+    echo "Running Xcode first-launch setup..."
+    sudo xcodebuild -runFirstLaunch
+  fi
 fi

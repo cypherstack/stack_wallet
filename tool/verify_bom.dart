@@ -153,6 +153,21 @@ Map<String, String> _lockRefs() {
   return refs;
 }
 
+/// A duplicate `[plugins]` table makes _readBom silently last-wins and makes
+/// --update append a second block, so refuse both modes early.
+void _requireSinglePluginsSection(String text) {
+  final count = RegExp(
+    r'^\[plugins\][ \t]*$',
+    multiLine: true,
+  ).allMatches(text).length;
+  if (count > 1) {
+    stderr.writeln(
+      'Duplicate [plugins] sections in $_bomFile; keep exactly one.',
+    );
+    exit(2);
+  }
+}
+
 Future<void> _update() async {
   final refs = _lockRefs();
   if (refs.isEmpty) {
@@ -160,6 +175,7 @@ Future<void> _update() async {
     exit(2);
   }
   final text = File(_bomFile).readAsStringSync();
+  _requireSinglePluginsSection(text);
   final existing = _readBom(text)['plugins'] ?? {};
   final declared = _declaredPlugins();
   // Without a pubspec.yaml we cannot tell which app is configured; keep the
@@ -229,7 +245,9 @@ Future<void> main(List<String> args) async {
   }
   if (args.contains('--update')) return _update();
 
-  final bom = _readBom(File(_bomFile).readAsStringSync());
+  final bomText = File(_bomFile).readAsStringSync();
+  _requireSinglePluginsSection(bomText);
+  final bom = _readBom(bomText);
   final root = bom[''] ?? {};
   if (root['schema_version'] != '1') {
     _fail('schema_version must be 1 in $_bomFile');
