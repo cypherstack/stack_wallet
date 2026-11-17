@@ -20,7 +20,7 @@ value() {
   section="$(section_for "$key")" || exit 2
   result="$(
     sed -n "/^\[$section\]/,/^\[/p" "$BOM" |
-      sed -n "s/^$key[[:space:]]*=[[:space:]]*\"\([^\"]*\)\".*/\1/p" |
+      sed -n "s/^${key}[[:space:]]*=[[:space:]]*\"\([^\"]*\)\".*/\1/p" |
       head -n1
   )"
   [ -n "$result" ] || {
