@@ -133,3 +133,18 @@ jobs:
         with:
           token: ${{secrets.CODECOV_TOKEN}}
           file: coverage/lcov.info
+
+  make-check:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check the Makefile dry-runs
+        run: |
+          make help
+          make -n build-macos PLATFORM=Darwin VERSION=0.0.0 BUILD_NUM=1
+          make -n build-linux PLATFORM=Linux VERSION=0.0.0 BUILD_NUM=1
+          make -n build-windows PLATFORM=MINGW64_NT-10.0 VERSION=0.0.0 BUILD_NUM=1
+          make -n build-android PLATFORM=Darwin VERSION=0.0.0 BUILD_NUM=1
+          make -n build-ios PLATFORM=Darwin VERSION=0.0.0 BUILD_NUM=1

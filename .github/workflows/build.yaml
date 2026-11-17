@@ -25,7 +25,7 @@ jobs:
   bom:
     runs-on: ubuntu-latest
     outputs:
-      flutter: ${{ steps.read.outputs.flutter }}
+      flutter_min: ${{ steps.read.outputs.flutter_min }}
       go: ${{ steps.read.outputs.go }}
       dnssec_rust: ${{ steps.read.outputs.dnssec_rust }}
     steps:
@@ -35,10 +35,10 @@ jobs:
       - name: Read stack-bom.toml
         id: read
         run: |
-          flutter="$(bash scripts/bom_values.sh --get flutter_min)"
+          flutter_min="$(bash scripts/bom_values.sh --get flutter_min)"
           go="$(bash scripts/bom_values.sh --get go)"
           dnssec_rust="$(bash scripts/bom_values.sh --get dnssec_rust)"
-          echo "flutter=$flutter" >> "$GITHUB_OUTPUT"
+          echo "flutter_min=$flutter_min" >> "$GITHUB_OUTPUT"
           echo "go=$go" >> "$GITHUB_OUTPUT"
           echo "dnssec_rust=$dnssec_rust" >> "$GITHUB_OUTPUT"
 
@@ -257,13 +257,13 @@ jobs:
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
       # OpenAlias/DNSSEC builds from source in every app, including -d.
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ needs.bom.outputs.dnssec_rust }}
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ needs.bom.outputs.flutter }}
+          flutter-version: ${{ needs.bom.outputs.flutter_min }}
           channel: 'stable'
 
       - uses: actions/setup-go@v6
@@ -333,13 +333,13 @@ jobs:
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
       # OpenAlias/DNSSEC builds from source in every app, including -d.
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ needs.bom.outputs.dnssec_rust }}
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ needs.bom.outputs.flutter }}
+          flutter-version: ${{ needs.bom.outputs.flutter_min }}
           channel: 'stable'
 
       - uses: actions/setup-go@v6
@@ -404,13 +404,13 @@ jobs:
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
       # OpenAlias/DNSSEC builds from source in every app, including -d.
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ needs.bom.outputs.dnssec_rust }}
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ needs.bom.outputs.flutter }}
+          flutter-version: ${{ needs.bom.outputs.flutter_min }}
           channel: 'stable'
 
       - uses: actions/setup-go@v6
@@ -838,13 +838,13 @@ jobs:
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
       # OpenAlias/DNSSEC builds from source in every app, including -d.
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ needs.bom.outputs.dnssec_rust }}
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ needs.bom.outputs.flutter }}
+          flutter-version: ${{ needs.bom.outputs.flutter_min }}
           channel: 'stable'
 
       - uses: actions/setup-go@v6
@@ -912,13 +912,13 @@ jobs:
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
       # OpenAlias/DNSSEC builds from source in every app, including -d.
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ needs.bom.outputs.dnssec_rust }}
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ needs.bom.outputs.flutter }}
+          flutter-version: ${{ needs.bom.outputs.flutter_min }}
           channel: 'stable'
 
       - uses: actions/setup-go@v6
@@ -983,13 +983,13 @@ jobs:
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
       # OpenAlias/DNSSEC builds from source in every app, including -d.
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ needs.bom.outputs.dnssec_rust }}
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ needs.bom.outputs.flutter }}
+          flutter-version: ${{ needs.bom.outputs.flutter_min }}
           channel: 'stable'
 
       - uses: actions/setup-go@v6
@@ -1277,13 +1277,13 @@ jobs:
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
       # OpenAlias/DNSSEC builds from source in every app, including -d.
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ needs.bom.outputs.dnssec_rust }}
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ needs.bom.outputs.flutter }}
+          flutter-version: ${{ needs.bom.outputs.flutter_min }}
           channel: 'stable'
 
       - uses: actions/setup-go@v6
@@ -1351,13 +1351,13 @@ jobs:
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
       # OpenAlias/DNSSEC builds from source in every app, including -d.
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ needs.bom.outputs.dnssec_rust }}
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ needs.bom.outputs.flutter }}
+          flutter-version: ${{ needs.bom.outputs.flutter_min }}
           channel: 'stable'
 
       - uses: actions/setup-go@v6
@@ -1422,13 +1422,13 @@ jobs:
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
       # OpenAlias/DNSSEC builds from source in every app, including -d.
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ needs.bom.outputs.dnssec_rust }}
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ needs.bom.outputs.flutter }}
+          flutter-version: ${{ needs.bom.outputs.flutter_min }}
           channel: 'stable'
 
       - uses: actions/setup-go@v6

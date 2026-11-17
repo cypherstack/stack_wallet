@@ -4,11 +4,11 @@ schema_version = 1
 
 [toolchain]
 flutter = "3.47.4"       # recommended; macOS builds verified with 3.47.2 and 3.47.4
-flutter_min = "3.47.2"   # minimum for pubspec.template.yaml and the release workflow
+flutter_min = "3.47.2"   # minimum for pubspec.template.yaml and the release workflow; Dockerfile mirrors it
 dart_prefix = "3.13"     # Dart bundled with Flutter 3.47.x
 rust = "1.99.1"          # installed through rustup, pinned by the native plugins
 dnssec_rust = "1.90.0"   # OpenAlias/DNSSEC builds from source in every app
-go = "1.24.13"           # exact Go used by the make-build workflow
+go = "1.24.13"           # exact Go used by CI; Dockerfile mirrors it
 go_min = "1.24.1"        # flutter_mwebd's minimum on the Flutter host
 
 [hooks]
