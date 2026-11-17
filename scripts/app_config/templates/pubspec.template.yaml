@@ -64,6 +64,14 @@ dependencies:
 #      ref: 5722fb3ba05c8f52e8e0255c485ae5ea52e9a694
 # %%END_ENABLE_MWC%%
 
+# grin_native compiles the grin-ffi Rust library in its build hook and
+# re-exports the shared Grin API.
+  grin_native:
+    git:
+      url: https://github.com/cypherstack/grin_native.git
+      path: packages/grin_native
+      ref: 5b56ce4f90b50be67154797cbfc1a401bd9ab778
+
 # %%ENABLE_TOR%%
 #  tor_ffi_plugin:
 #    git:

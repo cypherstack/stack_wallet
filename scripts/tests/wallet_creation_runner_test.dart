@@ -69,11 +69,11 @@ void main() {
           .map((line) => jsonDecode(line) as Map<String, dynamic>)
           .toList();
 
-  test('the shared matrix covers the 24 base wallets and excludes FROST', () {
-    expect(defaultWordCounts, hasLength(24));
+  test('the shared matrix covers the 25 base wallets and excludes FROST', () {
+    expect(defaultWordCounts, hasLength(25));
     expect(
       defaultWordCounts.keys,
-      containsAll(['eCash', 'epicCash', 'monero', 'solana']),
+      containsAll(['eCash', 'epicCash', 'grin', 'monero', 'solana']),
     );
     expect(defaultWordCounts, isNot(contains('bitcoinFrost')));
   });
@@ -269,7 +269,7 @@ void main() {
       final suite = runner(omitCoin: 'xelis');
       expect(await suite.run(options(['--device', 'linux', '--all-coins'])), 1);
       expect(suite.results.first['failure'], 'incomplete_results');
-      expect(suite.results.first['completed_coins'], hasLength(23));
+      expect(suite.results.first['completed_coins'], hasLength(24));
       expect(await events(), hasLength(1));
     },
   );

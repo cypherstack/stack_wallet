@@ -26,6 +26,7 @@ import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/logger.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/utilities/test_node_connection.dart';
+import 'package:stackwallet/utilities/tor_plain_net_option_enum.dart';
 import 'package:stackwallet/utilities/util.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
@@ -403,6 +404,69 @@ void main() {
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
     expect(node().trustedCertificatePem, pem);
+  });
+
+  testWidgets('Grin onion nodes stay Tor-only with plain HTTP', (tester) async {
+    coin = Grin(CryptoCurrencyNetwork.main);
+    final data = NodeFormData();
+    await pump(
+      tester,
+      Scaffold(
+        body: SingleChildScrollView(
+          child: NodeForm(
+            data: data,
+            secureStore: storage,
+            readOnly: false,
+            coin: coin,
+          ),
+        ),
+      ),
+    );
+
+    await tester.enterText(
+      find.byKey(const Key('addCustomNodeNodeAddressFieldKey')),
+      'http://wallet.example.onion',
+    );
+    await tester.pump();
+
+    Finder option(String label) => find.byWidgetPredicate(
+      (widget) =>
+          widget is RadioTextButton<TorPlainNetworkOption> &&
+          widget.label == label,
+    );
+    final clear = option('Only non-TOR traffic');
+    final both = option('Allow both');
+    expect(data.netOption, TorPlainNetworkOption.tor);
+    expect(data.useSSL, false);
+    expect(find.text('API secret (optional)'), findsOneWidget);
+    expect(
+      tester.widget<RadioTextButton<TorPlainNetworkOption>>(clear).enabled,
+      false,
+    );
+    expect(
+      tester.widget<RadioTextButton<TorPlainNetworkOption>>(both).enabled,
+      false,
+    );
+
+    // RadioTextButton's label gesture also calls onChanged, so the form-level
+    // policy must reject this path as well as disabling the Radio itself.
+    await tester.tap(find.text('Only non-TOR traffic'));
+    await tester.pump();
+    expect(data.netOption, TorPlainNetworkOption.tor);
+
+    await tester.enterText(
+      find.byKey(const Key('addCustomNodeNodeAddressFieldKey')),
+      'https://node.example',
+    );
+    await tester.pump();
+    expect(
+      tester.widget<RadioTextButton<TorPlainNetworkOption>>(clear).enabled,
+      true,
+    );
+    await tester.tap(find.text('Only non-TOR traffic'));
+    await tester.pump();
+    expect(data.netOption, TorPlainNetworkOption.clear);
+    expect(data.useSSL, true);
   });
 
   testWidgets(

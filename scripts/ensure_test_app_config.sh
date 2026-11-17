@@ -54,6 +54,7 @@ final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Ethereum(CryptoCurrencyNetwork.main),
   Fact0rn(CryptoCurrencyNetwork.main),
   Firo(CryptoCurrencyNetwork.main),
+  Grin(CryptoCurrencyNetwork.main),
   Litecoin(CryptoCurrencyNetwork.main),
   Mimblewimblecoin(CryptoCurrencyNetwork.main),
   Nano(CryptoCurrencyNetwork.main),

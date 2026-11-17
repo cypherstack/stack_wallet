@@ -32,6 +32,7 @@ import '../../../../wallets/crypto_currency/intermediate/frost_currency.dart';
 import '../../../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/impl/epiccash_wallet.dart';
+import '../../../../wallets/wallet/impl/grin_wallet.dart';
 import '../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
@@ -324,9 +325,9 @@ class WalletOptionsButton extends ConsumerWidget {
               Assets.svg.ellipsis,
               width: 20,
               height: 20,
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.buttonTextSecondary,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .buttonTextSecondary,
             ),
           ],
         ),
@@ -418,9 +419,9 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
                                   STextStyles.desktopTextExtraExtraSmall(
                                     context,
                                   ).copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.textDark,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark,
                                   ),
                             ),
                           ),
@@ -453,9 +454,9 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
                                     STextStyles.desktopTextExtraExtraSmall(
                                       context,
                                     ).copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textDark,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark,
                                     ),
                               ),
                             ),
@@ -488,9 +489,9 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
                                     STextStyles.desktopTextExtraExtraSmall(
                                       context,
                                     ).copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textDark,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark,
                                     ),
                               ),
                             ),
@@ -498,9 +499,9 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
                         ),
                       ),
                     ),
-                  if (isCN || wallet is EpiccashWallet)
+                  if (isCN || wallet is EpiccashWallet || wallet is GrinWallet)
                     const SizedBox(height: 8),
-                  if (isCN || wallet is EpiccashWallet)
+                  if (isCN || wallet is EpiccashWallet || wallet is GrinWallet)
                     TransparentButton(
                       onPressed: onRefreshHeightPressed,
                       child: Padding(
@@ -524,9 +525,9 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
                                     STextStyles.desktopTextExtraExtraSmall(
                                       context,
                                     ).copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textDark,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark,
                                     ),
                               ),
                             ),
@@ -559,9 +560,9 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
                                     STextStyles.desktopTextExtraExtraSmall(
                                       context,
                                     ).copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textDark,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark,
                                     ),
                               ),
                             ),
@@ -594,9 +595,9 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
                                     STextStyles.desktopTextExtraExtraSmall(
                                       context,
                                     ).copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textDark,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark,
                                     ),
                               ),
                             ),
@@ -631,9 +632,9 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
                                     STextStyles.desktopTextExtraExtraSmall(
                                       context,
                                     ).copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textDark,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark,
                                     ),
                               ),
                             ),
@@ -665,9 +666,9 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
                                   STextStyles.desktopTextExtraExtraSmall(
                                     context,
                                   ).copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.textDark,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark,
                                   ),
                             ),
                           ),

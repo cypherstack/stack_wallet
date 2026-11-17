@@ -56,6 +56,7 @@ bool _always() => true;
 bool _hasMonero() => AppConfig.coins.whereType<Monero>().isNotEmpty;
 bool _hasWownero() => AppConfig.coins.whereType<Wownero>().isNotEmpty;
 bool _hasSalvium() => AppConfig.coins.whereType<Salvium>().isNotEmpty;
+bool _hasGrin() => AppConfig.coins.whereType<Grin>().isNotEmpty;
 
 /// coinlib's secp256k1, named as in its secp256k1_io.dart. Every non
 /// cryptonote wallet needs it.
@@ -90,6 +91,13 @@ const nativeLibraries = [
     linux: "salvium_libwallet2_api_c.so",
     macos: "SalviumWallet.framework/SalviumWallet",
     isBundled: _hasSalvium,
+  ),
+  NativeLibrary(
+    displayName: "Grin wallets",
+    windows: "grin_ffi.dll",
+    linux: "libgrin_ffi.so",
+    macos: "grin_ffi.framework/grin_ffi",
+    isBundled: _hasGrin,
   ),
   secp256k1NativeLibrary,
 ];

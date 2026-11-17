@@ -12,6 +12,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:compat/compat.dart' as lib_monero_compat;
+import 'package:flutter/foundation.dart';
 import 'package:isar_community/isar.dart';
 
 import '../app_config.dart';
@@ -29,6 +30,7 @@ import '../wallets/isar/models/frost_wallet_info.dart';
 import '../wallets/isar/models/wallet_info.dart';
 import '../wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import '../wallets/wallet/impl/epiccash_wallet.dart';
+import '../wallets/wallet/impl/grin_wallet.dart';
 import '../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../wallets/wallet/intermediate/lib_salvium_wallet.dart';
@@ -186,6 +188,14 @@ class Wallets {
       Logging.instance.i(
         "Mimblewimblecoin wallet: $walletId deleted with result: $deleteResult",
       );
+    } else if (info.coin is Grin) {
+      // Also reaches an instance that is not registered yet, such as a
+      // restore being cancelled. A busy directory is retried at next load
+      // from the wallets-to-delete list below, and so is a delete that
+      // failed: the recovery phrase is gone by now, so the rest of the
+      // wallet has to go too.
+      final deleted = await _deleteGrinWalletFiles(walletId, secureStorage);
+      Logging.instance.i("Grin wallet: $walletId files deleted: $deleted");
     }
 
     // delete wallet data in main db
@@ -474,10 +484,12 @@ class Wallets {
     }
     hasLoaded = true;
 
+    final idsToDelete = DB.instance
+        .values<String>(boxName: DB.boxNameWalletsToDeleteOnStart)
+        .toList();
+
     // clear out any wallet hive boxes where the wallet was deleted in previous app run
-    for (final walletId in DB.instance.values<String>(
-      boxName: DB.boxNameWalletsToDeleteOnStart,
-    )) {
+    for (final walletId in idsToDelete) {
       await mainDB.isar.writeTxn(
         () async => await mainDB.isar.walletInfo
             .where()
@@ -485,10 +497,23 @@ class Wallets {
             .deleteAll(),
       );
     }
+
+    // Grin wallet files whose delete found the directory busy.
+    final grinRemaining = await GrinWallet.retryDeferredDeletes(
+      walletIds: idsToDelete,
+      secureStore: nodeService.secureStorageInterface,
+    );
+
     // clear list
     await DB.instance.deleteAll<String>(
       boxName: DB.boxNameWalletsToDeleteOnStart,
     );
+    for (final walletId in grinRemaining) {
+      await DB.instance.add<String>(
+        boxName: DB.boxNameWalletsToDeleteOnStart,
+        value: walletId,
+      );
+    }
 
     final walletInfoList = await mainDB.isar.walletInfo
         .where()
@@ -577,9 +602,10 @@ class Wallets {
     final List<String> idsToRefresh = [];
     final List<Future<void>> walletInitFutures = asyncWalletIds
         .map(
-          (id) => _wallets[id]!.init().then((_) {
-            if (shouldSyncAllOnceOnStartup ||
-                walletIdsToSyncOnceOnStartup.contains(id)) {
+          (id) => initAtStartup(_wallets[id]!).then((opened) {
+            if (opened &&
+                (shouldSyncAllOnceOnStartup ||
+                    walletIdsToSyncOnceOnStartup.contains(id))) {
               idsToRefresh.add(id);
             }
           }),
@@ -706,20 +732,75 @@ class Wallets {
     }
   }
 
+  /// Deletes a Grin wallet's files and password. False when they are still
+  /// there, because the directory was busy or the delete failed.
+  static Future<bool> _deleteGrinWalletFiles(
+    String walletId,
+    SecureStorageInterface secureStorage,
+  ) async {
+    try {
+      return await GrinWallet.deleteWalletFiles(
+        walletId: walletId,
+        secureStore: secureStorage,
+      );
+    } catch (e) {
+      Logging.instance.w("Grin wallet: $walletId files not deleted: $e");
+      return false;
+    }
+  }
+
+  /// Opens [wallet] at startup. A wallet that cannot be opened is logged
+  /// and reported as false, so it does not stop the others from being
+  /// refreshed.
+  @visibleForTesting
+  static Future<bool> initAtStartup(Wallet wallet) async {
+    try {
+      await wallet.init();
+      return true;
+    } catch (e, s) {
+      Logging.instance.e(
+        "Wallet ${wallet.walletId} failed to open at startup",
+        error: e,
+        stackTrace: s,
+      );
+      return false;
+    }
+  }
+
+  /// Removes a wallet whose creation was never finished.
+  @visibleForTesting
+  Future<void> deleteUnfinishedWallet(String walletId) =>
+      _deleteWallet(walletId);
+
   Future<void> _deleteWallet(String walletId) async {
     // TODO proper clean up of other wallet data in addition to the following
     final info = await mainDB.isar.walletInfo
         .where()
         .walletIdEqualTo(walletId)
         .findFirst();
-    final isFrostWallet =
-        info != null &&
-        AppConfig.getCryptoCurrencyFor(info.coinName) is FrostCurrency;
+    final coin = info == null
+        ? null
+        : AppConfig.getCryptoCurrencyFor(info.coinName);
+    final isFrostWallet = coin is FrostCurrency;
     if (isFrostWallet) {
       await BitcoinFrostWallet.deleteSecureStorage(
         walletId: walletId,
         secureStorage: nodeService.secureStorageInterface,
       );
+    }
+    if (coin is Grin) {
+      // The native wallet and its password exist from the first open.
+      // What cannot be deleted now is retried at the next load.
+      final deleted = await _deleteGrinWalletFiles(
+        walletId,
+        nodeService.secureStorageInterface,
+      );
+      if (!deleted) {
+        await DB.instance.add<String>(
+          boxName: DB.boxNameWalletsToDeleteOnStart,
+          value: walletId,
+        );
+      }
     }
     await mainDB.isar.writeTxn(() async {
       if (isFrostWallet) {

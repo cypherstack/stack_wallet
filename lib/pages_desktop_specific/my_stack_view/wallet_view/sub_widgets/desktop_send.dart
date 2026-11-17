@@ -2205,7 +2205,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             ),
           ),
         if (!isPaynymSend) const SizedBox(height: 20),
-        if (hasSendFee(coin))
+        if (hasSendFee(coin) && coin is! Grin)
           DesktopSendFeeForm(
             walletId: walletId,
             isToken: false,

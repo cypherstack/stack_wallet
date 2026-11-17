@@ -37,6 +37,8 @@ import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
 import '../../../../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
+import '../../../../wallets/wallet/supporting/grin/grin_transport.dart'
+    show isOnionHost;
 import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -873,6 +875,8 @@ class _NodeFormState extends ConsumerState<NodeForm> {
   bool get shouldBeReadOnly =>
       _inputsReadOnly || widget.node?.isDefault == true;
 
+  bool _isGrinOnion(String host) => widget.coin is Grin && isOnionHost(host);
+
   void _updateState() {
     if (widget.busy || _changing) return;
     _copyToFormData();
@@ -954,10 +958,13 @@ class _NodeFormState extends ConsumerState<NodeForm> {
       } else {
         netOption = TorPlainNetworkOption.both;
       }
+      if (_isGrinOnion(node.host)) {
+        netOption = TorPlainNetworkOption.tor;
+      }
 
       if (widget.coin is Epiccash) {
         enableSSLCheckbox = !node.host.startsWith("http");
-      } else if (widget.coin is Mimblewimblecoin) {
+      } else if (widget.coin is Mimblewimblecoin || widget.coin is Grin) {
         enableSSLCheckbox = !node.host.startsWith("http");
       } else {
         enableSSLCheckbox = true;
@@ -1144,7 +1151,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                   _useSSL = true;
                 }
               }
-              if (widget.coin is Mimblewimblecoin) {
+              if (widget.coin is Mimblewimblecoin || widget.coin is Grin) {
                 if (newValue.startsWith("https://")) {
                   _useSSL = true;
                   enableSSLCheckbox = false;
@@ -1154,6 +1161,12 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                 } else {
                   enableSSLCheckbox = true;
                 }
+              }
+              if (_isGrinOnion(newValue)) {
+                // Onion nodes need Tor and plain HTTP.
+                netOption = TorPlainNetworkOption.tor;
+                _useSSL = false;
+                enableSSLCheckbox = false;
               }
               _updateState();
               setState(() {});
@@ -1302,7 +1315,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
             ),
           ),
         if (enableAuthFields) const SizedBox(height: 8),
-        if (widget.coin is Mimblewimblecoin)
+        if (widget.coin is Mimblewimblecoin || widget.coin is Grin)
           ClipRRect(
             borderRadius: BorderRadius.circular(
               Constants.size.circularBorderRadius,
@@ -1349,7 +1362,8 @@ class _NodeFormState extends ConsumerState<NodeForm> {
               },
             ),
           ),
-        if (widget.coin is Mimblewimblecoin) const SizedBox(height: 8),
+        if (widget.coin is Mimblewimblecoin || widget.coin is Grin)
+          const SizedBox(height: 8),
         if (widget.coin is! CryptonoteCurrency)
           Row(
             children: [
@@ -1500,11 +1514,13 @@ class _NodeFormState extends ConsumerState<NodeForm> {
           ),
         if (widget.coin is! CryptonoteCurrency &&
             widget.coin is! Epiccash &&
-            widget.coin is! Mimblewimblecoin)
+            widget.coin is! Mimblewimblecoin &&
+            widget.coin is! Grin)
           const SizedBox(height: 8),
         if (widget.coin is! CryptonoteCurrency &&
             widget.coin is! Epiccash &&
-            widget.coin is! Mimblewimblecoin)
+            widget.coin is! Mimblewimblecoin &&
+            widget.coin is! Grin)
           Row(
             children: [
               GestureDetector(
@@ -1595,11 +1611,11 @@ class _NodeFormState extends ConsumerState<NodeForm> {
           children: [
             RadioTextButton(
               label: "Only non-TOR traffic",
-              enabled: !_inputsReadOnly,
+              enabled: !_inputsReadOnly && !_isGrinOnion(_hostController.text),
               value: TorPlainNetworkOption.clear,
               groupValue: netOption,
               onChanged: (value) {
-                if (!_inputsReadOnly) {
+                if (!_inputsReadOnly && !_isGrinOnion(_hostController.text)) {
                   setState(() => netOption = TorPlainNetworkOption.clear);
                   _updateState();
                 }
@@ -1612,11 +1628,11 @@ class _NodeFormState extends ConsumerState<NodeForm> {
           children: [
             RadioTextButton(
               label: "Allow both",
-              enabled: !_inputsReadOnly,
+              enabled: !_inputsReadOnly && !_isGrinOnion(_hostController.text),
               value: TorPlainNetworkOption.both,
               groupValue: netOption,
               onChanged: (value) {
-                if (!_inputsReadOnly) {
+                if (!_inputsReadOnly && !_isGrinOnion(_hostController.text)) {
                   setState(() => netOption = TorPlainNetworkOption.both);
                   _updateState();
                 }
