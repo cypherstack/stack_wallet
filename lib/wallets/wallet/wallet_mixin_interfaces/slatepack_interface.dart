@@ -37,12 +37,12 @@ mixin SlatepackInterface<T extends CryptoCurrency> on Wallet<T> {
   /// Throws when the text cannot be decoded at all.
   Future<SlateInspection> inspectSlatepack(String armored);
 
-  /// Amount, fee and direction of this wallet's transaction for [slateId], or
+  /// Amount, fee and status of this wallet's transaction for [slateId], or
   /// null when the wallet has none. `isSend` is true for a send this wallet
-  /// started, which is the only kind it can finalize.
-  Future<({Amount amount, Amount fee, bool isSend})?> localTxForSlate(
-    String slateId,
-  );
+  /// started, which is the only kind it can finalize. A cancelled send must
+  /// not be finalized.
+  Future<({Amount amount, Amount fee, bool isSend, bool isCancelled})?>
+  localTxForSlate(String slateId);
 
   /// Start a send (S1). [message] is dropped when [supportsOnChainNote] is
   /// false. [recipientAddress] encrypts the slatepack to that address where
@@ -55,10 +55,16 @@ mixin SlatepackInterface<T extends CryptoCurrency> on Wallet<T> {
   });
 
   /// Answer an S1 with an S2.
-  Future<SlatepackResult> receiveSlatepack(String s1);
+  Future<SlatepackResult> receiveSlatepack(
+    String s1, {
+    required SlateInspection inspection,
+  });
 
   /// Finalize an S2 from the recipient and post it.
-  Future<FinalizeResult> finalizeSlatepack(String s2);
+  Future<FinalizeResult> finalizeSlatepack(
+    String s2, {
+    required SlateInspection inspection,
+  });
 
   /// Returns an empty String on success, error message on failure.
   Future<String> cancelPendingTransactionAndPost(String slateId);

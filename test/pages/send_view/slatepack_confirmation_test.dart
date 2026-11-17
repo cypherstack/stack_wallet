@@ -257,7 +257,7 @@ void main() {
     });
   }
 
-  testWidgets('a slate with another fee is shown with a warning', (
+  testWidgets('a slate with another fee requires acknowledgement', (
     tester,
   ) async {
     final wallet = _Wallet(createdAmount: 100, createdFee: 3);
@@ -266,7 +266,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(wallet.cancelled, isEmpty);
-    expect(find.byType(SlatepackDialog), findsOneWidget);
+    expect(find.text('Fee changed'), findsOneWidget);
+    expect(find.byType(SlatepackDialog), findsNothing);
     expect(
       find.textContaining(
         'fee of ${format(_amount(3))} instead of the estimated '
@@ -276,6 +277,13 @@ void main() {
     );
     await tester.pump(const Duration(seconds: 10));
     await tester.pumpAndSettle();
+    expect(find.text('Fee changed'), findsOneWidget);
+    expect(find.byType(SlatepackDialog), findsNothing);
+
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    expect(find.text('Fee changed'), findsNothing);
+    expect(find.byType(SlatepackDialog), findsOneWidget);
   });
 
   testWidgets('a slate matching the confirmation is shown without a warning', (

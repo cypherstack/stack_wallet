@@ -15,30 +15,24 @@ class QR extends StatelessWidget {
   final double? size;
   final EdgeInsets? padding;
 
-  /// Shown instead of the code when [data] does not fit in one. Defaults to
-  /// a short message.
+  /// Shown instead of the code when [data] does not fit in one.
   final QrErrorBuilder? errorStateBuilder;
-
-  /// Whether [data] fits in a level L code. qr 3 only finds out while
-  /// painting, after qr_flutter's own validation passed, so oversized data
-  /// would throw during build instead of reaching errorStateBuilder.
-  static Object? _encodingError(String data) {
-    try {
-      QrImage.withMaskPattern(
-        QrCode.fromData(data: data, errorCorrectLevel: QrErrorCorrectLevel.L),
-        0,
-      );
-      return null;
-    } on InputTooLongException catch (e) {
-      return e;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     final errorBuilder = errorStateBuilder ?? _defaultError;
-    final error = _encodingError(data);
-    if (error != null) {
+    late final QrCode qr;
+    try {
+      qr = QrCode.fromData(
+        data: data,
+        errorCorrectLevel: QrErrorCorrectLevel.L,
+      );
+      // fromData selects a version, but qr only discovers that version 40 is
+      // also too small when its encoded bytes are requested. QrImageView uses
+      // this cached data, so validation does not encode the QR a second time.
+      // ignore: invalid_use_of_internal_member
+      qr.dataCache;
+    } catch (error) {
       return SizedBox(
         width: size,
         height: size,
@@ -49,8 +43,8 @@ class QR extends StatelessWidget {
     return SizedBox(
       width: size,
       height: size,
-      child: QrImageView(
-        data: data,
+      child: QrImageView.withQr(
+        qr: qr,
         size: size,
         padding: padding ?? const EdgeInsets.all(10),
         backgroundColor: Colors.white,

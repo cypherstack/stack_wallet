@@ -145,6 +145,7 @@ abstract class MimblewimbleWallet extends Bip39Wallet with SlatepackInterface {
     final inspection = inspectSlateJson(
       json,
       fractionDigits: cryptoCurrency.fractionDigits,
+      slateJson: decoded.slateJson,
       isEncrypted: decoded.wasEncrypted ?? false,
       senderAddress: decoded.senderAddress,
       recipientAddress: decoded.recipientAddress,
@@ -160,6 +161,7 @@ abstract class MimblewimbleWallet extends Bip39Wallet with SlatepackInterface {
   static SlateInspection inspectSlateJson(
     Map<dynamic, dynamic> json, {
     required int fractionDigits,
+    String? slateJson,
     bool isEncrypted = false,
     String? senderAddress,
     String? recipientAddress,
@@ -205,6 +207,7 @@ abstract class MimblewimbleWallet extends Bip39Wallet with SlatepackInterface {
     return SlateInspection(
       state: state,
       slateId: (json['id'] ?? '').toString(),
+      slateJson: slateJson,
       amount: parseAmount(json['amount'] ?? json['amt']),
       fee: parseAmount(json['fee']),
       senderAddress: senderAddress,
@@ -226,6 +229,7 @@ abstract class MimblewimbleWallet extends Bip39Wallet with SlatepackInterface {
       return inspectSlateJson(
         json,
         fractionDigits: cryptoCurrency.fractionDigits,
+        slateJson: slateJson,
       );
     } catch (_) {
       return null;
@@ -233,9 +237,8 @@ abstract class MimblewimbleWallet extends Bip39Wallet with SlatepackInterface {
   }
 
   @override
-  Future<({Amount amount, Amount fee, bool isSend})?> localTxForSlate(
-    String slateId,
-  ) async {
+  Future<({Amount amount, Amount fee, bool isSend, bool isCancelled})?>
+  localTxForSlate(String slateId) async {
     if (slateId.isEmpty) return null;
 
     Future<TransactionV2?> find() async => localTxMatching(
@@ -269,6 +272,7 @@ abstract class MimblewimbleWallet extends Bip39Wallet with SlatepackInterface {
           : tx.getAmountReceivedInThisWallet(fractionDigits: digits),
       fee: tx.getFee(fractionDigits: digits),
       isSend: isSend,
+      isCancelled: tx.isCancelled,
     );
   }
 

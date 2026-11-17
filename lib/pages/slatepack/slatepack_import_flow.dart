@@ -7,6 +7,7 @@ import '../../notifications/show_flush_bar.dart';
 import '../../utilities/amount/amount.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/logger.dart';
+import '../../utilities/slatepack_text.dart';
 import '../../utilities/util.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/slatepack_interface.dart';
 import '../../widgets/custom_loading_overlay.dart';
@@ -60,20 +61,12 @@ abstract final class SlatepackImportFlow {
     SlateState.unknown => SlatepackRoute.unsupported,
   };
 
-  static final _armored = RegExp(
-    r"BEGINSLATE(PACK|_BIN)\.[\s\S]*?ENDSLATE\1\.?",
-  );
-
   /// The slatepack in [text] without what came along with it. A pasted or
   /// scanned message often has a greeting, a quote or blank lines around the
   /// armored slatepack, so only the part from its begin marker to its end
   /// marker is kept. Text without such a frame, like a JSON slate, is only
   /// trimmed.
-  static String normalize(String text) {
-    final trimmed = text.trim();
-    if (trimmed.startsWith("{")) return trimmed;
-    return _armored.firstMatch(trimmed)?.group(0) ?? trimmed;
-  }
+  static String normalize(String text) => SlatepackText.normalize(text);
 
   /// Returns true once the slatepack has been acted on, so the caller can
   /// clear its input.
@@ -116,19 +109,22 @@ abstract final class SlatepackImportFlow {
 
       case SlatepackRoute.finalizeSend:
         final local = read.local;
-        if (local == null || !local.isSend) {
+        if (local != null && !local.isSend) {
           await _message(
             context,
             "Cannot finalize this ${terms.noun}",
-            local == null
-                ? "This wallet did not start the transaction this "
-                      "${terms.noun} belongs to. Only the wallet that "
-                      "started a send can finalize it. If the send was made "
-                      "here moments ago, let the wallet finish syncing and "
-                      "try again."
-                : "This ${terms.noun} belongs to a transaction this wallet "
-                      "received, not one it started. Only the wallet that "
-                      "started a send can finalize it.",
+            "This ${terms.noun} belongs to a transaction this wallet "
+                "received, not one it started. Only the wallet that "
+                "started a send can finalize it.",
+          );
+          return false;
+        }
+        if (local?.isCancelled == true) {
+          await _message(
+            context,
+            "Cannot finalize this ${terms.noun}",
+            "This transaction was cancelled. A cancelled send cannot be "
+                "finalized.",
           );
           return false;
         }
@@ -137,8 +133,9 @@ abstract final class SlatepackImportFlow {
           wallet,
           slatepack,
           inspection,
-          amount: local.amount,
-          fee: local.fee,
+          amount: local?.amount ?? inspection.amount,
+          fee: local?.fee ?? inspection.fee,
+          historyWarning: local == null,
         );
 
       case SlatepackRoute.payInvoice:
@@ -224,7 +221,7 @@ abstract final class SlatepackImportFlow {
       context,
       "Processing ${terms.noun}...",
       () async {
-        final r = await wallet.receiveSlatepack(text);
+        final r = await wallet.receiveSlatepack(text, inspection: inspection);
         if (!r.success || r.slatepack == null) {
           throw Exception(r.error ?? "Failed to receive ${terms.noun}");
         }
@@ -266,8 +263,9 @@ abstract final class SlatepackImportFlow {
     SlatepackInterface wallet,
     String text,
     SlateInspection inspection, {
-    required Amount amount,
-    required Amount fee,
+    required Amount? amount,
+    required Amount? fee,
+    required bool historyWarning,
   }) async {
     final terms = wallet.slatepackTerms;
 
@@ -281,6 +279,11 @@ abstract final class SlatepackImportFlow {
         actionLabel: "Finalize",
         amount: amount,
         fee: fee,
+        warning: historyWarning
+            ? "No matching send was found in this wallet's history. The "
+                  "amount and fee below come from the imported ${terms.noun}. "
+                  "Review them carefully before finalizing."
+            : null,
         details: [
           if (inspection.slateId.isNotEmpty) ("Slate ID", inspection.slateId),
           ("Encrypted", inspection.isEncrypted ? "Yes" : "No"),
@@ -293,7 +296,7 @@ abstract final class SlatepackImportFlow {
       context,
       "Finalizing ${terms.noun}...",
       () async {
-        final r = await wallet.finalizeSlatepack(text);
+        final r = await wallet.finalizeSlatepack(text, inspection: inspection);
         if (!r.success) {
           throw Exception(r.error ?? "Finalize failed");
         }
@@ -365,8 +368,9 @@ abstract final class SlatepackImportFlow {
     T? result;
     Object? error;
     try {
-      // Let the overlay paint before the wallet is asked.
-      await Future<void>.delayed(const Duration(milliseconds: 300));
+      // Let the overlay paint before the wallet is asked without imposing a
+      // fixed delay on every import step.
+      await WidgetsBinding.instance.endOfFrame;
       result = await action();
     } catch (e, s) {
       Logging.instance.w(errorTitle, error: e, stackTrace: s);

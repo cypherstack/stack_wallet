@@ -13,6 +13,7 @@ import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/amount/amount_formatter.dart';
 import 'package:stackwallet/utilities/amount/amount_unit.dart';
+import 'package:stackwallet/utilities/slatepack_text.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
@@ -27,6 +28,7 @@ class _InspectOnlyWallet extends EpiccashWallet {
     this.state, {
     this.invoices = false,
     this.localIsSend,
+    this.localIsCancelled = false,
     this.receiveGate,
     this.receiveError,
   }) : super(CryptoCurrencyNetwork.main);
@@ -42,8 +44,10 @@ class _InspectOnlyWallet extends EpiccashWallet {
   /// Direction of the wallet's own transaction for the slate. Null when the
   /// wallet has none.
   final bool? localIsSend;
+  final bool localIsCancelled;
   int receiveCalls = 0;
   int finalizeCalls = 0;
+  SlateInspection? actionInspection;
 
   @override
   bool get supportsInvoices => invoices;
@@ -54,23 +58,33 @@ class _InspectOnlyWallet extends EpiccashWallet {
   @override
   Future<SlateInspection> inspectSlatepack(String armored) async {
     seen.add(armored);
-    return SlateInspection(state: state, slateId: "test-slate");
+    return SlateInspection(
+      state: state,
+      slateId: "test-slate",
+      slateJson: '{"id":"test-slate"}',
+      amount: Amount(rawValue: BigInt.from(100), fractionDigits: 8),
+      fee: Amount(rawValue: BigInt.one, fractionDigits: 8),
+    );
   }
 
   @override
-  Future<({Amount amount, Amount fee, bool isSend})?> localTxForSlate(
-    String slateId,
-  ) async => localIsSend == null
+  Future<({Amount amount, Amount fee, bool isSend, bool isCancelled})?>
+  localTxForSlate(String slateId) async => localIsSend == null
       ? null
       : (
           amount: Amount(rawValue: BigInt.from(100), fractionDigits: 8),
           fee: Amount(rawValue: BigInt.one, fractionDigits: 8),
           isSend: localIsSend!,
+          isCancelled: localIsCancelled,
         );
 
   @override
-  Future<SlatepackResult> receiveSlatepack(String slatepack) async {
+  Future<SlatepackResult> receiveSlatepack(
+    String slatepack, {
+    required SlateInspection inspection,
+  }) async {
     receiveCalls++;
+    actionInspection = inspection;
     if (receiveGate == null) {
       return SlatepackResult(success: false, error: "not in tests");
     }
@@ -88,8 +102,11 @@ class _InspectOnlyWallet extends EpiccashWallet {
   Future<void> refresh({bool doScan = true}) async {}
 
   @override
-  Future<FinalizeResult> finalizeSlatepack(String slatepack) async {
-    seen.add(slatepack);
+  Future<FinalizeResult> finalizeSlatepack(
+    String slatepack, {
+    required SlateInspection inspection,
+  }) async {
+    actionInspection = inspection;
     finalizeCalls++;
     return FinalizeResult(success: false, error: "not in tests");
   }
@@ -200,6 +217,13 @@ void main() {
         ),
         "BEGINSLATEPACK. 4H1qx1wHe668tFW. ENDSLATEPACK",
       );
+    });
+
+    test("shares the same armored-frame recognition as the wallets", () {
+      expect(SlatepackText.isArmored(armored), isTrue);
+      expect(SlatepackText.isArmored("\n$armored\n"), isTrue);
+      expect(SlatepackText.isArmored("prefix $armored"), isFalse);
+      expect(SlatepackText.isArmored('{"id":"abc"}'), isFalse);
     });
 
     test("takes the first of two slatepacks", () {
@@ -318,13 +342,14 @@ void main() {
     testWidgets("response to a send this wallet did not start", (tester) async {
       final wallet = _InspectOnlyWallet(SlateState.s2);
       await runFlow(tester, wallet);
-      expect(find.text("Cannot finalize this slate"), findsOneWidget);
-      expect(
-        find.textContaining("This wallet did not start the transaction"),
-        findsOneWidget,
-      );
-      expect(find.text("Finalize"), findsNothing);
-      await closeDialog(tester);
+      expect(find.text("Finalize slate"), findsOneWidget);
+      expect(find.textContaining("No matching send was found"), findsOneWidget);
+      expect(find.byKey(const Key("slatepackHistoryWarning")), findsOneWidget);
+      expect(find.text("0.00000100 EPIC"), findsOneWidget);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text("Cancel"));
+      await tester.tap(find.text("Cancel"));
+      await tester.pumpAndSettle();
       expect(wallet.finalizeCalls, 0);
     });
 
@@ -343,6 +368,22 @@ void main() {
       expect(wallet.finalizeCalls, 0);
     });
 
+    testWidgets("response to this wallet's cancelled send is refused", (
+      tester,
+    ) async {
+      final wallet = _InspectOnlyWallet(
+        SlateState.s2,
+        localIsSend: true,
+        localIsCancelled: true,
+      );
+      await runFlow(tester, wallet);
+      expect(find.text("Cannot finalize this slate"), findsOneWidget);
+      expect(find.textContaining("was cancelled"), findsOneWidget);
+      expect(find.text("Finalize"), findsNothing);
+      await closeDialog(tester);
+      expect(wallet.finalizeCalls, 0);
+    });
+
     testWidgets("response to this wallet's own send can be finalized", (
       tester,
     ) async {
@@ -350,6 +391,7 @@ void main() {
       await runFlow(tester, wallet);
       expect(find.text("Cannot finalize this slate"), findsNothing);
       expect(find.text("Finalize slate"), findsOneWidget);
+      expect(find.byKey(const Key("slatepackHistoryWarning")), findsNothing);
       expect(find.text("0.00000100 EPIC"), findsOneWidget);
       await tester.tap(find.text("Finalize"));
       // Loading overlay delay, then the canned failure and its dialog.
@@ -368,8 +410,8 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
       await tester.pump(const Duration(milliseconds: 400));
       await tester.pump(const Duration(milliseconds: 400));
-      // Once for the inspection and once for the finalize.
-      expect(wallet.seen, [armored, armored]);
+      expect(wallet.seen, [armored]);
+      expect(wallet.actionInspection?.slateJson, '{"id":"test-slate"}');
       await closeDialog(tester);
     });
 

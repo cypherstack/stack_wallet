@@ -3,6 +3,7 @@ import '../../../models/node_model.dart';
 import '../../../utilities/default_nodes.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../../../utilities/enums/slatepack_method.dart';
+import '../../../utilities/slatepack_text.dart';
 import '../../../wl_gen/interfaces/libmwc_interface.dart';
 import '../crypto_currency.dart';
 import '../intermediate/bip39_currency.dart';
@@ -57,13 +58,7 @@ class Mimblewimblecoin extends Bip39Currency {
   }
 
   /// Check if data is a slatepack.
-  bool isSlatepack(String data) {
-    return data.trim().startsWith('BEGINSLATE') &&
-        (data.trim().endsWith('ENDSLATEPACK') ||
-            data.trim().endsWith('ENDSLATEPACK.') ||
-            data.trim().endsWith('ENDSLATE_BIN') ||
-            data.trim().endsWith('ENDSLATE_BIN.'));
-  }
+  bool isSlatepack(String data) => SlatepackText.isArmored(data);
 
   /// Check if address is MWCMQS format.
   bool isMwcmqsAddress(String address) {

@@ -192,7 +192,10 @@ class EpiccashWallet extends MimblewimbleWallet {
   }
 
   @override
-  Future<SlatepackResult> receiveSlatepack(String slatepack) async {
+  Future<SlatepackResult> receiveSlatepack(
+    String slatepack, {
+    required SlateInspection inspection,
+  }) async {
     try {
       _hackedCheckTorNodePrefs();
       if (_wallet == null) {
@@ -201,7 +204,7 @@ class EpiccashWallet extends MimblewimbleWallet {
 
       final received = await libEpic.txReceive(
         wallet: _wallet!,
-        slateJson: slatepack,
+        slateJson: inspection.slateJson ?? slatepack,
       );
 
       final info = inspectSlateJsonString(received.slateJson);
@@ -223,7 +226,10 @@ class EpiccashWallet extends MimblewimbleWallet {
   }
 
   @override
-  Future<FinalizeResult> finalizeSlatepack(String slatepack) async {
+  Future<FinalizeResult> finalizeSlatepack(
+    String slatepack, {
+    required SlateInspection inspection,
+  }) async {
     try {
       _hackedCheckTorNodePrefs();
       if (_wallet == null) {
@@ -232,7 +238,7 @@ class EpiccashWallet extends MimblewimbleWallet {
 
       final finalized = await libEpic.txFinalize(
         wallet: _wallet!,
-        slateJson: slatepack,
+        slateJson: inspection.slateJson ?? slatepack,
       );
 
       return FinalizeResult(

@@ -61,8 +61,8 @@ class _MyWalletState extends ConsumerState<MyWallet> {
     isSolana = wallet is SolanaWallet;
     usesSlatepacks = wallet is SlatepackInterface;
 
-    if (usesSlatepacks) {
-      titles.add("Slatepack");
+    if (wallet is SlatepackInterface) {
+      titles.add(wallet.slatepackTerms.title);
     }
 
     if ((isEth || isSolana) && widget.contractAddress == null) {

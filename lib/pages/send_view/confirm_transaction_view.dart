@@ -65,6 +65,7 @@ import '../pinpad_views/lock_screen_view.dart';
 import '../wallet_view/wallet_view.dart';
 import 'sub_widgets/multi_recipient.dart';
 import '../slatepack/slatepack_dialog.dart';
+import '../slatepack/slatepack_fee_warning_dialog.dart';
 import 'sub_widgets/sending_transaction_dialog.dart';
 import 'sub_widgets/split_transaction_warning.dart';
 
@@ -227,15 +228,21 @@ class _ConfirmTransactionViewState
     closeSendingDialog();
 
     if (context.mounted) {
-      if (!noteSaved || feeChange != null) {
+      if (feeChange != null) {
+        await showSlatepackFeeChangedDialog(
+          context: context,
+          message: feeChange,
+        );
+      }
+    }
+
+    if (context.mounted) {
+      if (!noteSaved) {
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.warning,
-            message: [
-              ?feeChange,
-              if (!noteSaved)
+            message:
                 "Transaction created, but the local note could not be saved.",
-            ].join(" "),
             context: context,
           ),
         );

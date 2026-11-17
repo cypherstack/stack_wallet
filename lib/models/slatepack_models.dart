@@ -28,6 +28,7 @@ class SlateInspection {
   const SlateInspection({
     required this.state,
     required this.slateId,
+    this.slateJson,
     this.amount,
     this.fee,
     this.senderAddress,
@@ -38,6 +39,10 @@ class SlateInspection {
 
   final SlateState state;
   final String slateId;
+
+  /// Decoded slate passed to receive/finalize so an armored Slatepack is not
+  /// decoded over FFI a second time.
+  final String? slateJson;
 
   /// Null when the slate does not carry it. Grin's S2 and I2 decode with 0;
   /// look the amount up with localTxForSlate instead.

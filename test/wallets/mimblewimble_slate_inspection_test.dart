@@ -26,7 +26,12 @@ Map<String, dynamic> _slate({required int signatures, int participants = 2}) {
   };
 }
 
-TransactionV2 _tx(int n, TransactionType type, String slateId) => TransactionV2(
+TransactionV2 _tx(
+  int n,
+  TransactionType type,
+  String slateId, {
+  bool isCancelled = false,
+}) => TransactionV2(
   walletId: "wallet",
   blockHash: null,
   hash: "hash$n",
@@ -38,7 +43,10 @@ TransactionV2 _tx(int n, TransactionType type, String slateId) => TransactionV2(
   version: 0,
   type: type,
   subType: TransactionSubType.none,
-  otherData: jsonEncode({"slateId": slateId}),
+  otherData: jsonEncode({
+    "slateId": slateId,
+    if (isCancelled) TxV2OdKeys.isCancelled: true,
+  }),
 );
 
 void main() {
@@ -54,6 +62,13 @@ void main() {
     // A send to self holds both sides, and the send is what gets finalized.
     expect(MimblewimbleWallet.localTxMatching([received, sent], id), sent);
     expect(MimblewimbleWallet.localTxMatching([sent, received], id), sent);
+
+    final cancelled = _tx(4, TransactionType.outgoing, id, isCancelled: true);
+    expect(cancelled.isCancelled, isTrue);
+    expect(
+      MimblewimbleWallet.localTxMatching([received, cancelled], id),
+      cancelled,
+    );
   });
 
   SlateInspection inspect(

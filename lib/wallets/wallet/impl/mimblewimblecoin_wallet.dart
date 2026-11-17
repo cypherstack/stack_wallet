@@ -22,6 +22,7 @@ import '../../../utilities/default_mwcmqs.dart';
 import '../../../utilities/enums/slatepack_method.dart';
 import '../../../utilities/flutter_secure_storage_interface.dart';
 import '../../../utilities/logger.dart';
+import '../../../utilities/slatepack_text.dart';
 import '../../../utilities/stack_file_system.dart';
 import '../../../utilities/test_mwcmqs_connection.dart';
 import '../../../wl_gen/interfaces/libmwc_interface.dart';
@@ -208,7 +209,7 @@ class MimblewimblecoinWallet extends MimblewimbleWallet {
 
   @override
   void checkSlatepackFormat(String slatepack) {
-    if (!isSlatepack(slatepack)) {
+    if (!SlatepackText.isArmored(slatepack)) {
       throw Exception("Invalid slatepack format");
     }
   }
@@ -238,27 +239,28 @@ class MimblewimblecoinWallet extends MimblewimbleWallet {
   }
 
   @override
-  Future<SlatepackResult> receiveSlatepack(String slatepack) async {
+  Future<SlatepackResult> receiveSlatepack(
+    String _, {
+    required SlateInspection inspection,
+  }) async {
     try {
       final String handle = await _ensureWalletOpen();
-
-      // Decode to get slate JSON and sender address.
-      final decoded = await libMwc.decodeSlatepackWithWallet(
-        wallet: handle,
-        slatepack: slatepack,
-      );
+      final slateJson = inspection.slateJson;
+      if (slateJson == null) {
+        throw StateError("Slatepack was not decoded during inspection");
+      }
 
       // Receive and get updated slate JSON.
       final received = await libMwc.txReceiveDetailed(
         wallet: handle,
-        slateJson: decoded.slateJson,
+        slateJson: slateJson,
       );
 
       // Encode response back to sender if address available.
       final encoded = await libMwc.encodeSlatepack(
         slateJson: received.slateJson,
-        recipientAddress: decoded.senderAddress,
-        encrypt: decoded.senderAddress != null,
+        recipientAddress: inspection.senderAddress,
+        encrypt: inspection.senderAddress != null,
         wallet: handle,
       );
 
@@ -268,7 +270,7 @@ class MimblewimblecoinWallet extends MimblewimbleWallet {
         slatepack: encoded.slatepack,
         slateJson: received.slateJson,
         wasEncrypted: encoded.wasEncrypted,
-        recipientAddress: decoded.senderAddress,
+        recipientAddress: inspection.senderAddress,
         state: SlateState.s2,
         slateId: received.slateId,
         amount: info?.amount,
@@ -281,20 +283,21 @@ class MimblewimblecoinWallet extends MimblewimbleWallet {
   }
 
   @override
-  Future<FinalizeResult> finalizeSlatepack(String slatepack) async {
+  Future<FinalizeResult> finalizeSlatepack(
+    String _, {
+    required SlateInspection inspection,
+  }) async {
     try {
       final String handle = await _ensureWalletOpen();
-
-      // Decode to get slate JSON.
-      final decoded = await libMwc.decodeSlatepackWithWallet(
-        wallet: handle,
-        slatepack: slatepack,
-      );
+      final slateJson = inspection.slateJson;
+      if (slateJson == null) {
+        throw StateError("Slatepack was not decoded during inspection");
+      }
 
       // Finalize transaction.
       final finalized = await libMwc.txFinalize(
         wallet: handle,
-        slateJson: decoded.slateJson,
+        slateJson: slateJson,
       );
 
       return FinalizeResult(
@@ -336,14 +339,6 @@ class MimblewimblecoinWallet extends MimblewimbleWallet {
   /// Validate MWC address.
   bool validateMwcAddress(String address) {
     return libMwc.validateSendAddress(address: address);
-  }
-
-  bool isSlatepack(String data) {
-    return data.trim().startsWith('BEGINSLATE') &&
-        (data.trim().endsWith('ENDSLATEPACK') ||
-            data.trim().endsWith('ENDSLATEPACK.') ||
-            data.trim().endsWith('ENDSLATE_BIN') ||
-            data.trim().endsWith('ENDSLATE_BIN.'));
   }
 
   /// Detect if an address is MWCMQS format.

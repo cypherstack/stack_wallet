@@ -1011,7 +1011,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                     ),
                     if (wallet is SlatepackInterface)
                       WalletNavigationBarItemData(
-                        label: "Slatepack",
+                        label: wallet.slatepackTerms.title,
                         icon: const FinalizeNavIcon(),
                         onTap: () {
                           if (mounted) {

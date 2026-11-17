@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
+import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../widgets/desktop/primary_button.dart';
@@ -22,6 +23,7 @@ class SlatepackSummaryDialog extends ConsumerWidget {
     required this.actionLabel,
     this.amount,
     this.fee,
+    this.warning,
     this.details = const [],
   });
 
@@ -30,6 +32,7 @@ class SlatepackSummaryDialog extends ConsumerWidget {
   final String actionLabel;
   final Amount? amount;
   final Amount? fee;
+  final String? warning;
 
   /// Extra label and value rows shown under the amount and fee.
   final List<(String, String)> details;
@@ -52,6 +55,37 @@ class SlatepackSummaryDialog extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (warning != null) ...[
+            Container(
+              key: const Key("slatepackHistoryWarning"),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: colors.warningBackground,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: colors.warningForeground.withValues(alpha: 0.4),
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    color: colors.warningForeground,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      warning!,
+                      style: STextStyles.smallMed14(context)
+                          .copyWith(color: colors.warningForeground),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
           RoundedWhiteContainer(
             padding: EdgeInsets.zero,
             borderColor: isDesktop ? colors.backgroundAppBar : null,

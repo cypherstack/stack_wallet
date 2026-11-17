@@ -1521,6 +1521,7 @@ class _TransactionV2DetailsViewState
                           context: context,
                           builder: (context) => StackDialog(
                             title: "Cancel this transaction?",
+                            width: Util.isDesktop ? 400 : null,
                             message:
                                 "The other party can no longer complete it, "
                                 "and any funds it locked become spendable "
