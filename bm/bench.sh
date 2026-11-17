@@ -46,6 +46,10 @@ case "$(uname -s)" in
   *)       echo "Unknown platform: $(uname -s)"; exit 1 ;;
 esac
 
+# Build targets require VERSION and BUILD_NUM. Benchmarks measure build time
+# only, so use throw-away values unless the caller passes their own in MAKE_FLAGS.
+BENCH_ARGS="VERSION=${BENCH_VERSION:-0.0.0} BUILD_NUM=${BENCH_BUILD_NUM:-1}"
+
 # Git info
 COMMIT="$(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
 BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)"
@@ -89,12 +93,12 @@ if [ $WARM -eq 0 ]; then
 fi
 
 # Build
-echo "Building: make ${BUILD_TARGET} ${MAKE_FLAGS} " | banner
+echo "Building: make ${BUILD_TARGET} ${BENCH_ARGS} ${MAKE_FLAGS} " | banner
 sccache --zero-stats >/dev/null 2>&1 || true
 START=$(date +%s)
 # A failing build must still be timed and recorded, so errexit is off for the build and its status is taken from make.
 set +e
-make ${BUILD_TARGET} ${MAKE_FLAGS} 2>&1 | tail -5
+make ${BUILD_TARGET} ${BENCH_ARGS} ${MAKE_FLAGS} 2>&1 | tail -5
 RC=${PIPESTATUS[0]}
 set -e
 END=$(date +%s)

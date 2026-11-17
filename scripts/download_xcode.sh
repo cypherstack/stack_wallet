@@ -154,6 +154,14 @@ if [[ -d "$TARGET_DIR" ]]; then
     CURRENT_BUILD="$("$TARGET_DIR/Contents/Developer/usr/bin/xcodebuild" -version 2>/dev/null | awk '/Build version/ {print $3}' || true)"
     if [[ "$CURRENT_BUILD" == "$BUILD_NUM" ]]; then
         echo "[OK] Xcode ${XCODE_VERSION} (${BUILD_NUM}) is already installed at ${TARGET_DIR}."
+        if [[ $DRY_RUN -eq 1 ]]; then
+            if [[ $ASSUME_YES -eq 1 ]]; then
+                echo "[DRY-RUN] Already installed; would select it, accept the license and run first-launch setup."
+            else
+                echo "[DRY-RUN] Already installed; nothing to download."
+            fi
+            exit 0
+        fi
         # With -y, finish selection/license/first-launch now instead of exiting
         # before the setup the caller explicitly asked for.
         finish_install

@@ -4,8 +4,10 @@
 # ==============================================================================
 
 APP_NAME     ?= stack_wallet
-VERSION      ?= 2.1.0
-BUILD_NUM    ?= 210
+# Build targets require these explicitly: a stale default silently produces an
+# app numbered below the current release line. See `require-version`.
+VERSION      ?=
+BUILD_NUM    ?=
 FLUTTER      ?=
 DART         ?=
 FLUTTER_BIN  := $(if $(and $(FLUTTER),$(wildcard $(FLUTTER))),$(FLUTTER),$(shell command -v flutter 2>/dev/null))
@@ -36,13 +38,17 @@ ifneq ($(strip $(PUB_CACHE)),)
 export PUB_CACHE
 endif
 
-.PHONY: help check-reqs check-reqs-macos check-sdk-macos bootstrap-macos bootstrap-xcode bootstrap-xcode-download sccache-setup cache-stats verify-bom clean clean-app clean-native build-macos build-linux build-windows diagnose-env-macos build-android android-dev-key build-ios
+.PHONY: help require-version check-reqs check-reqs-macos check-sdk-macos bootstrap-macos bootstrap-xcode bootstrap-xcode-download sccache-setup cache-stats verify-bom clean clean-app clean-native build-macos build-linux build-windows diagnose-env-macos build-android android-dev-key build-ios
 
 help: ## Show available commands
 	@echo "Available targets:"
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "%-20s %s\n", $$1, $$2}'
 
 # --- PREREQUISITES ---
+
+require-version: ## Fail unless VERSION and BUILD_NUM are set explicitly
+	@[ -n "$(VERSION)" ] || { echo >&2 "[ERROR] VERSION is not set. Pass VERSION=x.y.z (current release line: $$(git tag -l 'build_*' --sort=-v:refname 2>/dev/null | head -n1))."; exit 1; }
+	@[ -n "$(BUILD_NUM)" ] || { echo >&2 "[ERROR] BUILD_NUM is not set. Pass a build number above the latest release tag ($$(git tag -l 'build_*' --sort=-v:refname 2>/dev/null | head -n1))."; exit 1; }
 
 check-reqs: ## Verify essential build tools
 	@echo "Checking core prerequisites..."
@@ -200,7 +206,7 @@ clean-native: ## Remove only the native-asset build outputs (forces the Rust/Go/
 	@rm -rf .dart_tool/hooks_runner build/native_assets
 	@echo "[OK] Removed .dart_tool/hooks_runner and build/native_assets."
 
-build-macos: check-reqs-macos check-sdk-macos ## Build macOS release (same steps as upstream CI; PREBUILTS=0 compiles native assets from source)
+build-macos: require-version check-reqs-macos check-sdk-macos ## Build macOS release (same steps as upstream CI; PREBUILTS=0 compiles native assets from source)
 	@echo "--- Configuring project (scripts/build_app.sh)..."
 	@cd scripts && echo yes | env $(MACOS_ENV_UNSET) ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p macos -a $(APP_NAME) -s $(if $(filter 1,$(PREBUILTS)),-d)
 	@echo "--- Resolving dependencies..."
@@ -234,7 +240,7 @@ diagnose-env-macos: ## Print macOS build env and tool resolution
 	@echo "NIX_CFLAGS_LINK=$${NIX_CFLAGS_LINK:-<unset>}"
 
 build-linux: export PUB_CACHE := $(LINUX_PUB_CACHE)
-build-linux: check-reqs ## Build Linux Release through Flutter native-assets hooks
+build-linux: require-version check-reqs ## Build Linux Release through Flutter native-assets hooks
 	@echo "--- Running prebuild bootstrap..."
 	@cd scripts && bash prebuild.sh
 	@echo "--- Generating config..."
@@ -274,13 +280,12 @@ build-linux: check-reqs ## Build Linux Release through Flutter native-assets hoo
 # where the user cannot create them (for example the GitHub-hosted runner).
 WINDOWS_COPY_ASSETS ?= 0
 
-build-windows: ## Build Windows release (Git Bash; same steps as CI)
+build-windows: require-version ## Build Windows release (Git Bash; same steps as CI)
 	@command -v flutter >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
 	@command -v go >/dev/null 2>&1 || { echo >&2 "[ERROR] Go not installed."; exit 1; }
 	@cd scripts && bash prebuild.sh
 	@cd scripts && echo yes | MWEBD_FETCH=1 WINDOWS_COPY_ASSETS=$(WINDOWS_COPY_ASSETS) ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p windows -a $(APP_NAME) -d -s
 	@$(FLUTTER) pub get
-	@$(DART) run coinlib:build_windows
 	@$(FLUTTER) build windows --release
 
 # Android: same steps as the "build-android" CI job, without the signing secrets. Needs the Android SDK/NDK
@@ -295,7 +300,7 @@ android-dev-key: ## Create a throw-away debug signing key if android/key.propert
 		printf 'storeFile=../dev-keystore.jks\nstorePassword=android\nkeyPassword=android\nkeyAlias=devkey\n' > android/key.properties; \
 	fi
 
-build-android: android-dev-key ## Build Android APKs (same steps as CI; signed with a throw-away key unless android/key.properties exists)
+build-android: require-version android-dev-key ## Build Android APKs (same steps as CI; signed with a throw-away key unless android/key.properties exists)
 	@command -v flutter >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
 	@[ -n "$$ANDROID_SDK_ROOT$$ANDROID_HOME" ] || { echo >&2 "[ERROR] ANDROID_SDK_ROOT is not set (Android SDK/NDK required)."; exit 1; }
 	@cd scripts && bash prebuild.sh
@@ -304,7 +309,7 @@ build-android: android-dev-key ## Build Android APKs (same steps as CI; signed w
 	@$(FLUTTER) build apk --split-per-abi --release
 
 # iOS: same steps as the "build-ios" CI job (device build, no code signing). Run on macOS with Xcode.
-build-ios: check-sdk-macos ## Build iOS Runner.app without code signing (same steps as CI)
+build-ios: require-version check-sdk-macos ## Build iOS Runner.app without code signing (same steps as CI)
 	@command -v flutter >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
 	@cd scripts && bash prebuild.sh
 	@cd scripts && echo yes | ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p ios -a $(APP_NAME) -d -s

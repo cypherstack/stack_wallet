@@ -58,8 +58,8 @@ Use one shared toolchain path for both `nix develop` and `direnv`.
    - run `direnv allow`
 2. Enter the flake environment (if not using direnv):
    - `nix develop`
-3. Run build:
-   - `make build-macos`
+3. Run build (pass the release version and a build number; `make` refuses to guess):
+   - `make build-macos VERSION=x.y.z BUILD_NUM=nnn`
 
 ### macOS without Nix (Homebrew host setup)
 
@@ -70,7 +70,7 @@ Use this only when you are not building through Nix/flake.
 2. Run build:
    - Open a new terminal (or run `source ~/.zshrc`) so the Homebrew and
      Flutter PATH entries are active.
-   - `make build-macos`
+   - `make build-macos VERSION=x.y.z BUILD_NUM=nnn`
 
 The Homebrew bootstrap installs the native build tools and configures Rust
 1.99.1 for Flutter's native-assets hooks. It replaces the former local
