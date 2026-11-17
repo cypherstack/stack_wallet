@@ -94,7 +94,7 @@ ifneq ($(strip $(PUB_CACHE)),)
 export PUB_CACHE
 endif
 
-.PHONY: help toolchain toolchain-check bootstrap bootstrap-brew require-version check-reqs check-reqs-macos check-sdk-macos check-linux check-windows bootstrap-macos bootstrap-xcode bootstrap-xcode-download sccache-setup cache-stats verify-bom clean clean-app clean-native build-macos build-linux build-windows diagnose-env-macos build-android android-dev-key build-ios
+.PHONY: help toolchain toolchain-check bootstrap bootstrap-brew require-version check-reqs check-reqs-macos check-sdk-macos check-linux check-windows bootstrap-macos bootstrap-xcode sccache-setup cache-stats verify-bom clean clean-app clean-native build-macos build-linux build-windows diagnose-env-macos build-android android-dev-key build-ios
 
 help: ## Show available commands
 	@echo "Available targets:"
@@ -259,14 +259,6 @@ ifeq ($(PLATFORM),Darwin)
 	@bash scripts/install_xcode.sh
 else
 	@echo "[ERROR] bootstrap-xcode is macOS-only."
-	@exit 1
-endif
-
-bootstrap-xcode-download: ## Opt-in: download Xcode from archive.org (SHA-1 + Apple signature checked); XCODE_VERSION=27.1, ARGS=-y for non-interactive
-ifeq ($(PLATFORM),Darwin)
-	@bash scripts/download_xcode.sh $(if $(XCODE_VERSION),-v $(XCODE_VERSION)) $(ARGS)
-else
-	@echo "[ERROR] bootstrap-xcode-download is macOS-only."
 	@exit 1
 endif
 

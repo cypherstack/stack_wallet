@@ -66,11 +66,6 @@ export HOMEBREW_NO_INSTALL_UPGRADE=1
 brew install direnv rustup cmake meson ninja pkg-config cocoapods go protobuf autoconf automake libtool sccache
 add_rustup_to_path
 
-# Only used for the benchmark reports in bm/. Opt in with BM_REPORT_TOOLS=1.
-if [[ "${BM_REPORT_TOOLS:-0}" = "1" ]]; then
-  brew install pandoc weasyprint toilet figlet || echo "[WARN] optional report tools were not fully installed; only bm/ report rendering needs them."
-fi
-
 # The Homebrew cask always installs the latest Flutter, but CI builds and tests
 # one pinned release. Install that tag from source instead.
 FLUTTER_RECOMMENDED="$(bom_get flutter)"

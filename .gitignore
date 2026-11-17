@@ -125,7 +125,6 @@ lib/wl_gen/generated/
 
 /assets/windows/mwebd.exe
 /tool/build
-bm/results/
 /.cargo/config.toml
 /scripts/linux/pc/
 

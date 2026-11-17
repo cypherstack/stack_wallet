@@ -42,14 +42,12 @@ flowchart LR
     C --> X{"Full Xcode?"}
     X -- yes --> R["Ready to build"]
     X -- no --> XS["make bootstrap-xcode"]
-    X -- no --> DL["make bootstrap-xcode-download<br/>optional; archive.org, hash + signature"]
     XS --> R
-    DL --> R
 ```
 
 `make bootstrap-xcode` does not install Xcode. It selects an existing full
-install and finishes Apple's licence/first-launch setup if it is pending; the
-archive.org download is opt-in and never runs in CI.
+install and finishes Apple's licence/first-launch setup if it is pending; use
+`dart tool/setup_xcode.dart` or Apple's download page to install one.
 
 ## 2. Build
 

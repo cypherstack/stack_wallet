@@ -14,7 +14,7 @@ BOM="${BOM_FILE:-stack-bom.toml}"
 section_for() {
   case "$1" in
     rust|dnssec_rust|flutter|flutter_min|go|go_min) echo toolchain ;;
-    xcode|xcode_build|xcode_xip_sha1) echo macos ;;
+    xcode) echo macos ;;
     *) echo "Unknown BOM key: $1" >&2; return 2 ;;
   esac
 }
