@@ -55,6 +55,7 @@ class _SlatepackInputFieldState extends ConsumerState<SlatepackInputField> {
   bool get _isEmpty => widget.controller.text.isEmpty;
 
   void _set(String text) {
+    if (!mounted) return;
     widget.controller.text = text;
     widget.onChanged?.call(text);
     setState(() {});

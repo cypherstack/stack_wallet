@@ -20,11 +20,32 @@ Widget _app(Widget child) => MaterialApp(
 
 void main() {
   test("length guard", () {
-    expect(slatepackFitsQr("a" * kSlatepackQrMaxLength), isTrue);
-    expect(slatepackFitsQr("a" * (kSlatepackQrMaxLength + 1)), isFalse);
-    // Measured Grin lengths: an encrypted S1 fits, an S2 does not.
-    expect(slatepackFitsQr("a" * 955), isTrue);
-    expect(slatepackFitsQr("a" * 1837), isFalse);
+    expect(slatepackFitsQr("a" * kSlatepackQrMaxBytes), isTrue);
+    expect(slatepackFitsQr("a" * (kSlatepackQrMaxBytes + 1)), isFalse);
+    // Bytes count, not characters.
+    expect(slatepackFitsQr("é" * (kSlatepackQrMaxBytes ~/ 2)), isTrue);
+    expect(slatepackFitsQr("é" * (kSlatepackQrMaxBytes ~/ 2 + 1)), isFalse);
+  });
+
+  testWidgets("the longest slatepack that fits is drawn", (tester) async {
+    await tester.pumpWidget(
+      _app(SlatepackQr(data: "a" * kSlatepackQrMaxBytes, noun: "slate")),
+    );
+    await tester.pump();
+    expect(find.byKey(const Key("slatepackQrCode")), findsOneWidget);
+    expect(find.byKey(const Key("slatepackQrTooLong")), findsNothing);
+    expect(find.text("Too much data to show as a QR code"), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets("a slate of a few thousand characters is drawn", (tester) async {
+    await tester.pumpWidget(
+      _app(SlatepackQr(data: '{"slate": "${"a" * 2400}"}', noun: "slate")),
+    );
+    await tester.pump();
+    expect(find.byKey(const Key("slatepackQrCode")), findsOneWidget);
+    expect(find.text("Too much data to show as a QR code"), findsNothing);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets("short slatepack shows a QR code", (tester) async {
@@ -52,7 +73,7 @@ void main() {
 
   testWidgets("long slatepack falls back to a note", (tester) async {
     await tester.pumpWidget(
-      _app(SlatepackQr(data: "a" * (kSlatepackQrMaxLength + 1), noun: "slate")),
+      _app(SlatepackQr(data: "a" * (kSlatepackQrMaxBytes + 1), noun: "slate")),
     );
     expect(find.byType(QR), findsNothing);
     expect(find.byKey(const Key("slatepackQrTooLong")), findsOneWidget);
