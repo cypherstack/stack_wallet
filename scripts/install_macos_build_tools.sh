@@ -55,9 +55,8 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 # Read a value from stack-bom.toml so the Homebrew fallback and the flake use
 # the same versions.
-bom_value() {
-  sed -n "s/^$1[[:space:]]*=[[:space:]]*\"\\([^\"]*\\)\".*/\\1/p" \
-    "$REPO_ROOT/stack-bom.toml" 2>/dev/null | head -n 1
+bom_get() {
+  "$SCRIPT_DIR/bom_values.sh" --get "$1" "$REPO_ROOT/stack-bom.toml"
 }
 bash "$SCRIPT_DIR/install_xcode.sh"
 
@@ -73,8 +72,8 @@ brew install pandoc weasyprint toilet figlet || echo "[WARN] optional report too
 
 # The Homebrew cask always installs the latest Flutter, but CI builds and tests
 # one pinned release. Install that tag from source instead.
-FLUTTER_RECOMMENDED="$(bom_value flutter)"
-FLUTTER_MIN="$(bom_value flutter_min)"
+FLUTTER_RECOMMENDED="$(bom_get flutter)"
+FLUTTER_MIN="$(bom_get flutter_min)"
 FLUTTER_VERSION="${FLUTTER_VERSION:-${FLUTTER_RECOMMENDED:-3.47.2}}"
 # Accept the recommended version and the CI minimum; an explicit
 # FLUTTER_VERSION only accepts that version.
@@ -140,7 +139,7 @@ if ! command -v rustup >/dev/null 2>&1; then
   die "rustup not found in PATH. Check brew install."
 fi
 
-RUST_VERSION="${RUST_VERSION:-$(bom_value rust)}"
+RUST_VERSION="${RUST_VERSION:-$(bom_get rust)}"
 RUST_VERSION="${RUST_VERSION:-1.99.1}"
 echo "Ensuring Rust $RUST_VERSION toolchain..."
 rustup toolchain install "$RUST_VERSION"

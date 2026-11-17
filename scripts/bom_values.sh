@@ -1,21 +1,64 @@
 #!/usr/bin/env bash
-# Print the toolchain pins from stack-bom.toml as shell assignments.
-# Usage: eval "$(scripts/bom_values.sh)" or source scripts/bom_values.sh
+# Read toolchain pins from stack-bom.toml.
+#
+#   scripts/bom_values.sh                    # print quoted shell assignments
+#   scripts/bom_values.sh --get rust         # print one value
+#   scripts/bom_values.sh --get rust FILE    # read another BOM
+#
+# The default output is safe to eval; the individual lookups are preferred by
+# the Makefile and CI so a value can never become shell syntax.
 set -euo pipefail
 
-BOM="${1:-stack-bom.toml}"
+BOM="${BOM_FILE:-stack-bom.toml}"
 
-value() {
-  sed -n "s/^$1[[:space:]]*=[[:space:]]*\"\\([^\"]*\\)\".*/\\1/p" "$BOM" | head -n1
+section_for() {
+  case "$1" in
+    rust|flutter|flutter_min|go|go_min) echo toolchain ;;
+    xcode|xcode_build|xcode_xip_sha1) echo macos ;;
+    *) echo "Unknown BOM key: $1" >&2; return 2 ;;
+  esac
 }
 
-FLUTTER_VERSION="$(value flutter_min)"
+value() {
+  local key="$1" section result
+  section="$(section_for "$key")" || exit 2
+  result="$(
+    sed -n "/^\[$section\]/,/^\[/p" "$BOM" |
+      sed -n "s/^$key[[:space:]]*=[[:space:]]*\"\([^\"]*\)\".*/\1/p" |
+      head -n1
+  )"
+  [ -n "$result" ] || {
+    echo "Missing [$section] $key in $BOM" >&2
+    return 1
+  }
+  printf '%s\n' "$result"
+}
+
+if [ "${1:-}" = "--get" ]; then
+  [ "$#" -ge 2 ] || {
+    echo "Usage: $0 --get <key> [bom]" >&2
+    exit 2
+  }
+  [ "$#" -ge 3 ] && BOM="$3"
+  [ -r "$BOM" ] || {
+    echo "Cannot read $BOM" >&2
+    exit 1
+  }
+  value "$2"
+  exit
+fi
+
+[ "$#" -ge 1 ] && BOM="$1"
+[ -r "$BOM" ] || {
+  echo "Cannot read $BOM" >&2
+  exit 1
+}
+
+FLUTTER_VERSION="$(value flutter)"
+FLUTTER_MIN="$(value flutter_min)"
 RUST_VERSION="$(value rust)"
-GO_VERSION="$(value go_min)"
+GO_VERSION="$(value go)"
+GO_MIN="$(value go_min)"
 
-[ -n "$FLUTTER_VERSION" ] || { echo "Missing flutter_min in $BOM" >&2; exit 1; }
-[ -n "$RUST_VERSION" ] || { echo "Missing rust in $BOM" >&2; exit 1; }
-[ -n "$GO_VERSION" ] || { echo "Missing go_min in $BOM" >&2; exit 1; }
-
-printf 'FLUTTER_VERSION=%s\nRUST_VERSION=%s\nGO_VERSION=%s\n' \
-  "$FLUTTER_VERSION" "$RUST_VERSION" "$GO_VERSION"
+printf 'FLUTTER_VERSION=%q\nFLUTTER_MIN=%q\nRUST_VERSION=%q\nGO_VERSION=%q\nGO_MIN=%q\n' \
+  "$FLUTTER_VERSION" "$FLUTTER_MIN" "$RUST_VERSION" "$GO_VERSION" "$GO_MIN"

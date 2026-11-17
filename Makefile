@@ -14,9 +14,21 @@ FLUTTER_BIN  := $(if $(and $(FLUTTER),$(wildcard $(FLUTTER))),$(FLUTTER),$(shell
 DART_BIN     := $(if $(and $(DART),$(wildcard $(DART))),$(DART),$(shell command -v dart 2>/dev/null))
 FLUTTER      := $(FLUTTER_BIN)
 DART         := $(DART_BIN)
-APP_PROJECT_ROOT_DIR := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
-# Platform detection from uname.
-PLATFORM       ?= $(shell uname -s 2>/dev/null)
+APP_PROJECT_ROOT_DIR := $(CURDIR)
+ifeq ($(wildcard Makefile),)
+  $(error Run make from the repository root)
+endif
+# Platform detection from uname. PLATFORM can be overridden, but only with a
+# supported value; an unrelated exported PLATFORM must not change the defaults.
+UNAME_S        := $(shell uname -s 2>/dev/null)
+PLATFORM       ?= $(UNAME_S)
+ifneq ($(PLATFORM),Darwin)
+  ifneq ($(PLATFORM),Linux)
+    ifeq ($(filter MINGW% MSYS%,$(PLATFORM)),)
+      $(error Unsupported PLATFORM '$(PLATFORM)'; expected Darwin, Linux or Git Bash on Windows)
+    endif
+  endif
+endif
 # Toolchain source. Nix (nix develop or direnv) is the primary path; Homebrew
 # and manual installs use the host tools already on PATH. The build steps are
 # identical in every mode: only the prerequisite check and the Nix environment
@@ -24,6 +36,12 @@ PLATFORM       ?= $(shell uname -s 2>/dev/null)
 TOOLCHAIN      ?= auto
 DIRENV_ACTIVE  := $(if $(DIRENV_DIR),1,)
 NIX_ACTIVE     := $(if $(or $(IN_NIX_SHELL),$(NIX_STORE)),1,)
+ifeq ($(strip $(TOOLCHAIN)),)
+  $(error TOOLCHAIN must not be empty)
+endif
+ifneq ($(words $(TOOLCHAIN)),1)
+  $(error TOOLCHAIN must be a single value)
+endif
 ifneq ($(filter $(TOOLCHAIN),auto nix direnv brew manual host),$(TOOLCHAIN))
   $(error TOOLCHAIN must be auto, nix, direnv, brew, manual or host)
 endif
@@ -54,18 +72,21 @@ PROTOC_PATH  := $(shell which protoc 2>/dev/null)
 # Toolchain installed for host-side checks/targets. Native-assets crates pick their own
 # pinned toolchain via rust-toolchain.toml; do not export RUSTUP_TOOLCHAIN globally.
 BOM_FILE     := $(APP_PROJECT_ROOT_DIR)/stack-bom.toml
-BOM_RUST     := $(shell sed -n 's/^rust[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "$(BOM_FILE)" 2>/dev/null | head -n1)
-RUST_VERSION ?= $(if $(BOM_RUST),$(BOM_RUST),1.99.1)
+BOM_RUST     := $(shell bash "$(APP_PROJECT_ROOT_DIR)/scripts/bom_values.sh" --get rust "$(BOM_FILE)" 2>/dev/null)
+RUST_VERSION ?= $(if $(BOM_RUST),$(BOM_RUST),$(error Cannot read [toolchain] rust from $(BOM_FILE)))
 # Only strip Nix/Apple variables when a Nix shell actually supplied them. In a
 # Homebrew or manual shell these are the user's own settings and are kept.
+NIX_ENV_UNSET = -u LD -u LDFLAGS -u NIX_LDFLAGS -u NIX_CFLAGS_LINK \
+	-u NIX_CFLAGS_COMPILE -u CFLAGS -u CXXFLAGS -u CPPFLAGS \
+	-u SDKROOT -u BINDGEN_EXTRA_CLANG_ARGS
 ifeq ($(NIX_ACTIVE),1)
-MACOS_ENV_UNSET = -u LD -u LDFLAGS -u NIX_LDFLAGS -u NIX_CFLAGS_LINK \
-	-u CFLAGS -u CXXFLAGS -u CPPFLAGS \
-	-u SDKROOT -u BINDGEN_EXTRA_CLANG_ARGS \
+MACOS_ENV_UNSET = $(NIX_ENV_UNSET) \
 	-u IPHONEOS_DEPLOYMENT_TARGET -u TVOS_DEPLOYMENT_TARGET -u WATCHOS_DEPLOYMENT_TARGET \
 	-u XROS_DEPLOYMENT_TARGET -u XR_DEPLOYMENT_TARGET
+IOS_ENV_UNSET = $(NIX_ENV_UNSET)
 else
 MACOS_ENV_UNSET =
+IOS_ENV_UNSET =
 endif
 
 export APP_PROJECT_ROOT_DIR
@@ -77,7 +98,7 @@ endif
 
 help: ## Show available commands
 	@echo "Available targets:"
-	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "%-20s %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "%-24s %s\n", $$1, $$2}'
 
 # --- TOOLCHAIN ---
 
@@ -127,7 +148,7 @@ else
 endif
 
 check-windows: ## Fail unless running from Git Bash on Windows
-ifeq ($(filter MINGW% MSYS% CYGWIN%,$(PLATFORM)),)
+ifeq ($(filter MINGW% MSYS%,$(PLATFORM)),)
 	@echo >&2 "[ERROR] build-windows must run from Git Bash on Windows."
 	@exit 1
 else
@@ -189,6 +210,11 @@ endif
 check-sdk-macos: ## Verify XCode on macOS
 ifeq ($(PLATFORM),Darwin)
 	@echo "Checking macOS SDK requirements..."
+	@selected="$$(xcode-select -p 2>/dev/null || true)"; \
+	 case "$$selected" in \
+	   *.app/Contents/Developer) ;; \
+	   *) echo >&2 "[ERROR] Full Xcode is required (xcode-select -p = $$selected). Install Xcode or run 'make bootstrap-xcode'."; exit 1 ;; \
+	 esac
 	@xcrun --sdk macosx --show-sdk-path >/dev/null 2>&1 || ( \
 		echo "[ERROR] macOS SDK not available. Install Xcode or run: sudo xcode-select --switch /Applications/Xcode.app"; \
 		exit 1)
@@ -221,7 +247,7 @@ ifeq ($(PLATFORM),Darwin)
 		bash scripts/install_xcode.sh || exit 1; \
 	else \
 		bash scripts/install_macos_build_tools.sh || exit 1; \
-		rustup target add aarch64-apple-darwin x86_64-apple-darwin aarch64-apple-ios --toolchain $(RUST_VERSION) >/dev/null 2>&1 || true; \
+		rustup target add aarch64-apple-darwin x86_64-apple-darwin aarch64-apple-ios aarch64-apple-ios-sim --toolchain $(RUST_VERSION) >/dev/null 2>&1 || true; \
 	fi
 else
 	@echo "[ERROR] bootstrap-macos is macOS-only."
@@ -272,8 +298,7 @@ clean: ## Remove artifacts and fix permissions
 	@echo "Cleaning Flutter and Rust artifacts..."
 	@chflags -R nouchg build/ macos/ 2>/dev/null || true
 	@chmod -R u+w build/ macos/ 2>/dev/null || true
-	@if [ -f pubspec.yaml ]; then $(FLUTTER) clean; fi
-	@if [ -f "Cargo.toml" ]; then cargo clean; fi
+	@if [ -n "$(FLUTTER)" ] && [ -f pubspec.yaml ]; then "$(FLUTTER)" clean; fi
 	@rm -rf macos/Pods macos/Podfile.lock ios/Pods ios/Podfile.lock build/
 	@echo "Cleaning local pub cache residues..."
 	@chmod -R u+w $(LINUX_PUB_CACHE)/git/ 2>/dev/null || true
@@ -295,10 +320,21 @@ else
     PREBUILTS ?= 1
   endif
 endif
+ifneq ($(filter $(PREBUILTS),0 1),$(PREBUILTS))
+  $(error PREBUILTS must be 0 or 1)
+endif
+ifneq ($(filter MINGW% MSYS%,$(PLATFORM)),)
+  ifeq ($(PREBUILTS),0)
+    $(error build-windows uses verified dnix prebuilts; run build_app.sh for source mode)
+  endif
+endif
 # Android source builds through dnix need an x86_64 Linux host.
 ANDROID_PREBUILTS ?= $(if $(filter Darwin,$(PLATFORM)),1,$(PREBUILTS))
 # Linux only: SYSTEM_DEPS=1 uses the system libsecret/jsoncpp packages instead of building them (like the CI image).
 SYSTEM_DEPS ?= 0
+ifneq ($(filter $(SYSTEM_DEPS),0 1),$(SYSTEM_DEPS))
+  $(error SYSTEM_DEPS must be 0 or 1)
+endif
 LINUX_ARCH   := $(shell uname -m | sed -e 's/x86_64/x64/' -e 's/aarch64/arm64/')
 LINUX_BUNDLE ?= build/linux/$(LINUX_ARCH)/release/bundle
 
@@ -388,6 +424,9 @@ build-linux: require-version check-linux toolchain-check check-reqs ## Build Lin
 # Windows uses verified dnix prebuilts; source mode needs Nix inside WSL2 and is
 # driven by build_app.sh directly, not by this target.
 WINDOWS_COPY_ASSETS ?= 0
+ifneq ($(filter $(WINDOWS_COPY_ASSETS),0 1),$(WINDOWS_COPY_ASSETS))
+  $(error WINDOWS_COPY_ASSETS must be 0 or 1)
+endif
 
 build-windows: require-version check-windows toolchain-check ## Build Windows release (Git Bash; verified dnix prebuilts)
 	@command -v flutter >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
@@ -421,6 +460,6 @@ build-android: require-version toolchain-check android-dev-key ## Build Android 
 build-ios: require-version check-sdk-macos toolchain-check ## Build iOS Runner.app without code signing (same steps as CI)
 	@command -v flutter >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
 	@cd scripts && bash prebuild.sh
-	@cd scripts && echo yes | ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p ios -a $(APP_NAME) $(if $(filter 1,$(PREBUILTS)),-d) -s
-	@$(FLUTTER) pub get
-	@$(FLUTTER) build ios --release --no-codesign
+	@cd scripts && echo yes | env $(IOS_ENV_UNSET) ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p ios -a $(APP_NAME) $(if $(filter 1,$(PREBUILTS)),-d) -s
+	@env $(IOS_ENV_UNSET) $(FLUTTER) pub get
+	@env $(IOS_ENV_UNSET) $(FLUTTER) build ios --release --no-codesign

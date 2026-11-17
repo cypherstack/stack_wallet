@@ -10,19 +10,23 @@
   };
 
   outputs = { self, nixpkgs, flake-utils }:
-    flake-utils.lib.eachDefaultSystem (system:
+    flake-utils.lib.eachSystem [ "aarch64-darwin" "x86_64-linux" "aarch64-linux" ] (system:
       let
         pkgs = import nixpkgs { inherit system; };
         lib = pkgs.lib;
         # Single source of truth for the toolchain versions; the Homebrew
         # helper and the Makefile read the same file.
         bom = builtins.fromTOML (builtins.readFile ./stack-bom.toml);
-        rustVersion = bom.toolchain.rust;
+        rustVersion = let
+          v = bom.toolchain.rust or (throw "stack-bom.toml: missing [toolchain].rust");
+        in
+          if builtins.isString v && builtins.match "[0-9]+\\.[0-9]+\\.[0-9]+" v != null
+          then v
+          else throw "stack-bom.toml: [toolchain].rust must be a version string";
         clangMajor = lib.versions.major pkgs.llvmPackages.clang.version;
 
         commonPackages = with pkgs; [
           flutter
-          dart
           go
           rustup
           cmake
@@ -39,7 +43,7 @@
         ];
 
         linuxPackages = lib.optionals pkgs.stdenv.hostPlatform.isLinux (with pkgs; [
-          gtk3 glib openssl xz clang libgcrypt gobject-introspection
+          gtk3 glib openssl xz libgcrypt gobject-introspection
           llvmPackages.libclang
           llvmPackages.clang
           opencv
@@ -73,9 +77,13 @@
 
             # Resolve the repository root, not the directory the shell was
             # entered from; .nix-bin and the rustup override are per checkout.
-            export APP_PROJECT_ROOT_DIR="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+            APP_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+            if [ ! -f "$APP_ROOT/flake.nix" ]; then
+              APP_ROOT="$PWD"
+            fi
+            export APP_PROJECT_ROOT_DIR="$APP_ROOT"
             if [ -d "$HOME/.cargo/bin" ]; then
-              export PATH="$HOME/.cargo/bin:$PATH"
+              export PATH="$PATH:$HOME/.cargo/bin"
             fi
 
             # The standalone Dart in the Nix Flutter wrapper cannot find the Flutter SDK on its own,
@@ -95,13 +103,8 @@
              rustup override set ${rustVersion} --path "$APP_PROJECT_ROOT_DIR" >/dev/null 2>&1 || true
 
              if [[ "${system}" == *"darwin"* ]]; then
-               rustup target add aarch64-apple-darwin aarch64-apple-ios --toolchain ${rustVersion}
+               rustup target add aarch64-apple-darwin x86_64-apple-darwin aarch64-apple-ios aarch64-apple-ios-sim --toolchain ${rustVersion}
              fi
-
-            if ! command -v cargo-ndk >/dev/null 2>&1; then
-              echo "Installing optional Android Cargo tooling..."
-              cargo install cargo-ndk
-            fi
 
             # ==========================================
             # LINUX (NixOS) SPECIFICS
@@ -123,18 +126,16 @@
               # compile against the macOS SDK.
               SELECTED_DEVELOPER="$(env -u DEVELOPER_DIR xcode-select -p 2>/dev/null || true)"
               case "$SELECTED_DEVELOPER" in
-                *.app/Contents/Developer)
-                  export DEVELOPER_DIR="$SELECTED_DEVELOPER"
-                  ;;
+                *.app/Contents/Developer) ;;
                 *)
                   echo "[WARN] No full Xcode selected. Install Xcode and run 'make bootstrap-xcode'."
-                  # Leave DEVELOPER_DIR unset so xcrun can still use the
-                  # Command Line Tools for non-Xcode work.
-                  unset DEVELOPER_DIR
                   ;;
               esac
-              # nixpkgs' Darwin stdenv exports its own macOS SDK here before
-              # this hook runs; leave the SDK choice to Xcode per build.
+              # nixpkgs' Darwin stdenv exports its vendored apple-sdk here
+              # before this hook runs; clear it so xcrun and xcodebuild use the
+              # live xcode-select. A per-command DEVELOPER_DIR=... still works.
+              unset DEVELOPER_DIR
+              # Leave the SDK choice to Xcode per build.
               unset SDKROOT
               export MACOSX_DEPLOYMENT_TARGET="12.0"
 
@@ -159,7 +160,6 @@
               mkdir -p "$NIX_BIN"
               ln -sf /usr/bin/clang "$NIX_BIN/cc"
               ln -sf /usr/bin/clang++ "$NIX_BIN/c++"
-              ln -sf /usr/bin/xcodebuild "$NIX_BIN/xcodebuild"
               ln -sf /usr/bin/clang "$NIX_BIN/clang"
               ln -sf /usr/bin/clang++ "$NIX_BIN/clang++"
 
@@ -185,10 +185,18 @@ LIPO_EOF
               # its deployment target and SDK.
               cat > "$NIX_BIN/xcrun" <<XCRUN_EOF
 #!/bin/bash
-if [ "\$1" = "-f" ] && [ "\$2" = "lipo" ]; then
-    echo "$NIX_BIN/lipo"
-    exit 0
-fi
+case "\$1" in
+  -f|--find)
+    if [ "\$2" = "lipo" ]; then
+      echo "$NIX_BIN/lipo"
+      exit 0
+    fi
+    ;;
+  lipo)
+    shift
+    exec "$NIX_BIN/lipo" "\$@"
+    ;;
+esac
 exec /usr/bin/xcrun "\$@"
 XCRUN_EOF
               chmod +x "$NIX_BIN/xcrun"

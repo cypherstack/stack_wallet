@@ -29,11 +29,12 @@ jobs:
       - name: Read stack-bom.toml
         id: bom
         run: |
-          values="$(scripts/bom_values.sh)"
-          eval "$values"
-          echo "flutter=$FLUTTER_VERSION" >> "$GITHUB_OUTPUT"
-          echo "rust=$RUST_VERSION" >> "$GITHUB_OUTPUT"
-          echo "go=$GO_VERSION" >> "$GITHUB_OUTPUT"
+          flutter="$(bash scripts/bom_values.sh --get flutter)"
+          rust="$(bash scripts/bom_values.sh --get rust)"
+          go="$(bash scripts/bom_values.sh --get go)"
+          echo "flutter=$flutter" >> "$GITHUB_OUTPUT"
+          echo "rust=$rust" >> "$GITHUB_OUTPUT"
+          echo "go=$go" >> "$GITHUB_OUTPUT"
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ steps.bom.outputs.flutter }}
@@ -60,11 +61,12 @@ jobs:
       - name: Read stack-bom.toml
         id: bom
         run: |
-          values="$(scripts/bom_values.sh)"
-          eval "$values"
-          echo "flutter=$FLUTTER_VERSION" >> "$GITHUB_OUTPUT"
-          echo "rust=$RUST_VERSION" >> "$GITHUB_OUTPUT"
-          echo "go=$GO_VERSION" >> "$GITHUB_OUTPUT"
+          flutter="$(bash scripts/bom_values.sh --get flutter)"
+          rust="$(bash scripts/bom_values.sh --get rust)"
+          go="$(bash scripts/bom_values.sh --get go)"
+          echo "flutter=$flutter" >> "$GITHUB_OUTPUT"
+          echo "rust=$rust" >> "$GITHUB_OUTPUT"
+          echo "go=$go" >> "$GITHUB_OUTPUT"
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ steps.bom.outputs.flutter }}
@@ -91,11 +93,12 @@ jobs:
       - name: Read stack-bom.toml
         id: bom
         run: |
-          values="$(scripts/bom_values.sh)"
-          eval "$values"
-          echo "flutter=$FLUTTER_VERSION" >> "$GITHUB_OUTPUT"
-          echo "rust=$RUST_VERSION" >> "$GITHUB_OUTPUT"
-          echo "go=$GO_VERSION" >> "$GITHUB_OUTPUT"
+          flutter="$(bash scripts/bom_values.sh --get flutter)"
+          rust="$(bash scripts/bom_values.sh --get rust)"
+          go="$(bash scripts/bom_values.sh --get go)"
+          echo "flutter=$flutter" >> "$GITHUB_OUTPUT"
+          echo "rust=$rust" >> "$GITHUB_OUTPUT"
+          echo "go=$go" >> "$GITHUB_OUTPUT"
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ steps.bom.outputs.flutter }}
@@ -121,7 +124,7 @@ jobs:
       - name: Check the toolchain bill of materials
         run: make verify-bom
       - name: Build
-        run: make build-linux VERSION=0.0.0 BUILD_NUM=${{ github.run_number }} PREBUILTS=1
+        run: make build-linux VERSION=0.0.0 BUILD_NUM=${{ github.run_number }} PREBUILTS=1 SYSTEM_DEPS=1
 
   ios:
     # The fork has a single hosted macOS concurrency slot. Running macOS and
@@ -136,11 +139,12 @@ jobs:
       - name: Read stack-bom.toml
         id: bom
         run: |
-          values="$(scripts/bom_values.sh)"
-          eval "$values"
-          echo "flutter=$FLUTTER_VERSION" >> "$GITHUB_OUTPUT"
-          echo "rust=$RUST_VERSION" >> "$GITHUB_OUTPUT"
-          echo "go=$GO_VERSION" >> "$GITHUB_OUTPUT"
+          flutter="$(bash scripts/bom_values.sh --get flutter)"
+          rust="$(bash scripts/bom_values.sh --get rust)"
+          go="$(bash scripts/bom_values.sh --get go)"
+          echo "flutter=$flutter" >> "$GITHUB_OUTPUT"
+          echo "rust=$rust" >> "$GITHUB_OUTPUT"
+          echo "go=$go" >> "$GITHUB_OUTPUT"
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ steps.bom.outputs.flutter }}

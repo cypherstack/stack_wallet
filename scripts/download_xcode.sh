@@ -35,6 +35,10 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+BOM="$SCRIPT_DIR/../stack-bom.toml"
+bom_get() { "$SCRIPT_DIR/bom_values.sh" --get "$1" "$BOM"; }
+
 XCODE_VERSION="27.1"
 TARGET_DIR=""
 CACHE_DIR="${XCODE_CACHE_DIR:-$HOME/.cache/xcode}"
@@ -45,7 +49,16 @@ ASSUME_YES=0
 # Output: BUILD|SHA1|IA_ITEM|FILE_NAME
 release_info() {
     case "$1" in
-        27.1) echo "27A9275|d8b1d16397e6f2faab34bd48b19692a3f7797b9d|xcode-27.1|Xcode_27.1.xip" ;;
+        27.1)
+            local build sha
+            build="$(bom_get xcode_build)"
+            sha="$(bom_get xcode_xip_sha1)"
+            [ -n "$build" ] && [ -n "$sha" ] || {
+                echo "[ERROR] Missing Xcode build/hash in $BOM" >&2
+                return 1
+            }
+            echo "${build}|${sha}|xcode-27.1|Xcode_27.1.xip"
+            ;;
         27.0) echo "27A266a|04a7d831229ac95577f09398d87501a1c6fb92ad|xcode-27.0|Xcode_27.xip" ;;
         16.2) echo "16C5032a|aa1a3f12d4217ab04ea4064f40e92399192e15f9|xcode-16.2|Xcode_16.2.xip" ;;
         16.0) echo "16A242d|71b15ff10826474491ebca3d36a6ca5964b9e1c5|xcode-16.0|Xcode_16.xip" ;;
@@ -76,7 +89,7 @@ if [[ "$(uname -s)" != "Darwin" ]]; then
     exit 1
 fi
 
-if [[ "${CI:-}" == "true" || "${CI:-}" == "1" ]]; then
+if [[ $DRY_RUN -eq 0 && ( "${CI:-}" == "true" || "${CI:-}" == "1" ) ]]; then
     echo "[ERROR] Refusing to download Xcode from archive.org in CI." >&2
     exit 1
 fi
@@ -107,7 +120,6 @@ esac
 
 # sudo is only needed when the target directory is not writable (for example /Applications).
 SUDO=""
-mkdir -p "$(dirname "$TARGET_DIR")" 2>/dev/null || true
 if [[ ! -w "$(dirname "$TARGET_DIR")" ]]; then
     SUDO="sudo"
 fi
@@ -177,10 +189,14 @@ if [[ $DRY_RUN -eq 1 ]]; then
     exit 0
 fi
 
+mkdir -p "$(dirname "$TARGET_DIR")" 2>/dev/null || true
+
 if [[ $ASSUME_YES -eq 0 ]]; then
     echo "This downloads ~2 GB, needs ~20 GB free while extracting, and uses sudo only if ${TARGET_DIR} is not writable."
     echo "Redistribution of Xcode by third parties may conflict with Apple's license terms."
-    read -r -p "Continue? (yes/no): " ANSWER
+    if ! read -r -p "Continue? (yes/no): " ANSWER; then
+        ANSWER=""
+    fi
     [[ "$ANSWER" == "yes" ]] || { echo "Aborted."; exit 1; }
 fi
 
