@@ -34,7 +34,6 @@
           ninja
           pkg-config
           gnumake
-          gnused
           rsync
           protobuf
           (python3.withPackages (ps: with ps; [
@@ -88,7 +87,8 @@
 
             # The standalone Dart in the Nix Flutter wrapper cannot find the Flutter SDK on its own,
             # so `dart run`/`dart pub` in a Flutter project fail ("Flutter users should use flutter pub").
-            export FLUTTER_ROOT="$(dirname "$(dirname "$(readlink -f "$(command -v flutter)")")")"
+            FLUTTER_BIN_DIR="$(cd "$(dirname "$(command -v flutter)")" && pwd -P)"
+            export FLUTTER_ROOT="$(dirname "$FLUTTER_BIN_DIR")"
 
             # ==========================================
              # RUST TOOLCHAIN AUTOMATION

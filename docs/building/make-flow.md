@@ -1,8 +1,7 @@
 # Make build flow
 
 This page is the maintained source for the two build-flow diagrams. GitHub
-renders the Mermaid blocks directly; PNGs can be generated locally from the
-same blocks (they are not committed). Keep the source in sync with the
+renders the Mermaid blocks directly; keep the source in sync with the
 `Makefile`.
 
 ## 1. Get the tools (once per Mac)
@@ -13,14 +12,11 @@ tracked `.envrc` is `use flake`, so it activates the same shell as
 
 ### History
 
-`.envrc` was added on 2026-03-17 as a 98-line script that installed Rust
-toolchains, set `SDKROOT`/`CC`, created a Python venv and wrote `lipo`/`xcrun`
-wrappers. On 2026-03-19 the commit `macos build: split bootstrap from
-host-agnostic build path` (428fd61f9) reduced it to `use flake`; the flake and
-Makefile took over those steps. That is why direnv is not a fourth toolchain
-today. The Homebrew helper still installs the `direnv` binary, but `.envrc`
-now skips the flake when Nix is absent, so a Homebrew-only shell is not
-blocked.
+`.envrc` started as a standalone environment script; it was reduced to
+`use flake` when the flake and Makefile took over the host setup. That is why
+direnv is the Nix activator, not a fourth toolchain. The Homebrew helper still
+installs the `direnv` binary, but `.envrc` skips the flake when Nix is absent,
+so a Homebrew-only shell is not blocked.
 
 ```mermaid
 flowchart LR
@@ -108,14 +104,3 @@ flowchart TD
 | Windows | `1` (fixed) | verified prebuilts (`-d`) |
 | Android on macOS | `1` (fixed) | verified prebuilts (`-d`) |
 | Android on Linux | follows `PREBUILTS` | source by default |
-
-## Regenerating the PNGs
-
-Extract the two Mermaid blocks and render them with Mermaid CLI:
-
-```sh
-npx --yes @mermaid-js/mermaid-cli -i make-flow-tools.mmd \
-  -o make-flow-tools.png -t dark -b "#0d1117" --size 1800 -s 2
-npx --yes @mermaid-js/mermaid-cli -i make-flow-build.mmd \
-  -o make-flow-build.png -t dark -b "#0d1117" --size 1800 -s 2
-```

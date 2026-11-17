@@ -4,7 +4,6 @@
 *.pyc
 *.swp
 .DS_Store
-._*
 .atom/
 .buildlog/
 .history
@@ -41,7 +40,6 @@ android/build/
 
 # Web related
 lib/generated_plugin_registrant.dart
-
 
 # testing data
 test/services/coins/bitcoin/bitcoin_wallet_test_parameters.dart
