@@ -1816,6 +1816,9 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
           // keep checking until address with no tx history is set as current
           await checkReceivingAddressForTransactions();
         }
+      } else if (!isViewOnly &&
+          info.otherData[WalletInfoKeys.reuseAddress] != true) {
+        await _checkOtherReceivingAddressesForTransactions();
       }
     } catch (e, s) {
       Logging.instance.e(
@@ -1823,6 +1826,43 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         "($cryptoCurrency): $e\n$s",
       );
       rethrow;
+    }
+  }
+
+  /// Does for the other supported derivation paths what
+  /// [checkReceivingAddressForTransactions] does for the main one: while the
+  /// latest saved receiving address has history, the next one is generated
+  /// and saved. A path without a saved receiving address is left alone.
+  Future<void> _checkOtherReceivingAddressesForTransactions() async {
+    for (final type in cryptoCurrency.supportedDerivationPathTypes) {
+      final addressType = type.getAddressType();
+
+      // Saved addresses are looked up by address type, so a path that shares
+      // the main address type (bch44, eCash44) cannot be told apart here.
+      if (addressType == info.mainAddressType) continue;
+
+      while (true) {
+        final current = await mainDB.isar.addresses
+            .where()
+            .walletIdEqualTo(walletId)
+            .filter()
+            .typeEqualTo(addressType)
+            .subTypeEqualTo(AddressSubType.receiving)
+            .sortByDerivationIndexDesc()
+            .findFirst();
+        if (current == null) break;
+
+        final txCount = await fetchTxCount(
+          addressScriptHash: cryptoCurrency.addressToScriptHash(
+            address: current.value,
+          ),
+        );
+        if (txCount == 0) break;
+
+        await mainDB.updateOrPutAddresses([
+          await generateNextReceivingAddress(derivePathType: type),
+        ]);
+      }
     }
   }
 
