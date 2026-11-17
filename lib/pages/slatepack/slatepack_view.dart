@@ -25,7 +25,7 @@ import '../../widgets/desktop/primary_button.dart';
 import 'slatepack_import_flow.dart';
 import 'slatepack_input_field.dart';
 
-/// The "Slatepack" screen: takes any slatepack and hands it to
+/// The manual slate-exchange screen: takes a slate or slatepack and hands it to
 /// [SlatepackImportFlow], which works out whether to receive or finalize.
 class SlatepackView extends ConsumerStatefulWidget {
   const SlatepackView({
@@ -112,7 +112,7 @@ class _SlatepackViewState extends ConsumerState<SlatepackView> {
                 Navigator.of(context).pop();
               },
             ),
-            title: Text("Slatepack", style: STextStyles.navBarTitle(context)),
+            title: Text(terms.title, style: STextStyles.navBarTitle(context)),
           ),
           body: SafeArea(
             child: LayoutBuilder(
@@ -156,6 +156,7 @@ class _SlatepackViewState extends ConsumerState<SlatepackView> {
             controller: _controller,
             focusNode: _focusNode,
             hint: "Enter ${terms.payload}",
+            terms: terms,
             clipboard: widget.clipboard,
             onChanged: (_) => setState(() {}),
           ),

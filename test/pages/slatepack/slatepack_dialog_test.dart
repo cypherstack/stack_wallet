@@ -12,6 +12,47 @@ import 'package:stackwallet/utilities/util.dart';
 import '../../sample_data/theme_json.dart';
 
 void main() {
+  test("uses a coin-specific file name", () {
+    const slate = SlatepackDialog(
+      terms: SlatepackTerms.slate,
+      slatepack: '{}',
+      state: SlateState.s1,
+      slateId: "epic-id",
+    );
+    const slatepack = SlatepackDialog(
+      terms: SlatepackTerms.slatepack,
+      slatepack: "BEGINSLATEPACK. test. ENDSLATEPACK.",
+      state: SlateState.s2,
+      slateId: "mwc-id",
+    );
+    const unnamedSlate = SlatepackDialog(
+      terms: SlatepackTerms.slate,
+      slatepack: '{}',
+      state: SlateState.unknown,
+    );
+
+    expect(slate.fileName, "epic-id.S1.slate");
+    expect(slatepack.fileName, "mwc-id.S2.slatepack");
+    expect(unnamedSlate.fileName, "slate.slate");
+  });
+
+  test("uses coin-specific screen wording", () {
+    const slate = SlatepackDialog(
+      terms: SlatepackTerms.slate,
+      slatepack: '{}',
+      state: SlateState.s1,
+    );
+    const slatepack = SlatepackDialog(
+      terms: SlatepackTerms.slatepack,
+      slatepack: "BEGINSLATEPACK. test. ENDSLATEPACK.",
+      state: SlateState.s1,
+    );
+
+    expect(slate.instructions, contains("on the Slate screen"));
+    expect(slate.instructions, isNot(contains("Slatepack screen")));
+    expect(slatepack.instructions, contains("on the Slatepack screen"));
+  });
+
   testWidgets("Share anchors the share sheet to the Share button", (
     tester,
   ) async {

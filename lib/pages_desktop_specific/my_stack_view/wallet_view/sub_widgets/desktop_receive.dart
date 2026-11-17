@@ -724,6 +724,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
           SlatepackInputField(
             controller: _receiveSlateController,
             hint: "Enter ${_slatepackTerms.payload}",
+            terms: _slatepackTerms,
             clipboard: clipboard,
             onChanged: (_) => setState(() {}),
           ),

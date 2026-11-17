@@ -54,6 +54,7 @@ class _SlatepackEntryDialogState extends State<SlatepackEntryDialog> {
           SlatepackInputField(
             controller: _controller,
             hint: "Enter ${widget.terms.payload}",
+            terms: widget.terms,
             clipboard: widget.clipboard,
             onChanged: (_) => setState(() {}),
           ),

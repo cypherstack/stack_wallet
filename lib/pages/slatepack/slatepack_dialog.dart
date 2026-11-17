@@ -82,7 +82,8 @@ class SlatepackDialog extends StatelessWidget {
     SlateState.s1 =>
       "1. Share this ${terms.noun} with the recipient\n"
           "2. Wait for them to return the response ${terms.noun}\n"
-          "3. Import their response on the Slatepack screen to finalize the "
+          "3. Import their response on the "
+          "${terms.title} screen to finalize the "
           "transaction\n\n"
           "The funds stay locked until the transaction is finalized or "
           "cancelled.",
@@ -92,18 +93,18 @@ class SlatepackDialog extends StatelessWidget {
     SlateState.i1 =>
       "1. Share this invoice with the payer\n"
           "2. Wait for them to return the payment ${terms.noun}\n"
-          "3. Import it on the Slatepack screen to finalize the payment",
+          "3. Import it on the ${terms.title} screen to finalize the payment",
     SlateState.i2 =>
       "Return this ${terms.noun} to the payee. They finalize and broadcast "
           "the payment. The funds stay locked until then.",
     _ => "Pass this ${terms.noun} to the other party.",
   };
 
-  /// `<slateId>.<state>.slatepack`, e.g. `0436...a1.S1.slatepack`.
+  /// `<slateId>.<state>.<extension>`, e.g. `0436...a1.S1.slatepack`.
   String get fileName {
-    final id = (slateId == null || slateId!.isEmpty) ? "slatepack" : slateId!;
+    final id = (slateId == null || slateId!.isEmpty) ? terms.noun : slateId!;
     final suffix = state == SlateState.unknown ? "" : ".${state.code}";
-    return "$id$suffix.slatepack";
+    return "$id$suffix.${terms.fileExtension}";
   }
 
   Future<void> _copy(BuildContext context) async {

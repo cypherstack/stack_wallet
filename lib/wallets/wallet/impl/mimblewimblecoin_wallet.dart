@@ -216,13 +216,13 @@ class MimblewimblecoinWallet extends MimblewimbleWallet {
   @override
   Future<SlatepackDecodeResult> decodeSlatepack(String slatepack) async {
     try {
-      final String? handle = _walletHandle;
-      final result = handle != null
-          ? await libMwc.decodeSlatepackWithWallet(
-              wallet: handle,
-              slatepack: slatepack,
-            )
-          : await libMwc.decodeSlatepack(slatepack: slatepack);
+      // Inspection runs before receive/finalize. Open here so an encrypted
+      // slatepack can be decrypted with this wallet's keys during inspection.
+      final String handle = await _ensureWalletOpen();
+      final result = await libMwc.decodeSlatepackWithWallet(
+        wallet: handle,
+        slatepack: slatepack,
+      );
 
       return SlatepackDecodeResult(
         success: true,
@@ -830,8 +830,6 @@ class MimblewimblecoinWallet extends MimblewimbleWallet {
           mimblewimbleData?.slatesToCommits ?? <dynamic, dynamic>{};
 
       for (final MimblewimbleTransaction tx in transactions) {
-        Logging.instance.i("tx: $tx");
-
         final bool isIncoming =
             libMwc.txTypeIsReceived(tx.txType) ||
             libMwc.txTypeIsReceiveCancelled(tx.txType);

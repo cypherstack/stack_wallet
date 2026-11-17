@@ -10,6 +10,7 @@ import 'package:stackwallet/pages/slatepack/slatepack_input_field.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/clipboard_interface.dart';
+import 'package:stackwallet/utilities/slatepack_terms.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 
 import '../../sample_data/theme_json.dart';
@@ -43,6 +44,7 @@ void main() {
             body: SlatepackInputField(
               controller: controller,
               hint: 'Slatepack',
+              terms: SlatepackTerms.slatepack,
               clipboard: clipboard,
               onChanged: changes.add,
             ),

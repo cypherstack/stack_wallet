@@ -15,6 +15,7 @@ import '../../utilities/barcode_scanner_interface.dart';
 import '../../utilities/clipboard_interface.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/logger.dart';
+import '../../utilities/slatepack_terms.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../widgets/desktop/qr_code_scanner_dialog.dart';
@@ -33,6 +34,7 @@ class SlatepackInputField extends ConsumerStatefulWidget {
     super.key,
     required this.controller,
     required this.hint,
+    required this.terms,
     this.onChanged,
     this.focusNode,
     this.clipboard = const ClipboardWrapper(),
@@ -40,6 +42,7 @@ class SlatepackInputField extends ConsumerStatefulWidget {
 
   final TextEditingController controller;
   final String hint;
+  final SlatepackTerms terms;
   final void Function(String)? onChanged;
   final FocusNode? focusNode;
   final ClipboardInterface clipboard;
@@ -109,7 +112,7 @@ class _SlatepackInputFieldState extends ConsumerState<SlatepackInputField> {
         }
       } else {
         Logging.instance.w(
-          "Camera permission error while scanning a slatepack",
+          "Camera permission error while scanning a ${widget.terms.noun}",
           error: e,
           stackTrace: s,
         );
@@ -120,7 +123,7 @@ class _SlatepackInputFieldState extends ConsumerState<SlatepackInputField> {
   Future<void> _openFile() async {
     try {
       final result = await FilePicker.platform.pickFiles(
-        dialogTitle: "Open slatepack file",
+        dialogTitle: "Open ${widget.terms.noun} file",
         lockParentWindow: true,
       );
       final picked = result?.files.singleOrNull;
@@ -129,14 +132,15 @@ class _SlatepackInputFieldState extends ConsumerState<SlatepackInputField> {
       if (picked.size > kSlatepackFileMaxBytes) {
         throw Exception(
           "File is too large (${picked.size} bytes). "
-          "A slatepack file is at most $kSlatepackFileMaxBytes bytes.",
+          "A ${widget.terms.noun} file is at most "
+          "$kSlatepackFileMaxBytes bytes.",
         );
       }
 
       final List<int> bytes =
           picked.bytes ?? await File(picked.path!).readAsBytes();
       if (bytes.length > kSlatepackFileMaxBytes) {
-        throw Exception("File is too large to be a slatepack.");
+        throw Exception("File is too large to be a ${widget.terms.noun}.");
       }
 
       final text = utf8.decode(bytes).trim();
@@ -148,7 +152,7 @@ class _SlatepackInputFieldState extends ConsumerState<SlatepackInputField> {
       _showError("That file is not a text file.");
     } catch (e, s) {
       Logging.instance.w(
-        "Opening slatepack file failed",
+        "Opening ${widget.terms.noun} file failed",
         error: e,
         stackTrace: s,
       );
