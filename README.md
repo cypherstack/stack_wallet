@@ -83,7 +83,7 @@ uses the verified prebuilts and needs no Nix for them.
 
 The Homebrew bootstrap installs the native build tools and configures Rust
 1.99.1 for Flutter's native-assets hooks. It replaces the former local
-`crypto_plugins` macOS prebuild path; no submodule setup or manual native
+manual macOS native prebuild path; no submodule setup or manual native
 plugin build is needed.
 
 ### macOS with a manual toolchain (advanced)

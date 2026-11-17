@@ -50,7 +50,7 @@ jobs:
       - name: Check the toolchain bill of materials
         run: make verify-bom
       - name: Build
-        run: make build-windows VERSION=0.0.0 BUILD_NUM=${{ github.run_number }} WINDOWS_COPY_ASSETS=1
+        run: make build-windows VERSION=0.0.0 BUILD_NUM=${{ github.run_number }}
 
   macos:
     runs-on: macos-latest
@@ -78,7 +78,7 @@ jobs:
         with:
           toolchain: ${{ steps.bom.outputs.rust }}
       - name: Tools
-        run: brew install meson ninja autoconf automake libtool protobuf pkg-config cbindgen
+        run: brew install meson ninja autoconf automake libtool protobuf pkg-config
       - name: Check the toolchain bill of materials
         run: make verify-bom
       - name: Build
@@ -156,7 +156,7 @@ jobs:
         with:
           toolchain: ${{ steps.bom.outputs.rust }}
       - name: Tools
-        run: brew install meson ninja autoconf automake libtool protobuf pkg-config cbindgen
+        run: brew install meson ninja autoconf automake libtool protobuf pkg-config
       - name: Check the toolchain bill of materials
         run: make verify-bom
       - name: Build

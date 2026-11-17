@@ -419,20 +419,13 @@ build-linux: require-version check-linux toolchain-check check-reqs ## Build Lin
 	@python3 scripts/linux/prepare_release_bundle.py $(LINUX_BUNDLE)
 
 # Windows: run from Git Bash. Same steps as the "build-windows" job in .github/workflows/build.yaml.
-# WINDOWS_COPY_ASSETS=1 makes link_assets.sh copy instead of creating symlinks, for hosts
-# where the user cannot create them (for example the GitHub-hosted runner).
 # Windows uses verified dnix prebuilts; source mode needs Nix inside WSL2 and is
 # driven by build_app.sh directly, not by this target.
-WINDOWS_COPY_ASSETS ?= 0
-ifneq ($(filter $(WINDOWS_COPY_ASSETS),0 1),$(WINDOWS_COPY_ASSETS))
-  $(error WINDOWS_COPY_ASSETS must be 0 or 1)
-endif
-
 build-windows: require-version check-windows toolchain-check ## Build Windows release (Git Bash; verified dnix prebuilts)
 	@command -v flutter >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
 	@command -v go >/dev/null 2>&1 || { echo >&2 "[ERROR] Go not installed."; exit 1; }
 	@cd scripts && bash prebuild.sh
-	@cd scripts && echo yes | MWEBD_FETCH=1 WINDOWS_COPY_ASSETS=$(WINDOWS_COPY_ASSETS) ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p windows -a $(APP_NAME) -d -s
+	@cd scripts && echo yes | MWEBD_FETCH=1 ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p windows -a $(APP_NAME) -d -s
 	@$(FLUTTER) pub get
 	@$(FLUTTER) build windows --release
 

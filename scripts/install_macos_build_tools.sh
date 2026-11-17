@@ -63,12 +63,13 @@ bash "$SCRIPT_DIR/install_xcode.sh"
 echo "Installing Homebrew packages..."
 # Do not upgrade formulae that are already installed: a build machine keeps the versions it was set up with.
 export HOMEBREW_NO_INSTALL_UPGRADE=1
-brew install direnv rustup cmake meson ninja pkg-config gnu-sed cocoapods go protobuf cbindgen autoconf automake libtool sccache
+brew install direnv rustup cmake meson ninja pkg-config cocoapods go protobuf autoconf automake libtool sccache
 add_rustup_to_path
 
-# Only used for the benchmark reports in bm/. A failure here (for example a link conflict with a
-# copy installed another way) must not stop the toolchain setup.
-brew install pandoc weasyprint toilet figlet || echo "[WARN] optional report tools were not fully installed; only bm/ report rendering needs them."
+# Only used for the benchmark reports in bm/. Opt in with BM_REPORT_TOOLS=1.
+if [[ "${BM_REPORT_TOOLS:-0}" = "1" ]]; then
+  brew install pandoc weasyprint toilet figlet || echo "[WARN] optional report tools were not fully installed; only bm/ report rendering needs them."
+fi
 
 # The Homebrew cask always installs the latest Flutter, but CI builds and tests
 # one pinned release. Install that tag from source instead.

@@ -93,7 +93,7 @@ main() {
   echo "${BASELINE},${PLATFORM},${HOSTNAME},${TIMESTAMP},total_project,${total}," >> "$csv"
 
   # Native-assets Rust target directories aggregate. Flutter's hooks keep
-  # these under .dart_tool instead of the deleted crypto_plugins tree.
+  # these under .dart_tool instead of the old native build tree.
   local rust_total=0
   while IFS= read -r target_dir; do
     local sz

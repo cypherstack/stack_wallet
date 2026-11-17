@@ -439,5 +439,4 @@ import_sorter:
   comments: false # Optional, defaults to true
   ignored_files: # Optional, defaults to []
     - \/test\/*
-    - \/crypto_plugins\/*
     - \/integration_test\/*

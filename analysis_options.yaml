@@ -13,7 +13,6 @@ analyzer:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
     - "test/.test_coverage.dart"
-    - "crypto_plugins/**"
     - "bin/cache/**"
     - "lib/generated_plugin_registrant.dart"
     - "lib/wl_gen/generated/**"

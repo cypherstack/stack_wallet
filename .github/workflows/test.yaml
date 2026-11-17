@@ -41,7 +41,6 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          submodules: recursive
 
       # -d selects verified dnix prebuilts for Frost, Tor, Epic and MWC.
       # -s (CI only) skips building jsoncpp and libsecret; the image has them.

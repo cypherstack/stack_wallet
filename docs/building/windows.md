@@ -11,7 +11,7 @@ with Windows Flutter. For how the build fits together, see the
 |---|---|
 | [Flutter](https://docs.flutter.dev/install/manual) 3.47.2, and Git for Windows, which includes Git Bash | Every build |
 | [Visual Studio 2022](https://docs.flutter.dev/platform-integration/windows/setup) with **Desktop development with C++**, CMake tools and a Windows SDK | Every build |
-| Windows Developer Mode, for the symlinks Flutter and the asset scripts create | Every build |
+| Windows Developer Mode, for the symlinks Flutter and its plugins create | Every build |
 | [Rustup](https://rustup.rs/) on Windows | Every app's DNSSEC hook and Stack Wallet's Xelis hook, in both modes |
 | WSL2 with Ubuntu 24.04, and [Nix](https://nixos.org/download/) inside it | Source mode, the default; not needed with `-d` |
 | Go 1.24.0 or newer and `mingw-w64` in the default WSL distribution | Stack Wallet's [MWEB build](#mweb), unless you set `MWEBD_FETCH=1` |
