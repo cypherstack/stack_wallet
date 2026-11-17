@@ -17,6 +17,26 @@ DART         := $(DART_BIN)
 APP_PROJECT_ROOT_DIR := $(CURDIR)
 # Platform detection from uname.
 PLATFORM       ?= $(shell uname -s 2>/dev/null)
+# Toolchain source. Nix (nix develop or direnv) is the primary path; Homebrew
+# and manual installs use the host tools already on PATH. The build steps are
+# identical in every mode: only the prerequisite check and the Nix environment
+# sanitising differ. Override with TOOLCHAIN=nix|direnv|brew|manual.
+TOOLCHAIN      ?= auto
+DIRENV_ACTIVE  := $(if $(DIRENV_DIR),1,)
+NIX_ACTIVE     := $(if $(or $(IN_NIX_SHELL),$(NIX_STORE)),1,)
+ifeq ($(TOOLCHAIN),auto)
+  ifeq ($(DIRENV_ACTIVE),1)
+    TOOLCHAIN_EFFECTIVE := direnv
+  else
+    ifeq ($(NIX_ACTIVE),1)
+      TOOLCHAIN_EFFECTIVE := nix
+    else
+      TOOLCHAIN_EFFECTIVE := host
+    endif
+  endif
+else
+  TOOLCHAIN_EFFECTIVE := $(TOOLCHAIN)
+endif
 # Linux builds use a project-local pub cache so cargo finds the repo-local
 # .cargo/config.toml that carries PROTOC through Flutter's filtered hook environment.
 # Other targets leave PUB_CACHE unset, so Flutter uses its normal per-user cache
@@ -26,23 +46,80 @@ PUB_CACHE    ?=
 PROTOC_PATH  := $(shell which protoc 2>/dev/null)
 # Toolchain installed for host-side checks/targets. Native-assets crates pick their own
 # pinned toolchain via rust-toolchain.toml; do not export RUSTUP_TOOLCHAIN globally.
-RUST_VERSION ?= 1.99.1
+BOM_FILE     := $(APP_PROJECT_ROOT_DIR)/stack-bom.toml
+BOM_RUST     := $(shell sed -n 's/^rust[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' $(BOM_FILE) 2>/dev/null | head -n1)
+RUST_VERSION ?= $(if $(BOM_RUST),$(BOM_RUST),1.99.1)
+# Only strip Nix/Apple variables when a Nix shell actually supplied them. In a
+# Homebrew or manual shell these are the user's own settings and are kept.
+ifeq ($(NIX_ACTIVE),1)
 MACOS_ENV_UNSET = -u LD -u LDFLAGS -u NIX_LDFLAGS -u NIX_CFLAGS_LINK \
 	-u CFLAGS -u CXXFLAGS -u CPPFLAGS \
 	-u SDKROOT -u BINDGEN_EXTRA_CLANG_ARGS \
 	-u IPHONEOS_DEPLOYMENT_TARGET -u TVOS_DEPLOYMENT_TARGET -u WATCHOS_DEPLOYMENT_TARGET \
 	-u XROS_DEPLOYMENT_TARGET -u XR_DEPLOYMENT_TARGET
+else
+MACOS_ENV_UNSET =
+endif
 
 export APP_PROJECT_ROOT_DIR
 ifneq ($(strip $(PUB_CACHE)),)
 export PUB_CACHE
 endif
 
-.PHONY: help require-version check-reqs check-reqs-macos check-sdk-macos bootstrap-macos bootstrap-xcode bootstrap-xcode-download sccache-setup cache-stats verify-bom clean clean-app clean-native build-macos build-linux build-windows diagnose-env-macos build-android android-dev-key build-ios
+.PHONY: help toolchain toolchain-check dnix-check dnix-check-android bootstrap bootstrap-brew require-version check-reqs check-reqs-macos check-sdk-macos bootstrap-macos bootstrap-xcode bootstrap-xcode-download sccache-setup cache-stats verify-bom clean clean-app clean-native build-macos build-linux build-windows diagnose-env-macos build-android android-dev-key build-ios
 
 help: ## Show available commands
 	@echo "Available targets:"
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "%-20s %s\n", $$1, $$2}'
+
+# --- TOOLCHAIN ---
+
+toolchain: ## Show the active toolchain and tool paths
+	@echo "requested : $(TOOLCHAIN)"
+	@echo "effective : $(TOOLCHAIN_EFFECTIVE)"
+	@echo "NIX_STORE : $${NIX_STORE:-<unset>}"
+	@echo "DIRENV_DIR: $${DIRENV_DIR:-<unset>}"
+	@echo "flutter   : $(if $(FLUTTER),$(FLUTTER),missing)"
+	@echo "dart      : $(if $(DART),$(DART),missing)"
+	@echo "rustup    : $$(command -v rustup || echo missing)"
+	@echo "brew      : $$(command -v brew || echo missing)"
+	@echo "xcode     : $$(xcode-select -p 2>/dev/null || echo missing)"
+
+toolchain-check: ## Fail when the requested toolchain is not active
+ifeq ($(TOOLCHAIN_EFFECTIVE),nix)
+	@[ -n "$$NIX_STORE$$IN_NIX_SHELL" ] || { echo >&2 "[ERROR] TOOLCHAIN=nix but this is not a Nix dev shell. Run 'nix develop' (or 'make bootstrap')."; exit 1; }
+endif
+ifeq ($(TOOLCHAIN_EFFECTIVE),direnv)
+	@[ -n "$$NIX_STORE$$IN_NIX_SHELL" ] || { echo >&2 "[ERROR] TOOLCHAIN=direnv but the flake is not loaded. Run 'direnv allow', or use 'nix develop'."; exit 1; }
+endif
+ifeq ($(TOOLCHAIN_EFFECTIVE),brew)
+	@command -v brew >/dev/null 2>&1 || { echo >&2 "[ERROR] TOOLCHAIN=brew but brew is not on PATH. Run 'make bootstrap-macos'."; exit 1; }
+endif
+
+bootstrap: ## Enter the Nix dev shell (primary toolchain; no-op when already inside)
+	@if [ -n "$$NIX_STORE$$IN_NIX_SHELL" ]; then \
+		echo "[OK] Already inside a Nix dev shell ($(TOOLCHAIN_EFFECTIVE))."; \
+	elif ! command -v nix >/dev/null 2>&1; then \
+		echo >&2 "[ERROR] Nix is not installed. Install it from https://nixos.org/download/, or use the Homebrew fallback: make bootstrap-macos"; \
+		exit 1; \
+	else \
+		echo "Entering the Nix dev shell. Run 'make build-macos VERSION=... BUILD_NUM=...' inside it."; \
+		exec nix develop; \
+	fi
+
+bootstrap-brew: bootstrap-macos ## Alias for the Homebrew fallback toolchain
+
+dnix-check: ## Fail when a dnix source build is requested without Nix
+	@if [ "$(PREBUILTS)" = "0" ] && ! command -v nix >/dev/null 2>&1; then \
+		echo >&2 "[ERROR] PREBUILTS=0 (dnix source) needs Nix. Use PREBUILTS=1, or run 'make bootstrap'."; \
+		exit 1; \
+	fi
+
+dnix-check-android: ## Fail when an Android dnix source build is requested without Nix
+	@if [ "$(ANDROID_PREBUILTS)" = "0" ] && ! command -v nix >/dev/null 2>&1; then \
+		echo >&2 "[ERROR] Android source builds need Nix. Use PREBUILTS=1, or run 'make bootstrap'."; \
+		exit 1; \
+	fi
 
 # --- PREREQUISITES ---
 
@@ -64,7 +141,7 @@ check-reqs: ## Verify essential build tools
 	@command -v cmake >/dev/null 2>&1 || { echo >&2 "[ERROR] CMake not installed."; exit 1; }
 	@command -v meson >/dev/null 2>&1 || { \
 		if [ "$(PLATFORM)" = "Darwin" ]; then \
-			echo >&2 "[ERROR] Meson not installed. On macOS, run 'make bootstrap-macos' or 'brew install meson'."; \
+			echo >&2 "[ERROR] Meson not installed. Use 'nix develop' (recommended) or run 'make bootstrap-macos'."; \
 		elif [ "$(PLATFORM)" = "Linux" ]; then \
 			echo >&2 "[ERROR] Meson not installed. On Linux/NixOS, run in 'nix develop' or install meson via your package manager."; \
 		else \
@@ -74,7 +151,7 @@ check-reqs: ## Verify essential build tools
 	}
 	@command -v ninja >/dev/null 2>&1 || { \
 		if [ "$(PLATFORM)" = "Darwin" ]; then \
-			echo >&2 "[ERROR] Ninja not installed. On macOS, run 'make bootstrap-macos' or 'brew install ninja'."; \
+			echo >&2 "[ERROR] Ninja not installed. Use 'nix develop' (recommended) or run 'make bootstrap-macos'."; \
 		elif [ "$(PLATFORM)" = "Linux" ]; then \
 			echo >&2 "[ERROR] Ninja not installed. On Linux/NixOS, run in 'nix develop' or install ninja via your package manager."; \
 		else \
@@ -103,12 +180,15 @@ ifeq ($(PLATFORM),Darwin)
 		echo "[ERROR] macOS SDK not available. Install Xcode or run: sudo xcode-select --switch /Applications/Xcode.app"; \
 		exit 1)
 	@echo "[OK] macOS SDK available at: $$(xcrun --sdk macosx --show-sdk-path)"
+else
+	@echo >&2 "[ERROR] check-sdk-macos is macOS-only."
+	@exit 1
 endif
 
 check-reqs-macos: check-reqs ## Verify macOS-specific tools are available in PATH
 ifeq ($(PLATFORM),Darwin)
 	@echo "Checking macOS-specific tools in PATH..."
-	@rustup run $(RUST_VERSION) rustc -vV >/dev/null 2>&1 || { echo >&2 "[ERROR] Rust $(RUST_VERSION) toolchain not available. Run 'make bootstrap-macos'."; exit 1; }
+	@rustup run $(RUST_VERSION) rustc -vV >/dev/null 2>&1 || { echo >&2 "[ERROR] Rust $(RUST_VERSION) toolchain not available. Run 'nix develop' (recommended) or 'make bootstrap-macos'."; exit 1; }
 	@command -v pod >/dev/null 2>&1 || { echo >&2 "[ERROR] CocoaPods (pod) not installed."; exit 1; }
 	@command -v xcodebuild >/dev/null 2>&1 || { echo >&2 "[ERROR] xcodebuild not available."; exit 1; }
 	@echo "[OK] macOS-specific toolchain is available."
@@ -117,12 +197,12 @@ else
 	@exit 1
 endif
 
-bootstrap-macos: ## Install required macOS build tools via Homebrew helper script
+bootstrap-macos: ## Install the Homebrew fallback toolchain (Nix is the primary path)
 ifeq ($(PLATFORM),Darwin)
 # Call install_xcode.sh directly instead of `$(MAKE) bootstrap-xcode`: a recipe
 # line containing $(MAKE) is executed even under `make -n`, which would make a
 # dry run accept the Xcode license and run first-launch setup for real.
-	@if [ -n "$$IN_NIX_SHELL" ] || [ -n "$$NIX_BUILD_TOP" ]; then \
+	@if [ -n "$$IN_NIX_SHELL$$NIX_BUILD_TOP$$NIX_STORE" ]; then \
 		echo "[WARN] Nix environment detected; skipping the Homebrew package install (use nix/flake-provided toolchain instead)."; \
 		echo "[WARN] Xcode itself is never provided by Nix (Apple's license forbids redistributing it), so that part still runs:"; \
 		bash scripts/install_xcode.sh || exit 1; \
@@ -189,7 +269,21 @@ clean: ## Remove artifacts and fix permissions
 
 # --- PLATFORM BUILDS ---
 
-PREBUILTS ?= 1
+# dnix mode. macOS and Linux build the pinned native libraries from source by
+# default (the Nix-primary developer path). Windows and CI use verified
+# prebuilts. PREBUILTS=1 passes -d and needs no Nix for those four libraries;
+# PREBUILTS=0 builds them with Nix and verifies the hashes.
+ifeq ($(PLATFORM),Darwin)
+PREBUILTS ?= 0
+else
+  ifeq ($(PLATFORM),Linux)
+    PREBUILTS ?= 0
+  else
+    PREBUILTS ?= 1
+  endif
+endif
+# Android source builds through dnix need an x86_64 Linux host.
+ANDROID_PREBUILTS ?= $(if $(filter Darwin,$(PLATFORM)),1,$(PREBUILTS))
 # Linux only: SYSTEM_DEPS=1 uses the system libsecret/jsoncpp packages instead of building them (like the CI image).
 SYSTEM_DEPS ?= 0
 LINUX_ARCH   := $(shell uname -m | sed -e 's/x86_64/x64/' -e 's/aarch64/arm64/')
@@ -206,7 +300,7 @@ clean-native: ## Remove only the native-asset build outputs (forces the Rust/Go/
 	@rm -rf .dart_tool/hooks_runner build/native_assets
 	@echo "[OK] Removed .dart_tool/hooks_runner and build/native_assets."
 
-build-macos: require-version check-reqs-macos check-sdk-macos ## Build macOS release (same steps as upstream CI; PREBUILTS=0 compiles native assets from source)
+build-macos: require-version toolchain-check dnix-check check-reqs-macos check-sdk-macos ## Build macOS release (source by default; PREBUILTS=1 uses verified prebuilts)
 	@echo "--- Configuring project (scripts/build_app.sh)..."
 	@cd scripts && echo yes | env $(MACOS_ENV_UNSET) ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p macos -a $(APP_NAME) -s $(if $(filter 1,$(PREBUILTS)),-d)
 	@echo "--- Resolving dependencies..."
@@ -240,7 +334,7 @@ diagnose-env-macos: ## Print macOS build env and tool resolution
 	@echo "NIX_CFLAGS_LINK=$${NIX_CFLAGS_LINK:-<unset>}"
 
 build-linux: export PUB_CACHE := $(LINUX_PUB_CACHE)
-build-linux: require-version check-reqs ## Build Linux Release through Flutter native-assets hooks
+build-linux: require-version toolchain-check dnix-check check-reqs ## Build Linux Release through Flutter native-assets hooks
 	@echo "--- Running prebuild bootstrap..."
 	@cd scripts && bash prebuild.sh
 	@echo "--- Generating config..."
@@ -278,9 +372,11 @@ build-linux: require-version check-reqs ## Build Linux Release through Flutter n
 # Windows: run from Git Bash. Same steps as the "build-windows" job in .github/workflows/build.yaml.
 # WINDOWS_COPY_ASSETS=1 makes link_assets.sh copy instead of creating symlinks, for hosts
 # where the user cannot create them (for example the GitHub-hosted runner).
+# Windows uses verified dnix prebuilts; source mode needs Nix inside WSL2 and is
+# driven by build_app.sh directly, not by this target.
 WINDOWS_COPY_ASSETS ?= 0
 
-build-windows: require-version ## Build Windows release (Git Bash; same steps as CI)
+build-windows: require-version toolchain-check ## Build Windows release (Git Bash; verified dnix prebuilts)
 	@command -v flutter >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
 	@command -v go >/dev/null 2>&1 || { echo >&2 "[ERROR] Go not installed."; exit 1; }
 	@cd scripts && bash prebuild.sh
@@ -300,18 +396,18 @@ android-dev-key: ## Create a throw-away debug signing key if android/key.propert
 		printf 'storeFile=../dev-keystore.jks\nstorePassword=android\nkeyPassword=android\nkeyAlias=devkey\n' > android/key.properties; \
 	fi
 
-build-android: require-version android-dev-key ## Build Android APKs (same steps as CI; signed with a throw-away key unless android/key.properties exists)
+build-android: require-version toolchain-check dnix-check-android android-dev-key ## Build Android APKs (prebuilt dnix on macOS; Linux follows PREBUILTS)
 	@command -v flutter >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
 	@[ -n "$$ANDROID_SDK_ROOT$$ANDROID_HOME" ] || { echo >&2 "[ERROR] ANDROID_SDK_ROOT is not set (Android SDK/NDK required)."; exit 1; }
 	@cd scripts && bash prebuild.sh
-	@cd scripts && echo yes | ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p android -a $(APP_NAME) -d -s
+	@cd scripts && echo yes | ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p android -a $(APP_NAME) $(if $(filter 1,$(ANDROID_PREBUILTS)),-d) -s
 	@$(FLUTTER) pub get
 	@$(FLUTTER) build apk --split-per-abi --release
 
 # iOS: same steps as the "build-ios" CI job (device build, no code signing). Run on macOS with Xcode.
-build-ios: require-version check-sdk-macos ## Build iOS Runner.app without code signing (same steps as CI)
+build-ios: require-version check-sdk-macos toolchain-check dnix-check ## Build iOS Runner.app without code signing (same steps as CI)
 	@command -v flutter >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
 	@cd scripts && bash prebuild.sh
-	@cd scripts && echo yes | ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p ios -a $(APP_NAME) -d -s
+	@cd scripts && echo yes | ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p ios -a $(APP_NAME) $(if $(filter 1,$(PREBUILTS)),-d) -s
 	@$(FLUTTER) pub get
 	@$(FLUTTER) build ios --release --no-codesign

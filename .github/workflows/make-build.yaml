@@ -1,6 +1,10 @@
 name: Make build
 
 # Builds with the Makefile targets on the hosted runners. Manual only.
+#
+# The Makefile builds dnix source by default on macOS and Linux. These jobs use
+# the same verified prebuilts as the release workflow (build.yaml); source and
+# reproducibility builds belong to the dnix packages' own CI.
 on:
   workflow_dispatch:
 
@@ -50,7 +54,7 @@ jobs:
           rustup toolchain install 1.99.1 --profile minimal || true
           rustup default 1.99.1 || true
       - name: Build
-        run: make build-macos VERSION=0.0.0 BUILD_NUM=${{ github.run_number }}
+        run: make build-macos VERSION=0.0.0 BUILD_NUM=${{ github.run_number }} PREBUILTS=1
 
   linux:
     runs-on: ubuntu-24.04
@@ -84,7 +88,7 @@ jobs:
       - name: Check the toolchain bill of materials
         run: make verify-bom
       - name: Build
-        run: make build-linux VERSION=0.0.0 BUILD_NUM=${{ github.run_number }}
+        run: make build-linux VERSION=0.0.0 BUILD_NUM=${{ github.run_number }} PREBUILTS=1
 
   ios:
     # The fork has a single hosted macOS concurrency slot. Running macOS and
@@ -109,4 +113,4 @@ jobs:
           rustup toolchain install 1.99.1 --profile minimal || true
           rustup default 1.99.1 || true
       - name: Build
-        run: make build-ios VERSION=0.0.0 BUILD_NUM=${{ github.run_number }}
+        run: make build-ios VERSION=0.0.0 BUILD_NUM=${{ github.run_number }} PREBUILTS=1

@@ -52,6 +52,13 @@ add_rustup_to_path() {
 add_rustup_to_path
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+# Read a value from stack-bom.toml so the Homebrew fallback and the flake use
+# the same versions.
+bom_value() {
+  sed -n "s/^$1[[:space:]]*=[[:space:]]*\"\\([^\"]*\\)\".*/\\1/p" \
+    "$REPO_ROOT/stack-bom.toml" 2>/dev/null | head -n 1
+}
 bash "$SCRIPT_DIR/install_xcode.sh"
 
 echo "Installing Homebrew packages..."
@@ -66,13 +73,15 @@ brew install pandoc weasyprint toilet figlet || echo "[WARN] optional report too
 
 # The Homebrew cask always installs the latest Flutter, but CI builds and tests
 # one pinned release. Install that tag from source instead.
-FLUTTER_VERSION="${FLUTTER_VERSION:-3.47.2}"
-# Both the CI version and the version pinned by the Nix shell/BOM work. An
-# explicit FLUTTER_VERSION only accepts that version.
+FLUTTER_RECOMMENDED="$(bom_value flutter)"
+FLUTTER_MIN="$(bom_value flutter_min)"
+FLUTTER_VERSION="${FLUTTER_VERSION:-${FLUTTER_RECOMMENDED:-3.47.2}}"
+# Accept the recommended version and the CI minimum; an explicit
+# FLUTTER_VERSION only accepts that version.
 if [[ -n "${FLUTTER_ACCEPTED_VERSIONS:-}" ]]; then
   :
-elif [[ "$FLUTTER_VERSION" == "3.47.2" ]]; then
-  FLUTTER_ACCEPTED_VERSIONS="3.47.2 3.47.4"
+elif [[ -n "$FLUTTER_MIN" && "$FLUTTER_VERSION" == "$FLUTTER_RECOMMENDED" ]]; then
+  FLUTTER_ACCEPTED_VERSIONS="$FLUTTER_VERSION $FLUTTER_MIN"
 else
   FLUTTER_ACCEPTED_VERSIONS="$FLUTTER_VERSION"
 fi
@@ -81,7 +90,6 @@ case "$FLUTTER_DIR" in
   /*) ;;
   *) FLUTTER_DIR="$PWD/$FLUTTER_DIR" ;;
 esac
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 flutter_installed_version() {
   "$1" --version --machine 2>/dev/null | sed -n 's/.*"frameworkVersion": *"\([^"]*\)".*/\1/p' | head -n 1
@@ -132,6 +140,7 @@ if ! command -v rustup >/dev/null 2>&1; then
   die "rustup not found in PATH. Check brew install."
 fi
 
+RUST_VERSION="${RUST_VERSION:-$(bom_value rust)}"
 RUST_VERSION="${RUST_VERSION:-1.99.1}"
 echo "Ensuring Rust $RUST_VERSION toolchain..."
 rustup toolchain install "$RUST_VERSION"

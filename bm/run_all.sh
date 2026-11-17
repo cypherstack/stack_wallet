@@ -3,10 +3,10 @@
 # run_all.sh: Benchmark suite for `make build-macos`.
 #
 # Run order (cold = after `make clean`, warm = rebuild right after):
-#   A. Cold, prebuilt native assets (default)
-#   B. Warm, prebuilt native assets
-#   C. Cold, native assets compiled from source (PREBUILTS=0)
-#   D. Warm, native assets compiled from source
+#   A. Cold, verified dnix prebuilts (PREBUILTS=1)
+#   B. Warm, verified dnix prebuilts
+#   C. Cold, dnix source (PREBUILTS=0, the macOS/Linux default)
+#   D. Warm, dnix source
 #
 # sccache is a machine setting: run the suite once as is, then run
 # `make sccache-setup` and run it again; the label records which one it was.
@@ -20,11 +20,11 @@ echo ""
 
 echo "A: cold, prebuilt"
 make clean 2>/dev/null || true
-bash bm/bench.sh
+bash bm/bench.sh PREBUILTS=1
 echo ""
 
 echo "B: warm, prebuilt"
-bash bm/bench.sh --warm
+bash bm/bench.sh --warm PREBUILTS=1
 echo ""
 
 echo "C: cold, from source"

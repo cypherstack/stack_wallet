@@ -3,9 +3,9 @@
 # bench.sh: Simple build benchmark for stack_wallet
 #
 # Usage:
-#   bash bm/bench.sh                    # cold build with prebuilt native assets (-d)
+#   bash bm/bench.sh                    # cold build, dnix source (default on macOS/Linux)
 #   bash bm/bench.sh --warm             # warm rebuild (no clean)
-#   bash bm/bench.sh PREBUILTS=0        # cold, native assets compiled from source
+#   bash bm/bench.sh PREBUILTS=1        # cold build with verified dnix prebuilts (-d)
 #
 # sccache is a machine setting, not a flag: run once, `make sccache-setup`, run again.
 # The label records whether ~/.cargo/config.toml or CARGO_BUILD_RUSTC_WRAPPER selects sccache.
@@ -57,10 +57,10 @@ BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)"
 # Auto-generate label only if not explicitly set
 if [ -z "$LABEL" ]; then
   LABEL=$([ $WARM -eq 1 ] && echo "warm" || echo "cold")
-  if echo "$MAKE_FLAGS" | grep -q "PREBUILTS=0"; then
-    LABEL="${LABEL}-source"
-  else
+  if echo "$MAKE_FLAGS" | grep -q "PREBUILTS=1"; then
     LABEL="${LABEL}-prebuilt"
+  else
+    LABEL="${LABEL}-source"
   fi
   if grep -qs 'rustc-wrapper *= *"sccache"' "$HOME/.cargo/config.toml" 2>/dev/null \
      || [ "${CARGO_BUILD_RUSTC_WRAPPER:-}" = "sccache" ]; then
