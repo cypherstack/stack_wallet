@@ -152,7 +152,11 @@
 
               SDK_PATH="$(/usr/bin/xcrun --sdk macosx --show-sdk-path 2>/dev/null || true)"
               if [ -n "$SDK_PATH" ]; then
-                export BINDGEN_EXTRA_CLANG_ARGS="-isysroot $SDK_PATH"
+                if [ -n "$BINDGEN_EXTRA_CLANG_ARGS" ]; then
+                  export BINDGEN_EXTRA_CLANG_ARGS="-isysroot $SDK_PATH $BINDGEN_EXTRA_CLANG_ARGS"
+                else
+                  export BINDGEN_EXTRA_CLANG_ARGS="-isysroot $SDK_PATH"
+                fi
               fi
               export PROTOC="${pkgs.protobuf}/bin/protoc"
 
@@ -173,7 +177,8 @@
 #!/bin/bash
 for arg in "$@"; do
     if [[ "$arg" == *"FlutterMacOS.framework"* ]]; then
-        chmod -R u+w "$(dirname "$arg")" 2>/dev/null || true
+        framework="''${arg%%FlutterMacOS.framework*}FlutterMacOS.framework"
+        chmod -R u+w "$framework" 2>/dev/null || true
     fi
 done
 exec /usr/bin/lipo "$@"

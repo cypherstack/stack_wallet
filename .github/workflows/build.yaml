@@ -18,9 +18,29 @@ on:
         default: '1'
 
 # Configure app uses -d for verified dnix prebuilts (Frost, Tor, Epic and MWC).
-# Every app still builds dnssec_resolver with Rust 1.90.0; Stack Wallet also
+# Every app still builds dnssec_resolver with the BOM DNSSEC Rust (1.90.0); Stack Wallet also
 # builds Xelis with Rust 1.99.1, and Stack Wallet/Campfire build Spark with C++.
 jobs:
+
+  bom:
+    runs-on: ubuntu-latest
+    outputs:
+      flutter: ${{ steps.read.outputs.flutter }}
+      go: ${{ steps.read.outputs.go }}
+      dnssec_rust: ${{ steps.read.outputs.dnssec_rust }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+      - name: Read stack-bom.toml
+        id: read
+        run: |
+          flutter="$(bash scripts/bom_values.sh --get flutter_min)"
+          go="$(bash scripts/bom_values.sh --get go)"
+          dnssec_rust="$(bash scripts/bom_values.sh --get dnssec_rust)"
+          echo "flutter=$flutter" >> "$GITHUB_OUTPUT"
+          echo "go=$go" >> "$GITHUB_OUTPUT"
+          echo "dnssec_rust=$dnssec_rust" >> "$GITHUB_OUTPUT"
 
   build-disclaimer:
     runs-on: ubuntu-24.04
@@ -209,6 +229,7 @@ jobs:
           path: android-artifacts/
 
   build-windows:
+    needs: bom
     runs-on: windows-2022
     defaults:
       run:
@@ -236,18 +257,18 @@ jobs:
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
       # OpenAlias/DNSSEC builds from source in every app, including -d.
-      - uses: dtolnay/rust-toolchain@master
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: 1.90.0
+          toolchain: ${{ needs.bom.outputs.dnssec_rust }}
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.47.2'
+          flutter-version: ${{ needs.bom.outputs.flutter }}
           channel: 'stable'
 
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.24.13'
+          go-version: ${{ needs.bom.outputs.go }}
 
       - name: Flutter doctor
         run: flutter doctor -v
@@ -287,6 +308,7 @@ jobs:
           path: stack_wallet-windows-x86_64-${{ steps.ver.outputs.version }}.zip
 
   build-macos:
+    needs: bom
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v6
@@ -311,18 +333,18 @@ jobs:
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
       # OpenAlias/DNSSEC builds from source in every app, including -d.
-      - uses: dtolnay/rust-toolchain@master
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: 1.90.0
+          toolchain: ${{ needs.bom.outputs.dnssec_rust }}
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.47.2'
+          flutter-version: ${{ needs.bom.outputs.flutter }}
           channel: 'stable'
 
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.24.13'
+          go-version: ${{ needs.bom.outputs.go }}
 
       - name: Configure app
         run: |
@@ -357,6 +379,7 @@ jobs:
           path: stack_wallet-macos-aarch64-${{ steps.ver.outputs.version }}.zip
 
   build-ios:
+    needs: bom
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v6
@@ -381,18 +404,18 @@ jobs:
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
       # OpenAlias/DNSSEC builds from source in every app, including -d.
-      - uses: dtolnay/rust-toolchain@master
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: 1.90.0
+          toolchain: ${{ needs.bom.outputs.dnssec_rust }}
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.47.2'
+          flutter-version: ${{ needs.bom.outputs.flutter }}
           channel: 'stable'
 
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.24.13'
+          go-version: ${{ needs.bom.outputs.go }}
 
       - name: Configure app
         run: |
@@ -787,6 +810,7 @@ jobs:
           path: android-artifacts/
 
   build-campfire-windows:
+    needs: bom
     runs-on: windows-2022
     defaults:
       run:
@@ -814,18 +838,18 @@ jobs:
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
       # OpenAlias/DNSSEC builds from source in every app, including -d.
-      - uses: dtolnay/rust-toolchain@master
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: 1.90.0
+          toolchain: ${{ needs.bom.outputs.dnssec_rust }}
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.47.2'
+          flutter-version: ${{ needs.bom.outputs.flutter }}
           channel: 'stable'
 
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.24.13'
+          go-version: ${{ needs.bom.outputs.go }}
 
       - name: Flutter doctor
         run: flutter doctor -v
@@ -863,6 +887,7 @@ jobs:
           path: campfire-windows-x86_64-${{ steps.ver.outputs.version }}.zip
 
   build-campfire-macos:
+    needs: bom
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v6
@@ -887,18 +912,18 @@ jobs:
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
       # OpenAlias/DNSSEC builds from source in every app, including -d.
-      - uses: dtolnay/rust-toolchain@master
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: 1.90.0
+          toolchain: ${{ needs.bom.outputs.dnssec_rust }}
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.47.2'
+          flutter-version: ${{ needs.bom.outputs.flutter }}
           channel: 'stable'
 
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.24.13'
+          go-version: ${{ needs.bom.outputs.go }}
 
       - name: Configure app
         run: |
@@ -933,6 +958,7 @@ jobs:
           path: campfire-macos-aarch64-${{ steps.ver.outputs.version }}.zip
 
   build-campfire-ios:
+    needs: bom
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v6
@@ -957,18 +983,18 @@ jobs:
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
       # OpenAlias/DNSSEC builds from source in every app, including -d.
-      - uses: dtolnay/rust-toolchain@master
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: 1.90.0
+          toolchain: ${{ needs.bom.outputs.dnssec_rust }}
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.47.2'
+          flutter-version: ${{ needs.bom.outputs.flutter }}
           channel: 'stable'
 
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.24.13'
+          go-version: ${{ needs.bom.outputs.go }}
 
       - name: Configure app
         run: |
@@ -1223,6 +1249,7 @@ jobs:
           path: android-artifacts/
 
   build-stack-duo-windows:
+    needs: bom
     runs-on: windows-2022
     defaults:
       run:
@@ -1250,18 +1277,18 @@ jobs:
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
       # OpenAlias/DNSSEC builds from source in every app, including -d.
-      - uses: dtolnay/rust-toolchain@master
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: 1.90.0
+          toolchain: ${{ needs.bom.outputs.dnssec_rust }}
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.47.2'
+          flutter-version: ${{ needs.bom.outputs.flutter }}
           channel: 'stable'
 
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.24.13'
+          go-version: ${{ needs.bom.outputs.go }}
 
       - name: Flutter doctor
         run: flutter doctor -v
@@ -1299,6 +1326,7 @@ jobs:
           path: stack_duo-windows-x86_64-${{ steps.ver.outputs.version }}.zip
 
   build-stack-duo-macos:
+    needs: bom
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v6
@@ -1323,18 +1351,18 @@ jobs:
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
       # OpenAlias/DNSSEC builds from source in every app, including -d.
-      - uses: dtolnay/rust-toolchain@master
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: 1.90.0
+          toolchain: ${{ needs.bom.outputs.dnssec_rust }}
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.47.2'
+          flutter-version: ${{ needs.bom.outputs.flutter }}
           channel: 'stable'
 
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.24.13'
+          go-version: ${{ needs.bom.outputs.go }}
 
       - name: Configure app
         run: |
@@ -1369,6 +1397,7 @@ jobs:
           path: stack_duo-macos-aarch64-${{ steps.ver.outputs.version }}.zip
 
   build-stack-duo-ios:
+    needs: bom
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v6
@@ -1393,18 +1422,18 @@ jobs:
           echo "build_number=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
 
       # OpenAlias/DNSSEC builds from source in every app, including -d.
-      - uses: dtolnay/rust-toolchain@master
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: 1.90.0
+          toolchain: ${{ needs.bom.outputs.dnssec_rust }}
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.47.2'
+          flutter-version: ${{ needs.bom.outputs.flutter }}
           channel: 'stable'
 
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.24.13'
+          go-version: ${{ needs.bom.outputs.go }}
 
       - name: Configure app
         run: |

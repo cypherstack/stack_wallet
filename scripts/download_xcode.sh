@@ -179,6 +179,14 @@ if [[ -d "$TARGET_DIR" ]]; then
         finish_install
         exit 0
     fi
+    if [[ -z "$CURRENT_BUILD" ]]; then
+        # A freshly extracted or not-yet-licensed Xcode can fail -version.
+        # Do not re-download 2 GB because the build number is unreadable.
+        echo "[WARN] ${TARGET_DIR} exists but its build could not be read; leaving it in place."
+        [[ $DRY_RUN -eq 1 ]] && { echo "[DRY-RUN] Would finish setup on the existing Xcode."; exit 0; }
+        finish_install
+        exit 0
+    fi
     echo "[WARN] ${TARGET_DIR} exists with build '${CURRENT_BUILD}', expected '${BUILD_NUM}'. It will be replaced."
 fi
 

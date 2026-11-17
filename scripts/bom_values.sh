@@ -13,7 +13,7 @@ BOM="${BOM_FILE:-stack-bom.toml}"
 
 section_for() {
   case "$1" in
-    rust|flutter|flutter_min|go|go_min) echo toolchain ;;
+    rust|dnssec_rust|flutter|flutter_min|go|go_min) echo toolchain ;;
     xcode|xcode_build|xcode_xip_sha1) echo macos ;;
     *) echo "Unknown BOM key: $1" >&2; return 2 ;;
   esac
@@ -57,8 +57,9 @@ fi
 FLUTTER_VERSION="$(value flutter)"
 FLUTTER_MIN="$(value flutter_min)"
 RUST_VERSION="$(value rust)"
+DNSSEC_RUST="$(value dnssec_rust)"
 GO_VERSION="$(value go)"
 GO_MIN="$(value go_min)"
 
-printf 'FLUTTER_VERSION=%q\nFLUTTER_MIN=%q\nRUST_VERSION=%q\nGO_VERSION=%q\nGO_MIN=%q\n' \
-  "$FLUTTER_VERSION" "$FLUTTER_MIN" "$RUST_VERSION" "$GO_VERSION" "$GO_MIN"
+printf 'FLUTTER_VERSION=%q\nFLUTTER_MIN=%q\nRUST_VERSION=%q\nDNSSEC_RUST=%q\nGO_VERSION=%q\nGO_MIN=%q\n' \
+  "$FLUTTER_VERSION" "$FLUTTER_MIN" "$RUST_VERSION" "$DNSSEC_RUST" "$GO_VERSION" "$GO_MIN"

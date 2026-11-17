@@ -7,7 +7,7 @@ name: Make build
 # reproducibility builds belong to the dnix packages' own CI.
 #
 # Toolchain versions come from stack-bom.toml via scripts/bom_values.sh. The
-# release workflow (build.yaml) keeps its own DNSSEC 1.90.0 pins.
+# release workflow (build.yaml) reads the BOM's DNSSEC Rust pin.
 on:
   workflow_dispatch:
 
@@ -42,7 +42,7 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version: ${{ steps.bom.outputs.go }}
-      - uses: dtolnay/rust-toolchain@master
+      - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{ steps.bom.outputs.rust }}
       - name: Install make
@@ -51,6 +51,9 @@ jobs:
         run: make verify-bom
       - name: Build
         run: make build-windows VERSION=0.0.0 BUILD_NUM=${{ github.run_number }}
+
+      - name: Verify the generated app BOM
+        run: make verify-bom
 
   macos:
     runs-on: macos-latest
@@ -74,7 +77,7 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version: ${{ steps.bom.outputs.go }}
-      - uses: dtolnay/rust-toolchain@master
+      - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{ steps.bom.outputs.rust }}
       - name: Tools
@@ -83,6 +86,9 @@ jobs:
         run: make verify-bom
       - name: Build
         run: make build-macos VERSION=0.0.0 BUILD_NUM=${{ github.run_number }} PREBUILTS=1
+
+      - name: Verify the generated app BOM
+        run: make verify-bom
 
   linux:
     runs-on: ubuntu-24.04
@@ -106,7 +112,7 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version: ${{ steps.bom.outputs.go }}
-      - uses: dtolnay/rust-toolchain@master
+      - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{ steps.bom.outputs.rust }}
       - name: Free disk space
@@ -125,6 +131,9 @@ jobs:
         run: make verify-bom
       - name: Build
         run: make build-linux VERSION=0.0.0 BUILD_NUM=${{ github.run_number }} PREBUILTS=1 SYSTEM_DEPS=1
+
+      - name: Verify the generated app BOM
+        run: make verify-bom
 
   ios:
     # The fork has a single hosted macOS concurrency slot. Running macOS and
@@ -152,7 +161,7 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version: ${{ steps.bom.outputs.go }}
-      - uses: dtolnay/rust-toolchain@master
+      - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{ steps.bom.outputs.rust }}
       - name: Tools
@@ -161,3 +170,6 @@ jobs:
         run: make verify-bom
       - name: Build
         run: make build-ios VERSION=0.0.0 BUILD_NUM=${{ github.run_number }} PREBUILTS=1
+
+      - name: Verify the generated app BOM
+        run: make verify-bom

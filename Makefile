@@ -444,6 +444,9 @@ android-dev-key: ## Create a throw-away debug signing key if android/key.propert
 build-android: require-version toolchain-check android-dev-key ## Build Android APKs (prebuilt dnix on macOS; Linux follows PREBUILTS)
 	@command -v flutter >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
 	@[ -n "$$ANDROID_SDK_ROOT$$ANDROID_HOME" ] || { echo >&2 "[ERROR] ANDROID_SDK_ROOT is not set (Android SDK/NDK required)."; exit 1; }
+	@if [ "$(PREBUILTS)" = "0" ] && [ "$(PLATFORM)" = "Darwin" ]; then \
+		echo "[WARN] Android on macOS uses verified prebuilts; dnix source builds need an x86_64 Linux host."; \
+	fi
 	@cd scripts && bash prebuild.sh
 	@cd scripts && echo yes | ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p android -a $(APP_NAME) $(if $(filter 1,$(ANDROID_PREBUILTS)),-d) -s
 	@$(FLUTTER) pub get

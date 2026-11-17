@@ -7,11 +7,12 @@ flutter = "3.47.4"       # recommended; macOS builds verified with 3.47.2 and 3.
 flutter_min = "3.47.2"   # minimum for pubspec.template.yaml and the release workflow
 dart_prefix = "3.13"     # Dart bundled with Flutter 3.47.x
 rust = "1.99.1"          # installed through rustup, pinned by the native plugins
+dnssec_rust = "1.90.0"   # OpenAlias/DNSSEC builds from source in every app
 go = "1.24.13"           # exact Go used by the make-build workflow
 go_min = "1.24.1"        # flutter_mwebd's minimum on the Flutter host
 
 [hooks]
-hooks_runner = "1.5.0"   # pinned by Flutter 3.47.x; CARGO_/RUSTUP_ env vars reach hooks only from 1.6.2
+hooks_runner = "1.5.0"   # informational: Flutter 3.47.x pin; CARGO_/RUSTUP_ env vars reach hooks only from 1.6.2
 
 [macos]
 xcode = "27.1"           # recommended for app builds
