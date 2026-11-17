@@ -48,31 +48,48 @@ Highlights include:
 ## Building
 
 You can look at the [build instructions](docs/building.md) for more details.
+On macOS, the **Nix dev shell** is the primary *host* toolchain; Homebrew and
+manual installs are supported fallbacks. dnix builds and verifies the four
+native libraries underneath all of them. `make build-macos` is the same target
+in every mode, and `make toolchain` shows which host environment your shell is
+using.
 
-### macOS with Nix or direnv
+### macOS with Nix (recommended)
 
-Use one shared toolchain path for both `nix develop` and `direnv`.
-
-1. Enable direnv for this repo (optional convenience):
-   - `.envrc` uses `use flake`
-   - run `direnv allow`
-2. Enter the flake environment (if not using direnv):
-   - `nix develop`
-3. Run build (pass the release version and a build number; `make` refuses to guess):
+1. Enter the flake environment:
+   - `make bootstrap` (runs `nix develop`), or
+   - `nix develop` directly, or
+   - `direnv allow` once, if you use direnv with the included `.envrc`.
+2. Run build (pass the release version and a build number; `make` refuses to guess):
    - `make build-macos VERSION=x.y.z BUILD_NUM=nnn`
 
-### macOS without Nix (Homebrew host setup)
+The flake provides Flutter, Dart, Rust, Go, CMake, Meson, Ninja, pkg-config
+and protoc. Xcode is never provided by Nix; the flake uses the Xcode selected
+by `xcode-select`.
+
+### macOS with Homebrew (fallback)
 
 Use this only when you are not building through Nix/flake.
 
 1. Install host tools:
-   - `make bootstrap-macos`
+   - `make bootstrap-macos` (alias: `make bootstrap-brew`)
 2. Run build:
    - Open a new terminal (or run `source ~/.zshrc`) so the Homebrew and
      Flutter PATH entries are active.
-   - `make build-macos VERSION=x.y.z BUILD_NUM=nnn`
+   - `make build-macos VERSION=x.y.z BUILD_NUM=nnn PREBUILTS=1`
+
+The default source build needs Nix for the four dnix libraries. `PREBUILTS=1`
+uses the verified prebuilts and needs no Nix for them.
 
 The Homebrew bootstrap installs the native build tools and configures Rust
 1.99.1 for Flutter's native-assets hooks. It replaces the former local
 `crypto_plugins` macOS prebuild path; no submodule setup or manual native
 plugin build is needed.
+
+### macOS with a manual toolchain (advanced)
+
+Install the prerequisites from [Building on macOS](docs/building/macos.md)
+yourself, then run
+`make build-macos VERSION=x.y.z BUILD_NUM=nnn PREBUILTS=1`.
+`make check-reqs` reports what is missing; `TOOLCHAIN=manual` makes the choice
+explicit. Omit `PREBUILTS=1` only if you also have Nix for the source build.

@@ -3,17 +3,33 @@
 These steps build the macOS and iOS apps on a Mac with Apple Silicon. For how
 the build fits together, see the [overview](../building.md).
 
+## Toolchains
+
+The build steps below are the manual/Homebrew path. Nix is the primary host
+toolchain; the same build is also available through:
+
+| Mode | Setup |
+|---|---|
+| Nix | `make bootstrap` (enters `nix develop`) |
+| direnv | `direnv allow` |
+| Homebrew | `make bootstrap-macos` |
+| Manual | install the prerequisites below |
+
+With Nix or direnv the flake supplies Flutter, Dart, Rust, Go, CMake, Meson,
+Ninja, pkg-config and protoc. Xcode always comes from the host. The
+prerequisites below describe the manual/Homebrew path.
+
 ## Prerequisites
 
 | What | Needed for |
 |---|---|
-| [Flutter](https://docs.flutter.dev/install/manual) 3.47.2 | Every build |
-| Your usual Xcode | Building the app, in both modes |
-| Xcode **27.0**, release build **27A266a**, installed next to your usual Xcode | Source mode, the default: dnix builds its four packages with it, including during `flutter test`. It doesn't need to be selected; see [Install Xcode 27.0](#install-xcode-270) |
-| [Homebrew](https://brew.sh/) packages below | Every build |
-| [Rustup](https://rustup.rs/) | Every app, in both modes |
-| [Go](https://go.dev/doc/install) 1.24.1 or newer | Stack Wallet |
-| [Nix](https://nixos.org/download/) | Source mode, the default; not needed with `-d` |
+| [Flutter](https://docs.flutter.dev/install/manual) 3.47.2 | Manual and Homebrew modes |
+| Your usual Xcode | Building the app, in both dnix modes |
+| Xcode **27.0**, release build **27A266a**, installed next to your usual Xcode | Source mode (dnix), in every host mode: dnix builds its four packages with it, including during `flutter test`. It doesn't need to be selected; see [Install Xcode 27.0](#install-xcode-270) |
+| [Homebrew](https://brew.sh/) packages below | Manual and Homebrew modes |
+| [Rustup](https://rustup.rs/) | Manual and Homebrew modes, in both dnix modes |
+| [Go](https://go.dev/doc/install) 1.24.1 or newer | Stack Wallet, manual and Homebrew modes |
+| [Nix](https://nixos.org/download/) | Source mode (dnix) in every host mode; not needed with `-d` |
 
 ```sh
 brew install autoconf automake libtool cmake cocoapods pkg-config
