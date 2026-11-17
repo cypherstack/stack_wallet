@@ -152,9 +152,9 @@ class _DesktopManageEpicBoxDialogState
                       child: Text(
                         "Default servers",
                         style: STextStyles.smallMed12(context).copyWith(
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.textDark3,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textDark3,
                         ),
                       ),
                     ),
@@ -179,9 +179,9 @@ class _DesktopManageEpicBoxDialogState
                         child: Text(
                           "Custom servers",
                           style: STextStyles.smallMed12(context).copyWith(
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textDark3,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark3,
                           ),
                         ),
                       ),

@@ -160,9 +160,8 @@ class ThemeService {
       }
 
       final themesDir = StackFileSystem.themesDir!;
-      final jsonFileExists = await File(
-        "${themesDir.path}/$themeId/theme.json",
-      ).exists();
+      final jsonFileExists = await File("${themesDir.path}/$themeId/theme.json")
+          .exists();
       final assetsDirExists = await Directory(
         "${themesDir.path}/$themeId/assets",
       ).exists();

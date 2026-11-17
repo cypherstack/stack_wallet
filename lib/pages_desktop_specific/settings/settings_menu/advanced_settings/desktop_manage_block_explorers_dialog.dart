@@ -30,9 +30,7 @@ import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
 
 class DesktopManageBlockExplorersDialog extends ConsumerWidget {
-  const DesktopManageBlockExplorersDialog({
-    super.key,
-  });
+  const DesktopManageBlockExplorersDialog({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -73,16 +71,10 @@ class DesktopManageBlockExplorersDialog extends ConsumerWidget {
           ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.only(
-                left: 32,
-                right: 32,
-                bottom: 32,
-              ),
+              padding: const EdgeInsets.only(left: 32, right: 32, bottom: 32),
               child: ListView.separated(
                 itemCount: coins.length,
-                separatorBuilder: (_, __) => const SizedBox(
-                  height: 12,
-                ),
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
                 itemBuilder: (_, index) {
                   final coin = coins[index];
 
@@ -97,24 +89,18 @@ class DesktopManageBlockExplorersDialog extends ConsumerWidget {
                     child: Row(
                       children: [
                         SvgPicture.file(
-                          File(
-                            ref.watch(coinIconProvider(coin)),
-                          ),
+                          File(ref.watch(coinIconProvider(coin))),
                           width: 24,
                           height: 24,
                         ),
-                        const SizedBox(
-                          width: 12,
-                        ),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             "${coin.prettyName} block explorer",
                             style: STextStyles.desktopTextSmall(context),
                           ),
                         ),
-                        const SizedBox(
-                          width: 12,
-                        ),
+                        const SizedBox(width: 12),
                         SvgPicture.asset(
                           Assets.svg.chevronRight,
                           width: 20,
@@ -128,9 +114,7 @@ class DesktopManageBlockExplorersDialog extends ConsumerWidget {
                         useSafeArea: false,
                         barrierDismissible: true,
                         builder: (context) {
-                          return _DesktopEditBlockExplorerDialog(
-                            coin: coin,
-                          );
+                          return _DesktopEditBlockExplorerDialog(coin: coin);
                         },
                       );
                     },
@@ -163,9 +147,10 @@ class _DesktopEditBlockExplorerDialogState
   @override
   void initState() {
     _textEditingController = TextEditingController(
-      text: getBlockExplorerTransactionUrlFor(coin: widget.coin, txid: "[TXID]")
-          .toString()
-          .replaceAll("%5BTXID%5D", "[TXID]"),
+      text: getBlockExplorerTransactionUrlFor(
+        coin: widget.coin,
+        txid: "[TXID]",
+      ).toString().replaceAll("%5BTXID%5D", "[TXID]"),
     );
     _focusNode = FocusNode();
     super.initState();
@@ -200,11 +185,7 @@ class _DesktopEditBlockExplorerDialogState
             ],
           ),
           Padding(
-            padding: const EdgeInsets.only(
-              left: 32,
-              right: 32,
-              bottom: 32,
-            ),
+            padding: const EdgeInsets.only(left: 32, right: 32, bottom: 32),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -221,12 +202,11 @@ class _DesktopEditBlockExplorerDialogState
                     style: STextStyles.field(context),
                   ),
                 ),
-                const SizedBox(
-                  height: 16,
-                ),
+                const SizedBox(height: 16),
                 RoundedWhiteContainer(
-                  borderColor:
-                      Theme.of(context).extension<StackColors>()!.textSubtitle6,
+                  borderColor: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textSubtitle6,
                   child: Text(
                     "Edit your block explorer above. Keep in mind that"
                     " every block explorer has a slightly different URL scheme."
@@ -238,9 +218,7 @@ class _DesktopEditBlockExplorerDialogState
                     style: STextStyles.desktopTextExtraExtraSmall(context),
                   ),
                 ),
-                const SizedBox(
-                  height: 16,
-                ),
+                const SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(
@@ -250,21 +228,18 @@ class _DesktopEditBlockExplorerDialogState
                         onPressed: Navigator.of(context).pop,
                       ),
                     ),
-                    const SizedBox(
-                      width: 16,
-                    ),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: PrimaryButton(
                         label: "Save",
                         buttonHeight: ButtonHeight.l,
                         onPressed: () async {
-                          _textEditingController.text =
-                              _textEditingController.text.trim();
+                          _textEditingController.text = _textEditingController
+                              .text
+                              .trim();
                           await setBlockExplorerForCoin(
                             coin: widget.coin,
-                            url: Uri.parse(
-                              _textEditingController.text,
-                            ),
+                            url: Uri.parse(_textEditingController.text),
                           );
 
                           if (mounted) {
