@@ -48,7 +48,9 @@
           opencv
           sysprof
           libsysprof-capture
-          patchelf
+          # 0.18 is the first patchelf with --clear-execstack, which
+          # prepare_release_bundle.py requires.
+          patchelfUnstable
           binutils
           tpm2-tss
           ocl-icd
