@@ -126,7 +126,8 @@ lib/wl_gen/generated/
 /.cargo/config.toml
 /scripts/linux/pc/
 
-
 # Android local signing
 /android/key.properties
 /android/dev-keystore.jks
+/android/keystore.jks
+/android/keystore-orig.jks

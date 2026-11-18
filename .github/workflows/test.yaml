@@ -70,6 +70,11 @@ jobs:
           flutter pub get
           dart tool/check_native_overrides.dart stack_wallet
 
+      - name: Verify BOM
+        run: |
+          rustup toolchain install 1.99.1 --profile minimal --no-self-update
+          make verify-bom
+
       - name: Decode secrets
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
@@ -153,3 +158,15 @@ jobs:
           make -n build-windows PLATFORM=MINGW64_NT-10.0 VERSION=0.0.0 BUILD_NUM=1
           make -n build-android PLATFORM=Darwin VERSION=0.0.0 BUILD_NUM=1
           make -n build-ios PLATFORM=Darwin VERSION=0.0.0 BUILD_NUM=1
+          if make -n build-macos PLATFORM=Darwin TOOLCHAIN=brew PREBUILTS=0 VERSION=0.0.0 BUILD_NUM=1; then
+            echo 'brew source mode must fail' >&2
+            exit 1
+          fi
+          if make -n build-linux PLATFORM=Linux TOOLCHAIN=host PREBUILTS=0 VERSION=0.0.0 BUILD_NUM=1; then
+            echo 'host source mode must fail' >&2
+            exit 1
+          fi
+          if make -n build-android PLATFORM=Linux UNAME_M=x86_64 TOOLCHAIN=host ANDROID_PREBUILTS=0 VERSION=0.0.0 BUILD_NUM=1; then
+            echo 'host Android source mode must fail' >&2
+            exit 1
+          fi
