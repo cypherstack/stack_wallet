@@ -484,7 +484,7 @@ build-linux: require-version check-linux toolchain-check check-reqs ## Build Lin
 # Windows uses verified dnix prebuilts; source mode needs Nix inside WSL2 and is
 # driven by build_app.sh directly, not by this target.
 build-windows: require-version check-windows toolchain-check ## Build Windows release (Git Bash; verified dnix prebuilts)
-	@command -v flutter >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
+	@[ -n "$(FLUTTER)" ] && command -v "$(FLUTTER)" >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
 	@cd scripts && bash prebuild.sh
 	@cd scripts && $(if $(filter 1,$(CONFIRM)),echo yes |,) MWEBD_FETCH=1 ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p windows -a $(APP_NAME) -d
 	@"$(FLUTTER)" pub get
@@ -504,7 +504,7 @@ android-dev-key: ## Create a throw-away debug signing key if android/key.propert
 	fi
 
 build-android: require-version toolchain-check ## Build Android APKs (requires android/key.properties; prebuilt dnix on macOS, Linux follows PREBUILTS)
-	@command -v flutter >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
+	@[ -n "$(FLUTTER)" ] && command -v "$(FLUTTER)" >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
 	@[ -f android/key.properties ] || { echo >&2 "[ERROR] android/key.properties is missing. Run 'make android-dev-key' for a local throw-away key; never distribute APKs signed with it."; exit 1; }
 	@[ -n "$$ANDROID_SDK_ROOT$$ANDROID_HOME" ] || { echo >&2 "[ERROR] ANDROID_SDK_ROOT is not set (Android SDK/NDK required)."; exit 1; }
 	@cd scripts && bash prebuild.sh
@@ -514,7 +514,7 @@ build-android: require-version toolchain-check ## Build Android APKs (requires a
 
 # iOS: same steps as the "build-ios" CI job (device build, no code signing). Run on macOS with Xcode.
 build-ios: require-version toolchain-check check-reqs-macos check-sdk-macos ## Build iOS Runner.app without code signing (same steps as CI)
-	@command -v flutter >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
+	@[ -n "$(FLUTTER)" ] && command -v "$(FLUTTER)" >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
 	@xcrun --sdk iphoneos --show-sdk-path >/dev/null 2>&1 || { echo >&2 "[ERROR] iOS SDK not available; install the iOS platform in Xcode."; exit 1; }
 	@cd scripts && bash prebuild.sh
 	@cd scripts && $(if $(filter 1,$(CONFIRM)),echo yes |,) env $(IOS_ENV_UNSET) ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p ios -a $(APP_NAME) $(if $(filter 1,$(PREBUILTS)),-d)
