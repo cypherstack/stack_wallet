@@ -9,7 +9,7 @@ BOM="${BOM_FILE:-stack-bom.toml}"
 
 section_for() {
   case "$1" in
-    rust|dnssec_rust|flutter|flutter_min|go|go_min) echo toolchain ;;
+    rust|dnssec_rust|flutter|flutter_min|dart_prefix|go|go_min) echo toolchain ;;
     xcode|xcode_dnix) echo macos ;;
     *) echo "Unknown BOM key: $1" >&2; return 2 ;;
   esac
@@ -33,10 +33,15 @@ value() {
     echo "Duplicate [$section] tables in $BOM; keep exactly one." >&2
     return 1
   }
+  count="$(sed -n "/^\[$section\]/,/^\[/p" "$BOM" | grep -cE "^${key}[[:space:]]*=" || true)"
+  [ "$count" -le 1 ] || {
+    echo "Duplicate [$section] $key in $BOM; keep exactly one." >&2
+    return 1
+  }
   # These values are passed to toolchain actions in the release workflow.
   # Reject anything that is not a plain version so a data-file edit cannot
   # inject a branch, a range or shell syntax.
-  if [[ "$key" == xcode || "$key" == xcode_dnix ]]; then
+  if [[ "$key" == xcode || "$key" == xcode_dnix || "$key" == dart_prefix ]]; then
     [[ "$result" =~ ^[0-9]+\.[0-9]+$ ]] || {
       echo "Invalid [$section] $key value '$result' in $BOM (expected x.y)" >&2
       return 1
@@ -50,7 +55,7 @@ value() {
 
 check_all() {
   local key
-  for key in rust dnssec_rust flutter flutter_min go go_min xcode xcode_dnix; do
+  for key in rust dnssec_rust flutter flutter_min dart_prefix go go_min xcode xcode_dnix; do
     value "$key" >/dev/null
   done
   echo "BOM values OK"

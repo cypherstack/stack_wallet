@@ -4,6 +4,10 @@
 # ==============================================================================
 
 APP_NAME     ?= stack_wallet
+override APP_NAME := $(strip $(APP_NAME))
+ifneq ($(filter $(APP_NAME),stack_wallet stack_duo campfire),$(APP_NAME))
+  $(error APP_NAME must be stack_wallet, stack_duo or campfire)
+endif
 # build_app.sh asks before replacing generated app files because some
 # version/build combinations can delete wallet data. Keep that prompt
 # interactive unless the caller explicitly opts in.
@@ -26,16 +30,16 @@ ifneq ($(strip $(DART)),)
     $(error DART must not contain spaces; put it on PATH instead)
   endif
 endif
-FLUTTER_BIN  := $(if $(FLUTTER),$(FLUTTER),$(shell command -v flutter 2>/dev/null))
+FLUTTER_BIN  := $(if $(FLUTTER),$(if $(findstring /,$(FLUTTER)),$(abspath $(FLUTTER)),$(FLUTTER)),$(shell command -v flutter 2>/dev/null))
 # A Flutter SDK ships its own Dart next to the flutter binary; an explicit
 # FLUTTER path should not require a second DART= argument.
-DART_BIN     := $(if $(DART),$(DART),$(if $(filter /%,$(FLUTTER_BIN)),$(wildcard $(dir $(FLUTTER_BIN))dart),$(shell command -v dart 2>/dev/null)))
+DART_BIN     := $(if $(DART),$(if $(findstring /,$(DART)),$(abspath $(DART)),$(DART)),$(if $(filter /%,$(FLUTTER_BIN)),$(or $(wildcard $(dir $(FLUTTER_BIN))dart),$(shell command -v dart 2>/dev/null)),$(shell command -v dart 2>/dev/null)))
 FLUTTER      := $(FLUTTER_BIN)
 DART         := $(DART_BIN)
 # Child scripts call bare `flutter`/`dart`; keep them on the binaries checked
 # above instead of whatever PATH would otherwise resolve.
-ifneq ($(filter /%,$(FLUTTER)),)
-export PATH := $(dir $(FLUTTER)):$(PATH)
+ifneq ($(filter /%,$(FLUTTER_BIN)),)
+export PATH := $(dir $(FLUTTER_BIN)):$(PATH)
 endif
 ifneq ($(filter /%,$(DART)),)
 export PATH := $(dir $(DART)):$(PATH)
@@ -187,12 +191,11 @@ endif
 require-version: ## Fail unless VERSION/BUILD_NUM are valid and above the latest release tag
 	@printf '%s' '$(VERSION)' | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$$' || { echo >&2 "[ERROR] VERSION must be x.y.z (got '$(VERSION)'; latest release tag: $$(git tag -l 'build_*' --sort=-v:refname 2>/dev/null | head -n1))."; exit 1; }
 	@printf '%s' '$(BUILD_NUM)' | grep -Eq '^[0-9]+$$' || { echo >&2 "[ERROR] BUILD_NUM must be numeric (got '$(BUILD_NUM)'; latest release tag: $$(git tag -l 'build_*' --sort=-v:refname 2>/dev/null | head -n1))."; exit 1; }
-	@latest="$$(git tag -l 'build_*' --sort=-v:refname 2>/dev/null | head -n1)"; \
+	@latest="$$(git tag -l 'build_*' --sort=-v:refname 2>/dev/null | sed -n 's/^build_\([0-9][0-9]*\)$$/\1/p' | head -n1)"; \
 	if [ -n "$$latest" ]; then \
-	  latest_num="$${latest#build_}"; \
-	  case "$$latest_num" in (*[!0-9]*) ;; (*) \
-	    [ "$(BUILD_NUM)" -gt "$$latest_num" ] || { echo >&2 "[ERROR] BUILD_NUM $(BUILD_NUM) is not above the latest release tag $$latest."; exit 1; }; \
-	  esac; \
+	  [ "$(BUILD_NUM)" -gt "$$latest" ] || { echo >&2 "[ERROR] BUILD_NUM $(BUILD_NUM) is not above the latest release tag build_$$latest."; exit 1; }; \
+	elif git tag -l 'build_*' 2>/dev/null | grep -q .; then \
+	  echo "[WARN] No numeric build_* tag found; cannot compare BUILD_NUM."; \
 	fi
 
 check-reqs: ## Verify essential build tools
@@ -298,7 +301,7 @@ else
 	@exit 1
 endif
 
-SCCACHE_CARGO_CONFIG ?= $(HOME)/.cargo/config.toml
+SCCACHE_CARGO_CONFIG ?= $(if $(CARGO_HOME),$(CARGO_HOME),$(HOME)/.cargo)/config.toml
 
 sccache-setup: ## Opt-in: use sccache for the Rust/C builds run by native-asset hooks (writes ~/.cargo/config.toml if absent)
 	@command -v sccache >/dev/null 2>&1 || { echo >&2 "[ERROR] sccache not installed (brew install sccache)."; exit 1; }
@@ -326,9 +329,8 @@ clean: ## Remove artifacts and fix permissions
 	@echo "Cleaning Flutter and Rust artifacts..."
 	@chflags -R nouchg build/ macos/ 2>/dev/null || true
 	@chmod -R u+w build/ macos/ 2>/dev/null || true
-	@if [ -n "$(FLUTTER)" ] && [ -f pubspec.yaml ]; then "$(FLUTTER)" clean; else echo "[WARN] Flutter not available; skipped 'flutter clean'."; fi
+	@if [ -n "$(FLUTTER)" ] && command -v "$(FLUTTER)" >/dev/null 2>&1 && [ -f pubspec.yaml ]; then "$(FLUTTER)" clean || echo "[WARN] 'flutter clean' failed; continuing."; else echo "[WARN] Flutter not available; skipped 'flutter clean'."; fi
 	@rm -rf macos/Pods macos/Podfile.lock ios/Pods ios/Podfile.lock build/
-	@rm -f .cargo/config.toml
 	@echo "Cleaning local pub cache residues..."
 	@chmod -R u+w "$(LINUX_PUB_CACHE)/git/" 2>/dev/null || true
 	@find "$(LINUX_PUB_CACHE)/git/" -type d \( -name "build" -o -name "target" \) -path "*flutter_lib*" -exec rm -rf {} + 2>/dev/null || true
@@ -343,18 +345,22 @@ clean: ## Remove artifacts and fix permissions
 # PREBUILTS=0 builds them with Nix and verifies the hashes.
 ifeq ($(PLATFORM),Darwin)
   ifeq ($(filter arm64 aarch64,$(UNAME_M)),$(UNAME_M))
-    PREBUILTS ?= 0
+    PREBUILTS_DEFAULT := 0
   else
-    PREBUILTS ?= 1
+    PREBUILTS_DEFAULT := 1
   endif
 else ifeq ($(PLATFORM),Linux)
   ifeq ($(filter nix direnv,$(TOOLCHAIN_EFFECTIVE)),$(TOOLCHAIN_EFFECTIVE))
-    PREBUILTS ?= 0
+    PREBUILTS_DEFAULT := 0
   else
-    PREBUILTS ?= 1
+    PREBUILTS_DEFAULT := 1
   endif
 else
-  PREBUILTS ?= 1
+  PREBUILTS_DEFAULT := 1
+endif
+PREBUILTS ?= $(PREBUILTS_DEFAULT)
+ifeq ($(strip $(PREBUILTS)),)
+  override PREBUILTS := $(PREBUILTS_DEFAULT)
 endif
 ifneq ($(filter $(PREBUILTS),0 1),$(PREBUILTS))
   $(error PREBUILTS must be 0 or 1)
@@ -379,7 +385,11 @@ endif
 # host defaults to the verified prebuilts; x86_64 Linux follows PREBUILTS.
 ANDROID_ARCH   := $(UNAME_M)
 ANDROID_SOURCE_OK := $(and $(filter Linux,$(PLATFORM)),$(filter x86_64,$(ANDROID_ARCH)),$(filter nix direnv,$(TOOLCHAIN_EFFECTIVE)))
-ANDROID_PREBUILTS ?= $(if $(ANDROID_SOURCE_OK),$(PREBUILTS),1)
+ANDROID_PREBUILTS_DEFAULT := $(if $(ANDROID_SOURCE_OK),$(PREBUILTS),1)
+ANDROID_PREBUILTS ?= $(ANDROID_PREBUILTS_DEFAULT)
+ifeq ($(strip $(ANDROID_PREBUILTS)),)
+  override ANDROID_PREBUILTS := $(ANDROID_PREBUILTS_DEFAULT)
+endif
 ifneq ($(filter $(ANDROID_PREBUILTS),0 1),$(ANDROID_PREBUILTS))
   $(error ANDROID_PREBUILTS must be 0 or 1)
 endif
@@ -410,7 +420,7 @@ clean-native: ## Remove only the native-asset build outputs (forces the Rust/Go/
 
 build-macos: require-version verify-bom toolchain-check check-reqs-macos check-sdk-macos ## Build macOS release (source on Apple Silicon; PREBUILTS=1 uses verified prebuilts)
 	@echo "--- Configuring project (scripts/build_app.sh)..."
-	@cd scripts && $(if $(filter 1,$(CONFIRM)),echo yes |,) env $(MACOS_ENV_UNSET) ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p macos -a $(APP_NAME) $(if $(filter 1,$(PREBUILTS)),-d)
+	@cd scripts && $(if $(filter 1,$(CONFIRM)),echo yes |,) env $(MACOS_ENV_UNSET) ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p macos -a "$(APP_NAME)" $(if $(filter 1,$(PREBUILTS)),-d)
 	@echo "--- Resolving dependencies..."
 	@env $(MACOS_ENV_UNSET) "$(FLUTTER)" pub get
 	@cd scripts && env $(MACOS_ENV_UNSET) bash prebuild.sh
@@ -447,7 +457,7 @@ build-linux: require-version verify-bom check-linux toolchain-check check-reqs #
 	@cd scripts && bash prebuild.sh
 	@echo "--- Generating config..."
 	@if [ -z "$(PROTOC_PATH)" ]; then echo "[ERROR] protoc not found!"; exit 1; fi
-	@cd scripts && $(if $(filter 1,$(CONFIRM)),yes yes |,) BUILD_ISAR_FROM_SOURCE=0 PROTOC="$(PROTOC_PATH)" ./build_app.sh -a $(APP_NAME) -p linux -v $(VERSION) -b $(BUILD_NUM) $(if $(filter 1,$(PREBUILTS)),-d) $(if $(filter 1,$(SYSTEM_DEPS)),-s)
+	@cd scripts && $(if $(filter 1,$(CONFIRM)),yes yes |,) BUILD_ISAR_FROM_SOURCE=0 PROTOC="$(PROTOC_PATH)" ./build_app.sh -a "$(APP_NAME)" -p linux -v $(VERSION) -b $(BUILD_NUM) $(if $(filter 1,$(PREBUILTS)),-d) $(if $(filter 1,$(SYSTEM_DEPS)),-s)
 	@# Flutter 3.47.x hooks only see a filtered environment, so PROTOC (exported by the flake) never
 	@# reaches cargo build scripts. Some crates (prost-build 0.7) ship a generic-Linux protoc that cannot
 	@# run on NixOS. cargo reads [env] from .cargo/config.toml found from the package dir upwards, which
@@ -487,14 +497,14 @@ build-linux: require-version verify-bom check-linux toolchain-check check-reqs #
 build-windows: require-version check-windows toolchain-check ## Build Windows release (Git Bash; verified dnix prebuilts)
 	@[ -n "$(FLUTTER)" ] && command -v "$(FLUTTER)" >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
 	@cd scripts && bash prebuild.sh
-	@cd scripts && $(if $(filter 1,$(CONFIRM)),echo yes |,) MWEBD_FETCH=1 ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p windows -a $(APP_NAME) -d
+	@cd scripts && $(if $(filter 1,$(CONFIRM)),echo yes |,) MWEBD_FETCH=1 ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p windows -a "$(APP_NAME)" -d
 	@"$(FLUTTER)" pub get
 	@"$(FLUTTER)" build windows --release
 
 # Android: same steps as the "build-android" CI job, without the signing secrets. Needs the Android SDK/NDK
 # (ANDROID_SDK_ROOT) and Java; the CI image ghcr.io/<owner>/stackwallet-ci:android is built from the Dockerfile
-# (docker build --target android). Without android/key.properties a throw-away debug key is created, so the APKs
-# are not suitable for distribution.
+# (docker build --target android). Run `make android-dev-key` to create a throw-away debug key when
+# android/key.properties is missing; build-android requires that file and the APKs are not suitable for distribution.
 android-dev-key: ## Create a throw-away debug signing key if android/key.properties is missing (never use for releases)
 	@command -v keytool >/dev/null 2>&1 || { echo >&2 "[ERROR] keytool not found; install a JDK."; exit 1; }
 	@umask 077; if [ ! -f android/key.properties ]; then \
@@ -513,7 +523,7 @@ build-android: require-version toolchain-check ## Build Android APKs (requires a
 	fi
 	@[ -n "$$ANDROID_SDK_ROOT$$ANDROID_HOME" ] || { echo >&2 "[ERROR] ANDROID_SDK_ROOT is not set (Android SDK/NDK required)."; exit 1; }
 	@cd scripts && bash prebuild.sh
-	@cd scripts && $(if $(filter 1,$(CONFIRM)),echo yes |,) ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p android -a $(APP_NAME) $(if $(filter 1,$(ANDROID_PREBUILTS)),-d)
+	@cd scripts && $(if $(filter 1,$(CONFIRM)),echo yes |,) ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p android -a "$(APP_NAME)" $(if $(filter 1,$(ANDROID_PREBUILTS)),-d)
 	@"$(FLUTTER)" pub get
 	@"$(FLUTTER)" build apk --split-per-abi --release
 
@@ -522,6 +532,6 @@ build-ios: require-version verify-bom toolchain-check check-reqs-macos check-sdk
 	@[ -n "$(FLUTTER)" ] && command -v "$(FLUTTER)" >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
 	@xcrun --sdk iphoneos --show-sdk-path >/dev/null 2>&1 || { echo >&2 "[ERROR] iOS SDK not available; install the iOS platform in Xcode."; exit 1; }
 	@cd scripts && bash prebuild.sh
-	@cd scripts && $(if $(filter 1,$(CONFIRM)),echo yes |,) env $(IOS_ENV_UNSET) ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p ios -a $(APP_NAME) $(if $(filter 1,$(PREBUILTS)),-d)
+	@cd scripts && $(if $(filter 1,$(CONFIRM)),echo yes |,) env $(IOS_ENV_UNSET) ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p ios -a "$(APP_NAME)" $(if $(filter 1,$(PREBUILTS)),-d)
 	@env $(IOS_ENV_UNSET) "$(FLUTTER)" pub get
 	@env $(IOS_ENV_UNSET) "$(FLUTTER)" build ios --release --no-codesign

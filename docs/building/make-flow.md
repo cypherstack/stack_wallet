@@ -107,8 +107,8 @@ flowchart TD
 | Linux developer, non-Nix host | `1` | verified prebuilts (`-d`) |
 | iOS developer, Apple Silicon | `0` | source, verified; needs Nix + Xcode 27.0 |
 | iOS developer, Intel | `1` | verified prebuilts (`-d`) |
-| macOS/Linux/iOS CI | `1` | verified prebuilts (`-d`) |
+| macOS/Linux/iOS CI | `1` (explicit `-d`) | verified prebuilts (`-d`) |
 | Windows | `1` (fixed) | verified prebuilts (`-d`) |
-| Android on macOS | `1` (default; source builds need an x86_64 Linux host) | verified prebuilts (`-d`) |
+| Android on macOS | `1` (default; source needs x86_64 Linux in Nix/direnv) | verified prebuilts (`-d`) |
 | Android on x86_64 Linux in Nix/direnv | follows `PREBUILTS` | source by default |
-| Android on non-x86_64 Linux | `1` (default; source builds need x86_64) | verified prebuilts (`-d`) |
+| Android on non-x86_64 Linux | `1` (default; source needs x86_64 Linux in Nix/direnv) | verified prebuilts (`-d`) |

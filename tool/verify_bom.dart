@@ -112,25 +112,26 @@ Set<String> _declaredPlugins() {
   final lines = file.readAsLinesSync();
   final declared = <String>{};
   for (final sectionName in ['dependencies:', 'dependency_overrides:']) {
-    final start = lines.indexWhere((l) => l.trimRight() == sectionName);
+    final header = RegExp('^${RegExp.escape(sectionName)}\\s*(#.*)?\$');
+    final start = lines.indexWhere((l) => header.hasMatch(l.trimRight()));
     if (start < 0) continue;
-    int? indent;
+    String? indent;
     for (var i = start + 1; i < lines.length; i++) {
       final line = lines[i];
       if (line.trim().isEmpty || line.trimLeft().startsWith('#')) continue;
-      if (!line.startsWith(' ')) break;
-      indent = line.length - line.trimLeft().length;
+      final m = RegExp(r'^[ \t]+').firstMatch(line);
+      if (m == null) break;
+      indent = m.group(0);
       break;
     }
     if (indent == null) continue;
     for (var i = start + 1; i < lines.length; i++) {
       final line = lines[i];
       if (line.trim().isEmpty || line.trimLeft().startsWith('#')) continue;
-      if (!line.startsWith(' ')) break;
-      final currentIndent = line.length - line.trimLeft().length;
-      if (currentIndent < indent) break;
+      final currentIndent = RegExp(r'^[ \t]*').firstMatch(line)!.group(0)!;
+      if (currentIndent.length < indent.length) break;
       if (currentIndent != indent) continue;
-      final m = RegExp(r'^[ ]*(\w+):').firstMatch(line);
+      final m = RegExp(r'''^[ \t]*["']?(\w+)["']?\s*:''').firstMatch(line);
       if (m != null && _pluginNames.contains(m.group(1))) {
         declared.add(m.group(1)!);
       }
@@ -282,10 +283,13 @@ Future<void> main(List<String> args) async {
         } else {
           _ok('Flutter $v');
         }
-        if (d.startsWith(tc['dart_prefix'] ?? '')) {
+        final prefix = tc['dart_prefix'] ?? '';
+        if (prefix.isEmpty) {
+          _fail('dart_prefix is missing from $_bomFile');
+        } else if (d.startsWith('$prefix.')) {
           _ok('Dart $d');
         } else {
-          _fail('Dart $d does not match ${tc['dart_prefix']}.x');
+          _fail('Dart $d does not match $prefix.x');
         }
       } on FormatException {
         _fail('could not parse flutter --version --machine output');

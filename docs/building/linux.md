@@ -16,8 +16,8 @@ These steps build the Linux desktop app and the Android app on Ubuntu 24.04
 
 **Rustup:** every app builds its DNSSEC resolver with Rust **1.90.0**, and
 Stack Wallet builds Xelis with Rust **1.99.1**. The build hooks install these
-toolchains on first use. To install DNSSEC's ahead of time, run
-`rustup toolchain install 1.90.0`.
+toolchains on first use. To install both ahead of time, run
+`rustup toolchain install 1.90.0 1.99.1`.
 
 **Nix:** check `nix --version` from the same environment that runs Flutter.
 dnix enables the Nix flake features it needs when it invokes Nix.
