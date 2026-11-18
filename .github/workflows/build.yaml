@@ -23,7 +23,9 @@ on:
 jobs:
 
   bom:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
     outputs:
       flutter_min: ${{ steps.read.outputs.flutter_min }}
       go: ${{ steps.read.outputs.go }}
@@ -35,6 +37,7 @@ jobs:
       - name: Read stack-bom.toml
         id: read
         run: |
+          bash scripts/bom_values.sh --check
           flutter_min="$(bash scripts/bom_values.sh --get flutter_min)"
           go="$(bash scripts/bom_values.sh --get go)"
           dnssec_rust="$(bash scripts/bom_values.sh --get dnssec_rust)"

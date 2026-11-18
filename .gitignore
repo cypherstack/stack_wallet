@@ -126,8 +126,6 @@ lib/wl_gen/generated/
 /.cargo/config.toml
 /scripts/linux/pc/
 
-# Nix dev shell: generated wrappers
-.nix-bin/
 
 # Android local signing
 /android/key.properties

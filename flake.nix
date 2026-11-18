@@ -168,8 +168,9 @@
               fi
               export PROTOC="${pkgs.protobuf}/bin/protoc"
 
-              NIX_BIN="$APP_PROJECT_ROOT_DIR/.nix-bin"
-              mkdir -p "$NIX_BIN"
+              # A repo-writable directory on PATH would let anything that can
+              # write to the checkout shadow tools for the rest of the session.
+              NIX_BIN="$(/usr/bin/mktemp -d "''${TMPDIR:-/tmp}/stackwallet-nix-bin.XXXXXX")"
               ln -sf /usr/bin/clang "$NIX_BIN/cc"
               ln -sf /usr/bin/clang++ "$NIX_BIN/c++"
               ln -sf /usr/bin/clang "$NIX_BIN/clang"

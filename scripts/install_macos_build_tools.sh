@@ -29,15 +29,7 @@ if ! command -v brew >/dev/null 2>&1; then
   elif [[ -x /usr/local/bin/brew ]]; then
     eval "$(/usr/local/bin/brew shellenv)"
   else
-    echo "Homebrew not found. Installing..."
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    if [[ -x /opt/homebrew/bin/brew ]]; then
-      eval "$(/opt/homebrew/bin/brew shellenv)"
-    elif [[ -x /usr/local/bin/brew ]]; then
-      eval "$(/usr/local/bin/brew shellenv)"
-    else
-      die "Homebrew installation failed. Install manually: https://brew.sh"
-    fi
+    die "Homebrew is required. Install it from https://brew.sh, then re-run 'make bootstrap-macos'."
   fi
 fi
 
@@ -153,8 +145,7 @@ if [ ! -x "$HOME/.cargo/bin/cargo" ]; then
   if command -v rustup-init >/dev/null 2>&1; then
     rustup-init -y --no-modify-path --default-toolchain "$RUST_VERSION" || true
   else
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-      | sh -s -- -y --no-modify-path --default-toolchain "$RUST_VERSION" || true
+    die "rustup-init not found. Run 'brew install rustup', then re-run this script."
   fi
 fi
 
@@ -203,8 +194,10 @@ BREW_PREFIX="$(brew --prefix)"
 grep -qF 'brew shellenv' "$ZSHRC" 2>/dev/null || \
   printf 'eval "$(%s/bin/brew shellenv)"\n' "$BREW_PREFIX" >> "$ZSHRC"
 if [[ -n "$FLUTTER_PATH_TO_PERSIST" ]]; then
-  grep -qF "$FLUTTER_PATH_TO_PERSIST" "$ZSHRC" 2>/dev/null || \
-    printf 'export PATH="%s:$PATH"\n' "$FLUTTER_PATH_TO_PERSIST" >> "$ZSHRC"
+  if ! grep -qF "$FLUTTER_PATH_TO_PERSIST" "$ZSHRC" 2>/dev/null; then
+    # %q keeps a user-supplied FLUTTER_DIR from becoming shell syntax.
+    printf 'export PATH=%q:$PATH\n' "$FLUTTER_PATH_TO_PERSIST" >> "$ZSHRC"
+  fi
 fi
 grep -qF '$HOME/.cargo/bin' "$ZSHRC" 2>/dev/null || \
   printf 'export PATH="%s/opt/rustup/bin:$HOME/.cargo/bin:$PATH"\n' "$BREW_PREFIX" >> "$ZSHRC"
