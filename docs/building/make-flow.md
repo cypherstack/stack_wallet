@@ -110,5 +110,5 @@ flowchart TD
 | macOS/Linux/iOS CI | `1` | verified prebuilts (`-d`) |
 | Windows | `1` (fixed) | verified prebuilts (`-d`) |
 | Android on macOS | `1` (default; source builds need an x86_64 Linux host) | verified prebuilts (`-d`) |
-| Android on x86_64 Linux | follows `PREBUILTS` | source by default |
+| Android on x86_64 Linux in Nix/direnv | follows `PREBUILTS` | source by default |
 | Android on non-x86_64 Linux | `1` (default; source builds need x86_64) | verified prebuilts (`-d`) |

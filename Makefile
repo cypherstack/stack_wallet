@@ -358,6 +358,17 @@ endif
 ifneq ($(filter $(PREBUILTS),0 1),$(PREBUILTS))
   $(error PREBUILTS must be 0 or 1)
 endif
+ifeq ($(PREBUILTS),0)
+  ifeq ($(PLATFORM),Darwin)
+    ifneq ($(filter arm64 aarch64,$(UNAME_M)),$(UNAME_M))
+      $(error PREBUILTS=0 (dnix source) requires Apple Silicon on macOS; use the default PREBUILTS=1)
+    endif
+  else ifeq ($(PLATFORM),Linux)
+    ifeq ($(filter nix direnv,$(TOOLCHAIN_EFFECTIVE)),)
+      $(error PREBUILTS=0 (dnix source) requires nix develop or direnv on Linux; use PREBUILTS=1)
+    endif
+  endif
+endif
 ifneq ($(filter MINGW% MSYS%,$(PLATFORM)),)
   ifeq ($(PREBUILTS),0)
     $(error build-windows uses verified dnix prebuilts; run build_app.sh for source mode)
@@ -366,14 +377,14 @@ endif
 # Android source builds through dnix need an x86_64 Linux host. Every other
 # host defaults to the verified prebuilts; x86_64 Linux follows PREBUILTS.
 ANDROID_ARCH   := $(shell uname -m 2>/dev/null)
-ANDROID_SOURCE_OK := $(and $(filter Linux,$(PLATFORM)),$(filter x86_64,$(ANDROID_ARCH)))
+ANDROID_SOURCE_OK := $(and $(filter Linux,$(PLATFORM)),$(filter x86_64,$(ANDROID_ARCH)),$(filter nix direnv,$(TOOLCHAIN_EFFECTIVE)))
 ANDROID_PREBUILTS ?= $(if $(ANDROID_SOURCE_OK),$(PREBUILTS),1)
 ifneq ($(filter $(ANDROID_PREBUILTS),0 1),$(ANDROID_PREBUILTS))
   $(error ANDROID_PREBUILTS must be 0 or 1)
 endif
 ifeq ($(ANDROID_PREBUILTS),0)
   ifeq ($(strip $(ANDROID_SOURCE_OK)),)
-    $(error ANDROID_PREBUILTS=0 needs an x86_64 Linux host; use the default prebuilt mode)
+    $(error ANDROID_PREBUILTS=0 needs an x86_64 Linux host in nix develop or direnv; use the default prebuilt mode)
   endif
 endif
 # Linux only: SYSTEM_DEPS=1 uses the system libsecret/jsoncpp packages instead of building them (like the CI image).
