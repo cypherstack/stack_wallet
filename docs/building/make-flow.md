@@ -79,7 +79,7 @@ flowchart TD
 
     LINUX --> LC["checks<br/>require-version · check-linux<br/>toolchain-check · check-reqs"]
     LC --> LP{"PREBUILTS"}
-    LP -- "0 Nix/direnv" --> LS["source (Nix)"]
+    LP -- "0 Nix on PATH" --> LS["source (Nix)"]
     LP -- "1 host" --> LB["prebuilt -d"]
     LS --> LR["prebuild.sh<br/>build_app.sh -p linux<br/>flutter build linux · bundle"]
     LB --> LR
