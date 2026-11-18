@@ -50,8 +50,9 @@ first-launch setup. An already-selected Xcode is left untouched. Use
 ## 2. Build
 
 `VERSION` and `BUILD_NUM` are required. dnix source is the default on Apple
-Silicon macOS and inside Nix/direnv on Linux; Intel macOS, non-Nix Linux, CI and
-Windows use the verified prebuilts.
+Silicon macOS and inside Nix/direnv on Linux; source also works with Nix on
+`PATH`. Intel macOS, Linux outside Nix/direnv, CI and Windows default to the
+verified prebuilts.
 
 ```mermaid
 flowchart TD
@@ -104,11 +105,11 @@ flowchart TD
 | macOS developer, Apple Silicon | `0` | source, verified; needs Nix + Xcode 27.0 |
 | macOS developer, Intel | `1` | verified prebuilts (`-d`) |
 | Linux developer in Nix/direnv | `0` | source, verified; needs Nix |
-| Linux developer, non-Nix host | `1` | verified prebuilts (`-d`) |
+| Linux developer outside Nix/direnv | `1` (default) | verified prebuilts (`-d`); set `PREBUILTS=0` with Nix on `PATH` for source |
 | iOS developer, Apple Silicon | `0` | source, verified; needs Nix + Xcode 27.0 |
 | iOS developer, Intel | `1` | verified prebuilts (`-d`) |
 | macOS/Linux/iOS CI | `1` (explicit `-d`) | verified prebuilts (`-d`) |
 | Windows | `1` (fixed) | verified prebuilts (`-d`) |
 | Android on macOS | `1` (default; source needs x86_64 Linux in Nix/direnv) | verified prebuilts (`-d`) |
-| Android on x86_64 Linux in Nix/direnv | follows `PREBUILTS` | source by default |
+| Android on x86_64 Linux with Nix on `PATH` | follows `PREBUILTS` | source by default inside Nix/direnv |
 | Android on non-x86_64 Linux | `1` (default; source needs x86_64 Linux in Nix/direnv) | verified prebuilts (`-d`) |

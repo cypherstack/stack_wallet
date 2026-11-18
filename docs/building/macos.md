@@ -30,7 +30,7 @@ manual/Homebrew path.
 | [Homebrew](https://brew.sh/) packages below | Manual and Homebrew modes |
 | [Rustup](https://rustup.rs/) | Manual and Homebrew modes, in both dnix modes |
 | [Go](https://go.dev/doc/install) 1.24.1 or newer | Stack Wallet, manual and Homebrew modes |
-| [Nix](https://nixos.org/download/) | Source mode (dnix) in every host mode; not needed with `-d` |
+| [Nix](https://nixos.org/download/) | Source mode (dnix); Nix must be on `PATH` (the dev shell provides it); not needed with `-d` |
 
 ```sh
 brew install autoconf automake libtool cmake cocoapods go meson ninja pkg-config protobuf

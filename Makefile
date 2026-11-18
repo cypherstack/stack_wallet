@@ -52,6 +52,7 @@ endif
 # supported value; an unrelated exported PLATFORM must not change the defaults.
 UNAME_S        := $(shell uname -s 2>/dev/null)
 UNAME_M        := $(shell uname -m 2>/dev/null)
+NIX_BIN        := $(shell command -v nix 2>/dev/null)
 PLATFORM       ?= $(UNAME_S)
 ifneq ($(PLATFORM),Darwin)
   ifneq ($(PLATFORM),Linux)
@@ -370,9 +371,10 @@ ifeq ($(PREBUILTS),0)
     ifneq ($(filter arm64 aarch64,$(UNAME_M)),$(UNAME_M))
       $(error PREBUILTS=0 (dnix source) requires Apple Silicon on macOS; use the default PREBUILTS=1)
     endif
-  else ifeq ($(PLATFORM),Linux)
-    ifeq ($(filter nix direnv,$(TOOLCHAIN_EFFECTIVE)),)
-      $(error PREBUILTS=0 (dnix source) requires nix develop or direnv on Linux; use PREBUILTS=1)
+  endif
+  ifeq ($(filter Darwin Linux,$(PLATFORM)),$(PLATFORM))
+    ifeq ($(strip $(NIX_BIN)),)
+      $(error PREBUILTS=0 (dnix source) needs Nix on PATH; install Nix or run 'nix develop')
     endif
   endif
 endif
@@ -384,7 +386,7 @@ endif
 # Android source builds through dnix need an x86_64 Linux host. Every other
 # host defaults to the verified prebuilts; x86_64 Linux follows PREBUILTS.
 ANDROID_ARCH   := $(UNAME_M)
-ANDROID_SOURCE_OK := $(and $(filter Linux,$(PLATFORM)),$(filter x86_64,$(ANDROID_ARCH)),$(filter nix direnv,$(TOOLCHAIN_EFFECTIVE)))
+ANDROID_SOURCE_OK := $(and $(filter Linux,$(PLATFORM)),$(filter x86_64,$(ANDROID_ARCH)),$(strip $(NIX_BIN)))
 ANDROID_PREBUILTS_DEFAULT := $(if $(ANDROID_SOURCE_OK),$(PREBUILTS),1)
 ANDROID_PREBUILTS ?= $(ANDROID_PREBUILTS_DEFAULT)
 ifeq ($(strip $(ANDROID_PREBUILTS)),)
@@ -395,7 +397,7 @@ ifneq ($(filter $(ANDROID_PREBUILTS),0 1),$(ANDROID_PREBUILTS))
 endif
 ifeq ($(ANDROID_PREBUILTS),0)
   ifeq ($(strip $(ANDROID_SOURCE_OK)),)
-    $(error ANDROID_PREBUILTS=0 needs an x86_64 Linux host in nix develop or direnv; use the default prebuilt mode)
+    $(error ANDROID_PREBUILTS=0 needs an x86_64 Linux host with Nix on PATH; use the default prebuilt mode)
   endif
 endif
 # Linux only: SYSTEM_DEPS=1 uses the system libsecret/jsoncpp packages instead of building them (like the CI image).

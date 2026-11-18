@@ -11,7 +11,7 @@ These steps build the Linux desktop app and the Android app on Ubuntu 24.04
 | The [Ubuntu packages](#ubuntu-packages) below | Every build |
 | [Rustup](https://rustup.rs/) | Every app, in both modes |
 | [Go](https://go.dev/doc/install) 1.24.1 or newer | Stack Wallet |
-| [Nix](https://nixos.org/download/) | Source mode, the default; not needed with `-d` |
+| [Nix](https://nixos.org/download/) | Source mode; Nix must be on `PATH` (the dev shell provides it); not needed with `-d` |
 | The [Android tools](#android-tools) below | Android builds |
 
 **Rustup:** every app builds its DNSSEC resolver with Rust **1.90.0**, and
