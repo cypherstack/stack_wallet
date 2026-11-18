@@ -22,6 +22,15 @@ import '../../widgets/rounded_white_container.dart';
 import 'slatepack_popup.dart';
 import 'slatepack_qr.dart';
 
+String slatepackMonospaceFontFamily(TargetPlatform platform) =>
+    switch (platform) {
+      TargetPlatform.iOS || TargetPlatform.macOS => 'Menlo',
+      TargetPlatform.windows => 'Consolas',
+      TargetPlatform.android ||
+      TargetPlatform.fuchsia ||
+      TargetPlatform.linux => 'monospace',
+    };
+
 /// Shows a slatepack the user has to pass to the other party.
 Future<void> showSlatepackDialog({
   required BuildContext context,
@@ -239,8 +248,11 @@ class SlatepackDialog extends StatelessWidget {
                   child: SingleChildScrollView(
                     child: SelectableText(
                       slatepack,
-                      style: STextStyles.w400_14(context)
-                          .copyWith(fontFamily: 'monospace'),
+                      style: STextStyles.w400_14(context).copyWith(
+                        fontFamily: slatepackMonospaceFontFamily(
+                          Theme.of(context).platform,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -248,38 +260,61 @@ class SlatepackDialog extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: SecondaryButton(
-                  label: "Copy",
-                  buttonHeight: isDesktop ? ButtonHeight.l : null,
-                  icon: _icon(context, Assets.svg.copy),
-                  onPressed: () => _copy(context),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final scaledText = MediaQuery.textScalerOf(context).scale(14);
+              final useTwoRows =
+                  !isDesktop && (constraints.maxWidth < 300 || scaledText > 14);
+
+              final copy = SecondaryButton(
+                label: "Copy",
+                buttonHeight: isDesktop ? ButtonHeight.l : null,
+                icon: _icon(context, Assets.svg.copy),
+                onPressed: () => _copy(context),
+              );
+              final share = Builder(
+                builder: (context) => SecondaryButton(
+                  label: "Share",
+                  icon: _icon(context, Assets.svg.share),
+                  onPressed: () => _share(context),
                 ),
-              ),
-              if (!isDesktop) ...[
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Builder(
-                    builder: (context) => SecondaryButton(
-                      label: "Share",
-                      icon: _icon(context, Assets.svg.share),
-                      onPressed: () => _share(context),
+              );
+              final save = SecondaryButton(
+                label: "Save",
+                buttonHeight: isDesktop ? ButtonHeight.l : null,
+                icon: _icon(context, Assets.svg.downloadFolder),
+                onPressed: () => _save(context),
+              );
+
+              if (useTwoRows) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(child: copy),
+                        const SizedBox(width: 12),
+                        Expanded(child: share),
+                      ],
                     ),
-                  ),
-                ),
-              ],
-              const SizedBox(width: 12),
-              Expanded(
-                child: SecondaryButton(
-                  label: "Save",
-                  buttonHeight: isDesktop ? ButtonHeight.l : null,
-                  icon: _icon(context, Assets.svg.downloadFolder),
-                  onPressed: () => _save(context),
-                ),
-              ),
-            ],
+                    const SizedBox(height: 12),
+                    save,
+                  ],
+                );
+              }
+
+              return Row(
+                children: [
+                  Expanded(child: copy),
+                  if (!isDesktop) ...[
+                    const SizedBox(width: 12),
+                    Expanded(child: share),
+                  ],
+                  const SizedBox(width: 12),
+                  Expanded(child: save),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 16),
           PrimaryButton(

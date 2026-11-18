@@ -17,7 +17,10 @@ import 'package:stackwallet/utilities/slatepack_text.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/mimblewimblecoin_wallet.dart';
+import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/slatepack_interface.dart';
 import 'package:stackwallet/widgets/custom_loading_overlay.dart';
+import 'package:stackwallet/widgets/rounded_container.dart';
 
 import '../../sample_data/theme_json.dart';
 
@@ -31,12 +34,14 @@ class _InspectOnlyWallet extends EpiccashWallet {
     this.localIsCancelled = false,
     this.receiveGate,
     this.receiveError,
+    this.senderAddress,
   }) : super(CryptoCurrencyNetwork.main);
 
   /// When set, receiving waits for it and then succeeds, or throws
   /// [receiveError] if that is set.
   final Completer<void>? receiveGate;
   final Exception? receiveError;
+  final String? senderAddress;
 
   final SlateState state;
   final bool invoices;
@@ -64,6 +69,7 @@ class _InspectOnlyWallet extends EpiccashWallet {
       slateJson: '{"id":"test-slate"}',
       amount: Amount(rawValue: BigInt.from(100), fractionDigits: 8),
       fee: Amount(rawValue: BigInt.one, fractionDigits: 8),
+      senderAddress: senderAddress,
     );
   }
 
@@ -109,6 +115,31 @@ class _InspectOnlyWallet extends EpiccashWallet {
     actionInspection = inspection;
     finalizeCalls++;
     return FinalizeResult(success: false, error: "not in tests");
+  }
+}
+
+class _SynchronousMwcWallet extends MimblewimblecoinWallet {
+  _SynchronousMwcWallet({
+    required this.onInspect,
+    this.state = SlateState.s3,
+    this.localGate,
+  }) : super(CryptoCurrencyNetwork.main);
+
+  final VoidCallback onInspect;
+  final SlateState state;
+  final Completer<void>? localGate;
+
+  @override
+  Future<SlateInspection> inspectSlatepack(String armored) {
+    onInspect();
+    return Future.value(SlateInspection(state: state, slateId: 'mwc-slate'));
+  }
+
+  @override
+  Future<({Amount amount, Amount fee, bool isSend, bool isCancelled})?>
+  localTxForSlate(String slateId) async {
+    await localGate?.future;
+    return null;
   }
 }
 
@@ -251,7 +282,7 @@ void main() {
   group("run", () {
     Future<bool?> runFlow(
       WidgetTester tester,
-      _InspectOnlyWallet wallet, {
+      SlatepackInterface wallet, {
       String text = "{}",
       ValueNotifier<bool>? shown,
       void Function(bool)? onDone,
@@ -317,6 +348,44 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
     }
 
+    testWidgets('MWC inspection starts after the loading route is visible', (
+      tester,
+    ) async {
+      double? routeOpacity;
+      final wallet = _SynchronousMwcWallet(
+        onInspect: () {
+          final overlay = tester.element(find.byType(CustomLoadingOverlay));
+          routeOpacity = ModalRoute.of(overlay)!.animation!.value;
+        },
+      );
+
+      await runFlow(tester, wallet);
+
+      expect(routeOpacity, 1);
+      expect(find.text('Already finalized'), findsOneWidget);
+      await closeDialog(tester);
+    });
+
+    testWidgets('MWC response with no local send does not show zero values', (
+      tester,
+    ) async {
+      final wallet = _SynchronousMwcWallet(
+        state: SlateState.s2,
+        onInspect: () {},
+      );
+
+      await runFlow(tester, wallet);
+
+      expect(find.text('Finalize slatepack'), findsOneWidget);
+      expect(
+        find.textContaining('amount and fee are unavailable'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('0.00000000 MWC'), findsNothing);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+    });
+
     testWidgets("finalized slate shows a message", (tester) async {
       final wallet = _InspectOnlyWallet(SlateState.s3);
       await runFlow(tester, wallet);
@@ -344,13 +413,67 @@ void main() {
       await runFlow(tester, wallet);
       expect(find.text("Finalize slate"), findsOneWidget);
       expect(find.textContaining("No matching send was found"), findsOneWidget);
-      expect(find.byKey(const Key("slatepackHistoryWarning")), findsOneWidget);
+      final warning = find.byKey(const Key("slatepackHistoryWarning"));
+      expect(warning, findsOneWidget);
+      expect(tester.widget(warning), isA<RoundedContainer>());
+      final warningContainer = tester.widget<RoundedContainer>(warning);
+      final warningColors = Theme.of(tester.element(warning))
+          .extension<StackColors>()!;
+      expect(warningContainer.color, warningColors.warningBackground);
+      expect(warningContainer.borderColor, isNull);
+      expect(
+        find.descendant(of: warning, matching: find.byType(Icon)),
+        findsNothing,
+      );
+      final warningText = tester.widget<Text>(
+        find.textContaining("No matching send was found"),
+      );
+      expect(warningText.style?.color, warningColors.warningForeground);
       expect(find.text("0.00000100 EPIC"), findsOneWidget);
       await tester.pumpAndSettle();
       await tester.ensureVisible(find.text("Cancel"));
       await tester.tap(find.text("Cancel"));
       await tester.pumpAndSettle();
       expect(wallet.finalizeCalls, 0);
+    });
+
+    testWidgets('a hexadecimal slatepack sender is labelled as a key', (
+      tester,
+    ) async {
+      final senderKey = List.filled(32, 'ab').join();
+      final wallet = _InspectOnlyWallet(
+        SlateState.s1,
+        senderAddress: senderKey,
+      );
+
+      await runFlow(tester, wallet);
+
+      expect(find.text('Sender key'), findsOneWidget);
+      expect(find.text('From'), findsNothing);
+      expect(find.text(senderKey), findsOneWidget);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('a stalled local-history lookup falls back to the summary', (
+      tester,
+    ) async {
+      final wallet = _SynchronousMwcWallet(
+        state: SlateState.s2,
+        onInspect: () {},
+        localGate: Completer<void>(),
+      );
+
+      await runFlow(tester, wallet);
+      expect(find.byType(CustomLoadingOverlay), findsOneWidget);
+
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Finalize slatepack'), findsOneWidget);
+      expect(find.byKey(const Key('slatepackHistoryWarning')), findsOneWidget);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
     });
 
     testWidgets("response to a transaction this wallet received", (

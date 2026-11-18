@@ -715,7 +715,9 @@ class MimblewimblecoinWallet extends MimblewimbleWallet {
       return txData.copyWith(
         recipients: [recipient],
         fee: feeAmount,
-        otherData: method == null ? null : slatepackMethodOtherData(method),
+        otherData: method == null
+            ? txData.otherData
+            : slatepackMethodOtherData(method, existing: txData.otherData),
       );
     } catch (e, s) {
       Logging.instance.e("Mimblewimblecoin prepareSend: $e\n$s");

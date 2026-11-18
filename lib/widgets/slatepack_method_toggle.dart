@@ -34,9 +34,11 @@ class SlatepackMethodToggle extends ConsumerWidget {
     final bool isDesktop = Util.isDesktop;
     final wallet =
         ref.watch(pWallets).getWallet(walletId) as SlatepackInterface;
-    final SlatepackMethod other = wallet.supportedMethods.firstWhere(
-      (m) => m != SlatepackMethod.slatepack,
+    final otherMethods = wallet.supportedMethods.where(
+      (method) => method != SlatepackMethod.slatepack,
     );
+    if (otherMethods.isEmpty) return const SizedBox.shrink();
+    final SlatepackMethod other = otherMethods.first;
 
     return Toggle(
       onValueChanged: (bool value) {

@@ -59,6 +59,7 @@ import '../../../../widgets/icon_widgets/pencil_icon.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_dialog.dart';
 import '../../../../widgets/tx_key_widget.dart';
+import '../../../slatepack/slatepack_cancel_transaction_dialog.dart';
 import '../../sub_widgets/tx_icon.dart';
 import '../../wallet_view.dart';
 import '../dialogs/cancelling_transaction_progress_dialog.dart';
@@ -1519,22 +1520,8 @@ class _TransactionV2DetailsViewState
 
                         final proceed = await showDialog<bool>(
                           context: context,
-                          builder: (context) => StackDialog(
-                            title: "Cancel this transaction?",
-                            width: Util.isDesktop ? 400 : null,
-                            message:
-                                "The other party can no longer complete it, "
-                                "and any funds it locked become spendable "
-                                "again.",
-                            leftButton: SecondaryButton(
-                              label: "Keep",
-                              onPressed: () => Navigator.of(context).pop(false),
-                            ),
-                            rightButton: PrimaryButton(
-                              label: "Cancel transaction",
-                              onPressed: () => Navigator.of(context).pop(true),
-                            ),
-                          ),
+                          builder: (_) =>
+                              const SlatepackCancelTransactionDialog(),
                         );
                         if (proceed != true || !context.mounted) return;
 

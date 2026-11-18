@@ -333,12 +333,12 @@ class EpiccashWallet extends MimblewimbleWallet {
   fetchWalletBalances({
     required int refreshFromNode,
     required int minimumConfirmations,
-  }) {
+  }) async {
     _hackedCheckTorNodePrefs();
     if (_wallet == null) {
       throw Exception('Wallet not opened. Call open() first.');
     }
-    return libEpic.getWalletBalances(
+    return await libEpic.getWalletBalances(
       wallet: _wallet!,
       refreshFromNode: refreshFromNode,
       minimumConfirmations: minimumConfirmations,
@@ -751,7 +751,7 @@ class EpiccashWallet extends MimblewimbleWallet {
       return txData.copyWith(
         recipients: [recipient],
         fee: feeAmount,
-        otherData: slatepackMethodOtherData(method),
+        otherData: slatepackMethodOtherData(method, existing: txData.otherData),
       );
     } catch (e, s) {
       Logging.instance.e("Epic cash prepareSend", error: e, stackTrace: s);

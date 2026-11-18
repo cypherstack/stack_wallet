@@ -133,7 +133,8 @@ abstract class MimblewimbleWallet extends Bip39Wallet with SlatepackInterface {
     final SlatepackDecodeResult decoded = await decodeSlatepack(text);
     if (!decoded.success || decoded.slateJson == null) {
       throw Exception(
-        decoded.error ?? "Failed to decode ${slatepackTerms.noun}",
+        "This ${slatepackTerms.noun} could not be decoded. It may be damaged, "
+        "incomplete, or encrypted for another wallet.",
       );
     }
 
@@ -199,6 +200,10 @@ abstract class MimblewimbleWallet extends Bip39Wallet with SlatepackInterface {
 
     Amount? parseAmount(dynamic raw) {
       final value = BigInt.tryParse(raw?.toString() ?? "");
+      final isResponse = state == SlateState.s2 || state == SlateState.i2;
+      // MWC/Grin response slates encode omitted amount and fee fields as
+      // zero. Zero is not a trustworthy summary value for those states.
+      if (isResponse && value == BigInt.zero) return null;
       return value == null
           ? null
           : Amount(rawValue: value, fractionDigits: fractionDigits);
@@ -251,14 +256,7 @@ abstract class MimblewimbleWallet extends Bip39Wallet with SlatepackInterface {
       slateId,
     );
 
-    TransactionV2? tx = await find();
-    if (tx == null) {
-      // The stored history only changes on a refresh, and a refresh is
-      // skipped while another one runs, so a send made moments ago may not be
-      // in it yet.
-      await updateTransactions();
-      tx = await find();
-    }
+    final TransactionV2? tx = await find();
     if (tx == null) return null;
 
     final int digits = cryptoCurrency.fractionDigits;

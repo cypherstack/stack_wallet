@@ -10,6 +10,7 @@ import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/detail_item.dart';
+import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
 import 'slatepack_popup.dart';
 
@@ -56,32 +57,13 @@ class SlatepackSummaryDialog extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (warning != null) ...[
-            Container(
+            RoundedContainer(
               key: const Key("slatepackHistoryWarning"),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: colors.warningBackground,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: colors.warningForeground.withValues(alpha: 0.4),
-                ),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.warning_amber_rounded,
-                    color: colors.warningForeground,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      warning!,
-                      style: STextStyles.smallMed14(context)
-                          .copyWith(color: colors.warningForeground),
-                    ),
-                  ),
-                ],
+              color: colors.warningBackground,
+              child: Text(
+                warning!,
+                style: STextStyles.smallMed14(context)
+                    .copyWith(color: colors.warningForeground),
               ),
             ),
             const SizedBox(height: 16),

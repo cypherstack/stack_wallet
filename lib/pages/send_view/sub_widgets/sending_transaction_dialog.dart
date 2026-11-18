@@ -28,10 +28,12 @@ class SendingTransactionDialog extends ConsumerStatefulWidget {
     super.key,
     required this.coin,
     required this.controller,
+    this.title = "Sending transaction",
   });
 
   final CryptoCurrency coin;
   final ProgressAndSuccessController controller;
+  final String title;
 
   @override
   ConsumerState<SendingTransactionDialog> createState() =>
@@ -57,11 +59,7 @@ class _RestoringDialogState extends ConsumerState<SendingTransactionDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final assetPath = ref.watch(
-      coinImageSecondaryProvider(
-        widget.coin,
-      ),
-    );
+    final assetPath = ref.watch(coinImageSecondaryProvider(widget.coin));
 
     if (Util.isDesktop) {
       return DesktopDialog(
@@ -71,19 +69,10 @@ class _RestoringDialogState extends ConsumerState<SendingTransactionDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                "Sending transaction",
-                style: STextStyles.desktopH3(context),
-              ),
-              const SizedBox(
-                height: 40,
-              ),
+              Text(widget.title, style: STextStyles.desktopH3(context)),
+              const SizedBox(height: 40),
               assetPath.endsWith(".gif")
-                  ? Flexible(
-                      child: Image.file(
-                        File(assetPath),
-                      ),
-                    )
+                  ? Flexible(child: Image.file(File(assetPath)))
                   : ProgressAndSuccess(
                       controller: _progressAndSuccessController!,
                     ),
@@ -102,22 +91,18 @@ class _RestoringDialogState extends ConsumerState<SendingTransactionDialog> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.file(
-                      File(assetPath),
-                    ),
+                    Image.file(File(assetPath)),
                     Text(
-                      "Sending transaction",
+                      widget.title,
                       textAlign: TextAlign.center,
                       style: STextStyles.pageTitleH2(context),
                     ),
-                    const SizedBox(
-                      height: 32,
-                    ),
+                    const SizedBox(height: 32),
                   ],
                 ),
               )
             : StackDialog(
-                title: "Sending transaction",
+                title: widget.title,
                 icon: ProgressAndSuccess(
                   controller: _progressAndSuccessController!,
                 ),
@@ -201,13 +186,15 @@ class _ProgressAndSuccessState extends State<ProgressAndSuccess>
           values: [
             ValueDelegate.color(
               const ["**"],
-              value:
-                  Theme.of(context).extension<StackColors>()!.accentColorDark,
+              value: Theme.of(context)
+                  .extension<StackColors>()!
+                  .accentColorDark,
             ),
             ValueDelegate.strokeColor(
               const ["**"],
-              value:
-                  Theme.of(context).extension<StackColors>()!.accentColorDark,
+              value: Theme.of(context)
+                  .extension<StackColors>()!
+                  .accentColorDark,
             ),
           ],
         ),
@@ -233,7 +220,8 @@ class _ProgressAndSuccessState extends State<ProgressAndSuccess>
         height: widget.height,
         onLoaded: (composition) {
           setState(() {
-            controller2.duration = composition.duration *
+            controller2.duration =
+                composition.duration *
                 (composition.markers.last.end - composition.markers[1].start);
             controller2.value = composition.markers[1].start;
           });

@@ -34,7 +34,9 @@ import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/amount/fee_rate_formatter.dart';
 import '../../utilities/constants.dart';
+import '../../utilities/exception_message.dart';
 import '../../utilities/logger.dart';
+import '../../utilities/route_presentation.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
@@ -174,7 +176,11 @@ class _ConfirmTransactionViewState
       message: wallet.supportsOnChainNote && note.isNotEmpty ? note : null,
     );
     if (!result.success || result.slatepack == null) {
-      throw Exception(result.error ?? "Failed to create ${terms.noun}");
+      throw Exception(
+        stripExceptionPrefixes(
+          result.error ?? "Failed to create ${terms.noun}",
+        ),
+      );
     }
 
     // The user confirmed one amount, so a slate for any other amount must not
@@ -269,6 +275,10 @@ class _ConfirmTransactionViewState
   Future<void> _attemptSend(BuildContext context) async {
     final wallet = ref.read(pWallets).getWallet(walletId);
     final coin = wallet.info.coin;
+    final progressTitle =
+        wallet is SlatepackInterface && widget.txData.isSlatepackSend
+        ? "Building ${wallet.slatepackTerms.noun}..."
+        : "Sending transaction";
 
     final sendProgressController = ProgressAndSuccessController();
 
@@ -287,6 +297,7 @@ class _ConfirmTransactionViewState
         return SendingTransactionDialog(
           coin: coin,
           controller: sendProgressController,
+          title: progressTitle,
         );
       },
     );
@@ -298,6 +309,11 @@ class _ConfirmTransactionViewState
     }
 
     unawaited(navigator.push(sendingRoute));
+    await waitForRoutePresentation(sendingRoute);
+    if (!context.mounted) {
+      closeSendingDialog();
+      return;
+    }
 
     final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
 

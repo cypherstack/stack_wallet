@@ -49,6 +49,17 @@ TransactionV2 _tx(
   }),
 );
 
+class _DecodeFailureWallet extends MimblewimblecoinWallet {
+  _DecodeFailureWallet() : super(CryptoCurrencyNetwork.main);
+
+  @override
+  Future<SlatepackDecodeResult> decodeSlatepack(String slatepack) async =>
+      SlatepackDecodeResult(
+        success: false,
+        error: 'opaque native parse failure',
+      );
+}
+
 void main() {
   test("local transaction for a slate", () {
     const id = "0436430c-2b02-624c-2032-570501212b00";
@@ -108,6 +119,39 @@ void main() {
     expect(inspect({"id": "a"}).amount, isNull);
   });
 
+  test("zero amount and fee on a response slate are unknown", () {
+    final json = _slate(signatures: 1)
+      ..["amount"] = "0"
+      ..["fee"] = "0";
+
+    final response = inspect(json);
+
+    expect(response.state, SlateState.s2);
+    expect(response.amount, isNull);
+    expect(response.fee, isNull);
+  });
+
+  test('decode failures explain likely slatepack problems', () async {
+    final wallet = _DecodeFailureWallet();
+
+    await expectLater(
+      wallet.inspectSlatepack('BEGINSLATEPACK. broken. ENDSLATEPACK.'),
+      throwsA(
+        isA<Exception>()
+            .having(
+              (error) => error.toString(),
+              'message',
+              contains('damaged, incomplete, or encrypted for another wallet'),
+            )
+            .having(
+              (error) => error.toString(),
+              'native error hidden',
+              isNot(contains('opaque native parse failure')),
+            ),
+      ),
+    );
+  });
+
   test("Epic and MWC capabilities", () {
     final epic = EpiccashWallet(CryptoCurrencyNetwork.main);
     final mwc = MimblewimblecoinWallet(CryptoCurrencyNetwork.main);
@@ -124,6 +168,17 @@ void main() {
     expect(mwc.slatepackTerms, SlatepackTerms.slatepack);
   });
 
+  test("Epic balance precondition errors are asynchronous", () async {
+    final wallet = EpiccashWallet(CryptoCurrencyNetwork.main);
+
+    final future = wallet.fetchWalletBalances(
+      refreshFromNode: 0,
+      minimumConfirmations: 10,
+    );
+
+    await expectLater(future, throwsA(anything));
+  });
+
   test("slatepack method rides in TxData.otherData", () {
     final tx = TxData(
       otherData: slatepackMethodOtherData(SlatepackMethod.slatepack),
@@ -136,5 +191,14 @@ void main() {
     );
     expect(TxData().slatepackMethod, isNull);
     expect(TxData(otherData: "not json").slatepackMethod, isNull);
+
+    final merged = TxData(
+      otherData: slatepackMethodOtherData(
+        SlatepackMethod.slatepack,
+        existing: jsonEncode({'walletMetadata': 'preserved'}),
+      ),
+    );
+    expect(merged.slatepackMethod, SlatepackMethod.slatepack);
+    expect(jsonDecode(merged.otherData!)['walletMetadata'], 'preserved');
   });
 }

@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 import '../../models/slatepack_models.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../utilities/amount/amount.dart';
+import '../../utilities/exception_message.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/logger.dart';
+import '../../utilities/route_presentation.dart';
 import '../../utilities/slatepack_text.dart';
 import '../../utilities/util.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/slatepack_interface.dart';
@@ -43,6 +45,8 @@ enum SlatepackRoute {
 /// Takes any slatepack the user pastes, scans or opens, works out what it
 /// is and sends it to the matching screen.
 abstract final class SlatepackImportFlow {
+  static const _historyLookupTimeout = Duration(seconds: 3);
+
   static SlatepackRoute routeFor(
     SlateState state, {
     required bool supportsInvoices,
@@ -87,13 +91,25 @@ abstract final class SlatepackImportFlow {
           inspection.state,
           supportsInvoices: wallet.supportsInvoices,
         );
+        final local = route == SlatepackRoute.finalizeSend
+            ? await wallet
+                  .localTxForSlate(inspection.slateId)
+                  .timeout(
+                    _historyLookupTimeout,
+                    onTimeout: () {
+                      Logging.instance.w(
+                        "Timed out looking up local transaction for slate "
+                        "${inspection.slateId}",
+                      );
+                      return null;
+                    },
+                  )
+            : null;
         return (
           inspection: inspection,
           route: route,
           // Only the wallet that started a send can finalize it.
-          local: route == SlatepackRoute.finalizeSend
-              ? await wallet.localTxForSlate(inspection.slateId)
-              : null,
+          local: local,
         );
       },
       errorTitle: "Could not read ${terms.noun}",
@@ -203,7 +219,12 @@ abstract final class SlatepackImportFlow {
         amount: inspection.amount,
         details: [
           if (inspection.senderAddress != null)
-            ("From", inspection.senderAddress!),
+            (
+              RegExp(r'^[0-9a-fA-F]{64}$').hasMatch(inspection.senderAddress!)
+                  ? "Sender key"
+                  : "From",
+              inspection.senderAddress!,
+            ),
           ("Encrypted", inspection.isEncrypted ? "Yes" : "No"),
           if (inspection.ttlCutoffHeight != null)
             ("Expires at block", inspection.ttlCutoffHeight.toString()),
@@ -280,9 +301,14 @@ abstract final class SlatepackImportFlow {
         amount: amount,
         fee: fee,
         warning: historyWarning
-            ? "No matching send was found in this wallet's history. The "
-                  "amount and fee below come from the imported ${terms.noun}. "
-                  "Review them carefully before finalizing."
+            ? amount == null && fee == null
+                  ? "No matching send was found in this wallet's history. The "
+                        "amount and fee are unavailable. Verify this "
+                        "${terms.noun} with the sender before finalizing."
+                  : "No matching send was found in this wallet's history. "
+                        "Values shown below come from the imported "
+                        "${terms.noun}; values not shown are unavailable. "
+                        "Review them carefully before finalizing."
             : null,
         details: [
           if (inspection.slateId.isNotEmpty) ("Slate ID", inspection.slateId),
@@ -368,9 +394,9 @@ abstract final class SlatepackImportFlow {
     T? result;
     Object? error;
     try {
-      // Let the overlay paint before the wallet is asked without imposing a
-      // fixed delay on every import step.
-      await WidgetsBinding.instance.endOfFrame;
+      // MWC's native calls can block synchronously, so wait until the route is
+      // fully visible rather than merely built at zero transition opacity.
+      await waitForRoutePresentation(overlay);
       result = await action();
     } catch (e, s) {
       Logging.instance.w(errorTitle, error: e, stackTrace: s);
@@ -383,9 +409,9 @@ abstract final class SlatepackImportFlow {
 
     if (error != null || result == null) {
       // An error is worth showing even after the importing screen closed.
-      final text =
-          error?.toString().replaceFirst("Exception: ", "") ??
-          "Unexpected result without an error";
+      final text = error == null
+          ? "Unexpected result without an error"
+          : stripExceptionPrefixes(error);
       if (context.mounted) {
         await _message(context, errorTitle, text);
       } else if (root.mounted) {

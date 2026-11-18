@@ -85,6 +85,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
   late final bool usesSlatepacks;
   late final TextEditingController _receiveSlateController;
   late final SlatepackTerms _slatepackTerms;
+  bool _importingSlatepack = false;
 
   int _currentIndex = 0;
 
@@ -93,14 +94,22 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
   final Map<AddressType, StreamSubscription<Address?>> _addressSubMap = {};
 
   Future<void> _onImportSlatepackPressed() async {
-    final wallet = ref.read(pWallets).getWallet(walletId) as SlatepackInterface;
-    final done = await SlatepackImportFlow.run(
-      context: context,
-      wallet: wallet,
-      text: _receiveSlateController.text,
-    );
-    if (done && mounted) {
-      setState(() => _receiveSlateController.text = "");
+    if (_importingSlatepack) return;
+    setState(() => _importingSlatepack = true);
+    try {
+      final wallet =
+          ref.read(pWallets).getWallet(walletId) as SlatepackInterface;
+      final done = await SlatepackImportFlow.run(
+        context: context,
+        wallet: wallet,
+        text: _receiveSlateController.text,
+      );
+      if (done && mounted) {
+        setState(() => _receiveSlateController.text = "");
+      }
+    } finally {
+      _importingSlatepack = false;
+      if (mounted) setState(() {});
     }
   }
 
@@ -732,8 +741,12 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
           PrimaryButton(
             buttonHeight: ButtonHeight.l,
             label: "Import ${_slatepackTerms.title}",
-            enabled: _receiveSlateController.text.trim().isNotEmpty,
-            onPressed: _receiveSlateController.text.trim().isNotEmpty
+            enabled:
+                _receiveSlateController.text.trim().isNotEmpty &&
+                !_importingSlatepack,
+            onPressed:
+                _receiveSlateController.text.trim().isNotEmpty &&
+                    !_importingSlatepack
                 ? _onImportSlatepackPressed
                 : null,
           ),

@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/models/slatepack_models.dart';
 import 'package:stackwallet/pages/slatepack/slatepack_dialog.dart';
+import 'package:stackwallet/pages/slatepack/slatepack_popup.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/slatepack_terms.dart';
 import 'package:stackwallet/utilities/util.dart';
@@ -12,6 +13,15 @@ import 'package:stackwallet/utilities/util.dart';
 import '../../sample_data/theme_json.dart';
 
 void main() {
+  test('slatepack text uses a platform-native monospace family', () {
+    expect(slatepackMonospaceFontFamily(TargetPlatform.iOS), 'Menlo');
+    expect(slatepackMonospaceFontFamily(TargetPlatform.macOS), 'Menlo');
+    expect(slatepackMonospaceFontFamily(TargetPlatform.windows), 'Consolas');
+    expect(slatepackMonospaceFontFamily(TargetPlatform.android), 'monospace');
+    expect(slatepackMonospaceFontFamily(TargetPlatform.fuchsia), 'monospace');
+    expect(slatepackMonospaceFontFamily(TargetPlatform.linux), 'monospace');
+  });
+
   test("uses a coin-specific file name", () {
     const slate = SlatepackDialog(
       terms: SlatepackTerms.slate,
@@ -112,5 +122,55 @@ void main() {
       (Offset.zero & tester.view.physicalSize).contains(origin.topLeft),
       isTrue,
     );
+  });
+
+  testWidgets('actions fit at 360 dp with 115 percent text', (tester) async {
+    tester.view.physicalSize = const Size(360, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final previousWidth = Util.screenWidth;
+    Util.screenWidth = 360;
+    addTearDown(() => Util.screenWidth = previousWidth);
+
+    final theme = StackTheme.fromJson(json: lightThemeJsonMap);
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          theme: ThemeData(
+            extensions: [StackColors.fromStackColorTheme(theme)],
+          ),
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context)
+                .copyWith(textScaler: const TextScaler.linear(1.15)),
+            child: child!,
+          ),
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () => showSlatepackPopup<void>(
+                  context: context,
+                  child: const SlatepackDialog(
+                    terms: SlatepackTerms.slatepack,
+                    slatepack: 'BEGINSLATEPACK. test. ENDSLATEPACK.',
+                    state: SlateState.s1,
+                    slateId: 'test-slate',
+                  ),
+                ),
+                child: const Text('Show'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Show'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Copy'), findsOneWidget);
+    expect(find.text('Share'), findsOneWidget);
+    expect(find.text('Save'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

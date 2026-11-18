@@ -96,8 +96,19 @@ mixin SlatepackInterface<T extends CryptoCurrency> on Wallet<T> {
 /// Key in [TxData.otherData] that tells the confirm screen how to send.
 const kSlatepackMethodKey = "transactionMethod";
 
-String slatepackMethodOtherData(SlatepackMethod method) =>
-    jsonEncode({kSlatepackMethodKey: method.name});
+String slatepackMethodOtherData(SlatepackMethod method, {String? existing}) {
+  final data = <String, dynamic>{};
+  if (existing != null) {
+    try {
+      final decoded = jsonDecode(existing);
+      if (decoded is Map) {
+        data.addAll(decoded.cast<String, dynamic>());
+      }
+    } catch (_) {}
+  }
+  data[kSlatepackMethodKey] = method.name;
+  return jsonEncode(data);
+}
 
 extension SlatepackTxData on TxData {
   SlatepackMethod? get slatepackMethod {

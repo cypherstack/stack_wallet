@@ -28,6 +28,8 @@ import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/mimblewimblecoin_wallet.dart';
+import 'package:stackwallet/wallets/wallet/intermediate/mimblewimble_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/slatepack_interface.dart';
 
 import '../../sample_data/theme_json.dart';
@@ -94,6 +96,38 @@ class _Wallet extends EpiccashWallet {
   }
 }
 
+class _SynchronousMwcWallet extends MimblewimblecoinWallet {
+  _SynchronousMwcWallet({this.onCreate, this.gate})
+    : super(CryptoCurrencyNetwork.main);
+
+  final VoidCallback? onCreate;
+  final Completer<void>? gate;
+
+  @override
+  WalletInfo get info => _Info(cryptoCurrency);
+
+  @override
+  Future<void> refresh({bool doScan = true}) async {}
+
+  @override
+  Future<SlatepackResult> createSlatepack({
+    required Amount amount,
+    String? recipientAddress,
+    String? message,
+    bool sendAll = false,
+  }) async {
+    onCreate?.call();
+    await gate?.future;
+    return SlatepackResult(
+      success: true,
+      slatepack: 'BEGINSLATEPACK. test. ENDSLATEPACK.',
+      slateId: 'mwc-slate-1',
+      state: SlateState.s1,
+      amount: amount,
+    );
+  }
+}
+
 /// Outlasts the minimum time the sending dialog is meant to stay up.
 const _sendTimer = Duration(seconds: 3);
 
@@ -111,7 +145,7 @@ AmountFormatter _formatter(CryptoCurrency coin) => AmountFormatter(
 /// Send. [shown] takes the view off screen when set to false.
 Future<void> _confirmSend(
   WidgetTester tester,
-  _Wallet wallet, {
+  MimblewimbleWallet wallet, {
   MainDB? db,
   void Function()? onSuccess,
   ValueNotifier<bool>? shown,
@@ -185,6 +219,55 @@ class _Notes extends Fake implements MainDB {
 }
 
 void main() {
+  testWidgets('slate creation starts after its progress route is visible', (
+    tester,
+  ) async {
+    double? routeOpacity;
+    final gate = Completer<void>();
+    late final _SynchronousMwcWallet wallet;
+    wallet = _SynchronousMwcWallet(
+      gate: gate,
+      onCreate: () {
+        final dialogs = find.byType(SendingTransactionDialog).evaluate();
+        if (dialogs.isEmpty) {
+          routeOpacity = -1;
+        } else {
+          routeOpacity = ModalRoute.of(dialogs.single)!.animation!.value;
+        }
+      },
+    );
+
+    await _confirmSend(tester, wallet);
+    for (var i = 0; i < 10 && routeOpacity == null; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+
+    expect(routeOpacity, 1);
+    expect(find.text('Building slatepack...'), findsOneWidget);
+
+    gate.complete();
+    await tester.pumpAndSettle();
+    expect(find.byType(SlatepackDialog), findsOneWidget);
+    await tester.pump(_sendTimer);
+  });
+
+  testWidgets('slate creation progress says it is building a slate', (
+    tester,
+  ) async {
+    final gate = Completer<void>();
+    final wallet = _Wallet(gate: gate);
+
+    await _confirmSend(tester, wallet);
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.text('Building slate...'), findsOneWidget);
+    expect(find.text('Sending transaction'), findsNothing);
+
+    gate.complete();
+    await tester.pumpAndSettle();
+    await tester.pump(_sendTimer);
+  });
+
   for (final failNote in [false, true]) {
     testWidgets('slate send keeps its result with note failure=$failNote', (
       tester,
@@ -311,6 +394,18 @@ void main() {
     expect(find.textContaining('not enough funds'), findsOneWidget);
     expect(find.byType(SendingTransactionDialog), findsNothing);
     expect(wallet.cancelled, isEmpty);
+    await tester.pump(_sendTimer);
+  });
+
+  testWidgets('a native creation error has one exception prefix', (
+    tester,
+  ) async {
+    final wallet = _Wallet(createError: 'Exception: wallet is locked');
+    await _confirmSend(tester, wallet);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Exception: wallet is locked'), findsOneWidget);
+    expect(find.textContaining('Exception: Exception:'), findsNothing);
     await tester.pump(_sendTimer);
   });
 
