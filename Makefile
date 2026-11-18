@@ -535,7 +535,7 @@ build-android: require-version toolchain-check ## Build Android APKs (requires a
 	@"$(FLUTTER)" build apk --split-per-abi --release
 
 # iOS: same steps as the "build-ios" CI job (device build, no code signing). Run on macOS with Xcode.
-build-ios: require-version verify-bom toolchain-check check-reqs-macos check-sdk-macos ## Build iOS Runner.app without code signing (same steps as CI)
+build-ios: require-version verify-bom toolchain-check check-reqs-macos check-sdk-macos ## Build iOS Runner.app without code signing (source in Nix/direnv on Apple Silicon; same steps as CI)
 	@[ -n "$(FLUTTER)" ] && command -v "$(FLUTTER)" >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
 	@xcrun --sdk iphoneos --show-sdk-path >/dev/null 2>&1 || { echo >&2 "[ERROR] iOS SDK not available; install the iOS platform in Xcode."; exit 1; }
 	@cd scripts && bash prebuild.sh
