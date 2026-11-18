@@ -817,10 +817,16 @@ class MimblewimblecoinWallet extends MimblewimbleWallet {
   }
 
   @override
-  Future<void> updateTransactions() async {
+  Future<void> updateTransactions() =>
+      updateTransactionsFromWallet(refreshFromNode: true);
+
+  @override
+  @protected
+  Future<void> updateTransactionsFromWallet({
+    required bool refreshFromNode,
+  }) async {
     try {
       final String wallet = await _ensureWalletOpen();
-      const int refreshFromNode = 1;
 
       final List<String> myAddresses = await mainDB
           .getAddresses(walletId)
@@ -835,7 +841,10 @@ class MimblewimblecoinWallet extends MimblewimbleWallet {
       final Set<String> myAddressesSet = myAddresses.toSet();
 
       final List<MimblewimbleTransaction> transactions = await libMwc
-          .getTransactions(wallet: wallet, refreshFromNode: refreshFromNode);
+          .getTransactions(
+            wallet: wallet,
+            refreshFromNode: refreshFromNode ? 1 : 0,
+          );
 
       final List<TransactionV2> txns = [];
 

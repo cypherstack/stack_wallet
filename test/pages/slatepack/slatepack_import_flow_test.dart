@@ -119,15 +119,11 @@ class _InspectOnlyWallet extends EpiccashWallet {
 }
 
 class _SynchronousMwcWallet extends MimblewimblecoinWallet {
-  _SynchronousMwcWallet({
-    required this.onInspect,
-    this.state = SlateState.s3,
-    this.localGate,
-  }) : super(CryptoCurrencyNetwork.main);
+  _SynchronousMwcWallet({required this.onInspect, this.state = SlateState.s3})
+    : super(CryptoCurrencyNetwork.main);
 
   final VoidCallback onInspect;
   final SlateState state;
-  final Completer<void>? localGate;
 
   @override
   Future<SlateInspection> inspectSlatepack(String armored) {
@@ -137,10 +133,7 @@ class _SynchronousMwcWallet extends MimblewimblecoinWallet {
 
   @override
   Future<({Amount amount, Amount fee, bool isSend, bool isCancelled})?>
-  localTxForSlate(String slateId) async {
-    await localGate?.future;
-    return null;
-  }
+  localTxForSlate(String slateId) async => null;
 }
 
 void main() {
@@ -467,27 +460,6 @@ void main() {
 
       expect(find.text('Receive slate'), findsOneWidget);
       expect(find.text('Encrypted'), findsNothing);
-      await tester.tap(find.text('Cancel'));
-      await tester.pumpAndSettle();
-    });
-
-    testWidgets('a stalled local-history lookup falls back to the summary', (
-      tester,
-    ) async {
-      final wallet = _SynchronousMwcWallet(
-        state: SlateState.s2,
-        onInspect: () {},
-        localGate: Completer<void>(),
-      );
-
-      await runFlow(tester, wallet);
-      expect(find.byType(CustomLoadingOverlay), findsOneWidget);
-
-      await tester.pump(const Duration(seconds: 3));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Finalize slatepack'), findsOneWidget);
-      expect(find.byKey(const Key('slatepackHistoryWarning')), findsOneWidget);
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
     });

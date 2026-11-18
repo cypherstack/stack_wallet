@@ -42,6 +42,11 @@ void main() {
       expect(find.text('Go back'), findsOneWidget);
       expect(find.text('Cancel it'), findsOneWidget);
       expect(find.text('Cancel transaction'), findsNothing);
+      expect(
+        find.textContaining('may not prevent another party'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('can no longer complete'), findsNothing);
       expect(tester.takeException(), isNull);
     });
   }

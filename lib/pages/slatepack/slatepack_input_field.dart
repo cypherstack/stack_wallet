@@ -14,6 +14,7 @@ import '../../utilities/assets.dart';
 import '../../utilities/barcode_scanner_interface.dart';
 import '../../utilities/clipboard_interface.dart';
 import '../../utilities/constants.dart';
+import '../../utilities/exception_message.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/slatepack_terms.dart';
 import '../../utilities/text_styles.dart';
@@ -156,7 +157,7 @@ class _SlatepackInputFieldState extends ConsumerState<SlatepackInputField> {
         error: e,
         stackTrace: s,
       );
-      _showError(e.toString().replaceFirst("Exception: ", ""));
+      _showError(stripExceptionPrefixes(e));
     }
   }
 

@@ -114,7 +114,6 @@ enum SlatepackDecodeFailure { invalidInput, walletUnavailable }
 
 class SlatepackDecodeResult {
   final bool success;
-  final String? error;
   final String? slateJson;
   final bool? wasEncrypted;
   final String? senderAddress;
@@ -123,7 +122,6 @@ class SlatepackDecodeResult {
 
   SlatepackDecodeResult({
     required this.success,
-    this.error,
     this.slateJson,
     this.wasEncrypted,
     this.senderAddress,
@@ -135,7 +133,6 @@ class SlatepackDecodeResult {
   String toString() {
     return "SlatepackDecodeResult("
         "success: $success, "
-        "error: $error, "
         "slateJson: $slateJson, "
         "wasEncrypted: $wasEncrypted, "
         "senderAddress: $senderAddress, "

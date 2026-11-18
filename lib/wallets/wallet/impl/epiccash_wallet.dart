@@ -944,10 +944,16 @@ class EpiccashWallet extends MimblewimbleWallet {
   }
 
   @override
-  Future<void> updateTransactions() async {
+  Future<void> updateTransactions() =>
+      updateTransactionsFromWallet(refreshFromNode: true);
+
+  @override
+  @protected
+  Future<void> updateTransactionsFromWallet({
+    required bool refreshFromNode,
+  }) async {
     try {
       _hackedCheckTorNodePrefs();
-      const int refreshFromNode = 1;
 
       final List<String> myAddresses = await mainDB
           .getAddresses(walletId)
@@ -962,7 +968,10 @@ class EpiccashWallet extends MimblewimbleWallet {
       final Set<String> myAddressesSet = myAddresses.toSet();
 
       final List<MimblewimbleTransaction> transactions = await libEpic
-          .getTransactions(wallet: _wallet!, refreshFromNode: refreshFromNode);
+          .getTransactions(
+            wallet: _wallet!,
+            refreshFromNode: refreshFromNode ? 1 : 0,
+          );
 
       final List<TransactionV2> txns = [];
 

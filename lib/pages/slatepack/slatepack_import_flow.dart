@@ -45,8 +45,6 @@ enum SlatepackRoute {
 /// Takes any slatepack the user pastes, scans or opens, works out what it
 /// is and sends it to the matching screen.
 abstract final class SlatepackImportFlow {
-  static const _historyLookupTimeout = Duration(seconds: 3);
-
   static SlatepackRoute routeFor(
     SlateState state, {
     required bool supportsInvoices,
@@ -92,18 +90,7 @@ abstract final class SlatepackImportFlow {
           supportsInvoices: wallet.supportsInvoices,
         );
         final local = route == SlatepackRoute.finalizeSend
-            ? await wallet
-                  .localTxForSlate(inspection.slateId)
-                  .timeout(
-                    _historyLookupTimeout,
-                    onTimeout: () {
-                      Logging.instance.w(
-                        "Timed out looking up local transaction for slate "
-                        "${inspection.slateId}",
-                      );
-                      return null;
-                    },
-                  )
+            ? await wallet.localTxForSlate(inspection.slateId)
             : null;
         return (
           inspection: inspection,

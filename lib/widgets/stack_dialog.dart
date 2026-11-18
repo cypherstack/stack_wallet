@@ -52,9 +52,9 @@ class StackDialogBase extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.popupBG,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .popupBG,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Padding(padding: padding, child: child),
@@ -237,9 +237,8 @@ class StackOkDialog extends StatelessWidget {
                               Navigator.of(context, rootNavigator: true).pop();
                             } else {
                               int count = 0;
-                              Navigator.of(
-                                context,
-                              ).popUntil((_) => count++ >= 2);
+                              Navigator.of(context)
+                                  .popUntil((_) => count++ >= 2);
                               // onOkPressed?.call("OK");
                             }
                           },

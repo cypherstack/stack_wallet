@@ -112,6 +112,11 @@ abstract class MimblewimbleWallet extends Bip39Wallet with SlatepackInterface {
 
   Future<SlatepackDecodeResult> decodeSlatepack(String slatepack);
 
+  /// Rebuilds the app transaction cache from the native wallet. When
+  /// [refreshFromNode] is false, this must only read native wallet state.
+  @protected
+  Future<void> updateTransactionsFromWallet({required bool refreshFromNode});
+
   bool isHttpAddress(String address) {
     return address.startsWith('http://') || address.startsWith('https://');
   }
@@ -135,12 +140,15 @@ abstract class MimblewimbleWallet extends Bip39Wallet with SlatepackInterface {
       if (decoded.failure == SlatepackDecodeFailure.walletUnavailable) {
         throw Exception(
           "This ${slatepackTerms.noun} could not be read because the wallet "
-          "could not be opened. Unlock the wallet and try again.",
+          "could not be opened. Try again.",
         );
       }
+      final encryptionCause = supportsSlatepackEncryption
+          ? ", incomplete, or encrypted for another wallet"
+          : " or incomplete";
       throw Exception(
-        "This ${slatepackTerms.noun} could not be decoded. It may be damaged, "
-        "incomplete, or encrypted for another wallet.",
+        "This ${slatepackTerms.noun} could not be decoded. It may be damaged"
+        "$encryptionCause.",
       );
     }
 
@@ -262,10 +270,14 @@ abstract class MimblewimbleWallet extends Bip39Wallet with SlatepackInterface {
       slateId,
     );
 
-    final TransactionV2? tx = await findLocalTxAfterRefresh(
-      find: find,
-      refresh: updateTransactions,
-    );
+    TransactionV2? tx = await find();
+    if (tx == null) {
+      // Slate creation updates the native wallet before its unawaited history
+      // refresh reaches Isar. Read that local state without contacting a node,
+      // then query the real app cache again.
+      await updateTransactionsFromWallet(refreshFromNode: false);
+      tx = await find();
+    }
     if (tx == null) return null;
 
     final int digits = cryptoCurrency.fractionDigits;
@@ -281,19 +293,6 @@ abstract class MimblewimbleWallet extends Bip39Wallet with SlatepackInterface {
       isSend: isSend,
       isCancelled: tx.isCancelled,
     );
-  }
-
-  /// Reads the cache, refreshes it once on a miss, then reads it again.
-  /// The import flow places its existing timeout around the whole lookup.
-  @visibleForTesting
-  static Future<TransactionV2?> findLocalTxAfterRefresh({
-    required Future<TransactionV2?> Function() find,
-    required Future<void> Function() refresh,
-  }) async {
-    final first = await find();
-    if (first != null) return first;
-    await refresh();
-    return find();
   }
 
   /// The transaction for [slateId] among [candidates]. A wallet that sent to
