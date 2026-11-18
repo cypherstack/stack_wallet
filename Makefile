@@ -96,7 +96,7 @@ else
 endif
 # Source builds are only exposed through the Nix/direnv toolchain. Homebrew,
 # manual and host toolchains are prebuilt-only.
-SOURCE_TOOLCHAIN := $(filter nix direnv,$(TOOLCHAIN_EFFECTIVE))
+override SOURCE_TOOLCHAIN := $(filter nix direnv,$(TOOLCHAIN_EFFECTIVE))
 # Linux builds use a project-local pub cache so cargo finds the repo-local
 # .cargo/config.toml that carries PROTOC through Flutter's filtered hook environment.
 # Other targets leave PUB_CACHE unset, so Flutter uses its normal per-user cache
@@ -391,7 +391,7 @@ endif
 # Every other host defaults to the verified prebuilts; that combination
 # follows PREBUILTS.
 ANDROID_ARCH   := $(UNAME_M)
-ANDROID_SOURCE_OK := $(and $(filter Linux,$(PLATFORM)),$(filter x86_64,$(ANDROID_ARCH)),$(strip $(SOURCE_TOOLCHAIN)),$(strip $(NIX_BIN)))
+override ANDROID_SOURCE_OK := $(and $(filter Linux,$(PLATFORM)),$(filter x86_64,$(ANDROID_ARCH)),$(strip $(SOURCE_TOOLCHAIN)),$(strip $(NIX_BIN)))
 ANDROID_PREBUILTS_DEFAULT := $(if $(ANDROID_SOURCE_OK),$(PREBUILTS),1)
 ANDROID_PREBUILTS ?= $(ANDROID_PREBUILTS_DEFAULT)
 ifeq ($(strip $(ANDROID_PREBUILTS)),)
