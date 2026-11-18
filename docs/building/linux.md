@@ -14,8 +14,8 @@ These steps build the Linux desktop app and the Android app on Ubuntu 24.04
 | [Nix](https://nixos.org/download/) | Source mode only with Nix/direnv; not needed with `-d` |
 | The [Android tools](#android-tools) below | Android builds |
 
-Homebrew/manual toolchains are prebuilt-only: use `PREBUILTS=1`; source mode
-requires Nix/direnv.
+Non-Nix toolchains (Homebrew/manual/host) are prebuilt-only: use
+`PREBUILTS=1`; source mode requires Nix/direnv.
 
 **Rustup:** every app builds its DNSSEC resolver with Rust **1.90.0**, and
 Stack Wallet builds Xelis with Rust **1.99.1**. The build hooks install these
