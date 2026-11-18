@@ -376,7 +376,7 @@ ifneq ($(filter MINGW% MSYS%,$(PLATFORM)),)
 endif
 # Android source builds through dnix need an x86_64 Linux host. Every other
 # host defaults to the verified prebuilts; x86_64 Linux follows PREBUILTS.
-ANDROID_ARCH   := $(shell uname -m 2>/dev/null)
+ANDROID_ARCH   := $(UNAME_M)
 ANDROID_SOURCE_OK := $(and $(filter Linux,$(PLATFORM)),$(filter x86_64,$(ANDROID_ARCH)),$(filter nix direnv,$(TOOLCHAIN_EFFECTIVE)))
 ANDROID_PREBUILTS ?= $(if $(ANDROID_SOURCE_OK),$(PREBUILTS),1)
 ifneq ($(filter $(ANDROID_PREBUILTS),0 1),$(ANDROID_PREBUILTS))
@@ -392,7 +392,7 @@ SYSTEM_DEPS ?= 0
 ifneq ($(filter $(SYSTEM_DEPS),0 1),$(SYSTEM_DEPS))
   $(error SYSTEM_DEPS must be 0 or 1)
 endif
-LINUX_ARCH   := $(shell uname -m | sed -e 's/x86_64/x64/' -e 's/aarch64/arm64/')
+LINUX_ARCH   := $(shell printf '%s' '$(UNAME_M)' | sed -e 's/x86_64/x64/' -e 's/aarch64/arm64/')
 LINUX_BUNDLE ?= build/linux/$(LINUX_ARCH)/release/bundle
 
 clean-app: ## Remove app build output (build/, Pods) but keep .dart_tool/hooks_runner, so the next build is fast
@@ -407,7 +407,7 @@ clean-native: ## Remove only the native-asset build outputs (forces the Rust/Go/
 	@rm -rf .dart_tool/hooks_runner build/native_assets
 	@echo "[OK] Removed .dart_tool/hooks_runner and build/native_assets."
 
-build-macos: require-version toolchain-check check-reqs-macos check-sdk-macos ## Build macOS release (source by default; PREBUILTS=1 uses verified prebuilts)
+build-macos: require-version toolchain-check check-reqs-macos check-sdk-macos ## Build macOS release (source on Apple Silicon; PREBUILTS=1 uses verified prebuilts)
 	@echo "--- Configuring project (scripts/build_app.sh)..."
 	@cd scripts && $(if $(filter 1,$(CONFIRM)),echo yes |,) env $(MACOS_ENV_UNSET) ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p macos -a $(APP_NAME) $(if $(filter 1,$(PREBUILTS)),-d)
 	@echo "--- Resolving dependencies..."
@@ -441,7 +441,7 @@ diagnose-env-macos: ## Print macOS build env and tool resolution
 	@echo "NIX_CFLAGS_LINK=$${NIX_CFLAGS_LINK:-<unset>}"
 
 build-linux: export PUB_CACHE := $(LINUX_PUB_CACHE)
-build-linux: require-version check-linux toolchain-check check-reqs ## Build Linux Release through Flutter native-assets hooks
+build-linux: require-version check-linux toolchain-check check-reqs ## Build Linux release (source in Nix/direnv; PREBUILTS=1 uses verified prebuilts)
 	@echo "--- Running prebuild bootstrap..."
 	@cd scripts && bash prebuild.sh
 	@echo "--- Generating config..."
@@ -503,7 +503,7 @@ android-dev-key: ## Create a throw-away debug signing key if android/key.propert
 		printf 'storeFile=../dev-keystore.jks\nstorePassword=android\nkeyPassword=android\nkeyAlias=devkey\n' > android/key.properties; \
 	fi
 
-build-android: require-version toolchain-check ## Build Android APKs (requires android/key.properties; prebuilt dnix on macOS, Linux follows PREBUILTS)
+build-android: require-version toolchain-check ## Build Android APKs (requires android/key.properties; prebuilt unless x86_64 Linux in Nix/direnv follows PREBUILTS)
 	@[ -n "$(FLUTTER)" ] && command -v "$(FLUTTER)" >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
 	@[ -f android/key.properties ] || { echo >&2 "[ERROR] android/key.properties is missing. Run 'make android-dev-key' for a local throw-away key; never distribute APKs signed with it."; exit 1; }
 	@[ -n "$$ANDROID_SDK_ROOT$$ANDROID_HOME" ] || { echo >&2 "[ERROR] ANDROID_SDK_ROOT is not set (Android SDK/NDK required)."; exit 1; }
