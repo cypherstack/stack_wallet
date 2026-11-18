@@ -141,8 +141,8 @@ AmountFormatter _formatter(CryptoCurrency coin) => AmountFormatter(
   maxDecimals: coin.fractionDigits,
 );
 
-/// Pumps the confirmation of a slate send of 100 with a fee of 1 and presses
-/// Send. [shown] takes the view off screen when set to false.
+/// Pumps the confirmation of a slate send of 100 with a fee of 1 and creates
+/// it. [shown] takes the view off screen when set to false.
 Future<void> _confirmSend(
   WidgetTester tester,
   MimblewimbleWallet wallet, {
@@ -201,9 +201,15 @@ Future<void> _confirmSend(
     ),
   );
   await tester.pumpAndSettle();
-  await tester.ensureVisible(find.text('Send'));
-  await tester.tap(find.text('Send'));
+  final actionLabel = 'Create ${wallet.slatepackTerms.noun}';
+  expect(find.text('Send'), findsNothing);
+  await tester.ensureVisible(find.text(actionLabel));
+  await tester.tap(find.text(actionLabel));
   await tester.pumpAndSettle();
+  expect(
+    find.textContaining('to create a ${wallet.slatepackTerms.noun}'),
+    findsOneWidget,
+  );
   Navigator.of(tester.element(find.byType(DesktopAuthSend))).pop(true);
 }
 
@@ -358,6 +364,8 @@ void main() {
       ),
       findsOneWidget,
     );
+    expect(find.textContaining('already been created'), findsOneWidget);
+    expect(find.textContaining('cancel the transaction'), findsOneWidget);
     await tester.pump(const Duration(seconds: 10));
     await tester.pumpAndSettle();
     expect(find.text('Fee changed'), findsOneWidget);
@@ -387,6 +395,20 @@ void main() {
   ) async {
     final wallet = _Wallet(createError: 'not enough funds');
     await _confirmSend(tester, wallet);
+    await tester.pump(const Duration(milliseconds: 400));
+    for (
+      var i = 0;
+      i < 10 && find.text('Could not create the slate').evaluate().isEmpty;
+      i++
+    ) {
+      await tester.pump();
+    }
+
+    expect(
+      find.byType(SendingTransactionDialog, skipOffstage: false),
+      findsOneWidget,
+      reason: 'the outgoing and incoming dialog fades should overlap',
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('Could not create the slate'), findsOneWidget);
@@ -397,15 +419,15 @@ void main() {
     await tester.pump(_sendTimer);
   });
 
-  testWidgets('a native creation error has one exception prefix', (
+  testWidgets('a native creation error has no exception prefix', (
     tester,
   ) async {
     final wallet = _Wallet(createError: 'Exception: wallet is locked');
     await _confirmSend(tester, wallet);
     await tester.pumpAndSettle();
 
-    expect(find.text('Exception: wallet is locked'), findsOneWidget);
-    expect(find.textContaining('Exception: Exception:'), findsNothing);
+    expect(find.text('wallet is locked'), findsOneWidget);
+    expect(find.textContaining('Exception:'), findsNothing);
     await tester.pump(_sendTimer);
   });
 

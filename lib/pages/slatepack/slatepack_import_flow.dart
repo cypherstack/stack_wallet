@@ -45,6 +45,8 @@ enum SlatepackRoute {
 /// Takes any slatepack the user pastes, scans or opens, works out what it
 /// is and sends it to the matching screen.
 abstract final class SlatepackImportFlow {
+  static const _historyLookupTimeout = Duration(seconds: 3);
+
   static SlatepackRoute routeFor(
     SlateState state, {
     required bool supportsInvoices,
@@ -89,14 +91,31 @@ abstract final class SlatepackImportFlow {
           inspection.state,
           supportsInvoices: wallet.supportsInvoices,
         );
-        final local = route == SlatepackRoute.finalizeSend
-            ? await wallet.localTxForSlate(inspection.slateId)
+        var historyLookupTimedOut = false;
+        final needsLocalHistory =
+            route == SlatepackRoute.receive ||
+            route == SlatepackRoute.finalizeSend;
+        final local = needsLocalHistory
+            ? await wallet
+                  .localTxForSlate(inspection.slateId)
+                  .timeout(
+                    _historyLookupTimeout,
+                    onTimeout: () {
+                      historyLookupTimedOut = true;
+                      Logging.instance.w(
+                        "Timed out looking up local transaction for slate "
+                        "${inspection.slateId}",
+                      );
+                      return null;
+                    },
+                  )
             : null;
         return (
           inspection: inspection,
           route: route,
           // Only the wallet that started a send can finalize it.
           local: local,
+          historyLookupTimedOut: historyLookupTimedOut,
         );
       },
       errorTitle: "Could not read ${terms.noun}",
@@ -108,6 +127,31 @@ abstract final class SlatepackImportFlow {
 
     switch (route) {
       case SlatepackRoute.receive:
+        if (read.historyLookupTimedOut) {
+          await _message(
+            context,
+            "Could not check wallet history",
+            "The wallet is busy. Try importing this ${terms.noun} again.",
+          );
+          return false;
+        }
+        if (read.local?.isSend == true) {
+          await _message(
+            context,
+            "Cannot receive this ${terms.noun}",
+            "This wallet created the transaction. Share this ${terms.noun} "
+                "with the other party, then import their response instead.",
+          );
+          return false;
+        }
+        if (read.local != null) {
+          await _message(
+            context,
+            "Cannot receive this ${terms.noun}",
+            "This transaction is already in this wallet's history.",
+          );
+          return false;
+        }
         return _receive(context, wallet, slatepack, inspection);
 
       case SlatepackRoute.finalizeSend:
@@ -399,7 +443,11 @@ abstract final class SlatepackImportFlow {
     }
 
     if (root.mounted && overlay.isActive) {
-      root.removeRoute(overlay);
+      if (overlay.isCurrent) {
+        root.pop();
+      } else {
+        root.removeRoute(overlay);
+      }
     }
 
     if (error != null || result == null) {

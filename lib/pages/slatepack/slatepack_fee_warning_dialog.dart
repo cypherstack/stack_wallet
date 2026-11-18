@@ -8,6 +8,7 @@ import '../../widgets/stack_dialog.dart';
 Future<void> showSlatepackFeeChangedDialog({
   required BuildContext context,
   required String message,
+  required String noun,
 }) {
   return showDialog<void>(
     context: context,
@@ -16,7 +17,10 @@ Future<void> showSlatepackFeeChangedDialog({
       canPop: false,
       child: StackOkDialog(
         title: "Fee changed",
-        message: message,
+        message:
+            "$message The $noun has already been created. Select OK to review "
+            "and share it. To refuse this fee, cancel the transaction from "
+            "its details instead.",
         desktopPopRootNavigator: Util.isDesktop,
         maxWidth: Util.isDesktop ? 400 : null,
       ),

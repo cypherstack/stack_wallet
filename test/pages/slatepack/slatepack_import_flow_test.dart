@@ -119,11 +119,15 @@ class _InspectOnlyWallet extends EpiccashWallet {
 }
 
 class _SynchronousMwcWallet extends MimblewimblecoinWallet {
-  _SynchronousMwcWallet({required this.onInspect, this.state = SlateState.s3})
-    : super(CryptoCurrencyNetwork.main);
+  _SynchronousMwcWallet({
+    required this.onInspect,
+    this.state = SlateState.s3,
+    this.localGate,
+  }) : super(CryptoCurrencyNetwork.main);
 
   final VoidCallback onInspect;
   final SlateState state;
+  final Completer<void>? localGate;
 
   @override
   Future<SlateInspection> inspectSlatepack(String armored) {
@@ -133,7 +137,10 @@ class _SynchronousMwcWallet extends MimblewimblecoinWallet {
 
   @override
   Future<({Amount amount, Amount fee, bool isSend, bool isCancelled})?>
-  localTxForSlate(String slateId) async => null;
+  localTxForSlate(String slateId) async {
+    await localGate?.future;
+    return null;
+  }
 }
 
 void main() {
@@ -375,7 +382,7 @@ void main() {
         find.textContaining('amount and fee are unavailable'),
         findsOneWidget,
       );
-      expect(find.textContaining('0.00000000 MWC'), findsNothing);
+      expect(find.textContaining('0.000000000 MWC'), findsNothing);
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
     });
@@ -431,6 +438,41 @@ void main() {
       await tester.tap(find.text("Cancel"));
       await tester.pumpAndSettle();
       expect(wallet.finalizeCalls, 0);
+    });
+
+    testWidgets("this wallet cannot receive its own initial slate", (
+      tester,
+    ) async {
+      final wallet = _InspectOnlyWallet(SlateState.s1, localIsSend: true);
+
+      await runFlow(tester, wallet);
+
+      expect(find.text("Cannot receive this slate"), findsOneWidget);
+      expect(find.textContaining("This wallet created"), findsOneWidget);
+      expect(find.text("Receive"), findsNothing);
+      expect(wallet.receiveCalls, 0);
+      await closeDialog(tester);
+    });
+
+    testWidgets('a stalled local-history lookup falls back to the summary', (
+      tester,
+    ) async {
+      final wallet = _SynchronousMwcWallet(
+        state: SlateState.s2,
+        onInspect: () {},
+        localGate: Completer<void>(),
+      );
+
+      await runFlow(tester, wallet);
+      expect(find.byType(CustomLoadingOverlay), findsOneWidget);
+
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Finalize slatepack'), findsOneWidget);
+      expect(find.byKey(const Key('slatepackHistoryWarning')), findsOneWidget);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
     });
 
     testWidgets('a hexadecimal slatepack sender is labelled as a key', (
@@ -591,9 +633,20 @@ void main() {
       shown.value = false;
       await tester.pump();
       gate.complete();
-      await tester.pump(const Duration(milliseconds: 400));
-      await tester.pump(const Duration(milliseconds: 400));
+      for (
+        var i = 0;
+        i < 10 && find.text("the slate was refused").evaluate().isEmpty;
+        i++
+      ) {
+        await tester.pump();
+      }
       expect(find.text("the slate was refused"), findsOneWidget);
+      expect(
+        find.byType(CustomLoadingOverlay, skipOffstage: false),
+        findsOneWidget,
+        reason: 'the outgoing and incoming dialog fades should overlap',
+      );
+      await tester.pump(const Duration(milliseconds: 400));
       expect(
         find.byType(CustomLoadingOverlay, skipOffstage: false),
         findsNothing,

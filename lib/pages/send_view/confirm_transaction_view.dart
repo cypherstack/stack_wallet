@@ -238,6 +238,7 @@ class _ConfirmTransactionViewState
         await showSlatepackFeeChangedDialog(
           context: context,
           message: feeChange,
+          noun: terms.noun,
         );
       }
     }
@@ -309,7 +310,11 @@ class _ConfirmTransactionViewState
 
     void closeSendingDialog() {
       if (navigator.mounted && sendingRoute.isActive) {
-        navigator.removeRoute(sendingRoute);
+        if (sendingRoute.isCurrent) {
+          navigator.pop();
+        } else {
+          navigator.removeRoute(sendingRoute);
+        }
       }
     }
 
@@ -452,6 +457,7 @@ class _ConfirmTransactionViewState
           ? "Could not create the ${wallet.slatepackTerms.noun}"
           : "Broadcast transaction failed";
       Logging.instance.e(message, error: e, stackTrace: s);
+      final errorMessage = stripExceptionPrefixes(e);
       // pop sending dialog
       closeSendingDialog();
       if (context.mounted) {
@@ -474,7 +480,7 @@ class _ConfirmTransactionViewState
                       Flexible(
                         child: SingleChildScrollView(
                           child: SelectableText(
-                            e.toString(),
+                            errorMessage,
                             style: STextStyles.smallMed14(context),
                           ),
                         ),
@@ -499,7 +505,7 @@ class _ConfirmTransactionViewState
             } else {
               return StackDialog(
                 title: message,
-                message: e.toString(),
+                message: errorMessage,
                 rightButton: TextButton(
                   style: Theme.of(context)
                       .extension<StackColors>()!
@@ -576,6 +582,16 @@ class _ConfirmTransactionViewState
 
     final String unit;
     final wallet = ref.watch(pWallets).getWallet(walletId);
+    final slatepackCreation =
+        wallet is SlatepackInterface && widget.txData.isSlatepackSend
+        ? wallet
+        : null;
+    final actionLabel = slatepackCreation == null
+        ? "Send"
+        : "Create ${slatepackCreation.slatepackTerms.noun}";
+    final actionDescription = slatepackCreation == null
+        ? null
+        : "create a ${slatepackCreation.slatepackTerms.noun}";
     if (widget.isTokenTx) {
       if (wallet is SolanaWallet) {
         // For Solana tokens, use the Solana token wallet provider or TxData as fallback.
@@ -1583,7 +1599,7 @@ class _ConfirmTransactionViewState
                   ? const EdgeInsets.symmetric(horizontal: 32)
                   : const EdgeInsets.all(0),
               child: PrimaryButton(
-                label: "Send",
+                label: actionLabel,
                 buttonHeight: isDesktop ? ButtonHeight.l : null,
                 onPressed: () async {
                   if (isDesktop) {
@@ -1608,6 +1624,7 @@ class _ConfirmTransactionViewState
                               child: DesktopAuthSend(
                                 coin: coin,
                                 tokenTicker: widget.isTokenTx ? unit : null,
+                                actionDescription: actionDescription,
                               ),
                             ),
                           ],
@@ -1633,15 +1650,21 @@ class _ConfirmTransactionViewState
                       RouteGenerator.getRoute<bool>(
                         shouldUseMaterialRoute:
                             RouteGenerator.useMaterialPageRoute,
-                        builder: (_) => const LockscreenView(
+                        builder: (_) => LockscreenView(
                           showBackButton: true,
                           popOnSuccess: true,
                           routeOnSuccessArguments: true,
                           routeOnSuccess: "",
                           biometricsCancelButtonString: "CANCEL",
-                          biometricsLocalizedReason:
-                              "Authenticate to send transaction",
-                          biometricsAuthenticationTitle: "Confirm Transaction",
+                          biometricsLocalizedReason: slatepackCreation == null
+                              ? "Authenticate to send transaction"
+                              : "Authenticate to create "
+                                    "${slatepackCreation.slatepackTerms.noun}",
+                          biometricsAuthenticationTitle:
+                              slatepackCreation == null
+                              ? "Confirm Transaction"
+                              : "Confirm "
+                                    "${slatepackCreation.slatepackTerms.title}",
                         ),
                         settings: const RouteSettings(
                           name: "/confirmsendlockscreen",

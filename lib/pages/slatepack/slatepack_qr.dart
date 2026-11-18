@@ -54,7 +54,7 @@ class SlatepackQr extends StatelessWidget {
         color: Theme.of(context).extension<StackColors>()!.textFieldDefaultBG,
         child: Text(
           "This $noun is too long for a QR code. "
-          "Copy, share or save it instead.",
+          "Copy or save it instead.",
           style: STextStyles.label(context),
           textAlign: TextAlign.center,
         ),

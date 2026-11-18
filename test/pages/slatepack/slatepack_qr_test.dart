@@ -78,6 +78,8 @@ void main() {
     expect(find.byType(QR), findsNothing);
     expect(find.byKey(const Key("slatepackQrTooLong")), findsOneWidget);
     expect(find.textContaining("too long for a QR code"), findsOneWidget);
+    expect(find.textContaining("Copy or save it instead"), findsOneWidget);
+    expect(find.textContaining("share"), findsNothing);
   });
 
   testWidgets("QR shows a message when data does not fit", (tester) async {

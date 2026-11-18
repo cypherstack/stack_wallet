@@ -187,6 +187,7 @@ class _SlatepackInputFieldState extends ConsumerState<SlatepackInputField> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<StackColors>()!;
+    final label = Util.isDesktop ? widget.hint : widget.terms.title;
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(Constants.size.circularBorderRadius),
@@ -208,7 +209,7 @@ class _SlatepackInputFieldState extends ConsumerState<SlatepackInputField> {
             : STextStyles.field(context),
         decoration:
             standardInputDecoration(
-              widget.hint,
+              label,
               _focusNode,
               context,
               desktopMed: true,

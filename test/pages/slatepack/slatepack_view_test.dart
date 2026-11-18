@@ -74,7 +74,10 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text("Slate"), findsOneWidget);
+    expect(
+      find.descendant(of: find.byType(AppBar), matching: find.text("Slate")),
+      findsOneWidget,
+    );
 
     PrimaryButton button() =>
         tester.widget<PrimaryButton>(find.byType(PrimaryButton));
