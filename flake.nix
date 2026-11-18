@@ -36,6 +36,8 @@
           flutter
           go
           rustup
+          git
+          nix
           cmake
           meson
           ninja
@@ -134,9 +136,15 @@
               # Flutter's Linux CMake build forces CC=clang/CXX=clang++. libclang
               # also puts the unwrapped clang first on PATH, which cannot find
               # the NixOS crt/libstdc++ paths; prefer the clang wrapper.
-              export PATH="${pkgs.llvmPackages.clang}/bin:$PATH"
+              case ":$PATH:" in
+                *":${pkgs.llvmPackages.clang}/bin:"*) ;;
+                *) export PATH="${pkgs.llvmPackages.clang}/bin:$PATH" ;;
+              esac
               # stdenv also provides patchelf 0.15; put 0.18 first.
-              export PATH="${pkgs.patchelfUnstable}/bin:$PATH"
+              case ":$PATH:" in
+                *":${pkgs.patchelfUnstable}/bin:"*) ;;
+                *) export PATH="${pkgs.patchelfUnstable}/bin:$PATH" ;;
+              esac
               export LIBCLANG_PATH="${pkgs.llvmPackages.libclang.lib}/lib"
               export BINDGEN_EXTRA_CLANG_ARGS="-isystem ${pkgs.llvmPackages.libclang.lib}/lib/clang/${clangMajor}/include"
               export PROTOC="${pkgs.protobuf}/bin/protoc"
