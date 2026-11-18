@@ -5,6 +5,9 @@
 
 APP_NAME     ?= stack_wallet
 override APP_NAME := $(strip $(APP_NAME))
+ifneq ($(words $(APP_NAME)),1)
+  $(error APP_NAME must be a single value: stack_wallet, stack_duo or campfire)
+endif
 ifneq ($(filter $(APP_NAME),stack_wallet stack_duo campfire),$(APP_NAME))
   $(error APP_NAME must be stack_wallet, stack_duo or campfire)
 endif
@@ -129,7 +132,7 @@ ifneq ($(strip $(PUB_CACHE)),)
 export PUB_CACHE
 endif
 
-.PHONY: help toolchain toolchain-check bootstrap bootstrap-brew require-version check-reqs check-reqs-macos check-sdk-macos check-linux check-windows bootstrap-macos bootstrap-xcode sccache-setup cache-stats verify-bom clean clean-app clean-native build-macos build-linux build-windows diagnose-env-macos build-android android-dev-key build-ios
+.PHONY: help toolchain toolchain-check bootstrap bootstrap-brew require-version check-reqs check-reqs-macos check-sdk-macos check-linux check-windows bootstrap-macos bootstrap-xcode sccache-setup cache-stats verify-bom verify-bom-plugins clean clean-app clean-native build-macos build-linux build-windows diagnose-env-macos build-android android-dev-key build-ios
 
 help: ## Show available commands
 	@echo "Available targets:"
@@ -160,10 +163,16 @@ endif
 ifeq ($(TOOLCHAIN_EFFECTIVE),brew)
 	@command -v brew >/dev/null 2>&1 || { echo >&2 "[ERROR] TOOLCHAIN=brew but brew is not on PATH. Run 'make bootstrap-macos'."; exit 1; }
 endif
+ifeq ($(filter nix direnv brew,$(TOOLCHAIN_EFFECTIVE)),)
+	@echo "[INFO] $(TOOLCHAIN_EFFECTIVE): using the tools on PATH; no separate check."
+endif
 
 bootstrap: ## Enter the Nix dev shell (primary toolchain; no-op when already inside)
 	@if [ -n "$$NIX_STORE$$IN_NIX_SHELL" ]; then \
 		echo "[OK] Already inside a Nix dev shell ($(TOOLCHAIN_EFFECTIVE))."; \
+	elif [ "$(PLATFORM)" = "Darwin" ] && [ "$(UNAME_M)" != "arm64" ] && [ "$(UNAME_M)" != "aarch64" ]; then \
+		echo >&2 "[ERROR] Intel macOS is prebuilt-only; use 'make bootstrap-macos' (or a manual toolchain) and PREBUILTS=1."; \
+		exit 1; \
 	elif ! command -v nix >/dev/null 2>&1; then \
 		echo >&2 "[ERROR] Nix is not installed. Install it from https://nixos.org/download/, or use the Homebrew fallback: make bootstrap-macos"; \
 		exit 1; \
@@ -323,7 +332,12 @@ sccache-setup: ## Opt-in: use sccache for the Rust/C builds run by native-asset 
 
 verify-bom: ## Check the local toolchain and the pinned plugins against stack-bom.toml
 	@[ -n "$(DART)" ] || { echo >&2 "[ERROR] Dart not installed (needed for verify-bom). Install Flutter or pass DART=/path/to/dart."; exit 1; }
+	@bash scripts/bom_values.sh --check
 	@FLUTTER="$(FLUTTER)" "$(DART)" tool/verify_bom.dart
+
+verify-bom-plugins: ## Check only the pinned plugin refs against pubspec.lock
+	@[ -n "$(DART)" ] || { echo >&2 "[ERROR] Dart not installed (needed for verify-bom-plugins). Install Flutter or pass DART=/path/to/dart."; exit 1; }
+	@FLUTTER="$(FLUTTER)" "$(DART)" tool/verify_bom.dart --plugins
 
 cache-stats: ## Show sccache statistics (hit rate) after a build
 	@command -v sccache >/dev/null 2>&1 || { echo >&2 "[ERROR] sccache not installed."; exit 1; }
@@ -350,10 +364,10 @@ clean: ## Remove artifacts and fix permissions
 ifeq ($(strip $(SOURCE_TOOLCHAIN)),)
   PREBUILTS_DEFAULT := 1
 else ifeq ($(PLATFORM),Darwin)
-  ifeq ($(filter arm64 aarch64,$(UNAME_M)),$(UNAME_M))
-    PREBUILTS_DEFAULT := 0
-  else
+  ifeq ($(filter arm64 aarch64,$(UNAME_M)),)
     PREBUILTS_DEFAULT := 1
+  else
+    PREBUILTS_DEFAULT := 0
   endif
 else ifeq ($(PLATFORM),Linux)
   PREBUILTS_DEFAULT := 0
@@ -364,15 +378,18 @@ PREBUILTS ?= $(PREBUILTS_DEFAULT)
 ifeq ($(strip $(PREBUILTS)),)
   override PREBUILTS := $(PREBUILTS_DEFAULT)
 endif
+ifneq ($(words $(PREBUILTS)),1)
+  $(error PREBUILTS must be 0 or 1)
+endif
 ifneq ($(filter $(PREBUILTS),0 1),$(PREBUILTS))
   $(error PREBUILTS must be 0 or 1)
 endif
 ifeq ($(PREBUILTS),0)
   ifeq ($(strip $(SOURCE_TOOLCHAIN)),)
-    $(error PREBUILTS=0 requires TOOLCHAIN=nix or direnv; use PREBUILTS=1 with Homebrew/manual)
+    $(error PREBUILTS=0 requires TOOLCHAIN=nix or direnv; use PREBUILTS=1 with Homebrew/manual/host)
   endif
   ifeq ($(PLATFORM),Darwin)
-    ifneq ($(filter arm64 aarch64,$(UNAME_M)),$(UNAME_M))
+    ifeq ($(filter arm64 aarch64,$(UNAME_M)),)
       $(error PREBUILTS=0 (dnix source) requires Apple Silicon on macOS; use the default PREBUILTS=1)
     endif
   endif
@@ -397,6 +414,9 @@ ANDROID_PREBUILTS ?= $(ANDROID_PREBUILTS_DEFAULT)
 ifeq ($(strip $(ANDROID_PREBUILTS)),)
   override ANDROID_PREBUILTS := $(ANDROID_PREBUILTS_DEFAULT)
 endif
+ifneq ($(words $(ANDROID_PREBUILTS)),1)
+  $(error ANDROID_PREBUILTS must be 0 or 1)
+endif
 ifneq ($(filter $(ANDROID_PREBUILTS),0 1),$(ANDROID_PREBUILTS))
   $(error ANDROID_PREBUILTS must be 0 or 1)
 endif
@@ -407,6 +427,9 @@ ifeq ($(ANDROID_PREBUILTS),0)
 endif
 # Linux only: SYSTEM_DEPS=1 uses the system libsecret/jsoncpp packages instead of building them (like the CI image).
 SYSTEM_DEPS ?= 0
+ifneq ($(words $(SYSTEM_DEPS)),1)
+  $(error SYSTEM_DEPS must be 0 or 1)
+endif
 ifneq ($(filter $(SYSTEM_DEPS),0 1),$(SYSTEM_DEPS))
   $(error SYSTEM_DEPS must be 0 or 1)
 endif
@@ -482,7 +505,7 @@ build-linux: require-version verify-bom check-linux toolchain-check check-reqs #
 		USE_SYSTEM_SECURE_STORAGE_DEPS=1 PROTOC="$(PROTOC_PATH)" "$(FLUTTER)" build linux --release; \
 	else \
 		SYSPROF_PC_DIR="$${SYSPROF_PC_DIR:-}"; \
-		if [ -z "$$SYSPROF_PC_DIR" ]; then \
+		if [ -z "$$SYSPROF_PC_DIR" ] && [ -n "$$IN_NIX_SHELL$$NIX_STORE" ]; then \
 		  SYSPROF_PC_DIR=$$(dirname "$$(find /nix/store -path '*/lib/pkgconfig/sysprof-capture-4.pc' 2>/dev/null | head -n1)"); \
 		  [ "$$SYSPROF_PC_DIR" != "." ] || SYSPROF_PC_DIR=""; \
 		fi; \
@@ -501,7 +524,7 @@ build-linux: require-version verify-bom check-linux toolchain-check check-reqs #
 # Windows: run from Git Bash. Same steps as the "build-windows" job in .github/workflows/build.yaml.
 # Windows uses verified dnix prebuilts; source mode needs Nix inside WSL2 and is
 # driven by build_app.sh directly, not by this target.
-build-windows: require-version check-windows toolchain-check ## Build Windows release (Git Bash; verified dnix prebuilts)
+build-windows: require-version verify-bom-plugins check-windows toolchain-check ## Build Windows release (Git Bash; verified dnix prebuilts)
 	@[ -n "$(FLUTTER)" ] && command -v "$(FLUTTER)" >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
 	@cd scripts && bash prebuild.sh
 	@cd scripts && $(if $(filter 1,$(CONFIRM)),echo yes |,) MWEBD_FETCH=1 ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p windows -a "$(APP_NAME)" -d
@@ -522,7 +545,7 @@ android-dev-key: ## Create a throw-away debug signing key if android/key.propert
 	fi
 	@chmod 600 android/key.properties android/dev-keystore.jks 2>/dev/null || true
 
-build-android: require-version toolchain-check ## Build Android APKs (requires android/key.properties; prebuilt unless x86_64 Linux in Nix/direnv follows PREBUILTS)
+build-android: require-version verify-bom-plugins toolchain-check ## Build Android APKs (requires android/key.properties; prebuilt unless x86_64 Linux in Nix/direnv follows PREBUILTS)
 	@[ -n "$(FLUTTER)" ] && command -v "$(FLUTTER)" >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
 	@[ -f android/key.properties ] || { echo >&2 "[ERROR] android/key.properties is missing. Run 'make android-dev-key' for a local throw-away key; never distribute APKs signed with it."; exit 1; }
 	@if grep -q '^keyAlias=devkey$$' android/key.properties 2>/dev/null; then \
