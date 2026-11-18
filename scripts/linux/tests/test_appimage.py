@@ -390,7 +390,7 @@ class AppImageScriptsTest(unittest.TestCase):
         "realpath",
         "unsquashfs",
     )
-    def test_assembly_produces_a_gzip_appimage_with_versioned_metadata(self):
+    def test_assembly_honors_source_date_epoch_with_versioned_metadata(self):
         runtime_log = self.temp_path / "runtime-log"
         runtime = (
             "#!/bin/sh\n"
@@ -418,11 +418,14 @@ class AppImageScriptsTest(unittest.TestCase):
         runtime_path.write_bytes(runtime)
         runtime_path.chmod(0o755)
         mksquashfs_log = self.temp_path / "mksquashfs-log"
+        mksquashfs_epoch_log = self.temp_path / "mksquashfs-epoch-log"
         fake_bin = self.temp_path / "assembly-fake-bin"
         fake_bin.mkdir()
         mksquashfs = fake_bin / "mksquashfs"
         mksquashfs.write_text(
             "#!/bin/sh\n"
+            "printf '%s\\n' \"${SOURCE_DATE_EPOCH:-}\" "
+            "> \"$APPIMAGE_TEST_MKSQUASHFS_EPOCH_LOG\"\n"
             "printf '%s\\n' \"$@\" > \"$APPIMAGE_TEST_MKSQUASHFS_LOG\"\n"
             f"exec {shutil.which('mksquashfs')} \"$@\"\n"
         )
@@ -455,6 +458,8 @@ class AppImageScriptsTest(unittest.TestCase):
             env={
                 **os.environ,
                 "PATH": f"{fake_bin}:{os.environ['PATH']}",
+                "SOURCE_DATE_EPOCH": "1234567890",
+                "APPIMAGE_TEST_MKSQUASHFS_EPOCH_LOG": str(mksquashfs_epoch_log),
                 "APPIMAGE_TEST_MKSQUASHFS_LOG": str(mksquashfs_log),
             },
         )
@@ -466,14 +471,9 @@ class AppImageScriptsTest(unittest.TestCase):
             mksquashfs_arguments[mksquashfs_arguments.index("-offset") + 1],
             str(len(runtime)),
         )
-        self.assertEqual(
-            mksquashfs_arguments[mksquashfs_arguments.index("-mkfs-time") + 1],
-            "0",
-        )
-        self.assertEqual(
-            mksquashfs_arguments[mksquashfs_arguments.index("-all-time") + 1],
-            "0",
-        )
+        self.assertNotIn("-mkfs-time", mksquashfs_arguments)
+        self.assertNotIn("-all-time", mksquashfs_arguments)
+        self.assertEqual(mksquashfs_epoch_log.read_text().strip(), "1234567890")
         self.assertNotIn("filesystem.squashfs", " ".join(mksquashfs_arguments))
         time.sleep(1.1)
         second_output = self.temp_path / "second.AppImage"
@@ -490,6 +490,8 @@ class AppImageScriptsTest(unittest.TestCase):
             env={
                 **os.environ,
                 "PATH": f"{fake_bin}:{os.environ['PATH']}",
+                "SOURCE_DATE_EPOCH": "1234567890",
+                "APPIMAGE_TEST_MKSQUASHFS_EPOCH_LOG": str(mksquashfs_epoch_log),
                 "APPIMAGE_TEST_MKSQUASHFS_LOG": str(mksquashfs_log),
             },
         )

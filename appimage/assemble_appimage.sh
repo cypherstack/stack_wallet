@@ -128,9 +128,9 @@ runtime_size=$(wc -c < "$runtime")
 # Write the SquashFS directly at the runtime boundary so the large application
 # payload is not materialized as a second temporary file. mksquashfs truncates
 # the destination, so restore the small runtime prefix afterward.
-mksquashfs "$appdir" "$image" -offset "$runtime_size" \
-  -all-root -noappend -no-xattrs -comp gzip \
-  -mkfs-time "$source_date_epoch" -all-time "$source_date_epoch" >/dev/null
+SOURCE_DATE_EPOCH="$source_date_epoch" \
+  mksquashfs "$appdir" "$image" -offset "$runtime_size" \
+    -all-root -noappend -no-xattrs -comp gzip >/dev/null
 dd if="$runtime" of="$image" conv=notrunc status=none
 chmod 0755 "$image"
 mv -fT -- "$image" "$output"
