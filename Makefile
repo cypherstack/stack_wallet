@@ -94,6 +94,9 @@ ifeq ($(TOOLCHAIN),auto)
 else
   TOOLCHAIN_EFFECTIVE := $(TOOLCHAIN)
 endif
+# Source builds are only exposed through the Nix/direnv toolchain. Homebrew,
+# manual and host toolchains are prebuilt-only.
+SOURCE_TOOLCHAIN := $(filter nix direnv,$(TOOLCHAIN_EFFECTIVE))
 # Linux builds use a project-local pub cache so cargo finds the repo-local
 # .cargo/config.toml that carries PROTOC through Flutter's filtered hook environment.
 # Other targets leave PUB_CACHE unset, so Flutter uses its normal per-user cache
@@ -339,23 +342,21 @@ clean: ## Remove artifacts and fix permissions
 
 # --- PLATFORM BUILDS ---
 
-# dnix mode. Apple Silicon macOS and Linux inside the Nix/direnv shell build
-# the pinned native libraries from source by default (the Nix-primary developer
-# path). Intel macOS, a non-Nix Linux host, Windows and CI use verified
-# prebuilts. PREBUILTS=1 passes -d and needs no Nix for those four libraries;
-# PREBUILTS=0 builds them with Nix and verifies the hashes.
-ifeq ($(PLATFORM),Darwin)
+# dnix mode. Only the Nix/direnv toolchain can build the pinned native
+# libraries from source: it is the default on Apple Silicon macOS and on Linux
+# inside nix develop/direnv. Intel macOS, brew/manual/host toolchains, Windows
+# and CI use verified prebuilts. PREBUILTS=1 passes -d and needs no Nix for
+# those four libraries; PREBUILTS=0 builds them with Nix and verifies hashes.
+ifeq ($(strip $(SOURCE_TOOLCHAIN)),)
+  PREBUILTS_DEFAULT := 1
+else ifeq ($(PLATFORM),Darwin)
   ifeq ($(filter arm64 aarch64,$(UNAME_M)),$(UNAME_M))
     PREBUILTS_DEFAULT := 0
   else
     PREBUILTS_DEFAULT := 1
   endif
 else ifeq ($(PLATFORM),Linux)
-  ifeq ($(filter nix direnv,$(TOOLCHAIN_EFFECTIVE)),$(TOOLCHAIN_EFFECTIVE))
-    PREBUILTS_DEFAULT := 0
-  else
-    PREBUILTS_DEFAULT := 1
-  endif
+  PREBUILTS_DEFAULT := 0
 else
   PREBUILTS_DEFAULT := 1
 endif
@@ -367,6 +368,9 @@ ifneq ($(filter $(PREBUILTS),0 1),$(PREBUILTS))
   $(error PREBUILTS must be 0 or 1)
 endif
 ifeq ($(PREBUILTS),0)
+  ifeq ($(strip $(SOURCE_TOOLCHAIN)),)
+    $(error PREBUILTS=0 requires TOOLCHAIN=nix or direnv; use PREBUILTS=1 with Homebrew/manual)
+  endif
   ifeq ($(PLATFORM),Darwin)
     ifneq ($(filter arm64 aarch64,$(UNAME_M)),$(UNAME_M))
       $(error PREBUILTS=0 (dnix source) requires Apple Silicon on macOS; use the default PREBUILTS=1)
@@ -374,7 +378,7 @@ ifeq ($(PREBUILTS),0)
   endif
   ifeq ($(filter Darwin Linux,$(PLATFORM)),$(PLATFORM))
     ifeq ($(strip $(NIX_BIN)),)
-      $(error PREBUILTS=0 (dnix source) needs Nix on PATH; install Nix or run 'nix develop')
+      $(error PREBUILTS=0 (dnix source) needs Nix on PATH; run 'nix develop' or use PREBUILTS=1)
     endif
   endif
 endif
@@ -383,10 +387,11 @@ ifneq ($(filter MINGW% MSYS%,$(PLATFORM)),)
     $(error build-windows uses verified dnix prebuilts; run build_app.sh for source mode)
   endif
 endif
-# Android source builds through dnix need an x86_64 Linux host. Every other
-# host defaults to the verified prebuilts; x86_64 Linux follows PREBUILTS.
+# Android source builds through dnix need an x86_64 Linux host in Nix/direnv.
+# Every other host defaults to the verified prebuilts; that combination
+# follows PREBUILTS.
 ANDROID_ARCH   := $(UNAME_M)
-ANDROID_SOURCE_OK := $(and $(filter Linux,$(PLATFORM)),$(filter x86_64,$(ANDROID_ARCH)),$(strip $(NIX_BIN)))
+ANDROID_SOURCE_OK := $(and $(filter Linux,$(PLATFORM)),$(filter x86_64,$(ANDROID_ARCH)),$(strip $(SOURCE_TOOLCHAIN)),$(strip $(NIX_BIN)))
 ANDROID_PREBUILTS_DEFAULT := $(if $(ANDROID_SOURCE_OK),$(PREBUILTS),1)
 ANDROID_PREBUILTS ?= $(ANDROID_PREBUILTS_DEFAULT)
 ifeq ($(strip $(ANDROID_PREBUILTS)),)
@@ -397,7 +402,7 @@ ifneq ($(filter $(ANDROID_PREBUILTS),0 1),$(ANDROID_PREBUILTS))
 endif
 ifeq ($(ANDROID_PREBUILTS),0)
   ifeq ($(strip $(ANDROID_SOURCE_OK)),)
-    $(error ANDROID_PREBUILTS=0 needs an x86_64 Linux host with Nix on PATH; use the default prebuilt mode)
+    $(error ANDROID_PREBUILTS=0 requires TOOLCHAIN=nix or direnv on x86_64 Linux; use the prebuilt mode)
   endif
 endif
 # Linux only: SYSTEM_DEPS=1 uses the system libsecret/jsoncpp packages instead of building them (like the CI image).
@@ -420,7 +425,7 @@ clean-native: ## Remove only the native-asset build outputs (forces the Rust/Go/
 	@rm -rf .dart_tool/hooks_runner build/native_assets
 	@echo "[OK] Removed .dart_tool/hooks_runner and build/native_assets."
 
-build-macos: require-version verify-bom toolchain-check check-reqs-macos check-sdk-macos ## Build macOS release (source on Apple Silicon; PREBUILTS=1 uses verified prebuilts)
+build-macos: require-version verify-bom toolchain-check check-reqs-macos check-sdk-macos ## Build macOS release (source in Nix/direnv on Apple Silicon; PREBUILTS=1 uses verified prebuilts)
 	@echo "--- Configuring project (scripts/build_app.sh)..."
 	@cd scripts && $(if $(filter 1,$(CONFIRM)),echo yes |,) env $(MACOS_ENV_UNSET) ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p macos -a "$(APP_NAME)" $(if $(filter 1,$(PREBUILTS)),-d)
 	@echo "--- Resolving dependencies..."

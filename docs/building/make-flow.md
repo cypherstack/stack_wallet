@@ -49,10 +49,10 @@ first-launch setup. An already-selected Xcode is left untouched. Use
 
 ## 2. Build
 
-`VERSION` and `BUILD_NUM` are required. dnix source is the default on Apple
-Silicon macOS and inside Nix/direnv on Linux; source also works with Nix on
-`PATH`. Intel macOS, Linux outside Nix/direnv, CI and Windows default to the
-verified prebuilts.
+`VERSION` and `BUILD_NUM` are required. dnix source is only available through
+the Nix/direnv toolchain: it is the default on Apple Silicon macOS and inside
+Nix/direnv on Linux. Homebrew, manual and host toolchains, Intel macOS, CI and
+Windows use the verified prebuilts.
 
 ```mermaid
 flowchart TD
@@ -65,22 +65,22 @@ flowchart TD
 
     MAC --> MC["checks<br/>require-version · check-sdk-macos<br/>toolchain-check · check-reqs-macos"]
     MC --> MP{"PREBUILTS"}
-    MP -- "0 Apple Silicon" --> MS["source<br/>Nix + Xcode 27.0"]
-    MP -- "1 Intel/CI" --> MB["prebuilt -d"]
+    MP -- "0 Nix/direnv" --> MS["source<br/>Nix + Xcode 27.0"]
+    MP -- "1 brew/manual/CI" --> MB["prebuilt -d"]
     MS --> MR["build_app.sh -p macos<br/>pub get · prebuild.sh<br/>flutter build macos"]
     MB --> MR
 
     IOS --> IC["checks<br/>require-version · toolchain-check<br/>check-reqs-macos · check-sdk-macos"]
     IC --> IP{"PREBUILTS"}
-    IP -- "0 Apple Silicon" --> IS["source"]
-    IP -- "1 Intel/CI" --> IB["prebuilt -d"]
+    IP -- "0 Nix/direnv" --> IS["source"]
+    IP -- "1 brew/manual/CI" --> IB["prebuilt -d"]
     IS --> IR["prebuild.sh<br/>build_app.sh -p ios<br/>pub get · flutter build ios"]
     IB --> IR
 
     LINUX --> LC["checks<br/>require-version · check-linux<br/>toolchain-check · check-reqs"]
     LC --> LP{"PREBUILTS"}
-    LP -- "0 Nix on PATH" --> LS["source (Nix)"]
-    LP -- "1 host" --> LB["prebuilt -d"]
+    LP -- "0 Nix/direnv" --> LS["source (Nix)"]
+    LP -- "1 brew/manual/host" --> LB["prebuilt -d"]
     LS --> LR["prebuild.sh<br/>build_app.sh -p linux<br/>flutter build linux · bundle"]
     LB --> LR
 
@@ -92,8 +92,8 @@ flowchart TD
     AH -- macOS --> AB["prebuilt -d"]
     AH -- "Linux arm64" --> AB
     AH -- "Linux x86_64" --> AP{"PREBUILTS"}
-    AP -- "0 Nix" --> AS["source"]
-    AP -- "1 host" --> AB
+    AP -- "0 Nix/direnv" --> AS["source"]
+    AP -- "1 brew/manual/host" --> AB
     AB --> AR["prebuild.sh<br/>build_app.sh -p android<br/>pub get · flutter build apk<br/>--split-per-abi"]
     AS --> AR
 ```
@@ -102,14 +102,17 @@ flowchart TD
 
 | Context | `PREBUILTS` | dnix mode |
 |---|---|---|
-| macOS developer, Apple Silicon | `0` | source, verified; needs Nix + Xcode 27.0 |
+| macOS developer, Apple Silicon, Nix/direnv | `0` | source, verified; needs Xcode 27.0 |
+| macOS developer, Apple Silicon, brew/manual/host | `1` | verified prebuilts (`-d`); source needs Nix/direnv |
 | macOS developer, Intel | `1` | verified prebuilts (`-d`) |
-| Linux developer in Nix/direnv | `0` | source, verified; needs Nix |
-| Linux developer outside Nix/direnv | `1` (default) | verified prebuilts (`-d`); set `PREBUILTS=0` with Nix on `PATH` for source |
-| iOS developer, Apple Silicon | `0` | source, verified; needs Nix + Xcode 27.0 |
+| Linux developer in Nix/direnv | `0` | source, verified |
+| Linux developer, brew/manual/host | `1` | verified prebuilts (`-d`); source needs Nix/direnv |
+| iOS developer, Apple Silicon, Nix/direnv | `0` | source, verified; needs Xcode 27.0 |
+| iOS developer, Apple Silicon, brew/manual/host | `1` | verified prebuilts (`-d`) |
 | iOS developer, Intel | `1` | verified prebuilts (`-d`) |
 | macOS/Linux/iOS CI | `1` (explicit `-d`) | verified prebuilts (`-d`) |
 | Windows | `1` (fixed) | verified prebuilts (`-d`) |
 | Android on macOS | `1` (default; source needs x86_64 Linux in Nix/direnv) | verified prebuilts (`-d`) |
-| Android on x86_64 Linux with Nix on `PATH` | follows `PREBUILTS` | source by default inside Nix/direnv |
+| Android on x86_64 Linux in Nix/direnv | follows `PREBUILTS` | source by default |
+| Android on x86_64 Linux, brew/manual/host | `1` | verified prebuilts (`-d`); source needs Nix/direnv |
 | Android on non-x86_64 Linux | `1` (default; source needs x86_64 Linux in Nix/direnv) | verified prebuilts (`-d`) |

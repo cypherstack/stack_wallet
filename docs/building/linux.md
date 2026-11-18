@@ -11,8 +11,11 @@ These steps build the Linux desktop app and the Android app on Ubuntu 24.04
 | The [Ubuntu packages](#ubuntu-packages) below | Every build |
 | [Rustup](https://rustup.rs/) | Every app, in both modes |
 | [Go](https://go.dev/doc/install) 1.24.1 or newer | Stack Wallet |
-| [Nix](https://nixos.org/download/) | Source mode; Nix must be on `PATH` (the dev shell provides it); not needed with `-d` |
+| [Nix](https://nixos.org/download/) | Source mode only with Nix/direnv; not needed with `-d` |
 | The [Android tools](#android-tools) below | Android builds |
+
+Homebrew/manual toolchains are prebuilt-only: use `PREBUILTS=1`; source mode
+requires Nix/direnv.
 
 **Rustup:** every app builds its DNSSEC resolver with Rust **1.90.0**, and
 Stack Wallet builds Xelis with Rust **1.99.1**. The build hooks install these
@@ -99,7 +102,7 @@ Enable KVM for hardware-accelerated emulation.
 skipped it, run `(cd scripts/linux && bash build_secp256k1.sh)` before starting
 the app.
 
-Android source builds through dnix need an x86_64 Linux host.
+Android source builds through dnix need an x86_64 Linux host in Nix/direnv.
 
 ## Prepare a release bundle
 

@@ -60,10 +60,10 @@ using.
    - `make bootstrap` (runs `nix develop`), or
    - `nix develop` directly, or
    - `direnv allow` once, if you use direnv with the included `.envrc`.
-2. Check the Xcode requirement. Source builds are the default on Apple
-   Silicon and need Xcode **27.0** (build 27A266a); with any other Xcode pass
-   `PREBUILTS=1`. `make bootstrap-xcode` selects an installed full Xcode and
-   `make verify-bom` checks the host.
+2. Check the Xcode requirement. Source builds are the default in Nix/direnv
+   on Apple Silicon and need Xcode **27.0** (build 27A266a); with any other
+   Xcode pass `PREBUILTS=1`. `make bootstrap-xcode` selects an installed full
+   Xcode and `make verify-bom` checks the host.
 3. Run build (pass the release version and a build number; `make` refuses to
    guess):
    - `make build-macos VERSION=x.y.z BUILD_NUM=nnn`
@@ -85,8 +85,9 @@ Use this only when you are not building through Nix/flake.
    - `make build-macos VERSION=x.y.z BUILD_NUM=nnn PREBUILTS=1`
    - Add `CONFIRM=1` for a non-interactive run.
 
-`PREBUILTS=1` uses the verified prebuilts and needs no Nix for the four dnix
-libraries.
+`PREBUILTS=1` is required with Homebrew/manual: those toolchains cannot build
+the four dnix libraries from source. It uses the verified prebuilts and needs
+no Nix for them.
 
 The Homebrew bootstrap installs the native build tools and configures the BOM
 Rust version for Flutter's native-assets hooks. It replaces the former local
@@ -98,5 +99,8 @@ plugin build is needed.
 Install the prerequisites from [Building on macOS](docs/building/macos.md)
 yourself, then run
 `make build-macos VERSION=x.y.z BUILD_NUM=nnn PREBUILTS=1`.
+Manual builds are prebuilt-only; source mode requires Nix/direnv.
 `make check-reqs-macos` reports what is missing (`make check-sdk-macos` checks
-full Xcode); `TOOLCHAIN=manual` makes the choice explicit. Omit `PREBUILTS=1` only if you also have Nix for the source build.
+full Xcode); `TOOLCHAIN=manual` makes the choice explicit. Use the
+Nix/direnv toolchain for a source build; manual and Homebrew builds are
+prebuilt-only.

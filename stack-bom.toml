@@ -1,5 +1,7 @@
 # Stack Wallet build bill of materials: the toolchain a build is expected to use.
-# Checked by `make verify-bom` (dart tool/verify_bom.dart). Keep it small and human readable.
+# Checked by `make verify-bom` (dart tool/verify_bom.dart). This is a toolchain and
+# plugin-pin file, not a Homebrew package manifest; the native dnix libraries are
+# pinned in each plugin's dnix.lock.
 schema_version = 1
 
 [toolchain]
