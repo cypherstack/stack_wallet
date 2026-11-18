@@ -408,7 +408,7 @@ clean-native: ## Remove only the native-asset build outputs (forces the Rust/Go/
 	@rm -rf .dart_tool/hooks_runner build/native_assets
 	@echo "[OK] Removed .dart_tool/hooks_runner and build/native_assets."
 
-build-macos: require-version toolchain-check check-reqs-macos check-sdk-macos ## Build macOS release (source on Apple Silicon; PREBUILTS=1 uses verified prebuilts)
+build-macos: require-version verify-bom toolchain-check check-reqs-macos check-sdk-macos ## Build macOS release (source on Apple Silicon; PREBUILTS=1 uses verified prebuilts)
 	@echo "--- Configuring project (scripts/build_app.sh)..."
 	@cd scripts && $(if $(filter 1,$(CONFIRM)),echo yes |,) env $(MACOS_ENV_UNSET) ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p macos -a $(APP_NAME) $(if $(filter 1,$(PREBUILTS)),-d)
 	@echo "--- Resolving dependencies..."
@@ -442,7 +442,7 @@ diagnose-env-macos: ## Print macOS build env and tool resolution
 	@echo "NIX_CFLAGS_LINK=$${NIX_CFLAGS_LINK:-<unset>}"
 
 build-linux: export PUB_CACHE := $(LINUX_PUB_CACHE)
-build-linux: require-version check-linux toolchain-check check-reqs ## Build Linux release (source in Nix/direnv; PREBUILTS=1 uses verified prebuilts)
+build-linux: require-version verify-bom check-linux toolchain-check check-reqs ## Build Linux release (source in Nix/direnv; PREBUILTS=1 uses verified prebuilts)
 	@echo "--- Running prebuild bootstrap..."
 	@cd scripts && bash prebuild.sh
 	@echo "--- Generating config..."
@@ -518,7 +518,7 @@ build-android: require-version toolchain-check ## Build Android APKs (requires a
 	@"$(FLUTTER)" build apk --split-per-abi --release
 
 # iOS: same steps as the "build-ios" CI job (device build, no code signing). Run on macOS with Xcode.
-build-ios: require-version toolchain-check check-reqs-macos check-sdk-macos ## Build iOS Runner.app without code signing (same steps as CI)
+build-ios: require-version verify-bom toolchain-check check-reqs-macos check-sdk-macos ## Build iOS Runner.app without code signing (same steps as CI)
 	@[ -n "$(FLUTTER)" ] && command -v "$(FLUTTER)" >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
 	@xcrun --sdk iphoneos --show-sdk-path >/dev/null 2>&1 || { echo >&2 "[ERROR] iOS SDK not available; install the iOS platform in Xcode."; exit 1; }
 	@cd scripts && bash prebuild.sh

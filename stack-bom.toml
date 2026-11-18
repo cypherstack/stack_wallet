@@ -8,7 +8,7 @@ flutter_min = "3.47.2"   # minimum for pubspec.template.yaml and the release wor
 dart_prefix = "3.13"     # Dart bundled with Flutter 3.47.x
 rust = "1.99.1"          # installed through rustup, pinned by the native plugins
 dnssec_rust = "1.90.0"   # OpenAlias/DNSSEC builds from source in every app
-go = "1.24.13"           # exact Go used by CI; Dockerfile mirrors it
+go = "1.24.13"           # CI/Docker pin; nix develop uses nixpkgs' newer Go
 go_min = "1.24.1"        # flutter_mwebd's minimum on the Flutter host
 
 [macos]

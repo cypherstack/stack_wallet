@@ -3,8 +3,9 @@
 
   inputs = {
     # Pinned to a specific nixpkgs rev for reproducible Flutter/Rust toolchain
-    # versions. Update via `nix flake lock --update-input nixpkgs` and re-test
-    # `make build-macos` and `make build-linux` before bumping.
+    # versions. To bump it, edit the rev below and run `nix flake lock`
+    # (`--update-input` cannot move a rev-pinned URL), then re-test
+    # `make build-macos` and `make build-linux`.
     nixpkgs.url = "github:NixOS/nixpkgs/b1b875982b17dabde9b4a37f3e229e74913e6db3";
     flake-utils.url = "github:numtide/flake-utils";
   };
@@ -23,6 +24,12 @@
           if builtins.isString v && builtins.match "[0-9]+\\.[0-9]+\\.[0-9]+" v != null
           then v
           else throw "stack-bom.toml: [toolchain].rust must be a version string";
+        dnssecRustVersion = let
+          v = bom.toolchain.dnssec_rust or (throw "stack-bom.toml: missing [toolchain].dnssec_rust");
+        in
+          if builtins.isString v && builtins.match "[0-9]+\\.[0-9]+\\.[0-9]+" v != null
+          then v
+          else throw "stack-bom.toml: [toolchain].dnssec_rust must be a version string";
         clangMajor = lib.versions.major pkgs.llvmPackages.clang.version;
 
         commonPackages = with pkgs; [
@@ -67,6 +74,8 @@
 
       in
       {
+        checks.dev-shell = self.devShells.${system}.default;
+
         devShells.default = pkgs.mkShell {
           buildInputs = commonPackages ++ linuxPackages ++ macPackages;
 
@@ -92,17 +101,23 @@
 
             # The standalone Dart in the Nix Flutter wrapper cannot find the Flutter SDK on its own,
             # so `dart run`/`dart pub` in a Flutter project fail ("Flutter users should use flutter pub").
-            FLUTTER_BIN_DIR="$(cd "$(dirname "$(command -v flutter)")" && pwd -P)"
-            export FLUTTER_ROOT="$(dirname "$FLUTTER_BIN_DIR")"
+            if command -v flutter >/dev/null 2>&1; then
+              FLUTTER_BIN_DIR="$(cd "$(dirname "$(command -v flutter)")" && pwd -P)"
+              export FLUTTER_ROOT="$(dirname "$FLUTTER_BIN_DIR")"
+            else
+              echo "[WARN] flutter not on PATH; FLUTTER_ROOT not set." >&2
+            fi
 
             # ==========================================
              # RUST TOOLCHAIN AUTOMATION
              # Host Rust toolchain; native-assets crates select their own pinned toolchain.
              # ==========================================
-             if ! rustup toolchain list | grep -q "${rustVersion}"; then
-               echo "Initializing Rust toolchain (this happens only once)..."
-               rustup toolchain install --no-self-update ${rustVersion}
-             fi
+             for v in ${rustVersion} ${dnssecRustVersion}; do
+               if ! rustup toolchain list | grep -q "^$v"; then
+                 echo "Initializing Rust $v (this happens only once)..."
+                 rustup toolchain install --no-self-update "$v"
+               fi
+             done
 
              # Pin this checkout without replacing the user's global rustup default.
              rustup override set ${rustVersion} --path "$APP_PROJECT_ROOT_DIR" >/dev/null 2>&1 || true
@@ -174,7 +189,13 @@
 
               # A repo-writable directory on PATH would let anything that can
               # write to the checkout shadow tools for the rest of the session.
-              if NIX_BIN="$(/usr/bin/mktemp -d "''${TMPDIR:-/tmp}/stackwallet-nix-bin.XXXXXX")"; then
+              if [ -n "''${STACKWALLET_NIX_BIN:-}" ] && [ -x "$STACKWALLET_NIX_BIN/xcrun" ]; then
+                NIX_BIN="$STACKWALLET_NIX_BIN"
+                case ":$PATH:" in
+                  *":$NIX_BIN:"*) ;;
+                  *) export PATH="$NIX_BIN:$PATH" ;;
+                esac
+              elif NIX_BIN="$(/usr/bin/mktemp -d "''${TMPDIR:-/tmp}/stackwallet-nix-bin.XXXXXX")"; then
               ln -sf /usr/bin/clang "$NIX_BIN/cc"
               ln -sf /usr/bin/clang++ "$NIX_BIN/c++"
               ln -sf /usr/bin/clang "$NIX_BIN/clang"
@@ -221,7 +242,15 @@ exec /usr/bin/xcrun "\$@"
 XCRUN_EOF
               chmod +x "$NIX_BIN/xcrun"
 
-              export PATH="$NIX_BIN:$PATH"
+              if [ -x "$NIX_BIN/lipo" ] && [ -x "$NIX_BIN/xcrun" ]; then
+                export STACKWALLET_NIX_BIN="$NIX_BIN"
+                case ":$PATH:" in
+                  *":$NIX_BIN:"*) ;;
+                  *) export PATH="$NIX_BIN:$PATH" ;;
+                esac
+              else
+                echo "[WARN] Apple tool wrappers are incomplete; using the Nix tools." >&2
+              fi
               else
                 echo "[WARN] Could not create the Apple tool wrapper directory; using the Nix tools." >&2
               fi
