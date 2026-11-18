@@ -65,15 +65,15 @@ flowchart TD
 
     MAC --> MC["checks<br/>require-version · check-sdk-macos<br/>toolchain-check · check-reqs-macos"]
     MC --> MP{"PREBUILTS"}
-    MP -- "0 Nix/direnv" --> MS["source<br/>Nix + Xcode 27.0"]
-    MP -- "1 brew/manual/CI" --> MB["prebuilt -d"]
+    MP -- "0 Apple Silicon Nix/direnv" --> MS["source<br/>Nix + Xcode 27.0"]
+    MP -- "1 Intel/brew/manual/CI" --> MB["prebuilt -d"]
     MS --> MR["build_app.sh -p macos<br/>pub get · prebuild.sh<br/>flutter build macos"]
     MB --> MR
 
     IOS --> IC["checks<br/>require-version · toolchain-check<br/>check-reqs-macos · check-sdk-macos"]
     IC --> IP{"PREBUILTS"}
-    IP -- "0 Nix/direnv" --> IS["source"]
-    IP -- "1 brew/manual/CI" --> IB["prebuilt -d"]
+    IP -- "0 Apple Silicon Nix/direnv" --> IS["source"]
+    IP -- "1 Intel/brew/manual/CI" --> IB["prebuilt -d"]
     IS --> IR["prebuild.sh<br/>build_app.sh -p ios<br/>pub get · flutter build ios"]
     IB --> IR
 
