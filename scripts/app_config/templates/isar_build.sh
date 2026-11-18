@@ -83,7 +83,8 @@ build_isar_source() {
 
     echo "Found isar_core_ffi at: ${isar_core_path}"
 
-    local workspace_root=$(dirname $(dirname "${isar_core_path}"))
+    local workspace_root
+    workspace_root=$(dirname "$(dirname "${isar_core_path}")")
 
     build_isar_core "${isar_core_path}" "${workspace_root}" || return 1
 

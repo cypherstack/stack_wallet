@@ -50,8 +50,6 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 bom_get() {
   "$SCRIPT_DIR/bom_values.sh" --get "$1" "$REPO_ROOT/stack-bom.toml"
 }
-bash "$SCRIPT_DIR/install_xcode.sh"
-
 echo "Installing Homebrew packages..."
 # Do not upgrade formulae that are already installed: a build machine keeps the versions it was set up with.
 export HOMEBREW_NO_INSTALL_UPGRADE=1
@@ -131,7 +129,7 @@ RUST_VERSION="${RUST_VERSION:-$(bom_get rust)}"
 RUST_VERSION="${RUST_VERSION:-1.99.1}"
 echo "Ensuring Rust $RUST_VERSION toolchain..."
 rustup toolchain install "$RUST_VERSION"
-rustup target add aarch64-apple-darwin x86_64-apple-darwin aarch64-apple-ios --toolchain "$RUST_VERSION" >/dev/null 2>&1 || true
+rustup target add aarch64-apple-darwin x86_64-apple-darwin aarch64-apple-ios aarch64-apple-ios-sim --toolchain "$RUST_VERSION" >/dev/null 2>&1 || true
 # Pin this checkout instead of changing the user's global rustup default; the
 # native-asset crates also carry their own rust-toolchain.toml.
 rustup override set "$RUST_VERSION" --path "$REPO_ROOT" >/dev/null 2>&1 || true
@@ -156,6 +154,8 @@ source "$HOME/.cargo/env" 2>/dev/null || true
 if ! command -v cargo >/dev/null 2>&1; then
   die "cargo still not on PATH after rustup setup. Run 'rustup-init -y' manually, then re-run this script."
 fi
+
+bash "$SCRIPT_DIR/install_xcode.sh"
 
 echo "Verifying toolchain..."
 if command -v flutter >/dev/null 2>&1; then
@@ -194,9 +194,10 @@ BREW_PREFIX="$(brew --prefix)"
 grep -qF 'brew shellenv' "$ZSHRC" 2>/dev/null || \
   printf 'eval "$(%s/bin/brew shellenv)"\n' "$BREW_PREFIX" >> "$ZSHRC"
 if [[ -n "$FLUTTER_PATH_TO_PERSIST" ]]; then
+  FLUTTER_PATH_ESCAPED="$(printf '%q' "$FLUTTER_PATH_TO_PERSIST")"
   if ! grep -qF "$FLUTTER_PATH_TO_PERSIST" "$ZSHRC" 2>/dev/null; then
     # %q keeps a user-supplied FLUTTER_DIR from becoming shell syntax.
-    printf 'export PATH=%q:$PATH\n' "$FLUTTER_PATH_TO_PERSIST" >> "$ZSHRC"
+    printf 'export PATH=%s:$PATH\n' "$FLUTTER_PATH_ESCAPED" >> "$ZSHRC"
   fi
 fi
 grep -qF '$HOME/.cargo/bin' "$ZSHRC" 2>/dev/null || \

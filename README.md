@@ -60,8 +60,14 @@ using.
    - `make bootstrap` (runs `nix develop`), or
    - `nix develop` directly, or
    - `direnv allow` once, if you use direnv with the included `.envrc`.
-2. Run build (pass the release version and a build number; `make` refuses to guess):
+2. Check the Xcode requirement. Source builds are the default on Apple
+   Silicon and need Xcode **27.0** (build 27A266a); with any other Xcode pass
+   `PREBUILTS=1`. `make bootstrap-xcode` selects an installed full Xcode and
+   `make verify-bom` checks the host.
+3. Run build (pass the release version and a build number; `make` refuses to
+   guess):
    - `make build-macos VERSION=x.y.z BUILD_NUM=nnn`
+   - Add `CONFIRM=1` for a non-interactive run.
 
 The flake provides Flutter, Dart, rustup (which installs the BOM Rust version
 on first entry), Go, CMake, Meson, Ninja, pkg-config and protoc. Xcode is never provided
@@ -77,9 +83,10 @@ Use this only when you are not building through Nix/flake.
    - Open a new terminal (or run `source ~/.zshrc`) so the Homebrew and
      Flutter PATH entries are active.
    - `make build-macos VERSION=x.y.z BUILD_NUM=nnn PREBUILTS=1`
+   - Add `CONFIRM=1` for a non-interactive run.
 
-The default source build needs Nix for the four dnix libraries. `PREBUILTS=1`
-uses the verified prebuilts and needs no Nix for them.
+`PREBUILTS=1` uses the verified prebuilts and needs no Nix for the four dnix
+libraries.
 
 The Homebrew bootstrap installs the native build tools and configures the BOM
 Rust version for Flutter's native-assets hooks. It replaces the former local

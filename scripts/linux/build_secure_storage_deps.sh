@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 if [ "${USE_SYSTEM_SECURE_STORAGE_DEPS:-0}" = "1" ]; then
     echo "USE_SYSTEM_SECURE_STORAGE_DEPS is set; skipping build of jsoncpp and libsecret (using system packages)"
@@ -18,7 +19,7 @@ if ! [ -x "$(command -v git)" ]; then
 fi
 git -C jsoncpp pull origin $JSONCPP_TAG || git clone https://github.com/open-source-parsers/jsoncpp.git jsoncpp
 cd jsoncpp || exit 1
-git checkout $JSONCPP_TAG
+git checkout "$JSONCPP_TAG" || exit 1
 mkdir -p build
 cd build || exit 1
 cmake -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_BUILD_TYPE=release -DBUILD_STATIC_LIBS=ON -DBUILD_SHARED_LIBS=ON -DARCHIVE_INSTALL_DIR=. -G "Unix Makefiles" .. || exit 1
@@ -33,7 +34,7 @@ cd "$LINUX_DIRECTORY" || exit 1
 cd build || exit 1
 git -C libsecret pull origin $LIBSECRET_TAG || git clone https://git.cypherstack.com/Cypher_Stack/libsecret.git libsecret
 cd libsecret || exit 1
-git checkout $LIBSECRET_TAG
+git checkout "$LIBSECRET_TAG" || exit 1
 if ! [ -x "$(command -v meson)" ]; then
   echo 'Error: meson is not installed.' >&2
   exit 1

@@ -43,13 +43,15 @@ flowchart LR
 ```
 
 `make bootstrap-xcode` does not install Xcode. It selects an existing full
-install and finishes Apple's licence/first-launch setup if it is pending; use
+install; when it changes the selection it accepts the licence and runs pending
+first-launch setup. An already-selected Xcode is left untouched. Use
 `dart tool/setup_xcode.dart` or Apple's download page to install one.
 
 ## 2. Build
 
-`VERSION` and `BUILD_NUM` are required. dnix source is the default on macOS,
-Linux and iOS; CI and Windows use the verified prebuilts.
+`VERSION` and `BUILD_NUM` are required. dnix source is the default on Apple
+Silicon macOS and inside Nix/direnv on Linux; Intel macOS, non-Nix Linux, CI and
+Windows use the verified prebuilts.
 
 ```mermaid
 flowchart TD
@@ -62,34 +64,35 @@ flowchart TD
 
     MAC --> MC["checks<br/>require-version · check-sdk-macos<br/>toolchain-check · check-reqs-macos"]
     MC --> MP{"PREBUILTS"}
-    MP -- "0 default" --> MS["source<br/>Nix + Xcode 27.0"]
-    MP -- "1" --> MB["prebuilt -d"]
+    MP -- "0 Apple Silicon" --> MS["source<br/>Nix + Xcode 27.0"]
+    MP -- "1 Intel/CI" --> MB["prebuilt -d"]
     MS --> MR["build_app.sh -p macos<br/>pub get · prebuild.sh<br/>flutter build macos"]
     MB --> MR
 
     IOS --> IC["checks<br/>require-version · toolchain-check<br/>check-reqs-macos · check-sdk-macos"]
     IC --> IP{"PREBUILTS"}
-    IP -- "0 default" --> IS["source"]
-    IP -- "1 CI" --> IB["prebuilt -d"]
+    IP -- "0 Apple Silicon" --> IS["source"]
+    IP -- "1 Intel/CI" --> IB["prebuilt -d"]
     IS --> IR["prebuild.sh<br/>build_app.sh -p ios<br/>pub get · flutter build ios"]
     IB --> IR
 
     LINUX --> LC["checks<br/>require-version · check-linux<br/>toolchain-check · check-reqs"]
     LC --> LP{"PREBUILTS"}
-    LP -- "0 default" --> LS["source (Nix)"]
-    LP -- "1" --> LB["prebuilt -d"]
+    LP -- "0 Nix/direnv" --> LS["source (Nix)"]
+    LP -- "1 host" --> LB["prebuilt -d"]
     LS --> LR["prebuild.sh<br/>build_app.sh -p linux<br/>flutter build linux · bundle"]
     LB --> LR
 
-    WIN --> WC["checks<br/>require-version · check-windows<br/>toolchain-check · flutter · Go"]
+    WIN --> WC["checks<br/>require-version · check-windows<br/>toolchain-check · flutter"]
     WC --> WR["prebuild.sh<br/>build_app.sh -p windows -d<br/>pub get · flutter build windows<br/>always prebuilt"]
 
-    AND --> AC["checks<br/>require-version · toolchain-check<br/>dev key · SDK"]
+    AND --> AC["checks<br/>require-version · toolchain-check<br/>android/key.properties · SDK"]
     AC --> AH{"Host"}
     AH -- macOS --> AB["prebuilt -d"]
-    AH -- Linux --> AP{"PREBUILTS"}
-    AP -- "0 default" --> AS["source"]
-    AP -- "1" --> AB
+    AH -- "Linux arm64" --> AB
+    AH -- "Linux x86_64" --> AP{"PREBUILTS"}
+    AP -- "0 Nix" --> AS["source"]
+    AP -- "1 host" --> AB
     AB --> AR["prebuild.sh<br/>build_app.sh -p android<br/>pub get · flutter build apk<br/>--split-per-abi"]
     AS --> AR
 ```
@@ -98,9 +101,12 @@ flowchart TD
 
 | Context | `PREBUILTS` | dnix mode |
 |---|---|---|
-| macOS developer | `0` | source, verified; needs Nix + Xcode 27.0 |
-| Linux developer | `0` | source, verified; needs Nix |
-| iOS developer | `0` | source, verified; needs Nix + Xcode 27.0 |
+| macOS developer, Apple Silicon | `0` | source, verified; needs Nix + Xcode 27.0 |
+| macOS developer, Intel | `1` | verified prebuilts (`-d`) |
+| Linux developer in Nix/direnv | `0` | source, verified; needs Nix |
+| Linux developer, non-Nix host | `1` | verified prebuilts (`-d`) |
+| iOS developer, Apple Silicon | `0` | source, verified; needs Nix + Xcode 27.0 |
+| iOS developer, Intel | `1` | verified prebuilts (`-d`) |
 | macOS/Linux/iOS CI | `1` | verified prebuilts (`-d`) |
 | Windows | `1` (fixed) | verified prebuilts (`-d`) |
 | Android on macOS | `1` (default; source builds need an x86_64 Linux host) | verified prebuilts (`-d`) |

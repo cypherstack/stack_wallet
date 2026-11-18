@@ -34,6 +34,9 @@ manual/Homebrew path.
 
 ```sh
 brew install autoconf automake libtool cmake cocoapods meson ninja pkg-config
+rustup toolchain install "$(scripts/bom_values.sh --get rust)"
+rustup target add aarch64-apple-darwin x86_64-apple-darwin \
+  aarch64-apple-ios aarch64-apple-ios-sim
 ```
 
 Check `nix --version` from the same environment that runs Flutter, and use

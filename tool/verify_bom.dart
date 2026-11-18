@@ -32,6 +32,9 @@ void _fail(String m) {
   stdout.writeln('[FAIL] $m');
 }
 
+final _sectionHeader = RegExp(r'^\[([^\]]+)\][ \t]*(#.*)?$');
+final _pluginsHeader = RegExp(r'^\[plugins\][ \t]*(#.*)?$', multiLine: true);
+
 /// Minimal TOML reader: `[section]` headers and `key = "value"` lines.
 Map<String, Map<String, String>> _readBom(String text) {
   final result = <String, Map<String, String>>{};
@@ -39,8 +42,9 @@ Map<String, Map<String, String>> _readBom(String text) {
   for (final raw in text.split('\n')) {
     final line = raw.trim();
     if (line.isEmpty || line.startsWith('#')) continue;
-    if (line.startsWith('[') && line.endsWith(']')) {
-      section = line.substring(1, line.length - 1);
+    final header = _sectionHeader.firstMatch(line);
+    if (header != null) {
+      section = header.group(1)!;
       result.putIfAbsent(section, () => {});
       continue;
     }
@@ -156,10 +160,7 @@ Map<String, String> _lockRefs() {
 /// A duplicate `[plugins]` table makes _readBom silently last-wins and makes
 /// --update append a second block, so refuse both modes early.
 void _requireSinglePluginsSection(String text) {
-  final count = RegExp(
-    r'^\[plugins\][ \t]*$',
-    multiLine: true,
-  ).allMatches(text).length;
+  final count = _pluginsHeader.allMatches(text).length;
   if (count > 1) {
     stderr.writeln(
       'Duplicate [plugins] sections in $_bomFile; keep exactly one.',
@@ -181,12 +182,9 @@ Future<void> _update() async {
   // Without a pubspec.yaml we cannot tell which app is configured; keep the
   // old behaviour and update every plugin the lock knows about.
   final updateable = declared.isEmpty ? _pluginNames.toSet() : declared;
-  final header = RegExp(
-    r'^\[plugins\][ \t]*$',
-    multiLine: true,
-  ).firstMatch(text);
+  final header = _pluginsHeader.firstMatch(text);
   final start = header?.start ?? -1;
-  if (start < 0 && text.contains('[plugins]')) {
+  if (start < 0 && RegExp(r'\[plugins\]').hasMatch(text)) {
     stderr.writeln(
       'Found [plugins] outside a table header; refusing to update',
     );

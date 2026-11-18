@@ -7,7 +7,7 @@ These steps build the Linux desktop app and the Android app on Ubuntu 24.04
 
 | What | Needed for |
 |---|---|
-| [Flutter](https://docs.flutter.dev/install/manual) 3.47.2 | Every build |
+| [Flutter](https://docs.flutter.dev/install/manual) 3.47.2 minimum, 3.47.4 recommended | Every build |
 | The [Ubuntu packages](#ubuntu-packages) below | Every build |
 | [Rustup](https://rustup.rs/) | Every app, in both modes |
 | [Go](https://go.dev/doc/install) 1.24.1 or newer | Stack Wallet |
@@ -48,9 +48,10 @@ and `flutter doctor`. The app supports Android API 24 and newer.
 
 On NixOS, enable `programs.nix-ld.enable = true`: the NDK and CMake binaries
 distributed by Google are generic Linux executables. The nixpkgs Flutter SDK
-is also read-only, and Gradle needs a writable project directory for Flutter's
-dev-only `integration_test` plugin; without a writable Flutter install, use the
-CI Android image for Android builds.
+is also read-only, and Gradle needs to write inside the `integration_test`
+plugin project in that SDK. Without a writable Flutter checkout, build in
+`ghcr.io/<owner>/stackwallet-ci:android` (built with
+`docker build --target android .`).
 
 ## Build
 

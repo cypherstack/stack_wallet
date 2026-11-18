@@ -84,7 +84,10 @@
             fi
             export APP_PROJECT_ROOT_DIR="$APP_ROOT"
             if [ -d "$HOME/.cargo/bin" ]; then
-              export PATH="$PATH:$HOME/.cargo/bin"
+              case ":$PATH:" in
+                *":$HOME/.cargo/bin:"*) ;;
+                *) export PATH="$PATH:$HOME/.cargo/bin" ;;
+              esac
             fi
 
             # The standalone Dart in the Nix Flutter wrapper cannot find the Flutter SDK on its own,
@@ -122,6 +125,7 @@
               export LIBCLANG_PATH="${pkgs.llvmPackages.libclang.lib}/lib"
               export BINDGEN_EXTRA_CLANG_ARGS="-isystem ${pkgs.llvmPackages.libclang.lib}/lib/clang/${clangMajor}/include"
               export PROTOC="${pkgs.protobuf}/bin/protoc"
+              export SYSPROF_PC_DIR="${pkgs.libsysprof-capture}/lib/pkgconfig"
             ''}
 
             # ==========================================
@@ -170,7 +174,7 @@
 
               # A repo-writable directory on PATH would let anything that can
               # write to the checkout shadow tools for the rest of the session.
-              NIX_BIN="$(/usr/bin/mktemp -d "''${TMPDIR:-/tmp}/stackwallet-nix-bin.XXXXXX")"
+              if NIX_BIN="$(/usr/bin/mktemp -d "''${TMPDIR:-/tmp}/stackwallet-nix-bin.XXXXXX")"; then
               ln -sf /usr/bin/clang "$NIX_BIN/cc"
               ln -sf /usr/bin/clang++ "$NIX_BIN/c++"
               ln -sf /usr/bin/clang "$NIX_BIN/clang"
@@ -216,6 +220,9 @@ XCRUN_EOF
               chmod +x "$NIX_BIN/xcrun"
 
               export PATH="$NIX_BIN:$PATH"
+              else
+                echo "[WARN] Could not create the Apple tool wrapper directory; using the Nix tools." >&2
+              fi
             ''}
 
           '';

@@ -10,7 +10,7 @@ BOM="${BOM_FILE:-stack-bom.toml}"
 section_for() {
   case "$1" in
     rust|dnssec_rust|flutter|flutter_min|go|go_min) echo toolchain ;;
-    xcode) echo macos ;;
+    xcode|xcode_dnix) echo macos ;;
     *) echo "Unknown BOM key: $1" >&2; return 2 ;;
   esac
 }
@@ -30,8 +30,13 @@ value() {
   # These values are passed to toolchain actions in the release workflow.
   # Reject anything that is not a plain version so a data-file edit cannot
   # inject a branch, a range or shell syntax.
-  if [[ ! "$result" =~ ^[0-9]+(\.[0-9]+){1,2}$ ]]; then
-    echo "Invalid [$section] $key value '$result' in $BOM (expected x.y or x.y.z)" >&2
+  if [[ "$key" == xcode || "$key" == xcode_dnix ]]; then
+    [[ "$result" =~ ^[0-9]+\.[0-9]+$ ]] || {
+      echo "Invalid [$section] $key value '$result' in $BOM (expected x.y)" >&2
+      return 1
+    }
+  elif [[ ! "$result" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "Invalid [$section] $key value '$result' in $BOM (expected x.y.z)" >&2
     return 1
   fi
   printf '%s\n' "$result"
@@ -39,7 +44,7 @@ value() {
 
 check_all() {
   local key
-  for key in rust dnssec_rust flutter flutter_min go go_min xcode; do
+  for key in rust dnssec_rust flutter flutter_min go go_min xcode xcode_dnix; do
     value "$key" >/dev/null
   done
   echo "BOM values OK"
