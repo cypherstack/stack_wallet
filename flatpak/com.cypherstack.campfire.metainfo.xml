@@ -10,7 +10,8 @@
       Campfire is an open-source, non-custodial Firo wallet.
     </p>
   </description>
-  <url type="homepage">https://campfireprivacy.com</url>
+  <url type="homepage">https://github.com/firoorg/campfire</url>
   <url type="bugtracker">https://github.com/cypherstack/stack_wallet/issues</url>
+  <launchable type="desktop-id">com.cypherstack.campfire.desktop</launchable>
   <content_rating type="oars-1.1"/>
 </component>
