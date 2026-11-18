@@ -237,6 +237,49 @@ Future<void> _update() async {
   );
 }
 
+Never _finish() {
+  stdout.writeln('\n$_failures failure(s), $_warnings warning(s).');
+  exit(_failures == 0 ? 0 : 1);
+}
+
+void _checkPlugins(Map<String, Map<String, String>> bom) {
+  final refs = _lockRefs();
+  final pinned = bom['plugins'] ?? {};
+  final declared = _declaredPlugins();
+  final pubspecExists = File('pubspec.yaml').existsSync();
+  // A fresh checkout has no pubspec.yaml: build_app.sh generates it later.
+  // In that case check every plugin the lock contains, as before.
+  final required = pubspecExists ? declared : _pluginNames.toSet();
+  if (refs.isEmpty) {
+    _warn('pubspec.lock not found, plugin pins not checked');
+  } else if (required.isEmpty) {
+    _fail(
+      'could not read plugin declarations from pubspec.yaml '
+      '(expected them under dependencies: or dependency_overrides:)',
+    );
+  } else {
+    for (final n in _pluginNames) {
+      if (!required.contains(n)) continue;
+      final ref = refs[n];
+      final pin = pinned[n];
+      if (ref == null) {
+        _fail(
+          '$n is missing from pubspec.lock (path dependency or not resolved)',
+        );
+      } else if (pin == null) {
+        _fail('$n is missing from [plugins] in $_bomFile (run --update)');
+      } else if (pin == ref) {
+        _ok('$n ${_short(ref)}');
+      } else {
+        _fail(
+          '$n is ${_short(ref)} in pubspec.lock but '
+          '${_short(pin)} in $_bomFile (run --update)',
+        );
+      }
+    }
+  }
+}
+
 Future<void> main(List<String> args) async {
   if (!File(_bomFile).existsSync()) {
     stderr.writeln('Run from the repository root ($_bomFile not found).');
@@ -245,6 +288,11 @@ Future<void> main(List<String> args) async {
   if (args.contains('--update')) return _update();
 
   final bomText = File(_bomFile).readAsStringSync();
+  if (args.contains('--plugins')) {
+    _requireSinglePluginsSection(bomText);
+    _checkPlugins(_readBom(bomText));
+    _finish();
+  }
   _requireSinglePluginsSection(bomText);
   final bom = _readBom(bomText);
   final root = bom[''] ?? {};
@@ -307,6 +355,19 @@ Future<void> main(List<String> args) async {
   } else {
     _fail('Rust $rust is not installed (rustup toolchain install $rust)');
   }
+  final dnssec = tc['dnssec_rust'] ?? '';
+  if (dnssec.isEmpty) {
+    _fail('dnssec_rust is missing from $_bomFile');
+  } else if (list == null) {
+    // already reported above
+  } else if (list.split('\n').any((l) => l.startsWith('$dnssec-'))) {
+    _ok('DNSSEC Rust $dnssec installed via rustup');
+  } else {
+    _fail(
+      'DNSSEC Rust $dnssec is not installed '
+      '(rustup toolchain install $dnssec)',
+    );
+  }
 
   // Go
   final go = await _run('go', ['version']);
@@ -338,43 +399,6 @@ Future<void> main(List<String> args) async {
     }
   }
 
-  // Pinned plugins against pubspec.lock
-  final refs = _lockRefs();
-  final pinned = bom['plugins'] ?? {};
-  final declared = _declaredPlugins();
-  final pubspecExists = File('pubspec.yaml').existsSync();
-  // A fresh checkout has no pubspec.yaml: build_app.sh generates it later.
-  // In that case check every plugin the lock contains, as before.
-  final required = pubspecExists ? declared : _pluginNames.toSet();
-  if (refs.isEmpty) {
-    _warn('pubspec.lock not found, plugin pins not checked');
-  } else if (required.isEmpty) {
-    _fail(
-      'could not read plugin declarations from pubspec.yaml '
-      '(expected them under dependencies: or dependency_overrides:)',
-    );
-  } else {
-    for (final n in _pluginNames) {
-      if (!required.contains(n)) continue;
-      final ref = refs[n];
-      final pin = pinned[n];
-      if (ref == null) {
-        _fail(
-          '$n is missing from pubspec.lock (path dependency or not resolved)',
-        );
-      } else if (pin == null) {
-        _fail('$n is missing from [plugins] in $_bomFile (run --update)');
-      } else if (pin == ref) {
-        _ok('$n ${_short(ref)}');
-      } else {
-        _fail(
-          '$n is ${_short(ref)} in pubspec.lock but '
-          '${_short(pin)} in $_bomFile (run --update)',
-        );
-      }
-    }
-  }
-
-  stdout.writeln('\n$_failures failure(s), $_warnings warning(s).');
-  exit(_failures == 0 ? 0 : 1);
+  _checkPlugins(bom);
+  _finish();
 }
