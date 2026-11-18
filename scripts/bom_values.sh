@@ -27,6 +27,12 @@ value() {
     echo "Missing [$section] $key in $BOM" >&2
     return 1
   }
+  local count
+  count="$(grep -cE "^\[$section\][[:space:]]*(#.*)?$" "$BOM" || true)"
+  [ "$count" -le 1 ] || {
+    echo "Duplicate [$section] tables in $BOM; keep exactly one." >&2
+    return 1
+  }
   # These values are passed to toolchain actions in the release workflow.
   # Reject anything that is not a plain version so a data-file edit cannot
   # inject a branch, a range or shell syntax.

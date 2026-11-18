@@ -141,7 +141,7 @@ rustup override set "$RUST_VERSION" --path "$REPO_ROOT" >/dev/null 2>&1 || true
 if [ ! -x "$HOME/.cargo/bin/cargo" ]; then
   echo "cargo shims missing in ~/.cargo/bin; creating them via rustup-init..."
   if command -v rustup-init >/dev/null 2>&1; then
-    rustup-init -y --no-modify-path --default-toolchain "$RUST_VERSION" || true
+    rustup-init -y --no-modify-path --default-toolchain none || true
   else
     die "rustup-init not found. Run 'brew install rustup', then re-run this script."
   fi
@@ -195,7 +195,8 @@ grep -qF 'brew shellenv' "$ZSHRC" 2>/dev/null || \
   printf 'eval "$(%s/bin/brew shellenv)"\n' "$BREW_PREFIX" >> "$ZSHRC"
 if [[ -n "$FLUTTER_PATH_TO_PERSIST" ]]; then
   FLUTTER_PATH_ESCAPED="$(printf '%q' "$FLUTTER_PATH_TO_PERSIST")"
-  if ! grep -qF "$FLUTTER_PATH_TO_PERSIST" "$ZSHRC" 2>/dev/null; then
+  if ! grep -qF "$FLUTTER_PATH_TO_PERSIST" "$ZSHRC" 2>/dev/null && \
+     ! grep -qF "$FLUTTER_PATH_ESCAPED" "$ZSHRC" 2>/dev/null; then
     # %q keeps a user-supplied FLUTTER_DIR from becoming shell syntax.
     printf 'export PATH=%s:$PATH\n' "$FLUTTER_PATH_ESCAPED" >> "$ZSHRC"
   fi

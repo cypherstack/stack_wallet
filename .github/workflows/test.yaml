@@ -143,8 +143,8 @@ jobs:
       - name: Check the Makefile dry-runs
         run: |
           bash scripts/bom_values.sh --check
-          if grep -nE '^[^#]*\$\(MAKE\)' Makefile; then
-            echo 'Makefile uses $(MAKE), which runs even under make -n' >&2
+          if grep -nE '^[^#]*\$\(MAKE\)|^[[:space:]]*\+' Makefile; then
+            echo 'Makefile uses a construct that runs even under make -n' >&2
             exit 1
           fi
           make help

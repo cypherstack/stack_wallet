@@ -497,16 +497,20 @@ build-windows: require-version check-windows toolchain-check ## Build Windows re
 # are not suitable for distribution.
 android-dev-key: ## Create a throw-away debug signing key if android/key.properties is missing (never use for releases)
 	@command -v keytool >/dev/null 2>&1 || { echo >&2 "[ERROR] keytool not found; install a JDK."; exit 1; }
-	@if [ ! -f android/key.properties ]; then \
+	@umask 077; if [ ! -f android/key.properties ]; then \
 		echo "[INFO] android/key.properties missing: creating a throw-away debug key (not for releases)"; \
 		keytool -genkeypair -keystore android/dev-keystore.jks -storetype pkcs12 -storepass android -keypass android \
 			-alias devkey -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Stack Wallet dev build" -noprompt && \
 		printf 'storeFile=../dev-keystore.jks\nstorePassword=android\nkeyPassword=android\nkeyAlias=devkey\n' > android/key.properties; \
 	fi
+	@chmod 600 android/key.properties android/dev-keystore.jks 2>/dev/null || true
 
 build-android: require-version toolchain-check ## Build Android APKs (requires android/key.properties; prebuilt unless x86_64 Linux in Nix/direnv follows PREBUILTS)
 	@[ -n "$(FLUTTER)" ] && command -v "$(FLUTTER)" >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
 	@[ -f android/key.properties ] || { echo >&2 "[ERROR] android/key.properties is missing. Run 'make android-dev-key' for a local throw-away key; never distribute APKs signed with it."; exit 1; }
+	@if grep -q '^keyAlias=devkey$$' android/key.properties 2>/dev/null; then \
+		echo "[WARN] Signing with the public throw-away dev key; this APK is for local testing only."; \
+	fi
 	@[ -n "$$ANDROID_SDK_ROOT$$ANDROID_HOME" ] || { echo >&2 "[ERROR] ANDROID_SDK_ROOT is not set (Android SDK/NDK required)."; exit 1; }
 	@cd scripts && bash prebuild.sh
 	@cd scripts && $(if $(filter 1,$(CONFIRM)),echo yes |,) ./build_app.sh -v $(VERSION) -b $(BUILD_NUM) -p android -a $(APP_NAME) $(if $(filter 1,$(ANDROID_PREBUILTS)),-d)

@@ -63,6 +63,12 @@ else
   - Or download the .xip directly from https://developer.apple.com/download/all/?q=xcode"
   fi
   echo "Xcode found at $XCODE_APP. Setting xcode-select path..."
+  case "$XCODE_APP" in
+    /Applications/*) ;;
+    *) die "[ERROR] Refusing to sudo-select an Xcode outside /Applications: $XCODE_APP" ;;
+  esac
+  [[ "$(/usr/bin/stat -f '%Su' -L "$XCODE_APP")" == "root" ]] || \
+    die "[ERROR] Refusing to sudo-select a user-owned Xcode bundle: $XCODE_APP"
   sudo xcode-select -s "$XCODE_APP/Contents/Developer"
   JUST_SELECTED=1
 fi

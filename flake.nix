@@ -181,9 +181,8 @@
               ln -sf /usr/bin/clang++ "$NIX_BIN/clang++"
 
               # SMART LIPO & XCRUN WRAPPER
-              # lipo wrapper: the Nix store copy of FlutterMacOS.framework is
-              # read-only, so make its containing dir writable before handing
-              # off to the real lipo.
+              # lipo wrapper: a build-tree copy of FlutterMacOS.framework may
+              # need to be made writable. Never touch the Nix store path.
               rm -f "$NIX_BIN/lipo" "$NIX_BIN/xcrun"
 
               cat > "$NIX_BIN/lipo" <<'LIPO_EOF'
@@ -191,7 +190,10 @@
 for arg in "$@"; do
     if [[ "$arg" == *"FlutterMacOS.framework"* ]]; then
         framework="''${arg%%FlutterMacOS.framework*}FlutterMacOS.framework"
-        chmod -R u+w "$framework" 2>/dev/null || true
+        case "$framework" in
+          "$PWD"/*|"''${TMPDIR:-/tmp}"/*) chmod -R u+w "$framework" 2>/dev/null || true ;;
+          *) ;;
+        esac
     fi
 done
 exec /usr/bin/lipo "$@"
