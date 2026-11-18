@@ -48,13 +48,13 @@ Highlights include:
 ## Building
 
 You can look at the [build instructions](docs/building.md) for more details.
-On macOS, the **Nix dev shell** is the primary *host* toolchain; Homebrew and
-manual installs are supported fallbacks. dnix builds the four native
+On Apple Silicon macOS, the **Nix dev shell** is the primary *host* toolchain;
+Homebrew and manual installs are supported fallbacks. dnix builds the four native
 libraries from source under Nix/direnv and verifies the prebuilts otherwise.
 `make build-macos` is the same target in every mode, and `make toolchain`
 shows which host environment your shell is using.
 
-### macOS with Nix (recommended)
+### macOS with Nix (recommended; Apple Silicon)
 
 1. Enter the flake environment:
    - `make bootstrap` (runs `nix develop`), or

@@ -395,7 +395,7 @@ ifeq ($(PREBUILTS),0)
   endif
   ifeq ($(filter Darwin Linux,$(PLATFORM)),$(PLATFORM))
     ifeq ($(strip $(NIX_BIN)),)
-      $(error PREBUILTS=0 (dnix source) needs Nix on PATH; run 'nix develop' or use PREBUILTS=1)
+      $(error PREBUILTS=0 (dnix source) needs an active Nix/direnv shell; run 'make bootstrap' or use PREBUILTS=1)
     endif
   endif
 endif
