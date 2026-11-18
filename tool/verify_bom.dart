@@ -288,16 +288,15 @@ Future<void> main(List<String> args) async {
   if (args.contains('--update')) return _update();
 
   final bomText = File(_bomFile).readAsStringSync();
-  if (args.contains('--plugins')) {
-    _requireSinglePluginsSection(bomText);
-    _checkPlugins(_readBom(bomText));
-    _finish();
-  }
   _requireSinglePluginsSection(bomText);
   final bom = _readBom(bomText);
   final root = bom[''] ?? {};
   if (root['schema_version'] != '1') {
     _fail('schema_version must be 1 in $_bomFile');
+  }
+  if (args.contains('--plugins')) {
+    _checkPlugins(bom);
+    _finish();
   }
   final tc = bom['toolchain'] ?? {};
 
