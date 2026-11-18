@@ -27,7 +27,7 @@ dnix enables the Nix flake features it needs when it invokes Nix.
 ```sh
 sudo apt-get update
 sudo apt-get install build-essential clang cmake ninja-build pkg-config \
-  git curl unzip xz-utils python3 libgtk-3-dev liblzma-dev libssl-dev \
+  git curl unzip xz-utils python3 protobuf-compiler patchelf libgtk-3-dev liblzma-dev libssl-dev \
   libjsoncpp-dev libsecret-1-dev
 ```
 

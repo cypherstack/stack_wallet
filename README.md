@@ -77,7 +77,7 @@ by Nix; the flake uses the Xcode selected by `xcode-select`.
 
 Use this only when you are not building through Nix/flake.
 
-1. Install host tools:
+1. With Homebrew installed, install the host tools:
    - `make bootstrap-macos` (alias: `make bootstrap-brew`)
 2. Run build:
    - Open a new terminal (or run `source ~/.zshrc`) so the Homebrew and

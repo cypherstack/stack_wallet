@@ -197,8 +197,8 @@ require-version: ## Fail unless VERSION/BUILD_NUM are valid and above the latest
 
 check-reqs: ## Verify essential build tools
 	@echo "Checking core prerequisites..."
-	@[ -n "$(FLUTTER)" ] && command -v "$(FLUTTER)" >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed."; exit 1; }
-	@[ -n "$(DART)" ] && command -v "$(DART)" >/dev/null 2>&1 || { echo >&2 "[ERROR] Dart not installed."; exit 1; }
+	@[ -n "$(FLUTTER)" ] && command -v "$(FLUTTER)" >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed. Use 'nix develop' (recommended) or add Flutter to PATH."; exit 1; }
+	@[ -n "$(DART)" ] && command -v "$(DART)" >/dev/null 2>&1 || { echo >&2 "[ERROR] Dart not installed. It ships with Flutter; use 'nix develop' (recommended)."; exit 1; }
 	@command -v rustup >/dev/null 2>&1 || { echo >&2 "[ERROR] rustup not installed."; exit 1; }
 	@rustup which rustc >/dev/null 2>&1 || { echo >&2 "[ERROR] rustc toolchain not available via rustup."; exit 1; }
 	@rustup which cargo >/dev/null 2>&1 || { echo >&2 "[ERROR] cargo toolchain not available via rustup."; exit 1; }
@@ -207,6 +207,7 @@ check-reqs: ## Verify essential build tools
 	@command -v cargo >/dev/null 2>&1 || [ -x "$$HOME/.cargo/bin/cargo" ] || { echo >&2 "[ERROR] 'cargo' is not on PATH (rustup shims missing from ~/.cargo/bin). Run 'rustup-init -y', then open a new terminal."; exit 1; }
 	@command -v go >/dev/null 2>&1 || { echo >&2 "[ERROR] Go not installed."; exit 1; }
 	@command -v cmake >/dev/null 2>&1 || { echo >&2 "[ERROR] CMake not installed."; exit 1; }
+	@command -v protoc >/dev/null 2>&1 || { echo >&2 "[ERROR] protoc not installed (protobuf); use 'nix develop' or your package manager."; exit 1; }
 	@command -v meson >/dev/null 2>&1 || { \
 		if [ "$(PLATFORM)" = "Darwin" ]; then \
 			echo >&2 "[ERROR] Meson not installed. Use 'nix develop' (recommended) or run 'make bootstrap-macos'."; \
@@ -262,7 +263,7 @@ endif
 check-reqs-macos: check-reqs ## Verify macOS-specific tools are available in PATH
 ifeq ($(PLATFORM),Darwin)
 	@echo "Checking macOS-specific tools in PATH..."
-	@rustup run $(RUST_VERSION) rustc -vV >/dev/null 2>&1 || { echo >&2 "[ERROR] Rust $(RUST_VERSION) toolchain not available. Run 'nix develop' (recommended) or 'make bootstrap-macos'."; exit 1; }
+	@rustup run $(RUST_VERSION) rustc -vV >/dev/null 2>&1 || { echo >&2 "[ERROR] Rust $(RUST_VERSION) toolchain not available. Run 'rustup toolchain install $(RUST_VERSION)', or use 'nix develop'/'make bootstrap-macos'."; exit 1; }
 	@command -v pod >/dev/null 2>&1 || { echo >&2 "[ERROR] CocoaPods (pod) not installed."; exit 1; }
 	@command -v xcodebuild >/dev/null 2>&1 || { echo >&2 "[ERROR] xcodebuild not available."; exit 1; }
 	@echo "[OK] macOS-specific toolchain is available."
