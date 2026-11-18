@@ -69,7 +69,7 @@ plugin project in that SDK. Without a writable Flutter checkout, build in
 2. Configure and build the Linux app:
 
    ```sh
-   bash scripts/build_app.sh -a stack_wallet -p linux -v 1.2.3 -b 123
+   bash scripts/build_app.sh -a stack_wallet -p linux -v 1.2.3 -b 123 -d
    flutter pub get
    dart tool/check_native_overrides.dart stack_wallet
    flutter build linux --release

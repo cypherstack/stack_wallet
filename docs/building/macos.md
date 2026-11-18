@@ -130,7 +130,7 @@ Run the configuration and Flutter build commands in that shell.
 2. Configure and build the macOS app:
 
    ```sh
-   bash scripts/build_app.sh -a stack_wallet -p macos -v 1.2.3 -b 123
+   bash scripts/build_app.sh -a stack_wallet -p macos -v 1.2.3 -b 123 -d
    flutter pub get
    dart tool/check_native_overrides.dart stack_wallet
    flutter build macos --release
@@ -139,8 +139,9 @@ Run the configuration and Flutter build commands in that shell.
    For iOS, configure with `-p ios` and build with `flutter build ios --release`.
 
 Use the version and build number for your checkout, and read the script's
-confirmation before continuing. Add `-d` to the configuration command to use
-verified dnix prebuilts. See the
+confirmation before continuing. `-d` selects the verified dnix prebuilts and
+is required for the manual/Homebrew path. Source mode is only available with
+Nix/direnv; see the
 [configuration options](../building.md#configuration-options). The override
 check catches package-local dnix overrides; see
 [Local overrides](native-libraries.md#local-overrides).

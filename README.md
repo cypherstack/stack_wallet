@@ -49,10 +49,10 @@ Highlights include:
 
 You can look at the [build instructions](docs/building.md) for more details.
 On macOS, the **Nix dev shell** is the primary *host* toolchain; Homebrew and
-manual installs are supported fallbacks. dnix builds and verifies the four
-native libraries underneath all of them. `make build-macos` is the same target
-in every mode, and `make toolchain` shows which host environment your shell is
-using.
+manual installs are supported fallbacks. dnix builds the four native
+libraries from source under Nix/direnv and verifies the prebuilts otherwise.
+`make build-macos` is the same target in every mode, and `make toolchain`
+shows which host environment your shell is using.
 
 ### macOS with Nix (recommended)
 
@@ -61,9 +61,9 @@ using.
    - `nix develop` directly, or
    - `direnv allow` once, if you use direnv with the included `.envrc`.
 2. Check the Xcode requirement. Source builds are the default in Nix/direnv
-   on Apple Silicon and need Xcode **27.0** (build 27A266a); with any other
-   Xcode pass `PREBUILTS=1`. `make bootstrap-xcode` selects an installed full
-   Xcode and `make verify-bom` checks the host.
+   on Apple Silicon and need Xcode **27.0** (build 27A266a); if Xcode 27.0
+   is not installed, pass `PREBUILTS=1`. `make bootstrap-xcode` selects an
+   installed full Xcode and `make verify-bom` checks the host.
 3. Run build (pass the release version and a build number; `make` refuses to
    guess):
    - `make build-macos VERSION=x.y.z BUILD_NUM=nnn`
