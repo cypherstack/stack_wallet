@@ -46,6 +46,12 @@ Flutter requires. The app pins NDK **28.2.13676358** in its Android template;
 install it through SDK Manager. Then run `flutter doctor --android-licenses`
 and `flutter doctor`. The app supports Android API 24 and newer.
 
+On NixOS, enable `programs.nix-ld.enable = true`: the NDK and CMake binaries
+distributed by Google are generic Linux executables. The nixpkgs Flutter SDK
+is also read-only, and Gradle needs a writable project directory for Flutter's
+dev-only `integration_test` plugin; without a writable Flutter install, use the
+CI Android image for Android builds.
+
 ## Build
 
 1. Clone the repository and create the stubs:
