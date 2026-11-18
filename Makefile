@@ -221,7 +221,10 @@ check-reqs: ## Verify essential build tools
 	@# `rustup which cargo` resolves a toolchain path even when no shim is on PATH,
 	@# but the plugin build scripts invoke bare `cargo` — verify that separately.
 	@command -v cargo >/dev/null 2>&1 || [ -x "$$HOME/.cargo/bin/cargo" ] || { echo >&2 "[ERROR] 'cargo' is not on PATH (rustup shims missing from ~/.cargo/bin). Run 'rustup-init -y', then open a new terminal."; exit 1; }
-	@command -v go >/dev/null 2>&1 || { echo >&2 "[ERROR] Go not installed."; exit 1; }
+# Go is only needed for Stack Wallet's MWEB build; Stack Duo and Campfire do not use it.
+ifeq ($(APP_NAME),stack_wallet)
+	@command -v go >/dev/null 2>&1 || { echo >&2 "[ERROR] Go not installed (needed for Stack Wallet's MWEB build)."; exit 1; }
+endif
 	@command -v cmake >/dev/null 2>&1 || { echo >&2 "[ERROR] CMake not installed."; exit 1; }
 	@command -v protoc >/dev/null 2>&1 || { echo >&2 "[ERROR] protoc not installed (protobuf); use 'nix develop' or your package manager."; exit 1; }
 	@command -v meson >/dev/null 2>&1 || { \
