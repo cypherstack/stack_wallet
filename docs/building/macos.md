@@ -25,7 +25,7 @@ manual/Homebrew path.
 | What | Needed for |
 |---|---|
 | [Flutter](https://docs.flutter.dev/install/manual) 3.47.2 minimum, 3.47.4 recommended | Manual and Homebrew modes |
-| Your usual Xcode | Building the app, in both dnix modes |
+| Your usual Xcode (27.1 recommended) | Building the app, in both dnix modes |
 | Xcode **27.0**, release build **27A266a**, installed next to your usual Xcode | Source mode (dnix), in every host mode: dnix builds its four packages with it, including during `flutter test`. It doesn't need to be selected; see [Install Xcode 27.0](#install-xcode-270) |
 | [Homebrew](https://brew.sh/) packages below | Manual and Homebrew modes |
 | [Rustup](https://rustup.rs/) | Manual and Homebrew modes, in both dnix modes |
