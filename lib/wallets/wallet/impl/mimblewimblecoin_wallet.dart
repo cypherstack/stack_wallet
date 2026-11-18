@@ -55,6 +55,9 @@ class MimblewimblecoinWallet extends MimblewimbleWallet {
   int get firstBlockTimestamp => 1573462800;
 
   @override
+  bool get supportsSlatepackEncryption => true;
+
+  @override
   Future<void> updateRelayConfig(String host, int port) async {
     final String stringConfig = jsonEncode(<String, dynamic>{
       "mwcmqs_domain": host,
@@ -216,10 +219,20 @@ class MimblewimblecoinWallet extends MimblewimbleWallet {
 
   @override
   Future<SlatepackDecodeResult> decodeSlatepack(String slatepack) async {
+    final String handle;
     try {
       // Inspection runs before receive/finalize. Open here so an encrypted
       // slatepack can be decrypted with this wallet's keys during inspection.
-      final String handle = await _ensureWalletOpen();
+      handle = await _ensureWalletOpen();
+    } catch (e, s) {
+      Logging.instance.e('Failed to open wallet for slatepack: $e\n$s');
+      return SlatepackDecodeResult(
+        success: false,
+        failure: SlatepackDecodeFailure.walletUnavailable,
+      );
+    }
+
+    try {
       final result = await libMwc.decodeSlatepackWithWallet(
         wallet: handle,
         slatepack: slatepack,
@@ -234,7 +247,10 @@ class MimblewimblecoinWallet extends MimblewimbleWallet {
       );
     } catch (e, s) {
       Logging.instance.e('Failed to decode slatepack: $e\n$s');
-      return SlatepackDecodeResult(success: false, error: e.toString());
+      return SlatepackDecodeResult(
+        success: false,
+        failure: SlatepackDecodeFailure.invalidInput,
+      );
     }
   }
 

@@ -377,6 +377,7 @@ void main() {
       await runFlow(tester, wallet);
 
       expect(find.text('Finalize slatepack'), findsOneWidget);
+      expect(find.text('Encrypted'), findsOneWidget);
       expect(
         find.textContaining('amount and fee are unavailable'),
         findsOneWidget,
@@ -413,6 +414,8 @@ void main() {
       await runFlow(tester, wallet);
       expect(find.text("Finalize slate"), findsOneWidget);
       expect(find.textContaining("No matching send was found"), findsOneWidget);
+      expect(find.textContaining('other party'), findsOneWidget);
+      expect(find.textContaining('with the sender'), findsNothing);
       final warning = find.byKey(const Key("slatepackHistoryWarning"));
       expect(warning, findsOneWidget);
       expect(tester.widget(warning), isA<RoundedContainer>());
@@ -451,6 +454,19 @@ void main() {
       expect(find.text('Sender key'), findsOneWidget);
       expect(find.text('From'), findsNothing);
       expect(find.text(senderKey), findsOneWidget);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('Epic summaries omit an inapplicable encryption row', (
+      tester,
+    ) async {
+      final wallet = _InspectOnlyWallet(SlateState.s1);
+
+      await runFlow(tester, wallet);
+
+      expect(find.text('Receive slate'), findsOneWidget);
+      expect(find.text('Encrypted'), findsNothing);
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
     });
@@ -568,6 +584,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
       expect(find.byType(SlatepackDialog), findsOneWidget);
       expect(find.text('{"response": true}'), findsOneWidget);
+      expect(find.text('Not encrypted'), findsNothing);
 
       await tester.tap(find.text("Done"));
       await tester.pump(const Duration(milliseconds: 400));

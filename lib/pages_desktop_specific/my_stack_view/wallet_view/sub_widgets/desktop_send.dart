@@ -1424,6 +1424,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     // button so fee keystrokes don't rebuild this whole view.
     final previewEnabled = ref.watch(pPreviewTxButtonEnabled(walletId));
     final needsEthFee = coin is Ethereum && isCustomFee;
+    final wallet = ref.watch(
+      pWallets.select((value) => value.getWallet(walletId)),
+    );
 
     // add listener for epic cash to strip http:// and https:// prefixes if the address also ocntains an @ symbol (indicating an epicbox address)
     if (coin is Epiccash) {
@@ -1493,7 +1496,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       children: [
         const SizedBox(height: 4),
         if (showPrivateBalance) const SizedBox(height: 4),
-        if (usesSlatepacks)
+        if (wallet is SlatepackInterface && wallet.hasSlatepackMethodToggle)
           Padding(
             padding: const EdgeInsets.only(bottom: 16),
             child: Container(

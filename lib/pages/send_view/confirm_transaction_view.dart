@@ -253,7 +253,12 @@ class _ConfirmTransactionViewState
           ),
         );
       }
-      await showSlatepackDialog(context: context, terms: terms, result: result);
+      await showSlatepackDialog(
+        context: context,
+        terms: terms,
+        result: result,
+        supportsEncryption: wallet.supportsSlatepackEncryption,
+      );
     } else {
       Logging.instance.w(
         "Created ${terms.noun} ${result.slateId} but the confirmation view"
@@ -308,14 +313,16 @@ class _ConfirmTransactionViewState
       }
     }
 
+    // Start the existing minimum-display timer before the route transition so
+    // waiting for a painted progress dialog does not make every send slower.
+    final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
+
     unawaited(navigator.push(sendingRoute));
     await waitForRoutePresentation(sendingRoute);
     if (!context.mounted) {
       closeSendingDialog();
       return;
     }
-
-    final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
 
     final List<String> txids = [];
     Future<TxData> txDataFuture;

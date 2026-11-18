@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:platform/platform.dart' as platform;
 import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/models/slatepack_models.dart';
 import 'package:stackwallet/pages/slatepack/slatepack_dialog.dart';
@@ -13,6 +14,12 @@ import 'package:stackwallet/utilities/util.dart';
 import '../../sample_data/theme_json.dart';
 
 void main() {
+  void useAndroidLayout() {
+    final previousPlatform = Util.layoutPlatform;
+    Util.layoutPlatform = platform.FakePlatform(operatingSystem: 'android');
+    addTearDown(() => Util.layoutPlatform = previousPlatform);
+  }
+
   test('slatepack text uses a platform-native monospace family', () {
     expect(slatepackMonospaceFontFamily(TargetPlatform.iOS), 'Menlo');
     expect(slatepackMonospaceFontFamily(TargetPlatform.macOS), 'Menlo');
@@ -66,6 +73,7 @@ void main() {
   testWidgets("Share anchors the share sheet to the Share button", (
     tester,
   ) async {
+    useAndroidLayout();
     tester.view.physicalSize = const Size(1400, 2400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -125,6 +133,7 @@ void main() {
   });
 
   testWidgets('actions fit at 360 dp with 115 percent text', (tester) async {
+    useAndroidLayout();
     tester.view.physicalSize = const Size(360, 1200);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -172,5 +181,29 @@ void main() {
     expect(find.text('Share'), findsOneWidget);
     expect(find.text('Save'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Epic slates omit encryption status', (tester) async {
+    final theme = StackTheme.fromJson(json: lightThemeJsonMap);
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          theme: ThemeData(
+            extensions: [StackColors.fromStackColorTheme(theme)],
+          ),
+          home: const Scaffold(
+            body: SlatepackDialog(
+              terms: SlatepackTerms.slate,
+              slatepack: '{}',
+              state: SlateState.s1,
+              showEncryptionStatus: false,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Not encrypted'), findsNothing);
+    expect(find.textContaining('Encrypted to'), findsNothing);
   });
 }

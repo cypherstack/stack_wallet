@@ -132,6 +132,12 @@ abstract class MimblewimbleWallet extends Bip39Wallet with SlatepackInterface {
 
     final SlatepackDecodeResult decoded = await decodeSlatepack(text);
     if (!decoded.success || decoded.slateJson == null) {
+      if (decoded.failure == SlatepackDecodeFailure.walletUnavailable) {
+        throw Exception(
+          "This ${slatepackTerms.noun} could not be read because the wallet "
+          "could not be opened. Unlock the wallet and try again.",
+        );
+      }
       throw Exception(
         "This ${slatepackTerms.noun} could not be decoded. It may be damaged, "
         "incomplete, or encrypted for another wallet.",
@@ -256,7 +262,10 @@ abstract class MimblewimbleWallet extends Bip39Wallet with SlatepackInterface {
       slateId,
     );
 
-    final TransactionV2? tx = await find();
+    final TransactionV2? tx = await findLocalTxAfterRefresh(
+      find: find,
+      refresh: updateTransactions,
+    );
     if (tx == null) return null;
 
     final int digits = cryptoCurrency.fractionDigits;
@@ -272,6 +281,19 @@ abstract class MimblewimbleWallet extends Bip39Wallet with SlatepackInterface {
       isSend: isSend,
       isCancelled: tx.isCancelled,
     );
+  }
+
+  /// Reads the cache, refreshes it once on a miss, then reads it again.
+  /// The import flow places its existing timeout around the whole lookup.
+  @visibleForTesting
+  static Future<TransactionV2?> findLocalTxAfterRefresh({
+    required Future<TransactionV2?> Function() find,
+    required Future<void> Function() refresh,
+  }) async {
+    final first = await find();
+    if (first != null) return first;
+    await refresh();
+    return find();
   }
 
   /// The transaction for [slateId] among [candidates]. A wallet that sent to

@@ -50,12 +50,15 @@ TransactionV2 _tx(
 );
 
 class _DecodeFailureWallet extends MimblewimblecoinWallet {
-  _DecodeFailureWallet() : super(CryptoCurrencyNetwork.main);
+  _DecodeFailureWallet(this.failure) : super(CryptoCurrencyNetwork.main);
+
+  final SlatepackDecodeFailure failure;
 
   @override
   Future<SlatepackDecodeResult> decodeSlatepack(String slatepack) async =>
       SlatepackDecodeResult(
         success: false,
+        failure: failure,
         error: 'opaque native parse failure',
       );
 }
@@ -132,7 +135,7 @@ void main() {
   });
 
   test('decode failures explain likely slatepack problems', () async {
-    final wallet = _DecodeFailureWallet();
+    final wallet = _DecodeFailureWallet(SlatepackDecodeFailure.invalidInput);
 
     await expectLater(
       wallet.inspectSlatepack('BEGINSLATEPACK. broken. ENDSLATEPACK.'),
@@ -152,6 +155,57 @@ void main() {
     );
   });
 
+  test('wallet-open failures are not blamed on the slatepack', () async {
+    final wallet = _DecodeFailureWallet(
+      SlatepackDecodeFailure.walletUnavailable,
+    );
+
+    await expectLater(
+      wallet.inspectSlatepack('BEGINSLATEPACK. valid. ENDSLATEPACK.'),
+      throwsA(
+        isA<Exception>()
+            .having(
+              (error) => error.toString(),
+              'wallet error',
+              contains('wallet could not be opened'),
+            )
+            .having(
+              (error) => error.toString(),
+              'does not blame input',
+              isNot(contains('damaged')),
+            ),
+      ),
+    );
+  });
+
+  test('a local transaction miss refreshes once and checks again', () async {
+    var finds = 0;
+    var refreshes = 0;
+    final expected = _tx(5, TransactionType.outgoing, 'slate');
+
+    final result = await MimblewimbleWallet.findLocalTxAfterRefresh(
+      find: () async => ++finds == 1 ? null : expected,
+      refresh: () async => refreshes++,
+    );
+
+    expect(result, same(expected));
+    expect(finds, 2);
+    expect(refreshes, 1);
+  });
+
+  test('a local transaction hit does not refresh', () async {
+    var refreshes = 0;
+    final expected = _tx(6, TransactionType.outgoing, 'slate');
+
+    final result = await MimblewimbleWallet.findLocalTxAfterRefresh(
+      find: () async => expected,
+      refresh: () async => refreshes++,
+    );
+
+    expect(result, same(expected));
+    expect(refreshes, 0);
+  });
+
   test("Epic and MWC capabilities", () {
     final epic = EpiccashWallet(CryptoCurrencyNetwork.main);
     final mwc = MimblewimblecoinWallet(CryptoCurrencyNetwork.main);
@@ -166,6 +220,10 @@ void main() {
     }
     expect(epic.slatepackTerms, SlatepackTerms.slate);
     expect(mwc.slatepackTerms, SlatepackTerms.slatepack);
+    expect(epic.supportsSlatepackEncryption, isFalse);
+    expect(mwc.supportsSlatepackEncryption, isTrue);
+    expect(epic.hasSlatepackMethodToggle, isTrue);
+    expect(mwc.hasSlatepackMethodToggle, isTrue);
   });
 
   test("Epic balance precondition errors are asynchronous", () async {

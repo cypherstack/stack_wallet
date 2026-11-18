@@ -289,6 +289,12 @@ class FakeEpiccashWallet extends FakeWallet<Epiccash>
   ];
 
   @override
+  bool get hasSlatepackMethodToggle => true;
+
+  @override
+  bool get supportsSlatepackEncryption => false;
+
+  @override
   bool get supportsOnChainNote => true;
 }
 

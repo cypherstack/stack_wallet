@@ -225,7 +225,8 @@ abstract final class SlatepackImportFlow {
                   : "From",
               inspection.senderAddress!,
             ),
-          ("Encrypted", inspection.isEncrypted ? "Yes" : "No"),
+          if (wallet.supportsSlatepackEncryption)
+            ("Encrypted", inspection.isEncrypted ? "Yes" : "No"),
           if (inspection.ttlCutoffHeight != null)
             ("Expires at block", inspection.ttlCutoffHeight.toString()),
           if (inspection.slateId.isNotEmpty) ("Slate ID", inspection.slateId),
@@ -258,7 +259,12 @@ abstract final class SlatepackImportFlow {
     // without the response, so the response is shown wherever it still can
     // be.
     if (context.mounted) {
-      await showSlatepackDialog(context: context, terms: terms, result: result);
+      await showSlatepackDialog(
+        context: context,
+        terms: terms,
+        result: result,
+        supportsEncryption: wallet.supportsSlatepackEncryption,
+      );
     } else if (root.mounted) {
       Logging.instance.w(
         "Received ${terms.noun} ${result.slateId} after the screen that "
@@ -269,6 +275,7 @@ abstract final class SlatepackImportFlow {
         context: root.context,
         terms: terms,
         result: result,
+        supportsEncryption: wallet.supportsSlatepackEncryption,
       );
     } else {
       Logging.instance.e(
@@ -304,15 +311,16 @@ abstract final class SlatepackImportFlow {
             ? amount == null && fee == null
                   ? "No matching send was found in this wallet's history. The "
                         "amount and fee are unavailable. Verify this "
-                        "${terms.noun} with the sender before finalizing."
+                        "${terms.noun} with the other party before finalizing."
                   : "No matching send was found in this wallet's history. "
                         "Values shown below come from the imported "
                         "${terms.noun}; values not shown are unavailable. "
-                        "Review them carefully before finalizing."
+                        "Review them with the other party before finalizing."
             : null,
         details: [
           if (inspection.slateId.isNotEmpty) ("Slate ID", inspection.slateId),
-          ("Encrypted", inspection.isEncrypted ? "Yes" : "No"),
+          if (wallet.supportsSlatepackEncryption)
+            ("Encrypted", inspection.isEncrypted ? "Yes" : "No"),
         ],
       ),
     );

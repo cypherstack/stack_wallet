@@ -435,7 +435,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SizedBox(height: 4),
-        if (usesSlatepacks)
+        if (wallet is SlatepackInterface && wallet.hasSlatepackMethodToggle)
           Padding(
             padding: const EdgeInsets.all(0),
             child: Container(

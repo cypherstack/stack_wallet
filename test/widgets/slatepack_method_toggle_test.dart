@@ -20,6 +20,10 @@ class _SlatepackOnlyWallet extends MimblewimblecoinWallet {
 }
 
 void main() {
+  test('a slatepack-only wallet reports no method toggle', () {
+    expect(_SlatepackOnlyWallet().hasSlatepackMethodToggle, isFalse);
+  });
+
   testWidgets('a slatepack-only wallet has no method toggle', (tester) async {
     await tester.pumpWidget(
       ProviderScope(

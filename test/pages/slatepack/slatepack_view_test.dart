@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:platform/platform.dart' as platform;
 import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/models/slatepack_models.dart';
 import 'package:stackwallet/pages/slatepack/slatepack_view.dart';
@@ -39,6 +40,9 @@ void main() {
   testWidgets("Continue starts one import however often it is pressed", (
     tester,
   ) async {
+    final previousPlatform = Util.layoutPlatform;
+    Util.layoutPlatform = platform.FakePlatform(operatingSystem: 'android');
+    addTearDown(() => Util.layoutPlatform = previousPlatform);
     tester.view.physicalSize = const Size(1400, 2400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);

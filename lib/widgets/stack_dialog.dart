@@ -80,6 +80,7 @@ class StackDialog extends StatelessWidget {
     this.message,
     this.width,
     this.padding = const EdgeInsets.all(24),
+    this.stackButtons = false,
   });
 
   final Widget? leftButton;
@@ -92,6 +93,7 @@ class StackDialog extends StatelessWidget {
 
   final double? width;
   final EdgeInsets padding;
+  final bool stackButtons;
 
   @override
   Widget build(BuildContext context) {
@@ -127,19 +129,30 @@ class StackDialog extends StatelessWidget {
           if (leftButton != null || rightButton != null)
             const SizedBox(height: 20),
           if (leftButton != null || rightButton != null)
-            Row(
-              children: [
-                leftButton == null
-                    ? const Spacer()
-                    : Expanded(child: leftButton!),
-                Util.isDesktop
-                    ? const SizedBox(width: 16)
-                    : const SizedBox(width: 8),
-                rightButton == null
-                    ? const Spacer()
-                    : Expanded(child: rightButton!),
-              ],
-            ),
+            if (stackButtons)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (leftButton != null) leftButton!,
+                  if (leftButton != null && rightButton != null)
+                    const SizedBox(height: 8),
+                  if (rightButton != null) rightButton!,
+                ],
+              )
+            else
+              Row(
+                children: [
+                  leftButton == null
+                      ? const Spacer()
+                      : Expanded(child: leftButton!),
+                  Util.isDesktop
+                      ? const SizedBox(width: 16)
+                      : const SizedBox(width: 8),
+                  rightButton == null
+                      ? const Spacer()
+                      : Expanded(child: rightButton!),
+                ],
+              ),
         ],
       ),
     );

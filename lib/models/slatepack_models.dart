@@ -110,6 +110,8 @@ class SlatepackResult {
   }
 }
 
+enum SlatepackDecodeFailure { invalidInput, walletUnavailable }
+
 class SlatepackDecodeResult {
   final bool success;
   final String? error;
@@ -117,6 +119,7 @@ class SlatepackDecodeResult {
   final bool? wasEncrypted;
   final String? senderAddress;
   final String? recipientAddress;
+  final SlatepackDecodeFailure? failure;
 
   SlatepackDecodeResult({
     required this.success,
@@ -125,6 +128,7 @@ class SlatepackDecodeResult {
     this.wasEncrypted,
     this.senderAddress,
     this.recipientAddress,
+    this.failure,
   });
 
   @override
@@ -135,7 +139,8 @@ class SlatepackDecodeResult {
         "slateJson: $slateJson, "
         "wasEncrypted: $wasEncrypted, "
         "senderAddress: $senderAddress, "
-        "recipientAddress: $recipientAddress"
+        "recipientAddress: $recipientAddress, "
+        "failure: $failure"
         ")";
   }
 }

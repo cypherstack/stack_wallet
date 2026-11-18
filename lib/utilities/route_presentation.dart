@@ -11,20 +11,34 @@ Future<void> waitForRoutePresentation(TransitionRoute<void> route) async {
   await WidgetsBinding.instance.endOfFrame;
 
   final animation = route.animation;
-  if (animation == null || animation.status == AnimationStatus.completed) {
+  if (animation == null) {
+    return;
+  }
+
+  if (animation.status == AnimationStatus.completed) {
+    await WidgetsBinding.instance.endOfFrame;
     return;
   }
 
   final completer = Completer<void>();
   void listener(AnimationStatus status) {
-    if (status == AnimationStatus.completed && !completer.isCompleted) {
+    if ((status == AnimationStatus.completed ||
+            status == AnimationStatus.dismissed) &&
+        !completer.isCompleted) {
       completer.complete();
     }
   }
 
   animation.addStatusListener(listener);
   try {
-    await completer.future;
+    final appeared = await Future.any([
+      completer.future.then((_) => true),
+      route.popped.then((_) => false),
+    ]);
+    if (appeared && animation.status == AnimationStatus.completed) {
+      // Animation completion precedes the paint of its final frame.
+      await WidgetsBinding.instance.endOfFrame;
+    }
   } finally {
     animation.removeStatusListener(listener);
   }

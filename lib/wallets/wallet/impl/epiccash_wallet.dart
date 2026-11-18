@@ -187,7 +187,10 @@ class EpiccashWallet extends MimblewimbleWallet {
       );
     } catch (e, s) {
       Logging.instance.e('Failed to decode slatepack: $e\n$s');
-      return SlatepackDecodeResult(success: false, error: e.toString());
+      return SlatepackDecodeResult(
+        success: false,
+        failure: SlatepackDecodeFailure.invalidInput,
+      );
     }
   }
 

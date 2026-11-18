@@ -20,6 +20,13 @@ mixin SlatepackInterface<T extends CryptoCurrency> on Wallet<T> {
   /// Whether a send can carry a message that ends up on chain.
   bool get supportsOnChainNote;
 
+  /// Whether this wallet can encrypt slatepacks to another wallet's address.
+  bool get supportsSlatepackEncryption => false;
+
+  /// Whether send/receive should offer a method selector.
+  bool get hasSlatepackMethodToggle =>
+      supportedMethods.any((method) => method != SlatepackMethod.slatepack);
+
   bool get supportsInvoices => false;
 
   bool get supportsPaymentProofs => false;

@@ -1576,7 +1576,8 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
                             ),
                             const SizedBox(height: 16),
 
-                            if (_slatepackWallet != null) ...[
+                            if (_slatepackWallet?.hasSlatepackMethodToggle ??
+                                false) ...[
                               SizedBox(
                                 height: 40,
                                 child: SlatepackMethodToggle(

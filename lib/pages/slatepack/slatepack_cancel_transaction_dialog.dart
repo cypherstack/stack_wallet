@@ -14,15 +14,16 @@ class SlatepackCancelTransactionDialog extends StatelessWidget {
       title: "Cancel this transaction?",
       width: Util.isDesktop ? 400 : null,
       padding: EdgeInsets.all(Util.isDesktop ? 24 : 16),
+      stackButtons: !Util.isDesktop,
       message:
           "The other party can no longer complete it, and any funds it locked "
           "become spendable again.",
       leftButton: SecondaryButton(
-        label: "Keep",
+        label: "Go back",
         onPressed: () => Navigator.of(context).pop(false),
       ),
       rightButton: PrimaryButton(
-        label: "Cancel",
+        label: "Cancel it",
         onPressed: () => Navigator.of(context).pop(true),
       ),
     );
