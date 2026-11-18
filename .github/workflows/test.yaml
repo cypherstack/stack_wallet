@@ -11,19 +11,21 @@ jobs:
         shell: powershell
         run: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/tests/prebuild_windows_test.ps1
 
-  linux-release-bundle:
+  linux-release-packaging:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
     steps:
       - uses: actions/checkout@v6
 
-      - name: Install ELF test tools
+      - name: Install Linux packaging test tools
         run: |
           sudo apt-get update -q
-          sudo apt-get install -y --no-install-recommends binutils build-essential patchelf python3
+          sudo apt-get install -y --no-install-recommends \
+            appstream binutils build-essential desktop-file-utils patchelf \
+            python3 squashfs-tools
 
-      - name: Test Linux release bundle preparation
+      - name: Test Linux release packaging
         run: python3 -m unittest discover -s scripts/linux/tests -p 'test_*.py' -v
 
   test:
