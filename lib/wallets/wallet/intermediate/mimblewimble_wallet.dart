@@ -297,7 +297,8 @@ abstract class MimblewimbleWallet extends Bip39Wallet with SlatepackInterface {
 
   /// The transaction for [slateId] among [candidates]. A wallet that sent to
   /// itself holds both sides of the slate, and then the send is the one
-  /// returned.
+  /// returned. A slate received again after its first receive was cancelled
+  /// leaves both records, and then the one that is not cancelled is returned.
   @visibleForTesting
   static TransactionV2? localTxMatching(
     Iterable<TransactionV2> candidates,
@@ -307,7 +308,9 @@ abstract class MimblewimbleWallet extends Bip39Wallet with SlatepackInterface {
     for (final TransactionV2 tx in candidates) {
       if (tx.slateId != slateId) continue;
       if (tx.type == TransactionType.outgoing) return tx;
-      match ??= tx;
+      if (match == null || (match.isCancelled && !tx.isCancelled)) {
+        match = tx;
+      }
     }
     return match;
   }

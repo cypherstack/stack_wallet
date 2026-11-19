@@ -45,7 +45,10 @@ enum SlatepackRoute {
 /// Takes any slatepack the user pastes, scans or opens, works out what it
 /// is and sends it to the matching screen.
 abstract final class SlatepackImportFlow {
-  static const _historyLookupTimeout = Duration(seconds: 3);
+  // The receive lookup waits on the same native lock as the receive itself,
+  // which a sync can hold for a while, so it gets a much longer bound.
+  static const _receiveHistoryLookupTimeout = Duration(seconds: 60);
+  static const _finalizeHistoryLookupTimeout = Duration(seconds: 3);
 
   static SlatepackRoute routeFor(
     SlateState state, {
@@ -99,7 +102,9 @@ abstract final class SlatepackImportFlow {
             ? await wallet
                   .localTxForSlate(inspection.slateId)
                   .timeout(
-                    _historyLookupTimeout,
+                    route == SlatepackRoute.receive
+                        ? _receiveHistoryLookupTimeout
+                        : _finalizeHistoryLookupTimeout,
                     onTimeout: () {
                       historyLookupTimedOut = true;
                       Logging.instance.w(
@@ -135,7 +140,8 @@ abstract final class SlatepackImportFlow {
           );
           return false;
         }
-        if (read.local?.isSend == true) {
+        final local = read.local;
+        if (local?.isSend == true) {
           await _message(
             context,
             "Cannot receive this ${terms.noun}",
@@ -144,7 +150,9 @@ abstract final class SlatepackImportFlow {
           );
           return false;
         }
-        if (read.local != null) {
+        // Receiving again after a cancelled receive is how a lost response
+        // is regenerated. The native wallet decides whether it is allowed.
+        if (local != null && !local.isCancelled) {
           await _message(
             context,
             "Cannot receive this ${terms.noun}",
@@ -183,6 +191,7 @@ abstract final class SlatepackImportFlow {
           amount: local?.amount ?? inspection.amount,
           fee: local?.fee ?? inspection.fee,
           historyWarning: local == null,
+          historyLookupTimedOut: read.historyLookupTimedOut,
         );
 
       case SlatepackRoute.payInvoice:
@@ -325,8 +334,33 @@ abstract final class SlatepackImportFlow {
     required Amount? amount,
     required Amount? fee,
     required bool historyWarning,
+    required bool historyLookupTimedOut,
   }) async {
     final terms = wallet.slatepackTerms;
+
+    final noValues = amount == null && fee == null;
+    final String? warning;
+    if (!historyWarning) {
+      warning = null;
+    } else if (historyLookupTimedOut) {
+      warning = noValues
+          ? "This wallet's history could not be checked because the wallet "
+                "is busy. The amount and fee are unavailable. Verify this "
+                "${terms.noun} with the other party before finalizing."
+          : "This wallet's history could not be checked because the wallet "
+                "is busy. Values shown below come from the imported "
+                "${terms.noun}; values not shown are unavailable. Review "
+                "them with the other party before finalizing.";
+    } else {
+      warning = noValues
+          ? "No matching send was found in this wallet's history. The "
+                "amount and fee are unavailable. Verify this "
+                "${terms.noun} with the other party before finalizing."
+          : "No matching send was found in this wallet's history. "
+                "Values shown below come from the imported "
+                "${terms.noun}; values not shown are unavailable. "
+                "Review them with the other party before finalizing.";
+    }
 
     // An S2 may carry amount 0, so the summary shows [amount] and [fee] from
     // our own record of the send.
@@ -338,16 +372,7 @@ abstract final class SlatepackImportFlow {
         actionLabel: "Finalize",
         amount: amount,
         fee: fee,
-        warning: historyWarning
-            ? amount == null && fee == null
-                  ? "No matching send was found in this wallet's history. The "
-                        "amount and fee are unavailable. Verify this "
-                        "${terms.noun} with the other party before finalizing."
-                  : "No matching send was found in this wallet's history. "
-                        "Values shown below come from the imported "
-                        "${terms.noun}; values not shown are unavailable. "
-                        "Review them with the other party before finalizing."
-            : null,
+        warning: warning,
         details: [
           if (inspection.slateId.isNotEmpty) ("Slate ID", inspection.slateId),
           if (wallet.supportsSlatepackEncryption)

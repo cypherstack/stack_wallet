@@ -114,6 +114,27 @@ void main() {
       MimblewimbleWallet.localTxMatching([received, cancelled], id),
       cancelled,
     );
+
+    // Received again after a cancelled receive: the live record wins
+    // whichever order the two come in.
+    final cancelledReceive = _tx(
+      5,
+      TransactionType.incoming,
+      id,
+      isCancelled: true,
+    );
+    expect(
+      MimblewimbleWallet.localTxMatching([cancelledReceive, received], id),
+      received,
+    );
+    expect(
+      MimblewimbleWallet.localTxMatching([received, cancelledReceive], id),
+      received,
+    );
+    expect(
+      MimblewimbleWallet.localTxMatching([cancelledReceive], id),
+      cancelledReceive,
+    );
   });
 
   SlateInspection inspect(

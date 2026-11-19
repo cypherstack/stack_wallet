@@ -32,6 +32,7 @@ class _InspectOnlyWallet extends EpiccashWallet {
     this.invoices = false,
     this.localIsSend,
     this.localIsCancelled = false,
+    this.localGate,
     this.receiveGate,
     this.receiveError,
     this.senderAddress,
@@ -50,6 +51,9 @@ class _InspectOnlyWallet extends EpiccashWallet {
   /// wallet has none.
   final bool? localIsSend;
   final bool localIsCancelled;
+
+  /// When set, the local-history lookup waits for it.
+  final Completer<void>? localGate;
   int receiveCalls = 0;
   int finalizeCalls = 0;
   SlateInspection? actionInspection;
@@ -75,14 +79,17 @@ class _InspectOnlyWallet extends EpiccashWallet {
 
   @override
   Future<({Amount amount, Amount fee, bool isSend, bool isCancelled})?>
-  localTxForSlate(String slateId) async => localIsSend == null
-      ? null
-      : (
-          amount: Amount(rawValue: BigInt.from(100), fractionDigits: 8),
-          fee: Amount(rawValue: BigInt.one, fractionDigits: 8),
-          isSend: localIsSend!,
-          isCancelled: localIsCancelled,
-        );
+  localTxForSlate(String slateId) async {
+    await localGate?.future;
+    return localIsSend == null
+        ? null
+        : (
+            amount: Amount(rawValue: BigInt.from(100), fractionDigits: 8),
+            fee: Amount(rawValue: BigInt.one, fractionDigits: 8),
+            isSend: localIsSend!,
+            isCancelled: localIsCancelled,
+          );
+  }
 
   @override
   Future<SlatepackResult> receiveSlatepack(
@@ -382,6 +389,8 @@ void main() {
         find.textContaining('amount and fee are unavailable'),
         findsOneWidget,
       );
+      expect(find.textContaining('No matching send was found'), findsOneWidget);
+      expect(find.textContaining('could not be checked'), findsNothing);
       expect(find.textContaining('0.000000000 MWC'), findsNothing);
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
@@ -414,6 +423,7 @@ void main() {
       await runFlow(tester, wallet);
       expect(find.text("Finalize slate"), findsOneWidget);
       expect(find.textContaining("No matching send was found"), findsOneWidget);
+      expect(find.textContaining("could not be checked"), findsNothing);
       expect(find.textContaining('other party'), findsOneWidget);
       expect(find.textContaining('with the sender'), findsNothing);
       final warning = find.byKey(const Key("slatepackHistoryWarning"));
@@ -471,8 +481,142 @@ void main() {
 
       expect(find.text('Finalize slatepack'), findsOneWidget);
       expect(find.byKey(const Key('slatepackHistoryWarning')), findsOneWidget);
+      expect(
+        find.textContaining(
+          "history could not be checked because the wallet "
+          "is busy",
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining('amount and fee are unavailable'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('No matching send was found'), findsNothing);
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
+    });
+
+    testWidgets('a stalled lookup with slate values says they are unchecked', (
+      tester,
+    ) async {
+      final wallet = _InspectOnlyWallet(
+        SlateState.s2,
+        localGate: Completer<void>(),
+      );
+
+      await runFlow(tester, wallet);
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Finalize slate'), findsOneWidget);
+      expect(find.byKey(const Key('slatepackHistoryWarning')), findsOneWidget);
+      expect(find.textContaining('could not be checked'), findsOneWidget);
+      expect(
+        find.textContaining('come from the imported slate'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('No matching send was found'), findsNothing);
+      await tester.ensureVisible(find.text('Cancel'));
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(wallet.finalizeCalls, 0);
+    });
+
+    testWidgets('a slow receive lookup still offers the summary', (
+      tester,
+    ) async {
+      final gate = Completer<void>();
+      final wallet = _InspectOnlyWallet(SlateState.s1, localGate: gate);
+
+      await runFlow(tester, wallet);
+      await tester.pump(const Duration(seconds: 5));
+      expect(find.byType(CustomLoadingOverlay), findsOneWidget);
+      expect(find.text('Could not check wallet history'), findsNothing);
+
+      gate.complete();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Receive slate'), findsOneWidget);
+      expect(find.text('Receive'), findsOneWidget);
+      expect(find.textContaining('busy'), findsNothing);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(wallet.receiveCalls, 0);
+    });
+
+    testWidgets('a receive lookup that never finishes is refused', (
+      tester,
+    ) async {
+      final wallet = _InspectOnlyWallet(
+        SlateState.s1,
+        localGate: Completer<void>(),
+      );
+
+      await runFlow(tester, wallet);
+      await tester.pump(const Duration(seconds: 55));
+      expect(find.byType(CustomLoadingOverlay), findsOneWidget);
+      expect(find.text('Could not check wallet history'), findsNothing);
+
+      await tester.pump(const Duration(seconds: 5));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Could not check wallet history'), findsOneWidget);
+      expect(find.textContaining('The wallet is busy'), findsOneWidget);
+      expect(find.text('Receive'), findsNothing);
+      await closeDialog(tester);
+      expect(wallet.receiveCalls, 0);
+    });
+
+    testWidgets('a slate already received is refused', (tester) async {
+      final wallet = _InspectOnlyWallet(SlateState.s1, localIsSend: false);
+
+      await runFlow(tester, wallet);
+
+      expect(find.text('Cannot receive this slate'), findsOneWidget);
+      expect(
+        find.textContaining("already in this wallet's history"),
+        findsOneWidget,
+      );
+      expect(find.text('Receive'), findsNothing);
+      await closeDialog(tester);
+      expect(wallet.receiveCalls, 0);
+    });
+
+    testWidgets('a slate whose receive was cancelled can be received again', (
+      tester,
+    ) async {
+      final wallet = _InspectOnlyWallet(
+        SlateState.s1,
+        localIsSend: false,
+        localIsCancelled: true,
+      );
+
+      await runFlow(tester, wallet);
+
+      expect(find.text('Cannot receive this slate'), findsNothing);
+      expect(find.text('Receive slate'), findsOneWidget);
+      expect(find.text('Receive'), findsOneWidget);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets("this wallet's cancelled send cannot be received", (
+      tester,
+    ) async {
+      final wallet = _InspectOnlyWallet(
+        SlateState.s1,
+        localIsSend: true,
+        localIsCancelled: true,
+      );
+
+      await runFlow(tester, wallet);
+
+      expect(find.text('Cannot receive this slate'), findsOneWidget);
+      expect(find.textContaining('This wallet created'), findsOneWidget);
+      expect(find.text('Receive'), findsNothing);
+      await closeDialog(tester);
+      expect(wallet.receiveCalls, 0);
     });
 
     testWidgets('a hexadecimal slatepack sender is labelled as a key', (
