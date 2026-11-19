@@ -135,10 +135,11 @@ On systems where FUSE mounting is unavailable, run the AppImage directly with
 
 ### Linux icon behavior
 
-On X11, the application uses the installed icon theme when it provides a
-usable size of 256 px or smaller; otherwise it falls back to the Flutter asset
-and scales it once to a safe size for the X11 window property. On Wayland, GTK
-3 applications cannot set their own window icon; the desktop shell resolves it
+On X11, the application sets one 256 px window icon: the icon the installed
+icon theme has for the application ID, or the Flutter asset when the theme has
+none. It never passes a larger image, because GTK drops a 512 px icon, and
+every icon listed after it, from the X11 window property. On Wayland, GTK 3
+applications cannot set their own window icon; the desktop shell resolves it
 through the matching installed `.desktop` entry instead. Consequently, an
 unpacked tarball or an AppImage launched without desktop integration may show a
 generic Wayland icon. Installing or integrating the desktop entry supplies the

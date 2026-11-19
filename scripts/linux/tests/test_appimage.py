@@ -224,21 +224,18 @@ class AppImageScriptsTest(unittest.TestCase):
                 self.assertEqual(desktop["StartupWMClass"], app_id)
                 self.assertEqual(desktop["Categories"], "Office;Finance;")
 
-    def test_x11_theme_shortcut_requires_a_usable_size(self):
+    def test_x11_window_icon_is_one_image_that_fits_the_window_property(self):
         application = (
             ROOT / "scripts/app_config/templates/linux/my_application.cc"
         ).read_text()
-        self.assertIn("gtk_icon_theme_get_icon_sizes", application)
-        self.assertIn("size <= 256", application)
+        # GDK drops a 512 px icon and every icon listed after it, and these two
+        # calls hand it whatever sizes the theme has, in no particular order.
+        self.assertNotIn("gtk_window_set_icon_name(window", application)
+        self.assertNotIn("gtk_window_set_icon_list(window", application)
+        self.assertIn("const gint icon_size = 256;", application)
+        self.assertIn("GTK_ICON_LOOKUP_FORCE_SIZE", application)
         self.assertIn('"icon.png"', application)
-        self.assertIn("gdk_pixbuf_new_from_file_at_scale", application)
         self.assertIn("gtk_window_set_icon(window, icon)", application)
-        self.assertNotIn("gdk_pixbuf_scale_simple", application)
-        for app in APP_IDS:
-            self.assertEqual(
-                list((ROOT / f"asset_sources/icon/{app}").glob("icon-*.png")),
-                [],
-            )
 
     def test_metadata_does_not_advertise_the_abandoned_campfire_domain(self):
         metadata = (FLATPAK / "com.cypherstack.campfire.metainfo.xml").read_text()
@@ -772,8 +769,8 @@ class AppImageScriptsTest(unittest.TestCase):
         self.assertRegex(appimage_docs, r"apt-get install[^\n]*\bcurl\b")
         self.assertIn("AppImageLauncher 3 beta", appimage_docs)
         self.assertRegex(appimage_docs, r"AppImageLauncher\s+2\.2")
-        self.assertIn("usable size", appimage_docs)
-        self.assertIn("falls back to the Flutter asset", appimage_docs)
+        self.assertIn("one 256 px window icon", appimage_docs)
+        self.assertIn("Flutter asset", appimage_docs)
 
     def test_appimage_version_is_passed_to_workflow_steps_through_env(self):
         workflow = BUILD_WORKFLOW.read_text()

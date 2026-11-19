@@ -20,12 +20,16 @@ static void first_frame_cb(MyApplication* self, FlView *view)
     gtk_widget_show(gtk_widget_get_toplevel(GTK_WIDGET(view)));
 }
 
-// X11 window icon from the icon theme or Flutter assets. Wayland ignores
-// window icon requests and instead uses the .desktop file matching
-// APPLICATION_ID. Only use a themed icon when the theme can supply a size GDK
-// accepts; a lone 512 px icon exceeds X11's property-size limit.
+// X11 window icon. GDK publishes icons in list order and stops at the first one
+// that does not fit in the 262144-word window property, so a 512 px icon is
+// dropped along with every icon after it, and gtk_window_set_icon_name() can
+// leave the window with no icon at all when the theme has a 512 px icon. Set
+// one 256 px image instead: the themed icon when the theme has one for
+// APPLICATION_ID, otherwise the icon in the Flutter assets. Wayland ignores
+// window icons and uses the .desktop file matching APPLICATION_ID.
 static void set_window_icon(GtkWindow* window, FlDartProject* project) {
 #ifdef GDK_WINDOWING_X11
+  const gint icon_size = 256;
   GdkDisplay* display = gtk_widget_get_display(GTK_WIDGET(window));
   if (!GDK_IS_X11_DISPLAY(display)) {
     return;
@@ -33,36 +37,20 @@ static void set_window_icon(GtkWindow* window, FlDartProject* project) {
 
   GtkIconTheme* theme =
       gtk_icon_theme_get_for_screen(gtk_window_get_screen(window));
-  bool has_usable_themed_icon = false;
-  gint* themed_sizes = gtk_icon_theme_get_icon_sizes(theme, APPLICATION_ID);
-  if (themed_sizes != nullptr) {
-    for (gint* size = themed_sizes; *size != 0; ++size) {
-      if (*size == -1 || (*size > 0 && *size <= 256)) {
-        has_usable_themed_icon = true;
-        break;
-      }
-    }
-  }
-  g_free(themed_sizes);
-  if (has_usable_themed_icon) {
-    gtk_window_set_icon_name(window, APPLICATION_ID);
-    return;
-  }
-
-  g_autofree gchar* path =
-      g_build_filename(fl_dart_project_get_assets_path(project), "assets",
-                       "icon", "icon.png", nullptr);
-  g_autoptr(GError) error = nullptr;
-  g_autoptr(GdkPixbuf) icon =
-      gdk_pixbuf_new_from_file_at_scale(path, 256, 256, TRUE, &error);
+  g_autoptr(GdkPixbuf) icon = gtk_icon_theme_load_icon(
+      theme, APPLICATION_ID, icon_size, GTK_ICON_LOOKUP_FORCE_SIZE, nullptr);
   if (icon == nullptr) {
-    g_warning("No window icon: %s",
-              error != nullptr ? error->message : "unknown image error");
-    return;
-  }
-  if (gdk_pixbuf_get_width(icon) != gdk_pixbuf_get_height(icon)) {
-    g_warning("Window icon must be square: %s", path);
-    return;
+    g_autofree gchar* path =
+        g_build_filename(fl_dart_project_get_assets_path(project), "assets",
+                         "icon", "icon.png", nullptr);
+    g_autoptr(GError) error = nullptr;
+    icon = gdk_pixbuf_new_from_file_at_scale(path, icon_size, icon_size, TRUE,
+                                             &error);
+    if (icon == nullptr) {
+      g_warning("No window icon: %s",
+                error != nullptr ? error->message : "unknown image error");
+      return;
+    }
   }
   gtk_window_set_icon(window, icon);
 #else
