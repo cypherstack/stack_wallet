@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:isar_community/isar.dart';
+import 'package:mutex/mutex.dart';
 
 import '../../../models/balance.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
@@ -19,6 +20,8 @@ import 'bip39_wallet.dart';
 abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
     with MultiAddressInterface<T>, ViewOnlyOptionInterface<T> {
   Bip39HDWallet(super.cryptoCurrency);
+
+  final _receivingAddressMutex = Mutex();
 
   Set<AddressType> get supportedAddressTypes => cryptoCurrency
       .supportedDerivationPathTypes
@@ -82,6 +85,43 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
     );
 
     return address;
+  }
+
+  /// Returns the latest persisted receiving address for [derivePathType].
+  ///
+  /// If that typed receiving chain has not been initialized, derives and
+  /// persists index zero before returning it. Transaction history is
+  /// intentionally ignored, so repeated callers reuse the same address.
+  Future<Address> getOrCreateCurrentReceivingAddress({
+    required DerivePathType derivePathType,
+  }) async {
+    if (!cryptoCurrency.supportedDerivationPathTypes.contains(derivePathType)) {
+      throw Exception(
+        "Unsupported DerivePathType passed to "
+        "getOrCreateCurrentReceivingAddress().",
+      );
+    }
+
+    return _receivingAddressMutex.protect(() async {
+      final current = await mainDB.isar.addresses
+          .where()
+          .walletIdEqualTo(walletId)
+          .filter()
+          .typeEqualTo(derivePathType.getAddressType())
+          .subTypeEqualTo(AddressSubType.receiving)
+          .sortByDerivationIndexDesc()
+          .findFirst();
+
+      if (current != null) {
+        return current;
+      }
+
+      final address = await generateNextReceivingAddress(
+        derivePathType: derivePathType,
+      );
+      await mainDB.updateOrPutAddresses([address]);
+      return address;
+    });
   }
 
   @override

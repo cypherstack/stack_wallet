@@ -374,19 +374,24 @@ class _TradeDetailsViewState extends ConsumerState<TradeDetailsView> {
                                 final amount = sendAmount.toAmount(
                                   fractionDigits: coin.fractionDigits,
                                 );
+                                // Already ends in the user's display unit
+                                // (e.g. BTC, mBTC or sats).
                                 text = ref
                                     .watch(pAmountFormatter(coin))
                                     .format(amount);
                               } catch (_) {
-                                text = sendAmount.toStringAsFixed(
+                                final value = sendAmount.toStringAsFixed(
                                   trade.payInCurrency.toLowerCase() == "xmr"
                                       ? 12
                                       : 8,
                                 );
+                                final ticker = trade.payInCurrency
+                                    .toUpperCase();
+                                text = "$value $ticker";
                               }
 
                               return SelectableText(
-                                "-$text ${trade.payInCurrency.toUpperCase()}",
+                                "-$text",
                                 style: STextStyles.itemSubtitle(context),
                               );
                             },

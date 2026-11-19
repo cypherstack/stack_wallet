@@ -16,7 +16,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
-import 'package:isar_community/isar.dart';
 
 import '../../app_config.dart';
 import '../../models/buy/response_objects/crypto.dart';
@@ -1216,66 +1215,69 @@ class _BuyFormState extends ConsumerState<BuyForm> {
                 if (AppConfig.isStackCoin(selectedCrypto?.ticker))
                   CustomTextButton(
                     text: "Choose from ${AppConfig.prefix}",
-                    onTap: () {
+                    onTap: () async {
                       try {
                         final coin = AppConfig.getCryptoCurrencyForTicker(
                           selectedCrypto!.ticker,
                         );
-                        Navigator.of(context)
-                            .pushNamed(
-                              ChooseAddressFromStackView.routeName,
-                              arguments: coin,
-                            )
-                            .then((value) async {
-                              if (value
-                                  is ({
-                                    String walletId,
-                                    String address,
-                                    String walletName,
-                                  })) {
-                                final wallet = ref
-                                    .read(pWallets)
-                                    .getWallet(value.walletId);
+                        final value = await Navigator.of(context).pushNamed(
+                          ChooseAddressFromStackView.routeName,
+                          arguments: coin,
+                        );
+                        if (value
+                            is ({
+                              String walletId,
+                              String address,
+                              String walletName,
+                            })) {
+                          final wallet = ref
+                              .read(pWallets)
+                              .getWallet(value.walletId);
 
-                                // _toController.text = manager.walletName;
-                                // model.recipientAddress =
-                                //     await manager.currentReceivingAddress;
+                          final currentAddress = await wallet
+                              .getCurrentReceivingAddress();
 
-                                final address = await wallet
-                                    .getCurrentReceivingAddress();
-
-                                if (address!.type == AddressType.p2tr &&
-                                    wallet is Bip39HDWallet) {
-                                  // lets assume any wallet that has taproot also has segwit. WCGW
-                                  final address =
-                                      await ref
-                                          .read(mainDBProvider)
-                                          .isar
-                                          .addresses
-                                          .where()
-                                          .walletIdEqualTo(wallet.walletId)
-                                          .filter()
-                                          .typeEqualTo(AddressType.p2wpkh)
-                                          .sortByDerivationIndexDesc()
-                                          .findFirst() ??
-                                      await wallet.generateNextReceivingAddress(
-                                        derivePathType: DerivePathType.bip84,
-                                      );
-
-                                  _receiveAddressController.text =
-                                      address.value;
-                                } else {
-                                  _receiveAddressController.text =
-                                      address.value;
-                                }
-
-                                setState(() {
-                                  _addressToggleFlag =
-                                      _receiveAddressController.text.isNotEmpty;
-                                });
-                                validateAmount();
+                          final Address address;
+                          if (currentAddress!.type == AddressType.p2tr &&
+                              wallet is Bip39HDWallet) {
+                            if (wallet.isViewOnly) {
+                              // A view only wallet only has the public key of
+                              // its own derivation path, so it cannot derive
+                              // the BIP84 address used below.
+                              if (context.mounted) {
+                                await showDialog<void>(
+                                  context: context,
+                                  useRootNavigator: true,
+                                  builder: (_) => StackOkDialog(
+                                    desktopPopRootNavigator: true,
+                                    title: "Wallet not supported",
+                                    message:
+                                        "Taproot addresses are not allowed, "
+                                        "and a view only Taproot wallet has "
+                                        "no other address type. Choose "
+                                        "another wallet or enter an address.",
+                                    maxWidth: isDesktop ? 400 : null,
+                                  ),
+                                );
                               }
-                            });
+                              return;
+                            }
+
+                            address = await wallet
+                                .getOrCreateCurrentReceivingAddress(
+                                  derivePathType: DerivePathType.bip84,
+                                );
+                          } else {
+                            address = currentAddress;
+                          }
+
+                          _receiveAddressController.text = address.value;
+                          setState(() {
+                            _addressToggleFlag =
+                                _receiveAddressController.text.isNotEmpty;
+                          });
+                          validateAmount();
+                        }
                       } catch (e, s) {
                         Logging.instance.w("", error: e, stackTrace: s);
                       }
