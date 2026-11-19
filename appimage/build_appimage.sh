@@ -32,6 +32,10 @@ verify_x86_64_bundle() {
   local executable=$1
   local header
   local machine
+  if [ ! -e "$executable" ]; then
+    echo "bundle executable not found: $executable" >&2
+    return 1
+  fi
   if ! header=$(LC_ALL=C readelf --wide --file-header -- "$executable" 2>/dev/null); then
     echo "bundle executable must be an x86-64 ELF: $executable (machine: unknown)" >&2
     return 1

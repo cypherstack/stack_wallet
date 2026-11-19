@@ -111,6 +111,8 @@ output="$output_dir/$(basename -- "$output")"
 
 for desktop in "${desktop_files[@]}"; do
   desktop-file-edit --set-key=X-AppImage-Version --set-value="$version" "$desktop"
+  # desktop-file-edit rewrites the file with the caller's umask.
+  chmod 0644 "$desktop"
   desktop-file-validate "$desktop"
 done
 for metadata in "${metadata_files[@]}"; do

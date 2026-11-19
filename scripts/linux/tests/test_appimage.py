@@ -46,6 +46,19 @@ def configured_app_id(path):
 APP_IDS = {app: configured_app_id(path) for app, path in CONFIGURE_SCRIPTS.items()}
 
 
+# Tools each script checks for with require_tools, beyond coreutils. The
+# builder's curl is replaced by a fake in these tests.
+ASSEMBLE_TOOLS = (
+    "appstreamcli",
+    "desktop-file-edit",
+    "desktop-file-validate",
+    "mksquashfs",
+    "realpath",
+)
+VERIFY_TOOLS = ("cmp", "realpath", "unsquashfs")
+BUILD_TOOLS = (*ASSEMBLE_TOOLS, *VERIFY_TOOLS, "readelf", "sha256sum")
+
+
 def requires_tools(*tools):
     missing = [tool for tool in tools if shutil.which(tool) is None]
     return unittest.skipIf(bool(missing), f"required tools not found: {', '.join(missing)}")
@@ -379,14 +392,7 @@ class AppImageScriptsTest(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("icon is not a readable regular file", result.stderr)
 
-    @requires_tools(
-        "appstreamcli",
-        "desktop-file-edit",
-        "desktop-file-validate",
-        "mksquashfs",
-        "realpath",
-        "unsquashfs",
-    )
+    @requires_tools(*ASSEMBLE_TOOLS, *VERIFY_TOOLS)
     def test_assembly_honors_source_date_epoch_with_versioned_metadata(self):
         runtime_log = self.temp_path / "runtime-log"
         runtime = (
@@ -545,16 +551,35 @@ class AppImageScriptsTest(unittest.TestCase):
         desktop = read_desktop(extracted / "com.cypherstack.stackwallet.desktop")
         self.assertEqual(desktop["X-AppImage-Version"], "1.2.3-test")
 
-    @requires_tools(
-        "appstreamcli",
-        "cmp",
-        "desktop-file-edit",
-        "desktop-file-validate",
-        "mksquashfs",
-        "realpath",
-        "sha256sum",
-        "unsquashfs",
-    )
+    @requires_tools(*ASSEMBLE_TOOLS)
+    def test_assembly_does_not_depend_on_the_umask(self):
+        runtime = self.temp_path / "runtime-x86_64"
+        runtime.write_bytes(bytes(4096))
+        images = []
+        for umask in (0o022, 0o077):
+            appdir = self.temp_path / f"umask-{umask:03o}-AppDir"
+            output = self.temp_path / f"umask-{umask:03o}.AppImage"
+            for command in (
+                [str(MAKE_APPDIR), "stack_wallet", str(self.bundle), str(appdir)],
+                [
+                    str(ASSEMBLE_APPIMAGE),
+                    str(appdir),
+                    str(runtime),
+                    str(output),
+                    "1.2.3-test",
+                ],
+            ):
+                result = subprocess.run(
+                    command, capture_output=True, text=True, umask=umask
+                )
+                self.assertEqual(
+                    result.returncode, 0, result.stdout + result.stderr
+                )
+            images.append(output.read_bytes())
+
+        self.assertEqual(images[0], images[1])
+
+    @requires_tools(*BUILD_TOOLS)
     def test_runtime_pin_cannot_be_replaced_by_the_build_environment(self):
         (self.bundle / "stack_wallet").unlink()
         result, output, curl_log = self.run_build_appimage(b"corrupt runtime")
@@ -598,17 +623,7 @@ class AppImageScriptsTest(unittest.TestCase):
                 if expected_failure:
                     self.assertIn("must be an x86-64 ELF", result.stderr)
 
-    @requires_tools(
-        "appstreamcli",
-        "cmp",
-        "desktop-file-edit",
-        "desktop-file-validate",
-        "mksquashfs",
-        "readelf",
-        "realpath",
-        "sha256sum",
-        "unsquashfs",
-    )
+    @requires_tools(*BUILD_TOOLS)
     def test_builder_rejects_a_non_x86_64_bundle(self):
         icon = (ROOT / "asset_sources/icon/stack_wallet/icon.png").read_bytes()
         packaging_root = self.make_test_packaging_root("arm64-bundle", icon)
@@ -647,18 +662,8 @@ class AppImageScriptsTest(unittest.TestCase):
                 source = script.read_text()
                 self.assertIn('source "$script_dir/lib.sh"', source)
                 self.assertIn("require_tools ", source)
-        self.assertNotIn("for tool in appstreamcli", BUILD_APPIMAGE.read_text())
 
-    @requires_tools(
-        "appstreamcli",
-        "cmp",
-        "desktop-file-edit",
-        "desktop-file-validate",
-        "mksquashfs",
-        "realpath",
-        "sha256sum",
-        "unsquashfs",
-    )
+    @requires_tools(*BUILD_TOOLS)
     def test_failed_verification_preserves_the_published_image_and_cleans_work(self):
         icon = (ROOT / "asset_sources/icon/stack_wallet/icon.png").read_bytes()
         packaging_root = self.make_test_packaging_root("failed-verification", icon)
@@ -714,7 +719,7 @@ class AppImageScriptsTest(unittest.TestCase):
         self.assertEqual(list(output.parent.glob(".appimage-unverified.*")), [])
         self.assertEqual(list(temp_root.iterdir()), [])
 
-    @requires_tools("appstreamcli", "desktop-file-edit", "mksquashfs", "realpath")
+    @requires_tools(*BUILD_TOOLS)
     def test_work_directory_is_cleaned_if_staged_output_creation_fails(self):
         icon = (ROOT / "asset_sources/icon/stack_wallet/icon.png").read_bytes()
         packaging_root = self.make_test_packaging_root("failed-mktemp", icon)
@@ -782,13 +787,7 @@ class AppImageScriptsTest(unittest.TestCase):
             workflow.count("VERSION: ${{ steps.ver.outputs.version }}"), 3
         )
 
-    @requires_tools(
-        "appstreamcli",
-        "desktop-file-edit",
-        "desktop-file-validate",
-        "mksquashfs",
-        "realpath",
-    )
+    @requires_tools(*ASSEMBLE_TOOLS)
     def test_assembly_rejects_output_inside_the_appdir(self):
         appdir = self.temp_path / "nested-output-AppDir"
         make_result = self.run_make_appdir(appdir=appdir)
@@ -817,13 +816,7 @@ class AppImageScriptsTest(unittest.TestCase):
         self.assertFalse(output.parent.exists())
         self.assertEqual(list(appdir.glob(".appimage-assemble.*")), [])
 
-    @requires_tools(
-        "appstreamcli",
-        "desktop-file-edit",
-        "desktop-file-validate",
-        "mksquashfs",
-        "realpath",
-    )
+    @requires_tools(*ASSEMBLE_TOOLS)
     def test_assembly_replaces_a_directory_symlink_without_writing_through_it(self):
         appdir = self.temp_path / "symlink-output-AppDir"
         make_result = self.run_make_appdir(appdir=appdir)
@@ -854,13 +847,7 @@ class AppImageScriptsTest(unittest.TestCase):
         self.assertFalse(output.is_symlink())
         self.assertEqual(list(redirected_directory.iterdir()), [])
 
-    @requires_tools(
-        "appstreamcli",
-        "desktop-file-edit",
-        "desktop-file-validate",
-        "mksquashfs",
-        "realpath",
-    )
+    @requires_tools(*ASSEMBLE_TOOLS)
     def test_assembly_rejects_incomplete_runtime_layout(self):
         cases = {
             "missing AppRun": ("AppRun", "AppDir must contain an executable"),
@@ -896,13 +883,7 @@ class AppImageScriptsTest(unittest.TestCase):
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn(message, result.stderr)
 
-    @requires_tools(
-        "appstreamcli",
-        "desktop-file-edit",
-        "desktop-file-validate",
-        "mksquashfs",
-        "realpath",
-    )
+    @requires_tools(*ASSEMBLE_TOOLS)
     def test_assembly_rejects_an_absolute_diricon_link(self):
         appdir = self.temp_path / "absolute-diricon-AppDir"
         make_result = self.run_make_appdir(appdir=appdir)
@@ -930,7 +911,7 @@ class AppImageScriptsTest(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("relative link to the desktop entry icon", result.stderr)
 
-    @requires_tools("cmp", "realpath", "unsquashfs")
+    @requires_tools(*VERIFY_TOOLS)
     def test_image_verifier_does_not_execute_untrusted_input(self):
         image = self.temp_path / "fake.AppImage"
         marker = self.temp_path / "executed"
@@ -951,7 +932,7 @@ class AppImageScriptsTest(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertFalse(marker.exists())
 
-    @requires_tools("cmp", "mksquashfs", "realpath", "unsquashfs")
+    @requires_tools(*VERIFY_TOOLS, "mksquashfs")
     def test_image_verifier_rejects_a_symbolic_apprun(self):
         runtime = self.temp_path / "runtime"
         runtime.write_bytes(bytes(4096))
