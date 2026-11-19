@@ -181,27 +181,44 @@ class _ExchangeTextFieldState extends ConsumerState<ExchangeTextField> {
                                 );
                               } else if (widget.currency != null &&
                                   widget.currency!.image.isNotEmpty) {
+                                final image = widget.currency!.image;
+                                // Providers serve PNG as well as SVG icons.
+                                // Key by URL: a reused SvgPicture keeps the
+                                // previous coin's picture if this load fails.
+                                final isSvg =
+                                    Uri.tryParse(image)?.path
+                                        .toLowerCase()
+                                        .endsWith(".svg") ??
+                                    false;
                                 return Center(
-                                  child: SvgPicture(
-                                    TorAwareSvgNetworkLoader(
-                                      widget.currency!.image,
-                                    ),
-                                    height: 18,
-                                    placeholderBuilder: (_) => Container(
-                                      width: 18,
-                                      height: 18,
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textFieldDefaultBG,
-                                        borderRadius: BorderRadius.circular(18),
-                                      ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(18),
-                                        child: const LoadingIndicator(),
-                                      ),
-                                    ),
-                                  ),
+                                  child: isSvg
+                                      ? SvgPicture(
+                                          TorAwareSvgNetworkLoader(image),
+                                          key: ValueKey(image),
+                                          height: 18,
+                                          placeholderBuilder: (_) => Container(
+                                            width: 18,
+                                            height: 18,
+                                            decoration: BoxDecoration(
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .textFieldDefaultBG,
+                                              borderRadius:
+                                                  BorderRadius.circular(18),
+                                            ),
+                                            child: ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(18),
+                                              child: const LoadingIndicator(),
+                                            ),
+                                          ),
+                                        )
+                                      : Image(
+                                          image: TorAwareNetworkImage(image),
+                                          key: ValueKey(image),
+                                          width: 18,
+                                          height: 18,
+                                        ),
                                 );
                               } else {
                                 return Container(
