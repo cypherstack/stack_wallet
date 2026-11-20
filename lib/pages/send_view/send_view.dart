@@ -34,6 +34,7 @@ import '../../providers/wallet/send_fee_providers.dart';
 import '../../route_generator.dart';
 import '../../services/openalias/open_alias_service.dart';
 import '../../services/spark_names_service.dart';
+import '../../services/zcash_sapling_parameter_service.dart';
 import '../../themes/coin_icon_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/address_utils.dart';
@@ -89,6 +90,7 @@ import '../coin_control/coin_control_view.dart';
 import 'confirm_transaction_view.dart';
 import 'frost_ms/recipient.dart';
 import 'send_memo_support.dart';
+import 'zcash_parameter_acquisition.dart';
 import 'sub_widgets/building_transaction_dialog.dart';
 import 'sub_widgets/dual_balance_selection_sheet.dart';
 import 'sub_widgets/epic_slatepack_dialog.dart';
@@ -956,6 +958,39 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
   }
 
   Future<void> _previewTransaction() async {
+    var preparationAttempts = 0;
+    try {
+      await prepareWithZcashSaplingParameterAcquisition<void>(
+        context: context,
+        prepare: () => _previewTransactionAttempt(
+          skipSendAllConfirmation: preparationAttempts++ > 0,
+        ),
+      );
+    } on ZcashSaplingParametersRequired catch (e, s) {
+      Logging.instance.e(
+        'Zcash Sapling data remained unavailable after acquisition',
+        error: e,
+        stackTrace: s,
+      );
+      if (mounted) {
+        unawaited(
+          showDialog<void>(
+            context: context,
+            builder: (_) => const StackOkDialog(
+              title: 'Zcash data unavailable',
+              message:
+                  'Verified Zcash data is still unavailable. Please try '
+                  'again later.',
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _previewTransactionAttempt({
+    required bool skipSendAllConfirmation,
+  }) async {
     // wait for keyboard to disappear
     FocusScope.of(context).unfocus();
     await Future<void>.delayed(const Duration(milliseconds: 100));
@@ -1008,7 +1043,9 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
             coinControlEnabled &&
             selectedUTXOs.isEmpty)) {
       // confirm send all
-      if (_recipientIndexes == null && amount == availableBalance) {
+      if (!skipSendAllConfirmation &&
+          _recipientIndexes == null &&
+          amount == availableBalance) {
         bool? shouldSendAll;
         if (mounted) {
           shouldSendAll = await showDialog<bool>(
@@ -1299,6 +1336,10 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
         );
       }
     } catch (e, s) {
+      if (e is ZcashSaplingParametersRequired && mounted && !wasCancelled) {
+        Navigator.of(context, rootNavigator: true).pop();
+        rethrow;
+      }
       Logging.instance.e("$e\n$s", error: e, stackTrace: s);
       if (mounted && !wasCancelled) {
         // pop building dialog

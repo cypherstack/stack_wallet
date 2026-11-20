@@ -29,6 +29,7 @@ import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages/send_view/confirm_transaction_view.dart';
 import '../../../../pages/send_view/frost_ms/recipient.dart';
 import '../../../../pages/send_view/send_memo_support.dart';
+import '../../../../pages/send_view/zcash_parameter_acquisition.dart';
 import '../../../../pages/send_view/sub_widgets/building_transaction_dialog.dart';
 import '../../../../pages/send_view/sub_widgets/epic_slatepack_dialog.dart';
 import '../../../../pages/send_view/sub_widgets/multi_recipient.dart';
@@ -40,6 +41,7 @@ import '../../../../providers/wallet/public_private_balance_state_provider.dart'
 import '../../../../providers/wallet/send_fee_providers.dart';
 import '../../../../services/openalias/open_alias_service.dart';
 import '../../../../services/spark_names_service.dart';
+import '../../../../services/zcash_sapling_parameter_service.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/address_utils.dart';
 import '../../../../utilities/amount/amount.dart';
@@ -552,6 +554,39 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   }
 
   Future<void> previewSend() async {
+    var preparationAttempts = 0;
+    try {
+      await prepareWithZcashSaplingParameterAcquisition<void>(
+        context: context,
+        prepare: () => _previewSendAttempt(
+          skipSendAllConfirmation: preparationAttempts++ > 0,
+        ),
+      );
+    } on ZcashSaplingParametersRequired catch (e, s) {
+      Logging.instance.e(
+        'Zcash Sapling data remained unavailable after acquisition',
+        error: e,
+        stackTrace: s,
+      );
+      if (mounted) {
+        unawaited(
+          showDialog<void>(
+            context: context,
+            builder: (context) => const SimpleDesktopDialog(
+              title: 'Zcash data unavailable',
+              message:
+                  'Verified Zcash data is still unavailable. Please try '
+                  'again later.',
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _previewSendAttempt({
+    required bool skipSendAllConfirmation,
+  }) async {
     final nonceInput = _nonceInput;
     if (!nonceInput.isValid) return;
     final nonce = nonceInput.value;
@@ -614,7 +649,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             coinControlEnabled) ||
         (coinControlEnabled && ref.read(desktopUseUTXOs).isEmpty)) {
       // confirm send all
-      if (_recipientIndexes == null && amount == availableBalance) {
+      if (!skipSendAllConfirmation &&
+          _recipientIndexes == null &&
+          amount == availableBalance) {
         final bool? shouldSendAll = await showDialog<bool>(
           context: context,
           useSafeArea: false,
@@ -944,6 +981,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         );
       }
     } catch (e, s) {
+      if (e is ZcashSaplingParametersRequired && mounted && !wasCancelled) {
+        Navigator.of(context, rootNavigator: true).pop();
+        rethrow;
+      }
       Logging.instance.e("Desktop send: ", error: e, stackTrace: s);
       if (mounted && !wasCancelled) {
         // pop building dialog

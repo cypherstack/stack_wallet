@@ -33,6 +33,7 @@ import '../../widgets/stack_dialog.dart';
 import '../../pages_desktop_specific/desktop_home_view.dart';
 import '../home_view/home_view.dart';
 import '../send_view/sub_widgets/building_transaction_dialog.dart';
+import '../send_view/zcash_parameter_acquisition.dart';
 import 'cakepay_confirm_send_view.dart';
 
 class CakePaySendFromView extends ConsumerStatefulWidget {
@@ -80,9 +81,9 @@ class _CakePaySendFromViewState extends ConsumerState<CakePaySendFromView> {
       builder: (child) {
         return Background(
           child: Scaffold(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -208,9 +209,9 @@ class _CakePaySendFromCardState extends ConsumerState<_CakePaySendFromCard> {
               child: Text(
                 "Ok",
                 style: STextStyles.button(context).copyWith(
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.buttonTextSecondary,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .buttonTextSecondary,
                 ),
               ),
               onPressed: () => Navigator.of(context).pop(),
@@ -226,36 +227,44 @@ class _CakePaySendFromCardState extends ConsumerState<_CakePaySendFromCard> {
     try {
       final wallet = ref.read(pWallets).getWallet(widget.walletId);
 
-      unawaited(
-        showDialog<dynamic>(
-          context: context,
-          useSafeArea: false,
-          barrierDismissible: false,
-          builder: (context) {
-            return ConditionalParent(
-              condition: Util.isDesktop,
-              builder: (child) => DesktopDialog(
-                maxWidth: 400,
-                maxHeight: double.infinity,
-                child: Padding(padding: const EdgeInsets.all(32), child: child),
-              ),
-              child: BuildingTransactionDialog(
-                coin: coin,
-                isSpark: false,
-                onCancel: () {
-                  wasCancelled = true;
-                  Navigator.of(context).pop();
-                },
-              ),
-            );
-          },
-        ),
-      );
+      void showBuildingDialog() {
+        unawaited(
+          showDialog<dynamic>(
+            context: context,
+            useSafeArea: false,
+            barrierDismissible: false,
+            builder: (context) {
+              return ConditionalParent(
+                condition: Util.isDesktop,
+                builder: (child) => DesktopDialog(
+                  maxWidth: 400,
+                  maxHeight: double.infinity,
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: child,
+                  ),
+                ),
+                child: BuildingTransactionDialog(
+                  coin: coin,
+                  isSpark: false,
+                  onCancel: () {
+                    wasCancelled = true;
+                    Navigator.of(context).pop();
+                  },
+                ),
+              );
+            },
+          ),
+        );
+      }
+
+      showBuildingDialog();
 
       if (wallet is ExternalWallet) {
         await wallet.init();
         await wallet.open();
       }
+      if (!mounted) return;
 
       final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
 
@@ -270,18 +279,30 @@ class _CakePaySendFromCardState extends ConsumerState<_CakePaySendFromCard> {
         addressType: addressType,
       );
 
-      final txDataFuture = wallet.prepareSend(
-        txData: TxData(
-          recipients: [recipient],
-          feeRateType: FeeRateType.average,
+      final txDataFuture = prepareWithZcashSaplingParameterAcquisition<TxData>(
+        context: context,
+        prepare: () => wallet.prepareSend(
+          txData: TxData(
+            recipients: [recipient],
+            feeRateType: FeeRateType.average,
+          ),
         ),
+        canAcquire: () => mounted && !wasCancelled,
+        beforeAcquisition: () async {
+          if (mounted) {
+            Navigator.of(context, rootNavigator: true).pop();
+          }
+        },
+        afterAcquisition: () async {
+          if (mounted && !wasCancelled) showBuildingDialog();
+        },
       );
 
       final results = await Future.wait([txDataFuture, time]);
 
-      final txData = (results.first as TxData).copyWith(
-        note: "CakePay payment",
-      );
+      final prepared = results.first as TxData?;
+      if (prepared == null) return;
+      final txData = prepared.copyWith(note: "CakePay payment");
 
       if (!wasCancelled) {
         if (mounted) {
@@ -327,9 +348,9 @@ class _CakePaySendFromCardState extends ConsumerState<_CakePaySendFromCard> {
                 child: Text(
                   "Ok",
                   style: STextStyles.button(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.buttonTextSecondary,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .buttonTextSecondary,
                   ),
                 ),
                 onPressed: () => Navigator.of(context).pop(),

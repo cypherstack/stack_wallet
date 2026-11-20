@@ -45,6 +45,7 @@ import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_dialog.dart';
 import '../../home_view/home_view.dart';
 import '../../send_view/sub_widgets/building_transaction_dialog.dart';
+import '../../send_view/zcash_parameter_acquisition.dart';
 import '../../wallet_view/wallet_view.dart';
 import '../confirm_change_now_send.dart';
 import '../send_from_view.dart';
@@ -275,27 +276,31 @@ class _Step4ViewState extends ConsumerState<Step4View> {
     try {
       if (!mounted) return;
 
-      unawaited(
-        showDialog<dynamic>(
-          context: context,
-          useSafeArea: false,
-          barrierDismissible: false,
-          builder: (context) {
-            return BuildingTransactionDialog(
-              coin: wallet.info.coin,
-              isSpark: wallet is FiroWallet && !firoPublicSend,
-              onCancel: () {
-                wasCancelled = true;
-                Navigator.of(context).pop();
-              },
-            );
-          },
-        ),
-      );
+      void showBuildingDialog() {
+        unawaited(
+          showDialog<dynamic>(
+            context: context,
+            useSafeArea: false,
+            barrierDismissible: false,
+            builder: (context) {
+              return BuildingTransactionDialog(
+                coin: wallet.info.coin,
+                isSpark: wallet is FiroWallet && !firoPublicSend,
+                onCancel: () {
+                  wasCancelled = true;
+                  Navigator.of(context).pop();
+                },
+              );
+            },
+          ),
+        );
+      }
+
+      showBuildingDialog();
 
       final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
 
-      Future<TxData> txDataFuture;
+      Future<TxData?> txDataFuture;
 
       final recipient = TxRecipient(
         address: address,
@@ -320,21 +325,32 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                   ? model.trade!.payInExtraId
                   : null
             : null;
-        txDataFuture = wallet.prepareSend(
-          txData: TxData(
-            recipients: [recipient],
-            memo: memo,
-            feeRateType: FeeRateType.average,
-            note:
-                "${model.trade!.payInCurrency.toUpperCase()}/"
-                "${model.trade!.payOutCurrency.toUpperCase()} exchange",
+        txDataFuture = prepareWithZcashSaplingParameterAcquisition<TxData>(
+          context: context,
+          prepare: () => wallet.prepareSend(
+            txData: TxData(
+              recipients: [recipient],
+              memo: memo,
+              feeRateType: FeeRateType.average,
+              note:
+                  "${model.trade!.payInCurrency.toUpperCase()}/"
+                  "${model.trade!.payOutCurrency.toUpperCase()} exchange",
+            ),
           ),
+          canAcquire: () => mounted && !wasCancelled,
+          beforeAcquisition: () async {
+            if (mounted) Navigator.of(context).pop();
+          },
+          afterAcquisition: () async {
+            if (mounted && !wasCancelled) showBuildingDialog();
+          },
         );
       }
 
       final results = await Future.wait([txDataFuture, time]);
 
-      final txData = results.first as TxData;
+      final txData = results.first as TxData?;
+      if (txData == null) return;
 
       if (!wasCancelled) {
         // pop building dialog

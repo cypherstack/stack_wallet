@@ -38,6 +38,7 @@ import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../home_view/home_view.dart';
 import '../send_view/sub_widgets/building_transaction_dialog.dart';
+import '../send_view/zcash_parameter_acquisition.dart';
 import 'shopinbit_confirm_send_view.dart';
 
 class ShopInBitSendFromView extends ConsumerStatefulWidget {
@@ -115,9 +116,9 @@ class _ShopInBitSendFromViewState extends ConsumerState<ShopInBitSendFromView> {
       builder: (child) {
         return Background(
           child: Scaffold(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () {
@@ -270,9 +271,9 @@ class _ShopInBitSendFromCardState extends ConsumerState<ShopInBitSendFromCard> {
                 child: Text(
                   "Ok",
                   style: STextStyles.button(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.buttonTextSecondary,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .buttonTextSecondary,
                   ),
                 ),
                 onPressed: () => Navigator.of(context).pop(),
@@ -289,32 +290,39 @@ class _ShopInBitSendFromCardState extends ConsumerState<ShopInBitSendFromCard> {
     try {
       final parentWallet = ref.read(pWallets).getWallet(walletId);
 
-      unawaited(
-        showDialog<dynamic>(
-          context: context,
-          useSafeArea: false,
-          barrierDismissible: false,
-          builder: (context) {
-            return ConditionalParent(
-              condition: Util.isDesktop,
-              builder: (child) => DesktopDialog(
-                maxWidth: 400,
-                maxHeight: double.infinity,
-                child: Padding(padding: const EdgeInsets.all(32), child: child),
-              ),
-              child: BuildingTransactionDialog(
-                coin: coin,
-                isSpark: false,
-                onCancel: () {
-                  wasCancelled = true;
+      void showBuildingDialog() {
+        unawaited(
+          showDialog<dynamic>(
+            context: context,
+            useSafeArea: false,
+            barrierDismissible: false,
+            builder: (context) {
+              return ConditionalParent(
+                condition: Util.isDesktop,
+                builder: (child) => DesktopDialog(
+                  maxWidth: 400,
+                  maxHeight: double.infinity,
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: child,
+                  ),
+                ),
+                child: BuildingTransactionDialog(
+                  coin: coin,
+                  isSpark: false,
+                  onCancel: () {
+                    wasCancelled = true;
 
-                  Navigator.of(context).pop();
-                },
-              ),
-            );
-          },
-        ),
-      );
+                    Navigator.of(context).pop();
+                  },
+                ),
+              );
+            },
+          ),
+        );
+      }
+
+      showBuildingDialog();
 
       if (parentWallet is ExternalWallet) {
         await parentWallet.init();
@@ -336,6 +344,7 @@ class _ShopInBitSendFromCardState extends ConsumerState<ShopInBitSendFromCard> {
       if (tokenContract != null) {
         await wallet.init();
       }
+      if (!mounted) return;
 
       final addressType =
           wallet.cryptoCurrency.getAddressType(address) ??
@@ -349,16 +358,30 @@ class _ShopInBitSendFromCardState extends ConsumerState<ShopInBitSendFromCard> {
         addressType: addressType,
       );
 
-      final txDataFuture = wallet.prepareSend(
-        txData: TxData(
-          recipients: [recipient],
-          feeRateType: FeeRateType.average,
+      final txDataFuture = prepareWithZcashSaplingParameterAcquisition<TxData>(
+        context: context,
+        prepare: () => wallet.prepareSend(
+          txData: TxData(
+            recipients: [recipient],
+            feeRateType: FeeRateType.average,
+          ),
         ),
+        canAcquire: () => mounted && !wasCancelled,
+        beforeAcquisition: () async {
+          if (mounted) {
+            Navigator.of(context, rootNavigator: true).pop();
+          }
+        },
+        afterAcquisition: () async {
+          if (mounted && !wasCancelled) showBuildingDialog();
+        },
       );
 
       final results = await Future.wait([txDataFuture, time]);
 
-      txData = results.first as TxData;
+      final prepared = results.first as TxData?;
+      if (prepared == null) return;
+      txData = prepared;
 
       if (!wasCancelled) {
         if (mounted) {
@@ -413,9 +436,9 @@ class _ShopInBitSendFromCardState extends ConsumerState<ShopInBitSendFromCard> {
                 child: Text(
                   "Ok",
                   style: STextStyles.button(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.buttonTextSecondary,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .buttonTextSecondary,
                   ),
                 ),
                 onPressed: () {

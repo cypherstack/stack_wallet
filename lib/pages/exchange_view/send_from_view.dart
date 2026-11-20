@@ -47,6 +47,7 @@ import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../home_view/home_view.dart';
 import '../send_view/sub_widgets/building_transaction_dialog.dart';
+import '../send_view/zcash_parameter_acquisition.dart';
 import 'confirm_change_now_send.dart';
 
 class SendFromView extends ConsumerStatefulWidget {
@@ -229,33 +230,40 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
     try {
       final wallet = ref.read(pWallets).getWallet(walletId);
 
-      unawaited(
-        showDialog<dynamic>(
-          context: context,
-          useSafeArea: false,
-          barrierDismissible: false,
-          builder: (context) {
-            return ConditionalParent(
-              condition: Util.isDesktop,
-              builder: (child) => DesktopDialog(
-                maxWidth: 400,
-                maxHeight: double.infinity,
-                child: Padding(padding: const EdgeInsets.all(32), child: child),
-              ),
-              child: BuildingTransactionDialog(
-                coin: coin,
-                isSpark:
-                    wallet is FiroWallet && shouldSendPublicFiroFunds != true,
-                onCancel: () {
-                  wasCancelled = true;
+      void showBuildingDialog() {
+        unawaited(
+          showDialog<dynamic>(
+            context: context,
+            useSafeArea: false,
+            barrierDismissible: false,
+            builder: (context) {
+              return ConditionalParent(
+                condition: Util.isDesktop,
+                builder: (child) => DesktopDialog(
+                  maxWidth: 400,
+                  maxHeight: double.infinity,
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: child,
+                  ),
+                ),
+                child: BuildingTransactionDialog(
+                  coin: coin,
+                  isSpark:
+                      wallet is FiroWallet && shouldSendPublicFiroFunds != true,
+                  onCancel: () {
+                    wasCancelled = true;
 
-                  Navigator.of(context).pop();
-                },
-              ),
-            );
-          },
-        ),
-      );
+                    Navigator.of(context).pop();
+                  },
+                ),
+              );
+            },
+          ),
+        );
+      }
+
+      showBuildingDialog();
 
       // Currently most external wallets need to fully sync before they can
       // which will cause errors and things and stuff
@@ -264,11 +272,12 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
         await wallet.init();
         await wallet.open();
       }
+      if (!mounted) return;
 
       final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
 
       TxData txData;
-      Future<TxData> txDataFuture;
+      Future<TxData?> txDataFuture;
 
       final recipient = TxRecipient(
         address: address,
@@ -284,12 +293,24 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
                   ? trade.payInExtraId
                   : null
             : null;
-        txDataFuture = wallet.prepareSend(
-          txData: TxData(
-            recipients: [recipient],
-            memo: memo,
-            feeRateType: FeeRateType.average,
+        txDataFuture = prepareWithZcashSaplingParameterAcquisition<TxData>(
+          context: context,
+          prepare: () => wallet.prepareSend(
+            txData: TxData(
+              recipients: [recipient],
+              memo: memo,
+              feeRateType: FeeRateType.average,
+            ),
           ),
+          canAcquire: () => mounted && !wasCancelled,
+          beforeAcquisition: () async {
+            if (mounted) {
+              Navigator.of(context, rootNavigator: Util.isDesktop).pop();
+            }
+          },
+          afterAcquisition: () async {
+            if (mounted && !wasCancelled) showBuildingDialog();
+          },
         );
       } else {
         final firoWallet = wallet as FiroWallet;
@@ -323,7 +344,9 @@ class _SendFromCardState extends ConsumerState<SendFromCard> {
 
       final results = await Future.wait([txDataFuture, time]);
 
-      txData = results.first as TxData;
+      final prepared = results.first as TxData?;
+      if (prepared == null) return;
+      txData = prepared;
 
       if (!wasCancelled) {
         // pop building dialog
