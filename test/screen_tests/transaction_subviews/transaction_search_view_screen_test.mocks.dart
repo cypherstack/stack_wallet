@@ -4,11 +4,14 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i4;
-import 'dart:ui' as _i5;
+import 'dart:ui' as _i7;
 
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:stackwallet/models/isar/models/contact_entry.dart' as _i2;
 import 'package:stackwallet/services/address_book_service.dart' as _i3;
+import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart'
+    as _i6;
+import 'package:stackwallet/wallets/wallet/wallet.dart' as _i5;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -98,6 +101,17 @@ class MockAddressBookService extends _i1.Mock
           as _i4.Future<bool>);
 
   @override
+  _i4.Future<void> updateMyStackContact(
+    Iterable<_i5.Wallet<_i6.CryptoCurrency>>? wallets,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#updateMyStackContact, [wallets]),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+
+  @override
   _i4.Future<void> removeContact(String? id) =>
       (super.noSuchMethod(
             Invocation.method(#removeContact, [id]),
@@ -107,13 +121,13 @@ class MockAddressBookService extends _i1.Mock
           as _i4.Future<void>);
 
   @override
-  void addListener(_i5.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i7.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#addListener, [listener]),
     returnValueForMissingStub: null,
   );
 
   @override
-  void removeListener(_i5.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i7.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#removeListener, [listener]),
     returnValueForMissingStub: null,
   );
