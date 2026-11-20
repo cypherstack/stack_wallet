@@ -139,7 +139,28 @@ jobs:
       - name: Decode secrets
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
-        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+        run: |
+          if [ -n "$CHANGE_NOW" ]; then
+            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+          else
+            cat > lib/external_api_keys.dart << 'EOF'
+          const String kChangeNowApiKey = "";
+          const String kSimpleSwapApiKey = "";
+          const String kNanswapApiKey = "";
+          const String kNanoSwapRpcApiKey = "";
+          const String kWizSwapApiKey = "";
+          const kShopInBitAccessKey = "";
+          const kShopInBitPartnerSecret = "";
+          const kCakePayApiToken = "";
+          const kExolixApiKey = "";
+          const kLetsExchangeId = "";
+          const kLetsExchangeToken = "";
+          const kCypherGoatApiKey = "";
+          const kCypherGoatAffiliate = "";
+          const kTrocadorApiKey = "";
+          const kTrocadorRefCode = "";
+          EOF
+          fi
 
       - name: Build
         env:
@@ -209,7 +230,28 @@ jobs:
       - name: Decode secrets
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
-        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+        run: |
+          if [ -n "$CHANGE_NOW" ]; then
+            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+          else
+            cat > lib/external_api_keys.dart << 'EOF'
+          const String kChangeNowApiKey = "";
+          const String kSimpleSwapApiKey = "";
+          const String kNanswapApiKey = "";
+          const String kNanoSwapRpcApiKey = "";
+          const String kWizSwapApiKey = "";
+          const kShopInBitAccessKey = "";
+          const kShopInBitPartnerSecret = "";
+          const kCakePayApiToken = "";
+          const kExolixApiKey = "";
+          const kLetsExchangeId = "";
+          const kLetsExchangeToken = "";
+          const kCypherGoatApiKey = "";
+          const kCypherGoatAffiliate = "";
+          const kTrocadorApiKey = "";
+          const kTrocadorRefCode = "";
+          EOF
+          fi
 
       - name: Set up Android local.properties
         run: |
@@ -267,6 +309,9 @@ jobs:
   build-windows:
     needs: bom
     runs-on: windows-2022
+    permissions:
+      contents: read
+      packages: read
     defaults:
       run:
         shell: bash
@@ -327,7 +372,28 @@ jobs:
       - name: Decode secrets
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
-        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+        run: |
+          if [ -n "$CHANGE_NOW" ]; then
+            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+          else
+            cat > lib/external_api_keys.dart << 'EOF'
+          const String kChangeNowApiKey = "";
+          const String kSimpleSwapApiKey = "";
+          const String kNanswapApiKey = "";
+          const String kNanoSwapRpcApiKey = "";
+          const String kWizSwapApiKey = "";
+          const kShopInBitAccessKey = "";
+          const kShopInBitPartnerSecret = "";
+          const kCakePayApiToken = "";
+          const kExolixApiKey = "";
+          const kLetsExchangeId = "";
+          const kLetsExchangeToken = "";
+          const kCypherGoatApiKey = "";
+          const kCypherGoatAffiliate = "";
+          const kTrocadorApiKey = "";
+          const kTrocadorRefCode = "";
+          EOF
+          fi
 
       - name: Build
         run: flutter build windows --release
@@ -398,7 +464,28 @@ jobs:
       - name: Decode secrets
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
-        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+        run: |
+          if [ -n "$CHANGE_NOW" ]; then
+            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+          else
+            cat > lib/external_api_keys.dart << 'EOF'
+          const String kChangeNowApiKey = "";
+          const String kSimpleSwapApiKey = "";
+          const String kNanswapApiKey = "";
+          const String kNanoSwapRpcApiKey = "";
+          const String kWizSwapApiKey = "";
+          const kShopInBitAccessKey = "";
+          const kShopInBitPartnerSecret = "";
+          const kCakePayApiToken = "";
+          const kExolixApiKey = "";
+          const kLetsExchangeId = "";
+          const kLetsExchangeToken = "";
+          const kCypherGoatApiKey = "";
+          const kCypherGoatAffiliate = "";
+          const kTrocadorApiKey = "";
+          const kTrocadorRefCode = "";
+          EOF
+          fi
 
       - name: Build
         run: flutter build macos --release
@@ -469,7 +556,28 @@ jobs:
       - name: Decode secrets
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
-        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+        run: |
+          if [ -n "$CHANGE_NOW" ]; then
+            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+          else
+            cat > lib/external_api_keys.dart << 'EOF'
+          const String kChangeNowApiKey = "";
+          const String kSimpleSwapApiKey = "";
+          const String kNanswapApiKey = "";
+          const String kNanoSwapRpcApiKey = "";
+          const String kWizSwapApiKey = "";
+          const kShopInBitAccessKey = "";
+          const kShopInBitPartnerSecret = "";
+          const kCakePayApiToken = "";
+          const kExolixApiKey = "";
+          const kLetsExchangeId = "";
+          const kLetsExchangeToken = "";
+          const kCypherGoatApiKey = "";
+          const kCypherGoatAffiliate = "";
+          const kTrocadorApiKey = "";
+          const kTrocadorRefCode = "";
+          EOF
+          fi
 
       - name: Build
         run: flutter build ios --release --no-codesign
@@ -533,7 +641,28 @@ jobs:
       - name: Decode secrets
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
-        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+        run: |
+          if [ -n "$CHANGE_NOW" ]; then
+            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+          else
+            cat > lib/external_api_keys.dart << 'EOF'
+          const String kChangeNowApiKey = "";
+          const String kSimpleSwapApiKey = "";
+          const String kNanswapApiKey = "";
+          const String kNanoSwapRpcApiKey = "";
+          const String kWizSwapApiKey = "";
+          const kShopInBitAccessKey = "";
+          const kShopInBitPartnerSecret = "";
+          const kCakePayApiToken = "";
+          const kExolixApiKey = "";
+          const kLetsExchangeId = "";
+          const kLetsExchangeToken = "";
+          const kCypherGoatApiKey = "";
+          const kCypherGoatAffiliate = "";
+          const kTrocadorApiKey = "";
+          const kTrocadorRefCode = "";
+          EOF
+          fi
 
       - name: Build
         env:
@@ -603,7 +732,28 @@ jobs:
       - name: Decode secrets
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
-        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+        run: |
+          if [ -n "$CHANGE_NOW" ]; then
+            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+          else
+            cat > lib/external_api_keys.dart << 'EOF'
+          const String kChangeNowApiKey = "";
+          const String kSimpleSwapApiKey = "";
+          const String kNanswapApiKey = "";
+          const String kNanoSwapRpcApiKey = "";
+          const String kWizSwapApiKey = "";
+          const kShopInBitAccessKey = "";
+          const kShopInBitPartnerSecret = "";
+          const kCakePayApiToken = "";
+          const kExolixApiKey = "";
+          const kLetsExchangeId = "";
+          const kLetsExchangeToken = "";
+          const kCypherGoatApiKey = "";
+          const kCypherGoatAffiliate = "";
+          const kTrocadorApiKey = "";
+          const kTrocadorRefCode = "";
+          EOF
+          fi
 
       - name: Build
         env:
@@ -790,7 +940,28 @@ jobs:
       - name: Decode secrets
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
-        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+        run: |
+          if [ -n "$CHANGE_NOW" ]; then
+            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+          else
+            cat > lib/external_api_keys.dart << 'EOF'
+          const String kChangeNowApiKey = "";
+          const String kSimpleSwapApiKey = "";
+          const String kNanswapApiKey = "";
+          const String kNanoSwapRpcApiKey = "";
+          const String kWizSwapApiKey = "";
+          const kShopInBitAccessKey = "";
+          const kShopInBitPartnerSecret = "";
+          const kCakePayApiToken = "";
+          const kExolixApiKey = "";
+          const kLetsExchangeId = "";
+          const kLetsExchangeToken = "";
+          const kCypherGoatApiKey = "";
+          const kCypherGoatAffiliate = "";
+          const kTrocadorApiKey = "";
+          const kTrocadorRefCode = "";
+          EOF
+          fi
 
       - name: Set up Android local.properties
         run: |
@@ -906,7 +1077,28 @@ jobs:
       - name: Decode secrets
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
-        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+        run: |
+          if [ -n "$CHANGE_NOW" ]; then
+            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+          else
+            cat > lib/external_api_keys.dart << 'EOF'
+          const String kChangeNowApiKey = "";
+          const String kSimpleSwapApiKey = "";
+          const String kNanswapApiKey = "";
+          const String kNanoSwapRpcApiKey = "";
+          const String kWizSwapApiKey = "";
+          const kShopInBitAccessKey = "";
+          const kShopInBitPartnerSecret = "";
+          const kCakePayApiToken = "";
+          const kExolixApiKey = "";
+          const kLetsExchangeId = "";
+          const kLetsExchangeToken = "";
+          const kCypherGoatApiKey = "";
+          const kCypherGoatAffiliate = "";
+          const kTrocadorApiKey = "";
+          const kTrocadorRefCode = "";
+          EOF
+          fi
 
       - name: Build
         run: flutter build windows --release
@@ -977,7 +1169,28 @@ jobs:
       - name: Decode secrets
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
-        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+        run: |
+          if [ -n "$CHANGE_NOW" ]; then
+            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+          else
+            cat > lib/external_api_keys.dart << 'EOF'
+          const String kChangeNowApiKey = "";
+          const String kSimpleSwapApiKey = "";
+          const String kNanswapApiKey = "";
+          const String kNanoSwapRpcApiKey = "";
+          const String kWizSwapApiKey = "";
+          const kShopInBitAccessKey = "";
+          const kShopInBitPartnerSecret = "";
+          const kCakePayApiToken = "";
+          const kExolixApiKey = "";
+          const kLetsExchangeId = "";
+          const kLetsExchangeToken = "";
+          const kCypherGoatApiKey = "";
+          const kCypherGoatAffiliate = "";
+          const kTrocadorApiKey = "";
+          const kTrocadorRefCode = "";
+          EOF
+          fi
 
       - name: Build
         run: flutter build macos --release
@@ -1048,7 +1261,28 @@ jobs:
       - name: Decode secrets
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
-        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+        run: |
+          if [ -n "$CHANGE_NOW" ]; then
+            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+          else
+            cat > lib/external_api_keys.dart << 'EOF'
+          const String kChangeNowApiKey = "";
+          const String kSimpleSwapApiKey = "";
+          const String kNanswapApiKey = "";
+          const String kNanoSwapRpcApiKey = "";
+          const String kWizSwapApiKey = "";
+          const kShopInBitAccessKey = "";
+          const kShopInBitPartnerSecret = "";
+          const kCakePayApiToken = "";
+          const kExolixApiKey = "";
+          const kLetsExchangeId = "";
+          const kLetsExchangeToken = "";
+          const kCypherGoatApiKey = "";
+          const kCypherGoatAffiliate = "";
+          const kTrocadorApiKey = "";
+          const kTrocadorRefCode = "";
+          EOF
+          fi
 
       - name: Build
         run: flutter build ios --release --no-codesign
@@ -1229,7 +1463,28 @@ jobs:
       - name: Decode secrets
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
-        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+        run: |
+          if [ -n "$CHANGE_NOW" ]; then
+            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+          else
+            cat > lib/external_api_keys.dart << 'EOF'
+          const String kChangeNowApiKey = "";
+          const String kSimpleSwapApiKey = "";
+          const String kNanswapApiKey = "";
+          const String kNanoSwapRpcApiKey = "";
+          const String kWizSwapApiKey = "";
+          const kShopInBitAccessKey = "";
+          const kShopInBitPartnerSecret = "";
+          const kCakePayApiToken = "";
+          const kExolixApiKey = "";
+          const kLetsExchangeId = "";
+          const kLetsExchangeToken = "";
+          const kCypherGoatApiKey = "";
+          const kCypherGoatAffiliate = "";
+          const kTrocadorApiKey = "";
+          const kTrocadorRefCode = "";
+          EOF
+          fi
 
       - name: Set up Android local.properties
         run: |
@@ -1345,7 +1600,28 @@ jobs:
       - name: Decode secrets
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
-        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+        run: |
+          if [ -n "$CHANGE_NOW" ]; then
+            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+          else
+            cat > lib/external_api_keys.dart << 'EOF'
+          const String kChangeNowApiKey = "";
+          const String kSimpleSwapApiKey = "";
+          const String kNanswapApiKey = "";
+          const String kNanoSwapRpcApiKey = "";
+          const String kWizSwapApiKey = "";
+          const kShopInBitAccessKey = "";
+          const kShopInBitPartnerSecret = "";
+          const kCakePayApiToken = "";
+          const kExolixApiKey = "";
+          const kLetsExchangeId = "";
+          const kLetsExchangeToken = "";
+          const kCypherGoatApiKey = "";
+          const kCypherGoatAffiliate = "";
+          const kTrocadorApiKey = "";
+          const kTrocadorRefCode = "";
+          EOF
+          fi
 
       - name: Build
         run: flutter build windows --release
@@ -1416,7 +1692,28 @@ jobs:
       - name: Decode secrets
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
-        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+        run: |
+          if [ -n "$CHANGE_NOW" ]; then
+            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+          else
+            cat > lib/external_api_keys.dart << 'EOF'
+          const String kChangeNowApiKey = "";
+          const String kSimpleSwapApiKey = "";
+          const String kNanswapApiKey = "";
+          const String kNanoSwapRpcApiKey = "";
+          const String kWizSwapApiKey = "";
+          const kShopInBitAccessKey = "";
+          const kShopInBitPartnerSecret = "";
+          const kCakePayApiToken = "";
+          const kExolixApiKey = "";
+          const kLetsExchangeId = "";
+          const kLetsExchangeToken = "";
+          const kCypherGoatApiKey = "";
+          const kCypherGoatAffiliate = "";
+          const kTrocadorApiKey = "";
+          const kTrocadorRefCode = "";
+          EOF
+          fi
 
       - name: Build
         run: flutter build macos --release
@@ -1487,7 +1784,28 @@ jobs:
       - name: Decode secrets
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
-        run: echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+        run: |
+          if [ -n "$CHANGE_NOW" ]; then
+            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
+          else
+            cat > lib/external_api_keys.dart << 'EOF'
+          const String kChangeNowApiKey = "";
+          const String kSimpleSwapApiKey = "";
+          const String kNanswapApiKey = "";
+          const String kNanoSwapRpcApiKey = "";
+          const String kWizSwapApiKey = "";
+          const kShopInBitAccessKey = "";
+          const kShopInBitPartnerSecret = "";
+          const kCakePayApiToken = "";
+          const kExolixApiKey = "";
+          const kLetsExchangeId = "";
+          const kLetsExchangeToken = "";
+          const kCypherGoatApiKey = "";
+          const kCypherGoatAffiliate = "";
+          const kTrocadorApiKey = "";
+          const kTrocadorRefCode = "";
+          EOF
+          fi
 
       - name: Build
         run: flutter build ios --release --no-codesign
