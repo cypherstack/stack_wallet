@@ -137,6 +137,8 @@ PROTOC_PATH  := $(shell command -v protoc 2>/dev/null)
 BOM_FILE     := $(APP_PROJECT_ROOT_DIR)/stack-bom.toml
 BOM_RUST     := $(shell bash "$(APP_PROJECT_ROOT_DIR)/scripts/bom_values.sh" --get rust "$(BOM_FILE)" 2>/dev/null)
 RUST_VERSION ?= $(if $(BOM_RUST),$(BOM_RUST),$(error Cannot read [toolchain] rust from $(BOM_FILE)))
+BOM_DNSSEC_RUST := $(shell bash "$(APP_PROJECT_ROOT_DIR)/scripts/bom_values.sh" --get dnssec_rust "$(BOM_FILE)" 2>/dev/null)
+DNSSEC_RUST_VERSION ?= $(if $(BOM_DNSSEC_RUST),$(BOM_DNSSEC_RUST),$(error Cannot read [toolchain] dnssec_rust from $(BOM_FILE)))
 # Only strip Nix/Apple variables when a Nix shell actually supplied them. In a
 # Homebrew or manual shell these are the user's own settings and are kept.
 NIX_ENV_UNSET = -u LD -u LDFLAGS -u NIX_LDFLAGS -u NIX_CFLAGS_LINK \
@@ -239,8 +241,8 @@ check-reqs: ## Verify essential build tools
 	@[ -n "$(FLUTTER)" ] && command -v "$(FLUTTER)" >/dev/null 2>&1 || { echo >&2 "[ERROR] Flutter not installed. Use 'nix develop' (recommended) or add Flutter to PATH."; exit 1; }
 	@[ -n "$(DART)" ] && command -v "$(DART)" >/dev/null 2>&1 || { echo >&2 "[ERROR] Dart not installed. It ships with Flutter; use 'nix develop' (recommended)."; exit 1; }
 	@command -v rustup >/dev/null 2>&1 || { echo >&2 "[ERROR] rustup not installed."; exit 1; }
-	@rustup run 1.90.0 rustc --version >/dev/null 2>&1 || { echo >&2 "[ERROR] Rust 1.90.0 (DNSSEC) not installed via rustup."; exit 1; }
-	@rustup run 1.99.1 rustc --version >/dev/null 2>&1 || { echo >&2 "[ERROR] Rust 1.99.1 not installed via rustup."; exit 1; }
+	@rustup run $(DNSSEC_RUST_VERSION) rustc --version >/dev/null 2>&1 || { echo >&2 "[ERROR] Rust $(DNSSEC_RUST_VERSION) (DNSSEC) not installed via rustup."; exit 1; }
+	@rustup run $(RUST_VERSION) rustc --version >/dev/null 2>&1 || { echo >&2 "[ERROR] Rust $(RUST_VERSION) not installed via rustup."; exit 1; }
 	@# `rustup which cargo` resolves a toolchain path even when no shim is on PATH,
 	@# but the plugin build scripts invoke bare `cargo` — verify that separately.
 	@command -v cargo >/dev/null 2>&1 || [ -x "$$HOME/.cargo/bin/cargo" ] || { echo >&2 "[ERROR] 'cargo' is not on PATH (rustup shims missing from ~/.cargo/bin). Run 'rustup-init -y', then open a new terminal."; exit 1; }
