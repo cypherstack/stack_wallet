@@ -36,6 +36,7 @@ import '../../../wallets/isar/providers/eth/token_balance_provider.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../widgets/coin_ticker_tag.dart';
 import '../../../widgets/conditional_parent.dart';
+import '../../../widgets/hideable_balance.dart';
 import '../../../widgets/rounded_container.dart';
 import '../../buy_view/buy_in_wallet_view.dart';
 import '../../exchange_view/wallet_initiated_exchange_view.dart';
@@ -83,9 +84,9 @@ class TokenSummary extends ConsumerWidget {
                 children: [
                   SvgPicture.asset(
                     Assets.svg.walletDesktop,
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.tokenSummaryTextSecondary,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .tokenSummaryTextSecondary,
                     width: 12,
                     height: 12,
                   ),
@@ -93,9 +94,9 @@ class TokenSummary extends ConsumerWidget {
                   Text(
                     ref.watch(pWalletName(walletId)),
                     style: STextStyles.w500_12(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.tokenSummaryTextSecondary,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .tokenSummaryTextSecondary,
                     ),
                   ),
                 ],
@@ -104,18 +105,24 @@ class TokenSummary extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    ref
-                        .watch(
-                          pAmountFormatter(
-                            Ethereum(CryptoCurrencyNetwork.main),
-                          ),
-                        )
-                        .format(balance.total, tokenContract: token),
-                    style: STextStyles.pageTitleH1(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.tokenSummaryTextPrimary,
+                  HideableBalance(
+                    iconColor: Theme.of(context)
+                        .extension<StackColors>()!
+                        .tokenSummaryTextPrimary,
+                    iconSize: 24,
+                    child: Text(
+                      ref
+                          .watch(
+                            pAmountFormatter(
+                              Ethereum(CryptoCurrencyNetwork.main),
+                            ),
+                          )
+                          .format(balance.total, tokenContract: token),
+                      style: STextStyles.pageTitleH1(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .tokenSummaryTextPrimary,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -128,12 +135,18 @@ class TokenSummary extends ConsumerWidget {
               ),
               if (price != null) const SizedBox(height: 6),
               if (price != null)
-                Text(
-                  "${(balance.total.decimal * price).toAmount(fractionDigits: 2).fiatString(locale: ref.watch(localeServiceChangeNotifierProvider.select((value) => value.locale)))} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
-                  style: STextStyles.subtitle500(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.tokenSummaryTextPrimary,
+                HideableBalance(
+                  iconColor: Theme.of(context)
+                      .extension<StackColors>()!
+                      .tokenSummaryTextPrimary,
+                  iconSize: 16,
+                  child: Text(
+                    "${(balance.total.decimal * price).toAmount(fractionDigits: 2).fiatString(locale: ref.watch(localeServiceChangeNotifierProvider.select((value) => value.locale)))} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
+                    style: STextStyles.subtitle500(context).copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .tokenSummaryTextPrimary,
+                    ),
                   ),
                 ),
               const SizedBox(height: 20),
@@ -152,9 +165,9 @@ class TokenSummary extends ConsumerWidget {
                 (value) => value!.tokenContract.address,
               ),
             ),
-            overrideIconColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.topNavIconPrimary,
+            overrideIconColor: Theme.of(context)
+                .extension<StackColors>()!
+                .topNavIconPrimary,
           ),
         ),
       ],
@@ -263,9 +276,9 @@ class TokenOptionsButton extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         RawMaterialButton(
-          fillColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.tokenSummaryButtonBG,
+          fillColor: Theme.of(context)
+              .extension<StackColors>()!
+              .tokenSummaryButtonBG,
           elevation: 0,
           focusElevation: 0,
           hoverElevation: 0,
@@ -283,26 +296,27 @@ class TokenOptionsButton extends StatelessWidget {
               condition: iconSize < 24,
               builder: (child) => RoundedContainer(
                 padding: const EdgeInsets.all(6),
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.tokenSummaryIcon.withOpacity(0.4),
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .tokenSummaryIcon
+                    .withOpacity(0.4),
                 radiusMultiplier: 10,
                 child: Center(child: child),
               ),
               child: iconAssetPathSVG.startsWith("assets/")
                   ? SvgPicture.asset(
                       iconAssetPathSVG,
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.tokenSummaryIcon,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .tokenSummaryIcon,
                       width: iconSize,
                       height: iconSize,
                     )
                   : SvgPicture.file(
                       File(iconAssetPathSVG),
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.tokenSummaryIcon,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .tokenSummaryIcon,
                       width: iconSize,
                       height: iconSize,
                     ),
@@ -313,9 +327,9 @@ class TokenOptionsButton extends StatelessWidget {
         Text(
           subLabel,
           style: STextStyles.w500_12(context).copyWith(
-            color: Theme.of(
-              context,
-            ).extension<StackColors>()!.tokenSummaryTextPrimary,
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .tokenSummaryTextPrimary,
           ),
         ),
       ],

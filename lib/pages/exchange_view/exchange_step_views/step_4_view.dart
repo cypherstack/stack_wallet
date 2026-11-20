@@ -192,6 +192,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
     final coin = ref.read(pWalletCoin(walletId));
     final balancePublic = ref.read(pWalletBalance(walletId));
     final balancePrivate = ref.read(pWalletBalanceTertiary(walletId));
+    final hideBalances = ref.read(hideBalancesProvider);
 
     return await showModalBottomSheet<bool?>(
       context: context,
@@ -217,14 +218,16 @@ class _Step4ViewState extends ConsumerState<Step4View> {
               ),
               const SizedBox(height: 32),
               SecondaryButton(
-                label:
-                    "${ref.watch(pAmountFormatter(coin)).format(balancePrivate.spendable)} (private)",
+                label: hideBalances
+                    ? "Private balance"
+                    : "${ref.watch(pAmountFormatter(coin)).format(balancePrivate.spendable)} (private)",
                 onPressed: () => Navigator.of(context).pop(false),
               ),
               const SizedBox(height: 16),
               SecondaryButton(
-                label:
-                    "${ref.watch(pAmountFormatter(coin)).format(balancePublic.spendable)} (public)",
+                label: hideBalances
+                    ? "Public balance"
+                    : "${ref.watch(pAmountFormatter(coin)).format(balancePublic.spendable)} (public)",
                 onPressed: () => Navigator.of(context).pop(true),
               ),
               const SizedBox(height: 32),
