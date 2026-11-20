@@ -126,6 +126,21 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   late final bool hasOptionalMemo;
   late final bool usesSlatepacks;
 
+  void _formatMimblewimbleAddress() {
+    var address = sendToController.text.trim();
+    if (address.isEmpty) return;
+    if (address.contains("\n")) {
+      address = address.substring(0, address.indexOf("\n"));
+    }
+    final formatted = coin is Epiccash
+        ? formatAddress(address)
+        : formatAddressMwc(address);
+    _address = formatted;
+    if (sendToController.text != formatted) {
+      sendToController.text = formatted;
+    }
+  }
+
   String? _note;
   String? _onChainNote;
 
@@ -1322,6 +1337,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     baseAmountController = TextEditingController();
     memoController = TextEditingController();
     nonceController = TextEditingController();
+    if (coin is Epiccash || coin is Mimblewimblecoin) {
+      sendToController.addListener(_formatMimblewimbleAddress);
+    }
 
     onCryptoAmountChanged = _cryptoAmountChanged;
     cryptoAmountController.addListener(onCryptoAmountChanged);
@@ -1375,6 +1393,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   @override
   void dispose() {
     cryptoAmountController.removeListener(onCryptoAmountChanged);
+    if (coin is Epiccash || coin is Mimblewimblecoin) {
+      sendToController.removeListener(_formatMimblewimbleAddress);
+    }
     _ethFee.dispose();
     _feeAmount.dispose();
 
@@ -1428,38 +1449,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       pWallets.select((value) => value.getWallet(walletId)),
     );
 
-    // add listener for epic cash to strip http:// and https:// prefixes if the address also ocntains an @ symbol (indicating an epicbox address)
-    if (coin is Epiccash) {
-      sendToController.addListener(() {
-        _address = sendToController.text;
-
-        if (_address != null && _address!.isNotEmpty) {
-          _address = _address!.trim();
-          if (_address!.contains("\n")) {
-            _address = _address!.substring(0, _address!.indexOf("\n"));
-          }
-
-          sendToController.text = formatAddress(_address!);
-        }
-      });
-    }
-
     final balType = ref.watch(publicPrivateBalanceStateProvider);
-
-    if (coin is Mimblewimblecoin) {
-      sendToController.addListener(() {
-        _address = sendToController.text;
-
-        if (_address != null && _address!.isNotEmpty) {
-          _address = _address!.trim();
-          if (_address!.contains("\n")) {
-            _address = _address!.substring(0, _address!.indexOf("\n"));
-          }
-
-          sendToController.text = formatAddressMwc(_address!);
-        }
-      });
-    }
 
     final isMwebEnabled = ref.watch(
       pWalletInfo(walletId).select((s) => s.isMwebEnabled),

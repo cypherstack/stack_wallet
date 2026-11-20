@@ -35,7 +35,6 @@ abstract class MimblewimbleWallet extends Bip39Wallet with SlatepackInterface {
   MimblewimbleWallet(super.currency);
 
   final Mutex syncMutex = Mutex();
-  Timer? timer;
 
   double highestPercent = 0;
 
@@ -181,10 +180,15 @@ abstract class MimblewimbleWallet extends Bip39Wallet with SlatepackInterface {
     String? senderAddress,
     String? recipientAddress,
   }) {
-    SlateState state = SlateState.unknown;
+    // `sta` is the only field that distinguishes invoice rounds from
+    // standard sends. Signature counts can refine a legacy slate which omits
+    // it, but must never erase an explicit invoice state.
+    SlateState state = SlateState.fromCode(json['sta']?.toString());
 
     final dynamic participants = json['participant_data'];
-    if (participants is List && participants.isNotEmpty) {
+    if (state == SlateState.unknown &&
+        participants is List &&
+        participants.isNotEmpty) {
       int signed = 0;
       for (final dynamic p in participants) {
         if (p is Map && p['part_sig'] != null) {
@@ -198,10 +202,6 @@ abstract class MimblewimbleWallet extends Bip39Wallet with SlatepackInterface {
       } else if (signed >= participants.length) {
         state = SlateState.s3;
       }
-    }
-
-    if (state == SlateState.unknown && json['sta'] != null) {
-      state = SlateState.fromCode(json['sta'].toString());
     }
 
     if (state == SlateState.unknown) {
@@ -270,15 +270,15 @@ abstract class MimblewimbleWallet extends Bip39Wallet with SlatepackInterface {
       slateId,
     );
 
-    TransactionV2? tx = await find();
+    final TransactionV2? tx = await find();
+    final pending = pendingSendMatching(
+      mimblewimbleData?.slatesToCommits ?? const <dynamic, dynamic>{},
+      slateId,
+      fractionDigits: cryptoCurrency.fractionDigits,
+    );
     if (tx == null) {
-      // Slate creation updates the native wallet before its unawaited history
-      // refresh reaches Isar. Read that local state without contacting a node,
-      // then query the real app cache again.
-      await updateTransactionsFromWallet(refreshFromNode: false);
-      tx = await find();
+      return pending;
     }
-    if (tx == null) return null;
 
     final int digits = cryptoCurrency.fractionDigits;
     final bool isSend = tx.type == TransactionType.outgoing;
@@ -291,7 +291,80 @@ abstract class MimblewimbleWallet extends Bip39Wallet with SlatepackInterface {
           : tx.getAmountReceivedInThisWallet(fractionDigits: digits),
       fee: tx.getFee(fractionDigits: digits),
       isSend: isSend,
-      isCancelled: tx.isCancelled,
+      // Cancellation metadata is written synchronously. It must win over a
+      // stale Isar row while the native history refresh is still queued.
+      isCancelled: tx.isCancelled || (isSend && pending?.isCancelled == true),
+    );
+  }
+
+  /// Reads the durable metadata written as soon as this wallet creates an
+  /// S1. This keeps ownership checks local and immediate without waiting for
+  /// a native history call which may be queued behind a long-running scan.
+  @visibleForTesting
+  static ({Amount amount, Amount fee, bool isSend, bool isCancelled})?
+  pendingSendMatching(
+    Map<dynamic, dynamic> slatesToCommits,
+    String slateId, {
+    required int fractionDigits,
+  }) {
+    final raw = slatesToCommits[slateId];
+    if (raw is! Map || raw['isSend'] != true) return null;
+
+    final amount = BigInt.tryParse(raw['amount']?.toString() ?? '');
+    final fee = BigInt.tryParse(raw['fee']?.toString() ?? '');
+    if (amount == null || fee == null) return null;
+
+    return (
+      amount: Amount(rawValue: amount, fractionDigits: fractionDigits),
+      fee: Amount(rawValue: fee, fractionDigits: fractionDigits),
+      isSend: true,
+      isCancelled: raw['isCancelled'] == true,
+    );
+  }
+
+  /// Persists enough information about a newly-created S1 to recognize its
+  /// S2 even before the background history refresh reaches Isar.
+  @protected
+  Future<void> rememberPendingSlateSend(SlatepackResult result) async {
+    final slateId = result.slateId;
+    final amount = result.amount;
+    final fee = result.fee;
+    if (slateId == null || slateId.isEmpty || amount == null || fee == null) {
+      return;
+    }
+
+    final data = mimblewimbleData;
+    if (data == null) return;
+
+    final slatesToCommits = Map<dynamic, dynamic>.from(data.slatesToCommits);
+    final existing = slatesToCommits[slateId];
+    final entry = existing is Map
+        ? Map<String, dynamic>.from(existing)
+        : <String, dynamic>{};
+    entry.addAll({
+      'amount': amount.raw.toString(),
+      'fee': fee.raw.toString(),
+      'isSend': true,
+      'isCancelled': false,
+    });
+    slatesToCommits[slateId] = entry;
+    await updateMimblewimbleData(
+      data.copyWith(slatesToCommits: slatesToCommits),
+    );
+  }
+
+  @protected
+  Future<void> rememberPendingSlateCancelled(String slateId) async {
+    final data = mimblewimbleData;
+    final raw = data?.slatesToCommits[slateId];
+    if (data == null || raw is! Map) return;
+
+    final slatesToCommits = Map<dynamic, dynamic>.from(data.slatesToCommits);
+    final entry = Map<String, dynamic>.from(raw);
+    entry['isCancelled'] = true;
+    slatesToCommits[slateId] = entry;
+    await updateMimblewimbleData(
+      data.copyWith(slatesToCommits: slatesToCommits),
     );
   }
 
@@ -398,6 +471,9 @@ abstract class MimblewimbleWallet extends Bip39Wallet with SlatepackInterface {
 
   @protected
   Future<void> startScans() async {
+    var listenerPauseRequested = false;
+    Object? scanError;
+    StackTrace? scanStackTrace;
     try {
       // max number of blocks to scan per loop iteration
       const int scanChunkSize = 10000;
@@ -410,6 +486,7 @@ abstract class MimblewimbleWallet extends Bip39Wallet with SlatepackInterface {
       int chainHeight = await this.chainHeight;
       int lastScannedBlock = mimblewimbleData!.lastScannedBlock;
 
+      listenerPauseRequested = true;
       await pauseListenerForScan(needsScanning: lastScannedBlock < chainHeight);
 
       // loop while scanning in chain in chunks (of blocks?)
@@ -437,11 +514,28 @@ abstract class MimblewimbleWallet extends Bip39Wallet with SlatepackInterface {
       }
 
       Logging.instance.d("startScans successfully at the tip");
-
-      await resumeListenerAfterScan();
     } catch (e, s) {
       Logging.instance.e("startScans failed: ", error: e, stackTrace: s);
-      rethrow;
+      scanError = e;
+      scanStackTrace = s;
+    } finally {
+      if (listenerPauseRequested) {
+        try {
+          await resumeListenerAfterScan();
+        } catch (e, s) {
+          Logging.instance.e(
+            "Failed to resume listener after scan: ",
+            error: e,
+            stackTrace: s,
+          );
+          scanError ??= e;
+          scanStackTrace ??= s;
+        }
+      }
+    }
+
+    if (scanError != null) {
+      Error.throwWithStackTrace(scanError, scanStackTrace!);
     }
   }
 
@@ -503,17 +597,30 @@ abstract class MimblewimbleWallet extends Bip39Wallet with SlatepackInterface {
   }
 
   @override
-  Future<void> refresh({bool doScan = true}) async {
+  Future<void> refresh({bool doScan = true}) =>
+      _refresh(doScan: doScan, waitForLock: false, propagateErrors: false);
+
+  @protected
+  Future<void> refreshForRescan() =>
+      _refresh(doScan: true, waitForLock: true, propagateErrors: true);
+
+  Future<void> _refresh({
+    required bool doScan,
+    required bool waitForLock,
+    required bool propagateErrors,
+  }) async {
     // Awaiting this lock could be dangerous.
     // Since refresh is periodic (generally)
-    if (refreshMutex.isLocked) {
+    if (refreshMutex.isLocked && !waitForLock) {
       return;
     }
 
+    var lockAcquired = false;
     try {
       // this acquire should be almost instant due to above check.
       // Slight possibility of race but should be irrelevant
       await refreshMutex.acquire();
+      lockAcquired = true;
 
       GlobalEventBus.instance.fire(
         WalletSyncStatusChangedEvent(
@@ -560,13 +667,7 @@ abstract class MimblewimbleWallet extends Bip39Wallet with SlatepackInterface {
         ),
       );
 
-      if (shouldAutoSync) {
-        timer ??= Timer.periodic(const Duration(seconds: 150), (Timer timer) {
-          // TODO: [prio=med] some kind of quick check if wallet needs to
-          //  refresh to replace the old refreshIfThereIsNewData call
-          unawaited(refresh());
-        });
-      }
+      ensurePeriodicRefreshTimer();
     } catch (e, s) {
       GlobalEventBus.instance.fire(
         NodeConnectionStatusChangedEvent(
@@ -587,8 +688,11 @@ abstract class MimblewimbleWallet extends Bip39Wallet with SlatepackInterface {
         error: e,
         stackTrace: s,
       );
+      if (propagateErrors) {
+        Error.throwWithStackTrace(e, s);
+      }
     } finally {
-      refreshMutex.release();
+      if (lockAcquired) refreshMutex.release();
     }
   }
 
@@ -674,9 +778,6 @@ abstract class MimblewimbleWallet extends Bip39Wallet with SlatepackInterface {
 
   @override
   Future<void> exit() async {
-    timer?.cancel();
-    timer = null;
-
     await super.exit();
     Logging.instance.d("$runtimeType exit finished");
   }

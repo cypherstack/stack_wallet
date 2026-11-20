@@ -16,9 +16,22 @@ Future<T?> showSlatepackPopup<T>({
   return showDialog<T>(
     context: context,
     barrierDismissible: barrierDismissible,
-    builder: (_) => Util.isDesktop
-        ? DesktopDialog(maxWidth: 700, maxHeight: null, child: child)
-        : StackDialogBase(child: child),
+    // StackDialogBase and DesktopDialog already apply their own safe-area
+    // layout.
+    useSafeArea: false,
+    builder: (context) {
+      final mediaInset = MediaQuery.viewInsetsOf(context).bottom;
+      // Dialog routes can expose a MediaQuery with consumed insets. Read the
+      // owning view as well so the mobile popup still follows the IME.
+      final viewInset = MediaQueryData.fromView(View.of(context))
+          .viewInsets
+          .bottom;
+      final keyboardInset = mediaInset > viewInset ? mediaInset : viewInset;
+      final popup = Util.isDesktop
+          ? DesktopDialog(maxWidth: 700, maxHeight: null, child: child)
+          : StackDialogBase(keyboardPaddingAmount: keyboardInset, child: child);
+      return barrierDismissible ? popup : PopScope(canPop: false, child: popup);
+    },
   );
 }
 

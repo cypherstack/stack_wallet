@@ -45,6 +45,7 @@ import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/wallet/impl/banano_wallet.dart';
 import '../../../wallets/wallet/impl/firo_wallet.dart';
 import '../../../wallets/wallet/wallet.dart';
+import '../../../wallets/wallet/wallet_mixin_interfaces/slatepack_interface.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -82,7 +83,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
   late final TextEditingController controller;
   late final EventBus eventBus;
 
-  // late final bool _shouldDisableAutoSyncOnLogOut;
+  late final bool _shouldDisableAutoSyncOnLogOut;
 
   Future<void> onBackPressed() async {
     await _logout();
@@ -93,10 +94,11 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
 
   Future<void> _logout() async {
     final wallet = ref.read(pWallets).getWallet(widget.walletId);
-    // if (_shouldDisableAutoSyncOnLogOut) {
-    //   // disable auto sync if it was enabled only when loading wallet
-    wallet.shouldAutoSync = false;
-    // }
+    if (_shouldDisableAutoSyncOnLogOut) {
+      // Disable auto sync only if this view enabled it. All/selected-wallet
+      // background sync must survive leaving the wallet screen.
+      wallet.shouldAutoSync = false;
+    }
     ref.read(transactionFilterProvider.state).state = null;
     if (ref.read(prefsChangeNotifierProvider).isAutoBackupEnabled &&
         ref.read(prefsChangeNotifierProvider).backupFrequencyType ==
@@ -143,21 +145,25 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
       ref.read(desktopUseUTXOs.notifier).state = {};
     });
 
-    if (!wallet.shouldAutoSync) {
-      //   // enable auto sync if it wasn't enabled when loading wallet
+    _shouldDisableAutoSyncOnLogOut = !wallet.shouldAutoSync;
+    if (_shouldDisableAutoSyncOnLogOut) {
+      // enable auto sync if it wasn't enabled when loading wallet
       wallet.shouldAutoSync = true;
-      //   _shouldDisableAutoSyncOnLogOut = true;
-      // } else {
-      //   _shouldDisableAutoSyncOnLogOut = false;
     }
 
     wallet.refresh();
+    if (wallet is SlatepackInterface) {
+      unawaited(wallet.activateSlatepackListener());
+    }
 
     super.initState();
   }
 
   @override
   void dispose() {
+    if (_shouldDisableAutoSyncOnLogOut) {
+      ref.read(pWallets).getWallet(widget.walletId).shouldAutoSync = false;
+    }
     controller.dispose();
     super.dispose();
   }

@@ -257,23 +257,31 @@ final class _LibMwcInterfaceImpl extends LibMwcInterface {
   }
 
   @override
-  void startMwcMqsListener({
+  Future<void> startMwcMqsListener({
     required String wallet,
     required String mwcmqsConfig,
+    bool allowTakeover = false,
   }) {
     return mimblewimblecoin.Libmwc.startMwcMqsListener(
       wallet: wallet,
       mwcmqsConfig: mwcmqsConfig,
+      allowTakeover: allowTakeover,
     );
   }
 
   @override
-  void stopMwcMqsListener() {
-    return mimblewimblecoin.Libmwc.stopMwcMqsListener();
+  Future<bool> stopMwcMqsListener({
+    required String wallet,
+    bool releasePreference = false,
+  }) {
+    return mimblewimblecoin.Libmwc.stopMwcMqsListener(
+      wallet: wallet,
+      releasePreference: releasePreference,
+    );
   }
 
   @override
-  Future<({String commitId, String slateId})> txFinalize({
+  Future<({String commitId, bool posted, String slateId})> txFinalize({
     required String wallet,
     required String slateJson,
   }) {

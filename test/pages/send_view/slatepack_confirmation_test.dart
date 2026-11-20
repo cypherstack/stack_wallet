@@ -504,4 +504,35 @@ void main() {
     await tester.pump(_sendTimer);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('a completed slate waits below a lock route', (tester) async {
+    final gate = Completer<void>();
+    final wallet = _Wallet(gate: gate);
+    await _confirmSend(tester, wallet);
+    await tester.pump(const Duration(milliseconds: 500));
+
+    final root = Navigator.of(
+      tester.element(find.byType(SendingTransactionDialog)),
+      rootNavigator: true,
+    );
+    unawaited(
+      root.push(
+        MaterialPageRoute<void>(builder: (_) => const Text('lock route')),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    gate.complete();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.text('lock route'), findsOneWidget);
+    expect(find.byType(SlatepackDialog), findsNothing);
+
+    root.pop();
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.byType(SlatepackDialog), findsOneWidget);
+    await tester.pump(_sendTimer);
+  });
 }

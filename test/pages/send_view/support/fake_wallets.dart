@@ -6,6 +6,7 @@ import 'package:stackwallet/models/isar/models/solana/sol_contract.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/slatepack_method.dart';
+import 'package:stackwallet/utilities/slatepack_terms.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/cryptonote_currency.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
@@ -296,6 +297,9 @@ class FakeEpiccashWallet extends FakeWallet<Epiccash>
 
   @override
   bool get supportsOnChainNote => true;
+
+  @override
+  SlatepackTerms get slatepackTerms => SlatepackTerms.slate;
 }
 
 /// Monero checking only an address prefix, as tests lack its native library.

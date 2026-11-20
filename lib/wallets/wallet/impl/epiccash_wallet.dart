@@ -77,7 +77,13 @@ class EpiccashWallet extends MimblewimbleWallet {
       key: '${walletId}_epicboxConfigNewNewNew',
       value: stringConfig,
     );
-    libEpic.updateEpicboxConfig(wallet: _wallet!, epicBoxConfig: stringConfig);
+    final wallet = _wallet;
+    if (wallet == null) {
+      throw StateError('Epic wallet is not open');
+    }
+    await libEpic.stopEpicboxListener(wallet: wallet);
+    libEpic.updateEpicboxConfig(wallet: wallet, epicBoxConfig: stringConfig);
+    await _listenToEpicbox();
 
     await _generateAndStoreReceivingAddressForIndex(0);
     // TODO: refresh anything that needs to be refreshed/updated due to epicbox info changed
@@ -96,6 +102,7 @@ class EpiccashWallet extends MimblewimbleWallet {
         transactionId: txSlateId,
       );
       Logging.instance.d("cancel $txSlateId result: $result");
+      if (result.isEmpty) await rememberPendingSlateCancelled(txSlateId);
       return result;
     } catch (e, s) {
       Logging.instance.e("", error: e, stackTrace: s);
@@ -155,7 +162,7 @@ class EpiccashWallet extends MimblewimbleWallet {
       );
 
       final info = inspectSlateJsonString(result.slateJson);
-      return SlatepackResult(
+      final slate = SlatepackResult(
         success: true,
         slatepack: result.slateJson,
         slateJson: result.slateJson,
@@ -166,6 +173,8 @@ class EpiccashWallet extends MimblewimbleWallet {
         amount: info?.amount ?? amount,
         fee: info?.fee,
       );
+      await rememberPendingSlateSend(slate);
+      return slate;
     } catch (e, s) {
       Logging.instance.e('Failed to create slatepack: $e\n$s');
       return SlatepackResult(success: false, error: e.toString());
@@ -248,7 +257,7 @@ class EpiccashWallet extends MimblewimbleWallet {
         success: true,
         slateId: finalized.slateId,
         commitId: finalized.commitId,
-        posted: true,
+        posted: finalized.posted,
       );
     } catch (e, s) {
       Logging.instance.e('Failed to finalize slatepack: $e\n$s');
@@ -501,45 +510,20 @@ class EpiccashWallet extends MimblewimbleWallet {
 
   static const _mid = "_:'", _end = "':";
 
-  /// eeehhhhhhhhhhhhhhh
-  bool _fuzzyEquals(TransactionV2 a, TransactionV2 b) {
-    final bool isAmountReceivedMatches =
-        a.getAmountReceivedInThisWallet(
-          fractionDigits: cryptoCurrency.fractionDigits,
-        ) ==
-        b.getAmountReceivedInThisWallet(
-          fractionDigits: cryptoCurrency.fractionDigits,
-        );
-
-    final bool isFeeMatches =
-        a.getFee(fractionDigits: cryptoCurrency.fractionDigits) ==
-        b.getFee(fractionDigits: cryptoCurrency.fractionDigits);
-
-    final bool isAmountSentMatches =
-        a.getAmountSentFromThisWallet(
-          fractionDigits: cryptoCurrency.fractionDigits,
-          subtractFee: false,
-        ) ==
-        b.getAmountSentFromThisWallet(
-          fractionDigits: cryptoCurrency.fractionDigits,
-          subtractFee: false,
-        );
-
-    final bool isHeightMatches = a.height == b.height;
-    final bool isTxTypeMatches = a.type == b.type && a.subType == b.subType;
-    final bool isSlateIdMatches = a.slateId == b.slateId;
-
-    if (isHeightMatches &&
-        isTxTypeMatches &&
-        isFeeMatches &&
-        isSlateIdMatches &&
-        isAmountSentMatches &&
-        isAmountReceivedMatches) {
-      return true;
-    }
-
-    return false;
-  }
+  Object _fuzzyKey(TransactionV2 tx) => (
+    tx.getAmountReceivedInThisWallet(
+      fractionDigits: cryptoCurrency.fractionDigits,
+    ),
+    tx.getFee(fractionDigits: cryptoCurrency.fractionDigits),
+    tx.getAmountSentFromThisWallet(
+      fractionDigits: cryptoCurrency.fractionDigits,
+      subtractFee: false,
+    ),
+    tx.height,
+    tx.type,
+    tx.subType,
+    tx.slateId,
+  );
 
   // ============== Overrides ==================================================
 
@@ -780,11 +764,10 @@ class EpiccashWallet extends MimblewimbleWallet {
               .findAll();
 
           final List<TransactionV2> currentTxns = [];
+          final currentTxnKeys = <Object>{};
 
           for (final TransactionV2 current in currentTxns1) {
-            if (currentTxns
-                .where((TransactionV2 e) => _fuzzyEquals(e, current))
-                .isNotEmpty) {
+            if (!currentTxnKeys.add(_fuzzyKey(current))) {
               Logging.instance.f("DELETING: $current");
               await mainDB.isar.writeTxn(() async {
                 await mainDB.isar.transactionV2s.delete(current.id);
@@ -931,7 +914,11 @@ class EpiccashWallet extends MimblewimbleWallet {
         }
       });
 
-      unawaited(refresh(doScan: isRescan));
+      if (isRescan) {
+        await refreshForRescan();
+      } else {
+        unawaited(refresh(doScan: false));
+      }
     } catch (e, s) {
       Logging.instance.e(
         "Exception rethrown from electrumx_mixin recover(): ",
@@ -977,6 +964,7 @@ class EpiccashWallet extends MimblewimbleWallet {
 
       final Map<dynamic, dynamic> slatesToCommits =
           mimblewimbleData?.slatesToCommits ?? <dynamic, dynamic>{};
+      final transactionKeys = <Object>{};
 
       for (final MimblewimbleTransaction tx in transactions) {
         final bool isIncoming =
@@ -985,8 +973,11 @@ class EpiccashWallet extends MimblewimbleWallet {
         final String? slateId = tx.txSlateId;
         final String? commitId =
             slatesToCommits[slateId]?['commitId'] as String?;
-        final int? numberOfMessages = tx.messages?.length;
-        final String? onChainNote = tx.messages?.first.message;
+        final messages = tx.messages;
+        final int? numberOfMessages = messages?.length;
+        final String? onChainNote = messages == null || messages.isEmpty
+            ? null
+            : messages.first.message;
         final String? addressFrom =
             slatesToCommits[slateId]?["from"] as String?;
         final String? addressTo = slatesToCommits[slateId]?["to"] as String?;
@@ -1072,7 +1063,7 @@ class EpiccashWallet extends MimblewimbleWallet {
           otherData: jsonEncode(otherData),
         );
 
-        if (txns.where((TransactionV2 e) => _fuzzyEquals(e, txn)).isEmpty) {
+        if (transactionKeys.add(_fuzzyKey(txn))) {
           txns.add(txn);
         }
       }
@@ -1081,12 +1072,17 @@ class EpiccashWallet extends MimblewimbleWallet {
           .where()
           .walletIdEqualTo(walletId)
           .findAll();
+      final existingByKey = <Object, List<TransactionV2>>{};
+      for (final existing in existingTxns) {
+        existingByKey
+            .putIfAbsent(_fuzzyKey(existing), () => <TransactionV2>[])
+            .add(existing);
+      }
 
       await mainDB.isar.writeTxn(() async {
         for (final TransactionV2 tx in txns) {
-          final Iterable<TransactionV2> existingMatches = existingTxns.where(
-            (TransactionV2 e) => _fuzzyEquals(e, tx),
-          );
+          final existingMatches =
+              existingByKey[_fuzzyKey(tx)] ?? const <TransactionV2>[];
           TransactionNote? note;
           if (existingMatches.isNotEmpty) {
             // there should only ever be one. If more then something is\

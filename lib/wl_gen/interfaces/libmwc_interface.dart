@@ -96,17 +96,21 @@ abstract class LibMwcInterface {
   Future<({String commitId, String slateId, String slateJson})>
   txReceiveDetailed({required String wallet, required String slateJson});
 
-  Future<({String commitId, String slateId})> txFinalize({
+  Future<({String commitId, bool posted, String slateId})> txFinalize({
     required String wallet,
     required String slateJson,
   });
 
-  void startMwcMqsListener({
+  Future<void> startMwcMqsListener({
     required String wallet,
     required String mwcmqsConfig,
+    bool allowTakeover = false,
   });
 
-  void stopMwcMqsListener();
+  Future<bool> stopMwcMqsListener({
+    required String wallet,
+    bool releasePreference = false,
+  });
 
   bool validateSendAddress({required String address});
 

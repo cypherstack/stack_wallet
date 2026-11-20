@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:isar_community/isar.dart';
 import 'package:stackwallet/db/isar/main_db.dart';
+import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/transaction.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:stackwallet/models/slatepack_models.dart';
@@ -12,9 +13,11 @@ import 'package:stackwallet/utilities/enums/slatepack_method.dart';
 import 'package:stackwallet/utilities/slatepack_terms.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/models/tx_data.dart';
+import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/mimblewimble_wallet.dart';
+import 'package:stackwallet/wallets/wallet/supporting/mimblewimble_wallet_info_extension.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/slatepack_interface.dart';
 
 import '../support/isar_test_utils.dart';
@@ -37,6 +40,8 @@ TransactionV2 _tx(
   TransactionType type,
   String slateId, {
   bool isCancelled = false,
+  int? numberOfMessages,
+  String? onChainNote,
 }) => TransactionV2(
   walletId: "wallet",
   blockHash: null,
@@ -51,6 +56,8 @@ TransactionV2 _tx(
   subType: TransactionSubType.none,
   otherData: jsonEncode({
     "slateId": slateId,
+    if (numberOfMessages != null) "numberOfMessages": numberOfMessages,
+    if (onChainNote != null) "onChainNote": onChainNote,
     TxV2OdKeys.overrideFee: Amount.zeroWith(fractionDigits: 9).toJsonString(),
     if (isCancelled) TxV2OdKeys.isCancelled: true,
   }),
@@ -89,6 +96,94 @@ class _LocalLookupWallet extends MimblewimblecoinWallet {
         () => mainDB.isar.transactionV2s.put(transaction),
       );
     }
+  }
+}
+
+class _ScanLifecycleWallet extends MimblewimblecoinWallet {
+  _ScanLifecycleWallet() : super(CryptoCurrencyNetwork.main);
+
+  var failScan = true;
+  var pauseCalls = 0;
+  var resumeCalls = 0;
+  var data = ExtraMimblewimbleWalletInfo(
+    receivingIndex: 0,
+    changeIndex: 0,
+    slatesToAddresses: {},
+    slatesToCommits: {},
+    lastScannedBlock: 0,
+    restoreHeight: 0,
+    creationHeight: 0,
+  );
+
+  @override
+  ExtraMimblewimbleWalletInfo get mimblewimbleData => data;
+
+  @override
+  Future<int> get chainHeight async => 1;
+
+  @override
+  Future<double> get getSyncPercent async => 0;
+
+  @override
+  Future<void> pauseListenerForScan({required bool needsScanning}) async {
+    if (needsScanning) pauseCalls++;
+  }
+
+  @override
+  Future<void> resumeListenerAfterScan() async => resumeCalls++;
+
+  @override
+  Future<int> scanOutputs({
+    required int startHeight,
+    required int numberOfBlocks,
+  }) async {
+    if (failScan) throw StateError('scan failed');
+    return 1;
+  }
+
+  @override
+  Future<void> updateMimblewimbleData(
+    ExtraMimblewimbleWalletInfo updated,
+  ) async {
+    data = updated;
+  }
+
+  Future<void> runScan() => startScans();
+}
+
+class _RefreshFailureWallet extends MimblewimblecoinWallet {
+  _RefreshFailureWallet() : super(CryptoCurrencyNetwork.main);
+
+  @override
+  String get walletId => 'refresh-failure';
+
+  @override
+  Future<void> prepareRefresh() async {}
+
+  @override
+  Future<void> startScans() async => throw StateError('scan failed');
+
+  Future<void> runRescanRefresh() => refreshForRescan();
+}
+
+class _ListenerHealthWallet extends MimblewimblecoinWallet {
+  _ListenerHealthWallet() : super(CryptoCurrencyNetwork.main);
+
+  var listenCalls = 0;
+
+  @override
+  Future<void> listenToMwcmqs() async => listenCalls++;
+}
+
+class _ActivationFailureWallet extends MimblewimblecoinWallet {
+  _ActivationFailureWallet() : super(CryptoCurrencyNetwork.main);
+
+  bool? allowTakeover;
+
+  @override
+  Future<void> startSlatepackListener({bool allowTakeover = false}) async {
+    this.allowTakeover = allowTakeover;
+    throw StateError('relay unavailable');
   }
 }
 
@@ -137,6 +232,22 @@ void main() {
     );
   });
 
+  test("persisted pending send identifies a slate before history refresh", () {
+    final result = MimblewimbleWallet.pendingSendMatching(
+      {
+        "slate": {"amount": "1250000000", "fee": "3000000", "isSend": true},
+      },
+      "slate",
+      fractionDigits: 9,
+    );
+
+    expect(result, isNotNull);
+    expect(result!.amount.raw, BigInt.from(1250000000));
+    expect(result.fee.raw, BigInt.from(3000000));
+    expect(result.isSend, isTrue);
+    expect(result.isCancelled, isFalse);
+  });
+
   SlateInspection inspect(
     Map<String, dynamic> json, {
     String? sender,
@@ -162,6 +273,12 @@ void main() {
     );
     expect(inspect({"id": "a"}, sender: "s").state, SlateState.s1);
     expect(inspect({"id": "a"}).state, SlateState.unknown);
+  });
+
+  test("explicit invoice state overrides standard-send signatures", () {
+    final invoice = _slate(signatures: 0)..["sta"] = "I1";
+
+    expect(inspect(invoice).state, SlateState.i1);
   });
 
   test("id, amount, fee and ttl", () {
@@ -256,12 +373,12 @@ void main() {
     );
   });
 
-  test('a cache miss reloads native local history without a node', () async {
+  test('a cache miss never waits for native wallet history', () async {
     final directory = await Directory.systemTemp.createTemp(
       'mimblewimble-local-history-',
     );
     final isar = await Isar.open(
-      [TransactionV2Schema],
+      [TransactionV2Schema, WalletInfoSchema],
       directory: directory.path,
       name: 'mimblewimble-local-history',
       inspector: false,
@@ -271,20 +388,123 @@ void main() {
       await directory.delete(recursive: true);
     });
     await MainDB.instance.initMainDB(mock: isar);
+    await MainDB.instance.putWalletInfo(
+      WalletInfo(
+        walletId: 'wallet',
+        name: 'fixture',
+        mainAddressType: AddressType.mimbleWimble,
+        coinName: 'mimblewimblecoin',
+      ),
+    );
 
     final wallet = _LocalLookupWallet(
       _tx(5, TransactionType.outgoing, 'slate'),
     );
     final result = await wallet.localTxForSlate('slate');
 
-    expect(result, isNotNull);
-    expect(result!.isSend, isTrue);
-    expect(wallet.refreshRequests, [false]);
+    expect(result, isNull);
+    expect(wallet.refreshRequests, isEmpty);
     expect(
       await MainDB.instance.isar.transactionV2s.count(),
-      1,
-      reason: 'the real Isar lookup is queried after the native local reload',
+      0,
+      reason: 'reading an incoming S1 must not trigger a native history load',
     );
+  });
+
+  test('pending cancellation overrides stale Isar history', () async {
+    final directory = await Directory.systemTemp.createTemp(
+      'mimblewimble-cancelled-history-',
+    );
+    final isar = await Isar.open(
+      [TransactionV2Schema, WalletInfoSchema],
+      directory: directory.path,
+      name: 'mimblewimble-cancelled-history',
+      inspector: false,
+    );
+    addTearDown(() async {
+      await isar.close();
+      await directory.delete(recursive: true);
+    });
+    await MainDB.instance.initMainDB(mock: isar);
+    await MainDB.instance.putWalletInfo(
+      WalletInfo(
+        walletId: 'wallet',
+        name: 'fixture',
+        mainAddressType: AddressType.mimbleWimble,
+        coinName: 'mimblewimblecoin',
+      ),
+    );
+
+    final wallet = _LocalLookupWallet(null);
+    await wallet.updateMimblewimbleData(
+      ExtraMimblewimbleWalletInfo(
+        receivingIndex: 0,
+        changeIndex: 0,
+        slatesToAddresses: {},
+        slatesToCommits: {
+          'slate': {
+            'amount': '1250000000',
+            'fee': '3000000',
+            'isSend': true,
+            'isCancelled': true,
+          },
+        },
+        lastScannedBlock: 0,
+        restoreHeight: 0,
+        creationHeight: 0,
+      ),
+    );
+    await isar.writeTxn(
+      () => isar.transactionV2s.put(_tx(7, TransactionType.outgoing, 'slate')),
+    );
+
+    final result = await wallet.localTxForSlate('slate');
+
+    expect(result, isNotNull);
+    expect(result!.isSend, isTrue);
+    expect(result.isCancelled, isTrue);
+  });
+
+  test('scan failure still resumes the listener before retry', () async {
+    final wallet = _ScanLifecycleWallet();
+
+    await expectLater(wallet.runScan(), throwsStateError);
+    expect(wallet.pauseCalls, 1);
+    expect(wallet.resumeCalls, 1);
+
+    wallet.failScan = false;
+    await wallet.runScan();
+    expect(wallet.pauseCalls, 2);
+    expect(wallet.resumeCalls, 2);
+  });
+
+  test(
+    'scan resume health-starts the listener even when already at tip',
+    () async {
+      final wallet = _ListenerHealthWallet();
+
+      await wallet.resumeListenerAfterScan();
+      await wallet.resumeListenerAfterScan();
+
+      expect(wallet.listenCalls, 2);
+    },
+  );
+
+  test(
+    'interactive listener activation is best effort and takes priority',
+    () async {
+      final wallet = _ActivationFailureWallet();
+
+      await expectLater(wallet.activateSlatepackListener(), completes);
+
+      expect(wallet.allowTakeover, isTrue);
+    },
+  );
+
+  test('rescan refresh propagates native scan failure', () async {
+    final wallet = _RefreshFailureWallet();
+
+    await expectLater(wallet.runRescanRefresh(), throwsStateError);
   });
 
   test("Epic and MWC capabilities", () {
@@ -316,6 +536,67 @@ void main() {
     );
 
     await expectLater(future, throwsA(anything));
+  });
+
+  test('MWC duplicate native log ids get stable unique database ids', () {
+    expect(
+      MimblewimblecoinWallet.historyTxid(
+        commitId: 'commit',
+        nativeId: 4,
+        hasDuplicateBaseId: false,
+      ),
+      'commit',
+    );
+    expect(
+      MimblewimblecoinWallet.historyTxid(
+        commitId: 'commit',
+        nativeId: 4,
+        hasDuplicateBaseId: true,
+      ),
+      'commit:4',
+    );
+    expect(
+      MimblewimblecoinWallet.historyTxid(
+        commitId: 'commit',
+        nativeId: 5,
+        hasDuplicateBaseId: true,
+      ),
+      'commit:5',
+    );
+  });
+
+  test('only a send awaiting its response can be cancelled', () {
+    final pending = _tx(
+      1,
+      TransactionType.outgoing,
+      'pending',
+      numberOfMessages: 1,
+    );
+    final finalized = _tx(
+      2,
+      TransactionType.outgoing,
+      'finalized',
+      numberOfMessages: 2,
+    );
+    final pendingWithNote = _tx(
+      3,
+      TransactionType.outgoing,
+      'pending-note',
+      numberOfMessages: 1,
+      onChainNote: 'memo',
+    );
+    final finalizedWithNote = _tx(
+      4,
+      TransactionType.outgoing,
+      'finalized-note',
+      numberOfMessages: 2,
+      onChainNote: 'memo',
+    );
+
+    expect(pending.canCancelSlatepackSend, isTrue);
+    expect(pendingWithNote.canCancelSlatepackSend, isTrue);
+    expect(finalized.canCancelSlatepackSend, isFalse);
+    expect(finalizedWithNote.canCancelSlatepackSend, isFalse);
   });
 
   test("slatepack method rides in TxData.otherData", () {

@@ -161,7 +161,7 @@ class _ConfirmTransactionViewState
   Future<void> _createSlatepack(
     BuildContext context,
     SlatepackInterface wallet,
-    void Function() closeSendingDialog,
+    Future<void> Function() closeSendingDialog,
   ) async {
     final terms = wallet.slatepackTerms;
     final recipient = widget.txData.recipients!.first;
@@ -231,7 +231,7 @@ class _ConfirmTransactionViewState
     }
 
     unawaited(wallet.refresh());
-    closeSendingDialog();
+    await closeSendingDialog();
 
     if (context.mounted) {
       if (feeChange != null) {
@@ -294,7 +294,7 @@ class _ConfirmTransactionViewState
 
     // The dialog's own route is kept so that closing it removes that route
     // and nothing else, whatever is on top of it by then.
-    final sendingRoute = DialogRoute<void>(
+    final sendingRoute = CurrentAwareDialogRoute<void>(
       context: context,
       useSafeArea: false,
       barrierDismissible: false,
@@ -308,8 +308,10 @@ class _ConfirmTransactionViewState
       },
     );
 
-    void closeSendingDialog() {
+    Future<void> closeSendingDialog() async {
       if (navigator.mounted && sendingRoute.isActive) {
+        if (context.mounted) await sendingRoute.waitUntilCurrent();
+        if (!navigator.mounted || !sendingRoute.isActive) return;
         if (sendingRoute.isCurrent) {
           navigator.pop();
         } else {
@@ -325,7 +327,7 @@ class _ConfirmTransactionViewState
     unawaited(navigator.push(sendingRoute));
     await waitForRoutePresentation(sendingRoute);
     if (!context.mounted) {
-      closeSendingDialog();
+      await closeSendingDialog();
       return;
     }
 
@@ -425,7 +427,7 @@ class _ConfirmTransactionViewState
         unawaited(wallet.refresh());
       }
 
-      closeSendingDialog();
+      await closeSendingDialog();
 
       widget.onSuccess.call();
 
@@ -438,7 +440,7 @@ class _ConfirmTransactionViewState
         }
       }
     } on BadHttpAddressException catch (_) {
-      closeSendingDialog();
+      await closeSendingDialog();
       if (context.mounted) {
         unawaited(
           showFloatingFlushBar(
@@ -459,7 +461,7 @@ class _ConfirmTransactionViewState
       Logging.instance.e(message, error: e, stackTrace: s);
       final errorMessage = stripExceptionPrefixes(e);
       // pop sending dialog
-      closeSendingDialog();
+      await closeSendingDialog();
       if (context.mounted) {
         await showDialog<void>(
           context: context,

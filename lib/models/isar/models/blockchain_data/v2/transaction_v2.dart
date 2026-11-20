@@ -111,6 +111,20 @@ class TransactionV2 {
   bool get isCancelled =>
       _getFromOtherData(key: TxV2OdKeys.isCancelled) == true;
 
+  /// A slatepack send is cancellable only before the counterparty response
+  /// has been finalized. Confirmation count alone cannot distinguish that
+  /// state from a transaction which was already broadcast but is still in
+  /// the mempool.
+  bool get canCancelSlatepackSend {
+    if (type != TransactionType.outgoing || isCancelled || slateId == null) {
+      return false;
+    }
+    // ParticipantMessages always contains one entry per slate participant;
+    // an optional note changes the entry contents, not the count. S1 has one
+    // participant and S2 has two.
+    return numberOfMessages == 1;
+  }
+
   String? get contractAddress =>
       _getFromOtherData(key: TxV2OdKeys.contractAddress) as String?;
   int? get nonce => _getFromOtherData(key: TxV2OdKeys.nonce) as int?;

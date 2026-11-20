@@ -36,6 +36,7 @@ class _InspectOnlyWallet extends EpiccashWallet {
     this.receiveGate,
     this.receiveError,
     this.senderAddress,
+    this.finalizeResult,
   }) : super(CryptoCurrencyNetwork.main);
 
   /// When set, receiving waits for it and then succeeds, or throws
@@ -43,6 +44,7 @@ class _InspectOnlyWallet extends EpiccashWallet {
   final Completer<void>? receiveGate;
   final Exception? receiveError;
   final String? senderAddress;
+  final FinalizeResult? finalizeResult;
 
   final SlateState state;
   final bool invoices;
@@ -121,7 +123,8 @@ class _InspectOnlyWallet extends EpiccashWallet {
   }) async {
     actionInspection = inspection;
     finalizeCalls++;
-    return FinalizeResult(success: false, error: "not in tests");
+    return finalizeResult ??
+        FinalizeResult(success: false, error: "not in tests");
   }
 }
 
@@ -476,8 +479,10 @@ void main() {
       await runFlow(tester, wallet);
       expect(find.byType(CustomLoadingOverlay), findsOneWidget);
 
-      await tester.pump(const Duration(seconds: 3));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 2));
+      expect(find.byType(CustomLoadingOverlay), findsOneWidget);
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(milliseconds: 400));
 
       expect(find.text('Finalize slatepack'), findsOneWidget);
       expect(find.byKey(const Key('slatepackHistoryWarning')), findsOneWidget);
@@ -506,8 +511,10 @@ void main() {
       );
 
       await runFlow(tester, wallet);
-      await tester.pump(const Duration(seconds: 3));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 2));
+      expect(find.byType(CustomLoadingOverlay), findsOneWidget);
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(milliseconds: 400));
 
       expect(find.text('Finalize slate'), findsOneWidget);
       expect(find.byKey(const Key('slatepackHistoryWarning')), findsOneWidget);
@@ -530,7 +537,7 @@ void main() {
       final wallet = _InspectOnlyWallet(SlateState.s1, localGate: gate);
 
       await runFlow(tester, wallet);
-      await tester.pump(const Duration(seconds: 5));
+      await tester.pump(const Duration(seconds: 2));
       expect(find.byType(CustomLoadingOverlay), findsOneWidget);
       expect(find.text('Could not check wallet history'), findsNothing);
 
@@ -554,12 +561,12 @@ void main() {
       );
 
       await runFlow(tester, wallet);
-      await tester.pump(const Duration(seconds: 55));
+      await tester.pump(const Duration(seconds: 2));
       expect(find.byType(CustomLoadingOverlay), findsOneWidget);
       expect(find.text('Could not check wallet history'), findsNothing);
 
-      await tester.pump(const Duration(seconds: 5));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump();
 
       expect(find.text('Could not check wallet history'), findsOneWidget);
       expect(find.textContaining('The wallet is busy'), findsOneWidget);
@@ -583,7 +590,7 @@ void main() {
       expect(wallet.receiveCalls, 0);
     });
 
-    testWidgets('a slate whose receive was cancelled can be received again', (
+    testWidgets('a slate whose receive was cancelled is refused consistently', (
       tester,
     ) async {
       final wallet = _InspectOnlyWallet(
@@ -594,11 +601,11 @@ void main() {
 
       await runFlow(tester, wallet);
 
-      expect(find.text('Cannot receive this slate'), findsNothing);
-      expect(find.text('Receive slate'), findsOneWidget);
-      expect(find.text('Receive'), findsOneWidget);
-      await tester.tap(find.text('Cancel'));
-      await tester.pumpAndSettle();
+      expect(find.text('Cannot receive this slate'), findsOneWidget);
+      expect(find.textContaining('receive was cancelled'), findsOneWidget);
+      expect(find.text('Receive'), findsNothing);
+      await closeDialog(tester);
+      expect(wallet.receiveCalls, 0);
     });
 
     testWidgets("this wallet's cancelled send cannot be received", (
@@ -613,7 +620,11 @@ void main() {
       await runFlow(tester, wallet);
 
       expect(find.text('Cannot receive this slate'), findsOneWidget);
-      expect(find.textContaining('This wallet created'), findsOneWidget);
+      expect(
+        find.textContaining('This transaction was cancelled'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('This wallet created'), findsNothing);
       expect(find.text('Receive'), findsNothing);
       await closeDialog(tester);
       expect(wallet.receiveCalls, 0);
@@ -696,6 +707,30 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
       await tester.pump(const Duration(milliseconds: 400));
       expect(wallet.finalizeCalls, 1);
+      await closeDialog(tester);
+    });
+
+    testWidgets('a finalized transaction reports a rejected broadcast', (
+      tester,
+    ) async {
+      final wallet = _InspectOnlyWallet(
+        SlateState.s2,
+        localIsSend: true,
+        finalizeResult: FinalizeResult(
+          success: true,
+          slateId: 'test-slate',
+          posted: false,
+        ),
+      );
+      await runFlow(tester, wallet);
+      await tester.tap(find.text('Finalize'));
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(find.text('Finalized, not broadcast'), findsOneWidget);
+      expect(find.textContaining('node did not accept it'), findsOneWidget);
+      expect(find.textContaining('transaction details'), findsNothing);
       await closeDialog(tester);
     });
 

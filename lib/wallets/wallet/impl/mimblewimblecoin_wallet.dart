@@ -42,8 +42,21 @@ class MimblewimblecoinWallet extends MimblewimbleWallet {
 
   static bool _mwcLogsInitialized = false;
 
+  @visibleForTesting
+  static String historyTxid({
+    required String? commitId,
+    required int nativeId,
+    required bool hasDuplicateBaseId,
+  }) {
+    final base = commitId == null || commitId.isEmpty
+        ? nativeId.toString()
+        : commitId;
+    return hasDuplicateBaseId ? '$base:$nativeId' : base;
+  }
+
   // Process-scoped Rust pointer; do not persist.
   String? _walletHandle;
+  bool _listenerPausedForScan = false;
 
   @override
   String get walletInfoDataKey => WalletInfoKeys.mimblewimblecoinData;
@@ -124,6 +137,7 @@ class MimblewimblecoinWallet extends MimblewimbleWallet {
         transactionId: txSlateId,
       );
       Logging.instance.i("cancel $txSlateId result: $result");
+      if (result.isEmpty) await rememberPendingSlateCancelled(txSlateId);
       return result;
     } catch (e, s) {
       Logging.instance.e("$e, $s");
@@ -193,7 +207,7 @@ class MimblewimblecoinWallet extends MimblewimbleWallet {
       );
 
       final info = inspectSlateJsonString(s1Json);
-      return SlatepackResult(
+      final slate = SlatepackResult(
         success: true,
         slatepack: encoded.slatepack,
         slateJson: s1Json,
@@ -204,6 +218,8 @@ class MimblewimblecoinWallet extends MimblewimbleWallet {
         amount: info?.amount ?? amount,
         fee: info?.fee,
       );
+      await rememberPendingSlateSend(slate);
+      return slate;
     } catch (e, s) {
       Logging.instance.e('Failed to create slatepack: $e\n$s');
       return SlatepackResult(success: false, error: e.toString());
@@ -320,7 +336,7 @@ class MimblewimblecoinWallet extends MimblewimbleWallet {
         success: true,
         slateId: finalized.slateId,
         commitId: finalized.commitId,
-        posted: true,
+        posted: finalized.posted,
       );
     } catch (e, s) {
       Logging.instance.e('Failed to finalize slatepack: $e\n$s');
@@ -329,13 +345,14 @@ class MimblewimblecoinWallet extends MimblewimbleWallet {
   }
 
   /// Start MWCMQS listener for automatic transaction processing.
-  Future<void> startSlatepackListener() async {
+  Future<void> startSlatepackListener({bool allowTakeover = false}) async {
     try {
       final String wallet = await _ensureWalletOpen();
       final MwcMqsConfigModel mwcmqsConfig = await getRelayConfig();
-      libMwc.startMwcMqsListener(
+      await libMwc.startMwcMqsListener(
         wallet: wallet,
         mwcmqsConfig: mwcmqsConfig.toString(),
+        allowTakeover: allowTakeover,
       );
     } catch (e, s) {
       Logging.instance.e('Failed to start slatepack listener: $e\n$s');
@@ -343,10 +360,25 @@ class MimblewimblecoinWallet extends MimblewimbleWallet {
     }
   }
 
-  /// Stop MWCMQS listener.
-  Future<void> stopSlatepackListener() async {
+  @override
+  Future<void> activateSlatepackListener() async {
     try {
-      libMwc.stopMwcMqsListener();
+      await startSlatepackListener(allowTakeover: true);
+    } catch (_) {
+      // startSlatepackListener already logged the failure. Activation is a
+      // best-effort view lifecycle hook and must not escape initState.
+    }
+  }
+
+  /// Stop MWCMQS listener.
+  Future<void> stopSlatepackListener({bool releasePreference = false}) async {
+    try {
+      final wallet = _walletHandle;
+      if (wallet == null) return;
+      await libMwc.stopMwcMqsListener(
+        wallet: wallet,
+        releasePreference: releasePreference,
+      );
     } catch (e, s) {
       Logging.instance.e('Failed to stop slatepack listener: $e\n$s');
     }
@@ -510,24 +542,36 @@ class MimblewimblecoinWallet extends MimblewimbleWallet {
 
   @override
   Future<void> pauseListenerForScan({required bool needsScanning}) async {
-    //First stop the current listener
-    libMwc.stopMwcMqsListener();
-    await _ensureWalletOpen();
+    if (!needsScanning || _listenerPausedForScan) return;
+    final wallet = await _ensureWalletOpen();
+    _listenerPausedForScan = await libMwc.stopMwcMqsListener(wallet: wallet);
   }
 
   @override
   Future<void> resumeListenerAfterScan() async {
-    //Once scanner completes restart listener
-    await _listenToMwcmqs();
+    // This is also the periodic listener health check. The plugin reuses this
+    // wallet's healthy listener, replaces stale ownership, and leaves another
+    // healthy wallet alone, so call it even when no scan was needed.
+    await listenToMwcmqs();
+    _listenerPausedForScan = false;
   }
 
-  Future<void> _listenToMwcmqs() async {
+  @protected
+  Future<void> listenToMwcmqs() async {
     Logging.instance.i("STARTING WALLET LISTENER ....");
     final String wallet = await _ensureWalletOpen();
     final MwcMqsConfigModel mwcmqsConfig = await getRelayConfig();
-    libMwc.startMwcMqsListener(
+    await libMwc.startMwcMqsListener(
       wallet: wallet,
       mwcmqsConfig: mwcmqsConfig.toString(),
+    );
+  }
+
+  @override
+  Future<void> exit() async {
+    await super.exit();
+    await refreshMutex.protect(
+      () => stopSlatepackListener(releasePreference: true),
     );
   }
 
@@ -754,8 +798,6 @@ class MimblewimblecoinWallet extends MimblewimbleWallet {
               lastScannedBlock: mimblewimbleData!.restoreHeight,
             ),
           );
-
-          unawaited(startScans());
         } else {
           await updateNode();
           final String password = generatePassword();
@@ -806,7 +848,14 @@ class MimblewimblecoinWallet extends MimblewimbleWallet {
         }
       });
 
-      unawaited(refresh());
+      if (isRescan) {
+        // The settings screen reports completion when this future completes.
+        // Let refresh own the one scan so progress and completion describe the
+        // same operation instead of starting a second background scan.
+        await refreshForRescan();
+      } else {
+        unawaited(refresh());
+      }
     } catch (e, s) {
       Logging.instance.i(
         "Exception rethrown from electrumx_mixin recover(): $e\n$s",
@@ -851,6 +900,17 @@ class MimblewimblecoinWallet extends MimblewimbleWallet {
       final Map<dynamic, dynamic> slatesToCommits =
           mimblewimbleData?.slatesToCommits ?? <dynamic, dynamic>{};
 
+      final baseIdCounts = <String, int>{};
+      for (final tx in transactions) {
+        final commitId = slatesToCommits[tx.txSlateId]?['commitId'] as String?;
+        final baseId = historyTxid(
+          commitId: commitId,
+          nativeId: tx.id,
+          hasDuplicateBaseId: false,
+        );
+        baseIdCounts.update(baseId, (count) => count + 1, ifAbsent: () => 1);
+      }
+
       for (final MimblewimbleTransaction tx in transactions) {
         final bool isIncoming =
             libMwc.txTypeIsReceived(tx.txType) ||
@@ -858,8 +918,11 @@ class MimblewimblecoinWallet extends MimblewimbleWallet {
         final String? slateId = tx.txSlateId;
         final String? commitId =
             slatesToCommits[slateId]?['commitId'] as String?;
-        final int? numberOfMessages = tx.messages?.length;
-        final String? onChainNote = tx.messages?.first.message;
+        final messages = tx.messages;
+        final int? numberOfMessages = messages?.length;
+        final String? onChainNote = messages == null || messages.isEmpty
+            ? null
+            : messages.first.message;
         final String? addressFrom =
             slatesToCommits[slateId]?["from"] as String?;
         final String? addressTo = slatesToCommits[slateId]?["to"] as String?;
@@ -877,7 +940,7 @@ class MimblewimblecoinWallet extends MimblewimbleWallet {
         OutputV2 output = OutputV2.isarCantDoRequiredInDefaultConstructor(
           scriptPubKeyHex: "00",
           valueStringSats: credit.toString(),
-          addresses: [if (addressFrom != null) addressFrom],
+          addresses: [if (addressTo != null) addressTo],
           walletOwns: true,
         );
         final InputV2 input = InputV2.isarCantDoRequiredInDefaultConstructor(
@@ -885,7 +948,7 @@ class MimblewimblecoinWallet extends MimblewimbleWallet {
           scriptSigAsm: null,
           sequence: null,
           outpoint: null,
-          addresses: [if (addressTo != null) addressTo],
+          addresses: [if (addressFrom != null) addressFrom],
           valueStringSats: debit.toString(),
           witness: null,
           innerRedeemScriptAsm: null,
@@ -927,11 +990,21 @@ class MimblewimblecoinWallet extends MimblewimbleWallet {
           ).toJsonString(),
         };
 
+        final baseId = historyTxid(
+          commitId: commitId,
+          nativeId: tx.id,
+          hasDuplicateBaseId: false,
+        );
+        final dbTxid = historyTxid(
+          commitId: commitId,
+          nativeId: tx.id,
+          hasDuplicateBaseId: (baseIdCounts[baseId] ?? 0) > 1,
+        );
         final TransactionV2 txn = TransactionV2(
           walletId: walletId,
           blockHash: null,
-          hash: commitId ?? tx.id.toString(),
-          txid: commitId ?? tx.id.toString(),
+          hash: dbTxid,
+          txid: dbTxid,
           timestamp:
               DateTime.parse(tx.creationTs).millisecondsSinceEpoch ~/ 1000,
           height: tx.confirmed ? tx.kernelLookupMinHeight ?? 1 : null,

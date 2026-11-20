@@ -40,6 +40,11 @@ mixin SlatepackInterface<T extends CryptoCurrency> on Wallet<T> {
   /// The address another wallet encrypts a slatepack to.
   Future<String> slatepackAddress();
 
+  /// Gives this wallet durable priority for any process-wide interactive
+  /// listener until another wallet is activated or this wallet exits. Coins
+  /// without a singleton listener do not need to override this.
+  Future<void> activateSlatepackListener() async {}
+
   /// Decode [armored] and work out its state without changing the wallet.
   /// Throws when the text cannot be decoded at all.
   Future<SlateInspection> inspectSlatepack(String armored);

@@ -45,9 +45,9 @@ enum SlatepackRoute {
 /// Takes any slatepack the user pastes, scans or opens, works out what it
 /// is and sends it to the matching screen.
 abstract final class SlatepackImportFlow {
-  // The receive lookup waits on the same native lock as the receive itself,
-  // which a sync can hold for a while, so it gets a much longer bound.
-  static const _receiveHistoryLookupTimeout = Duration(seconds: 60);
+  // This lookup is local-only. A short defensive bound prevents a damaged
+  // database or application shutdown from holding an import screen forever.
+  static const _receiveHistoryLookupTimeout = Duration(seconds: 3);
   static const _finalizeHistoryLookupTimeout = Duration(seconds: 3);
 
   static SlatepackRoute routeFor(
@@ -141,6 +141,15 @@ abstract final class SlatepackImportFlow {
           return false;
         }
         final local = read.local;
+        if (local?.isCancelled == true) {
+          final reason = local?.isSend == true
+              ? "This transaction was cancelled. A cancelled send cannot be "
+                    "received or finalized."
+              : "This transaction's earlier receive was cancelled. Ask the "
+                    "sender to create a new transaction.";
+          await _message(context, "Cannot receive this ${terms.noun}", reason);
+          return false;
+        }
         if (local?.isSend == true) {
           await _message(
             context,
@@ -150,9 +159,7 @@ abstract final class SlatepackImportFlow {
           );
           return false;
         }
-        // Receiving again after a cancelled receive is how a lost response
-        // is regenerated. The native wallet decides whether it is allowed.
-        if (local != null && !local.isCancelled) {
+        if (local != null) {
           await _message(
             context,
             "Cannot receive this ${terms.noun}",
@@ -419,7 +426,8 @@ abstract final class SlatepackImportFlow {
         context,
         "Finalized, not broadcast",
         "The transaction is finalized but the node did not accept it yet. "
-            "Try again from the transaction details.",
+            "Check the node connection and transaction history before "
+            "creating a replacement.",
       );
     }
     return true;
@@ -441,7 +449,7 @@ abstract final class SlatepackImportFlow {
         .extension<StackColors>()!
         .overlay
         .withValues(alpha: 0.6);
-    final overlay = DialogRoute<void>(
+    final overlay = CurrentAwareDialogRoute<void>(
       context: context,
       barrierDismissible: false,
       themes: InheritedTheme.capture(from: context, to: root.context),
@@ -467,6 +475,9 @@ abstract final class SlatepackImportFlow {
       error = e;
     }
 
+    if (root.mounted && overlay.isActive) {
+      await overlay.waitUntilCurrent();
+    }
     if (root.mounted && overlay.isActive) {
       if (overlay.isCurrent) {
         root.pop();

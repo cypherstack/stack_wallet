@@ -39,12 +39,10 @@ final class _LibEpicCashInterfaceImpl extends LibEpicCashInterface {
   }
 
   @override
-  Future<({String slateId, String commitId, String slateJson})> txFinalize({
-    required DynamicObject wallet,
-    required String slateJson,
-  }) async {
+  Future<({String slateId, String commitId, String slateJson, bool posted})>
+  txFinalize({required DynamicObject wallet, required String slateJson}) async {
     return (await wallet.get<EpicWallet>().txFinalize(slateJson: slateJson))
-        .toRecord();
+        .toFinalizeRecord();
   }
 
   @override

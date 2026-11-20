@@ -63,7 +63,7 @@ class SlatepackMethodToggle extends ConsumerWidget {
         ),
       ),
       onIcon: Assets.svg.gear,
-      onText: SlatepackMethod.slatepack.label,
+      onText: wallet.slatepackTerms.title,
       offIcon: Assets.svg.radioSyncing,
       offText: other.label,
     );

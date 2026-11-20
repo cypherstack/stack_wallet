@@ -10,6 +10,7 @@ import 'package:stackwallet/pages/slatepack/slatepack_popup.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/utilities/slatepack_terms.dart';
 import 'package:stackwallet/utilities/util.dart';
+import 'package:stackwallet/widgets/stack_dialog.dart';
 
 import '../../sample_data/theme_json.dart';
 
@@ -78,6 +79,7 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetViewInsets);
     // Share is only offered on the phone layout.
     final previousWidth = Util.screenWidth;
     Util.screenWidth = 400;
@@ -159,6 +161,7 @@ void main() {
               builder: (context) => TextButton(
                 onPressed: () => showSlatepackPopup<void>(
                   context: context,
+                  barrierDismissible: false,
                   child: const SlatepackDialog(
                     terms: SlatepackTerms.slatepack,
                     slatepack: 'BEGINSLATEPACK. test. ENDSLATEPACK.',
@@ -180,6 +183,58 @@ void main() {
     expect(find.text('Copy'), findsOneWidget);
     expect(find.text('Share'), findsOneWidget);
     expect(find.text('Save'), findsOneWidget);
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.byType(SlatepackDialog), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('mobile popup stays above the keyboard', (tester) async {
+    useAndroidLayout();
+    tester.view.physicalSize = const Size(400, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetViewInsets);
+
+    final theme = StackTheme.fromJson(json: lightThemeJsonMap);
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          theme: ThemeData(
+            extensions: [StackColors.fromStackColorTheme(theme)],
+          ),
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () => showSlatepackPopup<void>(
+                  context: context,
+                  child: const TextField(key: Key('slate-input')),
+                ),
+                child: const Text('Show'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Show'));
+    await tester.pumpAndSettle();
+    final before = tester.getBottomRight(find.byKey(const Key('slate-input')));
+
+    tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<StackDialogBase>(find.byType(StackDialogBase))
+          .keyboardPaddingAmount,
+      300,
+    );
+    final after = tester.getBottomRight(find.byKey(const Key('slate-input')));
+
+    expect(after.dy, lessThanOrEqualTo(500));
+    expect(after.dy, lessThan(before.dy - 250));
     expect(tester.takeException(), isNull);
   });
 

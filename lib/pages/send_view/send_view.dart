@@ -1221,6 +1221,19 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
 
   void _onFeeSelectPressed() => showFeeSheet(this);
 
+  void _formatEpicCashAddress() {
+    var address = sendToController.text.trim();
+    if (address.isEmpty) return;
+    if (address.contains("\n")) {
+      address = address.substring(0, address.indexOf("\n"));
+    }
+    final formatted = AddressUtils().formatEpicCashAddress(address);
+    _address = formatted;
+    if (sendToController.text != formatted) {
+      sendToController.text = formatted;
+    }
+  }
+
   @override
   void initState() {
     coin = widget.coin;
@@ -1252,6 +1265,9 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
     onChainNoteController = TextEditingController();
     feeController = TextEditingController();
     memoController = TextEditingController();
+    if (coin is Epiccash) {
+      sendToController.addListener(_formatEpicCashAddress);
+    }
 
     onCryptoAmountChanged = _cryptoAmountChanged;
     cryptoAmountController.addListener(onCryptoAmountChanged);
@@ -1298,6 +1314,9 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
     _ethFee.dispose();
 
     cryptoAmountController.removeListener(onCryptoAmountChanged);
+    if (coin is Epiccash) {
+      sendToController.removeListener(_formatEpicCashAddress);
+    }
 
     sendToController.dispose();
     cryptoAmountController.dispose();
@@ -1390,24 +1409,6 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
         );
       }
     });
-
-    // add listener for epic cash to strip http:// and https:// prefixes if the address also ocntains an @ symbol (indicating an epicbox address)
-    if (coin is Epiccash) {
-      sendToController.addListener(() {
-        _address = sendToController.text.trim();
-
-        if (_address != null && _address!.isNotEmpty) {
-          _address = _address!.trim();
-          if (_address!.contains("\n")) {
-            _address = _address!.substring(0, _address!.indexOf("\n"));
-          }
-
-          sendToController.text = AddressUtils().formatEpicCashAddress(
-            _address!,
-          );
-        }
-      });
-    }
 
     Decimal? price;
     if (ref.watch(prefsChangeNotifierProvider.select((s) => s.externalCalls))) {
@@ -1929,58 +1930,63 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
                                   ),
                                 ),
                               ),
-                            Builder(
-                              builder: (_) {
-                                final String? error;
+                            if (!isSlatepackMode)
+                              Builder(
+                                builder: (_) {
+                                  final String? error;
 
-                                if (_address == null || _address!.isEmpty) {
-                                  error = null;
-                                } else if (isFiro) {
-                                  if (_data != null &&
-                                      _data.contactLabel == _address) {
+                                  if (_address == null || _address!.isEmpty) {
                                     error = null;
-                                  } else if (!ref.watch(pValidSendToAddress) &&
-                                      !ref.watch(pValidSparkSendToAddress)) {
-                                    error = "Invalid address";
+                                  } else if (isFiro) {
+                                    if (_data != null &&
+                                        _data.contactLabel == _address) {
+                                      error = null;
+                                    } else if (!ref.watch(
+                                          pValidSendToAddress,
+                                        ) &&
+                                        !ref.watch(pValidSparkSendToAddress)) {
+                                      error = "Invalid address";
+                                    } else {
+                                      error = null;
+                                    }
                                   } else {
-                                    error = null;
+                                    if (_data != null &&
+                                        _data.contactLabel == _address) {
+                                      error = null;
+                                    } else if (!ref.watch(
+                                      pValidSendToAddress,
+                                    )) {
+                                      error = "Invalid address";
+                                    } else {
+                                      error = null;
+                                    }
                                   }
-                                } else {
-                                  if (_data != null &&
-                                      _data.contactLabel == _address) {
-                                    error = null;
-                                  } else if (!ref.watch(pValidSendToAddress)) {
-                                    error = "Invalid address";
-                                  } else {
-                                    error = null;
-                                  }
-                                }
 
-                                if (error == null || error.isEmpty) {
-                                  return Container();
-                                } else {
-                                  return Align(
-                                    alignment: Alignment.topLeft,
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(
-                                        left: 12.0,
-                                        top: 4.0,
+                                  if (error == null || error.isEmpty) {
+                                    return Container();
+                                  } else {
+                                    return Align(
+                                      alignment: Alignment.topLeft,
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(
+                                          left: 12.0,
+                                          top: 4.0,
+                                        ),
+                                        child: Text(
+                                          error,
+                                          textAlign: TextAlign.left,
+                                          style: STextStyles.label(context)
+                                              .copyWith(
+                                                color: Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .textError,
+                                              ),
+                                        ),
                                       ),
-                                      child: Text(
-                                        error,
-                                        textAlign: TextAlign.left,
-                                        style: STextStyles.label(context)
-                                            .copyWith(
-                                              color: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .textError,
-                                            ),
-                                      ),
-                                    ),
-                                  );
-                                }
-                              },
-                            ),
+                                    );
+                                  }
+                                },
+                              ),
                             if (isFiro || isMwebEnabled)
                               const SizedBox(height: 12),
                             if (isFiro || isMwebEnabled)

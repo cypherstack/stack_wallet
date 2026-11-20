@@ -58,10 +58,8 @@ abstract class LibEpicCashInterface {
     required String slateJson,
   });
 
-  Future<({String slateId, String commitId, String slateJson})> txFinalize({
-    required DynamicObject wallet,
-    required String slateJson,
-  });
+  Future<({String slateId, String commitId, String slateJson, bool posted})>
+  txFinalize({required DynamicObject wallet, required String slateJson});
 
   Future<String> cancelTransaction({
     required DynamicObject wallet,

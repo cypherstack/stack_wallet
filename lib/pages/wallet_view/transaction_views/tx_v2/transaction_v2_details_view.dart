@@ -34,6 +34,7 @@ import '../../../../utilities/block_explorers.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/format.dart';
 import '../../../../utilities/logger.dart';
+import '../../../../utilities/route_presentation.dart';
 import '../../../../utilities/show_loading.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
@@ -1469,9 +1470,8 @@ class _TransactionV2DetailsViewState
                   ),
                 ),
                 if (isSlatepackWallet &&
-                    _transaction.slateId != null &&
-                    _transaction.getConfirmations(currentHeight) < 1 &&
-                    _transaction.isCancelled == false)
+                    _transaction.canCancelSlatepackSend &&
+                    _transaction.getConfirmations(currentHeight) < 1)
                   const SizedBox(height: 40),
               ],
             ),
@@ -1480,9 +1480,8 @@ class _TransactionV2DetailsViewState
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         floatingActionButton:
             (isSlatepackWallet &&
-                _transaction.slateId != null &&
-                _transaction.getConfirmations(currentHeight) < 1 &&
-                _transaction.isCancelled == false)
+                _transaction.canCancelSlatepackSend &&
+                _transaction.getConfirmations(currentHeight) < 1)
             ? ConditionalParent(
                 condition: isDesktop,
                 builder: (child) => Padding(
@@ -1525,21 +1524,27 @@ class _TransactionV2DetailsViewState
                         );
                         if (proceed != true || !context.mounted) return;
 
-                        unawaited(
-                          showDialog<void>(
-                            barrierDismissible: false,
-                            context: context,
-                            builder: (_) =>
-                                const CancellingTransactionProgressDialog(),
-                          ),
+                        final navigator = Navigator.of(
+                          context,
+                          rootNavigator: true,
                         );
+                        final progressRoute = CurrentAwareDialogRoute<void>(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (_) =>
+                              const CancellingTransactionProgressDialog(),
+                        );
+                        unawaited(navigator.push(progressRoute));
+                        await waitForRoutePresentation(progressRoute);
 
                         final result = await wallet
                             .cancelPendingTransactionAndPost(id);
-                        if (context.mounted) {
-                          // Pop progress dialog.
-                          Navigator.of(context).pop();
-
+                        final canPresentResult =
+                            await dismissCurrentAwareDialogRoute(
+                              navigator: navigator,
+                              route: progressRoute,
+                            );
+                        if (canPresentResult && context.mounted) {
                           if (result.isEmpty) {
                             await showDialog<dynamic>(
                               context: context,
