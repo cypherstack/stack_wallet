@@ -61,7 +61,7 @@ dependencies:
 #  flutter_libmwc:
 #    git:
 #      url: https://github.com/cypherstack/flutter_libmwc.git
-#      ref: 5722fb3ba05c8f52e8e0255c485ae5ea52e9a694
+#      ref: 58e3a7dcdd3ad1d7ccabf3aece7fc087f719a7b0
 # %%END_ENABLE_MWC%%
 
 # %%ENABLE_TOR%%
