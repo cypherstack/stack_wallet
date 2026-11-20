@@ -836,11 +836,25 @@ class MimblewimblecoinWallet extends Bip39Wallet {
     return config!;
   }
 
+  /// Sets the height a rescan starts from: recover(isRescan: true) resets
+  /// lastScannedBlock to this value. Mirrors EpiccashWallet.
+  Future<void> updateRestoreHeight(int height) async {
+    final data = info.mimblewimblecoinData;
+    if (data == null) {
+      throw Exception("Cannot update restore height before the wallet exists");
+    }
+
+    await info.updateExtraMimblewimblecoinWalletInfo(
+      mimblewimblecoinData: data.copyWith(restoreHeight: height),
+      isar: mainDB.isar,
+    );
+  }
+
   int _calculateRestoreHeightFrom({required DateTime date}) {
     final int secondsSinceEpoch = date.millisecondsSinceEpoch ~/ 1000;
-    const int mimblewimblecoinFirstBlock = 1573462800;
     const double overestimateSecondsPerBlock = 61;
-    final int chosenSeconds = secondsSinceEpoch - mimblewimblecoinFirstBlock;
+    final int chosenSeconds =
+        secondsSinceEpoch - Mimblewimblecoin.genesisBlockTime;
     final int approximateHeight = chosenSeconds ~/ overestimateSecondsPerBlock;
     int height = approximateHeight;
     if (height < 0) {

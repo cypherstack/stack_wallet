@@ -43,6 +43,9 @@ class Epiccash extends Bip39Currency {
   @override
   String get ticker => _ticker;
 
+  /// Timestamp of the first block, in seconds since the epoch.
+  static const int genesisBlockTime = 1565370278;
+
   @override
   String get genesisHash {
     return "not used in epiccash";
