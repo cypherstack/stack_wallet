@@ -25,6 +25,7 @@ import '../../models/isar/exchange_cache/currency.dart';
 import '../../models/isar/models/ethereum/eth_contract.dart';
 import '../../pages_desktop_specific/desktop_exchange/exchange_steps/step_scaffold.dart';
 import '../../providers/providers.dart';
+import '../../services/exchange/chainflip/chainflip_exchange.dart';
 import '../../services/exchange/change_now/change_now_exchange.dart';
 import '../../services/exchange/cyphergoat/cyphergoat_exchange.dart';
 import '../../services/exchange/exchange.dart';
@@ -90,6 +91,7 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         NanswapExchange.instance,
         WizardSwapExchange.instance,
         CypherGoatExchange.instance,
+        ChainflipExchange.instance,
       ];
     }
   }
@@ -538,113 +540,105 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
         ? ref.read(efReceiveAmountProvider)!
         : estimate.estimatedAmount;
 
+    if (estimate.warningMessage != null &&
+        estimate.warningMessage!.isNotEmpty) {
+      if (!mounted) return;
+      final shouldAttempt = await showDialog<bool>(
+        context: context,
+        barrierDismissible: true,
+        builder: (dialogContext) {
+          if (isDesktop) {
+            return DesktopDialog(
+              maxWidth: 500,
+              maxHeight: 300,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Trade warning",
+                        style: STextStyles.desktopH3(dialogContext),
+                      ),
+                      const DesktopDialogCloseButton(),
+                    ],
+                  ),
+                  const Spacer(),
+                  Text(
+                    estimate.warningMessage!,
+                    style: STextStyles.desktopTextSmall(dialogContext),
+                  ),
+                  const Spacer(),
+                  Text(
+                    "Do you want to attempt this trade anyway?",
+                    style: STextStyles.desktopTextSmall(dialogContext),
+                  ),
+                  const Spacer(flex: 2),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SecondaryButton(
+                          label: "Cancel",
+                          buttonHeight: ButtonHeight.l,
+                          onPressed: () =>
+                              Navigator.of(dialogContext).pop(false),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: PrimaryButton(
+                          label: "Attempt",
+                          buttonHeight: ButtonHeight.l,
+                          onPressed: () =>
+                              Navigator.of(dialogContext).pop(true),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          } else {
+            return StackDialog(
+              title: "Trade warning",
+              message:
+                  "${estimate.warningMessage!}\n\nDo you want to attempt this trade anyway?",
+              leftButton: TextButton(
+                style: Theme.of(dialogContext)
+                    .extension<StackColors>()!
+                    .getSecondaryEnabledButtonStyle(dialogContext),
+                child: Text(
+                  "Cancel",
+                  style: STextStyles.itemSubtitle12(dialogContext),
+                ),
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+              ),
+              rightButton: TextButton(
+                style: Theme.of(dialogContext)
+                    .extension<StackColors>()!
+                    .getPrimaryEnabledButtonStyle(dialogContext),
+                child: Text(
+                  "Attempt",
+                  style: STextStyles.button(dialogContext),
+                ),
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+              ),
+            );
+          }
+        },
+      );
+
+      // Dismissal is not consent to proceed with a financial warning.
+      if (shouldAttempt != true || !mounted) return;
+    }
+
     switch (rateType) {
       case ExchangeRateType.estimated:
         rate =
             "1 ${fromCurrency.ticker.toUpperCase()} ~${(amountToReceive / sendAmount).toDecimal(scaleOnInfinitePrecision: 8).toStringAsFixed(8)} ${toCurrency.ticker.toUpperCase()}";
         break;
       case ExchangeRateType.fixed:
-        bool? shouldCancel;
-
-        if (estimate.warningMessage != null &&
-            estimate.warningMessage!.isNotEmpty) {
-          shouldCancel = await showDialog<bool?>(
-            context: context,
-            barrierDismissible: true,
-            builder: (_) {
-              if (isDesktop) {
-                return DesktopDialog(
-                  maxWidth: 500,
-                  maxHeight: 300,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Failed to update trade estimate",
-                            style: STextStyles.desktopH3(context),
-                          ),
-                          const DesktopDialogCloseButton(),
-                        ],
-                      ),
-                      const Spacer(),
-                      Text(
-                        estimate.warningMessage!,
-                        style: STextStyles.desktopTextSmall(context),
-                      ),
-                      const Spacer(),
-                      Text(
-                        "Do you want to attempt trade anyways?",
-                        style: STextStyles.desktopTextSmall(context),
-                      ),
-                      const Spacer(flex: 2),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: SecondaryButton(
-                              label: "Cancel",
-                              buttonHeight: ButtonHeight.l,
-                              onPressed: () => Navigator.of(
-                                context,
-                                rootNavigator: true,
-                              ).pop(true),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: PrimaryButton(
-                              label: "Attempt",
-                              buttonHeight: ButtonHeight.l,
-                              onPressed: () => Navigator.of(
-                                context,
-                                rootNavigator: true,
-                              ).pop(false),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
-              } else {
-                return StackDialog(
-                  title: "Failed to update trade estimate",
-                  message:
-                      "${estimate.warningMessage!}\n\nDo you want to attempt trade anyways?",
-                  leftButton: TextButton(
-                    style: Theme.of(context)
-                        .extension<StackColors>()!
-                        .getSecondaryEnabledButtonStyle(context),
-                    child: Text(
-                      "Cancel",
-                      style: STextStyles.itemSubtitle12(context),
-                    ),
-                    onPressed: () {
-                      // notify return to cancel
-                      Navigator.of(context).pop(true);
-                    },
-                  ),
-                  rightButton: TextButton(
-                    style: Theme.of(context)
-                        .extension<StackColors>()!
-                        .getPrimaryEnabledButtonStyle(context),
-                    child: Text("Attempt", style: STextStyles.button(context)),
-                    onPressed: () {
-                      // continue and try to attempt trade
-                      Navigator.of(context).pop(false);
-                    },
-                  ),
-                );
-              }
-            },
-          );
-        }
-
-        if (shouldCancel is bool && shouldCancel) {
-          return;
-        }
         rate =
             "1 ${fromCurrency.ticker.toUpperCase()} ~${(amountToReceive / amountToSend).toDecimal(scaleOnInfinitePrecision: 12).toStringAsFixed(8)} ${toCurrency.ticker.toUpperCase()}";
         break;

@@ -11,6 +11,7 @@
 import 'package:isar_community/isar.dart';
 
 import '../../../app_config.dart';
+import '../../../services/exchange/chainflip/chainflip_exchange.dart';
 import '../../../services/exchange/change_now/change_now_exchange.dart';
 import '../../../services/exchange/cyphergoat/cyphergoat_exchange.dart';
 import '../../../services/exchange/exchange.dart';
@@ -80,9 +81,8 @@ class Currency {
       return ticker.toLowerCase();
     }
 
-    return _fuzzyCache ??= switch (Exchange.fromName(
-      exchangeName,
-    ).runtimeType) {
+    return _fuzzyCache ??= switch (Exchange.fromName(exchangeName)
+        .runtimeType) {
       // already lower case ticker basically
       const (ChangeNowExchange) => network,
 
@@ -107,6 +107,8 @@ class Currency {
 
       const (CypherGoatExchange) =>
         network.isNotEmpty ? network.toLowerCase() : ticker.toLowerCase(),
+
+      const (ChainflipExchange) => _chainflipFuzzyNet(network, externalId),
 
       _ => throw Exception("Unknown exchange: $exchangeName"),
     };
@@ -205,4 +207,15 @@ class Currency {
   String toString() {
     return "Currency: ${toJson()}";
   }
+}
+
+/// Chainflip `network` values are display names ("Bitcoin", "Ethereum",
+/// "Solana"). Cross-provider grouping uses the asset-id suffix ("btc", "eth",
+/// "sol"), the short codes the default pair and sibling providers use;
+/// otherwise the Chainflip rows never join the shared currency rows.
+String _chainflipFuzzyNet(String network, String? externalId) {
+  if (externalId != null && externalId.contains(".")) {
+    return externalId.split(".").last;
+  }
+  return network.toLowerCase();
 }
