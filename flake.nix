@@ -121,9 +121,6 @@
                fi
              done
 
-             # Pin this checkout without replacing the user's global rustup default.
-             rustup override set ${rustVersion} --path "$APP_PROJECT_ROOT_DIR" >/dev/null 2>&1 || true
-
              if [[ "${system}" == *"darwin"* ]]; then
                rustup target add aarch64-apple-darwin x86_64-apple-darwin aarch64-apple-ios aarch64-apple-ios-sim --toolchain ${rustVersion}
              fi
@@ -136,15 +133,11 @@
               # Flutter's Linux CMake build forces CC=clang/CXX=clang++. libclang
               # also puts the unwrapped clang first on PATH, which cannot find
               # the NixOS crt/libstdc++ paths; prefer the clang wrapper.
-              case ":$PATH:" in
-                *":${pkgs.llvmPackages.clang}/bin:"*) ;;
-                *) export PATH="${pkgs.llvmPackages.clang}/bin:$PATH" ;;
-              esac
+              # Unconditional: buildInputs always puts these somewhere on PATH,
+              # so a membership test would never prepend them. Runs once per shell.
+              export PATH="${pkgs.llvmPackages.clang}/bin:$PATH"
               # stdenv also provides patchelf 0.15; put 0.18 first.
-              case ":$PATH:" in
-                *":${pkgs.patchelfUnstable}/bin:"*) ;;
-                *) export PATH="${pkgs.patchelfUnstable}/bin:$PATH" ;;
-              esac
+              export PATH="${pkgs.patchelfUnstable}/bin:$PATH"
               export LIBCLANG_PATH="${pkgs.llvmPackages.libclang.lib}/lib"
               export BINDGEN_EXTRA_CLANG_ARGS="-isystem ${pkgs.llvmPackages.libclang.lib}/lib/clang/${clangMajor}/include"
               export PROTOC="${pkgs.protobuf}/bin/protoc"
@@ -195,15 +188,21 @@
               fi
               export PROTOC="${pkgs.protobuf}/bin/protoc"
 
-              # A repo-writable directory on PATH would let anything that can
-              # write to the checkout shadow tools for the rest of the session.
-              if [ -n "''${STACKWALLET_NIX_BIN:-}" ] && [ -x "$STACKWALLET_NIX_BIN/xcrun" ]; then
-                NIX_BIN="$STACKWALLET_NIX_BIN"
-                case ":$PATH:" in
-                  *":$NIX_BIN:"*) ;;
-                  *) export PATH="$NIX_BIN:$PATH" ;;
-                esac
-              elif NIX_BIN="$(/usr/bin/mktemp -d "''${TMPDIR:-/tmp}/stackwallet-nix-bin.XXXXXX")"; then
+              # Stable, per-checkout wrapper directory instead of a fresh
+              # mktemp dir on every entry. A random temp path is lost on the
+              # next clean and forces the hooks to rebuild native libs; a
+              # stable path under .dart_tool is recreated (never deleted) on
+              # every shell entry, so a second `nix develop` reuses the same
+              # wrappers and the native build cache stays valid.
+              NIX_BIN="$APP_ROOT/.dart_tool/nix-bin"
+              mkdir -p "$NIX_BIN"
+              # Stable TMPDIR for the wrappers; keeps extracted build scratch
+              # under the checkout so it is not orphaned in /tmp.
+              export TMPDIR="$APP_ROOT/.dart_tool/tmp"
+              mkdir -p "$TMPDIR"
+
+              # Symlinks for the system compilers. Recreated every entry; the
+              # directory itself is never removed.
               ln -sf /usr/bin/clang "$NIX_BIN/cc"
               ln -sf /usr/bin/clang++ "$NIX_BIN/c++"
               ln -sf /usr/bin/clang "$NIX_BIN/clang"
@@ -220,7 +219,7 @@ for arg in "$@"; do
     if [[ "$arg" == *"FlutterMacOS.framework"* ]]; then
         framework="''${arg%%FlutterMacOS.framework*}FlutterMacOS.framework"
         case "$framework" in
-          "$PWD"/*|"''${TMPDIR:-/tmp}"/*) chmod -R u+w "$framework" 2>/dev/null || true ;;
+          "$APP_ROOT"/*|"''${TMPDIR:-/tmp}"/*) chmod -R u+w "$framework" 2>/dev/null || true ;;
           *) ;;
         esac
     fi
@@ -251,16 +250,12 @@ XCRUN_EOF
               chmod +x "$NIX_BIN/xcrun"
 
               if [ -x "$NIX_BIN/lipo" ] && [ -x "$NIX_BIN/xcrun" ]; then
-                export STACKWALLET_NIX_BIN="$NIX_BIN"
                 case ":$PATH:" in
                   *":$NIX_BIN:"*) ;;
                   *) export PATH="$NIX_BIN:$PATH" ;;
                 esac
               else
                 echo "[WARN] Apple tool wrappers are incomplete; using the Nix tools." >&2
-              fi
-              else
-                echo "[WARN] Could not create the Apple tool wrapper directory; using the Nix tools." >&2
               fi
             ''}
 
