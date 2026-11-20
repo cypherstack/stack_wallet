@@ -95,15 +95,15 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
           title: "Enable Auto Backup",
           message: "To enable Auto Backup, you need to create a backup file.",
           leftButton: TextButton(
-            style: Theme.of(
-              context,
-            ).extension<StackColors>()!.getSecondaryEnabledButtonStyle(context),
+            style: Theme.of(context)
+                .extension<StackColors>()!
+                .getSecondaryEnabledButtonStyle(context),
             child: Text(
               "Back",
               style: STextStyles.button(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.accentColorDark,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .accentColorDark,
               ),
             ),
             onPressed: () {
@@ -111,9 +111,9 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
             },
           ),
           rightButton: TextButton(
-            style: Theme.of(
-              context,
-            ).extension<StackColors>()!.getPrimaryEnabledButtonStyle(context),
+            style: Theme.of(context)
+                .extension<StackColors>()!
+                .getPrimaryEnabledButtonStyle(context),
             child: Text("Continue", style: STextStyles.button(context)),
             onPressed: () {
               Navigator.of(context).pop(true);
@@ -124,15 +124,15 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
     );
     if (mounted) {
       if (result is bool && result) {
-        Navigator.of(context).pushNamed(CreateAutoBackupView.routeName).then((
-          _,
-        ) {
-          // set toggle to correct state
-          if (_toggle !=
-              ref.read(prefsChangeNotifierProvider).isAutoBackupEnabled) {
-            toggleController.activate?.call();
-          }
-        });
+        Navigator.of(context)
+            .pushNamed(CreateAutoBackupView.routeName)
+            .then((_) {
+              // set toggle to correct state
+              if (_toggle !=
+                  ref.read(prefsChangeNotifierProvider).isAutoBackupEnabled) {
+                toggleController.activate?.call();
+              }
+            });
       } else {
         toggleController.activate?.call();
       }
@@ -147,18 +147,17 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
       builder: (context) {
         return StackDialog(
           title: "Disable Auto Backup",
-          message:
-              "You are turning off Auto Backup. You can turn it back on at any time. Your previous Auto Backup file will not be deleted. Remember to backup your wallets manually so you don't lose important information.",
+          message: "You are turning off Auto Backup. You can turn it back on at any time. Your previous Auto Backup file will not be deleted. Remember to backup your wallets manually so you don't lose important information.",
           leftButton: TextButton(
-            style: Theme.of(
-              context,
-            ).extension<StackColors>()!.getSecondaryEnabledButtonStyle(context),
+            style: Theme.of(context)
+                .extension<StackColors>()!
+                .getSecondaryEnabledButtonStyle(context),
             child: Text(
               "Back",
               style: STextStyles.button(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.accentColorDark,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .accentColorDark,
               ),
             ),
             onPressed: () {
@@ -166,9 +165,9 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
             },
           ),
           rightButton: TextButton(
-            style: Theme.of(
-              context,
-            ).extension<StackColors>()!.getPrimaryEnabledButtonStyle(context),
+            style: Theme.of(context)
+                .extension<StackColors>()!
+                .getPrimaryEnabledButtonStyle(context),
             child: Text("Disable", style: STextStyles.button(context)),
             onPressed: () {
               Navigator.of(context).pop(true);
@@ -180,9 +179,8 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
     if (mounted) {
       if (result is bool && result) {
         ref.read(prefsChangeNotifierProvider).isAutoBackupEnabled = false;
-        Navigator.of(
-          context,
-        ).popUntil(ModalRoute.withName(AutoBackupView.routeName));
+        Navigator.of(context)
+            .popUntil(ModalRoute.withName(AutoBackupView.routeName));
       } else {
         toggleController.activate?.call();
       }
@@ -369,7 +367,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                             color: Theme.of(context)
                                 .extension<StackColors>()!
                                 .textDark
-                                .withOpacity(0.5),
+                                .withValues(alpha: 0.5),
                           ),
                           readOnly: true,
                           enableSuggestions: false,
@@ -401,7 +399,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                             color: Theme.of(context)
                                 .extension<StackColors>()!
                                 .textDark
-                                .withOpacity(0.5),
+                                .withValues(alpha: 0.5),
                           ),
                           obscureText: true,
                           enableSuggestions: false,
@@ -432,9 +430,10 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                         controller: frequencyController,
                         enabled: false,
                         style: STextStyles.field(context).copyWith(
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.textDark.withOpacity(0.5),
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textDark
+                              .withValues(alpha: 0.5),
                         ),
                         toolbarOptions: const ToolbarOptions(
                           copy: true,
@@ -448,9 +447,8 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                         child: CustomTextButton(
                           text: "Edit Auto Backup",
                           onTap: () async {
-                            Navigator.of(
-                              context,
-                            ).pushNamed(EditAutoBackupView.routeName);
+                            Navigator.of(context)
+                                .pushNamed(EditAutoBackupView.routeName);
                           },
                         ),
                       ),

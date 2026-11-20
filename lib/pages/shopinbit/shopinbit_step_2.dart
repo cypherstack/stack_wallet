@@ -52,9 +52,8 @@ class _ShopInBitStep2State extends ConsumerState<ShopInBitStep2> {
     final skipGuidelines = settings.guidelinesAcceptedFor(category);
 
     if (skipGuidelines) {
-      await Navigator.of(
-        context,
-      ).pushNamed(ShopInBitStep4.routeName, arguments: category);
+      await Navigator.of(context)
+          .pushNamed(ShopInBitStep4.routeName, arguments: category);
     } else {
       await Navigator.of(context).pushNamed(
         ShopInBitStep3.routeName,
@@ -90,8 +89,8 @@ class _ShopInBitStep2State extends ConsumerState<ShopInBitStep2> {
                     ],
                   ),
                   DesktopDialogCloseButton(
-                    onPressedOverride: () =>
-                        NestedNavigatorDialog.of(context).close(
+                    onPressedOverride: () => NestedNavigatorDialog.of(context)
+                        .close(
                           args: widget.isActuallyFirstStep
                               ? const .noWarning()
                               : const .genericWarning(),
@@ -113,9 +112,9 @@ class _ShopInBitStep2State extends ConsumerState<ShopInBitStep2> {
         condition: !isDesktop,
         builder: (content) => Background(
           child: Scaffold(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             appBar: AppBar(
               leading: const AppBarBackButton(),
               title: Text("ShopinBit", style: STextStyles.navBarTitle(context)),
@@ -237,7 +236,7 @@ class _CategoryCard extends StatelessWidget {
             height: isDesktop ? 48 : 40,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: colors.textDark.withOpacity(0.1),
+              color: colors.textDark.withValues(alpha: 0.1),
             ),
             alignment: Alignment.center,
             child: SvgPicture.asset(
@@ -263,9 +262,8 @@ class _CategoryCard extends StatelessWidget {
                   description,
                   style: isDesktop
                       ? STextStyles.desktopTextExtraExtraSmall(context)
-                      : STextStyles.itemSubtitle12(
-                          context,
-                        ).copyWith(color: colors.textSubtitle1),
+                      : STextStyles.itemSubtitle12(context)
+                            .copyWith(color: colors.textSubtitle1),
                 ),
               ],
             ),
