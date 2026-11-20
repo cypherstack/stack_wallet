@@ -291,6 +291,12 @@ Future<void> main(List<String> args) async {
     }
   } else if (list.split('\n').any((l) => l.startsWith('$rust-'))) {
     _ok('Rust $rust installed via rustup');
+  } else if (toolchainsOnly) {
+    // rustup is present but the pinned toolchain is not installed. On the CI
+    // host runner the pinned toolchains live in the prebuilt image, not in the
+    // runner's rustup, so a present-but-missing toolchain is a warning there,
+    // not a failure. A plain run (local or in-image) still requires it.
+    _warn("Rust $rust not installed via rustup (expected inside the CI image)");
   } else {
     _fail('Rust $rust is not installed (rustup toolchain install $rust)');
   }
@@ -304,6 +310,12 @@ Future<void> main(List<String> args) async {
     }
   } else if (list.split('\n').any((l) => l.startsWith('$dnssec-'))) {
     _ok('DNSSEC Rust $dnssec installed via rustup');
+  } else if (toolchainsOnly) {
+    // Same as the Rust check above: the pinned DNSSEC toolchain lives in the
+    // prebuilt image, not the host runner's rustup, so warn rather than fail.
+    _warn(
+      "DNSSEC Rust $dnssec not installed via rustup (expected in the CI image)",
+    );
   } else {
     _fail(
       'DNSSEC Rust $dnssec is not installed '
