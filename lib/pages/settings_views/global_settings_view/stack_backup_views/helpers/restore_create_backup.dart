@@ -42,6 +42,8 @@ import '../../../../../services/trade_notes_service.dart';
 import '../../../../../services/trade_sent_from_stack_service.dart';
 import '../../../../../services/trade_service.dart';
 import '../../../../../services/wallets.dart';
+import '../../../../../services/zcash_restored_wallet_operation.dart';
+import '../../../../../services/zcash_sapling_parameter_service.dart';
 import '../../../../../utilities/enums/backup_frequency_type.dart';
 import '../../../../../utilities/enums/stack_restoring_status.dart';
 import '../../../../../utilities/enums/sync_type_enum.dart';
@@ -57,6 +59,7 @@ import '../../../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import '../../../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../../../../wallets/wallet/impl/xelis_wallet.dart';
+import '../../../../../wallets/wallet/impl/zcash_wallet.dart';
 import '../../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../../../wallets/wallet/wallet.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
@@ -126,6 +129,15 @@ bool validateFail(
 
 abstract class SWB {
   static Completer<void>? _cancelCompleter;
+  static final Set<ZcashRestoredWalletOperation> _activeZcashRestores = {};
+
+  static void registerZcashRestore(ZcashRestoredWalletOperation operation) {
+    _activeZcashRestores.add(operation);
+  }
+
+  static void unregisterZcashRestore(ZcashRestoredWalletOperation operation) {
+    _activeZcashRestores.remove(operation);
+  }
 
   static Future<void> cancelRestore() async {
     if (!_shouldCancelRestore) {
@@ -139,11 +151,57 @@ abstract class SWB {
       );
     }
 
+    await Future.wait([
+      for (final operation in _activeZcashRestores.toList())
+        () async {
+          try {
+            await operation.cancel();
+          } catch (error, stackTrace) {
+            Logging.instance.w(
+              'Cancelling backup Zcash restore work failed',
+              error: error,
+              stackTrace: stackTrace,
+            );
+          }
+        }(),
+    ]);
+
     // return completer that will complete on SWBRestoreCancelEventType.completed event
     return _cancelCompleter!.future;
   }
 
   static bool _shouldCancelRestore = false;
+
+  static Future<bool> _acquireRestoredZcashParameters({
+    required String walletId,
+    required StackRestoringUIState? uiState,
+    required SaplingParameterTask Function() taskFactory,
+  }) async {
+    final task = taskFactory();
+    var acceptingStates = true;
+    void handleState(SaplingParameterState state) {
+      if (!acceptingStates) return;
+      final activity = zcashRestoreParameterActivity(state);
+      uiState?.updateActivity(
+        walletId: walletId,
+        label: activity.label,
+        progress: activity.progress,
+      );
+    }
+
+    final subscription = task.states.listen(handleState);
+    if (task case SaplingParameterTaskStateSnapshot(:final currentState?)) {
+      handleState(currentState);
+    }
+    try {
+      await task.result;
+      return true;
+    } finally {
+      acceptingStates = false;
+      unawaited(subscription.cancel());
+      uiState?.clearActivity(walletId: walletId);
+    }
+  }
 
   static bool _checkShouldCancel(
     PreRestoreState? revertToState,
@@ -433,6 +491,7 @@ abstract class SWB {
       mnemonicPassphrase: mnemonicPassphrase,
     );
     Wallet? wallet;
+    ZcashRestoredWalletOperation? zcashRestore;
     bool didExit = false;
     try {
       String? serializedKeys;
@@ -495,6 +554,10 @@ abstract class SWB {
           await wallet.init(isRestore: true);
           break;
 
+        case ZcashWallet():
+          await wallet.init(isRestore: true);
+          break;
+
         default:
           await wallet.init();
       }
@@ -511,14 +574,34 @@ abstract class SWB {
       }
 
       final Future<void>? restoringFuture;
+      final Future<bool>? zcashRestoringFuture;
       if (wallet is BitcoinFrostWallet) {
         restoringFuture = wallet.recover(
           isRescan: false,
           multisigConfig: multisigConfig!,
           serializedKeys: serializedKeys!,
         );
+        zcashRestoringFuture = null;
+      } else if (wallet is ZcashWallet) {
+        if (_shouldCancelRestore) return false;
+        final operation = ZcashRestoredWalletOperation.forWallet(wallet);
+        zcashRestore = operation;
+        registerZcashRestore(operation);
+        if (_shouldCancelRestore) {
+          await operation.cancel();
+          return false;
+        }
+        zcashRestoringFuture = operation.run(
+          acquireParameters: (taskFactory) => _acquireRestoredZcashParameters(
+            walletId: info.walletId,
+            uiState: uiState,
+            taskFactory: taskFactory,
+          ),
+        );
+        restoringFuture = null;
       } else {
         restoringFuture = wallet.recover(isRescan: false);
+        zcashRestoringFuture = null;
       }
 
       uiState?.update(
@@ -570,7 +653,10 @@ abstract class SWB {
         return false;
       }
 
+      final zcashReady = await zcashRestoringFuture;
+      if (zcashReady == false || _shouldCancelRestore) return false;
       await restoringFuture;
+      if (_shouldCancelRestore) return false;
 
       final currentAddress = await wallet.getCurrentReceivingAddress();
 
@@ -595,14 +681,21 @@ abstract class SWB {
         error: e,
         stackTrace: s,
       );
-      uiState?.update(
-        walletId: info.walletId,
-        restoringStatus: StackRestoringStatus.failed,
-        mnemonic: mnemonic,
-        mnemonicPassphrase: mnemonicPassphrase,
-      );
+      if (!_shouldCancelRestore) {
+        uiState?.update(
+          walletId: info.walletId,
+          restoringStatus: StackRestoringStatus.failed,
+          mnemonic: mnemonic,
+          mnemonicPassphrase: mnemonicPassphrase,
+        );
+      }
       return false;
     } finally {
+      final operation = zcashRestore;
+      if (operation != null) {
+        unregisterZcashRestore(operation);
+      }
+      uiState?.clearActivity(walletId: info.walletId);
       if (!didExit) {
         await wallet?.exit();
       }

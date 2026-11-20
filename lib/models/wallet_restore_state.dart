@@ -23,10 +23,24 @@ class WalletRestoreState extends ChangeNotifier {
   String? mnemonic;
   String? mnemonicPassphrase;
   int? height;
+  String? activityLabel;
+  double? activityProgress;
 
   StackRestoringStatus get restoringState => _restoringStatus;
   set restoringState(StackRestoringStatus restoringStatus) {
     _restoringStatus = restoringStatus;
+    notifyListeners();
+  }
+
+  void updateActivity({required String label, double? progress}) {
+    activityLabel = label;
+    activityProgress = progress;
+    notifyListeners();
+  }
+
+  void clearActivity() {
+    activityLabel = null;
+    activityProgress = null;
     notifyListeners();
   }
 
@@ -40,6 +54,8 @@ class WalletRestoreState extends ChangeNotifier {
     this.mnemonic,
     this.mnemonicPassphrase,
     this.height,
+    this.activityLabel,
+    this.activityProgress,
   }) {
     _restoringStatus = restoringStatus;
   }
@@ -59,6 +75,8 @@ class WalletRestoreState extends ChangeNotifier {
       mnemonic: mnemonic,
       mnemonicPassphrase: mnemonicPassphrase,
       height: this.height,
+      activityLabel: activityLabel,
+      activityProgress: activityProgress,
     );
   }
 }

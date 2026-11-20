@@ -151,4 +151,20 @@ class StackRestoringUIState extends ChangeNotifier {
     _walletStates[walletId]!.height = height ?? _walletStates[walletId]!.height;
     notifyListeners();
   }
+
+  void updateActivity({
+    required String walletId,
+    required String label,
+    double? progress,
+  }) {
+    final state = _walletStates[walletId]!;
+    state.updateActivity(label: label, progress: progress);
+    notifyListeners();
+  }
+
+  void clearActivity({required String walletId}) {
+    final state = _walletStates[walletId]!;
+    state.clearActivity();
+    notifyListeners();
+  }
 }

@@ -8,6 +8,7 @@
  *
  */
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -17,6 +18,8 @@ import 'package:flutter_svg/svg.dart';
 import '../../../../../models/wallet_restore_state.dart';
 import '../../../../../providers/stack_restore/stack_restoring_ui_state_provider.dart';
 import '../../../../../route_generator.dart';
+import '../../../../../services/zcash_restored_wallet_operation.dart';
+import '../../../../../services/zcash_sapling_parameter_service.dart';
 import '../../../../../themes/coin_icon_provider.dart';
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../themes/theme_providers.dart';
@@ -28,10 +31,12 @@ import '../../../../../utilities/util.dart';
 import '../../../../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../../../../wallets/wallet/impl/xelis_wallet.dart';
+import '../../../../../wallets/wallet/impl/zcash_wallet.dart';
 import '../../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../../../widgets/loading_indicator.dart';
 import '../../../../../widgets/rounded_container.dart';
 import '../sub_views/recovery_phrase_view.dart';
+import '../helpers/restore_create_backup.dart';
 import 'restoring_item_card.dart';
 
 class RestoringWalletCard extends ConsumerStatefulWidget {
@@ -49,13 +54,13 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
 
   Future<void> _retry() async {
     final wallet = ref.read(provider).wallet!;
+    final uiState = ref.read(stackRestoringUIStateProvider);
+    var didExit = false;
     try {
-      ref
-          .read(stackRestoringUIStateProvider)
-          .update(
-            walletId: wallet.walletId,
-            restoringStatus: StackRestoringStatus.restoring,
-          );
+      uiState.update(
+        walletId: wallet.walletId,
+        restoringStatus: StackRestoringStatus.restoring,
+      );
 
       switch (wallet) {
         case EpiccashWallet():
@@ -75,24 +80,79 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
           await wallet.init(isRestore: true);
           break;
 
+        case ZcashWallet():
+          await wallet.init(isRestore: true);
+          break;
+
         default:
           await wallet.init();
       }
 
-      await wallet.recover(isRescan: true);
+      if (wallet case ZcashWallet()) {
+        final operation = ZcashRestoredWalletOperation.forWallet(
+          wallet,
+          isRescan: true,
+        );
+        SWB.registerZcashRestore(operation);
+        final bool ready;
+        try {
+          ready = await operation.run(
+            acquireParameters: (taskFactory) async {
+              final task = taskFactory();
+              var acceptingStates = true;
+              void handleState(SaplingParameterState state) {
+                if (!acceptingStates) return;
+                final activity = zcashRestoreParameterActivity(state);
+                uiState.updateActivity(
+                  walletId: wallet.walletId,
+                  label: activity.label,
+                  progress: activity.progress,
+                );
+              }
+
+              final subscription = task.states.listen(handleState);
+              if (task case SaplingParameterTaskStateSnapshot(
+                :final currentState?,
+              )) {
+                handleState(currentState);
+              }
+              try {
+                await task.result;
+                return true;
+              } finally {
+                acceptingStates = false;
+                unawaited(subscription.cancel());
+                uiState.clearActivity(walletId: wallet.walletId);
+              }
+            },
+          );
+        } finally {
+          SWB.unregisterZcashRestore(operation);
+        }
+        if (!ready) {
+          if (mounted) {
+            uiState.update(
+              walletId: wallet.walletId,
+              restoringStatus: StackRestoringStatus.failed,
+            );
+          }
+          return;
+        }
+      } else {
+        await wallet.recover(isRescan: true);
+      }
 
       final address = await wallet.getCurrentReceivingAddress();
 
       await wallet.exit();
+      didExit = true;
 
       if (mounted) {
-        ref
-            .read(stackRestoringUIStateProvider)
-            .update(
-              walletId: wallet.walletId,
-              restoringStatus: StackRestoringStatus.success,
-              address: address?.value,
-            );
+        uiState.update(
+          walletId: wallet.walletId,
+          restoringStatus: StackRestoringStatus.success,
+          address: address?.value,
+        );
       }
     } catch (e, s) {
       Logging.instance.e(
@@ -101,13 +161,14 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
         stackTrace: s,
       );
       if (mounted) {
-        ref
-            .read(stackRestoringUIStateProvider)
-            .update(
-              walletId: wallet.walletId,
-              restoringStatus: StackRestoringStatus.failed,
-            );
+        uiState.update(
+          walletId: wallet.walletId,
+          restoringStatus: StackRestoringStatus.failed,
+        );
       }
+    } finally {
+      uiState.clearActivity(walletId: wallet.walletId);
+      if (!didExit) await wallet.exit();
     }
   }
 
@@ -151,6 +212,29 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
     final restoringStatus = ref.watch(
       provider.select((value) => value.restoringState),
     );
+    final address = ref.watch(provider.select((value) => value.address));
+    final activityLabel = ref.watch(
+      provider.select((value) => value.activityLabel),
+    );
+    final activityProgress = ref.watch(
+      provider.select((value) => value.activityProgress),
+    );
+    final Text? subTitle = restoringStatus == StackRestoringStatus.failed
+        ? Text(
+            "Unable to restore. Tap icon to retry.",
+            style: STextStyles.errorSmall(context),
+          )
+        : activityLabel != null
+        ? Text(
+            activityProgress == null
+                ? activityLabel
+                : '$activityLabel '
+                      '${(activityProgress * 100).clamp(0, 100).toStringAsFixed(0)}%',
+            style: STextStyles.infoSmall(context),
+          )
+        : address != null
+        ? Text(address, style: STextStyles.infoSmall(context))
+        : null;
     return !Util.isDesktop
         ? RestoringItemCard(
             left: SizedBox(
@@ -180,17 +264,7 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
             ),
             title:
                 "${ref.watch(provider.select((value) => value.walletName))} (${coin.ticker})",
-            subTitle: restoringStatus == StackRestoringStatus.failed
-                ? Text(
-                    "Unable to restore. Tap icon to retry.",
-                    style: STextStyles.errorSmall(context),
-                  )
-                : ref.watch(provider.select((value) => value.address)) != null
-                ? Text(
-                    ref.watch(provider.select((value) => value.address))!,
-                    style: STextStyles.infoSmall(context),
-                  )
-                : null,
+            subTitle: subTitle,
             button: restoringStatus == StackRestoringStatus.failed
                 ? Container(
                     height: 20,
@@ -269,17 +343,7 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
               ),
               title:
                   "${ref.watch(provider.select((value) => value.walletName))} (${coin.ticker})",
-              subTitle: restoringStatus == StackRestoringStatus.failed
-                  ? Text(
-                      "Unable to restore. Tap icon to retry.",
-                      style: STextStyles.errorSmall(context),
-                    )
-                  : ref.watch(provider.select((value) => value.address)) != null
-                  ? Text(
-                      ref.watch(provider.select((value) => value.address))!,
-                      style: STextStyles.infoSmall(context),
-                    )
-                  : null,
+              subTitle: subTitle,
               button: restoringStatus == StackRestoringStatus.failed
                   ? Container(
                       height: 20,
