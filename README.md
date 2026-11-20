@@ -87,8 +87,8 @@ Nix/direnv shell; Homebrew/manual builds use the verified dnix prebuilts.
 
 `PREBUILTS=1` is required with Homebrew/manual: those toolchains cannot build
 the four dnix libraries from source. It uses the verified prebuilts and needs
-no Nix for them. `make bootstrap-macos` checks and selects the full Xcode.app
-(Xcode is never provided by Nix or Homebrew).
+no Nix for them. `make bootstrap-macos` installs Nix (if missing) and checks/
+selects the full Xcode.app (Xcode is never provided by Nix or Homebrew).
 
 ### macOS with a manual toolchain (advanced)
 

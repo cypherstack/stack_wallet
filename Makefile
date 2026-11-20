@@ -300,14 +300,16 @@ else
 	@exit 1
 endif
 
-bootstrap-macos: ## Check/select the full Xcode.app (Nix supplies the rest of the toolchain)
+bootstrap-macos: ## Install Nix + check/select the full Xcode.app (source-build bootstrap)
 ifeq ($(PLATFORM),Darwin)
-# Call install_xcode.sh directly instead of `$(MAKE) bootstrap-xcode`: a recipe
+# Call install_*.sh directly instead of `$(MAKE) bootstrap-xcode`: a recipe
 # line containing $(MAKE) is executed even under `make -n`, which would make a
 # dry run accept the Xcode license and run first-launch setup for real.
 # Source builds require a Nix/direnv shell (the flake provides Flutter, Rust,
-# Go and the dnix libraries). Xcode itself is never provided by Nix (Apple's
-# license forbids redistributing it), so this target only handles Xcode.
+# Go and the dnix libraries); install Nix if it is missing. Xcode itself is
+# never provided by Nix (Apple's license forbids redistributing it), so it is
+# checked/selected too. Both installers are idempotent.
+	@bash scripts/install_nix.sh
 	@bash scripts/install_xcode.sh
 else
 	@echo "[ERROR] bootstrap-macos is macOS-only."
