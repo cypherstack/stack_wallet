@@ -14,25 +14,20 @@ tracked `.envrc` is `use flake`, so it activates the same shell as
 
 `.envrc` started as a standalone environment script; it was reduced to
 `use flake` when the flake and Makefile took over the host setup. That is why
-direnv is the Nix activator, not a fourth toolchain. The Homebrew helper still
-installs the `direnv` binary, but `.envrc` skips the flake when Nix is absent,
-so a Homebrew-only shell is not blocked.
+direnv is the Nix activator, not a fourth toolchain. Source builds require a
+Nix/direnv shell; the manual/Homebrew path below is for prebuilt builds
+(`PREBUILTS=1`) only.
 
 ```mermaid
 flowchart LR
     S["Pick a host<br/>toolchain"]
-    S --> N["Nix (primary)<br/>make bootstrap"]
-    S --> D["direnv<br/>direnv allow"]
-    S --> B["Homebrew fallback<br/>make bootstrap-macos"]
-    S --> M["Manual<br/>TOOLCHAIN=manual"]
+    S --> N["Nix / direnv<br/>source builds<br/>make bootstrap"]
+    S --> M["Manual / Homebrew<br/>prebuilt only<br/>PREBUILTS=1"]
 
     N --> F["Flake<br/>Flutter · Rust · Go<br/>CMake · Meson · Ninja"]
-    D --> F
-    B --> H["Homebrew helper<br/>Flutter · Rust · Go"]
-    M --> P["Tools on PATH"]
+    M --> P["Tools on PATH<br/>Flutter · Rust · Go"]
 
     F --> C["make toolchain-check<br/>check-reqs-macos"]
-    H --> C
     P --> C
 
     C --> X{"Full Xcode?"}

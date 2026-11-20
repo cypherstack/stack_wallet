@@ -88,10 +88,10 @@ ifneq ($(PLATFORM),Darwin)
     endif
   endif
 endif
-# Toolchain source. Nix (nix develop or direnv) is the primary path; Homebrew
-# and manual installs use the host tools already on PATH. The build steps are
-# identical in every mode: only the prerequisite check and the Nix environment
-# sanitising differ. Override with TOOLCHAIN=nix|direnv|brew|manual|host.
+# Toolchain source. Source builds require Nix (nix develop or direnv); the
+# prebuilt path (PREBUILTS=1) uses the host tools on PATH (manual or host).
+# The build steps are identical in every mode: only the prerequisite check and
+# the Nix environment sanitising differ. Override with TOOLCHAIN=nix|direnv|manual|host.
 TOOLCHAIN      ?= auto
 DIRENV_ACTIVE  := $(if $(DIRENV_DIR),1,)
 NIX_ACTIVE     := $(if $(or $(IN_NIX_SHELL),$(NIX_STORE)),1,)
@@ -101,8 +101,8 @@ endif
 ifneq ($(words $(TOOLCHAIN)),1)
   $(error TOOLCHAIN must be a single value)
 endif
-ifneq ($(filter $(TOOLCHAIN),auto nix direnv brew manual host),$(TOOLCHAIN))
-  $(error TOOLCHAIN must be auto, nix, direnv, brew, manual or host)
+ifneq ($(filter $(TOOLCHAIN),auto nix direnv manual host),$(TOOLCHAIN))
+  $(error TOOLCHAIN must be auto, nix, direnv, manual or host)
 endif
 ifeq ($(TOOLCHAIN),auto)
   ifeq ($(DIRENV_ACTIVE),1)
@@ -156,7 +156,7 @@ ifneq ($(strip $(PUB_CACHE)),)
 export PUB_CACHE
 endif
 
-.PHONY: help toolchain toolchain-check bootstrap bootstrap-brew require-version check-reqs check-reqs-macos check-sdk-macos check-linux check-windows bootstrap-macos bootstrap-xcode sccache-setup cache-stats verify-bom clean clean-app clean-native build-macos build-linux build-windows diagnose-env-macos build-android android-dev-key build-ios
+.PHONY: help toolchain toolchain-check bootstrap require-version check-reqs check-reqs-macos check-sdk-macos check-linux check-windows bootstrap-macos bootstrap-xcode sccache-setup cache-stats verify-bom clean clean-app clean-native build-macos build-linux build-windows diagnose-env-macos build-android android-dev-key build-ios
 
 help: ## Show available commands
 	@echo "Available targets:"
@@ -184,10 +184,7 @@ endif
 ifeq ($(TOOLCHAIN_EFFECTIVE),direnv)
 	@[ -n "$$NIX_STORE$$IN_NIX_SHELL" ] || { echo >&2 "[ERROR] TOOLCHAIN=direnv but the flake is not loaded. Run 'direnv allow', or use 'nix develop'."; exit 1; }
 endif
-ifeq ($(TOOLCHAIN_EFFECTIVE),brew)
-	@command -v brew >/dev/null 2>&1 || { echo >&2 "[ERROR] TOOLCHAIN=brew but brew is not on PATH. Run 'make bootstrap-macos'."; exit 1; }
-endif
-ifeq ($(filter nix direnv brew,$(TOOLCHAIN_EFFECTIVE)),)
+ifeq ($(filter nix direnv,$(TOOLCHAIN_EFFECTIVE)),)
 	@echo "[INFO] $(TOOLCHAIN_EFFECTIVE): using the tools on PATH; no separate check."
 endif
 
@@ -198,14 +195,12 @@ bootstrap: ## Enter the Nix dev shell (primary toolchain; no-op when already ins
 		echo >&2 "[ERROR] Intel macOS is prebuilt-only; use 'make bootstrap-macos' (or a manual toolchain) and PREBUILTS=1."; \
 		exit 1; \
 	elif ! command -v nix >/dev/null 2>&1; then \
-		echo >&2 "[ERROR] Nix is not installed. Install it from https://nixos.org/download/, or use the Homebrew fallback: make bootstrap-macos"; \
+		echo >&2 "[ERROR] Nix is not installed. Source builds require Nix; install it from https://nixos.org/download/."; \
 		exit 1; \
 	else \
-		echo "Entering the Nix dev shell. Run 'make build-macos VERSION=... BUILD_NUM=...' inside it."; \
-		exec nix --extra-experimental-features 'nix-command flakes' develop; \
+	@echo "Entering the Nix dev shell. Run 'make build-macos VERSION=... BUILD_NUM=...' inside it."; \
+	exec nix --extra-experimental-features 'nix-command flakes' develop; \
 	fi
-
-bootstrap-brew: bootstrap-macos ## Alias for the Homebrew fallback toolchain
 
 check-linux: ## Fail unless the host is Linux
 ifeq ($(PLATFORM),Linux)
@@ -304,19 +299,15 @@ else
 	@exit 1
 endif
 
-bootstrap-macos: ## Install the Homebrew fallback toolchain (Nix is the primary path)
+bootstrap-macos: ## Check/select the full Xcode.app (Nix supplies the rest of the toolchain)
 ifeq ($(PLATFORM),Darwin)
 # Call install_xcode.sh directly instead of `$(MAKE) bootstrap-xcode`: a recipe
 # line containing $(MAKE) is executed even under `make -n`, which would make a
 # dry run accept the Xcode license and run first-launch setup for real.
-	@if [ -n "$$IN_NIX_SHELL$$NIX_BUILD_TOP$$NIX_STORE" ]; then \
-		echo "[WARN] Nix environment detected; skipping the Homebrew package install (use nix/flake-provided toolchain instead)."; \
-		echo "[WARN] Xcode itself is never provided by Nix (Apple's license forbids redistributing it), so that part still runs:"; \
-		bash scripts/install_xcode.sh || exit 1; \
-	else \
-		bash scripts/install_macos_build_tools.sh || exit 1; \
-		rustup target add aarch64-apple-darwin x86_64-apple-darwin aarch64-apple-ios aarch64-apple-ios-sim --toolchain $(RUST_VERSION) >/dev/null 2>&1 || true; \
-	fi
+# Source builds require a Nix/direnv shell (the flake provides Flutter, Rust,
+# Go and the dnix libraries). Xcode itself is never provided by Nix (Apple's
+# license forbids redistributing it), so this target only handles Xcode.
+	@bash scripts/install_xcode.sh
 else
 	@echo "[ERROR] bootstrap-macos is macOS-only."
 	@exit 1

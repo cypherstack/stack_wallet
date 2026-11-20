@@ -5,20 +5,20 @@ the build fits together, see the [overview](../building.md).
 
 ## Toolchains
 
-The build steps below are the manual/Homebrew path. Nix is the primary host
-toolchain; the same build is also available through:
+Source builds require a Nix/direnv shell; the manual/Homebrew path below is
+for **prebuilt** builds (`PREBUILTS=1`) only. The same build is also available
+through Nix:
 
 | Mode | Setup |
 |---|---|
 | Nix | `make bootstrap` (enters `nix develop`) |
 | direnv | `direnv allow` |
-| Homebrew | `make bootstrap-macos` |
-| Manual | install the prerequisites below |
+| Manual / Homebrew | install the prerequisites below; use `PREBUILTS=1` |
 
 With Nix or direnv the flake supplies Flutter, Dart, rustup (which installs
 the BOM Rust version on first entry), Go, CMake, Meson, Ninja, pkg-config and protoc.
 Xcode always comes from the host. The prerequisites below describe the
-manual/Homebrew path.
+manual/Homebrew (prebuilt) path.
 
 ## Prerequisites
 

@@ -73,26 +73,22 @@ The flake provides Flutter, Dart, rustup (which installs the BOM Rust version
 on first entry), Go, CMake, Meson, Ninja, pkg-config and protoc. Xcode is never provided
 by Nix; the flake uses the Xcode selected by `xcode-select`.
 
-### macOS with Homebrew (fallback)
+### macOS with Homebrew (prebuilt only)
 
-Use this only when you are not building through Nix/flake.
+Use this when you are not building through Nix/flake. Source builds require a
+Nix/direnv shell; Homebrew/manual builds use the verified dnix prebuilts.
 
 1. With Homebrew installed, install the host tools:
-   - `make bootstrap-macos` (alias: `make bootstrap-brew`)
+   - `brew install autoconf automake libtool cmake cocoapods go meson ninja pkg-config protobuf`
+   - `rustup toolchain install` the BOM Rust version (see `stack-bom.toml`).
 2. Run build:
-   - Open a new terminal (or run `source ~/.zshrc`) so the Homebrew and
-     Flutter PATH entries are active.
    - `make build-macos VERSION=x.y.z BUILD_NUM=nnn PREBUILTS=1`
    - Add `CONFIRM=1` for a non-interactive run.
 
 `PREBUILTS=1` is required with Homebrew/manual: those toolchains cannot build
 the four dnix libraries from source. It uses the verified prebuilts and needs
-no Nix for them.
-
-The Homebrew bootstrap installs the native build tools and configures the BOM
-Rust version for Flutter's native-assets hooks. It replaces the former local
-manual macOS native prebuild path; no submodule setup or manual native
-plugin build is needed.
+no Nix for them. `make bootstrap-macos` checks and selects the full Xcode.app
+(Xcode is never provided by Nix or Homebrew).
 
 ### macOS with a manual toolchain (advanced)
 

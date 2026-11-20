@@ -56,8 +56,8 @@ make build-macos VERSION=x.y.z BUILD_NUM=nnn PREBUILTS=1  # verified prebuilts (
 | `make build-android` | Same build commands as CI, without the AAB/upload steps; signs with `android/key.properties` (run `make android-dev-key` for a throw-away test key), needs the Android SDK/NDK and Java. Prebuilt dnix on macOS, non-x86_64 Linux and brew/manual toolchains; x86_64 Linux in Nix/direnv follows `PREBUILTS` |
 | `make build-ios` | Same build commands as CI, without signing/packaging, on macOS (`flutter build ios --release --no-codesign`). Source by default only in Nix/direnv on Apple Silicon; CI passes `-d` explicitly |
 | `make bootstrap` | Enter the Nix dev shell (primary toolchain); no-op when already inside |
-| `make bootstrap-macos` | Homebrew fallback host setup: Flutter and Rust from `stack-bom.toml` plus the Homebrew packages (Go, CMake, Meson, Ninja, pkg-config, protobuf, CocoaPods, autotools, direnv, rustup, sccache) |
-| `make toolchain` | Show the active toolchain (`nix`, `direnv`, `host`, `brew`, `manual`) |
+| `make bootstrap-macos` | Check and select the full Xcode.app (Xcode is never provided by Nix) |
+| `make toolchain` | Show the active toolchain (`nix`, `direnv`, `host`, `manual`) |
 | `make bootstrap-xcode` | Check and select an installed full Xcode.app |
 | `make check-reqs`, `check-reqs-macos`, `check-sdk-macos`, `diagnose-env-macos` | Prerequisite checks and an environment dump |
 | `make verify-bom` | Compare the machine and `pubspec.lock` against `stack-bom.toml` |
@@ -67,18 +67,17 @@ make build-macos VERSION=x.y.z BUILD_NUM=nnn PREBUILTS=1  # verified prebuilts (
 
 ## Toolchains on macOS
 
-The build steps are identical in every mode; only how the host tools get on
-`PATH` differs. Nix is the primary path.
+Source builds require a Nix/direnv shell; the prebuilt path (`PREBUILTS=1`)
+uses the host tools on PATH (manual or host), which Homebrew can supply.
 
 | Mode | Setup | Notes |
 |---|---|---|
 | Nix | `make bootstrap` (enters `nix develop`) | The flake provides Flutter and Go from its pinned nixpkgs (currently Flutter 3.47.2, matching the BOM, and Go 1.26.7; the BOM's `go` is the CI/Docker pin), Dart, rustup (which installs the BOM Rust version on first entry), CMake, Meson, Ninja, pkg-config and protoc. Xcode always comes from the host. |
 | direnv | `direnv allow` | The same flake as Nix, loaded automatically. |
-| Homebrew | `make bootstrap-macos` (alias `make bootstrap-brew`) | Fallback; source builds need `nix` on `PATH`. Installs the Flutter tag and Rust from `stack-bom.toml` plus the Homebrew packages, and prints the PATH lines to add (pass `WRITE_PROFILE=1` to append them to `~/.zshrc` automatically). |
-| Manual | install the tools yourself | Advanced; source builds need `nix` on `PATH`. `make check-reqs-macos` reports what is missing. |
+| Manual / Homebrew | install the tools yourself (Homebrew for the prebuilt path) | Source builds are not available without Nix. Use `PREBUILTS=1` with the verified dnix prebuilts; Homebrew can install the tooling (Flutter, Rust, Go, CocoaPods, sccache, …). `make check-reqs-macos` reports what is missing. |
 
 `make toolchain` prints the active mode and tool paths.
-`TOOLCHAIN=nix|direnv|brew` forces a check; `host` and `manual` use whatever is on `PATH`; `auto` (the default) detects a Nix/direnv shell and otherwise uses the host tools. Any toolchain can use `PREBUILTS=0` when `nix` is on `PATH`; without it the Makefile defaults to prebuilt mode.
+`TOOLCHAIN=nix|direnv` forces a check; `host` and `manual` use whatever is on `PATH`; `auto` (the default) detects a Nix/direnv shell and otherwise uses the host tools. Any toolchain can use `PREBUILTS=0` when `nix` is on `PATH`; without it the Makefile defaults to prebuilt mode.
 
 `make check-reqs-macos` verifies the result and `make diagnose-env-macos` prints what was found.
 
@@ -103,7 +102,7 @@ Flutter reruns every native-asset build hook when `PATH` or any `NIX_*` variable
 
 ## Toolchain bill of materials
 
-`stack-bom.toml` lists the toolchain a build is expected to use (Flutter, Dart, Rust, Go, Xcode). It is not a Homebrew package manifest: the native dnix libraries are pinned in each plugin's `dnix.lock`, and the plugins themselves are pinned by `pubspec.lock`; the Homebrew packages are in `scripts/install_macos_build_tools.sh`. `make verify-bom` compares the local machine against the BOM and exits with an error on a mismatch (a different recommended Flutter or Xcode version is only a warning). Source builds additionally require the Xcode 27.0 that dnix pins; `build_app.sh` enforces that, while `verify-bom` only warns.
+`stack-bom.toml` lists the toolchain a build is expected to use (Flutter, Dart, Rust, Go, Xcode). It is not a Homebrew package manifest: the native dnix libraries are pinned in each plugin's `dnix.lock`, and the plugins themselves are pinned by `pubspec.lock`. `make verify-bom` compares the local machine against the BOM and exits with an error on a mismatch (a different recommended Flutter or Xcode version is only a warning). Source builds additionally require the Xcode 27.0 that dnix pins; `build_app.sh` enforces that, while `verify-bom` only warns.
 
 ## Optional: sccache for native-asset builds
 
