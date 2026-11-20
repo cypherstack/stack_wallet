@@ -190,8 +190,8 @@ jobs:
           # Use the current latest build_* tag as BUILD_NUM so the valid case is
           # not rejected by the 'BUILD_NUM below latest tag' guard — we are
           # isolating the regex/parse behavior, not the release-tag rule.
-          latest_build_tag="$$(git tag -l 'build_*' --sort=-v:refname 2>/dev/null | sed -n 's/^build_\([0-9][0-9]*\)$$/\1/p' | head -n1)"
-          build_num="$${latest_build_tag:-1}"
+          build_num="$$(git tag -l 'build_*' --sort=-v:refname 2>/dev/null | sed -n 's/^build_\([0-9][0-9]*\)$$/\1/p' | head -n1)"
+          build_num="${build_num:-1}"
           # Valid VERSION/BUILD_NUM must pass the recipe (exit 0), proving the
           # grep anchors are correctly escaped ($$ -> $) and no shell parse error.
           make require-version VERSION=0.0.0 BUILD_NUM="$$build_num" >/dev/null 2>&1 \
