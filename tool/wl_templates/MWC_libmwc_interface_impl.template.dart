@@ -2,6 +2,7 @@
 import 'package:flutter_libmwc/lib.dart' as mimblewimblecoin;
 import 'package:flutter_libmwc/models/transaction.dart'
     as mimblewimblecoin_models;
+import 'package:mutex/mutex.dart';
 
 //END_ON
 import '../interfaces/libmwc_interface.dart';
@@ -17,6 +18,15 @@ LibMwcInterface _getLibMwc() => const _LibMwcInterfaceImpl();
 
 final class _LibMwcInterfaceImpl extends LibMwcInterface {
   const _LibMwcInterfaceImpl();
+
+  static final Mutex _legacyListenerMutex = Mutex();
+  static String? _legacyListenerOwner;
+  static String? _legacyPreferredWallet;
+
+  static Future<dynamic> _awaitMaybeFuture(dynamic value) async {
+    if (value is Future) return await value;
+    return value;
+  }
 
   @override
   Future<String> cancelTransaction({
@@ -261,33 +271,103 @@ final class _LibMwcInterfaceImpl extends LibMwcInterface {
     required String wallet,
     required String mwcmqsConfig,
     bool allowTakeover = false,
-  }) {
-    return mimblewimblecoin.Libmwc.startMwcMqsListener(
-      wallet: wallet,
-      mwcmqsConfig: mwcmqsConfig,
-      allowTakeover: allowTakeover,
-    );
+  }) async {
+    const start = mimblewimblecoin.Libmwc.startMwcMqsListener;
+
+    try {
+      await _awaitMaybeFuture(
+        Function.apply(start, const [], {
+          #wallet: wallet,
+          #mwcmqsConfig: mwcmqsConfig,
+          #allowTakeover: allowTakeover,
+        }),
+      );
+      return;
+    } on NoSuchMethodError {
+      // The currently published plugin has no ownership-aware listener API.
+    }
+
+    await _legacyListenerMutex.protect(() async {
+      if (allowTakeover) _legacyPreferredWallet = wallet;
+      if (!allowTakeover &&
+          _legacyPreferredWallet != null &&
+          _legacyPreferredWallet != wallet) {
+        return;
+      }
+      if (_legacyListenerOwner == wallet) return;
+      if (_legacyListenerOwner != null && !allowTakeover) return;
+
+      // Clean up either the previous owner or a listener left alive across a
+      // hot reload before replacing the plugin's process-global pointer.
+      await _awaitMaybeFuture(
+        Function.apply(mimblewimblecoin.Libmwc.stopMwcMqsListener, const []),
+      );
+      _legacyListenerOwner = null;
+
+      await _awaitMaybeFuture(
+        Function.apply(start, const [], {
+          #wallet: wallet,
+          #mwcmqsConfig: mwcmqsConfig,
+        }),
+      );
+      _legacyListenerOwner = wallet;
+    });
   }
 
   @override
   Future<bool> stopMwcMqsListener({
     required String wallet,
     bool releasePreference = false,
-  }) {
-    return mimblewimblecoin.Libmwc.stopMwcMqsListener(
-      wallet: wallet,
-      releasePreference: releasePreference,
-    );
+  }) async {
+    const stop = mimblewimblecoin.Libmwc.stopMwcMqsListener;
+
+    try {
+      final result = await _awaitMaybeFuture(
+        Function.apply(stop, const [], {
+          #wallet: wallet,
+          #releasePreference: releasePreference,
+        }),
+      );
+      return result as bool;
+    } on NoSuchMethodError {
+      // Fall through to the ownership guard for the legacy no-argument API.
+    }
+
+    return _legacyListenerMutex.protect(() async {
+      if (releasePreference && _legacyPreferredWallet == wallet) {
+        _legacyPreferredWallet = null;
+      }
+      if (_legacyListenerOwner != wallet) return false;
+
+      await _awaitMaybeFuture(Function.apply(stop, const []));
+      _legacyListenerOwner = null;
+      return true;
+    });
   }
 
   @override
   Future<({String commitId, bool posted, String slateId})> txFinalize({
     required String wallet,
     required String slateJson,
-  }) {
-    return mimblewimblecoin.Libmwc.txFinalize(
+  }) async {
+    final dynamic finalized = await mimblewimblecoin.Libmwc.txFinalize(
       wallet: wallet,
       slateJson: slateJson,
+    );
+
+    // Published revisions throw on finalize failure and have no explicit
+    // broadcast field. Prefer the field when a newer plugin provides it.
+    var posted = true;
+    try {
+      posted = finalized.posted as bool;
+    } on NoSuchMethodError {
+      // Keep the legacy success contract.
+    }
+
+    return (
+      commitId: finalized.commitId as String,
+      posted: posted,
+      slateId: finalized.slateId as String,
     );
   }
 

@@ -41,8 +41,27 @@ final class _LibEpicCashInterfaceImpl extends LibEpicCashInterface {
   @override
   Future<({String slateId, String commitId, String slateJson, bool posted})>
   txFinalize({required DynamicObject wallet, required String slateJson}) async {
-    return (await wallet.get<EpicWallet>().txFinalize(slateJson: slateJson))
-        .toFinalizeRecord();
+    final dynamic finalized = await wallet.get<EpicWallet>().txFinalize(
+      slateJson: slateJson,
+    );
+
+    // Older published plugin revisions predate the explicit broadcast status.
+    // They throw when finalization fails, so a returned result retains the
+    // legacy meaning of a successfully posted transaction. Newer revisions
+    // expose `posted` and are handled without changing this adapter again.
+    var posted = true;
+    try {
+      posted = finalized.posted as bool;
+    } on NoSuchMethodError {
+      // Keep the legacy success contract.
+    }
+
+    return (
+      slateId: finalized.slateId as String,
+      commitId: finalized.commitId as String,
+      slateJson: finalized.slateJson as String,
+      posted: posted,
+    );
   }
 
   @override
