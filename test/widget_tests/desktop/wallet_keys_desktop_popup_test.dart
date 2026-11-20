@@ -2,6 +2,7 @@ import "package:flutter/material.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:stackwallet/models/isar/stack_theme.dart";
+import "package:stackwallet/models/keys/wallet_recovery_material.dart";
 import "package:stackwallet/pages/wallet_view/transaction_views/transaction_details_view.dart"
     show IconCopyButton;
 import "package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/wallet_keys_desktop_popup.dart";
@@ -28,13 +29,14 @@ void main() {
           ),
           home: const Scaffold(
             body: WalletKeysDesktopPopup(
-              words: [],
-              walletId: "wallet",
-              frostData: (
-                myName: "name",
-                keys: "current-keys",
-                config: "current-config",
-                prevGen: (keys: "previous-keys", config: "previous-config"),
+              recoveryMaterial: FrostWalletRecoveryMaterial(
+                walletId: "wallet",
+                data: (
+                  myName: "name",
+                  keys: "current-keys",
+                  config: "current-config",
+                  prevGen: (keys: "previous-keys", config: "previous-config"),
+                ),
               ),
             ),
           ),
