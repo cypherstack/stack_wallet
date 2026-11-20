@@ -6,8 +6,8 @@ Flutter **3.47.2**. Follow the guide for the computer you build on:
 | Your computer | What it builds | Guide |
 |---|---|---|
 | Linux (Ubuntu 24.04, x86_64) | Linux desktop, Android | [Building on Linux](building/linux.md) |
-| Mac with Apple Silicon | macOS, iOS | [Building on macOS](building/macos.md) |
-| Windows | Windows desktop | [Building on Windows](building/windows.md) |
+| Mac with Apple Silicon | macOS, iOS, Android | [Building on macOS](building/macos.md) |
+| Windows | Windows desktop, Android | [Building on Windows](building/windows.md) |
 
 Allow at least 100 GB of free disk space. Source builds fill a Nix store as
 well as Flutter and native compiler caches.

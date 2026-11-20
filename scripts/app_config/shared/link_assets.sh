@@ -2,13 +2,12 @@
 
 set -x -e
 
-if [ $# -ne 2 ]; then
-    echo "Usage: $0 <theme specific assets dir name (ex. stack_wallet)> <platform (ex. windows)>"
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 <theme specific assets dir name (ex. stack_wallet)>"
     exit 1
 fi
 
 SELECT_ASSETS_DIR=$1
-APP_BUILD_PLATFORM=$2
 
 # declare full paths
 ASSET_SOURCES_DIR="${APP_PROJECT_ROOT_DIR}/asset_sources"
@@ -22,7 +21,9 @@ for dirname in "default_themes" "icon" "lottie" "in_app_logo_icons" "svg"; do
 
   rm -f "${ASSETS_DIR}/${dirname}"
 
-  if [[ "${APP_BUILD_PLATFORM}" = 'windows' ]]; then
+  # Decide by host: Git Bash's ln -s copies directories by default, and the
+  # rm -f above can't remove a copied directory on the next run.
+  if [[ "$(uname -s)" =~ ^(MINGW|MSYS) ]]; then
     LINK_SOURCE_DIR_WIN_PATH_VERSION=$(cygpath -w "${LINK_SOURCE_DIR}")
     LINK_NAME_WIN_PATH_VERSION=$(cygpath -w "${ASSETS_DIR}")
     # Keep CMD switches out of Git Bash's path conversion; paths are native above.

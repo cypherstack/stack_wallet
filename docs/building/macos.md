@@ -1,7 +1,7 @@
 # Building on macOS
 
-These steps build the macOS and iOS apps on a Mac with Apple Silicon. For how
-the build fits together, see the [overview](../building.md).
+These steps build the macOS, iOS and Android apps on a Mac with Apple Silicon.
+For how the build fits together, see the [overview](../building.md).
 
 ## Prerequisites
 
@@ -9,11 +9,12 @@ the build fits together, see the [overview](../building.md).
 |---|---|
 | [Flutter](https://docs.flutter.dev/install/manual) 3.47.2 | Every build |
 | Your usual Xcode | Building the app, in both modes |
-| Xcode **27.0**, release build **27A266a**, installed next to your usual Xcode | Source mode, the default: dnix builds its four packages with it, including during `flutter test`. It doesn't need to be selected; see [Install Xcode 27.0](#install-xcode-270) |
+| Xcode **27.0**, release build **27A266a**, installed next to your usual Xcode | Source mode, the default, for macOS and iOS builds and for `flutter test`: dnix builds its four packages with it. It doesn't need to be selected; see [Install Xcode 27.0](#install-xcode-270) |
 | [Homebrew](https://brew.sh/) packages below | Every build |
 | [Rustup](https://rustup.rs/) | Every app, in both modes |
 | [Go](https://go.dev/doc/install) 1.24.1 or newer | Stack Wallet |
 | [Nix](https://nixos.org/download/) | Source mode, the default; not needed with `-d` |
+| The [Android tools](#android-tools) below | Android builds |
 
 ```sh
 brew install autoconf automake libtool cmake cocoapods pkg-config
@@ -24,9 +25,17 @@ Check `nix --version` from the same environment that runs Flutter, and use
 also need your usual signing configuration. The app's deployment targets are
 macOS 12.0 and iOS 15.0.
 
+### Android tools
+
+Install [Android Studio](https://developer.android.com/studio/install#mac)
+with its SDK command-line tools, platform tools, CMake, and the SDK platform
+Flutter requires. The app pins NDK **28.2.13676358** in its Android template;
+install it through SDK Manager. Then run `flutter doctor --android-licenses`
+and `flutter doctor`. The app supports Android API 24 and newer.
+
 ## Install Xcode 27.0
 
-dnix's source builds of its four packages need exactly Xcode 27.0, release
+dnix's macOS and iOS source builds of its four packages need exactly Xcode 27.0, release
 build 27A266a; a different version can produce different hashes. The rest of
 the app builds with whichever Xcode you normally use. Install 27.0 under `/Applications` with a
 name matching `Xcode*.app`, next to your existing Xcode. dnix finds it there,
@@ -114,6 +123,10 @@ Run the configuration and Flutter build commands in that shell.
    ```
 
    For iOS, configure with `-p ios` and build with `flutter build ios --release`.
+   For Android, configure with `-p android` and build with
+   `flutter build apk --release`. Android release builds need
+   `android/key.properties` pointing at your keystore, with `keyAlias`,
+   `keyPassword`, `storeFile` and `storePassword`.
 
 Use the version and build number for your checkout, and read the script's
 confirmation before continuing. Add `-d` to the configuration command to use
