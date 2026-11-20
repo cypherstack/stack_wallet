@@ -24,12 +24,12 @@ dependencies:
     git:
       url: ssh://git@git.cypherstack.com:222/sneurlax/zcash.git
       path: packages/zcash
-      ref: 05aea618f238e352414c3bb45ab097ce7c288114
+      ref: 847456fc6eb2c4f8943f21a141fee64faaf50e17
   zcash_flutter:
     git:
       url: ssh://git@git.cypherstack.com:222/sneurlax/zcash.git
       path: packages/zcash_flutter
-      ref: 05aea618f238e352414c3bb45ab097ce7c288114
+      ref: 847456fc6eb2c4f8943f21a141fee64faaf50e17
   ffi: ^2.0.1
   platform: ^3.1.6
   mutex: ^3.0.0
@@ -334,7 +334,7 @@ dependency_overrides:
     git:
       url: ssh://git@git.cypherstack.com:222/sneurlax/zcash.git
       path: packages/zcash
-      ref: 05aea618f238e352414c3bb45ab097ce7c288114
+      ref: 847456fc6eb2c4f8943f21a141fee64faaf50e17
 
   # required for: native_toolchain_rust >=1.0.3 depends on toml ^0.18.0
   # stellar sdk package needs to get 0.18.0 to remove this override

@@ -11,6 +11,7 @@ import 'package:zcash_flutter/zcash_flutter.dart' as zcash;
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/paymint/fee_object_model.dart';
+import '../../../services/zcash_sapling_parameter_service.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/stack_file_system.dart';
 import '../../crypto_currency/crypto_currency.dart';
@@ -30,6 +31,8 @@ import '../wallet_mixin_interfaces/recoverable_prepared_send_interface.dart';
 typedef ZcashAccountSessionFactory = ZcashAccountSession Function(
   CryptoCurrencyNetwork network,
 );
+typedef ZcashSaplingParameterResolver =
+    Future<zcash.SaplingProvingParameters> Function();
 
 class ZcashWallet extends Bip39Wallet<Zcash>
     implements RecoverablePreparedSendWallet {
@@ -46,6 +49,8 @@ class ZcashWallet extends Bip39Wallet<Zcash>
   ZcashScanExecutor? _scanExecutor;
   ZcashWalletSendService _sendService =
       const ZcashProductionWalletSendService();
+  ZcashSaplingParameterResolver _saplingParameterResolver = () =>
+      ZcashSaplingParameterService.instance.resolve().result;
   ZcashZip318MigrationService _zip318MigrationService =
       ZcashProductionZip318MigrationService();
   static final _zip318BroadcastSession = zcash.Zip318BroadcastSession();
@@ -84,6 +89,17 @@ class ZcashWallet extends Bip39Wallet<Zcash>
       throw StateError('The Zcash send service is already in use');
     }
     _sendService = service;
+  }
+
+  void configureSaplingParameterResolver(
+    ZcashSaplingParameterResolver resolver,
+  ) {
+    if (_stateController != null || _preparedSend != null) {
+      throw StateError(
+        'The Zcash Sapling parameter resolver is already in use',
+      );
+    }
+    _saplingParameterResolver = resolver;
   }
 
   void configureZip318MigrationService(ZcashZip318MigrationService service) {
@@ -349,7 +365,6 @@ class ZcashWallet extends Bip39Wallet<Zcash>
         await getMnemonic(),
         passphrase: await getMnemonicPassphrase(),
       );
-      final root = await StackFileSystem.applicationRootDirectory();
       await _releaseCurrentPrepared();
       final pending = await pendingStore.load();
       final prepared = await _sendService.prepare(
@@ -376,21 +391,20 @@ class ZcashWallet extends Bip39Wallet<Zcash>
           ],
           targetHeight: snapshot.chainHeight + 1,
           expiryHeight: snapshot.chainHeight + 41,
-          resolveSaplingProvingParameters: () {
+          resolveSaplingProvingParameters: () async {
             final spend = _regtestSaplingSpendParams;
             final output = _regtestSaplingOutputParams;
+            if (spend == null || output == null) {
+              return _saplingParameterResolver();
+            }
             return zcash.SaplingProvingParameterCache(
-              cacheRoot: Directory(
-                path.join(root.path, 'zcash', 'sapling-params'),
-              ),
+              cacheRoot: await StackFileSystem.saplingParameterCacheRoot(),
             ).resolve(
-              source: spend == null || output == null
-                  ? null
-                  : zcash.FileSaplingParameterSource(
-                      manifest: zcash.officialSaplingParameterManifestV1,
-                      spendFile: File(spend),
-                      outputFile: File(output),
-                    ),
+              source: zcash.FileSaplingParameterSource(
+                manifest: zcash.officialSaplingParameterManifestV1,
+                spendFile: File(spend),
+                outputFile: File(output),
+              ),
             );
           },
           regtestNu63ActivationHeight: _regtestNu63ActivationHeight,

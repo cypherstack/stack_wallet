@@ -2760,8 +2760,8 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/zcash"
-      ref: "05aea618f238e352414c3bb45ab097ce7c288114"
-      resolved-ref: "05aea618f238e352414c3bb45ab097ce7c288114"
+      ref: "847456fc6eb2c4f8943f21a141fee64faaf50e17"
+      resolved-ref: "847456fc6eb2c4f8943f21a141fee64faaf50e17"
       url: "ssh://git@git.cypherstack.com:222/sneurlax/zcash.git"
     source: git
     version: "0.0.8"
@@ -2769,8 +2769,8 @@ packages:
     dependency: "direct main"
     description:
       path: "packages/zcash_flutter"
-      ref: "05aea618f238e352414c3bb45ab097ce7c288114"
-      resolved-ref: "05aea618f238e352414c3bb45ab097ce7c288114"
+      ref: "847456fc6eb2c4f8943f21a141fee64faaf50e17"
+      resolved-ref: "847456fc6eb2c4f8943f21a141fee64faaf50e17"
       url: "ssh://git@git.cypherstack.com:222/sneurlax/zcash.git"
     source: git
     version: "0.0.3"

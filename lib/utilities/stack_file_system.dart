@@ -10,6 +10,7 @@
 
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 
@@ -18,6 +19,8 @@ import 'prefs.dart';
 import 'util.dart';
 
 abstract class StackFileSystem {
+  static const _filePolicyChannel = MethodChannel('STACK_WALLET_FILE_POLICY');
+
   static String? _overrideDesktopDirPath;
   static bool _overrideDirSet = false;
   static void setDesktopOverrideDir(String dirPath) {
@@ -84,6 +87,40 @@ abstract class StackFileSystem {
       await appDirectory.create(recursive: true);
     }
     return appDirectory;
+  }
+
+  /// Persistent application-private storage for the public, reproducible
+  /// Sapling proving parameters.
+  ///
+  /// iOS owns this path so it can apply the platform backup-exclusion
+  /// resource value. Other platforms already keep Stack's application root
+  /// private; Android additionally disables application backup in its
+  /// manifest.
+  static Future<Directory> saplingParameterCacheRoot() async {
+    if (Platform.isIOS) {
+      final directoryPath = await _filePolicyChannel.invokeMethod<String>(
+        'saplingParameterCacheRoot',
+      );
+      if (directoryPath == null || directoryPath.isEmpty) {
+        throw StateError('Sapling parameter storage is unavailable');
+      }
+      return Directory(directoryPath);
+    }
+    final root = await applicationRootDirectory();
+    final directory = Directory(
+      path.join(root.path, 'zcash', 'proving-parameters'),
+    );
+    await directory.create(recursive: true);
+    return directory;
+  }
+
+  /// Reasserts iOS backup exclusion after atomic directory replacement.
+  static Future<void> excludeSaplingParametersFromBackup() async {
+    if (Platform.isIOS) {
+      await _filePolicyChannel.invokeMethod<void>(
+        'excludeSaplingParametersFromBackup',
+      );
+    }
   }
 
   static Future<Directory> applicationIsarDirectory() async {

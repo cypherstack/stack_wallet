@@ -11,6 +11,7 @@ import 'package:stackwallet/db/isar/main_db.dart';
 import 'package:stackwallet/models/isar/models/blockchain_data/address.dart';
 import 'package:stackwallet/models/node_model.dart';
 import 'package:stackwallet/services/node_service.dart';
+import 'package:stackwallet/services/zcash_sapling_parameter_service.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
@@ -255,6 +256,31 @@ final class RecordingSendService implements ZcashWalletSendService {
     await persist();
     await submit(prepared.transactionHex);
   }
+}
+
+final class ParameterResolvingSendService implements ZcashWalletSendService {
+  @override
+  Future<ZcashPreparedWalletSend> prepare(
+    ZcashSendPreparationRequest request,
+  ) async {
+    await request.resolveSaplingProvingParameters();
+    return FixturePreparedSend(
+      sessionGeneration: request.sessionGeneration,
+      requestedAddress: request.recipient,
+    );
+  }
+
+  @override
+  Future<void> broadcast({
+    required ZcashPreparedWalletSend prepared,
+    required zcash.IronwoodPendingSendState pendingSends,
+    required int chainHeight,
+    required Future<void> Function() persist,
+    required Future<ZcashSubmissionAcknowledgement> Function(
+      String transactionHex,
+    )
+    submit,
+  }) => throw StateError('parameter fixture must not reach broadcast');
 }
 
 final class RecordingZip318Service implements ZcashZip318MigrationService {
@@ -585,6 +611,38 @@ void main() {
     ]);
     await wallet.exit();
   });
+
+  test(
+    'wallet surfaces the cached-only Sapling parameter requirement',
+    () async {
+      final wallet = await _wallet(
+        SendClient(),
+        ParameterResolvingSendService(),
+        'sapling-parameters-required',
+        saplingParameterResolver: () async {
+          throw const ZcashSaplingParametersRequired();
+        },
+      );
+      final address = (await wallet.getCurrentReceivingAddress())!.value;
+
+      await expectLater(
+        wallet.prepareSend(
+          txData: TxData(
+            recipients: [
+              TxRecipient(
+                address: address,
+                amount: Amount(rawValue: BigInt.from(40000), fractionDigits: 8),
+                isChange: false,
+                addressType: AddressType.zcashUnified,
+              ),
+            ],
+          ),
+        ),
+        throwsA(isA<ZcashSaplingParametersRequired>()),
+      );
+      await wallet.exit();
+    },
+  );
 
   test(
     'recovery refreshes chain state before filtering reservations',
@@ -1657,12 +1715,13 @@ _prepareMultiIronwoodPayment() async {
 
 Future<ZcashWallet> _wallet(
   SendClient client,
-  RecordingSendService service,
+  ZcashWalletSendService service,
   String id, {
   CryptoCurrencyNetwork network = CryptoCurrencyNetwork.main,
   ZcashZip318MigrationService? migrationService,
   SecureStorageInterface? secureStorage,
   int restoreHeight = 43,
+  ZcashSaplingParameterResolver? saplingParameterResolver,
 }) async {
   final currency = Zcash(network);
   final wallet = await Wallet.create(
@@ -1687,6 +1746,9 @@ Future<ZcashWallet> _wallet(
         ZcashAccountSession(network: network, clientFactory: (_) => client),
   );
   wallet.configureSendService(service);
+  if (saplingParameterResolver != null) {
+    wallet.configureSaplingParameterResolver(saplingParameterResolver);
+  }
   if (migrationService != null) {
     wallet.configureZip318MigrationService(migrationService);
   }
