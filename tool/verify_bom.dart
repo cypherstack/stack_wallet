@@ -2,7 +2,7 @@
 // stack-bom.toml.
 //
 //   dart tool/verify_bom.dart            check, exit 1 on a mismatch
-//   dart tool/verify_bom.dart --update   rewrite the [plugins] section from pubspec.lock
+//   dart tool/verify_bom.dart --update   refresh an existing [plugins] section from pubspec.lock
 //
 // No packages needed, so it runs before `flutter pub get`.
 import 'dart:convert';
@@ -189,6 +189,13 @@ void _requireSinglePluginsSection(String text) {
 }
 
 Future<void> _update() async {
+  if ((_readBom(File(_bomFile).readAsStringSync())['plugins'] ?? {}).isEmpty) {
+    stderr.writeln(
+      'Plugin pins are not stored in $_bomFile; pubspec.lock pins them. '
+      'Run flutter pub get instead.',
+    );
+    exit(2);
+  }
   final refs = _lockRefs();
   if (refs.isEmpty) {
     stderr.writeln('pubspec.lock not found or has none of the plugins.');
@@ -197,6 +204,12 @@ Future<void> _update() async {
   final text = File(_bomFile).readAsStringSync();
   _requireSinglePluginsSection(text);
   final existing = _readBom(text)['plugins'] ?? {};
+  // Plugin pins live in pubspec.lock now. Refresh an existing table for older
+  // branches, but never create one in a BOM that does not carry it.
+  if (existing.isEmpty && !RegExp(r'\[plugins\]').hasMatch(text)) {
+    stdout.writeln('No [plugins] table in $_bomFile; nothing to update.');
+    return;
+  }
   final declared = _declaredPlugins();
   // Without a pubspec.yaml we cannot tell which app is configured; keep the
   // old behaviour and update every plugin the lock knows about.
@@ -263,6 +276,9 @@ Never _finish() {
 void _checkPlugins(Map<String, Map<String, String>> bom) {
   final refs = _lockRefs();
   final pinned = bom['plugins'] ?? {};
+  // Plugin pins are no longer stored in the BOM; pubspec.lock is the source of
+  // truth. Keep the parser for older branches that still carry a [plugins] table.
+  if (pinned.isEmpty) return;
   final declared = _declaredPlugins();
   final pubspecExists = File('pubspec.yaml').existsSync();
   // A fresh checkout has no pubspec.yaml: build_app.sh generates it later.
@@ -402,7 +418,7 @@ Future<void> main(List<String> args) async {
   final go = await _run('go', ['version']);
   final gm = go == null ? null : RegExp(r'go(\d+\.\d+(\.\d+)?)').firstMatch(go);
   if (gm == null) {
-    _fail('go not found in PATH');
+    _warn('go not found in PATH; only apps that build Go components need it');
   } else if (_cmp(gm.group(1)!, tc['go_min'] ?? '0') < 0) {
     _fail('Go ${gm.group(1)} is older than the minimum ${tc['go_min']}');
   } else {
