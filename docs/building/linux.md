@@ -110,7 +110,40 @@ then checks every ELF in the bundle and fails if any still requests an
 executable stack. Other libraries are not patched automatically. CI runs this
 before producing the Linux tarball, so downstream packagers get the prepared
 bundle. Its regression tests are described in
-[Testing the build setup](testing.md#linux-release-bundle-tests).
+[Testing the build setup](testing.md#linux-release-packaging-tests).
+
+## Build an AppImage
+
+Install the AppImage assembly and metadata validation tools, then package the
+prepared release bundle:
+
+```sh
+sudo apt-get install appstream binutils curl desktop-file-utils squashfs-tools
+export VERSION=1.2.3
+appimage/build_appimage.sh stack_wallet \
+  build/linux/x64/release/bundle stack_wallet.AppImage
+```
+
+The builder deliberately uses a pinned, checksum-verified static Type 2 runtime
+so the resulting gzip-compressed AppImage runs on current Linux distributions
+without the obsolete `libfuse2` package. The tradeoff is that AppImageLauncher
+2.2 cannot launch static-runtime AppImages. Desktop integration requires the
+AppImageLauncher 3 beta (currently 3.0.0-beta-3) or a later compatible release.
+On systems where FUSE mounting is unavailable, run the AppImage directly with
+`APPIMAGE_EXTRACT_AND_RUN=1`. Replace `stack_wallet` with `stack_duo` or
+`campfire` for the other applications.
+
+### Linux icon behavior
+
+On X11, the application sets one 256 px window icon: the icon the installed
+icon theme has for the application ID, or the Flutter asset when the theme has
+none. It never passes a larger image, because GTK drops a 512 px icon, and
+every icon listed after it, from the X11 window property. On Wayland, GTK 3
+applications cannot set their own window icon; the desktop shell resolves it
+through the matching installed `.desktop` entry instead. Consequently, an
+unpacked tarball or an AppImage launched without desktop integration may show a
+generic Wayland icon. Installing or integrating the desktop entry supplies the
+application icon.
 
 ## Troubleshooting
 

@@ -1,6 +1,9 @@
 #include "my_application.h"
 
 #include <flutter_linux/flutter_linux.h>
+#ifdef GDK_WINDOWING_X11
+#include <gdk/gdkx.h>
+#endif
 
 #include "flutter/generated_plugin_registrant.h"
 
@@ -15,6 +18,45 @@ G_DEFINE_TYPE(MyApplication, my_application, GTK_TYPE_APPLICATION)
 static void first_frame_cb(MyApplication* self, FlView *view)
 {
     gtk_widget_show(gtk_widget_get_toplevel(GTK_WIDGET(view)));
+}
+
+// X11 window icon. GDK publishes icons in list order and stops at the first one
+// that does not fit in the 262144-word window property, so a 512 px icon is
+// dropped along with every icon after it, and gtk_window_set_icon_name() can
+// leave the window with no icon at all when the theme has a 512 px icon. Set
+// one 256 px image instead: the themed icon when the theme has one for
+// APPLICATION_ID, otherwise the icon in the Flutter assets. Wayland ignores
+// window icons and uses the .desktop file matching APPLICATION_ID.
+static void set_window_icon(GtkWindow* window, FlDartProject* project) {
+#ifdef GDK_WINDOWING_X11
+  const gint icon_size = 256;
+  GdkDisplay* display = gtk_widget_get_display(GTK_WIDGET(window));
+  if (!GDK_IS_X11_DISPLAY(display)) {
+    return;
+  }
+
+  GtkIconTheme* theme =
+      gtk_icon_theme_get_for_screen(gtk_window_get_screen(window));
+  g_autoptr(GdkPixbuf) icon = gtk_icon_theme_load_icon(
+      theme, APPLICATION_ID, icon_size, GTK_ICON_LOOKUP_FORCE_SIZE, nullptr);
+  if (icon == nullptr) {
+    g_autofree gchar* path =
+        g_build_filename(fl_dart_project_get_assets_path(project), "assets",
+                         "icon", "icon.png", nullptr);
+    g_autoptr(GError) error = nullptr;
+    icon = gdk_pixbuf_new_from_file_at_scale(path, icon_size, icon_size, TRUE,
+                                             &error);
+    if (icon == nullptr) {
+      g_warning("No window icon: %s",
+                error != nullptr ? error->message : "unknown image error");
+      return;
+    }
+  }
+  gtk_window_set_icon(window, icon);
+#else
+  (void)window;
+  (void)project;
+#endif
 }
 
 // Implements GApplication::activate.
@@ -37,11 +79,12 @@ static void my_application_activate(GApplication* application) {
     gtk_window_set_title(window, "PlaceHolderName");
   }
 
-  gtk_window_set_default_size(window, 1220, 500);
-  gtk_widget_show(GTK_WIDGET(window));
-
   g_autoptr(FlDartProject) project = fl_dart_project_new();
   fl_dart_project_set_dart_entrypoint_arguments(project, self->dart_entrypoint_arguments);
+
+  set_window_icon(window, project);
+  gtk_window_set_default_size(window, 1220, 500);
+  gtk_widget_show(GTK_WIDGET(window));
 
   FlView* view = fl_view_new(project);
   GdkRGBA background_color;

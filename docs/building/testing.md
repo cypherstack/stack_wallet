@@ -19,11 +19,19 @@ secp256k1 build helper. A small Windows CI job runs the PowerShell prebuild
 regression tests. Actual native Windows-to-WSL builds are tested in dnix's CI;
 these app tests don't run WSL.
 
-## Linux release bundle tests
+## Linux release packaging tests
 
-These are standalone regression tests for the
-[release bundle helper](linux.md#prepare-a-release-bundle). They also need a C
-compiler:
+These standalone regression tests cover the
+[release bundle helper](linux.md#prepare-a-release-bundle) and AppImage
+assembly, including metadata, checksum failures and gzip compression. Install
+their native tools first:
+
+```sh
+sudo apt-get install appstream binutils build-essential desktop-file-utils \
+  patchelf python3 squashfs-tools
+```
+
+Then run:
 
 ```sh
 python3 -m unittest discover -s scripts/linux/tests -p 'test_*.py' -v
