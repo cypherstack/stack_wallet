@@ -72,7 +72,6 @@ import 'pages/churning/churning_progress_view.dart';
 import 'pages/churning/churning_view.dart';
 import 'pages/coin_control/coin_control_view.dart';
 import 'pages/coin_control/utxo_details_view.dart';
-import 'pages/epic_finalize_view/epic_finalize_view.dart';
 import 'pages/exchange_view/choose_address_from_stack_view.dart';
 import 'pages/exchange_view/edit_trade_note_view.dart';
 import 'pages/exchange_view/exchange_step_views/step_1_view.dart';
@@ -82,7 +81,6 @@ import 'pages/exchange_view/exchange_step_views/step_4_view.dart';
 import 'pages/exchange_view/send_from_view.dart';
 import 'pages/exchange_view/trade_details_view.dart';
 import 'pages/exchange_view/wallet_initiated_exchange_view.dart';
-import 'pages/finalize_view/finalize_view.dart';
 import 'pages/generic/single_field_edit_view.dart';
 import 'pages/home_view/home_view.dart';
 import 'pages/intro_view.dart';
@@ -114,6 +112,7 @@ import 'pages/salvium_stake/salvium_create_stake_view.dart';
 import 'pages/send_view/confirm_transaction_view.dart';
 import 'pages/send_view/frost_ms/frost_send_view.dart';
 import 'pages/send_view/send_view.dart';
+import 'pages/slatepack/slatepack_view.dart';
 import 'pages/send_view/sol_token_send_view.dart';
 import 'pages/send_view/token_send_view.dart';
 import 'pages/settings_views/global_settings_view/about_view.dart';
@@ -2071,21 +2070,11 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
-      case FinalizeView.routeName:
+      case SlatepackView.routeName:
         if (args is String) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => FinalizeView(walletId: args),
-            settings: RouteSettings(name: settings.name),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case EpicFinalizeView.routeName:
-        if (args is String) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => EpicFinalizeView(walletId: args),
+            builder: (_) => SlatepackView(walletId: args),
             settings: RouteSettings(name: settings.name),
           );
         }

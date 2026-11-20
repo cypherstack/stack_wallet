@@ -1,0 +1,178 @@
+import '../utilities/amount/amount.dart';
+
+/// Where a slate is in its round trip. S is a standard send, I an invoice.
+enum SlateState {
+  s1("S1"),
+  s2("S2"),
+  s3("S3"),
+  i1("I1"),
+  i2("I2"),
+  i3("I3"),
+  unknown("Unknown");
+
+  const SlateState(this.code);
+
+  /// "S1", "I2" and so on, as libwallet names them.
+  final String code;
+
+  bool get isInvoice => this == i1 || this == i2 || this == i3;
+
+  static SlateState fromCode(String? code) {
+    final upper = code?.trim().toUpperCase();
+    return values.firstWhere((e) => e.code == upper, orElse: () => unknown);
+  }
+}
+
+/// What a wallet can tell about a slatepack without acting on it.
+class SlateInspection {
+  const SlateInspection({
+    required this.state,
+    required this.slateId,
+    this.slateJson,
+    this.amount,
+    this.fee,
+    this.senderAddress,
+    this.recipientAddress,
+    this.isEncrypted = false,
+    this.ttlCutoffHeight,
+  });
+
+  final SlateState state;
+  final String slateId;
+
+  /// Decoded slate passed to receive/finalize so an armored Slatepack is not
+  /// decoded over FFI a second time.
+  final String? slateJson;
+
+  /// Null when the slate does not carry it. Grin's S2 and I2 decode with 0;
+  /// look the amount up with localTxForSlate instead.
+  final Amount? amount;
+  final Amount? fee;
+  final String? senderAddress;
+  final String? recipientAddress;
+  final bool isEncrypted;
+  final int? ttlCutoffHeight;
+
+  @override
+  String toString() {
+    return "SlateInspection("
+        "state: ${state.code}, "
+        "slateId: $slateId, "
+        "amount: $amount, "
+        "fee: $fee, "
+        "senderAddress: $senderAddress, "
+        "recipientAddress: $recipientAddress, "
+        "isEncrypted: $isEncrypted, "
+        "ttlCutoffHeight: $ttlCutoffHeight"
+        ")";
+  }
+}
+
+class SlatepackResult {
+  final bool success;
+  final String? error;
+  final String? slatepack;
+  final String? slateJson;
+  final bool? wasEncrypted;
+  final String? recipientAddress;
+  final SlateState state;
+  final String? slateId;
+  final Amount? amount;
+  final Amount? fee;
+
+  SlatepackResult({
+    required this.success,
+    this.error,
+    this.slatepack,
+    this.slateJson,
+    this.wasEncrypted,
+    this.recipientAddress,
+    this.state = SlateState.unknown,
+    this.slateId,
+    this.amount,
+    this.fee,
+  });
+
+  @override
+  String toString() {
+    return "SlatepackResult("
+        "success: $success, "
+        "error: $error, "
+        "slatepack: $slatepack, "
+        "slateJson: $slateJson, "
+        "wasEncrypted: $wasEncrypted, "
+        "recipientAddress: $recipientAddress, "
+        "state: ${state.code}, "
+        "slateId: $slateId, "
+        "amount: $amount, "
+        "fee: $fee"
+        ")";
+  }
+}
+
+enum SlatepackDecodeFailure { invalidInput, walletUnavailable }
+
+class SlatepackDecodeResult {
+  final bool success;
+  final String? slateJson;
+  final bool? wasEncrypted;
+  final String? senderAddress;
+  final String? recipientAddress;
+  final SlatepackDecodeFailure? failure;
+
+  SlatepackDecodeResult({
+    required this.success,
+    this.slateJson,
+    this.wasEncrypted,
+    this.senderAddress,
+    this.recipientAddress,
+    this.failure,
+  });
+
+  @override
+  String toString() {
+    return "SlatepackDecodeResult("
+        "success: $success, "
+        "slateJson: $slateJson, "
+        "wasEncrypted: $wasEncrypted, "
+        "senderAddress: $senderAddress, "
+        "recipientAddress: $recipientAddress, "
+        "failure: $failure"
+        ")";
+  }
+}
+
+class FinalizeResult {
+  final bool success;
+  final String? error;
+  final String? slateId;
+  final String? commitId;
+
+  /// Whether the finalized transaction reached the node. Null means the
+  /// installed native plugin predates explicit broadcast status reporting.
+  final bool? posted;
+
+  /// Null for Epic Cash and MWC.
+  final String? kernelExcess;
+
+  FinalizeResult({
+    required this.success,
+    this.error,
+    this.slateId,
+    this.commitId,
+    this.posted,
+    this.kernelExcess,
+  });
+
+  @override
+  String toString() {
+    return "FinalizeResult("
+        "success: $success, "
+        "error: $error, "
+        "slateId: $slateId, "
+        "commitId: $commitId, "
+        "posted: $posted, "
+        "kernelExcess: $kernelExcess"
+        ")";
+  }
+}

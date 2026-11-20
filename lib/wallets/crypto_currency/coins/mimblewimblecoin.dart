@@ -2,7 +2,8 @@ import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/node_model.dart';
 import '../../../utilities/default_nodes.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
-import '../../../utilities/enums/mwc_transaction_method.dart';
+import '../../../utilities/enums/slatepack_method.dart';
+import '../../../utilities/slatepack_text.dart';
 import '../../../wl_gen/interfaces/libmwc_interface.dart';
 import '../crypto_currency.dart';
 import '../intermediate/bip39_currency.dart';
@@ -57,13 +58,7 @@ class Mimblewimblecoin extends Bip39Currency {
   }
 
   /// Check if data is a slatepack.
-  bool isSlatepack(String data) {
-    return data.trim().startsWith('BEGINSLATE') &&
-        (data.trim().endsWith('ENDSLATEPACK') ||
-            data.trim().endsWith('ENDSLATEPACK.') ||
-            data.trim().endsWith('ENDSLATE_BIN') ||
-            data.trim().endsWith('ENDSLATE_BIN.'));
-  }
+  bool isSlatepack(String data) => SlatepackText.isArmored(data);
 
   /// Check if address is MWCMQS format.
   bool isMwcmqsAddress(String address) {
@@ -71,16 +66,14 @@ class Mimblewimblecoin extends Bip39Currency {
   }
 
   /// Detect transaction type based on address/data format.
-  MwcTransactionMethod getTransactionMethod(String addressOrData) {
+  SlatepackMethod getTransactionMethod(String addressOrData) {
     if (isSlatepack(addressOrData)) {
-      return MwcTransactionMethod.slatepack;
+      return SlatepackMethod.slatepack;
     } else if (isMwcmqsAddress(addressOrData)) {
-      return MwcTransactionMethod.mwcmqs;
+      return SlatepackMethod.relay;
       // } else if (isHttpAddress(addressOrData)) {
-      //   return MwcTransactionMethod.http;
     } else {
-      throw Exception("Unknown MwcTransactionMethod found!");
-      // return MwcTransactionMethod.unknown;
+      throw Exception("Unknown SlatepackMethod found!");
     }
   }
 

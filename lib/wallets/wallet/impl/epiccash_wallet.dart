@@ -12,7 +12,6 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import '../../../exceptions/main_db/main_db_exception.dart';
 import '../../../exceptions/wallet/node_tor_mismatch_config_exception.dart';
 import '../../../models/balance.dart';
-import '../../../models/epic_slatepack_models.dart';
 import '../../../models/epicbox_config_model.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/isar/models/blockchain_data/transaction.dart';
@@ -22,6 +21,7 @@ import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/isar/models/transaction_note.dart';
 import '../../../models/node_model.dart';
 import '../../../models/paymint/fee_object_model.dart';
+import '../../../models/slatepack_models.dart';
 import '../../../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import '../../../services/event_bus/events/global/blocks_remaining_event.dart';
 import '../../../services/event_bus/events/global/node_connection_status_changed_event.dart';
@@ -31,8 +31,10 @@ import '../../../services/event_bus/global_event_bus.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/default_epicboxes.dart';
 import '../../../utilities/dynamic_object.dart';
+import '../../../utilities/enums/slatepack_method.dart';
 import '../../../utilities/flutter_secure_storage_interface.dart';
 import '../../../utilities/logger.dart';
+import '../../../utilities/slatepack_terms.dart';
 import '../../../utilities/stack_file_system.dart';
 import '../../../utilities/test_epic_box_connection.dart';
 import '../../../utilities/tor_plain_net_option_enum.dart';
@@ -42,11 +44,17 @@ import '../../models/tx_data.dart';
 import '../intermediate/bip39_wallet.dart';
 import '../supporting/epiccash_wallet_info_extension.dart';
 import '../supporting/restore_progress.dart';
+import '../wallet_mixin_interfaces/slatepack_interface.dart';
+
+/// Epic's pinned native API broadcasts inside finalize and throws when that
+/// broadcast fails. Older result objects omit the redundant `posted` field.
+@visibleForTesting
+bool epicFinalizeBroadcastResult(bool? posted) => posted ?? true;
 
 //
 // refactor of https://github.com/cypherstack/stack_wallet/blob/1d9fb4cd069f22492ece690ac788e05b8f8b1209/lib/services/coins/epiccash/epiccash_wallet.dart
 //
-class EpiccashWallet extends Bip39Wallet {
+class EpiccashWallet extends Bip39Wallet with SlatepackInterface {
   EpiccashWallet(CryptoCurrencyNetwork network) : super(Epiccash(network));
 
   final syncMutex = Mutex();
@@ -56,6 +64,35 @@ class EpiccashWallet extends Bip39Wallet {
   DynamicObject? _wallet;
 
   double highestPercent = 0;
+
+  @override
+  List<SlatepackMethod> get supportedMethods => const [
+    SlatepackMethod.relay,
+    SlatepackMethod.slatepack,
+  ];
+
+  @override
+  bool get supportsOnChainNote => true;
+
+  @override
+  SlatepackTerms get slatepackTerms => SlatepackTerms.slate;
+
+  @override
+  Map<dynamic, dynamic> get slatepackTransactionMetadata =>
+      info.epicData?.slatesToCommits ?? const {};
+
+  @override
+  Future<void> updateSlatepackTransactionMetadata(
+    Map<dynamic, dynamic> metadata,
+  ) async {
+    final data = info.epicData;
+    if (data == null) return;
+    await info.updateExtraEpiccashWalletInfo(
+      epicData: data.copyWith(slatesToCommits: metadata),
+      isar: mainDB.isar,
+    );
+  }
+
   Future<double> get getSyncPercent async {
     final int lastScannedBlock = info.epicData?.lastScannedBlock ?? 0;
     final _chainHeight = await chainHeight;
@@ -136,6 +173,7 @@ class EpiccashWallet extends Bip39Wallet {
   }
 
   /// returns an empty String on success, error message on failure
+  @override
   Future<String> cancelPendingTransactionAndPost(String txSlateId) async {
     try {
       _hackedCheckTorNodePrefs();
@@ -147,6 +185,7 @@ class EpiccashWallet extends Bip39Wallet {
         wallet: _wallet!,
         transactionId: txSlateId,
       );
+      if (result.isEmpty) await rememberPendingSlateCancelled(txSlateId);
       Logging.instance.d("cancel $txSlateId result: $result");
       return result;
     } catch (e, s) {
@@ -191,11 +230,11 @@ class EpiccashWallet extends Bip39Wallet {
   // ================= Slatepack Operations ===================================
 
   /// Create a slatepack for sending Epic Cash.
-  Future<EpicSlatepackResult> createSlatepack({
+  @override
+  Future<SlatepackResult> createSlatepack({
     required Amount amount,
     String? recipientAddress,
     String? message,
-    int? minimumConfirmations,
   }) async {
     try {
       _hackedCheckTorNodePrefs();
@@ -208,33 +247,40 @@ class EpiccashWallet extends Bip39Wallet {
         amount: amount.raw.toInt(),
         address: 'slate', // Not used in slate mode.
         secretKeyIndex: 0,
-        minimumConfirmations:
-            minimumConfirmations ?? cryptoCurrency.minConfirms,
+        minimumConfirmations: cryptoCurrency.minConfirms,
         note: message ?? '',
         returnSlate: true,
       );
 
-      return EpicSlatepackResult(
+      final inspection = inspectSlateJsonString(result.slateJson);
+      final slatepack = SlatepackResult(
         success: true,
         slatepack: result.slateJson,
         slateJson: result.slateJson,
         wasEncrypted: false,
         recipientAddress: recipientAddress,
+        state: SlateState.s1,
+        slateId: result.slateId,
+        amount: inspection?.amount,
+        fee: inspection?.fee,
       );
+      await rememberPendingSlateSend(slatepack);
+      return slatepack;
     } catch (e, s) {
       Logging.instance.e('Failed to create slatepack: $e\n$s');
-      return EpicSlatepackResult(success: false, error: e.toString());
+      return SlatepackResult(success: false, error: e.toString());
     }
   }
 
   /// Decode a slatepack/slate JSON.
-  Future<EpicSlatepackDecodeResult> decodeSlatepack(String slateJson) async {
+  @override
+  Future<SlatepackDecodeResult> decodeSlatepack(String slateJson) async {
     try {
       // For Epic Cash, slates are already JSON, so we parse directly.
       // Validate that the JSON is valid.
       jsonDecode(slateJson);
 
-      return EpicSlatepackDecodeResult(
+      return SlatepackDecodeResult(
         success: true,
         slateJson: slateJson,
         wasEncrypted: false,
@@ -243,41 +289,19 @@ class EpiccashWallet extends Bip39Wallet {
       );
     } catch (e, s) {
       Logging.instance.e('Failed to decode slatepack: $e\n$s');
-      return EpicSlatepackDecodeResult(success: false, error: e.toString());
-    }
-  }
-
-  /// Full decode of a slatepack including type analysis.
-  Future<({EpicSlatepackDecodeResult result, String type, String raw})?>
-  fullDecodeSlatepack(String slateJson) async {
-    // Add delay for showloading exception catching hack fix.
-    await Future<void>.delayed(const Duration(seconds: 1));
-
-    if (slateJson.isEmpty) {
-      return null;
-    }
-
-    // Attempt to decode.
-    final decoded = await decodeSlatepack(slateJson);
-
-    if (decoded.success) {
-      final analysis = await analyzeSlatepack(slateJson);
-
-      final String slatepackType = switch (analysis.status) {
-        'S1' => "S1 (Initial Send)",
-        'S2' => "S2 (Response)",
-        'S3' => "S3 (Finalized)",
-        _ => "Unknown",
-      };
-
-      return (result: decoded, type: slatepackType, raw: slateJson);
-    } else {
-      throw Exception(decoded.error ?? "Failed to decode slatepack");
+      return SlatepackDecodeResult(
+        success: false,
+        failure: SlatepackDecodeFailure.invalidInput,
+      );
     }
   }
 
   /// Receive a slatepack and return response slate JSON.
-  Future<EpicReceiveResult> receiveSlatepack(String slateJson) async {
+  @override
+  Future<SlatepackResult> receiveSlatepack(
+    String slateJson, {
+    required SlateInspection inspection,
+  }) async {
     try {
       _hackedCheckTorNodePrefs();
       if (_wallet == null) {
@@ -287,25 +311,33 @@ class EpiccashWallet extends Bip39Wallet {
       // Receive and get updated slate JSON.
       final received = await libEpic.txReceive(
         wallet: _wallet!,
-        slateJson: slateJson,
+        slateJson: inspection.slateJson ?? slateJson,
       );
 
-      return EpicReceiveResult(
+      final responseInspection = inspectSlateJsonString(received.slateJson);
+      return SlatepackResult(
         success: true,
+        slatepack: received.slateJson,
+        slateJson: received.slateJson,
         slateId: received.slateId,
-        commitId: received.commitId,
-        responseSlatepack: received.slateJson,
         wasEncrypted: false,
         recipientAddress: null,
+        state: SlateState.s2,
+        amount: responseInspection?.amount ?? inspection.amount,
+        fee: responseInspection?.fee ?? inspection.fee,
       );
     } catch (e, s) {
       Logging.instance.e('Failed to receive slatepack: $e\n$s');
-      return EpicReceiveResult(success: false, error: e.toString());
+      return SlatepackResult(success: false, error: e.toString());
     }
   }
 
   /// Finalize a slatepack (sender step 3).
-  Future<EpicFinalizeResult> finalizeSlatepack(String slateJson) async {
+  @override
+  Future<FinalizeResult> finalizeSlatepack(
+    String slateJson, {
+    required SlateInspection inspection,
+  }) async {
     try {
       _hackedCheckTorNodePrefs();
       if (_wallet == null) {
@@ -315,103 +347,18 @@ class EpiccashWallet extends Bip39Wallet {
       // Finalize transaction.
       final finalized = await libEpic.txFinalize(
         wallet: _wallet!,
-        slateJson: slateJson,
+        slateJson: inspection.slateJson ?? slateJson,
       );
 
-      return EpicFinalizeResult(
+      return FinalizeResult(
         success: true,
         slateId: finalized.slateId,
         commitId: finalized.commitId,
+        posted: epicFinalizeBroadcastResult(finalized.posted),
       );
     } catch (e, s) {
       Logging.instance.e('Failed to finalize slatepack: $e\n$s');
-      return EpicFinalizeResult(success: false, error: e.toString());
-    }
-  }
-
-  /// Analyze a slatepack and determine transaction type and metadata.
-  Future<
-    ({
-      String type,
-      String status,
-      String? amount,
-      bool wasEncrypted,
-      String? senderAddress,
-      String? recipientAddress,
-      String slateId,
-    })
-  >
-  analyzeSlatepack(String slateJson) async {
-    try {
-      // Parse the slate JSON to extract metadata.
-      final slateData = jsonDecode(slateJson);
-      final String slateId = "${slateData['id'] ?? ''}";
-      final String? amountStr = slateData['amount']?.toString();
-
-      Logging.instance.d('Analyzed slatepack with ID: $slateId');
-
-      // Determine slate status from the slate structure.
-      String status = 'Unknown';
-      String type = 'Unknown';
-
-      // Check participant data to determine slate status.
-      final List<dynamic>? participants =
-          slateData['participant_data'] as List<dynamic>?;
-      if (participants != null && participants.isNotEmpty) {
-        // Count how many participants have signatures.
-        int signedParticipants = 0;
-        for (final participant in participants) {
-          if (participant['part_sig'] != null) {
-            signedParticipants++;
-          }
-        }
-
-        // Determine status based on signatures and participant count.
-        if (signedParticipants == 0) {
-          status = 'S1';
-          type = 'Outgoing'; // Initial send slate - this is outgoing.
-        } else if (signedParticipants == 1) {
-          status = 'S2';
-          type = 'Incoming'; // Response slate - this means we're receiving.
-        } else if (signedParticipants >= participants.length) {
-          status = 'S3';
-          type =
-              'Outgoing'; // Finalized slate - completed outgoing transaction.
-        }
-      }
-
-      // Fallback: check for explicit 'sta' field (some slates may have this).
-      if (status == 'Unknown' && slateData['sta'] != null) {
-        status = "${slateData['sta']}";
-        if (status == 'S1') {
-          type = 'Outgoing';
-        } else if (status == 'S2') {
-          type = 'Incoming';
-        } else if (status == 'S3') {
-          type = 'Outgoing';
-        }
-      }
-
-      return (
-        type: type,
-        status: status,
-        amount: amountStr,
-        wasEncrypted: false,
-        senderAddress: null,
-        recipientAddress: null,
-        slateId: slateId,
-      );
-    } catch (e) {
-      // If we can't decode it, return unknown.
-      return (
-        type: 'Unknown',
-        status: 'Unknown',
-        amount: null,
-        wasEncrypted: false,
-        senderAddress: null,
-        recipientAddress: null,
-        slateId: '',
-      );
+      return FinalizeResult(success: false, error: e.toString());
     }
   }
 

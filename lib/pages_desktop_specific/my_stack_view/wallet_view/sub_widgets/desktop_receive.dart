@@ -22,8 +22,8 @@ import '../../../../models/isar/models/isar_models.dart';
 import '../../../../models/keys/view_only_wallet_data.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages/receive_view/generate_receiving_uri_qr_code_view.dart';
-import '../../../../pages/receive_view/sub_widgets/epic_slatepack_import_dialog.dart';
-import '../../../../pages/receive_view/sub_widgets/mwc_slatepack_import_dialog.dart';
+import '../../../../pages/slatepack/slatepack_import_flow.dart';
+import '../../../../pages/slatepack/slatepack_input_field.dart';
 import '../../../../providers/providers.dart';
 import '../../../../providers/ui/preview_tx_button_state_provider.dart';
 import '../../../../route_generator.dart';
@@ -34,19 +34,18 @@ import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/enums/derive_path_type_enum.dart';
 import '../../../../utilities/show_loading.dart';
+import '../../../../utilities/slatepack_terms.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
-import '../../../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/impl/bitcoin_wallet.dart';
-import '../../../../wallets/wallet/impl/epiccash_wallet.dart';
-import '../../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../../../wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/bcash_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/slatepack_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../../widgets/conditional_parent.dart';
@@ -55,16 +54,9 @@ import '../../../../widgets/custom_loading_overlay.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
-import '../../../../widgets/dialogs/s_dialog.dart';
-import '../../../../widgets/icon_widgets/clipboard_icon.dart';
-import '../../../../widgets/icon_widgets/x_icon.dart';
-import '../../../../widgets/epic_txs_method_toggle.dart';
-import '../../../../widgets/mwc_txs_method_toggle.dart';
+import '../../../../widgets/slatepack_method_toggle.dart';
 import '../../../../widgets/qr.dart';
 import '../../../../widgets/rounded_white_container.dart';
-import '../../../../widgets/stack_dialog.dart';
-import '../../../../widgets/stack_text_field.dart';
-import '../../../../widgets/textfield_icon_button.dart';
 
 class DesktopReceive extends ConsumerStatefulWidget {
   const DesktopReceive({
@@ -89,12 +81,10 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
   late final bool supportsSpark;
   late bool supportsMweb;
   late final bool showMultiType;
-  late final bool isMimblewimblecoin;
-  late final bool isEpiccash;
-  late TextEditingController _receiveSlateController;
-  String? _slate;
-  bool _slateToggleFlag = false;
-  final _slateFocusNode = FocusNode();
+  late final bool usesSlatepacks;
+  late final TextEditingController _receiveSlateController;
+  late final SlatepackTerms _slatepackTerms;
+  bool _importingSlatepack = false;
 
   int _currentIndex = 0;
 
@@ -102,134 +92,23 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
   final Map<AddressType, String> _addressMap = {};
   final Map<AddressType, StreamSubscription<Address?>> _addressSubMap = {};
 
-  Future<void> _pasteSlatepack() async {
-    final ClipboardData? data = await clipboard.getData(Clipboard.kTextPlain);
-    if (data?.text != null && data!.text!.isNotEmpty) {
-      _slate = data.text;
-      _receiveSlateController.text = _slate!;
-      setState(() {
-        _slateToggleFlag = _receiveSlateController.text.isNotEmpty;
-      });
-    }
-  }
-
-  Future<void> _onReceiveSlatePressed() async {
-    final wallet =
-        ref.read(pWallets).getWallet(walletId) as MimblewimblecoinWallet;
-
-    Exception? ex;
-    final result = await showLoading(
-      whileFuture: wallet.fullDecodeSlatepack(_receiveSlateController.text),
-      context: context,
-      message: "Decoding slatepack...",
-      rootNavigator: Util.isDesktop,
-      onException: (e) => ex = e,
-    );
-
-    if (result == null || ex != null) {
-      if (mounted) {
-        await showDialog<void>(
-          context: context,
-          useRootNavigator: true,
-          builder: (context) => StackOkDialog(
-            desktopPopRootNavigator: true,
-            title: "Slatepack receive error",
-            message: ex?.toString() ?? "Unexpected result without exception",
-            maxWidth: 400,
-          ),
-        );
+  Future<void> _onImportSlatepackPressed() async {
+    if (_importingSlatepack) return;
+    setState(() => _importingSlatepack = true);
+    try {
+      final wallet =
+          ref.read(pWallets).getWallet(walletId) as SlatepackInterface;
+      final done = await SlatepackImportFlow.run(
+        context: context,
+        wallet: wallet,
+        text: _receiveSlateController.text,
+      );
+      if (done && mounted) {
+        setState(() => _receiveSlateController.text = "");
       }
-      return;
-    }
-
-    if (mounted) {
-      final response =
-          await showDialog<({String responseSlatepack, bool wasEncrypted})>(
-            context: context,
-            builder: (context) => SDialog(
-              child: SizedBox(
-                width: 700,
-                child: MwcSlatepackImportDialog(
-                  walletId: widget.walletId,
-                  clipboard: widget.clipboard,
-                  rawSlatepack: result.raw,
-                  decoded: result.result,
-                  slatepackType: result.type,
-                ),
-              ),
-            ),
-          );
-
-      if (mounted && response != null) {
-        await showDialog<void>(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => SlatepackResponseDialog(
-            responseSlatepack: response.responseSlatepack,
-            wasEncrypted: response.wasEncrypted,
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> _onEpicReceiveSlatePressed() async {
-    final wallet =
-        ref.read(pWallets).getWallet(walletId) as EpiccashWallet;
-
-    Exception? ex;
-    final result = await showLoading(
-      whileFuture: wallet.fullDecodeSlatepack(_receiveSlateController.text),
-      context: context,
-      message: "Decoding slatepack...",
-      rootNavigator: Util.isDesktop,
-      onException: (e) => ex = e,
-    );
-
-    if (result == null || ex != null) {
-      if (mounted) {
-        await showDialog<void>(
-          context: context,
-          useRootNavigator: true,
-          builder: (context) => StackOkDialog(
-            desktopPopRootNavigator: true,
-            title: "Slatepack receive error",
-            message: ex?.toString() ?? "Unexpected result without exception",
-            maxWidth: 400,
-          ),
-        );
-      }
-      return;
-    }
-
-    if (mounted) {
-      final response =
-          await showDialog<({String responseSlatepack, bool wasEncrypted})>(
-            context: context,
-            builder: (context) => SDialog(
-              child: SizedBox(
-                width: 700,
-                child: EpicSlatepackImportDialog(
-                  walletId: widget.walletId,
-                  clipboard: widget.clipboard,
-                  rawSlatepack: result.raw,
-                  decoded: result.result,
-                  slatepackType: result.type,
-                ),
-              ),
-            ),
-          );
-
-      if (mounted && response != null) {
-        await showDialog<void>(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => EpicSlatepackResponseDialog(
-            responseSlatepack: response.responseSlatepack,
-            wasEncrypted: response.wasEncrypted,
-          ),
-        );
-      }
+    } finally {
+      _importingSlatepack = false;
+      if (mounted) setState(() {});
     }
   }
 
@@ -244,9 +123,10 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
             return WillPopScope(
               onWillPop: () async => shouldPop,
               child: Container(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.overlay.withOpacity(0.5),
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .overlay
+                    .withOpacity(0.5),
                 child: const CustomLoadingOverlay(
                   message: "Generating address",
                   eventBus: null,
@@ -323,9 +203,10 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
             return WillPopScope(
               onWillPop: () async => shouldPop,
               child: Container(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.overlay.withOpacity(0.5),
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .overlay
+                    .withOpacity(0.5),
                 child: const CustomLoadingOverlay(
                   message: "Generating address",
                   eventBus: null,
@@ -414,8 +295,10 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
         !wallet.info.isViewOnly &&
         wallet.info.isMwebEnabled;
 
-    isMimblewimblecoin = wallet is MimblewimblecoinWallet;
-    isEpiccash = wallet is EpiccashWallet;
+    usesSlatepacks = wallet is SlatepackInterface;
+    _slatepackTerms = wallet is SlatepackInterface
+        ? wallet.slatepackTerms
+        : SlatepackTerms.slatepack;
 
     if (wallet is ViewOnlyOptionInterface && wallet.isViewOnly) {
       showMultiType = false;
@@ -536,6 +419,8 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
     final wallet = ref.watch(
       pWallets.select((value) => value.getWallet(walletId)),
     );
+    final isSlatepackMode =
+        wallet is SlatepackInterface && ref.watch(pIsSlatepack(walletId));
 
     final bool canGen;
     if (wallet is ViewOnlyOptionInterface &&
@@ -551,63 +436,34 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SizedBox(height: 4),
-        if (isMimblewimblecoin)
+        if (wallet is SlatepackInterface && wallet.hasSlatepackMethodToggle)
           Padding(
             padding: const EdgeInsets.all(0),
             child: Container(
               decoration: BoxDecoration(
                 color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()?.textFieldDefaultBG ??
+                    Theme.of(context)
+                        .extension<StackColors>()
+                        ?.textFieldDefaultBG ??
                     Colors.white, // Fallback color
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()?.backgroundAppBar ??
+                      Theme.of(context)
+                          .extension<StackColors>()
+                          ?.backgroundAppBar ??
                       Colors.grey, // Fallback color
                   width: 1,
                 ),
               ),
-              child: const SizedBox(
-                height:
-                    60, // Provide an explicit height to avoid infinite constraints
-                child: MwcTxsMethodToggle(),
+              child: SizedBox(
+                height: 60, // Provide an explicit height to avoid infinite constraints
+                child: SlatepackMethodToggle(walletId: walletId),
               ),
             ),
           ),
-        if (isEpiccash)
-          Padding(
-            padding: const EdgeInsets.all(0),
-            child: Container(
-              decoration: BoxDecoration(
-                color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()?.textFieldDefaultBG ??
-                    Colors.white, // Fallback color
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()?.backgroundAppBar ??
-                      Colors.grey, // Fallback color
-                  width: 1,
-                ),
-              ),
-              child: const SizedBox(
-                height:
-                    60, // Provide an explicit height to avoid infinite constraints
-                child: EpicTxsMethodToggle(),
-              ),
-            ),
-          ),
-        if (!((isMimblewimblecoin || isEpiccash) && ref.watch(pIsSlatepack(widget.walletId))))
-          const SizedBox(height: 20),
-        if (!((isMimblewimblecoin || isEpiccash) && ref.watch(pIsSlatepack(widget.walletId))))
+        const SizedBox(height: 20),
+        if (!isSlatepackMode) ...[
           ConditionalParent(
             condition: showMultiType,
             builder: (child) => Column(
@@ -652,9 +508,9 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                     ),
                     buttonStyleData: ButtonStyleData(
                       decoration: BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textFieldDefaultBG,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldDefaultBG,
                         borderRadius: BorderRadius.circular(
                           Constants.size.circularBorderRadius,
                         ),
@@ -664,9 +520,9 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                       offset: const Offset(0, -10),
                       elevation: 0,
                       decoration: BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textFieldDefaultBG,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldDefaultBG,
                         borderRadius: BorderRadius.circular(
                           Constants.size.circularBorderRadius,
                         ),
@@ -699,9 +555,9 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                 child: Container(
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.backgroundAppBar,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .backgroundAppBar,
                       width: 1,
                     ),
                     borderRadius: BorderRadius.circular(
@@ -726,9 +582,9 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                                   Assets.svg.copy,
                                   width: 15,
                                   height: 15,
-                                  color: Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.infoItemIcons,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .infoItemIcons,
                                 ),
                                 const SizedBox(width: 4),
                                 Text("Copy", style: STextStyles.link2(context)),
@@ -746,9 +602,9 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                                     STextStyles.desktopTextExtraExtraSmall(
                                       context,
                                     ).copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textDark,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark,
                                     ),
                               ),
                             ),
@@ -762,166 +618,31 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
             ),
           ),
 
-        if (canGen) const SizedBox(height: 20),
+          if (canGen) const SizedBox(height: 20),
 
-        if (canGen)
-          SecondaryButton(
-            buttonHeight: ButtonHeight.l,
-            onPressed:
-                supportsMweb &&
-                    _walletAddressTypes[_currentIndex] == AddressType.mweb
-                ? generateNewMwebAddress
-                : supportsSpark &&
-                      _walletAddressTypes[_currentIndex] == AddressType.spark
-                ? generateNewSparkAddress
-                : generateNewAddress,
-            label: "Generate new address",
-          ),
-        const SizedBox(height: 20),
-        if ((isMimblewimblecoin || isEpiccash) && ref.watch(pIsSlatepack(widget.walletId)))
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Label Text
-              Text(
-                "Receive Slatepack",
-                style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldActiveSearchIconRight,
-                ),
-                textAlign: TextAlign.left,
-              ),
-              const SizedBox(height: 8),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(
-                  Constants.size.circularBorderRadius,
-                ),
-                child: TextField(
-                  minLines: 1,
-                  maxLines: 5,
-                  key: const Key("receiveViewSlatepackFieldKey"),
-                  controller: _receiveSlateController,
-                  readOnly: false,
-                  autocorrect: false,
-                  enableSuggestions: false,
-                  toolbarOptions: const ToolbarOptions(
-                    copy: false,
-                    cut: false,
-                    paste: true,
-                    selectAll: false,
-                  ),
-                  onChanged: (newValue) {
-                    _slate = newValue;
-                    setState(() {
-                      _slateToggleFlag = newValue.isNotEmpty;
-                    });
-                  },
-                  focusNode: _slateFocusNode,
-                  style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldActiveText,
-                    height: 1.8,
-                  ),
-                  decoration:
-                      standardInputDecoration(
-                        "Enter Slatepack Message",
-                        _slateFocusNode,
-                        context,
-                        desktopMed: true,
-                      ).copyWith(
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical:
-                              12, // Adjust vertical padding for better alignment
-                        ),
-                        suffixIcon: Padding(
-                          padding: _receiveSlateController.text.isEmpty
-                              ? const EdgeInsets.only(right: 8)
-                              : const EdgeInsets.only(right: 0),
-                          child: UnconstrainedBox(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                _slateToggleFlag
-                                    ? TextFieldIconButton(
-                                        key: const Key(
-                                          "receiveViewClearSlatepackFieldButtonKey",
-                                        ),
-                                        onTap: () {
-                                          _receiveSlateController.text = "";
-                                          _slate = "";
-                                          setState(() {
-                                            _slateToggleFlag = false;
-                                          });
-                                        },
-                                        child: const XIcon(),
-                                      )
-                                    : TextFieldIconButton(
-                                        key: const Key(
-                                          "receiveViewPasteSlatepackFieldButtonKey",
-                                        ),
-                                        onTap: _pasteSlatepack,
-                                        child:
-                                            _receiveSlateController.text.isEmpty
-                                            ? const ClipboardIcon()
-                                            : const XIcon(),
-                                      ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                ),
-              ),
-            ],
-          )
-        //Padding(
-        //  padding: const EdgeInsets.symmetric(vertical: 8.0),
-        //  child: TextField(
-        //    maxLines: 8, // Set to a higher number to make the height larger
-        //    minLines: 5, // Allow it to shrink if input is small
-        //    decoration: InputDecoration(
-        //      labelText: 'Enter Slatepack Message',
-        //      alignLabelWithHint: true,
-        //      border: OutlineInputBorder(
-        //        borderRadius: BorderRadius.circular(8),
-        //      ),
-        //      filled: true,
-        //      fillColor: Theme.of(context).extension<StackColors>()?.textFieldDefaultBG ?? Colors.white,
-        //      contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
-        //    ),
-        //    onChanged: (value) {
-        //      // Handle text input changes (e.g., store in a state variable)
-        //      debugPrint('Slatepack Message: $value');
-        //    },
-        //  ),
-        //)
-        else
+          if (canGen)
+            SecondaryButton(
+              buttonHeight: ButtonHeight.l,
+              onPressed:
+                  supportsMweb &&
+                      _walletAddressTypes[_currentIndex] == AddressType.mweb
+                  ? generateNewMwebAddress
+                  : supportsSpark &&
+                        _walletAddressTypes[_currentIndex] == AddressType.spark
+                  ? generateNewSparkAddress
+                  : generateNewAddress,
+              label: "Generate new address",
+            ),
+          const SizedBox(height: 20),
           Center(
             child: QR(
               data: AddressUtils.buildUriString(coin.uriScheme, address, {}),
               size: 200,
             ),
           ),
-        const SizedBox(height: 32),
+          const SizedBox(height: 32),
 
-        // TODO: create transparent button class to account for hover
-        // Conditional logic for 'Submit' button or QR code
-        if ((isMimblewimblecoin || isEpiccash) && ref.watch(pIsSlatepack(widget.walletId)))
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: PrimaryButton(
-              buttonHeight: ButtonHeight.l,
-              label: "Receive Slatepack",
-              enabled: _slateToggleFlag,
-              onPressed: _slateToggleFlag
-                  ? (isEpiccash ? _onEpicReceiveSlatePressed : _onReceiveSlatePressed)
-                  : null,
-            ),
-          )
-        else
+          // TODO: create transparent button class to account for hover
           GestureDetector(
             onTap: () async {
               if (Util.isDesktop) {
@@ -986,23 +707,56 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                     Assets.svg.qrcode,
                     width: 14,
                     height: 16,
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.accentColorBlue,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorBlue,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     "Create new QR code",
                     style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorBlue,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorBlue,
                     ),
                   ),
                 ],
               ),
             ),
           ),
+        ],
+        if (isSlatepackMode) ...[
+          Text(
+            "Import ${_slatepackTerms.title}",
+            style: STextStyles.desktopTextExtraSmall(context).copyWith(
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldActiveSearchIconRight,
+            ),
+            textAlign: TextAlign.left,
+          ),
+          const SizedBox(height: 8),
+          SlatepackInputField(
+            controller: _receiveSlateController,
+            hint: "Enter ${_slatepackTerms.payload}",
+            terms: _slatepackTerms,
+            clipboard: clipboard,
+            onChanged: (_) => setState(() {}),
+          ),
+          const SizedBox(height: 16),
+          PrimaryButton(
+            buttonHeight: ButtonHeight.l,
+            label: "Import ${_slatepackTerms.title}",
+            enabled:
+                _receiveSlateController.text.trim().isNotEmpty &&
+                !_importingSlatepack,
+            onPressed:
+                _receiveSlateController.text.trim().isNotEmpty &&
+                    !_importingSlatepack
+                ? _onImportSlatepackPressed
+                : null,
+          ),
+        ],
       ],
     );
   }

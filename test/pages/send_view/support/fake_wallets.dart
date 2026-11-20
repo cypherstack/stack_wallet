@@ -4,7 +4,10 @@ import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/models/ethereum/eth_contract.dart';
 import 'package:stackwallet/models/isar/models/solana/sol_contract.dart';
 import 'package:stackwallet/models/paymint/fee_object_model.dart';
+import 'package:stackwallet/models/slatepack_models.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:stackwallet/utilities/enums/slatepack_method.dart';
+import 'package:stackwallet/utilities/slatepack_terms.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/crypto_currency/intermediate/cryptonote_currency.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
@@ -15,6 +18,7 @@ import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/ethereum_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/firo_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/monero_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/solana_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/stellar_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/sub_wallets/eth_token_wallet.dart';
@@ -280,6 +284,88 @@ class FakeFiroWallet extends FakeWallet<Firo> implements FiroWallet<Firo> {
 class FakeEpiccashWallet extends FakeWallet<Epiccash>
     implements EpiccashWallet {
   FakeEpiccashWallet() : super(Epiccash(CryptoCurrencyNetwork.main), testFees);
+
+  int slateCreates = 0;
+
+  @override
+  Future<SlatepackResult> createSlatepack({
+    required Amount amount,
+    String? recipientAddress,
+    String? message,
+  }) async {
+    slateCreates++;
+    return SlatepackResult(
+      success: true,
+      slatepack: '{"id":"test-slate","amount":"${amount.raw}"}',
+      slateJson: '{"id":"test-slate","amount":"${amount.raw}"}',
+      slateId: 'test-slate',
+      state: SlateState.s1,
+      amount: amount,
+      fee: Amount(rawValue: BigInt.one, fractionDigits: amount.fractionDigits),
+    );
+  }
+
+  @override
+  List<SlatepackMethod> get supportedMethods => const [
+    SlatepackMethod.relay,
+    SlatepackMethod.slatepack,
+  ];
+
+  @override
+  bool get hasSlatepackMethodToggle => true;
+
+  @override
+  bool get supportsSlatepackEncryption => false;
+
+  @override
+  bool get supportsOnChainNote => true;
+
+  @override
+  SlatepackTerms get slatepackTerms => SlatepackTerms.slate;
+}
+
+class FakeMimblewimblecoinWallet extends FakeWallet<Mimblewimblecoin>
+    implements MimblewimblecoinWallet {
+  FakeMimblewimblecoinWallet()
+    : super(Mimblewimblecoin(CryptoCurrencyNetwork.main), testFees);
+
+  int slateCreates = 0;
+
+  @override
+  Future<SlatepackResult> createSlatepack({
+    required Amount amount,
+    String? recipientAddress,
+    String? message,
+  }) async {
+    slateCreates++;
+    return SlatepackResult(
+      success: true,
+      slatepack: 'BEGINSLATEPACK. test. ENDSLATEPACK.',
+      slateJson: '{"id":"test-slate","amount":"${amount.raw}"}',
+      slateId: 'test-slate',
+      state: SlateState.s1,
+      amount: amount,
+      fee: Amount(rawValue: BigInt.one, fractionDigits: amount.fractionDigits),
+    );
+  }
+
+  @override
+  List<SlatepackMethod> get supportedMethods => const [
+    SlatepackMethod.slatepack,
+    SlatepackMethod.relay,
+  ];
+
+  @override
+  bool get hasSlatepackMethodToggle => true;
+
+  @override
+  bool get supportsSlatepackEncryption => true;
+
+  @override
+  bool get supportsOnChainNote => true;
+
+  @override
+  SlatepackTerms get slatepackTerms => SlatepackTerms.slatepack;
 }
 
 /// Monero checking only an address prefix, as tests lack its native library.
