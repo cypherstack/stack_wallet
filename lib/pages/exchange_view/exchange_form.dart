@@ -19,6 +19,7 @@ import 'package:tuple/tuple.dart';
 
 import '../../models/exchange/aggregate_currency.dart';
 import '../../models/exchange/incomplete_exchange.dart';
+import '../../models/exchange/active_pair.dart';
 import '../../models/exchange/response_objects/estimate.dart';
 import '../../models/exchange/response_objects/range.dart';
 import '../../models/isar/exchange_cache/currency.dart';
@@ -60,6 +61,7 @@ import 'exchange_coin_selection/exchange_currency_selection_view.dart';
 import 'exchange_step_views/step_1_view.dart';
 import 'exchange_step_views/step_2_view.dart';
 import 'sub_widgets/exchange_provider_options.dart';
+import 'sub_widgets/exchange_selection.dart';
 import 'sub_widgets/rate_type_toggle.dart';
 
 class ExchangeForm extends ConsumerStatefulWidget {
@@ -812,9 +814,48 @@ class _ExchangeFormState extends ConsumerState<ExchangeForm> {
           estimatesNotifiers[exchange.name]!.state = results[exchange.name];
         }
       }
+
+      if (mounted && _refreshController.owns(request)) {
+        _selectExchange(exchanges, results, pair, rateType, amount, reversed);
+      }
     } finally {
       _finishRefreshAfterFrame(request);
     }
+  }
+
+  /// Selects the best quote, unless the user picked a provider for this swap
+  /// and it still has a quote.
+  void _selectExchange(
+    List<Exchange> exchanges,
+    Map<String, Tuple2<ExchangeResponse<List<Estimate>>, Range?>> results,
+    ActivePair pair,
+    ExchangeRateType rateType,
+    Decimal amount,
+    bool reversed,
+  ) {
+    final context = exchangeChoiceContext(pair, rateType);
+    final ranked = rankExchangeEstimates(
+      [
+        for (final exchange in exchanges)
+          (exchange, results[exchange.name]?.item1.value),
+      ],
+      amount: amount,
+      receiveTicker: pair.receive!.ticker,
+    );
+
+    final selection = exchangeToSelect(
+      ranked: ranked,
+      currentExchange: ref.read(efExchangeProvider),
+      currentProviderName: ref.read(efExchangeProviderNameProvider),
+      userChose: ref.read(efManualExchangeChoiceProvider) == context,
+      fixedRate: rateType == ExchangeRateType.fixed,
+      reversed: reversed,
+    );
+    if (selection == null) return;
+
+    ref.read(efExchangeProvider.notifier).state = selection.$1;
+    ref.read(efExchangeProviderNameProvider.notifier).state = selection.$2;
+    ref.read(efManualExchangeChoiceProvider.notifier).state = null;
   }
 
   late final ExchangeRefreshController _refreshController;

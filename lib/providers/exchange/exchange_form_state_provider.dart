@@ -38,6 +38,11 @@ final efExchangeProviderNameProvider = StateProvider<String>(
   (ref) => Exchange.defaultExchange.name,
 );
 
+/// The swap (see `exchangeChoiceContext`) the user last picked a provider for
+/// by hand, or null. While it matches the current swap, quote refreshes keep
+/// the user's provider instead of selecting the best rate.
+final efManualExchangeChoiceProvider = StateProvider<String?>((ref) => null);
+
 final currentCombinedExchangeIdProvider = Provider<String>((ref) {
   return "${ref.watch(efExchangeProvider).name}"
       " (${ref.watch(efExchangeProviderNameProvider)})";

@@ -38,6 +38,7 @@ import '../../../widgets/exchange/trocador/trocador_kyc_info_button.dart';
 import '../../../widgets/exchange/trocador/trocador_rating_type_enum.dart';
 import '../../../widgets/icon_widgets/exchange_icon.dart';
 import '../../../widgets/loading_indicator.dart';
+import 'exchange_selection.dart';
 
 class ExchangeOption extends ConsumerStatefulWidget {
   const ExchangeOption({
@@ -321,6 +322,19 @@ class _ProviderOptionState extends ConsumerState<ExchProviderOption> {
     }
   }
 
+  void _select() {
+    ref.read(efExchangeProvider.notifier).state = widget.exchange;
+    ref.read(efExchangeProviderNameProvider.notifier).state =
+        widget.estimate?.exchangeProvider ?? widget.exchange.name;
+    // Keep this provider across quote refreshes for the same swap.
+    ref
+        .read(efManualExchangeChoiceProvider.notifier)
+        .state = exchangeChoiceContext(
+      ref.read(efCurrencyPairProvider),
+      ref.read(efRateTypeProvider),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     String groupValue = ref.watch(currentCombinedExchangeIdProvider);
@@ -335,11 +349,7 @@ class _ProviderOptionState extends ConsumerState<ExchProviderOption> {
       builder: (child) =>
           MouseRegion(cursor: SystemMouseCursors.click, child: child),
       child: GestureDetector(
-        onTap: () {
-          ref.read(efExchangeProvider.notifier).state = widget.exchange;
-          ref.read(efExchangeProviderNameProvider.notifier).state =
-              widget.estimate?.exchangeProvider ?? widget.exchange.name;
-        },
+        onTap: _select,
         child: Container(
           color: Colors.transparent,
           child: Padding(
@@ -360,15 +370,7 @@ class _ProviderOptionState extends ConsumerState<ExchProviderOption> {
                           .radioButtonIconEnabled,
                       value: _id,
                       groupValue: groupValue,
-                      onChanged: (_) {
-                        ref.read(efExchangeProvider.notifier).state =
-                            widget.exchange;
-                        ref
-                                .read(efExchangeProviderNameProvider.notifier)
-                                .state =
-                            widget.estimate?.exchangeProvider ??
-                            widget.exchange.name;
-                      },
+                      onChanged: (_) => _select(),
                     ),
                   ),
                 ),

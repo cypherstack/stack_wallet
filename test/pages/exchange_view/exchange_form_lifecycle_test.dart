@@ -18,6 +18,7 @@ import 'package:stackwallet/providers/exchange/exchange_form_state_provider.dart
 import 'package:stackwallet/providers/global/locale_provider.dart';
 import 'package:stackwallet/providers/global/prefs_provider.dart';
 import 'package:stackwallet/services/exchange/change_now/change_now_exchange.dart';
+import 'package:stackwallet/services/exchange/exolix/exolix_exchange.dart';
 import 'package:stackwallet/services/locale_service.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_service.dart';
@@ -334,6 +335,33 @@ void main() {
       await older;
       await tester.pump();
       expect(harness.estimate, Decimal.fromInt(2));
+    }, http);
+  });
+
+  testWidgets('a quote refresh selects a provider that returned a quote', (
+    tester,
+  ) async {
+    final http = _HttpOverrides();
+    await HttpOverrides.runWithHttpOverrides(() async {
+      final harness = _Harness(quotes: true);
+      // The pair only exists on ChangeNOW, so Exolix cannot quote it.
+      harness.container.read(efExchangeProvider.notifier).state =
+          ExolixExchange.instance;
+      harness.container.read(efExchangeProviderNameProvider.notifier).state =
+          ExolixExchange.exchangeName;
+      await harness.pump(tester, [_first]);
+
+      final pending = harness.update(tester, _first);
+      await tester.pump();
+      await http.completeQuote(tester, http.requests.single, amount: 2);
+      await pending;
+      await tester.pump();
+
+      expect(
+        harness.container.read(efExchangeProvider).name,
+        ChangeNowExchange.exchangeName,
+      );
+      expect(harness.container.read(efCanExchangeProvider), isTrue);
     }, http);
   });
 

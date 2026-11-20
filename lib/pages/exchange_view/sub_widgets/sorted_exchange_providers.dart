@@ -11,7 +11,6 @@ import '../../../providers/global/locale_provider.dart';
 import '../../../services/exchange/exchange.dart';
 import '../../../services/exchange/exchange_response.dart';
 import '../../../themes/stack_colors.dart';
-import '../../../utilities/amount/amount.dart';
 import '../../../utilities/amount/amount_formatter.dart';
 import '../../../utilities/amount/amount_unit.dart';
 import '../../../utilities/enums/exchange_rate_type_enum.dart';
@@ -20,6 +19,7 @@ import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/loading_indicator.dart';
 import 'exchange_provider_option.dart';
+import 'exchange_selection.dart';
 
 class SortedExchangeProviders extends ConsumerStatefulWidget {
   const SortedExchangeProviders({
@@ -43,56 +43,6 @@ class _SortedExchangeProvidersState
   final List<(Exchange, Tuple2<ExchangeResponse<List<Estimate>>, Range?>?)>
   dataList = [];
   final List<(Exchange, List<Estimate>?)> estimates = [];
-
-  List<(Exchange, Estimate?)> transform(Decimal amount, String rcvTicker) {
-    final List<(Exchange, Estimate?)> flattened = [];
-
-    for (final s in estimates) {
-      if (s.$2 != null && s.$2!.isNotEmpty) {
-        for (final e in s.$2!) {
-          flattened.add((s.$1, e));
-        }
-      } else {
-        flattened.add((s.$1, null));
-      }
-    }
-
-    flattened.sort((a, b) {
-      if (a.$2 != null && b.$2 != null) {
-        assert(a.$2!.reversed == b.$2!.reversed);
-      }
-
-      final aRate = a.$2 == null ? null : _getRate(a.$2!, amount, rcvTicker);
-      final bRate = b.$2 == null ? null : _getRate(b.$2!, amount, rcvTicker);
-
-      if (aRate == null) return bRate == null ? 0 : 1;
-      if (bRate == null) return -1;
-      return bRate.decimal.compareTo(aRate.decimal);
-    });
-
-    return flattened;
-  }
-
-  Amount _getRate(Estimate e, Decimal amount, String rcvTicker) {
-    int decimals;
-    try {
-      decimals = AppConfig.getCryptoCurrencyForTicker(rcvTicker)!
-          .fractionDigits;
-    } catch (_) {
-      decimals = 8; // some reasonable alternative
-    }
-    Amount rate;
-    if (e.reversed) {
-      rate = (amount / e.estimatedAmount)
-          .toDecimal(scaleOnInfinitePrecision: 18)
-          .toAmount(fractionDigits: decimals);
-    } else {
-      rate = (e.estimatedAmount / amount)
-          .toDecimal(scaleOnInfinitePrecision: 18)
-          .toAmount(fractionDigits: decimals);
-    }
-    return rate;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -130,7 +80,11 @@ class _SortedExchangeProvidersState
         receivingCurrency != null &&
         amount != null &&
         amount > Decimal.zero) {
-      final estimates = transform(amount, receivingCurrency.ticker);
+      final estimates = rankExchangeEstimates(
+        this.estimates,
+        amount: amount,
+        receiveTicker: receivingCurrency.ticker,
+      );
 
       if (estimates.isNotEmpty) {
         return Column(
@@ -179,7 +133,11 @@ class _SortedExchangeProvidersState
                     );
                   }
 
-                  final rate = _getRate(e, amount, receivingCurrency.ticker);
+                  final rate = exchangeRate(
+                    e,
+                    amount,
+                    receivingCurrency.ticker,
+                  );
 
                   CryptoCurrency? coin;
                   try {
