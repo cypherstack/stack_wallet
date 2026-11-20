@@ -47,11 +47,13 @@ bash bm/bench.sh SKIP_NATIVE=1   # Dart only (no native libs)
   masking the sccache-vs-no-sccache comparison. Pre-fetch the dnix sources
   (e.g. `nix build` once) before measuring so a cold run only measures the
   project build, not the library compile.
-- **sccache is a cargo-config toggle, not a make flag.** `SCCACHE=0/1` is
-  accepted by `bench.sh` for labeling, but sccache is actually turned on/off by
-  `make sccache-setup`, which writes `~/.cargo/config.toml` with the
-  `rustc-wrapper = "sccache"` setting. Remove that file to benchmark without
-  sccache.
+- **sccache is a cargo-config toggle, not a make flag.** sccache is turned on
+  by `make sccache-setup`, which writes `~/.cargo/config.toml` with the
+  `rustc-wrapper = "sccache"` setting. `bench.sh SCCACHE=0` disables sccache for
+  that one build by temporarily stripping the `rustc-wrapper` line from the
+  active cargo config (with a trap that restores it afterward), so a `SCCACHE=0`
+  run is a genuine no-sccache baseline you can A/B against the default. Leaving
+  `SCCACHE` unset (or `SCCACHE=1`) runs with sccache as configured.
 - **`SKIP_NATIVE=1` is a no-op through `make`.** The Makefile does not consume
   it; it is a leftover from the harness's pre-make origin. Use `make clean-native`
   + `make build-macos` if you want to isolate the Dart layer.

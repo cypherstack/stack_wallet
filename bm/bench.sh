@@ -81,6 +81,35 @@ if [ $WARM -eq 0 ]; then
   make clean 2>&1 | tail -1
 fi
 
+# sccache bypass: SCCACHE=0 must measure a build WITHOUT sccache. sccache is
+# enabled only via rustc-wrapper in the active cargo config, so temporarily
+# neutralise that line for this one build. A trap guarantees the config is
+# restored even if the build crashes. SCCACHE=1 (or unset) leaves sccache as-is.
+SCCACHE_BYPASS_CONFIG=""
+SCCACHE_BYPASS_BACKUP=""
+if echo "$MAKE_FLAGS" | grep -q "SCCACHE=0"; then
+  SCCACHE_CARGO_CONFIG="$(if [ -n "${CARGO_HOME:-}" ]; then echo "$CARGO_HOME"; else echo "$HOME/.cargo"; fi)/config.toml"
+  if [ -f "$SCCACHE_CARGO_CONFIG" ] && grep -q "rustc-wrapper" "$SCCACHE_CARGO_CONFIG"; then
+    SCCACHE_BYPASS_BACKUP="${SCCACHE_CARGO_CONFIG}.bench.bak"
+    cp -p "$SCCACHE_CARGO_CONFIG" "$SCCACHE_BYPASS_BACKUP"
+    # Drop the [build] rustc-wrapper line so cargo falls back to plain rustc.
+    grep -v "rustc-wrapper" "$SCCACHE_CARGO_CONFIG" > "${SCCACHE_CARGO_CONFIG}.bench.tmp" \
+      && mv "${SCCACHE_CARGO_CONFIG}.bench.tmp" "$SCCACHE_CARGO_CONFIG"
+    SCCACHE_BYPASS_CONFIG="$SCCACHE_CARGO_CONFIG"
+    echo "[INFO] sccache disabled for this build via $SCCACHE_CARGO_CONFIG (backup: $SCCACHE_BYPASS_BACKUP)"
+  else
+    echo "[INFO] no rustc-wrapper in $SCCACHE_CARGO_CONFIG; sccache already inactive for this build"
+  fi
+fi
+restore_sccache() {
+  if [ -n "$SCCACHE_BYPASS_BACKUP" ] && [ -f "$SCCACHE_BYPASS_BACKUP" ]; then
+    mv "$SCCACHE_BYPASS_BACKUP" "$SCCACHE_BYPASS_CONFIG"
+    echo "[INFO] sccache config restored"
+  fi
+  rm -f "${SCCACHE_BYPASS_CONFIG}.bench.tmp" 2>/dev/null || true
+}
+trap restore_sccache EXIT
+
 # Build
 echo "Building: make ${BUILD_TARGET} ${MAKE_FLAGS} " | toilet -f term --metal  
 START=$(date +%s)
