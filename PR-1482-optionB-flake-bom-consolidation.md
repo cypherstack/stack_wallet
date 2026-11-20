@@ -99,6 +99,32 @@ documented and build-verified.
 - **Cannot self-verify here** — no Flutter in the Nix shell on this host; the
   author must run the builds on a machine with the full nix env.
 
+## Verified finding (2026-11-20) — B1-Go is NOT viable on the current rev
+
+Resolved the pinned nixpkgs rev `b1b875982b17dabde9b4a37f3e229e74913e6db3`
+directly with `nix eval`:
+
+- `pkgs.go_1_24` → **MISSING** (the selector does not exist in this rev).
+- `pkgs.go_1_25`, `pkgs.go_1_23` → **removed** (Go 1.23/1.25 are end-of-life in
+  this rev).
+- `pkgs.go_1_26` → `1.26.7` (the only `go_1_*` selector present).
+- bare `pkgs.go` → **`1.26.7`** — already drifts from the BOM's `1.24.13`.
+
+So B1-Go (`go` → `go_1_24`) **cannot** be applied without first moving the
+nixpkgs rev to one that still ships `go_1_24`. And bare `pkgs.go` is already at
+1.26.7, not the BOM's 1.24.13 — meaning the Nix shell's Go has been drifting
+from the BOM all along, on the prebuilt-independent source path.
+
+Implication: **Option B now requires a nixpkgs-rev change** (to a rev that ships
+both `go_1_24` and the exact Flutter 3.47.2), plus the mandatory
+`make build-macos` / `make build-linux` verification that dnix still
+reproduces byte-for-byte. That verification cannot be run on this host (no
+Flutter in the Nix shell), so Option B stays **planned / EDITED-UNPROVEN** until
+done on a full nix-env machine. Do NOT ship a partial flake edit here: a
+half-consolidated flake that pins Go to a selector absent from the rev, or
+changes the bare `pkgs.go` without a build gate, would silently change the
+toolchain dnix verifies against.
+
 ## What is NOT in scope
 
 - Homebrew installer Go version: it runs `brew install go` with no version pin.
