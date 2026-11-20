@@ -15,13 +15,17 @@ APP_BUILD_PLATFORM=$2
 ASSET_SOURCES_DIR="${APP_PROJECT_ROOT_DIR}/asset_sources"
 ASSETS_DIR="${APP_PROJECT_ROOT_DIR}/assets"
 
-# Windows gets real copies: symlink privilege is not guaranteed and the asset
-# tree is small. Other platforms use symlinks.
+# Windows hosts get real copies: symlink privilege is not guaranteed and the
+# asset tree is small. Other hosts use symlinks.
+WINDOWS_HOST=0
+case "$(uname -s)" in
+MINGW*|MSYS*|CYGWIN*) WINDOWS_HOST=1 ;;
+esac
 for dirname in "default_themes" "icon" "lottie" "in_app_logo_icons" "svg"; do
   LINK_SOURCE_DIR="${ASSET_SOURCES_DIR}/${dirname}/${SELECT_ASSETS_DIR}"
 
   # Remove an old Windows junction as a link, not by recursing into its target.
-  if [[ "${APP_BUILD_PLATFORM}" = 'windows' && -d "${ASSETS_DIR}/${dirname}" ]]; then
+  if [[ "${WINDOWS_HOST}" = 1 && -d "${ASSETS_DIR}/${dirname}" ]]; then
     TARGET_WIN_PATH="$(cygpath -w "${ASSETS_DIR}/${dirname}")"
     if ! MSYS2_ARG_CONV_EXCL="/C" cmd.exe /C rmdir "$TARGET_WIN_PATH" 2>/dev/null; then
       # A real copy directory cannot be removed by rmdir; a reparse point must
@@ -32,9 +36,14 @@ for dirname in "default_themes" "icon" "lottie" "in_app_logo_icons" "svg"; do
       fi
     fi
   fi
-  rm -rf "${ASSETS_DIR:?}/${dirname:?}"
+  if [[ "${WINDOWS_HOST}" = 1 ]]; then
+    rm -rf "${ASSETS_DIR:?}/${dirname:?}"
+  else
+    # Only symlinks here: rm -f refuses a real directory instead of deleting it.
+    rm -f "${ASSETS_DIR:?}/${dirname:?}"
+  fi
 
-  if [[ "${APP_BUILD_PLATFORM}" = 'windows' ]]; then
+  if [[ "${WINDOWS_HOST}" = 1 ]]; then
     mkdir -p "${ASSETS_DIR}/${dirname}"
     cp -r "${LINK_SOURCE_DIR}/." "${ASSETS_DIR}/${dirname}/"
   else
