@@ -327,7 +327,10 @@ final class ZcashStagedChainDriver
     if (spendable.isEmpty) {
       throw StateError('no mature miner coinbase is available');
     }
-    const fee = 10000;
+    // The largest funding shape has four ZIP-317 logical actions. Use the
+    // original 5,000-zatoshi marginal fee so the fixture remains valid on
+    // both Zebra 6.2.x and newer regtest nodes with the reduced test fee.
+    const fee = 20000;
     final amount = value.toInt();
     var coin = spendable.first;
     var fundingTip = tip;
