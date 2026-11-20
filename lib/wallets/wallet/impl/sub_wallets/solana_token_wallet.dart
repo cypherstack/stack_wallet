@@ -644,8 +644,7 @@ class SolanaTokenWallet extends Wallet {
         return;
       }
 
-      final tokenApi = SolanaTokenAPI();
-      tokenApi.initializeRpcClient(rpcClient);
+      final tokenApi = SolanaTokenAPI(rpcClient: rpcClient);
 
       final balanceResponse = await tokenApi.getTokenAccountBalance(
         senderTokenAccount,
