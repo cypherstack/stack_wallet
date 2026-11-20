@@ -823,7 +823,12 @@ abstract class SWB {
       var node = nodeService.getPrimaryNodeFor(currency: coin);
 
       if (node == null) {
-        node = coin.defaultNode(isPrimary: true);
+        node = coin.defaultNodeOrNull(isPrimary: true);
+        if (node == null) {
+          throw StateError(
+            'Configure a ${coin.prettyName} node before restoring this backup',
+          );
+        }
         await nodeService.save(node, null, false);
       }
 

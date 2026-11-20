@@ -163,7 +163,12 @@ class _NewWalletRecoveryPhraseWarningViewState
           .getPrimaryNodeFor(currency: coin);
 
       if (node == null) {
-        node = coin.defaultNode(isPrimary: true);
+        node = coin.defaultNodeOrNull(isPrimary: true);
+        if (node == null) {
+          throw StateError(
+            'Configure a ${coin.prettyName} node before creating a wallet',
+          );
+        }
         await ref
             .read(nodeServiceChangeNotifierProvider)
             .save(node, null, false);

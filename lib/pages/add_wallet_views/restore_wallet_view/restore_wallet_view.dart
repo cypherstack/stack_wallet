@@ -332,7 +332,12 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
             .getPrimaryNodeFor(currency: widget.coin);
 
         if (node == null) {
-          node = widget.coin.defaultNode(isPrimary: true);
+          node = widget.coin.defaultNodeOrNull(isPrimary: true);
+          if (node == null) {
+            throw StateError(
+              'Configure a ${widget.coin.prettyName} node before restoring',
+            );
+          }
           await ref
               .read(nodeServiceChangeNotifierProvider)
               .save(node, null, false);
