@@ -86,6 +86,16 @@ Future<bool> acquireSaplingParameters({
   );
   if (approved != true || !context.mounted) return false;
 
+  return downloadSaplingParameters(context: context, taskFactory: taskFactory);
+}
+
+/// Acquires and verifies Sapling proving parameters without an additional
+/// consent prompt. Restore flows call this only after scanning has found
+/// spendable Sapling funds.
+Future<bool> downloadSaplingParameters({
+  required BuildContext context,
+  required SaplingParameterTask Function() taskFactory,
+}) async {
   late final SaplingParameterTask task;
   try {
     task = taskFactory();
@@ -107,7 +117,17 @@ Future<bool> acquireSaplingParameters({
     return false;
   }
   final progressEvents = EventBus();
-  final stateSubscription = task.states.listen((state) {
+  final stage = ValueNotifier<String>('Checking existing Zcash data');
+  var acceptingStates = true;
+  void handleState(SaplingParameterState state) {
+    if (!acceptingStates) return;
+    stage.value = switch (state) {
+      SaplingParametersChecking() => 'Checking existing Zcash data',
+      SaplingParametersDownloading() => 'Downloading Zcash data',
+      SaplingParametersVerifying() => 'Verifying Zcash data',
+      SaplingParametersReady() => 'Zcash data ready',
+      SaplingParametersFailed() => 'Zcash data unavailable',
+    };
     if (state case SaplingParametersDownloading(
       :final totalReceivedBytes,
       :final totalExpectedBytes,
@@ -117,7 +137,12 @@ Future<bool> acquireSaplingParameters({
           : totalReceivedBytes / totalExpectedBytes;
       progressEvents.fire(fraction.clamp(0.0, 1.0));
     }
-  });
+  }
+
+  final stateSubscription = task.states.listen(handleState);
+  if (task case SaplingParameterTaskStateSnapshot(:final currentState?)) {
+    handleState(currentState);
+  }
 
   BuildContext? progressDialogContext;
   final progressDialogShown = Completer<void>();
@@ -137,15 +162,18 @@ Future<bool> acquireSaplingParameters({
                 .extension<StackColors>()!
                 .overlay
                 .withValues(alpha: 0.6),
-            child: CustomLoadingOverlay(
-              message: 'Downloading and verifying Zcash data',
-              subMessage:
-                  '49.2 MiB is stored once for future Sapling activity.',
-              eventBus: progressEvents,
-              actionButton: SecondaryButton(
-                buttonHeight: ButtonHeight.l,
-                label: 'Cancel',
-                onPressed: () => unawaited(task.cancel()),
+            child: ValueListenableBuilder<String>(
+              valueListenable: stage,
+              builder: (context, message, _) => CustomLoadingOverlay(
+                message: message,
+                subMessage:
+                    '49.2 MiB is stored once for future Sapling activity.',
+                eventBus: progressEvents,
+                actionButton: SecondaryButton(
+                  buttonHeight: ButtonHeight.l,
+                  label: 'Cancel',
+                  onPressed: () => unawaited(task.cancel()),
+                ),
               ),
             ),
           ),
@@ -170,6 +198,7 @@ Future<bool> acquireSaplingParameters({
     );
     return false;
   } finally {
+    acceptingStates = false;
     unawaited(stateSubscription.cancel());
     final dialogContext = progressDialogContext;
     if (dialogContext != null && dialogContext.mounted) {
@@ -180,6 +209,7 @@ Future<bool> acquireSaplingParameters({
         Navigator.of(dialogContext).removeRoute(route);
       }
     }
+    stage.dispose();
     if (context.mounted && failure != null) {
       unawaited(
         showDialog<void>(

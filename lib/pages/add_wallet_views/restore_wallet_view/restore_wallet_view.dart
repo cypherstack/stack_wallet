@@ -29,6 +29,7 @@ import '../../../providers/global/secure_store_provider.dart';
 import '../../../providers/providers.dart';
 import '../../../services/transaction_notification_tracker.dart';
 import '../../../services/wallets.dart';
+import '../../../services/zcash_restored_wallet_operation.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/address_utils.dart';
 import '../../../utilities/assets.dart';
@@ -67,6 +68,7 @@ import '../../../wl_gen/interfaces/cs_monero_interface.dart';
 import '../../../wl_gen/interfaces/cs_wownero_interface.dart';
 import '../../../wl_gen/interfaces/lib_xelis_interface.dart';
 import '../../home_view/home_view.dart';
+import '../../send_view/zcash_parameter_acquisition.dart';
 import '../add_token_view/edit_wallet_tokens_view.dart';
 import '../select_wallet_for_sol_token_view.dart';
 import '../select_wallet_for_token_view.dart';
@@ -285,49 +287,6 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           ),
         );
       } else {
-        if (!Platform.isLinux) await WakelockPlus.enable();
-
-        final info = WalletInfo.createNew(
-          coin: widget.coin,
-          name: widget.walletName,
-          restoreHeight: height,
-          otherDataJsonString: otherDataJsonString,
-        );
-
-        bool isRestoring = true;
-        Wallet? restored;
-        // show restoring in progress
-
-        if (mounted) {
-          unawaited(
-            showDialog<dynamic>(
-              context: context,
-              useSafeArea: false,
-              barrierDismissible: false,
-              builder: (context) {
-                return RestoringDialog(
-                  onCancel: () async {
-                    isRestoring = false;
-
-                    if (mounted) setState(() => _hideSeedWords = false);
-
-                    await ref
-                        .read(pWallets)
-                        .deleteWallet(info, ref.read(secureStoreProvider));
-
-                    // Stop the cancelled restore's network work now: its
-                    // recover() fails and the wallet is never added.
-                    final cancelled = restored;
-                    if (cancelled is ElectrumXInterface) {
-                      await cancelled.electrumXClient.closeAdapter();
-                    }
-                  },
-                );
-              },
-            ),
-          );
-        }
-
         var node = ref
             .read(nodeServiceChangeNotifierProvider)
             .getPrimaryNodeFor(currency: widget.coin);
@@ -344,11 +303,83 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
               .save(node, null, false);
         }
 
-        final txTracker = TransactionNotificationTracker(
-          walletId: info.walletId,
+        final info = WalletInfo.createNew(
+          coin: widget.coin,
+          name: widget.walletName,
+          restoreHeight: height,
+          otherDataJsonString: otherDataJsonString,
         );
 
+        bool isRestoring = true;
+        Wallet? restored;
+        ZcashRestoredWalletOperation? zcashRestoreOperation;
+        BuildContext? restoringDialogContext;
+        var restoringDialogShouldClose = false;
+
+        void closeRestoringDialog() {
+          restoringDialogShouldClose = true;
+          final dialogContext = restoringDialogContext;
+          restoringDialogContext = null;
+          if (dialogContext == null || !dialogContext.mounted) return;
+          final route = ModalRoute.of(dialogContext);
+          if (route != null) {
+            Navigator.of(dialogContext).removeRoute(route);
+          }
+        }
+
+        var wakelockEnabled = false;
         try {
+          if (!Platform.isLinux) {
+            await WakelockPlus.enable();
+            wakelockEnabled = true;
+          }
+
+          // show restoring in progress
+
+          if (mounted) {
+            unawaited(
+              showDialog<dynamic>(
+                context: context,
+                useSafeArea: false,
+                barrierDismissible: false,
+                builder: (context) {
+                  restoringDialogContext = context;
+                  if (restoringDialogShouldClose) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      closeRestoringDialog();
+                    });
+                  }
+                  return RestoringDialog(
+                    onCancel: () async {
+                      isRestoring = false;
+                      closeRestoringDialog();
+                      if (mounted) setState(() => _hideSeedWords = false);
+                      final cancelled = restored;
+                      final operation = zcashRestoreOperation;
+                      if (operation != null) {
+                        try {
+                          await operation.cancel();
+                        } catch (error, stackTrace) {
+                          Logging.instance.w(
+                            'Cancelling Zcash wallet recovery failed',
+                            error: error,
+                            stackTrace: stackTrace,
+                          );
+                        }
+                      } else if (cancelled is ElectrumXInterface) {
+                        await cancelled.electrumXClient.closeAdapter();
+                      }
+                    },
+                  );
+                },
+              ),
+            );
+          }
+
+          final txTracker = TransactionNotificationTracker(
+            walletId: info.walletId,
+          );
+
           final wallet = restored = await Wallet.create(
             walletInfo: info,
             mainDB: ref.read(mainDBProvider),
@@ -358,6 +389,11 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
             mnemonicPassphrase: widget.mnemonicPassphrase,
             mnemonic: mnemonic,
           );
+          if (wallet is ZcashWallet) {
+            zcashRestoreOperation = ZcashRestoredWalletOperation.forWallet(
+              wallet,
+            );
+          }
 
           // TODO: extract interface with isRestore param
           switch (wallet) {
@@ -384,14 +420,33 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
             default:
               await wallet.init();
           }
-          await wallet.recover(isRescan: false);
+          if (wallet case ZcashWallet()) {
+            final ready = await zcashRestoreOperation!.run(
+              acquireParameters: (taskFactory) async {
+                if (!isRestoring || !mounted) return false;
+                closeRestoringDialog();
+                return downloadSaplingParameters(
+                  context: context,
+                  taskFactory: taskFactory,
+                );
+              },
+            );
+            if (!ready || !mounted || !isRestoring) {
+              isRestoring = false;
+              if (mounted) setState(() => _hideSeedWords = false);
+              return;
+            }
+          } else {
+            await wallet.recover(isRescan: false);
+            if (!isRestoring || !mounted) return;
+          }
 
           if (wallet is ExternalWallet) {
             await wallet.exit();
           }
 
           // check if state is still active before continuing
-          if (mounted) {
+          if (mounted && isRestoring) {
             await wallet.info.setMnemonicVerified(
               isar: ref.read(mainDBProvider).isar,
             );
@@ -428,6 +483,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
             }
 
             if (mounted) {
+              closeRestoringDialog();
               if (isDesktop) {
                 Navigator.of(context)
                     .popUntil(ModalRoute.withName(DesktopHomeView.routeName));
@@ -463,16 +519,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                 },
               );
             }
-
-            if (!Platform.isLinux && !isDesktop) {
-              await WakelockPlus.disable();
-            }
           }
         } catch (e) {
-          if (!Platform.isLinux && !isDesktop) {
-            await WakelockPlus.disable();
-          }
-
           // if (e is HiveError &&
           //     e.message == "Box has already been closed.") {
           //   // restore was cancelled
@@ -483,7 +531,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           // before continuing
           if (mounted && isRestoring) {
             // pop waiting dialog
-            Navigator.pop(context);
+            closeRestoringDialog();
 
             // show restoring wallet failed dialog
             await showDialog<dynamic>(
@@ -502,17 +550,39 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
             if (mounted) setState(() => _hideSeedWords = false);
           }
         } finally {
-          // A cancelled or failed restore never adds the wallet, so nothing
-          // else will close its Electrum connection.
+          closeRestoringDialog();
           final unused = restored;
-          if (unused is ElectrumXInterface &&
+          if (unused != null &&
               !Wallets.sharedInstance.wallets.contains(unused)) {
-            await unused.electrumXClient.closeAdapter();
+            try {
+              await unused.exit();
+            } catch (error, stackTrace) {
+              Logging.instance.w(
+                'Stopping an unregistered wallet restore failed',
+                error: error,
+                stackTrace: stackTrace,
+              );
+            }
           }
-        }
-
-        if (!Platform.isLinux && !isDesktop) {
-          await WakelockPlus.disable();
+          if (!Wallets.sharedInstance.wallets.any(
+            (wallet) => wallet.walletId == info.walletId,
+          )) {
+            try {
+              await ref
+                  .read(pWallets)
+                  .deleteWallet(info, ref.read(secureStoreProvider));
+            } catch (error, stackTrace) {
+              Logging.instance.w(
+                'Deleting an unregistered wallet restore failed',
+                error: error,
+                stackTrace: stackTrace,
+              );
+            }
+          }
+          if (wakelockEnabled) {
+            await WakelockPlus.disable();
+            wakelockEnabled = false;
+          }
         }
       }
     }

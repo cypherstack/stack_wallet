@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -156,10 +158,11 @@ void main() {
 
     await tester.tap(find.text('Download'));
     await tester.pump();
-    expect(find.text('Downloading and verifying Zcash data'), findsOneWidget);
+    expect(find.text('Checking existing Zcash data'), findsOneWidget);
 
     task.progress(received: 10, expected: 100);
     await tester.pump();
+    expect(find.text('Downloading Zcash data'), findsOneWidget);
     expect(find.text('10.00%'), findsOneWidget);
 
     await tester.tap(find.byType(SecondaryButton));
@@ -168,7 +171,143 @@ void main() {
     expect(await acquisition, isFalse);
     await tester.pump(const Duration(milliseconds: 300));
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('Downloading and verifying Zcash data'), findsNothing);
+    expect(find.text('Downloading Zcash data'), findsNothing);
+  });
+
+  testWidgets('automatic acquisition skips consent and reports each stage', (
+    tester,
+  ) async {
+    final task = _FakeSaplingParameterTask();
+    addTearDown(task.dispose);
+    final theme = StackTheme.fromJson(json: lightThemeJsonMap);
+    late Future<bool> acquisition;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [themeProvider.overrideWithValue(StateController(theme))],
+        child: MaterialApp(
+          theme: ThemeData(
+            extensions: [StackColors.fromStackColorTheme(theme)],
+          ),
+          home: Builder(
+            builder: (context) => TextButton(
+              onPressed: () {
+                acquisition = downloadSaplingParameters(
+                  context: context,
+                  taskFactory: () => task,
+                );
+              },
+              child: const Text('Restore'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Restore'));
+    await tester.pump();
+    expect(find.text('Additional Zcash data required'), findsNothing);
+    expect(find.text('Checking existing Zcash data'), findsOneWidget);
+
+    task.progress(received: 10, expected: 100);
+    await tester.pump();
+    expect(find.text('Downloading Zcash data'), findsOneWidget);
+    expect(find.text('10.00%'), findsOneWidget);
+
+    task.verifying();
+    await tester.pump();
+    expect(find.text('Verifying Zcash data'), findsOneWidget);
+
+    await task.cancel();
+    expect(await acquisition, isFalse);
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Verifying Zcash data'), findsNothing);
+  });
+
+  testWidgets('automatic acquisition closes its progress route on success', (
+    tester,
+  ) async {
+    final task = _FakeSaplingParameterTask();
+    addTearDown(task.dispose);
+    late final Directory parameterRoot;
+    final parameters = await tester.runAsync(() async {
+      parameterRoot = await Directory.systemTemp.createTemp(
+        'stack-parameter-widget-test-',
+      );
+      return _createTestParameters(parameterRoot);
+    });
+    addTearDown(() => parameterRoot.delete(recursive: true));
+    final theme = StackTheme.fromJson(json: lightThemeJsonMap);
+    late Future<bool> acquisition;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [themeProvider.overrideWithValue(StateController(theme))],
+        child: MaterialApp(
+          theme: ThemeData(
+            extensions: [StackColors.fromStackColorTheme(theme)],
+          ),
+          home: Builder(
+            builder: (context) => TextButton(
+              onPressed: () {
+                acquisition = downloadSaplingParameters(
+                  context: context,
+                  taskFactory: () => task,
+                );
+              },
+              child: const Text('Restore'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Restore'));
+    await tester.pump();
+    expect(find.text('Checking existing Zcash data'), findsOneWidget);
+
+    task.succeed(parameters!);
+    await tester.pump();
+    expect(await acquisition, isTrue);
+    await tester.pump();
+    expect(find.text('Checking existing Zcash data'), findsNothing);
+  });
+
+  testWidgets('automatic acquisition reports a synchronous start failure', (
+    tester,
+  ) async {
+    final theme = StackTheme.fromJson(json: lightThemeJsonMap);
+    late Future<bool> acquisition;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [themeProvider.overrideWithValue(StateController(theme))],
+        child: MaterialApp(
+          theme: ThemeData(
+            extensions: [StackColors.fromStackColorTheme(theme)],
+          ),
+          home: Builder(
+            builder: (context) => TextButton(
+              onPressed: () {
+                acquisition = downloadSaplingParameters(
+                  context: context,
+                  taskFactory: () => throw StateError('offline'),
+                );
+              },
+              child: const Text('Restore'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Restore'));
+    await tester.pump();
+
+    expect(await acquisition, isFalse);
+    await tester.pump();
+    expect(find.text('Zcash data unavailable'), findsOneWidget);
+    expect(find.text('Checking existing Zcash data'), findsNothing);
   });
 }
 
@@ -188,6 +327,15 @@ final class _FakeSaplingParameterTask implements SaplingParameterTask {
     );
   }
 
+  void verifying() {
+    _states.add(const SaplingParametersVerifying());
+  }
+
+  void succeed(zcash.SaplingProvingParameters parameters) {
+    _states.add(const SaplingParametersReady());
+    _result.complete(parameters);
+  }
+
   Future<void> dispose() => _states.close();
 
   @override
@@ -203,4 +351,41 @@ final class _FakeSaplingParameterTask implements SaplingParameterTask {
 
   @override
   Stream<SaplingParameterState> get states => _states.stream;
+}
+
+Future<zcash.SaplingProvingParameters> _createTestParameters(Directory root) {
+  const spendBytes = <int>[1, 2, 3, 4];
+  const outputBytes = <int>[5, 6, 7];
+  final manifest = zcash.SaplingParameterManifest(
+    version: 'widget-test-v1',
+    spend: zcash.SaplingParameterArtifact(
+      fileName: 'sapling-spend.params',
+      expectedBytes: spendBytes.length,
+      sha256Hex: sha256.convert(spendBytes).toString(),
+    ),
+    output: zcash.SaplingParameterArtifact(
+      fileName: 'sapling-output.params',
+      expectedBytes: outputBytes.length,
+      sha256Hex: sha256.convert(outputBytes).toString(),
+    ),
+  );
+  return zcash.SaplingProvingParameterCache(
+    cacheRoot: root,
+    manifest: manifest,
+  ).resolve(
+    source: _MemoryParameterSource({
+      manifest.spend.fileName: spendBytes,
+      manifest.output.fileName: outputBytes,
+    }),
+  );
+}
+
+final class _MemoryParameterSource implements zcash.SaplingParameterSource {
+  const _MemoryParameterSource(this.files);
+
+  final Map<String, List<int>> files;
+
+  @override
+  Stream<List<int>> open(zcash.SaplingParameterArtifact artifact) =>
+      Stream.value(files[artifact.fileName]!);
 }

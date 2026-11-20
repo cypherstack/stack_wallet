@@ -72,6 +72,12 @@ abstract interface class SaplingParameterTask {
   Future<void> cancel();
 }
 
+/// Optional snapshot exposed by shared tasks so a consumer attaching after an
+/// acquisition has started can render its current stage immediately.
+abstract interface class SaplingParameterTaskStateSnapshot {
+  SaplingParameterState? get currentState;
+}
+
 typedef SaplingParameterCacheRoot = Future<Directory> Function();
 typedef SaplingParameterProxy = ({InternetAddress host, int port});
 typedef SaplingParameterProxyResolver = SaplingParameterProxy? Function();
@@ -394,11 +400,20 @@ final class _SharedSaplingParameterOperation {
     required this.result,
     required this.states,
     required this.abort,
-  });
+  }) {
+    _stateSubscription = states.listen((state) => _currentState = state);
+    unawaited(
+      settled.then((_) async {
+        await _stateSubscription.cancel();
+      }),
+    );
+  }
 
   final Future<zcash.SaplingProvingParameters> result;
   final Stream<SaplingParameterState> states;
   final Completer<void> abort;
+  late final StreamSubscription<SaplingParameterState> _stateSubscription;
+  SaplingParameterState? _currentState;
   int _consumers = 0;
 
   Future<void> get settled =>
@@ -422,9 +437,10 @@ final class _SharedSaplingParameterOperation {
         },
       ),
     );
-    return _SimpleSaplingParameterTask(
+    return _SharedSaplingParameterTask(
       result: consumerResult.future,
       states: states,
+      currentStateProvider: () => _currentState,
       onCancel: () async {
         if (!attached) return;
         attached = false;
@@ -440,4 +456,29 @@ final class _SharedSaplingParameterOperation {
       },
     );
   }
+}
+
+final class _SharedSaplingParameterTask
+    implements SaplingParameterTask, SaplingParameterTaskStateSnapshot {
+  _SharedSaplingParameterTask({
+    required this.result,
+    required this.states,
+    required this.currentStateProvider,
+    required this.onCancel,
+  });
+
+  @override
+  final Future<zcash.SaplingProvingParameters> result;
+
+  @override
+  final Stream<SaplingParameterState> states;
+
+  final SaplingParameterState? Function() currentStateProvider;
+  final Future<void> Function() onCancel;
+
+  @override
+  SaplingParameterState? get currentState => currentStateProvider();
+
+  @override
+  Future<void> cancel() => onCancel();
 }

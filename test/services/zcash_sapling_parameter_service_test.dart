@@ -155,6 +155,41 @@ void main() {
     expect(installed[0].spendParamsPath, installed[1].spendParamsPath);
   });
 
+  test('a shared caller can read the current acquisition stage', () async {
+    final client = _PartiallyGatedClient({
+      _locations[_manifest.spend.fileName]!: _spendBytes,
+      _locations[_manifest.output.fileName]!: _outputBytes,
+    });
+    final service = ZcashSaplingParameterService(
+      cacheRoot: () async => temp,
+      manifest: _manifest,
+      locations: _locations,
+      clientFactory: (_) => client,
+      proxyResolver: () => null,
+    );
+
+    final first = service.resolve(
+      access: SaplingParameterAccess.downloadIfMissing,
+    );
+    final downloading = first.states.firstWhere(
+      (state) => state is SaplingParametersDownloading,
+    );
+    await client.firstChunkDelivered.future;
+    await downloading;
+    final second = service.resolve(
+      access: SaplingParameterAccess.downloadIfMissing,
+    );
+
+    expect(second, isA<SaplingParameterTaskStateSnapshot>());
+    expect(
+      (second as SaplingParameterTaskStateSnapshot).currentState,
+      isA<SaplingParametersDownloading>(),
+    );
+
+    client.releaseFirst.complete();
+    await Future.wait([first.result, second.result]);
+  });
+
   test(
     'cancelling one shared caller detaches it without aborting another',
     () async {
@@ -511,6 +546,46 @@ final class _GatedClient extends http.BaseClient {
             ..add(bytes)
             ..close();
         }
+      }),
+    );
+    return http.StreamedResponse(
+      controller.stream,
+      HttpStatus.ok,
+      contentLength: bytes.length,
+    );
+  }
+}
+
+final class _PartiallyGatedClient extends http.BaseClient {
+  _PartiallyGatedClient(this.bytesByUri);
+
+  final Map<Uri, List<int>> bytesByUri;
+  final Completer<void> firstChunkDelivered = Completer<void>();
+  final Completer<void> releaseFirst = Completer<void>();
+  var _requests = 0;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    final bytes = bytesByUri[request.url]!;
+    _requests++;
+    if (_requests > 1) {
+      return http.StreamedResponse(
+        Stream.value(bytes),
+        HttpStatus.ok,
+        contentLength: bytes.length,
+      );
+    }
+
+    final controller = StreamController<List<int>>();
+    scheduleMicrotask(() {
+      controller.add(bytes.sublist(0, 1));
+      firstChunkDelivered.complete();
+    });
+    unawaited(
+      releaseFirst.future.then((_) {
+        controller
+          ..add(bytes.sublist(1))
+          ..close();
       }),
     );
     return http.StreamedResponse(
