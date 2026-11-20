@@ -753,9 +753,11 @@ class _ConfirmTransactionViewState
                   iconSize: 24,
                   onPressed: () => Navigator.of(context).pop(),
                 ),
-                Text(
-                  "Confirm $unit transaction",
-                  style: STextStyles.desktopH3(context),
+                Expanded(
+                  child: Text(
+                    "Confirm $unit transaction",
+                    style: STextStyles.desktopH3(context),
+                  ),
                 ),
               ],
             ),
