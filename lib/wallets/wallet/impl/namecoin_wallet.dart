@@ -11,7 +11,6 @@ import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/isar/models/isar_models.dart';
 import '../../../utilities/amount/amount.dart';
-import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../utilities/extensions/extensions.dart';
 import '../../../utilities/logger.dart';
@@ -698,14 +697,6 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
 
     // Add transaction inputs
     for (int i = 0; i < inputsWithKeys.length; i++) {
-      final txid = inputsWithKeys[i].utxo.txid;
-
-      final hash = Uint8List.fromList(
-        txid.toUint8ListFromHex.reversed.toList(),
-      );
-
-      final prevOutpoint = coinlib.OutPoint(hash, inputsWithKeys[i].utxo.vout);
-
       final prevOutput = coinlib.Output.fromAddress(
         BigInt.from(inputsWithKeys[i].utxo.value),
         coinlib.Address.fromString(
@@ -716,42 +707,10 @@ class NamecoinWallet<T extends ElectrumXCurrencyInterface>
 
       prevOuts.add(prevOutput);
 
-      final coinlib.Input input;
-
-      switch (inputsWithKeys[i].derivePathType) {
-        case DerivePathType.bip44:
-          input = coinlib.P2PKHInput(
-            prevOut: prevOutpoint,
-            publicKey: inputsWithKeys[i].key!.publicKey,
-            sequence: sequence,
-          );
-
-        // TODO: fix this as it is (probably) wrong!
-        case DerivePathType.bip49:
-          throw Exception("TODO p2sh");
-        // input = coinlib.P2SHMultisigInput(
-        //   prevOut: prevOutpoint,
-        //   program: coinlib.MultisigProgram.decompile(
-        //     utxoSigningData[i].redeemScript!,
-        //   ),
-        //   sequence: sequence,
-        // );
-
-        case DerivePathType.bip84:
-          input = coinlib.P2WPKHInput(
-            prevOut: prevOutpoint,
-            publicKey: inputsWithKeys[i].key!.publicKey,
-            sequence: sequence,
-          );
-
-        case DerivePathType.bip86:
-          input = coinlib.TaprootKeyInput(prevOut: prevOutpoint);
-
-        default:
-          throw UnsupportedError(
-            "Unknown derivation path type found: ${inputsWithKeys[i].derivePathType}",
-          );
-      }
+      final input = standardInputToCoinlibInput(
+        inputsWithKeys[i],
+        sequence: sequence,
+      );
 
       clTx = clTx.addInput(input);
 
