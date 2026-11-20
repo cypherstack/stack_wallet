@@ -99,7 +99,7 @@ documented and build-verified.
 - **Cannot self-verify here** — no Flutter in the Nix shell on this host; the
   author must run the builds on a machine with the full nix env.
 
-## Verified finding (2026-11-20) — B1-Go is NOT viable on the current rev
+## Verified finding (2026-11-20) — nixpkgs `go_1_24` selector is gone; exact-fetch is the fix (CORRECTED)
 
 Resolved the pinned nixpkgs rev `b1b875982b17dabde9b4a37f3e229e74913e6db3`
 directly with `nix eval`:
@@ -115,15 +115,37 @@ nixpkgs rev to one that still ships `go_1_24`. And bare `pkgs.go` is already at
 1.26.7, not the BOM's 1.24.13 — meaning the Nix shell's Go has been drifting
 from the BOM all along, on the prebuilt-independent source path.
 
-Implication: **Option B now requires a nixpkgs-rev change** (to a rev that ships
-both `go_1_24` and the exact Flutter 3.47.2), plus the mandatory
-`make build-macos` / `make build-linux` verification that dnix still
-reproduces byte-for-byte. That verification cannot be run on this host (no
-Flutter in the Nix shell), so Option B stays **planned / EDITED-UNPROVEN** until
-done on a full nix-env machine. Do NOT ship a partial flake edit here: a
-half-consolidated flake that pins Go to a selector absent from the rev, or
-changes the bare `pkgs.go` without a build gate, would silently change the
-toolchain dnix verifies against.
+**CORRECTION (2026-11-20, the "nixpkgs-rev change" framing is WRONG):** the
+implication above was wrong. A nixpkgs-rev change is **not** required. The
+Dockerfile (Option A, committed) already reads Flutter/Go from the BOM and pins
+**exact** versions with **no nixpkgs involvement** — `Dockerfile:87-103` and
+`:182-198`:
+
+```dockerfile
+GO_VERSION="$(... bom_values.sh --get go)"           # 1.24.13
+curl -fsSL "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz"
+FLUTTER_VERSION="$(... bom_values.sh --get flutter)" # 3.47.2
+git clone --depth 1 --branch "$FLUTTER_VERSION" https://github.com/flutter/flutter.git
+```
+
+So the exact-version fetch pattern is **already proven in this repo**. The
+`go_1_24` selector being gone from this rev is irrelevant — the fix does not use
+nixpkgs selectors at all. The two viable approaches (both keep the current rev):
+
+1. **Go:** replace bare `go` in `flake.nix` with a small nix derivation that
+   fetches `https://go.dev/dl/go1.24.13.linux-amd64.tar.gz` / `-darwin.tar.gz`
+   at the BOM's `go` value (mirrors the Dockerfile). No rev change.
+2. **Flutter:** either fetch the `flutter@3.47.2` git tag directly (like the
+   Dockerfile) or pin the nixpkgs `flutter` derivation's `version`/`src` to the
+   BOM value. No rev change.
+
+What is still true: the **build-gate verification** (`make build-macos` /
+`make build-linux`, confirming dnix still reproduces byte-for-byte after the
+Flutter change) cannot run on this host (no Flutter in the Nix shell), so the
+flake edit stays **planned / EDITED-UNPROVEN** until done on a full nix-env
+machine. But the blocker is *verification*, **not** a rev change. Do NOT ship a
+partial flake edit here without the build gate — changing bare `pkgs.go`/
+`pkgs.flutter` silently changes the toolchain dnix verifies against.
 
 ## What is NOT in scope
 
