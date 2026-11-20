@@ -223,7 +223,7 @@ endif
 
 require-version: ## Fail unless VERSION/BUILD_NUM are valid and BUILD_NUM is not below the latest release tag
 	@printf '%s' '$(VERSION)' | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z][0-9A-Za-z.-]*)?$$' || { echo >&2 "[ERROR] VERSION must be x.y.z or x.y.z-suffix (got '$(VERSION)'; latest release tag: $$(git tag -l 'build_*' --sort=-v:refname 2>/dev/null | head -n1))."; exit 1; }
-	@printf '%s' '$(BUILD_NUM)' | grep -Eq '^[0-9]+$' || { echo >&2 "[ERROR] BUILD_NUM must be numeric (got '$(BUILD_NUM)'; latest release tag: $$(git tag -l 'build_*' --sort=-v:refname 2>/dev/null | head -n1))."; exit 1; }
+	@printf '%s' '$(BUILD_NUM)' | grep -Eq '^[0-9]+$$' || { echo >&2 "[ERROR] BUILD_NUM must be numeric (got '$(BUILD_NUM)'; latest release tag: $$(git tag -l 'build_*' --sort=-v:refname 2>/dev/null | head -n1))."; exit 1; }
 	@latest="$$(git tag -l 'build_*' --sort=-v:refname 2>/dev/null | sed -n 's/^build_\([0-9][0-9]*\)$$/\1/p' | head -n1)"; \
 	if [ -n "$$latest" ]; then \
 	  [ "$(BUILD_NUM)" -ge "$$latest" ] || { echo >&2 "[ERROR] BUILD_NUM $(BUILD_NUM) is below the latest release tag build_$$latest."; exit 1; }; \
