@@ -8,15 +8,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-const _bomFile = 'stack-bom.toml';
-const _pluginNames = [
-  'flutter_libepiccash',
-  'flutter_libmwc',
-  'flutter_libsparkmobile',
-  'frostdart',
-  'tor_ffi_plugin',
-  'xelis_wallet_flutter',
-];
+import 'bom_parser.dart';
 
 int _failures = 0;
 int _warnings = 0;
@@ -32,65 +24,6 @@ void _fail(String m) {
   stdout.writeln('[FAIL] $m');
 }
 
-final _sectionHeader = RegExp(r'^\[([^\]]+)\][ \t]*(#.*)?$');
-final _pluginsHeader = RegExp(r'^\[plugins\][ \t]*(#.*)?$', multiLine: true);
-
-/// Minimal TOML reader: `[section]` headers and `key = "value"` lines.
-Map<String, Map<String, String>> _readBom(String text) {
-  final result = <String, Map<String, String>>{};
-  var section = '';
-  for (final raw in text.split('\n')) {
-    final line = raw.trim();
-    if (line.isEmpty || line.startsWith('#')) continue;
-    final header = _sectionHeader.firstMatch(line);
-    if (header != null) {
-      section = header.group(1)!;
-      result.putIfAbsent(section, () => {});
-      continue;
-    }
-    final eq = line.indexOf('=');
-    if (eq < 0) continue;
-    final key = line.substring(0, eq).trim();
-    var value = line.substring(eq + 1).trim();
-    final hash = value.lastIndexOf(' #');
-    if (hash >= 0 && value.startsWith('"') == false) {
-      value = value.substring(0, hash).trim();
-    }
-    if (value.startsWith('"')) {
-      final end = value.indexOf('"', 1);
-      if (end < 0) {
-        stderr.writeln('Unterminated string in $_bomFile: $line');
-        exit(2);
-      }
-      value = value.substring(1, end);
-    } else if (value.length >= 2 &&
-        value.startsWith("'") &&
-        value.endsWith("'")) {
-      value = value.substring(1, value.length - 1);
-    }
-    result.putIfAbsent(section, () => {})[key] = value;
-  }
-  return result;
-}
-
-/// Resolves a bare command name to an absolute path via PATH, or returns the
-/// name unchanged if it is not found (so _run can report "not found").
-///
-/// Note: the PATH *list* separator is ';' on Windows and ':' elsewhere.
-/// Platform.pathSeparator is the path *component* separator ('/' / '\\'),
-/// which is the wrong value for splitting PATH, so it is not used here.
-String _resolveOnPath(String name) {
-  if (name.contains('/') || name.contains('\\')) return name;
-  final listSep = Platform.isWindows ? ';' : ':';
-  final sep = Platform.pathSeparator;
-  for (final dir in (Platform.environment['PATH'] ?? '').split(listSep)) {
-    if (dir.isEmpty) continue;
-    final candidate = File(dir.endsWith(sep) ? dir : '$dir/$name').path;
-    if (File(candidate).existsSync()) return candidate;
-  }
-  return name;
-}
-
 Future<String?> _run(String exe, List<String> args) async {
   try {
     // runInShell lets Windows start flutter.bat. Only stdout is parsed: Flutter
@@ -104,117 +37,48 @@ Future<String?> _run(String exe, List<String> args) async {
   }
 }
 
-List<int> _ver(String v) =>
-    RegExp(r'\d+').allMatches(v).map((m) => int.parse(m.group(0)!)).toList();
-
-int _cmp(String a, String b) {
-  final x = _ver(a), y = _ver(b);
-  for (var i = 0; i < 3; i++) {
-    final p = i < x.length ? x[i] : 0, q = i < y.length ? y[i] : 0;
-    if (p != q) return p.compareTo(q);
-  }
-  return 0;
-}
-
-String _short(String v) => v.length <= 7 ? v : v.substring(0, 7);
-
-/// Plugins declared by the app currently configured in pubspec.yaml.
-///
-/// Campfire and Stack Duo include only a subset of the pinned plugins, so a
-/// missing lock entry is only an error for a plugin the app actually uses.
-/// Accepts any consistent indentation and both direct dependencies and
-/// dependency_overrides; the hooks: user_defines: block is not a declaration.
-Set<String> _declaredPlugins() {
-  final file = File('pubspec.yaml');
-  if (!file.existsSync()) return {};
-  final lines = file.readAsLinesSync();
-  final declared = <String>{};
-  for (final sectionName in ['dependencies:', 'dependency_overrides:']) {
-    final header = RegExp('^${RegExp.escape(sectionName)}\\s*(#.*)?\$');
-    final start = lines.indexWhere((l) => header.hasMatch(l.trimRight()));
-    if (start < 0) continue;
-    String? indent;
-    for (var i = start + 1; i < lines.length; i++) {
-      final line = lines[i];
-      if (line.trim().isEmpty || line.trimLeft().startsWith('#')) continue;
-      final m = RegExp(r'^[ \t]+').firstMatch(line);
-      if (m == null) break;
-      indent = m.group(0);
-      break;
-    }
-    if (indent == null) continue;
-    for (var i = start + 1; i < lines.length; i++) {
-      final line = lines[i];
-      if (line.trim().isEmpty || line.trimLeft().startsWith('#')) continue;
-      final currentIndent = RegExp(r'^[ \t]*').firstMatch(line)!.group(0)!;
-      if (currentIndent.length < indent.length) break;
-      if (currentIndent != indent) continue;
-      final m = RegExp(r'''^[ \t]*["']?(\w+)["']?\s*:''').firstMatch(line);
-      if (m != null && _pluginNames.contains(m.group(1))) {
-        declared.add(m.group(1)!);
-      }
-    }
-  }
-  return declared;
-}
-
-/// Reads the git refs of the pinned plugins from pubspec.lock.
-Map<String, String> _lockRefs() {
-  final lock = File('pubspec.lock');
-  if (!lock.existsSync()) return {};
-  final lines = lock.readAsLinesSync();
-  final refs = <String, String>{};
-  for (var i = 0; i < lines.length; i++) {
-    final m = RegExp(r'^  (\w+):$').firstMatch(lines[i]);
-    if (m == null || !_pluginNames.contains(m.group(1))) continue;
-    for (var j = i + 1; j < lines.length && lines[j].startsWith('    '); j++) {
-      final r = RegExp(r'resolved-ref: "?([0-9a-f]{40})"?')
-          .firstMatch(lines[j]);
-      if (r != null) refs[m.group(1)!] = r.group(1)!;
-    }
-  }
-  return refs;
-}
-
-/// A duplicate `[plugins]` table makes _readBom silently last-wins and makes
-/// --update append a second block, so refuse both modes early.
-void _requireSinglePluginsSection(String text) {
-  final count = _pluginsHeader.allMatches(text).length;
-  if (count > 1) {
-    stderr.writeln(
-      'Duplicate [plugins] sections in $_bomFile; keep exactly one.',
-    );
-    exit(2);
-  }
-}
-
 Future<void> _update() async {
-  if ((_readBom(File(_bomFile).readAsStringSync())['plugins'] ?? {}).isEmpty) {
+  final existingPlugins = readBom(File(bomFileName).readAsStringSync())
+      ['plugins'] ??
+      {};
+  if (existingPlugins.isEmpty) {
     stderr.writeln(
-      'Plugin pins are not stored in $_bomFile; pubspec.lock pins them. '
+      'Plugin pins are not stored in $bomFileName; pubspec.lock pins them. '
       'Run flutter pub get instead.',
     );
     exit(2);
   }
-  final refs = _lockRefs();
+  final refs = lockRefs();
   if (refs.isEmpty) {
     stderr.writeln('pubspec.lock not found or has none of the plugins.');
     exit(2);
   }
-  final text = File(_bomFile).readAsStringSync();
-  _requireSinglePluginsSection(text);
-  final existing = _readBom(text)['plugins'] ?? {};
+  final text = File(bomFileName).readAsStringSync();
+  try {
+    requireSinglePluginsSection(text);
+  } on FormatException catch (e) {
+    stderr.writeln(e.message);
+    exit(2);
+  }
+  Map<String, String> existing;
+  try {
+    existing = readBom(text)['plugins'] ?? {};
+  } on FormatException catch (e) {
+    stderr.writeln(e.message);
+    exit(2);
+  }
   // Plugin pins live in pubspec.lock now. Refresh an existing table for older
   // branches, but never create one in a BOM that does not carry it.
   if (existing.isEmpty && !RegExp(r'\[plugins\]').hasMatch(text)) {
-    stdout.writeln('No [plugins] table in $_bomFile; nothing to update.');
+    stdout.writeln('No [plugins] table in $bomFileName; nothing to update.');
     return;
   }
-  final declared = _declaredPlugins();
+  final declared = declaredPlugins();
   // Without a pubspec.yaml we cannot tell which app is configured; keep the
   // old behaviour and update every plugin the lock knows about.
-  final updateable = declared.isEmpty ? _pluginNames.toSet() : declared;
-  final header = _pluginsHeader.firstMatch(text);
+  final updateable = declared.isEmpty ? bomPluginNames.toSet() : declared;
+  final header =
+      RegExp(r'^\[plugins\][ \t]*(#.*)?$', multiLine: true).firstMatch(text);
   final start = header?.start ?? -1;
   if (start < 0 && RegExp(r'\[plugins\]').hasMatch(text)) {
     stderr.writeln(
@@ -245,7 +109,7 @@ Future<void> _update() async {
     );
   var refreshed = 0;
   var preserved = 0;
-  for (final n in _pluginNames) {
+  for (final n in bomPluginNames) {
     if (updateable.contains(n) && refs.containsKey(n)) {
       buf.writeln('$n = "${refs[n]}"');
       refreshed++;
@@ -256,14 +120,14 @@ Future<void> _update() async {
     }
   }
   for (final entry in existing.entries) {
-    if (_pluginNames.contains(entry.key)) continue;
+    if (bomPluginNames.contains(entry.key)) continue;
     buf.writeln('${entry.key} = "${entry.value}"');
     preserved++;
   }
   buf.write(tail);
-  File(_bomFile).writeAsStringSync(buf.toString());
+  File(bomFileName).writeAsStringSync(buf.toString());
   stdout.writeln(
-    'Updated [plugins] in $_bomFile '
+    'Updated [plugins] in $bomFileName '
     '($refreshed refreshed, $preserved preserved).',
   );
 }
@@ -274,16 +138,17 @@ Never _finish() {
 }
 
 void _checkPlugins(Map<String, Map<String, String>> bom) {
-  final refs = _lockRefs();
+  final refs = lockRefs();
   final pinned = bom['plugins'] ?? {};
   // Plugin pins are no longer stored in the BOM; pubspec.lock is the source of
-  // truth. Keep the parser for older branches that still carry a [plugins] table.
+  // truth. Keep the parser for older branches that still carry a
+  // [plugins] table.
   if (pinned.isEmpty) return;
-  final declared = _declaredPlugins();
+  final declared = declaredPlugins();
   final pubspecExists = File('pubspec.yaml').existsSync();
   // A fresh checkout has no pubspec.yaml: build_app.sh generates it later.
   // In that case check every plugin the lock contains, as before.
-  final required = pubspecExists ? declared : _pluginNames.toSet();
+  final required = pubspecExists ? declared : bomPluginNames.toSet();
   if (refs.isEmpty) {
     _warn('pubspec.lock not found, plugin pins not checked');
   } else if (required.isEmpty) {
@@ -292,7 +157,7 @@ void _checkPlugins(Map<String, Map<String, String>> bom) {
       '(expected them under dependencies: or dependency_overrides:)',
     );
   } else {
-    for (final n in _pluginNames) {
+    for (final n in bomPluginNames) {
       if (!required.contains(n)) continue;
       final ref = refs[n];
       final pin = pinned[n];
@@ -301,13 +166,13 @@ void _checkPlugins(Map<String, Map<String, String>> bom) {
           '$n is missing from pubspec.lock (path dependency or not resolved)',
         );
       } else if (pin == null) {
-        _fail('$n is missing from [plugins] in $_bomFile (run --update)');
+        _fail('$n is missing from [plugins] in $bomFileName (run --update)');
       } else if (pin == ref) {
-        _ok('$n ${_short(ref)}');
+        _ok('$n ${shortVersion(ref)}');
       } else {
         _fail(
-          '$n is ${_short(ref)} in pubspec.lock but '
-          '${_short(pin)} in $_bomFile (run --update)',
+          '$n is ${shortVersion(ref)} in pubspec.lock but '
+          '${shortVersion(pin)} in $bomFileName (run --update)',
         );
       }
     }
@@ -315,18 +180,24 @@ void _checkPlugins(Map<String, Map<String, String>> bom) {
 }
 
 Future<void> main(List<String> args) async {
-  if (!File(_bomFile).existsSync()) {
-    stderr.writeln('Run from the repository root ($_bomFile not found).');
+  if (!File(bomFileName).existsSync()) {
+    stderr.writeln('Run from the repository root ($bomFileName not found).');
     exit(2);
   }
   if (args.contains('--update')) return _update();
 
-  final bomText = File(_bomFile).readAsStringSync();
-  _requireSinglePluginsSection(bomText);
-  final bom = _readBom(bomText);
+  final bomText = File(bomFileName).readAsStringSync();
+  Map<String, Map<String, String>> bom;
+  try {
+    requireSinglePluginsSection(bomText);
+    bom = readBom(bomText);
+  } on FormatException catch (e) {
+    stderr.writeln(e.message);
+    exit(2);
+  }
   final root = bom[''] ?? {};
   if (root['schema_version'] != '1') {
-    _fail('schema_version must be 1 in $_bomFile');
+    _fail('schema_version must be 1 in $bomFileName');
   }
   if (args.contains('--plugins')) {
     _checkPlugins(bom);
@@ -339,7 +210,7 @@ Future<void> main(List<String> args) async {
   final flutterExe =
       configuredFlutter.isNotEmpty && File(configuredFlutter).existsSync()
       ? configuredFlutter
-      : _resolveOnPath('flutter');
+      : resolveOnPath('flutter');
   // A Flutter/Dart executable found on PATH under a directory with a space in
   // its name breaks the native-assets hooks and the .dart_tool config writers,
   // which do not quote paths. Catch it here with a clear error rather than
@@ -366,7 +237,7 @@ Future<void> main(List<String> args) async {
             jsonDecode(fl.substring(start, end + 1)) as Map<String, dynamic>;
         final v = info['frameworkVersion'] as String;
         final d = info['dartSdkVersion'] as String;
-        if (_cmp(v, tc['flutter_min'] ?? '0') < 0) {
+        if (compareVersions(v, tc['flutter_min'] ?? '0') < 0) {
           _fail('Flutter $v is older than the minimum ${tc['flutter_min']}');
         } else if (v != tc['flutter']) {
           _warn(
@@ -378,7 +249,7 @@ Future<void> main(List<String> args) async {
         }
         final prefix = tc['dart_prefix'] ?? '';
         if (prefix.isEmpty) {
-          _fail('dart_prefix is missing from $_bomFile');
+          _fail('dart_prefix is missing from $bomFileName');
         } else if (d.startsWith('$prefix.')) {
           _ok('Dart $d');
         } else {
@@ -402,7 +273,7 @@ Future<void> main(List<String> args) async {
   }
   final dnssec = tc['dnssec_rust'] ?? '';
   if (dnssec.isEmpty) {
-    _fail('dnssec_rust is missing from $_bomFile');
+    _fail('dnssec_rust is missing from $bomFileName');
   } else if (list == null) {
     // already reported above
   } else if (list.split('\n').any((l) => l.startsWith('$dnssec-'))) {
@@ -419,7 +290,7 @@ Future<void> main(List<String> args) async {
   final gm = go == null ? null : RegExp(r'go(\d+\.\d+(\.\d+)?)').firstMatch(go);
   if (gm == null) {
     _warn('go not found in PATH; only apps that build Go components need it');
-  } else if (_cmp(gm.group(1)!, tc['go_min'] ?? '0') < 0) {
+  } else if (compareVersions(gm.group(1)!, tc['go_min'] ?? '0') < 0) {
     _fail('Go ${gm.group(1)} is older than the minimum ${tc['go_min']}');
   } else {
     _ok('Go ${gm.group(1)}');
