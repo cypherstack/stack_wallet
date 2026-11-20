@@ -62,6 +62,9 @@ void main() {
         address: "address0",
         amount: xmr("1.2501"),
         label: null,
+        memoBytes: null,
+        message: null,
+        additionalParams: const {},
       );
       await tester.pumpWidget(
         UncontrolledProviderScope(
