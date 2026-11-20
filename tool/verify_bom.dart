@@ -73,6 +73,24 @@ Map<String, Map<String, String>> _readBom(String text) {
   return result;
 }
 
+/// Resolves a bare command name to an absolute path via PATH, or returns the
+/// name unchanged if it is not found (so _run can report "not found").
+///
+/// Note: the PATH *list* separator is ';' on Windows and ':' elsewhere.
+/// Platform.pathSeparator is the path *component* separator ('/' / '\\'),
+/// which is the wrong value for splitting PATH, so it is not used here.
+String _resolveOnPath(String name) {
+  if (name.contains('/') || name.contains('\\')) return name;
+  final listSep = Platform.isWindows ? ';' : ':';
+  final sep = Platform.pathSeparator;
+  for (final dir in (Platform.environment['PATH'] ?? '').split(listSep)) {
+    if (dir.isEmpty) continue;
+    final candidate = File(dir.endsWith(sep) ? dir : '$dir/$name').path;
+    if (File(candidate).existsSync()) return candidate;
+  }
+  return name;
+}
+
 Future<String?> _run(String exe, List<String> args) async {
   try {
     // runInShell lets Windows start flutter.bat. Only stdout is parsed: Flutter
@@ -305,7 +323,19 @@ Future<void> main(List<String> args) async {
   final flutterExe =
       configuredFlutter.isNotEmpty && File(configuredFlutter).existsSync()
       ? configuredFlutter
-      : 'flutter';
+      : _resolveOnPath('flutter');
+  // A Flutter/Dart executable found on PATH under a directory with a space in
+  // its name breaks the native-assets hooks and the .dart_tool config writers,
+  // which do not quote paths. Catch it here with a clear error rather than
+  // failing deep inside a build with a cryptic "No such file or directory".
+  if (flutterExe.contains(' ')) {
+    _fail(
+      'Flutter is resolved to "$flutterExe": a path with a space in a name '
+      'breaks the build. Move the Flutter checkout to a path with no spaces, '
+      'or set FLUTTER=/path/to/flutter/bin/flutter to an unspaced location.',
+    );
+    _finish();
+  }
   final fl = await _run(flutterExe, ['--version', '--machine']);
   if (fl == null) {
     _fail('flutter not found in PATH');
