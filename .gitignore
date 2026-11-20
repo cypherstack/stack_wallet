@@ -131,3 +131,6 @@ lib/wl_gen/generated/
 /android/dev-keystore.jks
 /android/keystore.jks
 /android/keystore-orig.jks
+
+# Benchmark results (per-machine CSVs; see bm/README.md)
+/bm/results/
