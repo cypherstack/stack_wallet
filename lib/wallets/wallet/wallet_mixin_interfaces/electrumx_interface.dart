@@ -490,7 +490,7 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
         );
 
       case DerivePathType.bip86:
-        return coinlib.TaprootKeyInput(prevOut: prevOut);
+        return coinlib.TaprootKeyInput(prevOut: prevOut, sequence: sequence);
 
       default:
         throw UnsupportedError(
