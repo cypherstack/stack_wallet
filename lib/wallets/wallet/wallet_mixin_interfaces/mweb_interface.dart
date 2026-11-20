@@ -728,12 +728,17 @@ mixin MwebInterface<T extends ElectrumXCurrencyInterface>
   // ===========================================================================
 
   @override
-  Future<TxData> confirmSend({required TxData txData}) async {
+  Future<TxData> confirmSend({
+    required TxData txData,
+    Future<void> Function(String raw)? beforeBroadcast,
+  }) {
     if (txData.type.isMweb()) {
-      return await _confirmSendMweb(txData: txData);
-    } else {
-      return await super.confirmSend(txData: txData);
+      if (beforeBroadcast != null) {
+        throw UnsupportedError('Pre-broadcast MWEB callbacks are unsupported.');
+      }
+      return _confirmSendMweb(txData: txData);
     }
+    return super.confirmSend(txData: txData, beforeBroadcast: beforeBroadcast);
   }
 
   @override
