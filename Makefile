@@ -121,9 +121,10 @@ ifeq ($(TOOLCHAIN),auto)
 else
   TOOLCHAIN_EFFECTIVE := $(TOOLCHAIN)
 endif
-# Source builds need Nix on PATH to build the dnix libraries. The Nix/direnv
-# shell supplies it; any toolchain can use PREBUILTS=0 when nix is available.
-override SOURCE_TOOLCHAIN := $(if $(strip $(NIX_BIN)),1,)
+# Source builds require an active Nix/direnv shell (not just nix on PATH): the
+# shell supplies the dnix libraries and the toolchain. SOURCE_TOOLCHAIN is set
+# only inside such a shell; the prebuilt path (PREBUILTS=1) uses host tools.
+override SOURCE_TOOLCHAIN := $(if $(filter nix direnv,$(TOOLCHAIN_EFFECTIVE)),1,)
 # Linux builds use a project-local pub cache so cargo finds the repo-local
 # .cargo/config.toml that carries PROTOC through Flutter's filtered hook environment.
 # Other targets leave PUB_CACHE unset, so Flutter uses its normal per-user cache
@@ -400,8 +401,8 @@ ifeq ($(PREBUILTS),0)
     endif
   endif
   ifeq ($(filter Darwin Linux,$(PLATFORM)),$(PLATFORM))
-    ifeq ($(strip $(NIX_BIN)),)
-      $(error PREBUILTS=0 (dnix source) needs an active Nix/direnv shell; run 'make bootstrap' or use PREBUILTS=1)
+    ifeq ($(filter nix direnv,$(TOOLCHAIN_EFFECTIVE)),)
+      $(error PREBUILTS=0 (dnix source) requires an active Nix/direnv shell (TOOLCHAIN=nix or direnv); run 'make bootstrap' or use PREBUILTS=1)
     endif
   endif
 endif
