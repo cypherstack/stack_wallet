@@ -25,7 +25,7 @@ confirmDisclaimer() {
         fi
         case $response in
             [Yy][Ee][Ss] ) echo "Continuing..."; break;;
-            [Nn][Oo] ) exit 0;;
+            [Nn][Oo] ) echo >&2 "Aborted."; exit 1;;
             * ) echo "Invalid response";;
         esac
     done

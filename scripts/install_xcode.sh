@@ -67,8 +67,9 @@ else
     /Applications/*) ;;
     *) die "[ERROR] Refusing to sudo-select an Xcode outside /Applications: $XCODE_APP" ;;
   esac
-  [[ "$(/usr/bin/stat -f '%Su' -L "$XCODE_APP")" == "root" ]] || \
-    die "[ERROR] Refusing to sudo-select a user-owned Xcode bundle: $XCODE_APP"
+  # A .xip or `xcodes` install is owned by the user, and
+  # tool/setup_xcode.dart installs with --no-superuser on purpose. xcode-select
+  # still needs root, so select it with sudo instead of refusing the bundle.
   sudo xcode-select -s "$XCODE_APP/Contents/Developer"
   JUST_SELECTED=1
 fi

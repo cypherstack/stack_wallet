@@ -71,6 +71,7 @@ else
   FLUTTER_ACCEPTED_VERSIONS="$FLUTTER_VERSION"
 fi
 FLUTTER_DIR="${FLUTTER_DIR:-$HOME/development/flutter}"
+FLUTTER_MARKER=".stack-wallet-managed"
 case "$FLUTTER_DIR" in
   /*) ;;
   *) FLUTTER_DIR="$PWD/$FLUTTER_DIR" ;;
@@ -100,6 +101,10 @@ if flutter_version_ok "$CURRENT_FLUTTER"; then
 else
   [[ -n "$CURRENT_FLUTTER" ]] && echo "Found Flutter $CURRENT_FLUTTER at $FLUTTER_BIN, need $FLUTTER_VERSION."
   if [[ -d "$FLUTTER_DIR/.git" ]]; then
+    if [[ ! -e "$FLUTTER_DIR/$FLUTTER_MARKER" ]]; then
+        die "$FLUTTER_DIR is an existing Flutter checkout that this script did not create.
+Move it away, or set FLUTTER_DIR to a directory this script may manage."
+    fi
     echo "Switching $FLUTTER_DIR to Flutter $FLUTTER_VERSION..."
     git -C "$FLUTTER_DIR" fetch --tags origin
     git -C "$FLUTTER_DIR" checkout "$FLUTTER_VERSION"
@@ -130,9 +135,14 @@ RUST_VERSION="${RUST_VERSION:-1.99.1}"
 echo "Ensuring Rust $RUST_VERSION toolchain..."
 rustup toolchain install "$RUST_VERSION"
 rustup target add aarch64-apple-darwin x86_64-apple-darwin aarch64-apple-ios aarch64-apple-ios-sim --toolchain "$RUST_VERSION" >/dev/null 2>&1 || true
-# Pin this checkout instead of changing the user's global rustup default; the
-# native-asset crates also carry their own rust-toolchain.toml.
-rustup override set "$RUST_VERSION" --path "$REPO_ROOT" >/dev/null 2>&1 || true
+
+# DNSSEC native builds (via native_dependency_contract) pin their own Rust
+# toolchain through rust-toolchain.toml. verify-bom runs before the build hooks
+# get a chance to install it, so install it here as well.
+DNSSEC_RUST_VERSION="${DNSSEC_RUST_VERSION:-$(bom_get rust_dnssec || true)}"
+DNSSEC_RUST_VERSION="${DNSSEC_RUST_VERSION:-1.90.0}"
+echo "Ensuring Rust $DNSSEC_RUST_VERSION toolchain (DNSSEC)..."
+rustup toolchain install "$DNSSEC_RUST_VERSION" >/dev/null 2>&1 || true
 
 # Homebrew's rustup formula is keg-only and does not necessarily create the
 # cargo/rustc shims in ~/.cargo/bin — `rustup toolchain install` alone may leave
@@ -149,7 +159,10 @@ fi
 
 # cargo/rustc live in ~/.cargo/bin after rustup installs a toolchain
 export PATH="$HOME/.cargo/bin:$PATH"
-source "$HOME/.cargo/env" 2>/dev/null || true
+if [ -f "$HOME/.cargo/env" ]; then
+    # shellcheck disable=SC1091
+    source "$HOME/.cargo/env"
+fi
 
 if ! command -v cargo >/dev/null 2>&1; then
   die "cargo still not on PATH after rustup setup. Run 'rustup-init -y' manually, then re-run this script."
@@ -173,6 +186,7 @@ fi
 rustup --version
 rustup run "$RUST_VERSION" rustc --version
 rustup run "$RUST_VERSION" cargo --version
+rustup run "$DNSSEC_RUST_VERSION" rustc --version
 pod --version
 go version
 autoreconf --version | head -n 1 || true
@@ -181,10 +195,24 @@ aclocal --version | head -n 1 || true
 echo ""
 echo "Done."
 
-# Persist PATH entries for future terminals. Create ~/.zshrc when missing: a
-# vanilla macOS install ships without one, and this block used to skip silently
-# in that case — leaving new shells unable to find cargo/rustup and
-# making `source`ing this script the only way to get a usable environment.
+# Persist PATH entries for future terminals. This is opt-in: bootstrap must not
+# edit a shell profile the user did not ask it to touch. Set WRITE_PROFILE=1
+# (or run with --write-profile) to apply the lines automatically.
+if [ "${WRITE_PROFILE:-0}" != "1" ]; then
+  echo ""
+  echo "→ Not modifying $HOME/.zshrc."
+  echo "  Add these lines to your shell profile, or re-run with WRITE_PROFILE=1:"
+  echo "    eval \"\$($(brew --prefix)/bin/brew shellenv)\""
+  if [ -n "${FLUTTER_PATH_TO_PERSIST:-}" ]; then
+    printf '    export PATH=%s:$PATH\n' "$(printf '%q' "$FLUTTER_PATH_TO_PERSIST")"
+  fi
+  printf '    export PATH="%s/opt/rustup/bin:$HOME/.cargo/bin:$PATH"\n' "$(brew --prefix)"
+  echo ""
+  echo "Done."
+  exit 0
+fi
+
+# Create ~/.zshrc when missing: a vanilla macOS install ships without one, and
 ZSHRC="$HOME/.zshrc"
 if [ ! -f "$ZSHRC" ]; then
   touch "$ZSHRC"
