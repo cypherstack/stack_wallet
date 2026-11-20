@@ -1,7 +1,7 @@
 # Building
 
 Stack Wallet, Stack Duo and Campfire are built from this repository with
-Flutter **3.47.2 minimum, 3.47.4 recommended**. Follow the guide for the computer you build on:
+Flutter **3.47.2**. Follow the guide for the computer you build on:
 
 | Your computer | What it builds | Guide |
 |---|---|---|
@@ -45,9 +45,9 @@ To switch modes, rerun `build_app.sh`. It regenerates `pubspec.yaml`, so keep
 permanent changes in `scripts/app_config/templates/pubspec.template.yaml`.
 
 The `Makefile` selects the mode by toolchain: on Apple Silicon macOS and
-Linux, `TOOLCHAIN=nix`/`direnv` defaults to source; `brew`, `host`, `manual`,
-Intel macOS and Windows default to `PREBUILTS=1` (prebuilt). Those toolchains
-cannot select source mode.
+Linux, `TOOLCHAIN=nix`/`direnv` defaults to source when `nix` is on `PATH`;
+`brew`, `host`, `manual` and Windows default to `PREBUILTS=1`
+(prebuilt). Any toolchain can pass `PREBUILTS=0` when `nix` is on `PATH`.
 
 ## Configuration options
 

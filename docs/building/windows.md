@@ -9,7 +9,8 @@ with Windows Flutter. For how the build fits together, see the
 
 | What | Needed for |
 |---|---|
-| [Flutter](https://docs.flutter.dev/install/manual) 3.47.2 minimum, 3.47.4 recommended, and Git for Windows, which includes Git Bash | Every build |
+| [Flutter](https://docs.flutter.dev/install/manual) 3.47.2, and Git for Windows, which includes Git Bash | Every build |
+| GNU Make (`choco install make` or `scoop install make`; Git for Windows does not ship one) | `make build-windows` |
 | [Visual Studio 2022](https://docs.flutter.dev/platform-integration/windows/setup) with **Desktop development with C++**, CMake tools and a Windows SDK | Every build |
 | Windows Developer Mode, for the symlinks Flutter and its plugins create | Every build |
 | [Rustup](https://rustup.rs/) on Windows | Every app's DNSSEC hook and Stack Wallet's Xelis hook, in both modes |

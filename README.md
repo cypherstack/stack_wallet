@@ -99,8 +99,7 @@ plugin build is needed.
 Install the prerequisites from [Building on macOS](docs/building/macos.md)
 yourself, then run
 `make build-macos VERSION=x.y.z BUILD_NUM=nnn PREBUILTS=1`.
-Manual builds are prebuilt-only; source mode requires Nix/direnv.
-`make check-reqs-macos` reports what is missing (`make check-sdk-macos` checks
-full Xcode); `TOOLCHAIN=manual` makes the choice explicit. Use the
-Nix/direnv toolchain for a source build; manual and Homebrew builds are
-prebuilt-only.
+Manual builds default to `PREBUILTS=1`. Pass `PREBUILTS=0` when `nix` is on
+`PATH` to build the dnix libraries from source. `make check-reqs-macos` reports
+what is missing (`make check-sdk-macos` checks full Xcode); `TOOLCHAIN=manual`
+makes the choice explicit.

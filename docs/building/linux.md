@@ -7,15 +7,18 @@ These steps build the Linux desktop app and the Android app on Ubuntu 24.04
 
 | What | Needed for |
 |---|---|
-| [Flutter](https://docs.flutter.dev/install/manual) 3.47.2 minimum, 3.47.4 recommended | Every build |
+| [Flutter](https://docs.flutter.dev/install/manual) 3.47.2 | Every build |
 | The [Ubuntu packages](#ubuntu-packages) below | Every build |
 | [Rustup](https://rustup.rs/) | Every app, in both modes |
 | [Go](https://go.dev/doc/install) 1.24.1 or newer | Stack Wallet |
-| [Nix](https://nixos.org/download/) | Source mode only with Nix/direnv; not needed with `-d` |
+| [Nix](https://nixos.org/download/) | Source mode (`PREBUILTS=0`); not needed with `-d` |
 | The [Android tools](#android-tools) below | Android builds |
 
-Non-Nix toolchains (Homebrew/manual/host) are prebuilt-only: use
-`PREBUILTS=1`; source mode requires Nix/direnv.
+Source mode needs `nix` on `PATH`; without Nix, use `PREBUILTS=1` (prebuilt).
+
+A bundle built inside the Nix shell links against Nix's glibc and uses a
+`/nix/store` ELF interpreter and RUNPATH, so it runs only on that machine. Use
+the Ubuntu image or a host toolchain for a distributable Linux bundle.
 
 **Rustup:** every app builds its DNSSEC resolver with Rust **1.90.0**, and
 Stack Wallet builds Xelis with Rust **1.99.1**. The build hooks install these
@@ -81,12 +84,9 @@ plugin project in that SDK. Without a writable Flutter checkout, build in
    `keyPassword`, `storeFile` and `storePassword`.
 
 Use the version and build number for your checkout, and read the script's
-confirmation before continuing. Add `-d` to the configuration command to use
-verified dnix prebuilts:
-
-```sh
-bash scripts/build_app.sh -a stack_wallet -p linux -v 1.2.3 -b 123 -d
-```
+confirmation before continuing. The command above uses `-d` (verified dnix
+prebuilts). Omit `-d` when `nix` is on `PATH` to build those libraries from
+source.
 
 See the [configuration options](../building.md#configuration-options). The
 override check catches package-local dnix overrides; see

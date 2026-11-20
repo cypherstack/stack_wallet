@@ -24,23 +24,24 @@ manual/Homebrew path.
 
 | What | Needed for |
 |---|---|
-| [Flutter](https://docs.flutter.dev/install/manual) 3.47.2 minimum, 3.47.4 recommended | Manual and Homebrew modes |
-| Your usual Xcode (27.1 recommended) | Building the app, in both dnix modes |
+| [Flutter](https://docs.flutter.dev/install/manual) 3.47.2 | Manual and Homebrew modes |
+| Xcode 27.0 | Building the app, in both dnix modes |
 | Xcode **27.0**, release build **27A266a**, installed next to your usual Xcode | Source mode (dnix) with Nix/direnv on Apple Silicon: dnix builds its four packages with it, including during `flutter test`. It doesn't need to be selected; see [Install Xcode 27.0](#install-xcode-270) |
 | [Homebrew](https://brew.sh/) packages below | Manual and Homebrew modes |
 | [Rustup](https://rustup.rs/) | Manual and Homebrew modes, in both dnix modes |
 | [Go](https://go.dev/doc/install) 1.24.1 or newer | Stack Wallet, manual and Homebrew modes |
-| [Nix](https://nixos.org/download/) | Source mode (dnix) only with Nix/direnv; not needed with `-d` |
+| [Nix](https://nixos.org/download/) | Source mode (dnix) needs `nix` on `PATH`; not needed with `-d` |
 
 ```sh
+RUST_BOM="$(scripts/bom_values.sh --get rust)"
 brew install autoconf automake libtool cmake cocoapods go meson ninja pkg-config protobuf
-rustup toolchain install "$(scripts/bom_values.sh --get rust)"
-rustup target add aarch64-apple-darwin x86_64-apple-darwin \
+rustup toolchain install 1.90.0 "$RUST_BOM"
+rustup target add --toolchain "$RUST_BOM" aarch64-apple-darwin x86_64-apple-darwin \
   aarch64-apple-ios aarch64-apple-ios-sim
 ```
 
-Homebrew and manual toolchains are prebuilt-only: use `PREBUILTS=1`; they
-cannot build the dnix libraries from source. Source mode requires Nix/direnv.
+Homebrew and manual toolchains default to `PREBUILTS=1`. Pass `PREBUILTS=0`
+when `nix` is on `PATH` to build the dnix libraries from source.
 
 Check `nix --version` from the same environment that runs Flutter, and use
 `flutter doctor` to check the Apple SDK and CocoaPods setup. iOS device builds
@@ -140,8 +141,8 @@ Run the configuration and Flutter build commands in that shell.
 
 Use the version and build number for your checkout, and read the script's
 confirmation before continuing. `-d` selects the verified dnix prebuilts and
-is required for the manual/Homebrew path. Source mode is only available with
-Nix/direnv; see the
+is required when `nix` is not on `PATH`. Omit `-d` when `nix` is available to
+build from source; see the
 [configuration options](../building.md#configuration-options). The override
 check catches package-local dnix overrides; see
 [Local overrides](native-libraries.md#local-overrides).

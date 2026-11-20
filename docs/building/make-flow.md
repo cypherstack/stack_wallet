@@ -51,7 +51,7 @@ first-launch setup. An already-selected Xcode is left untouched. Use
 
 `VERSION` and `BUILD_NUM` are required. dnix source is only available through
 the Nix/direnv toolchain: it is the default on Apple Silicon macOS and inside
-Nix/direnv on Linux. Homebrew, manual and host toolchains, Intel macOS, CI and
+Nix/direnv on Linux. Homebrew, manual and host toolchains, CI and
 Windows use the verified prebuilts.
 
 ```mermaid
