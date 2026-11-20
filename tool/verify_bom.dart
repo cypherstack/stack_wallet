@@ -45,9 +45,14 @@ Future<String?> _run(String exe, List<String> args) async {
 }
 
 Future<void> _update() async {
-  final existingPlugins = readBom(File(bomFileName).readAsStringSync())
-      ['plugins'] ??
-      {};
+  final Map<String, String> existingPlugins;
+  try {
+    final raw = File(bomFileName).readAsStringSync();
+    existingPlugins = readBom(raw)['plugins'] ?? {};
+  } on FormatException catch (e) {
+    stderr.writeln(e.message);
+    exit(2);
+  }
   if (existingPlugins.isEmpty) {
     stderr.writeln(
       'Plugin pins are not stored in $bomFileName; pubspec.lock pins them. '

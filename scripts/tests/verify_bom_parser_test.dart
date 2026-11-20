@@ -209,5 +209,15 @@ dependencies:
         isEmpty,
       );
     });
+
+    test('reads a ref from a CRLF lockfile', () {
+      // A trailing CR must not break the anchored `^  (\w+):$` header.
+      const lock = 'plugins:\r\n  tor_ffi_plugin:\r\n'
+          '    resolved-ref: "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef"\r\n';
+      expect(
+        lockRefs(lockText: lock)['tor_ffi_plugin'],
+        'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
+      );
+    });
   });
 }

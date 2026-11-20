@@ -115,6 +115,10 @@ jobs:
 #        run: flutter analyze
       - name: Test build scripts
         run: dart scripts/tests/build_input_test.dart
+      - name: Test BOM values validator
+        run: dart scripts/tests/bom_values_test.dart
+      - name: Test BOM parser
+        run: dart scripts/tests/verify_bom_parser_test.dart
       - name: Test native build configuration
         run: dart scripts/tests/native_build_config_test.dart
       - name: Test native settings and dependency contracts

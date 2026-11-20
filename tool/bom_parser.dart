@@ -157,7 +157,10 @@ Map<String, String> lockRefs({String? lockText}) {
   final lines = (lockText ?? lock.readAsStringSync()).split('\n');
   final refs = <String, String>{};
   for (var i = 0; i < lines.length; i++) {
-    final m = RegExp(r'^  (\w+):$').firstMatch(lines[i]);
+    // Strip a trailing CR so a CRLF lockfile still matches the anchored
+    // `^  (\w+):$` header; otherwise the ref is silently dropped.
+    final line = lines[i].replaceFirst(RegExp(r'\r$'), '');
+    final m = RegExp(r'^  (\w+):$').firstMatch(line);
     if (m == null || !bomPluginNames.contains(m.group(1))) continue;
     for (var j = i + 1;
         j < lines.length && lines[j].startsWith('    ');
