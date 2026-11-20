@@ -5,6 +5,8 @@ on:
     branches: [main, staging]
     paths:
       - 'Dockerfile'
+      - 'stack-bom.toml'
+      - 'scripts/bom_values.sh'
       - '.github/workflows/build-ci-image.yaml'
   workflow_dispatch:
 
