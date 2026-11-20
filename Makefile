@@ -351,6 +351,11 @@ verify-bom: ## Check the local toolchain against stack-bom.toml
 	@bash scripts/bom_values.sh --check
 	@FLUTTER="$(FLUTTER)" "$(DART)" tool/verify_bom.dart --app "$(APP_NAME)"
 
+verify-bom-toolchains: ## Check only the installed toolchain (skip pubspec.lock pins); for CI to run on the runner before the prebuilt image
+	@[ -n "$(DART)" ] || { echo >&2 "[ERROR] Dart not installed (needed for verify-bom-toolchains). Install Flutter or pass DART=/path/to/dart."; exit 1; }
+	@bash scripts/bom_values.sh --check
+	@FLUTTER="$(FLUTTER)" "$(DART)" tool/verify_bom.dart --toolchains
+
 cache-stats: ## Show sccache statistics (hit rate) after a build
 	@command -v sccache >/dev/null 2>&1 || { echo >&2 "[ERROR] sccache not installed."; exit 1; }
 	@sccache --show-stats

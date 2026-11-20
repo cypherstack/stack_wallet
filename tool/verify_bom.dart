@@ -2,9 +2,16 @@
 // stack-bom.toml.
 //
 //   dart tool/verify_bom.dart            check, exit 1 on a mismatch
+//   dart tool/verify_bom.dart --toolchains  check only the installed toolchain
+//   dart tool/verify_bom.dart --plugins     check only the pubspec.lock pins
 //   dart tool/verify_bom.dart --update   refresh an existing [plugins] section from pubspec.lock
 //
 // No packages needed, so it runs before `flutter pub get`.
+//
+// CI splits the two: the toolchain check runs on the host runner before the
+// prebuilt image is used, because the image's toolchain is frozen until it is
+// rebuilt. Raising a minimum (flutter_min / go_min) must therefore fail the
+// runner step, not only the in-image step.
 import 'dart:convert';
 import 'dart:io';
 
@@ -203,6 +210,7 @@ Future<void> main(List<String> args) async {
     _checkPlugins(bom);
     _finish();
   }
+  final toolchainsOnly = args.contains('--toolchains');
   final tc = bom['toolchain'] ?? {};
 
   // Flutter / Dart
@@ -225,7 +233,15 @@ Future<void> main(List<String> args) async {
   }
   final fl = await _run(flutterExe, ['--version', '--machine']);
   if (fl == null) {
-    _fail('flutter not found in PATH');
+    // In CI the --toolchains check runs on the host runner before the
+    // prebuilt image is used; the runner has no Flutter (the image does),
+    // so a missing Flutter is a warning there, not a failure. A plain run
+    // (local or in-image) still requires it.
+    if (toolchainsOnly) {
+      _warn('flutter not found in PATH (expected inside the CI image)');
+    } else {
+      _fail('flutter not found in PATH');
+    }
   } else {
     final start = fl.indexOf('{');
     final end = fl.lastIndexOf('}');
@@ -265,7 +281,14 @@ Future<void> main(List<String> args) async {
   final list = await _run('rustup', ['toolchain', 'list']);
   final rust = tc['rust'] ?? '';
   if (list == null) {
-    _fail('rustup not found in PATH');
+    // On the CI host runner (pre-image) rustup is not installed — the pinned
+    // toolchains live in the prebuilt image. A missing rustup is a warning
+    // there, not a failure. A plain run (local or in-image) still requires it.
+    if (toolchainsOnly) {
+      _warn('rustup not found in PATH (expected inside the CI image)');
+    } else {
+      _fail('rustup not found in PATH');
+    }
   } else if (list.split('\n').any((l) => l.startsWith('$rust-'))) {
     _ok('Rust $rust installed via rustup');
   } else {
@@ -275,7 +298,10 @@ Future<void> main(List<String> args) async {
   if (dnssec.isEmpty) {
     _fail('dnssec_rust is missing from $bomFileName');
   } else if (list == null) {
-    // already reported above
+    // rustup absent: already reported above (fail locally, warn on the runner).
+    if (toolchainsOnly) {
+      _warn('DNSSEC Rust $dnssec not checked (rustup absent; in the CI image)');
+    }
   } else if (list.split('\n').any((l) => l.startsWith('$dnssec-'))) {
     _ok('DNSSEC Rust $dnssec installed via rustup');
   } else {
@@ -315,6 +341,6 @@ Future<void> main(List<String> args) async {
     }
   }
 
-  _checkPlugins(bom);
+  if (!toolchainsOnly) _checkPlugins(bom);
   _finish();
 }
