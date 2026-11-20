@@ -533,6 +533,89 @@ void main() {
     expect(sync.calls, 1);
   });
 
+  const cancelledRefreshTestName =
+      'cancelled refresh never persists or exposes the late sync result';
+  test(cancelledRefreshTestName, () async {
+    final directory = await Directory.systemTemp.createTemp(
+      'zcash_controller_cancelled_refresh_',
+    );
+    addTearDown(() => directory.delete(recursive: true));
+    final store = ZcashEncryptedWalletStateStore(
+      path: '${directory.path}/wallet.state',
+      walletId: 'wallet-cancelled-refresh',
+      network: 'main',
+      accountFingerprint: 'account-a',
+      secureStorage: FakeSecureStorage(),
+    );
+    final sync = _GatedSyncSession();
+    final controller = await ZcashWalletStateController.open(
+      store: store,
+      accountFingerprint: 'account-a',
+      network: 'main',
+      birthdayHeight: 100,
+      loadBirthdayTreeState: (_) async => const zcash.TreeState(
+        hash:
+            '0000000000000000000000000000000000000000000000000000000000000000',
+        height: 99,
+        time: 1,
+      ),
+      scanExecutor: _UnusedScanExecutor(),
+      openSync: (_, _) => sync,
+    );
+    final cancellation = ZcashRecoveryCancellationToken();
+
+    final refreshing = controller.refresh(cancellation: cancellation);
+    await Future<void>.delayed(Duration.zero);
+    cancellation.cancel();
+    sync.complete(const zcash.ZcashSyncCaughtUp(chainHeight: 125));
+
+    await expectLater(
+      refreshing,
+      throwsA(isA<ZcashRecoveryCancelledException>()),
+    );
+    expect(controller.snapshot.chainHeight, 99);
+    expect((await store.load())?.observedChainHeight, 99);
+  });
+
+  test(
+    'cancelled native scan result is rejected before store application',
+    () async {
+      const fingerprint = 'cancelled-native-scan';
+      final state = zcash.ZcashWalletSyncState.atBirthday(
+        cursor: zcash.ZcashLightwalletdSyncCursor.origin(height: 11),
+        network: zcash.ZcashAddressNetwork.regtest,
+        accountFingerprint: fingerprint,
+      );
+      final scanStarted = Completer<void>();
+      final releaseScan = Completer<void>();
+      final executor = _GatedScanExecutor(scanStarted, releaseScan);
+      var cancelled = false;
+      final session = openZcashSyncSession(
+        state: state,
+        source: const _SingleBlockSyncSource(),
+        scanExecutor: executor,
+        network: 'regtest',
+        checkCancellation: () {
+          if (cancelled) throw const ZcashRecoveryCancelledException();
+        },
+      );
+
+      final syncing = session.syncToTip();
+      await scanStarted.future;
+      cancelled = true;
+      releaseScan.complete();
+
+      await expectLater(
+        syncing,
+        throwsA(isA<ZcashRecoveryCancelledException>()),
+      );
+      expect(state.cursor.nextHeight, 11);
+      expect(state.sapling.notes, isEmpty);
+      expect(state.orchard.notes, isEmpty);
+      expect(state.ironwood.notes, isEmpty);
+    },
+  );
+
   test('inspection authenticates transparent maturity and spend state', () {
     const phrase =
         'abandon abandon abandon abandon abandon abandon abandon abandon '
@@ -1571,6 +1654,79 @@ class _UnusedScanExecutor implements ZcashScanExecutor {
   Future<zcash.ZcashScanResult> scan(zcash.ScanInputEnvelope envelope) =>
       throw StateError('scan should not be reached by this fake sync');
 }
+
+class _GatedScanExecutor implements ZcashScanExecutor {
+  _GatedScanExecutor(this.started, this.release);
+
+  final Completer<void> started;
+  final Completer<void> release;
+
+  @override
+  Future<zcash.ZcashScanResult> scan(zcash.ScanInputEnvelope envelope) async {
+    started.complete();
+    await release.future;
+    final range = envelope.range!;
+    return zcash.ZcashScanResult(
+      scannedBlocks: 1,
+      discoveredNotes: 1,
+      totalValue: 1000,
+      scannedHeightRange: range,
+      notes: [
+        zcash.ZcashScannedNote(
+          height: range.start,
+          tx: _cancelHashHex(range.start),
+          output: 0,
+          value: 1000,
+          pool: 'ironwood',
+          nullifier: '11' * 32,
+        ),
+      ],
+    );
+  }
+}
+
+class _SingleBlockSyncSource implements ZcashSyncDataSource {
+  const _SingleBlockSyncSource();
+
+  @override
+  Future<String?> getBlockHash(int height) async =>
+      height == 11 ? _cancelHashHex(height) : null;
+
+  @override
+  Future<zcash.ZcashLightwalletdScanSource> getBlockRange(
+    int start,
+    int end,
+  ) async => zcash.ZcashLightwalletdScanSource([
+    for (var height = start; height <= end; height++)
+      zcash.CompactBlock()
+        ..height = Int64(height)
+        ..hash = _cancelHashBytes(height)
+        ..prevHash = _cancelHashBytes(height - 1),
+  ]);
+
+  @override
+  Future<zcash.TreeState> getTreeState(int height) async => zcash.TreeState(
+    hash: zcash.reverseTxidByteOrder(_cancelHashHex(height)),
+    height: height,
+    time: 1,
+    ironwood: zcash.ShieldedTree(finalState: 'tree-$height'),
+  );
+
+  @override
+  Future<int> getTipHeight() async => 11;
+}
+
+List<int> _cancelHashBytes(int height) {
+  final bytes = List<int>.filled(32, 0);
+  bytes[1] = height & 0xff;
+  bytes[2] = (height >> 8) & 0xff;
+  return bytes;
+}
+
+String _cancelHashHex(int height) => [
+  for (final byte in _cancelHashBytes(height))
+    byte.toRadixString(16).padLeft(2, '0'),
+].join();
 
 class _ImmediateSyncSession implements ZcashSyncSession {
   const _ImmediateSyncSession(this.outcome);

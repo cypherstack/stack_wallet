@@ -5,6 +5,7 @@ import 'package:cryptography/cryptography.dart';
 
 import '../../../utilities/flutter_secure_storage_interface.dart';
 import 'zcash_wallet_state.dart';
+import 'zcash_wallet_persistence.dart';
 import 'zcash_zip318_migration.dart';
 
 abstract interface class ZcashZip318MigrationStore {
@@ -32,7 +33,7 @@ final class ZcashEncryptedZip318MigrationStore
   final String accountFingerprint;
   final SecureStorageInterface secureStorage;
 
-  String get _keyName => 'zcash_zip318_key_v1_$walletId';
+  String get _keyName => zcashZip318Key(walletId);
 
   List<int> get _aad => utf8.encode(
     'stack-wallet-zcash-zip318|$_version|$walletId|$network|'

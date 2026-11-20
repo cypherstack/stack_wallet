@@ -6,6 +6,7 @@ import 'package:zcash_flutter/zcash_flutter.dart' as zcash;
 
 import '../../../utilities/flutter_secure_storage_interface.dart';
 import 'zcash_wallet_state.dart';
+import 'zcash_wallet_persistence.dart';
 
 abstract interface class ZcashPendingSendStore {
   Future<zcash.IronwoodPendingSendState> load();
@@ -37,7 +38,7 @@ final class ZcashEncryptedPendingSendStore implements ZcashPendingSendStore {
   final String accountFingerprint;
   final SecureStorageInterface secureStorage;
 
-  String get _keyName => 'zcash_pending_send_key_v1_$walletId';
+  String get _keyName => zcashPendingSendKey(walletId);
 
   List<int> get _aad => utf8.encode(
     'stack-wallet-zcash-pending|$_envelopeVersion|$walletId|$network|'

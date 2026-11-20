@@ -19,6 +19,7 @@ import '../../models/tx_data.dart';
 import '../intermediate/bip39_wallet.dart';
 import '../intermediate/zcash_account_session.dart';
 import '../intermediate/zcash_pending_send_store.dart';
+import '../intermediate/zcash_restore_parameter_policy.dart';
 import '../intermediate/zcash_send.dart';
 import '../intermediate/zcash_transparent_shielding.dart';
 import '../intermediate/zcash_transparent_receiver_discovery.dart';
@@ -55,6 +56,7 @@ class ZcashWallet extends Bip39Wallet<Zcash>
       ZcashProductionZip318MigrationService();
   static final _zip318BroadcastSession = zcash.Zip318BroadcastSession();
   final _sendMutex = Mutex();
+  ZcashRecoveryCancellationToken? _recoveryCancellation;
   ZcashPreparedWalletSend? _preparedSend;
   int? _regtestNu63ActivationHeight;
   String? _regtestSaplingSpendParams;
@@ -76,6 +78,18 @@ class ZcashWallet extends Bip39Wallet<Zcash>
   bool get supportsMultiRecipient => true;
 
   int get accountSessionGeneration => _accountSession?.generation ?? 0;
+
+  /// Whether a completed restore scan found spendable Sapling notes whose
+  /// future transactions need the external proving-parameter cache.
+  bool get needsSaplingParametersAfterRestore =>
+      shouldAcquireSaplingParametersAfterRestore(
+        network: cryptoCurrency.network,
+        spendableSaplingZatoshis: _requireStateController()
+            .snapshot
+            .balance
+            .sapling
+            .spendableZatoshis,
+      );
 
   void configureAccountSessionFactory(ZcashAccountSessionFactory factory) {
     if (_accountSession != null) {
@@ -843,69 +857,105 @@ class ZcashWallet extends Bip39Wallet<Zcash>
       });
 
   @override
-  Future<void> recover({required bool isRescan}) => _sendMutex.protect(
-    () => refreshMutex.protect(() async {
-      if (isRescan) {
-        final store = _stateStore;
-        if (store == null) {
-          throw StateError(
-            'Zcash rescan requires an initialized sync checkpoint',
+  Future<void> recover({required bool isRescan}) async {
+    if (_recoveryCancellation != null) {
+      throw StateError('Zcash wallet recovery is already running');
+    }
+    final cancellation = ZcashRecoveryCancellationToken();
+    _recoveryCancellation = cancellation;
+    try {
+      await _sendMutex.protect(
+        () => refreshMutex.protect(() async {
+          cancellation.throwIfCancelled();
+          if (isRescan) {
+            final store = _stateStore;
+            if (store == null) {
+              throw StateError(
+                'Zcash rescan requires an initialized sync checkpoint',
+              );
+            }
+            await _releaseCurrentPrepared();
+            cancellation.throwIfCancelled();
+
+            final persisted = await store.load();
+            cancellation.throwIfCancelled();
+            if (persisted != null) {
+              final defaultAddress =
+                  _viewingKeys?.transparent.defaultExternalAddress;
+              final retained = <String, zcash.ZcashTransparentReceiver>{
+                for (final receiver in _additionalTransparentReceivers)
+                  receiver.address: receiver,
+                for (final receiver
+                    in persisted.syncState.transparent.receivers)
+                  if (receiver.address != defaultAddress)
+                    receiver.address: receiver,
+              };
+              _additionalTransparentReceivers = retained.values.toList();
+            }
+
+            // Reset only the encrypted chain checkpoint. Receiver rows,
+            // wallet identity, and durable reservations survive a rescan.
+            await store.reset();
+            cancellation.throwIfCancelled();
+            _stateController = null;
+            _stateStore = null;
+            _scanExecutor = null;
+            await _initializeStateController(_requireAccountSession());
+            cancellation.throwIfCancelled();
+          }
+
+          final snapshot = await _requireStateController().refresh(
+            cancellation: cancellation,
           );
-        }
-        await _releaseCurrentPrepared();
-
-        final persisted = await store.load();
-        if (persisted != null) {
-          final defaultAddress =
-              _viewingKeys?.transparent.defaultExternalAddress;
-          final retained = <String, zcash.ZcashTransparentReceiver>{
-            for (final receiver in _additionalTransparentReceivers)
-              receiver.address: receiver,
-            for (final receiver in persisted.syncState.transparent.receivers)
-              if (receiver.address != defaultAddress)
-                receiver.address: receiver,
-          };
-          _additionalTransparentReceivers = retained.values.toList();
-        }
-
-        // Reset only the encrypted chain checkpoint. Receiver rows, wallet
-        // identity, and durable broadcast reservations must survive a rescan.
-        await store.reset();
-        _stateController = null;
-        _stateStore = null;
-        _scanExecutor = null;
-        await _initializeStateController(_requireAccountSession());
+          cancellation.throwIfCancelled();
+          final mapper = ZcashStackStateMapper(walletId: walletId);
+          final transactions = mapper.transactions(
+            snapshot.history,
+            pendingSends: await _pendingSendStore?.load(),
+          );
+          cancellation.throwIfCancelled();
+          if (isRescan) {
+            // The caught-up snapshot is the complete history derived from the
+            // birthday. Replace it atomically without deleting addresses.
+            await mainDB.isar.writeTxn(() async {
+              await mainDB.isar.transactionV2s
+                  .where()
+                  .walletIdEqualTo(walletId)
+                  .deleteAll();
+              await mainDB.isar.transactionV2s.putAll(transactions);
+            });
+          } else {
+            await mainDB.updateOrPutTransactionV2s(transactions);
+          }
+          cancellation.throwIfCancelled();
+          await info.updateBalance(
+            newBalance: mapper.balance(snapshot.balance),
+            isar: mainDB.isar,
+          );
+          cancellation.throwIfCancelled();
+          await info.updateCachedChainHeight(
+            newHeight: snapshot.chainHeight,
+            isar: mainDB.isar,
+          );
+          cancellation.throwIfCancelled();
+        }),
+      );
+    } finally {
+      if (identical(_recoveryCancellation, cancellation)) {
+        _recoveryCancellation = null;
       }
+    }
+  }
 
-      final snapshot = await _requireStateController().refresh();
-      final mapper = ZcashStackStateMapper(walletId: walletId);
-      final transactions = mapper.transactions(
-        snapshot.history,
-        pendingSends: await _pendingSendStore?.load(),
-      );
-      if (isRescan) {
-        // The caught-up snapshot is the complete history derived from the
-        // birthday. Replace it atomically, without deleting receive addresses.
-        await mainDB.isar.writeTxn(() async {
-          await mainDB.isar.transactionV2s
-              .where()
-              .walletIdEqualTo(walletId)
-              .deleteAll();
-          await mainDB.isar.transactionV2s.putAll(transactions);
-        });
-      } else {
-        await mainDB.updateOrPutTransactionV2s(transactions);
-      }
-      await info.updateBalance(
-        newBalance: mapper.balance(snapshot.balance),
-        isar: mainDB.isar,
-      );
-      await info.updateCachedChainHeight(
-        newHeight: snapshot.chainHeight,
-        isar: mainDB.isar,
-      );
-    }),
-  );
+  /// Cancels recovery without waiting for [_sendMutex], then closes the active
+  /// lightwalletd session so in-flight network reads are interrupted.
+  Future<void> cancelRecovery() async {
+    final cancellation = _recoveryCancellation;
+    if (cancellation == null) return;
+    final session = _accountSession;
+    cancellation.cancel();
+    await session?.close();
+  }
 
   @override
   Future<void> updateNode() async {
@@ -1134,6 +1184,7 @@ class ZcashWallet extends Bip39Wallet<Zcash>
         source: source,
         scanExecutor: executor,
         network: network,
+        checkCancellation: () => _recoveryCancellation?.throwIfCancelled(),
         includeOrchardWitnesses: allowStagedOrchard,
       ),
       accountMetadata: accountMetadata,

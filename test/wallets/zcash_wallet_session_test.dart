@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -13,6 +14,7 @@ import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/wallet/impl/zcash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/zcash_account_session.dart';
+import 'package:stackwallet/wallets/wallet/intermediate/zcash_wallet_state_controller.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:zcash_flutter/zcash_flutter.dart' as zcash;
 
@@ -97,6 +99,8 @@ class SyncWalletSessionClient extends WalletSessionClient
     this.restoredTransparentOutputs = const [],
     this.activeTransparentAddresses = const {},
     this.authenticatedTransparentTransactions = const [],
+    this.transparentRefreshStarted,
+    this.transparentRefreshRelease,
   });
 
   final List<
@@ -110,6 +114,8 @@ class SyncWalletSessionClient extends WalletSessionClient
   final Set<String> activeTransparentAddresses;
   final List<ZcashAuthenticatedTransparentTransaction>
   authenticatedTransparentTransactions;
+  final Completer<void>? transparentRefreshStarted;
+  final Completer<void>? transparentRefreshRelease;
   bool failTip = false;
   int treeStateCalls = 0;
   int transparentRefreshCalls = 0;
@@ -147,6 +153,8 @@ class SyncWalletSessionClient extends WalletSessionClient
     int maxUtxos = 10000,
   }) async {
     transparentRefreshCalls++;
+    transparentRefreshStarted?.complete();
+    await transparentRefreshRelease?.future;
     receivedMaxRangeSize = maxRangeSize;
     receivedMaxUtxos = maxUtxos;
     queriedTransparentAddresses = state.addresses;
@@ -523,6 +531,86 @@ void main() {
     expect(client.tipCalls, 3);
     await wallet.exit();
   });
+
+  test(
+    'cancelRecovery closes the session promptly and rejects a late refresh',
+    () async {
+      final refreshStarted = Completer<void>();
+      final releaseRefresh = Completer<void>();
+      final node = walletNode(
+        host: 'https://cancel-recovery.example',
+        id: 'cancel-recovery',
+      );
+      final client = SyncWalletSessionClient(
+        chainName: 'main',
+        tipHeight: 42,
+        restoredTransparentOutputs: const [
+          (
+            scope: zcash.ZcashTransparentReceiverScope.external,
+            childIndex: 0,
+            valueZatoshis: 75000,
+          ),
+        ],
+        transparentRefreshStarted: refreshStarted,
+        transparentRefreshRelease: releaseRefresh,
+      );
+      final wallet = await Wallet.create(
+        walletInfo: WalletInfo(
+          walletId: 'zcash-cancel-recovery',
+          name: 'Zcash cancellation fixture',
+          mainAddressType: AddressType.zcashUnified,
+          coinName: 'zcash',
+          restoreHeight: 43,
+        ),
+        mainDB: MainDB.instance,
+        secureStorageInterface: MemorySecrets(),
+        nodeService: MutableZcashNodes(node),
+        prefs: SessionPrefs(),
+        mnemonic:
+            'abandon abandon abandon abandon abandon abandon abandon abandon '
+            'abandon abandon abandon about',
+        mnemonicPassphrase: '',
+      ) as ZcashWallet;
+      wallet.configureAccountSessionFactory(
+        (network) =>
+            ZcashAccountSession(network: network, clientFactory: (_) => client),
+      );
+      await wallet.init(isRestore: true);
+      final initialTotal = wallet.info.cachedBalance.total.raw;
+      final initialSpendable = wallet.info.cachedBalance.spendable.raw;
+      final initialHeight = wallet.info.cachedChainHeight;
+
+      var recoveryCompleted = false;
+      final recovery = wallet
+          .recover(isRescan: false)
+          .whenComplete(() => recoveryCompleted = true);
+      await refreshStarted.future.timeout(const Duration(seconds: 5));
+
+      await wallet.cancelRecovery().timeout(const Duration(seconds: 1));
+
+      expect(client.closeCalls, 1);
+      expect(wallet.accountSessionGeneration, isNonZero);
+      expect(recoveryCompleted, isFalse);
+      releaseRefresh.complete();
+      await expectLater(
+        recovery,
+        throwsA(isA<ZcashRecoveryCancelledException>()),
+      );
+      expect(
+        await MainDB.instance.isar.transactionV2s
+            .where()
+            .walletIdEqualTo(wallet.walletId)
+            .count(),
+        0,
+      );
+      expect(wallet.info.cachedBalance.total.raw, initialTotal);
+      expect(wallet.info.cachedBalance.spendable.raw, initialSpendable);
+      expect(wallet.info.cachedChainHeight, initialHeight);
+      await wallet.exit();
+      expect(client.closeCalls, 1);
+      expect(wallet.accountSessionGeneration, 0);
+    },
+  );
 
   test('transparent receiver refresh reaches balance and history', () async {
     const mnemonic =

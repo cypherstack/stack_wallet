@@ -32,6 +32,7 @@ import '../wallets/wallet/impl/epiccash_wallet.dart';
 import '../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../wallets/wallet/intermediate/lib_salvium_wallet.dart';
+import '../wallets/wallet/intermediate/zcash_wallet_persistence.dart';
 import '../wallets/wallet/wallet.dart';
 import '../wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 import 'event_bus/events/wallet_added_event.dart';
@@ -142,6 +143,13 @@ class Wallets {
         "${root.path}${Platform.pathSeparator}$walletId",
       );
       if (await directory.exists()) await directory.delete(recursive: true);
+    }
+    if (info.coin is Zcash) {
+      await deleteZcashWalletPersistence(
+        applicationRoot: await StackFileSystem.applicationRootDirectory(),
+        walletId: walletId,
+        secureStorage: secureStorage,
+      );
     }
 
     await secureStorage.delete(key: Wallet.mnemonicKey(walletId: walletId));

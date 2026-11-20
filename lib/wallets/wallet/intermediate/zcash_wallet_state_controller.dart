@@ -110,6 +110,28 @@ class ZcashRecoveryLimitException implements Exception {
       '$attempts attempts in one refresh: $cause';
 }
 
+class ZcashRecoveryCancelledException implements Exception {
+  const ZcashRecoveryCancelledException();
+
+  @override
+  String toString() => 'Zcash wallet recovery was cancelled';
+}
+
+/// Cooperative cancellation checked after external async boundaries in a
+/// recovery refresh. Native scanning may finish off-isolate, but its result is
+/// rejected before it can be persisted or projected into Stack.
+final class ZcashRecoveryCancellationToken {
+  var _cancelled = false;
+
+  bool get isCancelled => _cancelled;
+
+  void cancel() => _cancelled = true;
+
+  void throwIfCancelled() {
+    if (_cancelled) throw const ZcashRecoveryCancelledException();
+  }
+}
+
 class ZcashWalletSnapshot {
   const ZcashWalletSnapshot({
     required this.chainHeight,
@@ -651,10 +673,12 @@ class ZcashWalletStateController {
     pendingSends: pendingSends,
   );
 
-  Future<ZcashWalletSnapshot> refresh() {
+  Future<ZcashWalletSnapshot> refresh({
+    ZcashRecoveryCancellationToken? cancellation,
+  }) {
     final active = _refreshInFlight;
     if (active != null) return active;
-    final future = _refresh();
+    final future = _refresh(cancellation);
     _refreshInFlight = future;
     future.whenComplete(() {
       if (identical(_refreshInFlight, future)) _refreshInFlight = null;
@@ -662,7 +686,10 @@ class ZcashWalletStateController {
     return future;
   }
 
-  Future<ZcashWalletSnapshot> _refresh() async {
+  Future<ZcashWalletSnapshot> _refresh(
+    ZcashRecoveryCancellationToken? cancellation,
+  ) async {
+    cancellation?.throwIfCancelled();
     late final int caughtUpHeight;
     var recoveryCycles = 0;
     var restartedFromBirthday = false;
@@ -671,6 +698,7 @@ class ZcashWalletStateController {
       final zcash.ZcashSyncOutcome outcome;
       try {
         outcome = await _sync.syncToTip();
+        cancellation?.throwIfCancelled();
       } on zcash.ZcashReorgTooDeepException catch (error) {
         if (restartedFromBirthday ||
             recoveryCycles >= maximumRecoveryCyclesPerRefresh) {
@@ -681,7 +709,8 @@ class ZcashWalletStateController {
         }
         recoveryCycles++;
         restartedFromBirthday = true;
-        await _restartFromBirthday();
+        await _restartFromBirthday(cancellation);
+        cancellation?.throwIfCancelled();
         continue syncLoop;
       }
       switch (outcome) {
@@ -711,7 +740,8 @@ class ZcashWalletStateController {
               );
             }
             restartedFromBirthday = true;
-            await _restartFromBirthday();
+            await _restartFromBirthday(cancellation);
+            cancellation?.throwIfCancelled();
             continue syncLoop;
           }
           final sync = _sync;
@@ -736,7 +766,9 @@ class ZcashWalletStateController {
               'fork',
             );
           }
+          cancellation?.throwIfCancelled();
           await sync.resumeFrom(recovery);
+          cancellation?.throwIfCancelled();
           _observedChainHeight = recovery.forkHeight;
           final rewindHeight = recovery.forkHeight;
           _transparentHistoryFrontiers = {
@@ -745,7 +777,7 @@ class ZcashWalletStateController {
                   ? rewindHeight
                   : entry.value,
           };
-          await _saveState();
+          await _saveState(cancellation);
           continue syncLoop;
         case zcash.ZcashSyncAdvanced():
           throw StateError(
@@ -762,8 +794,11 @@ class ZcashWalletStateController {
       }
       final transparentHistory = await _discoverTransparentReceivers(
         caughtUpHeight,
+        cancellation,
       );
+      cancellation?.throwIfCancelled();
       var refresh = await refreshTransparent(_state.transparent);
+      cancellation?.throwIfCancelled();
       refresh = mergeAuthenticatedTransparentHistory(
         state: _state.transparent,
         refresh: refresh,
@@ -780,14 +815,19 @@ class ZcashWalletStateController {
       // canonical blocks have passed merge validation and state application.
       _transparentHistoryFrontiers = transparentHistory.frontiers;
     }
+    cancellation?.throwIfCancelled();
     _observedChainHeight = caughtUpHeight;
-    await _saveState();
+    await _saveState(cancellation);
+    cancellation?.throwIfCancelled();
     return snapshot;
   }
 
-  Future<void> _restartFromBirthday() async {
+  Future<void> _restartFromBirthday(
+    ZcashRecoveryCancellationToken? cancellation,
+  ) async {
     final retainedReceivers = _state.transparent.receivers;
     final treeState = await _loadBirthdayTreeState(_birthdayHeight - 1);
+    cancellation?.throwIfCancelled();
     if (treeState.height != _birthdayHeight - 1) {
       throw StateError(
         'birthday tree state height ${treeState.height} does not precede '
@@ -819,7 +859,9 @@ class ZcashWalletStateController {
     // The encrypted store replaces its file by atomic rename. Keep both the
     // durable and in-memory checkpoints on the old chain until the complete
     // birthday state and its new sync session have been validated and saved.
+    cancellation?.throwIfCancelled();
     await _store.save(replacement);
+    cancellation?.throwIfCancelled();
     _state = state;
     _sync = sync;
     _observedChainHeight = treeState.height;
@@ -828,6 +870,7 @@ class ZcashWalletStateController {
 
   Future<_ZcashTransparentHistoryDiscovery> _discoverTransparentReceivers(
     int chainHeight,
+    ZcashRecoveryCancellationToken? cancellation,
   ) async {
     final discover = _transparentDiscovery;
     final activity = _transparentActivity;
@@ -856,7 +899,9 @@ class ZcashWalletStateController {
       knownByAddress.keys.toList(growable: false),
       chainHeight,
       nextFrontiers,
+      cancellation,
     );
+    cancellation?.throwIfCancelled();
     _validateTransparentActivity(
       initialActivity.activeAddresses,
       knownByAddress.keys.toSet(),
@@ -928,6 +973,7 @@ class ZcashWalletStateController {
         );
       }
 
+      cancellation?.throwIfCancelled();
       _state.transparent.registerAccountReceivers(
         account: account,
         viewingKeys: viewingKeys,
@@ -943,12 +989,15 @@ class ZcashWalletStateController {
           transparentHistoryFrontiers: _transparentHistoryFrontiers,
         ),
       );
+      cancellation?.throwIfCancelled();
       final additionalActivity = await _loadTransparentActivity(
         activity,
         additions.map((receiver) => receiver.address).toList(growable: false),
         chainHeight,
         nextFrontiers,
+        cancellation,
       );
+      cancellation?.throwIfCancelled();
       _validateTransparentActivity(
         additionalActivity.activeAddresses,
         additions.map((receiver) => receiver.address).toSet(),
@@ -963,6 +1012,7 @@ class ZcashWalletStateController {
     List<String> addresses,
     int chainHeight,
     Map<String, int> nextFrontiers,
+    ZcashRecoveryCancellationToken? cancellation,
   ) async {
     final byStartHeight = <int, List<String>>{};
     final initialFrontier = _birthdayHeight <= chainHeight
@@ -986,6 +1036,7 @@ class ZcashWalletStateController {
     final transactions = <ZcashAuthenticatedTransparentTransaction>[];
     for (final entry in byStartHeight.entries) {
       final result = await activity(entry.value, entry.key, chainHeight);
+      cancellation?.throwIfCancelled();
       _validateTransparentActivity(result.activeAddresses, entry.value.toSet());
       active.addAll(result.activeAddresses);
       transactions.addAll(result.transactions);
@@ -999,13 +1050,17 @@ class ZcashWalletStateController {
     );
   }
 
-  Future<void> _saveState() => _store.save(
-    ZcashPersistedWalletState(
-      syncState: _state,
-      observedChainHeight: _observedChainHeight,
-      transparentHistoryFrontiers: _transparentHistoryFrontiers,
-    ),
-  );
+  Future<void> _saveState(ZcashRecoveryCancellationToken? cancellation) async {
+    cancellation?.throwIfCancelled();
+    await _store.save(
+      ZcashPersistedWalletState(
+        syncState: _state,
+        observedChainHeight: _observedChainHeight,
+        transparentHistoryFrontiers: _transparentHistoryFrontiers,
+      ),
+    );
+    cancellation?.throwIfCancelled();
+  }
 
   static void _validateTransparentActivity(
     Set<String> active,
@@ -1187,36 +1242,56 @@ ZcashSyncSession openZcashSyncSession({
   required ZcashSyncDataSource source,
   required ZcashScanExecutor scanExecutor,
   required String network,
+  void Function()? checkCancellation,
   bool includeSaplingWitnesses = true,
   bool includeOrchardWitnesses = false,
   int rangeSize = 100,
-}) => _ZcashChainSyncSession(
-  state.syncThrough(
-    chainTip: source.getTipHeight,
-    fetchRange: source.getBlockRange,
-    fetchTreeState: source.getTreeState,
-    servedBlockHashAt: source.getBlockHash,
-    scan: scanExecutor.scan,
-    network: network,
-    includeSaplingWitnesses: includeSaplingWitnesses,
-    includeOrchardWitnesses: includeOrchardWitnesses,
-    rangeSize: rangeSize,
-  ),
-  source,
-);
+}) {
+  Future<T> checked<T>(Future<T> Function() operation) async {
+    checkCancellation?.call();
+    final result = await operation();
+    checkCancellation?.call();
+    return result;
+  }
+
+  return _ZcashChainSyncSession(
+    state.syncThrough(
+      chainTip: () => checked(source.getTipHeight),
+      fetchRange: (start, end) =>
+          checked(() => source.getBlockRange(start, end)),
+      fetchTreeState: (height) => checked(() => source.getTreeState(height)),
+      servedBlockHashAt: (height) => checked(() => source.getBlockHash(height)),
+      scan: (envelope) => checked(() => scanExecutor.scan(envelope)),
+      network: network,
+      includeSaplingWitnesses: includeSaplingWitnesses,
+      includeOrchardWitnesses: includeOrchardWitnesses,
+      rangeSize: rangeSize,
+    ),
+    source,
+    checkCancellation,
+  );
+}
 
 class _ZcashChainSyncSession implements ZcashReorgRecoverableSyncSession {
-  const _ZcashChainSyncSession(this._sync, this._source);
+  const _ZcashChainSyncSession(
+    this._sync,
+    this._source,
+    this._checkCancellation,
+  );
 
   final zcash.ZcashChainSync _sync;
   final ZcashSyncDataSource _source;
+  final void Function()? _checkCancellation;
 
   @override
   Future<zcash.ZcashSyncOutcome> syncToTip() => _sync.syncToTip();
 
   @override
   Future<void> resumeFrom(zcash.ZcashReorgRecovery recovery) async {
+    _checkCancellation?.call();
     final treeState = await _source.getTreeState(recovery.forkHeight);
+    _checkCancellation?.call();
     _sync.resumeFrom(recovery: recovery, treeState: treeState);
+    _checkCancellation?.call();
   }
 }

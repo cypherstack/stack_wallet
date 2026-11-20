@@ -5,6 +5,7 @@ import 'package:cryptography/cryptography.dart';
 import 'package:zcash_flutter/zcash_flutter.dart' as zcash;
 
 import '../../../utilities/flutter_secure_storage_interface.dart';
+import 'zcash_wallet_persistence.dart';
 
 class ZcashStatePersistenceException implements Exception {
   const ZcashStatePersistenceException(this.message);
@@ -142,7 +143,7 @@ class ZcashEncryptedWalletStateStore {
   final String accountFingerprint;
   final SecureStorageInterface secureStorage;
 
-  String get _keyName => 'zcash_wallet_state_key_v1_$walletId';
+  String get _keyName => zcashWalletStateKey(walletId);
 
   List<int> get _aad => utf8.encode(
     'stack-wallet-zcash-state|$envelopeVersion|$walletId|$network|'
