@@ -332,7 +332,7 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
       _clearRecipientForms();
 
       // auto fill address
-      _address = paymentData.address.trim();
+      _address = _stripRelayPrefixes(paymentData.address.trim());
 
       // autofill notes field
       if (paymentData.message != null) {
@@ -399,6 +399,31 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
         stackTrace: s,
       );
     }
+  }
+
+  /// [address] without the prefixes an Epicbox address can be scanned or
+  /// pasted with. Other coins' addresses come back unchanged.
+  String _stripRelayPrefixes(String address) => coin is Epiccash
+      ? AddressUtils().formatEpicCashAddress(address)
+      : address;
+
+  /// Strips the prefixes an Epicbox address can be pasted with. Only
+  /// rewrites the field when that changes the text, so typing stays intact.
+  String _formatRelayAddress(String text) {
+    if (coin is! Epiccash) return text;
+    String address = text.trim();
+    if (address.contains("\n")) {
+      address = address.substring(0, address.indexOf("\n"));
+    }
+    final formatted = _stripRelayPrefixes(address);
+    if (formatted != address) {
+      sendToController.value = TextEditingValue(
+        text: formatted,
+        selection: TextSelection.collapsed(offset: formatted.length),
+      );
+      return formatted;
+    }
+    return text;
   }
 
   Future<void> _checkSparkNameAndOrSetAddress(
@@ -520,7 +545,9 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
         _applyUri(paymentData);
       } else {
         _setOpReturnData(null);
-        _address = qrResult.rawContent!.split("\n").first.trim();
+        _address = _stripRelayPrefixes(
+          qrResult.rawContent!.split("\n").first.trim(),
+        );
         sendToController.text = _address ?? "";
 
         _setValidAddressProviders(_address);
@@ -1548,24 +1575,6 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
       }
     });
 
-    // add listener for epic cash to strip http:// and https:// prefixes if the address also ocntains an @ symbol (indicating an epicbox address)
-    if (coin is Epiccash) {
-      sendToController.addListener(() {
-        _address = sendToController.text.trim();
-
-        if (_address != null && _address!.isNotEmpty) {
-          _address = _address!.trim();
-          if (_address!.contains("\n")) {
-            _address = _address!.substring(0, _address!.indexOf("\n"));
-          }
-
-          sendToController.text = AddressUtils().formatEpicCashAddress(
-            _address!,
-          );
-        }
-      });
-    }
-
     Decimal? price;
     if (ref.watch(prefsChangeNotifierProvider.select((s) => s.externalCalls))) {
       price = ref.watch(
@@ -1836,6 +1845,7 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
                                     selectAll: false,
                                   ),
                                   onChanged: (newValue) async {
+                                    newValue = _formatRelayAddress(newValue);
                                     final trimmed = newValue.trim();
 
                                     if (AddressUtils.mayBePaymentUri(
@@ -1853,8 +1863,12 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
                                         _applyUri(parsed);
                                       } else {
                                         _setOpReturnData(null);
+                                        // The text is already in the field;
+                                        // writing it back would move the
+                                        // cursor on every keystroke.
                                         await _checkSparkNameAndOrSetAddress(
                                           newValue,
+                                          setController: false,
                                         );
                                       }
                                     } else {
