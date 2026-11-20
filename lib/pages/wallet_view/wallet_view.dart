@@ -55,6 +55,7 @@ import '../../wallets/wallet/impl/firo_wallet.dart';
 import '../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../wallets/wallet/impl/namecoin_wallet.dart';
 import '../../wallets/wallet/impl/salvium_wallet.dart';
+import '../../wallets/wallet/impl/zcash_wallet.dart';
 import '../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
@@ -111,6 +112,7 @@ import '../settings_views/wallet_settings_view/wallet_settings_view.dart';
 import '../signing/signing_view.dart';
 import '../spark_names/spark_names_home_view.dart';
 import '../token_view/my_tokens_view.dart';
+import '../zcash_migration/zcash_migration_view.dart';
 import 'sub_widgets/transactions_list.dart';
 import 'sub_widgets/wallet_summary.dart';
 import 'transaction_views/all_transactions_view.dart';
@@ -1217,6 +1219,27 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         onTap: () {
                           Navigator.of(context).pushNamed(
                             MasternodesHomeView.routeName,
+                            arguments: widget.walletId,
+                          );
+                        },
+                      ),
+                    if (!viewOnly && wallet is ZcashWallet)
+                      WalletNavigationBarItemData(
+                        label: 'Migrate',
+                        icon: SvgPicture.asset(
+                          Assets.svg.recycle,
+                          height: 20,
+                          width: 20,
+                          colorFilter: ColorFilter.mode(
+                            Theme.of(context)
+                                .extension<StackColors>()!
+                                .bottomNavIconIcon,
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            ZcashMigrationView.routeName,
                             arguments: widget.walletId,
                           );
                         },

@@ -28,6 +28,7 @@ import '../../../../pages/paynym/paynym_home_view.dart';
 import '../../../../pages/salvium_stake/salvium_create_stake_view.dart';
 import '../../../../pages/signing/signing_view.dart';
 import '../../../../pages/spark_names/spark_names_home_view.dart';
+import '../../../../pages/zcash_migration/zcash_migration_view.dart';
 import '../../../../providers/desktop/current_desktop_menu_item.dart';
 import '../../../../providers/global/paynym_api_provider.dart';
 import '../../../../providers/providers.dart';
@@ -45,6 +46,7 @@ import '../../../../wallets/wallet/impl/bitcoin_wallet.dart';
 import '../../../../wallets/wallet/impl/firo_wallet.dart';
 import '../../../../wallets/wallet/impl/namecoin_wallet.dart';
 import '../../../../wallets/wallet/impl/salvium_wallet.dart';
+import '../../../../wallets/wallet/impl/zcash_wallet.dart';
 import '../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
 import '../../../../wallets/wallet/wallet.dart' show Wallet;
@@ -95,6 +97,7 @@ enum WalletFeature {
   salviumStaking("Staking", "Staking"),
   sign("Sign/Verify", "Sign / Verify messages"),
   masternodes("Masternodes", "Manage masternodes"),
+  migrate('Migrate', 'Move funds between supported Zcash pools'),
 
   // special cases
   clearSparkCache("", ""),
@@ -452,6 +455,11 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         .pushNamed(MasternodesHomeView.routeName, arguments: widget.walletId);
   }
 
+  void _onMigratePressed() {
+    Navigator.of(context)
+        .pushNamed(ZcashMigrationView.routeName, arguments: widget.walletId);
+  }
+
   List<(WalletFeature, String, FutureOr<void> Function())> _getOptions(
     Wallet wallet,
     bool showExchange,
@@ -497,6 +505,8 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
 
       if (!isViewOnly && wallet is FiroWallet)
         (WalletFeature.masternodes, Assets.svg.recycle, _onMasternodesPressed),
+      if (!isViewOnly && wallet is ZcashWallet)
+        (WalletFeature.migrate, Assets.svg.recycle, _onMigratePressed),
       if (showCoinControl)
         (
           WalletFeature.coinControl,

@@ -116,6 +116,7 @@ import 'pages/send_view/frost_ms/frost_send_view.dart';
 import 'pages/send_view/send_view.dart';
 import 'pages/send_view/sol_token_send_view.dart';
 import 'pages/send_view/token_send_view.dart';
+import 'pages/zcash_migration/zcash_migration_view.dart';
 import 'pages/settings_views/global_settings_view/about_view.dart';
 import 'pages/settings_views/global_settings_view/advanced_views/advanced_settings_view.dart';
 import 'pages/settings_views/global_settings_view/advanced_views/logging_settings_view.dart';
@@ -936,6 +937,16 @@ class RouteGenerator {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => MasternodesHomeView(walletId: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case ZcashMigrationView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => ZcashMigrationView(walletId: args),
             settings: RouteSettings(name: settings.name),
           );
         }
