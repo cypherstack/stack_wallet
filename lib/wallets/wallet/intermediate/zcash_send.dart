@@ -350,6 +350,7 @@ class ZcashSendPreparationRequest {
     required this.targetHeight,
     required this.expiryHeight,
     required this.resolveSaplingProvingParameters,
+    this.requiredSourcePool,
     this.regtestNu63ActivationHeight,
   });
 
@@ -370,6 +371,7 @@ class ZcashSendPreparationRequest {
   final int expiryHeight;
   final Future<zcash.SaplingProvingParameters> Function()
   resolveSaplingProvingParameters;
+  final ZcashSendSourcePool? requiredSourcePool;
   final int? regtestNu63ActivationHeight;
 
   List<ZcashSendPayment> get effectivePayments => payments.isEmpty
@@ -538,6 +540,30 @@ final class ZcashProductionWalletSendService implements ZcashWalletSendService {
       for (final payment in request.effectivePayments)
         _resolveOutput(request, payment),
     ];
+    if (request.requiredSourcePool == ZcashSendSourcePool.sapling) {
+      if (outputs.length != 1 ||
+          outputs.single.actualOutputPool !=
+              zcash.ProposalOutputPool.ironwood) {
+        throw UnsupportedError(
+          'Sapling migration can only create one Ironwood output',
+        );
+      }
+      return _prepareSaplingPathB(request, outputs.single);
+    }
+    if (request.requiredSourcePool case final required?) {
+      if (required != ZcashSendSourcePool.ironwood) {
+        throw UnsupportedError(
+          '${required.name} is not an ordinary shielded-send source',
+        );
+      }
+      final prepared = await _tryPrepareIronwood(request, outputs);
+      if (prepared != null) return prepared;
+      throw zcash.IronwoodSelectionException(
+        zcash.IronwoodSelectionRefusal.insufficientFunds,
+        'This migration requires Ironwood funds, but no spendable Ironwood '
+        'notes can cover the payment and its ZIP 317 fee',
+      );
+    }
     final ironwood = await _tryPrepareIronwood(request, outputs);
     if (ironwood != null) return ironwood;
     if (outputs.length != 1) {

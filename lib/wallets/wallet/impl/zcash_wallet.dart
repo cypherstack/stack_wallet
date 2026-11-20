@@ -18,6 +18,7 @@ import '../../crypto_currency/crypto_currency.dart';
 import '../../models/tx_data.dart';
 import '../intermediate/bip39_wallet.dart';
 import '../intermediate/zcash_account_session.dart';
+import '../intermediate/zcash_migration.dart';
 import '../intermediate/zcash_pending_send_store.dart';
 import '../intermediate/zcash_send.dart';
 import '../intermediate/zcash_transparent_shielding.dart';
@@ -313,128 +314,222 @@ class ZcashWallet extends Bip39Wallet<Zcash>
   Future<void> checkSaveInitialReceivingAddress() async {}
 
   @override
-  Future<TxData> prepareSend({required TxData txData}) => _sendMutex.protect(
-    () async {
-      final recipients = txData.recipients;
-      if (recipients == null || recipients.isEmpty) {
-        throw ArgumentError('Zcash requires at least one recipient');
-      }
-      var total = BigInt.zero;
-      final resolved = <({String address, BigInt amount, Uint8List? memo})>[];
-      for (final requested in recipients) {
-        if (requested.isChange ||
-            requested.amount.fractionDigits != cryptoCurrency.fractionDigits ||
-            requested.amount.raw <= BigInt.zero ||
-            requested.amount.raw > BigInt.from(zcash.maxMoneyZatoshis)) {
-          throw ArgumentError('Invalid Zcash recipient amount');
-        }
-        total += requested.amount.raw;
-        if (total > BigInt.from(zcash.maxMoneyZatoshis)) {
-          throw ArgumentError('Zcash recipient total exceeds MAX_MONEY');
-        }
-        resolved.add(
-          _resolveStackPayment(
-            address: requested.address,
-            amount: requested.amount.raw,
-            memo: recipients.length == 1 ? txData.memo : null,
-            memoBytes: requested.memoBytes,
-          ),
+  Future<TxData> prepareSend({required TxData txData}) =>
+      _prepareShieldedSend(txData: txData);
+
+  Future<ZcashMigrationOverview> migrationOverview() async {
+    final snapshot = await _requireStateController().refresh();
+    final balance = snapshot.balance;
+    return ZcashMigrationOverview(
+      chainHeight: snapshot.chainHeight,
+      transparentSpendableZatoshis: balance.transparent.spendableZatoshis,
+      saplingSpendableZatoshis: balance.sapling.spendableZatoshis,
+      orchardMigratableZatoshis: balance.orchard.migratableZatoshis,
+      ironwoodSpendableZatoshis: balance.ironwood.spendableZatoshis,
+    );
+  }
+
+  Future<TxData> prepareMigration({
+    required ZcashMigrationRoute route,
+    Amount? amount,
+  }) async {
+    if (route == ZcashMigrationRoute.transparentToIronwood) {
+      if (amount != null) {
+        throw ArgumentError(
+          'Transparent migration is an exact sweep and does not accept an '
+          'amount',
         );
       }
-      final session = _requireAccountSession();
-      final syncClient = session.syncClient;
-      final stateStore = _stateStore;
-      final pendingStore = _pendingSendStore;
-      final scanExecutor = _scanExecutor;
-      if (syncClient == null ||
-          stateStore == null ||
-          pendingStore == null ||
-          scanExecutor == null) {
-        throw StateError('Zcash send requires an initialized sync session');
+      return prepareTransparentShielding();
+    }
+    if (amount == null ||
+        amount.fractionDigits != cryptoCurrency.fractionDigits ||
+        amount.raw <= BigInt.zero ||
+        amount.raw > BigInt.from(zcash.maxMoneyZatoshis)) {
+      throw ArgumentError('A valid Zcash migration amount is required');
+    }
+
+    final (recipient, sourcePool) = switch (route) {
+      ZcashMigrationRoute.saplingToIronwood => (
+        _unifiedAddress ??
+            (throw StateError('The wallet Unified Address is unavailable')),
+        ZcashSendSourcePool.sapling,
+      ),
+      ZcashMigrationRoute.ironwoodToTransparent => (
+        _viewingKeys?.transparent.defaultExternalAddress ??
+            (throw StateError(
+              'The wallet transparent receiver is unavailable',
+            )),
+        ZcashSendSourcePool.ironwood,
+      ),
+      ZcashMigrationRoute.transparentToIronwood => throw StateError(
+        'Transparent migration is handled by its exact sweep path',
+      ),
+    };
+    return _prepareShieldedSend(
+      txData: TxData(
+        recipients: [
+          TxRecipient(
+            address: recipient,
+            amount: amount,
+            isChange: false,
+            addressType:
+                cryptoCurrency.getAddressType(recipient) ?? AddressType.unknown,
+          ),
+        ],
+      ),
+      requiredSourcePool: sourcePool,
+      requiredOutputPool: switch (route) {
+        ZcashMigrationRoute.saplingToIronwood =>
+          zcash.ProposalOutputPool.ironwood,
+        ZcashMigrationRoute.ironwoodToTransparent =>
+          zcash.ProposalOutputPool.transparent,
+        ZcashMigrationRoute.transparentToIronwood => throw StateError(
+          'Transparent migration is handled by its exact sweep path',
+        ),
+      },
+    );
+  }
+
+  Future<TxData> _prepareShieldedSend({
+    required TxData txData,
+    ZcashSendSourcePool? requiredSourcePool,
+    zcash.ProposalOutputPool? requiredOutputPool,
+  }) => _sendMutex.protect(() async {
+    final recipients = txData.recipients;
+    if (recipients == null || recipients.isEmpty) {
+      throw ArgumentError('Zcash requires at least one recipient');
+    }
+    var total = BigInt.zero;
+    final resolved = <({String address, BigInt amount, Uint8List? memo})>[];
+    for (final requested in recipients) {
+      if (requested.isChange ||
+          requested.amount.fractionDigits != cryptoCurrency.fractionDigits ||
+          requested.amount.raw <= BigInt.zero ||
+          requested.amount.raw > BigInt.from(zcash.maxMoneyZatoshis)) {
+        throw ArgumentError('Invalid Zcash recipient amount');
       }
-      final snapshot = await _requireStateController().refresh();
-      await _reconcileTransparentShielding();
-      final persisted = await stateStore.load();
-      if (persisted == null ||
-          persisted.observedChainHeight != snapshot.chainHeight) {
-        throw StateError('Zcash sync state is unavailable or not current');
+      total += requested.amount.raw;
+      if (total > BigInt.from(zcash.maxMoneyZatoshis)) {
+        throw ArgumentError('Zcash recipient total exceeds MAX_MONEY');
       }
-      final saplingChange = await _saplingChangeAddress();
-      final ironwoodChange = await _ironwoodChangeAddress();
-      final seed = zcash.nativeMnemonicToSeed(
-        await getMnemonic(),
-        passphrase: await getMnemonicPassphrase(),
-      );
-      await _releaseCurrentPrepared();
-      final pending = await pendingStore.load();
-      final prepared = await _sendService.prepare(
-        ZcashSendPreparationRequest(
-          network: cryptoCurrency.network,
-          sessionGeneration: session.generation,
-          state: persisted.syncState,
-          pendingSends: pending,
-          syncClient: syncClient,
-          scanExecutor: scanExecutor,
-          seedHex: seed.seedHex,
-          saplingChangeAddress: saplingChange,
-          ironwoodChangeAddress: ironwoodChange,
-          recipient: resolved.first.address,
-          amountZatoshis: resolved.first.amount.toInt(),
-          memo: resolved.first.memo,
-          payments: [
-            for (final payment in resolved)
-              ZcashSendPayment(
-                recipient: payment.address,
-                amountZatoshis: payment.amount.toInt(),
-                memo: payment.memo,
-              ),
-          ],
-          targetHeight: snapshot.chainHeight + 1,
-          expiryHeight: snapshot.chainHeight + 41,
-          resolveSaplingProvingParameters: () async {
-            final spend = _regtestSaplingSpendParams;
-            final output = _regtestSaplingOutputParams;
-            if (spend == null || output == null) {
-              return _saplingParameterResolver();
-            }
-            return zcash.SaplingProvingParameterCache(
-              cacheRoot: await StackFileSystem.saplingParameterCacheRoot(),
-            ).resolve(
-              source: zcash.FileSaplingParameterSource(
-                manifest: zcash.officialSaplingParameterManifestV1,
-                spendFile: File(spend),
-                outputFile: File(output),
-              ),
-            );
-          },
-          regtestNu63ActivationHeight: _regtestNu63ActivationHeight,
+      resolved.add(
+        _resolveStackPayment(
+          address: requested.address,
+          amount: requested.amount.raw,
+          memo: recipients.length == 1 ? txData.memo : null,
+          memoBytes: requested.memoBytes,
         ),
       );
-      // This is the durability boundary: no prepared transaction is exposed
-      // to review until its selected nullifiers are committed on disk.
-      await pendingStore.save(pending);
-      _preparedSend = prepared;
-      final outputs = _preparedPaymentOutputs(prepared);
-      if (outputs.length != recipients.length) {
-        throw StateError('Prepared Zcash output count changed unexpectedly');
-      }
-      return txData.copyWith(
-        raw: prepared.transactionHex,
-        txid: prepared.txid,
-        fee: _amount(prepared.feeZatoshis),
-        memo: txData.memo,
-        recipients: [
-          for (var index = 0; index < outputs.length; index++)
-            recipients[index].copyWith(
-              address: outputs[index].encodedRecipient,
-              amount: _amount(outputs[index].amountZatoshis),
-              memoBytes: outputs[index].memo,
+    }
+    final session = _requireAccountSession();
+    final syncClient = session.syncClient;
+    final stateStore = _stateStore;
+    final pendingStore = _pendingSendStore;
+    final scanExecutor = _scanExecutor;
+    if (syncClient == null ||
+        stateStore == null ||
+        pendingStore == null ||
+        scanExecutor == null) {
+      throw StateError('Zcash send requires an initialized sync session');
+    }
+    final snapshot = await _requireStateController().refresh();
+    await _reconcileTransparentShielding();
+    final persisted = await stateStore.load();
+    if (persisted == null ||
+        persisted.observedChainHeight != snapshot.chainHeight) {
+      throw StateError('Zcash sync state is unavailable or not current');
+    }
+    final saplingChange = await _saplingChangeAddress();
+    final ironwoodChange = await _ironwoodChangeAddress();
+    final seed = zcash.nativeMnemonicToSeed(
+      await getMnemonic(),
+      passphrase: await getMnemonicPassphrase(),
+    );
+    await _releaseCurrentPrepared();
+    final pending = await pendingStore.load();
+    final prepared = await _sendService.prepare(
+      ZcashSendPreparationRequest(
+        network: cryptoCurrency.network,
+        sessionGeneration: session.generation,
+        state: persisted.syncState,
+        pendingSends: pending,
+        syncClient: syncClient,
+        scanExecutor: scanExecutor,
+        seedHex: seed.seedHex,
+        saplingChangeAddress: saplingChange,
+        ironwoodChangeAddress: ironwoodChange,
+        recipient: resolved.first.address,
+        amountZatoshis: resolved.first.amount.toInt(),
+        memo: resolved.first.memo,
+        payments: [
+          for (final payment in resolved)
+            ZcashSendPayment(
+              recipient: payment.address,
+              amountZatoshis: payment.amount.toInt(),
+              memo: payment.memo,
             ),
         ],
-        vExtraData: _preparedDigest(prepared),
+        targetHeight: snapshot.chainHeight + 1,
+        expiryHeight: snapshot.chainHeight + 41,
+        requiredSourcePool: requiredSourcePool,
+        resolveSaplingProvingParameters: () async {
+          final spend = _regtestSaplingSpendParams;
+          final output = _regtestSaplingOutputParams;
+          if (spend == null || output == null) {
+            return _saplingParameterResolver();
+          }
+          return zcash.SaplingProvingParameterCache(
+            cacheRoot: await StackFileSystem.saplingParameterCacheRoot(),
+          ).resolve(
+            source: zcash.FileSaplingParameterSource(
+              manifest: zcash.officialSaplingParameterManifestV1,
+              spendFile: File(spend),
+              outputFile: File(output),
+            ),
+          );
+        },
+        regtestNu63ActivationHeight: _regtestNu63ActivationHeight,
+      ),
+    );
+    if (requiredSourcePool != null &&
+        prepared.sourcePool != requiredSourcePool) {
+      throw StateError(
+        'Prepared Zcash migration used ${prepared.sourcePool.name}, not '
+        '${requiredSourcePool.name}',
       );
-    },
-  );
+    }
+    if (requiredOutputPool != null &&
+        prepared.actualOutputPool != requiredOutputPool) {
+      throw StateError(
+        'Prepared Zcash migration created ${prepared.actualOutputPool.name}, '
+        'not ${requiredOutputPool.name}',
+      );
+    }
+    // This is the durability boundary: no prepared transaction is exposed
+    // to review until its selected nullifiers are committed on disk.
+    await pendingStore.save(pending);
+    _preparedSend = prepared;
+    final outputs = _preparedPaymentOutputs(prepared);
+    if (outputs.length != recipients.length) {
+      throw StateError('Prepared Zcash output count changed unexpectedly');
+    }
+    return txData.copyWith(
+      raw: prepared.transactionHex,
+      txid: prepared.txid,
+      fee: _amount(prepared.feeZatoshis),
+      memo: txData.memo,
+      recipients: [
+        for (var index = 0; index < outputs.length; index++)
+          recipients[index].copyWith(
+            address: outputs[index].encodedRecipient,
+            amount: _amount(outputs[index].amountZatoshis),
+            memoBytes: outputs[index].memo,
+          ),
+      ],
+      vExtraData: _preparedDigest(prepared),
+    );
+  });
 
   /// Sweeps every mature, unreserved transparent output into this wallet's
   /// Ironwood receiver. This is intentionally a wallet-maintenance operation,
