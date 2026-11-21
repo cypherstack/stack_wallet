@@ -544,7 +544,13 @@ abstract class Wallet<T extends CryptoCurrency> {
   NodeModel getCurrentNode() {
     final node =
         nodeService.getPrimaryNodeFor(currency: cryptoCurrency) ??
-        cryptoCurrency.defaultNode(isPrimary: true);
+        cryptoCurrency.defaultNodeOrNull(isPrimary: true);
+
+    if (node == null) {
+      throw StateError(
+        'No node is configured for ${cryptoCurrency.prettyName}',
+      );
+    }
 
     return node;
   }

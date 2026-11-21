@@ -21,7 +21,10 @@ Future<bool> checkShowNodeTorSettingsMismatch({
 }) async {
   final node =
       nodeService.getPrimaryNodeFor(currency: currency) ??
-      currency.defaultNode(isPrimary: true);
+      currency.defaultNodeOrNull(isPrimary: true);
+  if (node == null) {
+    return false;
+  }
   if (prefs.useTor) {
     if (node.torEnabled) {
       return true;
