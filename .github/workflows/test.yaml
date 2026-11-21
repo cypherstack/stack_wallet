@@ -167,18 +167,32 @@ jobs:
           make -n build-windows PLATFORM=MINGW64_NT-10.0 VERSION=0.0.0 BUILD_NUM=1
           make -n build-android PLATFORM=Darwin VERSION=0.0.0 BUILD_NUM=1
           make -n build-ios PLATFORM=Darwin VERSION=0.0.0 BUILD_NUM=1
-          if make -n build-macos PLATFORM=Darwin TOOLCHAIN=brew PREBUILTS=0 VERSION=0.0.0 BUILD_NUM=1 >/dev/null 2>&1; then
-            echo 'brew source mode must fail' >&2
-            exit 1
-          fi
-          if make -n build-linux PLATFORM=Linux TOOLCHAIN=host PREBUILTS=0 VERSION=0.0.0 BUILD_NUM=1 >/dev/null 2>&1; then
-            echo 'host source mode must fail' >&2
-            exit 1
-          fi
-          if make -n build-android PLATFORM=Linux UNAME_M=x86_64 TOOLCHAIN=host ANDROID_PREBUILTS=0 VERSION=0.0.0 BUILD_NUM=1 >/dev/null 2>&1; then
-            echo 'host Android source mode must fail' >&2
-            exit 1
-          fi
+          # A rejection only counts when it comes from the rule under test: an
+          # unrelated error (for example an invalid TOOLCHAIN value) also makes
+          # make fail and would let a policy regression through unnoticed.
+          expect_fail() {
+            pattern="$1"; shift
+            if out="$(make -n "$@" VERSION=0.0.0 BUILD_NUM=1 2>&1)"; then
+              echo "expected failure but succeeded: make -n $*" >&2
+              exit 1
+            fi
+            echo "$out" | grep -q -- "$pattern" || {
+              echo "make -n $* failed for the wrong reason (wanted '$pattern'): $out" >&2
+              exit 1
+            }
+          }
+          expect_fail 'requires an active Nix/direnv shell' build-macos PLATFORM=Darwin UNAME_M=arm64 TOOLCHAIN=manual PREBUILTS=0
+          expect_fail 'requires an active Nix/direnv shell' build-linux PLATFORM=Linux TOOLCHAIN=host PREBUILTS=0
+          expect_fail 'requires Apple Silicon' build-macos PLATFORM=Darwin UNAME_M=x86_64 IN_NIX_SHELL=1 PREBUILTS=0
+          expect_fail 'build-windows uses verified' build-windows PLATFORM=MINGW64_NT-10.0 PREBUILTS=0
+          expect_fail 'ANDROID_PREBUILTS=0 requires' build-android PLATFORM=Linux UNAME_M=x86_64 TOOLCHAIN=host ANDROID_PREBUILTS=0
+          expect_fail 'TOOLCHAIN must be' build-macos PLATFORM=Darwin TOOLCHAIN=brew
+          # Mode selection: source only inside a Nix shell on a supported host.
+          build_line() { make -n "$@" VERSION=0.0.0 BUILD_NUM=1 | grep -E '\./build_app\.sh -' | head -n 1; }
+          build_line build-linux PLATFORM=Linux UNAME_M=x86_64 IN_NIX_SHELL=1 | grep -qE ' -d( |$)' && { echo 'Nix shell on Linux must default to source' >&2; exit 1; }
+          build_line build-linux PLATFORM=Linux UNAME_M=x86_64 TOOLCHAIN=host | grep -qE ' -d( |$)' || { echo 'host toolchain must default to prebuilts' >&2; exit 1; }
+          build_line build-macos PLATFORM=Darwin UNAME_M=x86_64 IN_NIX_SHELL=1 | grep -qE ' -d( |$)' || { echo 'Intel macOS must use prebuilts' >&2; exit 1; }
+          true
       # `make -n` never executes recipes, so a shell parse error in the
       # require-version recipe is invisible to the dry-runs above. Run it for real.
       # This is a bash step, not a Makefile recipe: use single `$`.

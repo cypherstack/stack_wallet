@@ -44,10 +44,11 @@ either mode.
 To switch modes, rerun `build_app.sh`. It regenerates `pubspec.yaml`, so keep
 permanent changes in `scripts/app_config/templates/pubspec.template.yaml`.
 
-The `Makefile` selects the mode by toolchain: on Apple Silicon macOS and
-Linux, `TOOLCHAIN=nix`/`direnv` defaults to source when `nix` is on `PATH`;
-`brew`, `host`, `manual` and Windows default to `PREBUILTS=1`
-(prebuilt). Any toolchain can pass `PREBUILTS=0` when `nix` is on `PATH`.
+The `Makefile` selects the mode by toolchain: inside an active Nix/direnv shell
+on Apple Silicon macOS and Linux it defaults to source; `host`, `manual`,
+Intel macOS and Windows use `PREBUILTS=1` (prebuilt). `PREBUILTS=0` is rejected
+outside a Nix/direnv shell, even when `nix` is on `PATH`; calling
+`scripts/build_app.sh` directly (without `-d`) only needs `nix` on `PATH`.
 
 ## Configuration options
 

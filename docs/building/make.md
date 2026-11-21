@@ -28,18 +28,19 @@ that is not above the latest `build_*` tag. `APP_NAME` selects the app variant
 |---|---|---|
 | `VERSION`, `BUILD_NUM` | required | App version and a build number above the latest release tag |
 | `APP_NAME` | `stack_wallet` | `stack_wallet`, `stack_duo` or `campfire` |
-| `PREBUILTS` | `0` on Apple Silicon/Linux when `nix` is on `PATH`; otherwise `1` | `0` builds dnix from source (needs `nix`); `1` uses verified prebuilts (`-d`) |
-| `ANDROID_PREBUILTS` | follows `PREBUILTS` on x86_64 Linux when `nix` is on `PATH`, else `1` | Overrides the Android dnix mode |
+| `PREBUILTS` | `0` in an active Nix/direnv shell on Apple Silicon/Linux; otherwise `1` | `0` builds dnix from source (needs a Nix/direnv shell); `1` uses verified prebuilts (`-d`) |
+| `ANDROID_PREBUILTS` | follows `PREBUILTS` on x86_64 Linux in a Nix/direnv shell, else `1` | Overrides the Android dnix mode |
 | `SYSTEM_DEPS` | `0` | Linux: `1` uses system libsecret/JsonCPP (as CI does) |
-| `TOOLCHAIN` | `auto` | `auto`, `nix`, `direnv`, `brew`, `host` or `manual` |
+| `TOOLCHAIN` | `auto` | `auto`, `nix`, `direnv`, `host` or `manual` |
 | `CONFIRM` | `0` | `1` answers build_app.sh's wallet-data warning non-interactively |
 
-Source mode needs `nix` on `PATH`, whichever toolchain provides the rest of
-the build tools. On Apple Silicon macOS and Linux, `PREBUILTS=0` is the
-default when `nix` is available: dnix builds the pinned native libraries from
-source and verifies their hashes. Without `nix`, the Makefile defaults to
-`PREBUILTS=1`; Homebrew, manual and host toolchains can still pass
-`PREBUILTS=0` when `nix` is on `PATH`. CI passes `-d` explicitly.
+Source mode needs an active Nix/direnv shell (`nix develop` or direnv): the
+shell supplies the dnix libraries and the toolchain, so `nix` merely being on
+`PATH` is not enough. On Apple Silicon macOS and Linux, `PREBUILTS=0` is the
+default inside such a shell: dnix builds the pinned native libraries from
+source and verifies their hashes. Everywhere else the Makefile uses
+`PREBUILTS=1` and rejects an explicit `PREBUILTS=0` (host and manual
+toolchains, Intel macOS, Windows). CI passes `-d` explicitly.
 
 ```
 make build-macos VERSION=x.y.z BUILD_NUM=nnn              # dnix source (Nix/direnv, Apple Silicon)
@@ -77,7 +78,7 @@ uses the host tools on PATH (manual or host), which Homebrew can supply.
 | Manual / Homebrew | install the tools yourself (Homebrew for the prebuilt path) | Source builds are not available without Nix. Use `PREBUILTS=1` with the verified dnix prebuilts; Homebrew can install the tooling (Flutter, Rust, Go, CocoaPods, sccache, …). `make check-reqs-macos` reports what is missing. |
 
 `make toolchain` prints the active mode and tool paths.
-`TOOLCHAIN=nix|direnv` forces a check; `host` and `manual` use whatever is on `PATH`; `auto` (the default) detects a Nix/direnv shell and otherwise uses the host tools. Any toolchain can use `PREBUILTS=0` when `nix` is on `PATH`; without it the Makefile defaults to prebuilt mode.
+`TOOLCHAIN=nix|direnv` forces a check; `host` and `manual` use whatever is on `PATH`; `auto` (the default) detects a Nix/direnv shell and otherwise uses the host tools. `PREBUILTS=0` needs `nix` or `direnv` as the effective toolchain; `host` and `manual` always build from the verified prebuilts.
 
 `make check-reqs-macos` verifies the result and `make diagnose-env-macos` prints what was found.
 

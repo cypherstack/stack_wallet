@@ -40,8 +40,9 @@ rustup target add --toolchain "$RUST_BOM" aarch64-apple-darwin x86_64-apple-darw
   aarch64-apple-ios aarch64-apple-ios-sim
 ```
 
-Homebrew and manual toolchains default to `PREBUILTS=1`. Pass `PREBUILTS=0`
-when `nix` is on `PATH` to build the dnix libraries from source.
+Homebrew and manual toolchains use `PREBUILTS=1`; `make` rejects `PREBUILTS=0`
+outside a Nix/direnv shell. Calling `scripts/build_app.sh` directly without `-d`
+builds the dnix libraries from source when `nix` is on `PATH`.
 
 Check `nix --version` from the same environment that runs Flutter, and use
 `flutter doctor` to check the Apple SDK and CocoaPods setup. iOS device builds

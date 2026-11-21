@@ -95,7 +95,8 @@ selects the full Xcode.app (Xcode is never provided by Nix or Homebrew).
 Install the prerequisites from [Building on macOS](docs/building/macos.md)
 yourself, then run
 `make build-macos VERSION=x.y.z BUILD_NUM=nnn PREBUILTS=1`.
-Manual builds default to `PREBUILTS=1`. Pass `PREBUILTS=0` when `nix` is on
-`PATH` to build the dnix libraries from source. `make check-reqs-macos` reports
-what is missing (`make check-sdk-macos` checks full Xcode); `TOOLCHAIN=manual`
-makes the choice explicit.
+Manual builds always use `PREBUILTS=1`: `make` rejects `PREBUILTS=0` outside an
+active Nix/direnv shell, even when `nix` is on `PATH`. To build the dnix
+libraries from source, use `make bootstrap` (or direnv) instead.
+`make check-reqs-macos` reports what is missing (`make check-sdk-macos` checks
+full Xcode); `TOOLCHAIN=manual` makes the choice explicit.
