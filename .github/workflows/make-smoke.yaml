@@ -17,38 +17,8 @@ on:
         default: '326'
 
 jobs:
-  verify-toolchain:
-    # Runs on the host runner (no container), before the prebuilt image is used,
-    # exactly as the build-linux job does. The image's toolchain is frozen at
-    # build time, so a raised minimum must fail here, not only once the build
-    # has started inside the image. Dart is installed and the toolchain is
-    # verified in this same job; the build job needs it to pass.
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Install Dart
-        run: |
-          sudo mkdir -p /etc/apt/keyrings
-          curl -fsSL https://storage.googleapis.com/download.dartlang.org/linux/debian/dart_linux_signing_key | sudo gpg --dearmor -o /etc/apt/keyrings/dart.gpg
-          echo 'deb [signed-by=/etc/apt/keyrings/dart.gpg arch=amd64] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main' | sudo tee /etc/apt/sources.list.d/dart_stable.list
-          sudo apt-get update -q
-          sudo apt-get install -y --no-install-recommends dart
-
-      - name: Verify toolchain (pre-image)
-        env:
-          PATH: ${{ env.PATH }}:/usr/lib/dart/bin
-        run: |
-          bash scripts/bom_values.sh --check
-          dart tool/verify_bom.dart --toolchains
-
   make-smoke-linux:
     runs-on: ubuntu-24.04
-    needs: verify-toolchain
     permissions:
       contents: read
       packages: read
@@ -73,16 +43,22 @@ jobs:
           rustup toolchain install "$(bash scripts/bom_values.sh --get dnssec_rust)" --profile minimal
 
       - name: Dry-run the recipe
+        env:
+          VERSION: ${{ inputs.version }}
+          BUILD_NUM: ${{ inputs.build_number }}
         run: |
           make -n build-linux \
             PLATFORM=Linux TOOLCHAIN=host PREBUILTS=1 SYSTEM_DEPS=1 \
-            VERSION="${{ inputs.version }}" BUILD_NUM="${{ inputs.build_number }}"
+            VERSION="$VERSION" BUILD_NUM="$BUILD_NUM"
 
       - name: Real build (make build-linux, prebuilt)
+        env:
+          VERSION: ${{ inputs.version }}
+          BUILD_NUM: ${{ inputs.build_number }}
         run: |
           make build-linux \
             PLATFORM=Linux TOOLCHAIN=host PREBUILTS=1 SYSTEM_DEPS=1 CONFIRM=1 \
-            VERSION="${{ inputs.version }}" BUILD_NUM="${{ inputs.build_number }}"
+            VERSION="$VERSION" BUILD_NUM="$BUILD_NUM"
 
       - name: Upload smoke artifact
         if: success()

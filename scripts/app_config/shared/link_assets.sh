@@ -9,7 +9,8 @@ if [ $# -ne 2 ]; then
 fi
 
 SELECT_ASSETS_DIR=$1
-APP_BUILD_PLATFORM=$2
+# $2 (platform) is required by the callers' interface but no longer changes
+# behaviour: Windows is detected from the host (uname), not the target.
 
 # declare full paths
 ASSET_SOURCES_DIR="${APP_PROJECT_ROOT_DIR}/asset_sources"

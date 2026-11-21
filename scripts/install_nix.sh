@@ -41,16 +41,21 @@ fi
 INSTALLER="${NIX_INSTALLER:-https://nixos.org/nix/install}"
 
 echo "Nix not found on PATH. Installing the multi-user Nix (daemon) from ${INSTALLER}..."
-echo "This needs sudo and downloads from the Nix project; it configures /nix/store and the nixbld users."
+echo "This downloads a shell script and runs it with sudo; it configures /nix/store and the nixbld users."
+echo "The script is not pinned or checksum-verified here. Inspect it first, or install Nix yourself"
+echo "(https://nixos.org/download/) and re-run."
 
-# The official installer script. `--daemon` is the recommended multi-user mode
-# on macOS: it creates the build users and sets up launchd so `nix` works for
-# every user. It prompts for sudo; pass --no-daemon for a single-user install.
-if [[ -n "${NIX_INSTALLER_NO_INTERACTIVE:-}" ]]; then
-  : # allow callers to inject flags, e.g. NIX_INSTALLER_NO_INTERACTIVE=1
+# Never pipe a download into a root shell without an explicit yes.
+# NIX_INSTALL_YES=1 skips the prompt for unattended use.
+if [[ "${NIX_INSTALL_YES:-0}" != "1" ]]; then
+  if ! read -r -p "Download and run the Nix installer now? (yes/no): " answer || [[ ! "$answer" =~ ^[Yy][Ee][Ss]$ ]]; then
+    die "Aborted. Install Nix manually, then re-run."
+  fi
 fi
 
-curl --proto '=https' --tlsv1.2 -L "$INSTALLER" | sh -s -- --daemon
+# `--daemon` is the recommended multi-user mode on macOS: it creates the build
+# users and sets up launchd so `nix` works for every user. It prompts for sudo.
+curl --proto '=https' --tlsv1.2 -fL "$INSTALLER" | sh -s -- --daemon
 
 # The installer puts nix in ~/.nix-profile/bin, which most login shells source
 # via .zshrc/.profile. Non-interactive shells (and `make` invoked from an IDE)

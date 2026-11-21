@@ -201,7 +201,7 @@ bootstrap: ## Enter the Nix dev shell (primary toolchain; no-op when already ins
 		echo >&2 "[ERROR] Nix is not installed. Source builds require Nix; install it from https://nixos.org/download/."; \
 		exit 1; \
 	else \
-	@echo "Entering the Nix dev shell. Run 'make build-macos VERSION=... BUILD_NUM=...' inside it."; \
+	echo "Entering the Nix dev shell. Run 'make build-macos VERSION=... BUILD_NUM=...' inside it."; \
 	exec nix --extra-experimental-features 'nix-command flakes' develop; \
 	fi
 
@@ -347,11 +347,6 @@ verify-bom: ## Check the local toolchain against stack-bom.toml
 	@bash scripts/bom_values.sh --check
 	@FLUTTER="$(FLUTTER)" "$(DART)" tool/verify_bom.dart --app "$(APP_NAME)"
 
-verify-bom-toolchains: ## Check only the installed toolchain (skip pubspec.lock pins); for CI to run on the runner before the prebuilt image
-	@[ -n "$(DART)" ] || { echo >&2 "[ERROR] Dart not installed (needed for verify-bom-toolchains). Install Flutter or pass DART=/path/to/dart."; exit 1; }
-	@bash scripts/bom_values.sh --check
-	@FLUTTER="$(FLUTTER)" "$(DART)" tool/verify_bom.dart --toolchains
-
 cache-stats: ## Show sccache statistics (hit rate) after a build
 	@command -v sccache >/dev/null 2>&1 || { echo >&2 "[ERROR] sccache not installed."; exit 1; }
 	@sccache --show-stats
@@ -437,7 +432,7 @@ ifeq ($(ANDROID_PREBUILTS),0)
   endif
 endif
 # Linux only: SYSTEM_DEPS=1 uses the system libsecret/jsoncpp packages instead of building them (like the CI image).
-SYSTEM_DEPS ?= 0
+# SYSTEM_DEPS is defaulted near the top of the file (check-reqs reads it at parse time).
 ifneq ($(words $(SYSTEM_DEPS)),1)
   $(error SYSTEM_DEPS must be 0 or 1)
 endif

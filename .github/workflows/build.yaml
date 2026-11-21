@@ -58,41 +58,8 @@ jobs:
           > Official releases are published on the [Releases page](https://github.com/cypherstack/stack_wallet/releases).
           EOF
 
-  verify-toolchain:
-    # Runs on the host runner (no container), before the prebuilt image is used.
-    # The image's toolchain is frozen at build time, so a raised minimum (go_min
-    # / rust) must fail here on the runner, not only inside the image once the
-    # build has already started. Flutter is not installed on the runner (the
-    # image has it), so the toolchain check downgrades a missing Flutter to a
-    # warning via --toolchains. The pubspec.lock pin check stays inside the
-    # image, after `flutter pub get`. Dart is installed and verified in this
-    # same job; the build-linux job needs it to pass.
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Install Dart
-        run: |
-          sudo mkdir -p /etc/apt/keyrings
-          curl -fsSL https://storage.googleapis.com/download.dartlang.org/linux/debian/dart_linux_signing_key | sudo gpg --dearmor -o /etc/apt/keyrings/dart.gpg
-          echo 'deb [signed-by=/etc/apt/keyrings/dart.gpg arch=amd64] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main' | sudo tee /etc/apt/sources.list.d/dart_stable.list
-          sudo apt-get update -q
-          sudo apt-get install -y --no-install-recommends dart
-
-      - name: Verify toolchain (pre-image)
-        env:
-          PATH: ${{ env.PATH }}:/usr/lib/dart/bin
-        run: |
-          bash scripts/bom_values.sh --check
-          dart tool/verify_bom.dart --toolchains
-
   build-linux:
     runs-on: ubuntu-24.04
-    needs: verify-toolchain
     permissions:
       contents: read
       packages: read
@@ -140,27 +107,11 @@ jobs:
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: |
-          if [ -n "$CHANGE_NOW" ]; then
-            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
-          else
-            cat > lib/external_api_keys.dart << 'EOF'
-          const String kChangeNowApiKey = "";
-          const String kSimpleSwapApiKey = "";
-          const String kNanswapApiKey = "";
-          const String kNanoSwapRpcApiKey = "";
-          const String kWizSwapApiKey = "";
-          const kShopInBitAccessKey = "";
-          const kShopInBitPartnerSecret = "";
-          const kCakePayApiToken = "";
-          const kExolixApiKey = "";
-          const kLetsExchangeId = "";
-          const kLetsExchangeToken = "";
-          const kCypherGoatApiKey = "";
-          const kCypherGoatAffiliate = "";
-          const kTrocadorApiKey = "";
-          const kTrocadorRefCode = "";
-          EOF
+          if [ -z "$CHANGE_NOW" ]; then
+            echo "::error::CHANGE_NOW secret is not set; refusing to build with empty API keys" >&2
+            exit 1
           fi
+          echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
       - name: Build
         env:
@@ -231,27 +182,11 @@ jobs:
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: |
-          if [ -n "$CHANGE_NOW" ]; then
-            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
-          else
-            cat > lib/external_api_keys.dart << 'EOF'
-          const String kChangeNowApiKey = "";
-          const String kSimpleSwapApiKey = "";
-          const String kNanswapApiKey = "";
-          const String kNanoSwapRpcApiKey = "";
-          const String kWizSwapApiKey = "";
-          const kShopInBitAccessKey = "";
-          const kShopInBitPartnerSecret = "";
-          const kCakePayApiToken = "";
-          const kExolixApiKey = "";
-          const kLetsExchangeId = "";
-          const kLetsExchangeToken = "";
-          const kCypherGoatApiKey = "";
-          const kCypherGoatAffiliate = "";
-          const kTrocadorApiKey = "";
-          const kTrocadorRefCode = "";
-          EOF
+          if [ -z "$CHANGE_NOW" ]; then
+            echo "::error::CHANGE_NOW secret is not set; refusing to build with empty API keys" >&2
+            exit 1
           fi
+          echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
       - name: Set up Android local.properties
         run: |
@@ -373,27 +308,11 @@ jobs:
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: |
-          if [ -n "$CHANGE_NOW" ]; then
-            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
-          else
-            cat > lib/external_api_keys.dart << 'EOF'
-          const String kChangeNowApiKey = "";
-          const String kSimpleSwapApiKey = "";
-          const String kNanswapApiKey = "";
-          const String kNanoSwapRpcApiKey = "";
-          const String kWizSwapApiKey = "";
-          const kShopInBitAccessKey = "";
-          const kShopInBitPartnerSecret = "";
-          const kCakePayApiToken = "";
-          const kExolixApiKey = "";
-          const kLetsExchangeId = "";
-          const kLetsExchangeToken = "";
-          const kCypherGoatApiKey = "";
-          const kCypherGoatAffiliate = "";
-          const kTrocadorApiKey = "";
-          const kTrocadorRefCode = "";
-          EOF
+          if [ -z "$CHANGE_NOW" ]; then
+            echo "::error::CHANGE_NOW secret is not set; refusing to build with empty API keys" >&2
+            exit 1
           fi
+          echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
       - name: Build
         run: flutter build windows --release
@@ -465,27 +384,11 @@ jobs:
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: |
-          if [ -n "$CHANGE_NOW" ]; then
-            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
-          else
-            cat > lib/external_api_keys.dart << 'EOF'
-          const String kChangeNowApiKey = "";
-          const String kSimpleSwapApiKey = "";
-          const String kNanswapApiKey = "";
-          const String kNanoSwapRpcApiKey = "";
-          const String kWizSwapApiKey = "";
-          const kShopInBitAccessKey = "";
-          const kShopInBitPartnerSecret = "";
-          const kCakePayApiToken = "";
-          const kExolixApiKey = "";
-          const kLetsExchangeId = "";
-          const kLetsExchangeToken = "";
-          const kCypherGoatApiKey = "";
-          const kCypherGoatAffiliate = "";
-          const kTrocadorApiKey = "";
-          const kTrocadorRefCode = "";
-          EOF
+          if [ -z "$CHANGE_NOW" ]; then
+            echo "::error::CHANGE_NOW secret is not set; refusing to build with empty API keys" >&2
+            exit 1
           fi
+          echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
       - name: Build
         run: flutter build macos --release
@@ -557,27 +460,11 @@ jobs:
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: |
-          if [ -n "$CHANGE_NOW" ]; then
-            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
-          else
-            cat > lib/external_api_keys.dart << 'EOF'
-          const String kChangeNowApiKey = "";
-          const String kSimpleSwapApiKey = "";
-          const String kNanswapApiKey = "";
-          const String kNanoSwapRpcApiKey = "";
-          const String kWizSwapApiKey = "";
-          const kShopInBitAccessKey = "";
-          const kShopInBitPartnerSecret = "";
-          const kCakePayApiToken = "";
-          const kExolixApiKey = "";
-          const kLetsExchangeId = "";
-          const kLetsExchangeToken = "";
-          const kCypherGoatApiKey = "";
-          const kCypherGoatAffiliate = "";
-          const kTrocadorApiKey = "";
-          const kTrocadorRefCode = "";
-          EOF
+          if [ -z "$CHANGE_NOW" ]; then
+            echo "::error::CHANGE_NOW secret is not set; refusing to build with empty API keys" >&2
+            exit 1
           fi
+          echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
       - name: Build
         run: flutter build ios --release --no-codesign
@@ -642,27 +529,11 @@ jobs:
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: |
-          if [ -n "$CHANGE_NOW" ]; then
-            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
-          else
-            cat > lib/external_api_keys.dart << 'EOF'
-          const String kChangeNowApiKey = "";
-          const String kSimpleSwapApiKey = "";
-          const String kNanswapApiKey = "";
-          const String kNanoSwapRpcApiKey = "";
-          const String kWizSwapApiKey = "";
-          const kShopInBitAccessKey = "";
-          const kShopInBitPartnerSecret = "";
-          const kCakePayApiToken = "";
-          const kExolixApiKey = "";
-          const kLetsExchangeId = "";
-          const kLetsExchangeToken = "";
-          const kCypherGoatApiKey = "";
-          const kCypherGoatAffiliate = "";
-          const kTrocadorApiKey = "";
-          const kTrocadorRefCode = "";
-          EOF
+          if [ -z "$CHANGE_NOW" ]; then
+            echo "::error::CHANGE_NOW secret is not set; refusing to build with empty API keys" >&2
+            exit 1
           fi
+          echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
       - name: Build
         env:
@@ -733,27 +604,11 @@ jobs:
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: |
-          if [ -n "$CHANGE_NOW" ]; then
-            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
-          else
-            cat > lib/external_api_keys.dart << 'EOF'
-          const String kChangeNowApiKey = "";
-          const String kSimpleSwapApiKey = "";
-          const String kNanswapApiKey = "";
-          const String kNanoSwapRpcApiKey = "";
-          const String kWizSwapApiKey = "";
-          const kShopInBitAccessKey = "";
-          const kShopInBitPartnerSecret = "";
-          const kCakePayApiToken = "";
-          const kExolixApiKey = "";
-          const kLetsExchangeId = "";
-          const kLetsExchangeToken = "";
-          const kCypherGoatApiKey = "";
-          const kCypherGoatAffiliate = "";
-          const kTrocadorApiKey = "";
-          const kTrocadorRefCode = "";
-          EOF
+          if [ -z "$CHANGE_NOW" ]; then
+            echo "::error::CHANGE_NOW secret is not set; refusing to build with empty API keys" >&2
+            exit 1
           fi
+          echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
       - name: Build
         env:
@@ -941,27 +796,11 @@ jobs:
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: |
-          if [ -n "$CHANGE_NOW" ]; then
-            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
-          else
-            cat > lib/external_api_keys.dart << 'EOF'
-          const String kChangeNowApiKey = "";
-          const String kSimpleSwapApiKey = "";
-          const String kNanswapApiKey = "";
-          const String kNanoSwapRpcApiKey = "";
-          const String kWizSwapApiKey = "";
-          const kShopInBitAccessKey = "";
-          const kShopInBitPartnerSecret = "";
-          const kCakePayApiToken = "";
-          const kExolixApiKey = "";
-          const kLetsExchangeId = "";
-          const kLetsExchangeToken = "";
-          const kCypherGoatApiKey = "";
-          const kCypherGoatAffiliate = "";
-          const kTrocadorApiKey = "";
-          const kTrocadorRefCode = "";
-          EOF
+          if [ -z "$CHANGE_NOW" ]; then
+            echo "::error::CHANGE_NOW secret is not set; refusing to build with empty API keys" >&2
+            exit 1
           fi
+          echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
       - name: Set up Android local.properties
         run: |
@@ -1078,27 +917,11 @@ jobs:
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: |
-          if [ -n "$CHANGE_NOW" ]; then
-            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
-          else
-            cat > lib/external_api_keys.dart << 'EOF'
-          const String kChangeNowApiKey = "";
-          const String kSimpleSwapApiKey = "";
-          const String kNanswapApiKey = "";
-          const String kNanoSwapRpcApiKey = "";
-          const String kWizSwapApiKey = "";
-          const kShopInBitAccessKey = "";
-          const kShopInBitPartnerSecret = "";
-          const kCakePayApiToken = "";
-          const kExolixApiKey = "";
-          const kLetsExchangeId = "";
-          const kLetsExchangeToken = "";
-          const kCypherGoatApiKey = "";
-          const kCypherGoatAffiliate = "";
-          const kTrocadorApiKey = "";
-          const kTrocadorRefCode = "";
-          EOF
+          if [ -z "$CHANGE_NOW" ]; then
+            echo "::error::CHANGE_NOW secret is not set; refusing to build with empty API keys" >&2
+            exit 1
           fi
+          echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
       - name: Build
         run: flutter build windows --release
@@ -1170,27 +993,11 @@ jobs:
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: |
-          if [ -n "$CHANGE_NOW" ]; then
-            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
-          else
-            cat > lib/external_api_keys.dart << 'EOF'
-          const String kChangeNowApiKey = "";
-          const String kSimpleSwapApiKey = "";
-          const String kNanswapApiKey = "";
-          const String kNanoSwapRpcApiKey = "";
-          const String kWizSwapApiKey = "";
-          const kShopInBitAccessKey = "";
-          const kShopInBitPartnerSecret = "";
-          const kCakePayApiToken = "";
-          const kExolixApiKey = "";
-          const kLetsExchangeId = "";
-          const kLetsExchangeToken = "";
-          const kCypherGoatApiKey = "";
-          const kCypherGoatAffiliate = "";
-          const kTrocadorApiKey = "";
-          const kTrocadorRefCode = "";
-          EOF
+          if [ -z "$CHANGE_NOW" ]; then
+            echo "::error::CHANGE_NOW secret is not set; refusing to build with empty API keys" >&2
+            exit 1
           fi
+          echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
       - name: Build
         run: flutter build macos --release
@@ -1262,27 +1069,11 @@ jobs:
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: |
-          if [ -n "$CHANGE_NOW" ]; then
-            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
-          else
-            cat > lib/external_api_keys.dart << 'EOF'
-          const String kChangeNowApiKey = "";
-          const String kSimpleSwapApiKey = "";
-          const String kNanswapApiKey = "";
-          const String kNanoSwapRpcApiKey = "";
-          const String kWizSwapApiKey = "";
-          const kShopInBitAccessKey = "";
-          const kShopInBitPartnerSecret = "";
-          const kCakePayApiToken = "";
-          const kExolixApiKey = "";
-          const kLetsExchangeId = "";
-          const kLetsExchangeToken = "";
-          const kCypherGoatApiKey = "";
-          const kCypherGoatAffiliate = "";
-          const kTrocadorApiKey = "";
-          const kTrocadorRefCode = "";
-          EOF
+          if [ -z "$CHANGE_NOW" ]; then
+            echo "::error::CHANGE_NOW secret is not set; refusing to build with empty API keys" >&2
+            exit 1
           fi
+          echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
       - name: Build
         run: flutter build ios --release --no-codesign
@@ -1464,27 +1255,11 @@ jobs:
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: |
-          if [ -n "$CHANGE_NOW" ]; then
-            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
-          else
-            cat > lib/external_api_keys.dart << 'EOF'
-          const String kChangeNowApiKey = "";
-          const String kSimpleSwapApiKey = "";
-          const String kNanswapApiKey = "";
-          const String kNanoSwapRpcApiKey = "";
-          const String kWizSwapApiKey = "";
-          const kShopInBitAccessKey = "";
-          const kShopInBitPartnerSecret = "";
-          const kCakePayApiToken = "";
-          const kExolixApiKey = "";
-          const kLetsExchangeId = "";
-          const kLetsExchangeToken = "";
-          const kCypherGoatApiKey = "";
-          const kCypherGoatAffiliate = "";
-          const kTrocadorApiKey = "";
-          const kTrocadorRefCode = "";
-          EOF
+          if [ -z "$CHANGE_NOW" ]; then
+            echo "::error::CHANGE_NOW secret is not set; refusing to build with empty API keys" >&2
+            exit 1
           fi
+          echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
       - name: Set up Android local.properties
         run: |
@@ -1601,27 +1376,11 @@ jobs:
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: |
-          if [ -n "$CHANGE_NOW" ]; then
-            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
-          else
-            cat > lib/external_api_keys.dart << 'EOF'
-          const String kChangeNowApiKey = "";
-          const String kSimpleSwapApiKey = "";
-          const String kNanswapApiKey = "";
-          const String kNanoSwapRpcApiKey = "";
-          const String kWizSwapApiKey = "";
-          const kShopInBitAccessKey = "";
-          const kShopInBitPartnerSecret = "";
-          const kCakePayApiToken = "";
-          const kExolixApiKey = "";
-          const kLetsExchangeId = "";
-          const kLetsExchangeToken = "";
-          const kCypherGoatApiKey = "";
-          const kCypherGoatAffiliate = "";
-          const kTrocadorApiKey = "";
-          const kTrocadorRefCode = "";
-          EOF
+          if [ -z "$CHANGE_NOW" ]; then
+            echo "::error::CHANGE_NOW secret is not set; refusing to build with empty API keys" >&2
+            exit 1
           fi
+          echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
       - name: Build
         run: flutter build windows --release
@@ -1693,27 +1452,11 @@ jobs:
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: |
-          if [ -n "$CHANGE_NOW" ]; then
-            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
-          else
-            cat > lib/external_api_keys.dart << 'EOF'
-          const String kChangeNowApiKey = "";
-          const String kSimpleSwapApiKey = "";
-          const String kNanswapApiKey = "";
-          const String kNanoSwapRpcApiKey = "";
-          const String kWizSwapApiKey = "";
-          const kShopInBitAccessKey = "";
-          const kShopInBitPartnerSecret = "";
-          const kCakePayApiToken = "";
-          const kExolixApiKey = "";
-          const kLetsExchangeId = "";
-          const kLetsExchangeToken = "";
-          const kCypherGoatApiKey = "";
-          const kCypherGoatAffiliate = "";
-          const kTrocadorApiKey = "";
-          const kTrocadorRefCode = "";
-          EOF
+          if [ -z "$CHANGE_NOW" ]; then
+            echo "::error::CHANGE_NOW secret is not set; refusing to build with empty API keys" >&2
+            exit 1
           fi
+          echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
       - name: Build
         run: flutter build macos --release
@@ -1785,27 +1528,11 @@ jobs:
         env:
           CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
         run: |
-          if [ -n "$CHANGE_NOW" ]; then
-            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
-          else
-            cat > lib/external_api_keys.dart << 'EOF'
-          const String kChangeNowApiKey = "";
-          const String kSimpleSwapApiKey = "";
-          const String kNanswapApiKey = "";
-          const String kNanoSwapRpcApiKey = "";
-          const String kWizSwapApiKey = "";
-          const kShopInBitAccessKey = "";
-          const kShopInBitPartnerSecret = "";
-          const kCakePayApiToken = "";
-          const kExolixApiKey = "";
-          const kLetsExchangeId = "";
-          const kLetsExchangeToken = "";
-          const kCypherGoatApiKey = "";
-          const kCypherGoatAffiliate = "";
-          const kTrocadorApiKey = "";
-          const kTrocadorRefCode = "";
-          EOF
+          if [ -z "$CHANGE_NOW" ]; then
+            echo "::error::CHANGE_NOW secret is not set; refusing to build with empty API keys" >&2
+            exit 1
           fi
+          echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
 
       - name: Build
         run: flutter build ios --release --no-codesign

@@ -152,6 +152,8 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0 # tags: require-version compares BUILD_NUM with build_* tags
       - name: Check the Makefile dry-runs
         run: |
           bash scripts/bom_values.sh --check
@@ -177,27 +179,23 @@ jobs:
             echo 'host Android source mode must fail' >&2
             exit 1
           fi
-      # require-version must actually RUN (not just dry-run): a broken recipe
-      # regex is invisible to `make -n` because dry-run never executes recipes.
-      # This executed the recipe and would have caught the require-version shell
-      # parse error (unescaped \$ anchor) that broke every real build target.
+      # `make -n` never executes recipes, so a shell parse error in the
+      # require-version recipe is invisible to the dry-runs above. Run it for real.
+      # This is a bash step, not a Makefile recipe: use single `$`.
       - name: require-version recipe executes (valid passes, invalid fails)
         run: |
-          # require-version must actually RUN (not just dry-run): a broken recipe
-          # regex is invisible to `make -n` because dry-run never executes
-          # recipes. This would have caught the require-version shell parse error
-          # (unescaped \$ anchor) that broke every real build target.
-          # Use the current latest build_* tag as BUILD_NUM so the valid case is
-          # not rejected by the 'BUILD_NUM below latest tag' guard — we are
-          # isolating the regex/parse behavior, not the release-tag rule.
-          build_num="$$(git tag -l 'build_*' --sort=-v:refname 2>/dev/null | sed -n 's/^build_\([0-9][0-9]*\)$$/\1/p' | head -n1)"
+          # Use the latest build_* tag as BUILD_NUM so the valid case is not
+          # rejected by the "BUILD_NUM below latest tag" guard; this step tests
+          # the regex/parse behaviour, not the release-tag rule.
+          build_num="$(git tag -l 'build_*' --sort=-v:refname | sed -n 's/^build_\([0-9][0-9]*\)$/\1/p' | head -n1)"
           build_num="${build_num:-1}"
-          # Valid VERSION/BUILD_NUM must pass the recipe (exit 0), proving the
-          # grep anchors are correctly escaped ($$ -> $) and no shell parse error.
-          make require-version VERSION=0.0.0 BUILD_NUM="$$build_num" >/dev/null 2>&1 \
-            || { echo "require-version rejected a valid VERSION/BUILD_NUM ($$build_num)" >&2; exit 1; }
-          # Invalid inputs must be rejected with a non-zero exit.
-          make require-version VERSION=not-a-version BUILD_NUM="$$build_num" 2>/dev/null \
-            && { echo 'require-version accepted an invalid VERSION' >&2; exit 1; }
-          make require-version VERSION=0.0.0 BUILD_NUM=not-a-number 2>/dev/null \
-            && { echo 'require-version accepted a non-numeric BUILD_NUM' >&2; exit 1; }
+          make require-version VERSION=0.0.0 BUILD_NUM="$build_num" >/dev/null 2>&1 \
+            || { echo "require-version rejected a valid VERSION/BUILD_NUM ($build_num)" >&2; exit 1; }
+          if make require-version VERSION=not-a-version BUILD_NUM="$build_num" >/dev/null 2>&1; then
+            echo 'require-version accepted an invalid VERSION' >&2
+            exit 1
+          fi
+          if make require-version VERSION=0.0.0 BUILD_NUM=not-a-number >/dev/null 2>&1; then
+            echo 'require-version accepted a non-numeric BUILD_NUM' >&2
+            exit 1
+          fi

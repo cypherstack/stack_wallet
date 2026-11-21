@@ -20,8 +20,10 @@ const List<String> bomPluginNames = [
 const String bomFileName = 'stack-bom.toml';
 
 final RegExp _sectionHeader = RegExp(r'^\[([^\]]+)\][ \t]*(#.*)?$');
-final RegExp _pluginsHeader =
-    RegExp(r'^\[plugins\][ \t]*(#.*)?$', multiLine: true);
+final RegExp _pluginsHeader = RegExp(
+  r'^\[plugins\][ \t]*(#.*)?$',
+  multiLine: true,
+);
 
 /// Minimal TOML reader: `[section]` headers and `key = "value"` lines.
 /// Accepts tabs or spaces, single or double quotes, and a trailing ` #comment`
@@ -137,8 +139,7 @@ Set<String> declaredPlugins({String? pubspecText}) {
     for (var i = start + 1; i < lines.length; i++) {
       final line = lines[i];
       if (line.trim().isEmpty || line.trimLeft().startsWith('#')) continue;
-      final currentIndent = RegExp(r'^[ \t]*').firstMatch(line)!
-          .group(0)!;
+      final currentIndent = RegExp(r'^[ \t]*').firstMatch(line)!.group(0)!;
       if (currentIndent.length < indent.length) break;
       if (currentIndent != indent) continue;
       final m = RegExp(r'''^[ \t]*["']?(\w+)["']?\s*:''').firstMatch(line);
@@ -162,9 +163,7 @@ Map<String, String> lockRefs({String? lockText}) {
     final line = lines[i].replaceFirst(RegExp(r'\r$'), '');
     final m = RegExp(r'^  (\w+):$').firstMatch(line);
     if (m == null || !bomPluginNames.contains(m.group(1))) continue;
-    for (var j = i + 1;
-        j < lines.length && lines[j].startsWith('    ');
-        j++) {
+    for (var j = i + 1; j < lines.length && lines[j].startsWith('    '); j++) {
       final r = RegExp(r'resolved-ref: "?([0-9a-f]{40})"?')
           .firstMatch(lines[j]);
       if (r != null) refs[m.group(1)!] = r.group(1)!;

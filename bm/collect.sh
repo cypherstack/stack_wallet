@@ -66,7 +66,8 @@ main() {
   # Disk directories
   for d in "${BUILD_DIRS[@]}"; do
     local path="$REPO_ROOT/$d"
-    local label="disk_$(echo "$d" | tr '/.' '_')"
+    local label
+    label="disk_$(echo "$d" | tr '/.' '_')"
     if [ -d "$path" ] || [ -f "$path" ]; then
       local sz
       sz="$(du -sk "$path" 2>/dev/null | cut -f1 || echo 0)"
@@ -79,7 +80,8 @@ main() {
   # Artifacts
   for a in "${ARTIFACT_DIRS[@]}"; do
     local path="$REPO_ROOT/$a"
-    local label="artifact_$(echo "$a" | tr '/.-' '_')"
+    local label
+    label="artifact_$(echo "$a" | tr '/.-' '_')"
     if [ -e "$path" ]; then
       local sz
       sz="$(du -sk "$path" 2>/dev/null | cut -f1 || echo 0)"

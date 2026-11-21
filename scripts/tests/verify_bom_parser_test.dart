@@ -14,8 +14,7 @@ import '../../tool/bom_parser.dart';
 Map<String, String> section(
   Map<String, Map<String, String>> bom,
   String name,
-) =>
-    bom[name] ?? {};
+) => bom[name] ?? {};
 
 void main() {
   group('readBom', () {
@@ -104,8 +103,10 @@ flutter_min = "3.47.0"
       final dir = Directory.systemTemp.createTempSync('resolve_path_');
       try {
         File('${dir.path}/mytool').writeAsStringSync('#!/bin/sh\n');
-        final found = resolveOnPath('mytool',
-            environment: {'PATH': '${dir.path}:/nonexistent'});
+        final found = resolveOnPath(
+          'mytool',
+          environment: {'PATH': '${dir.path}:/nonexistent'},
+        );
         expect(found, '${dir.path}/mytool');
       } finally {
         dir.deleteSync(recursive: true);
@@ -114,8 +115,10 @@ flutter_min = "3.47.0"
 
     test('returns the bare name when the command is not on PATH', () {
       expect(
-        resolveOnPath('definitely-not-a-real-command-xyz',
-            environment: {'PATH': '/nonexistent'}),
+        resolveOnPath(
+          'definitely-not-a-real-command-xyz',
+          environment: {'PATH': '/nonexistent'},
+        ),
         'definitely-not-a-real-command-xyz',
       );
     });
@@ -123,10 +126,14 @@ flutter_min = "3.47.0"
 
   group('requireSinglePluginsSection', () {
     test('accepts zero or one [plugins] table', () {
-      expect(() => requireSinglePluginsSection('[toolchain]\nflutter = "1"\n'),
-          returnsNormally);
-      expect(() => requireSinglePluginsSection('[plugins]\na = "b"\n'),
-          returnsNormally);
+      expect(
+        () => requireSinglePluginsSection('[toolchain]\nflutter = "1"\n'),
+        returnsNormally,
+      );
+      expect(
+        () => requireSinglePluginsSection('[plugins]\na = "b"\n'),
+        returnsNormally,
+      );
     });
 
     test('throws on a duplicate [plugins] table', () {
@@ -212,7 +219,8 @@ dependencies:
 
     test('reads a ref from a CRLF lockfile', () {
       // A trailing CR must not break the anchored `^  (\w+):$` header.
-      const lock = 'plugins:\r\n  tor_ffi_plugin:\r\n'
+      const lock =
+          'plugins:\r\n  tor_ffi_plugin:\r\n'
           '    resolved-ref: "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef"\r\n';
       expect(
         lockRefs(lockText: lock)['tor_ffi_plugin'],

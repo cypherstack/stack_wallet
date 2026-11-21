@@ -143,7 +143,7 @@ echo ""
 echo "=== All results for $HOST ($ARCH $OS_NAME $OS_VER) ==="
 printf "%-12s %-20s %-8s %-10s %4s %10s %8s %s\n" DATE MODE COMMIT FLAGS WARM WALL DISK COMMENT
 printf '%s\n' '──────────────────────────────────────────────────────────────────────────────────────'
-tail -n +2 "$OUTFILE" | while IFS=, read -r label branch commit host arch os_name os_ver date warm flags wall_sec success disk_total disk_delta comment; do
+tail -n +2 "$OUTFILE" | while IFS=, read -r label _branch commit _host _arch _os_name _os_ver date warm flags wall_sec success _disk_total disk_delta comment; do
   delta_mb=$((disk_delta / 1024))
   w=$((wall_sec)); m=$((w/60)); s=$((w%60))
   time_fmt="${m}m${s}s"
