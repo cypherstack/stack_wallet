@@ -25,7 +25,10 @@ confirmDisclaimer() {
         fi
         case $response in
             [Yy][Ee][Ss] ) echo "Continuing..."; break;;
-            [Nn][Oo] ) echo >&2 "Aborted."; exit 1;;
+            # Declining is a normal exit (0) for direct callers and scripts/tests/build_input_test.dart.
+            # The Makefile sets BUILD_APP_DECLINE_EXIT=1 so `make` stops instead of
+            # carrying on to `flutter build` with an unconfigured project.
+            [Nn][Oo] ) echo >&2 "Aborted."; exit "${BUILD_APP_DECLINE_EXIT:-0}";;
             * ) echo "Invalid response";;
         esac
     done

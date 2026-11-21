@@ -13,7 +13,7 @@ through Nix:
 |---|---|
 | Nix | `make bootstrap` (enters `nix develop`) |
 | direnv | `direnv allow` |
-| Manual / Homebrew | `make bootstrap-macos` (installs Nix + selects Xcode); use `PREBUILTS=1` |
+| Manual / Homebrew | install the tools yourself, `make bootstrap-xcode` (selects an installed Xcode), then build with `PREBUILTS=1`. `make bootstrap-macos` additionally installs Nix and is only needed for source builds |
 
 With Nix or direnv the flake supplies Flutter, Dart, rustup (which installs
 the BOM Rust version on first entry), Go, CMake, Meson, Ninja, pkg-config and protoc.

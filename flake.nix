@@ -15,8 +15,8 @@
       let
         pkgs = import nixpkgs { inherit system; };
         lib = pkgs.lib;
-        # Single source of truth for the toolchain versions; the Homebrew
-        # helper and the Makefile read the same file.
+        # Single source of truth for the toolchain versions; the Makefile,
+        # the Dockerfile and the release workflow read the same file.
         bom = builtins.fromTOML (builtins.readFile ./stack-bom.toml);
         rustVersion = let
           v = bom.toolchain.rust or (throw "stack-bom.toml: missing [toolchain].rust");

@@ -19,6 +19,12 @@ CONFIRM      ?= 0
 # app numbered below the current release line. See `require-version`.
 VERSION      ?=
 BUILD_NUM    ?=
+# make would otherwise export these command-line variables to every recipe,
+# expanding any `$(shell ...)` inside the value on the way. The recipes use
+# them through make, and require-version reads the raw text (see below).
+unexport VERSION BUILD_NUM
+# build_app.sh exits 0 when the wallet-data warning is declined; make must stop.
+export BUILD_APP_DECLINE_EXIT := 1
 FLUTTER      ?=
 DART         ?=
 # Make splits unquoted values on whitespace, so a tool path with a space would
@@ -223,14 +229,21 @@ endif
 
 # --- PREREQUISITES ---
 
+# VERSION and BUILD_NUM reach the shell through the environment, never by
+# interpolating them into the recipe text. A value containing a quote or a
+# backtick would otherwise run as shell code inside this validation step.
+# `$(value ...)` returns the raw text, so a `$(shell ...)` inside the value is
+# not expanded by make either.
+require-version: export RV_VERSION := $(value VERSION)
+require-version: export RV_BUILD_NUM := $(value BUILD_NUM)
 require-version: ## Fail unless VERSION/BUILD_NUM are valid and BUILD_NUM is not below the latest release tag
-	@printf '%s' '$(VERSION)' | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z][0-9A-Za-z.-]*)?$$' || { echo >&2 "[ERROR] VERSION must be x.y.z or x.y.z-suffix (got '$(VERSION)'; latest release tag: $$(git tag -l 'build_*' --sort=-v:refname 2>/dev/null | head -n1))."; exit 1; }
-	@printf '%s' '$(BUILD_NUM)' | grep -Eq '^[0-9]+$$' || { echo >&2 "[ERROR] BUILD_NUM must be numeric (got '$(BUILD_NUM)'; latest release tag: $$(git tag -l 'build_*' --sort=-v:refname 2>/dev/null | head -n1))."; exit 1; }
+	@printf '%s' "$$RV_VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z][0-9A-Za-z.-]*)?$$' || { echo >&2 "[ERROR] VERSION must be x.y.z or x.y.z-suffix (got '$$RV_VERSION'; latest release tag: $$(git tag -l 'build_*' --sort=-v:refname 2>/dev/null | head -n1))."; exit 1; }
+	@printf '%s' "$$RV_BUILD_NUM" | grep -Eq '^(0|[1-9][0-9]{0,8})$$' || { echo >&2 "[ERROR] BUILD_NUM must be a plain number without leading zeros, at most 9 digits (got '$$RV_BUILD_NUM'; latest release tag: $$(git tag -l 'build_*' --sort=-v:refname 2>/dev/null | head -n1))."; exit 1; }
 	@latest="$$(git tag -l 'build_*' --sort=-v:refname 2>/dev/null | sed -n 's/^build_\([0-9][0-9]*\)$$/\1/p' | head -n1)"; \
 	if [ -n "$$latest" ]; then \
-	  [ "$(BUILD_NUM)" -ge "$$latest" ] || { echo >&2 "[ERROR] BUILD_NUM $(BUILD_NUM) is below the latest release tag build_$$latest."; exit 1; }; \
-	  if [ "$(BUILD_NUM)" -eq "$$latest" ]; then \
-	    echo "[INFO] Rebuilding release tag build_$$latest with BUILD_NUM=$(BUILD_NUM)."; \
+	  [ "$$RV_BUILD_NUM" -ge "$$latest" ] || { echo >&2 "[ERROR] BUILD_NUM $$RV_BUILD_NUM is below the latest release tag build_$$latest."; exit 1; }; \
+	  if [ "$$RV_BUILD_NUM" -eq "$$latest" ]; then \
+	    echo "[INFO] Rebuilding release tag build_$$latest with BUILD_NUM=$$RV_BUILD_NUM."; \
 	  fi; \
 	else \
 	  echo "[INFO] No numeric build_* tag found; skipping BUILD_NUM comparison."; \

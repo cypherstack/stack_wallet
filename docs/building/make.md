@@ -56,7 +56,7 @@ make build-macos VERSION=x.y.z BUILD_NUM=nnn PREBUILTS=1  # verified prebuilts (
 | `make build-android` | Same build commands as CI, without the AAB/upload steps; signs with `android/key.properties` (run `make android-dev-key` for a throw-away test key), needs the Android SDK/NDK and Java. Prebuilt dnix on macOS, non-x86_64 Linux and brew/manual toolchains; x86_64 Linux in Nix/direnv follows `PREBUILTS` |
 | `make build-ios` | Same build commands as CI, without signing/packaging, on macOS (`flutter build ios --release --no-codesign`). Source by default only in Nix/direnv on Apple Silicon; CI passes `-d` explicitly |
 | `make bootstrap` | Enter the Nix dev shell (primary toolchain); no-op when already inside |
-| `make bootstrap-macos` | Install Nix (if missing) and check/select the full Xcode.app |
+| `make bootstrap-macos` | Install Nix (if missing) and check/select the full Xcode.app. Installing Nix downloads the official installer and runs it with sudo, so it asks first (`NIX_INSTALL_YES=1` skips the question) |
 | `make toolchain` | Show the active toolchain (`nix`, `direnv`, `host`, `manual`) |
 | `make bootstrap-xcode` | Check and select an installed full Xcode.app |
 | `make check-reqs`, `check-reqs-macos`, `check-sdk-macos`, `diagnose-env-macos` | Prerequisite checks and an environment dump |
