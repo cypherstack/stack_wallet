@@ -14,10 +14,10 @@ import '../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
-import '../../../models/mwc_slatepack_models.dart';
 import '../../../models/mwcmqs_config_model.dart';
 import '../../../models/node_model.dart';
 import '../../../models/paymint/fee_object_model.dart';
+import '../../../models/slatepack_models.dart';
 import '../../../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import '../../../services/event_bus/events/global/blocks_remaining_event.dart';
 import '../../../services/event_bus/events/global/node_connection_status_changed_event.dart';
@@ -26,8 +26,10 @@ import '../../../services/event_bus/events/global/wallet_sync_status_changed_eve
 import '../../../services/event_bus/global_event_bus.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/default_mwcmqs.dart';
+import '../../../utilities/enums/slatepack_method.dart';
 import '../../../utilities/flutter_secure_storage_interface.dart';
 import '../../../utilities/logger.dart';
+import '../../../utilities/slatepack_terms.dart';
 import '../../../utilities/stack_file_system.dart';
 import '../../../utilities/test_mwcmqs_connection.dart';
 import '../../../wl_gen/interfaces/libmwc_interface.dart';
@@ -36,8 +38,18 @@ import '../../models/tx_data.dart';
 import '../intermediate/bip39_wallet.dart';
 import '../supporting/mimblewimblecoin_wallet_info_extension.dart';
 import '../supporting/restore_progress.dart';
+import '../wallet_mixin_interfaces/slatepack_interface.dart';
 
-class MimblewimblecoinWallet extends Bip39Wallet {
+class _SlatepackWalletUnavailable implements Exception {
+  const _SlatepackWalletUnavailable(this.cause);
+
+  final Object cause;
+
+  @override
+  String toString() => cause.toString();
+}
+
+class MimblewimblecoinWallet extends Bip39Wallet with SlatepackInterface {
   MimblewimblecoinWallet(CryptoCurrencyNetwork network)
     : super(Mimblewimblecoin(network));
 
@@ -52,6 +64,38 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   String? _walletHandle;
 
   double highestPercent = 0;
+
+  @override
+  List<SlatepackMethod> get supportedMethods => const [
+    SlatepackMethod.slatepack,
+    SlatepackMethod.relay,
+  ];
+
+  @override
+  bool get supportsOnChainNote => true;
+
+  @override
+  bool get supportsSlatepackEncryption => true;
+
+  @override
+  SlatepackTerms get slatepackTerms => SlatepackTerms.slatepack;
+
+  @override
+  Map<dynamic, dynamic> get slatepackTransactionMetadata =>
+      info.mimblewimblecoinData?.slatesToCommits ?? const {};
+
+  @override
+  Future<void> updateSlatepackTransactionMetadata(
+    Map<dynamic, dynamic> metadata,
+  ) async {
+    final data = info.mimblewimblecoinData;
+    if (data == null) return;
+    await info.updateExtraMimblewimblecoinWalletInfo(
+      mimblewimblecoinData: data.copyWith(slatesToCommits: metadata),
+      isar: mainDB.isar,
+    );
+  }
+
   Future<double> get getSyncPercent async {
     final int lastScannedBlock =
         info.mimblewimblecoinData?.lastScannedBlock ?? 0;
@@ -132,6 +176,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   }
 
   /// Returns an empty String on success, error message on failure.
+  @override
   Future<String> cancelPendingTransactionAndPost(String txSlateId) async {
     try {
       final String wallet = await _ensureWalletOpen();
@@ -140,6 +185,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
         wallet: wallet,
         transactionId: txSlateId,
       );
+      if (result.isEmpty) await rememberPendingSlateCancelled(txSlateId);
       Logging.instance.i("cancel $txSlateId result: $result");
       return result;
     } catch (e, s) {
@@ -176,12 +222,11 @@ class MimblewimblecoinWallet extends Bip39Wallet {
   // ================= Slatepack Operations ===================================
 
   /// Create a slatepack for sending MWC.
+  @override
   Future<SlatepackResult> createSlatepack({
     required Amount amount,
     String? recipientAddress,
     String? message,
-    bool encrypt = false,
-    int? minimumConfirmations,
   }) async {
     try {
       final handle = await _ensureWalletOpen();
@@ -190,8 +235,7 @@ class MimblewimblecoinWallet extends Bip39Wallet {
       final s1Json = await libMwc.txInit(
         wallet: handle,
         amount: amount.raw.toInt(),
-        minimumConfirmations:
-            minimumConfirmations ?? cryptoCurrency.minConfirms,
+        minimumConfirmations: cryptoCurrency.minConfirms,
         selectionStrategyIsAll: false,
         message: message ?? '',
       );
@@ -200,80 +244,40 @@ class MimblewimblecoinWallet extends Bip39Wallet {
       final encoded = await libMwc.encodeSlatepack(
         slateJson: s1Json,
         recipientAddress: recipientAddress,
-        encrypt: encrypt,
+        encrypt: recipientAddress != null,
         wallet: handle,
       );
 
-      return SlatepackResult(
+      final inspection = inspectSlateJsonString(s1Json);
+      final slatepack = SlatepackResult(
         success: true,
         slatepack: encoded.slatepack,
         slateJson: s1Json,
         wasEncrypted: encoded.wasEncrypted,
         recipientAddress: encoded.recipientAddress,
+        state: SlateState.s1,
+        slateId: inspection?.slateId,
+        amount: inspection?.amount,
+        fee: inspection?.fee,
       );
+      await rememberPendingSlateSend(slatepack);
+      return slatepack;
     } catch (e, s) {
       Logging.instance.e('Failed to create slatepack: $e\n$s');
       return SlatepackResult(success: false, error: e.toString());
     }
   }
 
-  // this isn't nearly the best way to handle this but better than copy pasting
-  // this function in two places (mobile and desktop widgets)...
-  Future<({SlatepackDecodeResult result, String type, String raw})?>
-  fullDecodeSlatepack(String slatepack) async {
-    // add delay for showloading exception catching hack fix
-    await Future<void>.delayed(const Duration(seconds: 1));
-
-    if (slatepack.isEmpty) {
-      return null;
-    }
-
-    // Basic format validation.
-    final coin = cryptoCurrency as Mimblewimblecoin;
-    if (!coin.isSlatepack(slatepack)) {
-      throw Exception("Invalid slatepack format");
-    }
-
-    // Attempt to decode.
-    final decoded = await decodeSlatepack(slatepack);
-
-    if (decoded.success) {
-      final analysis = await analyzeSlatepack(slatepack);
-
-      String _determineSlatepackType(SlatepackDecodeResult decoded) {
-        // Fallback analysis based on sender/recipient addresses.
-        if (decoded.senderAddress != null && decoded.recipientAddress != null) {
-          return "S2 (Response)";
-        } else if (decoded.senderAddress != null) {
-          return "S1 (Initial)";
-        } else {
-          return "Unknown";
-        }
-      }
-
-      final String slatepackType = switch (analysis.status) {
-        'S1' => "S1 (Initial Send)",
-        'S2' => "S2 (Response)",
-        'S3' => "S3 (Finalized)",
-        _ => _determineSlatepackType(decoded), // Fallback.
-      };
-
-      return (result: decoded, type: slatepackType, raw: slatepack);
-    } else {
-      throw Exception(decoded.error ?? "Failed to decode slatepack");
-    }
-  }
-
   /// Decode a slatepack.
-  Future<SlatepackDecodeResult> decodeSlatepack(String slatepack) async {
+  @override
+  Future<SlatepackDecodeResult> decodeSlatepack(String armored) async {
     try {
-      final handle = _walletHandle;
-      final result = handle != null
-          ? await libMwc.decodeSlatepackWithWallet(
-              wallet: handle,
-              slatepack: slatepack,
-            )
-          : await libMwc.decodeSlatepack(slatepack: slatepack);
+      final result = _walletHandle == null
+          ? await _decodeSlatepackWithClosedWallet(armored)
+          : await libMwc.decodeSlatepackWithWallet(
+              wallet: _walletHandle!,
+              slatepack: armored,
+            );
 
       return SlatepackDecodeResult(
         success: true,
@@ -282,72 +286,116 @@ class MimblewimblecoinWallet extends Bip39Wallet {
         senderAddress: result.senderAddress,
         recipientAddress: result.recipientAddress,
       );
+    } on _SlatepackWalletUnavailable catch (e, s) {
+      Logging.instance.e('Failed to open wallet for slatepack: $e\n$s');
+      return SlatepackDecodeResult(
+        success: false,
+        failure: SlatepackDecodeFailure.walletUnavailable,
+      );
     } catch (e, s) {
       Logging.instance.e('Failed to decode slatepack: $e\n$s');
-      return SlatepackDecodeResult(success: false, error: e.toString());
+      return SlatepackDecodeResult(
+        success: false,
+        failure: SlatepackDecodeFailure.invalidInput,
+      );
+    }
+  }
+
+  Future<
+    ({
+      String? recipientAddress,
+      String? senderAddress,
+      String slateJson,
+      bool wasEncrypted,
+    })
+  >
+  _decodeSlatepackWithClosedWallet(String slatepack) async {
+    try {
+      // Preserve the existing no-wallet path for unencrypted slatepacks.
+      return await libMwc.decodeSlatepack(slatepack: slatepack);
+    } catch (_) {
+      // Encrypted slatepacks need this wallet's keys.
+      final String handle;
+      try {
+        handle = await _ensureWalletOpen();
+      } catch (e) {
+        throw _SlatepackWalletUnavailable(e);
+      }
+      return libMwc.decodeSlatepackWithWallet(
+        wallet: handle,
+        slatepack: slatepack,
+      );
+    }
+  }
+
+  @override
+  void checkSlatepackFormat(String armored) {
+    if (!isSlatepack(armored)) {
+      throw Exception("Invalid slatepack format");
     }
   }
 
   /// Receive a slatepack and return response slatepack.
-  Future<ReceiveResult> receiveSlatepack(String slatepack) async {
+  @override
+  Future<SlatepackResult> receiveSlatepack(
+    String slatepack, {
+    required SlateInspection inspection,
+  }) async {
     try {
       final handle = await _ensureWalletOpen();
-
-      // Decode to get slate JSON and sender address.
-      final decoded = await libMwc.decodeSlatepackWithWallet(
-        wallet: handle,
-        slatepack: slatepack,
-      );
 
       // Receive and get updated slate JSON.
       final received = await libMwc.txReceiveDetailed(
         wallet: handle,
-        slateJson: decoded.slateJson,
+        slateJson: inspection.slateJson!,
       );
 
       // Encode response back to sender if address available.
       final encoded = await libMwc.encodeSlatepack(
         slateJson: received.slateJson,
-        recipientAddress: decoded.senderAddress,
-        encrypt: decoded.senderAddress != null,
+        recipientAddress: inspection.senderAddress,
+        encrypt: inspection.senderAddress != null,
         wallet: handle,
       );
 
-      return ReceiveResult(
+      final responseInspection = inspectSlateJsonString(received.slateJson);
+      return SlatepackResult(
         success: true,
+        slatepack: encoded.slatepack,
+        slateJson: received.slateJson,
         slateId: received.slateId,
-        commitId: received.commitId,
-        responseSlatepack: encoded.slatepack,
         wasEncrypted: encoded.wasEncrypted,
-        recipientAddress: decoded.senderAddress,
+        recipientAddress: inspection.senderAddress,
+        state: SlateState.s2,
+        amount: responseInspection?.amount ?? inspection.amount,
+        fee: responseInspection?.fee ?? inspection.fee,
       );
     } catch (e, s) {
       Logging.instance.e('Failed to receive slatepack: $e\n$s');
-      return ReceiveResult(success: false, error: e.toString());
+      return SlatepackResult(success: false, error: e.toString());
     }
   }
 
   /// Finalize a slatepack (sender step 3).
-  Future<FinalizeResult> finalizeSlatepack(String slatepack) async {
+  @override
+  Future<FinalizeResult> finalizeSlatepack(
+    String slatepack, {
+    required SlateInspection inspection,
+  }) async {
     try {
       final handle = await _ensureWalletOpen();
-
-      // Decode to get slate JSON.
-      final decoded = await libMwc.decodeSlatepackWithWallet(
-        wallet: handle,
-        slatepack: slatepack,
-      );
 
       // Finalize transaction.
       final finalized = await libMwc.txFinalize(
         wallet: handle,
-        slateJson: decoded.slateJson,
+        slateJson: inspection.slateJson!,
       );
 
       return FinalizeResult(
         success: true,
         slateId: finalized.slateId,
         commitId: finalized.commitId,
+        posted: finalized.posted,
       );
     } catch (e, s) {
       Logging.instance.e('Failed to finalize slatepack: $e\n$s');

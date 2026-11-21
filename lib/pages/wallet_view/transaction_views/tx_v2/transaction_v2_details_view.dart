@@ -34,6 +34,7 @@ import '../../../../utilities/block_explorers.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/format.dart';
 import '../../../../utilities/logger.dart';
+import '../../../../utilities/route_presentation.dart';
 import '../../../../utilities/show_loading.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
@@ -41,10 +42,9 @@ import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../../../wallets/isar/models/spark_coin.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
-import '../../../../wallets/wallet/impl/epiccash_wallet.dart';
-import '../../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/slatepack_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
@@ -60,6 +60,7 @@ import '../../../../widgets/icon_widgets/pencil_icon.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_dialog.dart';
 import '../../../../widgets/tx_key_widget.dart';
+import '../../../slatepack/slatepack_cancel_transaction_dialog.dart';
 import '../../sub_widgets/tx_icon.dart';
 import '../../wallet_view.dart';
 import '../dialogs/cancelling_transaction_progress_dialog.dart';
@@ -100,6 +101,8 @@ class _TransactionV2DetailsViewState
   late final Contract? tokenContract;
   late final bool supportsRbf;
   late final bool hasTxKeyProbably;
+  late final bool isSlatepackWallet;
+  late final bool showOnChainNote;
 
   bool get isTokenTx => tokenContract != null;
 
@@ -204,6 +207,9 @@ class _TransactionV2DetailsViewState
     walletId = widget.walletId;
 
     final wallet = ref.read(pWallets).getWallet(walletId);
+    isSlatepackWallet = wallet is SlatepackInterface;
+    showOnChainNote =
+        wallet is SlatepackInterface && wallet.supportsOnChainNote;
 
     hasTxKeyProbably =
         (wallet is CryptonoteWallet) &&
@@ -880,11 +886,11 @@ class _TransactionV2DetailsViewState
                                     ],
                                   ),
                                 ),
-                              if (coin is Epiccash || coin is Mimblewimblecoin)
+                              if (showOnChainNote)
                                 isDesktop
                                     ? const _Divider()
                                     : const SizedBox(height: 12),
-                              if (coin is Epiccash || coin is Mimblewimblecoin)
+                              if (showOnChainNote)
                                 RoundedWhiteContainer(
                                   padding: isDesktop
                                       ? const EdgeInsets.all(16)
@@ -934,8 +940,7 @@ class _TransactionV2DetailsViewState
                                           MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
-                                          (coin is Epiccash ||
-                                                  coin is Mimblewimblecoin)
+                                          isSlatepackWallet
                                               ? "Local Note"
                                               : "Note ",
                                           style: labelStyle,
@@ -1405,11 +1410,11 @@ class _TransactionV2DetailsViewState
                               //       ],
                               //     ),
                               //   ),
-                              if (coin is Epiccash || coin is Mimblewimblecoin)
+                              if (isSlatepackWallet)
                                 isDesktop
                                     ? const _Divider()
                                     : const SizedBox(height: 12),
-                              if (coin is Epiccash || coin is Mimblewimblecoin)
+                              if (isSlatepackWallet)
                                 RoundedWhiteContainer(
                                   padding: isDesktop
                                       ? const EdgeInsets.all(16)
@@ -1464,9 +1469,14 @@ class _TransactionV2DetailsViewState
                     ),
                   ),
                 ),
-                if ((coin is Epiccash || coin is Mimblewimblecoin) &&
-                    _transaction.getConfirmations(currentHeight) < 1 &&
-                    _transaction.isCancelled == false)
+                if (isSlatepackWallet &&
+                    canCancelSlateTransaction(
+                      slateId: _transaction.slateId,
+                      isCancelled: _transaction.isCancelled,
+                      confirmations: _transaction.getConfirmations(
+                        currentHeight,
+                      ),
+                    ))
                   const SizedBox(height: 40),
               ],
             ),
@@ -1474,9 +1484,12 @@ class _TransactionV2DetailsViewState
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         floatingActionButton:
-            ((coin is Epiccash || coin is Mimblewimblecoin) &&
-                _transaction.getConfirmations(currentHeight) < 1 &&
-                _transaction.isCancelled == false)
+            (isSlatepackWallet &&
+                canCancelSlateTransaction(
+                  slateId: _transaction.slateId,
+                  isCancelled: _transaction.isCancelled,
+                  confirmations: _transaction.getConfirmations(currentHeight),
+                ))
             ? ConditionalParent(
                 condition: isDesktop,
                 builder: (child) => Padding(
@@ -1497,87 +1510,49 @@ class _TransactionV2DetailsViewState
                     onPressed: () async {
                       final wallet = ref.read(pWallets).getWallet(walletId);
 
-                      if (wallet is EpiccashWallet) {
+                      if (wallet is SlatepackInterface) {
                         final String? id = _transaction.slateId;
                         if (id == null) {
                           unawaited(
                             showFloatingFlushBar(
                               type: FlushBarType.warning,
-                              message: "Could not find Epic transaction ID",
+                              message:
+                                  "Could not find "
+                                  "${wallet.cryptoCurrency.ticker} transaction ID",
                               context: context,
                             ),
                           );
                           return;
                         }
 
-                        unawaited(
-                          showDialog<void>(
-                            barrierDismissible: false,
-                            context: context,
-                            builder: (_) =>
-                                const CancellingTransactionProgressDialog(),
-                          ),
+                        final proceed = await showDialog<bool>(
+                          context: context,
+                          builder: (_) =>
+                              const SlatepackCancelTransactionDialog(),
                         );
+                        if (proceed != true || !context.mounted) return;
+
+                        final navigator = Navigator.of(
+                          context,
+                          rootNavigator: true,
+                        );
+                        final progressRoute = CurrentAwareDialogRoute<void>(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (_) =>
+                              const CancellingTransactionProgressDialog(),
+                        );
+                        unawaited(navigator.push(progressRoute));
+                        await waitForRoutePresentation(progressRoute);
 
                         final result = await wallet
                             .cancelPendingTransactionAndPost(id);
-                        if (context.mounted) {
-                          // Pop progress dialog.
-                          Navigator.of(context).pop();
-
-                          if (result.isEmpty) {
-                            await showDialog<dynamic>(
-                              context: context,
-                              builder: (_) => StackOkDialog(
-                                title: "Transaction cancelled",
-                                onOkPressed: (_) {
-                                  Navigator.of(context).popUntil(
-                                    ModalRoute.withName(WalletView.routeName),
-                                  );
-                                },
-                                maxWidth: Util.isDesktop ? 400 : null,
-                              ),
+                        final canPresentResult =
+                            await dismissCurrentAwareDialogRoute(
+                              navigator: navigator,
+                              route: progressRoute,
                             );
-                            unawaited(wallet.refresh());
-                          } else {
-                            await showDialog<dynamic>(
-                              context: context,
-                              builder: (_) => StackOkDialog(
-                                title: "Failed to cancel transaction",
-                                message: result,
-                                maxWidth: Util.isDesktop ? 400 : null,
-                              ),
-                            );
-                          }
-                        }
-                      } else if (wallet is MimblewimblecoinWallet) {
-                        final String? id = _transaction.slateId;
-                        if (id == null) {
-                          unawaited(
-                            showFloatingFlushBar(
-                              type: FlushBarType.warning,
-                              message: "Could not find MWC transaction ID",
-                              context: context,
-                            ),
-                          );
-                          return;
-                        }
-
-                        unawaited(
-                          showDialog<void>(
-                            barrierDismissible: false,
-                            context: context,
-                            builder: (_) =>
-                                const CancellingTransactionProgressDialog(),
-                          ),
-                        );
-
-                        final result = await wallet
-                            .cancelPendingTransactionAndPost(id);
-                        if (context.mounted) {
-                          // pop progress dialog
-                          Navigator.of(context).pop();
-
+                        if (canPresentResult && context.mounted) {
                           if (result.isEmpty) {
                             await showDialog<dynamic>(
                               context: context,
@@ -1608,8 +1583,8 @@ class _TransactionV2DetailsViewState
                           showFloatingFlushBar(
                             type: FlushBarType.warning,
                             message:
-                                "ERROR: Wallet type is not "
-                                "Epic Cash or MimbleWimbleCoin",
+                                "ERROR: This wallet cannot cancel "
+                                "slatepack transactions",
                             context: context,
                           ),
                         );
@@ -1617,7 +1592,7 @@ class _TransactionV2DetailsViewState
                       }
                     },
                     child: Text(
-                      "Cancel Transaction",
+                      "Cancel transaction",
                       style: STextStyles.button(context),
                     ),
                   ),

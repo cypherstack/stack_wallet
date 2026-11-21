@@ -93,7 +93,7 @@ abstract class LibMwcInterface {
   Future<({String commitId, String slateId, String slateJson})>
   txReceiveDetailed({required String wallet, required String slateJson});
 
-  Future<({String commitId, String slateId})> txFinalize({
+  Future<({String commitId, String slateId, bool? posted})> txFinalize({
     required String wallet,
     required String slateJson,
   });

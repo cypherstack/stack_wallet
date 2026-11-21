@@ -273,13 +273,24 @@ final class _LibMwcInterfaceImpl extends LibMwcInterface {
   }
 
   @override
-  Future<({String commitId, String slateId})> txFinalize({
+  Future<({String commitId, String slateId, bool? posted})> txFinalize({
     required String wallet,
     required String slateJson,
-  }) {
-    return mimblewimblecoin.Libmwc.txFinalize(
+  }) async {
+    final dynamic finalized = await mimblewimblecoin.Libmwc.txFinalize(
       wallet: wallet,
       slateJson: slateJson,
+    );
+    bool? posted;
+    try {
+      posted = finalized.posted as bool?;
+    } on NoSuchMethodError {
+      // Older plugin revisions do not report whether the node accepted it.
+    }
+    return (
+      commitId: finalized.commitId as String,
+      slateId: finalized.slateId as String,
+      posted: posted,
     );
   }
 

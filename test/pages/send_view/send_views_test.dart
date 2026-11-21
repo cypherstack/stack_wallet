@@ -6,14 +6,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/pages/send_view/frost_ms/recipient.dart';
+import 'package:stackwallet/pages/send_view/confirm_transaction_view.dart';
 import 'package:stackwallet/pages/send_view/send_view.dart';
 import 'package:stackwallet/pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
+import 'package:stackwallet/pages/slatepack/slatepack_dialog.dart';
+import 'package:stackwallet/pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
 import 'package:stackwallet/providers/ui/fee_rate_type_state_provider.dart';
+import 'package:stackwallet/providers/ui/preview_tx_button_state_provider.dart';
 import 'package:stackwallet/providers/wallet/public_private_balance_state_provider.dart';
 import 'package:stackwallet/services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import 'package:stackwallet/services/event_bus/global_event_bus.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
 import 'package:stackwallet/utilities/enums/fee_rate_type_enum.dart';
+import 'package:stackwallet/utilities/enums/slatepack_method.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
@@ -901,6 +906,50 @@ void main() {
   });
 
   group("the send view", () {
+    for (final (name, walletFactory) in <(String, FakeWallet Function())>[
+      ("Epic Cash", FakeEpiccashWallet.new),
+      ("MWC", FakeMimblewimblecoinWallet.new),
+    ]) {
+      for (final view in coinCases) {
+        testWithoutAnimation(
+          "creates a manual slate directly without estimating or confirming ($view $name)",
+          (tester) async {
+            final wallet = walletFactory();
+            final slateCreates = () => wallet is FakeEpiccashWallet
+                ? wallet.slateCreates
+                : (wallet as FakeMimblewimblecoinWallet).slateCreates;
+            await view.pump(
+              tester,
+              wallet: wallet as Wallet,
+              balance: testBalance("10", 8),
+              overrides: [
+                pSelectedSlatepackMethod(wallet.walletId).overrideWithProvider(
+                  StateProvider<SlatepackMethod?>(
+                    (_) => SlatepackMethod.slatepack,
+                  ),
+                ),
+              ],
+            );
+            await enterAmount(tester, view, "1");
+
+            final createLabel = name == "Epic Cash"
+                ? "Create slate"
+                : "Create slatepack";
+            expect(find.text(createLabel), findsOneWidget);
+
+            await view.preview(tester, label: createLabel);
+
+            expect(slateCreates(), 1);
+            expect(wallet.prepared, isNull);
+            expect(wallet.feeEstimates, 0);
+            expect(find.byType(ConfirmTransactionView), findsNothing);
+            expect(find.byType(DesktopAuthSend), findsNothing);
+            expect(find.byType(SlatepackDialog), findsOneWidget);
+          },
+        );
+      }
+    }
+
     for (final (coin, wallet) in <(String, Wallet Function())>[
       ("Epic Cash", FakeEpiccashWallet.new),
       ("Xelis", FakeXelisWallet.new),

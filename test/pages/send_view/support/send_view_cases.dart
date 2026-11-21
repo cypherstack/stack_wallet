@@ -61,8 +61,8 @@ class SendViewCase {
     );
   }
 
-  Future<void> preview(WidgetTester tester) async {
-    await tester.tap(find.text(previewLabel));
+  Future<void> preview(WidgetTester tester, {String? label}) async {
+    await tester.tap(find.text(label ?? previewLabel));
     // The views keep the building dialog up for at least 2.5 s.
     await tester.pump(const Duration(seconds: 3));
     await tester.pumpAndSettle();
