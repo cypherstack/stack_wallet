@@ -83,10 +83,21 @@ class FakeGrinWalletApi implements GrinWalletApi {
   Object? estimateError;
   Object? sendError;
   Object? scanError;
+  Object? finalizeError;
+  Object? invoiceError;
+  Object? repostError;
+  Object? verifyError;
+
+  /// Fails a cancel by log id, or by slate id under the key -1.
+  final cancelErrors = <int, Object>{};
+
+  /// The fee initSend reports, if not the estimate's.
+  BigInt? sendFee;
 
   /// Fails the next close once; the wallet stays open.
   Object? closeError;
   GrinSlateInfo? decoded;
+  final reposts = <({int? txId, String? slateId})>[];
   int lastScanned = 0;
   int cancelScannedHeight = 0;
 
@@ -252,7 +263,7 @@ class FakeGrinWalletApi implements GrinWalletApi {
     _check('initSend');
     if (sendError != null) throw sendError!;
     initSends.add(args);
-    return slatepackOf(GrinSlateState.s1, amount: args.amount);
+    return slatepackOf(GrinSlateState.s1, amount: args.amount, fee: sendFee);
   }
 
   @override
@@ -283,6 +294,7 @@ class FakeGrinWalletApi implements GrinWalletApi {
     bool fluff = false,
   }) async {
     _check('finalizeSlatepack');
+    if (finalizeError != null) throw finalizeError!;
     return finalizedOf();
   }
 
@@ -299,6 +311,7 @@ class FakeGrinWalletApi implements GrinWalletApi {
   ) async {
     _check('processInvoice');
     invoicePayments.add(args);
+    if (invoiceError != null) throw invoiceError!;
     return slatepackOf(GrinSlateState.i2);
   }
 
@@ -309,17 +322,22 @@ class FakeGrinWalletApi implements GrinWalletApi {
     bool fluff = false,
   }) async {
     _check('finalizeInvoice');
+    if (finalizeError != null) throw finalizeError!;
     return finalizedOf();
   }
 
   @override
   Future<void> repost({int? txId, String? slateId, bool fluff = false}) async {
     _check('repost');
+    if (repostError != null) throw repostError!;
+    reposts.add((txId: txId, slateId: slateId));
   }
 
   @override
   Future<void> cancelTransaction({int? txId, String? slateId}) async {
     _check('cancelTransaction');
+    final error = cancelErrors[txId ?? -1];
+    if (error != null) throw error;
     cancelled.add((txId: txId, slateId: slateId));
   }
 
@@ -344,6 +362,7 @@ class FakeGrinWalletApi implements GrinWalletApi {
     GrinPaymentProof proof,
   ) async {
     _check('verifyPaymentProof');
+    if (verifyError != null) throw verifyError!;
     return const GrinPaymentProofVerification(
       isSender: true,
       isRecipient: false,
@@ -392,17 +411,20 @@ GrinBalance balanceOf({
   refreshedFromNode: true,
 );
 
-GrinSlatepack slatepackOf(GrinSlateState state, {BigInt? amount}) =>
-    GrinSlatepack(
-      slateId: 'slate-${state.wireName}',
-      state: state,
-      armoredSlatepack: 'BEGINSLATEPACK. secret ENDSLATEPACK.',
-      amount: amount ?? BigInt.zero,
-      fee: GrinBigInts.fee,
-      sender: 'grin1sender',
-      recipients: const [],
-      isEncrypted: false,
-    );
+GrinSlatepack slatepackOf(
+  GrinSlateState state, {
+  BigInt? amount,
+  BigInt? fee,
+}) => GrinSlatepack(
+  slateId: 'slate-${state.wireName}',
+  state: state,
+  armoredSlatepack: 'BEGINSLATEPACK. secret ENDSLATEPACK.',
+  amount: amount ?? BigInt.zero,
+  fee: fee ?? GrinBigInts.fee,
+  sender: 'grin1sender',
+  recipients: const [],
+  isEncrypted: false,
+);
 
 GrinFinalizeResult finalizedOf() => GrinFinalizeResult(
   slateId: 'slate-S3',
@@ -646,6 +668,11 @@ NodeModel grinNode({
 
 /// A [GrinWallet] wired to fakes and an in-memory set of services.
 class GrinTestWallet extends GrinWallet {
+  bool mobileScanLifecycle = false;
+
+  @override
+  bool get cancelScanOnPause => mobileScanLifecycle;
+
   GrinTestWallet({
     required this.testWalletId,
     required FakeGrinBackend backend,
@@ -784,6 +811,7 @@ GrinTxLogEntry entryOf({
   bool hasStoredTx = false,
   String? armored,
   int? ttl,
+  GrinPaymentProofSummary? proof,
 }) => GrinTxLogEntry(
   id: id,
   slateId: slateId,
@@ -802,7 +830,7 @@ GrinTxLogEntry entryOf({
   kernelExcess: kernelExcess,
   kernelLookupMinHeight: confirmed ? 1 : null,
   hasStoredTx: hasStoredTx,
-  paymentProof: null,
+  paymentProof: proof,
   counterpartyAddress: counterparty,
   armoredSlatepack: armored,
   revertedAfterSecs: null,

@@ -227,6 +227,7 @@ class MimblewimblecoinWallet extends Bip39Wallet with SlatepackInterface {
     required Amount amount,
     String? recipientAddress,
     String? message,
+    bool sendAll = false,
   }) async {
     try {
       final handle = await _ensureWalletOpen();
@@ -236,7 +237,7 @@ class MimblewimblecoinWallet extends Bip39Wallet with SlatepackInterface {
         wallet: handle,
         amount: amount.raw.toInt(),
         minimumConfirmations: cryptoCurrency.minConfirms,
-        selectionStrategyIsAll: false,
+        selectionStrategyIsAll: sendAll,
         message: message ?? '',
       );
 

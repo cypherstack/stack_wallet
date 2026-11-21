@@ -286,14 +286,17 @@ class FakeEpiccashWallet extends FakeWallet<Epiccash>
   FakeEpiccashWallet() : super(Epiccash(CryptoCurrencyNetwork.main), testFees);
 
   int slateCreates = 0;
+  String? requestedSlateRecipient;
 
   @override
   Future<SlatepackResult> createSlatepack({
     required Amount amount,
     String? recipientAddress,
     String? message,
+    bool sendAll = false,
   }) async {
     slateCreates++;
+    requestedSlateRecipient = recipientAddress;
     return SlatepackResult(
       success: true,
       slatepack: '{"id":"test-slate","amount":"${amount.raw}"}',
@@ -318,10 +321,28 @@ class FakeEpiccashWallet extends FakeWallet<Epiccash>
   bool get supportsSlatepackEncryption => false;
 
   @override
+  bool get supportsSlatepackRecipient => false;
+
+  @override
+  String? manualSlatepackRecipientForAddress(String address) => null;
+
+  @override
   bool get supportsOnChainNote => true;
 
   @override
+  String? get directSendAddressHint => null;
+
+  @override
   SlatepackTerms get slatepackTerms => SlatepackTerms.slate;
+}
+
+class FakeRecipientSlateWallet extends FakeEpiccashWallet {
+  @override
+  bool get supportsSlatepackRecipient => true;
+
+  @override
+  String? manualSlatepackRecipientForAddress(String address) =>
+      address == 'https://manual-slate.example' ? address : null;
 }
 
 class FakeMimblewimblecoinWallet extends FakeWallet<Mimblewimblecoin>
@@ -336,6 +357,7 @@ class FakeMimblewimblecoinWallet extends FakeWallet<Mimblewimblecoin>
     required Amount amount,
     String? recipientAddress,
     String? message,
+    bool sendAll = false,
   }) async {
     slateCreates++;
     return SlatepackResult(
@@ -360,6 +382,12 @@ class FakeMimblewimblecoinWallet extends FakeWallet<Mimblewimblecoin>
 
   @override
   bool get supportsSlatepackEncryption => true;
+
+  @override
+  bool get supportsSlatepackRecipient => false;
+
+  @override
+  String? manualSlatepackRecipientForAddress(String address) => null;
 
   @override
   bool get supportsOnChainNote => true;

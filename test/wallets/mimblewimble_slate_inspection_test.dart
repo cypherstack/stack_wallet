@@ -80,10 +80,15 @@ class _LocalLookupWallet extends MimblewimblecoinWallet {
 }
 
 class _PendingLookupWallet extends _LocalLookupWallet {
-  _PendingLookupWallet({this.failPersistence = false});
+  _PendingLookupWallet({
+    this.failPersistence = false,
+    this.keepLiveMetadataStale = false,
+  });
 
   final bool failPersistence;
+  final bool keepLiveMetadataStale;
   Map<dynamic, dynamic> metadata = {};
+  Map<dynamic, dynamic>? persistedMetadata;
 
   @override
   Map<dynamic, dynamic> get slatepackTransactionMetadata => metadata;
@@ -93,7 +98,8 @@ class _PendingLookupWallet extends _LocalLookupWallet {
     Map<dynamic, dynamic> metadata,
   ) async {
     if (failPersistence) throw StateError('persistence unavailable');
-    this.metadata = metadata;
+    persistedMetadata = metadata;
+    if (!keepLiveMetadataStale) this.metadata = metadata;
   }
 
   Future<void> remember(SlatepackResult result) =>
@@ -101,6 +107,11 @@ class _PendingLookupWallet extends _LocalLookupWallet {
 
   Future<void> rememberCancelled(String slateId) =>
       rememberPendingSlateCancelled(slateId);
+
+  Future<void> rememberBroadcast(String slateId, bool posted) =>
+      rememberSlateBroadcastStatus(slateId, posted);
+
+  bool? broadcastStatus(String slateId) => slateBroadcastStatus(slateId);
 }
 
 void main() {
@@ -367,6 +378,47 @@ void main() {
     expect(epicFinalizeBroadcastResult(null), isTrue);
     expect(epicFinalizeBroadcastResult(true), isTrue);
     expect(epicFinalizeBroadcastResult(false), isFalse);
+  });
+
+  test('an observed broadcast survives stale or unwritable metadata', () async {
+    final wallet = _PendingLookupWallet(keepLiveMetadataStale: true)
+      ..metadata = {
+        'slate': {'broadcastPosted': false},
+      };
+
+    expect(wallet.broadcastStatus('slate'), isFalse);
+
+    await wallet.rememberBroadcast('slate', true);
+
+    expect(
+      (wallet.persistedMetadata!['slate'] as Map)['broadcastPosted'],
+      isTrue,
+    );
+    expect(
+      (wallet.metadata['slate'] as Map)['broadcastPosted'],
+      isFalse,
+      reason: 'the open wallet still has its pre-write WalletInfo snapshot',
+    );
+    expect(
+      wallet.broadcastStatus('slate'),
+      isTrue,
+      reason: 'the status observed in this process must remain authoritative',
+    );
+
+    final unwritable = _PendingLookupWallet(failPersistence: true)
+      ..metadata = {
+        'slate': {'broadcastPosted': false},
+      };
+
+    await unwritable.rememberBroadcast('slate', true);
+
+    expect(
+      unwritable.broadcastStatus('slate'),
+      isTrue,
+      reason:
+          'a completed native post must not leave Cancel enabled merely '
+          'because its best-effort metadata write failed',
+    );
   });
 
   test(

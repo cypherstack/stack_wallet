@@ -165,7 +165,12 @@ void main() {
     final next = r.newWallet();
     addTearDown(next.exit);
     await next.recover(isRescan: true);
-    expect(r.backend.calls, ['create', 'open', 'create']);
+    // The first wallet's refresh after its scan asked the node for its height.
+    expect(r.backend.calls.where((c) => c != 'testNodeConnection'), [
+      'create',
+      'open',
+      'create',
+    ]);
     expect(await isar.transactionV2s.count(), 0);
     expect(next.info.grinData!.pendingScanFrom, 1000);
     await eventually(() => r.backend.api.calls.contains('scan:1000:false'));

@@ -176,3 +176,148 @@ class FinalizeResult {
         ")";
   }
 }
+
+/// What the confirm screen has to ask, or refuse, before a direct send.
+class SlatepackHttpPolicy {
+  const SlatepackHttpPolicy({
+    this.blockedReason,
+    this.needsClearnetAck = false,
+    this.needsPlaintextAck = false,
+  });
+
+  /// Set when the send cannot go ahead now. Shown to the user.
+  final String? blockedReason;
+
+  /// The target is reached without Tor and learns the user's IP address.
+  final bool needsClearnetAck;
+
+  /// The target is a plain http:// URL, readable on the way (also by a Tor
+  /// exit).
+  final bool needsPlaintextAck;
+
+  bool get isBlocked => blockedReason != null;
+}
+
+/// Slatepack details of a stored transaction, for the details screen.
+class SlatepackTxInfo {
+  const SlatepackTxInfo({
+    this.state = SlateState.unknown,
+    this.slateId,
+    this.kernelExcess,
+    this.counterpartyAddress,
+    this.ttlCutoffHeight,
+    this.finalizedAwaitingConfirmation = false,
+    this.broadcastPosted,
+    this.canRepost = false,
+    this.canShowSlatepack = false,
+    this.hasPaymentProof = false,
+  });
+
+  /// The last state the wallet saw.
+  final SlateState state;
+  final String? slateId;
+  final String? kernelExcess;
+  final String? counterpartyAddress;
+  final int? ttlCutoffHeight;
+
+  /// Finalized and stored but not seen on chain yet.
+  final bool finalizedAwaitingConfirmation;
+
+  /// The result of the wallet's last broadcast attempt. Null means that this
+  /// process did not observe the result.
+  final bool? broadcastPosted;
+
+  final bool canRepost;
+
+  /// The wallet still has the slatepack the other party needs.
+  final bool canShowSlatepack;
+
+  final bool hasPaymentProof;
+
+  /// Whether cancelling can release a transaction that is still local.
+  /// A finalized transaction is cancellable only when this wallet observed
+  /// that the node rejected its broadcast. An unknown or successful broadcast
+  /// may still confirm and must not be presented as safely cancellable.
+  bool get canCancel => finalizedAwaitingConfirmation
+      ? broadcastPosted == false
+      : state != SlateState.s3 && state != SlateState.i3;
+}
+
+/// The texts of the dialog that asks before a slatepack transaction is
+/// cancelled.
+class SlatepackCancelPrompt {
+  const SlatepackCancelPrompt({
+    required this.title,
+    required this.message,
+    required this.confirmLabel,
+  });
+
+  final String title;
+  final String message;
+  final String confirmLabel;
+
+  /// What cancelling does depends on what the other party already holds.
+  /// [info] is null for wallets that keep no slate state; [incoming] is the
+  /// direction of the transaction.
+  factory SlatepackCancelPrompt.of(
+    SlatepackTxInfo? info, {
+    required bool incoming,
+  }) {
+    final state = info?.state ?? SlateState.unknown;
+    final String message;
+    if (info?.finalizedAwaitingConfirmation == true &&
+        info?.broadcastPosted == false) {
+      message =
+          "The node did not accept this transaction. Cancelling unlocks its "
+          "funds in this wallet. If it was posted somewhere else in the "
+          "meantime, it can still confirm.";
+    } else if (state == SlateState.i2) {
+      // An invoice this wallet paid: the payee finalizes alone.
+      message =
+          "Cancelling changes this wallet only: the funds it locked become "
+          "spendable here again. If the payee already has your payment, "
+          "they can still complete it until those funds are spent in "
+          "another transaction.";
+    } else if (state == SlateState.s2 ||
+        (state == SlateState.unknown && incoming)) {
+      // A payment this wallet answered: the sender finalizes alone.
+      message =
+          "Cancelling removes this transaction from this wallet only. If "
+          "the sender already has your response, they can still complete "
+          "the payment, and the funds may then only show after a rescan.";
+    } else {
+      // This wallet has to finalize, and will not after a cancel.
+      message =
+          "The other party can no longer complete it, and any funds it "
+          "locked become spendable again.";
+    }
+    return SlatepackCancelPrompt(
+      title: "Cancel this transaction?",
+      message: message,
+      confirmLabel: "Yes, cancel",
+    );
+  }
+}
+
+/// A checked payment proof.
+class PaymentProofCheck {
+  const PaymentProofCheck({
+    required this.amount,
+    required this.kernelExcess,
+    required this.senderAddress,
+    required this.recipientAddress,
+    required this.isSender,
+    required this.isRecipient,
+  });
+
+  final Amount amount;
+  final String kernelExcess;
+  final String senderAddress;
+  final String recipientAddress;
+
+  /// This wallet's address is the proof's sender.
+  final bool isSender;
+
+  /// This wallet's address is the proof's recipient.
+  final bool isRecipient;
+}

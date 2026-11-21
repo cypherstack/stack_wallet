@@ -24,6 +24,12 @@ mixin SlatepackInterface<T extends CryptoCurrency> on Wallet<T> {
   >
   _pendingSlateTransactions = {};
 
+  // WalletInfo updates replace the persisted Isar object, so a wallet's
+  // already-open `info` instance may continue to expose the previous value.
+  // Keep results observed by this process authoritative until the wallet is
+  // reopened and reads the durable copy.
+  final Map<String, bool> _observedBroadcastStatuses = {};
+
   /// Methods the send and receive screens offer. The first is the default.
   List<SlatepackMethod> get supportedMethods;
 
@@ -36,6 +42,10 @@ mixin SlatepackInterface<T extends CryptoCurrency> on Wallet<T> {
   /// Whether send/receive should offer a method selector.
   bool get hasSlatepackMethodToggle =>
       supportedMethods.any((method) => method != SlatepackMethod.slatepack);
+
+  bool get supportsInvoices => false;
+
+  bool get supportsPaymentProofs => false;
 
   /// "slate" or "slatepack" wording for this coin.
   SlatepackTerms get slatepackTerms => SlatepackTerms.slatepack;
@@ -56,7 +66,8 @@ mixin SlatepackInterface<T extends CryptoCurrency> on Wallet<T> {
       (await getCurrentReceivingAddress())?.value ?? "";
 
   /// Decode [armored] without changing wallet state.
-  Future<SlatepackDecodeResult> decodeSlatepack(String armored);
+  Future<SlatepackDecodeResult> decodeSlatepack(String armored) =>
+      throw UnsupportedError("decodeSlatepack");
 
   /// Reject text that is clearly not this coin's slate format before doing
   /// native work. Epic's JSON slates need no additional framing check.
@@ -129,7 +140,7 @@ mixin SlatepackInterface<T extends CryptoCurrency> on Wallet<T> {
           .findAll(),
       slateId,
     );
-    final pending = pendingSlateSendMatching(
+    final pending = pendingSlateTransactionMatching(
       slatepackTransactionMetadata,
       slateId,
       fractionDigits: cryptoCurrency.fractionDigits,
@@ -154,7 +165,19 @@ mixin SlatepackInterface<T extends CryptoCurrency> on Wallet<T> {
   /// Persists ownership as soon as an S1 is created, before a refresh can
   /// copy the native transaction into Isar.
   @protected
-  Future<void> rememberPendingSlateSend(SlatepackResult result) async {
+  Future<void> rememberPendingSlateSend(SlatepackResult result) =>
+      _rememberPendingSlateTransaction(result, isSend: true);
+
+  /// Records an S2 or issued I1 immediately, before native history is copied
+  /// into Isar. These are receives from this wallet's point of view.
+  @protected
+  Future<void> rememberPendingSlateReceive(SlatepackResult result) =>
+      _rememberPendingSlateTransaction(result, isSend: false);
+
+  Future<void> _rememberPendingSlateTransaction(
+    SlatepackResult result, {
+    required bool isSend,
+  }) async {
     final slateId = result.slateId;
     final amount = result.amount;
     final fee = result.fee;
@@ -165,7 +188,7 @@ mixin SlatepackInterface<T extends CryptoCurrency> on Wallet<T> {
     _pendingSlateTransactions[slateId] = (
       amount: amount,
       fee: fee,
-      isSend: true,
+      isSend: isSend,
       isCancelled: false,
     );
 
@@ -177,7 +200,7 @@ mixin SlatepackInterface<T extends CryptoCurrency> on Wallet<T> {
     entry.addAll({
       'amount': amount.raw.toString(),
       'fee': fee.raw.toString(),
-      'isSend': true,
+      'isSend': isSend,
       'isCancelled': false,
     });
     metadata[slateId] = entry;
@@ -232,6 +255,47 @@ mixin SlatepackInterface<T extends CryptoCurrency> on Wallet<T> {
     }
   }
 
+  /// Persists the result of a finalize/repost broadcast without refreshing
+  /// native history. This lets details offer Cancel after a known rejection
+  /// without offering it after a successful or unknown broadcast.
+  @protected
+  Future<void> rememberSlateBroadcastStatus(
+    String? slateId,
+    bool? posted,
+  ) async {
+    if (slateId == null || slateId.isEmpty || posted == null) return;
+
+    _observedBroadcastStatuses[slateId] = posted;
+
+    final metadata = Map<dynamic, dynamic>.from(slatepackTransactionMetadata);
+    final raw = metadata[slateId];
+    final entry = raw is Map
+        ? Map<String, dynamic>.from(raw)
+        : <String, dynamic>{};
+    entry['broadcastPosted'] = posted;
+    metadata[slateId] = entry;
+    try {
+      await updateSlatepackTransactionMetadata(metadata);
+    } catch (e, s) {
+      Logging.instance.w(
+        "Could not persist broadcast status for slate $slateId",
+        error: e,
+        stackTrace: s,
+      );
+    }
+  }
+
+  @protected
+  bool? slateBroadcastStatus(String? slateId) {
+    if (slateId == null || slateId.isEmpty) return null;
+    final observed = _observedBroadcastStatuses[slateId];
+    if (observed != null) return observed;
+    final raw = slatepackTransactionMetadata[slateId];
+    return raw is Map && raw['broadcastPosted'] is bool
+        ? raw['broadcastPosted'] as bool
+        : null;
+  }
+
   /// State, id, amount and fee for a native slate JSON result.
   @protected
   SlateInspection? inspectSlateJsonString(String? slateJson) {
@@ -256,6 +320,7 @@ mixin SlatepackInterface<T extends CryptoCurrency> on Wallet<T> {
     required Amount amount,
     String? recipientAddress,
     String? message,
+    bool sendAll = false,
   });
 
   /// Answer an S1 with an S2.
@@ -272,6 +337,67 @@ mixin SlatepackInterface<T extends CryptoCurrency> on Wallet<T> {
 
   /// Returns an empty String on success, error message on failure.
   Future<String> cancelPendingTransactionAndPost(String slateId);
+
+  /// The stored S1 or I1 for an unfinished transaction, to show again.
+  Future<String?> pendingSlatepackFor(String txid) async => null;
+
+  bool get supportsRepost => false;
+
+  Future<void> repost(String txid) => throw UnsupportedError("repost");
+
+  /// Whether [txid] is finalized, stored and unconfirmed, so it can be
+  /// posted again.
+  Future<bool> canRepost(String txid) async => false;
+
+  Future<SlatepackResult> issueInvoice({
+    required Amount amount,
+    String? payerAddress,
+  }) => throw UnsupportedError("invoices");
+
+  Future<SlatepackResult> processInvoice(
+    String i1, {
+    required Amount confirmedAmount,
+  }) => throw UnsupportedError("invoices");
+
+  Future<FinalizeResult> finalizeInvoice(String i2) =>
+      throw UnsupportedError("invoices");
+
+  Future<String> exportPaymentProof(String txid) =>
+      throw UnsupportedError("proofs");
+
+  /// Checks a payment proof (JSON) through the wallet's node.
+  Future<PaymentProofCheck> verifyPaymentProof(String proofJson) =>
+      throw UnsupportedError("proofs");
+
+  /// A slatepack send can name a recipient address to encrypt to.
+  bool get supportsSlatepackRecipient => false;
+
+  /// Returns the manual-slate recipient represented by a direct-send address.
+  ///
+  /// Most wallets keep their manual and direct transports disjoint. Grin
+  /// addresses are also Slatepack encryption recipients, though, so entering
+  /// one on the Address tab must use the same no-estimate, no-confirmation
+  /// manual flow as the Slatepack tab.
+  String? manualSlatepackRecipientForAddress(String address) => null;
+
+  /// Hint for the address field of a direct send, if the coin wants one.
+  String? get directSendAddressHint => null;
+
+  /// The receive QR code holds the bare address instead of a URI.
+  bool get receiveQrIsRawAddress => false;
+
+  /// Shown under the receive address.
+  String? get receiveAddressNote => null;
+
+  /// Funds held by unfinished transactions, when the coin reports them.
+  Amount? get amountLocked => null;
+
+  /// What has to be asked or refused before a direct send to [address].
+  SlatepackHttpPolicy httpSendPolicy(String address) =>
+      const SlatepackHttpPolicy();
+
+  /// Slatepack details of [tx], or null when there are none to show.
+  SlatepackTxInfo? slatepackTxInfo(TransactionV2 tx) => null;
 }
 
 /// Key in [TxData.otherData] that records the selected slatepack transport.
@@ -308,16 +434,17 @@ extension SlatepackTxData on TxData {
   bool get isSlatepackSend => slatepackMethod == SlatepackMethod.slatepack;
 }
 
-/// Reads the small durable record written when a wallet creates an S1.
+/// Reads the small durable record written when a wallet creates or answers a
+/// Slatepack before native history reaches Isar.
 @visibleForTesting
 ({Amount amount, Amount fee, bool isSend, bool isCancelled})?
-pendingSlateSendMatching(
+pendingSlateTransactionMatching(
   Map<dynamic, dynamic> metadata,
   String slateId, {
   required int fractionDigits,
 }) {
   final raw = metadata[slateId];
-  if (raw is! Map || raw['isSend'] != true) return null;
+  if (raw is! Map || raw['isSend'] is! bool) return null;
 
   final amount = BigInt.tryParse(raw['amount']?.toString() ?? '');
   final fee = BigInt.tryParse(raw['fee']?.toString() ?? '');
@@ -326,9 +453,25 @@ pendingSlateSendMatching(
   return (
     amount: Amount(rawValue: amount, fractionDigits: fractionDigits),
     fee: Amount(rawValue: fee, fractionDigits: fractionDigits),
-    isSend: true,
+    isSend: raw['isSend'] as bool,
     isCancelled: raw['isCancelled'] == true,
   );
+}
+
+/// Backwards-compatible send-only view used by cancellation handling.
+@visibleForTesting
+({Amount amount, Amount fee, bool isSend, bool isCancelled})?
+pendingSlateSendMatching(
+  Map<dynamic, dynamic> metadata,
+  String slateId, {
+  required int fractionDigits,
+}) {
+  final pending = pendingSlateTransactionMatching(
+    metadata,
+    slateId,
+    fractionDigits: fractionDigits,
+  );
+  return pending?.isSend == true ? pending : null;
 }
 
 /// Inspect Epic/MWC slate JSON without invoking either native wallet.

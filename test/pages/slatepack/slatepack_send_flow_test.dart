@@ -50,6 +50,9 @@ class _Wallet extends EpiccashWallet {
   int created = 0;
   int refreshed = 0;
   final cancelled = <String>[];
+  Amount? requestedAmount;
+  String? requestedRecipient;
+  bool? requestedSendAll;
 
   @override
   String get walletId => 'wallet-1';
@@ -67,8 +70,12 @@ class _Wallet extends EpiccashWallet {
     required Amount amount,
     String? recipientAddress,
     String? message,
+    bool sendAll = false,
   }) async {
     created++;
+    requestedAmount = amount;
+    requestedRecipient = recipientAddress;
+    requestedSendAll = sendAll;
     await gate?.future;
     if (createError != null) {
       return SlatepackResult(success: false, error: createError);
@@ -108,6 +115,7 @@ class _SynchronousMwcWallet extends MimblewimblecoinWallet {
     required Amount amount,
     String? recipientAddress,
     String? message,
+    bool sendAll = false,
   }) async {
     onCreate();
     await gate.future;
@@ -149,6 +157,9 @@ Future<ValueNotifier<bool>> _pumpSend(
   WidgetTester tester,
   SlatepackInterface wallet, {
   MainDB? db,
+  Amount? creationAmount,
+  String? recipientAddress,
+  bool sendAll = false,
 }) async {
   tester.view.physicalSize = const Size(1400, 2400);
   tester.view.devicePixelRatio = 1;
@@ -178,6 +189,9 @@ Future<ValueNotifier<bool>> _pumpSend(
                     context: context,
                     wallet: wallet,
                     amount: _amount(100),
+                    creationAmount: creationAmount,
+                    recipientAddress: recipientAddress,
+                    sendAll: sendAll,
                     message: 'on-chain note',
                     localNote: 'local note',
                     db: db ?? _Notes(),
@@ -198,6 +212,25 @@ Future<ValueNotifier<bool>> _pumpSend(
 }
 
 void main() {
+  testWidgets('creation options are forwarded but the confirmed amount is '
+      'still checked', (tester) async {
+    final wallet = _Wallet(createdAmount: 100, createdFee: 1);
+
+    await _pumpSend(
+      tester,
+      wallet,
+      creationAmount: _amount(110),
+      recipientAddress: 'grin1recipient',
+      sendAll: true,
+    );
+    await tester.pumpAndSettle();
+
+    expect(wallet.requestedAmount, _amount(110));
+    expect(wallet.requestedRecipient, 'grin1recipient');
+    expect(wallet.requestedSendAll, isTrue);
+    expect(find.byType(SlatepackDialog), findsOneWidget);
+  });
+
   testWidgets('native creation starts after the progress route is visible', (
     tester,
   ) async {

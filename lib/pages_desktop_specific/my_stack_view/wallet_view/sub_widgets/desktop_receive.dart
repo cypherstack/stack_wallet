@@ -22,6 +22,7 @@ import '../../../../models/isar/models/isar_models.dart';
 import '../../../../models/keys/view_only_wallet_data.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages/receive_view/generate_receiving_uri_qr_code_view.dart';
+import '../../../../pages/slatepack/request_invoice_view.dart';
 import '../../../../pages/slatepack/slatepack_import_flow.dart';
 import '../../../../pages/slatepack/slatepack_input_field.dart';
 import '../../../../providers/providers.dart';
@@ -84,6 +85,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
   late final bool usesSlatepacks;
   late final TextEditingController _receiveSlateController;
   late final SlatepackTerms _slatepackTerms;
+  SlatepackInterface? _slatepackWallet;
   bool _importingSlatepack = false;
 
   int _currentIndex = 0;
@@ -299,6 +301,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
     _slatepackTerms = wallet is SlatepackInterface
         ? wallet.slatepackTerms
         : SlatepackTerms.slatepack;
+    _slatepackWallet = wallet is SlatepackInterface ? wallet : null;
 
     if (wallet is ViewOnlyOptionInterface && wallet.isViewOnly) {
       showMultiType = false;
@@ -618,6 +621,22 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
             ),
           ),
 
+          if (_slatepackWallet?.receiveAddressNote != null) ...[
+            const SizedBox(height: 12),
+            Text(
+              _slatepackWallet!.receiveAddressNote!,
+              style: STextStyles.desktopTextExtraExtraSmall(context),
+            ),
+          ],
+          if (_slatepackWallet?.supportsInvoices ?? false) ...[
+            const SizedBox(height: 20),
+            SecondaryButton(
+              buttonHeight: ButtonHeight.l,
+              label: "Request payment",
+              onPressed: () => showRequestInvoice(context, walletId),
+            ),
+          ],
+
           if (canGen) const SizedBox(height: 20),
 
           if (canGen)
@@ -636,7 +655,9 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
           const SizedBox(height: 20),
           Center(
             child: QR(
-              data: AddressUtils.buildUriString(coin.uriScheme, address, {}),
+              data: _slatepackWallet?.receiveQrIsRawAddress ?? false
+                  ? address
+                  : AddressUtils.buildUriString(coin.uriScheme, address, {}),
               size: 200,
             ),
           ),

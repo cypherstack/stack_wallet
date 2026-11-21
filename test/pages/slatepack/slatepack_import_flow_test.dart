@@ -4,10 +4,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:stackwallet/models/balance.dart';
 import 'package:stackwallet/models/isar/stack_theme.dart';
 import 'package:stackwallet/models/slatepack_models.dart';
 import 'package:stackwallet/pages/slatepack/slatepack_dialog.dart';
 import 'package:stackwallet/pages/slatepack/slatepack_import_flow.dart';
+import 'package:stackwallet/providers/global/wallets_provider.dart';
 import 'package:stackwallet/themes/stack_colors.dart';
 import 'package:stackwallet/themes/theme_providers.dart';
 import 'package:stackwallet/utilities/amount/amount.dart';
@@ -16,6 +18,7 @@ import 'package:stackwallet/utilities/amount/amount_unit.dart';
 import 'package:stackwallet/utilities/slatepack_text.dart';
 import 'package:stackwallet/utilities/stack_file_system.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import 'package:stackwallet/wallets/isar/providers/wallet_info_provider.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet_mixin_interfaces/slatepack_interface.dart';
@@ -23,12 +26,14 @@ import 'package:stackwallet/widgets/custom_loading_overlay.dart';
 import 'package:stackwallet/widgets/rounded_container.dart';
 
 import '../../sample_data/theme_json.dart';
+import '../../wallets/support/xelis_test_fakes.dart';
 
 /// Epic Cash wallet whose inspection is canned, so run() can be driven
 /// without a native wallet.
 class _InspectOnlyWallet extends EpiccashWallet {
   _InspectOnlyWallet(
     this.state, {
+    this.invoices = false,
     this.localIsSend,
     this.localIsCancelled = false,
     this.localGate,
@@ -45,7 +50,14 @@ class _InspectOnlyWallet extends EpiccashWallet {
   final String? senderAddress;
   final FinalizeResult? finalizeResult;
 
+  @override
+  String get walletId => "test-wallet";
+
   final SlateState state;
+  final bool invoices;
+
+  @override
+  bool get supportsInvoices => invoices;
 
   /// Direction of the wallet's own transaction for the slate. Null when the
   /// wallet has none.
@@ -138,6 +150,9 @@ class _SynchronousMwcWallet extends MimblewimblecoinWallet {
   final Completer<void>? localGate;
 
   @override
+  String get walletId => "test-wallet";
+
+  @override
   Future<SlateInspection> inspectSlatepack(String armored) {
     onInspect();
     return Future.value(SlateInspection(state: state, slateId: 'mwc-slate'));
@@ -154,35 +169,60 @@ class _SynchronousMwcWallet extends MimblewimblecoinWallet {
 void main() {
   group("routeFor", () {
     test("standard send states", () {
-      expect(
-        SlatepackImportFlow.routeFor(SlateState.s1),
-        SlatepackRoute.receive,
-      );
-      expect(
-        SlatepackImportFlow.routeFor(SlateState.s2),
-        SlatepackRoute.finalizeSend,
-      );
-      expect(
-        SlatepackImportFlow.routeFor(SlateState.s3),
-        SlatepackRoute.alreadyFinalized,
-      );
-      expect(
-        SlatepackImportFlow.routeFor(SlateState.i3),
-        SlatepackRoute.alreadyFinalized,
-      );
-      expect(
-        SlatepackImportFlow.routeFor(SlateState.unknown),
-        SlatepackRoute.unsupported,
-      );
+      for (final invoices in [true, false]) {
+        expect(
+          SlatepackImportFlow.routeFor(
+            SlateState.s1,
+            supportsInvoices: invoices,
+          ),
+          SlatepackRoute.receive,
+        );
+        expect(
+          SlatepackImportFlow.routeFor(
+            SlateState.s2,
+            supportsInvoices: invoices,
+          ),
+          SlatepackRoute.finalizeSend,
+        );
+        expect(
+          SlatepackImportFlow.routeFor(
+            SlateState.s3,
+            supportsInvoices: invoices,
+          ),
+          SlatepackRoute.alreadyFinalized,
+        );
+        expect(
+          SlatepackImportFlow.routeFor(
+            SlateState.i3,
+            supportsInvoices: invoices,
+          ),
+          SlatepackRoute.alreadyFinalized,
+        );
+        expect(
+          SlatepackImportFlow.routeFor(
+            SlateState.unknown,
+            supportsInvoices: invoices,
+          ),
+          SlatepackRoute.unsupported,
+        );
+      }
     });
 
-    test("invoice states are unsupported", () {
+    test("invoice states depend on supportsInvoices", () {
       expect(
-        SlatepackImportFlow.routeFor(SlateState.i1),
+        SlatepackImportFlow.routeFor(SlateState.i1, supportsInvoices: true),
+        SlatepackRoute.payInvoice,
+      );
+      expect(
+        SlatepackImportFlow.routeFor(SlateState.i2, supportsInvoices: true),
+        SlatepackRoute.finalizeInvoice,
+      );
+      expect(
+        SlatepackImportFlow.routeFor(SlateState.i1, supportsInvoices: false),
         SlatepackRoute.invoicesUnsupported,
       );
       expect(
-        SlatepackImportFlow.routeFor(SlateState.i2),
+        SlatepackImportFlow.routeFor(SlateState.i2, supportsInvoices: false),
         SlatepackRoute.invoicesUnsupported,
       );
     });
@@ -281,6 +321,9 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            pWallets.overrideWithValue(ConfirmationWallets(wallet)),
+            pWalletBalance(wallet.walletId)
+                .overrideWithValue(Balance.zeroFor(currency: coin)),
             themeProvider.overrideWithProvider(StateProvider((ref) => theme)),
             pAmountFormatter(coin).overrideWithValue(
               AmountFormatter(
@@ -838,6 +881,13 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
       expect(done, isFalse);
       expect(tester.takeException(), isNull);
+    });
+    testWidgets("invoice with invoice support opens the payment review", (
+      tester,
+    ) async {
+      final wallet = _InspectOnlyWallet(SlateState.i1, invoices: true);
+      await runFlow(tester, wallet);
+      expect(find.text("Pay invoice"), findsWidgets);
     });
   });
 }

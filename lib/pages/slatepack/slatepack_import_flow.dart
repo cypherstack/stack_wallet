@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/slatepack_models.dart';
 import '../../notifications/show_flush_bar.dart';
+import '../../route_generator.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/exception_message.dart';
 import '../../themes/stack_colors.dart';
@@ -13,7 +14,11 @@ import '../../utilities/slatepack_text.dart';
 import '../../utilities/util.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/slatepack_interface.dart';
 import '../../widgets/custom_loading_overlay.dart';
+import '../../widgets/desktop/desktop_dialog.dart';
+import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/stack_dialog.dart';
+import 'pay_invoice_confirm_view.dart';
 import 'slatepack_dialog.dart';
 import 'slatepack_popup.dart';
 import 'slatepack_summary_dialog.dart';
@@ -25,6 +30,12 @@ enum SlatepackRoute {
 
   /// S2: finalize our send.
   finalizeSend,
+
+  /// I1: pay someone's invoice.
+  payInvoice,
+
+  /// I2: finalize our invoice.
+  finalizeInvoice,
 
   /// S3 or I3: nothing left to do.
   alreadyFinalized,
@@ -44,10 +55,20 @@ abstract final class SlatepackImportFlow {
   static const _receiveHistoryLookupTimeout = Duration(seconds: 3);
   static const _finalizeHistoryLookupTimeout = Duration(seconds: 3);
 
-  static SlatepackRoute routeFor(SlateState state) => switch (state) {
+  static SlatepackRoute routeFor(
+    SlateState state, {
+    required bool supportsInvoices,
+  }) => switch (state) {
     SlateState.s1 => SlatepackRoute.receive,
     SlateState.s2 => SlatepackRoute.finalizeSend,
-    SlateState.i1 || SlateState.i2 => SlatepackRoute.invoicesUnsupported,
+    SlateState.i1 =>
+      supportsInvoices
+          ? SlatepackRoute.payInvoice
+          : SlatepackRoute.invoicesUnsupported,
+    SlateState.i2 =>
+      supportsInvoices
+          ? SlatepackRoute.finalizeInvoice
+          : SlatepackRoute.invoicesUnsupported,
     SlateState.s3 || SlateState.i3 => SlatepackRoute.alreadyFinalized,
     SlateState.unknown => SlatepackRoute.unsupported,
   };
@@ -69,16 +90,21 @@ abstract final class SlatepackImportFlow {
     final terms = wallet.slatepackTerms;
     final slatepack = normalize(text);
 
-    final read = await _withLoading(
+    final read = await withLoading(
       context,
       "Reading ${terms.noun}...",
       () async {
         final inspection = await wallet.inspectSlatepack(slatepack);
-        final route = routeFor(inspection.state);
+        final route = routeFor(
+          inspection.state,
+          supportsInvoices: wallet.supportsInvoices,
+        );
         var historyLookupTimedOut = false;
         final needsLocalHistory =
             route == SlatepackRoute.receive ||
-            route == SlatepackRoute.finalizeSend;
+            route == SlatepackRoute.finalizeSend ||
+            route == SlatepackRoute.payInvoice ||
+            route == SlatepackRoute.finalizeInvoice;
         final local = needsLocalHistory
             ? await wallet
                   .localTxForSlate(inspection.slateId)
@@ -114,7 +140,7 @@ abstract final class SlatepackImportFlow {
     switch (route) {
       case SlatepackRoute.receive:
         if (read.historyLookupTimedOut) {
-          await _message(
+          await showMessage(
             context,
             "Could not check wallet history",
             "The wallet is busy. Try importing this ${terms.noun} again.",
@@ -128,11 +154,15 @@ abstract final class SlatepackImportFlow {
                     "received or finalized."
               : "This transaction's earlier receive was cancelled. Ask the "
                     "sender to create a new transaction.";
-          await _message(context, "Cannot receive this ${terms.noun}", reason);
+          await showMessage(
+            context,
+            "Cannot receive this ${terms.noun}",
+            reason,
+          );
           return false;
         }
         if (local?.isSend == true) {
-          await _message(
+          await showMessage(
             context,
             "Cannot receive this ${terms.noun}",
             "This wallet created the transaction. Share this ${terms.noun} "
@@ -141,7 +171,7 @@ abstract final class SlatepackImportFlow {
           return false;
         }
         if (local != null) {
-          await _message(
+          await showMessage(
             context,
             "Cannot receive this ${terms.noun}",
             "This transaction is already in this wallet's history.",
@@ -153,7 +183,7 @@ abstract final class SlatepackImportFlow {
       case SlatepackRoute.finalizeSend:
         final local = read.local;
         if (local != null && !local.isSend) {
-          await _message(
+          await showMessage(
             context,
             "Cannot finalize this ${terms.noun}",
             "This ${terms.noun} belongs to a transaction this wallet "
@@ -163,7 +193,7 @@ abstract final class SlatepackImportFlow {
           return false;
         }
         if (local?.isCancelled == true) {
-          await _message(
+          await showMessage(
             context,
             "Cannot finalize this ${terms.noun}",
             "This transaction was cancelled. A cancelled send cannot be "
@@ -182,8 +212,73 @@ abstract final class SlatepackImportFlow {
           historyLookupTimedOut: read.historyLookupTimedOut,
         );
 
+      case SlatepackRoute.payInvoice:
+        if (read.historyLookupTimedOut) {
+          await showMessage(
+            context,
+            "Could not check wallet history",
+            "The wallet is busy. Try importing this invoice again.",
+          );
+          return false;
+        }
+        if (read.local != null) {
+          await showMessage(
+            context,
+            "Cannot pay this invoice",
+            "This wallet created the invoice. Share it with the wallet that "
+                "will pay it instead.",
+          );
+          return false;
+        }
+        return _payInvoice(context, wallet, slatepack, inspection);
+
+      case SlatepackRoute.finalizeInvoice:
+        if (read.historyLookupTimedOut) {
+          await showMessage(
+            context,
+            "Could not check wallet history",
+            "The wallet is busy. Try importing this invoice again.",
+          );
+          return false;
+        }
+        final local = read.local;
+        if (local == null || local.isSend) {
+          await showMessage(
+            context,
+            "Cannot finalize this invoice",
+            local == null
+                ? "This wallet did not issue the invoice this ${terms.noun} "
+                      "pays. Only the wallet that issued an invoice can "
+                      "finalize it. If the invoice was made here moments "
+                      "ago, let the wallet finish syncing and try again."
+                : "This ${terms.noun} is this wallet's own payment of an "
+                      "invoice. Give it to the wallet that issued the "
+                      "invoice, which is the one that finalizes it.",
+          );
+          return false;
+        }
+        if (local.isCancelled) {
+          await showMessage(
+            context,
+            "Cannot finalize this invoice",
+            "This invoice was cancelled and cannot be finalized.",
+          );
+          return false;
+        }
+        return _finalize(
+          context,
+          wallet,
+          slatepack,
+          inspection,
+          amount: local.amount,
+          fee: null,
+          historyWarning: false,
+          historyLookupTimedOut: false,
+          invoice: true,
+        );
+
       case SlatepackRoute.invoicesUnsupported:
-        await _message(
+        await showMessage(
           context,
           "Invoices not supported",
           "This ${terms.noun} is part of an invoice. "
@@ -193,7 +288,22 @@ abstract final class SlatepackImportFlow {
         return false;
 
       case SlatepackRoute.alreadyFinalized:
-        await _message(
+        if (wallet.supportsRepost &&
+            await wallet.canRepost(inspection.slateId)) {
+          if (!context.mounted) return false;
+          return offerRepost(
+            context,
+            wallet,
+            inspection.slateId,
+            title: "Already finalized",
+            message:
+                "This ${terms.noun} is already finalized, but the "
+                "transaction is not confirmed yet. You can post it to the "
+                "node again.",
+          );
+        }
+        if (!context.mounted) return false;
+        await showMessage(
           context,
           "Already finalized",
           "This ${terms.noun} is already finalized. There is nothing left "
@@ -202,7 +312,7 @@ abstract final class SlatepackImportFlow {
         return false;
 
       case SlatepackRoute.unsupported:
-        await _message(
+        await showMessage(
           context,
           "Unsupported ${terms.noun}",
           "Could not tell which step of a transaction this ${terms.noun} "
@@ -249,7 +359,7 @@ abstract final class SlatepackImportFlow {
     // shown if the screen that started the import is gone by then.
     final root = Navigator.of(context, rootNavigator: true);
 
-    final result = await _withLoading(
+    final result = await withLoading(
       context,
       "Processing ${terms.noun}...",
       () async {
@@ -303,6 +413,7 @@ abstract final class SlatepackImportFlow {
     required Amount? fee,
     required bool historyWarning,
     required bool historyLookupTimedOut,
+    bool invoice = false,
   }) async {
     final terms = wallet.slatepackTerms;
 
@@ -330,18 +441,20 @@ abstract final class SlatepackImportFlow {
                 "Review them with the other party before finalizing.";
     }
 
-    // An S2 may carry amount 0, so the summary shows [amount] and [fee] from
-    // our own record of the send.
+    // An S2 or I2 may carry amount 0, so the summary shows [amount] and
+    // [fee] from our own record of the send or issued invoice.
     final confirmed = await showSlatepackPopup<bool>(
       context: context,
       child: SlatepackSummaryDialog(
-        title: "Finalize ${terms.noun}",
+        title: invoice ? "Finalize invoice" : "Finalize ${terms.noun}",
         coin: wallet.cryptoCurrency,
         actionLabel: "Finalize",
         amount: amount,
         fee: fee,
         warning: warning,
         details: [
+          if (invoice && inspection.senderAddress != null)
+            ("From", inspection.senderAddress!),
           if (inspection.slateId.isNotEmpty) ("Slate ID", inspection.slateId),
           if (wallet.supportsSlatepackEncryption)
             ("Encrypted", inspection.isEncrypted ? "Yes" : "No"),
@@ -350,17 +463,21 @@ abstract final class SlatepackImportFlow {
     );
     if (confirmed != true || !context.mounted) return false;
 
-    final result = await _withLoading(
+    final result = await withLoading(
       context,
-      "Finalizing ${terms.noun}...",
+      "Finalizing ${invoice ? "invoice" : terms.noun}...",
       () async {
-        final r = await wallet.finalizeSlatepack(text, inspection: inspection);
+        final r = invoice
+            ? await wallet.finalizeInvoice(text)
+            : await wallet.finalizeSlatepack(text, inspection: inspection);
         if (!r.success) {
           throw Exception(r.error ?? "Finalize failed");
         }
         return r;
       },
-      errorTitle: "${terms.title} finalize error",
+      errorTitle: invoice
+          ? "Invoice finalize error"
+          : "${terms.title} finalize error",
     );
     if (result == null) return false;
 
@@ -381,15 +498,9 @@ abstract final class SlatepackImportFlow {
         ),
       );
     } else if (result.posted == false) {
-      await _message(
-        context,
-        "Finalized, not broadcast",
-        "The transaction is finalized but the node did not accept it yet. "
-            "Check the node connection and transaction history before "
-            "creating a replacement.",
-      );
+      await notPosted(context, wallet, result.slateId ?? inspection.slateId);
     } else {
-      await _message(
+      await showMessage(
         context,
         "Transaction finalized",
         "The native wallet finalized the transaction, but its broadcast "
@@ -400,9 +511,121 @@ abstract final class SlatepackImportFlow {
     return true;
   }
 
+  /// A finalized transaction the node did not take. Offers repost where
+  /// the wallet can do it.
+  static Future<void> notPosted(
+    BuildContext context,
+    SlatepackInterface wallet,
+    String slateId,
+  ) async {
+    const message =
+        "The transaction is finalized but the node did not accept it yet.";
+    if (wallet.supportsRepost && slateId.isNotEmpty) {
+      await offerRepost(
+        context,
+        wallet,
+        slateId,
+        title: "Finalized, not broadcast",
+        message:
+            "$message You can post it again now, or later from the "
+            "transaction details.",
+      );
+    } else {
+      await showMessage(
+        context,
+        "Finalized, not broadcast",
+        "$message The transaction may still be submitted later.",
+      );
+    }
+  }
+
+  /// Asks whether to post [slateId] again and does it. Returns true when
+  /// it was posted.
+  static Future<bool> offerRepost(
+    BuildContext context,
+    SlatepackInterface wallet,
+    String slateId, {
+    required String title,
+    required String message,
+  }) async {
+    final go = await showDialog<bool>(
+      context: context,
+      builder: (context) => StackDialog(
+        width: Util.isDesktop ? 500 : null,
+        title: title,
+        message: message,
+        leftButton: SecondaryButton(
+          label: "Later",
+          buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
+          onPressed: () => Navigator.of(context).pop(false),
+        ),
+        rightButton: PrimaryButton(
+          label: "Repost",
+          buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
+          onPressed: () => Navigator.of(context).pop(true),
+        ),
+      ),
+    );
+    if (go != true || !context.mounted) return false;
+
+    final done = await withLoading(context, "Posting transaction...", () async {
+      await wallet.repost(slateId);
+      return true;
+    }, errorTitle: "Repost failed");
+    if (done != true || !context.mounted) return false;
+    unawaited(
+      showFloatingFlushBar(
+        type: FlushBarType.success,
+        message: "Transaction posted to the node",
+        context: context,
+      ),
+    );
+    return true;
+  }
+
+  static Future<bool> _payInvoice(
+    BuildContext context,
+    SlatepackInterface wallet,
+    String text,
+    SlateInspection inspection,
+  ) async {
+    if (inspection.amount == null || inspection.amount!.raw <= BigInt.zero) {
+      await showMessage(
+        context,
+        "Invoice",
+        "This invoice does not say how much to pay.",
+      );
+      return false;
+    }
+
+    final view = PayInvoiceConfirmView(
+      walletId: wallet.walletId,
+      invoice: text,
+      inspection: inspection,
+    );
+    final bool? paid;
+    if (Util.isDesktop) {
+      paid = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) =>
+            DesktopDialog(maxWidth: 700, maxHeight: null, child: view),
+      );
+    } else {
+      paid = await Navigator.of(context).push<bool>(
+        RouteGenerator.getRoute<bool>(
+          shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
+          builder: (_) => view,
+          settings: const RouteSettings(name: PayInvoiceConfirmView.routeName),
+        ),
+      );
+    }
+    return paid == true;
+  }
+
   /// Runs [action] under a loading overlay. Shows the error and returns null
   /// when it throws.
-  static Future<T?> _withLoading<T>(
+  static Future<T?> withLoading<T>(
     BuildContext context,
     String message,
     Future<T> Function() action, {
@@ -459,16 +682,16 @@ abstract final class SlatepackImportFlow {
           ? "Unexpected result without an error"
           : stripExceptionPrefixes(error);
       if (context.mounted) {
-        await _message(context, errorTitle, text);
+        await showMessage(context, errorTitle, text);
       } else if (root.mounted) {
-        await _message(root.context, errorTitle, text);
+        await showMessage(root.context, errorTitle, text);
       }
       return null;
     }
     return result;
   }
 
-  static Future<void> _message(
+  static Future<void> showMessage(
     BuildContext context,
     String title,
     String message,

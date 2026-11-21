@@ -29,6 +29,7 @@ import '../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/slatepack_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../../widgets/background.dart';
@@ -39,6 +40,7 @@ import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_dialog.dart';
 import '../../../pinpad_views/lock_screen_view.dart';
+import '../../../slatepack/verify_payment_proof_view.dart';
 import 'delete_wallet_warning_view.dart';
 import 'edit_refresh_height_view.dart';
 import 'rbf_settings_view.dart';
@@ -627,6 +629,37 @@ class _WalletSettingsWalletSettingsViewState
                         ),
                       ),
                     ),
+                  if (wallet is SlatepackInterface &&
+                      wallet.supportsPaymentProofs) ...[
+                    const SizedBox(height: 8),
+                    RoundedWhiteContainer(
+                      padding: const EdgeInsets.all(0),
+                      child: RawMaterialButton(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
+                          ),
+                        ),
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        onPressed: () =>
+                            showVerifyPaymentProof(context, widget.walletId),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12.0,
+                            vertical: 20,
+                          ),
+                          child: Row(
+                            children: [
+                              Text(
+                                "Verify payment proof",
+                                style: STextStyles.titleBold12(context),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 8),
                   RoundedWhiteContainer(
                     padding: const EdgeInsets.all(0),

@@ -47,6 +47,7 @@ class DesktopManageBlockExplorersDialog extends ConsumerWidget {
               e is! Mimblewimblecoin &&
               e is! Grin,
         )
+        .where(hasDefaultBlockExplorer)
         .toList();
 
     return DesktopDialog(

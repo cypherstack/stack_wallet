@@ -23,6 +23,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../../models/isar/models/contract.dart';
+import '../../../../models/slatepack_models.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/global/address_book_service_provider.dart';
 import '../../../../providers/providers.dart';
@@ -66,6 +67,7 @@ import '../../wallet_view.dart';
 import '../dialogs/cancelling_transaction_progress_dialog.dart';
 import '../edit_note_view.dart';
 import 'boost_transaction_view.dart';
+import 'slatepack_tx_details.dart';
 
 class TransactionV2DetailsView extends ConsumerStatefulWidget {
   const TransactionV2DetailsView({
@@ -103,8 +105,37 @@ class _TransactionV2DetailsViewState
   late final bool hasTxKeyProbably;
   late final bool isSlatepackWallet;
   late final bool showOnChainNote;
+  SlatepackTxInfo? _slatepackInfo;
 
   bool get isTokenTx => tokenContract != null;
+
+  bool _canCancelSlatepackTransaction(int currentHeight) {
+    if (!isSlatepackWallet ||
+        _transaction.getConfirmations(currentHeight) >= 1 ||
+        _transaction.isCancelled ||
+        _transaction.isReverted ||
+        _transaction.slateId == null) {
+      return false;
+    }
+
+    // Only Grin exposes round-trip state. Do not infer state from message
+    // counts for Epic or MWC: preserve the base predicate for those wallets.
+    return _slatepackInfo?.canCancel ??
+        canCancelSlateTransaction(
+          slateId: _transaction.slateId,
+          isCancelled: _transaction.isCancelled,
+          confirmations: _transaction.getConfirmations(currentHeight),
+        );
+  }
+
+  void _reloadSlatepackInfo() {
+    if (!mounted) return;
+    final wallet = ref.read(pWallets).getWallet(walletId);
+    if (wallet is! SlatepackInterface) return;
+    setState(() {
+      _slatepackInfo = wallet.slatepackTxInfo(_transaction);
+    });
+  }
 
   late final List<({List<String> addresses, Amount amount})> data;
 
@@ -210,6 +241,9 @@ class _TransactionV2DetailsViewState
     isSlatepackWallet = wallet is SlatepackInterface;
     showOnChainNote =
         wallet is SlatepackInterface && wallet.supportsOnChainNote;
+    _slatepackInfo = wallet is SlatepackInterface
+        ? wallet.slatepackTxInfo(_transaction)
+        : null;
 
     hasTxKeyProbably =
         (wallet is CryptonoteWallet) &&
@@ -1451,6 +1485,15 @@ class _TransactionV2DetailsViewState
                                     ],
                                   ),
                                 ),
+                              if (_slatepackInfo != null)
+                                SlatepackTxDetails(
+                                  wallet:
+                                      ref.read(pWallets).getWallet(walletId)
+                                          as SlatepackInterface,
+                                  transaction: _transaction,
+                                  info: _slatepackInfo!,
+                                  onReposted: _reloadSlatepackInfo,
+                                ),
                               if (!isDesktop) const SizedBox(height: 12),
                               // if (whatIsIt(
                               //       _transaction,
@@ -1469,27 +1512,14 @@ class _TransactionV2DetailsViewState
                     ),
                   ),
                 ),
-                if (isSlatepackWallet &&
-                    canCancelSlateTransaction(
-                      slateId: _transaction.slateId,
-                      isCancelled: _transaction.isCancelled,
-                      confirmations: _transaction.getConfirmations(
-                        currentHeight,
-                      ),
-                    ))
+                if (_canCancelSlatepackTransaction(currentHeight))
                   const SizedBox(height: 40),
               ],
             ),
           ),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton:
-            (isSlatepackWallet &&
-                canCancelSlateTransaction(
-                  slateId: _transaction.slateId,
-                  isCancelled: _transaction.isCancelled,
-                  confirmations: _transaction.getConfirmations(currentHeight),
-                ))
+        floatingActionButton: _canCancelSlatepackTransaction(currentHeight)
             ? ConditionalParent(
                 condition: isDesktop,
                 builder: (child) => Padding(
@@ -1525,10 +1555,15 @@ class _TransactionV2DetailsViewState
                           return;
                         }
 
+                        final prompt = SlatepackCancelPrompt.of(
+                          _slatepackInfo,
+                          incoming:
+                              _transaction.type == TransactionType.incoming,
+                        );
                         final proceed = await showDialog<bool>(
                           context: context,
                           builder: (_) =>
-                              const SlatepackCancelTransactionDialog(),
+                              SlatepackCancelTransactionDialog(prompt: prompt),
                         );
                         if (proceed != true || !context.mounted) return;
 

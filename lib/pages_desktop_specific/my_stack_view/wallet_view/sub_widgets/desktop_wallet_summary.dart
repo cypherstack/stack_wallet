@@ -33,6 +33,7 @@ import '../../../../wallets/isar/providers/eth/token_balance_provider.dart';
 import '../../../../wallets/isar/providers/solana/current_sol_token_wallet_provider.dart';
 import '../../../../wallets/isar/providers/solana/sol_token_balance_provider.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/slatepack_interface.dart';
 import 'desktop_balance_toggle_button.dart';
 
 class DesktopWalletSummary extends ConsumerStatefulWidget {
@@ -161,6 +162,11 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
       balanceToShow = _showAvailable ? balance.spendable : balance.total;
     }
 
+    final wallet = ref.watch(pWallets).getWallet(walletId);
+    final locked = widget.isToken || wallet is! SlatepackInterface
+        ? null
+        : wallet.amountLocked;
+
     return Consumer(
       builder: (context, ref, __) {
         return Row(
@@ -182,9 +188,19 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
                   SelectableText(
                     "${Amount.fromDecimal(price.value * balanceToShow.decimal, fractionDigits: 2).fiatString(locale: locale)} $baseCurrency",
                     style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textSubtitle1,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textSubtitle1,
+                    ),
+                  ),
+                if (locked != null && locked.raw > BigInt.zero)
+                  SelectableText(
+                    "Locked in unfinished transactions: "
+                    "${ref.watch(pAmountFormatter(coin)).format(locked)}",
+                    style: STextStyles.desktopTextExtraSmall(context).copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textSubtitle1,
                     ),
                   ),
                 // if (coin is Firo)

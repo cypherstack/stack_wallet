@@ -31,7 +31,7 @@ final pThemeService = Provider<ThemeService>((ref) {
 });
 
 class ThemeService {
-  static const _currentDefaultThemeVersion = 18;
+  static const _currentDefaultThemeVersion = 19;
   ThemeService._();
   static ThemeService? _instance;
   static ThemeService get instance => _instance ??= ThemeService._();
@@ -160,9 +160,8 @@ class ThemeService {
       }
 
       final themesDir = StackFileSystem.themesDir!;
-      final jsonFileExists = await File(
-        "${themesDir.path}/$themeId/theme.json",
-      ).exists();
+      final jsonFileExists = await File("${themesDir.path}/$themeId/theme.json")
+          .exists();
       final assetsDirExists = await Directory(
         "${themesDir.path}/$themeId/assets",
       ).exists();

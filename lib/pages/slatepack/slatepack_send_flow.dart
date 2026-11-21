@@ -15,7 +15,7 @@ import '../../widgets/custom_loading_overlay.dart';
 import '../../widgets/stack_dialog.dart';
 import 'slatepack_dialog.dart';
 
-/// Creates a manual Epic or MWC slate directly from either send screen.
+/// Creates a manual Mimblewimble slate directly from either send screen.
 ///
 /// A manual slate is the first step of an interactive transaction, not a
 /// transaction ready to approve and broadcast. It therefore bypasses the
@@ -26,6 +26,9 @@ abstract final class SlatepackSendFlow {
     required BuildContext context,
     required SlatepackInterface wallet,
     required Amount amount,
+    Amount? creationAmount,
+    String? recipientAddress,
+    bool sendAll = false,
     required String message,
     required String localNote,
     required MainDB db,
@@ -63,10 +66,12 @@ abstract final class SlatepackSendFlow {
       // keyboard or another route is still animating away.
       await waitForRoutePresentation(overlay);
       result = await wallet.createSlatepack(
-        amount: amount,
+        amount: creationAmount ?? amount,
+        recipientAddress: recipientAddress,
         message: wallet.supportsOnChainNote && message.isNotEmpty
             ? message
             : null,
+        sendAll: sendAll,
       );
       if (!result.success || (result.slatepack?.trim().isEmpty ?? true)) {
         throw Exception(

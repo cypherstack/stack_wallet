@@ -21,6 +21,7 @@ import '../../models/input.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../models/isar/models/transaction_note.dart';
 import '../../models/isar/ordinal.dart';
+import '../../models/slatepack_models.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../pages_desktop_specific/coin_control/desktop_coin_control_use_dialog.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
@@ -34,7 +35,10 @@ import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/amount/fee_rate_formatter.dart';
 import '../../utilities/constants.dart';
+import '../../utilities/exception_message.dart';
+import '../../utilities/enums/slatepack_method.dart';
 import '../../utilities/logger.dart';
+import '../../utilities/route_presentation.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
@@ -45,6 +49,7 @@ import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/models/tx_data.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
 import '../../wallets/wallet/impl/solana_wallet.dart';
+import '../../wallets/wallet/supporting/grin/grin_errors.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/slatepack_interface.dart';
@@ -62,9 +67,11 @@ import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
 import '../../wl_gen/interfaces/libepiccash_interface.dart';
 import '../pinpad_views/lock_screen_view.dart';
+import '../slatepack/slatepack_import_flow.dart';
 import '../wallet_view/wallet_view.dart';
 import 'sub_widgets/multi_recipient.dart';
 import 'sub_widgets/sending_transaction_dialog.dart';
+import 'sub_widgets/slatepack_transport_warnings.dart';
 import 'sub_widgets/split_transaction_warning.dart';
 
 class ConfirmTransactionView extends ConsumerStatefulWidget {
@@ -105,6 +112,10 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
 
 class _ConfirmTransactionViewState
     extends ConsumerState<ConfirmTransactionView> {
+  // Direct (http) slatepack sends: transport warnings the user accepted.
+  bool _clearnetAck = false;
+  bool _plaintextAck = false;
+
   late final String walletId;
   late final String routeOnSuccessName;
   late final bool isDesktop;
@@ -157,35 +168,36 @@ class _ConfirmTransactionViewState
     final coin = wallet.info.coin;
 
     final sendProgressController = ProgressAndSuccessController();
-    var isSendingDialogOpen = true;
-
-    void closeSendingDialog() {
-      if (!context.mounted || !isSendingDialogOpen) {
-        return;
-      }
-      final navigator = Navigator.of(context, rootNavigator: true);
-      if (navigator.canPop()) {
-        navigator.pop();
-      }
-      isSendingDialogOpen = false;
-    }
-
-    unawaited(
-      showDialog<dynamic>(
-        context: context,
-        useRootNavigator: true,
-        useSafeArea: false,
-        barrierDismissible: false,
-        builder: (context) {
-          return SendingTransactionDialog(
-            coin: coin,
-            controller: sendProgressController,
-          );
-        },
-      ).whenComplete(() => isSendingDialogOpen = false),
+    final navigator = Navigator.of(context, rootNavigator: true);
+    final sendingRoute = CurrentAwareDialogRoute<void>(
+      context: context,
+      useSafeArea: false,
+      barrierDismissible: false,
+      themes: InheritedTheme.capture(from: context, to: navigator.context),
+      builder: (_) => SendingTransactionDialog(
+        coin: coin,
+        controller: sendProgressController,
+      ),
     );
 
+    Future<void> closeSendingDialog() async {
+      if (!navigator.mounted || !sendingRoute.isActive) return;
+      if (context.mounted) await sendingRoute.waitUntilCurrent();
+      if (!navigator.mounted || !sendingRoute.isActive) return;
+      if (sendingRoute.isCurrent) {
+        navigator.pop();
+      } else {
+        navigator.removeRoute(sendingRoute);
+      }
+    }
+
     final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
+    unawaited(navigator.push(sendingRoute));
+    await waitForRoutePresentation(sendingRoute);
+    if (!context.mounted) {
+      await closeSendingDialog();
+      return;
+    }
 
     final List<String> txids = [];
     Future<TxData> txDataFuture;
@@ -235,6 +247,8 @@ class _ConfirmTransactionViewState
                 noteOnChain: wallet.supportsOnChainNote
                     ? onChainNoteController.text
                     : null,
+                grinClearnetAcknowledged: _clearnetAck,
+                grinPlaintextAcknowledged: _plaintextAck,
               ),
             );
           } else {
@@ -279,7 +293,7 @@ class _ConfirmTransactionViewState
         unawaited(wallet.refresh());
       }
 
-      closeSendingDialog();
+      await closeSendingDialog();
 
       widget.onSuccess.call();
 
@@ -292,9 +306,8 @@ class _ConfirmTransactionViewState
         }
       }
     } on BadHttpAddressException catch (_) {
+      await closeSendingDialog();
       if (context.mounted) {
-        // pop building dialog
-        closeSendingDialog();
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.warning,
@@ -306,12 +319,49 @@ class _ConfirmTransactionViewState
         return;
       }
     } catch (e, s) {
+      if (e is GrinWalletException &&
+          e.finalizedNotBroadcast &&
+          wallet is SlatepackInterface) {
+        final slateId = e.slateId!;
+        Logging.instance.w(
+          "Send finalized but not broadcast. Slate id: $slateId",
+        );
+        if (note.isNotEmpty) {
+          try {
+            await ref
+                .read(mainDBProvider)
+                .putTransactionNote(
+                  TransactionNote(
+                    walletId: walletId,
+                    txid: slateId,
+                    value: note,
+                  ),
+                );
+          } catch (_) {
+            // The finalized transaction remains available in wallet history.
+          }
+        }
+        await closeSendingDialog();
+        if (context.mounted) {
+          await SlatepackImportFlow.notPosted(context, wallet, slateId);
+        }
+        widget.onSuccess.call();
+        if (context.mounted) {
+          if (widget.onSuccessInsteadOfRouteOnSuccess == null) {
+            Navigator.of(context)
+                .popUntil(ModalRoute.withName(routeOnSuccessName));
+          } else {
+            widget.onSuccessInsteadOfRouteOnSuccess!.call();
+          }
+        }
+        return;
+      }
+
       const message = "Broadcast transaction failed";
       Logging.instance.e(message, error: e, stackTrace: s);
-      // pop sending dialog
+      final errorMessage = stripExceptionPrefixes(e);
+      await closeSendingDialog();
       if (context.mounted) {
-        closeSendingDialog();
-
         await showDialog<void>(
           context: context,
           useSafeArea: false,
@@ -331,7 +381,7 @@ class _ConfirmTransactionViewState
                       Flexible(
                         child: SingleChildScrollView(
                           child: SelectableText(
-                            e.toString(),
+                            errorMessage,
                             style: STextStyles.smallMed14(context),
                           ),
                         ),
@@ -356,7 +406,7 @@ class _ConfirmTransactionViewState
             } else {
               return StackDialog(
                 title: message,
-                message: e.toString(),
+                message: errorMessage,
                 rightButton: TextButton(
                   style: Theme.of(context)
                       .extension<StackColors>()!
@@ -425,6 +475,7 @@ class _ConfirmTransactionViewState
   @override
   Widget build(BuildContext context) {
     final coin = ref.watch(pWalletCoin(walletId));
+    final localNote = widget.txData.note ?? "";
     final sentRecipients = [
       for (final e in widget.txData.recipients ?? <TxRecipient>[])
         if (!e.isChange) e,
@@ -490,6 +541,19 @@ class _ConfirmTransactionViewState
 
     final slatepackWallet = wallet is SlatepackInterface ? wallet : null;
     final showOnChainNote = slatepackWallet?.supportsOnChainNote ?? false;
+    final SlatepackHttpPolicy? httpPolicy =
+        slatepackWallet != null &&
+            widget.txData.slatepackMethod == SlatepackMethod.http &&
+            widget.txData.recipients?.firstOrNull != null
+        ? slatepackWallet.httpSendPolicy(
+            widget.txData.recipients!.first.address,
+          )
+        : null;
+    final sendAllowed = SlatepackTransportWarnings.allows(
+      httpPolicy,
+      clearnetAck: _clearnetAck,
+      plaintextAck: _plaintextAck,
+    );
 
     return ConditionalParent(
       condition: !isDesktop,
@@ -637,24 +701,29 @@ class _ConfirmTransactionViewState
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text("Amount", style: STextStyles.smallMed12(context)),
-                        SelectableText(
-                          ref
-                              .watch(pAmountFormatter(coin))
-                              .format(
-                                amountWithoutChange,
-                                tokenContract:
-                                    widget.isTokenTx && wallet is! SolanaWallet
-                                    ? ref
-                                          .watch(pCurrentTokenWallet)!
-                                          .tokenContract
-                                    : widget.isTokenTx && wallet is SolanaWallet
-                                    ? ref
-                                          .watch(pCurrentSolanaTokenWallet)!
-                                          .solContract
-                                    : null,
-                              ),
-                          style: STextStyles.itemSubtitle12(context),
-                          textAlign: TextAlign.right,
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: SelectableText(
+                            ref
+                                .watch(pAmountFormatter(coin))
+                                .format(
+                                  amountWithoutChange,
+                                  tokenContract:
+                                      widget.isTokenTx &&
+                                          wallet is! SolanaWallet
+                                      ? ref
+                                            .watch(pCurrentTokenWallet)!
+                                            .tokenContract
+                                      : widget.isTokenTx &&
+                                            wallet is SolanaWallet
+                                      ? ref
+                                            .watch(pCurrentSolanaTokenWallet)!
+                                            .solContract
+                                      : null,
+                                ),
+                            style: STextStyles.itemSubtitle12(context),
+                            textAlign: TextAlign.right,
+                          ),
                         ),
                       ],
                     ),
@@ -669,10 +738,13 @@ class _ConfirmTransactionViewState
                             "Transaction fee",
                             style: STextStyles.smallMed12(context),
                           ),
-                          SelectableText(
-                            ref.watch(pAmountFormatter(coin)).format(fee!),
-                            style: STextStyles.itemSubtitle12(context),
-                            textAlign: TextAlign.right,
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: SelectableText(
+                              ref.watch(pAmountFormatter(coin)).format(fee!),
+                              style: STextStyles.itemSubtitle12(context),
+                              textAlign: TextAlign.right,
+                            ),
                           ),
                         ],
                       ),
@@ -731,9 +803,8 @@ class _ConfirmTransactionViewState
                         ],
                       ),
                     ),
-                  if (widget.txData.note!.isNotEmpty)
-                    const SizedBox(height: 12),
-                  if (widget.txData.note!.isNotEmpty)
+                  if (localNote.isNotEmpty) const SizedBox(height: 12),
+                  if (localNote.isNotEmpty)
                     RoundedWhiteContainer(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -744,7 +815,7 @@ class _ConfirmTransactionViewState
                           ),
                           const SizedBox(height: 4),
                           SelectableText(
-                            widget.txData.note!,
+                            localNote,
                             style: STextStyles.itemSubtitle12(context),
                           ),
                         ],
@@ -1360,23 +1431,26 @@ class _ConfirmTransactionViewState
                                     .textConfirmTotalAmount,
                               ),
                       ),
-                      SelectableText(
-                        ref
-                            .watch(pAmountFormatter(coin))
-                            .format(amountWithoutChange + fee!),
-                        style: isDesktop
-                            ? STextStyles.desktopTextExtraExtraSmall(context)
-                                  .copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textConfirmTotalAmount,
-                                  )
-                            : STextStyles.itemSubtitle12(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textConfirmTotalAmount,
-                              ),
-                        textAlign: TextAlign.right,
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: SelectableText(
+                          ref
+                              .watch(pAmountFormatter(coin))
+                              .format(amountWithoutChange + fee!),
+                          style: isDesktop
+                              ? STextStyles.desktopTextExtraExtraSmall(context)
+                                    .copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textConfirmTotalAmount,
+                                    )
+                              : STextStyles.itemSubtitle12(context).copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textConfirmTotalAmount,
+                                ),
+                          textAlign: TextAlign.right,
+                        ),
                       ),
                     ],
                   ),
@@ -1425,6 +1499,19 @@ class _ConfirmTransactionViewState
                   ),
                 ),
               ),
+            if (httpPolicy != null)
+              Padding(
+                padding: isDesktop
+                    ? const EdgeInsets.symmetric(horizontal: 32, vertical: 8)
+                    : const EdgeInsets.symmetric(vertical: 8),
+                child: SlatepackTransportWarnings(
+                  policy: httpPolicy,
+                  onClearnetAck: (value) =>
+                      setState(() => _clearnetAck = value),
+                  onPlaintextAck: (value) =>
+                      setState(() => _plaintextAck = value),
+                ),
+              ),
             SizedBox(height: isDesktop ? 28 : 16),
             Padding(
               padding: isDesktop
@@ -1433,6 +1520,7 @@ class _ConfirmTransactionViewState
               child: PrimaryButton(
                 label: "Send",
                 buttonHeight: isDesktop ? ButtonHeight.l : null,
+                enabled: sendAllowed,
                 onPressed: () async {
                   if (isDesktop) {
                     final unlocked = await showDialog<bool?>(
@@ -1481,7 +1569,7 @@ class _ConfirmTransactionViewState
                       RouteGenerator.getRoute<bool>(
                         shouldUseMaterialRoute:
                             RouteGenerator.useMaterialPageRoute,
-                        builder: (_) => const LockscreenView(
+                        builder: (_) => LockscreenView(
                           showBackButton: true,
                           popOnSuccess: true,
                           routeOnSuccessArguments: true,

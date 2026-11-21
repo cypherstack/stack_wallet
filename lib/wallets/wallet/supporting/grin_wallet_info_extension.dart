@@ -30,7 +30,11 @@ extension GrinWalletInfoExtension on WalletInfo {
 
 /// Grin state Stack keeps beside the native wallet.
 class GrinWalletData {
-  const GrinWalletData({required this.creationHeight, this.pendingScanFrom});
+  const GrinWalletData({
+    required this.creationHeight,
+    this.pendingScanFrom,
+    this.slatepackTransactions = const {},
+  });
 
   /// The height the wallet was created or restored from.
   final int creationHeight;
@@ -38,21 +42,40 @@ class GrinWalletData {
   /// Where an unfinished scan resumes, or null when none is pending.
   final int? pendingScanFrom;
 
+  /// Small Stack-owned records that must be available before native history
+  /// is copied into Isar (ownership, cancellation and broadcast status).
+  final Map<String, dynamic> slatepackTransactions;
+
   Map<String, dynamic> toMap() => {
     "creationHeight": creationHeight,
     "pendingScanFrom": pendingScanFrom,
+    "slatepackTransactions": slatepackTransactions,
   };
 
   factory GrinWalletData.fromMap(Map<String, dynamic> map) => GrinWalletData(
     creationHeight: map["creationHeight"] as int,
     pendingScanFrom: map["pendingScanFrom"] as int?,
+    slatepackTransactions: Map<String, dynamic>.from(
+      map["slatepackTransactions"] as Map? ?? const {},
+    ),
   );
 
-  GrinWalletData withPendingScanFrom(int? height) =>
-      GrinWalletData(creationHeight: creationHeight, pendingScanFrom: height);
+  GrinWalletData withPendingScanFrom(int? height) => GrinWalletData(
+    creationHeight: creationHeight,
+    pendingScanFrom: height,
+    slatepackTransactions: slatepackTransactions,
+  );
+
+  GrinWalletData withSlatepackTransactions(Map<String, dynamic> metadata) =>
+      GrinWalletData(
+        creationHeight: creationHeight,
+        pendingScanFrom: pendingScanFrom,
+        slatepackTransactions: metadata,
+      );
 
   @override
   String toString() =>
       "GrinWalletData(creationHeight: $creationHeight, "
-      "pendingScanFrom: $pendingScanFrom)";
+      "pendingScanFrom: $pendingScanFrom, "
+      "slatepackTransactions: ${slatepackTransactions.length})";
 }

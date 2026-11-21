@@ -106,7 +106,9 @@ TransactionV2 _mapGroup({
   }
 
   final isCoinbase = primary.type == GrinTxType.confirmedCoinbase;
-  final cancelled = primary.type.isCancelled;
+  // A self-send is cancelled once both halves are: a half that is not may
+  // still hold outputs, and the row has to stay cancellable for it.
+  final cancelled = group.every((e) => e.type.isCancelled);
   final reverted = group.any((e) => e.type == GrinTxType.txReverted);
   final confirmed = group.every((e) => e.confirmed) && !cancelled && !reverted;
 
