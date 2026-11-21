@@ -9,6 +9,7 @@ import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/deskt
 import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../providers/providers.dart';
 import '../../route_generator.dart';
+import '../../services/transaction_note_service.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
@@ -112,13 +113,13 @@ class _ShopInBitConfirmSendViewState
       await Future<void>.delayed(const Duration(seconds: 5));
 
       final confirmedTx = results.first as TxData;
-      for (final txid in confirmedTx.txids) {
-        await ref
-            .read(mainDBProvider)
-            .putTransactionNote(
-              TransactionNote(walletId: walletId, txid: txid, value: note),
-            );
-      }
+      await saveTransactionNotesAfterSend(
+        notes: [
+          for (final txid in confirmedTx.txids)
+            TransactionNote(walletId: walletId, txid: txid, value: note),
+        ],
+        persist: ref.read(mainDBProvider).putTransactionNotes,
+      );
 
       // The server (and the BTCPay webhook) own ticket + payment state from
       // here, so there's nothing to persist locally; just nudge a refresh so
