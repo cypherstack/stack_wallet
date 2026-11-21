@@ -111,7 +111,7 @@ class _StartupWalletSelectionViewState
                                                       ),
                                                     ),
                                                   )
-                                                  .withOpacity(0.5),
+                                                  .withValues(alpha: 0.5),
                                               borderRadius:
                                                   BorderRadius.circular(
                                                     Constants
@@ -199,10 +199,9 @@ class _StartupWalletSelectionViewState
                                             height: 20,
                                             width: 20,
                                             child: Radio(
-                                              activeColor:
-                                                  Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .radioButtonIconEnabled,
+                                              activeColor: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .radioButtonIconEnabled,
                                               value: wallet.walletId,
                                               groupValue: ref.watch(
                                                 prefsChangeNotifierProvider
@@ -214,10 +213,11 @@ class _StartupWalletSelectionViewState
                                               onChanged: (value) {
                                                 if (value is String) {
                                                   ref
-                                                      .read(
-                                                        prefsChangeNotifierProvider,
-                                                      )
-                                                      .startupWalletId = value;
+                                                          .read(
+                                                            prefsChangeNotifierProvider,
+                                                          )
+                                                          .startupWalletId =
+                                                      value;
                                                 }
                                               },
                                             ),

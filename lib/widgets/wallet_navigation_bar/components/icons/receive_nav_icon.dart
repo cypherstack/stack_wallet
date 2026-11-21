@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 
@@ -23,10 +24,8 @@ class ReceiveNavIcon extends StatelessWidget {
         color: Theme.of(context)
             .extension<StackColors>()!
             .bottomNavIconIcon
-            .withOpacity(0.4),
-        borderRadius: BorderRadius.circular(
-          24,
-        ),
+            .withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(24),
       ),
       child: Padding(
         padding: const EdgeInsets.all(6.0),
