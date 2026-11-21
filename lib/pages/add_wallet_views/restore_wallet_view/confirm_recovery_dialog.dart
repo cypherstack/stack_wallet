@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/text_styles.dart';
@@ -21,9 +22,7 @@ import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/stack_dialog.dart';
 
 class ConfirmRecoveryDialog extends StatelessWidget {
-  const ConfirmRecoveryDialog({super.key, required this.onConfirm});
-
-  final VoidCallback onConfirm;
+  const ConfirmRecoveryDialog({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -32,23 +31,15 @@ class ConfirmRecoveryDialog extends StatelessWidget {
         child: Column(
           children: [
             const DesktopDialogCloseButton(),
-            const SizedBox(
-              height: 5,
-            ),
-            SvgPicture.asset(
-              Assets.svg.drd,
-              width: 99,
-              height: 70,
-            ),
+            const SizedBox(height: 5),
+            SvgPicture.asset(Assets.svg.drd, width: 99, height: 70),
             const Spacer(),
             Text(
               "Restore wallet",
               style: STextStyles.desktopH2(context),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(
-              height: 16,
-            ),
+            const SizedBox(height: 16),
             Text(
               "Restoring your wallet may take a while.\nPlease do not exit this screen once the process is started.",
               style: STextStyles.desktopTextMedium(context).copyWith(
@@ -58,11 +49,7 @@ class ConfirmRecoveryDialog extends StatelessWidget {
             ),
             const Spacer(),
             Padding(
-              padding: const EdgeInsets.only(
-                left: 32,
-                right: 32,
-                bottom: 32,
-              ),
+              padding: const EdgeInsets.only(left: 32, right: 32, bottom: 32),
               child: Row(
                 children: [
                   Expanded(
@@ -73,15 +60,12 @@ class ConfirmRecoveryDialog extends StatelessWidget {
                       },
                     ),
                   ),
-                  const SizedBox(
-                    width: 16,
-                  ),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: PrimaryButton(
                       label: "Restore",
                       onPressed: () {
-                        Navigator.of(context).pop();
-                        onConfirm.call();
+                        Navigator.of(context).pop(true);
                       },
                     ),
                   ),
@@ -98,8 +82,7 @@ class ConfirmRecoveryDialog extends StatelessWidget {
         },
         child: StackDialog(
           title: "Are you ready?",
-          message:
-              "Restoring your wallet may take a while. Please do not exit this screen once the process is started.",
+          message: "Restoring your wallet may take a while. Please do not exit this screen once the process is started.",
           leftButton: SecondaryButton(
             label: "Cancel",
             onPressed: () {
@@ -109,8 +92,7 @@ class ConfirmRecoveryDialog extends StatelessWidget {
           rightButton: PrimaryButton(
             label: "Restore",
             onPressed: () {
-              Navigator.of(context).pop();
-              onConfirm.call();
+              Navigator.of(context).pop(true);
             },
           ),
         ),
