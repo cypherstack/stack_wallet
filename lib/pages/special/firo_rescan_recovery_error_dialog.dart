@@ -2,19 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../models/keys/key_data_interface.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_delete_wallet_dialog.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/unlock_wallet_keys_desktop.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../route_generator.dart';
+import '../../services/wallet_recovery_service.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
-import '../../wallets/wallet/intermediate/cryptonote_wallet.dart';
-import '../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
-import '../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -98,9 +95,9 @@ class _FiroRescanRecoveryErrorViewState
           builder: (child) {
             return Background(
               child: Scaffold(
-                backgroundColor: Theme.of(
-                  context,
-                ).extension<StackColors>()!.background,
+                backgroundColor: Theme.of(context)
+                    .extension<StackColors>()!
+                    .background,
                 appBar: AppBar(
                   automaticallyImplyLeading: false,
                   actions: [
@@ -119,16 +116,16 @@ class _FiroRescanRecoveryErrorViewState
                           key: const Key("walletViewRadioButton"),
                           size: 36,
                           shadows: const [],
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.background,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
                           icon: SvgPicture.asset(
                             Assets.svg.trash,
                             width: 20,
                             height: 20,
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.topNavIconPrimary,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .topNavIconPrimary,
                           ),
                           onPressed: () async {
                             final walletName = ref.read(
@@ -258,43 +255,30 @@ class _FiroRescanRecoveryErrorViewState
                         final wallet = ref
                             .read(pWallets)
                             .getWallet(widget.walletId);
-                        // TODO: [prio=low] take wallets that don't have a mnemonic into account
-                        if (wallet is MnemonicInterface) {
-                          final mnemonic = await wallet.getMnemonicAsWords();
+                        final recoveryMaterial =
+                            await WalletRecoveryService.getMaterial(wallet);
 
-                          KeyDataInterface? keyData;
-                          if (wallet is ExtendedKeysInterface) {
-                            keyData = await wallet.getXPrivs();
-                          } else if (wallet is CryptonoteWallet) {
-                            keyData = await wallet.getKeys();
-                          }
-
-                          if (context.mounted) {
-                            await Navigator.push(
-                              context,
-                              RouteGenerator.getRoute(
-                                shouldUseMaterialRoute:
-                                    RouteGenerator.useMaterialPageRoute,
-                                builder: (_) => LockscreenView(
-                                  routeOnSuccessArguments: (
-                                    walletId: widget.walletId,
-                                    mnemonic: mnemonic,
-                                    keyData: keyData,
-                                  ),
-                                  showBackButton: true,
-                                  routeOnSuccess: WalletBackupView.routeName,
-                                  biometricsCancelButtonString: "CANCEL",
-                                  biometricsLocalizedReason:
-                                      "Authenticate to view recovery phrase",
-                                  biometricsAuthenticationTitle:
-                                      "View recovery phrase",
-                                ),
-                                settings: const RouteSettings(
-                                  name: "/viewRecoverPhraseLockscreen",
-                                ),
+                        if (context.mounted) {
+                          await Navigator.push(
+                            context,
+                            RouteGenerator.getRoute<void>(
+                              shouldUseMaterialRoute:
+                                  RouteGenerator.useMaterialPageRoute,
+                              builder: (_) => LockscreenView(
+                                routeOnSuccessArguments: recoveryMaterial,
+                                showBackButton: true,
+                                routeOnSuccess: WalletBackupView.routeName,
+                                biometricsCancelButtonString: "CANCEL",
+                                biometricsLocalizedReason:
+                                    "Authenticate to view recovery phrase",
+                                biometricsAuthenticationTitle:
+                                    "View recovery phrase",
                               ),
-                            );
-                          }
+                              settings: const RouteSettings(
+                                name: "/viewRecoverPhraseLockscreen",
+                              ),
+                            ),
+                          );
                         }
                       }
                     },

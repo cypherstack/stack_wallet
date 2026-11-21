@@ -5,6 +5,13 @@ import '../../../wl_gen/interfaces/cs_monero_interface.dart';
 import '../crypto_currency.dart';
 import '../intermediate/cryptonote_currency.dart';
 
+int moneroNetworkType(CryptoCurrencyNetwork network) => switch (network) {
+  CryptoCurrencyNetwork.main => 0,
+  CryptoCurrencyNetwork.test => 1,
+  CryptoCurrencyNetwork.stage => 2,
+  _ => throw ArgumentError.value(network, "network", "Unsupported network"),
+};
+
 class Monero extends CryptonoteCurrency {
   Monero(super.network) {
     _idMain = "monero";
