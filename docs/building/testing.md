@@ -29,6 +29,33 @@ compiler:
 python3 -m unittest discover -s scripts/linux/tests -p 'test_*.py' -v
 ```
 
+## Grin integration tests
+
+The unit tests in `test/wallets/grin` use fakes and need no native code.
+
+`integration_test/grin/grin_test_chain_test.dart` drives `GrinWallet` against
+the real `grin-ffi` library on its in-process test chain. It covers mining,
+Slatepack S1/S2/S3, invoices, cancellation, reposting, payment proofs,
+mnemonic restore with a scan, and wallet deletion. Run it through the wrapper:
+
+```sh
+bash scripts/grin_e2e_test.sh          # host desktop
+bash scripts/grin_e2e_test.sh linux    # explicit device
+```
+
+The wrapper temporarily enables `grin_native`'s `test_utils` build, restores
+the generated pubspec files when it exits, and removes the test-enabled Grin
+library from the application build directory. If the process is killed before
+cleanup, configure the app again and delete its build output before producing
+a distributable build.
+
+After a normal release build, verify that it contains only the 36 production
+exports and no `grin_test_` exports:
+
+```sh
+bash scripts/grin_symbol_gate.sh build/linux/x64/release/bundle
+```
+
 ## Xelis integration tests
 
 Run these on a configured desktop target (`windows`, `linux`, or `macos`) with
