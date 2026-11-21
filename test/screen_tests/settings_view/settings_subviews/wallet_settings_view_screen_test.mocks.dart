@@ -83,6 +83,37 @@ class MockCachedElectrumXClient extends _i1.Mock
           as String);
 
   @override
+  _i5.Future<String?> getAuthenticatedRawTransaction({
+    required String? txHash,
+    required _i6.CryptoCurrency? cryptoCurrency,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#getAuthenticatedRawTransaction, [], {
+              #txHash: txHash,
+              #cryptoCurrency: cryptoCurrency,
+            }),
+            returnValue: _i5.Future<String?>.value(),
+          )
+          as _i5.Future<String?>);
+
+  @override
+  _i5.Future<void> putAuthenticatedRawTransaction({
+    required String? txHash,
+    required String? rawTxHex,
+    required _i6.CryptoCurrency? cryptoCurrency,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#putAuthenticatedRawTransaction, [], {
+              #txHash: txHash,
+              #rawTxHex: rawTxHex,
+              #cryptoCurrency: cryptoCurrency,
+            }),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
+
+  @override
   _i5.Future<Map<String, dynamic>> getTransaction({
     required String? txHash,
     required _i6.CryptoCurrency? cryptoCurrency,
