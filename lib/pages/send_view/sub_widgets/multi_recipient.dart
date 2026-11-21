@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -37,6 +39,9 @@ List<RecipientData>? parseUriRecipients(
       address: recipient.address,
       amount: amount,
       label: recipient.label,
+      memoBytes: recipient.memoBytes,
+      message: recipient.message,
+      additionalParams: recipient.additionalParams,
     ));
   }
   return recipients;
@@ -71,6 +76,9 @@ extension RecipientDataListExt on List<RecipientData> {
         amount: e.amount!,
         isChange: false,
         addressType: coin.getAddressType(e.address)!,
+        memoBytes: e.memoBytes,
+        message: e.message,
+        additionalParams: e.additionalParams,
       ),
   ];
 }
@@ -214,6 +222,12 @@ class RecipientAmountList extends ConsumerWidget {
           ],
           const SizedBox(height: 4),
           SelectableText(recipients[i].address, style: valueStyle),
+          if (recipients[i].memoBytes case final memo?) ...[
+            const SizedBox(height: 8),
+            Text("Memo", style: labelStyle),
+            const SizedBox(height: 4),
+            SelectableText(_displayMemo(memo), style: valueStyle),
+          ],
           const SizedBox(height: 8),
           Row(
             children: [
@@ -234,5 +248,13 @@ class RecipientAmountList extends ConsumerWidget {
         ],
       ],
     );
+  }
+}
+
+String _displayMemo(List<int> memo) {
+  try {
+    return utf8.decode(memo, allowMalformed: false);
+  } on FormatException {
+    return memo.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
   }
 }
