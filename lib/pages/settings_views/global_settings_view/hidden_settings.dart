@@ -10,6 +10,7 @@
 
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -101,6 +102,42 @@ class HiddenSettings extends StatelessWidget {
                               );
                             },
                           ),
+                          // The mock hardware auto-signer enables fake balances
+                          // and must only be reachable in debug builds.
+                          if (kDebugMode) ...[
+                            const SizedBox(height: 12),
+                            Consumer(
+                              builder: (_, ref, __) {
+                                return GestureDetector(
+                                  onTap: () async {
+                                    ref
+                                        .read(prefsChangeNotifierProvider)
+                                        .enableMockHardwareAutoSigner = !ref
+                                            .read(prefsChangeNotifierProvider)
+                                            .enableMockHardwareAutoSigner;
+                                  },
+                                  child: RoundedWhiteContainer(
+                                    child: Text(
+                                      ref.watch(
+                                            prefsChangeNotifierProvider.select(
+                                              (s) =>
+                                                  s.enableMockHardwareAutoSigner,
+                                            ),
+                                          )
+                                          ? "Disable mock hardware auto-signer"
+                                          : "Enable mock hardware auto-signer",
+                                      style: STextStyles.button(context).copyWith(
+                                        color:
+                                            Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .accentColorDark,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
                           const SizedBox(height: 12),
                           Consumer(
                             builder: (_, ref, __) {

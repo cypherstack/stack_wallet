@@ -1,0 +1,4 @@
+enum HardwareWalletConnectionType {
+  usb,
+  ble;
+}
