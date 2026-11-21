@@ -228,6 +228,10 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
           height = 0;
         }
 
+        if (widget.coin is Grin) {
+          height = (widget.coin as Grin).heightFromDate(date);
+        }
+
         if (widget.coin is Epiccash) {
           final int secondsSinceEpoch = date.millisecondsSinceEpoch ~/ 1000;
           const int epicCashFirstBlock = 1565370278;
@@ -273,9 +277,8 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                 onPressed: () {
                   if (textFieldFocusNode.hasFocus) {
                     textFieldFocusNode.unfocus();
-                    Future<void>.delayed(
-                      const Duration(milliseconds: 100),
-                    ).then((value) => Navigator.of(context).pop());
+                    Future<void>.delayed(const Duration(milliseconds: 100))
+                        .then((value) => Navigator.of(context).pop());
                   } else {
                     Navigator.of(context).pop();
                   }
@@ -310,12 +313,12 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                     key: UniqueKey(),
                     onText: "Seed",
                     offText: "View Only",
-                    onColor: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.popupBG,
-                    offColor: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultBG,
+                    onColor: Theme.of(context)
+                        .extension<StackColors>()!
+                        .popupBG,
+                    offColor: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
                     isOn: _showViewOnlyOption,
                     onValueChanged: (value) {
                       setState(() {
@@ -426,7 +429,8 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
       children: [
         if (isCnAnd25 ||
             widget.coin is Epiccash ||
-            widget.coin is Mimblewimblecoin)
+            widget.coin is Mimblewimblecoin ||
+            widget.coin is Grin)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -434,9 +438,9 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                 ref.watch(_pIsUsingDate) ? "Choose start date" : "Block height",
                 style: Util.isDesktop
                     ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textDark3,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark3,
                       )
                     : STextStyles.smallMed12(context),
                 textAlign: TextAlign.left,
@@ -453,11 +457,13 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
           ),
         if (isCnAnd25 ||
             widget.coin is Epiccash ||
-            widget.coin is Mimblewimblecoin)
+            widget.coin is Mimblewimblecoin ||
+            widget.coin is Grin)
           SizedBox(height: Util.isDesktop ? 16 : 8),
         if (isCnAnd25 ||
             widget.coin is Epiccash ||
-            widget.coin is Mimblewimblecoin)
+            widget.coin is Mimblewimblecoin ||
+            widget.coin is Grin)
           ref.watch(_pIsUsingDate)
               ? RestoreFromDatePicker(
                   onTap: widget.dateChooserFunction,
@@ -474,9 +480,8 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     textInputAction: TextInputAction.done,
                     style: Util.isDesktop
-                        ? STextStyles.desktopTextMedium(
-                            context,
-                          ).copyWith(height: 2)
+                        ? STextStyles.desktopTextMedium(context)
+                              .copyWith(height: 2)
                         : STextStyles.field(context),
                     onChanged: (value) {
                       setState(() {
@@ -492,8 +497,7 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                           suffixIcon: UnconstrainedBox(
                             child: TextFieldIconButton(
                               child: Semantics(
-                                label:
-                                    "Clear Block Height Field Button. Clears the block height field",
+                                label: "Clear Block Height Field Button. Clears the block height field",
                                 excludeSemantics: true,
                                 child: !_blockFieldEmpty
                                     ? XIcon(
@@ -515,11 +519,13 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                 ),
         if (isCnAnd25 ||
             widget.coin is Epiccash ||
-            widget.coin is Mimblewimblecoin)
+            widget.coin is Mimblewimblecoin ||
+            widget.coin is Grin)
           const SizedBox(height: 8),
         if (isCnAnd25 ||
             widget.coin is Epiccash ||
-            widget.coin is Mimblewimblecoin)
+            widget.coin is Mimblewimblecoin ||
+            widget.coin is Grin)
           RoundedWhiteContainer(
             child: Center(
               child: Text(
@@ -528,9 +534,9 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                     : "Enter the initial block height of the wallet",
                 style: Util.isDesktop
                     ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textSubtitle1,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textSubtitle1,
                       )
                     : STextStyles.smallMed12(context).copyWith(fontSize: 10),
               ),
@@ -538,7 +544,8 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
           ),
         if (isCnAnd25 ||
             widget.coin is Epiccash ||
-            widget.coin is Mimblewimblecoin)
+            widget.coin is Mimblewimblecoin ||
+            widget.coin is Grin)
           SizedBox(height: Util.isDesktop ? 24 : 16),
         Text(
           "Choose recovery phrase length",
@@ -582,9 +589,9 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                     Assets.svg.chevronDown,
                     width: 12,
                     height: 6,
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldActiveSearchIconRight,
                   ),
                 ),
               ),
@@ -592,9 +599,9 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                 offset: const Offset(0, -10),
                 elevation: 0,
                 decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldDefaultBG,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultBG,
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),
@@ -632,13 +639,12 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                     Text(
                       "Advanced",
                       style: Util.isDesktop
-                          ? STextStyles.desktopTextExtraExtraSmall(
-                              context,
-                            ).copyWith(
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textDark3,
-                            )
+                          ? STextStyles.desktopTextExtraExtraSmall(context)
+                                .copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark3,
+                                )
                           : STextStyles.smallMed12(context),
                       textAlign: TextAlign.left,
                     ),
@@ -670,9 +676,8 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                       focusNode: widget.pwFocusNode,
                       controller: widget.pwController,
                       style: Util.isDesktop
-                          ? STextStyles.desktopTextMedium(
-                              context,
-                            ).copyWith(height: 2)
+                          ? STextStyles.desktopTextMedium(context)
+                                .copyWith(height: 2)
                           : STextStyles.field(context),
                       obscureText: _hidePassword,
                       enableSuggestions: false,
@@ -706,9 +711,9 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                                         _hidePassword
                                             ? Assets.svg.eye
                                             : Assets.svg.eyeSlash,
-                                        color: Theme.of(
-                                          context,
-                                        ).extension<StackColors>()!.textDark3,
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textDark3,
                                         width: Util.isDesktop ? 24 : 16,
                                         height: Util.isDesktop ? 24 : 16,
                                       ),
@@ -734,13 +739,12 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                                   "was created with an optional BIP39 passphrase "
                                   "you can enter it here.",
                         style: Util.isDesktop
-                            ? STextStyles.desktopTextExtraSmall(
-                                context,
-                              ).copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textSubtitle1,
-                              )
+                            ? STextStyles.desktopTextExtraSmall(context)
+                                  .copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textSubtitle1,
+                                  )
                             : STextStyles.itemSubtitle(context),
                       ),
                     ),
@@ -800,9 +804,9 @@ class _ViewOnlyRestoreOptionState extends ConsumerState<ViewOnlyRestoreOption> {
                 ref.watch(_pIsUsingDate) ? "Choose start date" : "Block height",
                 style: Util.isDesktop
                     ? STextStyles.desktopTextExtraExtraSmall(context).copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textDark3,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark3,
                       )
                     : STextStyles.smallMed12(context),
                 textAlign: TextAlign.left,
@@ -837,9 +841,8 @@ class _ViewOnlyRestoreOptionState extends ConsumerState<ViewOnlyRestoreOption> {
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     textInputAction: TextInputAction.done,
                     style: Util.isDesktop
-                        ? STextStyles.desktopTextMedium(
-                            context,
-                          ).copyWith(height: 2)
+                        ? STextStyles.desktopTextMedium(context)
+                              .copyWith(height: 2)
                         : STextStyles.field(context),
                     onChanged: (value) {
                       setState(() {
@@ -855,8 +858,7 @@ class _ViewOnlyRestoreOptionState extends ConsumerState<ViewOnlyRestoreOption> {
                           suffixIcon: UnconstrainedBox(
                             child: TextFieldIconButton(
                               child: Semantics(
-                                label:
-                                    "Clear Block Height Field Button. Clears the block height field",
+                                label: "Clear Block Height Field Button. Clears the block height field",
                                 excludeSemantics: true,
                                 child: !_blockFieldEmpty
                                     ? XIcon(
@@ -886,9 +888,9 @@ class _ViewOnlyRestoreOptionState extends ConsumerState<ViewOnlyRestoreOption> {
                     : "Enter the initial block height of the wallet",
                 style: Util.isDesktop
                     ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textSubtitle1,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textSubtitle1,
                       )
                     : STextStyles.smallMed12(context).copyWith(fontSize: 10),
               ),

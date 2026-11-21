@@ -103,6 +103,18 @@ class TransactionV2 {
   bool get isMimblewimblecoinTransaction =>
       _getFromOtherData(key: TxV2OdKeys.isMimblewimblecoinTransaction) == true;
 
+  @ignore
+  bool get isGrinTransaction =>
+      _getFromOtherData(key: TxV2OdKeys.isGrinTransaction) == true;
+
+  /// The last slate state a Grin wallet saw, as its wire name ("S1" ...).
+  @ignore
+  String? get grinSlateState =>
+      _getFromOtherData(key: TxV2OdKeys.grinSlateState) as String?;
+
+  @ignore
+  bool get isReverted => _getFromOtherData(key: TxV2OdKeys.isReverted) == true;
+
   int? get numberOfMessages =>
       _getFromOtherData(key: TxV2OdKeys.numberOfMessages) as int?;
   String? get slateId => _getFromOtherData(key: TxV2OdKeys.slateId) as String?;
@@ -302,6 +314,15 @@ class TransactionV2 {
       }
     }
 
+    if (isGrinTransaction) {
+      return _grinStatusLabel(
+        currentChainHeight: currentChainHeight,
+        minConfirms: minConfirms,
+        minCoinbaseConfirms: minCoinbaseConfirms,
+        prettyConfirms: prettyConfirms,
+      );
+    }
+
     if (isMimblewimblecoinTransaction) {
       if (slateId == null) {
         return "Restored Funds";
@@ -364,6 +385,40 @@ class TransactionV2 {
     }
   }
 
+  String _grinStatusLabel({
+    required int currentChainHeight,
+    required int minConfirms,
+    required int minCoinbaseConfirms,
+    required String Function() prettyConfirms,
+  }) {
+    final incoming = type == TransactionType.incoming;
+    final outgoing =
+        type == TransactionType.outgoing || type == TransactionType.sentToSelf;
+    final state = grinSlateState;
+    final onChain = height != null;
+
+    if (incoming && slateId == null && !isCoinbase()) return "Restored funds";
+    if (isCancelled) return "Cancelled";
+    if (isReverted) return "Reverted";
+    if (isConfirmed(currentChainHeight, minConfirms, minCoinbaseConfirms)) {
+      if (type == TransactionType.sentToSelf) return "Sent to self";
+      return incoming ? "Received" : "Sent";
+    }
+    if (!onChain) {
+      if (state == "S1" && outgoing) return "Sending (waiting for response)";
+      if (state == "S2" && incoming) {
+        return "Receiving (waiting for sender to finalize)";
+      }
+      if (state == "I1") return "Invoice issued (waiting for payer)";
+      if (state == "I2" && outgoing) {
+        return "Paying invoice (waiting for invoicer)";
+      }
+    }
+    return incoming
+        ? "Receiving ${prettyConfirms()}"
+        : "Sending ${prettyConfirms()}";
+  }
+
   dynamic _getFromOtherData({required dynamic key}) {
     if (otherData == null) {
       return null;
@@ -421,4 +476,13 @@ abstract final class TxV2OdKeys {
   static const salviumTypeInt = "salviumTypeInt";
   static const salviumTypeString = "salviumTypeString";
   static const memo = "onChainMemo";
+  static const isGrinTransaction = "isGrinTransaction";
+  static const grinLogIds = "grinLogIds";
+  static const grinSlateState = "grinSlateState";
+  static const grinHasStoredTx = "grinHasStoredTx";
+  static const grinKernelExcess = "grinKernelExcess";
+  static const grinTtlCutoff = "grinTtlCutoff";
+  static const grinHasPaymentProof = "grinHasPaymentProof";
+  static const counterpartyAddress = "counterpartyAddress";
+  static const isReverted = "isReverted";
 }

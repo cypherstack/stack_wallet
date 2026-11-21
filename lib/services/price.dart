@@ -39,6 +39,7 @@ class PriceAPI {
     Ethereum: "ethereum",
     Fact0rn: "fact0rn",
     Firo: "zcoin",
+    Grin: "grin",
     Monero: "monero",
     Particl: "particl",
     Peercoin: "peercoin",

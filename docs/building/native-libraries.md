@@ -61,6 +61,7 @@ to build them in `dev` mode.
 | Flutter and platform plugins | Target SDKs and the platform's C/C++ build tools in either mode |
 | OpenAlias / DNSSEC (every app) | Rustup on the Flutter host in both modes; `dnssec_resolver` builds from source with Rust **1.90.0** |
 | Xelis (Stack Wallet) | Rustup; its hook installs Rust **1.99.1** and the required target; Android needs NDK r28 or newer |
+| Grin (Stack Wallet) | Rustup; the `grin_native` hook builds `grin-ffi` and its pinned Grin wallet/core sources fetched over public HTTPS |
 | Spark (Stack Wallet and Campfire) | CMake and a C++ compiler; its native-assets hook builds from source |
 | Coinlib secp256k1 | A separate platform build, described in each host guide |
 | MWEB (Stack Wallet) | Go **1.24.1** or newer; CI uses 1.24.13. The Windows executable has a separate WSL build (Go 1.24.0 or newer) or prebuilt download |
@@ -77,6 +78,13 @@ host.
 This build doesn't use the earlier manual steps for these packages: host Rust
 toolchain lists, `cbindgen`, `cargo-lipo`, building the Epic, MWC and Tor
 libraries by hand, the MXE setup, or the Epic-specific CMake upgrade.
+
+Stack Wallet depends only on `grin_native`, which re-exports the shared Grin
+API; it does not depend on the separate `grin` Dart package. To build against
+a local `grin_native` checkout, edit the generated `pubspec.yaml` after
+configuration (it is not committed), replace the Git dependency with the
+checkout path, and run `flutter pub upgrade grin_native` after each library
+commit.
 
 ## When native hooks run
 

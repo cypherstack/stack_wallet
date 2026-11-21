@@ -4,12 +4,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
-import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
 import 'package:stackwallet/utilities/prefs.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/wallet/impl/xelis_wallet.dart';
 import 'package:stackwallet/wallets/wallet/wallet.dart';
 import 'package:stackwallet/wl_gen/interfaces/lib_xelis_interface.dart';
+
+export '../../support/memory_secrets.dart';
 
 class FakeNative extends Fake implements LibXelisInterface {
   @override
@@ -102,35 +103,4 @@ class ConfirmationPrefs extends ChangeNotifier implements Prefs {
   String get currency => 'USD';
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class MemorySecrets extends Fake implements SecureStorageInterface {
-  final values = <String, String>{'xelis_wants_full_tables': 'false'};
-  String? failingKey;
-  String? failingDeleteKey;
-  Future<void> Function(String)? beforeDelete;
-  @override
-  dynamic noSuchMethod(Invocation invocation) {
-    final key = invocation.namedArguments[#key] as String;
-    switch (invocation.memberName) {
-      case #delete:
-        return () async {
-          await beforeDelete?.call(key);
-          if (key == failingDeleteKey) {
-            throw StateError('fixture delete failure');
-          }
-          values.remove(key);
-        }();
-      case #read:
-        return Future<String?>.value(values[key]);
-      case #write:
-        if (key == failingKey) {
-          return Future<void>.error(StateError('fixture write failure'));
-        }
-        values[key] = invocation.namedArguments[#value] as String;
-        return Future<void>.value();
-      default:
-        return super.noSuchMethod(invocation);
-    }
-  }
 }

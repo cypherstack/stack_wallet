@@ -8,6 +8,7 @@ import 'package:stackwallet/services/wallets.dart';
 import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
 import 'package:stackwallet/wallets/isar/models/wallet_info.dart';
 import 'package:stackwallet/wallets/wallet/impl/epiccash_wallet.dart';
+import 'package:stackwallet/wallets/wallet/impl/grin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/cryptonote_wallet.dart';
 import 'package:stackwallet/wallets/wallet/intermediate/lib_xelis_wallet.dart';
@@ -31,6 +32,8 @@ Future<void> verifyOpenNativeWallet(Wallet wallet, String expected) async {
       0,
       await wallet.getMwcMqsConfig(),
     )).value;
+  } else if (wallet is GrinWallet) {
+    actual = await wallet.getNativeReceivingAddress();
   } else if (wallet is LibXelisWallet) {
     wallet.checkInitialized();
     actual = wallet.xelis.getAddress(wallet.wallet!);

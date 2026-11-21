@@ -42,6 +42,7 @@ const _walletFiles = [
   'wallets/monero/test_wallet/test_wallet',
   'wallets/monero/test_wallet/test_wallet.keys',
   'epiccash/test_wallet/wallet_data/wallet.seed',
+  'grin/test_wallet/wallet_data/wallet.seed',
 ];
 
 /// Seeded files a reset must delete.

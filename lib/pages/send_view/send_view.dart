@@ -698,8 +698,9 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
   }
 
   void _syncFeeAmount(Amount? amount) {
-    // Xelis obtains the exact fee when preparing the reviewed transaction.
-    if (hasFees && coin is! Xelis) followFeeAmount(amount);
+    // Xelis and Grin obtain the exact fee when preparing the reviewed
+    // transaction.
+    if (hasFees && coin is! Xelis && coin is! Grin) followFeeAmount(amount);
   }
 
   /// Looks up the OpenAlias in the address field. Returns null if the lookup
@@ -1254,7 +1255,7 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
       ref.refresh(pIsExchangeAddress);
     });
     hasFees = hasSendFee(coin);
-    if (hasFees && coin is! Xelis) {
+    if (hasFees && coin is! Xelis && coin is! Grin) {
       retryFeeOnFocusLoss([_cryptoFocus, _baseFocus]);
     }
 
@@ -2472,14 +2473,14 @@ class _SendViewState extends ConsumerState<SendView> with SendFeeForm {
                             const SizedBox(height: 12),
                             if (hasFees)
                               Text(
-                                coin is Xelis || hasCustomFee
+                                coin is Xelis || coin is Grin || hasCustomFee
                                     ? "Transaction fee"
                                     : "Transaction fee (estimated)",
                                 style: STextStyles.smallMed12(context),
                                 textAlign: TextAlign.left,
                               ),
                             if (hasFees) const SizedBox(height: 8),
-                            if (coin is Xelis)
+                            if (coin is Xelis || coin is Grin)
                               Padding(
                                 padding: const EdgeInsets.all(12),
                                 child: Text(

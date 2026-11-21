@@ -14,6 +14,7 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 
 import '../app_config.dart';
+import 'owner_only_directory.dart';
 import 'prefs.dart';
 import 'util.dart';
 
@@ -190,6 +191,19 @@ abstract class StackFileSystem {
       await dir.create();
     }
     return dir;
+  }
+
+  /// The absolute `<root>/grin` directory, owner only on unix desktop.
+  ///
+  /// The desktop data dir override can be relative, and the Grin library
+  /// takes relative paths as given, so this is always made absolute.
+  static Future<Directory> applicationGrinDirectory() async =>
+      await createOwnerOnlyDirectory(await applicationGrinDirectoryPath());
+
+  /// The path of [applicationGrinDirectory], without creating it.
+  static Future<String> applicationGrinDirectoryPath() async {
+    final root = await applicationRootDirectory();
+    return path.normalize(path.absolute(path.join(root.path, "grin")));
   }
 
   static Future<void> initThemesDir() async {

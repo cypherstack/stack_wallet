@@ -11,6 +11,7 @@ import '../../../utilities/enums/slatepack_method.dart';
 import '../../../utilities/slatepack_terms.dart';
 import '../../../utilities/logger.dart';
 import '../../crypto_currency/crypto_currency.dart';
+import '../../models/tx_data.dart';
 import '../wallet.dart';
 
 /// Slatepack exchange shared by the Mimblewimble coins. The slatepack
@@ -271,6 +272,40 @@ mixin SlatepackInterface<T extends CryptoCurrency> on Wallet<T> {
 
   /// Returns an empty String on success, error message on failure.
   Future<String> cancelPendingTransactionAndPost(String slateId);
+}
+
+/// Key in [TxData.otherData] that records the selected slatepack transport.
+const kSlatepackMethodKey = "transactionMethod";
+
+String slatepackMethodOtherData(SlatepackMethod method, {String? existing}) {
+  final data = <String, dynamic>{};
+  if (existing != null) {
+    try {
+      final decoded = jsonDecode(existing);
+      if (decoded is Map) {
+        data.addAll(decoded.cast<String, dynamic>());
+      }
+    } catch (_) {}
+  }
+  data[kSlatepackMethodKey] = method.name;
+  return jsonEncode(data);
+}
+
+extension SlatepackTxData on TxData {
+  SlatepackMethod? get slatepackMethod {
+    if (otherData == null) return null;
+    try {
+      final decoded = jsonDecode(otherData!);
+      if (decoded is Map) {
+        return SlatepackMethod.fromName(
+          decoded[kSlatepackMethodKey] as String?,
+        );
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  bool get isSlatepackSend => slatepackMethod == SlatepackMethod.slatepack;
 }
 
 /// Reads the small durable record written when a wallet creates an S1.

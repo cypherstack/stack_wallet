@@ -26,6 +26,7 @@ import '../../../../../utilities/logger.dart';
 import '../../../../../utilities/text_styles.dart';
 import '../../../../../utilities/util.dart';
 import '../../../../../wallets/wallet/impl/epiccash_wallet.dart';
+import '../../../../../wallets/wallet/impl/grin_wallet.dart';
 import '../../../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../../../../wallets/wallet/impl/xelis_wallet.dart';
 import '../../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
@@ -75,6 +76,10 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
           await wallet.init(isRestore: true);
           break;
 
+        case GrinWallet():
+          await wallet.init(isRestore: true);
+          break;
+
         default:
           await wallet.init();
       }
@@ -116,9 +121,9 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
       case StackRestoringStatus.waiting:
         return SvgPicture.asset(
           Assets.svg.loader,
-          color: Theme.of(
-            context,
-          ).extension<StackColors>()!.buttonBackSecondary,
+          color: Theme.of(context)
+              .extension<StackColors>()!
+              .buttonBackSecondary,
         );
       case StackRestoringStatus.restoring:
         return const LoadingIndicator();
@@ -195,16 +200,16 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                 ? Container(
                     height: 20,
                     decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.buttonBackSecondary,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .buttonBackSecondary,
                       borderRadius: BorderRadius.circular(1000),
                     ),
                     child: RawMaterialButton(
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      splashColor: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.highlight,
+                      splashColor: Theme.of(context)
+                          .extension<StackColors>()!
+                          .highlight,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(1000),
                       ),
@@ -227,9 +232,9 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                         child: Text(
                           "Show recovery phrase",
                           style: STextStyles.infoSmall(context).copyWith(
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.accentColorDark,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorDark,
                           ),
                         ),
                       ),
@@ -284,16 +289,16 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                   ? Container(
                       height: 20,
                       decoration: BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.buttonBackSecondary,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .buttonBackSecondary,
                         borderRadius: BorderRadius.circular(1000),
                       ),
                       child: RawMaterialButton(
                         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        splashColor: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.highlight,
+                        splashColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .highlight,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(1000),
                         ),
@@ -316,9 +321,9 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                           child: Text(
                             "Show recovery phrase",
                             style: STextStyles.infoSmall(context).copyWith(
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.accentColorDark,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorDark,
                             ),
                           ),
                         ),

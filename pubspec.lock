@@ -1309,6 +1309,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.2"
+  grin_native:
+    dependency: "direct main"
+    description:
+      path: "packages/grin_native"
+      ref: "5b56ce4f90b50be67154797cbfc1a401bd9ab778"
+      resolved-ref: "5b56ce4f90b50be67154797cbfc1a401bd9ab778"
+      url: "https://github.com/cypherstack/grin_native.git"
+    source: git
+    version: "0.1.0"
   grpc:
     dependency: transitive
     description:

@@ -38,6 +38,7 @@ import 'impl/epiccash_wallet.dart';
 import 'impl/ethereum_wallet.dart';
 import 'impl/fact0rn_wallet.dart';
 import 'impl/firo_wallet.dart';
+import 'impl/grin_wallet.dart';
 import 'impl/litecoin_wallet.dart';
 import 'impl/mimblewimblecoin_wallet.dart';
 import 'impl/monero_wallet.dart';
@@ -393,6 +394,9 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       case const (Firo):
         return FiroWallet(net);
+
+      case const (Grin):
+        return GrinWallet(net);
 
       case const (Litecoin):
         return LitecoinWallet(net);

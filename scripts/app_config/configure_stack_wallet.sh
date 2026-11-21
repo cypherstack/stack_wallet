@@ -31,7 +31,8 @@ dart "${APP_PROJECT_ROOT_DIR}/tool/process_pubspec_deps.dart" \
       EPIC \
       FIRO \
       XEL \
-      FROST
+      FROST \
+      GRIN
 
 dart "${APP_PROJECT_ROOT_DIR}/tool/gen_interfaces.dart" \
       "${APP_PROJECT_ROOT_DIR}/tool/wl_templates" \
@@ -45,7 +46,8 @@ dart "${APP_PROJECT_ROOT_DIR}/tool/gen_interfaces.dart" \
       EPIC \
       FIRO \
       XEL \
-      FROST
+      FROST \
+      GRIN
 
 
 MWEBD_EXE_SHA256=""
@@ -109,6 +111,7 @@ final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Ethereum(CryptoCurrencyNetwork.main),
   Fact0rn(CryptoCurrencyNetwork.main),
   Firo(CryptoCurrencyNetwork.main),
+  Grin(CryptoCurrencyNetwork.main),
   Litecoin(CryptoCurrencyNetwork.main),
   Mimblewimblecoin(CryptoCurrencyNetwork.main),
   Nano(CryptoCurrencyNetwork.main),

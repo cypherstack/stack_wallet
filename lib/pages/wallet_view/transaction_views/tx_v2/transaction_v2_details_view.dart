@@ -2072,10 +2072,12 @@ class _TxidDetailItemState extends ConsumerState<_TxidDetailItem> {
                             : STextStyles.itemSubtitle12(context),
                       ),
                       if (widget.coin is! Epiccash &&
-                          widget.coin is! Mimblewimblecoin)
+                          widget.coin is! Mimblewimblecoin &&
+                          widget.coin is! Grin)
                         const SizedBox(height: 8),
                       if (widget.coin is! Epiccash &&
-                          widget.coin is! Mimblewimblecoin)
+                          widget.coin is! Mimblewimblecoin &&
+                          widget.coin is! Grin)
                         CustomTextButton(
                           text: "Open in block explorer",
                           onTap: () async {
