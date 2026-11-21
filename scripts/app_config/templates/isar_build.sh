@@ -2,7 +2,7 @@
 
 find_isar_core_lib() {
     local isar_core_path
-    isar_core_path=$(find "${HOME}/.pub-cache/git" -type d -path "*/isar_core_ffi" -print -quit 2>/dev/null)
+    isar_core_path=$(find "${PUB_CACHE:-${HOME}/.pub-cache}/git" -type d -path "*/isar_core_ffi" -print -quit 2>/dev/null)
     [[ -z "${isar_core_path}" ]] && return 1
     echo "${isar_core_path}"
 }
@@ -77,13 +77,14 @@ build_isar_source() {
 
     local isar_core_path
     isar_core_path=$(find_isar_core_lib) || {
-        echo "Error: could not locate isar_core_ffi inside ~/.pub-cache/git."
+        echo "Error: could not locate isar_core_ffi inside ${PUB_CACHE:-~/.pub-cache}/git (run flutter pub get first)."
         return 1
     }
 
     echo "Found isar_core_ffi at: ${isar_core_path}"
 
-    local workspace_root=$(dirname $(dirname "${isar_core_path}"))
+    local workspace_root
+    workspace_root=$(dirname "$(dirname "${isar_core_path}")")
 
     build_isar_core "${isar_core_path}" "${workspace_root}" || return 1
 

@@ -12,9 +12,12 @@ for (( i=0; i<=1; i++ )); do
   fi
 done
 
-# Configure ios for Duo.
-sed -i '' "s/${APP_NAME_PLACEHOLDER}/${NEW_NAME}/g" "${APP_PROJECT_ROOT_DIR}/${IOS_TF_0}"
-sed -i '' "s/${APP_ID_PLACEHOLDER}/${NEW_APP_ID}/g" "${APP_PROJECT_ROOT_DIR}/${IOS_TF_1}"
+# Configure ios for Duo. `sed -i.bak` works with both BSD sed and the GNU sed
+# that the Nix dev shell puts on PATH; the backup is removed immediately.
+sed -i.bak "s/${APP_NAME_PLACEHOLDER}/${NEW_NAME}/g" "${APP_PROJECT_ROOT_DIR}/${IOS_TF_0}"
+rm -f "${APP_PROJECT_ROOT_DIR}/${IOS_TF_0}.bak"
+sed -i.bak "s/${APP_ID_PLACEHOLDER}/${NEW_APP_ID}/g" "${APP_PROJECT_ROOT_DIR}/${IOS_TF_1}"
+rm -f "${APP_PROJECT_ROOT_DIR}/${IOS_TF_1}.bak"
 
 # use app specific launch images
 LAUNCH_IMAGES_DIR="${APP_PROJECT_ROOT_DIR}/ios/Runner/Assets.xcassets/LaunchImage.imageset"

@@ -44,6 +44,11 @@ either mode.
 To switch modes, rerun `build_app.sh`. It regenerates `pubspec.yaml`, so keep
 permanent changes in `scripts/app_config/templates/pubspec.template.yaml`.
 
+The `Makefile` selects the mode by toolchain: on Apple Silicon macOS and
+Linux, `TOOLCHAIN=nix`/`direnv` defaults to source when `nix` is on `PATH`;
+`brew`, `host`, `manual` and Windows default to `PREBUILTS=1`
+(prebuilt). Any toolchain can pass `PREBUILTS=0` when `nix` is on `PATH`.
+
 ## Configuration options
 
 `-a`, `-p`, `-v` and `-b` are required:
@@ -53,8 +58,9 @@ permanent changes in `scripts/app_config/templates/pubspec.template.yaml`.
 | `-a` | `stack_wallet`, `stack_duo`, or `campfire` |
 | `-p` | `android`, `ios`, `macos`, `linux`, or `windows` |
 | `-v`, `-b` | App version and numeric build number |
-| `-d` | Verified dnix prebuilts; default is verified source builds |
+| `-d` | Verified dnix prebuilts; `build_app.sh` defaults to verified source builds |
 | `-i` | Skip the script's secure-storage and secp256k1 builds; native-assets hooks still run |
+| `-s` | Use the system libsecret/JsonCPP on Linux (CI); default builds them from source |
 | `-f` | Use the existing optional Isar source-build helper; requires its cached source and Rust |
 | `-w` | Set the dnix WSL distribution; overrides `DNIX_WSL_DISTRIBUTION` |
 | `-h` | Show help |
@@ -71,6 +77,10 @@ check explains how to use `-d` instead; `-d` still needs Rustup.
   component needs.
 - [Testing the build setup](building/testing.md): configuration tests, Linux
   bundle tests, Xelis integration tests, and checking Tor routing.
+- [Building with `make`](building/make.md): optional Makefile wrapper that runs
+  the same CI build steps.
+- [Make build flow](building/make-flow.md): the toolchain and build paths as
+  diagrams, kept in sync with the Makefile.
 
 ## Troubleshooting
 

@@ -1,6 +1,15 @@
 # syntax=docker/dockerfile:1.7
 FROM ubuntu:24.04 AS full
 
+# Toolchain versions come from stack-bom.toml (the single source of truth), read
+# with the pure-bash scripts/bom_values.sh. The Go sha256 stays hardcoded as an
+# integrity pin: bumping the BOM Go version without updating it fails the build
+# loudly, which is the point. This COPY + the two ARG-free RUN reads below are
+# repeated in the android and test stages because sibling FROM stages cannot
+# share ARGs.
+COPY stack-bom.toml /bom/stack-bom.toml
+COPY scripts/bom_values.sh /bom/bom_values.sh
+
 ENV DEBIAN_FRONTEND=noninteractive \
     TZ=Etc/UTC \
     LANG=C.UTF-8 \
@@ -73,7 +82,11 @@ RUN mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools" \
 
 ENV PATH=/usr/local/go/bin:$PATH
 
-RUN curl -fsSL https://go.dev/dl/go1.24.13.linux-amd64.tar.gz -o /tmp/go.tar.gz \
+# Go version from stack-bom.toml; the sha256 below is an integrity pin that must
+# be updated in lockstep when the BOM go version changes.
+RUN GO_VERSION="$(BOM_FILE=/bom/stack-bom.toml bash /bom/bom_values.sh --get go)" \
+ && echo "Installing Go $GO_VERSION (sha256 pinned below)" \
+ && curl -fsSL "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" -o /tmp/go.tar.gz \
  && echo "1fc94b57134d51669c72173ad5d49fd62afb0f1db9bf3f798fd98ee423f8d730  /tmp/go.tar.gz" | sha256sum -c \
  && tar -C /usr/local -xzf /tmp/go.tar.gz \
  && rm /tmp/go.tar.gz
@@ -81,7 +94,10 @@ RUN curl -fsSL https://go.dev/dl/go1.24.13.linux-amd64.tar.gz -o /tmp/go.tar.gz 
 ENV FLUTTER_HOME=/opt/flutter \
     PATH=/opt/flutter/bin:/opt/flutter/bin/cache/dart-sdk/bin:$PATH
 
-RUN git clone --depth 1 --branch 3.47.2 https://github.com/flutter/flutter.git "$FLUTTER_HOME" \
+# Flutter branch from stack-bom.toml.
+RUN FLUTTER_VERSION="$(BOM_FILE=/bom/stack-bom.toml bash /bom/bom_values.sh --get flutter)" \
+ && echo "Cloning Flutter $FLUTTER_VERSION" \
+ && git clone --depth 1 --branch "$FLUTTER_VERSION" https://github.com/flutter/flutter.git "$FLUTTER_HOME" \
  && git config --global --add safe.directory '*' \
  && flutter config --no-analytics \
  && flutter precache --linux --android \
@@ -95,6 +111,9 @@ RUN flutter --version && rustup --version && node --version && go version
 # Android-only image: no Linux cross-compilers or OpenCV/OpenCL;
 # Rust toolchains and targets are installed by hooks at runtime.
 FROM ubuntu:24.04 AS android
+
+COPY stack-bom.toml /bom/stack-bom.toml
+COPY scripts/bom_values.sh /bom/bom_values.sh
 
 ENV DEBIAN_FRONTEND=noninteractive \
     TZ=Etc/UTC \
@@ -158,7 +177,11 @@ RUN mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools" \
 
 ENV PATH=/usr/local/go/bin:$PATH
 
-RUN curl -fsSL https://go.dev/dl/go1.24.13.linux-amd64.tar.gz -o /tmp/go.tar.gz \
+# Go version from stack-bom.toml; the sha256 below is an integrity pin that must
+# be updated in lockstep when the BOM go version changes.
+RUN GO_VERSION="$(BOM_FILE=/bom/stack-bom.toml bash /bom/bom_values.sh --get go)" \
+ && echo "Installing Go $GO_VERSION (sha256 pinned below)" \
+ && curl -fsSL "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" -o /tmp/go.tar.gz \
  && echo "1fc94b57134d51669c72173ad5d49fd62afb0f1db9bf3f798fd98ee423f8d730  /tmp/go.tar.gz" | sha256sum -c \
  && tar -C /usr/local -xzf /tmp/go.tar.gz \
  && rm /tmp/go.tar.gz
@@ -166,7 +189,10 @@ RUN curl -fsSL https://go.dev/dl/go1.24.13.linux-amd64.tar.gz -o /tmp/go.tar.gz 
 ENV FLUTTER_HOME=/opt/flutter \
     PATH=/opt/flutter/bin:/opt/flutter/bin/cache/dart-sdk/bin:$PATH
 
-RUN git clone --depth 1 --branch 3.47.2 https://github.com/flutter/flutter.git "$FLUTTER_HOME" \
+# Flutter branch from stack-bom.toml.
+RUN FLUTTER_VERSION="$(BOM_FILE=/bom/stack-bom.toml bash /bom/bom_values.sh --get flutter)" \
+ && echo "Cloning Flutter $FLUTTER_VERSION" \
+ && git clone --depth 1 --branch "$FLUTTER_VERSION" https://github.com/flutter/flutter.git "$FLUTTER_HOME" \
  && git config --global --add safe.directory '*' \
  && flutter config --no-analytics \
  && flutter precache --android \
@@ -179,6 +205,9 @@ RUN flutter --version && rustup --version && go version
 
 # Image for flutter test (no Android SDK or cross-compilers)
 FROM ubuntu:24.04 AS test
+
+COPY stack-bom.toml /bom/stack-bom.toml
+COPY scripts/bom_values.sh /bom/bom_values.sh
 
 ENV DEBIAN_FRONTEND=noninteractive \
     TZ=Etc/UTC \
@@ -205,7 +234,11 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
 
 ENV PATH=/usr/local/go/bin:$PATH
 
-RUN curl -fsSL https://go.dev/dl/go1.24.13.linux-amd64.tar.gz -o /tmp/go.tar.gz \
+# Go version from stack-bom.toml; the sha256 below is an integrity pin that must
+# be updated in lockstep when the BOM go version changes.
+RUN GO_VERSION="$(BOM_FILE=/bom/stack-bom.toml bash /bom/bom_values.sh --get go)" \
+ && echo "Installing Go $GO_VERSION (sha256 pinned below)" \
+ && curl -fsSL "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" -o /tmp/go.tar.gz \
  && echo "1fc94b57134d51669c72173ad5d49fd62afb0f1db9bf3f798fd98ee423f8d730  /tmp/go.tar.gz" | sha256sum -c \
  && tar -C /usr/local -xzf /tmp/go.tar.gz \
  && rm /tmp/go.tar.gz
@@ -213,7 +246,10 @@ RUN curl -fsSL https://go.dev/dl/go1.24.13.linux-amd64.tar.gz -o /tmp/go.tar.gz 
 ENV FLUTTER_HOME=/opt/flutter \
     PATH=/opt/flutter/bin:/opt/flutter/bin/cache/dart-sdk/bin:$PATH
 
-RUN git clone --depth 1 --branch 3.47.2 https://github.com/flutter/flutter.git "$FLUTTER_HOME" \
+# Flutter branch from stack-bom.toml.
+RUN FLUTTER_VERSION="$(BOM_FILE=/bom/stack-bom.toml bash /bom/bom_values.sh --get flutter)" \
+ && echo "Cloning Flutter $FLUTTER_VERSION" \
+ && git clone --depth 1 --branch "$FLUTTER_VERSION" https://github.com/flutter/flutter.git "$FLUTTER_HOME" \
  && git config --global --add safe.directory '*' \
  && flutter config --no-analytics \
  && flutter precache --linux \

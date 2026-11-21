@@ -48,3 +48,54 @@ Highlights include:
 ## Building
 
 You can look at the [build instructions](docs/building.md) for more details.
+On Apple Silicon macOS, the **Nix dev shell** is the primary *host* toolchain;
+Homebrew and manual installs are supported fallbacks. dnix builds the four native
+libraries from source under Nix/direnv and verifies the prebuilts otherwise.
+`make build-macos` is the same target in every mode, and `make toolchain`
+shows which host environment your shell is using.
+
+### macOS with Nix (recommended; Apple Silicon)
+
+1. Enter the flake environment:
+   - `make bootstrap` (runs `nix develop`), or
+   - `nix develop` directly, or
+   - `direnv allow` once, if you use direnv with the included `.envrc`.
+2. Check the Xcode requirement. Source builds are the default in Nix/direnv
+   on Apple Silicon and need Xcode **27.0** (build 27A266a); if Xcode 27.0
+   is not installed, pass `PREBUILTS=1`. `make bootstrap-xcode` selects an
+   installed full Xcode and `make verify-bom` checks the host.
+3. Run build (pass the release version and a build number; `make` refuses to
+   guess):
+   - `make build-macos VERSION=x.y.z BUILD_NUM=nnn`
+   - Add `CONFIRM=1` for a non-interactive run.
+
+The flake provides Flutter, Dart, rustup (which installs the BOM Rust version
+on first entry), Go, CMake, Meson, Ninja, pkg-config and protoc. Xcode is never provided
+by Nix; the flake uses the Xcode selected by `xcode-select`.
+
+### macOS with Homebrew (prebuilt only)
+
+Use this when you are not building through Nix/flake. Source builds require a
+Nix/direnv shell; Homebrew/manual builds use the verified dnix prebuilts.
+
+1. With Homebrew installed, install the host tools:
+   - `brew install autoconf automake libtool cmake cocoapods go meson ninja pkg-config protobuf`
+   - `rustup toolchain install` the BOM Rust version (see `stack-bom.toml`).
+2. Run build:
+   - `make build-macos VERSION=x.y.z BUILD_NUM=nnn PREBUILTS=1`
+   - Add `CONFIRM=1` for a non-interactive run.
+
+`PREBUILTS=1` is required with Homebrew/manual: those toolchains cannot build
+the four dnix libraries from source. It uses the verified prebuilts and needs
+no Nix for them. `make bootstrap-macos` installs Nix (if missing) and checks/
+selects the full Xcode.app (Xcode is never provided by Nix or Homebrew).
+
+### macOS with a manual toolchain (advanced)
+
+Install the prerequisites from [Building on macOS](docs/building/macos.md)
+yourself, then run
+`make build-macos VERSION=x.y.z BUILD_NUM=nnn PREBUILTS=1`.
+Manual builds default to `PREBUILTS=1`. Pass `PREBUILTS=0` when `nix` is on
+`PATH` to build the dnix libraries from source. `make check-reqs-macos` reports
+what is missing (`make check-sdk-macos` checks full Xcode); `TOOLCHAIN=manual`
+makes the choice explicit.

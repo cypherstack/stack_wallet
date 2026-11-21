@@ -3,21 +3,45 @@
 These steps build the macOS and iOS apps on a Mac with Apple Silicon. For how
 the build fits together, see the [overview](../building.md).
 
+## Toolchains
+
+Source builds require a Nix/direnv shell; the manual/Homebrew path below is
+for **prebuilt** builds (`PREBUILTS=1`) only. The same build is also available
+through Nix:
+
+| Mode | Setup |
+|---|---|
+| Nix | `make bootstrap` (enters `nix develop`) |
+| direnv | `direnv allow` |
+| Manual / Homebrew | `make bootstrap-macos` (installs Nix + selects Xcode); use `PREBUILTS=1` |
+
+With Nix or direnv the flake supplies Flutter, Dart, rustup (which installs
+the BOM Rust version on first entry), Go, CMake, Meson, Ninja, pkg-config and protoc.
+Xcode always comes from the host. The prerequisites below describe the
+manual/Homebrew (prebuilt) path.
+
 ## Prerequisites
 
 | What | Needed for |
 |---|---|
-| [Flutter](https://docs.flutter.dev/install/manual) 3.47.2 | Every build |
-| Your usual Xcode | Building the app, in both modes |
-| Xcode **27.0**, release build **27A266a**, installed next to your usual Xcode | Source mode, the default: dnix builds its four packages with it, including during `flutter test`. It doesn't need to be selected; see [Install Xcode 27.0](#install-xcode-270) |
-| [Homebrew](https://brew.sh/) packages below | Every build |
-| [Rustup](https://rustup.rs/) | Every app, in both modes |
-| [Go](https://go.dev/doc/install) 1.24.1 or newer | Stack Wallet |
-| [Nix](https://nixos.org/download/) | Source mode, the default; not needed with `-d` |
+| [Flutter](https://docs.flutter.dev/install/manual) 3.47.2 | Manual and Homebrew modes |
+| Xcode 27.0 | Building the app, in both dnix modes |
+| Xcode **27.0**, release build **27A266a**, installed next to your usual Xcode | Source mode (dnix) with Nix/direnv on Apple Silicon: dnix builds its four packages with it, including during `flutter test`. It doesn't need to be selected; see [Install Xcode 27.0](#install-xcode-270) |
+| [Homebrew](https://brew.sh/) packages below | Manual and Homebrew modes |
+| [Rustup](https://rustup.rs/) | Manual and Homebrew modes, in both dnix modes |
+| [Go](https://go.dev/doc/install) 1.24.1 or newer | Stack Wallet, manual and Homebrew modes |
+| [Nix](https://nixos.org/download/) | Source mode (dnix) needs `nix` on `PATH`; not needed with `-d` |
 
 ```sh
-brew install autoconf automake libtool cmake cocoapods pkg-config
+RUST_BOM="$(scripts/bom_values.sh --get rust)"
+brew install autoconf automake libtool cmake cocoapods go meson ninja pkg-config protobuf
+rustup toolchain install 1.90.0 "$RUST_BOM"
+rustup target add --toolchain "$RUST_BOM" aarch64-apple-darwin x86_64-apple-darwin \
+  aarch64-apple-ios aarch64-apple-ios-sim
 ```
+
+Homebrew and manual toolchains default to `PREBUILTS=1`. Pass `PREBUILTS=0`
+when `nix` is on `PATH` to build the dnix libraries from source.
 
 Check `nix --version` from the same environment that runs Flutter, and use
 `flutter doctor` to check the Apple SDK and CocoaPods setup. iOS device builds
@@ -107,7 +131,7 @@ Run the configuration and Flutter build commands in that shell.
 2. Configure and build the macOS app:
 
    ```sh
-   bash scripts/build_app.sh -a stack_wallet -p macos -v 1.2.3 -b 123
+   bash scripts/build_app.sh -a stack_wallet -p macos -v 1.2.3 -b 123 -d
    flutter pub get
    dart tool/check_native_overrides.dart stack_wallet
    flutter build macos --release
@@ -116,8 +140,9 @@ Run the configuration and Flutter build commands in that shell.
    For iOS, configure with `-p ios` and build with `flutter build ios --release`.
 
 Use the version and build number for your checkout, and read the script's
-confirmation before continuing. Add `-d` to the configuration command to use
-verified dnix prebuilts. See the
+confirmation before continuing. `-d` selects the verified dnix prebuilts and
+is required when `nix` is not on `PATH`. Omit `-d` when `nix` is available to
+build from source; see the
 [configuration options](../building.md#configuration-options). The override
 check catches package-local dnix overrides; see
 [Local overrides](native-libraries.md#local-overrides).

@@ -41,7 +41,6 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          submodules: recursive
 
       # -d selects verified dnix prebuilts for Frost, Tor, Epic and MWC.
       # -s (CI only) skips building jsoncpp and libsecret; the image has them.
@@ -70,6 +69,14 @@ jobs:
         run: |
           flutter pub get
           dart tool/check_native_overrides.dart stack_wallet
+
+      - name: Verify BOM
+        run: |
+          rustup toolchain install \
+            "$(bash scripts/bom_values.sh --get rust)" \
+            "$(bash scripts/bom_values.sh --get dnssec_rust)" \
+            --profile minimal --no-self-update
+          make verify-bom
 
       - name: Decode secrets
         env:
@@ -108,6 +115,10 @@ jobs:
 #        run: flutter analyze
       - name: Test build scripts
         run: dart scripts/tests/build_input_test.dart
+      - name: Test BOM values validator
+        run: dart scripts/tests/bom_values_test.dart
+      - name: Test BOM parser
+        run: dart scripts/tests/verify_bom_parser_test.dart
       - name: Test native build configuration
         run: dart scripts/tests/native_build_config_test.dart
       - name: Test native settings and dependency contracts
@@ -134,3 +145,59 @@ jobs:
         with:
           token: ${{secrets.CODECOV_TOKEN}}
           file: coverage/lcov.info
+
+  make-check:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check the Makefile dry-runs
+        run: |
+          bash scripts/bom_values.sh --check
+          if grep -nE '^[^#]*\$\(MAKE\)|^[[:space:]]*\+' Makefile; then
+            echo 'Makefile uses a construct that runs even under make -n' >&2
+            exit 1
+          fi
+          make help
+          make -n build-macos PLATFORM=Darwin VERSION=0.0.0 BUILD_NUM=1
+          make -n build-linux PLATFORM=Linux VERSION=0.0.0 BUILD_NUM=1
+          make -n build-windows PLATFORM=MINGW64_NT-10.0 VERSION=0.0.0 BUILD_NUM=1
+          make -n build-android PLATFORM=Darwin VERSION=0.0.0 BUILD_NUM=1
+          make -n build-ios PLATFORM=Darwin VERSION=0.0.0 BUILD_NUM=1
+          if make -n build-macos PLATFORM=Darwin TOOLCHAIN=brew PREBUILTS=0 VERSION=0.0.0 BUILD_NUM=1 >/dev/null 2>&1; then
+            echo 'brew source mode must fail' >&2
+            exit 1
+          fi
+          if make -n build-linux PLATFORM=Linux TOOLCHAIN=host PREBUILTS=0 VERSION=0.0.0 BUILD_NUM=1 >/dev/null 2>&1; then
+            echo 'host source mode must fail' >&2
+            exit 1
+          fi
+          if make -n build-android PLATFORM=Linux UNAME_M=x86_64 TOOLCHAIN=host ANDROID_PREBUILTS=0 VERSION=0.0.0 BUILD_NUM=1 >/dev/null 2>&1; then
+            echo 'host Android source mode must fail' >&2
+            exit 1
+          fi
+      # require-version must actually RUN (not just dry-run): a broken recipe
+      # regex is invisible to `make -n` because dry-run never executes recipes.
+      # This executed the recipe and would have caught the require-version shell
+      # parse error (unescaped \$ anchor) that broke every real build target.
+      - name: require-version recipe executes (valid passes, invalid fails)
+        run: |
+          # require-version must actually RUN (not just dry-run): a broken recipe
+          # regex is invisible to `make -n` because dry-run never executes
+          # recipes. This would have caught the require-version shell parse error
+          # (unescaped \$ anchor) that broke every real build target.
+          # Use the current latest build_* tag as BUILD_NUM so the valid case is
+          # not rejected by the 'BUILD_NUM below latest tag' guard — we are
+          # isolating the regex/parse behavior, not the release-tag rule.
+          build_num="$$(git tag -l 'build_*' --sort=-v:refname 2>/dev/null | sed -n 's/^build_\([0-9][0-9]*\)$$/\1/p' | head -n1)"
+          build_num="${build_num:-1}"
+          # Valid VERSION/BUILD_NUM must pass the recipe (exit 0), proving the
+          # grep anchors are correctly escaped ($$ -> $) and no shell parse error.
+          make require-version VERSION=0.0.0 BUILD_NUM="$$build_num" >/dev/null 2>&1 \
+            || { echo "require-version rejected a valid VERSION/BUILD_NUM ($$build_num)" >&2; exit 1; }
+          # Invalid inputs must be rejected with a non-zero exit.
+          make require-version VERSION=not-a-version BUILD_NUM="$$build_num" 2>/dev/null \
+            && { echo 'require-version accepted an invalid VERSION' >&2; exit 1; }
+          make require-version VERSION=0.0.0 BUILD_NUM=not-a-number 2>/dev/null \
+            && { echo 'require-version accepted a non-numeric BUILD_NUM' >&2; exit 1; }

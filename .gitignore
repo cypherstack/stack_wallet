@@ -35,6 +35,9 @@ Microsoft.Windows*
 android/app/.cxx
 android/build/
 
+# Nix / direnv / project-local toolchain state
+.direnv/
+
 # Web related
 lib/generated_plugin_registrant.dart
 
@@ -120,3 +123,14 @@ lib/wl_gen/generated/
 
 /assets/windows/mwebd.exe
 /tool/build
+/.cargo/config.toml
+/scripts/linux/pc/
+
+# Android local signing
+/android/key.properties
+/android/dev-keystore.jks
+/android/keystore.jks
+/android/keystore-orig.jks
+
+# Benchmark results (per-machine CSVs; see bm/README.md)
+/bm/results/

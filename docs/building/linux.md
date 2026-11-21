@@ -11,13 +11,19 @@ These steps build the Linux desktop app and the Android app on Ubuntu 24.04
 | The [Ubuntu packages](#ubuntu-packages) below | Every build |
 | [Rustup](https://rustup.rs/) | Every app, in both modes |
 | [Go](https://go.dev/doc/install) 1.24.1 or newer | Stack Wallet |
-| [Nix](https://nixos.org/download/) | Source mode, the default; not needed with `-d` |
+| [Nix](https://nixos.org/download/) | Source mode (`PREBUILTS=0`); not needed with `-d` |
 | The [Android tools](#android-tools) below | Android builds |
+
+Source mode needs `nix` on `PATH`; without Nix, use `PREBUILTS=1` (prebuilt).
+
+A bundle built inside the Nix shell links against Nix's glibc and uses a
+`/nix/store` ELF interpreter and RUNPATH, so it runs only on that machine. Use
+the Ubuntu image or a host toolchain for a distributable Linux bundle.
 
 **Rustup:** every app builds its DNSSEC resolver with Rust **1.90.0**, and
 Stack Wallet builds Xelis with Rust **1.99.1**. The build hooks install these
-toolchains on first use. To install DNSSEC's ahead of time, run
-`rustup toolchain install 1.90.0`.
+toolchains on first use. To install both ahead of time, run
+`rustup toolchain install 1.90.0 1.99.1`.
 
 **Nix:** check `nix --version` from the same environment that runs Flutter.
 dnix enables the Nix flake features it needs when it invokes Nix.
@@ -27,7 +33,7 @@ dnix enables the Nix flake features it needs when it invokes Nix.
 ```sh
 sudo apt-get update
 sudo apt-get install build-essential clang cmake ninja-build pkg-config \
-  git curl unzip xz-utils python3 libgtk-3-dev liblzma-dev libssl-dev \
+  git curl unzip xz-utils python3 protobuf-compiler patchelf libgtk-3-dev liblzma-dev libssl-dev \
   libjsoncpp-dev libsecret-1-dev
 ```
 
@@ -46,6 +52,13 @@ Flutter requires. The app pins NDK **28.2.13676358** in its Android template;
 install it through SDK Manager. Then run `flutter doctor --android-licenses`
 and `flutter doctor`. The app supports Android API 24 and newer.
 
+On NixOS, enable `programs.nix-ld.enable = true`: the NDK and CMake binaries
+distributed by Google are generic Linux executables. The nixpkgs Flutter SDK
+is also read-only, and Gradle needs to write inside the `integration_test`
+plugin project in that SDK. Without a writable Flutter checkout, build in
+`ghcr.io/<owner>/stackwallet-ci:android` (built with
+`docker build --target android .`).
+
 ## Build
 
 1. Clone the repository and create the stubs:
@@ -59,7 +72,7 @@ and `flutter doctor`. The app supports Android API 24 and newer.
 2. Configure and build the Linux app:
 
    ```sh
-   bash scripts/build_app.sh -a stack_wallet -p linux -v 1.2.3 -b 123
+   bash scripts/build_app.sh -a stack_wallet -p linux -v 1.2.3 -b 123 -d
    flutter pub get
    dart tool/check_native_overrides.dart stack_wallet
    flutter build linux --release
@@ -71,12 +84,9 @@ and `flutter doctor`. The app supports Android API 24 and newer.
    `keyPassword`, `storeFile` and `storePassword`.
 
 Use the version and build number for your checkout, and read the script's
-confirmation before continuing. Add `-d` to the configuration command to use
-verified dnix prebuilts:
-
-```sh
-bash scripts/build_app.sh -a stack_wallet -p linux -v 1.2.3 -b 123 -d
-```
+confirmation before continuing. The command above uses `-d` (verified dnix
+prebuilts). Omit `-d` when `nix` is on `PATH` to build those libraries from
+source.
 
 See the [configuration options](../building.md#configuration-options). The
 override check catches package-local dnix overrides; see
@@ -92,7 +102,7 @@ Enable KVM for hardware-accelerated emulation.
 skipped it, run `(cd scripts/linux && bash build_secp256k1.sh)` before starting
 the app.
 
-Android source builds through dnix need an x86_64 Linux host.
+Android source builds through dnix need an x86_64 Linux host in Nix/direnv.
 
 ## Prepare a release bundle
 
