@@ -18,6 +18,7 @@ import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../wallets/crypto_currency/coins/firo.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../widgets/hideable_balance.dart';
 
 class DualBalanceSelectionSheet extends ConsumerStatefulWidget {
   const DualBalanceSelectionSheet({super.key, required this.walletId});
@@ -148,24 +149,30 @@ class _FiroBalanceSelectionSheetState
                                   textAlign: TextAlign.left,
                                 ),
                                 const SizedBox(width: 2),
-                                Text(
-                                  ref
-                                      .watch(pAmountFormatter(coin))
-                                      .format(
-                                        ref
-                                            .watch(
-                                              coin is Firo
-                                                  ? pWalletBalanceTertiary(
-                                                      walletId,
-                                                    )
-                                                  : pWalletBalanceSecondary(
-                                                      walletId,
-                                                    ),
-                                            )
-                                            .spendable,
-                                      ),
-                                  style: STextStyles.itemSubtitle(context),
-                                  textAlign: TextAlign.left,
+                                HideableBalance(
+                                  iconColor: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .infoItemLabel,
+                                  iconSize: 16,
+                                  child: Text(
+                                    ref
+                                        .watch(pAmountFormatter(coin))
+                                        .format(
+                                          ref
+                                              .watch(
+                                                coin is Firo
+                                                    ? pWalletBalanceTertiary(
+                                                        walletId,
+                                                      )
+                                                    : pWalletBalanceSecondary(
+                                                        walletId,
+                                                      ),
+                                              )
+                                              .spendable,
+                                        ),
+                                    style: STextStyles.itemSubtitle(context),
+                                    textAlign: TextAlign.left,
+                                  ),
                                 ),
                               ],
                             ),
@@ -238,16 +245,22 @@ class _FiroBalanceSelectionSheetState
                                   textAlign: TextAlign.left,
                                 ),
                                 const SizedBox(width: 2),
-                                Text(
-                                  ref
-                                      .watch(pAmountFormatter(coin))
-                                      .format(
-                                        ref
-                                            .watch(pWalletBalance(walletId))
-                                            .spendable,
-                                      ),
-                                  style: STextStyles.itemSubtitle(context),
-                                  textAlign: TextAlign.left,
+                                HideableBalance(
+                                  iconColor: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .infoItemLabel,
+                                  iconSize: 16,
+                                  child: Text(
+                                    ref
+                                        .watch(pAmountFormatter(coin))
+                                        .format(
+                                          ref
+                                              .watch(pWalletBalance(walletId))
+                                              .spendable,
+                                        ),
+                                    style: STextStyles.itemSubtitle(context),
+                                    textAlign: TextAlign.left,
+                                  ),
                                 ),
                               ],
                             ),
