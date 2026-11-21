@@ -28,8 +28,19 @@ fi
 mkdir -p ../../../../../build
 cp "$SECP_SO" ../../../../../build/libsecp256k1.so
 
-# Do not copy into coinlib's output folder
-# (build/linux/<arch>/release/secp256k1/lib). coinlib builds its own pinned
-# libsecp256k1 there; overwriting it made a rebuilt bundle ship a different
-# version than a clean build. If that library is missing on a host, fix the
-# coinlib build instead of patching its output from here.
+# The coinlib CMake install step expects the library inside Flutter's build
+# tree (build/linux/<arch>/release/secp256k1/lib). On a clean checkout nothing
+# else puts it there, and the install step fails with "file INSTALL cannot
+# find .../secp256k1/lib/libsecp256k1.so". Provide it, but never overwrite a
+# library that is already there: a rebuild must keep shipping the same one.
+# Match Flutter's architecture directory name (x64, arm64).
+case "$(uname -m)" in
+    x86_64|x64) FLUTTER_ARCH=x64 ;;
+    aarch64|arm64) FLUTTER_ARCH=arm64 ;;
+    *) FLUTTER_ARCH="$(uname -m)" ;;
+esac
+COINLIB_SECP_DIR="../../../../../build/linux/${FLUTTER_ARCH}/release/secp256k1/lib"
+mkdir -p "$COINLIB_SECP_DIR"
+if [ ! -e "$COINLIB_SECP_DIR/libsecp256k1.so" ]; then
+    cp "$SECP_SO" "$COINLIB_SECP_DIR/libsecp256k1.so"
+fi

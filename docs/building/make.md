@@ -72,7 +72,7 @@ uses the host tools on PATH (manual or host), which Homebrew can supply.
 
 | Mode | Setup | Notes |
 |---|---|---|
-| Nix | `make bootstrap` (enters `nix develop`) | The flake provides Flutter and Go from its pinned nixpkgs (currently Flutter 3.47.2, matching the BOM, and Go 1.26.7; the BOM's `go` is the CI/Docker pin), Dart, rustup (which installs the BOM Rust version on first entry), CMake, Meson, Ninja, pkg-config and protoc. Xcode always comes from the host. |
+| Nix | `make bootstrap` (enters `nix develop`) | The flake provides Flutter and Go from its pinned nixpkgs (currently Flutter 3.47.4 and Go 1.26.7; the BOM recommends Flutter 3.47.2 and pins Go 1.24.13 for CI/Docker, so `make verify-bom` prints a warning for Flutter, not a failure, because 3.47.4 is above the 3.47.2 minimum), Dart, rustup (which installs the BOM Rust version on first entry), CMake, Meson, Ninja, pkg-config and protoc. Xcode always comes from the host. |
 | direnv | `direnv allow` | The same flake as Nix, loaded automatically. |
 | Manual / Homebrew | install the tools yourself (Homebrew for the prebuilt path) | Source builds are not available without Nix. Use `PREBUILTS=1` with the verified dnix prebuilts; Homebrew can install the tooling (Flutter, Rust, Go, CocoaPods, sccache, …). `make check-reqs-macos` reports what is missing. |
 
