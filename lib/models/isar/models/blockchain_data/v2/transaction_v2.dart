@@ -111,6 +111,27 @@ class TransactionV2 {
   bool get isCancelled =>
       _getFromOtherData(key: TxV2OdKeys.isCancelled) == true;
 
+  @ignore
+  bool get hasPartialMetadata =>
+      _getFromOtherData(key: TxV2OdKeys.metadataStatus) ==
+      TxV2OdKeys.metadataStatusPartial;
+
+  @ignore
+  List<String> get missingMetadata {
+    final value = _getFromOtherData(key: TxV2OdKeys.missingMetadata);
+    return value is List
+        ? List<String>.unmodifiable(value.whereType<String>())
+        : const [];
+  }
+
+  bool isMetadataMissing(String field) => missingMetadata.contains(field);
+
+  @ignore
+  BigInt? get walletNetAmountRaw {
+    final value = _getFromOtherData(key: TxV2OdKeys.walletNetAmountRaw);
+    return value is String ? BigInt.tryParse(value) : null;
+  }
+
   String? get contractAddress =>
       _getFromOtherData(key: TxV2OdKeys.contractAddress) as String?;
   int? get nonce => _getFromOtherData(key: TxV2OdKeys.nonce) as int?;
@@ -421,4 +442,8 @@ abstract final class TxV2OdKeys {
   static const salviumTypeInt = "salviumTypeInt";
   static const salviumTypeString = "salviumTypeString";
   static const memo = "onChainMemo";
+  static const metadataStatus = "metadataStatus";
+  static const metadataStatusPartial = "partial";
+  static const missingMetadata = "missingMetadata";
+  static const walletNetAmountRaw = "walletNetAmountRaw";
 }

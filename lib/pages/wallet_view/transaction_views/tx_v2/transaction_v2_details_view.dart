@@ -93,7 +93,8 @@ class _TransactionV2DetailsViewState
 
   late final CryptoCurrency coin;
   late final Amount amount;
-  late final Amount fee;
+  late final bool amountKnown;
+  late final Amount? fee;
   late final String amountPrefix;
   late final String unit;
   late final int minConfirms;
@@ -110,6 +111,10 @@ class _TransactionV2DetailsViewState
   String? _sparkMemo;
 
   bool _boostButtonLock = false;
+
+  String get _dateText => _transaction.isMetadataMissing('timestamp')
+      ? 'Unknown'
+      : Format.extractDateFrom(_transaction.timestamp);
   Future<void> _boostPressed() async {
     final wallet = ref.read(pWallets).getWallet(walletId);
     if (_boostButtonLock || wallet is! RbfInterface) {
@@ -246,7 +251,9 @@ class _TransactionV2DetailsViewState
 
     final fractionDigits = tokenContract?.decimals ?? coin.fractionDigits;
 
-    fee = _transaction.getFee(fractionDigits: fractionDigits);
+    fee = _transaction.isMetadataMissing('fee')
+        ? null
+        : _transaction.getFee(fractionDigits: fractionDigits);
 
     if (_transaction.subType == TransactionSubType.cashFusion ||
         _transaction.type == TransactionType.sentToSelf) {
@@ -255,7 +262,20 @@ class _TransactionV2DetailsViewState
       amountPrefix = _transaction.type == TransactionType.outgoing ? "-" : "+";
     }
 
-    if (_transaction.isEpiccashTransaction) {
+    final knownWalletNet = _transaction.walletNetAmountRaw;
+    if (_transaction.hasPartialMetadata && knownWalletNet == null) {
+      amountKnown = false;
+      amount = Amount.zeroWith(fractionDigits: fractionDigits);
+      data = const [];
+    } else if (knownWalletNet != null) {
+      amountKnown = true;
+      amount = Amount(
+        rawValue: knownWalletNet.abs(),
+        fractionDigits: fractionDigits,
+      );
+      data = const [];
+    } else if (_transaction.isEpiccashTransaction) {
+      amountKnown = true;
       switch (_transaction.type) {
         case TransactionType.outgoing:
         case TransactionType.unknown:
@@ -284,6 +304,7 @@ class _TransactionV2DetailsViewState
           )
           .toList();
     } else if (_transaction.subType == TransactionSubType.cashFusion) {
+      amountKnown = true;
       amount = _transaction.getAmountReceivedInThisWallet(
         fractionDigits: fractionDigits,
       );
@@ -300,6 +321,7 @@ class _TransactionV2DetailsViewState
           )
           .toList();
     } else if (_transaction.isMimblewimblecoinTransaction) {
+      amountKnown = true;
       switch (_transaction.type) {
         case TransactionType.outgoing:
         case TransactionType.unknown:
@@ -328,6 +350,7 @@ class _TransactionV2DetailsViewState
           )
           .toList();
     } else {
+      amountKnown = true;
       switch (_transaction.type) {
         case TransactionType.outgoing:
           amount = _transaction.getAmountSentFromThisWallet(
@@ -482,7 +505,9 @@ class _TransactionV2DetailsViewState
 
     final String outputLabel;
 
-    if (_transaction.subType == TransactionSubType.cashFusion) {
+    if (data.isEmpty && _transaction.hasPartialMetadata) {
+      outputLabel = "Transaction data";
+    } else if (_transaction.subType == TransactionSubType.cashFusion) {
       outputLabel = "Outputs";
     } else if (_transaction.type == TransactionType.incoming) {
       if (data.length == 1 && data.first.addresses.length == 1) {
@@ -606,6 +631,7 @@ class _TransactionV2DetailsViewState
                                 coin: coin,
                                 whatIsIt: whatIsIt,
                                 amount: amount,
+                                amountKnown: amountKnown,
                                 price: price,
                                 labelStyle: labelStyle,
                                 detailStyle: detailStyle,
@@ -752,7 +778,14 @@ class _TransactionV2DetailsViewState
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
                                               children: [
-                                                if (data.length == 1 &&
+                                                if (data.isEmpty &&
+                                                    _transaction
+                                                        .hasPartialMetadata)
+                                                  SelectableText(
+                                                    'Unknown',
+                                                    style: detailStyle,
+                                                  )
+                                                else if (data.length == 1 &&
                                                     data
                                                             .first
                                                             .addresses
@@ -1047,26 +1080,18 @@ class _TransactionV2DetailsViewState
                                           const SizedBox(height: 2),
                                         if (isDesktop)
                                           SelectableText(
-                                            Format.extractDateFrom(
-                                              _transaction.timestamp,
-                                            ),
+                                            _dateText,
                                             style: detailStyle,
                                           ),
                                       ],
                                     ),
                                     if (!isDesktop)
                                       SelectableText(
-                                        Format.extractDateFrom(
-                                          _transaction.timestamp,
-                                        ),
+                                        _dateText,
                                         style: detailStyle,
                                       ),
                                     if (isDesktop)
-                                      IconCopyButton(
-                                        data: Format.extractDateFrom(
-                                          _transaction.timestamp,
-                                        ),
-                                      ),
+                                      IconCopyButton(data: _dateText),
                                   ],
                                 ),
                               ),
@@ -1087,7 +1112,10 @@ class _TransactionV2DetailsViewState
                                       : const EdgeInsets.all(12),
                                   child: Builder(
                                     builder: (context) {
-                                      final String feeString = showFeePending
+                                      final knownFee = fee;
+                                      final String feeString = knownFee == null
+                                          ? 'Unknown'
+                                          : showFeePending
                                           ? _transaction.isConfirmed(
                                                   currentHeight,
                                                   minConfirms,
@@ -1097,11 +1125,11 @@ class _TransactionV2DetailsViewState
                                                       .watch(
                                                         pAmountFormatter(coin),
                                                       )
-                                                      .format(fee)
+                                                      .format(knownFee)
                                                 : "Pending"
                                           : ref
                                                 .watch(pAmountFormatter(coin))
-                                                .format(fee);
+                                                .format(knownFee);
 
                                       return Row(
                                         mainAxisAlignment:
@@ -1280,14 +1308,29 @@ class _TransactionV2DetailsViewState
                                   label: "Nonce",
                                   detail: _transaction.nonce.toString(),
                                 ),
-                              if (_transaction.memo != null)
+                              if (_transaction.memo != null ||
+                                  _transaction.isMetadataMissing('memo'))
                                 isDesktop
                                     ? const _Divider()
                                     : const SizedBox(height: 12),
-                              if (_transaction.memo != null)
+                              if (_transaction.memo != null ||
+                                  _transaction.isMetadataMissing('memo'))
                                 _DetailItem(
                                   label: "Memo",
-                                  detail: _transaction.memo!,
+                                  detail: _transaction.memo ?? 'Unknown',
+                                ),
+                              if (_transaction.isMetadataMissing(
+                                'transactionVersion',
+                              ))
+                                isDesktop
+                                    ? const _Divider()
+                                    : const SizedBox(height: 12),
+                              if (_transaction.isMetadataMissing(
+                                'transactionVersion',
+                              ))
+                                const _DetailItem(
+                                  label: 'Transaction version',
+                                  detail: 'Unknown',
                                 ),
                               if (coin is Salvium &&
                                   _transaction.salviumTypeString != null)
@@ -2164,6 +2207,7 @@ class _TxDetailsAmountHeader extends ConsumerWidget {
     required this.coin,
     required this.whatIsIt,
     required this.amount,
+    required this.amountKnown,
     this.price,
     required this.labelStyle,
     required this.detailStyle,
@@ -2177,6 +2221,7 @@ class _TxDetailsAmountHeader extends ConsumerWidget {
   final CryptoCurrency coin;
   final String Function(TransactionV2, int) whatIsIt;
   final Amount amount;
+  final bool amountKnown;
   final Decimal? price;
   final TextStyle labelStyle;
   final TextStyle detailStyle;
@@ -2227,9 +2272,11 @@ class _TxDetailsAmountHeader extends ConsumerWidget {
                 children: [
                   Builder(
                     builder: (context) {
-                      final formattedAmount = ref
-                          .watch(pAmountFormatter(coin))
-                          .format(amount, tokenContract: tokenContract);
+                      final formattedAmount = amountKnown
+                          ? ref
+                                .watch(pAmountFormatter(coin))
+                                .format(amount, tokenContract: tokenContract)
+                          : 'Unknown';
                       return SelectableText(
                         "$amountPrefix$formattedAmount",
                         style: detailStyle,
@@ -2237,7 +2284,7 @@ class _TxDetailsAmountHeader extends ConsumerWidget {
                     },
                   ),
                   const SizedBox(height: 2),
-                  if (price != null)
+                  if (price != null && amountKnown)
                     Builder(
                       builder: (context) {
                         final total = (amount.decimal * price!).toAmount(
