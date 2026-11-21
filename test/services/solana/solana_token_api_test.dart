@@ -39,7 +39,7 @@ void main() {
       'http://127.0.0.1:${server.port}',
       httpClient: httpClient,
     );
-    api = SolanaTokenAPI()..initializeRpcClient(client);
+    api = SolanaTokenAPI(rpcClient: client);
   });
 
   tearDown(() async {
