@@ -17,6 +17,7 @@ import 'package:tuple/tuple.dart';
 
 import '../../../app_config.dart';
 import '../../../models/exchange/incomplete_exchange.dart';
+import '../../../models/isar/models/isar_models.dart';
 import '../../../providers/providers.dart';
 import '../../../route_generator.dart';
 import '../../../themes/stack_colors.dart';
@@ -46,6 +47,7 @@ import '../../../widgets/stack_dialog.dart';
 import '../../home_view/home_view.dart';
 import '../../send_view/sub_widgets/building_transaction_dialog.dart';
 import '../../wallet_view/wallet_view.dart';
+import '../sub_widgets/exchange_coin_control.dart';
 import '../confirm_change_now_send.dart';
 import '../send_from_view.dart';
 import '../sub_widgets/step_row.dart';
@@ -70,6 +72,12 @@ class _Step4ViewState extends ConsumerState<Step4View> {
   late final bool isWalletCoinAndCanSend;
   late final IncompleteExchangeModel model;
   late final ClipboardInterface clipboard;
+
+  Set<UTXO> _selectedUTXOs = {};
+  String? _selectedUtxoWalletId;
+
+  Set<UTXO> _selectionFor(String walletId) =>
+      _selectedUtxoWalletId == walletId ? _selectedUTXOs : const {};
 
   String _statusString = "New";
 
@@ -304,6 +312,17 @@ class _Step4ViewState extends ConsumerState<Step4View> {
         addressType: wallet.cryptoCurrency.getAddressType(address)!,
       );
 
+      final selected = _selectionFor(tuple.item1);
+      final selectedInputs = selected.isEmpty
+          ? null
+          : (await prepareExchangeCoinSelection(
+              walletId: tuple.item1,
+              wallet: wallet,
+              currentChainHeight: ref.read(pWalletChainHeight(tuple.item1)),
+              amount: amount,
+              selected: selected,
+            )).inputs;
+
       if (wallet is FiroWallet && !firoPublicSend) {
         txDataFuture = wallet.prepareSendSpark(
           txData: TxData(
@@ -325,6 +344,7 @@ class _Step4ViewState extends ConsumerState<Step4View> {
             recipients: [recipient],
             memo: memo,
             feeRateType: FeeRateType.average,
+            utxos: selectedInputs,
             note:
                 "${model.trade!.payInCurrency.toUpperCase()}/"
                 "${model.trade!.payOutCurrency.toUpperCase()} exchange",
@@ -365,6 +385,12 @@ class _Step4ViewState extends ConsumerState<Step4View> {
       }
     } catch (e, s) {
       Logging.instance.e("$e\n$s", error: e, stackTrace: s);
+      if (e is ExchangeCoinSelectionException && e.clearSelection && mounted) {
+        setState(() {
+          _selectedUtxoWalletId = null;
+          _selectedUTXOs = {};
+        });
+      }
       if (mounted && !wasCancelled) {
         // pop building dialog
         Navigator.of(context).pop();
@@ -543,6 +569,43 @@ class _Step4ViewState extends ConsumerState<Step4View> {
                               ),
                               if (isWalletCoinAndCanSend)
                                 const SizedBox(height: 12),
+                              if (isWalletCoinAndCanSend)
+                                Builder(
+                                  builder: (context) {
+                                    final tuple = ref
+                                        .watch(
+                                          exchangeSendFromWalletIdStateProvider
+                                              .state,
+                                        )
+                                        .state;
+                                    final payInDecimal = model.payInDecimal;
+                                    if (tuple == null ||
+                                        payInDecimal == null ||
+                                        model.sendTicker.toLowerCase() !=
+                                            tuple.item2.ticker.toLowerCase()) {
+                                      return const SizedBox.shrink();
+                                    }
+                                    return ExchangeCoinControlSelector(
+                                      key: ValueKey(tuple.item1),
+                                      walletId: tuple.item1,
+                                      amount: payInDecimal.toAmount(
+                                        fractionDigits:
+                                            tuple.item2.fractionDigits,
+                                      ),
+                                      selected: _selectionFor(tuple.item1),
+                                      onChanged: (selected) {
+                                        setState(() {
+                                          _selectedUtxoWalletId = tuple.item1;
+                                          _selectedUTXOs = selected;
+                                        });
+                                      },
+                                      padding: const EdgeInsets.only(
+                                        bottom: 12,
+                                      ),
+                                      rounded: true,
+                                    );
+                                  },
+                                ),
                               if (isWalletCoinAndCanSend)
                                 _SendFromButton(
                                   model: model,
