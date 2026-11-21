@@ -41,6 +41,9 @@ class Mimblewimblecoin extends Bip39Currency {
   @override
   String get ticker => _ticker;
 
+  /// Timestamp of the first block, in seconds since the epoch.
+  static const int genesisBlockTime = 1573462800;
+
   @override
   String get genesisHash {
     return "not used in mimblewimblecoin";
