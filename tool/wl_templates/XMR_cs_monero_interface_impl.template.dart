@@ -174,6 +174,33 @@ class _CsMoneroInterfaceImpl extends CsMoneroInterface {
   }
 
   @override
+  Future<WrappedWallet> getRestoredFromKeysWallet({
+    required String walletId,
+    required String path,
+    required String password,
+    required String address,
+    required String privateViewKey,
+    required String privateSpendKey,
+    int network = 0, // default to mainnet
+    int height = 0,
+  }) async {
+    return WrappedWallet(
+      await lib_monero.MoneroWallet.restoreWalletFromKeys(
+        path: path,
+        password: password,
+        language: "",
+        address: address,
+        viewKey: privateViewKey,
+        spendKey: privateSpendKey,
+        restoreHeight: height,
+        networkType: lib_monero.Network.values.firstWhere(
+          (e) => e.value == network,
+        ),
+      ),
+    );
+  }
+
+  @override
   Future<String> getTxKey(WrappedWallet wallet, String txid) =>
       wallet.get<lib_monero.Wallet>().getTxKey(txid);
 

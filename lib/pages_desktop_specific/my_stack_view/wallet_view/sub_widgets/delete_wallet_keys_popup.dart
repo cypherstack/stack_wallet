@@ -14,8 +14,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../models/keys/cw_key_data.dart';
+import '../../../../models/keys/key_data_interface.dart';
+import '../../../../models/keys/wallet_recovery_material.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages/add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
+import '../../../../pages/settings_views/wallet_settings_view/wallet_backup_views/cn_wallet_keys.dart';
 import '../../../../providers/global/secure_store_provider.dart';
 import '../../../../providers/global/wallets_provider.dart';
 import '../../../../route_generator.dart';
@@ -29,18 +33,31 @@ import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
+import '../../../../widgets/rounded_white_container.dart';
 
 class DeleteWalletKeysPopup extends ConsumerStatefulWidget {
   const DeleteWalletKeysPopup({
     super.key,
-    required this.walletId,
-    required this.words,
+    required this.recoveryMaterial,
     this.clipboardInterface = const ClipboardWrapper(),
   });
 
-  final String walletId;
-  final List<String> words;
+  final WalletRecoveryMaterial recoveryMaterial;
   final ClipboardInterface clipboardInterface;
+
+  String get walletId => recoveryMaterial.walletId;
+  List<String>? get words => switch (recoveryMaterial) {
+    final MnemonicWalletRecoveryMaterial data => data.words,
+    _ => null,
+  };
+  KeyDataInterface? get keyData => switch (recoveryMaterial) {
+    final PrivateKeyWalletRecoveryMaterial data => data.keyData,
+    _ => null,
+  };
+  FrostWalletRecoveryData? get frostData => switch (recoveryMaterial) {
+    final FrostWalletRecoveryMaterial data => data.data,
+    _ => null,
+  };
 
   static const String routeName = "/desktopDeleteWalletKeysPopup";
 
@@ -51,7 +68,7 @@ class DeleteWalletKeysPopup extends ConsumerStatefulWidget {
 
 class _DeleteWalletKeysPopup extends ConsumerState<DeleteWalletKeysPopup> {
   late final String _walletId;
-  late final List<String> _words;
+  late final List<String>? _words;
   late final ClipboardInterface _clipboardInterface;
 
   static const _recoveryPhraseInfo =
@@ -70,9 +87,15 @@ class _DeleteWalletKeysPopup extends ConsumerState<DeleteWalletKeysPopup> {
 
   @override
   Widget build(BuildContext context) {
+    if (_words == null &&
+        widget.keyData is! CWKeyData &&
+        widget.frostData == null) {
+      throw StateError("Wallet has no recovery data");
+    }
+
     return DesktopDialog(
       maxWidth: 614,
-      maxHeight: double.infinity,
+      maxHeight: null,
       child: Column(
         children: [
           Row(
@@ -92,48 +115,77 @@ class _DeleteWalletKeysPopup extends ConsumerState<DeleteWalletKeysPopup> {
               ),
             ],
           ),
-          const SizedBox(height: 28),
-          Text(
-            "Recovery phrase",
-            style: STextStyles.desktopTextMedium(context),
-          ),
-          const SizedBox(height: 8),
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
-              child: Text(
-                _recoveryPhraseInfo,
-                style: STextStyles.desktopTextExtraExtraSmall(context),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: RawMaterialButton(
-              hoverColor: Colors.transparent,
-              onPressed: () async {
-                await _clipboardInterface.setData(
-                  ClipboardData(text: _words.join(" ")),
-                );
-                if (context.mounted) {
-                  unawaited(
-                    showFloatingFlushBar(
-                      type: FlushBarType.info,
-                      message: "Copied to clipboard",
-                      iconAsset: Assets.svg.copy,
-                      context: context,
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  if (_words != null) ...[
+                    const SizedBox(height: 28),
+                    Text(
+                      "Recovery phrase",
+                      style: STextStyles.desktopTextMedium(context),
                     ),
-                  );
-                }
-              },
-              child: MnemonicTable(
-                words: widget.words,
-                isDesktop: true,
-                itemBorderColor: Theme.of(
-                  context,
-                ).extension<StackColors>()!.buttonBackSecondary,
+                    const SizedBox(height: 8),
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 32),
+                        child: Text(
+                          _recoveryPhraseInfo,
+                          style: STextStyles.desktopTextExtraExtraSmall(
+                            context,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      child: RawMaterialButton(
+                        hoverColor: Colors.transparent,
+                        onPressed: () async {
+                          await _clipboardInterface.setData(
+                            ClipboardData(text: _words.join(" ")),
+                          );
+                          if (context.mounted) {
+                            unawaited(
+                              showFloatingFlushBar(
+                                type: FlushBarType.info,
+                                message: "Copied to clipboard",
+                                iconAsset: Assets.svg.copy,
+                                context: context,
+                              ),
+                            );
+                          }
+                        },
+                        child: MnemonicTable(
+                          words: widget.words!,
+                          isDesktop: true,
+                          itemBorderColor: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.buttonBackSecondary,
+                        ),
+                      ),
+                    ),
+                  ] else if (widget.keyData is CWKeyData) ...[
+                    const SizedBox(height: 20),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      child: Text(
+                        "Save these keys before deleting your wallet. They are "
+                        "required to restore access to your funds.",
+                        style: STextStyles.desktopTextExtraExtraSmall(context),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    CNWalletKeys(
+                      cwKeyData: widget.keyData as CWKeyData,
+                      walletId: widget.walletId,
+                    ),
+                  ] else ...[
+                    _FrostRecoveryData(data: widget.frostData!),
+                  ],
+                ],
               ),
             ),
           ),
@@ -147,7 +199,7 @@ class _DeleteWalletKeysPopup extends ConsumerState<DeleteWalletKeysPopup> {
                     label: "Continue",
                     onPressed: () async {
                       await Navigator.of(context).push(
-                        RouteGenerator.getRoute(
+                        RouteGenerator.getRoute<void>(
                           builder: (context) {
                             return ConfirmDelete(walletId: _walletId);
                           },
@@ -165,6 +217,71 @@ class _DeleteWalletKeysPopup extends ConsumerState<DeleteWalletKeysPopup> {
           const SizedBox(height: 32),
         ],
       ),
+    );
+  }
+}
+
+class _FrostRecoveryData extends StatelessWidget {
+  const _FrostRecoveryData({required this.data});
+
+  final FrostWalletRecoveryData data;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Column(
+        children: [
+          const SizedBox(height: 20),
+          Text(
+            "Save this FROST backup before deleting your wallet.",
+            style: STextStyles.desktopTextExtraExtraSmall(context),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 20),
+          _FrostRecoveryField(label: "Multisig config", value: data.config),
+          const SizedBox(height: 16),
+          _FrostRecoveryField(label: "Keys", value: data.keys),
+          if (data.prevGen case final previous?) ...[
+            const SizedBox(height: 24),
+            Text(
+              "Previous generation",
+              style: STextStyles.desktopTextMedium(context),
+            ),
+            const SizedBox(height: 16),
+            _FrostRecoveryField(
+              label: "Multisig config",
+              value: previous.config,
+            ),
+            const SizedBox(height: 16),
+            _FrostRecoveryField(label: "Keys", value: previous.keys),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _FrostRecoveryField extends StatelessWidget {
+  const _FrostRecoveryField({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(label, style: STextStyles.desktopTextMedium(context)),
+        const SizedBox(height: 8),
+        RoundedWhiteContainer(
+          child: SelectableText(
+            value,
+            style: STextStyles.desktopTextExtraExtraSmall(context),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ],
     );
   }
 }
