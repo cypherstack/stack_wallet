@@ -108,7 +108,7 @@ class NotificationsService extends ChangeNotifier {
     _timer = Timer.periodic(notificationRefreshInterval, (_) {
       Logging.instance.d("Periodic notifications update check");
       if (prefs.externalCalls) {
-        unawaited(_checkTrades());
+        unawaited(checkTrades());
       }
       _checkTransactions();
     });
@@ -205,7 +205,9 @@ class NotificationsService extends ChangeNotifier {
     }
   }
 
-  Future<void> _checkTrades() async {
+  Future<void> checkTrades({
+    Exchange Function(String) exchangeForName = Exchange.fromName,
+  }) async {
     for (final notification in _watchedChangeNowTradeNotifications) {
       final id = notification.changeNowId!;
 
@@ -215,63 +217,37 @@ class NotificationsService extends ChangeNotifier {
       );
 
       if (trades.isEmpty) {
+        await _deleteWatchedTradeNotification(notification);
         continue;
       }
       final oldTrade = trades.first;
       late final ExchangeResponse<Trade> response;
 
       try {
-        final exchange = Exchange.fromName(oldTrade.exchangeName);
+        final exchange = exchangeForName(oldTrade.exchangeName);
         response = await exchange.updateTrade(oldTrade);
       } catch (_) {
         continue;
       }
 
-      if (response.value == null) {
-        continue;
-      }
-
-      final trade = response.value!;
-
-      // only update if status has changed
-      if (trade.status != notification.title) {
-        bool shouldWatchForUpdates = true;
-        // TODO: make sure we set shouldWatchForUpdates to correct value here
-        switch (trade.status) {
-          case "Refunded":
-          case "refunded":
-          case "Failed":
-          case "failed":
-          case "closed":
-          case "expired":
-          case "Finished":
-          case "finished":
-          case "Completed":
-          case "completed":
-          case "Not found":
-            shouldWatchForUpdates = false;
-            break;
-          default:
-            shouldWatchForUpdates = true;
+      await TradesService.notificationUpdateLock.protect(() async {
+        if (!tradesService.trades.any((e) => e.uuid == oldTrade.uuid)) {
+          await _deleteWatchedTradeNotification(notification);
+          return;
         }
+        final trade = response.value;
+        if (trade == null || trade.status == notification.title) return;
 
         final updatedNotification = notification.copyWith(
           title: trade.status,
-          shouldWatchForUpdates: shouldWatchForUpdates,
+          shouldWatchForUpdates: !trade.isTerminalStatus,
         );
-
-        // remove from watch list if shouldWatchForUpdates was changed
-        if (!shouldWatchForUpdates) {
+        await tradesService.edit(trade: trade, shouldNotifyListeners: true);
+        if (!updatedNotification.shouldWatchForUpdates) {
           await _deleteWatchedTradeNotification(notification);
         }
-
-        // replaces the current notification with the updated one
-        unawaited(add(updatedNotification, true));
-
-        // update the trade in db
-        // over write trade stored in db with updated version
-        await tradesService.edit(trade: trade, shouldNotifyListeners: true);
-      }
+        await add(updatedNotification, true);
+      });
     }
   }
 
@@ -314,10 +290,10 @@ class NotificationsService extends ChangeNotifier {
     );
     if (notification.shouldWatchForUpdates) {
       if (notification.txid != null) {
-        _addWatchedTxNotification(notification);
+        await _addWatchedTxNotification(notification);
       }
       if (notification.changeNowId != null) {
-        _addWatchedTradeNotification(notification);
+        await _addWatchedTradeNotification(notification);
       }
     }
     if (shouldNotifyListeners) {
