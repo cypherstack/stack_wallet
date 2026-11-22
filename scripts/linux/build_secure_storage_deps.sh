@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 if [ "${USE_SYSTEM_SECURE_STORAGE_DEPS:-0}" = "1" ]; then
     echo "USE_SYSTEM_SECURE_STORAGE_DEPS is set; skipping build of jsoncpp and libsecret (using system packages)"
@@ -18,11 +19,11 @@ if ! [ -x "$(command -v git)" ]; then
 fi
 git -C jsoncpp pull origin $JSONCPP_TAG || git clone https://github.com/open-source-parsers/jsoncpp.git jsoncpp
 cd jsoncpp || exit 1
-git checkout $JSONCPP_TAG
+git checkout "$JSONCPP_TAG" || exit 1
 mkdir -p build
 cd build || exit 1
-cmake -DCMAKE_BUILD_TYPE=release -DBUILD_STATIC_LIBS=ON -DBUILD_SHARED_LIBS=ON -DARCHIVE_INSTALL_DIR=. -G "Unix Makefiles" ..
-make -j"$(nproc)"
+cmake -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_BUILD_TYPE=release -DBUILD_STATIC_LIBS=ON -DBUILD_SHARED_LIBS=ON -DARCHIVE_INSTALL_DIR=. -G "Unix Makefiles" .. || exit 1
+make -j"$(nproc)" || exit 1
 
 cd "$LINUX_DIRECTORY" || exit 1
 # Build libSecret
@@ -33,14 +34,35 @@ cd "$LINUX_DIRECTORY" || exit 1
 cd build || exit 1
 git -C libsecret pull origin $LIBSECRET_TAG || git clone https://git.cypherstack.com/Cypher_Stack/libsecret.git libsecret
 cd libsecret || exit 1
-git checkout $LIBSECRET_TAG
+git checkout "$LIBSECRET_TAG" || exit 1
 if ! [ -x "$(command -v meson)" ]; then
   echo 'Error: meson is not installed.' >&2
   exit 1
 fi
-meson _build -Dmanpage=false -Dgtk_doc=false
+# A second run finds _build already configured; "meson _build" would fail on that, so reconfigure instead.
+if [ -f _build/meson-private/coredata.dat ]; then
+  meson setup --reconfigure _build -Dvapi=false  -Dmanpage=false -Dgtk_doc=false || exit 1
+else
+  meson setup _build -Dvapi=false  -Dmanpage=false -Dgtk_doc=false || exit 1
+fi
 if ! [ -x "$(command -v ninja)" ]; then
   echo 'Error: ninja is not installed.' >&2
   exit 1
 fi
-ninja -C _build
+ninja -C _build || exit 1
+
+# Publish a local pkg-config file that points at the locally built libsecret.
+# This avoids relying on distro-specific libsecret/glib pkg-config metadata.
+mkdir -p "$LINUX_DIRECTORY/pc"
+cat > "$LINUX_DIRECTORY/pc/libsecret-1.pc" <<EOF
+prefix=$LINUX_DIRECTORY/build/libsecret
+exec_prefix=\${prefix}
+libdir=\${prefix}/_build/libsecret
+includedir=\${prefix}
+
+Name: libsecret-1
+Description: GObject bindings for Secret Service API
+Version: $LIBSECRET_TAG
+Libs: -L\${libdir} -lsecret-1
+Cflags: -I\${includedir} -I\${includedir}/_build
+EOF

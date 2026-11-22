@@ -13,21 +13,17 @@ for (( i=0; i<=5; i++ )); do
 done
 
 
-if [[ "$(uname)" == 'Darwin' ]]; then
-  # macos specific sed
-  sed -i '' "s/${APP_ID_PLACEHOLDER}/${NEW_APP_ID}/g" "${APP_PROJECT_ROOT_DIR}/${ANDROID_TF_0}"
-  sed -i '' "s/${APP_ID_PLACEHOLDER}/${NEW_APP_ID}/g" "${APP_PROJECT_ROOT_DIR}/${ANDROID_TF_1}"
-  sed -i '' "s/${APP_ID_PLACEHOLDER}/${NEW_APP_ID}/g" "${APP_PROJECT_ROOT_DIR}/${ANDROID_TF_2}"
-  sed -i '' "s/${APP_ID_PLACEHOLDER}/${NEW_APP_ID}/g" "${APP_PROJECT_ROOT_DIR}/${ANDROID_TF_3}"
-  sed -i '' "s/${APP_NAME_PLACEHOLDER}/${NEW_NAME}/g" "${APP_PROJECT_ROOT_DIR}/${ANDROID_TF_3}"
-  sed -i '' "s/${APP_ID_PLACEHOLDER}/${NEW_APP_ID}/g" "${APP_PROJECT_ROOT_DIR}/${ANDROID_TF_4}"
-  sed -i '' "s/${APP_ID_PLACEHOLDER}/${NEW_APP_ID}/g" "${APP_PROJECT_ROOT_DIR}/${ANDROID_TF_5}"
-else
-  sed -i "s/${APP_ID_PLACEHOLDER}/${NEW_APP_ID}/g" "${APP_PROJECT_ROOT_DIR}/${ANDROID_TF_0}"
-  sed -i "s/${APP_ID_PLACEHOLDER}/${NEW_APP_ID}/g" "${APP_PROJECT_ROOT_DIR}/${ANDROID_TF_1}"
-  sed -i "s/${APP_ID_PLACEHOLDER}/${NEW_APP_ID}/g" "${APP_PROJECT_ROOT_DIR}/${ANDROID_TF_2}"
-  sed -i "s/${APP_ID_PLACEHOLDER}/${NEW_APP_ID}/g" "${APP_PROJECT_ROOT_DIR}/${ANDROID_TF_3}"
-  sed -i "s/${APP_NAME_PLACEHOLDER}/${NEW_NAME}/g" "${APP_PROJECT_ROOT_DIR}/${ANDROID_TF_3}"
-  sed -i "s/${APP_ID_PLACEHOLDER}/${NEW_APP_ID}/g" "${APP_PROJECT_ROOT_DIR}/${ANDROID_TF_4}"
-  sed -i "s/${APP_ID_PLACEHOLDER}/${NEW_APP_ID}/g" "${APP_PROJECT_ROOT_DIR}/${ANDROID_TF_5}"
-fi
+# `sed -i.bak` works with both BSD sed and the GNU sed that the Nix dev shell
+# puts on PATH; the backup is removed immediately.
+sed_i() {
+  sed -i.bak "$1" "$2"
+  rm -f "${2}.bak"
+}
+
+sed_i "s/${APP_ID_PLACEHOLDER}/${NEW_APP_ID}/g" "${APP_PROJECT_ROOT_DIR}/${ANDROID_TF_0}"
+sed_i "s/${APP_ID_PLACEHOLDER}/${NEW_APP_ID}/g" "${APP_PROJECT_ROOT_DIR}/${ANDROID_TF_1}"
+sed_i "s/${APP_ID_PLACEHOLDER}/${NEW_APP_ID}/g" "${APP_PROJECT_ROOT_DIR}/${ANDROID_TF_2}"
+sed_i "s/${APP_ID_PLACEHOLDER}/${NEW_APP_ID}/g" "${APP_PROJECT_ROOT_DIR}/${ANDROID_TF_3}"
+sed_i "s/${APP_NAME_PLACEHOLDER}/${NEW_NAME}/g" "${APP_PROJECT_ROOT_DIR}/${ANDROID_TF_3}"
+sed_i "s/${APP_ID_PLACEHOLDER}/${NEW_APP_ID}/g" "${APP_PROJECT_ROOT_DIR}/${ANDROID_TF_4}"
+sed_i "s/${APP_ID_PLACEHOLDER}/${NEW_APP_ID}/g" "${APP_PROJECT_ROOT_DIR}/${ANDROID_TF_5}"

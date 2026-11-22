@@ -134,3 +134,78 @@ jobs:
         with:
           token: ${{secrets.CODECOV_TOKEN}}
           file: coverage/lcov.info
+
+  make-check:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0 # tags: require-version compares BUILD_NUM with build_* tags
+      - name: Check the Makefile dry-runs
+        run: |
+          if grep -nE '^[^#]*\$\(MAKE\)|^[[:space:]]*\+' Makefile; then
+            echo 'Makefile uses a construct that runs even under make -n' >&2
+            exit 1
+          fi
+          make help
+          make -n build-macos PLATFORM=Darwin VERSION=0.0.0 BUILD_NUM=1
+          make -n build-linux PLATFORM=Linux VERSION=0.0.0 BUILD_NUM=1
+          make -n build-windows PLATFORM=MINGW64_NT-10.0 VERSION=0.0.0 BUILD_NUM=1
+          make -n build-android PLATFORM=Darwin VERSION=0.0.0 BUILD_NUM=1
+          make -n build-ios PLATFORM=Darwin VERSION=0.0.0 BUILD_NUM=1
+          # A rejection only counts when it comes from the rule under test: an
+          # unrelated error (for example an invalid TOOLCHAIN value) also makes
+          # make fail and would let a policy regression through unnoticed.
+          expect_fail() {
+            pattern="$1"; shift
+            if out="$(make -n "$@" VERSION=0.0.0 BUILD_NUM=1 2>&1)"; then
+              echo "expected failure but succeeded: make -n $*" >&2
+              exit 1
+            fi
+            echo "$out" | grep -q -- "$pattern" || {
+              echo "make -n $* failed for the wrong reason (wanted '$pattern'): $out" >&2
+              exit 1
+            }
+          }
+          expect_fail 'requires the Nix dev shell' build-macos PLATFORM=Darwin UNAME_M=arm64 PREBUILTS=0
+          expect_fail 'requires the Nix dev shell' build-linux PLATFORM=Linux PREBUILTS=0
+          expect_fail 'requires Apple Silicon' build-macos PLATFORM=Darwin UNAME_M=x86_64 IN_NIX_SHELL=1 PREBUILTS=0
+          expect_fail 'build-windows uses verified' build-windows PLATFORM=MINGW64_NT-10.0 PREBUILTS=0
+          expect_fail 'ANDROID_PREBUILTS=0 requires' build-android PLATFORM=Linux UNAME_M=x86_64 ANDROID_PREBUILTS=0
+          # Every build needs Nix: without a Nix shell toolchain-check stops with an
+          # explanation, inside one (IN_NIX_SHELL) it passes, and Windows (Git Bash) is exempt.
+          for plat in Linux Darwin; do
+            if out="$(make toolchain-check PLATFORM=$plat UNAME_M=arm64 2>&1)"; then echo "$plat without Nix must fail" >&2; exit 1; fi
+            echo "$out" | grep -q 'No Nix shell is active' || { echo "wrong reason on $plat: $out" >&2; exit 1; }
+            make toolchain-check PLATFORM=$plat UNAME_M=arm64 IN_NIX_SHELL=1 >/dev/null
+          done
+          make toolchain-check PLATFORM=MINGW64_NT-10.0 >/dev/null
+          if out="$(make toolchain-check PLATFORM=Darwin UNAME_M=x86_64 IN_NIX_SHELL=1 2>&1)"; then echo 'Intel macOS has no Nix shell' >&2; exit 1; fi
+          # Mode selection: source only inside a Nix shell on a supported host.
+          build_line() { make -n "$@" VERSION=0.0.0 BUILD_NUM=1 | grep -E '\./build_app\.sh -' | head -n 1; }
+          build_line build-linux PLATFORM=Linux UNAME_M=x86_64 IN_NIX_SHELL=1 | grep -qE ' -d( |$)' && { echo 'Nix shell on Linux must default to source' >&2; exit 1; }
+          build_line build-linux PLATFORM=Linux UNAME_M=x86_64 | grep -qE ' -d( |$)' || { echo 'outside the Nix shell the default must be prebuilts' >&2; exit 1; }
+          build_line build-macos PLATFORM=Darwin UNAME_M=x86_64 IN_NIX_SHELL=1 | grep -qE ' -d( |$)' || { echo 'Intel macOS must use prebuilts' >&2; exit 1; }
+          true
+      # `make -n` never executes recipes, so a shell parse error in the
+      # require-version recipe is invisible to the dry-runs above. Run it for real.
+      # This is a bash step, not a Makefile recipe: use single `$`.
+      - name: require-version recipe executes (valid passes, invalid fails)
+        run: |
+          # Use the latest build_* tag as BUILD_NUM so the valid case is not
+          # rejected by the "BUILD_NUM below latest tag" guard; this step tests
+          # the regex/parse behaviour, not the release-tag rule.
+          build_num="$(git tag -l 'build_*' --sort=-v:refname | sed -n 's/^build_\([0-9][0-9]*\)$/\1/p' | head -n1)"
+          build_num="${build_num:-1}"
+          make require-version VERSION=0.0.0 BUILD_NUM="$build_num" >/dev/null 2>&1 \
+            || { echo "require-version rejected a valid VERSION/BUILD_NUM ($build_num)" >&2; exit 1; }
+          if make require-version VERSION=not-a-version BUILD_NUM="$build_num" >/dev/null 2>&1; then
+            echo 'require-version accepted an invalid VERSION' >&2
+            exit 1
+          fi
+          if make require-version VERSION=0.0.0 BUILD_NUM=not-a-number >/dev/null 2>&1; then
+            echo 'require-version accepted a non-numeric BUILD_NUM' >&2
+            exit 1
+          fi
