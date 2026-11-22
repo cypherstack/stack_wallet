@@ -7,6 +7,24 @@ the four dnix packages are either compiled from source (`PREBUILTS=0`) or taken 
 prebuilts (`PREBUILTS=1`). Windows (Git Bash) is the one exception: it has no Nix and always
 uses the prebuilts.
 
+## Which build is for what
+
+Stack Wallet is built in three different ways. This page is about the first one.
+
+| | For | How | Nix |
+|---|---|---|---|
+| **Local builds** | testers, anyone who wants to reproduce a build or make their own | `make build-*` in the Nix shell (this page) | always |
+| **CI development builds** | automatic builds of `staging` and of version tags | `.github/workflows/build.yaml`: the CI Docker image (Ubuntu 24.04) or a hosted runner, `build_app.sh ... -d -s`, then `flutter build` | no |
+| **Official releases** | the Stack Wallet team | not defined in this repository | unknown |
+
+Local builds and CI builds share the same core (`scripts/build_app.sh`, the dnix packages and
+`flutter build`); they differ in where the toolchain comes from: the flake here, the CI image
+and setup actions there. The CI workflow calls its output unverified development builds.
+
+A local build is not a release. A Linux bundle built in the Nix shell only runs where its
+`/nix/store` paths exist (see "Linux" below), the app is not signed, and the API keys are empty
+stubs unless you provide your own `lib/external_api_keys.dart`.
+
 ## Quick start
 
 ```sh
